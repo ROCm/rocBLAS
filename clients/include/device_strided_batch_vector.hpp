@@ -22,7 +22,7 @@ public:
     typedef enum class estorage
     {
         block,
-        interleave
+        interleave,
     } storage;
 
     //!
@@ -93,6 +93,22 @@ public:
             this->device_vector_teardown(this->m_data);
             this->m_data = nullptr;
         }
+    }
+
+    //!
+    //! @brief Returns the data pointer.
+    //!
+    T* data()
+    {
+        return this->m_data;
+    }
+
+    //!
+    //! @brief Returns the data pointer.
+    //!
+    const T* data() const
+    {
+        return this->m_data;
     }
 
     //!
@@ -184,7 +200,8 @@ public:
     //!
     hipError_t transfer_from(const host_strided_batch_vector<T>& that)
     {
-        return hipMemcpy((*this)[0], that[0], sizeof(T) * this->nmemb(), hipMemcpyHostToDevice);
+        return hipMemcpy(
+            this->data(), that.data(), sizeof(T) * this->nmemb(), hipMemcpyHostToDevice);
     }
 
     //!
@@ -210,17 +227,10 @@ private:
         switch(st)
         {
         case storage::block:
-        {
             return size_t(std::abs(stride)) * batch_count;
-        }
         case storage::interleave:
-        {
             return size_t(n) * std::abs(inc);
         }
-        default:
-        {
-            return 0;
-        }
-        }
+        return 0;
     }
 };

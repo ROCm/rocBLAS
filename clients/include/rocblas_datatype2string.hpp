@@ -109,9 +109,8 @@ constexpr auto rocblas_datatype2string(rocblas_datatype type)
         return "bf16_r";
     case rocblas_datatype_bf16_c:
         return "bf16_c";
-    default:
-        return "invalid";
     }
+    return "invalid";
 }
 
 constexpr auto rocblas_initialization2string(rocblas_initialization init)
@@ -124,9 +123,8 @@ constexpr auto rocblas_initialization2string(rocblas_initialization init)
         return "trig_float";
     case rocblas_initialization_hpl:
         return "hpl";
-    default:
-        return "invalid";
     }
+    return "invalid";
 }
 
 /* ============================================================================================ */

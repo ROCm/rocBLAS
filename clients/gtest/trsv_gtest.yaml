@@ -4,26 +4,26 @@ include: known_bugs.yaml
 
 Definitions:
   - &small_matrix_size_range
-    - { M:    -1, lda:     1 }
-    - { M:     4, lda:     4 }
-    - { M:    10, lda:    20 }
-    - { M:   128, lda:   256 }
+    - { M:    -1, lda:     1, stride_a: 1 }
+    - { M:     4, lda:     4, stride_a: 16 }
+    - { M:    10, lda:    20, stride_a: 300 }
+    - { M:   10, lda:   10, stride_a: 100 }
+    - { M:   128, lda:   128, stride_a: 32768 }
 
   - &medium_matrix_size_range
-    - { M:   192, lda:   192 }
-    - { M:   256, lda:   256 }
-    - { M:   384, lda:   384 }
-    - { M:   600, lda:   600 }
-    - { M:   800, lda:   801 }
+    - { M:   192, lda:   192, stride_a: 36864 }
+    - { M:   256, lda:   256, stride_a: 65536 }
+    - { M:   384, lda:   384, stride_a: 147456 }
+    - { M:   600, lda:   600, stride_a: 400000 }
+    - { M:   800, lda:   801, stride_a: 640800 }
 
   - &large_matrix_size_range
-    - { M:   640, lda:   960 }
-    - { M:  1000, lda:  1000 }
-    - { M:  1024, lda:  1024 }
-    - { M:  2000, lda:  2000 }
+    - { M:   640, lda:   960, stride_a: 614400 }
+    - { M:  1000, lda:  1000, stride_a: 1000000 }
+    - { M:  1024, lda:  1024, stride_a: 1048576 }
+    - { M:  2000, lda:  2000, stride_a: 4000000 }
 
   - &common_args
-    function: trsv
     precision: *single_double_precisions
     uplo: [L, U]
     transA: [N, C]
@@ -32,19 +32,75 @@ Definitions:
 Tests:
 - name: trsv_small
   category: quick
+  function: trsv
   arguments: *common_args
   matrix_size: *small_matrix_size_range
   incx: [ -3, -2, -1, 0, 1, 2, 3, 10, 100 ]
 
 - name: trsv_medium
   category: pre_checkin
+  function: trsv
   arguments: *common_args
   matrix_size: *medium_matrix_size_range
   incx: [ -2, -1, 0, 1, 2, 3, 10 ]
 
 - name: trsv_large
   category: nightly
+  function: trsv
   arguments: *common_args
   matrix_size: *large_matrix_size_range
   incx: [ -1, 0, 1, 2, 3 ]
+
+- name: trsv_batched_small
+  category: quick
+  function: trsv_batched
+  arguments: *common_args
+  matrix_size: *small_matrix_size_range
+  incx: [ -3, -2, -1, 0, 1, 2, 3, 10, 100 ]
+  stride_scale: [ 1, 10, 100 ]
+  batch_count: [ -5, 0, 1, 3, 5 ]
+
+- name: trsv_batched_medium
+  category: pre_checkin
+  function: trsv_batched
+  arguments: *common_args
+  matrix_size: *medium_matrix_size_range
+  incx: [ -2, -1, 0, 1, 2, 3, 10 ]
+  batch_count: [ 1, 3 ]
+
+- name: trsv_batched_large
+  category: nightly
+  function: trsv_batched
+  arguments: *common_args
+  matrix_size: *large_matrix_size_range
+  incx: [ -1, 0, 1, 2, 3 ]
+  batch_count: [ 1, 3 ]
+
+- name: trsv_strided_batched_small
+  category: quick
+  function: trsv_strided_batched
+  arguments: *common_args
+  matrix_size: *small_matrix_size_range
+  incx: [ -3, -2, -1, 0, 1, 2, 3, 10, 100 ]
+  stride_scale: [ 1, 10, 100 ]
+  batch_count: [ -5, 0, 1, 3, 5 ]
+
+- name: trsv_strided_batched_medium
+  category: pre_checkin
+  function: trsv_strided_batched
+  arguments: *common_args
+  matrix_size: *medium_matrix_size_range
+  incx: [ -2, -1, 0, 1, 2, 3, 10 ]
+  incx: [ 1 ]
+  stride_scale: [ 1 ]
+  batch_count: [ 1, 3 ]
+
+- name: trsv_strided_batched_large
+  category: nightly
+  function: trsv_strided_batched
+  arguments: *common_args
+  matrix_size: *large_matrix_size_range
+  incx: [ -1, 0, 1, 2, 3 ]
+  stride_scale: [ 1 ]
+  batch_count: [ 1, 3 ]
 ...

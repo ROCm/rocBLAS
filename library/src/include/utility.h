@@ -14,8 +14,8 @@
 #pragma STDC CX_LIMITED_RANGE ON
 
 // half vectors
-typedef _Float16 rocblas_half8 __attribute__((ext_vector_type(8)));
-typedef _Float16 rocblas_half2 __attribute__((ext_vector_type(2)));
+typedef rocblas_half rocblas_half8 __attribute__((ext_vector_type(8)));
+typedef rocblas_half rocblas_half2 __attribute__((ext_vector_type(2)));
 
 #ifndef GOOGLE_TEST
 extern "C" __device__ rocblas_half2 llvm_fma_v2f16(rocblas_half2,
@@ -31,13 +31,13 @@ __device__ inline rocblas_half2
 // Conjugate a value. For most types, simply return argument; for
 // rocblas_float_complex and rocblas_double_complex, return std::conj(z)
 template <typename T, typename std::enable_if<!is_complex<T>, int>::type = 0>
-__device__ __host__ inline auto conj(const T& z)
+__device__ __host__ inline T conj(const T& z)
 {
     return z;
 }
 
 template <typename T, typename std::enable_if<is_complex<T>, int>::type = 0>
-__device__ __host__ inline auto conj(const T& z)
+__device__ __host__ inline T conj(const T& z)
 {
     return std::conj(z);
 }
@@ -63,7 +63,7 @@ __forceinline__ __device__ __host__ T load_scalar(const T* xp)
 template <>
 __forceinline__ __device__ __host__ rocblas_half2 load_scalar(const rocblas_half2* xp)
 {
-    auto x = *reinterpret_cast<const _Float16*>(xp);
+    auto x = *reinterpret_cast<const rocblas_half*>(xp);
     return {x, x};
 }
 
@@ -140,54 +140,54 @@ inline bool isAligned(const void* pointer, size_t byte_count)
 
 // clang-format off
 // return letter N,T,C in place of rocblas_operation enum
-constexpr auto rocblas_transpose_letter(rocblas_operation trans)
+constexpr char rocblas_transpose_letter(rocblas_operation trans)
 {
     switch(trans)
     {
     case rocblas_operation_none:                return 'N';
     case rocblas_operation_transpose:           return 'T';
     case rocblas_operation_conjugate_transpose: return 'C';
-    default:                                    return ' ';
     }
+    return ' ';
 }
 
 // return letter L, R, B in place of rocblas_side enum
-constexpr auto rocblas_side_letter(rocblas_side side)
+constexpr char rocblas_side_letter(rocblas_side side)
 {
     switch(side)
     {
     case rocblas_side_left:  return 'L';
     case rocblas_side_right: return 'R';
     case rocblas_side_both:  return 'B';
-    default:                 return ' ';
     }
+    return ' ';
 }
 
 // return letter U, L, B in place of rocblas_fill enum
-constexpr auto rocblas_fill_letter(rocblas_fill fill)
+constexpr char rocblas_fill_letter(rocblas_fill fill)
 {
     switch(fill)
     {
     case rocblas_fill_upper: return 'U';
     case rocblas_fill_lower: return 'L';
     case rocblas_fill_full:  return 'F';
-    default:                 return ' ';
     }
+    return ' ';
 }
 
 // return letter N, U in place of rocblas_diagonal enum
-constexpr auto rocblas_diag_letter(rocblas_diagonal diag)
+constexpr char rocblas_diag_letter(rocblas_diagonal diag)
 {
     switch(diag)
     {
     case rocblas_diagonal_non_unit: return 'N';
     case rocblas_diagonal_unit:     return 'U';
-    default:                        return ' ';
     }
+    return ' ';
 }
 
 // return precision string for rocblas_datatype
-constexpr auto rocblas_datatype_string(rocblas_datatype type)
+constexpr const char* rocblas_datatype_string(rocblas_datatype type)
 {
     switch(type)
     {
@@ -207,8 +207,8 @@ constexpr auto rocblas_datatype_string(rocblas_datatype type)
     case rocblas_datatype_u32_c:  return "u32_c";
     case rocblas_datatype_bf16_r: return "bf16_r";
     case rocblas_datatype_bf16_c: return "bf16_c";
-    default:                      return "invalid";
     }
+    return "invalid";
 }
 
 // return sizeof rocblas_datatype
@@ -216,22 +216,24 @@ constexpr size_t rocblas_sizeof_datatype(rocblas_datatype type)
 {
     switch(type)
     {
-    case rocblas_datatype_f16_r: return 2;
-    case rocblas_datatype_f32_r: return 4;
-    case rocblas_datatype_f64_r: return 8;
-    case rocblas_datatype_f16_c: return 4;
-    case rocblas_datatype_f32_c: return 8;
-    case rocblas_datatype_f64_c: return 16;
-    case rocblas_datatype_i8_r:  return 1;
-    case rocblas_datatype_u8_r:  return 1;
-    case rocblas_datatype_i32_r: return 4;
-    case rocblas_datatype_u32_r: return 4;
-    case rocblas_datatype_i8_c:  return 2;
-    case rocblas_datatype_u8_c:  return 2;
-    case rocblas_datatype_i32_c: return 8;
-    case rocblas_datatype_u32_c: return 8;
-    default:                     return 0;
+    case rocblas_datatype_f16_r:  return 2;
+    case rocblas_datatype_f32_r:  return 4;
+    case rocblas_datatype_f64_r:  return 8;
+    case rocblas_datatype_f16_c:  return 4;
+    case rocblas_datatype_f32_c:  return 8;
+    case rocblas_datatype_f64_c:  return 16;
+    case rocblas_datatype_i8_r:   return 1;
+    case rocblas_datatype_u8_r:   return 1;
+    case rocblas_datatype_i32_r:  return 4;
+    case rocblas_datatype_u32_r:  return 4;
+    case rocblas_datatype_i8_c:   return 2;
+    case rocblas_datatype_u8_c:   return 2;
+    case rocblas_datatype_i32_c:  return 8;
+    case rocblas_datatype_u32_c:  return 8;
+    case rocblas_datatype_bf16_r: return 2;
+    case rocblas_datatype_bf16_c: return 4;
     }
+    return 0;
 }
 
 // return rocblas_datatype from type
@@ -272,7 +274,7 @@ template <> static constexpr char rocblas_precision_string<rocblas_u32_complex  
  * \brief convert hipError_t to rocblas_status
  * TODO - enumerate library calls to hip runtime, enumerate possible errors from those calls
  ******************************************************************************/
-constexpr auto get_rocblas_status_for_hip_status(hipError_t status)
+constexpr rocblas_status get_rocblas_status_for_hip_status(hipError_t status)
 {
     switch(status)
     {
@@ -308,7 +310,7 @@ constexpr auto get_rocblas_status_for_hip_status(hipError_t status)
 
 // Absolute value
 template <typename T, typename std::enable_if<!is_complex<T>, int>::type = 0>
-__device__ __host__ inline auto rocblas_abs(T x)
+__device__ __host__ inline T rocblas_abs(T x)
 {
     return x < 0 ? -x : x;
 }
@@ -321,10 +323,27 @@ __device__ __host__ inline auto rocblas_abs(T x)
 }
 
 // rocblas_bfloat16 is handled specially
-__device__ __host__ inline auto rocblas_abs(rocblas_bfloat16 x)
+__device__ __host__ inline rocblas_bfloat16 rocblas_abs(rocblas_bfloat16 x)
 {
     x.data &= 0x7fff;
     return x;
 }
 
+// rocblas_half
+__device__ __host__ inline rocblas_half rocblas_abs(rocblas_half x)
+{
+    union
+    {
+        rocblas_half x;
+        uint16_t     data;
+    } t = {x};
+    t.data &= 0x7fff;
+    return t.x;
+}
+
+// Output rocblas_half value
+inline std::ostream& operator<<(std::ostream& os, rocblas_half x)
+{
+    return os << float(x);
+}
 #endif

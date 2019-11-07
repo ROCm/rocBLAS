@@ -69,7 +69,7 @@ namespace
                           incy,
                           "--lda",
                           lda,
-                          "--batch",
+                          "--batch_count",
                           batch_count);
         }
         else

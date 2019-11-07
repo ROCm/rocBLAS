@@ -167,7 +167,7 @@ Tests:
   matrix_size: *medium_matrix_size_range
   alpha: *alpha_range
   stride_scale: [ 1, 1.5, 5 ]
-  batch_count: [ 1, 5 ]    
+  batch_count: [ 1, 5 ]
 
 # nightly
 - name: trsm_testset1
@@ -325,7 +325,7 @@ Tests:
 
 - name: trsm_batched_small
   category: quick
-  function: trsm_ex_batched
+  function: trsm_batched_ex
   precision: *single_double_precisions
   side: [L, R]
   uplo: [L, U]
@@ -337,7 +337,7 @@ Tests:
 
 - name: trsm_strided_batched_small
   category: quick
-  function: trsm_ex_strided_batched
+  function: trsm_strided_batched_ex
   precision: *single_double_precisions
   side: [L, R]
   uplo: [L, U]
@@ -362,7 +362,7 @@ Tests:
 
 - name: trsm_batched_medium
   category: pre_checkin
-  function: trsm_ex_batched
+  function: trsm_batched_ex
   precision: *single_double_precisions
   side: [L, R]
   uplo: [L, U]
@@ -374,7 +374,7 @@ Tests:
 
 - name: trsm_strided_batched_medium
   category: pre_checkin
-  function: trsm_ex_strided_batched
+  function: trsm_strided_batched_ex
   precision: *single_double_precisions
   side: [L, R]
   uplo: [L, U]
@@ -383,7 +383,7 @@ Tests:
   matrix_size: *medium_matrix_size_range
   alpha: *alpha_range
   stride_scale: [ 1, 1.5, 5 ]
-  batch_count: [ 1, 5 ]  
+  batch_count: [ 1, 5 ]
 
 - name: trsm_testset1_small
   category: pre_checkin
@@ -421,7 +421,7 @@ Tests:
 
 - name: trsm_batched_testset1
   category: nightly
-  function: trsm_ex_batched
+  function: trsm_batched_ex
   precision: *single_double_precisions
   side: [L]
   uplo: [L]
@@ -433,7 +433,7 @@ Tests:
 
 - name: trsm_strided_batched_testset1
   category: nightly
-  function: trsm_ex_strided_batched
+  function: trsm_strided_batched_ex
   precision: *single_double_precisions
   side: [L]
   uplo: [L]
@@ -457,7 +457,7 @@ Tests:
 
 - name: trsm_batched_testset2
   category: nightly
-  function: trsm_ex_batched
+  function: trsm_batched_ex
   precision: *single_double_precisions
   side: [R]
   uplo: [L]
@@ -469,7 +469,7 @@ Tests:
 
 - name: trsm_strided_batched_testset2
   category: nightly
-  function: trsm_ex_strided_batched
+  function: trsm_strided_batched_ex
   precision: *single_double_precisions
   side: [R]
   uplo: [L]
@@ -493,7 +493,7 @@ Tests:
 
 - name: trsm_batched_large
   category: nightly
-  function: trsm_ex_batched
+  function: trsm_batched_ex
   precision: *single_double_precisions
   arguments:
     - { side: L, uplo: L, transA: N, diag: N }
@@ -505,7 +505,7 @@ Tests:
 
 - name: trsm_strided_batched_large
   category: nightly
-  function: trsm_ex_strided_batched
+  function: trsm_strided_batched_ex
   precision: *single_double_precisions
   arguments:
     - { side: L, uplo: L, transA: N, diag: N }
@@ -519,7 +519,7 @@ Tests:
 # nightly - many batches
 - name: trsm_batched_manybatch
   category: nightly
-  function: trsm_ex_batched
+  function: trsm_batched_ex
   precision: *single_double_precisions
   side: [L, R]
   uplo: [L, U]
@@ -531,7 +531,7 @@ Tests:
 
 - name: trsm_strided_batched_manybatch
   category: nightly
-  function: trsm_ex_strided_batched
+  function: trsm_strided_batched_ex
   precision: *single_double_precisions
   side: [L, R]
   uplo: [L, U]

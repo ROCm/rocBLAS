@@ -28,29 +28,6 @@
 
 #else // GOOGLE_TEST
 
-inline const char* rocblas_status_to_string(rocblas_status status)
-{
-    switch(status)
-    {
-    case rocblas_status_success:
-        return "rocblas_status_success";
-    case rocblas_status_invalid_handle:
-        return "rocblas_status_invalid_handle";
-    case rocblas_status_not_implemented:
-        return "rocblas_status_not_implemented";
-    case rocblas_status_invalid_pointer:
-        return "rocblas_status_invalid_pointer";
-    case rocblas_status_invalid_size:
-        return "rocblas_status_invalid_size";
-    case rocblas_status_memory_error:
-        return "rocblas_status_memory_error";
-    case rocblas_status_internal_error:
-        return "rocblas_status_internal_error";
-    default:
-        return "<undefined rocblas_status value>";
-    }
-}
-
 inline void rocblas_expect_status(rocblas_status status, rocblas_status expect)
 {
     if(status != expect)
@@ -219,6 +196,21 @@ public:
 };
 
 #endif // GOOGLE_TEST
+
+// ----------------------------------------------------------------------------
+// Normal tests which return true when converted to bool
+// ----------------------------------------------------------------------------
+struct rocblas_test_valid
+{
+    // Return true to indicate the type combination is valid, for filtering
+    explicit operator bool()
+    {
+        return true;
+    }
+
+    // Require derived class to define functor which takes (const Arguments &)
+    virtual void operator()(const Arguments&) = 0;
+};
 
 // ----------------------------------------------------------------------------
 // Error case which returns false when converted to bool. A void specialization

@@ -224,25 +224,29 @@ constexpr __host__ __device__ rocblas_bfloat16 operator--(rocblas_bfloat16& a, i
     --a;
     return orig;
 }
-constexpr __host__ __device__ bool isinf(rocblas_bfloat16 a)
+
+namespace std
 {
-    return !(~a.data & 0x7f80) && !(a.data & 0x7f);
-}
-constexpr __host__ __device__ bool isnan(rocblas_bfloat16 a)
-{
-    return !(~a.data & 0x7f80) && +(a.data & 0x7f);
-}
-constexpr __host__ __device__ bool iszero(rocblas_bfloat16 a)
-{
-    return !(a.data & 0x7fff);
-}
-inline rocblas_bfloat16 sin(rocblas_bfloat16 a)
-{
-    return rocblas_bfloat16(sinf(float(a)));
-}
-inline rocblas_bfloat16 cos(rocblas_bfloat16 a)
-{
-    return rocblas_bfloat16(cosf(float(a)));
+    constexpr __host__ __device__ bool isinf(rocblas_bfloat16 a)
+    {
+        return !(~a.data & 0x7f80) && !(a.data & 0x7f);
+    }
+    constexpr __host__ __device__ bool isnan(rocblas_bfloat16 a)
+    {
+        return !(~a.data & 0x7f80) && +(a.data & 0x7f);
+    }
+    constexpr __host__ __device__ bool iszero(rocblas_bfloat16 a)
+    {
+        return !(a.data & 0x7fff);
+    }
+    inline rocblas_bfloat16 sin(rocblas_bfloat16 a)
+    {
+        return rocblas_bfloat16(sinf(float(a)));
+    }
+    inline rocblas_bfloat16 cos(rocblas_bfloat16 a)
+    {
+        return rocblas_bfloat16(cosf(float(a)));
+    }
 }
 
 #endif // __cplusplus < 201402L || (!defined(__HCC__) && !defined(__HIPCC__))

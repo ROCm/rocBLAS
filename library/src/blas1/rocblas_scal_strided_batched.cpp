@@ -71,7 +71,7 @@ namespace
                           "--stride_x",
                           stridex,
                           alphass.str(),
-                          "--batch",
+                          "--batch_count",
                           batch_count);
             }
         }
@@ -89,7 +89,7 @@ namespace
                         incx,
                         "stride_x",
                         stridex,
-                        "batch",
+                        "batch_count",
                         batch_count);
 
         if(!x)

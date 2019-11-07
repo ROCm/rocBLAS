@@ -85,34 +85,20 @@ void testing_rotmg_strided_batched(const Arguments& arg)
         }
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        if(batch_count < 0)
-            EXPECT_ROCBLAS_STATUS((rocblas_rotmg_strided_batched<T>(handle,
-                                                                    d1,
-                                                                    stride_d1,
-                                                                    d2,
-                                                                    stride_d2,
-                                                                    x1,
-                                                                    stride_x1,
-                                                                    y1,
-                                                                    stride_y1,
-                                                                    params,
-                                                                    stride_param,
-                                                                    batch_count)),
-                                  rocblas_status_invalid_size);
-        else
-            CHECK_ROCBLAS_ERROR((rocblas_rotmg_strided_batched<T>(handle,
-                                                                  d1,
-                                                                  stride_d1,
-                                                                  d2,
-                                                                  stride_d2,
-                                                                  x1,
-                                                                  stride_x1,
-                                                                  y1,
-                                                                  stride_y1,
-                                                                  params,
-                                                                  stride_param,
-                                                                  batch_count)));
-
+        EXPECT_ROCBLAS_STATUS((rocblas_rotmg_strided_batched<T>(handle,
+                                                                d1,
+                                                                stride_d1,
+                                                                d2,
+                                                                stride_d2,
+                                                                x1,
+                                                                stride_x1,
+                                                                y1,
+                                                                stride_y1,
+                                                                params,
+                                                                stride_param,
+                                                                batch_count)),
+                              batch_count < 0 ? rocblas_status_invalid_size
+                                              : rocblas_status_success);
         return;
     }
 

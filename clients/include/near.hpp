@@ -70,7 +70,7 @@ static constexpr double sum_error_tolerance<rocblas_double_complex> = 1 / 100000
 
 #endif
 
-#define NEAR_ASSERT_HALF(a, b, err) ASSERT_NEAR(half_to_float(a), half_to_float(b), err)
+#define NEAR_ASSERT_HALF(a, b, err) ASSERT_NEAR(float(a), float(b), err)
 
 #define NEAR_ASSERT_COMPLEX(a, b, err)                  \
     do                                                  \

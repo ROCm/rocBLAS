@@ -34,7 +34,6 @@
 #define ROCBLAS_VA_OPT_SUPPORTED(...) ROCBLAS_VA_OPT_3RD_ARG(__VA_OPT__(, ), 1, 0, )
 
 #if ROCBLAS_VA_OPT_SUPPORTED(?)
-
 #define ROCBLAS_VA_OPT_PRAGMA(pragma, ...) __VA_OPT__(_Pragma(#pragma))
 
 #else // ROCBLAS_VA_OPT_SUPPORTED
@@ -945,7 +944,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zswap_batched(rocblas_handle          hand
     incy      rocblas_int
               specifies the increment for the elements of y.
     @param[in]
-    stridey   rocblas_stride  
+    stridey   rocblas_stride
               stride from the start of one vector (y_i) and the next one (y_i+1).
               There are no restrictions placed on stride_x, however the user should
               take care to ensure that stride_y is of appropriate size, for a typical
@@ -1397,8 +1396,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dznrm2_strided_batched(rocblas_handle     
 /*! \brief BLAS Level 1 API
 
     \details
-    amax finds the first index of the element of maximum magnitude of real vector x
-         or the sum of magnitude of the real and imaginary parts of elements if x is a complex
+    amax finds the first index of the element of maximum magnitude of a vector x.
    vector
 
     @param[in]
@@ -1439,8 +1437,122 @@ ROCBLAS_EXPORT rocblas_status rocblas_izamax(rocblas_handle                handl
 /*! \brief BLAS Level 1 API
 
     \details
-    amin finds the first index of the element of minimum magnitude of real vector x
-         or the sum of magnitude of the real and imaginary parts of elements if x is a complex
+     amax_batched finds over a batch of vectors the first index of the element of maximum magnitude of a  vector x.
+
+    @param[in]
+    handle    rocblas_handle.
+              handle to the rocblas library context queue.
+    @param[in]
+    n         rocblas_int
+              number of elements in each vector x_i
+    @param[in]
+    x         array of pointers storing the different vector x_i on the GPU.
+    @param[in]
+    incx      rocblas_int
+              specifies the increment for the elements of each x_i. incx must be > 0.
+    @param[in]
+    batch_count rocblas_int
+              number of instances in the batch, must be > 0.
+    @param[out]
+    result
+              pointers to array of batch_count size for results. either on the host CPU or device GPU.
+              return is 0 if n, incx<=0.
+    ********************************************************************/
+
+ROCBLAS_EXPORT rocblas_status rocblas_isamax_batched(rocblas_handle     handle,
+                                                     rocblas_int        n,
+                                                     const float* const x[],
+                                                     rocblas_int        incx,
+                                                     rocblas_int        batch_count,
+                                                     rocblas_int*       result);
+
+ROCBLAS_EXPORT rocblas_status rocblas_idamax_batched(rocblas_handle      handle,
+                                                     rocblas_int         n,
+                                                     const double* const x[],
+                                                     rocblas_int         incx,
+                                                     rocblas_int         batch_count,
+                                                     rocblas_int*        result);
+
+ROCBLAS_EXPORT rocblas_status rocblas_icamax_batched(rocblas_handle                     handle,
+                                                     rocblas_int                        n,
+                                                     const rocblas_float_complex* const x[],
+                                                     rocblas_int                        incx,
+                                                     rocblas_int                        batch_count,
+                                                     rocblas_int*                       result);
+
+ROCBLAS_EXPORT rocblas_status rocblas_izamax_batched(rocblas_handle                      handle,
+                                                     rocblas_int                         n,
+                                                     const rocblas_double_complex* const x[],
+                                                     rocblas_int                         incx,
+                                                     rocblas_int  batch_count,
+                                                     rocblas_int* result);
+
+/*! \brief BLAS Level 1 API
+
+    \details
+     amax_strided_batched finds over a strided batch of vectors the first index of the element of maximum magnitude of a vector x.
+
+    @param[in]
+    handle    rocblas_handle.
+              handle to the rocblas library context queue.
+    @param[in]
+    n         rocblas_int
+              number of elements in each vector x_i
+    @param[in]
+    x         pointer to the first vector x_i on the GPU.
+    @param[in]
+    incx      rocblas_int
+              specifies the increment for the elements of each x_i. incx must be > 0.
+    @param[in]
+    stridex   rocblas_stride
+              specifies the pointer increment between batches for x.
+    @param[in]
+    batch_count rocblas_int
+              number of instances in the batch
+    @param[out]
+    results
+              pointer to array for storing contiguous batch_count results. either on the host CPU or device GPU.
+              return is 0 if n <= 0, incx<=0.
+
+    ********************************************************************/
+
+ROCBLAS_EXPORT rocblas_status rocblas_isamax_strided_batched(rocblas_handle handle,
+                                                             rocblas_int    n,
+                                                             const float*   x,
+                                                             rocblas_int    incx,
+                                                             rocblas_stride stridex,
+                                                             rocblas_int    batch_count,
+                                                             rocblas_int*   result);
+
+ROCBLAS_EXPORT rocblas_status rocblas_idamax_strided_batched(rocblas_handle handle,
+                                                             rocblas_int    n,
+                                                             const double*  x,
+                                                             rocblas_int    incx,
+                                                             rocblas_stride stridex,
+                                                             rocblas_int    batch_count,
+                                                             rocblas_int*   result);
+
+ROCBLAS_EXPORT rocblas_status rocblas_icamax_strided_batched(rocblas_handle               handle,
+                                                             rocblas_int                  n,
+                                                             const rocblas_float_complex* x,
+                                                             rocblas_int                  incx,
+                                                             rocblas_stride               stridex,
+                                                             rocblas_int  batch_count,
+                                                             rocblas_int* result);
+
+ROCBLAS_EXPORT rocblas_status rocblas_izamax_strided_batched(rocblas_handle                handle,
+                                                             rocblas_int                   n,
+                                                             const rocblas_double_complex* x,
+                                                             rocblas_int                   incx,
+                                                             rocblas_stride                stridex,
+                                                             rocblas_int  batch_count,
+                                                             rocblas_int* result);
+
+/*! \brief BLAS Level 1 API
+
+    \details
+    amin finds the first index of the element of minimum magnitude of a vector x.
+
    vector
 
     @param[in]
@@ -1481,9 +1593,123 @@ ROCBLAS_EXPORT rocblas_status rocblas_izamin(rocblas_handle                handl
 /*! \brief BLAS Level 1 API
 
     \details
+    amin_batched finds over a batch of vectors the first index of the element of minimum magnitude of a vector x.
+
+    @param[in]
+    handle    rocblas_handle.
+              handle to the rocblas library context queue.
+    @param[in]
+    n         rocblas_int
+              number of elements in each vector x_i
+    @param[in]
+    x         array of pointers storing the different vector x_i on the GPU.
+    @param[in]
+    incx      rocblas_int
+              specifies the increment for the elements of each x_i. incx must be > 0.
+    @param[in]
+    batch_count rocblas_int
+              number of instances in the batch, must be > 0.
+    @param[out]
+    result
+              pointers to array of batch_count size for results. either on the host CPU or device GPU.
+              return is 0 if n, incx<=0.
+    ********************************************************************/
+
+ROCBLAS_EXPORT rocblas_status rocblas_isamin_batched(rocblas_handle     handle,
+                                                     rocblas_int        n,
+                                                     const float* const x[],
+                                                     rocblas_int        incx,
+                                                     rocblas_int        batch_count,
+                                                     rocblas_int*       result);
+
+ROCBLAS_EXPORT rocblas_status rocblas_idamin_batched(rocblas_handle      handle,
+                                                     rocblas_int         n,
+                                                     const double* const x[],
+                                                     rocblas_int         incx,
+                                                     rocblas_int         batch_count,
+                                                     rocblas_int*        result);
+
+ROCBLAS_EXPORT rocblas_status rocblas_icamin_batched(rocblas_handle                     handle,
+                                                     rocblas_int                        n,
+                                                     const rocblas_float_complex* const x[],
+                                                     rocblas_int                        incx,
+                                                     rocblas_int                        batch_count,
+                                                     rocblas_int*                       result);
+
+ROCBLAS_EXPORT rocblas_status rocblas_izamin_batched(rocblas_handle                      handle,
+                                                     rocblas_int                         n,
+                                                     const rocblas_double_complex* const x[],
+                                                     rocblas_int                         incx,
+                                                     rocblas_int  batch_count,
+                                                     rocblas_int* result);
+
+/*! \brief BLAS Level 1 API
+
+    \details
+     amin_strided_batched finds over a strided batch of vectors the first index of the element of minimum magnitude of a vector x.
+
+    @param[in]
+    handle    rocblas_handle.
+              handle to the rocblas library context queue.
+    @param[in]
+    n         rocblas_int
+              number of elements in each vector x_i
+    @param[in]
+    x         pointer to the first vector x_i on the GPU.
+    @param[in]
+    incx      rocblas_int
+              specifies the increment for the elements of each x_i. incx must be > 0.
+    @param[in]
+    stridex   rocblas_stride
+              specifies the pointer increment between batches for x.
+    @param[in]
+    batch_count rocblas_int
+              number of instances in the batch
+    @param[out]
+    results
+              pointer to array for storing contiguous batch_count results. either on the host CPU or device GPU.
+              return is 0 if n <= 0, incx<=0.
+
+    ********************************************************************/
+
+ROCBLAS_EXPORT rocblas_status rocblas_isamin_strided_batched(rocblas_handle handle,
+                                                             rocblas_int    n,
+                                                             const float*   x,
+                                                             rocblas_int    incx,
+                                                             rocblas_stride stridex,
+                                                             rocblas_int    batch_count,
+                                                             rocblas_int*   result);
+
+ROCBLAS_EXPORT rocblas_status rocblas_idamin_strided_batched(rocblas_handle handle,
+                                                             rocblas_int    n,
+                                                             const double*  x,
+                                                             rocblas_int    incx,
+                                                             rocblas_stride stridex,
+                                                             rocblas_int    batch_count,
+                                                             rocblas_int*   result);
+
+ROCBLAS_EXPORT rocblas_status rocblas_icamin_strided_batched(rocblas_handle               handle,
+                                                             rocblas_int                  n,
+                                                             const rocblas_float_complex* x,
+                                                             rocblas_int                  incx,
+                                                             rocblas_stride               stridex,
+                                                             rocblas_int  batch_count,
+                                                             rocblas_int* result);
+
+ROCBLAS_EXPORT rocblas_status rocblas_izamin_strided_batched(rocblas_handle                handle,
+                                                             rocblas_int                   n,
+                                                             const rocblas_double_complex* x,
+                                                             rocblas_int                   incx,
+                                                             rocblas_stride                stridex,
+                                                             rocblas_int  batch_count,
+                                                             rocblas_int* result);
+
+/*! \brief BLAS Level 1 API
+
+    \details
     rot applies the Givens rotation matrix defined by c=cos(alpha) and s=sin(alpha) to vectors x and y.
         Scalars c and s may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode.
-    
+
     @param[in]
     handle  rocblas_handle
             handle to the rocblas library context queue.
@@ -1566,7 +1792,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdrot(rocblas_handle          handle,
     \details
     rot_batched applies the Givens rotation matrix defined by c=cos(alpha) and s=sin(alpha) to batched vectors x_i and y_i, for i = 1, ..., batch_count.
         Scalars c and s may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode.
-    
+
     @param[in]
     handle  rocblas_handle
             handle to the rocblas library context queue.
@@ -1658,7 +1884,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdrot_batched(rocblas_handle              
     \details
     rot_strided_batched applies the Givens rotation matrix defined by c=cos(alpha) and s=sin(alpha) to strided batched vectors x_i and y_i, for i = 1, ..., batch_count.
         Scalars c and s may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode.
-    
+
     @param[in]
     handle  rocblas_handle
             handle to the rocblas library context queue.
@@ -1770,7 +1996,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdrot_strided_batched(rocblas_handle      
          Scalars c and s and arrays a and b may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode.
          If the pointer mode is set to rocblas_pointer_mode_host, this function blocks the CPU until the GPU has finished and the results are available in host memory.
          If the pointer mode is set to rocblas_pointer_mode_device, this function returns immediately and synchronization is required to read the results.
-    
+
     @param[in]
     handle  rocblas_handle
             handle to the rocblas library context queue.
@@ -1810,7 +2036,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zrotg(rocblas_handle          handle,
          a, b, c, and s may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode.
          If the pointer mode is set to rocblas_pointer_mode_host, this function blocks the CPU until the GPU has finished and the results are available in host memory.
          If the pointer mode is set to rocblas_pointer_mode_device, this function returns immediately and synchronization is required to read the results.
-    
+
     @param[in]
     handle  rocblas_handle
             handle to the rocblas library context queue.
@@ -1863,7 +2089,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zrotg_batched(rocblas_handle              
          a, b, c, and s may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode.
          If the pointer mode is set to rocblas_pointer_mode_host, this function blocks the CPU until the GPU has finished and the results are available in host memory.
          If the pointer mode is set to rocblas_pointer_mode_device, this function returns immediately and synchronization is required to read the results.
-    
+
     @param[in]
     handle  rocblas_handle
             handle to the rocblas library context queue.
@@ -1941,7 +2167,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zrotg_strided_batched(rocblas_handle      
 
     \details
     rotm applies the modified Givens rotation matrix defined by param to vectors x and y.
-    
+
     @param[in]
     handle  rocblas_handle
             handle to the rocblas library context queue.
@@ -2128,7 +2354,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotm_strided_batched(rocblas_handle handl
           Parameters may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode.
           If the pointer mode is set to rocblas_pointer_mode_host, this function blocks the CPU until the GPU has finished and the results are available in host memory.
           If the pointer mode is set to rocblas_pointer_mode_device, this function returns immediately and synchronization is required to read the results.
-    
+
     @param[in]
     handle  rocblas_handle
             handle to the rocblas library context queue.
@@ -2169,7 +2395,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotmg(
           Parameters may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode.
           If the pointer mode is set to rocblas_pointer_mode_host, this function blocks the CPU until the GPU has finished and the results are available in host memory.
           If the pointer mode is set to rocblas_pointer_mode_device, this function returns immediately and synchronization is required to read the results.
-    
+
     @param[in]
     handle  rocblas_handle
             handle to the rocblas library context queue.
@@ -2223,7 +2449,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotmg_batched(rocblas_handle      handle,
           Parameters may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode.
           If the pointer mode is set to rocblas_pointer_mode_host, this function blocks the CPU until the GPU has finished and the results are available in host memory.
           If the pointer mode is set to rocblas_pointer_mode_device, this function returns immediately and synchronization is required to read the results.
-    
+
     @param[in]
     handle  rocblas_handle
             handle to the rocblas library context queue.
@@ -2705,7 +2931,188 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrsv(rocblas_handle    handle,
                                             rocblas_int       incx);
 
 // TODO exclamation point for doc.
-/* \brief BLAS Level 2 API
+/*! \brief BLAS Level 2 API
+
+    \details
+    trsv_batched solves
+
+         A_i*x_i = b_i or A_i**T*x_i = b_i,
+
+    where (A_i, x_i, b_i) is the i-th instance of the batch.
+    x_i and b_i are vectors and A_i is an
+    m by m triangular matrix.
+
+    The vector x is overwritten on b.
+
+    @param[in]
+    handle    rocblas_handle.
+              handle to the rocblas library context queue.
+
+    @param[in]
+    uplo    rocblas_fill.
+            rocblas_fill_upper:  A is an upper triangular matrix.
+            rocblas_fill_lower:  A is a  lower triangular matrix.
+
+    @param[in]
+    transA     rocblas_operation
+
+    @param[in]
+    diag    rocblas_diagonal.
+            rocblas_diagonal_unit:     A is assumed to be unit triangular.
+            rocblas_diagonal_non_unit:  A is not assumed to be unit triangular.
+
+    @param[in]
+    m         rocblas_int
+              m specifies the number of rows of b. m >= 0.
+
+    @param[in]
+    alpha
+              device pointer or host pointer specifying the scalar alpha.
+
+    @param[in]
+    A         device array of device pointers storing each matrix A_i.
+
+    @param[in]
+    lda       rocblas_int
+              specifies the leading dimension of each A_i.
+              lda = max(1, m)
+
+    @param[in]
+    x         device array of device pointers storing each vector x_i.
+
+    @param[in]
+    incx      rocblas_int
+              specifies the increment for the elements of x.
+
+    @param[in]
+    beta      device pointer or host pointer specifying the scalar beta.
+
+    @param[out]
+    y         device array of device pointers storing each vector y_i.
+
+    @param[in]
+    incy      rocblas_int
+              specifies the increment for the elements of each y_i.
+
+    @param[in]
+    batch_count rocblas_int
+                number of instances in the batch
+
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_strsv_batched(rocblas_handle     handle,
+                                                    rocblas_fill       uplo,
+                                                    rocblas_operation  transA,
+                                                    rocblas_diagonal   diag,
+                                                    rocblas_int        m,
+                                                    const float* const A[],
+                                                    rocblas_int        lda,
+                                                    float* const       x[],
+                                                    rocblas_int        incx,
+                                                    rocblas_int        batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dtrsv_batched(rocblas_handle      handle,
+                                                    rocblas_fill        uplo,
+                                                    rocblas_operation   transA,
+                                                    rocblas_diagonal    diag,
+                                                    rocblas_int         m,
+                                                    const double* const A[],
+                                                    rocblas_int         lda,
+                                                    double* const       x[],
+                                                    rocblas_int         incx,
+                                                    rocblas_int         batch_count);
+
+/*! \brief BLAS Level 2 API
+
+    \details
+    trsv_strided_batched solves
+
+         A_i*x_i = b_i or A_i**T*x_i = b_i,
+
+    where (A_i, x_i, b_i) is the i-th instance of the batch.
+    x_i and b_i are vectors and A_i is an m by m triangular matrix, for i = 1, ..., batch_count.
+
+    The vector x is overwritten on b.
+
+    @param[in]
+    handle    rocblas_handle.
+              handle to the rocblas library context queue.
+
+    @param[in]
+    uplo    rocblas_fill.
+            rocblas_fill_upper:  A is an upper triangular matrix.
+            rocblas_fill_lower:  A is a  lower triangular matrix.
+
+    @param[in]
+    transA     rocblas_operation
+
+    @param[in]
+    diag    rocblas_diagonal.
+            rocblas_diagonal_unit:     A is assumed to be unit triangular.
+            rocblas_diagonal_non_unit:  A is not assumed to be unit triangular.
+
+    @param[in]
+    m         rocblas_int
+              m specifies the number of rows of each b_i. m >= 0.
+
+    @param[in]
+    alpha
+              specifies the scalar alpha.
+
+    @param[in]
+    A         device pointer to the first matrix (A_1) in the batch, of dimension ( lda, m )
+
+    @param[in]
+    stride_a  rocblas_stride
+              stride from the start of one A_i matrix to the next A_(i + 1)
+
+    @param[in]
+    lda       rocblas_int
+              specifies the leading dimension of each A_i.
+              lda = max( 1, m ).
+
+    @param[in, out]
+    x         device pointer to the first vector (x_1) in the batch.
+
+    @param[in]
+    stride_x rocblas_stride
+             stride from the start of one x_i vector to the next x_(i + 1)
+
+    @param[in]
+    incx      rocblas_int
+              specifies the increment for the elements of each x_i.
+
+    @param[in]
+    batch_count rocblas_int
+                number of instances in the batch
+
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_strsv_strided_batched(rocblas_handle    handle,
+                                                            rocblas_fill      uplo,
+                                                            rocblas_operation transA,
+                                                            rocblas_diagonal  diag,
+                                                            rocblas_int       m,
+                                                            const float*      A,
+                                                            rocblas_int       lda,
+                                                            rocblas_stride    stride_A,
+                                                            float*            x,
+                                                            rocblas_int       incx,
+                                                            rocblas_stride    stride_x,
+                                                            rocblas_int       batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dtrsv_strided_batched(rocblas_handle    handle,
+                                                            rocblas_fill      uplo,
+                                                            rocblas_operation transA,
+                                                            rocblas_diagonal  diag,
+                                                            rocblas_int       m,
+                                                            const double*     A,
+                                                            rocblas_int       lda,
+                                                            rocblas_stride    stride_A,
+                                                            double*           x,
+                                                            rocblas_int       incx,
+                                                            rocblas_stride    stride_x,
+                                                            rocblas_int       batch_count);
+
+/*! \brief BLAS Level 2 API
 
     \details
     xHE(SY)MV performs the matrix-vector operation:
@@ -2725,21 +3132,21 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrsv(rocblas_handle    handle,
     n         rocblas_int.
     @param[in]
     alpha
-              device pointer or host pointer specifying the scalar alpha.
+              specifies the scalar alpha.
     @param[in]
-    A         device pointer storing matrix A.
+    A         pointer storing matrix A on the GPU.
     @param[in]
     lda       rocblas_int
               specifies the leading dimension of A.
     @param[in]
-    x         device pointer storing vector x.
+    x         pointer storing vector x on the GPU.
     @param[in]
     incx      rocblas_int
               specifies the increment for the elements of x.
     @param[in]
-    beta      device pointer or host pointer specifying the scalar beta.
+    beta      specifies the scalar beta.
     @param[out]
-    y         device pointer storing vector y.
+    y         pointer storing vector y on the GPU.
     @param[in]
     incy      rocblas_int
               specifies the increment for the elements of y.
@@ -2851,7 +3258,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dger(rocblas_handle handle,
                                            double*        A,
                                            rocblas_int    lda);
 
-/*! \brief BLAS Level 2 API 
+/*! \brief BLAS Level 2 API
 
     \details
     xGER_BATCHED performs a batch of the matrix-vector operations
@@ -5200,7 +5607,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_trsm_ex(rocblas_handle    handle,
 /*! BLAS EX API
 
     \details
-    TRSM_EX_BATCHED solves
+    TRSM_BATCHED_EX solves
 
         op(A_i)*X_i = alpha*B_i or X_i*op(A_i) = alpha*B_i,
 
@@ -5212,7 +5619,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_trsm_ex(rocblas_handle    handle,
     Each matrix X_i is overwritten on B_i.
 
     TRSM_EX gives the user the ability to reuse the invA matrix between runs.
-    If invA == NULL, rocblas_trsm_ex_batched will automatically calculate each invA_i on every run.
+    If invA == NULL, rocblas_trsm_batched_ex will automatically calculate each invA_i on every run.
 
     Setting up invA:
     Each accepted invA_i matrix consists of the packed 128x128 inverses of the diagonal blocks of
@@ -5323,7 +5730,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_trsm_ex(rocblas_handle    handle,
             specifies the datatype of computation
 
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_trsm_ex_batched(rocblas_handle    handle,
+ROCBLAS_EXPORT rocblas_status rocblas_trsm_batched_ex(rocblas_handle    handle,
                                                       rocblas_side      side,
                                                       rocblas_fill      uplo,
                                                       rocblas_operation transA,
@@ -5343,7 +5750,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_trsm_ex_batched(rocblas_handle    handle,
 /*! BLAS EX API
 
     \details
-    TRSM_EX_BATCHED solves
+    TRSM_STRIDED_BATCHED_EX solves
 
         op(A_i)*X_i = alpha*B_i or X_i*op(A_i) = alpha*B_i,
 
@@ -5355,7 +5762,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_trsm_ex_batched(rocblas_handle    handle,
     Each matrix X_i is overwritten on B_i.
 
     TRSM_EX gives the user the ability to reuse each invA_i matrix between runs.
-    If invA == NULL, rocblas_trsm_ex_batched will automatically calculate each invA_i on every run.
+    If invA == NULL, rocblas_trsm_batched_ex will automatically calculate each invA_i on every run.
 
     Setting up invA:
     Each accepted invA_i matrix consists of the packed 128x128 inverses of the diagonal blocks of
@@ -5479,7 +5886,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_trsm_ex_batched(rocblas_handle    handle,
             specifies the datatype of computation
 
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_trsm_ex_strided_batched(rocblas_handle    handle,
+ROCBLAS_EXPORT rocblas_status rocblas_trsm_strided_batched_ex(rocblas_handle    handle,
                                                               rocblas_side      side,
                                                               rocblas_fill      uplo,
                                                               rocblas_operation transA,
@@ -5498,6 +5905,20 @@ ROCBLAS_EXPORT rocblas_status rocblas_trsm_ex_strided_batched(rocblas_handle    
                                                               rocblas_int       invA_size,
                                                               rocblas_stride    stride_invA,
                                                               rocblas_datatype  compute_type);
+
+/*! BLAS Auxiliary API
+
+    \details
+    rocblas_status_to_string
+
+    Returns string representing rocblas_status value
+
+    @param[in]
+    status  rocblas_status
+            rocBLAS status to convert to string
+*/
+
+ROCBLAS_EXPORT const char* rocblas_status_to_string(rocblas_status status);
 
 /*
  * ===========================================================================
