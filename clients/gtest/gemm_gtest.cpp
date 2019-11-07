@@ -200,7 +200,7 @@ namespace
         To,
         Tc,
         typename std::enable_if<!std::is_same<Ti, void>{}
-                                && !(std::is_same<Ti, To>{} && std::is_same<Ti, Tc>{}
+                                && !(std::is_same<Ti, Tc>{}
                                      && std::is_same<Ti, rocblas_bfloat16>{})>::type>
         : rocblas_test_valid
     {
