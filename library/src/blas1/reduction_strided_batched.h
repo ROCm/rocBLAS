@@ -166,22 +166,24 @@ inline size_t rocblas_reduction_kernel_block_count(rocblas_int n, rocblas_int NB
         Number of batches
     ********************************************************************/
 template <rocblas_int NB, typename To>
-size_t rocblas_reduction_kernel_workspace_size(rocblas_int n, rocblas_int batch_count)
+size_t rocblas_reduction_kernel_workspace_size(rocblas_int n, rocblas_int batch_count = 1)
 {
     if(n <= 0)
         n = 1; // allow for return value of empty set
+    if(batch_count <= 0)
+        batch_count = 1;
     auto blocks = rocblas_reduction_kernel_block_count(n, NB);
     return sizeof(To) * (blocks + 1) * batch_count;
 }
 
-/*! \brief rocblas_reduction_batched_kernel_workspace_size 
+/*! \brief rocblas_reduction_batched_kernel_workspace_size
     Work area for reduction must be at lease sizeof(To) * (blocks + 1) * batch_count
 
     @param[in]
-    outputType To* 
+    outputType To*
         Type of output values
     @param[in]
-    batch_count rocblas_int 
+    batch_count rocblas_int
         Number of batches
     ********************************************************************/
 template <rocblas_int NB, typename To>

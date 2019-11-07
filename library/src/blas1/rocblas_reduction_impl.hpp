@@ -30,7 +30,7 @@ void reduction_log_bench(rocblas_handle handle,
                   incx,
                   "--stride_x",
                   stridex,
-                  "--batch",
+                  "--batch_count",
                   batch_count);
     }
     else
@@ -67,7 +67,7 @@ void reduction_log_bench(rocblas_handle   handle,
               n,
               "--incx",
               incx,
-              "--batch",
+              "--batch_count",
               batch_count);
 }
 
@@ -82,7 +82,8 @@ void reduction_log_profile(rocblas_handle handle,
 {
     if(ISBATCHED)
     {
-        log_profile(handle, name, "N", n, "incx", incx, "stride_x", stridex, "batch", batch_count);
+        log_profile(
+            handle, name, "N", n, "incx", incx, "stride_x", stridex, "batch_count", batch_count);
     }
     else
     {
@@ -99,7 +100,7 @@ void reduction_log_profile(rocblas_handle   handle,
                            rocblas_int      batch_count,
                            const char*      name)
 {
-    log_profile(handle, name, "N", n, "incx", incx, "batch", batch_count);
+    log_profile(handle, name, "N", n, "incx", incx, "batch_count", batch_count);
 }
 
 template <bool ISBATCHED, typename Ti>
@@ -178,13 +179,7 @@ rocblas_status rocblas_reduction_impl(rocblas_handle handle,
         return rocblas_status_invalid_pointer;
     }
 
-    if(batch_count < 0)
-    {
-        return rocblas_status_invalid_size;
-    }
-
     size_t dev_bytes = rocblas_reduction_kernel_workspace_size<NB, Tw>(n, batch_count);
-
     if(handle->is_device_memory_size_query())
     {
         return handle->set_optimal_device_memory_size(dev_bytes);

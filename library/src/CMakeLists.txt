@@ -138,8 +138,12 @@ set( rocblas_auxiliary_source
 )
 
 set( rocblas_blas1_source
-  blas1/rocblas_amin.cpp
-  blas1/rocblas_amax.cpp
+  blas1/rocblas_iamin.cpp
+  blas1/rocblas_iamin_batched.cpp
+  blas1/rocblas_iamin_strided_batched.cpp
+  blas1/rocblas_iamax.cpp
+  blas1/rocblas_iamax_batched.cpp
+  blas1/rocblas_iamax_strided_batched.cpp
   blas1/rocblas_asum.cpp
   blas1/rocblas_asum_batched.cpp
   blas1/rocblas_asum_strided_batched.cpp
@@ -264,6 +268,7 @@ rocm_export_targets(
 
 rocm_install_symlink_subdir( rocblas )
 
+if(BUILD_TESTING)
 # Compilation tests to ensure that header files work independently,
 # and that public header files work across several languages
 add_custom_command(
@@ -271,4 +276,5 @@ add_custom_command(
   POST_BUILD
   COMMAND ${CMAKE_HOME_DIRECTORY}/header_compilation_tests.sh
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-)
+ )
+endif()
