@@ -7,9 +7,11 @@
 Logging
 =======
 
-Four environment variables can be set to control logging: \*
-``ROCBLAS_LAYER`` \* ``ROCBLAS_LOG_TRACE_PATH`` \*
-``ROCBLAS_LOG_BENCH_PATH`` \* ``ROCBLAS_LOG_PROFILE_PATH``
+Four environment variables can be set to control logging:
+- ``ROCBLAS_LAYER``
+- ``ROCBLAS_LOG_TRACE_PATH``
+- ``ROCBLAS_LOG_BENCH_PATH``
+- ``ROCBLAS_LOG_PROFILE_PATH``
 
 ``ROCBLAS_LAYER`` is a bitwise OR of zero or more bit masks as follows:
 

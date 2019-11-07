@@ -15,7 +15,7 @@ Prerequisites
    - `HIP <https://github.com/ROCm-Developer-Tools/HIP>`_
 
 
-Installing pre-build packages
+Installing pre-built packages
 =============================
 
 rocBLAS can be installed on Ubuntu using
@@ -27,7 +27,7 @@ rocBLAS can be installed on Ubuntu using
 
 rocBLAS Debian packages can also be downloaded from the `rocBLAS releases tag <https://github.com/ROCmSoftwarePlatform/rocBLAS/releases>`_. These may be newer than the package from apt-get.
 
-Building from Source
+Building from source
 ====================
 
 Download rocBLAS
@@ -58,7 +58,7 @@ Common uses of install.sh to build (library dependencies + library) are
 in the table below.
 
 +-------------------------------------------+--------------------------+
-| install.sh_command                        | description              |
+| install.sh command                        | Description              |
 +===========================================+==========================+
 | ``./install.sh -h``                       | Help information.        |
 +-------------------------------------------+--------------------------+
@@ -107,7 +107,7 @@ Common uses of install.sh to build (dependencies + library + client) are
 in the table below.
 
 +-------------------------------------------+--------------------------+
-| install.sh_command                        | description              |
+| install.sh command                        | Description              |
 +===========================================+==========================+
 | ``./install.sh -h``                       | Help information.        |
 +-------------------------------------------+--------------------------+
@@ -157,7 +157,7 @@ in the table below.
 |                                           | need the -i flag.        |
 +-------------------------------------------+--------------------------+
 
-Build (library dependencies + library) Using Individual Commands
+Build (library dependencies + library) using individual commands
 ----------------------------------------------------------------
 
 Before building the library please install the library dependencies
@@ -212,18 +212,19 @@ initialize build tools. Example steps to build rocBLAS:
    #if you want to install in /opt/rocm or the directory set in cmake with -DCMAKE_INSTALL_PREFIX
    sudo make install # sudo required if installing into system directory such as /opt/rocm
 
-Build (library dependencies + client dependencies + library + client) using Individual Commands
+Build (library dependencies + client dependencies + library + client) using individual commands
 -----------------------------------------------------------------------------------------------
 
 Additional dependencies for the rocBLAS clients
 ***********************************************
 
 The unit tests and benchmarking applications in the client introduce the
-following dependencies: 1. `boost <http://www.boost.org/>`__ 2.
-`fortran <http://gcc.gnu.org/wiki/GFortran>`__ 2.
-`lapack <https://github.com/Reference-LAPACK/lapack-release>`__ \*
-lapack itself brings a dependency on a fortran compiler 3.
-`googletest <https://github.com/google/googletest>`__
+following dependencies:
+   1. `boost <http://www.boost.org/>`__
+   2. `fortran <http://gcc.gnu.org/wiki/GFortran>`__
+   3. `lapack <https://github.com/Reference-LAPACK/lapack-release>`__
+      - lapack itself brings a dependency on a fortran compiler
+   4. `googletest <https://github.com/google/googletest>`__
 
 boost
 `````
@@ -263,7 +264,7 @@ Library, so gfortran is required for building the client.
    cmake -DBUILD_BOOST=OFF ../../deps   # assuming boost is installed through package manager as above
    make -j$(nproc) install
 
-Build Library and Client Using Individual Commands
+Build library and client using individual commands
 --------------------------------------------------
 
 Once dependencies are available on the system, it is possible to
@@ -296,10 +297,10 @@ user to set it up.
 CUDA build errata
 -----------------
 
-rocBLAS is written with HiP kernels, so it should build and run on CUDA
+rocBLAS is written with HIP kernels, so it should build and run on CUDA
 platforms. However, currently the cmake infrastructure is broken with a
 CUDA backend. However, a BLAS marshalling library that presents a common
-interface for both ROCm and CUDA backends can be found with
+interface for both ROCm and CUDA backends can be found here:
 `hipBLAS <https://github.com/ROCmSoftwarePlatform/hipBLAS>`__.
 
 Common build problems
@@ -330,12 +331,6 @@ Common build problems
    source <https://github.com/ROCm-Developer-Tools/HIP/blob/master/INSTALL.md>`__
    and then use the build HIP instead of /opt/rocm/hip one or singly
    overwrite the new build HIP to this location.
-
--  **Issue:** For Carrizo - HCC RUNTIME ERROR: Fail to find compatible
-   kernel
-
-   **Solution:** Add the following to the cmake command when
-   configuring: -DCMAKE_CXX_FLAGS=“–amdgpu-target=gfx801”
 
 -  **Issue:** For MI25 (Vega10 Server) - HCC RUNTIME ERROR: Fail to find
    compatible kernel

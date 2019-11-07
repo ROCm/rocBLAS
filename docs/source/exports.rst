@@ -8,7 +8,7 @@
 Exported BLAS functions
 ***********************
 
-rocBLAS includes the following auxiliary functions
+Auxiliary functions
 ==================================================
 
 +--------------------------+
@@ -37,7 +37,7 @@ rocBLAS includes the following auxiliary functions
 | rocblas_get_matrix       |
 +--------------------------+
 
-rocBLAS includes the following Level 1, 2, and 3 functions
+BLAS functions
 ==========================================================
 
 Level 1
