@@ -36,6 +36,8 @@ inline __host__ rocblas_bfloat16 float_to_bfloat16_truncate(float val)
     } u = {val};
     rocblas_bfloat16 ret;
     ret.data = uint16_t(u.int32 >> 16);
+    if((u.int32 & 0x7fff0000) == 0x7f800000 && u.int32 & 0xffff)
+        ret.data |= 1; // Preserve signaling NaN
     return ret;
 }
 
