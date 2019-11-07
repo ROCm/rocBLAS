@@ -88,22 +88,19 @@ void testing_rot_strided_batched(const Arguments& arg)
         }
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        if(batch_count < 0)
-            EXPECT_ROCBLAS_STATUS((rocblas_rot_strided_batched<T, U, V>)(handle,
-                                                                         N,
-                                                                         dx,
-                                                                         incx,
-                                                                         stride_x,
-                                                                         dy,
-                                                                         incy,
-                                                                         stride_y,
-                                                                         dc,
-                                                                         ds,
-                                                                         batch_count),
-                                  rocblas_status_invalid_size);
-        else
-            CHECK_ROCBLAS_ERROR((rocblas_rot_strided_batched<T, U, V>(
-                handle, N, dx, incx, stride_x, dy, incy, stride_y, dc, ds, batch_count)));
+        EXPECT_ROCBLAS_STATUS((rocblas_rot_strided_batched<T, U, V>)(handle,
+                                                                     N,
+                                                                     dx,
+                                                                     incx,
+                                                                     stride_x,
+                                                                     dy,
+                                                                     incy,
+                                                                     stride_y,
+                                                                     dc,
+                                                                     ds,
+                                                                     batch_count),
+                              batch_count < 0 ? rocblas_status_invalid_size
+                                              : rocblas_status_success);
         return;
     }
 
