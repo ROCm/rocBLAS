@@ -93,11 +93,8 @@ namespace
         typename std::enable_if<std::is_same<T, float>{} || std::is_same<T, double>{}
                                 || std::is_same<T, rocblas_float_complex>{}
                                 || std::is_same<T, rocblas_double_complex>{}>::type>
+        : rocblas_test_valid
     {
-        explicit operator bool()
-        {
-            return true;
-        }
         void operator()(const Arguments& arg)
         {
             if(!strcmp(arg.function, "gemv"))

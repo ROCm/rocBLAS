@@ -37,11 +37,8 @@ namespace
     struct trsv_testing<
         T,
         typename std::enable_if<std::is_same<T, float>{} || std::is_same<T, double>{}>::type>
+        : rocblas_test_valid
     {
-        explicit operator bool()
-        {
-            return true;
-        }
         void operator()(const Arguments& arg)
         {
             if(!strcmp(arg.function, "trsv"))

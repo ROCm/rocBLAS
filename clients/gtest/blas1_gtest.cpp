@@ -329,8 +329,8 @@ struct blas1_##NAME                                                            \
                    Tc,                                                         \
                    typename std::enable_if<                                    \
                        blas1_enabled<blas1::NAME, Ti, To, Tc>{}>::type>        \
+       : rocblas_test_valid                                                    \
     {                                                                          \
-        explicit operator bool() { return true; }                              \
         void operator()(const Arguments& arg)                                  \
         {                                                                      \
             if(!strcmp(arg.function, #NAME))                                   \
@@ -360,53 +360,53 @@ TEST_P(NAME, blas1)                                                            \
                                                                                \
 INSTANTIATE_TEST_CATEGORIES(NAME)
 
+    // clang-format on
+
 #define ARG1(Ti, To, Tc) Ti
 #define ARG2(Ti, To, Tc) Ti, To
 #define ARG3(Ti, To, Tc) Ti, To, Tc
 
-BLAS1_TESTING(asum,  ARG1)
-BLAS1_TESTING(asum_batched,  ARG1)
-BLAS1_TESTING(asum_strided_batched,  ARG1)
-BLAS1_TESTING(nrm2,  ARG1)
-BLAS1_TESTING(nrm2_batched,  ARG1)
-BLAS1_TESTING(nrm2_strided_batched,  ARG1)
-BLAS1_TESTING(iamax, ARG1)
-BLAS1_TESTING(iamax_batched, ARG1)
-BLAS1_TESTING(iamax_strided_batched, ARG1)
-BLAS1_TESTING(iamin, ARG1)
-BLAS1_TESTING(iamin_batched, ARG1)
-BLAS1_TESTING(iamin_strided_batched, ARG1)
-BLAS1_TESTING(axpy,  ARG1)
-BLAS1_TESTING(axpy_batched,  ARG1)
-BLAS1_TESTING(axpy_strided_batched,  ARG1)
-BLAS1_TESTING(copy,  ARG1)
-BLAS1_TESTING(copy_batched,  ARG1)
-BLAS1_TESTING(copy_strided_batched,  ARG1)
-BLAS1_TESTING(dot,   ARG1)
-BLAS1_TESTING(dotc,  ARG1)
-BLAS1_TESTING(dot_batched,   ARG1)
-BLAS1_TESTING(dotc_batched,  ARG1)
-BLAS1_TESTING(dot_strided_batched,   ARG1)
-BLAS1_TESTING(dotc_strided_batched,  ARG1)
-BLAS1_TESTING(scal,  ARG2)
-BLAS1_TESTING(scal_batched, ARG2)
-BLAS1_TESTING(scal_strided_batched, ARG2)
-BLAS1_TESTING(swap,  ARG1)
-BLAS1_TESTING(swap_batched, ARG1)
-BLAS1_TESTING(swap_strided_batched, ARG1)
-BLAS1_TESTING(rot,   ARG3)
-BLAS1_TESTING(rot_batched, ARG3)
-BLAS1_TESTING(rot_strided_batched, ARG3)
-BLAS1_TESTING(rotg,  ARG2)
-BLAS1_TESTING(rotg_batched, ARG2)
-BLAS1_TESTING(rotg_strided_batched, ARG2)
-BLAS1_TESTING(rotm,  ARG1)
-BLAS1_TESTING(rotm_batched, ARG1)
-BLAS1_TESTING(rotm_strided_batched, ARG1)
-BLAS1_TESTING(rotmg, ARG1)
-BLAS1_TESTING(rotmg_batched, ARG1)
-BLAS1_TESTING(rotmg_strided_batched, ARG1)
-
-    // clang-format on
+    BLAS1_TESTING(asum, ARG1)
+    BLAS1_TESTING(asum_batched, ARG1)
+    BLAS1_TESTING(asum_strided_batched, ARG1)
+    BLAS1_TESTING(nrm2, ARG1)
+    BLAS1_TESTING(nrm2_batched, ARG1)
+    BLAS1_TESTING(nrm2_strided_batched, ARG1)
+    BLAS1_TESTING(iamax, ARG1)
+    BLAS1_TESTING(iamax_batched, ARG1)
+    BLAS1_TESTING(iamax_strided_batched, ARG1)
+    BLAS1_TESTING(iamin, ARG1)
+    BLAS1_TESTING(iamin_batched, ARG1)
+    BLAS1_TESTING(iamin_strided_batched, ARG1)
+    BLAS1_TESTING(axpy, ARG1)
+    BLAS1_TESTING(axpy_batched,  ARG1)
+    BLAS1_TESTING(axpy_strided_batched,  ARG1)
+    BLAS1_TESTING(copy, ARG1)
+    BLAS1_TESTING(copy_batched, ARG1)
+    BLAS1_TESTING(copy_strided_batched, ARG1)
+    BLAS1_TESTING(dot, ARG1)
+    BLAS1_TESTING(dotc, ARG1)
+    BLAS1_TESTING(dot_batched, ARG1)
+    BLAS1_TESTING(dotc_batched, ARG1)
+    BLAS1_TESTING(dot_strided_batched, ARG1)
+    BLAS1_TESTING(dotc_strided_batched, ARG1)
+    BLAS1_TESTING(scal, ARG2)
+    BLAS1_TESTING(scal_batched, ARG2)
+    BLAS1_TESTING(scal_strided_batched, ARG2)
+    BLAS1_TESTING(swap, ARG1)
+    BLAS1_TESTING(swap_batched, ARG1)
+    BLAS1_TESTING(swap_strided_batched, ARG1)
+    BLAS1_TESTING(rot, ARG3)
+    BLAS1_TESTING(rot_batched, ARG3)
+    BLAS1_TESTING(rot_strided_batched, ARG3)
+    BLAS1_TESTING(rotg, ARG2)
+    BLAS1_TESTING(rotg_batched, ARG2)
+    BLAS1_TESTING(rotg_strided_batched, ARG2)
+    BLAS1_TESTING(rotm, ARG1)
+    BLAS1_TESTING(rotm_batched, ARG1)
+    BLAS1_TESTING(rotm_strided_batched, ARG1)
+    BLAS1_TESTING(rotmg, ARG1)
+    BLAS1_TESTING(rotmg_batched, ARG1)
+    BLAS1_TESTING(rotmg_strided_batched, ARG1)
 
 } // namespace

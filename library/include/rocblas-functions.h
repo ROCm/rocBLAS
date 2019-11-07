@@ -1645,7 +1645,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_izamax_batched(rocblas_handle             
               specifies the increment for the elements of each x_i. incx must be > 0.
     @param[in]
     stridex   rocblas_stride
-              specifies the pointer increment between batches for x. 
+              specifies the pointer increment between batches for x.
     @param[in]
     batch_count rocblas_int
               number of instances in the batch
@@ -1800,7 +1800,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_izamin_batched(rocblas_handle             
               specifies the increment for the elements of each x_i. incx must be > 0.
     @param[in]
     stridex   rocblas_stride
-              specifies the pointer increment between batches for x. 
+              specifies the pointer increment between batches for x.
     @param[in]
     batch_count rocblas_int
               number of instances in the batch

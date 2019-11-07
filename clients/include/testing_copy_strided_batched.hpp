@@ -75,15 +75,10 @@ void testing_copy_strided_batched(const Arguments& arg)
             return;
         }
 
-        if(N > 0 && batch_count < 0)
-            EXPECT_ROCBLAS_STATUS(
-                rocblas_copy_strided_batched<T>(
-                    handle, N, dx, incx, stride_x, dy, incy, stride_y, batch_count),
-                rocblas_status_invalid_size);
-        else
-            CHECK_ROCBLAS_ERROR(rocblas_copy_strided_batched<T>(
-                handle, N, dx, incx, stride_x, dy, incy, stride_y, batch_count));
-
+        EXPECT_ROCBLAS_STATUS(rocblas_copy_strided_batched<T>(
+                                  handle, N, dx, incx, stride_x, dy, incy, stride_y, batch_count),
+                              N > 0 && batch_count < 0 ? rocblas_status_invalid_size
+                                                       : rocblas_status_success);
         return;
     }
 
