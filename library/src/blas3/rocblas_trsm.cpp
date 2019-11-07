@@ -51,99 +51,106 @@ namespace
         /////////////
         // LOGGING //
         /////////////
-        auto layer_mode = handle->layer_mode;
-        if(layer_mode
-           & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
-              | rocblas_layer_mode_log_profile))
+        if(!handle->is_device_memory_size_query())
         {
-            auto side_letter   = rocblas_side_letter(side);
-            auto uplo_letter   = rocblas_fill_letter(uplo);
-            auto transA_letter = rocblas_transpose_letter(transA);
-            auto diag_letter   = rocblas_diag_letter(diag);
-
-            if(handle->pointer_mode == rocblas_pointer_mode_host)
+            auto layer_mode = handle->layer_mode;
+            if(layer_mode
+               & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
+                  | rocblas_layer_mode_log_profile))
             {
-                if(layer_mode & rocblas_layer_mode_log_trace)
-                    log_trace(handle,
-                              rocblas_trsm_name<T>,
-                              side,
-                              uplo,
-                              transA,
-                              diag,
-                              m,
-                              n,
-                              *alpha,
-                              A,
-                              lda,
-                              B,
-                              ldb);
+                auto side_letter   = rocblas_side_letter(side);
+                auto uplo_letter   = rocblas_fill_letter(uplo);
+                auto transA_letter = rocblas_transpose_letter(transA);
+                auto diag_letter   = rocblas_diag_letter(diag);
 
-                if(layer_mode & rocblas_layer_mode_log_bench)
+                if(handle->pointer_mode == rocblas_pointer_mode_host)
                 {
-                    log_bench(handle,
-                              "./rocblas-bench -f trsm -r",
-                              rocblas_precision_string<T>,
-                              "--side",
-                              side_letter,
-                              "--uplo",
-                              uplo_letter,
-                              "--transposeA",
-                              transA_letter,
-                              "--diag",
-                              diag_letter,
-                              "-m",
-                              m,
-                              "-n",
-                              n,
-                              "--alpha",
-                              *alpha,
-                              "--lda",
-                              lda,
-                              "--ldb",
-                              ldb);
-                }
-            }
-            else
-            {
-                if(layer_mode & rocblas_layer_mode_log_trace)
-                    log_trace(handle,
-                              rocblas_trsm_name<T>,
-                              side,
-                              uplo,
-                              transA,
-                              diag,
-                              m,
-                              n,
-                              alpha,
-                              A,
-                              lda,
-                              B,
-                              ldb);
-            }
+                    if(layer_mode & rocblas_layer_mode_log_trace)
+                        log_trace(handle,
+                                  rocblas_trsm_name<T>,
+                                  side,
+                                  uplo,
+                                  transA,
+                                  diag,
+                                  m,
+                                  n,
+                                  log_trace_scalar_value(alpha),
+                                  A,
+                                  lda,
+                                  B,
+                                  ldb);
 
-            if(layer_mode & rocblas_layer_mode_log_profile)
-            {
-                log_profile(handle,
-                            rocblas_trsm_name<T>,
-                            "side",
-                            side_letter,
-                            "uplo",
-                            uplo_letter,
-                            "transA",
-                            transA_letter,
-                            "diag",
-                            diag_letter,
-                            "m",
-                            m,
-                            "n",
-                            n,
-                            "lda",
-                            lda,
-                            "ldb",
-                            ldb);
+                    if(layer_mode & rocblas_layer_mode_log_bench)
+                    {
+                        log_bench(handle,
+                                  "./rocblas-bench -f trsm -r",
+                                  rocblas_precision_string<T>,
+                                  "--side",
+                                  side_letter,
+                                  "--uplo",
+                                  uplo_letter,
+                                  "--transposeA",
+                                  transA_letter,
+                                  "--diag",
+                                  diag_letter,
+                                  "-m",
+                                  m,
+                                  "-n",
+                                  n,
+                                  LOG_BENCH_SCALAR_VALUE(alpha),
+                                  "--lda",
+                                  lda,
+                                  "--ldb",
+                                  ldb);
+                    }
+                }
+                else
+                {
+                    if(layer_mode & rocblas_layer_mode_log_trace)
+                        log_trace(handle,
+                                  rocblas_trsm_name<T>,
+                                  side,
+                                  uplo,
+                                  transA,
+                                  diag,
+                                  m,
+                                  n,
+                                  alpha,
+                                  A,
+                                  lda,
+                                  B,
+                                  ldb);
+                }
+
+                if(layer_mode & rocblas_layer_mode_log_profile)
+                {
+                    log_profile(handle,
+                                rocblas_trsm_name<T>,
+                                "side",
+                                side_letter,
+                                "uplo",
+                                uplo_letter,
+                                "transA",
+                                transA_letter,
+                                "diag",
+                                diag_letter,
+                                "m",
+                                m,
+                                "n",
+                                n,
+                                "lda",
+                                lda,
+                                "ldb",
+                                ldb);
+                }
             }
         }
 
+        // quick return if possible.
+        // return status_size_unchanged if device memory size query
+        if(!m || !n)
+            return handle->is_device_memory_size_query() ? rocblas_status_size_unchanged
+                                                         : rocblas_status_success;
         /////////////////////
         // ARGUMENT CHECKS //
         /////////////////////
@@ -167,69 +174,55 @@ namespace
         //////////////////////
         // MEMORY MANAGEMENT//
         //////////////////////
-        // quick return if possible.
-        // return status_size_unchanged if device memory size query
-        if(!m || !n)
-            return handle->is_device_memory_size_query() ? rocblas_status_size_unchanged
-                                                         : rocblas_status_success;
-
-        rocblas_status perf_status = rocblas_status_success;
-        if(supplied_invA && supplied_invA_size / BLOCK < k)
-        {
-            static int msg = fputs("WARNING: TRSM invA_size argument is too small; invA argument "
-                                   "is being ignored; TRSM performance is degraded\n",
-                                   stderr);
-            perf_status    = rocblas_status_perf_degraded;
-            supplied_invA  = nullptr;
-        }
-
         void*          mem_x_temp;
         void*          mem_x_temp_arr;
         void*          mem_invA;
         void*          mem_invA_arr;
         bool           optimal_mem;
-        rocblas_status status = rocblas_trsm_template_mem<BLOCK, false, T>(handle,
-                                                                           side,
-                                                                           m,
-                                                                           n,
-                                                                           1,
-                                                                           &mem_x_temp,
-                                                                           &mem_x_temp_arr,
-                                                                           &mem_invA,
-                                                                           &mem_invA_arr,
-                                                                           &optimal_mem,
-                                                                           supplied_invA,
-                                                                           supplied_invA_size);
+        rocblas_status perf_status = rocblas_trsm_template_mem<BLOCK, false, T>(handle,
+                                                                                side,
+                                                                                m,
+                                                                                n,
+                                                                                1,
+                                                                                mem_x_temp,
+                                                                                mem_x_temp_arr,
+                                                                                mem_invA,
+                                                                                mem_invA_arr,
+                                                                                supplied_invA,
+                                                                                supplied_invA_size);
 
-        rocblas_status status2 = rocblas_trsm_template<BLOCK, false, T>(handle,
-                                                                        side,
-                                                                        uplo,
-                                                                        transA,
-                                                                        diag,
-                                                                        m,
-                                                                        n,
-                                                                        alpha,
-                                                                        0,
-                                                                        A,
-                                                                        0,
-                                                                        lda,
-                                                                        0,
-                                                                        B,
-                                                                        0,
-                                                                        ldb,
-                                                                        0,
-                                                                        1,
-                                                                        optimal_mem,
-                                                                        mem_x_temp,
-                                                                        mem_x_temp_arr,
-                                                                        mem_invA,
-                                                                        mem_invA_arr,
-                                                                        supplied_invA,
-                                                                        supplied_invA_size);
+        // If this was a device memory query or an error occurred, return status
+        if(perf_status != rocblas_status_success && perf_status != rocblas_status_perf_degraded)
+            return perf_status;
 
-        return (perf_status != rocblas_status_success)
-                   ? perf_status
-                   : (status2 == rocblas_status_success) ? status : status2;
+        optimal_mem = perf_status == rocblas_status_success;
+
+        rocblas_status status = rocblas_trsm_template<BLOCK, false, T>(handle,
+                                                                       side,
+                                                                       uplo,
+                                                                       transA,
+                                                                       diag,
+                                                                       m,
+                                                                       n,
+                                                                       alpha,
+                                                                       A,
+                                                                       0,
+                                                                       lda,
+                                                                       0,
+                                                                       B,
+                                                                       0,
+                                                                       ldb,
+                                                                       0,
+                                                                       1,
+                                                                       optimal_mem,
+                                                                       mem_x_temp,
+                                                                       mem_x_temp_arr,
+                                                                       mem_invA,
+                                                                       mem_invA_arr,
+                                                                       supplied_invA,
+                                                                       supplied_invA_size);
+
+        return status != rocblas_status_success ? status : perf_status;
     }
 
 }

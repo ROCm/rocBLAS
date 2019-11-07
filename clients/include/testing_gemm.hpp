@@ -103,6 +103,7 @@ void testing_gemm(const Arguments& arg)
     rocblas_int B_col = transB == rocblas_operation_none ? N : K;
 
     // check here to prevent undefined memory allocation error
+    // Note: K==0 is not an early exit, since C still needs to be multiplied by beta
     if(M < 0 || N < 0 || K < 0 || lda < A_row || ldb < B_row || ldc < M)
     {
         static const size_t safe_size = 100;

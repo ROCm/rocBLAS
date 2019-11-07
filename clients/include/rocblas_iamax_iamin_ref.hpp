@@ -13,7 +13,7 @@ namespace rocblas_iamax_iamin_ref
 
     rocblas_half asum(rocblas_half x)
     {
-        return x & 0x7fff;
+        return rocblas_half(asum(float(x)));
     }
 
     template <typename T>
@@ -24,7 +24,7 @@ namespace rocblas_iamax_iamin_ref
 
     bool lessthan(rocblas_half x, rocblas_half y)
     {
-        return half_to_float(x) < half_to_float(y);
+        return float(x) < float(y);
     }
 
     template <typename T>
@@ -35,7 +35,7 @@ namespace rocblas_iamax_iamin_ref
 
     bool greatherthan(rocblas_half x, rocblas_half y)
     {
-        return half_to_float(x) > half_to_float(y);
+        return float(x) > float(y);
     }
 
     template <typename T>
