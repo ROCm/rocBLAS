@@ -6,11 +6,15 @@
  * \brief rocblas-types.h defines data types used by rocblas
  */
 
-#pragma once
 #ifndef _ROCBLAS_TYPES_H_
 #define _ROCBLAS_TYPES_H_
 
+// Request _Float16 type extension
+#define __STDC_WANT_IEC_60559_TYPES_EXT__ 1
+
 #include "rocblas_bfloat16.h"
+#include <float.h>
+#include <math.h>
 #include <stdbool.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -41,8 +45,9 @@ typedef int64_t rocblas_stride;
 typedef float  rocblas_float;
 typedef double rocblas_double;
 
-// Clang supports _Float16 as an extension in C11 and C++11 and later
-#if __cplusplus >= 201103L || __STDC_VERSION__ >= 201112L
+// Clang supports _Float16 on C11 and C++11
+// GCC does not currently support _Float16 on amd64
+#if __clang__ && (__STDC_VERSION__ >= 201112L || __cplusplus >= 201103L)
 typedef _Float16 rocblas_half;
 #else
 typedef struct

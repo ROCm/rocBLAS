@@ -2,7 +2,6 @@
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#pragma once
 #ifndef _ROCBLAS_FUNCTIONS_H_
 #define _ROCBLAS_FUNCTIONS_H_
 #include "rocblas-export.h"

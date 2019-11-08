@@ -6,7 +6,6 @@
  * \brief rocblas-complex-types.h defines complex data types used by rocblas
  */
 
-#pragma once
 #ifndef _ROCBLAS_COMPLEX_TYPES_H_
 #define _ROCBLAS_COMPLEX_TYPES_H_
 

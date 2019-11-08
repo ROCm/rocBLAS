@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-/bin/ln -fs ../../.githooks/pre-commit .git/hooks/
+/bin/ln -fs ../../.githooks/pre-commit "$(dirname "$0")/.git/hooks/"
 
 # #################################################
 # helper functions
