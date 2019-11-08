@@ -3,6 +3,7 @@
  * ************************************************************************ */
 #include "cblas_interface.hpp"
 #include "flops.hpp"
+#include "handle.h"
 #include "near.hpp"
 #include "norm.hpp"
 #include "rocblas.hpp"
@@ -249,12 +250,8 @@ namespace
                                rocblas_int       n,
                                rocblas_int       k)
     {
-        int deviceId;
-        hipGetDevice(&deviceId);
-        hipDeviceProp_t deviceProperties;
-        hipGetDeviceProperties(&deviceProperties, deviceId);
-        if(deviceProperties.gcnArch == 908 && transA == rocblas_operation_transpose
-           && transB == rocblas_operation_none
+        int arc = _rocblas_handle::device_arch_id();
+        if(arc == 908 && transA == rocblas_operation_transpose && transB == rocblas_operation_none
            && ((m == 512 && n == 512 && k == 512) || (m == 1024 && n == 1024 && k == 1024)
                || (m == 2048 && n == 2048 && k == 2048) || (m == 4096 && n == 4096 && k == 4096)
                || (m == 960 && n == 1024 && k == 1024) || (m == 3840 && n == 4096 && k == 4096)))
