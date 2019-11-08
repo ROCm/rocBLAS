@@ -127,7 +127,7 @@ void testing_axpy(const Arguments& arg)
         // copy output from device to CPU
         CHECK_HIP_ERROR(hipMemcpy(hy_1, dy_1, sizeof(T) * size_y, hipMemcpyDeviceToHost));
         CHECK_HIP_ERROR(hipMemcpy(hy_2, dy_2, sizeof(T) * size_y, hipMemcpyDeviceToHost));
-	
+
         // CPU BLAS
         cpu_time_used = get_time_us();
 

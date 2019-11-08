@@ -1040,9 +1040,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zaxpy(rocblas_handle                handle
                                             rocblas_double_complex*       y,
                                             rocblas_int                   incy);
 
-
-
-  
 /*! \brief BLAS Level 1 API
 
     \details
@@ -1072,51 +1069,50 @@ ROCBLAS_EXPORT rocblas_status rocblas_zaxpy(rocblas_handle                handle
 
     ********************************************************************/
 
-  ROCBLAS_EXPORT rocblas_status rocblas_haxpy_batched(rocblas_handle      handle,
-						      rocblas_int         n,
-						      const rocblas_half* alpha,
-						      const rocblas_half* const x[],
-						      rocblas_int         incx,
-						      rocblas_half* const y[],
-						      rocblas_int         incy,
-						      rocblas_int         batch_count);
+ROCBLAS_EXPORT rocblas_status rocblas_haxpy_batched(rocblas_handle            handle,
+                                                    rocblas_int               n,
+                                                    const rocblas_half*       alpha,
+                                                    const rocblas_half* const x[],
+                                                    rocblas_int               incx,
+                                                    rocblas_half* const       y[],
+                                                    rocblas_int               incy,
+                                                    rocblas_int               batch_count);
 
-ROCBLAS_EXPORT rocblas_status rocblas_saxpy_batched(rocblas_handle handle,
-                                                    rocblas_int    n,
-                                                    const float*   alpha,
-                                                    const float* const   x[],
-                                                    rocblas_int    incx,
-                                                    float* const   y[],
-                                                    rocblas_int    incy,
-                                                    rocblas_int    batch_count);
+ROCBLAS_EXPORT rocblas_status rocblas_saxpy_batched(rocblas_handle     handle,
+                                                    rocblas_int        n,
+                                                    const float*       alpha,
+                                                    const float* const x[],
+                                                    rocblas_int        incx,
+                                                    float* const       y[],
+                                                    rocblas_int        incy,
+                                                    rocblas_int        batch_count);
 
-ROCBLAS_EXPORT rocblas_status rocblas_daxpy_batched(rocblas_handle handle,
-                                                    rocblas_int    n,
-                                                    const double*   alpha,
-                                                    const double* const   x[],
-                                                    rocblas_int    incx,
-                                                    double* const   y[],
-                                                    rocblas_int    incy,
-                                                    rocblas_int    batch_count);
+ROCBLAS_EXPORT rocblas_status rocblas_daxpy_batched(rocblas_handle      handle,
+                                                    rocblas_int         n,
+                                                    const double*       alpha,
+                                                    const double* const x[],
+                                                    rocblas_int         incx,
+                                                    double* const       y[],
+                                                    rocblas_int         incy,
+                                                    rocblas_int         batch_count);
 
-ROCBLAS_EXPORT rocblas_status rocblas_caxpy_batched(rocblas_handle handle,
-                                                    rocblas_int    n,
-                                                    const rocblas_float_complex*   alpha,
-                                                    const rocblas_float_complex* const   x[],
-                                                    rocblas_int    incx,
-                                                    rocblas_float_complex* const   y[],
-                                                    rocblas_int    incy,
-                                                    rocblas_int    batch_count);
+ROCBLAS_EXPORT rocblas_status rocblas_caxpy_batched(rocblas_handle                     handle,
+                                                    rocblas_int                        n,
+                                                    const rocblas_float_complex*       alpha,
+                                                    const rocblas_float_complex* const x[],
+                                                    rocblas_int                        incx,
+                                                    rocblas_float_complex* const       y[],
+                                                    rocblas_int                        incy,
+                                                    rocblas_int                        batch_count);
 
-ROCBLAS_EXPORT rocblas_status rocblas_zaxpy_batched(rocblas_handle handle,
-                                                    rocblas_int    n,
-                                                    const rocblas_double_complex*   alpha,
-                                                    const rocblas_double_complex* const   x[],
-                                                    rocblas_int    incx,
-                                                    rocblas_double_complex* const   y[],
-                                                    rocblas_int    incy,
-                                                    rocblas_int    batch_count);
-
+ROCBLAS_EXPORT rocblas_status rocblas_zaxpy_batched(rocblas_handle                      handle,
+                                                    rocblas_int                         n,
+                                                    const rocblas_double_complex*       alpha,
+                                                    const rocblas_double_complex* const x[],
+                                                    rocblas_int                         incx,
+                                                    rocblas_double_complex* const       y[],
+                                                    rocblas_int                         incy,
+                                                    rocblas_int batch_count);
 
 /*! \brief BLAS Level 1 API
 
@@ -1153,62 +1149,61 @@ ROCBLAS_EXPORT rocblas_status rocblas_zaxpy_batched(rocblas_handle handle,
 
     ********************************************************************/
 
-  ROCBLAS_EXPORT rocblas_status rocblas_haxpy_strided_batched(rocblas_handle      handle,
-							      rocblas_int         n,
-							      const rocblas_half* alpha,
-							      const rocblas_half* x,
-							      rocblas_int         incx,
-							      rocblas_stride      stridex,
-							      rocblas_half*       y,
-							      rocblas_int         incy,							      
-							      rocblas_stride      stridey,
-							      rocblas_int         batch_count);
+ROCBLAS_EXPORT rocblas_status rocblas_haxpy_strided_batched(rocblas_handle      handle,
+                                                            rocblas_int         n,
+                                                            const rocblas_half* alpha,
+                                                            const rocblas_half* x,
+                                                            rocblas_int         incx,
+                                                            rocblas_stride      stridex,
+                                                            rocblas_half*       y,
+                                                            rocblas_int         incy,
+                                                            rocblas_stride      stridey,
+                                                            rocblas_int         batch_count);
 
-ROCBLAS_EXPORT rocblas_status rocblas_saxpy_strided_batched(rocblas_handle      handle,
-							      rocblas_int         n,
-							      const float* alpha,
-							      const float* x,
-							      rocblas_int         incx,
-							      rocblas_stride      stridex,
-							      float*       y,
-							      rocblas_int         incy,							      
-							      rocblas_stride      stridey,
-							      rocblas_int         batch_count);
+ROCBLAS_EXPORT rocblas_status rocblas_saxpy_strided_batched(rocblas_handle handle,
+                                                            rocblas_int    n,
+                                                            const float*   alpha,
+                                                            const float*   x,
+                                                            rocblas_int    incx,
+                                                            rocblas_stride stridex,
+                                                            float*         y,
+                                                            rocblas_int    incy,
+                                                            rocblas_stride stridey,
+                                                            rocblas_int    batch_count);
 
-ROCBLAS_EXPORT rocblas_status rocblas_daxpy_strided_batched(rocblas_handle      handle,
-							      rocblas_int         n,
-							      const double* alpha,
-							      const double* x,
-							      rocblas_int         incx,
-							      rocblas_stride      stridex,
-							      double*       y,
-							      rocblas_int         incy,							      
-							      rocblas_stride      stridey,
-							      rocblas_int         batch_count);
-  
-ROCBLAS_EXPORT rocblas_status rocblas_caxpy_strided_batched(rocblas_handle      handle,
-							      rocblas_int         n,
-							      const rocblas_float_complex* alpha,
-							      const rocblas_float_complex* x,
-							      rocblas_int         incx,
-							      rocblas_stride      stridex,
-							      rocblas_float_complex*       y,
-							      rocblas_int         incy,							      
-							      rocblas_stride      stridey,
-							      rocblas_int         batch_count);
+ROCBLAS_EXPORT rocblas_status rocblas_daxpy_strided_batched(rocblas_handle handle,
+                                                            rocblas_int    n,
+                                                            const double*  alpha,
+                                                            const double*  x,
+                                                            rocblas_int    incx,
+                                                            rocblas_stride stridex,
+                                                            double*        y,
+                                                            rocblas_int    incy,
+                                                            rocblas_stride stridey,
+                                                            rocblas_int    batch_count);
 
-ROCBLAS_EXPORT rocblas_status rocblas_zaxpy_strided_batched(rocblas_handle      handle,
-							      rocblas_int         n,
-							      const rocblas_double_complex* alpha,
-							      const rocblas_double_complex* x,
-							      rocblas_int         incx,
-							      rocblas_stride      stridex,
-							      rocblas_double_complex*       y,
-							      rocblas_int         incy,							      
-							      rocblas_stride      stridey,
-							      rocblas_int         batch_count);
+ROCBLAS_EXPORT rocblas_status rocblas_caxpy_strided_batched(rocblas_handle               handle,
+                                                            rocblas_int                  n,
+                                                            const rocblas_float_complex* alpha,
+                                                            const rocblas_float_complex* x,
+                                                            rocblas_int                  incx,
+                                                            rocblas_stride               stridex,
+                                                            rocblas_float_complex*       y,
+                                                            rocblas_int                  incy,
+                                                            rocblas_stride               stridey,
+                                                            rocblas_int batch_count);
 
-  
+ROCBLAS_EXPORT rocblas_status rocblas_zaxpy_strided_batched(rocblas_handle                handle,
+                                                            rocblas_int                   n,
+                                                            const rocblas_double_complex* alpha,
+                                                            const rocblas_double_complex* x,
+                                                            rocblas_int                   incx,
+                                                            rocblas_stride                stridex,
+                                                            rocblas_double_complex*       y,
+                                                            rocblas_int                   incy,
+                                                            rocblas_stride                stridey,
+                                                            rocblas_int batch_count);
+
 /*! \brief BLAS Level 1 API
 
     \details

@@ -678,18 +678,16 @@ static constexpr auto rocblas_axpy<rocblas_float_complex> = rocblas_caxpy;
 template <>
 static constexpr auto rocblas_axpy<rocblas_double_complex> = rocblas_zaxpy;
 
-
-
 // axpy batched
 template <typename T>
 rocblas_status (*rocblas_axpy_batched)(rocblas_handle handle,
-				       rocblas_int    n,
-				       const T*       alpha,
-				       const T*const  x[],
-				       rocblas_int    incx,
-				       T  * const     y[],
-				       rocblas_int    incy,
-				       rocblas_int    batch_count);
+                                       rocblas_int    n,
+                                       const T*       alpha,
+                                       const T* const x[],
+                                       rocblas_int    incx,
+                                       T* const       y[],
+                                       rocblas_int    incy,
+                                       rocblas_int    batch_count);
 
 template <>
 static constexpr auto rocblas_axpy_batched<rocblas_half> = rocblas_haxpy_batched;
@@ -706,19 +704,18 @@ static constexpr auto rocblas_axpy_batched<rocblas_float_complex> = rocblas_caxp
 template <>
 static constexpr auto rocblas_axpy_batched<rocblas_double_complex> = rocblas_zaxpy_batched;
 
-
 // axpy strided batched
 template <typename T>
 rocblas_status (*rocblas_axpy_strided_batched)(rocblas_handle handle,
-				       rocblas_int    n,
-				       const T*       alpha,
-				       const T*  x,
-				       rocblas_int    incx,
-				       rocblas_stride stridex,
-				       T  *      y,
-				       rocblas_int    incy,
-				       rocblas_stride stridey,
-				       rocblas_int    batch_count);
+                                               rocblas_int    n,
+                                               const T*       alpha,
+                                               const T*       x,
+                                               rocblas_int    incx,
+                                               rocblas_stride stridex,
+                                               T*             y,
+                                               rocblas_int    incy,
+                                               rocblas_stride stridey,
+                                               rocblas_int    batch_count);
 
 template <>
 static constexpr auto rocblas_axpy_strided_batched<rocblas_half> = rocblas_haxpy_strided_batched;
@@ -730,10 +727,12 @@ template <>
 static constexpr auto rocblas_axpy_strided_batched<double> = rocblas_daxpy_strided_batched;
 
 template <>
-static constexpr auto rocblas_axpy_strided_batched<rocblas_float_complex> = rocblas_caxpy_strided_batched;
+static constexpr auto
+    rocblas_axpy_strided_batched<rocblas_float_complex> = rocblas_caxpy_strided_batched;
 
 template <>
-static constexpr auto rocblas_axpy_strided_batched<rocblas_double_complex> = rocblas_zaxpy_strided_batched;
+static constexpr auto
+    rocblas_axpy_strided_batched<rocblas_double_complex> = rocblas_zaxpy_strided_batched;
 
 // rot
 template <typename T, typename U = T, typename V = T>
