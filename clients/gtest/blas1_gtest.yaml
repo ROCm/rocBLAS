@@ -147,7 +147,7 @@ Tests:
     incx_incy: *incx_incy_range
     alpha_beta: *alpha_beta_range
     alphai_betai: *alphai_betai_range
-    batch_count: [ 5000 ]
+    batch_count: [ 2 ]
     function:
       - axpy_batched:  *half_single_precisions_complex_real
 
@@ -157,7 +157,7 @@ Tests:
     incx_incy: *incx_incy_range
     alpha_beta: *alpha_beta_range
     alphai_betai: *alphai_betai_range
-    batch_count: [ 5000 ]
+    batch_count: [ 2 ]
     stride_scale: [ 1 ]
     function:
       - axpy_batched:  *half_single_precisions_complex_real
