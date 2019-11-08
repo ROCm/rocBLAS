@@ -29,4 +29,6 @@ hipBLAS is a BLAS marshalling library, with multiple supported backends. It sits
 into the backend library and marshalling results back to the application. hipBLAS exports an interface that does not require the client to change,
 regardless of the chosen backend. Currently hipBLAS supports rocBLAS and cuBLAS as backends.
 
+hipBLAS focuses on convenience and portability. If performance outweighs these factors then using rocBLAS itself is recommended.
+
 hipBLAS can be found on github `here <https://github.com/ROCmSoftwarePlatform/hipBLAS/>`__.

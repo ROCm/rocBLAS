@@ -293,15 +293,6 @@ downloaded by cmake during library configuration and automatically
 configured as part of the build, so no further action is required by the
 user to set it up.
 
-CUDA build errata
------------------
-
-rocBLAS is written with HIP kernels, so it should build and run on CUDA
-platforms. However, currently the cmake infrastructure is broken with a
-CUDA backend. However, a BLAS marshalling library that presents a common
-interface for both ROCm and CUDA backends can be found here:
-`hipBLAS <https://github.com/ROCmSoftwarePlatform/hipBLAS>`__.
-
 Common build problems
 ---------------------
 
