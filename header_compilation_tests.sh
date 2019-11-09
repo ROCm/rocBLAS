@@ -12,9 +12,10 @@ build_first()
     exit 1
 }
 
-[[ ! -e CMakeCache.txt ]] && build_first
-
 BUILD_DIR=$(realpath "$(pwd)")
+
+[[ ! -e $BUILD_DIR/CMakeCache.txt ]] && build_first
+
 SOURCE_DIR=$(realpath -m "$(grep CMAKE_HOME_DIRECTORY CMakeCache.txt | sed 's/CMAKE_HOME_DIRECTORY:INTERNAL=//g')")
 
 [[ ! -e $BUILD_DIR/include/rocblas-export.h ]] && build_first
@@ -40,12 +41,15 @@ out_uptodate()
 
 HCC=/opt/rocm/hcc/bin/hcc
 
-HCC_OPTS="-Werror -DBUILD_WITH_TENSILE=1 -DTensile_RUNTIME_LANGUAGE_HIP=1 -DTensile_RUNTIME_LANGUAGE_OCL=0 -Drocblas_EXPORTS -I$(realpath library/include) -I$(realpath library/src/include) -I$(realpath $BUILD_DIR/include) -I$(realpath $SOURCE_DIR/library/src/blas3/Tensile) -isystem /opt/rocm/hip/include -isystem /opt/rocm/hsa/include -isystem /opt/rocm/hcc/include -isystem /opt/rocm/include -I$(realpath $BUILD_DIR/Tensile) -O3 -DNDEBUG -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -Wno-unused-command-line-argument"
+HCC_OPTS="-Werror -DBUILD_WITH_TENSILE=1 -DTensile_RUNTIME_LANGUAGE_HIP=1 -DTensile_RUNTIME_LANGUAGE_OCL=0 -Drocblas_EXPORTS -I$(realpath library/include) -I$(realpath library/src/include) -I$(realpath $BUILD_DIR/include) -I$(realpath $SOURCE_DIR/library/src/blas3/Tensile) -isystem /opt/rocm/hip/include -isystem /opt/rocm/hsa/include -isystem /opt/rocm/hcc/include -isystem /opt/rocm/include -I$(realpath $BUILD_DIR/Tensile) -O3 -DNDEBUG -fPIC"
 
-GPU_OPTS="-hc -fno-gpu-rdc --amdgpu-target=gfx803 --amdgpu-target=gfx900 --amdgpu-target=gfx906 -Werror"
+GPU_OPTS="-Wno-unused-command-line-argument -fvisibility=hidden -fvisibility-inlines-hidden -hc -fno-gpu-rdc --amdgpu-target=gfx803 --amdgpu-target=gfx900 --amdgpu-target=gfx906 -Werror"
 
 CLANG=/opt/rocm/llvm/bin/clang
 CLANG_OPTS="-xc-header -std=c99"  # auto set in hip_common.h -D__HIP_PLATFORM_HCC__
+
+GCC=/usr/bin/gcc
+GCC_OPTS="-xc-header"
 
 C99="$HCC -xc-header -std=c99"
 CPP11="$HCC -xc++-header -std=c++11"
@@ -126,6 +130,30 @@ with host-only compilers.
 <hip/hip_runtime.h> (and, sometimes due to bugs, <hip/hip_runtime_api.h>) are
 incompatible with C, so they should only be included in the rocBLAS internal
 C++ implemenation, not in the public headers, which must be compatible with C.
+
+EOF
+        exit 1
+    fi
+fi
+
+if [[ -x "$GCC" ]]; then
+    xargs_coproc
+    for file in $SOURCE_DIR/library/include/*.{h,in}; do
+        out=$(out_uptodate $file clang) || \
+             echo "$GCC $GCC_OPTS -c -o "$out" $HCC_OPTS "$file" || (rm -f "$out"; echo "$file" >&4; exit 255)" >&$XARGS_IN
+    done
+
+    if ! xargs_wait; then
+        cat <<EOF
+
+The public header file $XARGS_OUTPUT cannot be compiled with
+GCC host-only compiler. rocBLAS public header files need to be compatible
+with GCC compilers.
+
+<hip/hip_runtime.h> (and, sometimes due to bugs, <hip/hip_runtime_api.h>) are
+incompatible with C, so they should only be included in the rocBLAS internal
+C++ implemenation, not in the public headers, which must be compatible with C.
+
 EOF
         exit 1
     fi
@@ -146,6 +174,7 @@ rocBLAS public headers need to be compatible with C99.
 <hip/hip_runtime.h> and (sometimes due to bugs) <hip/hip_runtime_api.h> are
 incompatible with C, so they should only be included in the rocBLAS internal
 C++ implemenation, not in the public headers, which must be compatible with C.
+
 EOF
         exit 1
 fi
@@ -170,7 +199,7 @@ cat <<EOF
 -------------------------------------------------------------------------------
 All header file compilation tests passed.
 
-Public header files can compile with host-only Clang, -std=c99, and -std=c++11.
+Public header files can compile with host-only Clang, GCC, -std=c99, and -std=c++11.
 
 All public and internal implementation header files can compile on their own,
 without depending on #include file order.
