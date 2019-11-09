@@ -11,22 +11,28 @@ Definitions:
 Tests:
 - name: auxilliary_1
   category: quick
-  function: set_get_vector
   precision: *single_double_precisions
   M: [ 10, 600 ]
   incx_incy: *small_incx_incy_incb_range
+  function:
+  - set_get_vector_sync
+  - set_get_vector_async
 
 - name: auxilliary_2
   category: pre_checkin
-  function: set_get_vector
   precision: *single_double_precisions
   M: [ 600000 ]
   incx_incy: *large_incx_incy_incb_range
+  function:
+  - set_get_vector_sync
+  - set_get_vector_async
 
 - name: auxilliary
   category: nightly
-  function: set_get_vector
   precision: *single_double_precisions
   M: [ 1000000, 6000000 ]
   incx_incy: *large_incx_incy_incb_range
+  function:
+  - set_get_vector_sync
+  - set_get_vector_async
 ...
