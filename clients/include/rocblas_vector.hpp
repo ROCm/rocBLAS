@@ -10,6 +10,7 @@
 #include "device_vector.hpp"
 
 #include "host_batch_vector.hpp"
+#include "host_pinned_vector.hpp"
 #include "host_strided_batch_vector.hpp"
 #include "host_vector.hpp"
 
