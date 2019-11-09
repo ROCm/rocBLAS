@@ -285,3 +285,24 @@ rocblas_set_matrix()
 rocblas_get_matrix()
 ^^^^^^^^^^^^^^^^^^^^^^^
 .. doxygenfunction:: rocblas_get_matrix
+
+rocblas_start_device_memory_size_query()
+^^^^^^^^^^^^^^^^^^^^^^^
+.. doxygenfunction:: rocblas_start_device_memory_size_query
+
+rocblas_stop_device_memory_size_query()
+^^^^^^^^^^^^^^^^^^^^^^^
+.. doxygenfunction:: rocblas_stop_device_memory_size_query
+
+rocblas_get_device_memory_size()
+^^^^^^^^^^^^^^^^^^^^^^^
+.. doxygenfunction:: rocblas_get_device_memory_size
+
+rocblas_set_device_memory_size()
+^^^^^^^^^^^^^^^^^^^^^^^
+.. doxygenfunction:: rocblas_set_device_memory_size
+
+
+rocblas_is_managing_device_memory()
+^^^^^^^^^^^^^^^^^^^^^^^
+.. doxygenfunction:: rocblas_is_managing_device_memory

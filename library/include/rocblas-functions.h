@@ -5882,12 +5882,104 @@ ROCBLAS_EXPORT const char* rocblas_status_to_string(rocblas_status status);
 
  ******************************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_get_version_string(char* buf, size_t len);
+
+/*
+ * ===========================================================================
+ *    device memory allocation
+ * ===========================================================================
+ */
+
+/*! \brief   
+    \details
+
+    Indicates that subsequent rocBLAS kernel calls should collect the optimal device memory size in bytes for their given kernel arguments, 
+    and keep track of the maximum.
+
+    Each kernel call can reuse temporary device memory on the same stream, so the maximum is collected.
+
+
+    Returns rocblas_status_size_query_mismatch if another size query is already in progress; returns rocblas_status_success otherwise.
+
+
+    @param[in]
+    handle          rocblas handle
+
+ ******************************************************************************/
+
 ROCBLAS_EXPORT rocblas_status rocblas_start_device_memory_size_query(rocblas_handle handle);
+
+/*! \brief   
+    \details
+
+    Stops collecting optimal device memory size information
+
+    Returns rocblas_status_size_query_mismatch if a collection is not underway; rocblas_status_invalid_handle if handle is nullptr; 
+    rocblas_status_invalid_pointer if size is nullptr; rocblas_status_success otherwise
+
+
+    @param[in]
+    handle          rocblas handle
+
+    @param[out]
+    size             maximum of the optimal sizes collected
+
+ ******************************************************************************/
+
 ROCBLAS_EXPORT rocblas_status rocblas_stop_device_memory_size_query(rocblas_handle handle,
                                                                     size_t*        size);
+
+/*! \brief   
+    \details
+
+    Gets the current device memory size for the handle 
+
+    Returns rocblas_status_invalid_handle if handle is nullptr; rocblas_status_invalid_pointer if size is nullptr; rocblas_status_success otherwise
+
+
+    @param[in]
+    handle          rocblas handle
+
+    @param[out]
+    size             current device memory size for the handle
+
+ ******************************************************************************/
+
 ROCBLAS_EXPORT rocblas_status rocblas_get_device_memory_size(rocblas_handle handle, size_t* size);
+
+/*! \brief   
+    \details
+
+    Changes the size of allocated device memory at runtime.
+    
+    Any previously allocated device memory is freed.
+    
+    If size > 0 sets the device memory size to the specified size (in bytes)
+
+    If size == 0 frees the memory allocated so far, and lets rocBLAS manage device memory in the future, expanding it when necessary 
+
+    Returns rocblas_status_invalid_handle if handle is nullptr; rocblas_status_invalid_pointer if size is nullptr; rocblas_status_success otherwise
+
+    @param[in]
+    handle          rocblas handle
+
+    @param[in]
+    size             size of allocated device memory
+
+ ******************************************************************************/
+
 ROCBLAS_EXPORT rocblas_status rocblas_set_device_memory_size(rocblas_handle handle, size_t size);
-ROCBLAS_EXPORT bool           rocblas_is_managing_device_memory(rocblas_handle handle);
+
+/*! \brief   
+    \details
+
+    Returns true when device memory in handle is managed by rocBLAS
+
+    @param[in]
+    handle          rocblas handle
+
+ ******************************************************************************/
+
+ROCBLAS_EXPORT bool rocblas_is_managing_device_memory(rocblas_handle handle);
 
 #ifdef __cplusplus
 }
