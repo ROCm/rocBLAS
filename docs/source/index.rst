@@ -15,6 +15,7 @@ Welcome to rocBLAS's documentation!
    logging
    contributing
    streams
+   device_memory
    api
    allapi
 
