@@ -11,6 +11,7 @@
   - Vega 10 XT [Radeon RX Vega 64]
   - Vega
   - Device 6864
+  - Device 686c
 - AssignedDerivedParameters: true
   Batched: true
   ComplexConjugateA: false
