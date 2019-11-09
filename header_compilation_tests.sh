@@ -12,9 +12,10 @@ build_first()
     exit 1
 }
 
-[[ ! -e CMakeCache.txt ]] && build_first
-
 BUILD_DIR=$(realpath "$(pwd)")
+
+[[ ! -e $BUILD_DIR/CMakeCache.txt ]] && build_first
+
 SOURCE_DIR=$(realpath -m "$(grep CMAKE_HOME_DIRECTORY CMakeCache.txt | sed 's/CMAKE_HOME_DIRECTORY:INTERNAL=//g')")
 
 [[ ! -e $BUILD_DIR/include/rocblas-export.h ]] && build_first
