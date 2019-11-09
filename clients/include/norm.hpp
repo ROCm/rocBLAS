@@ -279,6 +279,44 @@ double norm_check_general(char           norm_type,
     return cumulative_error;
 }
 
+template <typename T>
+double norm_check_general(char        norm_type,
+                          rocblas_int M,
+                          rocblas_int N,
+                          rocblas_int lda,
+                          rocblas_int batch_count,
+                          T*          hCPU[],
+                          T*          hGPU[])
+{
+    // norm type can be O', 'I', 'F', 'o', 'i', 'f' for one, infinity or Frobenius norm
+    // one norm is max column sum
+    // infinity norm is max row sum
+    // Frobenius is l2 norm of matrix entries
+    //
+    // use triangle inequality ||a+b|| <= ||a|| + ||b|| to calculate upper limit for Frobenius norm
+    // of strided batched matrix
+
+    double cumulative_error = 0.0;
+
+    for(rocblas_int i = 0; i < batch_count; i++)
+    {
+        auto index = i;
+
+        auto error = norm_check_general<T>(norm_type, M, N, lda, hCPU[index], hGPU[index]);
+
+        if(norm_type == 'F' || norm_type == 'f')
+        {
+            cumulative_error += error;
+        }
+        else if(norm_type == 'O' || norm_type == 'o' || norm_type == 'I' || norm_type == 'i')
+        {
+            cumulative_error = cumulative_error > error ? cumulative_error : error;
+        }
+    }
+
+    return cumulative_error;
+}
+
 /* ============== Norm Check for Symmetric Matrix ============= */
 /*! \brief compare the norm error of two hermitian/symmetric matrices hCPU & hGPU */
 template <typename T, typename std::enable_if<!is_complex<T>, int>::type = 0>

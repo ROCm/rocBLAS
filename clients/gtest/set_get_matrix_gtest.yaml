@@ -41,20 +41,26 @@ Definitions:
 Tests:
 - name: auxilliary_1
   category: quick
-  function: set_get_matrix
   precision: *single_double_precisions
   matrix_size: *M_N_range
   arguments: *lda_ldb_ldc_range
+  function:
+  - set_get_matrix_sync
+  - set_get_matrix_async
 
 - name: auxilliary_2
   category: quick
-  function: set_get_matrix
   precision: *single_double_precisions
   matrix_size: *small_gemm_values
+  function:
+  - set_get_matrix_sync
+  - set_get_matrix_async
 
 - name: auxilliary
   category: pre_checkin
-  function: set_get_matrix
   precision: *single_double_precisions
   matrix_size: *large_gemm_values
+  function:
+  - set_get_matrix_sync
+  - set_get_matrix_async
 ...
