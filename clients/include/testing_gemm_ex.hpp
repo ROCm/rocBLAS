@@ -3,6 +3,7 @@
  * ************************************************************************ */
 #include "cblas_interface.hpp"
 #include "flops.hpp"
+#include "handle.h"
 #include "near.hpp"
 #include "norm.hpp"
 #include "rocblas.hpp"
@@ -241,59 +242,66 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
                           rocblas_status_invalid_handle);
 }
 
-template <typename Ti, typename To, typename Tc>
-void reference_gemm(rocblas_operation transA,
-                    rocblas_operation transB,
-                    rocblas_int       m,
-                    rocblas_int       n,
-                    rocblas_int       k,
-                    Tc                alpha,
-                    Ti*               A,
-                    rocblas_int       lda,
-                    Ti*               B,
-                    rocblas_int       ldb,
-                    Tc                beta,
-                    To*               C,
-                    rocblas_int       ldc)
-{
-    cblas_gemm<Ti, To, Tc>(transA, transB, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc);
-}
-
 namespace
 {
-    bool is_replacement_kernel(rocblas_int m, rocblas_int n)
+    bool is_replacement_kernel(rocblas_operation transA,
+                               rocblas_operation transB,
+                               rocblas_int       m,
+                               rocblas_int       n,
+                               rocblas_int       k)
     {
-        if((m == 512 && n == 512) || (m == 1024 && n == 1024) || (m == 2048 && n == 2048)
-           || (m == 4096 && n == 4096) || (m == 960 && n == 1024) || (m == 3840 && n == 4096))
+        int arc = _rocblas_handle::device_arch_id();
+        if(arc == 908 && transA == rocblas_operation_transpose && transB == rocblas_operation_none
+           && ((m == 512 && n == 512 && k == 512) || (m == 1024 && n == 1024 && k == 1024)
+               || (m == 2048 && n == 2048 && k == 2048) || (m == 4096 && n == 4096 && k == 4096)
+               || (m == 960 && n == 1024 && k == 1024) || (m == 3840 && n == 4096 && k == 4096)))
             return true;
         return false;
     }
-}
 
-template <>
-void reference_gemm(rocblas_operation transA,
-                    rocblas_operation transB,
-                    rocblas_int       m,
-                    rocblas_int       n,
-                    rocblas_int       k,
-                    float             alpha,
-                    rocblas_bfloat16* A,
-                    rocblas_int       lda,
-                    rocblas_bfloat16* B,
-                    rocblas_int       ldb,
-                    float             beta,
-                    rocblas_bfloat16* C,
-                    rocblas_int       ldc)
-{
-    const size_t       size_C = size_t(ldc) * size_t(n);
-    host_vector<float> C_float(size_C);
-    for(int i = 0; i < size_C; ++i)
-        C_float[i] = C[i];
-    cblas_gemm<rocblas_bfloat16, float, float>(
-        transA, transB, m, n, k, alpha, A, lda, B, ldb, beta, C_float, ldc);
-    bool round = !is_replacement_kernel(m, n);
-    for(int i = 0; i < size_C; ++i)
-        C[i] = round ? rocblas_bfloat16(C_float[i]) : float_to_bfloat16_truncate(C_float[i]);
+    template <typename Ti, typename To, typename Tc>
+    void reference_gemm(rocblas_operation transA,
+                        rocblas_operation transB,
+                        rocblas_int       m,
+                        rocblas_int       n,
+                        rocblas_int       k,
+                        Tc                alpha,
+                        Ti*               A,
+                        rocblas_int       lda,
+                        Ti*               B,
+                        rocblas_int       ldb,
+                        Tc                beta,
+                        To*               C,
+                        rocblas_int       ldc)
+    {
+        cblas_gemm<Ti, To, Tc>(transA, transB, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc);
+    }
+
+    template <>
+    void reference_gemm(rocblas_operation transA,
+                        rocblas_operation transB,
+                        rocblas_int       m,
+                        rocblas_int       n,
+                        rocblas_int       k,
+                        float             alpha,
+                        rocblas_bfloat16* A,
+                        rocblas_int       lda,
+                        rocblas_bfloat16* B,
+                        rocblas_int       ldb,
+                        float             beta,
+                        rocblas_bfloat16* C,
+                        rocblas_int       ldc)
+    {
+        const size_t       size_C = size_t(ldc) * size_t(n);
+        host_vector<float> C_float(size_C);
+        for(int i = 0; i < size_C; ++i)
+            C_float[i] = C[i];
+        cblas_gemm<rocblas_bfloat16, float, float>(
+            transA, transB, m, n, k, alpha, A, lda, B, ldb, beta, C_float, ldc);
+        bool round = !is_replacement_kernel(transA, transB, m, n, k);
+        for(int i = 0; i < size_C; ++i)
+            C[i] = round ? rocblas_bfloat16(C_float[i]) : float_to_bfloat16_truncate(C_float[i]);
+    }
 }
 
 template <typename Ti, typename To, typename Tc>
