@@ -63,6 +63,8 @@ Tests:
 
 # All functions with alpha and incx and incy
 
+
+
 # quick
   - name: blas1_with_alpha
     category: quick
@@ -72,6 +74,29 @@ Tests:
     alphai_betai: *alphai_betai_range
     function:
       - axpy:  *half_single_precisions_complex_real
+
+  - name: blas1_batched_with_alpha
+    category: quick
+    N: *N_range
+    incx_incy: *incx_incy_range
+    alpha_beta: *alpha_beta_range
+    alphai_betai: *alphai_betai_range
+    batch_count: [-1, 0, 5]
+    function:
+      - axpy_batched:  *half_single_precisions_complex_real
+
+  - name: blas1_strided_batched_with_alpha
+    category: quick
+    N: *N_range
+    incx: [ 1 ]
+    incy: [ 1 ]
+    batch_count: [-1, 0, 257]
+    stride_scale: [ 1 ]
+    alpha_beta: *alpha_beta_range
+    alphai_betai: *alphai_betai_range
+    function:
+      - axpy_strided_batched: *half_single_precisions_complex_real
+
 
 # pre_checkin
   - name: blas1_with_alpha
@@ -83,6 +108,29 @@ Tests:
     function:
       - axpy:  *half_single_precisions_complex_real
 
+  - name: blas1_batched_with_alpha
+    category: pre_checkin
+    N: [ 50000, 1049600 ]
+    incx_incy: *incx_incy_range
+    alpha_beta: *alpha_beta_range
+    alphai_betai: *alphai_betai_range
+    batch_count: [2]
+    function:
+      - axpy_batched:  *half_single_precisions_complex_real
+
+
+  - name: blas1_strided_batched_with_alpha
+    category: pre_checkin
+    N: [ 50000, 1049600 ]
+    incx_incy: *incx_incy_range
+    alpha_beta: *alpha_beta_range
+    alphai_betai: *alphai_betai_range
+    batch_count: [2]
+    stride_scale: [ 2 ]
+    function:
+      - axpy_strided_batched: *half_single_precisions_complex_real
+
+
 # nightly
   - name: blas1_with_alpha
     category: nightly
@@ -93,6 +141,26 @@ Tests:
     function:
       - axpy:  *half_single_precisions_complex_real
 
+  - name: blas1_batched_with_alpha
+    category: nightly
+    N: [ 400000 ]
+    incx_incy: *incx_incy_range
+    alpha_beta: *alpha_beta_range
+    alphai_betai: *alphai_betai_range
+    batch_count: [ 2, 4, 10, 12 ]
+    function:
+      - axpy_batched:  *half_single_precisions_complex_real
+
+  - name: blas1_strided_batched_with_alpha
+    category: nightly
+    N: [ 400000 ]
+    incx_incy: *incx_incy_range
+    alpha_beta: *alpha_beta_range
+    alphai_betai: *alphai_betai_range
+    batch_count: [ 2, 4, 10, 12 ]
+    stride_scale: [ 1 ]
+    function:
+      - axpy_batched:  *half_single_precisions_complex_real
 
 # All functions with alpha and incx but no incy
 
