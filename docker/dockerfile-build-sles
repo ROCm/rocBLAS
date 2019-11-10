@@ -13,7 +13,7 @@ ARG user_uid
 # * rocblas-test: gfortran, googletest
 # * rocblas-bench: libboost-program-options-dev
 # * libhsakmt.so: libnuma1
-RUN zypper -n update && zypper -n install\
+RUN zypper refresh && zypper -n --no-gpg-checks install\
     rock-dkms \
     sudo \
     ca-certificates \
