@@ -203,7 +203,7 @@ public:
 struct rocblas_test_valid
 {
     // Return true to indicate the type combination is valid, for filtering
-    explicit operator bool()
+    explicit operator bool() final
     {
         return true;
     }
@@ -220,13 +220,13 @@ struct rocblas_test_valid
 struct rocblas_test_invalid
 {
     // Return false to indicate the type combination is invalid, for filtering
-    explicit operator bool()
+    explicit operator bool() final
     {
         return false;
     }
 
     // If this specialization is actually called, print fatal error message
-    void operator()(const Arguments&)
+    void operator()(const Arguments&) final
     {
         static constexpr char msg[] = "Internal error: Test called with invalid types\n";
 
