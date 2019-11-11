@@ -97,20 +97,20 @@ constexpr double scal_gflop_count<rocblas_double_complex, double>(rocblas_int n)
 template <typename T>
 constexpr double gemv_gflop_count(rocblas_operation transA, rocblas_int m, rocblas_int n)
 {
-    return (2.0 * m * n + 2.0 * transA == rocblas_operation_none ? m : n) / 1e9;
+    return (2.0 * m * n + 2.0 * (transA == rocblas_operation_none ? m : n)) / 1e9;
 }
 template <>
 constexpr double
     gemv_gflop_count<rocblas_float_complex>(rocblas_operation transA, rocblas_int m, rocblas_int n)
 {
-    return (8.0 * m * n + 6.0 * transA == rocblas_operation_none ? m : n) / 1e9;
+    return (8.0 * m * n + 6.0 * (transA == rocblas_operation_none ? m : n)) / 1e9;
 }
 
 template <>
 constexpr double
     gemv_gflop_count<rocblas_double_complex>(rocblas_operation transA, rocblas_int m, rocblas_int n)
 {
-    return (8.0 * m * n + 6.0 * transA == rocblas_operation_none ? m : n) / 1e9;
+    return (8.0 * m * n + 6.0 * (transA == rocblas_operation_none ? m : n)) / 1e9;
 }
 
 /* \brief floating point counts of TRSV */
@@ -178,9 +178,51 @@ constexpr double geam_gflop_count(rocblas_int m, rocblas_int n)
 
 /* \brief floating point counts of TRSM */
 template <typename T>
+constexpr double trmm_gflop_count(rocblas_int m, rocblas_int n, rocblas_side side)
+{
+    if(rocblas_side_left == side)
+    {
+        return (1.0 * m * n * (m + 1)) / 1e9;
+    }
+    else
+    {
+        return (1.0 * m * n * (n + 1)) / 1e9;
+    }
+}
+
+template <>
+constexpr double
+    trmm_gflop_count<rocblas_float_complex>(rocblas_int m, rocblas_int n, rocblas_side side)
+{
+    if(rocblas_side_left == side)
+    {
+        return 4 * (1.0 * m * n * (m + 1)) / 1e9;
+    }
+    else
+    {
+        return 4 * (1.0 * m * n * (n + 1)) / 1e9;
+    }
+}
+
+template <>
+constexpr double
+    trmm_gflop_count<rocblas_double_complex>(rocblas_int m, rocblas_int n, rocblas_side side)
+{
+    if(rocblas_side_left == side)
+    {
+        return (1.0 * m * n * (m + 1)) / 1e9;
+    }
+    else
+    {
+        return (1.0 * m * n * (n + 1)) / 1e9;
+    }
+}
+
+/* \brief floating point counts of TRSM */
+template <typename T>
 constexpr double trsm_gflop_count(rocblas_int m, rocblas_int n, rocblas_int k)
 {
-    return (m * n * k) / 1e9;
+    return (1.0 * m * n * k) / 1e9;
 }
 
 template <>
