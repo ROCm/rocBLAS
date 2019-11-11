@@ -6,7 +6,6 @@
  * \brief rocblas.h includes other *.h and exposes a common interface
  */
 
-#pragma once
 #ifndef _ROCBLAS_H_
 #define _ROCBLAS_H_
 
