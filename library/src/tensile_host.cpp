@@ -24,7 +24,6 @@
 #include <memory>
 #include <string>
 #include <unistd.h>
-#include <sys/stat.h>
 
 // Return the value category for a value as a double precision value, such as whether it's 0, 1,
 // or some other value. Tensile uses a double precision value to express the category of beta.
@@ -213,20 +212,12 @@ static auto GetTensileInputs(const RocblasContractionProblem<T, U, V>& problem)
     return inputs;
 }
 
-bool TestPath(std::string path)
+bool TestPath(const std::string path)
 {
-  struct stat st;
-  if (stat(path.c_str(), &st) == 0)
-  {
-    return true;
-  }
-  else
-  {
-    return false;
-  }
+    return access(path.c_str(), R_OK) == 0;
 }
 
-std::string GetProcessorName(Tensile::AMDGPU::Processor p)
+std::string GetProcessorName(const Tensile::AMDGPU::Processor p)
 {
         switch(p)
         {
