@@ -135,16 +135,16 @@ install_packages( )
   local library_dependencies_ubuntu=( "make" "cmake-curses-gui" "pkg-config"
                                       "python2.7" "python3" "python-yaml" "python3-yaml"
                                       "llvm-6.0-dev" "libomp-dev"
-                                      "hip_hcc" "rocm_smi64" "zlib1g-dev")
+                                      "hip_hcc" "rocm-smi-lib64" "zlib1g-dev")
   local library_dependencies_centos=( "epel-release"
                                       "make" "cmake3" "rpm-build"
                                       "python34" "PyYAML" "python3*-PyYAML"
                                       "gcc-c++" "llvm7.0-devel" "llvm7.0-static"
-                                      "hip_hcc" "rocm_smi64" "libgomp" "zlib-devel" )
+                                      "hip_hcc" "rocm-smi-lib64" "libgomp" "zlib-devel" )
   local library_dependencies_fedora=( "make" "cmake" "rpm-build"
                                       "python34" "PyYAML" "python3*-PyYAML"
                                       "gcc-c++" "libcxx-devel" "libgomp"
-                                      "hip_hcc" "rocm_smi64" "zlib-devel" )
+                                      "hip_hcc" "rocm-smi-lib64" "zlib-devel" )
   local library_dependencies_sles=(   "make" "cmake" "python3-PyYAM"
                                       "hip_hcc" "gcc-c++" "libcxxtools9" "rpm-build" )
 
