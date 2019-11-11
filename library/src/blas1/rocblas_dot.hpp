@@ -127,11 +127,13 @@ rocblas_status rocblas_dot_template(rocblas_handle __restrict__ handle,
                            handle->rocblas_stream,
                            blocks,
                            workspace,
-                           workspace);
+                           (V*)(workspace + batch_count * blocks));
 
-        V res_V[batch_count];
+        // result is in the beginning of workspace[0]+offset
+        size_t offset = batch_count * blocks;
+        V      res_V[batch_count];
         RETURN_IF_HIP_ERROR(
-            hipMemcpy(res_V, workspace, sizeof(V) * batch_count, hipMemcpyDeviceToHost));
+            hipMemcpy(res_V, workspace + offset, sizeof(V) * batch_count, hipMemcpyDeviceToHost));
         for(int i = 0; i < batch_count; i++)
             results[i] = T(res_V[i]);
     }
