@@ -149,7 +149,7 @@ typedef enum rocblas_datatype_
 typedef enum rocblas_pointer_mode_
 {
     /*! \brief Scalar values affected by this variable will be located on the host. */
-    rocblas_pointer_mode_host   = 0,
+    rocblas_pointer_mode_host = 0,
     /*! \brief Scalar values affected by this variable will be located on the device. */
     rocblas_pointer_mode_device = 1
 } rocblas_pointer_mode;
@@ -158,11 +158,11 @@ typedef enum rocblas_pointer_mode_
 typedef enum rocblas_layer_mode_
 {
     /*! \brief No logging will take place. */
-    rocblas_layer_mode_none        = 0b0000000000,
+    rocblas_layer_mode_none = 0b0000000000,
     /*! \brief A line containing the function name and value of arguments passed will be printed with each rocBLAS function call. */
-    rocblas_layer_mode_log_trace   = 0b0000000001,
+    rocblas_layer_mode_log_trace = 0b0000000001,
     /*! \brief Outputs a line each time a rocBLAS function is called, this line can be used with rocblas-bench to make the same call again. */
-    rocblas_layer_mode_log_bench   = 0b0000000010,
+    rocblas_layer_mode_log_bench = 0b0000000010,
     /*! \brief Outputs a YAML description of each rocBLAS function called, along with its arguments and number of times it was called. */
     rocblas_layer_mode_log_profile = 0b0000000100,
 } rocblas_layer_mode;
