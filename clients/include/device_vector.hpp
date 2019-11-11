@@ -36,9 +36,9 @@ public:
     //! @remark Must wrap constructor and destructor in functions to allow Google Test macros to work
     //!
     explicit device_vector(rocblas_int n, rocblas_int inc)
-        : m_n(n)
+        : d_vector<T, PAD, U>(n * std::abs(inc))
+        , m_n(n)
         , m_inc(inc)
-        , d_vector<T, PAD, U>(n * std::abs(inc))
     {
         this->m_data = this->device_vector_setup();
     }
@@ -49,9 +49,9 @@ public:
     //! @remark Must wrap constructor and destructor in functions to allow Google Test macros to work
     //!
     explicit device_vector(size_t s)
-        : m_n(s)
+        : d_vector<T, PAD, U>(s)
+        , m_n(s)
         , m_inc(1)
-        , d_vector<T, PAD, U>(s)
     {
         this->m_data = this->device_vector_setup();
     }
