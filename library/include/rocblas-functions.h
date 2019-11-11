@@ -3744,6 +3744,105 @@ ROCBLAS_EXPORT rocblas_status rocblas_dsyr_strided_batched(rocblas_handle handle
  *    level 3 BLAS
  * ===========================================================================
  */
+/*! \brief BLAS Level 3 API
+
+    \details
+
+    trmm performs one of the matrix-matrix operations
+
+    B := alpha*op( A )*B,   or   B := alpha*B*op( A )
+
+    where  alpha  is a scalar,  B  is an m by n matrix,  A  is a unit, or
+    non-unit,  upper or lower triangular matrix  and  op( A )  is one  of
+
+        op( A ) = A   or   op( A ) = A^T   or   op( A ) = A^H.
+
+    @param[in]
+    handle    rocblas_handle.
+              handle to the rocblas library context queue.
+
+    @param[in]
+    side    rocblas_side.
+            rocblas_side_left:       C := alpha*op( A )*B.
+            rocblas_side_right:      C := alpha*B*op( A ).
+
+    @param[in]
+    uplo    rocblas_fill.
+            rocblas_fill_upper:  A is an upper triangular matrix.
+            rocblas_fill_lower:  A is a  lower triangular matrix.
+
+    @param[in]
+    transA  rocblas_operation.
+            transB:    op(A) = A.
+            rocblas_operation_transpose:      op(A) = A^T.
+            rocblas_operation_conjugate_transpose:  op(A) = A^H.
+
+    @param[in]
+    diag    rocblas_diagonal.
+            rocblas_diagonal_unit:      A is assumed to be unit triangular.
+            rocblas_diagonal_non_unit:  A is not assumed to be unit triangular.
+
+    @param[in]
+    m       rocblas_int.
+            m specifies the number of rows of B. m >= 0.
+
+    @param[in]
+    n       rocblas_int.
+            n specifies the number of columns of B. n >= 0.
+
+    @param[in]
+    alpha
+            alpha specifies the scalar alpha. When alpha is
+            zero then A is not referenced and B need not be set before
+            entry.
+
+    @param[in]
+    A       pointer storing matrix A on the GPU.
+            of dimension ( lda, k ), where k is m
+            when  rocblas_side_left  and
+            is  n  when  rocblas_side_right
+            only the upper/lower triangular part is accessed.
+
+    @param[in]
+    lda     rocblas_int.
+            lda specifies the first dimension of A.
+            if side = rocblas_side_left,  lda >= max( 1, m ),
+            if side = rocblas_side_right, lda >= max( 1, n ).
+
+    @param[in]
+    B       pointer storing matrix B on the GPU.
+
+    @param[in]
+    ldb    rocblas_int.
+           ldb specifies the first dimension of B. ldb >= max( 1, m ).
+
+    ********************************************************************/
+
+ROCBLAS_EXPORT rocblas_status rocblas_strmm(rocblas_handle    handle,
+                                            rocblas_side      side,
+                                            rocblas_fill      uplo,
+                                            rocblas_operation transA,
+                                            rocblas_diagonal  diag,
+                                            rocblas_int       m,
+                                            rocblas_int       n,
+                                            const float*      alpha,
+                                            const float*      A,
+                                            rocblas_int       lda,
+                                            float*            B,
+                                            rocblas_int       ldb);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dtrmm(rocblas_handle    handle,
+                                            rocblas_side      side,
+                                            rocblas_fill      uplo,
+                                            rocblas_operation transA,
+                                            rocblas_diagonal  diag,
+                                            rocblas_int       m,
+                                            rocblas_int       n,
+                                            const double*     alpha,
+                                            const double*     A,
+                                            rocblas_int       lda,
+                                            double*           B,
+                                            rocblas_int       ldb);
 
 /*! \brief BLAS Level 3 API
 

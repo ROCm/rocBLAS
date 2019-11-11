@@ -94,6 +94,7 @@ void run_function(const func_map& map, const Arguments& arg, const std::string& 
 #include "testing_gemm_ex.hpp"
 #include "testing_gemm_strided_batched.hpp"
 #include "testing_gemm_strided_batched_ex.hpp"
+#include "testing_trmm.hpp"
 #include "testing_trsm.hpp"
 #include "testing_trsm_batched.hpp"
 #include "testing_trsm_batched_ex.hpp"
@@ -205,6 +206,7 @@ struct perf_blas<
                 {"syr", testing_syr<T>},
 #if BUILD_WITH_TENSILE
                 {"geam", testing_geam<T>},
+                {"trmm", testing_trmm<T>},
                 {"trtri", testing_trtri<T>},
                 {"trtri_batched", testing_trtri_batched<T>},
                 {"trtri_strided_batched", testing_trtri_strided_batched<T>},

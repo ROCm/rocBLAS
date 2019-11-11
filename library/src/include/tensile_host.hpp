@@ -16,8 +16,10 @@
 
 enum struct ContractionProblemType
 {
-    GEMM,
-    GEMMStridedBatched,
+    gemm,
+    gemm_strided_batched,
+    gemm_ex,
+    gemm_strided_batched_ex,
 };
 
 // RocblasContractionProblem captures the arguments for a GEMM-like contraction problem, to be
@@ -57,7 +59,7 @@ struct RocblasContractionProblem
                               const T           beta,
                               T*                C,
                               rocblas_int       ld_c)
-        : problem_type{ContractionProblemType::GEMM}
+        : problem_type{ContractionProblemType::gemm}
         , trans_a{trans_a}
         , trans_b{trans_b}
         , m{m}
@@ -91,7 +93,7 @@ struct RocblasContractionProblem
                               rocblas_int       ld_c,
                               rocblas_stride    stride_c,
                               rocblas_int       batch_count)
-        : problem_type{ContractionProblemType::GEMMStridedBatched}
+        : problem_type{ContractionProblemType::gemm_strided_batched}
         , trans_a{trans_a}
         , trans_b{trans_b}
         , m{m}

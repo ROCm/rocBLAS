@@ -52,24 +52,49 @@ static constexpr auto tensile_datatype<rocblas_float_complex> = Tensile::DataTyp
 template <>
 static constexpr auto tensile_datatype<rocblas_double_complex> = Tensile::DataType::ComplexDouble;
 
+constexpr auto rocblas_datatype_to_tensile_datatype(rocblas_datatype type)
+{
+    switch(type)
+    {
+    case rocblas_datatype_f16_r:
+        return Tensile::DataType::Half;
+    case rocblas_datatype_f32_r:
+        return Tensile::DataType::Float;
+    case rocblas_datatype_f64_r:
+        return Tensile::DataType::Double;
+    case rocblas_datatype_f32_c:
+        return Tensile::DataType::ComplexFloat;
+    case rocblas_datatype_f64_c:
+        return Tensile::DataType::ComplexDouble;
+    case rocblas_datatype_i8_r:
+        return Tensile::DataType::Int8x4;
+    case rocblas_datatype_i32_r:
+        return Tensile::DataType::Int32;
+    case rocblas_datatype_bf16_r:
+        return Tensile::DataType::BFloat16;
+    }
+
+    return Tensile::DataType::Count;
+}
+
 template <typename T>
-static auto create_gemm_contraction_problem(rocblas_operation trans_a,
-                                            rocblas_operation trans_b,
-                                            size_t            m,
-                                            size_t            n,
-                                            size_t            k,
-                                            T                 alpha,
-                                            const T*          A,
-                                            size_t            ld_a,
-                                            const T*          B,
-                                            size_t            ld_b,
-                                            T                 beta,
-                                            T*                C,
-                                            size_t            ld_c,
-                                            size_t            stride_a    = 0,
-                                            size_t            stride_b    = 0,
-                                            size_t            stride_c    = 0,
-                                            size_t            batch_count = 1)
+static rocblas_status create_gemm_contraction_problem(rocblas_operation trans_a,
+                                                      rocblas_operation trans_b,
+                                                      size_t            m,
+                                                      size_t            n,
+                                                      size_t            k,
+                                                      T                 alpha,
+                                                      const T*          A,
+                                                      size_t            ld_a,
+                                                      const T*          B,
+                                                      size_t            ld_b,
+                                                      T                 beta,
+                                                      T*                C,
+                                                      size_t            ld_c,
+                                                      size_t            stride_a    = 0,
+                                                      size_t            stride_b    = 0,
+                                                      size_t            stride_c    = 0,
+                                                      size_t            batch_count = 1)
 {
     auto dt = tensile_datatype<T>;
 
@@ -124,12 +149,43 @@ static auto create_gemm_contraction_problem(rocblas_operation trans_a,
         a, aops, b, bops, c, {}, c, {}, freeIndex, batchIndex, boundIndex, value_category(beta)};
 }
 
+extern "C" rocblas_status create_gemm_contraction_problem(rocblas_operation trans_a,
+                                                          rocblas_operation trans_b,
+                                                          rocblas_int       m,
+                                                          rocblas_int       n,
+                                                          rocblas_int       k,
+                                                          const void*       alpha,
+                                                          const void*       a,
+                                                          rocblas_datatype  a_type,
+                                                          rocblas_int       lda,
+                                                          const void*       b,
+                                                          rocblas_datatype  b_type,
+                                                          rocblas_int       ldb,
+                                                          const void*       beta,
+                                                          const void*       c,
+                                                          rocblas_datatype  c_type,
+                                                          rocblas_int       ldc,
+                                                          void*             d,
+                                                          rocblas_datatype  d_type,
+                                                          rocblas_int       ldd,
+                                                          rocblas_datatype  compute_type,
+                                                          rocblas_gemm_algo algo,
+                                                          int32_t           solution_index,
+                                                          uint32_t          flags,
+                                                          rocblas_stride    stride_a    = 0,
+                                                          rocblas_stride    stride_b    = 0,
+                                                          rocblas_stride    stride_c    = 0,
+                                                          rocblas_stride    stride_d    = 0,
+                                                          rocblas_int       batch_count = 1)
+{
+}
+
 template <typename PROBLEM>
-static auto ConstructTensileProblem(const PROBLEM& problem)
+static rocblas_status ConstructTensileProblem(const PROBLEM& problem)
 {
     switch(problem.problem_type)
     {
-    case ContractionProblemType::GEMM:
+    case ContractionProblemType::gemm:
         return create_gemm_contraction_problem(problem.trans_a,
                                                problem.trans_b,
                                                problem.m,
@@ -144,7 +200,7 @@ static auto ConstructTensileProblem(const PROBLEM& problem)
                                                problem.C,
                                                problem.ld_c);
 
-    case ContractionProblemType::GEMMStridedBatched:
+    case ContractionProblemType::gemm_strided_batched:
         return create_gemm_contraction_problem(problem.trans_a,
                                                problem.trans_b,
                                                problem.m,
@@ -162,7 +218,11 @@ static auto ConstructTensileProblem(const PROBLEM& problem)
                                                problem.stride_b,
                                                problem.stride_c,
                                                problem.batch_count);
+    case ContractionProblemType::gemm_ex:
+    case ContractionProblemType::gemm_strided_batched_ex:
     }
+
+    return rocblas_status_internal_error;
 }
 
 // Map a static C++ type into a corresponding Tensile type

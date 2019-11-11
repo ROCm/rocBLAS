@@ -376,14 +376,14 @@ rocblas_status rocblas_reduction_strided_batched_kernel(rocblas_handle __restric
                 handle->rocblas_stream,
                 blocks,
                 workspace,
-                (Tr*)(workspace + batch_count * blocks));
+                (Tr*)(workspace + size_t(batch_count) * blocks));
         }
 
         if(std::is_same<FINALIZE, rocblas_finalize_identity>{} || reduceKernel)
         {
             // If FINALIZE is trivial or kernel part2 was called, result is in the
             // beginning of workspace[0]+offset, and can be copied directly.
-            size_t offset = reduceKernel ? batch_count * blocks : 0;
+            size_t offset = reduceKernel ? size_t(batch_count) * blocks : 0;
             RETURN_IF_HIP_ERROR(hipMemcpy(
                 result, workspace + offset, batch_count * sizeof(Tr), hipMemcpyDeviceToHost));
         }
@@ -394,7 +394,7 @@ rocblas_status rocblas_reduction_strided_batched_kernel(rocblas_handle __restric
             To res[batch_count];
             RETURN_IF_HIP_ERROR(
                 hipMemcpy(res, workspace, batch_count * sizeof(To), hipMemcpyDeviceToHost));
-            for(int i = 0; i < batch_count; i++)
+            for(rocblas_int i = 0; i < batch_count; i++)
                 result[i] = Tr(FINALIZE{}(res[i]));
         }
     }
