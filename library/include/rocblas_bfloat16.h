@@ -26,7 +26,6 @@
  * \brief rocblas_bfloat16.h provides struct for rocblas_bfloat16 typedef
  */
 
-#pragma once
 #ifndef _ROCBLAS_BFLOAT16_H_
 #define _ROCBLAS_BFLOAT16_H_
 

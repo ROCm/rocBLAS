@@ -28,6 +28,17 @@ void rocblas_init(
                 A[i + j * lda + i_batch * stride] = random_generator<T>();
 }
 
+// Initialize vector with random values
+template <typename T>
+inline void
+    rocblas_init(T* A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
+{
+    for(size_t i_batch = 0; i_batch < batch_count; i_batch++)
+        for(size_t i = 0; i < M; ++i)
+            for(size_t j = 0; j < N; ++j)
+                A[i + j * lda + i_batch * stride] = random_generator<T>();
+}
+
 template <typename T>
 void rocblas_init_sin(
     std::vector<T>& A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
