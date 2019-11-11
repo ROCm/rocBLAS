@@ -68,6 +68,8 @@ Functions:
   rocblas_hgemm_strided_batched: { function: gemm_strided_batched, <<: *half_precision }
   rocblas_sgemm_strided_batched: { function: gemm_strided_batched, <<: *single_precision }
   rocblas_dgemm_strided_batched: { function: gemm_strided_batched, <<: *double_precision }
+  rocblas_strsm: { function: trmm, <<: *single_precision }
+  rocblas_dtrsm: { function: trmm, <<: *double_precision }
   rocblas_strsm: { function: trsm, <<: *single_precision }
   rocblas_dtrsm: { function: trsm, <<: *double_precision }
   rocblas_strtri: { function: trtri, <<: *single_precision }
