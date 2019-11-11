@@ -8,6 +8,7 @@
 
 #include "tensile_host.hpp"
 #include "rocblas.h"
+//#include <Tensile/AMDGPU.hpp>
 #include <Tensile/Contractions.hpp>
 #include <Tensile/EmbeddedLibrary.hpp>
 #include <Tensile/MasterSolutionLibrary.hpp>
@@ -23,6 +24,7 @@
 #include <memory>
 #include <string>
 #include <unistd.h>
+#include <sys/stat.h>
 
 // Return the value category for a value as a double precision value, such as whether it's 0, 1,
 // or some other value. Tensile uses a double precision value to express the category of beta.
@@ -211,6 +213,31 @@ static auto GetTensileInputs(const RocblasContractionProblem<T, U, V>& problem)
     return inputs;
 }
 
+bool TestPath(std::string path)
+{
+  struct stat st;
+  if (stat(path.c_str(), &st) == 0)
+  {
+    return true;
+  }
+  else
+  {
+    return false;
+  }
+}
+
+std::string GetProcessorName(Tensile::AMDGPU::Processor p)
+{
+        switch(p)
+        {
+		case Tensile::AMDGPU::Processor::gfx803: return "gfx803";
+		case Tensile::AMDGPU::Processor::gfx900: return "gfx900";
+		case Tensile::AMDGPU::Processor::gfx906: return "gfx906";
+		case Tensile::AMDGPU::Processor::gfx908: return "gfx908";
+        }
+}
+
+
 // TensileHostImpl class implements TensileHost as an opaque derived class
 struct TensileHostImpl : TensileHost
 {
@@ -219,6 +246,10 @@ struct TensileHostImpl : TensileHost
     {
         std::string path;
         path.reserve(PATH_MAX);
+
+        hardware = Tensile::hip::GetCurrentDevice();
+	std::shared_ptr<Tensile::AMDGPU> pAMDGPU = std::dynamic_pointer_cast<Tensile::AMDGPU>(hardware);
+	std::string processor = GetProcessorName(pAMDGPU->processor);
 
         const char* env = getenv("ROCBLAS_TENSILE_LIBPATH");
         if(env)
@@ -235,12 +266,18 @@ struct TensileHostImpl : TensileHost
                 path = info.dli_fname;
                 dirname(&path[0]);
                 path.resize(strlen(path.c_str()));
-                path += "/../../Tensile/library";
             }
             else
             {
-                path = "/opt/rocm"; // TODO: Need to set default
+                path = "/opt/rocm/rocblas/lib"; 
             }
+	    // Find the location of the libraries
+            if (TestPath(path + "/../../Tensile/library"))
+                path += "/../../Tensile/library";
+	    else
+	        path += "/library";
+	    if (TestPath(path + "/" + processor))
+		path += "/" + processor;
         }
 
         auto dir = path + "/*co";
@@ -274,7 +311,6 @@ struct TensileHostImpl : TensileHost
         library = std::dynamic_pointer_cast<
             Tensile::MasterSolutionLibrary<Tensile::ContractionProblem>>(
             Tensile::LoadLibraryFile<Tensile::ContractionProblem>(path));
-        hardware = Tensile::hip::GetCurrentDevice();
     }
 
 private:
