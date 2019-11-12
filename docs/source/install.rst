@@ -32,7 +32,7 @@ Building from source
 ====================
 
 Building from source is not necessary, as rocBLAS can be used after installing the pre-built
-packages as described above. If desired, instructions to build rocBLAS from source follow.
+packages as described above. If desired, the following instructions can be used to build rocBLAS from source.
 
 Download rocBLAS
 ----------------
@@ -79,7 +79,7 @@ in the table below.
 | ``./install.sh``                          | Build library in your    |
 |                                           | local directory. It is   |
 |                                           | assumed dependencies     |
-|                                           | have been built          |
+|                                           | have been built.         |
 +-------------------------------------------+--------------------------+
 | ``./install.sh -i``                       | Build library, then      |
 |                                           | build and install        |

@@ -1024,14 +1024,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zswap_strided_batched(rocblas_handle      
 
     ********************************************************************/
 
-ROCBLAS_EXPORT rocblas_status rocblas_haxpy(rocblas_handle      handle,
-                                            rocblas_int         n,
-                                            const rocblas_half* alpha,
-                                            const rocblas_half* x,
-                                            rocblas_int         incx,
-                                            rocblas_half*       y,
-                                            rocblas_int         incy);
-
 ROCBLAS_EXPORT rocblas_status rocblas_saxpy(rocblas_handle handle,
                                             rocblas_int    n,
                                             const float*   alpha,
@@ -1047,6 +1039,14 @@ ROCBLAS_EXPORT rocblas_status rocblas_daxpy(rocblas_handle handle,
                                             rocblas_int    incx,
                                             double*        y,
                                             rocblas_int    incy);
+
+ROCBLAS_EXPORT rocblas_status rocblas_haxpy(rocblas_handle      handle,
+                                            rocblas_int         n,
+                                            const rocblas_half* alpha,
+                                            const rocblas_half* x,
+                                            rocblas_int         incx,
+                                            rocblas_half*       y,
+                                            rocblas_int         incy);
 
 ROCBLAS_EXPORT rocblas_status rocblas_caxpy(rocblas_handle               handle,
                                             rocblas_int                  n,
@@ -3800,36 +3800,36 @@ ROCBLAS_EXPORT rocblas_status rocblas_dsyr_strided_batched(rocblas_handle handle
         op( A ) = A   or   op( A ) = A^T   or   op( A ) = A^H.
 
     @param[in]
-    handle    rocblas_handle.
+    handle    [rocblas_handle]
               handle to the rocblas library context queue.
 
     @param[in]
-    side    rocblas_side.
+    side    [rocblas_side]
             rocblas_side_left:       C := alpha*op( A )*B.
             rocblas_side_right:      C := alpha*B*op( A ).
 
     @param[in]
-    uplo    rocblas_fill.
+    uplo    [rocblas_fill]
             rocblas_fill_upper:  A is an upper triangular matrix.
             rocblas_fill_lower:  A is a  lower triangular matrix.
 
     @param[in]
-    transA  rocblas_operation.
+    transA  [rocblas_operation]
             transB:    op(A) = A.
             rocblas_operation_transpose:      op(A) = A^T.
             rocblas_operation_conjugate_transpose:  op(A) = A^H.
 
     @param[in]
-    diag    rocblas_diagonal.
+    diag    [rocblas_diagonal]
             rocblas_diagonal_unit:      A is assumed to be unit triangular.
             rocblas_diagonal_non_unit:  A is not assumed to be unit triangular.
 
     @param[in]
-    m       rocblas_int.
+    m       [rocblas_int]
             m specifies the number of rows of B. m >= 0.
 
     @param[in]
-    n       rocblas_int.
+    n       [rocblas_int]
             n specifies the number of columns of B. n >= 0.
 
     @param[in]
@@ -3846,7 +3846,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dsyr_strided_batched(rocblas_handle handle
             only the upper/lower triangular part is accessed.
 
     @param[in]
-    lda     rocblas_int.
+    lda     [rocblas_int]
             lda specifies the first dimension of A.
             if side = rocblas_side_left,  lda >= max( 1, m ),
             if side = rocblas_side_right, lda >= max( 1, n ).
@@ -3855,7 +3855,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dsyr_strided_batched(rocblas_handle handle
     B       pointer storing matrix B on the GPU.
 
     @param[in]
-    ldb    rocblas_int.
+    ldb    [rocblas_int]
            ldb specifies the first dimension of B. ldb >= max( 1, m ).
 
     ********************************************************************/
@@ -4187,12 +4187,16 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrsm(rocblas_handle    handle,
 /*! \brief BLAS Level 3 API
     \details
     trsm_batched performs the following batched operation:
-        op(A_i)*X_i = alpha*B_i or  X_i*op(A_i) = alpha*B_i, for
-    i = 1, ..., batch_count.
+
+        op(A_i)*X_i = alpha*B_i or  X_i*op(A_i) = alpha*B_i, for i = 1, ..., batch_count.
+
     where alpha is a scalar, X and B are batched m by n matrices,
     A is triangular batched matrix and op(A) is one of
+
         op( A ) = A   or   op( A ) = A^T   or   op( A ) = A^H.
+
     Each matrix X_i is overwritten on B_i for i = 1, ..., batch_count.
+
     Note about memory allocation:
     When trsm is launched with a k evenly divisible by the internal block size of 128,
     and is no larger than 10 of these blocks, the API takes advantage of utilizing pre-allocated
@@ -4202,6 +4206,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrsm(rocblas_handle    handle,
     reduce performance. Under these circumstances it is recommended that WORKBUF_TRSM_B_CHNK be set
     to the desired chunk of right hand sides to be used at a time.
     (where k is m when rocblas_side_left and is n when rocblas_side_right)
+
     @param[in]
     handle    [rocblas_handle]
               handle to the rocblas library context queue.
@@ -4284,12 +4289,16 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrsm_batched(rocblas_handle      handle,
 /*! \brief BLAS Level 3 API
     \details
     trsm_srided_batched performs the following strided batched operation:
-        op(A_i)*X_i = alpha*B_i or  X_i*op(A_i) = alpha*B_i, for
-    i = 1, ..., batch_count.
+
+        op(A_i)*X_i = alpha*B_i or  X_i*op(A_i) = alpha*B_i, for i = 1, ..., batch_count.
+
     where alpha is a scalar, X and B are strided batched m by n matrices,
     A is triangular strided batched matrix and op(A) is one of
+
         op( A ) = A   or   op( A ) = A^T   or   op( A ) = A^H.
+
     Each matrix X_i is overwritten on B_i for i = 1, ..., batch_count.
+
     Note about memory allocation:
     When trsm is launched with a k evenly divisible by the internal block size of 128,
     and is no larger than 10 of these blocks, the API takes advantage of utilizing pre-allocated
@@ -4445,21 +4454,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrsm_strided_batched(rocblas_handle    ha
 
     ********************************************************************/
 
-ROCBLAS_EXPORT rocblas_status rocblas_hgemm(rocblas_handle      handle,
-                                            rocblas_operation   transA,
-                                            rocblas_operation   transB,
-                                            rocblas_int         m,
-                                            rocblas_int         n,
-                                            rocblas_int         k,
-                                            const rocblas_half* alpha,
-                                            const rocblas_half* A,
-                                            rocblas_int         lda,
-                                            const rocblas_half* B,
-                                            rocblas_int         ldb,
-                                            const rocblas_half* beta,
-                                            rocblas_half*       C,
-                                            rocblas_int         ldc);
-
 ROCBLAS_EXPORT rocblas_status rocblas_sgemm(rocblas_handle    handle,
                                             rocblas_operation transA,
                                             rocblas_operation transB,
@@ -4489,6 +4483,21 @@ ROCBLAS_EXPORT rocblas_status rocblas_dgemm(rocblas_handle    handle,
                                             const double*     beta,
                                             double*           C,
                                             rocblas_int       ldc);
+
+ROCBLAS_EXPORT rocblas_status rocblas_hgemm(rocblas_handle      handle,
+                                            rocblas_operation   transA,
+                                            rocblas_operation   transB,
+                                            rocblas_int         m,
+                                            rocblas_int         n,
+                                            rocblas_int         k,
+                                            const rocblas_half* alpha,
+                                            const rocblas_half* A,
+                                            rocblas_int         lda,
+                                            const rocblas_half* B,
+                                            rocblas_int         ldb,
+                                            const rocblas_half* beta,
+                                            rocblas_half*       C,
+                                            rocblas_int         ldc);
 
 /* not implemented
 ROCBLAS_EXPORT rocblas_status
@@ -4587,21 +4596,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgemm(rocblas_handle                handle
               [rocblas_int]
               number of gemm operations in the batch
      ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_hgemm_batched(rocblas_handle            handle,
-                                                    rocblas_operation         transA,
-                                                    rocblas_operation         transB,
-                                                    rocblas_int               m,
-                                                    rocblas_int               n,
-                                                    rocblas_int               k,
-                                                    const rocblas_half*       alpha,
-                                                    const rocblas_half* const A[],
-                                                    rocblas_int               lda,
-                                                    const rocblas_half* const B[],
-                                                    rocblas_int               ldb,
-                                                    const rocblas_half*       beta,
-                                                    rocblas_half* const       C[],
-                                                    rocblas_int               ldc,
-                                                    rocblas_int               batch_count);
 
 ROCBLAS_EXPORT rocblas_status rocblas_sgemm_batched(rocblas_handle     handle,
                                                     rocblas_operation  transA,
@@ -4634,6 +4628,22 @@ ROCBLAS_EXPORT rocblas_status rocblas_dgemm_batched(rocblas_handle      handle,
                                                     double* const       C[],
                                                     rocblas_int         ldc,
                                                     rocblas_int         batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_hgemm_batched(rocblas_handle            handle,
+                                                    rocblas_operation         transA,
+                                                    rocblas_operation         transB,
+                                                    rocblas_int               m,
+                                                    rocblas_int               n,
+                                                    rocblas_int               k,
+                                                    const rocblas_half*       alpha,
+                                                    const rocblas_half* const A[],
+                                                    rocblas_int               lda,
+                                                    const rocblas_half* const B[],
+                                                    rocblas_int               ldb,
+                                                    const rocblas_half*       beta,
+                                                    rocblas_half* const       C[],
+                                                    rocblas_int               ldc,
+                                                    rocblas_int               batch_count);
 
 ROCBLAS_EXPORT rocblas_status rocblas_cgemm_batched(rocblas_handle                     handle,
                                                     rocblas_operation                  transA,
@@ -4746,25 +4756,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgemm_batched(rocblas_handle              
 
     ********************************************************************/
 
-ROCBLAS_EXPORT rocblas_status rocblas_hgemm_strided_batched(rocblas_handle      handle,
-                                                            rocblas_operation   transA,
-                                                            rocblas_operation   transB,
-                                                            rocblas_int         m,
-                                                            rocblas_int         n,
-                                                            rocblas_int         k,
-                                                            const rocblas_half* alpha,
-                                                            const rocblas_half* A,
-                                                            rocblas_int         lda,
-                                                            rocblas_stride      stride_a,
-                                                            const rocblas_half* B,
-                                                            rocblas_int         ldb,
-                                                            rocblas_stride      stride_b,
-                                                            const rocblas_half* beta,
-                                                            rocblas_half*       C,
-                                                            rocblas_int         ldc,
-                                                            rocblas_stride      stride_c,
-                                                            rocblas_int         batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_sgemm_strided_batched(rocblas_handle    handle,
                                                             rocblas_operation transA,
                                                             rocblas_operation transB,
@@ -4802,6 +4793,25 @@ ROCBLAS_EXPORT rocblas_status rocblas_dgemm_strided_batched(rocblas_handle    ha
                                                             rocblas_int       ldc,
                                                             rocblas_stride    stride_c,
                                                             rocblas_int       batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_hgemm_strided_batched(rocblas_handle      handle,
+                                                            rocblas_operation   transA,
+                                                            rocblas_operation   transB,
+                                                            rocblas_int         m,
+                                                            rocblas_int         n,
+                                                            rocblas_int         k,
+                                                            const rocblas_half* alpha,
+                                                            const rocblas_half* A,
+                                                            rocblas_int         lda,
+                                                            rocblas_stride      stride_a,
+                                                            const rocblas_half* B,
+                                                            rocblas_int         ldb,
+                                                            rocblas_stride      stride_b,
+                                                            const rocblas_half* beta,
+                                                            rocblas_half*       C,
+                                                            rocblas_int         ldc,
+                                                            rocblas_stride      stride_c,
+                                                            rocblas_int         batch_count);
 
 ROCBLAS_EXPORT rocblas_status rocblas_hgemm_kernel_name(rocblas_handle      handle,
                                                         rocblas_operation   transA,

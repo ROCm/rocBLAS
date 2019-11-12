@@ -525,6 +525,18 @@ rocblas_<type>trsv()
 
 .. doxygenfunction:: rocblas_dtrsv
 
+rocblas_<type>trsv_batched()
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. doxygenfunction:: rocblas_strsv_batched
+
+.. doxygenfunction:: rocblas_dtrsv_batched
+
+rocblas_<type>trsv_strided_batched()
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. doxygenfunction:: rocblas_strsv_strided_batched
+
+.. doxygenfunction:: rocblas_dtrsv_strided_batched
+
 rocblas_<type>ger()
 ^^^^^^^^^^^^^^^^^^^
 .. doxygenfunction:: rocblas_sger

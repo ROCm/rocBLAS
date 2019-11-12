@@ -39,18 +39,18 @@ description of each rocBLAS function called, the values of its
 arguments, and the number of times it was called with those arguments.
 
 The default stream for logging output is standard error. Three
-environment variables can set the full path name for a log file: \*
-``ROCBLAS_LOG_TRACE_PATH`` sets the full path name for trace logging \*
-``ROCBLAS_LOG_BENCH_PATH`` sets the full path name for bench logging \*
-``ROCBLAS_LOG_PROFILE_PATH`` sets the full path name for profile logging
+environment variables can set the full path name for a log file:
+
+* ``ROCBLAS_LOG_TRACE_PATH`` sets the full path name for trace logging
+* ``ROCBLAS_LOG_BENCH_PATH`` sets the full path name for bench logging
+* ``ROCBLAS_LOG_PROFILE_PATH`` sets the full path name for profile logging
 
 If a path name cannot be opened, then the corresponding logging output
 is streamed to standard error.
-
-Note that performance will degrade when logging is enabled.
 
 When profile logging is enabled, memory usage will increase. If the
 program exits abnormally, then it is possible that profile logging will
 not be outputted before the program exits.
 
+**Note that performance will degrade when logging is enabled.**
 
