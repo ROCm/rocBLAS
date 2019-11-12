@@ -8,17 +8,24 @@ Logging
 =======
 
 Four environment variables can be set to control logging:
-- ``ROCBLAS_LAYER``
-- ``ROCBLAS_LOG_TRACE_PATH``
-- ``ROCBLAS_LOG_BENCH_PATH``
-- ``ROCBLAS_LOG_PROFILE_PATH``
+
+* ``ROCBLAS_LAYER``
+
+* ``ROCBLAS_LOG_TRACE_PATH``
+
+* ``ROCBLAS_LOG_BENCH_PATH``
+
+* ``ROCBLAS_LOG_PROFILE_PATH``
 
 ``ROCBLAS_LAYER`` is a bitwise OR of zero or more bit masks as follows:
 
--  If ``ROCBLAS_LAYER`` is not set, then there is no logging
--  If ``(ROCBLAS_LAYER & 1) != 0``, then there is trace logging
--  If ``(ROCBLAS_LAYER & 2) != 0``, then there is bench logging
--  If ``(ROCBLAS_LAYER & 4) != 0``, then there is profile logging
+*  If ``ROCBLAS_LAYER`` is not set, then there is no logging
+
+*  If ``(ROCBLAS_LAYER & 1) != 0``, then there is trace logging
+
+*  If ``(ROCBLAS_LAYER & 2) != 0``, then there is bench logging
+
+*  If ``(ROCBLAS_LAYER & 4) != 0``, then there is profile logging
 
 Trace logging outputs a line each time a rocBLAS function is called. The
 line contains the function name and the values of arguments.

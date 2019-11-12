@@ -10,7 +10,7 @@ Building and Installing
 Prerequisites
 =============
 
--  A ROCm enabled platform, more information `here <https://rocm.github.io/install.html>`_.
+-  A ROCm enabled platform, more information `here <https://rocm.github.io/>`_.
 -  Base software stack, which includes:
    - `HIP <https://github.com/ROCm-Developer-Tools/HIP>`_
 
@@ -25,8 +25,6 @@ rocBLAS can be installed on Ubuntu using
    sudo apt-get update
    sudo apt-get install rocblas
 
-rocBLAS Debian packages can also be downloaded from the `rocBLAS releases tag <https://github.com/ROCmSoftwarePlatform/rocBLAS/releases>`_. These may be newer than the package from apt-get.
-
 Building from source
 ====================
 
@@ -39,9 +37,6 @@ The rocBLAS source code is available at the `rocBLAS github page <https://github
 
    git clone -b master https://github.com/ROCmSoftwarePlatform/rocBLAS.git
    cd rocBLAS
-
-Note if you want to contribute to rocBLAS, you will need the develop
-branch, not the master branch, and you will need to read :ref:`contributing_label`.
 
 Below are steps to build either (dependencies + library) or
 (dependencies + library + client). You only need (dependencies +
@@ -220,9 +215,13 @@ Additional dependencies for the rocBLAS clients
 
 The unit tests and benchmarking applications in the client introduce the
 following dependencies:
-1. `boost <http://www.boost.org/>`__
+
+#. `boost <http://www.boost.org/>`__
+
 2. `fortran <http://gcc.gnu.org/wiki/GFortran>`__
+
 3. `lapack <https://github.com/Reference-LAPACK/lapack-release>`__ - lapack itself brings a dependency on a fortran compiler
+
 4. `googletest <https://github.com/google/googletest>`__
 
 boost
