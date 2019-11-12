@@ -599,7 +599,7 @@ rocblas_<type>trsm_strided_batched()
 
 .. doxygenfunction:: rocblas_dtrsm_strided_batched
 
-rocblas_<type>trmm_strided_batched()
+rocblas_<type>trmm()
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 .. doxygenfunction:: rocblas_strmm
 
@@ -727,17 +727,33 @@ rocblas_set_vector()
 ^^^^^^^^^^^^^^^^^^^^
 .. doxygenfunction:: rocblas_set_vector
 
+rocblas_set_vector_async()
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. doxygenfunction:: rocblas_set_vector_async
+
 rocblas_get_vector()
 ^^^^^^^^^^^^^^^^^^^^
 .. doxygenfunction:: rocblas_get_vector
+
+rocblas_get_vector_async()
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. doxygenfunction:: rocblas_get_vector_async
 
 rocblas_set_matrix()
 ^^^^^^^^^^^^^^^^^^^^
 .. doxygenfunction:: rocblas_set_matrix
 
+rocblas_set_matrix_async()
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. doxygenfunction:: rocblas_set_matrix_async
+
 rocblas_get_matrix()
 ^^^^^^^^^^^^^^^^^^^^
 .. doxygenfunction:: rocblas_get_matrix
+
+rocblas_get_matrix_async()
+^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. doxygenfunction:: rocblas_get_matrix_async
 
 rocblas_start_device_memory_size_query()
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
