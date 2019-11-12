@@ -43,78 +43,91 @@ BLAS functions
 Level 1
 -------
 
-============================== ====== ====== ============== ============== ====
-Function                       single double single complex double complex half
-============================== ====== ====== ============== ============== ====
-**rocblas_Xscal**              x      x      x              x             
-rocblas_Xscal_batched          x      x      x              x             
-rocblas_Xscal_strided_batched  x      x      x              x             
-**rocblas_Xcopy**              x      x      x              x             
-rocblas_Xcopy_batched          x      x      x              x             
-rocblas_Xcopy_strided_batched  x      x      x              x             
-**rocblas_Xdot**               x      x      x              x              x
-rocblas_Xdot_batched           x      x      x              x              x
-rocblas_Xdot_strided_batched   x      x      x              x              x
-**rocblas_Xswap**              x      x      x              x             
-rocblas_Xswap_batched          x      x      x              x             
-rocblas_Xswap_strided_batched  x      x      x              x             
-**rocblas_Xaxpy**              x      x      x              x              x
-**rocblas_Xasum**              x      x      x              x             
-rocblas_Xasum_batched          x      x      x              x             
-rocblas_Xasum_strided_batched  x      x      x              x             
-**rocblas_Xnrm2**              x      x      x              x             
-rocblas_Xnrm2_batched          x      x      x              x             
-rocblas_Xnrm2_strided_batched  x      x      x              x             
-**rocblas_iXamax**             x      x      x              x             
-**rocblas_iXamin**             x      x      x              x             
-**rocblas_Xrot**               x      x      x              x             
-rocblas_Xrot_batched           x      x      x              x             
-rocblas_Xrot_strided_batched   x      x      x              x             
-**rocblas_Xrotg**              x      x      x              x             
-rocblas_Xrotg_batched          x      x      x              x             
-rocblas_Xrotg_strided_batched  x      x      x              x             
+============================== ====== ====== ============== ==============
+Function                       single double single complex double complex
+============================== ====== ====== ============== ==============
+**rocblas_Xscal**              x      x      x              x
+rocblas_Xscal_batched          x      x      x              x
+rocblas_Xscal_strided_batched  x      x      x              x
+**rocblas_Xcopy**              x      x      x              x
+rocblas_Xcopy_batched          x      x      x              x
+rocblas_Xcopy_strided_batched  x      x      x              x
+**rocblas_Xdot**               x      x      x              x
+rocblas_Xdot_batched           x      x      x              x
+rocblas_Xdot_strided_batched   x      x      x              x
+**rocblas_Xdotc**                            x              x
+rocblas_Xdotc_batched                        x              x
+rocblas_Xdotc_strided_batched                x              x
+**rocblas_Xswap**              x      x      x              x
+rocblas_Xswap_batched          x      x      x              x
+rocblas_Xswap_strided_batched  x      x      x              x
+**rocblas_Xaxpy**              x      x      x              x
+rocblas_Xaxpy_batched          x      x      x              x
+rocblas_Xaxpy_strided_batched  x      x      x              x
+**rocblas_Xasum**              x      x      x              x
+rocblas_Xasum_batched          x      x      x              x
+rocblas_Xasum_strided_batched  x      x      x              x
+**rocblas_Xnrm2**              x      x      x              x
+rocblas_Xnrm2_batched          x      x      x              x
+rocblas_Xnrm2_strided_batched  x      x      x              x
+**rocblas_iXamax**             x      x      x              x
+rocblas_iXamax_batched         x      x      x              x
+rocblas_iXamax_strided_batched x      x      x              x
+**rocblas_iXamin**             x      x      x              x
+rocblas_iXamin_batched         x      x      x              x
+rocblas_iXamin_strided_batched x      x      x              x
+**rocblas_Xrot**               x      x      x              x
+rocblas_Xrot_batched           x      x      x              x
+rocblas_Xrot_strided_batched   x      x      x              x
+**rocblas_Xrotg**              x      x      x              x
+rocblas_Xrotg_batched          x      x      x              x
+rocblas_Xrotg_strided_batched  x      x      x              x
 **rocblas_Xrotm**              x      x                                   
 rocblas_Xrotm_batched          x      x                                   
 rocblas_Xrotm_strided_batched  x      x                                   
 **rocblas_Xrotmg**             x      x                                   
 rocblas_Xrotmg_batched         x      x                                   
 rocblas_Xrotmg_strided_batched x      x                                   
-============================== ====== ====== ============== ============== ====
+============================== ====== ====== ============== ==============
 
 Level 2
 -------
 
-============================= ====== ====== ============== ============== ====
-Function                      single double single complex double complex half
-============================= ====== ====== ============== ============== ====
-**rocblas_Xgemv**             x      x      x              x             
-rocblas_Xgemv_batched         x      x      x              x             
-rocblas_Xgemv_strided_batched x      x      x              x             
+============================= ====== ====== ============== ==============
+Function                      single double single complex double complex
+============================= ====== ====== ============== ==============
+**rocblas_Xgemv**             x      x      x              x
+rocblas_Xgemv_batched         x      x      x              x
+rocblas_Xgemv_strided_batched x      x      x              x
 **rocblas_Xger**              x      x                                   
 rocblas_Xger_batched          x      x                                   
 rocblas_Xger_strided_batched  x      x                                   
 **rocblas_Xsyr**              x      x                                   
 rocblas_Xsyr_batched          x      x                                   
 rocblas_Xsyr_strided_batched  x      x                                   
-============================= ====== ====== ============== ============== ====
+**rocblas_Xtrsv**             x      x
+rocblas_Xtrsv_batched         x      x
+rocblas_Xtrsv_strided_batched x      x
+============================= ====== ====== ============== ==============
 
 Level 3
 -------
 
-============================== ====== ====== ============== ============== ====
-Function                       single double single complex double complex half
-============================== ====== ====== ============== ============== ====
+============================== ====== ====== ============== ==============
+Function                       single double single complex double complex
+============================== ====== ====== ============== ==============
 **rocblas_Xtrtri**             x      x                                   
 rocblas_Xtrtri_batched         x      x                                   
 rocblas_Xtrtri_strided_batched x      x                                   
 **rocblas_Xtrsm**              x      x                                   
 rocblas_Xtrsm_batched          x      x                                   
 rocblas_Xtrsm_strided_batched  x      x                                   
-**rocblas_Xgemm**              x      x      x              x              x
-rocblas_Xgemm_batched          x      x      x              x              x
-rocblas_Xgemm_strided_batched  x      x      x              x              x
+**rocblas_Xtrmm**              x      x
+**rocblas_Xgemm**              x      x      x              x
+rocblas_Xgemm_batched          x      x      x              x
+rocblas_Xgemm_strided_batched  x      x      x              x
 **rocblas_Xgeam**              x      x                                   
-============================== ====== ====== ============== ============== ====
+============================== ====== ====== ============== ==============
 
 BLAS extensions
 ---------------
@@ -250,5 +263,16 @@ Asynchronous API
 
 Except a functions having memory allocation inside preventing
 asynchronicity, most of the rocBLAS functions are configured to operate
-in asynchronous fashion with respect to CPU, meaning these library
+in non-blocking fashion with respect to CPU, meaning these library
 functions return immediately.
+
+hipBLAS
+=======
+
+hipBLAS is a BLAS marshalling library, with multiple supported backends. It sits between the application and a 'worker' BLAS library, marshalling inputs
+into the backend library and marshalling results back to the application. hipBLAS exports an interface that does not require the client to change,
+regardless of the chosen backend. Currently hipBLAS supports rocBLAS and cuBLAS as backends.
+
+hipBLAS focuses on convenience and portability. If performance outweighs these factors then using rocBLAS itself is recommended.
+
+hipBLAS can be found on github `here <https://github.com/ROCmSoftwarePlatform/hipBLAS/>`__.

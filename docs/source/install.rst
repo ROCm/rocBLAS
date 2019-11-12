@@ -11,8 +11,6 @@ Prerequisites
 =============
 
 -  A ROCm enabled platform, more information `here <https://rocm.github.io/>`_.
--  Base software stack, which includes:
-   - `HIP <https://github.com/ROCm-Developer-Tools/HIP>`_
 
 
 Installing pre-built packages
@@ -25,8 +23,16 @@ rocBLAS can be installed on Ubuntu using
    sudo apt-get update
    sudo apt-get install rocblas
 
+Once installed, rocBLAS can be used just like any other library with a C API.
+The header file will need to be included in the user code in order to make calls
+into rocBLAS, and the rocBLAS shared library will become link-time and run-time
+dependent for the user applciation.
+
 Building from source
 ====================
+
+Building from source is not necessary, as rocBLAS can be used after installing the pre-built
+packages as described above. If desired, instructions to build rocBLAS from source follow.
 
 Download rocBLAS
 ----------------
@@ -156,7 +162,7 @@ Build (library dependencies + library) using individual commands
 ----------------------------------------------------------------
 
 Before building the library please install the library dependencies
-CMake, Python 2.7, and Python-yaml.
+CMake, Python 2.7, Python 3, and Python-yaml.
 
 CMake 3.5 or later
 ******************
@@ -170,13 +176,12 @@ access to X-windows, we recommend using **cmake-gui**.
 Install one-liners cmake: \* Ubuntu: ``sudo apt install cmake-qt-gui``
 \* Fedora: ``sudo dnf install cmake-gui``
 
-Python 2.7
-**********
+Python
+******
 
-By default both python2 and python3 are on Ubuntu. You can check the
-installation with ``python -V``. Python is used in Tensile, and Tensile
-is part of rocBLAS. To build rocBLAS the default version of Python must
-be Python 2.7, not Python 3.
+By default both python2 and python3 are on Ubuntu.
+Python is used in Tensile, and Tensile is part of rocBLAS.
+To build rocBLAS both Python 2.7 and Python 3 are needed.
 
 Python-yaml
 ***********
@@ -184,9 +189,11 @@ Python-yaml
 PyYAML files contain training information from Tensile that is used to
 build gemm kernels in rocBLAS.
 
-Install one-liners PyYAML: \* Ubuntu:
-``sudo apt install python2.7 python-yaml`` \* Fedora:
-``sudo dnf install python PyYAML``
+Install one-liners PyYAML:
+
+* Ubuntu: ``sudo apt install python2.7 python-yaml``
+
+* Fedora: ``sudo dnf install python PyYAML``
 
 Build library
 *************
