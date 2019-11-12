@@ -14,8 +14,8 @@ Welcome to rocBLAS's documentation!
    install
    exports
    logging
-   contributing
    streams
+   device_memory
    api
 
 Indices and tables

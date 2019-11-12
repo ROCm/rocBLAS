@@ -32,3 +32,14 @@ regardless of the chosen backend. Currently hipBLAS supports rocBLAS and cuBLAS 
 hipBLAS focuses on convenience and portability. If performance outweighs these factors then using rocBLAS itself is recommended.
 
 hipBLAS can be found on github `here <https://github.com/ROCmSoftwarePlatform/hipBLAS/>`__.
+
+References for BLAS
+===================
+
+#. C. L. Lawson, R. J. Hanson, D. Kincaid, and F. T. Krogh, Basic Linear Algebra Subprograms for FORTRAN usage, ACM Trans. Math. Soft., 5 (1979), pp. 308—323.
+
+#. J. J. Dongarra, J. Du Croz, S. Hammarling, and R. J. Hanson, An extended set of FORTRAN Basic Linear Algebra Subprograms, ACM Trans. Math. Soft., 14 (1988), pp. 1—17. 
+
+#. J. J. Dongarra, J. Du Croz, S. Hammarling, and R. J. Hanson, Algorithm 656: An extended set of FORTRAN Basic Linear Algebra Subprograms, ACM Trans. Math. Soft., 14 (1988), pp. 18—32. 
+
+#. `<http://www.netlib.org/blas/>`_
