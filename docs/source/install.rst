@@ -58,6 +58,9 @@ Use install.sh to build (library dependencies + library)
 Common uses of install.sh to build (library dependencies + library) are
 in the table below.
 
+.. tabularcolumns::
+   |\X{1}{4}|\X{3}{4}|
+
 +-------------------------------------------+--------------------------+
 | install.sh command                        | Description              |
 +===========================================+==========================+
@@ -106,6 +109,9 @@ example-sscal   example C code calling rocblas_sscal function
 
 Common uses of install.sh to build (dependencies + library + client) are
 in the table below.
+
+.. tabularcolumns::
+   |\X{1}{4}|\X{3}{4}|
 
 +-------------------------------------------+--------------------------+
 | install.sh command                        | Description              |
