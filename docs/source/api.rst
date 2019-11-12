@@ -599,6 +599,12 @@ rocblas_<type>trsm_strided_batched()
 
 .. doxygenfunction:: rocblas_dtrsm_strided_batched
 
+rocblas_<type>trmm_strided_batched()
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+.. doxygenfunction:: rocblas_strmm
+
+.. doxygenfunction:: rocblas_dtrmm
+
 rocblas_<type>gemm()
 ^^^^^^^^^^^^^^^^^^^^
 .. doxygenfunction:: rocblas_sgemm

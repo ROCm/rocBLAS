@@ -6249,7 +6249,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_set_device_memory_size(rocblas_handle hand
     @param[in]
     handle          rocblas handle
  ******************************************************************************/
-ROCBLAS_EXPORT bool           rocblas_is_managing_device_memory(rocblas_handle handle);
+ROCBLAS_EXPORT bool rocblas_is_managing_device_memory(rocblas_handle handle);
 
 #ifdef __cplusplus
 }
