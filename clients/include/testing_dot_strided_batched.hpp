@@ -102,8 +102,8 @@ void testing_dot_strided_batched(const Arguments& arg)
     size_t         size_x      = N * size_t(abs_incx);
     size_t         size_y      = N * size_t(abs_incy);
 
-    double               rocblas_error_1;
-    double               rocblas_error_2;
+    double               rocblas_error_1 = 0;
+    double               rocblas_error_2 = 0;
     rocblas_local_handle handle;
 
     // check to prevent undefined memmory allocation error
