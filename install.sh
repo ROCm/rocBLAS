@@ -118,10 +118,21 @@ install_packages( )
     exit 2
   fi
 
-  # dependencies needed for rocblas and clients to build
-  local library_dependencies_ubuntu=( "make" "cmake-curses-gui" "python2.7" "python3" "python-yaml" "python3-yaml" "hip_hcc" "pkg-config" )
-  local library_dependencies_centos=( "epel-release" "make" "cmake3" "python34" "PyYAML" "python3*-PyYAML" "hip_hcc" "gcc-c++" "rpm-build" )
-  local library_dependencies_fedora=( "make" "cmake" "python34" "PyYAML" "python3*-PyYAML" "hip_hcc" "gcc-c++" "libcxx-devel" "rpm-build" )
+  local library_dependencies_ubuntu=( "make" "cmake-curses-gui" "pkg-config"
+                                      "python2.7" "python3" "python-yaml" "python3-yaml"
+                                      "llvm-6.0-dev" "libomp-dev"
+                                      "hip_hcc" "zlib1g-dev")
+  local library_dependencies_centos=( "epel-release"
+                                      "make" "cmake3" "rpm-build"
+                                      "python34" "PyYAML" "python3*-PyYAML"
+                                      "gcc-c++" "llvm7.0-devel" "llvm7.0-static"
+                                      "hip_hcc" "libgomp" "zlib-devel" )
+  local library_dependencies_fedora=( "make" "cmake" "rpm-build"
+                                      "python34" "PyYAML" "python3*-PyYAML"
+                                      "gcc-c++" "libcxx-devel" "libgomp"
+                                      "hip_hcc" "zlib-devel" )
+  local library_dependencies_sles=(   "make" "cmake" "python3-PyYAM"
+                                      "hip_hcc" "gcc-c++" "libcxxtools9" "rpm-build" )
 
   if [[ "${build_cuda}" == true ]]; then
     # Ideally, this could be cuda-cublas-dev, but the package name has a version number in it
