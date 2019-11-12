@@ -86,8 +86,8 @@ void testing_dot_batched(const Arguments& arg)
     rocblas_int incy        = arg.incy;
     rocblas_int batch_count = arg.batch_count;
 
-    double               rocblas_error_1;
-    double               rocblas_error_2;
+    double               rocblas_error_1 = 0;
+    double               rocblas_error_2 = 0;
     rocblas_local_handle handle;
 
     // check to prevent undefined memmory allocation error
