@@ -8,7 +8,11 @@
 
 #include "handle.h"
 
-#if 1 // TODO: Needs to be changed to #ifndef USE_TENSILE_HOST once *_ex functions refactored
+#ifdef USE_TENSILE_HOST
+
+#include "tensile_host.hpp"
+
+#else // USE_TENSILE_HOST
 
 /*******************************************************************************
  * Helper enumeration over different transpose combinations
@@ -54,14 +58,6 @@ constexpr transpose_mode GetTransposeMode(rocblas_operation trans_a, rocblas_ope
         return TT;
     }
 }
-
-#endif
-
-#ifdef USE_TENSILE_HOST
-
-#include "tensile_host.hpp"
-
-#else // USE_TENSILE_HOST
 
 #include "Tensile.h"
 
@@ -380,11 +376,11 @@ inline rocblas_status call_tensile(rocblas_handle    handle,
                                    T*                C,
                                    rocblas_operation trans_a,
                                    rocblas_operation trans_b,
-                                   rocblas_stride    ld_c,
+                                   rocblas_int       ld_c,
                                    rocblas_stride    stride_c,
-                                   rocblas_stride    ld_a,
+                                   rocblas_int       ld_a,
                                    rocblas_stride    stride_a,
-                                   rocblas_stride    ld_b,
+                                   rocblas_int       ld_b,
                                    rocblas_stride    stride_b,
                                    rocblas_int       m,
                                    rocblas_int       n,
@@ -392,27 +388,27 @@ inline rocblas_status call_tensile(rocblas_handle    handle,
                                    rocblas_int       batch_count = 1)
 
 {
-    // Tensile expects alpha and beta by value, so we pass them assuming that they are on the host.
 
 #ifdef USE_TENSILE_HOST
 
-    RocblasContractionProblem<T> problem(trans_a,
+    RocblasContractionProblem<T> problem{handle,
+                                         trans_a,
                                          trans_b,
                                          m,
                                          n,
                                          k,
-                                         *alpha,
+                                         alpha,
                                          A,
                                          ld_a,
                                          stride_a,
                                          B,
                                          ld_b,
                                          stride_b,
-                                         *beta,
+                                         beta,
                                          C,
                                          ld_c,
                                          stride_c,
-                                         batch_count);
+                                         batch_count};
 
     return handle->host->runContractionProblem(problem);
 
@@ -522,8 +518,9 @@ rocblas_status rocblas_gemm_template(rocblas_handle    handle,
 
     T alpha_h, beta_h;
 
-    // Right now Tensile requires alpha and beta to be passed by value.
+    // Right now Tensile requires alpha and beta to be passed by value on host.
     // If in device pointer mode, copy alpha and beta to host.
+    // TODO: Make this asynchronous, putting synchronization in closer to Tensile call.
     if(handle->pointer_mode == rocblas_pointer_mode_device)
     {
         RETURN_IF_HIP_ERROR(hipMemcpy(&alpha_h, alpha, sizeof(T), hipMemcpyDeviceToHost));

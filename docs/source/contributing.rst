@@ -1,14 +1,15 @@
 
 .. toctree::
-   :maxdepth: 4 
+   :maxdepth: 4
    :caption: Contents:
+.. _contributing_label:
 
-
+============
 Contributing
-------------
+============
 
 Contribution License Agreement
-******************************
+==============================
 
 1. The code I am contributing is mine, and I have the right to license
    it.
@@ -18,20 +19,20 @@ Contribution License Agreement
    project.
 
 How to contribute
-*****************
+=================
 
 Our code contriubtion guidelines closely follows the model of `GitHub
 pull-requests <https://help.github.com/articles/using-pull-requests/>`__.
 This repository follows the `git
 flow <http://nvie.com/posts/a-successful-git-branching-model/>`__
 workflow, which dictates a /master branch where releases are cut, and a
-/develop branch which serves as an integration branch for new code. \* A
+/develop branch which serves as an integration branch for new code. A
 `git extention <https://github.com/nvie/gitflow>`__ has been developed
 to ease the use of the 'git flow' methodology, but requires manual
-installation by the user. Refer to the projects wiki
+installation by the user. Refer to the `project's wiki <https://github.com/nvie/gitflow/wiki/Installation>`__.
 
 Pull-request guidelines
-***********************
+=======================
 
 -  target the **develop** branch for integration
 -  ensure code builds successfully.
@@ -44,7 +45,7 @@ Pull-request guidelines
    the compute bound limit or memory bound limit.
 
 StyleGuide
-**********
+==========
 
 This project follows the `CPP Core
 guidelines <https://github.com/isocpp/CppCoreGuidelines/blob/master/CppCoreGuidelines.md>`__,
@@ -54,7 +55,7 @@ but we recognize that the content is lengthy. Below we list our primary
 concerns when reviewing pull-requests.
 
 Interface
-`````````
+---------
 
 -  All public APIs are C89 compatible; all other library code should use
    c++14
@@ -64,7 +65,7 @@ Interface
    encouraged (not mandated) for internal code
 
 Philosophy
-``````````
+----------
 
 -  `P.2 <https://github.com/isocpp/CppCoreGuidelines/blob/master/CppCoreGuidelines.md#Rp-Cplusplus>`__:
    Write in ISO Standard C++14 (especially to support windows, linux and
@@ -73,7 +74,7 @@ Philosophy
    Prefer compile-time checking to run-time checking
 
 Implementation
-``````````````
+--------------
 
 -  `SF.1 <https://github.com/isocpp/CppCoreGuidelines/blob/master/CppCoreGuidelines.md#Rs-file-suffix>`__:
    Use a ``.cpp`` suffix for code files and an ``.h`` suffix for
@@ -116,7 +117,7 @@ Implementation
    Avoid global variables
 
 Format
-``````
+------
 
 C and C++ code is formatted using ``clang-format``. Use the clang-format
 version for Clang 9, which is available in the ``/opt/rocm`` directory.
@@ -143,7 +144,7 @@ Also, githooks can be installed to format the code per-commit:
     ./.githooks/install
 
 Coding Guidelines
-*****************
+=================
 
 1.  With the `rocBLAS device memory allocation
     system <https://github.com/ROCmSoftwarePlatform/rocBLAS/blob/develop/docs/Device_Memory_Allocation.pdf>`__,
