@@ -1,13 +1,14 @@
 
 .. toctree::
-   :maxdepth: 4 
+   :maxdepth: 4
    :caption: Contents:
 
+============================
 Device and Stream Management
-----------------------------
+============================
 
 HIP Device management
-*********************
+=====================
 
 hipSetDevice() & hipGetDevice() are HIP device management APIs. They are
 NOT part of the rocBLAS API.
@@ -26,7 +27,7 @@ Once users set the device, they create a handle with
 ``rocblas_status rocblas_create_handle(rocblas_handle *handle)``
 
 Subsequent rocBLAS routines take this handle as an input parameter.
-rocBLAS ONLY queries (by hipGetDevice) the user’s device; rocBLAS but
+rocBLAS ONLY queries (by hipGetDevice) the user’s device; rocBLAS
 does NOT set the device for users. If rocBLAS does not see a valid
 device, it returns an error message to users. It is the users’
 responsibility to provide a valid device to rocBLAS and ensure the
@@ -38,10 +39,9 @@ change device, they must destroy the current handle, and create another
 rocBLAS handle (context).
 
 Stream management
-*****************
+=================
 
-HIP kernels are always launched in a queue (otherwise known as a stream,
-they are the same thing).
+HIP kernels are always launched in a queue (otherwise known as a stream).
 
 If users do not explicitly specify a stream, the system provides a
 default stream, maintained by the system. Users cannot create or destroy
@@ -55,7 +55,7 @@ single invocation. If users create a stream, they are responsible for
 destroying it.
 
 Multiple streams and multiple devices
-*************************************
+=====================================
 
 If the system under test has 4 HIP devices, users can run 4 rocBLAS
 handles (also known as contexts) on 4 devices concurrently, but can NOT
