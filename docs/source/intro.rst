@@ -1,6 +1,6 @@
 
 .. toctree::
-   :maxdepth: 4 
+   :maxdepth: 4
    :caption: Contents:
 
 ************
@@ -11,7 +11,7 @@ Overview
 ========
 
 rocBLAS is a `BLAS <http://www.netlib.org/blas/>`__ implementation on top of AMD’s Radeon Open Compute `ROCm <https://rocm.github.io/install.html>`__ runtime and toolchains.
-rocBLAS is implemented in the `HIP <https://github.com/ROCm-Developer-Tools/HIP>`__ programming language and optimized for AMD’s latest 
+rocBLAS is implemented in the `HIP <https://github.com/ROCm-Developer-Tools/HIP>`__ programming language and optimized for AMD’s latest
 discrete GPUs.
 
 ======== =========
@@ -27,8 +27,8 @@ References for BLAS
 
 #. C. L. Lawson, R. J. Hanson, D. Kincaid, and F. T. Krogh, Basic Linear Algebra Subprograms for FORTRAN usage, ACM Trans. Math. Soft., 5 (1979), pp. 308—323.
 
-#. J. J. Dongarra, J. Du Croz, S. Hammarling, and R. J. Hanson, An extended set of FORTRAN Basic Linear Algebra Subprograms, ACM Trans. Math. Soft., 14 (1988), pp. 1—17. 
+#. J. J. Dongarra, J. Du Croz, S. Hammarling, and R. J. Hanson, An extended set of FORTRAN Basic Linear Algebra Subprograms, ACM Trans. Math. Soft., 14 (1988), pp. 1—17.
 
-#. J. J. Dongarra, J. Du Croz, S. Hammarling, and R. J. Hanson, Algorithm 656: An extended set of FORTRAN Basic Linear Algebra Subprograms, ACM Trans. Math. Soft., 14 (1988), pp. 18—32. 
+#. J. J. Dongarra, J. Du Croz, S. Hammarling, and R. J. Hanson, Algorithm 656: An extended set of FORTRAN Basic Linear Algebra Subprograms, ACM Trans. Math. Soft., 14 (1988), pp. 18—32.
 
 #. `<http://www.netlib.org/blas/>`_
