@@ -31,8 +31,8 @@ typedef struct _rocblas_handle* rocblas_handle;
 typedef struct ihipStream_t* hipStream_t;
 
 // integer types
-/*! \brief To specify whether int32 or int64 is used
- */
+// /*! \brief To specify whether int32 or int64 is used
+//  */
 #if defined(rocblas_ILP64)
 typedef int64_t rocblas_int;
 typedef int64_t rocblas_stride;
@@ -47,6 +47,7 @@ typedef double rocblas_double;
 
 // Clang supports _Float16 on C11 and C++11
 // GCC does not currently support _Float16 on amd64
+/*! \brief Represents a 16 bit floating point number. */
 #if __clang__ && (__STDC_VERSION__ >= 201112L || __cplusplus >= 201103L)
 typedef _Float16 rocblas_half;
 #else
@@ -143,19 +144,26 @@ typedef enum rocblas_datatype_
     rocblas_datatype_bf16_c = 169, /**< 16 bit bfloat, complex */
 } rocblas_datatype;
 
-/*! \brief Indicates the pointer is device pointer or host pointer */
+/*! \brief Indicates the pointer is device pointer or host pointer. This is typically used for
+*    scalars such as alpha and beta. */
 typedef enum rocblas_pointer_mode_
 {
-    rocblas_pointer_mode_host   = 0,
+    /*! \brief Scalar values affected by this variable will be located on the host. */
+    rocblas_pointer_mode_host = 0,
+    /*! \brief Scalar values affected by this variable will be located on the device. */
     rocblas_pointer_mode_device = 1
 } rocblas_pointer_mode;
 
 /*! \brief Indicates if layer is active with bitmask*/
 typedef enum rocblas_layer_mode_
 {
-    rocblas_layer_mode_none        = 0b0000000000,
-    rocblas_layer_mode_log_trace   = 0b0000000001,
-    rocblas_layer_mode_log_bench   = 0b0000000010,
+    /*! \brief No logging will take place. */
+    rocblas_layer_mode_none = 0b0000000000,
+    /*! \brief A line containing the function name and value of arguments passed will be printed with each rocBLAS function call. */
+    rocblas_layer_mode_log_trace = 0b0000000001,
+    /*! \brief Outputs a line each time a rocBLAS function is called, this line can be used with rocblas-bench to make the same call again. */
+    rocblas_layer_mode_log_bench = 0b0000000010,
+    /*! \brief Outputs a YAML description of each rocBLAS function called, along with its arguments and number of times it was called. */
     rocblas_layer_mode_log_profile = 0b0000000100,
 } rocblas_layer_mode;
 

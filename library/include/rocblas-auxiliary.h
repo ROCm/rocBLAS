@@ -92,17 +92,17 @@ ROCBLAS_EXPORT rocblas_status rocblas_get_matrix(rocblas_int rows,
     rocblas_set_vector_async copies a vector from pinned host memory to device memory asynchronously.
     Memory on the host must be allocated with hipHostMalloc or the transfer will be synchronous.
     @param[in]
-    n           rocblas_int
+    n           [rocblas_int]
                 number of elements in the vector
     @param[in]
     x           pointer to vector on the host
     @param[in]
-    incx        rocblas_int
+    incx        [rocblas_int]
                 specifies the increment for the elements of the vector
     @param[out]
     y           pointer to vector on the device
     @param[in]
-    incy        rocblas_int
+    incy        [rocblas_int]
                 specifies the increment for the elements of the vector
     @param[in]
     stream      specifies the stream into which this transfer request is queued
@@ -120,17 +120,17 @@ ROCBLAS_EXPORT rocblas_status rocblas_set_vector_async(rocblas_int n,
     rocblas_get_vector_async copies a vector from pinned host memory to device memory asynchronously.
     Memory on the host must be allocated with hipHostMalloc or the transfer will be synchronous.
     @param[in]
-    n           rocblas_int
+    n           [rocblas_int]
                 number of elements in the vector
     @param[in]
     x           pointer to vector on the device
     @param[in]
-    incx        rocblas_int
+    incx        [rocblas_int]
                 specifies the increment for the elements of the vector
     @param[out]
     y           pointer to vector on the host
     @param[in]
-    incy        rocblas_int
+    incy        [rocblas_int]
                 specifies the increment for the elements of the vector
     @param[in]
     stream      specifies the stream into which this transfer request is queued
@@ -148,23 +148,23 @@ ROCBLAS_EXPORT rocblas_status rocblas_get_vector_async(rocblas_int n,
     rocblas_set_matrix_async copies a matrix from pinned host memory to device memory asynchronously.
     Memory on the host must be allocated with hipHostMalloc or the transfer will be synchronous.
     @param[in]
-    rows        rocblas_int
+    rows        [rocblas_int]
                 number of rows in matrices
     @param[in]
-    cols        rocblas_int
+    cols        [rocblas_int]
                 number of columns in matrices
     @param[in]
-    elem_size   rocblas_int
+    elem_size   [rocblas_int]
                 number of bytes per element in the matrix
     @param[in]
     a           pointer to matrix on the host
     @param[in]
-    lda         rocblas_int
+    lda         [rocblas_int]
                 specifies the leading dimension of A
     @param[out]
     b           pointer to matrix on the GPU
     @param[in]
-    ldb         rocblas_int
+    ldb         [rocblas_int]
                 specifies the leading dimension of B
     @param[in]
     stream      specifies the stream into which this transfer request is queued
@@ -183,23 +183,23 @@ ROCBLAS_EXPORT rocblas_status rocblas_set_matrix_async(rocblas_int rows,
     rocblas_get_matrix_async copies a matrix from device memory to pinned host memory asynchronously.
     Memory on the host must be allocated with hipHostMalloc or the transfer will be synchronous.
     @param[in]
-    rows        rocblas_int
+    rows        [rocblas_int]
                 number of rows in matrices
     @param[in]
-    cols        rocblas_int
+    cols        [rocblas_int]
                 number of columns in matrices
     @param[in]
-    elem_size   rocblas_int
+    elem_size   [rocblas_int]
                 number of bytes per element in the matrix
     @param[in]
     a           pointer to matrix on the GPU
     @param[in]
-    lda         rocblas_int
+    lda         [rocblas_int]
                 specifies the leading dimension of A
     @param[out]
     b           pointer to matrix on the host
     @param[in]
-    ldb         rocblas_int
+    ldb         [rocblas_int]
                 specifies the leading dimension of B
     @param[in]
     stream      specifies the stream into which this transfer request is queued
