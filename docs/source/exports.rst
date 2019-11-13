@@ -1,6 +1,6 @@
 
 .. toctree::
-   :maxdepth: 4 
+   :maxdepth: 4
    :caption: Contents:
 
 
@@ -82,12 +82,12 @@ rocblas_Xrot_strided_batched   x      x      x              x
 **rocblas_Xrotg**              x      x      x              x
 rocblas_Xrotg_batched          x      x      x              x
 rocblas_Xrotg_strided_batched  x      x      x              x
-**rocblas_Xrotm**              x      x                                   
-rocblas_Xrotm_batched          x      x                                   
-rocblas_Xrotm_strided_batched  x      x                                   
-**rocblas_Xrotmg**             x      x                                   
-rocblas_Xrotmg_batched         x      x                                   
-rocblas_Xrotmg_strided_batched x      x                                   
+**rocblas_Xrotm**              x      x
+rocblas_Xrotm_batched          x      x
+rocblas_Xrotm_strided_batched  x      x
+**rocblas_Xrotmg**             x      x
+rocblas_Xrotmg_batched         x      x
+rocblas_Xrotmg_strided_batched x      x
 ============================== ====== ====== ============== ==============
 
 Level 2
@@ -99,12 +99,12 @@ Function                      single double single complex double complex
 **rocblas_Xgemv**             x      x      x              x
 rocblas_Xgemv_batched         x      x      x              x
 rocblas_Xgemv_strided_batched x      x      x              x
-**rocblas_Xger**              x      x                                   
-rocblas_Xger_batched          x      x                                   
-rocblas_Xger_strided_batched  x      x                                   
-**rocblas_Xsyr**              x      x                                   
-rocblas_Xsyr_batched          x      x                                   
-rocblas_Xsyr_strided_batched  x      x                                   
+**rocblas_Xger**              x      x
+rocblas_Xger_batched          x      x
+rocblas_Xger_strided_batched  x      x
+**rocblas_Xsyr**              x      x
+rocblas_Xsyr_batched          x      x
+rocblas_Xsyr_strided_batched  x      x
 **rocblas_Xtrsv**             x      x
 rocblas_Xtrsv_batched         x      x
 rocblas_Xtrsv_strided_batched x      x
@@ -116,17 +116,17 @@ Level 3
 ============================== ====== ====== ============== ==============
 Function                       single double single complex double complex
 ============================== ====== ====== ============== ==============
-**rocblas_Xtrtri**             x      x                                   
-rocblas_Xtrtri_batched         x      x                                   
-rocblas_Xtrtri_strided_batched x      x                                   
-**rocblas_Xtrsm**              x      x                                   
-rocblas_Xtrsm_batched          x      x                                   
-rocblas_Xtrsm_strided_batched  x      x                                   
+**rocblas_Xtrtri**             x      x
+rocblas_Xtrtri_batched         x      x
+rocblas_Xtrtri_strided_batched x      x
+**rocblas_Xtrsm**              x      x
+rocblas_Xtrsm_batched          x      x
+rocblas_Xtrsm_strided_batched  x      x
 **rocblas_Xtrmm**              x      x
 **rocblas_Xgemm**              x      x      x              x
 rocblas_Xgemm_batched          x      x      x              x
 rocblas_Xgemm_strided_batched  x      x      x              x
-**rocblas_Xgeam**              x      x                                   
+**rocblas_Xgeam**              x      x
 ============================== ====== ====== ============== ==============
 
 BLAS extensions
