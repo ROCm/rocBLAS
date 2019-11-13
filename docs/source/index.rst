@@ -4,7 +4,7 @@
    contain the root `toctree` directive.
 
 Welcome to rocBLAS's documentation!
-==================================
+===================================
 
 .. toctree::
    :maxdepth: 4 
@@ -12,11 +12,11 @@ Welcome to rocBLAS's documentation!
 
    intro
    install
+   exports
    logging
-   contributing
    streams
+   device_memory
    api
-   allapi
 
 Indices and tables
 ==================
