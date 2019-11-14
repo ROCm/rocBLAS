@@ -38,24 +38,10 @@ void testing_scal_strided_batched(const Arguments& arg)
         }
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        if(batch_count < 0)
-            EXPECT_ROCBLAS_STATUS((rocblas_scal_strided_batched<T, U>)(handle,
-                                                                       N,
-                                                                       &h_alpha,
-                                                                       dx,
-                                                                       incx,
-                                                                       stridex,
-                                                                       batch_count),
-                                  rocblas_status_invalid_size);
-        else
-            CHECK_ROCBLAS_ERROR((rocblas_scal_strided_batched<T, U>)(handle,
-                                                                     N,
-                                                                     &h_alpha,
-                                                                     dx,
-                                                                     incx,
-                                                                     stridex,
-                                                                     batch_count));
-
+        EXPECT_ROCBLAS_STATUS(
+            (rocblas_scal_strided_batched<T,
+                                          U>)(handle, N, &h_alpha, dx, incx, stridex, batch_count),
+            batch_count < 0 ? rocblas_status_invalid_size : rocblas_status_success);
         return;
     }
 
@@ -122,7 +108,7 @@ void testing_scal_strided_batched(const Arguments& arg)
         }
 
         cpu_time_used = get_time_us() - cpu_time_used;
-        cblas_gflops  = batch_count * scal_gflop_count<T>(N) / cpu_time_used * 1e6 * 1;
+        cblas_gflops  = batch_count * scal_gflop_count<T, U>(N) / cpu_time_used * 1e6 * 1;
 
         if(arg.unit_check)
         {
@@ -161,7 +147,7 @@ void testing_scal_strided_batched(const Arguments& arg)
         }
 
         gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;
-        rocblas_gflops    = batch_count * scal_gflop_count<T>(N) / gpu_time_used * 1e6 * 1;
+        rocblas_gflops    = batch_count * scal_gflop_count<T, U>(N) / gpu_time_used * 1e6 * 1;
         rocblas_bandwidth = batch_count * (2.0 * N) * sizeof(T) / gpu_time_used / 1e3;
 
         std::cout << "N,alpha,incx,rocblas-Gflops,rocblas-GB/s,rocblas-us";

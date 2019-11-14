@@ -84,6 +84,7 @@ void testing_rotm_strided_batched(const Arguments& arg)
     double               gpu_time_used, cpu_time_used;
     double norm_error_host_x = 0.0, norm_error_host_y = 0.0, norm_error_device_x = 0.0,
            norm_error_device_y = 0.0;
+    const T rel_error          = std::numeric_limits<T>::epsilon() * 1000;
 
     // check to prevent undefined memory allocation error
     if(N <= 0 || incx <= 0 || incy <= 0 || batch_count <= 0)
@@ -99,31 +100,19 @@ void testing_rotm_strided_batched(const Arguments& arg)
         }
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        if(batch_count < 0)
-            EXPECT_ROCBLAS_STATUS((rocblas_rotm_strided_batched<T>)(handle,
-                                                                    N,
-                                                                    dx,
-                                                                    incx,
-                                                                    stride_x,
-                                                                    dy,
-                                                                    incy,
-                                                                    stride_y,
-                                                                    dparam,
-                                                                    stride_param,
-                                                                    batch_count),
-                                  rocblas_status_invalid_size);
-        else
-            CHECK_ROCBLAS_ERROR((rocblas_rotm_strided_batched<T>(handle,
-                                                                 N,
-                                                                 dx,
-                                                                 incx,
-                                                                 stride_x,
-                                                                 dy,
-                                                                 incy,
-                                                                 stride_y,
-                                                                 dparam,
-                                                                 stride_param,
-                                                                 batch_count)));
+        EXPECT_ROCBLAS_STATUS((rocblas_rotm_strided_batched<T>(handle,
+                                                               N,
+                                                               dx,
+                                                               incx,
+                                                               stride_x,
+                                                               dy,
+                                                               incy,
+                                                               stride_y,
+                                                               dparam,
+                                                               stride_param,
+                                                               batch_count)),
+                              batch_count < 0 ? rocblas_status_invalid_size
+                                              : rocblas_status_success);
         return;
     }
 
@@ -229,7 +218,6 @@ void testing_rotm_strided_batched(const Arguments& arg)
                 CHECK_HIP_ERROR(hipMemcpy(ry, dy, sizeof(T) * size_y, hipMemcpyDeviceToHost));
                 if(arg.unit_check)
                 {
-                    T rel_error = std::numeric_limits<T>::epsilon() * 1000;
                     near_check_general<T>(1, N, batch_count, incx, stride_x, cx, rx, rel_error);
                     near_check_general<T>(1, N, batch_count, incy, stride_y, cy, ry, rel_error);
                 }

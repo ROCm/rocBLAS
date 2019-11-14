@@ -32,21 +32,17 @@ void testing_rotmg_batched_bad_arg(const Arguments& arg)
         return;
     }
 
-    EXPECT_ROCBLAS_STATUS((rocblas_rotmg_batched<T>(nullptr, d1, d2, x1, y1, param, batch_count)),
+    EXPECT_ROCBLAS_STATUS(rocblas_rotmg_batched<T>(nullptr, d1, d2, x1, y1, param, batch_count),
                           rocblas_status_invalid_handle);
-    EXPECT_ROCBLAS_STATUS(
-        (rocblas_rotmg_batched<T>(handle, nullptr, d2, x1, y1, param, batch_count)),
-        rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(
-        (rocblas_rotmg_batched<T>(handle, d1, nullptr, x1, y1, param, batch_count)),
-        rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(
-        (rocblas_rotmg_batched<T>(handle, d1, d2, nullptr, y1, param, batch_count)),
-        rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(
-        (rocblas_rotmg_batched<T>(handle, d1, d2, x1, nullptr, param, batch_count)),
-        rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS((rocblas_rotmg_batched<T>(handle, d1, d2, x1, y1, nullptr, batch_count)),
+    EXPECT_ROCBLAS_STATUS(rocblas_rotmg_batched<T>(handle, nullptr, d2, x1, y1, param, batch_count),
+                          rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS(rocblas_rotmg_batched<T>(handle, d1, nullptr, x1, y1, param, batch_count),
+                          rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS(rocblas_rotmg_batched<T>(handle, d1, d2, nullptr, y1, param, batch_count),
+                          rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS(rocblas_rotmg_batched<T>(handle, d1, d2, x1, nullptr, param, batch_count),
+                          rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS(rocblas_rotmg_batched<T>(handle, d1, d2, x1, y1, nullptr, batch_count),
                           rocblas_status_invalid_pointer);
 }
 
@@ -59,6 +55,7 @@ void testing_rotmg_batched(const Arguments& arg)
 
     double gpu_time_used, cpu_time_used;
     double norm_error_host = 0.0, norm_error_device = 0.0;
+    T      rel_error = std::numeric_limits<T>::epsilon() * 1000;
 
     // check to prevent undefined memory allocation error
     if(batch_count <= 0)
@@ -77,14 +74,9 @@ void testing_rotmg_batched(const Arguments& arg)
         }
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        if(batch_count < 0)
-            EXPECT_ROCBLAS_STATUS(
-                (rocblas_rotmg_batched<T>(handle, d1, d2, x1, y1, params, batch_count)),
-                rocblas_status_invalid_size);
-        else
-            CHECK_ROCBLAS_ERROR(
-                (rocblas_rotmg_batched<T>(handle, d1, d2, x1, y1, params, batch_count)));
-
+        EXPECT_ROCBLAS_STATUS(rocblas_rotmg_batched<T>(handle, d1, d2, x1, y1, params, batch_count),
+                              batch_count < 0 ? rocblas_status_invalid_size
+                                              : rocblas_status_success);
         return;
     }
 
@@ -164,16 +156,16 @@ void testing_rotmg_batched(const Arguments& arg)
 
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
-            CHECK_ROCBLAS_ERROR((rocblas_rotmg_batched<T>(
-                handle, rd1_in, rd2_in, rx1_in, ry1_in, rparams_in, batch_count)));
+            CHECK_ROCBLAS_ERROR(rocblas_rotmg_batched<T>(
+                handle, rd1_in, rd2_in, rx1_in, ry1_in, rparams_in, batch_count));
 
             if(arg.unit_check)
             {
-                unit_check_general<T>(1, 1, batch_count, 1, rd1, cd1);
-                unit_check_general<T>(1, 1, batch_count, 1, rd2, cd2);
-                unit_check_general<T>(1, 1, batch_count, 1, rx1, cx1);
-                unit_check_general<T>(1, 1, batch_count, 1, ry1, cy1);
-                unit_check_general<T>(1, 5, batch_count, 1, rparams, cparams);
+                near_check_general<T>(1, 1, batch_count, 1, rd1, cd1, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, rd2, cd2, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, rx1, cx1, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, ry1, cy1, rel_error);
+                near_check_general<T>(1, 5, batch_count, 1, rparams, cparams, rel_error);
             }
 
             if(arg.norm_check)
@@ -218,7 +210,7 @@ void testing_rotmg_batched(const Arguments& arg)
 
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
             CHECK_ROCBLAS_ERROR(
-                (rocblas_rotmg_batched<T>(handle, dd1, dd2, dx1, dy1, dparams, batch_count)));
+                rocblas_rotmg_batched<T>(handle, dd1, dd2, dx1, dy1, dparams, batch_count));
 
             host_vector<T> rd1[batch_count];
             host_vector<T> rd2[batch_count];
@@ -242,11 +234,11 @@ void testing_rotmg_batched(const Arguments& arg)
 
             if(arg.unit_check)
             {
-                unit_check_general<T>(1, 1, batch_count, 1, rd1, cd1);
-                unit_check_general<T>(1, 1, batch_count, 1, rd2, cd2);
-                unit_check_general<T>(1, 1, batch_count, 1, rx1, cx1);
-                unit_check_general<T>(1, 1, batch_count, 1, ry1, cy1);
-                unit_check_general<T>(1, 5, batch_count, 1, rparams, cparams);
+                near_check_general<T>(1, 1, batch_count, 1, rd1, cd1, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, rd2, cd2, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, rx1, cx1, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, ry1, cy1, rel_error);
+                near_check_general<T>(1, 5, batch_count, 1, rparams, cparams, rel_error);
             }
 
             if(arg.norm_check)

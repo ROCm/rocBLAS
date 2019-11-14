@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018 Advanced Micro Devices, Inc.
+ * Copyright 2018-2019 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
 
@@ -197,12 +197,12 @@ void testing_gemv_strided_batched(const Arguments& arg)
     size_y = dim_y * abs_incy;
 
     // argument sanity check before allocating invalid memory
-    if(M < 0 || N < 0 || lda < M || lda < 1 || !incx || !incy || batch_count < 0)
+    if(M <= 0 || N <= 0 || lda < M || lda < 1 || !incx || !incy || batch_count <= 0)
     {
-        static const size_t safe_size = 100; // arbitrarily set to 100
-        device_vector<T>    dA1(safe_size);
-        device_vector<T>    dx1(safe_size);
-        device_vector<T>    dy1(safe_size);
+        static constexpr size_t safe_size = 100; // arbitrarily set to 100
+        device_vector<T>        dA1(safe_size);
+        device_vector<T>        dx1(safe_size);
+        device_vector<T>        dy1(safe_size);
         if(!dA1 || !dx1 || !dy1)
         {
             CHECK_HIP_ERROR(hipErrorOutOfMemory);
@@ -225,8 +225,10 @@ void testing_gemv_strided_batched(const Arguments& arg)
                                                               incy,
                                                               stride_y,
                                                               batch_count),
-                              rocblas_status_invalid_size);
-
+                              M < 0 || N < 0 || lda < M || lda < 1 || !incx || !incy
+                                      || batch_count < 0
+                                  ? rocblas_status_invalid_size
+                                  : rocblas_status_success);
         return;
     }
 
@@ -378,7 +380,7 @@ void testing_gemv_strided_batched(const Arguments& arg)
                           incy);
         }
         cpu_time_used = get_time_us() - cpu_time_used;
-        cblas_gflops  = batch_count * gemv_gflop_count<T>(M, N) / cpu_time_used * 1e6;
+        cblas_gflops  = batch_count * gemv_gflop_count<T>(transA, M, N) / cpu_time_used * 1e6;
 
         if(arg.unit_check)
         {
@@ -444,7 +446,7 @@ void testing_gemv_strided_batched(const Arguments& arg)
         }
 
         gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;
-        rocblas_gflops    = batch_count * gemv_gflop_count<T>(M, N) / gpu_time_used * 1e6;
+        rocblas_gflops    = batch_count * gemv_gflop_count<T>(transA, M, N) / gpu_time_used * 1e6;
         rocblas_bandwidth = batch_count * (1.0 * M * N) * sizeof(T) / gpu_time_used / 1e3;
 
         // only norm_check return an norm error, unit check won't return anything

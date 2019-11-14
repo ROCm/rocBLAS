@@ -50,8 +50,9 @@ void testing_rotg_batched(const Arguments& arg)
     rocblas_int          batch_count = arg.batch_count;
     rocblas_local_handle handle;
 
-    double gpu_time_used, cpu_time_used;
-    double norm_error_host = 0.0, norm_error_device = 0.0;
+    double  gpu_time_used, cpu_time_used;
+    double  norm_error_host = 0.0, norm_error_device = 0.0;
+    const U rel_error = std::numeric_limits<U>::epsilon() * 1000;
 
     // check to prevent undefined memory allocation error
     if(batch_count <= 0)
@@ -69,11 +70,9 @@ void testing_rotg_batched(const Arguments& arg)
         }
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        if(batch_count < 0)
-            EXPECT_ROCBLAS_STATUS((rocblas_rotg_batched<T, U>(handle, da, db, dc, ds, batch_count)),
-                                  rocblas_status_invalid_size);
-        else
-            CHECK_ROCBLAS_ERROR((rocblas_rotg_batched<T, U>(handle, da, db, dc, ds, batch_count)));
+        EXPECT_ROCBLAS_STATUS((rocblas_rotg_batched<T, U>)(handle, da, db, dc, ds, batch_count),
+                              batch_count < 0 ? rocblas_status_invalid_size
+                                              : rocblas_status_success);
         return;
     }
 
@@ -146,10 +145,10 @@ void testing_rotg_batched(const Arguments& arg)
 
             if(arg.unit_check)
             {
-                unit_check_general<T>(1, 1, batch_count, 1, ra, ca);
-                unit_check_general<T>(1, 1, batch_count, 1, rb, cb);
-                unit_check_general<U>(1, 1, batch_count, 1, rc, cc);
-                unit_check_general<T>(1, 1, batch_count, 1, rs, cs);
+                near_check_general<T>(1, 1, batch_count, 1, ra, ca, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, rb, cb, rel_error);
+                near_check_general<U>(1, 1, batch_count, 1, rc, cc, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, rs, cs, rel_error);
             }
 
             if(arg.norm_check)
@@ -204,10 +203,10 @@ void testing_rotg_batched(const Arguments& arg)
 
             if(arg.unit_check)
             {
-                unit_check_general<T>(1, 1, batch_count, 1, ra, ca);
-                unit_check_general<T>(1, 1, batch_count, 1, rb, cb);
-                unit_check_general<U>(1, 1, batch_count, 1, rc, cc);
-                unit_check_general<T>(1, 1, batch_count, 1, rs, cs);
+                near_check_general<T>(1, 1, batch_count, 1, ra, ca, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, rb, cb, rel_error);
+                near_check_general<U>(1, 1, batch_count, 1, rc, cc, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, rs, cs, rel_error);
             }
 
             if(arg.norm_check)

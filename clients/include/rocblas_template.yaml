@@ -51,11 +51,11 @@ Functions:
   rocblas_sgemv: { function: gemv, <<: *single_precision }
   rocblas_dgemv: { function: gemv, <<: *double_precision }
   rocblas_cgemv: { function: gemv, <<: *single_precision_complex }
-  rocblas_zgemv: { function: gemv, <<: *double_precision_complex } 
+  rocblas_zgemv: { function: gemv, <<: *double_precision_complex }
   rocblas_sgemv_strided_batched: { function: gemv_strided_batched, <<: *single_precision }
   rocblas_dgemv_strided_batched: { function: gemv_strided_batched, <<: *double_precision }
   rocblas_sgemv_batched: { function: gemv_batched, <<: *single_precision }
-  rocblas_dgemv_batched: { function: gemv_batched, <<: *double_precision }  
+  rocblas_dgemv_batched: { function: gemv_batched, <<: *double_precision }
   rocblas_strsv: { function: trsv, <<: *single_precision }
   rocblas_dtrsv: { function: trsv, <<: *double_precision }
   rocblas_ssymv: { function: symv, <<: *single_precision }
@@ -68,6 +68,8 @@ Functions:
   rocblas_hgemm_strided_batched: { function: gemm_strided_batched, <<: *half_precision }
   rocblas_sgemm_strided_batched: { function: gemm_strided_batched, <<: *single_precision }
   rocblas_dgemm_strided_batched: { function: gemm_strided_batched, <<: *double_precision }
+  rocblas_strsm: { function: trmm, <<: *single_precision }
+  rocblas_dtrsm: { function: trmm, <<: *double_precision }
   rocblas_strsm: { function: trsm, <<: *single_precision }
   rocblas_dtrsm: { function: trsm, <<: *double_precision }
   rocblas_strtri: { function: trtri, <<: *single_precision }

@@ -60,6 +60,7 @@ endif()
 target_include_directories( rocblas-bench
   PRIVATE
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../library/include>
 )
 
 set( BLIS_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/build/deps/blis/include/blis )
@@ -132,7 +133,8 @@ if( CUDA_FOUND )
   target_compile_definitions( rocblas-bench PRIVATE __HIP_PLATFORM_NVCC__ )
   target_link_libraries( rocblas-bench PRIVATE ${CUDA_LIBRARIES} )
 else( )
-  target_compile_definitions( rocblas-bench PRIVATE __HIP_PLATFORM_HCC__ )
+  # auto set in hip_common.h
+  #target_compile_definitions( rocblas-bench PRIVATE __HIP_PLATFORM_HCC__ )
   target_link_libraries( rocblas-bench PRIVATE ${HIPHCC_LOCATION} )
 endif( )
 
@@ -151,6 +153,9 @@ if( OS_ID_rhel OR OS_ID_centos)
     # force clang includes to take precedence over devtoolset-7 which we only want for OpenMP
     set(CMAKE_CXX_FLAGS "-isystem ${CLANG_INCLUDE_DIR} -isystem ${XXX_OPENMP_INCLUDE_DIR} ${CMAKE_CXX_FLAGS}")
 endif()
+
+# include order workaround to force /opt/rocm/include later in order to ignore installed rocblas
+set(CMAKE_CXX_FLAGS "-isystem /opt/rocm/include ${CMAKE_CXX_FLAGS}")
 
 set_target_properties( rocblas-bench PROPERTIES CXX_EXTENSIONS NO )
 set_target_properties( rocblas-bench PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )

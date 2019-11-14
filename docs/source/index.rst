@@ -4,15 +4,19 @@
    contain the root `toctree` directive.
 
 Welcome to rocBLAS's documentation!
-==================================
+===================================
 
 .. toctree::
-   :maxdepth: 4 
+   :maxdepth: 4
    :caption: Contents:
 
-   library 
+   intro
+   install
+   exports
+   logging
+   streams
+   device_memory
    api
-   allapi
 
 Indices and tables
 ==================

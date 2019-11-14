@@ -1,30 +1,32 @@
 #!/usr/bin/env bash
-# Author: Kent Knox
 
-set -x #echo on
+/bin/ln -fs ../../.githooks/pre-commit "$(dirname "$0")/.git/hooks/"
 
 # #################################################
 # helper functions
 # #################################################
 function display_help()
 {
-  echo "rocBLAS build & installation helper script"
-  echo "./install [-h|--help] "
-  echo "    [-h|--help] prints this help message"
-#  echo "    [--prefix] Specify an alternate CMAKE_INSTALL_PREFIX for cmake"
-  echo "    [-i|--install] install after build"
-  echo "    [-d|--dependencies] install build dependencies"
-  echo "    [-c|--clients] build library clients too (combines with -i & -d)"
-  echo "    [-g|--debug] -DCMAKE_BUILD_TYPE=Debug (default is =Release)"
-  echo "    [-f|--fork] GitHub fork to use, ie ROCmSoftwarePlatform or MyUserName"
-  echo "    [-b|--branch] GitHub branch or tag to use, ie develop or mybranch or SHA"
-  echo "    [-l|--logic] Set tensile logic target (asm_full, asm_lite, etc)"
-  echo "    [-o|--cov] Set tensile code_object_version (V2 or V3)"
-  echo "    [-t|--test_local_path] Use a local path for tensile instead of remote GIT repot"
-#  echo "    [--cuda] build library for cuda backend"
-  echo "    [--cpu_ref_lib] specify libary to use for cpu reference code in testing (blis or lapack)"
-  echo "    [--hip-clang] build library for amdgpu backend using hip-clang"
-  echo "    [-n|--no_tensile] build subset of library that doesn't require tensile (testing)"
+cat <<EOF
+rocBLAS build & installation helper script
+  $0 <options>
+      -h | --help              Print this help message
+      -i | --install           Install after build
+      -d | --dependencies      Install build dependencies
+      -c | --clients           Build library clients too (combines with -i & -d)
+      -g | --debug             Set -DCMAKE_BUILD_TYPE=Debug (default is =Release)
+      -f | --fork              GitHub fork to use, e.g., ROCmSoftwarePlatform or MyUserName
+      -b | --branch            GitHub branch or tag to use, e.g., develop, mybranch or <commit hash>
+      -l | --logic             Set Tensile logic target, e.g., asm_full, asm_lite, etc.
+      -o | --cov               Set Tensile code_object_version (V2 or V3)
+      -t | --test_local_path   Use a local path for Tensile instead of remote GIT repo
+           --cpu_ref_lib       Specify library to use for CPU reference code in testing (blis or lapack)
+           --hip-clang         Build library for amdgpu backend using hip-clang
+      -n | --no_tensile        Build subset of library that does not require Tensile
+      -s | --tensile-host      Build with Tensile host
+EOF
+#          --prefix            Specify an alternate CMAKE_INSTALL_PREFIX for cmake
+#          --cuda              Build library for cuda backend
 }
 
 # This function is helpful for dockerfiles that do not have sudo installed, but the default user is root
@@ -131,20 +133,18 @@ install_packages( )
     exit 2
   fi
 
-  # dependencies needed for rocblas and clients to build
+  # dependencies needed to build the rocblas library
   local library_dependencies_ubuntu=( "make" "cmake-curses-gui" "pkg-config"
                                       "python2.7" "python3" "python-yaml" "python3-yaml"
-                                      "llvm-6.0-dev" "libomp-dev"
-                                      "hip_hcc" "zlib1g-dev")
+                                      "llvm-6.0-dev" "hip_hcc" "zlib1g-dev")
   local library_dependencies_centos=( "epel-release"
                                       "make" "cmake3" "rpm-build"
                                       "python34" "PyYAML" "python3*-PyYAML"
                                       "gcc-c++" "llvm7.0-devel" "llvm7.0-static"
-                                      "hip_hcc" "libgomp" "zlib-devel" )
+                                      "hip_hcc" "zlib-devel" )
   local library_dependencies_fedora=( "make" "cmake" "rpm-build"
                                       "python34" "PyYAML" "python3*-PyYAML"
-                                      "gcc-c++" "libcxx-devel" "libgomp"
-                                      "hip_hcc" "zlib-devel" )
+                                      "gcc-c++" "libcxx-devel" "hip_hcc" "zlib-devel" )
   local library_dependencies_sles=(   "make" "cmake" "python3-PyYAM"
                                       "hip_hcc" "gcc-c++" "libcxxtools9" "rpm-build" )
 
@@ -156,10 +156,11 @@ install_packages( )
     library_dependencies_sles+=( "" )
   fi
 
-  local client_dependencies_ubuntu=( "gfortran" "libboost-program-options-dev" "libomp-dev")
-  local client_dependencies_centos=( "gcc-gfortran" "boost-devel" "libgomp")
-  local client_dependencies_fedora=( "gcc-gfortran" "boost-devel" "libgomp")
-  local client_dependencies_sles=( "gcc-fortran" "boost-devel" "libboost_program_options1_66_0-devel" "libgomp1")
+  # dependencies to build the client
+  local client_dependencies_ubuntu=( "gfortran" "libomp-dev" "libboost-program-options-dev")
+  local client_dependencies_centos=( "gcc-gfortran" "libgomp" "boost-devel")
+  local client_dependencies_fedora=( "gcc-gfortran" "libgomp" "boost-devel")
+  local client_dependencies_sles=( "gcc-fortran" "libgomp1" "libboost_program_options1_66_0-devel" "boost-devel")
 
   case "${ID}" in
     ubuntu)
@@ -244,6 +245,7 @@ tensile_test_local_path=
 build_clients=false
 build_cuda=false
 build_tensile=true
+build_tensile_host=false
 cpu_ref_lib=blis
 build_release=true
 build_hip_clang=false
@@ -255,7 +257,7 @@ build_hip_clang=false
 # check if we have a modern version of getopt that can handle whitespace and long parameters
 getopt -T
 if [[ $? -eq 4 ]]; then
-  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,no_tensile,logic:,cov:,fork:,branch:test_local_path:,cpu_ref_lib: --options nhicdgl:o:f:b:t: -- "$@")
+  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,no_tensile,tensile_host,logic:,cov:,fork:,branch:test_local_path:,cpu_ref_lib: --options nshicdgl:o:f:b:t: -- "$@")
 else
   echo "Need a new version of getopt"
   exit 1
@@ -304,6 +306,9 @@ while true; do
     -n|--no_tensile)
         build_tensile=false
         shift ;;
+    -s|--tensile-host)
+        build_tensile_host=true
+        shift ;;
     --cuda)
         build_cuda=true
         shift ;;
@@ -323,6 +328,8 @@ while true; do
         ;;
   esac
 done
+
+set -x
 
 if [[ "${cpu_ref_lib}" == blis ]]; then
   LINK_BLIS=true
@@ -359,34 +366,54 @@ esac
 # dependencies
 # #################################################
 if [[ "${install_dependencies}" == true ]]; then
-
   install_packages
 
-  # The following builds googletest & lapack from source, installs into cmake default /usr/local
-  pushd .
+  if [[ "${build_clients}" == true ]]; then
+
+    # The following builds googletest & lapack from source, installs into cmake default /usr/local
+    pushd .
     printf "\033[32mBuilding \033[33mgoogletest & lapack\033[32m from source; installing into \033[33m/usr/local\033[0m\n"
     mkdir -p ${build_dir}/deps && cd ${build_dir}/deps
     ${cmake_executable} -lpthread -DBUILD_BOOST=OFF ../../deps
     make -j$(nproc)
     elevate_if_not_root make install
-  popd
+    popd
 
+    if [[ "${cpu_ref_lib}" == blis ]] && [[ ! -f "${build_dir}/deps/blis/lib/libblis.so" ]]; then
+      git submodule update --init
+      cd extern/blis
+      case "${ID}" in
+          centos|rhel|sles)
+              ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp auto
+              ;;
+          ubuntu)
+              ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp CC=/opt/rocm/hcc/bin/clang auto
+              ;;
+          *)
+              echo "Unsupported OS for this script"
+              ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp auto
+              ;;
+      esac
+      make install
+      cd ../..
+    fi
+  fi
 fi
 
-if [[ "${cpu_ref_lib}" == blis ]] && [[ ! -f "${build_dir}/deps/blis/lib/libblis.so" ]]; then
+if [[ "${cpu_ref_lib}" == blis ]] && [[ ! -f "${build_dir}/deps/blis/lib/libblis.so" ]] && [[ "${build_clients}" == true ]]; then
   git submodule update --init
   cd extern/blis
   case "${ID}" in
-      centos|rhel|sles)
-          ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp auto
-          ;;
-      ubuntu)
-          ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp CC=/opt/rocm/hcc/bin/clang auto
-          ;;
-      *)
-          echo "Unsupported OS for this script"
-          ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp auto
-          ;;
+    centos|rhel|sles)
+      ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp auto
+      ;;
+    ubuntu)
+      ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp CC=/opt/rocm/hcc/bin/clang auto
+      ;;
+    *)
+      echo "Unsupported OS for this script"
+      ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp auto
+      ;;
   esac
   make install
   cd ../..
@@ -404,7 +431,6 @@ pushd .
   cmake_client_options=""
 
   cmake_common_options="${cmake_common_options} -lpthread -DTensile_LOGIC=${tensile_logic} -DTensile_CODE_OBJECT_VERSION=${tensile_cov}"
-  cmake_client_options="-DLINK_BLIS=${LINK_BLIS}"
 
   # build type
   if [[ "${build_release}" == true ]]; then
@@ -438,11 +464,15 @@ esac
 
   tensile_opt=""
     if [[ "${build_tensile}" == false ]]; then
-    tensile_opt="-DBUILD_WITH_TENSILE=OFF"
+    tensile_opt="${tensile_opt} -DBUILD_WITH_TENSILE=OFF"
+  fi
+
+    if [[ "${build_tensile_host}" == true ]]; then
+    tensile_opt="${tensile_opt} -DBUILD_WITH_TENSILE_HOST=ON"
   fi
 
   if [[ "${build_clients}" == true ]]; then
-    cmake_client_options="${cmake_client_options} ${tensile_opt} -DBUILD_CLIENTS_SAMPLES=ON -DBUILD_CLIENTS_TESTS=ON -DBUILD_CLIENTS_BENCHMARKS=ON"
+    cmake_client_options="${cmake_client_options} ${tensile_opt} -DBUILD_CLIENTS_SAMPLES=ON -DBUILD_CLIENTS_TESTS=ON -DBUILD_CLIENTS_BENCHMARKS=ON -DLINK_BLIS=${LINK_BLIS}"
   fi
 
   compiler="hcc"

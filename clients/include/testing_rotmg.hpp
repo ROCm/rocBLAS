@@ -52,6 +52,7 @@ void testing_rotmg(const Arguments& arg)
     rocblas_local_handle handle;
     double               gpu_time_used, cpu_time_used;
     double               error_host, error_device;
+    const T              rel_error = std::numeric_limits<T>::epsilon() * 1000;
     host_vector<T>       params(9);
 
     for(int i = 0; i < TEST_COUNT; ++i)
@@ -74,7 +75,7 @@ void testing_rotmg(const Arguments& arg)
                 handle, &hparams[0], &hparams[1], &hparams[2], &hparams[3], &hparams[4]));
 
             if(arg.unit_check)
-                unit_check_general<T>(1, 9, 1, cparams, hparams);
+                near_check_general<T>(1, 9, 1, cparams, hparams, rel_error);
 
             if(arg.norm_check)
                 error_host = norm_check_general<T>('F', 1, 9, 1, cparams, hparams);
@@ -91,7 +92,7 @@ void testing_rotmg(const Arguments& arg)
             CHECK_HIP_ERROR(hipMemcpy(hparams, dparams, 9 * sizeof(T), hipMemcpyDeviceToHost));
 
             if(arg.unit_check)
-                unit_check_general<T>(1, 9, 1, cparams, hparams);
+                near_check_general<T>(1, 9, 1, cparams, hparams, rel_error);
 
             if(arg.norm_check)
                 error_device = norm_check_general<T>('F', 1, 9, 1, cparams, hparams);

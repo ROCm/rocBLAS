@@ -51,12 +51,11 @@ void testing_swap_batched(const Arguments& arg)
     rocblas_local_handle handle;
 
     // argument sanity check before allocating invalid memory
-    if(batch_count < 0)
+    if(N <= 0 || batch_count <= 0)
     {
-        static const size_t safe_size = 100; //  arbitrarily set to 100
-
-        device_vector<T*, 0, T> dxt(1);
-        device_vector<T*, 0, T> dyt(1);
+        static const size_t     safe_size = 100; //  arbitrarily set to 100
+        device_vector<T*, 0, T> dxt(safe_size);
+        device_vector<T*, 0, T> dyt(safe_size);
         if(!dxt || !dyt)
         {
             CHECK_HIP_ERROR(hipErrorOutOfMemory);
@@ -65,29 +64,13 @@ void testing_swap_batched(const Arguments& arg)
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         EXPECT_ROCBLAS_STATUS(rocblas_swap_batched<T>(handle, N, dxt, incx, dyt, incy, batch_count),
-                              rocblas_status_invalid_size);
+                              N > 0 && batch_count < 0 ? rocblas_status_invalid_size
+                                                       : rocblas_status_success);
         return;
     }
 
-    if(N <= 0 || batch_count == 0)
-    {
-        static const size_t safe_size = 100; //  arbitrarily set to 100
-
-        device_vector<T*, 0, T> dxt(1);
-        device_vector<T*, 0, T> dyt(1);
-        if(!dxt || !dyt)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
-
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR(rocblas_swap_batched<T>(handle, N, dxt, incx, dyt, incy, batch_count));
-        return;
-    }
-
-    ssize_t abs_incx = (incx >= 0) ? incx : -incx;
-    ssize_t abs_incy = (incy >= 0) ? incy : -incy;
+    ssize_t abs_incx = incx >= 0 ? incx : -incx;
+    ssize_t abs_incy = incy >= 0 ? incy : -incy;
 
     size_t size_x = N * abs_incx;
     size_t size_y = N * abs_incy;

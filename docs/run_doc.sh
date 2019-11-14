@@ -10,5 +10,3 @@ cd source
 make clean
 make html
 cd ..
-
-rm *.h

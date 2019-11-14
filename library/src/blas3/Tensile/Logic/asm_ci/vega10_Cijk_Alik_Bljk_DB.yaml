@@ -1,8 +1,16 @@
-- {MinimumRequiredVersion: 4.6.0}
+- MinimumRequiredVersion: 4.6.0
 - vega10
 - gfx900
-- [Device 6863, Device 6862, Device 687f, Device 6860, Device 6861, 'Vega 10 XTX [Radeon
-    Vega Frontier Edition]', 'Vega [Radeon RX Vega]']
+- - Device 6863
+  - Device 6862
+  - Device 687f
+  - Device 6860
+  - Device 6861
+  - Vega 10 XTX [Radeon Vega Frontier Edition]
+  - Vega [Radeon RX Vega]
+  - Vega
+  - Device 6864
+  - Device 686c
 - AssignedDerivedParameters: true
   Batched: true
   ComplexConjugateA: false
@@ -14,14 +22,24 @@
   Index01A: 0
   Index01B: 1
   Index1: 1
-  IndexAssignmentsA: [3, 0, 2]
-  IndexAssignmentsB: [3, 1, 2]
+  IndexAssignmentsA:
+  - 3
+  - 0
+  - 2
+  IndexAssignmentsB:
+  - 3
+  - 1
+  - 2
   IndexUnroll: 3
   IndexUnrollA: 0
   IndexUnrollB: 0
-  IndicesBatch: [2]
-  IndicesFree: [0, 1]
-  IndicesSummation: [3]
+  IndicesBatch:
+  - 2
+  IndicesFree:
+  - 0
+  - 1
+  IndicesSummation:
+  - 3
   NumIndicesBatch: 1
   NumIndicesC: 3
   NumIndicesFree: 2
@@ -141,14 +159,24 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
-      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -173,7 +201,9 @@
     SubGroupA: 16
     SubGroupB: 16
     SuppresssNoLoadLoop: false
-    ThreadTile: [4, 4]
+    ThreadTile:
+    - 4
+    - 4
     ThreadTile0: 4
     ThreadTile1: 4
     ThreadTileA: 4
@@ -184,7 +214,10 @@
     VectorAtomicWidth: 1
     VectorStore: true
     VectorWidth: 2
-    WorkGroup: [16, 16, 1]
+    WorkGroup:
+    - 16
+    - 16
+    - 1
     WorkGroupMapping: 8
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
@@ -289,14 +322,24 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
-      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -321,7 +364,9 @@
     SubGroupA: 16
     SubGroupB: 16
     SuppresssNoLoadLoop: true
-    ThreadTile: [4, 4]
+    ThreadTile:
+    - 4
+    - 4
     ThreadTile0: 4
     ThreadTile1: 4
     ThreadTileA: 4
@@ -332,7 +377,10 @@
     VectorAtomicWidth: 1
     VectorStore: true
     VectorWidth: 2
-    WorkGroup: [16, 16, 1]
+    WorkGroup:
+    - 16
+    - 16
+    - 1
     WorkGroupMapping: 8
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
@@ -437,14 +485,24 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
-      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -469,7 +527,9 @@
     SubGroupA: 16
     SubGroupB: 16
     SuppresssNoLoadLoop: false
-    ThreadTile: [4, 4]
+    ThreadTile:
+    - 4
+    - 4
     ThreadTile0: 4
     ThreadTile1: 4
     ThreadTileA: 4
@@ -480,7 +540,10 @@
     VectorAtomicWidth: 1
     VectorStore: true
     VectorWidth: 2
-    WorkGroup: [16, 16, 1]
+    WorkGroup:
+    - 16
+    - 16
+    - 1
     WorkGroupMapping: 8
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
@@ -585,14 +648,24 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
-      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -617,7 +690,9 @@
     SubGroupA: 16
     SubGroupB: 16
     SuppresssNoLoadLoop: true
-    ThreadTile: [4, 4]
+    ThreadTile:
+    - 4
+    - 4
     ThreadTile0: 4
     ThreadTile1: 4
     ThreadTileA: 4
@@ -628,24 +703,62 @@
     VectorAtomicWidth: 1
     VectorStore: true
     VectorWidth: 2
-    WorkGroup: [16, 16, 1]
+    WorkGroup:
+    - 16
+    - 16
+    - 1
     WorkGroupMapping: 8
     WorkGroupMappingType: B
-- [2, 3, 0, 1]
-- - - [1, 1, 1, 256]
-    - [3, 0.00256469]
-  - - [1, 64, 1, 128]
-    - [2, 0.102161]
-  - - [64, 64, 1, 256]
-    - [1, 10.6632]
-  - - [64, 1, 1, 128]
-    - [2, 0.102302]
-  - - [64, 1, 1, 256]
-    - [3, 0.163836]
-  - - [64, 64, 1, 128]
-    - [0, 6.29968]
-  - - [1, 64, 1, 256]
-    - [3, 0.166488]
-  - - [1, 1, 1, 128]
-    - [2, 0.00159405]
+- - 2
+  - 3
+  - 0
+  - 1
+- - - - 1
+      - 1
+      - 1
+      - 256
+    - - 3
+      - 0.00256469
+  - - - 1
+      - 64
+      - 1
+      - 128
+    - - 2
+      - 0.102161
+  - - - 64
+      - 64
+      - 1
+      - 256
+    - - 1
+      - 10.6632
+  - - - 64
+      - 1
+      - 1
+      - 128
+    - - 2
+      - 0.102302
+  - - - 64
+      - 1
+      - 1
+      - 256
+    - - 3
+      - 0.163836
+  - - - 64
+      - 64
+      - 1
+      - 128
+    - - 0
+      - 6.29968
+  - - - 1
+      - 64
+      - 1
+      - 256
+    - - 3
+      - 0.166488
+  - - - 1
+      - 1
+      - 1
+      - 128
+    - - 2
+      - 0.00159405
 - null

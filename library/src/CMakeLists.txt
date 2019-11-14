@@ -26,18 +26,27 @@ set( package_targets rocblas )
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
 
-# Set up Tensile  Dependency
+# Set up Tensile Dependency
 if( BUILD_WITH_TENSILE )
   # If we want to build a shared rocblas lib, force Tensile to build as a static lib to absorb into rocblas
   if( BUILD_SHARED_LIBS )
     set( ROCBLAS_SHARED_LIBS ON )
     set( BUILD_SHARED_LIBS OFF )
   else( )
-    list( APPEND package_targets Tensile )
+    if( BUILD_WITH_TENSILE_HOST )
+      list( APPEND package_targets Tensile TensileHost )
+    else()
+      list( APPEND package_targets Tensile )
+    endif()
   endif( )
 
   set( Tensile_RUNTIME_LANGUAGE "HIP" )
   message( STATUS "AMDGPU_TARGETS=${AMDGPU_TARGETS}" )
+  if( BUILD_WITH_TENSILE_HOST )
+    set( PACKAGE_TENSILE_LIBRARY ON )
+  else()
+    set( PACKAGE_TENSILE_LIBRARY OFF )
+  endif()
   TensileCreateLibraryCmake(
       ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/Logic/${Tensile_LOGIC}
       ${Tensile_RUNTIME_LANGUAGE}
@@ -46,10 +55,15 @@ if( BUILD_WITH_TENSILE )
       ${Tensile_MERGE_FILES}
       ${Tensile_SHORT_FILENAMES}
       ${Tensile_PRINT_DEBUG}
+      ${PACKAGE_TENSILE_LIBRARY}
    )
 
   # Create a unique name for Tensile compiled for rocBLAS
   set_target_properties( Tensile PROPERTIES OUTPUT_NAME tensile-rocblas CXX_EXTENSIONS NO )
+  # build gemm with Tensile Host library
+  if( BUILD_WITH_TENSILE_HOST )
+    target_compile_definitions( Tensile PUBLIC USE_TENSILE_HOST )
+  endif()
   target_compile_features( Tensile PRIVATE cxx_static_assert cxx_nullptr cxx_auto_type )
   # Remove this check when we no longer build with older rocm stack(ie < 1.8.2)
   if(TARGET hip::device)
@@ -74,10 +88,14 @@ if( BUILD_WITH_TENSILE )
 
   #rocblas_gemm and rocblas_trsm require tensile
   set( Tensile_SRC
+    tensile_host.cpp
     blas3/Tensile/gemm.cpp
     blas3/Tensile/gemm_batched.cpp
     blas3/Tensile/gemm_strided_batched.cpp
     blas3/rocblas_trsm.cpp
+    blas3/rocblas_trsm_batched.cpp
+    blas3/rocblas_trsm_strided_batched.cpp
+    blas3/rocblas_trmm.cpp
   )
 
   set( Tensile_INC
@@ -86,8 +104,8 @@ if( BUILD_WITH_TENSILE )
 
   set( rocblas_ex_source
     blas_ex/rocblas_gemm_ex.cpp
-    blas_ex/rocblas_gemm_ex_batched.cpp
-    blas_ex/rocblas_gemm_ex_strided_batched.cpp
+    blas_ex/rocblas_gemm_batched_ex.cpp
+    blas_ex/rocblas_gemm_strided_batched_ex.cpp
   )
 
   set( rocblas_blas3_source
@@ -100,6 +118,8 @@ if( BUILD_WITH_TENSILE )
 
   set( rocblas_blas2_tensile_source
     blas2/rocblas_trsv.cpp
+    blas2/rocblas_trsv_strided_batched.cpp
+    blas2/rocblas_trsv_batched.cpp
   )
 
 endif( ) # BUILD_WITH_TENSILE
@@ -124,12 +144,18 @@ set( rocblas_auxiliary_source
 )
 
 set( rocblas_blas1_source
-  blas1/rocblas_amin.cpp
-  blas1/rocblas_amax.cpp
+  blas1/rocblas_iamin.cpp
+  blas1/rocblas_iamin_batched.cpp
+  blas1/rocblas_iamin_strided_batched.cpp
+  blas1/rocblas_iamax.cpp
+  blas1/rocblas_iamax_batched.cpp
+  blas1/rocblas_iamax_strided_batched.cpp
   blas1/rocblas_asum.cpp
   blas1/rocblas_asum_batched.cpp
   blas1/rocblas_asum_strided_batched.cpp
   blas1/rocblas_axpy.cpp
+  blas1/rocblas_axpy_batched.cpp
+  blas1/rocblas_axpy_strided_batched.cpp
   blas1/rocblas_copy.cpp
   blas1/rocblas_copy_batched.cpp
   blas1/rocblas_copy_strided_batched.cpp
@@ -203,8 +229,15 @@ target_include_directories( rocblas
 # target_include_directories( rocblas SYSTEM PUBLIC ${HIP_INCLUDE_DIRS} )
 
 if( BUILD_WITH_TENSILE )
-  target_link_libraries( rocblas PRIVATE Tensile )
+  if( BUILD_WITH_TENSILE_HOST )
+    target_link_libraries( rocblas PRIVATE Tensile TensileHost )
+  else()
+    target_link_libraries( rocblas PRIVATE Tensile )
+  endif()
   target_compile_definitions( rocblas PRIVATE BUILD_WITH_TENSILE=1 )
+  if( BUILD_WITH_TENSILE_HOST )
+    target_compile_definitions( rocblas PUBLIC USE_TENSILE_HOST )
+  endif()
 endif()
 
 rocm_set_soversion( rocblas ${rocblas_SOVERSION} )
@@ -231,6 +264,13 @@ rocm_install_targets(
     ${CMAKE_BINARY_DIR}/include
   PREFIX rocblas
 )
+
+if( BUILD_WITH_TENSILE )
+  if( BUILD_WITH_TENSILE_HOST )
+    install(DIRECTORY ${CMAKE_BINARY_DIR}/Tensile/library DESTINATION ${CMAKE_INSTALL_PREFIX}/rocblas/lib)
+  endif()
+endif()
+
 #         PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ WORLD_EXECUTE WORLD_READ
 
 rocm_export_targets(
@@ -242,6 +282,7 @@ rocm_export_targets(
 
 rocm_install_symlink_subdir( rocblas )
 
+if(BUILD_TESTING)
 # Compilation tests to ensure that header files work independently,
 # and that public header files work across several languages
 add_custom_command(
@@ -249,4 +290,5 @@ add_custom_command(
   POST_BUILD
   COMMAND ${CMAKE_HOME_DIRECTORY}/header_compilation_tests.sh
   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
-)
+ )
+endif()

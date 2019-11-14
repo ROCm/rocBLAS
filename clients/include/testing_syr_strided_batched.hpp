@@ -72,9 +72,9 @@ void testing_syr_strided_batched(const Arguments& arg)
     rocblas_local_handle handle;
 
     // argument check before allocating invalid memory
-    if(N < 0 || lda < N || lda < 1 || !incx || batch_count < 0)
+    if(N <= 0 || lda < N || lda < 1 || !incx || batch_count <= 0)
     {
-        static const size_t safe_size = 100; // arbitrarily set to 100
+        static constexpr size_t safe_size = 100; // arbitrarily set to 100
 
         device_vector<T> dA_1(safe_size);
         device_vector<T> dx(safe_size);
@@ -87,26 +87,8 @@ void testing_syr_strided_batched(const Arguments& arg)
         EXPECT_ROCBLAS_STATUS(
             rocblas_syr_strided_batched<T>(
                 handle, uplo, N, &h_alpha, dx, incx, stridex, dA_1, lda, strideA, batch_count),
-            rocblas_status_invalid_size);
-
-        return;
-    }
-
-    if(N <= 0 || batch_count == 0)
-    {
-        static const size_t safe_size = 100; // arbitrarily set to 100
-
-        device_vector<T> dA_1(safe_size);
-        device_vector<T> dx(safe_size);
-        if(!dA_1 || !dx)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
-
-        CHECK_ROCBLAS_ERROR(rocblas_syr_strided_batched<T>(
-            handle, uplo, N, &h_alpha, dx, incx, stridex, dA_1, lda, strideA, batch_count));
-
+            N < 0 || lda < N || lda < 1 || !incx || batch_count < 0 ? rocblas_status_invalid_size
+                                                                    : rocblas_status_success);
         return;
     }
 

@@ -86,8 +86,8 @@ void testing_dot_batched(const Arguments& arg)
     rocblas_int incy        = arg.incy;
     rocblas_int batch_count = arg.batch_count;
 
-    double               rocblas_error_1;
-    double               rocblas_error_2;
+    double               rocblas_error_1 = 0;
+    double               rocblas_error_2 = 0;
     rocblas_local_handle handle;
 
     // check to prevent undefined memmory allocation error
@@ -233,7 +233,7 @@ void testing_dot_batched(const Arguments& arg)
             (CONJ ? cblas_dotc<T> : cblas_dot<T>)(N, hx[b], incx, hy[b], incy, &cpu_result[b]);
         }
         cpu_time_used = get_time_us() - cpu_time_used;
-        cblas_gflops  = batch_count * dot_gflop_count<T>(N) / cpu_time_used * 1e6 * 1;
+        cblas_gflops  = batch_count * dot_gflop_count<CONJ, T>(N) / cpu_time_used * 1e6 * 1;
 
         if(arg.unit_check)
         {
@@ -248,8 +248,10 @@ void testing_dot_batched(const Arguments& arg)
 
             for(int b = 0; b < batch_count; ++b)
             {
-                rocblas_error_1 += std::abs((cpu_result[b] - rocblas_result_1[b]) / cpu_result[b]);
-                rocblas_error_2 += std::abs((cpu_result[b] - rocblas_result_2[b]) / cpu_result[b]);
+                rocblas_error_1
+                    += rocblas_abs((cpu_result[b] - rocblas_result_1[b]) / cpu_result[b]);
+                rocblas_error_2
+                    += rocblas_abs((cpu_result[b] - rocblas_result_2[b]) / cpu_result[b]);
             }
         }
     }
@@ -287,7 +289,7 @@ void testing_dot_batched(const Arguments& arg)
         }
 
         gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;
-        rocblas_gflops    = batch_count * dot_gflop_count<T>(N) / gpu_time_used * 1e6 * 1;
+        rocblas_gflops    = batch_count * dot_gflop_count<CONJ, T>(N) / gpu_time_used * 1e6 * 1;
         rocblas_bandwidth = batch_count * (2.0 * N) * sizeof(T) / gpu_time_used / 1e3;
 
         std::cout << "N,incx,incy,batch_count,rocblas-Gflops,rocblas-GB/s,rocblas-us";
