@@ -13,8 +13,9 @@
 #include "unit.hpp"
 #include "utility.hpp"
 
-template <typename T>
-void testing_iamax_iamin_bad_arg(const Arguments& arg, rocblas_iamax_iamin_t<T> func)
+template <typename T,
+          rocblas_status (&FUNC)(rocblas_handle, rocblas_int, const T*, rocblas_int, rocblas_int*)>
+void testing_iamax_iamin_bad_arg(const Arguments& arg)
 {
     rocblas_int         N         = 100;
     rocblas_int         incx      = 1;
@@ -30,27 +31,29 @@ void testing_iamax_iamin_bad_arg(const Arguments& arg, rocblas_iamax_iamin_t<T> 
 
     rocblas_int h_rocblas_result;
 
-    EXPECT_ROCBLAS_STATUS(func(handle, N, nullptr, incx, &h_rocblas_result),
+    EXPECT_ROCBLAS_STATUS(FUNC(handle, N, nullptr, incx, &h_rocblas_result),
                           rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(func(handle, N, dx, incx, nullptr), rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(func(nullptr, N, dx, incx, &h_rocblas_result),
+    EXPECT_ROCBLAS_STATUS(FUNC(handle, N, dx, incx, nullptr), rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS(FUNC(nullptr, N, dx, incx, &h_rocblas_result),
                           rocblas_status_invalid_handle);
 }
 
 template <typename T>
 void testing_iamax_bad_arg(const Arguments& arg)
 {
-    testing_iamax_iamin_bad_arg<T>(arg, rocblas_iamax<T>);
+    testing_iamax_iamin_bad_arg<T, rocblas_iamax<T>>(arg);
 }
 
 template <typename T>
 void testing_iamin_bad_arg(const Arguments& arg)
 {
-    testing_iamax_iamin_bad_arg<T>(arg, rocblas_iamin<T>);
+    testing_iamax_iamin_bad_arg<T, rocblas_iamin<T>>(arg);
 }
 
-template <typename T, void CBLAS_FUNC(rocblas_int, const T*, rocblas_int, rocblas_int*)>
-void testing_iamax_iamin(const Arguments& arg, rocblas_iamax_iamin_t<T> func)
+template <typename T,
+          rocblas_status (&FUNC)(rocblas_handle, rocblas_int, const T*, rocblas_int, rocblas_int*),
+          void CBLAS_FUNC(rocblas_int, const T*, rocblas_int, rocblas_int*)>
+void testing_iamax_iamin(const Arguments& arg)
 {
     rocblas_int N    = arg.N;
     rocblas_int incx = arg.incx;
@@ -73,7 +76,7 @@ void testing_iamax_iamin(const Arguments& arg, rocblas_iamax_iamin_t<T> func)
             CHECK_HIP_ERROR(hipErrorOutOfMemory);
             return;
         }
-        CHECK_ROCBLAS_ERROR(func(handle, N, dx, incx, &h_rocblas_result_1));
+        CHECK_ROCBLAS_ERROR(FUNC(handle, N, dx, incx, &h_rocblas_result_1));
 
 #ifdef GOOGLE_TEST
         EXPECT_EQ(h_rocblas_result_1, 0);
@@ -109,11 +112,11 @@ void testing_iamax_iamin(const Arguments& arg, rocblas_iamax_iamin_t<T> func)
     {
         // GPU BLAS rocblas_pointer_mode_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR(func(handle, N, dx, incx, &h_rocblas_result_1));
+        CHECK_ROCBLAS_ERROR(FUNC(handle, N, dx, incx, &h_rocblas_result_1));
 
         // GPU BLAS, rocblas_pointer_mode_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR(func(handle, N, dx, incx, d_rocblas_result));
+        CHECK_ROCBLAS_ERROR(FUNC(handle, N, dx, incx, d_rocblas_result));
         CHECK_HIP_ERROR(hipMemcpy(
             &h_rocblas_result_2, d_rocblas_result, sizeof(rocblas_int), hipMemcpyDeviceToHost));
 
@@ -145,14 +148,14 @@ void testing_iamax_iamin(const Arguments& arg, rocblas_iamax_iamin_t<T> func)
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            func(handle, N, dx, incx, d_rocblas_result);
+            FUNC(handle, N, dx, incx, d_rocblas_result);
         }
 
         gpu_time_used = get_time_us(); // in microseconds
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            func(handle, N, dx, incx, d_rocblas_result);
+            FUNC(handle, N, dx, incx, d_rocblas_result);
         }
 
         gpu_time_used = (get_time_us() - gpu_time_used) / number_hot_calls;
@@ -199,17 +202,6 @@ namespace rocblas_cblas
     }
 
     template <typename T>
-    bool greatherthan(T x, T y)
-    {
-        return x > y;
-    }
-
-    bool greatherthan(rocblas_half x, rocblas_half y)
-    {
-        return half_to_float(x) > half_to_float(y);
-    }
-
-    template <typename T>
     void cblas_iamin(rocblas_int N, const T* X, rocblas_int incx, rocblas_int* result)
     {
         rocblas_int minpos = -1;
@@ -230,37 +222,16 @@ namespace rocblas_cblas
         *result = minpos;
     }
 
-    template <typename T>
-    void cblas_iamax(rocblas_int N, const T* X, rocblas_int incx, rocblas_int* result)
-    {
-        rocblas_int maxpos = -1;
-        if(N > 0 && incx > 0)
-        {
-            auto max = asum(X[0]);
-            maxpos   = 0;
-            for(size_t i = 1; i < N; ++i)
-            {
-                auto a = asum(X[i * incx]);
-                if(greatherthan(a, max))
-                {
-                    max    = a;
-                    maxpos = i;
-                }
-            }
-        }
-        *result = maxpos;
-    }
-
 } // namespace rocblas_cblas
 
 template <typename T>
 void testing_iamax(const Arguments& arg)
 {
-    testing_iamax_iamin<T, rocblas_cblas::cblas_iamax<T>>(arg, rocblas_iamax<T>);
+    testing_iamax_iamin<T, rocblas_iamax<T>, cblas_iamax<T>>(arg);
 }
 
 template <typename T>
 void testing_iamin(const Arguments& arg)
 {
-    testing_iamax_iamin<T, rocblas_cblas::cblas_iamin<T>>(arg, rocblas_iamin<T>);
+    testing_iamax_iamin<T, rocblas_iamin<T>, rocblas_cblas::cblas_iamin<T>>(arg);
 }

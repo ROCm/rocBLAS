@@ -2,29 +2,31 @@
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
+
+#include "rocblas_trtri_batched.hpp"
 #include "logging.h"
-#include "rocblas_trtri.hpp"
 #include "utility.h"
 
 namespace
 {
-
     template <typename>
     constexpr char rocblas_trtri_name[] = "unknown";
     template <>
-    constexpr char rocblas_trtri_name<float>[] = "rocblas_strtri_batched";
+    constexpr char rocblas_trtri_name<float>[] = "rocblas_strtri";
     template <>
-    constexpr char rocblas_trtri_name<double>[] = "rocblas_dtrtri_batched";
+    constexpr char rocblas_trtri_name<double>[] = "rocblas_dtrtri";
 
     template <rocblas_int NB, typename T>
     rocblas_status rocblas_trtri_batched_impl(rocblas_handle   handle,
                                               rocblas_fill     uplo,
                                               rocblas_diagonal diag,
                                               rocblas_int      n,
-                                              const T* const   A[],
+                                              const T*         A,
                                               rocblas_int      lda,
-                                              T*               invA[],
+                                              rocblas_int      bsa,
+                                              T*               invA,
                                               rocblas_int      ldinvA,
+                                              rocblas_int      bsinvA,
                                               rocblas_int      batch_count)
     {
         if(!handle)
@@ -32,8 +34,18 @@ namespace
 
         auto layer_mode = handle->layer_mode;
         if(layer_mode & rocblas_layer_mode_log_trace)
-            log_trace(
-                handle, rocblas_trtri_name<T>, uplo, diag, n, A, lda, invA, ldinvA, batch_count);
+            log_trace(handle,
+                      rocblas_trtri_name<T>,
+                      uplo,
+                      diag,
+                      n,
+                      A,
+                      lda,
+                      bsa,
+                      invA,
+                      ldinvA,
+                      bsinvA,
+                      batch_count);
 
         if(layer_mode & rocblas_layer_mode_log_profile)
             log_profile(handle,
@@ -46,8 +58,12 @@ namespace
                         n,
                         "lda",
                         lda,
+                        "bsa",
+                        bsa,
                         "ldinvA",
                         ldinvA,
+                        "bsinvA",
+                        bsinvA,
                         "batch_count",
                         batch_count);
 
@@ -57,11 +73,11 @@ namespace
             return rocblas_status_invalid_size;
         if(!A)
             return rocblas_status_invalid_pointer;
-        if(lda < n)
+        if(lda < n || bsa < lda * n)
             return rocblas_status_invalid_size;
         if(!invA)
             return rocblas_status_invalid_pointer;
-        if(ldinvA < n || batch_count < 0)
+        if(ldinvA < n || bsinvA < ldinvA * n || batch_count < 0)
             return rocblas_status_invalid_size;
 
         // For small n or zero batch_count, and device memory size query, return size unchanged
@@ -75,89 +91,74 @@ namespace
         rocblas_status status;
         if(n <= NB)
         {
-            status = rocblas_trtri_small<NB, T>(
-                handle, uplo, diag, n, A, 0, lda, 0, 0, invA, 0, ldinvA, 0, 0, batch_count, 1);
+            status = rocblas_trtri_small_batched<NB>(
+                handle, uplo, diag, n, A, lda, bsa, invA, ldinvA, bsinvA, batch_count);
         }
         else
         {
             // Compute the optimal size for temporary device memory
-            size_t els   = rocblas_trtri_temp_size<NB>(n, 1);
-            size_t size  = els * batch_count * sizeof(T);
-            size_t sizep = batch_count * sizeof(T*);
+            size_t size = rocblas_trtri_batched_temp_size<NB>(n, batch_count) * sizeof(T);
 
             // If size is queried, set optimal size
             if(handle->is_device_memory_size_query())
-                return handle->set_optimal_device_memory_size(size, sizep);
+                return handle->set_optimal_device_memory_size(size);
 
             // Allocate memory
-            auto mem = handle->device_malloc(size, sizep);
-            if(!mem)
-            {
+            auto C_tmp = handle->device_malloc(size);
+            if(!C_tmp)
                 return rocblas_status_memory_error;
-            }
-            void* C_tmp;
-            void* C_tmp_arr;
-            std::tie(C_tmp, C_tmp_arr) = mem;
 
-            T* C_tmp_host[batch_count];
-            for(int b = 0; b < batch_count; b++)
-            {
-                C_tmp_host[b] = (T*)C_tmp + b * els;
-            }
-            RETURN_IF_HIP_ERROR(
-                hipMemcpy(C_tmp_arr, C_tmp_host, batch_count * sizeof(T*), hipMemcpyHostToDevice));
-
-            status = rocblas_trtri_large<NB, true, false, T>(handle,
-                                                             uplo,
-                                                             diag,
-                                                             n,
-                                                             A,
-                                                             0,
-                                                             lda,
-                                                             0,
-                                                             0,
-                                                             invA,
-                                                             0,
-                                                             ldinvA,
-                                                             0,
-                                                             0,
-                                                             batch_count,
-                                                             1,
-                                                             (T**)C_tmp_arr);
+            status = rocblas_trtri_large_batched<NB>(
+                handle, uplo, diag, n, A, lda, bsa, invA, ldinvA, bsinvA, batch_count, (T*)C_tmp);
         }
 
         return status;
     }
 
-}
+} // namespace
+
+/* ============================================================================================ */
+
+/*
+ * ===========================================================================
+ *    C interface
+ *    This function is called by trsm
+ * ===========================================================================
+ */
 
 extern "C" {
-rocblas_status rocblas_strtri_batched(rocblas_handle     handle,
-                                      rocblas_fill       uplo,
-                                      rocblas_diagonal   diag,
-                                      rocblas_int        n,
-                                      const float* const A[],
-                                      rocblas_int        lda,
-                                      float*             invA[],
-                                      rocblas_int        ldinvA,
-                                      rocblas_int        batch_count)
+rocblas_status rocblas_strtri_batched(rocblas_handle   handle,
+                                      rocblas_fill     uplo,
+                                      rocblas_diagonal diag,
+                                      rocblas_int      n,
+                                      const float*     A,
+                                      rocblas_int      lda,
+                                      rocblas_int      bsa,
+                                      float*           invA,
+                                      rocblas_int      ldinvA,
+                                      rocblas_int      bsinvA,
+                                      rocblas_int      batch_count)
 {
     constexpr rocblas_int NB = 16;
-    return rocblas_trtri_batched_impl<NB>(handle, uplo, diag, n, A, lda, invA, ldinvA, batch_count);
+    return rocblas_trtri_batched_impl<NB>(
+        handle, uplo, diag, n, A, lda, bsa, invA, ldinvA, bsinvA, batch_count);
 }
 
-rocblas_status rocblas_dtrtri_batched(rocblas_handle      handle,
-                                      rocblas_fill        uplo,
-                                      rocblas_diagonal    diag,
-                                      rocblas_int         n,
-                                      const double* const A[],
-                                      rocblas_int         lda,
-                                      double*             invA[],
-                                      rocblas_int         ldinvA,
-                                      rocblas_int         batch_count)
+rocblas_status rocblas_dtrtri_batched(rocblas_handle   handle,
+                                      rocblas_fill     uplo,
+                                      rocblas_diagonal diag,
+                                      rocblas_int      n,
+                                      const double*    A,
+                                      rocblas_int      lda,
+                                      rocblas_int      bsa,
+                                      double*          invA,
+                                      rocblas_int      ldinvA,
+                                      rocblas_int      bsinvA,
+                                      rocblas_int      batch_count)
 {
     constexpr rocblas_int NB = 16;
-    return rocblas_trtri_batched_impl<NB>(handle, uplo, diag, n, A, lda, invA, ldinvA, batch_count);
+    return rocblas_trtri_batched_impl<NB>(
+        handle, uplo, diag, n, A, lda, bsa, invA, ldinvA, bsinvA, batch_count);
 }
 
 } // extern "C"

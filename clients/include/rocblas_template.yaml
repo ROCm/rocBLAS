@@ -7,34 +7,16 @@ Functions:
   rocblas_dscal: { function: scal, <<: *double_precision }
   rocblas_scopy: { function: copy, <<: *single_precision }
   rocblas_dcopy: { function: copy, <<: *double_precision }
-  rocblas_scopy_strided_batched: { function: copy_strided_batched, <<: *single_precision }
-  rocblas_dcopy_strided_batched: { function: copy_strided_batched, <<: *double_precision }
   rocblas_sswap: { function: swap, <<: *single_precision }
   rocblas_dswap: { function: swap, <<: *double_precision }
-  rocblas_sswap_batched: { function: swap_batched, <<: *single_precision }
-  rocblas_dswap_batched: { function: swap_batched, <<: *double_precision }
-  rocblas_sswap_strided_batched: { function: swap_strided_batched, <<: *single_precision }
-  rocblas_dswap_strided_batched: { function: swap_strided_batched, <<: *double_precision }
   rocblas_sdot:  { function: dot, <<: *single_precision  }
   rocblas_ddot:  { function: dot, <<: *double_precision  }
   rocblas_sasum: { function: asum, <<: *single_precision }
   rocblas_dasum: { function: asum, <<: *double_precision }
   rocblas_scasum: { function: asum, <<: *single_precision_complex }
   rocblas_dzasum: { funciton: asum, <<: *double_precision_complex }
-  rocblas_sasum_batched: { function: asum_batched, <<: *single_precision }
-  rocblas_dasum_batched: { function: asum_batched, <<: *double_precision }
-  rocblas_scasum_batched: { function: asum_batched, <<: *single_precision_complex }
-  rocblas_dzasum_batched: { funciton: asum_batched, <<: *double_precision_complex }
-  rocblas_sasum_strided_batched: { function: asum_strided_batched, <<: *single_precision }
-  rocblas_dasum_strided_batched: { function: asum_strided_batched, <<: *double_precision }
-  rocblas_scasum_strided_batched: { function: asum_strided_batched, <<: *single_precision_complex }
-  rocblas_dzasum_strided_batched: { funciton: asum_strided_batched, <<: *double_precision_complex }
   rocblas_snrm2: { function: nrm2, <<: *single_precision }
   rocblas_dnrm2: { function: nrm2, <<: *double_precision }
-  rocblas_snrm2_batched: { function: nrm2_batched, <<: *single_precision }
-  rocblas_dnrm2_batched: { function: nrm2_batched, <<: *double_precision }
-  rocblas_snrm2_strided_batched: { function: nrm2_strided_batched, <<: *single_precision }
-  rocblas_dnrm2_strided_batched: { function: nrm2_strided_batched, <<: *double_precision }
   rocblas_haxpy: { function: axpy, <<: *half_precision   }
   rocblas_saxpy: { function: axpy, <<: *single_precision }
   rocblas_daxpy: { function: axpy, <<: *double_precision }
@@ -44,18 +26,10 @@ Functions:
   rocblas_dger:  { function: ger, <<: *double_precision  }
   rocblas_ssyr:  { function: syr, <<: *single_precision  }
   rocblas_dsyr:  { function: syr, <<: *double_precision  }
-  rocblas_ssyr_strided_batched:  { function: syr_strided_batched, <<: *single_precision  }
-  rocblas_dsyr_strided_batched:  { function: syr_strided_batched, <<: *double_precision  }
-  rocblas_ssyr_batched:  { function: syr_batched, <<: *single_precision  }
-  rocblas_dsyr_batched:  { function: syr_batched, <<: *double_precision  }
   rocblas_sgemv: { function: gemv, <<: *single_precision }
   rocblas_dgemv: { function: gemv, <<: *double_precision }
   rocblas_cgemv: { function: gemv, <<: *single_precision_complex }
-  rocblas_zgemv: { function: gemv, <<: *double_precision_complex }
-  rocblas_sgemv_strided_batched: { function: gemv_strided_batched, <<: *single_precision }
-  rocblas_dgemv_strided_batched: { function: gemv_strided_batched, <<: *double_precision }
-  rocblas_sgemv_batched: { function: gemv_batched, <<: *single_precision }
-  rocblas_dgemv_batched: { function: gemv_batched, <<: *double_precision }
+  rocblas_zgemv: { function: gemv, <<: *double_precision_complex } 
   rocblas_strsv: { function: trsv, <<: *single_precision }
   rocblas_dtrsv: { function: trsv, <<: *double_precision }
   rocblas_ssymv: { function: symv, <<: *single_precision }
@@ -74,7 +48,5 @@ Functions:
   rocblas_dtrtri: { function: trtri, <<: *double_precision }
   rocblas_strtri_batched: { function: trtri_batched, <<: *single_precision }
   rocblas_dtrtri_batched: { function: trtri_batched, <<: *double_precision }
-  rocblas_strtri_strided_batched: { function: trtri_strided_batched, <<: *single_precision }
-  rocblas_dtrtri_strided_batched: { function: trtri_strided_batched, <<: *double_precision }
 
 Tests:
