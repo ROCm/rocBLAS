@@ -915,8 +915,8 @@ rocblas_status gemm_ex_typecasting(rocblas_handle    handle,
                                    rocblas_stride    stride_d,
                                    rocblas_int       batch_count)
 {
-    Tc h_alpha[batch_count];
-    Tc h_beta[batch_count];
+    Tc h_alpha[1];
+    Tc h_beta[1];
 
     if(rocblas_pointer_mode_device == handle->pointer_mode)
     {
