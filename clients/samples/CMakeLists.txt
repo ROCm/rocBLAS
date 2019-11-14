@@ -6,35 +6,23 @@ get_target_property( HIPHCC_LOCATION hip::hip_hcc IMPORTED_LOCATION_RELEASE )
 
 set( rocblas_samples_common ../common/utility.cpp )
 
-set( THREADS_PREFER_PTHREAD_FLAG ON )
-find_package( Threads REQUIRED )
-
 add_executable( example-sscal example_sscal.cpp ${rocblas_samples_common} )
+add_executable( example-sgemm example_sgemm.cpp ${rocblas_samples_common} )
+add_executable( example-sgemm-strided-batched example_sgemm_strided_batched.cpp ${rocblas_samples_common} )
 add_executable( example-scal-template example_scal_template.cpp ${rocblas_samples_common} )
+add_executable( example-i8_r_gemm_ex example_i8_r_gemm_ex.cpp ${rocblas_samples_common} )
+add_executable( example_bf16_r_gemm_ex example_bf16_r_gemm_ex.cpp ${rocblas_samples_common} )
 
-if( BUILD_WITH_TENSILE )
-  add_executable( example-sgemm example_sgemm.cpp ${rocblas_samples_common} )
-  add_executable( example-sgemm-strided-batched example_sgemm_strided_batched.cpp ${rocblas_samples_common} )
-  add_executable( example-i8_r_gemm_ex example_i8_r_gemm_ex.cpp ${rocblas_samples_common} )
-  add_executable( example_bf16_r_gemm_ex example_bf16_r_gemm_ex.cpp ${rocblas_samples_common} )
-endif( )
-
-set( sample_list_base example-sscal example-scal-template)
-if( BUILD_WITH_TENSILE )
-  set( sample_list_tensile example-sgemm example-sgemm-strided-batched example-i8_r_gemm_ex example_bf16_r_gemm_ex)
-endif( )
-set( sample_list ${sample_list_base} ${sample_list_tensile} )
+set( sample_list example-sscal example-sgemm example-scal-template example-sgemm-strided-batched example-i8_r_gemm_ex example_bf16_r_gemm_ex)
 foreach( exe ${sample_list} )
   target_link_libraries( ${exe} PRIVATE roc::rocblas )
   target_compile_features( ${exe} PRIVATE cxx_static_assert cxx_nullptr cxx_auto_type )
 
   set_target_properties( ${exe} PROPERTIES CXX_EXTENSIONS NO )
   set_target_properties( ${exe} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )
-
   target_include_directories( ${exe}
     PRIVATE
       $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
-      $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../library/include>
       )
 
   target_include_directories( ${exe}
@@ -51,11 +39,9 @@ foreach( exe ${sample_list} )
     target_compile_definitions( ${exe} PRIVATE __HIP_PLATFORM_NVCC__ )
     target_link_libraries( ${exe} PRIVATE ${CUDA_LIBRARIES} )
   else( )
-    # Unfortunately, we can't link to hip::hip_hcc because it pulls in flags specific to the
+    # Unfortunatley, we can't link to hip::hip_hcc because it pulls in flags specific to the
     # hcc compiler, and we want to be able to build with host compilers
-
-    # auto set in hip_common.h
-    #target_compile_definitions( ${exe} PRIVATE __HIP_PLATFORM_HCC__ )
+    target_compile_definitions( ${exe} PRIVATE __HIP_PLATFORM_HCC__ )
     target_link_libraries( ${exe} PRIVATE ${HIPHCC_LOCATION} )
   endif( )
 
@@ -69,7 +55,4 @@ foreach( exe ${sample_list} )
     target_compile_options( ${exe} PRIVATE -mf16c )
   endif( )
 endforeach( )
-
-# include order workaround to force /opt/rocm/include later in order to ignore installed rocblas
-set(CMAKE_CXX_FLAGS "-isystem /opt/rocm/include ${CMAKE_CXX_FLAGS}")
 

@@ -31,10 +31,10 @@ typedef struct ihipStream_t* hipStream_t;
  */
 #if defined(rocblas_ILP64)
 typedef int64_t rocblas_int;
-typedef int64_t rocblas_stride;
+typedef int64_t rocblas_long;
 #else
 typedef int32_t rocblas_int;
-typedef int64_t rocblas_stride;
+typedef int64_t rocblas_long;
 #endif
 
 // floating point types

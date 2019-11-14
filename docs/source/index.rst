@@ -10,11 +10,7 @@ Welcome to rocBLAS's documentation!
    :maxdepth: 4 
    :caption: Contents:
 
-   intro
-   install
-   logging
-   contributing
-   streams
+   library 
    api
    allapi
 

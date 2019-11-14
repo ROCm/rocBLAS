@@ -1,12 +1,30 @@
 /* ************************************************************************
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include "rocblas_syr.hpp"
+#include "handle.h"
 #include "logging.h"
+#include "rocblas.h"
 #include "utility.h"
 
 namespace
 {
+    template <typename T, typename U>
+    __global__ void syr_kernel(rocblas_fill uplo,
+                               rocblas_int  n,
+                               U            alpha_device_host,
+                               const T* __restrict__ x,
+                               rocblas_int incx,
+                               T*          A,
+                               rocblas_int lda)
+    {
+        auto        alpha = load_scalar(alpha_device_host);
+        rocblas_int tx    = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+        rocblas_int ty    = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
+
+        if(uplo == rocblas_fill_lower ? tx < n && ty <= tx : ty < n && tx <= ty)
+            A[tx + lda * ty] += alpha * x[tx * incx] * x[ty * incx];
+    }
+
     template <typename>
     constexpr char rocblas_syr_name[] = "unknown";
     template <>
@@ -15,14 +33,14 @@ namespace
     constexpr char rocblas_syr_name<double>[] = "rocblas_dsyr";
 
     template <typename T>
-    rocblas_status rocblas_syr_impl(rocblas_handle handle,
-                                    rocblas_fill   uplo,
-                                    rocblas_int    n,
-                                    const T*       alpha,
-                                    const T*       x,
-                                    rocblas_int    incx,
-                                    T*             A,
-                                    rocblas_int    lda)
+    rocblas_status rocblas_syr(rocblas_handle handle,
+                               rocblas_fill   uplo,
+                               rocblas_int    n,
+                               const T*       alpha,
+                               const T*       x,
+                               rocblas_int    incx,
+                               T*             A,
+                               rocblas_int    lda)
     {
         if(!handle)
             return rocblas_status_invalid_handle;
@@ -82,10 +100,55 @@ namespace
         if(n < 0 || !incx || lda < n || lda < 1)
             return rocblas_status_invalid_size;
 
-        return rocblas_syr_template(handle, uplo, n, alpha, x, incx, A, lda);
+        // Quick return if possible. Not Argument error
+        if(!n)
+            return rocblas_status_success;
+
+        hipStream_t rocblas_stream = handle->rocblas_stream;
+
+        static constexpr int GEMV_DIM_X = 128;
+        static constexpr int GEMV_DIM_Y = 8;
+        rocblas_int          blocksX    = (n - 1) / GEMV_DIM_X + 1;
+        rocblas_int          blocksY    = (n - 1) / GEMV_DIM_Y + 1;
+
+        dim3 syr_grid(blocksX, blocksY);
+        dim3 syr_threads(GEMV_DIM_X, GEMV_DIM_Y);
+
+        if(incx < 0)
+            x -= ptrdiff_t(incx) * (n - 1);
+
+        if(rocblas_pointer_mode_device == handle->pointer_mode)
+            hipLaunchKernelGGL(syr_kernel,
+                               syr_grid,
+                               syr_threads,
+                               0,
+                               rocblas_stream,
+                               uplo,
+                               n,
+                               alpha,
+                               x,
+                               incx,
+                               A,
+                               lda);
+        else
+            hipLaunchKernelGGL(syr_kernel,
+                               syr_grid,
+                               syr_threads,
+                               0,
+                               rocblas_stream,
+                               uplo,
+                               n,
+                               *alpha,
+                               x,
+                               incx,
+                               A,
+                               lda);
+
+        return rocblas_status_success;
     }
 
-}
+} // namespace
+
 /*
  * ===========================================================================
  *    C wrapper
@@ -103,7 +166,7 @@ rocblas_status rocblas_ssyr(rocblas_handle handle,
                             float*         A,
                             rocblas_int    lda)
 {
-    return rocblas_syr_impl(handle, uplo, n, alpha, x, incx, A, lda);
+    return rocblas_syr(handle, uplo, n, alpha, x, incx, A, lda);
 }
 
 rocblas_status rocblas_dsyr(rocblas_handle handle,
@@ -115,7 +178,7 @@ rocblas_status rocblas_dsyr(rocblas_handle handle,
                             double*        A,
                             rocblas_int    lda)
 {
-    return rocblas_syr_impl(handle, uplo, n, alpha, x, incx, A, lda);
+    return rocblas_syr(handle, uplo, n, alpha, x, incx, A, lda);
 }
 
 } // extern "C"

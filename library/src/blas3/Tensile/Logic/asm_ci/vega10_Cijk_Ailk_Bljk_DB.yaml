@@ -2,7 +2,7 @@
 - vega10
 - gfx900
 - [Device 6863, Device 6862, Device 687f, Device 6860, Device 6861, 'Vega 10 XTX [Radeon
-    Vega Frontier Edition]', 'Vega [Radeon RX Vega]', Vega, Device 6864]
+    Vega Frontier Edition]', 'Vega [Radeon RX Vega]']
 - AssignedDerivedParameters: true
   Batched: true
   ComplexConjugateA: false

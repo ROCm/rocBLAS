@@ -63,7 +63,7 @@ struct rocblas_bfloat16
     }
 
     // zero extend lower 16 bits of bfloat16 to convert to IEEE float
-    constexpr __host__ __device__ operator float() const
+    explicit constexpr __host__ __device__ operator float() const
     {
         union
         {
@@ -234,6 +234,11 @@ constexpr __host__ __device__ bool isnan(rocblas_bfloat16 a)
 constexpr __host__ __device__ bool iszero(rocblas_bfloat16 a)
 {
     return !(a.data & 0x7fff);
+}
+constexpr __host__ __device__ rocblas_bfloat16 abs(rocblas_bfloat16 a)
+{
+    a.data &= 0x7fff;
+    return a;
 }
 inline rocblas_bfloat16 sin(rocblas_bfloat16 a)
 {

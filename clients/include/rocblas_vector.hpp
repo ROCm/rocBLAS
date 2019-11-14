@@ -1,90 +1,160 @@
 /* ************************************************************************
  * Copyright 2018-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#pragma once
 
-#include "d_vector.hpp"
+#ifndef ROCBLAS_VECTOR_H_
+#define ROCBLAS_VECTOR_H_
 
-#include "device_batch_vector.hpp"
-#include "device_strided_batch_vector.hpp"
-#include "device_vector.hpp"
+#include "rocblas.h"
+#include "rocblas_init.hpp"
+#include "rocblas_test.hpp"
+#include <cinttypes>
+#include <cstdio>
+#include <locale.h>
+#include <vector>
 
-#include "host_batch_vector.hpp"
-#include "host_strided_batch_vector.hpp"
-#include "host_vector.hpp"
+/* ============================================================================================ */
+/*! \brief  pseudo-vector class which uses device memory */
 
-//!
-//! @brief Random number with type deductions.
-//!
-template <typename T>
-void random_generator(T& n)
+template <typename T, size_t PAD = 4096>
+class device_vector
 {
-    n = random_generator<T>();
-}
+#ifdef GOOGLE_TEST
 
-//!
-//! @brief Template for initializing a host (non_batche|batched|strided_batched)vector.
-//! @param that That vector.
-//! @param seedReset reset the seed if true, do not reset the seed otherwise.
-//!
-template <typename U>
-void rocblas_init_template(U& that, bool seedReset = false)
-{
-    if(seedReset)
-    {
-        rocblas_seedrand();
-    }
+    T guard[PAD];
 
-    for(rocblas_int batch_index = 0; batch_index < that.batch_count(); ++batch_index)
+    void device_vector_setup()
     {
-        auto batched_data = that[batch_index];
-        auto inc          = std::abs(that.inc());
-        auto n            = that.n();
-        if(inc < 0)
+        if((hipMalloc)(&data, bytes) != hipSuccess)
         {
-            batched_data -= (n - 1) * inc;
+            static char* lc = setlocale(LC_NUMERIC, "");
+            fprintf(stderr, "Error allocating %'zu bytes (%zu GB)\n", bytes, bytes >> 30);
+            data = nullptr;
         }
-
-        for(rocblas_int i = 0; i < n; ++i)
+        else
         {
-            random_generator(batched_data[i * inc]);
+            // Initialize guard with random data
+            rocblas_init_nan(guard, PAD);
+
+            // Copy guard to device memory before allocated memory
+            CHECK_HIP_ERROR(hipMemcpy(data, guard, sizeof(guard), hipMemcpyHostToDevice));
+
+            // Point to allocated block
+            data += PAD;
+
+            // Copy guard to device memory after allocated memory
+            CHECK_HIP_ERROR(hipMemcpy(data + size, guard, sizeof(guard), hipMemcpyHostToDevice));
         }
     }
-}
 
-//!
-//! @brief Initialize a host_strided_batch_vector.
-//! @param that The host strided batch vector.
-//! @param seedReset reset the seed if true, do not reset the seed otherwise.
-//!
-template <typename T>
-void rocblas_init(host_strided_batch_vector<T>& that, bool seedReset = false)
-{
-    rocblas_init_template(that, seedReset);
-}
-
-//!
-//! @brief Initialize a host_batch_vector.
-//! @param that The host batch vector.
-//! @param seedReset reset the seed if true, do not reset the seed otherwise.
-//!
-template <typename T>
-void rocblas_init(host_batch_vector<T>& that, bool seedReset = false)
-{
-    rocblas_init_template(that, seedReset);
-}
-
-//!
-//! @brief Initialize a host_vector.
-//! @param that The host vector.
-//! @param seedReset reset the seed if true, do not reset the seed otherwise.
-//!
-template <typename T>
-void rocblas_init(host_vector<T>& that, bool seedReset = false)
-{
-    if(seedReset)
+    void device_vector_teardown()
     {
-        rocblas_seedrand();
+        if(data != nullptr)
+        {
+            T host[PAD];
+
+            // Copy device memory after allocated memory to host
+            CHECK_HIP_ERROR(hipMemcpy(host, data + size, sizeof(guard), hipMemcpyDeviceToHost));
+
+            // Make sure no corruption has occurred
+            EXPECT_EQ(memcmp(host, guard, sizeof(guard)), 0);
+
+            // Point to guard before allocated memory
+            data -= PAD;
+
+            // Copy device memory after allocated memory to host
+            CHECK_HIP_ERROR(hipMemcpy(host, data, sizeof(guard), hipMemcpyDeviceToHost));
+
+            // Make sure no corruption has occurred
+            EXPECT_EQ(memcmp(host, guard, sizeof(guard)), 0);
+
+            // Free device memory
+            CHECK_HIP_ERROR((hipFree)(data));
+        }
     }
-    rocblas_init(that, 1, that.size(), 1);
-}
+
+public:
+    // Must wrap constructor and destructor in functions to allow Google Test macros to work
+    explicit device_vector(size_t size)
+        : size(size)
+        , bytes((size + PAD * 2) * sizeof(T))
+    {
+        device_vector_setup();
+    }
+
+    ~device_vector()
+    {
+        device_vector_teardown();
+    }
+
+#else // GOOGLE_TEST
+
+    // Code without memory guards
+
+public:
+    explicit device_vector(size_t size)
+        : size(size)
+        , bytes(size ? size * sizeof(T) : sizeof(T))
+    {
+        if((hipMalloc)(&data, bytes) != hipSuccess)
+        {
+            static char* lc = setlocale(LC_NUMERIC, "");
+            fprintf(stderr, "Error allocating %'zu bytes (%'zu GB)\n", bytes, bytes >> 30);
+            data = nullptr;
+        }
+    }
+
+    ~device_vector()
+    {
+        if(data != nullptr)
+            CHECK_HIP_ERROR((hipFree)(data));
+    }
+
+#endif // GOOGLE_TEST
+
+public:
+    // Decay into pointer wherever pointer is expected
+    operator T*()
+    {
+        return data;
+    }
+    operator const T*() const
+    {
+        return data;
+    }
+
+    // Tell whether malloc failed
+    explicit operator bool() const
+    {
+        return data != nullptr;
+    }
+
+    // Disallow copying or assigning
+    device_vector(const device_vector&) = delete;
+    device_vector& operator=(const device_vector&) = delete;
+
+private:
+    T*           data;
+    const size_t size, bytes;
+};
+
+/* ============================================================================================ */
+/*! \brief  pseudo-vector class which uses host memory */
+template <typename T>
+struct host_vector : std::vector<T>
+{
+    // Inherit constructors
+    using std::vector<T>::vector;
+
+    // Decay into pointer wherever pointer is expected
+    operator T*()
+    {
+        return this->data();
+    }
+    operator const T*() const
+    {
+        return this->data();
+    }
+};
+
+#endif

@@ -69,7 +69,6 @@ public:
     __device__ __host__ rocblas_complex_num& operator=(const rocblas_complex_num& rhs) = default;
     __device__ __host__ rocblas_complex_num& operator=(rocblas_complex_num&& rhs) = default;
     __device__                               __host__ ~rocblas_complex_num()      = default;
-    using value_type                                                              = T;
 
     // Constructor
     __device__ __host__ rocblas_complex_num(T r, T i)
@@ -83,19 +82,6 @@ public:
         : x(r)
         , y(0)
     {
-    }
-
-    // Conversion from std::complex<T>
-    __device__ __host__ rocblas_complex_num(const std::complex<T>& z)
-        : x(reinterpret_cast<T (&)[2]>(z)[0])
-        , y(reinterpret_cast<T (&)[2]>(z)[1])
-    {
-    }
-
-    // Conversion to std::complex<T>
-    __device__ __host__ operator std::complex<T>() const
-    {
-        return {x, y};
     }
 
     // Conversion from different complex (explicit)
@@ -311,7 +297,7 @@ public:
     template <typename U, typename std::enable_if<std::is_convertible<U, T>{}, int>::type = 0>
     friend __device__ __host__ bool operator==(const U& lhs, const rocblas_complex_num& rhs)
     {
-        return T(lhs) == rhs.x && 0 == rhs.y;
+        return T(lhs) == rhs.x && 00 == rhs.y;
     }
 
     template <typename U, typename std::enable_if<std::is_convertible<U, T>{}, int>::type = 0>
