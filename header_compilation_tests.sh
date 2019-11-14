@@ -38,13 +38,18 @@ out_uptodate()
     done
 }
 
-HCC=/opt/rocm/hcc/bin/hcc
+rocm_path=/opt/rocm
+if ! [ -z ${ROCM_PATH+x} ]; then
+    rocm_path=${ROCM_PATH}
+fi
 
-HCC_OPTS="-Werror -DBUILD_WITH_TENSILE=1 -DTensile_RUNTIME_LANGUAGE_HIP=1 -DTensile_RUNTIME_LANGUAGE_OCL=0 -Drocblas_EXPORTS -I$(realpath library/include) -I$(realpath library/src/include) -I$(realpath $BUILD_DIR/include) -I$(realpath $SOURCE_DIR/library/src/blas3/Tensile) -isystem /opt/rocm/hip/include -isystem /opt/rocm/hsa/include -isystem /opt/rocm/hcc/include -isystem /opt/rocm/include -I$(realpath $BUILD_DIR/Tensile) -O3 -DNDEBUG -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -Wno-unused-command-line-argument"
+HCC=${rocm_path}/hcc/bin/hcc
+
+HCC_OPTS="-Werror -DBUILD_WITH_TENSILE=1 -DTensile_RUNTIME_LANGUAGE_HIP=1 -DTensile_RUNTIME_LANGUAGE_OCL=0 -Drocblas_EXPORTS -I$(realpath library/include) -I$(realpath library/src/include) -I$(realpath $BUILD_DIR/include) -I$(realpath $SOURCE_DIR/library/src/blas3/Tensile) -isystem ${rocm_path}/hip/include -isystem ${rocm_path}/hsa/include -isystem ${rocm_path}/hcc/include -isystem ${rocm_path}/include -I$(realpath $BUILD_DIR/Tensile) -O3 -DNDEBUG -fPIC -fvisibility=hidden -fvisibility-inlines-hidden -Wno-unused-command-line-argument"
 
 GPU_OPTS="-hc -fno-gpu-rdc --amdgpu-target=gfx803 --amdgpu-target=gfx900 --amdgpu-target=gfx906 -Werror"
 
-CLANG=/opt/rocm/llvm/bin/clang
+CLANG=${rocm_path}/llvm/bin/clang
 CLANG_OPTS="-xc-header -std=c99 -D__HIP_PLATFORM_HCC__"
 
 C99="$HCC -xc-header -std=c99"

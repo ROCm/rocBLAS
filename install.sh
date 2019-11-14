@@ -248,6 +248,11 @@ cpu_ref_lib=blis
 build_release=true
 build_hip_clang=false
 
+rocm_path=/opt/rocm
+if ! [ -z ${ROCM_PATH+x} ]; then
+    rocm_path=${ROCM_PATH}
+fi
+
 # #################################################
 # Parameter parsing
 # #################################################
@@ -381,7 +386,7 @@ if [[ "${cpu_ref_lib}" == blis ]] && [[ ! -f "${build_dir}/deps/blis/lib/libblis
           ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp auto
           ;;
       ubuntu)
-          ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp CC=/opt/rocm/hcc/bin/clang auto
+          ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp CC=${rocm_path}/hcc/bin/clang auto
           ;;
       *)
           echo "Unsupported OS for this script"
@@ -394,7 +399,7 @@ fi
 
 # We append customary rocm path; if user provides custom rocm path in ${path}, our
 # hard-coded path has lesser priority
-export PATH=${PATH}:/opt/rocm/bin:${ROCM_INSTALL_PATH}/hip/bin:${ROCM_INSTALL_PATH}/hcc/bin
+export PATH=${PATH}:${rocm_path}/bin:${rocm_path}/hip/bin:${rocm_path}/hcc/bin
 
 pushd .
   # #################################################
@@ -452,13 +457,13 @@ esac
   fi
 
   # Uncomment for cmake debugging
-  # CXX=${compiler} ${cmake_executable} -Wdev --debug-output --trace ${cmake_common_options} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=/opt/rocm ../..
+  # CXX=${compiler} ${cmake_executable} -Wdev --debug-output --trace ${cmake_common_options} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=${rocm_path} ../..
 
   # Build library with AMD toolchain because of existense of device kernels
   if [[ "${build_clients}" == true ]]; then
-    CXX=${compiler} ${cmake_executable} ${cmake_common_options} ${cmake_client_options} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=/opt/rocm ../..
+    CXX=${compiler} ${cmake_executable} ${cmake_common_options} ${cmake_client_options} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=${rocm_path} -DCPACK_PACKAGING_INSTALL_PREFIX=${rocm_path} ../..
   else
-    CXX=${compiler} ${cmake_executable} ${cmake_common_options} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=/opt/rocm ../..
+    CXX=${compiler} ${cmake_executable} ${cmake_common_options} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=${rocm_path} -DCPACK_PACKAGING_INSTALL_PREFIX=${rocm_path} ../..
   fi
   check_exit_code "$?"
 

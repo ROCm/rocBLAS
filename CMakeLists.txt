@@ -102,7 +102,7 @@ elseif( CXX_VERSION_STRING MATCHES "nvcc" )
   set( CMAKE_C_COMPILE_OPTIONS_VISIBILITY_INLINES_HIDDEN "-Xcompiler ${CMAKE_C_COMPILE_OPTIONS_VISIBILITY_INLINES_HIDDEN}" )
   set( CMAKE_CXX_COMPILE_OPTIONS_VISIBILITY_INLINES_HIDDEN "-Xcompiler ${CMAKE_CXX_COMPILE_OPTIONS_VISIBILITY_INLINES_HIDDEN}" )
 elseif( CXX_VERSION_STRING MATCHES "HCC" )
-  message( STATUS "HCC compiler set; ROCm backend selected [ CXX=/opt/rocm/bin/hcc cmake ... ]" )
+  message( STATUS "HCC compiler set; ROCm backend selected [ CXX=/opt/rocm-<ver>/bin/hcc cmake ... ]" )
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -hc")
 endif( )
 

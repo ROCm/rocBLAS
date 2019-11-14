@@ -109,12 +109,12 @@ function(rocm_create_package_clients)
     if(EXISTS "${PROJECT_BINARY_DIR}/package")
         file(REMOVE_RECURSE "${PROJECT_BINARY_DIR}/package")
     endif()
-    file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/package/opt/rocm/${PARSE_LIB_NAME}/bin")
+    file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/package/${CMAKE_INSTALL_PREFIX}/${PARSE_LIB_NAME}/bin")
     file(WRITE "${PROJECT_BINARY_DIR}/package/DEBIAN/control" ${DEB_CONTROL_FILE_CONTENT})
 
     add_custom_target(package_clients
-        COMMAND ${CMAKE_COMMAND} -E remove -f "${PROJECT_BINARY_DIR}/package/opt/rocm/${PARSE_LIB_NAME}/bin/*"
-        COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_BINARY_DIR}/staging/*" "${PROJECT_BINARY_DIR}/package/opt/rocm/${PARSE_LIB_NAME}/bin"
+        COMMAND ${CMAKE_COMMAND} -E remove -f "${PROJECT_BINARY_DIR}/package/${CMAKE_INSTALL_PREFIX}/${PARSE_LIB_NAME}/bin/*"
+        COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_BINARY_DIR}/staging/*" "${PROJECT_BINARY_DIR}/package/${CMAKE_INSTALL_PREFIX}/${PARSE_LIB_NAME}/bin"
         COMMAND dpkg -b "${PROJECT_BINARY_DIR}/package/"  ${PACKAGE_NAME})
 endfunction(rocm_create_package_clients)
 
