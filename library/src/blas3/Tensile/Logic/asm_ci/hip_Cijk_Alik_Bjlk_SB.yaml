@@ -180,7 +180,7 @@
     VectorStore: true
     VectorWidth: 1
     WorkGroup: [16, 16, 1]
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
     AssertFree0ElementMultiple: 1
@@ -325,7 +325,7 @@
     VectorStore: true
     VectorWidth: 1
     WorkGroup: [16, 16, 1]
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
 - [2, 3, 0, 1]
 - - - [5504, 5504, 1, 5504]

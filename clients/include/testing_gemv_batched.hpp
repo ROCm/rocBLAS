@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018 Advanced Micro Devices, Inc.
+ * Copyright 2018-2019 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
 
@@ -90,11 +90,12 @@ void testing_gemv_batched(const Arguments& arg)
     rocblas_local_handle handle;
 
     // argument sanity check before allocating invalid memory
-    if(M < 0 || N < 0 || lda < M || lda < 1 || !incx || !incy || batch_count < 0)
+    if(M <= 0 || N <= 0 || lda < M || lda < 1 || !incx || !incy || batch_count <= 0)
     {
-        device_vector<T*, 0, T> dAA1(1);
-        device_vector<T*, 0, T> dxA1(1);
-        device_vector<T*, 0, T> dy_1A1(1);
+        static constexpr size_t safe_size = 100; // arbitrarily set to 100
+        device_vector<T*, 0, T> dAA1(safe_size);
+        device_vector<T*, 0, T> dxA1(safe_size);
+        device_vector<T*, 0, T> dy_1A1(safe_size);
 
         if(!dAA1 || !dxA1 || !dy_1A1)
         {
@@ -115,39 +116,10 @@ void testing_gemv_batched(const Arguments& arg)
                                                       dy_1A1,
                                                       incy,
                                                       batch_count),
-                              rocblas_status_invalid_size);
-
-        return;
-    }
-
-    //quick return
-    if(!M || !N || !batch_count)
-    {
-        device_vector<T*, 0, T> dAA1(1);
-        device_vector<T*, 0, T> dxA1(1);
-        device_vector<T*, 0, T> dy_1A1(1);
-
-        if(!dAA1 || !dxA1 || !dy_1A1)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
-
-        EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched<T>(handle,
-                                                      transA,
-                                                      M,
-                                                      N,
-                                                      &h_alpha,
-                                                      dAA1,
-                                                      lda,
-                                                      dxA1,
-                                                      incx,
-                                                      &h_beta,
-                                                      dy_1A1,
-                                                      incy,
-                                                      batch_count),
-                              rocblas_status_success);
-
+                              M < 0 || N < 0 || lda < M || lda < 1 || !incx || !incy
+                                      || batch_count < 0
+                                  ? rocblas_status_invalid_size
+                                  : rocblas_status_success);
         return;
     }
 
@@ -300,7 +272,7 @@ void testing_gemv_batched(const Arguments& arg)
                 transA, M, N, h_alpha, hAA[b], lda, hxA[b], incx, h_beta, hy_goldA[b], incy);
         }
         cpu_time_used = get_time_us() - cpu_time_used;
-        cblas_gflops  = batch_count * gemv_gflop_count<T>(M, N) / cpu_time_used * 1e6;
+        cblas_gflops  = batch_count * gemv_gflop_count<T>(transA, M, N) / cpu_time_used * 1e6;
 
         if(arg.unit_check)
         {
@@ -360,7 +332,7 @@ void testing_gemv_batched(const Arguments& arg)
         }
 
         gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;
-        rocblas_gflops    = batch_count * gemv_gflop_count<T>(M, N) / gpu_time_used * 1e6;
+        rocblas_gflops    = batch_count * gemv_gflop_count<T>(transA, M, N) / gpu_time_used * 1e6;
         rocblas_bandwidth = batch_count * (1.0 * M * N) * sizeof(T) / gpu_time_used / 1e3;
 
         // only norm_check return an norm error, unit check won't return anything

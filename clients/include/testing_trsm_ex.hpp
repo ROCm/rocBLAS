@@ -65,16 +65,30 @@ void testing_trsm_ex(const Arguments& arg)
         static const size_t safe_size = 100; // arbitrarily set to 100
         device_vector<T>    dA(safe_size);
         device_vector<T>    dXorB(safe_size);
+        device_vector<T>    dinvA(safe_size);
         if(!dA || !dXorB)
         {
             CHECK_HIP_ERROR(hipErrorOutOfMemory);
             return;
         }
-        // TODO change this to trsm_ex
+
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_trsm<T>(handle, side, uplo, transA, diag, M, N, &alpha_h, dA, lda, dXorB, ldb),
-            rocblas_status_invalid_size);
+        EXPECT_ROCBLAS_STATUS(rocblas_trsm_ex(handle,
+                                              side,
+                                              uplo,
+                                              transA,
+                                              diag,
+                                              M,
+                                              N,
+                                              &alpha_h,
+                                              dA,
+                                              lda,
+                                              dXorB,
+                                              ldb,
+                                              dinvA,
+                                              TRSM_BLOCK * K,
+                                              arg.compute_type),
+                              rocblas_status_invalid_size);
         return;
     }
 

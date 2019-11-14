@@ -64,7 +64,7 @@ namespace
                           "--incx",
                           incx,
                           alphass.str(),
-                          "--batch",
+                          "--batch_count",
                           batch_count);
             }
         }
@@ -75,15 +75,14 @@ namespace
         }
         if(layer_mode & rocblas_layer_mode_log_profile)
             log_profile(
-                handle, rocblas_scal_name<T, U>, "N", n, "incx", incx, "batch", batch_count);
+                handle, rocblas_scal_name<T, U>, "N", n, "incx", incx, "batch_count", batch_count);
 
         if(!x)
             return rocblas_status_invalid_pointer;
         if(batch_count < 0)
             return rocblas_status_invalid_size;
 
-        U* mem = (U*)nullptr;
-        return rocblas_scal_template<NB, T>(handle, n, alpha, 0, x, 0, incx, 0, batch_count, mem);
+        return rocblas_scal_template<NB, T>(handle, n, alpha, 0, x, 0, incx, 0, batch_count);
     }
 }
 

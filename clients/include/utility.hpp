@@ -7,6 +7,7 @@
 
 #include "rocblas.h"
 #include "rocblas_test.hpp"
+#include "utility.h"
 #include <cstdio>
 #include <iostream>
 #include <string>
@@ -64,27 +65,6 @@ double get_time_us_sync(hipStream_t stream);
 /* ============================================================================================ */
 // Return path of this executable
 std::string rocblas_exepath();
-
-/* ============================================================================================ */
-/*! \brief  print vector */
-template <typename T>
-inline void rocblas_print_vector(std::vector<T>& A, size_t M, size_t N, size_t lda)
-{
-    if(std::is_same<T, float>{})
-        std::cout << "vec[float]: ";
-    else if(std::is_same<T, double>{})
-        std::cout << "vec[double]: ";
-    else if(std::is_same<T, rocblas_half>{})
-        std::cout << "vec[rocblas_half]: ";
-
-    for(size_t i = 0; i < M; ++i)
-        for(size_t j = 0; j < N; ++j)
-            std::cout << (std::is_same<T, rocblas_half>{} ? half_to_float(A[i + j * lda])
-                                                          : A[i + j * lda])
-                      << ", ";
-
-    std::cout << std::endl;
-}
 
 /* ============================================================================================ */
 /*! \brief  Debugging purpose, print out CPU and GPU result matrix, not valid in complex number  */

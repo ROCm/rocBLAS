@@ -7,6 +7,8 @@
 #include "testing_asum_batched.hpp"
 #include "testing_asum_strided_batched.hpp"
 #include "testing_axpy.hpp"
+#include "testing_axpy_batched.hpp"
+#include "testing_axpy_strided_batched.hpp"
 #include "testing_copy.hpp"
 #include "testing_copy_batched.hpp"
 #include "testing_copy_strided_batched.hpp"
@@ -14,6 +16,8 @@
 #include "testing_dot_batched.hpp"
 #include "testing_dot_strided_batched.hpp"
 #include "testing_iamax_iamin.hpp"
+#include "testing_iamax_iamin_batched.hpp"
+#include "testing_iamax_iamin_strided_batched.hpp"
 #include "testing_nrm2.hpp"
 #include "testing_nrm2_batched.hpp"
 #include "testing_nrm2_strided_batched.hpp"
@@ -49,8 +53,14 @@ namespace
         asum_batched,
         asum_strided_batched,
         iamax,
+        iamax_batched,
+        iamax_strided_batched,
         iamin,
+        iamin_batched,
+        iamin_strided_batched,
         axpy,
+        axpy_batched,
+        axpy_strided_batched,
         copy,
         copy_batched,
         copy_strided_batched,
@@ -107,20 +117,22 @@ namespace
             }
             else
             {
-                bool is_scal    = (BLAS1 == blas1::scal || BLAS1 == blas1::scal_batched
+                bool is_scal  = (BLAS1 == blas1::scal || BLAS1 == blas1::scal_batched
                                 || BLAS1 == blas1::scal_strided_batched);
-                bool is_rot     = (BLAS1 == blas1::rot || BLAS1 == blas1::rot_batched
+                bool is_rot   = (BLAS1 == blas1::rot || BLAS1 == blas1::rot_batched
                                || BLAS1 == blas1::rot_strided_batched);
-                bool is_rotg    = (BLAS1 == blas1::rotg || BLAS1 == blas1::rotg_batched
+                bool is_rotg  = (BLAS1 == blas1::rotg || BLAS1 == blas1::rotg_batched
                                 || BLAS1 == blas1::rotg_strided_batched);
-                bool is_rotmg   = (BLAS1 == blas1::rotmg || BLAS1 == blas1::rotmg_batched
+                bool is_rotmg = (BLAS1 == blas1::rotmg || BLAS1 == blas1::rotmg_batched
                                  || BLAS1 == blas1::rotmg_strided_batched);
-                bool is_batched = (BLAS1 == blas1::nrm2_batched || BLAS1 == blas1::asum_batched
-                                   || BLAS1 == blas1::scal_batched || BLAS1 == blas1::swap_batched
-                                   || BLAS1 == blas1::copy_batched || BLAS1 == blas1::dot_batched
-                                   || BLAS1 == blas1::dotc_batched || BLAS1 == blas1::rot_batched
-                                   || BLAS1 == blas1::rotm_batched || BLAS1 == blas1::rotg_batched
-                                   || BLAS1 == blas1::rotmg_batched);
+                bool is_batched
+                    = (BLAS1 == blas1::nrm2_batched || BLAS1 == blas1::asum_batched
+                       || BLAS1 == blas1::scal_batched || BLAS1 == blas1::swap_batched
+                       || BLAS1 == blas1::copy_batched || BLAS1 == blas1::dot_batched
+                       || BLAS1 == blas1::dotc_batched || BLAS1 == blas1::rot_batched
+                       || BLAS1 == blas1::rotm_batched || BLAS1 == blas1::rotg_batched
+                       || BLAS1 == blas1::iamax_batched || BLAS1 == blas1::iamin_batched
+                       || BLAS1 == blas1::rotmg_batched || BLAS1 == blas1::axpy_batched);
                 bool is_strided
                     = (BLAS1 == blas1::nrm2_strided_batched || BLAS1 == blas1::asum_strided_batched
                        || BLAS1 == blas1::scal_strided_batched
@@ -131,7 +143,10 @@ namespace
                        || BLAS1 == blas1::rot_strided_batched
                        || BLAS1 == blas1::rotm_strided_batched
                        || BLAS1 == blas1::rotg_strided_batched
-                       || BLAS1 == blas1::rotmg_strided_batched);
+                       || BLAS1 == blas1::rotmg_strided_batched
+                       || BLAS1 == blas1::iamax_strided_batched
+                       || BLAS1 == blas1::iamin_strided_batched
+                       || BLAS1 == blas1::axpy_strided_batched);
 
                 if((is_scal || is_rotg || is_rot) && arg.a_type != arg.b_type)
                     name << '_' << rocblas_datatype2string(arg.b_type);
@@ -152,7 +167,8 @@ namespace
                     name << '_' << arg.stride_x;
                 }
 
-                if(BLAS1 == blas1::axpy || BLAS1 == blas1::copy
+                if(BLAS1 == blas1::axpy || BLAS1 == blas1::axpy_batched
+                   || BLAS1 == blas1::axpy_strided_batched || BLAS1 == blas1::copy
                    || BLAS1 == blas1::copy_strided_batched || BLAS1 == blas1::copy_batched
                    || BLAS1 == blas1::dot || BLAS1 == blas1::dotc || BLAS1 == blas1::dot_batched
                    || BLAS1 == blas1::dotc_batched || BLAS1 == blas1::dot_strided_batched
@@ -167,7 +183,8 @@ namespace
 
                 if(BLAS1 == blas1::swap_strided_batched || BLAS1 == blas1::copy_strided_batched
                    || BLAS1 == blas1::dot_strided_batched || BLAS1 == blas1::dotc_strided_batched
-                   || BLAS1 == blas1::rot_strided_batched || BLAS1 == blas1::rotm_strided_batched)
+                   || BLAS1 == blas1::rot_strided_batched || BLAS1 == blas1::rotm_strided_batched
+                   || BLAS1 == blas1::axpy_strided_batched)
                 {
                     name << '_' << arg.stride_y;
                 }
@@ -203,7 +220,9 @@ namespace
          && (std::is_same<Ti, rocblas_float_complex>{} || std::is_same<Ti, rocblas_double_complex>{}
              || std::is_same<Ti, float>{} || std::is_same<Ti, double>{}))
 
-            || (BLAS1 == blas1::axpy && std::is_same<Ti, To>{} && std::is_same<To, Tc>{}
+            || ((BLAS1 == blas1::axpy || BLAS1 == blas1::axpy_batched
+                 || BLAS1 == blas1::axpy_strided_batched)
+                && std::is_same<Ti, To>{} && std::is_same<To, Tc>{}
                 && (std::is_same<Ti, rocblas_half>{} || std::is_same<Ti, rocblas_float_complex>{}
                     || std::is_same<Ti, rocblas_double_complex>{} || std::is_same<Ti, float>{}
                     || std::is_same<Ti, double>{}))
@@ -239,12 +258,16 @@ namespace
                     || (std::is_same<Ti, rocblas_float_complex>{} && std::is_same<To, float>{})
                     || (std::is_same<Ti, rocblas_double_complex>{} && std::is_same<To, double>{})))
 
-            || (BLAS1 == blas1::iamax && std::is_same<To, Ti>{} && std::is_same<To, Tc>{}
+            || ((BLAS1 == blas1::iamax || BLAS1 == blas1::iamax_batched
+                 || BLAS1 == blas1::iamax_strided_batched)
+                && std::is_same<To, Ti>{} && std::is_same<To, Tc>{}
                 && (std::is_same<Ti, rocblas_float_complex>{}
                     || std::is_same<Ti, rocblas_double_complex>{} || std::is_same<Ti, float>{}
                     || std::is_same<Ti, double>{}))
 
-            || (BLAS1 == blas1::iamin && std::is_same<To, Ti>{} && std::is_same<To, Tc>{}
+            || ((BLAS1 == blas1::iamin || BLAS1 == blas1::iamin_batched
+                 || BLAS1 == blas1::iamin_strided_batched)
+                && std::is_same<To, Ti>{} && std::is_same<To, Tc>{}
                 && (std::is_same<Ti, rocblas_float_complex>{}
                     || std::is_same<Ti, rocblas_double_complex>{} || std::is_same<Ti, float>{}
                     || std::is_same<Ti, double>{}))
@@ -310,8 +333,8 @@ struct blas1_##NAME                                                            \
                    Tc,                                                         \
                    typename std::enable_if<                                    \
                        blas1_enabled<blas1::NAME, Ti, To, Tc>{}>::type>        \
+       : rocblas_test_valid                                                    \
     {                                                                          \
-        explicit operator bool() { return true; }                              \
         void operator()(const Arguments& arg)                                  \
         {                                                                      \
             if(!strcmp(arg.function, #NAME))                                   \
@@ -341,47 +364,53 @@ TEST_P(NAME, blas1)                                                            \
                                                                                \
 INSTANTIATE_TEST_CATEGORIES(NAME)
 
+    // clang-format on
+
 #define ARG1(Ti, To, Tc) Ti
 #define ARG2(Ti, To, Tc) Ti, To
 #define ARG3(Ti, To, Tc) Ti, To, Tc
 
-BLAS1_TESTING(asum,  ARG1)
-BLAS1_TESTING(asum_batched,  ARG1)
-BLAS1_TESTING(asum_strided_batched,  ARG1)
-BLAS1_TESTING(nrm2,  ARG1)
-BLAS1_TESTING(nrm2_batched,  ARG1)
-BLAS1_TESTING(nrm2_strided_batched,  ARG1)
-BLAS1_TESTING(iamax, ARG1)
-BLAS1_TESTING(iamin, ARG1)
-BLAS1_TESTING(axpy,  ARG1)
-BLAS1_TESTING(copy,  ARG1)
-BLAS1_TESTING(copy_batched,  ARG1)
-BLAS1_TESTING(copy_strided_batched,  ARG1)
-BLAS1_TESTING(dot,   ARG1)
-BLAS1_TESTING(dotc,  ARG1)
-BLAS1_TESTING(dot_batched,   ARG1)
-BLAS1_TESTING(dotc_batched,  ARG1)
-BLAS1_TESTING(dot_strided_batched,   ARG1)
-BLAS1_TESTING(dotc_strided_batched,  ARG1)
-BLAS1_TESTING(scal,  ARG2)
-BLAS1_TESTING(scal_batched, ARG2)
-BLAS1_TESTING(scal_strided_batched, ARG2)
-BLAS1_TESTING(swap,  ARG1)
-BLAS1_TESTING(swap_batched, ARG1)
-BLAS1_TESTING(swap_strided_batched, ARG1)
-BLAS1_TESTING(rot,   ARG3)
-BLAS1_TESTING(rot_batched, ARG3)
-BLAS1_TESTING(rot_strided_batched, ARG3)
-BLAS1_TESTING(rotg,  ARG2)
-BLAS1_TESTING(rotg_batched, ARG2)
-BLAS1_TESTING(rotg_strided_batched, ARG2)
-BLAS1_TESTING(rotm,  ARG1)
-BLAS1_TESTING(rotm_batched, ARG1)
-BLAS1_TESTING(rotm_strided_batched, ARG1)
-BLAS1_TESTING(rotmg, ARG1)
-BLAS1_TESTING(rotmg_batched, ARG1)
-BLAS1_TESTING(rotmg_strided_batched, ARG1)
-
-    // clang-format on
+    BLAS1_TESTING(asum, ARG1)
+    BLAS1_TESTING(asum_batched, ARG1)
+    BLAS1_TESTING(asum_strided_batched, ARG1)
+    BLAS1_TESTING(nrm2, ARG1)
+    BLAS1_TESTING(nrm2_batched, ARG1)
+    BLAS1_TESTING(nrm2_strided_batched, ARG1)
+    BLAS1_TESTING(iamax, ARG1)
+    BLAS1_TESTING(iamax_batched, ARG1)
+    BLAS1_TESTING(iamax_strided_batched, ARG1)
+    BLAS1_TESTING(iamin, ARG1)
+    BLAS1_TESTING(iamin_batched, ARG1)
+    BLAS1_TESTING(iamin_strided_batched, ARG1)
+    BLAS1_TESTING(axpy, ARG1)
+    BLAS1_TESTING(axpy_batched, ARG1)
+    BLAS1_TESTING(axpy_strided_batched, ARG1)
+    BLAS1_TESTING(copy, ARG1)
+    BLAS1_TESTING(copy_batched, ARG1)
+    BLAS1_TESTING(copy_strided_batched, ARG1)
+    BLAS1_TESTING(dot, ARG1)
+    BLAS1_TESTING(dotc, ARG1)
+    BLAS1_TESTING(dot_batched, ARG1)
+    BLAS1_TESTING(dotc_batched, ARG1)
+    BLAS1_TESTING(dot_strided_batched, ARG1)
+    BLAS1_TESTING(dotc_strided_batched, ARG1)
+    BLAS1_TESTING(scal, ARG2)
+    BLAS1_TESTING(scal_batched, ARG2)
+    BLAS1_TESTING(scal_strided_batched, ARG2)
+    BLAS1_TESTING(swap, ARG1)
+    BLAS1_TESTING(swap_batched, ARG1)
+    BLAS1_TESTING(swap_strided_batched, ARG1)
+    BLAS1_TESTING(rot, ARG3)
+    BLAS1_TESTING(rot_batched, ARG3)
+    BLAS1_TESTING(rot_strided_batched, ARG3)
+    BLAS1_TESTING(rotg, ARG2)
+    BLAS1_TESTING(rotg_batched, ARG2)
+    BLAS1_TESTING(rotg_strided_batched, ARG2)
+    BLAS1_TESTING(rotm, ARG1)
+    BLAS1_TESTING(rotm_batched, ARG1)
+    BLAS1_TESTING(rotm_strided_batched, ARG1)
+    BLAS1_TESTING(rotmg, ARG1)
+    BLAS1_TESTING(rotmg_batched, ARG1)
+    BLAS1_TESTING(rotmg_strided_batched, ARG1)
 
 } // namespace

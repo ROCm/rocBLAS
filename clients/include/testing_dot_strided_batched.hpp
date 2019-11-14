@@ -102,8 +102,8 @@ void testing_dot_strided_batched(const Arguments& arg)
     size_t         size_x      = N * size_t(abs_incx);
     size_t         size_y      = N * size_t(abs_incy);
 
-    double               rocblas_error_1;
-    double               rocblas_error_2;
+    double               rocblas_error_1 = 0;
+    double               rocblas_error_2 = 0;
     rocblas_local_handle handle;
 
     // check to prevent undefined memmory allocation error
@@ -122,35 +122,19 @@ void testing_dot_strided_batched(const Arguments& arg)
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
-        if(batch_count < 0)
-        {
-            EXPECT_ROCBLAS_STATUS((CONJ ? rocblas_dotc_strided_batched<T>
-                                        : rocblas_dot_strided_batched<T>)(handle,
-                                                                          N,
-                                                                          dx,
-                                                                          incx,
-                                                                          stride_x,
-                                                                          dy,
-                                                                          incy,
-                                                                          stride_y,
-                                                                          batch_count,
-                                                                          d_rocblas_result),
-                                  rocblas_status_invalid_size);
-        }
-        else
-        {
-            CHECK_ROCBLAS_ERROR((CONJ ? rocblas_dotc_strided_batched<T>
-                                      : rocblas_dot_strided_batched<T>)(handle,
-                                                                        N,
-                                                                        dx,
-                                                                        incx,
-                                                                        stride_x,
-                                                                        dy,
-                                                                        incy,
-                                                                        stride_y,
-                                                                        batch_count,
-                                                                        d_rocblas_result));
-        }
+        EXPECT_ROCBLAS_STATUS((CONJ ? rocblas_dotc_strided_batched<T>
+                                    : rocblas_dot_strided_batched<T>)(handle,
+                                                                      N,
+                                                                      dx,
+                                                                      incx,
+                                                                      stride_x,
+                                                                      dy,
+                                                                      incy,
+                                                                      stride_y,
+                                                                      batch_count,
+                                                                      d_rocblas_result),
+                              batch_count < 0 ? rocblas_status_invalid_size
+                                              : rocblas_status_success);
         return;
     }
 
@@ -231,7 +215,7 @@ void testing_dot_strided_batched(const Arguments& arg)
                                                   &cpu_result[b]);
         }
         cpu_time_used = get_time_us() - cpu_time_used;
-        cblas_gflops  = batch_count * dot_gflop_count<T>(N) / cpu_time_used * 1e6 * 1;
+        cblas_gflops  = batch_count * dot_gflop_count<CONJ, T>(N) / cpu_time_used * 1e6 * 1;
 
         if(arg.unit_check)
         {
@@ -245,8 +229,10 @@ void testing_dot_strided_batched(const Arguments& arg)
                       << ", gpu_device_ptr=" << rocblas_result_2 << "\n";
             for(int b = 0; b < batch_count; ++b)
             {
-                rocblas_error_1 += std::abs((cpu_result[b] - rocblas_result_1[b]) / cpu_result[b]);
-                rocblas_error_2 += std::abs((cpu_result[b] - rocblas_result_2[b]) / cpu_result[b]);
+                rocblas_error_1
+                    += rocblas_abs((cpu_result[b] - rocblas_result_1[b]) / cpu_result[b]);
+                rocblas_error_2
+                    += rocblas_abs((cpu_result[b] - rocblas_result_2[b]) / cpu_result[b]);
             }
         }
     }
@@ -290,7 +276,7 @@ void testing_dot_strided_batched(const Arguments& arg)
         }
 
         gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;
-        rocblas_gflops    = batch_count * dot_gflop_count<T>(N) / gpu_time_used * 1e6 * 1;
+        rocblas_gflops    = batch_count * dot_gflop_count<CONJ, T>(N) / gpu_time_used * 1e6 * 1;
         rocblas_bandwidth = batch_count * (2.0 * N) * sizeof(T) / gpu_time_used / 1e3;
 
         std::cout

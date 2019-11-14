@@ -1,210 +1,91 @@
 /* ************************************************************************
  * Copyright 2018-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+#pragma once
 
-#ifndef ROCBLAS_VECTOR_H_
-#define ROCBLAS_VECTOR_H_
+#include "d_vector.hpp"
 
-#include "rocblas.h"
-#include "rocblas_init.hpp"
-#include "rocblas_test.hpp"
-#include <cinttypes>
-#include <cstdio>
-#include <locale.h>
-#include <vector>
+#include "device_batch_vector.hpp"
+#include "device_strided_batch_vector.hpp"
+#include "device_vector.hpp"
 
-/* ============================================================================================ */
-/*! \brief  base-class to allocate/deallocate device memory */
-template <typename T, size_t PAD, typename U>
-class d_vector
-{
-protected:
-    size_t size, bytes;
+#include "host_batch_vector.hpp"
+#include "host_pinned_vector.hpp"
+#include "host_strided_batch_vector.hpp"
+#include "host_vector.hpp"
 
-#ifdef GOOGLE_TEST
-    U guard[PAD];
-    d_vector(size_t s)
-        : size(s)
-        , bytes((s + PAD * 2) * sizeof(T))
-    {
-        // Initialize guard with random data
-        if(PAD > 0)
-        {
-            rocblas_init_nan(guard, PAD);
-        }
-    }
-#else
-    d_vector(size_t s)
-        : size(s)
-        , bytes(s ? s * sizeof(T) : sizeof(T))
-    {
-    }
-#endif
-
-    T* device_vector_setup()
-    {
-        T* d;
-        if((hipMalloc)(&d, bytes) != hipSuccess)
-        {
-            static char* lc = setlocale(LC_NUMERIC, "");
-            fprintf(stderr, "Error allocating %'zu bytes (%zu GB)\n", bytes, bytes >> 30);
-            d = nullptr;
-        }
-#ifdef GOOGLE_TEST
-        else
-        {
-            if(PAD > 0)
-            {
-                // Copy guard to device memory before allocated memory
-                hipMemcpy(d, guard, sizeof(guard), hipMemcpyHostToDevice);
-
-                // Point to allocated block
-                d += PAD;
-
-                // Copy guard to device memory after allocated memory
-                hipMemcpy(d + size, guard, sizeof(guard), hipMemcpyHostToDevice);
-            }
-        }
-#endif
-        return d;
-    }
-
-    void device_vector_teardown(T* d)
-    {
-        if(d != nullptr)
-        {
-#ifdef GOOGLE_TEST
-            if(PAD > 0)
-            {
-                U host[PAD];
-
-                // Copy device memory after allocated memory to host
-                hipMemcpy(host, d + size, sizeof(guard), hipMemcpyDeviceToHost);
-
-                // Make sure no corruption has occurred
-                EXPECT_EQ(memcmp(host, guard, sizeof(guard)), 0);
-
-                // Point to guard before allocated memory
-                d -= PAD;
-
-                // Copy device memory after allocated memory to host
-                hipMemcpy(host, d, sizeof(guard), hipMemcpyDeviceToHost);
-
-                // Make sure no corruption has occurred
-                EXPECT_EQ(memcmp(host, guard, sizeof(guard)), 0);
-            }
-#endif
-            // Free device memory
-            CHECK_HIP_ERROR((hipFree)(d));
-        }
-    }
-};
-
-/* ============================================================================================ */
-/*! \brief  pseudo-vector subclass which uses a batch of device memory pointers and 
-            an array of pointers in host memory*/
-template <typename T, size_t PAD = 4096, typename U = T>
-class device_batch_vector : private d_vector<T, PAD, U>
-{
-public:
-    explicit device_batch_vector(size_t b, size_t s)
-        : batch(b)
-        , d_vector<T, PAD, U>(s)
-    {
-        data = (T**)malloc(batch * sizeof(T*));
-        for(int b = 0; b < batch; ++b)
-            data[b] = this->device_vector_setup();
-    }
-
-    ~device_batch_vector()
-    {
-        if(data != nullptr)
-        {
-            for(int b = 0; b < batch; ++b)
-                this->device_vector_teardown(data[b]);
-            free(data);
-        }
-    }
-
-    T* operator[](int n)
-    {
-        return data[n];
-    }
-
-    operator T**()
-    {
-        return data;
-    }
-
-    // Disallow copying or assigning
-    device_batch_vector(const device_batch_vector&) = delete;
-    device_batch_vector& operator=(const device_batch_vector&) = delete;
-
-private:
-    T**    data;
-    size_t batch;
-};
-
-/* ============================================================================================ */
-/*! \brief  pseudo-vector subclass which uses device memory */
-template <typename T, size_t PAD = 4096, typename U = T>
-class device_vector : private d_vector<T, PAD, U>
-{
-public:
-    // Must wrap constructor and destructor in functions to allow Google Test macros to work
-    explicit device_vector(size_t s)
-        : d_vector<T, PAD, U>(s)
-    {
-        data = this->device_vector_setup();
-    }
-
-    ~device_vector()
-    {
-        this->device_vector_teardown(data);
-    }
-
-    // Decay into pointer wherever pointer is expected
-    operator T*()
-    {
-        return data;
-    }
-
-    operator const T*() const
-    {
-        return data;
-    }
-
-    // Tell whether malloc failed
-    explicit operator bool() const
-    {
-        return data != nullptr;
-    }
-
-    // Disallow copying or assigning
-    device_vector(const device_vector&) = delete;
-    device_vector& operator=(const device_vector&) = delete;
-
-private:
-    T* data;
-};
-
-/* ============================================================================================ */
-/*! \brief  pseudo-vector subclass which uses host memory */
+//!
+//! @brief Random number with type deductions.
+//!
 template <typename T>
-struct host_vector : std::vector<T>
+void random_generator(T& n)
 {
-    // Inherit constructors
-    using std::vector<T>::vector;
+    n = random_generator<T>();
+}
 
-    // Decay into pointer wherever pointer is expected
-    operator T*()
+//!
+//! @brief Template for initializing a host (non_batche|batched|strided_batched)vector.
+//! @param that That vector.
+//! @param seedReset reset the seed if true, do not reset the seed otherwise.
+//!
+template <typename U>
+void rocblas_init_template(U& that, bool seedReset = false)
+{
+    if(seedReset)
     {
-        return this->data();
+        rocblas_seedrand();
     }
-    operator const T*() const
-    {
-        return this->data();
-    }
-};
 
-#endif
+    for(rocblas_int batch_index = 0; batch_index < that.batch_count(); ++batch_index)
+    {
+        auto batched_data = that[batch_index];
+        auto inc          = std::abs(that.inc());
+        auto n            = that.n();
+        if(inc < 0)
+        {
+            batched_data -= (n - 1) * inc;
+        }
+
+        for(rocblas_int i = 0; i < n; ++i)
+        {
+            random_generator(batched_data[i * inc]);
+        }
+    }
+}
+
+//!
+//! @brief Initialize a host_strided_batch_vector.
+//! @param that The host strided batch vector.
+//! @param seedReset reset the seed if true, do not reset the seed otherwise.
+//!
+template <typename T>
+void rocblas_init(host_strided_batch_vector<T>& that, bool seedReset = false)
+{
+    rocblas_init_template(that, seedReset);
+}
+
+//!
+//! @brief Initialize a host_batch_vector.
+//! @param that The host batch vector.
+//! @param seedReset reset the seed if true, do not reset the seed otherwise.
+//!
+template <typename T>
+void rocblas_init(host_batch_vector<T>& that, bool seedReset = false)
+{
+    rocblas_init_template(that, seedReset);
+}
+
+//!
+//! @brief Initialize a host_vector.
+//! @param that The host vector.
+//! @param seedReset reset the seed if true, do not reset the seed otherwise.
+//!
+template <typename T>
+void rocblas_init(host_vector<T>& that, bool seedReset = false)
+{
+    if(seedReset)
+    {
+        rocblas_seedrand();
+    }
+    rocblas_init(that, 1, that.size(), 1);
+}

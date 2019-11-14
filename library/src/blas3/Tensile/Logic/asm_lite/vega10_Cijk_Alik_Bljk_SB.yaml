@@ -1,7 +1,14 @@
-- {MinimumRequiredVersion: 4.4.0}
+- MinimumRequiredVersion: 4.4.0
 - vega10
 - gfx900
-- [Device 6863, Device 6862, Device 687f, Device 6860, Device 6861]
+- - Device 6863
+  - Device 6862
+  - Device 687f
+  - Device 6860
+  - Device 6861
+  - Vega
+  - Device 6864
+  - Device 686c
 - AssignedDerivedParameters: true
   Batched: true
   ComplexConjugateA: false
@@ -12,14 +19,24 @@
   Index01A: 0
   Index01B: 1
   Index1: 1
-  IndexAssignmentsA: [3, 0, 2]
-  IndexAssignmentsB: [3, 1, 2]
+  IndexAssignmentsA:
+  - 3
+  - 0
+  - 2
+  IndexAssignmentsB:
+  - 3
+  - 1
+  - 2
   IndexUnroll: 3
   IndexUnrollA: 0
   IndexUnrollB: 0
-  IndicesBatch: [2]
-  IndicesFree: [0, 1]
-  IndicesSummation: [3]
+  IndicesBatch:
+  - 2
+  IndicesFree:
+  - 0
+  - 1
+  IndicesSummation:
+  - 3
   NumIndicesBatch: 1
   NumIndicesC: 3
   NumIndicesFree: 2
@@ -130,14 +147,24 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
-      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -161,7 +188,9 @@
     SubGroup1: 16
     SubGroupA: 16
     SubGroupB: 16
-    ThreadTile: [4, 4]
+    ThreadTile:
+    - 4
+    - 4
     ThreadTile0: 4
     ThreadTile1: 4
     ThreadTileA: 4
@@ -171,7 +200,10 @@
     Valid: true
     VectorStore: true
     VectorWidth: 4
-    WorkGroup: [16, 16, 1]
+    WorkGroup:
+    - 16
+    - 16
+    - 1
     WorkGroupMapping: 8
     WorkGroupMappingType: B
   - AssertSummationElementMultiple: 1
@@ -263,14 +295,24 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
-      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -294,7 +336,9 @@
     SubGroup1: 16
     SubGroupA: 16
     SubGroupB: 16
-    ThreadTile: [8, 8]
+    ThreadTile:
+    - 8
+    - 8
     ThreadTile0: 8
     ThreadTile1: 8
     ThreadTileA: 8
@@ -304,7 +348,10 @@
     Valid: true
     VectorStore: true
     VectorWidth: 4
-    WorkGroup: [16, 16, 1]
+    WorkGroup:
+    - 16
+    - 16
+    - 1
     WorkGroupMapping: 8
     WorkGroupMappingType: B
   - AssertSummationElementMultiple: 1
@@ -400,14 +447,24 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
-      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -431,7 +488,9 @@
     SubGroup1: 8
     SubGroupA: 8
     SubGroupB: 8
-    ThreadTile: [4, 4]
+    ThreadTile:
+    - 4
+    - 4
     ThreadTile0: 4
     ThreadTile1: 4
     ThreadTileA: 4
@@ -441,7 +500,10 @@
     Valid: true
     VectorStore: true
     VectorWidth: 4
-    WorkGroup: [8, 8, 4]
+    WorkGroup:
+    - 8
+    - 8
+    - 4
     WorkGroupMapping: 8
     WorkGroupMappingType: B
   - AssertSummationElementMultiple: 1
@@ -537,14 +599,24 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
-      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -568,7 +640,9 @@
     SubGroup1: 16
     SubGroupA: 16
     SubGroupB: 16
-    ThreadTile: [4, 4]
+    ThreadTile:
+    - 4
+    - 4
     ThreadTile0: 4
     ThreadTile1: 4
     ThreadTileA: 4
@@ -578,7 +652,10 @@
     Valid: true
     VectorStore: true
     VectorWidth: 4
-    WorkGroup: [16, 16, 1]
+    WorkGroup:
+    - 16
+    - 16
+    - 1
     WorkGroupMapping: 8
     WorkGroupMappingType: B
   - AssertSummationElementMultiple: 1
@@ -674,14 +751,24 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
-      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -705,7 +792,9 @@
     SubGroup1: 16
     SubGroupA: 16
     SubGroupB: 16
-    ThreadTile: [8, 8]
+    ThreadTile:
+    - 8
+    - 8
     ThreadTile0: 8
     ThreadTile1: 8
     ThreadTileA: 8
@@ -715,7 +804,10 @@
     Valid: true
     VectorStore: true
     VectorWidth: 4
-    WorkGroup: [16, 16, 1]
+    WorkGroup:
+    - 16
+    - 16
+    - 1
     WorkGroupMapping: 8
     WorkGroupMappingType: B
   - AssertSummationElementMultiple: 1
@@ -811,14 +903,24 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
-      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -842,7 +944,9 @@
     SubGroup1: 16
     SubGroupA: 16
     SubGroupB: 16
-    ThreadTile: [4, 4]
+    ThreadTile:
+    - 4
+    - 4
     ThreadTile0: 4
     ThreadTile1: 4
     ThreadTileA: 4
@@ -852,7 +956,10 @@
     Valid: true
     VectorStore: true
     VectorWidth: 4
-    WorkGroup: [16, 16, 1]
+    WorkGroup:
+    - 16
+    - 16
+    - 1
     WorkGroupMapping: 8
     WorkGroupMappingType: B
   - AssertSummationElementMultiple: 1
@@ -948,14 +1055,24 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
-      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -979,7 +1096,9 @@
     SubGroup1: 16
     SubGroupA: 16
     SubGroupB: 16
-    ThreadTile: [8, 8]
+    ThreadTile:
+    - 8
+    - 8
     ThreadTile0: 8
     ThreadTile1: 8
     ThreadTileA: 8
@@ -989,7 +1108,10 @@
     Valid: true
     VectorStore: true
     VectorWidth: 4
-    WorkGroup: [16, 16, 1]
+    WorkGroup:
+    - 16
+    - 16
+    - 1
     WorkGroupMapping: 8
     WorkGroupMappingType: B
   - AssertSummationElementMultiple: 1
@@ -1084,14 +1206,24 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
-      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -1115,7 +1247,9 @@
     SubGroup1: 8
     SubGroupA: 8
     SubGroupB: 8
-    ThreadTile: [2, 2]
+    ThreadTile:
+    - 2
+    - 2
     ThreadTile0: 2
     ThreadTile1: 2
     ThreadTileA: 2
@@ -1125,7 +1259,10 @@
     Valid: true
     VectorStore: true
     VectorWidth: 2
-    WorkGroup: [8, 8, 1]
+    WorkGroup:
+    - 8
+    - 8
+    - 1
     WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AssertSummationElementMultiple: 1
@@ -1220,14 +1357,24 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
-      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -1251,7 +1398,9 @@
     SubGroup1: 4
     SubGroupA: 4
     SubGroupB: 4
-    ThreadTile: [2, 2]
+    ThreadTile:
+    - 2
+    - 2
     ThreadTile0: 2
     ThreadTile1: 2
     ThreadTileA: 2
@@ -1261,419 +1410,759 @@
     Valid: true
     VectorStore: true
     VectorWidth: 2
-    WorkGroup: [4, 4, 4]
+    WorkGroup:
+    - 4
+    - 4
+    - 4
     WorkGroupMapping: 1
     WorkGroupMappingType: B
-- [2, 3, 0, 1]
+- - 2
+  - 3
+  - 0
+  - 1
 - []
 - - - -1
     - - - 128
         - - - 4
-            - - [-1, 7]
+            - - - -1
+                - 7
           - - 128
-            - - [4, 7]
-              - [-1, 0]
+            - - - 4
+                - 7
+              - - -1
+                - 0
           - - 256
-            - - [4, 7]
-              - [5888, 0]
-              - [-1, 1]
+            - - - 4
+                - 7
+              - - 5888
+                - 0
+              - - -1
+                - 1
           - - 704
-            - - [4, 7]
-              - [-1, 0]
+            - - - 4
+                - 7
+              - - -1
+                - 0
           - - 1024
-            - - [4, 7]
-              - [1408, 0]
-              - [1856, 1]
-              - [5056, 0]
-              - [-1, 1]
+            - - - 4
+                - 7
+              - - 1408
+                - 0
+              - - 1856
+                - 1
+              - - 5056
+                - 0
+              - - -1
+                - 1
           - - 1856
-            - - [4, 7]
-              - [5056, 0]
-              - [5888, 1]
-              - [-1, 0]
+            - - - 4
+                - 7
+              - - 5056
+                - 0
+              - - 5888
+                - 1
+              - - -1
+                - 0
           - - 2368
-            - - [4, 7]
-              - [5056, 0]
-              - [-1, 1]
+            - - - 4
+                - 7
+              - - 5056
+                - 0
+              - - -1
+                - 1
           - - 2944
-            - - [4, 7]
-              - [5056, 0]
-              - [5888, 1]
-              - [-1, 0]
+            - - - 4
+                - 7
+              - - 5056
+                - 0
+              - - 5888
+                - 1
+              - - -1
+                - 0
           - - 3584
-            - - [4, 7]
-              - [1408, 0]
-              - [-1, 1]
+            - - - 4
+                - 7
+              - - 1408
+                - 0
+              - - -1
+                - 1
           - - 4288
-            - - [4, 7]
-              - [2944, 0]
-              - [3584, 1]
-              - [5056, 0]
-              - [-1, 1]
+            - - - 4
+                - 7
+              - - 2944
+                - 0
+              - - 3584
+                - 1
+              - - 5056
+                - 0
+              - - -1
+                - 1
           - - 5056
-            - - [4, 7]
-              - [1024, 0]
-              - [1408, 1]
-              - [4288, 0]
-              - [-1, 1]
+            - - - 4
+                - 7
+              - - 1024
+                - 0
+              - - 1408
+                - 1
+              - - 4288
+                - 0
+              - - -1
+                - 1
           - - 5888
-            - - [4, 7]
-              - [704, 0]
-              - [-1, 1]
+            - - - 4
+                - 7
+              - - 704
+                - 0
+              - - -1
+                - 1
           - - -1
-            - - [4, 7]
-              - [128, 0]
-              - [256, 1]
-              - [1408, 0]
-              - [-1, 1]
+            - - - 4
+                - 7
+              - - 128
+                - 0
+              - - 256
+                - 1
+              - - 1408
+                - 0
+              - - -1
+                - 1
       - - 256
         - - - 4
-            - - [-1, 8]
+            - - - -1
+                - 8
           - - 64
-            - - [4, 8]
-              - [448, 2]
-              - [-1, 3]
+            - - - 4
+                - 8
+              - - 448
+                - 2
+              - - -1
+                - 3
           - - 128
-            - - [4, 8]
-              - [128, 2]
-              - [-1, 3]
+            - - - 4
+                - 8
+              - - 128
+                - 2
+              - - -1
+                - 3
           - - 256
-            - - [4, 8]
-              - [128, 2]
-              - [4288, 3]
-              - [-1, 6]
+            - - - 4
+                - 8
+              - - 128
+                - 2
+              - - 4288
+                - 3
+              - - -1
+                - 6
           - - 448
-            - - [4, 8]
-              - [64, 2]
-              - [2368, 3]
-              - [3584, 6]
-              - [-1, 3]
+            - - - 4
+                - 8
+              - - 64
+                - 2
+              - - 2368
+                - 3
+              - - 3584
+                - 6
+              - - -1
+                - 3
           - - 704
-            - - [4, 8]
-              - [64, 5]
-              - [1408, 3]
-              - [2368, 6]
-              - [-1, 3]
+            - - - 4
+                - 8
+              - - 64
+                - 5
+              - - 1408
+                - 3
+              - - 2368
+                - 6
+              - - -1
+                - 3
           - - 1024
-            - - [4, 8]
-              - [1024, 3]
-              - [1408, 6]
-              - [-1, 3]
+            - - - 4
+                - 8
+              - - 1024
+                - 3
+              - - 1408
+                - 6
+              - - -1
+                - 3
           - - 1408
-            - - [4, 8]
-              - [704, 3]
-              - [1024, 6]
-              - [-1, 3]
+            - - - 4
+                - 8
+              - - 704
+                - 3
+              - - 1024
+                - 6
+              - - -1
+                - 3
           - - 2368
-            - - [4, 8]
-              - [448, 3]
-              - [704, 6]
-              - [-1, 3]
+            - - - 4
+                - 8
+              - - 448
+                - 3
+              - - 704
+                - 6
+              - - -1
+                - 3
           - - 3584
-            - - [4, 8]
-              - [256, 3]
-              - [448, 6]
-              - [-1, 3]
+            - - - 4
+                - 8
+              - - 256
+                - 3
+              - - 448
+                - 6
+              - - -1
+                - 3
           - - 5056
-            - - [4, 8]
-              - [-1, 3]
+            - - - 4
+                - 8
+              - - -1
+                - 3
           - - -1
-            - - [4, 8]
-              - [128, 3]
-              - [256, 6]
-              - [-1, 3]
+            - - - 4
+                - 8
+              - - 128
+                - 3
+              - - 256
+                - 6
+              - - -1
+                - 3
       - - 768
         - - - 4
-            - - [-1, 8]
+            - - - -1
+                - 8
           - - 64
-            - - [4, 8]
-              - [1024, 2]
-              - [1856, 5]
-              - [2944, 3]
-              - [3584, 5]
-              - [-1, 3]
+            - - - 4
+                - 8
+              - - 1024
+                - 2
+              - - 1856
+                - 5
+              - - 2944
+                - 3
+              - - 3584
+                - 5
+              - - -1
+                - 3
           - - 128
-            - - [4, 8]
-              - [704, 2]
-              - [-1, 3]
+            - - - 4
+                - 8
+              - - 704
+                - 2
+              - - -1
+                - 3
           - - 448
-            - - [4, 8]
-              - [128, 2]
-              - [256, 5]
-              - [-1, 3]
+            - - - 4
+                - 8
+              - - 128
+                - 2
+              - - 256
+                - 5
+              - - -1
+                - 3
           - - 704
-            - - [4, 8]
-              - [64, 2]
-              - [128, 5]
-              - [-1, 3]
+            - - - 4
+                - 8
+              - - 64
+                - 2
+              - - 128
+                - 5
+              - - -1
+                - 3
           - - 1024
-            - - [4, 8]
-              - [-1, 3]
+            - - - 4
+                - 8
+              - - -1
+                - 3
           - - 1408
-            - - [4, 8]
-              - [64, 2]
-              - [-1, 3]
+            - - - 4
+                - 8
+              - - 64
+                - 2
+              - - -1
+                - 3
           - - 1856
-            - - [4, 8]
-              - [64, 2]
-              - [128, 5]
-              - [5056, 3]
-              - [-1, 6]
+            - - - 4
+                - 8
+              - - 64
+                - 2
+              - - 128
+                - 5
+              - - 5056
+                - 3
+              - - -1
+                - 6
           - - 2368
-            - - [4, 8]
-              - [64, 2]
-              - [128, 5]
-              - [-1, 3]
+            - - - 4
+                - 8
+              - - 64
+                - 2
+              - - 128
+                - 5
+              - - -1
+                - 3
           - - 2944
-            - - [4, 8]
-              - [64, 2]
-              - [-1, 3]
+            - - - 4
+                - 8
+              - - 64
+                - 2
+              - - -1
+                - 3
           - - 3584
-            - - [4, 8]
-              - [64, 5]
-              - [3584, 3]
-              - [4288, 6]
-              - [5888, 3]
-              - [-1, 6]
+            - - - 4
+                - 8
+              - - 64
+                - 5
+              - - 3584
+                - 3
+              - - 4288
+                - 6
+              - - 5888
+                - 3
+              - - -1
+                - 6
           - - 4288
-            - - [4, 8]
-              - [64, 5]
-              - [2944, 3]
-              - [3584, 6]
-              - [4288, 3]
-              - [-1, 6]
+            - - - 4
+                - 8
+              - - 64
+                - 5
+              - - 2944
+                - 3
+              - - 3584
+                - 6
+              - - 4288
+                - 3
+              - - -1
+                - 6
           - - 5056
-            - - [4, 8]
-              - [64, 5]
-              - [4288, 3]
-              - [-1, 6]
+            - - - 4
+                - 8
+              - - 64
+                - 5
+              - - 4288
+                - 3
+              - - -1
+                - 6
           - - -1
-            - - [4, 8]
-              - [2368, 3]
-              - [-1, 6]
+            - - - 4
+                - 8
+              - - 2368
+                - 3
+              - - -1
+                - 6
       - - 1792
         - - - 4
-            - - [-1, 8]
+            - - - -1
+                - 8
           - - 64
-            - - [4, 8]
-              - [5888, 2]
-              - [-1, 3]
+            - - - 4
+                - 8
+              - - 5888
+                - 2
+              - - -1
+                - 3
           - - 128
-            - - [4, 8]
-              - [704, 2]
-              - [2944, 5]
-              - [-1, 3]
+            - - - 4
+                - 8
+              - - 704
+                - 2
+              - - 2944
+                - 5
+              - - -1
+                - 3
           - - 256
-            - - [4, 8]
-              - [448, 2]
-              - [704, 5]
-              - [-1, 3]
+            - - - 4
+                - 8
+              - - 448
+                - 2
+              - - 704
+                - 5
+              - - -1
+                - 3
           - - 448
-            - - [4, 8]
-              - [128, 2]
-              - [704, 5]
-              - [1024, 3]
-              - [2944, 5]
-              - [-1, 3]
+            - - - 4
+                - 8
+              - - 128
+                - 2
+              - - 704
+                - 5
+              - - 1024
+                - 3
+              - - 2944
+                - 5
+              - - -1
+                - 3
           - - 704
-            - - [4, 8]
-              - [128, 2]
-              - [448, 5]
-              - [-1, 3]
+            - - - 4
+                - 8
+              - - 128
+                - 2
+              - - 448
+                - 5
+              - - -1
+                - 3
           - - 1024
-            - - [4, 8]
-              - [256, 5]
-              - [4288, 3]
-              - [5056, 6]
-              - [5888, 3]
-              - [-1, 6]
+            - - - 4
+                - 8
+              - - 256
+                - 5
+              - - 4288
+                - 3
+              - - 5056
+                - 6
+              - - 5888
+                - 3
+              - - -1
+                - 6
           - - 1408
-            - - [4, 8]
-              - [128, 2]
-              - [256, 5]
-              - [1024, 3]
-              - [1408, 6]
-              - [2944, 3]
-              - [-1, 6]
+            - - - 4
+                - 8
+              - - 128
+                - 2
+              - - 256
+                - 5
+              - - 1024
+                - 3
+              - - 1408
+                - 6
+              - - 2944
+                - 3
+              - - -1
+                - 6
           - - 1856
-            - - [4, 8]
-              - [64, 2]
-              - [128, 5]
-              - [256, 3]
-              - [448, 5]
-              - [704, 3]
-              - [1024, 6]
-              - [2944, 3]
-              - [-1, 6]
+            - - - 4
+                - 8
+              - - 64
+                - 2
+              - - 128
+                - 5
+              - - 256
+                - 3
+              - - 448
+                - 5
+              - - 704
+                - 3
+              - - 1024
+                - 6
+              - - 2944
+                - 3
+              - - -1
+                - 6
           - - 2368
-            - - [4, 8]
-              - [64, 2]
-              - [128, 5]
-              - [256, 3]
-              - [448, 5]
-              - [2368, 3]
-              - [2944, 6]
-              - [4288, 3]
-              - [-1, 6]
+            - - - 4
+                - 8
+              - - 64
+                - 2
+              - - 128
+                - 5
+              - - 256
+                - 3
+              - - 448
+                - 5
+              - - 2368
+                - 3
+              - - 2944
+                - 6
+              - - 4288
+                - 3
+              - - -1
+                - 6
           - - 2944
-            - - [4, 8]
-              - [128, 5]
-              - [2368, 3]
-              - [2944, 6]
-              - [3584, 4]
-              - [-1, 6]
+            - - - 4
+                - 8
+              - - 128
+                - 5
+              - - 2368
+                - 3
+              - - 2944
+                - 6
+              - - 3584
+                - 4
+              - - -1
+                - 6
           - - 3584
-            - - [4, 8]
-              - [64, 5]
-              - [2368, 3]
-              - [-1, 6]
+            - - - 4
+                - 8
+              - - 64
+                - 5
+              - - 2368
+                - 3
+              - - -1
+                - 6
           - - 4288
-            - - [4, 8]
-              - [256, 5]
-              - [1024, 3]
-              - [1408, 4]
-              - [1856, 6]
-              - [2368, 3]
-              - [-1, 6]
+            - - - 4
+                - 8
+              - - 256
+                - 5
+              - - 1024
+                - 3
+              - - 1408
+                - 4
+              - - 1856
+                - 6
+              - - 2368
+                - 3
+              - - -1
+                - 6
           - - 5056
-            - - [4, 8]
-              - [128, 5]
-              - [704, 3]
-              - [1408, 4]
-              - [1856, 3]
-              - [-1, 6]
+            - - - 4
+                - 8
+              - - 128
+                - 5
+              - - 704
+                - 3
+              - - 1408
+                - 4
+              - - 1856
+                - 3
+              - - -1
+                - 6
           - - 5888
-            - - [4, 8]
-              - [64, 5]
-              - [1024, 3]
-              - [-1, 6]
+            - - - 4
+                - 8
+              - - 64
+                - 5
+              - - 1024
+                - 3
+              - - -1
+                - 6
           - - -1
-            - - [4, 8]
-              - [128, 5]
-              - [448, 3]
-              - [1024, 6]
-              - [1408, 4]
-              - [-1, 6]
+            - - - 4
+                - 8
+              - - 128
+                - 5
+              - - 448
+                - 3
+              - - 1024
+                - 6
+              - - 1408
+                - 4
+              - - -1
+                - 6
       - - -1
         - - - 4
-            - - [-1, 8]
+            - - - -1
+                - 8
           - - 64
-            - - [4, 8]
-              - [1408, 2]
-              - [1856, 5]
-              - [2368, 2]
-              - [3584, 5]
-              - [5888, 2]
-              - [-1, 3]
+            - - - 4
+                - 8
+              - - 1408
+                - 2
+              - - 1856
+                - 5
+              - - 2368
+                - 2
+              - - 3584
+                - 5
+              - - 5888
+                - 2
+              - - -1
+                - 3
           - - 128
-            - - [4, 8]
-              - [704, 2]
-              - [2944, 5]
-              - [3584, 3]
-              - [4288, 5]
-              - [5888, 3]
-              - [-1, 5]
+            - - - 4
+                - 8
+              - - 704
+                - 2
+              - - 2944
+                - 5
+              - - 3584
+                - 3
+              - - 4288
+                - 5
+              - - 5888
+                - 3
+              - - -1
+                - 5
           - - 256
-            - - [4, 8]
-              - [256, 2]
-              - [1408, 5]
-              - [1856, 3]
-              - [2368, 5]
-              - [-1, 3]
+            - - - 4
+                - 8
+              - - 256
+                - 2
+              - - 1408
+                - 5
+              - - 1856
+                - 3
+              - - 2368
+                - 5
+              - - -1
+                - 3
           - - 448
-            - - [4, 8]
-              - [256, 2]
-              - [4288, 5]
-              - [5056, 3]
-              - [5888, 6]
-              - [-1, 3]
+            - - - 4
+                - 8
+              - - 256
+                - 2
+              - - 4288
+                - 5
+              - - 5056
+                - 3
+              - - 5888
+                - 6
+              - - -1
+                - 3
           - - 704
-            - - [4, 8]
-              - [128, 2]
-              - [448, 5]
-              - [1856, 3]
-              - [2368, 5]
-              - [5888, 3]
-              - [-1, 6]
+            - - - 4
+                - 8
+              - - 128
+                - 2
+              - - 448
+                - 5
+              - - 1856
+                - 3
+              - - 2368
+                - 5
+              - - 5888
+                - 3
+              - - -1
+                - 6
           - - 1024
-            - - [4, 8]
-              - [64, 2]
-              - [256, 5]
-              - [1408, 3]
-              - [1856, 6]
-              - [4288, 3]
-              - [-1, 6]
+            - - - 4
+                - 8
+              - - 64
+                - 2
+              - - 256
+                - 5
+              - - 1408
+                - 3
+              - - 1856
+                - 6
+              - - 4288
+                - 3
+              - - -1
+                - 6
           - - 1408
-            - - [4, 8]
-              - [64, 2]
-              - [448, 5]
-              - [704, 3]
-              - [1408, 4]
-              - [2368, 3]
-              - [2944, 4]
-              - [4288, 6]
-              - [5056, 4]
-              - [-1, 6]
+            - - - 4
+                - 8
+              - - 64
+                - 2
+              - - 448
+                - 5
+              - - 704
+                - 3
+              - - 1408
+                - 4
+              - - 2368
+                - 3
+              - - 2944
+                - 4
+              - - 4288
+                - 6
+              - - 5056
+                - 4
+              - - -1
+                - 6
           - - 1856
-            - - [4, 8]
-              - [704, 5]
-              - [1024, 6]
-              - [1856, 3]
-              - [2944, 4]
-              - [-1, 6]
+            - - - 4
+                - 8
+              - - 704
+                - 5
+              - - 1024
+                - 6
+              - - 1856
+                - 3
+              - - 2944
+                - 4
+              - - -1
+                - 6
           - - 2368
-            - - [4, 8]
-              - [64, 2]
-              - [704, 5]
-              - [1024, 4]
-              - [1408, 3]
-              - [2368, 4]
-              - [2944, 6]
-              - [4288, 4]
-              - [-1, 6]
+            - - - 4
+                - 8
+              - - 64
+                - 2
+              - - 704
+                - 5
+              - - 1024
+                - 4
+              - - 1408
+                - 3
+              - - 2368
+                - 4
+              - - 2944
+                - 6
+              - - 4288
+                - 4
+              - - -1
+                - 6
           - - 2944
-            - - [4, 8]
-              - [128, 5]
-              - [256, 3]
-              - [448, 5]
-              - [704, 3]
-              - [1856, 4]
-              - [2944, 6]
-              - [3584, 4]
-              - [-1, 6]
+            - - - 4
+                - 8
+              - - 128
+                - 5
+              - - 256
+                - 3
+              - - 448
+                - 5
+              - - 704
+                - 3
+              - - 1856
+                - 4
+              - - 2944
+                - 6
+              - - 3584
+                - 4
+              - - -1
+                - 6
           - - 3584
-            - - [4, 8]
-              - [64, 5]
-              - [128, 3]
-              - [256, 5]
-              - [704, 3]
-              - [1024, 4]
-              - [-1, 6]
+            - - - 4
+                - 8
+              - - 64
+                - 5
+              - - 128
+                - 3
+              - - 256
+                - 5
+              - - 704
+                - 3
+              - - 1024
+                - 4
+              - - -1
+                - 6
           - - 4288
-            - - [4, 8]
-              - [448, 5]
-              - [704, 3]
-              - [1024, 4]
-              - [1856, 6]
-              - [2368, 4]
-              - [-1, 6]
+            - - - 4
+                - 8
+              - - 448
+                - 5
+              - - 704
+                - 3
+              - - 1024
+                - 4
+              - - 1856
+                - 6
+              - - 2368
+                - 4
+              - - -1
+                - 6
           - - 5056
-            - - [4, 8]
-              - [128, 5]
-              - [704, 3]
-              - [1024, 4]
-              - [1408, 6]
-              - [1856, 4]
-              - [-1, 6]
+            - - - 4
+                - 8
+              - - 128
+                - 5
+              - - 704
+                - 3
+              - - 1024
+                - 4
+              - - 1408
+                - 6
+              - - 1856
+                - 4
+              - - -1
+                - 6
           - - 5888
-            - - [4, 8]
-              - [64, 5]
-              - [704, 3]
-              - [-1, 6]
+            - - - 4
+                - 8
+              - - 64
+                - 5
+              - - 704
+                - 3
+              - - -1
+                - 6
           - - -1
-            - - [4, 8]
-              - [128, 5]
-              - [448, 3]
-              - [1024, 6]
-              - [1408, 4]
-              - [-1, 6]
+            - - - 4
+                - 8
+              - - 128
+                - 5
+              - - 448
+                - 3
+              - - 1024
+                - 6
+              - - 1408
+                - 4
+              - - -1
+                - 6
