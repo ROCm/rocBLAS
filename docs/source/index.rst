@@ -17,9 +17,4 @@ Welcome to rocBLAS's documentation!
    streams
    device_memory
    api
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`search`
+   designdoc
