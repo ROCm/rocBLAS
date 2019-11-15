@@ -915,23 +915,23 @@ rocblas_status gemm_ex_typecasting(rocblas_handle    handle,
                                    rocblas_stride    stride_d,
                                    rocblas_int       batch_count)
 {
-    Tc h_alpha[batch_count];
-    Tc h_beta[batch_count];
+    Tc h_alpha[1];
+    Tc h_beta[1];
 
     if(rocblas_pointer_mode_device == handle->pointer_mode)
     {
         // copy alpha and beta from device to host and convert type
-        for(int b = 0; b < batch_count; b++)
+        for(int b = 0; b < 1; b++)
             hipMemcpy(&h_alpha[b], (Tc*)alpha + b * stride_alpha, sizeof(Tc), hipMemcpyDeviceToHost);
         
-        for(int b = 0; b < batch_count; b++)
+        for(int b = 0; b < 1; b++)
             hipMemcpy(&h_beta[b], (Tc*)beta + b * stride_beta, sizeof(Tc), hipMemcpyDeviceToHost);
     }
     else
     {
-        for(int b = 0; b < batch_count; b++)
+        for(int b = 0; b < 1; b++)
             h_alpha[b] = *(((const Tc*)alpha) + b * stride_alpha);
-        for(int b = 0; b < batch_count; b++)
+        for(int b = 0; b < 1; b++)
             h_beta[b] = *(((const Tc*)beta) + b * stride_beta);
     }
 
@@ -950,7 +950,7 @@ rocblas_status gemm_ex_typecasting(rocblas_handle    handle,
                                 unsigned(n),
                                 unsigned(k),
                                 h_alpha,
-                                1, // using stride of 1 for alpha
+                                0, // using stride of 1 for alpha
                                 (const Ti**)a,
                                 unsigned(offsetAin),
                                 unsigned(lda),
@@ -960,7 +960,7 @@ rocblas_status gemm_ex_typecasting(rocblas_handle    handle,
                                 unsigned(ldb),
                                 unsigned(stride_b),
                                 h_beta,
-                                1, // using stride of 1 for beta
+                                0, // using stride of 1 for beta
                                 (const To**)c,
                                 unsigned(offsetCin),
                                 unsigned(ldc),
@@ -984,7 +984,7 @@ rocblas_status gemm_ex_typecasting(rocblas_handle    handle,
                                 unsigned(n),
                                 unsigned(k),
                                 h_alpha,
-                                1,
+                                0,
                                 (const Ti*)a,
                                 unsigned(offsetAin),
                                 unsigned(lda),
@@ -994,7 +994,7 @@ rocblas_status gemm_ex_typecasting(rocblas_handle    handle,
                                 unsigned(ldb),
                                 unsigned(stride_b),
                                 h_beta,
-                                1,
+                                0,
                                 (const To*)c,
                                 unsigned(offsetCin),
                                 unsigned(ldc),
