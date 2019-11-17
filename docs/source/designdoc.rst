@@ -12,7 +12,3 @@ Design Documentation
    orga
    contributing
    addtest
-
-#  guides
-#  functable
-#  clients
