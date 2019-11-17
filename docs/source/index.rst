@@ -10,11 +10,5 @@ Welcome to rocBLAS's documentation!
    :maxdepth: 4
    :caption: Contents:
 
-   intro
-   install
-   exports
-   logging
-   streams
-   device_memory
-   api
+   usermanual
    designdoc
