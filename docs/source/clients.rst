@@ -36,7 +36,7 @@ gtest_filter can also be used to run tests for a particular function, and a part
 
    ./rocblas-test --gtest_filter=*quick*axpy*f32_r*
 
-The pattern for --gtest_filter is:
+The pattern for ``--gtest_filter`` is:
 
 .. code-block:: bash
 
@@ -52,7 +52,7 @@ rocblas-bench uses a command line interface to run performance benchmarks on ind
 
    ./rocblas-bench --help
 
-As an example, to time sgemm
+As an example, to time sgemm:
 
 .. code-block:: bash
 
@@ -65,7 +65,7 @@ On a vega20 machine this outputs a performance of 11941.5 Gflops below:
    transA,transB,M,N,K,alpha,lda,ldb,beta,ldc,rocblas-Gflops,us
    N,N,4096,4096,4096,1,4096,4096,0,4096,11941.5,11509.4
 
-If you run any code that calls rocBLAS functions with logging turned on by setting environment variable ROCBLAS_LAYER=2 , it will output a line each time a rocBLAS function is called. The line that it outputs is the line you need to run rocblas-bench. For example if you run:
+rocBLAS logging can be turned on by setting environment variable ROCBLAS_LAYER=2. If you run any code that calls rocBLAS functions with logging turned on it will output a line each time a rocBLAS function is called. The line that it outputs is the line you need to run rocblas-bench. For example if you run:
 
 .. code-block:: bash
 

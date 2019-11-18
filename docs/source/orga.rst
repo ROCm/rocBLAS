@@ -23,7 +23,7 @@ Source code for Level 1, 2 and 3 BLAS functions in '.cpp' and '.hpp' files.
 - The '.cpp' files contain 
 
   - external C functions that call templated functions with an '_impl' extension. 
-  - The _impl functions have argument checking and logging, and they in turn call functions with an '_template' extension.
+  - The _impl functions have argument checking and logging, and they in turn call functions with a '_template' extension.
 
 - The '.hpp' files contain
 
@@ -32,7 +32,7 @@ Source code for Level 1, 2 and 3 BLAS functions in '.cpp' and '.hpp' files.
 
 library/src/blas3/Tensile
 `````````````````````````
-Code for calling Tensile from rocBLAS. Also contains YAML files with Tensile tuning configurations.
+Code for calling Tensile from rocBLAS, and YAML files with Tensile tuning configurations.
 
 library/src/blas_ex
 ```````````````````
@@ -40,9 +40,9 @@ Source code for mixed precision BLAS.
 
 library/src/include
 ```````````````````
-Internal include files:
+Internal include files for:
 
-- code for handle
+- handle code
 - device memory allocation
 - logging
 - utility code
