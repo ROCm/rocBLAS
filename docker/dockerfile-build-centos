@@ -17,12 +17,8 @@ RUN yum install -y \
     git \
     cmake3 \
     make \
-    clang \
-    clang-devel \
     gcc-c++ \
     gcc-gfortran \
-    gtest-devel \ 
-    gtest \
     pkgconfig \
     python27 \
     python36 \
