@@ -36,7 +36,7 @@ In all of the 3 cases above, the launch can be made asynchronous by:
 - use rocblas_pointer_mode_device to keep the scalar result on the device. Note that a small number of Level1 BLAS functions return a scalar result.
 - use the provided device memory functions to preallocate device memory that persists in the handle. Note that most rocBLAS functions do not allocate temporary device memory.
 
-Before calling a rocBLAS arrays must be copied to the device. Integer scalars like m, n, k are stored on the host, and floating point scalars alpha and beta can be on host or device
+Before calling a rocBLAS arrays must be copied to the device. Integer scalars like m, n, k are stored on the host. Floating point scalars like alpha and beta can be on host or device.
 
 Error handling is by returning a rocblas_status. Functions conform to the Legacy BLAS argument checking.
 
