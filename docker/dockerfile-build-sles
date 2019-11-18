@@ -22,7 +22,6 @@ RUN zypper refresh && zypper -n --no-gpg-checks install\
     gcc-fortran \
     make \
     cmake \
-    fftw3-devel \
     rpm-build \
     dpkg \
     python2-PyYAML \
