@@ -12,3 +12,4 @@ Design Documentation
    orga
    contributing
    addtest
+   clients
