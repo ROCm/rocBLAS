@@ -2,8 +2,8 @@
 Contributing
 ============
 
-Contribution License Agreement
-==============================
+License Agreement
+=================
 
 1. The code I am contributing is mine, and I have the right to license
    it.
@@ -12,21 +12,16 @@ Contribution License Agreement
    license to distribute said code under the MIT License for the
    project.
 
-How to contribute
-=================
+Pull-request guidelines
+=======================
+
 
 Our code contriubtion guidelines closely follows the model of `GitHub
 pull-requests <https://help.github.com/articles/using-pull-requests/>`__.
-This repository follows the `git
+The rocBLAS repository follows the `git
 flow <http://nvie.com/posts/a-successful-git-branching-model/>`__
 workflow, which dictates a /master branch where releases are cut, and a
-/develop branch which serves as an integration branch for new code. A
-`git extention <https://github.com/nvie/gitflow>`__ has been developed
-to ease the use of the 'git flow' methodology, but requires manual
-installation by the user. Refer to the `project's wiki <https://github.com/nvie/gitflow/wiki/Installation>`__.
-
-Pull-request guidelines
-=======================
+/develop branch which serves as an integration branch for new code. Pull requests should:
 
 -  target the **develop** branch for integration
 -  ensure code builds successfully.
