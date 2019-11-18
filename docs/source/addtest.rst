@@ -342,4 +342,23 @@ J. Don't forget to close the anonymous namespace:
        trtri_gtest.cpp
       )
 
+**VII.** Aim for a function to have tests in each of the categories: quick, pre_checkin, nightly. Aim for tests for each function to have runtime in the table below:
+
++---------+-------------------+--------------------+-----------------------+
+|         |   quick           | pre_checkin        | nightly               |
++=========+===================+====================+=======================+
+|         |                   |                    |                       |
+| Level 1 |   2 - 12 sec      |  20 - 36 sec       |   70 - 200 sec        |
+|         |                   |                    |                       |
++---------+-------------------+--------------------+-----------------------+
+|         |                   |                    |                       |
+| Level 2 |   6 - 36 sec      |  35 - 100 sec      |   200 - 650 sec       |
+|         |                   |                    |                       |
++---------+-------------------+--------------------+-----------------------+
+|         |                   |                    |                       |
+| Level 3 |   20 sec - 2 min  |  2 - 6 min         |   12 - 24 min         |
+|         |                   |                    |                       |
++---------+-------------------+--------------------+-----------------------+
+
+
 Many examples are available in ``gtest/*_gtest.{cpp,yaml}``
