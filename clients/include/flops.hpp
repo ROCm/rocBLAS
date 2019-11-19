@@ -120,6 +120,13 @@ constexpr double trsv_gflop_count(rocblas_int m)
     return (m * m) / 1e9;
 }
 
+/* \brief floating point counts of TBMV */
+template <typename T>
+constexpr double tbmv_gflop_count(rocblas_int m, rocblas_int k)
+{
+    return ((2 * m * k - k * (k + 1)) + m) / 1e9;
+}
+
 /* \brief floating point counts of SY(HE)MV */
 template <typename T>
 constexpr double symv_gflop_count(rocblas_int n)
