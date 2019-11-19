@@ -384,14 +384,14 @@ if [[ "${install_dependencies}" == true ]]; then
       cd extern/blis
       case "${ID}" in
           centos|rhel|sles)
-              ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp auto
+              ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp generic
               ;;
           ubuntu)
-              ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp CC=/opt/rocm/hcc/bin/clang auto
+              ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp CC=/opt/rocm/hcc/bin/clang generic
               ;;
           *)
               echo "Unsupported OS for this script"
-              ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp auto
+              ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp generic
               ;;
       esac
       make install
@@ -405,14 +405,14 @@ if [[ "${cpu_ref_lib}" == blis ]] && [[ ! -f "${build_dir}/deps/blis/lib/libblis
   cd extern/blis
   case "${ID}" in
     centos|rhel|sles)
-      ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp auto
+      ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp generic
       ;;
     ubuntu)
-      ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp CC=/opt/rocm/hcc/bin/clang auto
+      ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp CC=/opt/rocm/hcc/bin/clang generic
       ;;
     *)
       echo "Unsupported OS for this script"
-      ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp auto
+      ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp generic
       ;;
   esac
   make install
