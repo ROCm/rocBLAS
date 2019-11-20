@@ -377,46 +377,54 @@ if [[ "${install_dependencies}" == true ]]; then
     ${cmake_executable} -lpthread -DBUILD_BOOST=OFF ../../deps
     make -j$(nproc)
     elevate_if_not_root make install
-    popd
 
+    #Download prebuilt AMD multithreaded blis
     if [[ "${cpu_ref_lib}" == blis ]] && [[ ! -f "${build_dir}/deps/blis/lib/libblis.so" ]]; then
-      git submodule update --init
-      cd extern/blis
       case "${ID}" in
           centos|rhel|sles)
-              ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp auto
+              curl -L  https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-centos-2.0.tar.gz > blis.tar.gz
               ;;
           ubuntu)
-              ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp CC=/opt/rocm/hcc/bin/clang auto
+              curl -L  https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-ubuntu-2.0.tar.gz > blis.tar.gz
               ;;
           *)
               echo "Unsupported OS for this script"
-              ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp auto
+              curl -L  https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-ubuntu-2.0.tar.gz > blis.tar.gz
               ;;
       esac
-      make install
-      cd ../..
+
+      tar -xvf blis.tar.gz
+      mv amd-blis-mt blis
+      rm blis.tar.gz
+      cd blis/lib
+      ln -s libblis-mt.so libblis.so
+      popd
+
     fi
   fi
 fi
 
 if [[ "${cpu_ref_lib}" == blis ]] && [[ ! -f "${build_dir}/deps/blis/lib/libblis.so" ]] && [[ "${build_clients}" == true ]]; then
-  git submodule update --init
-  cd extern/blis
+  pushd .
+  cd ${build_dir}/deps
   case "${ID}" in
     centos|rhel|sles)
-      ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp auto
+      curl -L  https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-centos-2.0.tar.gz > blis.tar.gz
       ;;
     ubuntu)
-      ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp CC=/opt/rocm/hcc/bin/clang auto
+      curl -L  https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-ubuntu-2.0.tar.gz > blis.tar.gz
       ;;
     *)
       echo "Unsupported OS for this script"
-      ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp auto
+      curl -L  https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-ubuntu-2.0.tar.gz > blis.tar.gz
       ;;
   esac
-  make install
-  cd ../..
+  tar -xvf blis.tar.gz
+  mv amd-blis-mt blis
+  rm blis.tar.gz
+  cd blis/lib
+  ln -s libblis-mt.so libblis.so
+  popd
 fi
 
 # We append customary rocm path; if user provides custom rocm path in ${path}, our
