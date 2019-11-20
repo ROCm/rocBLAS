@@ -18,6 +18,34 @@
 #include "utility.hpp"
 
 template <typename T>
+void full_matrix_to_band_matrix(
+    int n, int k, int lda, rocblas_fill uplo, host_vector<T> full, host_vector<T>& banded)
+{
+    if(uplo == rocblas_fill_upper)
+    {
+        for(int j = 1; j <= n; j++)
+        {
+            int m = k + 1 - j;
+            for(int i = std::max(1, j - k); i <= j; i++)
+            {
+                banded[(j - 1) * lda + m + (i - 1)] = full[(j - 1) * lda + (i - 1)];
+            }
+        }
+    }
+    else if(uplo == rocblas_fill_lower)
+    {
+        for(int j = 1; j <= n; j++)
+        {
+            int m = 1 - j;
+            for(int i = j; i <= std::min(n, j + k); i++)
+            {
+                banded[(j - 1) * lda + m + (i - 1)] = full[(j - 1) * lda + (i - 1)];
+            }
+        }
+    }
+}
+
+template <typename T>
 void testing_tbmv_bad_arg(const Arguments& arg)
 {
     // const rocblas_int M    = 100;
@@ -92,13 +120,14 @@ template <typename T>
 void testing_tbmv(const Arguments& arg)
 {
     std::cout << "hello!\n";
-    rocblas_int       M      = arg.M;
-    rocblas_int       K      = arg.K;
-    rocblas_int       lda    = arg.lda;
-    rocblas_int       incx   = arg.incx;
-    rocblas_fill      uplo   = char2rocblas_fill(arg.uplo);
-    rocblas_operation transA = char2rocblas_operation(arg.transA);
-    rocblas_diagonal  diag   = char2rocblas_diagonal(arg.diag);
+    rocblas_int       M         = arg.M;
+    rocblas_int       K         = arg.K;
+    rocblas_int       lda       = arg.lda;
+    rocblas_int       incx      = arg.incx;
+    char              char_uplo = arg.uplo;
+    rocblas_fill      uplo      = char2rocblas_fill(char_uplo);
+    rocblas_operation transA    = char2rocblas_operation(arg.transA);
+    rocblas_diagonal  diag      = char2rocblas_diagonal(arg.diag);
 
     rocblas_local_handle handle;
 
@@ -129,6 +158,7 @@ void testing_tbmv(const Arguments& arg)
 
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
     host_vector<T> hA(size_A);
+    host_vector<T> hA_reg(size_A);
     host_vector<T> hx(size_x);
     host_vector<T> hx_1(size_x);
     host_vector<T> hx_gold(size_x);
@@ -143,9 +173,50 @@ void testing_tbmv(const Arguments& arg)
 
     // Initial Data on CPU
     rocblas_seedrand();
-    rocblas_init<T>(hA, M, M, lda);
+    rocblas_init<T>(hA_reg, M, M, lda);
     rocblas_init<T>(hx, 1, M, abs_incx);
     hx_gold = hx;
+
+    // make hA_reg a banded matrix with k sub/super diagonals
+    for(int i = 0; i < M; i++)
+        for(int j = 0; j < M; j++)
+            if(j > i + K || j < i)
+            {
+                int idx     = ('U' == char_uplo || 'u' == char_uplo) ? i + j * lda : j + i * lda;
+                hA_reg[idx] = 0;
+            }
+
+    //  TODO: make hA unit diagonal if diag == rocblas_diagonal_unit
+    // if(char_diag == 'U' || char_diag == 'u')
+    // {
+    //     if('L' == char_uplo || 'l' == char_uplo)
+    //         for(int i = 0; i < M; i++)
+    //         {
+    //             T diag = hA_reg[i + i * lda];
+    //             for(int j = 0; j <= i; j++)
+    //                 hA_reg[i + j * lda] = hA_reg[i + j * lda] / diag;
+    //         }
+    //     else
+    //         for(int j = 0; j < M; j++)
+    //         {
+    //             T diag = hA_reg[j + j * lda];
+    //             for(int i = 0; i <= j; i++)
+    //                 hA_reg[i + j * lda] = hA_reg[i + j * lda] / diag;
+    //         }
+    // }
+    full_matrix_to_band_matrix(M, K, lda, uplo, hA_reg, hA);
+    std::cout << "ha\n";
+    for(int i = 0; i < M; i++)
+    {
+        for(int j = 0; j < M; j++)
+        {
+            std::cout << hA[j * lda + i] << " ";
+            // if(hA_reg[j * lda + i] != 0)
+            // std::cout << "(" << j << ", " << i << ") = " << hA[j * lda + i] << "\n";
+        }
+        std::cout << "\n";
+    }
+    std::cout << "-----\nhA\n";
 
     // copy data from CPU to device
     CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(T) * size_A, hipMemcpyHostToDevice));

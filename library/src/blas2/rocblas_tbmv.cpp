@@ -30,7 +30,7 @@ namespace
                                      rocblas_int       k,
                                      const T*          A,
                                      rocblas_int       lda,
-                                     const T*          x,
+                                     T*                x,
                                      rocblas_int       incx)
     {
         if(!handle)
@@ -130,7 +130,7 @@ rocblas_status rocblas_stbmv(rocblas_handle    handle,
                              rocblas_int       k,
                              const float*      A,
                              rocblas_int       lda,
-                             const float*      x,
+                             float*            x,
                              rocblas_int       incx)
 {
     return rocblas_tbmv_impl(handle, uplo, transA, diag, m, k, A, lda, x, incx);
@@ -144,7 +144,7 @@ rocblas_status rocblas_dtbmv(rocblas_handle    handle,
                              rocblas_int       k,
                              const double*     A,
                              rocblas_int       lda,
-                             const double*     x,
+                             double*           x,
                              rocblas_int       incx)
 {
     return rocblas_tbmv_impl(handle, uplo, transA, diag, m, k, A, lda, x, incx);
@@ -158,7 +158,7 @@ rocblas_status rocblas_ctbmv(rocblas_handle               handle,
                              rocblas_int                  k,
                              const rocblas_float_complex* A,
                              rocblas_int                  lda,
-                             const rocblas_float_complex* x,
+                             rocblas_float_complex*       x,
                              rocblas_int                  incx)
 {
     return rocblas_tbmv_impl(handle, uplo, transA, diag, m, k, A, lda, x, incx);
@@ -172,7 +172,7 @@ rocblas_status rocblas_ztbmv(rocblas_handle                handle,
                              rocblas_int                   k,
                              const rocblas_double_complex* A,
                              rocblas_int                   lda,
-                             const rocblas_double_complex* x,
+                             rocblas_double_complex*       x,
                              rocblas_int                   incx)
 {
     return rocblas_tbmv_impl(handle, uplo, transA, diag, m, k, A, lda, x, incx);

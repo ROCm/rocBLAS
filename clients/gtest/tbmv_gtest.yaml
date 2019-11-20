@@ -47,9 +47,9 @@ Tests:
   category: quick
   function: tbmv
   precision: *single_double_precisions_complex_real
-  uplo: [U, L]
-  transA: [ N, T, C ]
-  diag: [U, N]
+  uplo: [U] #, L]
+  transA: [ N ] #, T, C ]
+  diag: [N] #U, N]
   matrix_size: *small_matrix_size_range
   incx_incy: *incx_range
 

@@ -3070,7 +3070,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_stbmv(rocblas_handle    handle,
                                             rocblas_int       k,
                                             const float*      A,
                                             rocblas_int       lda,
-                                            const float*      x,
+                                            float*            x,
                                             rocblas_int       incx);
 
 ROCBLAS_EXPORT rocblas_status rocblas_dtbmv(rocblas_handle    handle,
@@ -3081,7 +3081,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtbmv(rocblas_handle    handle,
                                             rocblas_int       k,
                                             const double*     A,
                                             rocblas_int       lda,
-                                            const double*     x,
+                                            double*           x,
                                             rocblas_int       incx);
 
 ROCBLAS_EXPORT rocblas_status rocblas_ctbmv(rocblas_handle               handle,
@@ -3092,7 +3092,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ctbmv(rocblas_handle               handle,
                                             rocblas_int                  k,
                                             const rocblas_float_complex* A,
                                             rocblas_int                  lda,
-                                            const rocblas_float_complex* x,
+                                            rocblas_float_complex*       x,
                                             rocblas_int                  incx);
 
 ROCBLAS_EXPORT rocblas_status rocblas_ztbmv(rocblas_handle                handle,
@@ -3103,7 +3103,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztbmv(rocblas_handle                handle
                                             rocblas_int                   k,
                                             const rocblas_double_complex* A,
                                             rocblas_int                   lda,
-                                            const rocblas_double_complex* x,
+                                            rocblas_double_complex*       x,
                                             rocblas_int                   incx);
 
 /*! \brief BLAS Level 2 API
