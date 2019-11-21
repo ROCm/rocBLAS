@@ -146,7 +146,7 @@ install_packages( )
                                       "python34" "PyYAML" "python3*-PyYAML"
                                       "gcc-c++" "libcxx-devel" "hip_hcc" "zlib-devel" )
   local library_dependencies_sles=(   "make" "cmake" "python3-PyYAM"
-                                      "hip_hcc" "gcc-c++" "libcxxtools9" "rpm-build" )
+                                      "hip_hcc" "gcc-c++" "libcxxtools9" "rpm-build" "curl" )
 
   if [[ "${build_cuda}" == true ]]; then
     # Ideally, this could be cuda-cublas-dev, but the package name has a version number in it
