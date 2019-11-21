@@ -406,7 +406,7 @@ fi
 
 if [[ "${cpu_ref_lib}" == blis ]] && [[ ! -f "${build_dir}/deps/blis/lib/libblis.so" ]] && [[ "${build_clients}" == true ]]; then
   pushd .
-  cd ${build_dir}/deps
+  mkdir -p ${build_dir}/deps && cd ${build_dir}/deps
   case "${ID}" in
     centos|rhel|sles)
       curl -L  https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-centos-2.0.tar.gz > blis.tar.gz
