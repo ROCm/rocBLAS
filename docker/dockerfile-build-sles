@@ -29,7 +29,8 @@ RUN zypper refresh && zypper -n --no-gpg-checks install\
     libcxxtools9 \
     libnuma1 \
     llvm7-devel \
-    python3-pip
+    python3-pip \
+    curl
 
 RUN pip3 install wheel && pip3 install tox pyyaml
 
