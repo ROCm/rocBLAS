@@ -119,7 +119,6 @@ void testing_tbmv_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_tbmv(const Arguments& arg)
 {
-    std::cout << "hello!\n";
     rocblas_int       M         = arg.M;
     rocblas_int       K         = arg.K;
     rocblas_int       lda       = arg.lda;
@@ -157,7 +156,7 @@ void testing_tbmv(const Arguments& arg)
     size_x   = M * abs_incx;
 
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
-    host_vector<T> hA(size_A);
+    // host_vector<T> hA(size_A);
     host_vector<T> hA_reg(size_A);
     host_vector<T> hx(size_x);
     host_vector<T> hx_1(size_x);
@@ -178,13 +177,13 @@ void testing_tbmv(const Arguments& arg)
     hx_gold = hx;
 
     // make hA_reg a banded matrix with k sub/super diagonals
-    for(int i = 0; i < M; i++)
-        for(int j = 0; j < M; j++)
-            if(j > i + K || j < i)
-            {
-                int idx     = ('U' == char_uplo || 'u' == char_uplo) ? i + j * lda : j + i * lda;
-                hA_reg[idx] = 0;
-            }
+    // for(int i = 0; i < M; i++)
+    //     for(int j = 0; j < M; j++)
+    //         if(j > i + K || j < i)
+    //         {
+    //             int idx     = ('U' == char_uplo || 'u' == char_uplo) ? i + j * lda : j + i * lda;
+    //             hA_reg[idx] = 0;
+    //         }
 
     //  TODO: make hA unit diagonal if diag == rocblas_diagonal_unit
     // if(char_diag == 'U' || char_diag == 'u')
@@ -204,22 +203,28 @@ void testing_tbmv(const Arguments& arg)
     //                 hA_reg[i + j * lda] = hA_reg[i + j * lda] / diag;
     //         }
     // }
-    full_matrix_to_band_matrix(M, K, lda, uplo, hA_reg, hA);
-    std::cout << "ha\n";
+    // full_matrix_to_band_matrix(M, K, lda, uplo, hA_reg, hA);
+    // std::cout << "ha\n";
+    // for(int i = 0; i < M; i++)
+    // {
+    //     for(int j = 0; j < M; j++)
+    //     {
+    //         std::cout << hA_reg[j * lda + i] << " ";
+    //         // if(hA_reg[j * lda + i] != 0)
+    //         // std::cout << "(" << j << ", " << i << ") = " << hA[j * lda + i] << "\n";
+    //     }
+    //     std::cout << "\n";
+    // }
+    // std::cout << "-----\nhA\n";
+    std::cout << "\nx:\n";
     for(int i = 0; i < M; i++)
     {
-        for(int j = 0; j < M; j++)
-        {
-            std::cout << hA[j * lda + i] << " ";
-            // if(hA_reg[j * lda + i] != 0)
-            // std::cout << "(" << j << ", " << i << ") = " << hA[j * lda + i] << "\n";
-        }
-        std::cout << "\n";
+        std::cout << hx[i * incx] << " ";
     }
-    std::cout << "-----\nhA\n";
+    std::cout << "\n\n";
 
     // copy data from CPU to device
-    CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(T) * size_A, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(hipMemcpy(dA, hA_reg, sizeof(T) * size_A, hipMemcpyHostToDevice));
     CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T) * size_x, hipMemcpyHostToDevice));
 
     double gpu_time_used, cpu_time_used;
@@ -241,12 +246,24 @@ void testing_tbmv(const Arguments& arg)
 
         // CPU BLAS
         cpu_time_used = get_time_us();
-
-        cblas_tbmv<T>(uplo, transA, diag, M, K, hA, lda, hx_gold, incx);
+        // std::cout << "uplo: " << uplo << ", transA: " << transA << ", diag: " << diag << ", M: " << M << ", K: " << K << ", lda: " << lda << ", incx: " << incx << "\n";
+        cblas_tbmv<T>(uplo, transA, diag, M, K, hA_reg, lda, hx_gold, incx);
+        // std::cout << "done cblas\n";
 
         cpu_time_used = get_time_us() - cpu_time_used;
         cblas_gflops  = tbmv_gflop_count<T>(M, K) / cpu_time_used * 1e6;
 
+        std::cout << "gpu\n";
+        for(int i = 0; i < M; i++)
+        {
+            std::cout << hx_1[i * incx] << " ";
+        }
+        std::cout << "\n-----\ncpu\n";
+        for(int i = 0; i < M; i++)
+        {
+            std::cout << hx_gold[i * incx] << " ";
+        }
+        std::cout << "\n----\n";
         if(arg.unit_check)
         {
             unit_check_general<T>(1, M, abs_incx, hx_gold, hx_1);
