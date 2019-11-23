@@ -38,8 +38,8 @@ Definitions:
     - { M:   512, K:   9, lda:  512, stride_a:   160000 }
     - { M:   512, K:   10, lda:  512, stride_a:   160000 }
     - { M:   512, K:   20, lda:  512, stride_a:   160000 }
-    # - { M:   300, K:   100, lda:  400, stride_a:   160000 }
-    # - { M:   600, K:   500, lda:  601, stride_a:   301000 }
+    - { M:   300, K:   100, lda:  400, stride_a:   160000 }
+    - { M:   600, K:   500, lda:  601, stride_a:   301000 }
 
   - &large_matrix_size_range
     - { M:  1000, K:  1000, lda: 1000, stride_a:  1000000 }

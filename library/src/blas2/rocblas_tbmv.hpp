@@ -12,6 +12,8 @@ template <rocblas_int DIM_X, rocblas_int DIM_Y, typename T>
 __device__ void tbmvn_kernel_calc(
     rocblas_int m, rocblas_int k, const T* A, rocblas_int lda, T* x, rocblas_int incx)
 {
+    // TODO: 99.9% sure there's a race condition in here somewhere which makes it a little
+    //       sketchy, seems to work for now though?
     rocblas_int thread_id = hipThreadIdx_x + hipThreadIdx_y * hipBlockDim_x;
 
     // threads are all configurated locally
@@ -47,19 +49,6 @@ __device__ void tbmvn_kernel_calc(
             res_A += (tmpA * x[col * incx]);
         }
     }
-
-    // if height is not a multiple of DIM_Y
-    // if(m_tail > 0)
-    // {
-    //     rocblas_int row = ind + (k - col);
-    //     if(ind < m && col < m)
-    //     {
-    //         T tmpA = 0;
-    //         if(row < (k+1) && row >= 0)
-    //             tmpA = A[row + col * lda];
-    //         res_A += tmpA * x[col * incx];
-    //     }
-    // }
 
     sdata[tx + ty * DIM_X] = res_A;
 
