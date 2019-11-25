@@ -408,7 +408,7 @@ pushd .
   cmake_common_options=""
   cmake_client_options=""
 
-  cmake_common_options="${cmake_common_options} -lpthread -DTensile_LOGIC=${tensile_logic} -DTensile_CODE_OBJECT_VERSION=${tensile_cov}"
+  cmake_common_options="${cmake_common_options} -DROCM_PATH=${rocm_path} -lpthread -DTensile_LOGIC=${tensile_logic} -DTensile_CODE_OBJECT_VERSION=${tensile_cov}"
   cmake_client_options="-DLINK_BLIS=${LINK_BLIS}"
 
   # build type
