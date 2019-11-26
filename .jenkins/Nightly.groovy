@@ -7,6 +7,7 @@
 
 import com.amd.project.*
 import com.amd.docker.*
+import java.nio.file.Path;
 
 ////////////////////////////////////////////////////////////////////////
 // Mostly generated from snippet generator 'properties; set job properties'
@@ -21,8 +22,7 @@ properties([
     disableConcurrentBuilds(),
     [$class: 'CopyArtifactPermissionProperty', projectNames: '*']
    ])
-
-import java.nio.file.Path;
+   
 
 rocBLASCI:
 {
