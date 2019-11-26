@@ -27,15 +27,15 @@ and accepts a ``const Arguments&`` parameter. For example:
 This function should be generalized with template parameters as much as possible,
 to avoid copy-and-paste code.
 
-In this function, use the following macros to check results:
+In this function, use the following macros and functions to check results:
 
 .. code-block::
 
    HIP_CHECK_ERROR             Verifies that a HIP call returns success
    ROCBLAS_CHECK_ERROR         Verifies that a rocBLAS call returns success
    EXPECT_ROCBLAS_STATUS       Verifies that a rocBLAS call returns a certain status
-   UNIT_CHECK                  Check that two answers agree (see unit.hpp)
-   NEAR_CHECK                  Check that two answers are close (see near.hpp)
+   unit_check_general          Check that two answers agree (see unit.hpp)
+   near_check_general          Check that two answers are close (see near.hpp)
 
 In addition, you can use Google Test Macros such as the below, as long as they are
 guarded by ``#ifdef GOOGLE_TEST``\ :
@@ -74,7 +74,7 @@ The general outline of the function should be:
 #. Call a CBLAS or other reference implementation on the host arrays.
 #. Call rocBLAS using both device pointer mode and host pointer mode, verifying that
    every rocBLAS call is successful by wrapping it in ``ROCBLAS_CHECK_ERROR()``.
-#. If ``arg.unit_check`` is enabled, use ``UNIT_CHECK`` to validate results.
+#. If ``arg.unit_check`` is enabled, use ``unit_check_general`` or ``near_check_general`` to validate results.
 #. (Deprecated) If ``arg.norm_check`` is enabled, calculate and print out norms.
 #. If ``arg.timing`` is enabled, perform benchmarking (currently under refactoring).
 
