@@ -10,16 +10,5 @@ Welcome to rocBLAS's documentation!
    :maxdepth: 4
    :caption: Contents:
 
-   intro
-   install
-   exports
-   logging
-   streams
-   device_memory
-   api
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`search`
+   usermanual
+   designdoc
