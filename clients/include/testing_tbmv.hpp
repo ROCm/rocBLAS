@@ -18,102 +18,52 @@
 #include "utility.hpp"
 
 template <typename T>
-void full_matrix_to_band_matrix(
-    int n, int k, int lda, rocblas_fill uplo, host_vector<T> full, host_vector<T>& banded)
-{
-    if(uplo == rocblas_fill_upper)
-    {
-        for(int j = 1; j <= n; j++)
-        {
-            int m = k + 1 - j;
-            for(int i = std::max(1, j - k); i <= j; i++)
-            {
-                banded[(j - 1) * lda + m + (i - 1)] = full[(j - 1) * lda + (i - 1)];
-            }
-        }
-    }
-    else if(uplo == rocblas_fill_lower)
-    {
-        for(int j = 1; j <= n; j++)
-        {
-            int m = 1 - j;
-            for(int i = j; i <= std::min(n, j + k); i++)
-            {
-                banded[(j - 1) * lda + m + (i - 1)] = full[(j - 1) * lda + (i - 1)];
-            }
-        }
-    }
-}
-
-template <typename T>
 void testing_tbmv_bad_arg(const Arguments& arg)
 {
-    // const rocblas_int M    = 100;
-    // const rocblas_int N    = 100;
-    // const rocblas_int lda  = 100;
-    // const rocblas_int incx = 1;
-    // const rocblas_int incy = 1;
-    // T                 alpha;
-    // T                 beta;
-    // alpha = beta = 1.0;
+    const rocblas_int M    = 100;
+    const rocblas_int K    = 5;
+    const rocblas_int lda  = 100;
+    const rocblas_int incx = 1;
 
-    // const rocblas_operation transA = rocblas_operation_none;
+    const rocblas_fill      uplo   = rocblas_fill_upper;
+    const rocblas_operation transA = rocblas_operation_none;
+    const rocblas_diagonal  diag   = rocblas_diagonal_non_unit;
 
-    // rocblas_local_handle handle;
+    rocblas_local_handle handle;
 
-    // size_t size_A = lda * size_t(N);
-    // size_t size_x = N * size_t(incx);
-    // size_t size_y = M * size_t(incy);
+    size_t size_A = lda * size_t(M);
+    size_t size_x = M * size_t(incx);
 
-    // // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
-    // host_vector<T> hA(size_A);
-    // host_vector<T> hx(size_x);
-    // host_vector<T> hy(size_y);
+    // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
+    host_vector<T> hA(size_A);
+    host_vector<T> hx(size_x);
 
-    // // Initial Data on CPU
-    // rocblas_seedrand();
-    // rocblas_init<T>(hA, M, N, lda);
-    // rocblas_init<T>(hx, 1, N, incx);
-    // rocblas_init<T>(hy, 1, M, incy);
+    // Initial Data on CPU
+    rocblas_seedrand();
+    rocblas_init<T>(hA, M, M, lda);
+    rocblas_init<T>(hx, 1, M, incx);
 
-    // // allocate memory on device
-    // device_vector<T> dA(size_A);
-    // device_vector<T> dx(size_x);
-    // device_vector<T> dy(size_y);
-    // if(!dA || !dx || !dy)
-    // {
-    //     CHECK_HIP_ERROR(hipErrorOutOfMemory);
-    //     return;
-    // }
+    // allocate memory on device
+    device_vector<T> dA(size_A);
+    device_vector<T> dx(size_x);
+    if(!dA || !dx)
+    {
+        CHECK_HIP_ERROR(hipErrorOutOfMemory);
+        return;
+    }
 
-    // // copy data from CPU to device
-    // CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(T) * size_A, hipMemcpyHostToDevice));
-    // CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T) * size_x, hipMemcpyHostToDevice));
-    // CHECK_HIP_ERROR(hipMemcpy(dy, hy, sizeof(T) * size_y, hipMemcpyHostToDevice));
+    // copy data from CPU to device
+    CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(T) * size_A, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T) * size_x, hipMemcpyHostToDevice));
 
-    // EXPECT_ROCBLAS_STATUS(
-    //     rocblas_gemv<T>(handle, transA, M, N, &alpha, nullptr, lda, dx, incx, &beta, dy, incy),
-    //     rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS(rocblas_tbmv<T>(handle, uplo, transA, diag, M, K, nullptr, lda, dx, incx),
+                          rocblas_status_invalid_pointer);
 
-    // EXPECT_ROCBLAS_STATUS(
-    //     rocblas_gemv<T>(handle, transA, M, N, &alpha, dA, lda, nullptr, incx, &beta, dy, incy),
-    //     rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS(rocblas_tbmv<T>(handle, uplo, transA, diag, M, K, dA, lda, nullptr, incx),
+                          rocblas_status_invalid_pointer);
 
-    // EXPECT_ROCBLAS_STATUS(
-    //     rocblas_gemv<T>(handle, transA, M, N, &alpha, dA, lda, dx, incx, &beta, nullptr, incy),
-    //     rocblas_status_invalid_pointer);
-
-    // EXPECT_ROCBLAS_STATUS(
-    //     rocblas_gemv<T>(handle, transA, M, N, nullptr, dA, lda, dx, incx, &beta, dy, incy),
-    //     rocblas_status_invalid_pointer);
-
-    // EXPECT_ROCBLAS_STATUS(
-    //     rocblas_gemv<T>(handle, transA, M, N, &alpha, dA, lda, dx, incx, nullptr, dy, incy),
-    //     rocblas_status_invalid_pointer);
-
-    // EXPECT_ROCBLAS_STATUS(
-    //     rocblas_gemv<T>(nullptr, transA, M, N, &alpha, dA, lda, dx, incx, &beta, dy, incy),
-    //     rocblas_status_invalid_handle);
+    EXPECT_ROCBLAS_STATUS(rocblas_tbmv<T>(nullptr, uplo, transA, diag, M, K, dA, lda, dx, incx),
+                          rocblas_status_invalid_handle);
 }
 
 template <typename T>
@@ -157,8 +107,7 @@ void testing_tbmv(const Arguments& arg)
     size_x   = M * abs_incx;
 
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
-    // host_vector<T> hA(size_A);
-    host_vector<T> hA_reg(size_A);
+    host_vector<T> hA(size_A);
     host_vector<T> hx(size_x);
     host_vector<T> hx_1(size_x);
     host_vector<T> hx_gold(size_x);
@@ -173,67 +122,12 @@ void testing_tbmv(const Arguments& arg)
 
     // Initial Data on CPU
     rocblas_seedrand();
-    rocblas_init<T>(hA_reg, M, M, lda);
+    rocblas_init<T>(hA, M, M, lda);
     rocblas_init<T>(hx, 1, M, abs_incx);
     hx_gold = hx;
 
-    // make hA_reg a banded matrix with k sub/super diagonals
-    // for(int i = 0; i < M; i++)
-    //     for(int j = 0; j < M; j++)
-    //         if(j > i + K || j < i)
-    //         {
-    //             int idx     = ('U' == char_uplo || 'u' == char_uplo) ? i + j * lda : j + i * lda;
-    //             hA_reg[idx] = 0;
-    //         }
-
-    //  TODO: make hA unit diagonal if diag == rocblas_diagonal_unit
-    // The main diagonal of hA will all be unity
-    // if(char_diag == 'U' || char_diag == 'u')
-    // {
-    //     if('L' == char_uplo || 'l' == char_uplo)
-    //     {
-    //         for(int i = 0; i < M; i++)
-    //         {
-    //             // std::cout << "yea L\n";
-    //             hA_reg[i * lda] = 1;
-    //         }
-    //     }
-    //     else
-    //     {
-    //         for(int i = 0; i < M; i++)
-    //         {
-    //             // std::cout << "yeah U\n";
-    //             hA_reg[i * lda + K] = 1;
-    //         }
-    //     }
-    // }
-    // full_matrix_to_band_matrix(M, K, lda, uplo, hA_reg, hA);
-    // std::cout << "ha\n";
-    // for(int i = 0; i < M; i++)
-    // {
-    //     for(int j = 0; j < M; j++)
-    //     {
-    //         // hA_reg[j*lda+i] = j*M+i;
-    //         std::cout << hA_reg[j * lda + i] << " ";
-    //         // if(hA_reg[j * lda + i] != 0)
-    //         // std::cout << "(" << j << ", " << i << ") = " << hA[j * lda + i] << "\n";
-    //     }
-    //     std::cout << "\n";
-    // }
-    // std::cout << "-----\nhA\n";
-    // std::cout << "\nx:\n";
-    // for(int i = 0; i < M; i++)
-    // {
-    //     // if(i == 1)
-    //     // hx[i*incx] = 1;
-    //     // else hx[i*incx] = 0;
-    //     std::cout << hx[i * incx] << " ";
-    // }
-    // hx_gold = hx;
-    // std::cout << "\n\n";
-
     // copy data from CPU to device
-    CHECK_HIP_ERROR(hipMemcpy(dA, hA_reg, sizeof(T) * size_A, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(T) * size_A, hipMemcpyHostToDevice));
     CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T) * size_x, hipMemcpyHostToDevice));
 
     double gpu_time_used, cpu_time_used;
@@ -255,22 +149,11 @@ void testing_tbmv(const Arguments& arg)
 
         // CPU BLAS
         cpu_time_used = get_time_us();
-        cblas_tbmv<T>(uplo, transA, diag, M, K, hA_reg, lda, hx_gold, incx);
+        cblas_tbmv<T>(uplo, transA, diag, M, K, hA, lda, hx_gold, incx);
 
         cpu_time_used = get_time_us() - cpu_time_used;
         cblas_gflops  = tbmv_gflop_count<T>(M, K) / cpu_time_used * 1e6;
 
-        // std::cout << "gpu\n";
-        // for(int i = 0; i < M; i++)
-        // {
-        //     std::cout << hx_1[i * incx] << " ";
-        // }
-        // std::cout << "\n-----\ncpu\n";
-        // for(int i = 0; i < M; i++)
-        // {
-        //     std::cout << hx_gold[i * incx] << " ";
-        // }
-        // std::cout << "\n----\n";
         if(arg.unit_check)
         {
             unit_check_general<T>(1, M, abs_incx, hx_gold, hx_1);

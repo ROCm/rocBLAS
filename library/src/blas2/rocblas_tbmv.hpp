@@ -106,7 +106,7 @@ __device__ void tbmvn_kernel_calc(bool        upper,
     }
 }
 
-template <rocblas_int DIM_X, rocblas_int DIM_Y, typename T>
+template <rocblas_int DIM_X, rocblas_int DIM_Y, bool CONJ, typename T>
 __device__ void tbmvt_kernel_calc(bool        upper,
                                   bool        diag,
                                   rocblas_int m,
@@ -146,28 +146,32 @@ __device__ void tbmvt_kernel_calc(bool        upper,
             {
                 if(row < k && row >= k - col && row != k)
                 {
-                    res_A += (A[row + col * lda] * x_copy[row - (min_row) + adder]);
+                    res_A += ((CONJ ? conj(A[row + col * lda]) : A[row + col * lda])
+                              * x_copy[row - (min_row) + adder]);
                 }
                 else if(row == k)
                 {
                     if(diag)
                         res_A += x_copy[row - (min_row) + adder];
                     else
-                        res_A += (A[row + col * lda] * x_copy[row - (min_row) + adder]);
+                        res_A += ((CONJ ? conj(A[row + col * lda]) : A[row + col * lda])
+                                  * x_copy[row - (min_row) + adder]);
                 }
             }
             else
             {
                 if(row <= k && row <= m - 1 - col && row > 0)
                 {
-                    res_A += (A[row + col * lda] * x_copy[row - (min_row) + adder]);
+                    res_A += ((CONJ ? conj(A[row + col * lda]) : A[row + col * lda])
+                              * x_copy[row - (min_row) + adder]);
                 }
                 else if(row == 0)
                 {
                     if(diag)
                         res_A += x_copy[row - (min_row) + adder];
                     else
-                        res_A += (A[row + col * lda] * x_copy[row - (min_row) + adder]);
+                        res_A += ((CONJ ? conj(A[row + col * lda]) : A[row + col * lda])
+                                  * x_copy[row - (min_row) + adder]);
                 }
             }
         }
@@ -218,7 +222,7 @@ __global__ void tbmvn_kernel(bool           upper,
     tbmvn_kernel_calc<DIM_X, DIM_Y, T>(upper, diag, m, k, A, lda, x_copy, x, incx);
 }
 
-template <rocblas_int DIM_X, rocblas_int DIM_Y, typename T>
+template <rocblas_int DIM_X, rocblas_int DIM_Y, bool CONJ, typename T>
 __global__ void tbmvt_kernel(bool           upper,
                              bool           diag,
                              rocblas_int    m,
@@ -237,7 +241,7 @@ __global__ void tbmvt_kernel(bool           upper,
     const T* x_copy = load_ptr_batch(xa_copy, hipBlockIdx_y, 0, m);
     T*       x      = load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex);
 
-    tbmvt_kernel_calc<DIM_X, DIM_Y, T>(upper, diag, m, k, A, lda, x_copy, x, incx);
+    tbmvt_kernel_calc<DIM_X, DIM_Y, CONJ, T>(upper, diag, m, k, A, lda, x_copy, x, incx);
 }
 
 template <typename T>
@@ -286,8 +290,6 @@ rocblas_status rocblas_tbmv_template(rocblas_handle    handle,
                        1,
                        m);
 
-    // hipDeviceSynchronize();
-
     if(transA == rocblas_operation_none)
     {
         // TBMVN_DIM_Y must be at least 4, 8 * 8 is very slow only 40Gflop/s
@@ -328,7 +330,7 @@ rocblas_status rocblas_tbmv_template(rocblas_handle    handle,
 
         if(handle->pointer_mode == rocblas_pointer_mode_device)
         {
-            hipLaunchKernelGGL((tbmvt_kernel<TBMVT_DIM_X, TBMVT_DIM_Y, T>),
+            hipLaunchKernelGGL((tbmvt_kernel<TBMVT_DIM_X, TBMVT_DIM_Y, false, T>),
                                tbmvt_grid,
                                tbmvt_threads,
                                0,
@@ -350,30 +352,34 @@ rocblas_status rocblas_tbmv_template(rocblas_handle    handle,
     }
     else // conjugate transpose
     {
-        // // conjugate transpose
-        // // number of columns on the y-dim of the grid
-        // static constexpr int NB = 256;
-        // dim3                 tbmvc_grid(n, batch_count);
-        // dim3                 tbmvc_threads(NB);
+        // TBMVN_DIM_Y must be at least 4, 8 * 8 is very slow only 40Gflop/s
+        static constexpr int TBMVT_DIM_X = 64;
+        static constexpr int TBMVT_DIM_Y = 16;
+        rocblas_int          blocks      = (m - 1) / (TBMVT_DIM_X) + 1;
+        dim3                 tbmvt_grid(blocks, batch_count);
+        dim3                 tbmvt_threads(TBMVT_DIM_X, TBMVT_DIM_Y);
 
-        // if(handle->pointer_mode == rocblas_pointer_mode_device)
-        // {
-        //     hipLaunchKernelGGL((tbmvc_kernel<NB, T>),
-        //                        tbmvc_grid,
-        //                        tbmvc_threads,
-        //                        0,
-        //                        rocblas_stream,
-        //                        m,
-        //                        n,
-        //                        A,
-        //                        offseta,
-        //                        lda,
-        //                        strideA,
-        //                        x,
-        //                        offsetx,
-        //                        incx,
-        //                        stridex);
-        // }
+        if(handle->pointer_mode == rocblas_pointer_mode_device)
+        {
+            hipLaunchKernelGGL((tbmvt_kernel<TBMVT_DIM_X, TBMVT_DIM_Y, true, T>),
+                               tbmvt_grid,
+                               tbmvt_threads,
+                               0,
+                               rocblas_stream,
+                               uplo == rocblas_fill_upper,
+                               diag == rocblas_diagonal_unit,
+                               m,
+                               k,
+                               A,
+                               offseta,
+                               lda,
+                               strideA,
+                               x_copy,
+                               x,
+                               offsetx,
+                               incx,
+                               stridex);
+        }
     }
     return rocblas_status_success;
 }

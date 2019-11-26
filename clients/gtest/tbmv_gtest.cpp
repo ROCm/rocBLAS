@@ -45,6 +45,11 @@ namespace
         {
             RocBLAS_TestName<tbmv_template> name;
 
+            if(strstr(arg.function, "_bad_arg") != nullptr)
+            {
+                name << "_bad_arg";
+            }
+
             name << rocblas_datatype2string(arg.a_type) << '_' << (char)std::toupper(arg.uplo)
                  << '_' << (char)std::toupper(arg.transA) << '_' << (char)std::toupper(arg.diag)
                  << '_' << arg.M << '_' << arg.K << '_' << arg.lda;
@@ -67,9 +72,9 @@ namespace
     template <typename T>
     struct tbmv_testing<
         T,
-        typename std::enable_if<std::is_same<T, float>{} || std::is_same<T, double>{}>::type>
-        // || std::is_same<T, rocblas_float_complex>{}
-        // || std::is_same<T, rocblas_double_complex>{}>::type>
+        typename std::enable_if<std::is_same<T, float>{} || std::is_same<T, double>{}
+                                || std::is_same<T, rocblas_float_complex>{}
+                                || std::is_same<T, rocblas_double_complex>{}>::type>
         : rocblas_test_valid
     {
         void operator()(const Arguments& arg)
