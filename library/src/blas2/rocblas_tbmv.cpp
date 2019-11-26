@@ -108,8 +108,10 @@ namespace
         if(!A || !x)
             return rocblas_status_invalid_pointer;
 
+        auto mem = handle->device_malloc(sizeof(T) * m);
+
         return rocblas_tbmv_template<T>(
-            handle, uplo, transA, diag, m, k, A, 0, lda, 0, x, 0, incx, 0, 1);
+            handle, uplo, transA, diag, m, k, A, 0, lda, 0, x, 0, incx, 0, 1, (T*)mem);
     }
 
 } // namespace

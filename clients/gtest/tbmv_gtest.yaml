@@ -7,6 +7,7 @@ Definitions:
     - { M:    -1, K:     1, lda:    1, stride_a:        1 }
     - { M:     1, K:    -1, lda:    1, stride_a:        1 }
     - { M:     1, K:     1, lda:    0, stride_a:        1 }
+    - { M:    4, K:    2, lda:    10, stride_a:        1 }
     - { M:    10, K:    2, lda:    10, stride_a:        1 }
     - { M:    10, K:    8, lda:    10, stride_a:        1 }
     - { M:     0, K:     1, lda:    1, stride_a:        1 }
@@ -42,21 +43,17 @@ Definitions:
     - { M:   600, K:   500, lda:  601, stride_a:   301000 }
 
   - &large_matrix_size_range
-    - { M:  1000, K:  1000, lda: 1000, stride_a:  1000000 }
-    - { M:  2000, K:  2000, lda: 2000, stride_a:  4000000 }
-    - { M:  4011, K:  4011, lda: 4011, stride_a: 16088200 }
-    - { M:  8000, K:  8000, lda: 8000, stride_a: 64000000 }
+    - { M:  1000, K:  5, lda: 1000, stride_a:  1000000 }
+    - { M:  2000, K:  1999, lda: 2000, stride_a:  4000000 }
+    - { M:  4011, K:  512, lda: 4011, stride_a: 16088200 }
+    - { M:  8000, K:  32, lda: 8000, stride_a: 64000000 }
 
   - &incx_range
-    # - { incx:   2, stride_scale: 1   }
-    # - { incx:  -1, stride_scale: 1   }
-    - { incx:   1, stride_scale: 1   }
-    # - { incx:  -1, stride_scale: 1.5 }
-    # - { incx:   3, stride_scale: 1   }
-    # - { incx:   0, stride_scale: 1   }
-    # - { incx:   1, stride_scale: 1   }
-    # - { incx:   0, stride_scale: 2   }
-    # - { incx:  10, stride_scale: 1   }
+    # - { incx:  -1 }
+    - { incx:   0 }
+    - { incx:   1 }
+    - { incx:   2 }
+    - { incx:  10 }
 
 
 Tests:
@@ -70,8 +67,8 @@ Tests:
   category: quick
   function: tbmv
   precision: *single_double_precisions_complex_real
-  uplo: [U] #, L]
-  transA: [ N ] #, T, C ]
+  uplo: [U, L]
+  transA: [ N, T ] #, C ]
   diag: [N] #U, N]
   matrix_size: *small_matrix_size_range
   incx_incy: *incx_range
@@ -80,18 +77,20 @@ Tests:
   category: pre_checkin
   function: tbmv
   precision: *single_double_precisions_complex_real
-  uplo: [U] #, L]
+  uplo: [U, L]
   transA: [ N ] #, T, C ]
   diag: [N] #U, N]
   matrix_size: *medium_matrix_size_range
   incx_incy: *incx_range
 
-# - name: tbmv_large
-#   category: nightly
-#   function: tbmv
-#   precision: *single_double_precisions_complex_real
-#   transA: [  N, T, C ]
-#   matrix_size: *large_matrix_size_range
-#   incx_incy: *incx_incy_range
+- name: tbmv_large
+  category: nightly
+  function: tbmv
+  precision: *single_double_precisions_complex_real
+  uplo: [U, L]
+  transA: [ N ] #, T, C ]
+  diag: [N] #U, N]
+  matrix_size: *large_matrix_size_range
+  incx_incy: *incx_range
 
 ...

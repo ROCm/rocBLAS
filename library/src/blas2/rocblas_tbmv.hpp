@@ -7,13 +7,40 @@
 #include "rocblas.h"
 #include "utility.h"
 
+// copy_helper
+template <typename T, typename U, typename V>
+__global__ void tbmv_copy_helper(rocblas_int    n,
+                                 const U        xa,
+                                 ptrdiff_t      shiftx,
+                                 rocblas_int    incx,
+                                 rocblas_stride stridex,
+                                 V              ya,
+                                 ptrdiff_t      shifty,
+                                 rocblas_int    incy,
+                                 rocblas_stride stridey)
+{
+    ptrdiff_t tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+    // bound
+    if(tid < n)
+    {
+        const T* x = load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex);
+        T*       y = load_ptr_batch(ya, hipBlockIdx_y, shifty, stridey);
+
+        y[tid * incy] = x[tid * incx];
+    }
+}
+
 // for upper matrices
 template <rocblas_int DIM_X, rocblas_int DIM_Y, typename T>
-__device__ void tbmvn_kernel_calc(
-    rocblas_int m, rocblas_int k, const T* A, rocblas_int lda, T* x, rocblas_int incx)
+__device__ void tbmvn_kernel_calc(bool        upper,
+                                  rocblas_int m,
+                                  rocblas_int k,
+                                  const T*    A,
+                                  rocblas_int lda,
+                                  const T*    x_copy,
+                                  T*          x,
+                                  rocblas_int incx)
 {
-    // TODO: 99.9% sure there's a race condition in here somewhere which makes it a little
-    //       sketchy, seems to work for now though?
     rocblas_int thread_id = hipThreadIdx_x + hipThreadIdx_y * hipBlockDim_x;
 
     // threads are all configurated locally
@@ -24,36 +51,28 @@ __device__ void tbmvn_kernel_calc(
 
     __shared__ T sdata[DIM_X * DIM_Y];
 
-    T res_A = 0;
-    T res_x = 0;
+    T res_A = 0.0;
+    T res_x = 0.0;
 
-    rocblas_int m_tail = (m) % DIM_Y; // TODO: can't this be k+1 mod DIM_Y?
-    rocblas_int col
-        = ty; // ty defines the column of banded matrix/regular matrix since they're the same
+    rocblas_int col = ty; // ty defines the column of banded & regular matrix
 
-    for(col = ty; col < m; col += DIM_Y) //(m - m_tail); col += DIM_Y)
+    for(col = ty; col < m; col += DIM_Y)
     {
         // We have to convert ind to banded matrix row
-        rocblas_int row = ind + (k - col);
-        // if(row < 0) break;
+        rocblas_int row = upper ? ind + (k - col) : ind - col;
+
         if(ind < m)
         {
-            // T tmpA = 0;
-            // if(row <= k && row >= 0)
-            //     tmpA = A[row + col * lda];
-
-            T tmpA = A[row + col * lda];
-            if(row > k || row < 0)
-                tmpA = 0;
-
-            res_A += (tmpA * x[col * incx]);
+            if(row <= k && row >= 0)
+                res_A += (A[row + col * lda] * x_copy[col]);
         }
     }
 
     sdata[tx + ty * DIM_X] = res_A;
-
     __syncthreads();
 
+    thread_id = hipThreadIdx_x + hipThreadIdx_y * hipBlockDim_x;
+    ind       = hipBlockIdx_x * DIM_X + thread_id;
     if(thread_id < DIM_X)
     {
         for(rocblas_int i = 1; i < DIM_Y; i++)
@@ -63,70 +82,79 @@ __device__ void tbmvn_kernel_calc(
 
         if(ind < m)
         {
-            x[ind] = (sdata[thread_id]);
+            x[ind * incx] = (sdata[thread_id]);
         }
-    }
-}
-
-template <rocblas_int NB_X, typename T>
-__device__ void tbmvt_kernel_calc(
-    rocblas_int m, rocblas_int k, const T* A, rocblas_int lda, const T* x, rocblas_int incx)
-{
-    rocblas_int tx = hipThreadIdx_x;
-
-    if(tx < m)
-        A += tx;
-
-    rocblas_int col = hipBlockIdx_x;
-    A += col * lda;
-
-    T res;
-    res = 0.0;
-
-    __shared__ T sdata[NB_X];
-
-    // partial sums
-    rocblas_int m_full = (m / NB_X) * NB_X;
-
-    for(rocblas_int i = 0; i < m_full; i += NB_X)
-        res += (A[i]) * x[(tx + i) * incx];
-
-    if(tx + m_full < m)
-        res += (A[m_full]) * x[(tx + m_full) * incx];
-
-    sdata[tx] = res;
-
-    // tree reduction of partial sums,
-    if(NB_X > 16)
-    {
-        // rocblas_sum_reduce<NB_X>(tx, sdata);
-    }
-    else
-    {
-        __syncthreads();
-
-        if(tx == 0)
-        {
-            for(rocblas_int i = 1; i < m && i < NB_X; i++)
-                sdata[0] += sdata[i];
-        }
-
-        __syncthreads();
-    }
-
-    if(tx == 0)
-    {
-        x[col * incx] = sdata[0];
     }
 }
 
 template <rocblas_int DIM_X, rocblas_int DIM_Y, typename T>
-__global__ void tbmvn_kernel(rocblas_int    m,
+__device__ void tbmvt_kernel_calc(bool        upper,
+                                  rocblas_int m,
+                                  rocblas_int k,
+                                  const T*    A,
+                                  rocblas_int lda,
+                                  const T*    x_copy,
+                                  T*          x,
+                                  rocblas_int incx)
+{
+    rocblas_int thread_id = hipThreadIdx_x + hipThreadIdx_y * hipBlockDim_x;
+
+    // threads are all configurated locally
+    rocblas_int tx = thread_id % DIM_X;
+    rocblas_int ty = thread_id / DIM_X;
+
+    rocblas_int ind = hipBlockIdx_x * DIM_X + tx;
+
+    __shared__ T sdata[DIM_X * DIM_Y];
+
+    T res_A = 0.0;
+    T res_x = 0.0;
+
+    rocblas_int row = ty; // ty defines the column of banded & regular matrix
+
+    for(row = ty; row < m; row += DIM_Y)
+    {
+        // We have to convert ind to banded matrix row
+        rocblas_int col     = ind; // upper ? ind + (k - col) : ind - col;
+        rocblas_int min_row = upper ? k - col : 0;
+        rocblas_int adder   = upper ? 0 : col;
+        rocblas_int max_row = upper ? k : m - 1 - col;
+
+        if(col < m)
+        {
+            if(row <= k && row <= max_row && row >= min_row)
+                res_A += (A[row + col * lda] * x_copy[row - (min_row) + adder]);
+        }
+    }
+
+    sdata[tx + ty * DIM_X] = res_A;
+    __syncthreads();
+
+    thread_id = hipThreadIdx_x + hipThreadIdx_y * hipBlockDim_x;
+    ind       = hipBlockIdx_x * DIM_X + thread_id;
+    if(thread_id < DIM_X)
+    {
+        for(rocblas_int i = 1; i < DIM_Y; i++)
+        {
+            sdata[thread_id] += sdata[thread_id + DIM_X * i];
+        }
+
+        if(ind < m)
+        {
+            x[ind * incx] = (sdata[thread_id]);
+        }
+    }
+}
+
+template <rocblas_int DIM_X, rocblas_int DIM_Y, typename T>
+__global__ void tbmvn_kernel(bool           upper,
+                             rocblas_int    m,
                              rocblas_int    k,
                              const T*       Aa,
                              ptrdiff_t      shifta,
                              rocblas_int    lda,
                              rocblas_stride strideA,
+                             const T*       xa_copy,
                              T*             xa,
                              ptrdiff_t      shiftx,
                              rocblas_int    incx,
@@ -136,28 +164,32 @@ __global__ void tbmvn_kernel(rocblas_int    m,
     if(DIM_X * DIM_Y != num_threads)
         return; // need to launch exactly the same number of threads as template parameters indicate
 
-    const T* A = load_ptr_batch(Aa, hipBlockIdx_y, shifta, strideA);
-    T*       x = load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex);
+    const T* A      = load_ptr_batch(Aa, hipBlockIdx_y, shifta, strideA);
+    const T* x_copy = load_ptr_batch(xa_copy, hipBlockIdx_y, 0, m);
+    T*       x      = load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex);
 
-    tbmvn_kernel_calc<DIM_X, DIM_Y, T>(m, k, Aa, lda, xa, incx);
+    tbmvn_kernel_calc<DIM_X, DIM_Y, T>(upper, m, k, A, lda, x_copy, x, incx);
 }
 
-template <rocblas_int NB_X, typename T>
-__global__ void tbmvt_kernel(rocblas_int    m,
+template <rocblas_int DIM_X, rocblas_int DIM_Y, typename T>
+__global__ void tbmvt_kernel(bool           upper,
+                             rocblas_int    m,
                              rocblas_int    k,
                              const T*       Aa,
                              ptrdiff_t      shifta,
                              rocblas_int    lda,
                              rocblas_stride strideA,
+                             const T*       xa_copy,
                              T*             xa,
                              ptrdiff_t      shiftx,
                              rocblas_int    incx,
                              rocblas_stride stridex)
 {
-    const T* A = load_ptr_batch(Aa, hipBlockIdx_y, shifta, strideA);
-    T*       x = load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex);
+    const T* A      = load_ptr_batch(Aa, hipBlockIdx_y, shifta, strideA);
+    const T* x_copy = load_ptr_batch(xa_copy, hipBlockIdx_y, 0, m);
+    T*       x      = load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex);
 
-    tbmvt_kernel_calc<NB_X, T>(m, k, A, lda, x, incx);
+    tbmvt_kernel_calc<DIM_X, DIM_Y, T>(upper, m, k, A, lda, x_copy, x, incx);
 }
 
 template <typename T>
@@ -175,7 +207,8 @@ rocblas_status rocblas_tbmv_template(rocblas_handle    handle,
                                      rocblas_int       offsetx,
                                      rocblas_int       incx,
                                      rocblas_stride    stridex,
-                                     rocblas_int       batch_count)
+                                     rocblas_int       batch_count,
+                                     const T*          x_copy)
 {
     //quick return
     if(!m || !batch_count)
@@ -186,63 +219,84 @@ rocblas_status rocblas_tbmv_template(rocblas_handle    handle,
     // in case of negative inc shift pointer to end of data for negative indexing tid*inc
     offsetx = incx < 0 ? offsetx - ptrdiff_t(incx) * (m - 1) : offsetx;
 
+    int  copy_blocks = (m - 1) / 256 + 1;
+    dim3 copy_grid(copy_blocks, batch_count);
+    dim3 copy_threads(256);
+
+    hipLaunchKernelGGL((tbmv_copy_helper<T>),
+                       copy_grid,
+                       copy_threads,
+                       0,
+                       handle->rocblas_stream,
+                       m,
+                       x,
+                       offsetx,
+                       incx,
+                       stridex,
+                       (T*)x_copy,
+                       0,
+                       1,
+                       m);
+
+    // hipDeviceSynchronize();
+
     if(transA == rocblas_operation_none)
     {
         // TBMVN_DIM_Y must be at least 4, 8 * 8 is very slow only 40Gflop/s
-        static constexpr int TBMVN_DIM_X = 64; //8;//64;
-        static constexpr int TBMVN_DIM_Y = 16; //8;//16;
+        static constexpr int TBMVN_DIM_X = 64;
+        static constexpr int TBMVN_DIM_Y = 16;
         rocblas_int          blocks      = (m - 1) / (TBMVN_DIM_X) + 1;
-        dim3                 tbmvn_grid(blocks); //, batch_count);
+        dim3                 tbmvn_grid(blocks, batch_count);
         dim3                 tbmvn_threads(TBMVN_DIM_X, TBMVN_DIM_Y);
-        std::cout << "blocks: " << blocks << ", dim_X: " << TBMVN_DIM_X
-                  << ", dim_y: " << TBMVN_DIM_Y << "\n";
-        std::cout << "m: " << m << ", k: " << k << "\n";
 
-        if(handle->pointer_mode == rocblas_pointer_mode_device)
-        {
-            hipLaunchKernelGGL((tbmvn_kernel<TBMVN_DIM_X, TBMVN_DIM_Y, T>),
-                               tbmvn_grid,
-                               tbmvn_threads,
-                               0,
-                               rocblas_stream,
-                               m,
-                               k,
-                               A,
-                               0, //offseta,
-                               lda,
-                               0, //strideA,
-                               x,
-                               0, //offsetx,
-                               incx,
-                               0); //stridex);
-        }
+        hipLaunchKernelGGL((tbmvn_kernel<TBMVN_DIM_X, TBMVN_DIM_Y, T>),
+                           tbmvn_grid,
+                           tbmvn_threads,
+                           0,
+                           rocblas_stream,
+                           uplo == rocblas_fill_upper,
+                           m,
+                           k,
+                           A,
+                           offseta,
+                           lda,
+                           strideA,
+                           x_copy,
+                           x,
+                           offsetx,
+                           incx,
+                           stridex);
     }
     else if(transA == rocblas_operation_transpose)
     {
-        // // transpose
-        // // number of columns on the y-dim of the grid
-        // static constexpr int NB = 256;
-        // dim3                 tbmvt_grid(n, batch_count);
-        // dim3                 tbmvt_threads(NB);
+        // transpose
+        // TBMVN_DIM_Y must be at least 4, 8 * 8 is very slow only 40Gflop/s
+        static constexpr int TBMVT_DIM_X = 64;
+        static constexpr int TBMVT_DIM_Y = 16;
+        rocblas_int          blocks      = (m - 1) / (TBMVT_DIM_X) + 1;
+        dim3                 tbmvt_grid(blocks, batch_count);
+        dim3                 tbmvt_threads(TBMVT_DIM_X, TBMVT_DIM_Y);
 
-        // if(handle->pointer_mode == rocblas_pointer_mode_device)
-        // {
-        //     hipLaunchKernelGGL((tbmvt_kernel<NB, T>),
-        //                        tbmvt_grid,
-        //                        tbmvt_threads,
-        //                        0,
-        //                        rocblas_stream,
-        //                        m,
-        //                        k,
-        //                        A,
-        //                        offseta,
-        //                        lda,
-        //                        strideA,
-        //                        x,
-        //                        offsetx,
-        //                        incx,
-        //                        stridex);
-        // }
+        if(handle->pointer_mode == rocblas_pointer_mode_device)
+        {
+            hipLaunchKernelGGL((tbmvt_kernel<TBMVT_DIM_X, TBMVT_DIM_Y, T>),
+                               tbmvt_grid,
+                               tbmvt_threads,
+                               0,
+                               rocblas_stream,
+                               uplo == rocblas_fill_upper,
+                               m,
+                               k,
+                               A,
+                               offseta,
+                               lda,
+                               strideA,
+                               x_copy,
+                               x,
+                               offsetx,
+                               incx,
+                               stridex);
+        }
     }
     else // conjugate transpose
     {

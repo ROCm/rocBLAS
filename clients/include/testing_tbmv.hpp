@@ -209,6 +209,7 @@ void testing_tbmv(const Arguments& arg)
     // {
     //     for(int j = 0; j < M; j++)
     //     {
+    //         hA_reg[j*lda+i] = j*M+i;
     //         std::cout << hA_reg[j * lda + i] << " ";
     //         // if(hA_reg[j * lda + i] != 0)
     //         // std::cout << "(" << j << ", " << i << ") = " << hA[j * lda + i] << "\n";
@@ -216,12 +217,16 @@ void testing_tbmv(const Arguments& arg)
     //     std::cout << "\n";
     // }
     // std::cout << "-----\nhA\n";
-    std::cout << "\nx:\n";
-    for(int i = 0; i < M; i++)
-    {
-        std::cout << hx[i * incx] << " ";
-    }
-    std::cout << "\n\n";
+    // std::cout << "\nx:\n";
+    // for(int i = 0; i < M; i++)
+    // {
+    //     if(i == 1)
+    //     hx[i*incx] = 1;
+    //     else hx[i*incx] = 0;
+    //     std::cout << hx[i * incx] << " ";
+    // }
+    // hx_gold = hx;
+    // std::cout << "\n\n";
 
     // copy data from CPU to device
     CHECK_HIP_ERROR(hipMemcpy(dA, hA_reg, sizeof(T) * size_A, hipMemcpyHostToDevice));
@@ -246,24 +251,22 @@ void testing_tbmv(const Arguments& arg)
 
         // CPU BLAS
         cpu_time_used = get_time_us();
-        // std::cout << "uplo: " << uplo << ", transA: " << transA << ", diag: " << diag << ", M: " << M << ", K: " << K << ", lda: " << lda << ", incx: " << incx << "\n";
         cblas_tbmv<T>(uplo, transA, diag, M, K, hA_reg, lda, hx_gold, incx);
-        // std::cout << "done cblas\n";
 
         cpu_time_used = get_time_us() - cpu_time_used;
         cblas_gflops  = tbmv_gflop_count<T>(M, K) / cpu_time_used * 1e6;
 
-        std::cout << "gpu\n";
-        for(int i = 0; i < M; i++)
-        {
-            std::cout << hx_1[i * incx] << " ";
-        }
-        std::cout << "\n-----\ncpu\n";
-        for(int i = 0; i < M; i++)
-        {
-            std::cout << hx_gold[i * incx] << " ";
-        }
-        std::cout << "\n----\n";
+        // std::cout << "gpu\n";
+        // for(int i = 0; i < M; i++)
+        // {
+        //     std::cout << hx_1[i * incx] << " ";
+        // }
+        // std::cout << "\n-----\ncpu\n";
+        // for(int i = 0; i < M; i++)
+        // {
+        //     std::cout << hx_gold[i * incx] << " ";
+        // }
+        // std::cout << "\n----\n";
         if(arg.unit_check)
         {
             unit_check_general<T>(1, M, abs_incx, hx_gold, hx_1);
