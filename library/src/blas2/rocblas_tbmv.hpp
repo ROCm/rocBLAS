@@ -33,6 +33,7 @@ __global__ void tbmv_copy_helper(rocblas_int    n,
 // for upper matrices
 template <rocblas_int DIM_X, rocblas_int DIM_Y, typename T>
 __device__ void tbmvn_kernel_calc(bool        upper,
+                                  bool        diag,
                                   rocblas_int m,
                                   rocblas_int k,
                                   const T*    A,
@@ -63,8 +64,26 @@ __device__ void tbmvn_kernel_calc(bool        upper,
 
         if(ind < m)
         {
-            if(row <= k && row >= 0)
+            if(row < k && row > 0)
+            {
                 res_A += (A[row + col * lda] * x_copy[col]);
+            }
+            else if(row == 0)
+            {
+                if(diag && !upper)
+                    res_A += x_copy[col];
+                else if(k == 0 && diag && upper)
+                    res_A += x_copy[col];
+                else
+                    res_A += (A[row + col * lda] * x_copy[col]);
+            }
+            else if(row == k)
+            {
+                if(diag && upper)
+                    res_A += x_copy[col];
+                else
+                    res_A += (A[row + col * lda] * x_copy[col]);
+            }
         }
     }
 
@@ -89,6 +108,7 @@ __device__ void tbmvn_kernel_calc(bool        upper,
 
 template <rocblas_int DIM_X, rocblas_int DIM_Y, typename T>
 __device__ void tbmvt_kernel_calc(bool        upper,
+                                  bool        diag,
                                   rocblas_int m,
                                   rocblas_int k,
                                   const T*    A,
@@ -122,8 +142,34 @@ __device__ void tbmvt_kernel_calc(bool        upper,
 
         if(col < m)
         {
-            if(row <= k && row <= max_row && row >= min_row)
-                res_A += (A[row + col * lda] * x_copy[row - (min_row) + adder]);
+            if(upper)
+            {
+                if(row < k && row >= k - col && row != k)
+                {
+                    res_A += (A[row + col * lda] * x_copy[row - (min_row) + adder]);
+                }
+                else if(row == k)
+                {
+                    if(diag)
+                        res_A += x_copy[row - (min_row) + adder];
+                    else
+                        res_A += (A[row + col * lda] * x_copy[row - (min_row) + adder]);
+                }
+            }
+            else
+            {
+                if(row <= k && row <= m - 1 - col && row > 0)
+                {
+                    res_A += (A[row + col * lda] * x_copy[row - (min_row) + adder]);
+                }
+                else if(row == 0)
+                {
+                    if(diag)
+                        res_A += x_copy[row - (min_row) + adder];
+                    else
+                        res_A += (A[row + col * lda] * x_copy[row - (min_row) + adder]);
+                }
+            }
         }
     }
 
@@ -148,6 +194,7 @@ __device__ void tbmvt_kernel_calc(bool        upper,
 
 template <rocblas_int DIM_X, rocblas_int DIM_Y, typename T>
 __global__ void tbmvn_kernel(bool           upper,
+                             bool           diag,
                              rocblas_int    m,
                              rocblas_int    k,
                              const T*       Aa,
@@ -168,11 +215,12 @@ __global__ void tbmvn_kernel(bool           upper,
     const T* x_copy = load_ptr_batch(xa_copy, hipBlockIdx_y, 0, m);
     T*       x      = load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex);
 
-    tbmvn_kernel_calc<DIM_X, DIM_Y, T>(upper, m, k, A, lda, x_copy, x, incx);
+    tbmvn_kernel_calc<DIM_X, DIM_Y, T>(upper, diag, m, k, A, lda, x_copy, x, incx);
 }
 
 template <rocblas_int DIM_X, rocblas_int DIM_Y, typename T>
 __global__ void tbmvt_kernel(bool           upper,
+                             bool           diag,
                              rocblas_int    m,
                              rocblas_int    k,
                              const T*       Aa,
@@ -189,7 +237,7 @@ __global__ void tbmvt_kernel(bool           upper,
     const T* x_copy = load_ptr_batch(xa_copy, hipBlockIdx_y, 0, m);
     T*       x      = load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex);
 
-    tbmvt_kernel_calc<DIM_X, DIM_Y, T>(upper, m, k, A, lda, x_copy, x, incx);
+    tbmvt_kernel_calc<DIM_X, DIM_Y, T>(upper, diag, m, k, A, lda, x_copy, x, incx);
 }
 
 template <typename T>
@@ -255,6 +303,7 @@ rocblas_status rocblas_tbmv_template(rocblas_handle    handle,
                            0,
                            rocblas_stream,
                            uplo == rocblas_fill_upper,
+                           diag == rocblas_diagonal_unit,
                            m,
                            k,
                            A,
@@ -285,6 +334,7 @@ rocblas_status rocblas_tbmv_template(rocblas_handle    handle,
                                0,
                                rocblas_stream,
                                uplo == rocblas_fill_upper,
+                               diag == rocblas_diagonal_unit,
                                m,
                                k,
                                A,

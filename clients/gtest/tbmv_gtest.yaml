@@ -69,7 +69,7 @@ Tests:
   precision: *single_double_precisions_complex_real
   uplo: [U, L]
   transA: [ N, T ] #, C ]
-  diag: [N] #U, N]
+  diag: [U, N]
   matrix_size: *small_matrix_size_range
   incx_incy: *incx_range
 
@@ -78,8 +78,8 @@ Tests:
   function: tbmv
   precision: *single_double_precisions_complex_real
   uplo: [U, L]
-  transA: [ N ] #, T, C ]
-  diag: [N] #U, N]
+  transA: [ N, T] #, C ]
+  diag: [U, N]
   matrix_size: *medium_matrix_size_range
   incx_incy: *incx_range
 
@@ -88,8 +88,8 @@ Tests:
   function: tbmv
   precision: *single_double_precisions_complex_real
   uplo: [U, L]
-  transA: [ N ] #, T, C ]
-  diag: [N] #U, N]
+  transA: [ N, T] #, C ]
+  diag: [U, N]
   matrix_size: *large_matrix_size_range
   incx_incy: *incx_range
 

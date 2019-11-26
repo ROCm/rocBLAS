@@ -124,9 +124,10 @@ void testing_tbmv(const Arguments& arg)
     rocblas_int       lda       = arg.lda;
     rocblas_int       incx      = arg.incx;
     char              char_uplo = arg.uplo;
+    char              char_diag = arg.diag;
     rocblas_fill      uplo      = char2rocblas_fill(char_uplo);
     rocblas_operation transA    = char2rocblas_operation(arg.transA);
-    rocblas_diagonal  diag      = char2rocblas_diagonal(arg.diag);
+    rocblas_diagonal  diag      = char2rocblas_diagonal(char_diag);
 
     rocblas_local_handle handle;
 
@@ -186,22 +187,25 @@ void testing_tbmv(const Arguments& arg)
     //         }
 
     //  TODO: make hA unit diagonal if diag == rocblas_diagonal_unit
+    // The main diagonal of hA will all be unity
     // if(char_diag == 'U' || char_diag == 'u')
     // {
     //     if('L' == char_uplo || 'l' == char_uplo)
+    //     {
     //         for(int i = 0; i < M; i++)
     //         {
-    //             T diag = hA_reg[i + i * lda];
-    //             for(int j = 0; j <= i; j++)
-    //                 hA_reg[i + j * lda] = hA_reg[i + j * lda] / diag;
+    //             // std::cout << "yea L\n";
+    //             hA_reg[i * lda] = 1;
     //         }
+    //     }
     //     else
-    //         for(int j = 0; j < M; j++)
+    //     {
+    //         for(int i = 0; i < M; i++)
     //         {
-    //             T diag = hA_reg[j + j * lda];
-    //             for(int i = 0; i <= j; i++)
-    //                 hA_reg[i + j * lda] = hA_reg[i + j * lda] / diag;
+    //             // std::cout << "yeah U\n";
+    //             hA_reg[i * lda + K] = 1;
     //         }
+    //     }
     // }
     // full_matrix_to_band_matrix(M, K, lda, uplo, hA_reg, hA);
     // std::cout << "ha\n";
@@ -209,7 +213,7 @@ void testing_tbmv(const Arguments& arg)
     // {
     //     for(int j = 0; j < M; j++)
     //     {
-    //         hA_reg[j*lda+i] = j*M+i;
+    //         // hA_reg[j*lda+i] = j*M+i;
     //         std::cout << hA_reg[j * lda + i] << " ";
     //         // if(hA_reg[j * lda + i] != 0)
     //         // std::cout << "(" << j << ", " << i << ") = " << hA[j * lda + i] << "\n";
@@ -220,9 +224,9 @@ void testing_tbmv(const Arguments& arg)
     // std::cout << "\nx:\n";
     // for(int i = 0; i < M; i++)
     // {
-    //     if(i == 1)
-    //     hx[i*incx] = 1;
-    //     else hx[i*incx] = 0;
+    //     // if(i == 1)
+    //     // hx[i*incx] = 1;
+    //     // else hx[i*incx] = 0;
     //     std::cout << hx[i * incx] << " ";
     // }
     // hx_gold = hx;
