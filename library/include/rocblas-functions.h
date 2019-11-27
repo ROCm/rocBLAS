@@ -3035,29 +3035,66 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgemv_strided_batched(rocblas_handle      
         y := alpha*A**T*x + beta*y,   or
         y := alpha*A**H*x + beta*y,
 
-    where alpha and beta are scalars, x and y are vectors and A is an
-    m by n matrix.
+    where alpha and beta are scalars, x and y are vectors and A is a banded
+    m by m matrix.
 
     @param[in]
     handle    [rocblas_handle]
               handle to the rocblas library context queue.
     @param[in]
+    uplo      [rocblas_fill]
+              rocblas_fill_upper: A is an upper banded triangular matrix.
+              rocblas_fill_lower: A is a  lower banded triangular matrix.
+    @param[in]
     trans     [rocblas_operation]
-              indicates whether matrix A is tranposed (conjugated) or not
+              indicates whether matrix A is tranposed (conjugated) or not.
+    @param[in]
+    diag      [rocblas_diagonal]
+              rocblas_diagonal_unit: The main diagonal of A is assumed to consist of only
+                                     1's and is not referenced.
+              rocblas_diagonal_non_unit: No assumptions are made of A's main diagonal.
     @param[in]
     m         [rocblas_int]
-              number of rows of matrix A
+              the number of rows and columns of the matrix represented by A.
     @param[in]
     k         [rocblas_int]
-              TODO: number of sub/super diagonals of A.
+              if uplo == rocblas_fill_upper, k specifies the number of super-diagonals
+              of the matrix A.
+              if uplo == rocblas_fill_lower, k specifies the number of sub-diagonals
+              of the matrix A.
     @param[in]
-    A         device pointer storing matrix A.
+    A         device pointer storing banded triangular matrix A.
+              if uplo == rocblas_fill_upper:
+                The matrix represented is an upper banded triangular matrix
+                with the main diagonal and k super-diagonals, everything
+                else can be assumed to be 0.
+                The matrix is compacted so that the main diagonal resides on the k'th
+                row, the first super diagonal resides on the RHS of the k-1'th row, etc,
+                with the k'th diagonal on the RHS of the 0'th row.
+                   Ex: (rocblas_fill_upper; m = 5; k = 2)
+                      1 6 9 0 0              0 0 9 8 7
+                      0 2 7 8 0              0 6 7 8 9
+                      0 0 3 8 7     ---->    1 2 3 4 5
+                      0 0 0 4 2              0 0 0 0 0
+                      0 0 0 0 5              0 0 0 0 0
+              if uplo == rocblas_fill_lower:
+                The matrix represnted is a lower banded triangular matrix
+                with the main diagonal and k sub-diagonals, everything else can be
+                assumed to be 0.
+                The matrix is compacted so that the main diagonal resides on the 0'th row,
+                working up to the k'th diagonal residing on the LHS of the k'th row.
+                   Ex: (rocblas_fill_lower; m = 5; k = 2)
+                      1 0 0 0 0              1 2 3 4 5
+                      6 2 0 0 0              6 7 8 9 0
+                      9 7 3 0 0     ---->    9 8 7 0 0
+                      0 8 8 4 0              0 0 0 0 0
+                      0 0 7 9 5              0 0 0 0 0
     @param[in]
     lda       [rocblas_int]
               specifies the leading dimension of A.
     @param[in]
     x         device pointer storing vector x.
-    @param[in]
+    @param[inout]
     incx      [rocblas_int]
               specifies the increment for the elements of x.
 

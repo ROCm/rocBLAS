@@ -7,7 +7,7 @@
 #include "rocblas.h"
 #include "utility.h"
 
-// copy_helper
+// Makes a copy of xa into ya.
 template <typename T, typename U, typename V>
 __global__ void tbmv_copy_helper(rocblas_int    n,
                                  const U        xa,
@@ -30,6 +30,68 @@ __global__ void tbmv_copy_helper(rocblas_int    n,
     }
 }
 
+/**
+  *  Helper for the non-transpose case. Iterates through each diagonal
+  *  and creates partial sums for each ty.
+  */
+template <rocblas_int DIM_Y, typename T>
+__device__ T tbmvn_kernel_helper(rocblas_int ty,
+                                 rocblas_int ind,
+                                 bool        upper,
+                                 bool        diag,
+                                 rocblas_int m,
+                                 rocblas_int k,
+                                 const T*    A,
+                                 rocblas_int lda,
+                                 const T*    x_copy,
+                                 rocblas_int incx)
+{
+    T           res_A = 0.0;
+    rocblas_int col   = ty; // ty defines the column of banded & regular matrix
+
+    // Since the column is consistent, we can iterate up the diagonal
+    for(col = ty; col < m; col += DIM_Y)
+    {
+        // We have to convert ind to banded matrix row
+        rocblas_int row = upper ? ind + (k - col) : ind - col;
+
+        if(ind < m)
+        {
+            // Regular case, simply multiply
+            if(row < k && row > 0)
+            {
+                res_A += (A[row + col * lda] * x_copy[col]);
+            }
+            else if(row == 0)
+            {
+                // If main diagonal && diag, don't reference matrix, assume 1.
+                if(diag && !upper)
+                    res_A += x_copy[col];
+                else if(k == 0 && diag && upper)
+                    res_A += x_copy[col];
+                else
+                    res_A += (A[row + col * lda] * x_copy[col]);
+            }
+            else if(row == k)
+            {
+                // If diag, don't reference matrix, assume 1.
+                if(diag && upper)
+                    res_A += x_copy[col];
+                else
+                    res_A += (A[row + col * lda] * x_copy[col]);
+            }
+        }
+    }
+    return res_A;
+}
+
+/**
+  *  Helper for the (conjugate-)transpose case. Iterates through each diagonal
+  *  and creates partial sums for each ty.
+  *  The conjugate basically switches A from upper -> lower or lower -> upper
+  *  triangular matrix. Since A is compressed, the indexing changes, and we
+  *  basically just iterate down columns.
+  */
 template <rocblas_int DIM_Y, typename T>
 __device__ T tbmvt_kernel_helper(bool        CONJ,
                                  rocblas_int ty,
@@ -44,20 +106,20 @@ __device__ T tbmvt_kernel_helper(bool        CONJ,
                                  rocblas_int incx)
 {
     T           res_A = 0.0;
-    rocblas_int row   = ty; // ty defines the column of banded & regular matrix
+    rocblas_int row   = ty; // for transpose case, ty defines the row
 
     for(row = ty; row < m; row += DIM_Y)
     {
         // We have to convert ind to banded matrix row
-        rocblas_int col     = ind; // upper ? ind + (k - col) : ind - col;
+        rocblas_int col     = ind;
         rocblas_int min_row = upper ? k - col : 0;
         rocblas_int adder   = upper ? 0 : col;
-        rocblas_int max_row = upper ? k : m - 1 - col;
 
         if(col < m)
         {
             if(upper)
             {
+                // Regular case
                 if(row < k && row >= k - col && row != k)
                 {
                     res_A += ((CONJ ? conj(A[row + col * lda]) : A[row + col * lda])
@@ -65,6 +127,7 @@ __device__ T tbmvt_kernel_helper(bool        CONJ,
                 }
                 else if(row == k)
                 {
+                    // if main diagonal && diag don't reference A, assume 1.
                     if(diag)
                         res_A += x_copy[row - (min_row) + adder];
                     else
@@ -93,53 +156,6 @@ __device__ T tbmvt_kernel_helper(bool        CONJ,
     return res_A;
 }
 
-template <rocblas_int DIM_Y, typename T>
-__device__ T tbmvn_kernel_helper(rocblas_int ty,
-                                 rocblas_int ind,
-                                 bool        upper,
-                                 bool        diag,
-                                 rocblas_int m,
-                                 rocblas_int k,
-                                 const T*    A,
-                                 rocblas_int lda,
-                                 const T*    x_copy,
-                                 rocblas_int incx)
-{
-    T           res_A = 0.0;
-    rocblas_int col   = ty; // ty defines the column of banded & regular matrix
-
-    for(col = ty; col < m; col += DIM_Y)
-    {
-        // We have to convert ind to banded matrix row
-        rocblas_int row = upper ? ind + (k - col) : ind - col;
-
-        if(ind < m)
-        {
-            if(row < k && row > 0)
-            {
-                res_A += (A[row + col * lda] * x_copy[col]);
-            }
-            else if(row == 0)
-            {
-                if(diag && !upper)
-                    res_A += x_copy[col];
-                else if(k == 0 && diag && upper)
-                    res_A += x_copy[col];
-                else
-                    res_A += (A[row + col * lda] * x_copy[col]);
-            }
-            else if(row == k)
-            {
-                if(diag && upper)
-                    res_A += x_copy[col];
-                else
-                    res_A += (A[row + col * lda] * x_copy[col]);
-            }
-        }
-    }
-    return res_A;
-}
-
 /**
   *  A combined kernel to handle all tbmv cases (transpose, conjugate, normal).
   */
@@ -158,6 +174,9 @@ __device__ void tbmvx_kernel_calc(rocblas_operation transA,
     rocblas_int thread_id = hipThreadIdx_x + hipThreadIdx_y * hipBlockDim_x;
 
     // threads are all configurated locally
+    // Create "tilted" blocks. With the compaction, each diagonal,
+    // (from top right to bottom left) is like a row in a normal
+    // matrix, so the blocks are "tilted" to the right.
     rocblas_int tx = thread_id % DIM_X;
     rocblas_int ty = thread_id / DIM_X;
 
@@ -166,6 +185,9 @@ __device__ void tbmvx_kernel_calc(rocblas_operation transA,
     __shared__ T sdata[DIM_X * DIM_Y];
 
     T res_A = 0.0;
+    // Indexing is different for transpose/non-transpose case. To keep it clean
+    // it's separated in two helper functions. They could potentially be combined
+    // if more elegant logic is used.
     if(transA == rocblas_operation_none)
     {
         res_A = tbmvn_kernel_helper<DIM_Y, T>(ty, ind, upper, diag, m, k, A, lda, x_copy, incx);
@@ -176,6 +198,7 @@ __device__ void tbmvx_kernel_calc(rocblas_operation transA,
         res_A
             = tbmvt_kernel_helper<DIM_Y, T>(CONJ, ty, ind, upper, diag, m, k, A, lda, x_copy, incx);
     }
+    // Store partial sums for the diagonal
     sdata[tx + ty * DIM_X] = res_A;
     __syncthreads();
 
@@ -183,11 +206,13 @@ __device__ void tbmvx_kernel_calc(rocblas_operation transA,
     ind       = hipBlockIdx_x * DIM_X + thread_id;
     if(thread_id < DIM_X)
     {
+        // Add the partial sums of each diagonal and store
         for(rocblas_int i = 1; i < DIM_Y; i++)
         {
             sdata[thread_id] += sdata[thread_id + DIM_X * i];
         }
 
+        // Update x.
         if(ind < m)
         {
             x[ind * incx] = (sdata[thread_id]);
@@ -199,13 +224,13 @@ __device__ void tbmvx_kernel_calc(rocblas_operation transA,
   *  Loads pointers (in case of future batched versions) and launches
   *  the actual calculation kernel.
   *
-  *
+  *  Summary of banded matrices:
   *  Two types of banded matrices exist, upper and lower. These matrices consist of
   *  the centre diagonal, along with 'k' sub-diagonals (if lower) or super-diagonals (if upper).
   *
   *  These matrices are then compacted into a banded storage format. For upper-triangular,
   *  the k'th super-diagonal resides on the right-hand side of the first row, k-1th on the second,
-  *  with the main diagonal on the k'th row.
+  *  etc, with the main diagonal on the k'th row.
   *
   *  Ex: (upper; m = 5; k = 2)
   *
@@ -216,17 +241,19 @@ __device__ void tbmvx_kernel_calc(rocblas_operation transA,
   *  0 0 0 0 5              0 0 0 0 0
   *
   *  For lower-triangular, the main diagonal resides on the 0'th row, working up to the k'th
-  *  sub-diagonal residing on the right-hand side of the k'th row.
+  *  sub-diagonal residing on the left-hand side of the k'th row.
   *
   *  Ex: (lower; m = 5; k = 2)
   *
   *  1 0 0 0 0              1 2 3 4 5
-  *  6 2 0 0 0              0 6 7 8 9
-  *  9 7 3 0 0     ---->    0 0 9 8 7
+  *  6 2 0 0 0              6 7 8 9 0
+  *  9 7 3 0 0     ---->    9 8 7 0 0
   *  0 8 8 4 0              0 0 0 0 0
   *  0 0 7 9 5              0 0 0 0 0
   *
-  *  The empty parts of these sparse matrices are not to be touched.
+  *  The empty parts of these sparse matrices are not to be touched. As can be seen, the column
+  *  of each element is preserved in the compaction, and the diagonals are "pushed" upwards and
+  *  reside on the same row as the other elements of the same diagonal.
   */
 template <rocblas_int DIM_X, rocblas_int DIM_Y, typename T>
 __global__ void tbmvx_kernel(rocblas_operation transA,
@@ -277,7 +304,7 @@ rocblas_status rocblas_tbmv_template(rocblas_handle    handle,
                                      rocblas_int       batch_count,
                                      const T*          x_copy)
 {
-    //quick return
+    // quick return
     if(!m || !batch_count)
         return rocblas_status_success;
 
