@@ -3062,6 +3062,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgemv_strided_batched(rocblas_handle      
               of the matrix A.
               if uplo == rocblas_fill_lower, k specifies the number of sub-diagonals
               of the matrix A.
+              k must satisfy k > 0 && k < lda.
     @param[in]
     A         device pointer storing banded triangular matrix A.
               if uplo == rocblas_fill_upper:
@@ -3091,7 +3092,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgemv_strided_batched(rocblas_handle      
                       0 0 7 9 5              0 0 0 0 0
     @param[in]
     lda       [rocblas_int]
-              specifies the leading dimension of A.
+              specifies the leading dimension of A. lda must satisfy lda > k.
     @param[in]
     x         device pointer storing vector x.
     @param[inout]

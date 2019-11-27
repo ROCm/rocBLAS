@@ -64,7 +64,7 @@ namespace
                               diag_letter,
                               "-m",
                               m,
-                              "-K",
+                              "-k",
                               k,
                               "--lda",
                               lda,
@@ -90,7 +90,7 @@ namespace
                             diag_letter,
                             "M",
                             m,
-                            "K",
+                            "k",
                             k,
                             "lda",
                             lda,
@@ -98,7 +98,7 @@ namespace
                             incx);
         }
 
-        if(m < 0 || k < 0 || lda < m || lda < 1 || !incx)
+        if(m < 0 || k < 0 || lda < m || lda < 1 || !incx || k >= lda)
             return rocblas_status_invalid_size;
 
         if(!m)

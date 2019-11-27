@@ -108,48 +108,51 @@ __device__ T tbmvt_kernel_helper(bool        CONJ,
     T           res_A = 0.0;
     rocblas_int row   = ty; // for transpose case, ty defines the row
 
-    for(row = ty; row < m; row += DIM_Y)
+    for(row = ty; row < lda; row += DIM_Y)
     {
         // We have to convert ind to banded matrix row
-        rocblas_int col     = ind;
-        rocblas_int min_row = upper ? k - col : 0;
-        rocblas_int adder   = upper ? 0 : col;
+        rocblas_int col = ind;
 
         if(col < m)
         {
             if(upper)
             {
                 // Regular case
+                rocblas_int min_row = k - col;
                 if(row < k && row >= k - col && row != k)
                 {
                     res_A += ((CONJ ? conj(A[row + col * lda]) : A[row + col * lda])
-                              * x_copy[row - (min_row) + adder]);
+                              * x_copy[row - min_row]);
                 }
                 else if(row == k)
                 {
-                    // if main diagonal && diag don't reference A, assume 1.
+                    // if main diagonal && diag then don't reference A, assume 1.
                     if(diag)
-                        res_A += x_copy[row - (min_row) + adder];
+                        res_A += x_copy[row - min_row];
                     else
                         res_A += ((CONJ ? conj(A[row + col * lda]) : A[row + col * lda])
-                                  * x_copy[row - (min_row) + adder]);
+                                  * x_copy[row - min_row]);
                 }
+                else if(row > k)
+                    break;
             }
             else
             {
                 if(row <= k && row <= m - 1 - col && row > 0)
                 {
                     res_A += ((CONJ ? conj(A[row + col * lda]) : A[row + col * lda])
-                              * x_copy[row - (min_row) + adder]);
+                              * x_copy[row + col]);
                 }
                 else if(row == 0)
                 {
                     if(diag)
-                        res_A += x_copy[row - (min_row) + adder];
+                        res_A += x_copy[row + col];
                     else
                         res_A += ((CONJ ? conj(A[row + col * lda]) : A[row + col * lda])
-                                  * x_copy[row - (min_row) + adder]);
+                                  * x_copy[row + col]);
                 }
+                else if(row > k)
+                    break;
             }
         }
     }
