@@ -10,7 +10,6 @@ import re # regexp package
 import shutil
 import tempfile
 import rocblas_gentest as gt
-from loadData import compareDataSets
 import getspecs
 
 usage = '''A timing script for rocBLAS the generates plots
@@ -261,7 +260,7 @@ class yamldata:
         # Defaults
         defaults = doc.get('Defaults') or {}
 
-        default_add_ons = {"m": 1, "M": 1, "n": 1, "N": 1, "k": 1, "K": 1, "lda": 1, "ldb": 1, "ldc": 1, "LDA": 1, "LDB": 1, "LDC": 1, "iters": 1, "flops": '', "mem": '', "samples": 1}
+        default_add_ons = {"m": 1, "M": 1, "n": 1, "N": 1, "k": 1, "K": 1, "lda": 1, "ldb": 1, "ldc": 1, "LDA": 1, "LDB": 1, "LDC": 1, "iters": 1, "flops": '', "mem": '', "samples": 1, "step_mult": 0}
         defaults.update(default_add_ons)
 
         # Known Bugs
