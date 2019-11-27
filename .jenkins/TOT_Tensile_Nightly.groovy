@@ -13,7 +13,7 @@ import java.nio.file.Path
 // Mostly generated from snippet generator 'properties; set job properties'
 // Time-based triggers added to execute nightly tests, eg '30 2 * * *' means 2:30 AM
 properties([
-    pipelineTriggers([cron('0 1 * * *'), [$class: 'PeriodicFolderTrigger', interval: '5m']]),
+    pipelineTriggers([cron('0 4 * * *'), [$class: 'PeriodicFolderTrigger', interval: '5m']]),
     buildDiscarder(logRotator(
       artifactDaysToKeepStr: '',
       artifactNumToKeepStr: '',
@@ -29,10 +29,10 @@ rocBLASCI:
 
     def rocblas = new rocProject('rocBLAS')
     // customize for project
-    rocblas.paths.build_command = './install.sh -lasm_ci -c'
+    rocblas.paths.build_command = './install.sh -lasm_ci -c -b develop'
 
     // Define test architectures, optional rocm version argument is available
-    def nodes = new dockerNodes(['ubuntu && gfx900', 'centos7 && gfx900', 'centos7 && gfx906', 'sles && gfx906'], rocblas)
+    def nodes = new dockerNodes(['gfx900 && ubuntu', 'gfx906 && centos7'], rocblas)
 
     boolean formatCheck = true
 
@@ -55,7 +55,7 @@ rocBLASCI:
     def packageCommand =
     {
         platform, project->
-        
+
         commonGroovy.runPackageCommand(platform, project)
     }
 
