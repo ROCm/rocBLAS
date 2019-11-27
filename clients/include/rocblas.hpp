@@ -1237,6 +1237,7 @@ static constexpr auto rocblas_tbmv<rocblas_float_complex> = rocblas_ctbmv;
 
 template <>
 static constexpr auto rocblas_tbmv<rocblas_double_complex> = rocblas_ztbmv;
+
 // trsv
 template <typename T>
 rocblas_status (*rocblas_trsv)(rocblas_handle    handle,

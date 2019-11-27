@@ -3031,12 +3031,11 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgemv_strided_batched(rocblas_handle      
     \details
     xTBMV performs one of the matrix-vector operations
 
-        y := alpha*A*x    + beta*y,   or
-        y := alpha*A**T*x + beta*y,   or
-        y := alpha*A**H*x + beta*y,
+        x := A*x      or
+        x := A**T*x   or
+        x := A**H*x,
 
-    where alpha and beta are scalars, x and y are vectors and A is a banded
-    m by m matrix.
+    x is a vectors and A is a banded m by m matrix (see description below).
 
     @param[in]
     handle    [rocblas_handle]
