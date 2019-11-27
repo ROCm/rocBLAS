@@ -35,7 +35,6 @@ namespace
     {
         if(!handle)
             return rocblas_status_invalid_handle;
-        RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
         auto layer_mode = handle->layer_mode;
         if(layer_mode
@@ -103,10 +102,14 @@ namespace
             return rocblas_status_invalid_size;
 
         if(!m)
-            return rocblas_status_success;
+            return handle->is_device_memory_size_query() ? rocblas_status_size_unchanged
+                                                         : rocblas_status_success;
 
         if(!A || !x)
             return rocblas_status_invalid_pointer;
+
+        if(handle->is_device_memory_size_query())
+            return handle->set_optimal_device_memory_size(sizeof(T) * m);
 
         auto mem = handle->device_malloc(sizeof(T) * m);
 
