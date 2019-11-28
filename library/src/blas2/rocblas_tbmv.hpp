@@ -205,7 +205,7 @@ __device__ void tbmvx_kernel_calc(rocblas_operation transA,
 
     thread_id = hipThreadIdx_x + hipThreadIdx_y * hipBlockDim_x;
     ind       = hipBlockIdx_x * DIM_X + thread_id;
-    if(thread_id < DIM_X)
+    if(thread_id < DIM_X && ind < m)
     {
         // Add the partial sums of each diagonal and store
         for(rocblas_int i = 1; i < DIM_Y; i++)
@@ -214,10 +214,7 @@ __device__ void tbmvx_kernel_calc(rocblas_operation transA,
         }
 
         // Update x.
-        if(ind < m)
-        {
-            x[ind * incx] = (sdata[thread_id]);
-        }
+        x[ind * incx] = (sdata[thread_id]);
     }
 }
 
