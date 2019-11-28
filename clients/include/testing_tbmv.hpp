@@ -196,7 +196,7 @@ void testing_tbmv(const Arguments& arg)
         std::cout << std::endl;
 
         std::cout << M << "," << K << "," << lda << "," << incx << "," << rocblas_gflops << ","
-                  << rocblas_bandwidth << "," << gpu_time_used / number_hot_calls;
+                  << rocblas_bandwidth << "," << gpu_time_used / number_hot_calls << ",";
 
         if(arg.norm_check)
         {
