@@ -125,8 +125,9 @@ for(int n = 0; n < testlist.length; ++n)
             real vals[] = new real[N];
             for(int i = 0; i < N; ++i) {
                 vals[i] = fin;
-                data[n][dataidx][0] = vals[i];
+                data[n][dataidx][i] = vals[i];
             }
+
             real[] medlh = mediandev(vals);
             y[n].push(medlh[0]);
             ly.push(medlh[1]);
@@ -189,10 +190,10 @@ if(doxticks)
 else
     xaxis(xlabel);
 
-// if(doyticks)
-//     yaxis(ylabel,speedup > 1 ? Left : LeftRight,RightTicks);
-// else
-//    yaxis(ylabel,LeftRight);
+if(doyticks)
+    yaxis(ylabel,speedup > 1 ? Left : LeftRight,RightTicks);
+else
+   yaxis(ylabel,LeftRight);
 
 
 if(dolegend)
@@ -205,70 +206,69 @@ if(speedup > 1) {
     // TODO: when there is data missing at one end, the axes might be weird
 
     picture secondary=secondaryY(new void(picture pic) {
-            scale(pic,Log,Linear);
-            real ymin = inf;
-            real ymax = -inf;
-	    int penidx = testlist.length;
-            for(int n = 0; n < testlist.length; n += speedup) {
+        scale(pic,Linear,Linear);
+        real ymin = inf;
+        real ymax = -inf;
+	    int penidx = testlist.length + 1; //1 more than theoMax
+        for(int n = 0; n < testlist.length; n += speedup) {
 
-	      for(int next = 1; next < speedup; ++next) {
-		real[] baseval = new real[];
-		real[] yval = new real[];
-		pair[] zy;
-		pair[] dp;
-		pair[] dm;
-		  
-		for(int i = 0; i < x[n].length; ++i) {
-		  for(int j = 0; j < x[n+next].length; ++j) {
-		    if (x[n][i] == x[n+next][j]) {
-		      baseval.push(x[n][i]);
-		      real val = y[n][i] / y[n+next][j];
-		      yval.push(val);
+	        for(int next = 1; next < speedup; ++next) {
+                real[] baseval = new real[];
+                real[] yval = new real[];
+                pair[] zy;
+                pair[] dp;
+                pair[] dm;
+            
+                for(int i = 0; i < x[n].length; ++i) {
+                    for(int j = 0; j < x[n+next].length; ++j) {
+                        if (x[n][i] == x[n+next][j]) {
+                            baseval.push(x[n][i]);
+                            real val = y[n][i] / y[n+next][j];
+                            yval.push(val);
 
-		      zy.push((x[n][i], val));
-		      real[] lowhi = ratiodev(data[n][i], data[n+next][j]);
-		      real hi = lowhi[1];
-		      real low = lowhi[0];
+                            zy.push((x[n][i], val));
+                            real[] lowhi = ratiodev(data[n][i], data[n+next][j]);
+                            real hi = lowhi[1];
+                            real low = lowhi[0];
 
-		      dp.push((0 , hi - val));
-		      dm.push((0 , low - val));
-    
-		      ymin = min(val, ymin);
-		      ymax = max(val, ymax);
-		      break;
-		    }
-		  }
-		}
+                            dp.push((0 , hi - val));
+                            dm.push((0 , low - val));
+                    
+                            ymin = min(val, ymin);
+                            ymax = max(val, ymax);
+                            break;
+                        }
+                    }
+                }
+            
+                if(baseval.length > 0){
+                    pen p = Pen(penidx)+dashed;
+                    ++penidx;
+                    
+                    guide g = scale(0.5mm) * unitcircle;
+                    marker mark = marker(g, Draw(p + solid));
+                            
+                    draw(pic,graph(pic,baseval, yval),p,legends[n] + " vs " + legends[n+next],mark);
+                    errorbars(pic, zy, dp, dm, p);
+                }
 
-		  
-		if(baseval.length > 0){
-		  pen p = Pen(penidx)+dashed;
-		  ++penidx;
-		  
-		  guide g = scale(0.5mm) * unitcircle;
-		  marker mark = marker(g, Draw(p + solid));
-                
-		  draw(pic,graph(pic,baseval, yval),p,legends[n] + " vs " + legends[n+next],mark);
-		  errorbars(pic, zy, dp, dm, p);
-		}
+                {
+                    real[] fakex = {xmin, xmax};
+                    real[] fakey = {ymin, ymax};
+                    // draw an invisible graph to set up the limits correctly.
+                    draw(pic,graph(pic,fakex, fakey),invisible);
+                }
 
-		{
-		  real[] fakex = {xmin, xmax};
-		  real[] fakey = {ymin, ymax};
-		  // draw an invisible graph to set up the limits correctly.
-		  draw(pic,graph(pic,fakex, fakey),invisible);
-
-		}
-	      }
-            }
+	        } 
+        }
 
 	    yequals(pic, 1.0, lightgrey);
-            yaxis(pic,"speedup",Right,  black,LeftTicks);
-            attach(legend(pic),point(plain.E), 60*plain.E - 40 *plain.N  );
-      });
+        yaxis(pic,"speedup",Right,  black,LeftTicks);
+        attach(legend(pic),point(plain.E), 60*plain.E - 40 *plain.N  );
+    });
     
 
     add(secondary);
- }
+}
 
 

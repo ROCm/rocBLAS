@@ -418,7 +418,7 @@ def getLabel(test):
 def getXLabel(test):
     if test.function=='gemm':
         return 'M=N=K=lda=ldb=ldc'
-    elif  test.function in ['axpy', 'asum' 'dot', 'copy', 'nrm2', 'scal', 'swap']:
+    elif  test.function in ['axpy', 'asum', 'dot', 'copy', 'nrm2', 'scal', 'swap']:
         return 'N'
     elif  test.function=='gemv':
         return 'M=N=lda'
@@ -428,7 +428,7 @@ def getXLabel(test):
         else:
             return 'N'
     else:
-        print('Xlabel not defined')
+        print('Xlabel not defined for ' + test.function)
         sys.exit(1)
 
 def getFunctionPreFix(name):
@@ -451,8 +451,8 @@ def getDeviceSpecs(device, sclk):
     hwinfo = {}
     hwinfo["theoMaxCompute"] = -1
     hwinfo["sclk"] = int(sclk.split('M')[0])
-    print(hwinfo["sclk"])
-    print(hwinfo["sclk"]/1000.00 * 64 * 128)
+    # print(hwinfo["sclk"])
+    # print(hwinfo["sclk"]/1000.00 * 64 * 128)
     if 'Vega 20' in device:
         hwinfo["theoMaxCompute"] = hwinfo["sclk"]/1000.00 * 64 * 128 # 64 CU, 128 ops/ clk 
         hwinfo["Bandwidth"] = 1000
@@ -615,7 +615,7 @@ def main(argv):
         for test in tests:
             for idx, lwdir in enumerate(dirlist):
                 wdir = lwdir[0]
-                label = getLabel(test) + ' run ' + chr(idx+65) if len(dirlist) > 1 else getLabel(test)
+                label = getLabel(test) + ' run ' + chr(idx+65) if len(dirlist) > 1 else getLabel(test) #labelling runs A and B for now (can swap with rocblas version)
                 fig.runs.append( rundata(wdir, idx, label,
                                             test, hwinfo) )
         figs.append(fig)
@@ -628,6 +628,7 @@ def main(argv):
                 run.executerun(outdir, nsample)
 
     if doAsy:
+        print("")
         for fig in figs:
             ncompare = len(dirlist) if speedup else 0
             print(fig.labels())
