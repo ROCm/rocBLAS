@@ -65,9 +65,7 @@ __device__ T tbmvn_kernel_helper(rocblas_int ty,
             else if(row == 0)
             {
                 // If main diagonal && diag, don't reference matrix, assume 1.
-                if(diag && !upper)
-                    res_A += x_copy[col];
-                else if(k == 0 && diag && upper)
+                if(diag && (!upper || k == 0 && upper))
                     res_A += x_copy[col];
                 else
                     res_A += (A[row + col * lda] * x_copy[col]);
@@ -240,7 +238,7 @@ __device__ void tbmvx_kernel_calc(rocblas_operation transA,
   *  1 6 9 0 0              0 0 9 8 7
   *  0 2 7 8 0              0 6 7 8 9
   *  0 0 3 8 7     ---->    1 2 3 4 5
-  *  0 0 0 4 2              0 0 0 0 0
+  *  0 0 0 4 9              0 0 0 0 0
   *  0 0 0 0 5              0 0 0 0 0
   *
   *  For lower-triangular, the main diagonal resides on the 0'th row, working up to the k'th

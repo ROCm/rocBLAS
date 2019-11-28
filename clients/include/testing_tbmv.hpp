@@ -168,7 +168,7 @@ void testing_tbmv(const Arguments& arg)
     if(arg.timing)
     {
         int number_cold_calls = 2;
-        int number_hot_calls  = 100;
+        int number_hot_calls  = arg.iters;
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
         for(int iter = 0; iter < number_cold_calls; iter++)
@@ -188,19 +188,19 @@ void testing_tbmv(const Arguments& arg)
         rocblas_bandwidth = (1.0 * M * M) * sizeof(T) / gpu_time_used / 1e3;
 
         // only norm_check return an norm error, unit check won't return anything
-        std::cout << "M,K,lda,incx,rocblas-Gflops,rocblas-GB/s,";
+        std::cout << "M,K,lda,incx,rocblas-Gflops,rocblas-GB/s,us,";
         if(arg.norm_check)
         {
-            std::cout << "CPU-Gflops,norm_error_device_ptr";
+            std::cout << "CPU-Gflops,us,norm_error_device_ptr";
         }
         std::cout << std::endl;
 
         std::cout << M << "," << K << "," << lda << "," << incx << "," << rocblas_gflops << ","
-                  << rocblas_bandwidth << ",";
+                  << rocblas_bandwidth << "," << gpu_time_used / number_hot_calls;
 
         if(arg.norm_check)
         {
-            std::cout << cblas_gflops << ',';
+            std::cout << cblas_gflops << ',' << cpu_time_used << ',';
             std::cout << rocblas_error_1;
         }
 

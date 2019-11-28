@@ -3075,7 +3075,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgemv_strided_batched(rocblas_handle      
                       1 6 9 0 0              0 0 9 8 7
                       0 2 7 8 0              0 6 7 8 9
                       0 0 3 8 7     ---->    1 2 3 4 5
-                      0 0 0 4 2              0 0 0 0 0
+                      0 0 0 4 9              0 0 0 0 0
                       0 0 0 0 5              0 0 0 0 0
               if uplo == rocblas_fill_lower:
                 The matrix represnted is a lower banded triangular matrix
