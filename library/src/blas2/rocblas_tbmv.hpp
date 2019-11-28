@@ -3,32 +3,10 @@
  * ************************************************************************ */
 #ifndef __ROCBLAS_TBMV_HPP__
 #define __ROCBLAS_TBMV_HPP__
+#include "../blas1/rocblas_copy.hpp"
 #include "handle.h"
 #include "rocblas.h"
 #include "utility.h"
-
-// Makes a copy of xa into ya.
-template <typename T, typename U, typename V>
-__global__ void tbmv_copy_helper(rocblas_int    n,
-                                 const U        xa,
-                                 ptrdiff_t      shiftx,
-                                 rocblas_int    incx,
-                                 rocblas_stride stridex,
-                                 V              ya,
-                                 ptrdiff_t      shifty,
-                                 rocblas_int    incy,
-                                 rocblas_stride stridey)
-{
-    ptrdiff_t tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
-    // bound
-    if(tid < n)
-    {
-        const T* x = load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex);
-        T*       y = load_ptr_batch(ya, hipBlockIdx_y, shifty, stridey);
-
-        y[tid * incy] = x[tid * incx];
-    }
-}
 
 /**
   *  Helper for the non-transpose case. Iterates through each diagonal
@@ -314,7 +292,7 @@ rocblas_status rocblas_tbmv_template(rocblas_handle    handle,
     dim3 copy_grid(copy_blocks, batch_count);
     dim3 copy_threads(256);
 
-    hipLaunchKernelGGL((tbmv_copy_helper<T>),
+    hipLaunchKernelGGL((copy_kernel<T>),
                        copy_grid,
                        copy_threads,
                        0,
