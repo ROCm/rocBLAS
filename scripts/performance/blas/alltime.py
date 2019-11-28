@@ -18,21 +18,22 @@ Usage:
 
 \talltime.py
 \t\t-A          working directory A
-\t\t-a          label for directory A
+# \t\t-B        working directory B (optional) 
 \t\t-i          input yaml
 \t\t-o          output directory
 \t\t-T          do not perform BLAS functions; just generate document
-\t\t-f          document format: pdf (default) or docx
+\t\t-f          document format: pdf (default) or docx (Need forked docx plugin)
 \t\t-d          device number (default: 0)
 # \t\t-g        generate graphs via Asymptote: 0(default) or 1 
+# \t\t-S        plot speedup (default: 1, disabled: 0)
 '''
+# \t\t-a          label for directory A
 # \t\t-g          generate graphs via Asymptote: 0(default) or 1 #doesn't do anything
 # \t\t-s          short run   #Doesn't do anything
 # \t\t-t          data type: gflops #Maybe use option to plot time graphs too
-# \t\t-B          working directory B (optional) #Add later
 # \t\t-b          label for directory B
 # \t\t-N          Number of samples (default: 10) #Do we want to use median and take multiple samples (Will take longer to run due to rocblas-bench launch overhead)
-# \t\t-S          plot speedup (default: 1, disabled: 0)
+
 
 def nextpow(val, radix):
     x = 1
@@ -98,7 +99,6 @@ class rundata:
         outfile = str(self.function)
         outfile += "_" + self.precision
         outfile += "_" + self.label.replace(' ', '_').replace('/', '_')
-        # outfile += "_" + str(self.diridx + 65)
         outfile += ".dat"
         outfile = os.path.join(outdir, outfile)
         return outfile
@@ -215,6 +215,7 @@ class yamldata:
     def __init__(self, configFile):
         self.configFile = configFile
         self.testcases = []
+        self.executerun()
     
     def reorderdata(self):
         oldData = self.testcases
@@ -230,9 +231,11 @@ class yamldata:
                 names.append((name,precision, side))
         self.testcases = newData
     
-    def write_test(self, test):
+    #Monkey Patch
+    def write_test(self, test): 
         self.testcases.append(test)
 
+    #Monkey Patch
     def process_doc(self, doc):
         """Process one document in the YAML file"""
 
@@ -412,7 +415,7 @@ def getLabel(test):
         else:
             return 'M/lda/ldb '+str(test['M'])+' alpha '+ str(test['alpha']) + ' side ' + str(test['side']) + ' uplo ' + str(test['uplo']) + ' transA ' + test['transA'] + ' diag ' + str(test['diag'])
     else:
-        print('label not defined')
+        print('Legend label not defined for '+test['function'])
         sys.exit(1)
 
 def getXLabel(test):
@@ -431,21 +434,21 @@ def getXLabel(test):
         print('Xlabel not defined for ' + test.function)
         sys.exit(1)
 
-def getFunctionPreFix(name):
-    if "32_r" in name:
+def getFunctionPreFix(computeType):
+    if "32_r" in computeType:
         return "s"
-    elif "64_r" in name:
+    elif "64_r" in computeType:
         return "d"
-    elif "32_c" in name:
+    elif "32_c" in computeType:
         return "c"
-    elif "64_c" in name:
+    elif "64_c" in computeType:
         return "z"
-    elif "bf16_r" in name:
+    elif "bf16_r" in computeType:
         return "bf"
-    elif "f16_r" in name:
+    elif "f16_r" in computeType:
         return "h"
     else:
-        print("Error - Cannot detect precision preFix")
+        print("Error - Cannot detect precision preFix: "+computeType)
 
 def getDeviceSpecs(device, sclk):
     hwinfo = {}
@@ -477,7 +480,7 @@ def main(argv):
     outdir = "."
     speedup = False
     datatype = "gflops"
-    shortrun = False
+    # shortrun = False
     docformat = "pdf"
     devicenum = 0
     doAsy = False
@@ -606,9 +609,9 @@ def main(argv):
     #load yaml then create fig for every test
     f = open(inputYaml, 'r')
     data = yamldata(f)
-    data.executerun()
     f.close()
 
+    #setup tests sorted by their respectice figures
     for tests in data.testcases:
         name = getFunctionPreFix(tests[0]['compute_type']) + tests[0]['function'].split('_')[0] + " Performance"
         fig = figure(name , name.replace('_', '\_'))
@@ -620,6 +623,7 @@ def main(argv):
                                             test, hwinfo) )
         figs.append(fig)
 
+    #print and launch blas functions
     for fig in figs:
         print(fig.name)
         for run in fig.runs:
@@ -627,6 +631,7 @@ def main(argv):
             if not dryrun:
                 run.executerun(outdir, nsample)
 
+    #generate plots
     if doAsy:
         print("")
         for fig in figs:
