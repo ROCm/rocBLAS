@@ -35,17 +35,17 @@ __global__ void rocblas_swap_kernel(rocblas_int    n,
 }
 
 template <rocblas_int NB, typename U>
-rocblas_status rocblas_swap_template(rocblas_handle handle,
-                                     rocblas_int    n,
-                                     U              x,
-                                     rocblas_int    offsetx,
-                                     rocblas_int    incx,
-                                     rocblas_stride stridex,
-                                     U              y,
-                                     rocblas_int    offsety,
-                                     rocblas_int    incy,
-                                     rocblas_stride stridey,
-                                     rocblas_int    batch_count = 1)
+ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_swap_template(rocblas_handle handle,
+                                                             rocblas_int    n,
+                                                             U              x,
+                                                             rocblas_int    offsetx,
+                                                             rocblas_int    incx,
+                                                             rocblas_stride stridex,
+                                                             U              y,
+                                                             rocblas_int    offsety,
+                                                             rocblas_int    incy,
+                                                             rocblas_stride stridey,
+                                                             rocblas_int    batch_count = 1)
 {
     // Quick return if possible.
     if(n <= 0 || batch_count <= 0)

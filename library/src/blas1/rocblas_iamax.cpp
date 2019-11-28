@@ -5,6 +5,24 @@
 #include "rocblas_iamax.hpp"
 #include "rocblas_reduction_impl.hpp"
 
+template ROCBLAS_EXPORT_NOINLINE rocblas_status
+    rocblas_iamax_template<1024, float, float>(rocblas_handle handle,
+                                               rocblas_int    n,
+                                               const float*   x,
+                                               rocblas_int    shiftx,
+                                               rocblas_int    incx,
+                                               rocblas_int*   result,
+                                               void*          work);
+
+template ROCBLAS_EXPORT_NOINLINE rocblas_status
+    rocblas_iamax_template<1024, double, double>(rocblas_handle handle,
+                                                 rocblas_int    n,
+                                                 const double*  x,
+                                                 rocblas_int    shiftx,
+                                                 rocblas_int    incx,
+                                                 rocblas_int*   result,
+                                                 void*          work);
+
 namespace
 {
     template <typename>

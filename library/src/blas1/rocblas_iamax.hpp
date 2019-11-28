@@ -24,14 +24,15 @@ struct rocblas_reduce_amax
 };
 
 template <rocblas_int NB, typename T, typename S>
-rocblas_status rocblas_iamax_template(rocblas_handle    handle,
-                                      rocblas_int       n,
-                                      const T*          x,
-                                      rocblas_int       shiftx,
-                                      rocblas_int       incx,
-                                      rocblas_int*      result,
-                                      index_value_t<S>* workspace)
+ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_iamax_template(rocblas_handle handle,
+                                                              rocblas_int    n,
+                                                              const T*       x,
+                                                              rocblas_int    shiftx,
+                                                              rocblas_int    incx,
+                                                              rocblas_int*   result,
+                                                              void*          work)
 {
+    index_value_t<S>*               workspace     = (index_value_t<S>*)work;
     static constexpr bool           isbatched     = false;
     static constexpr rocblas_stride stridex_0     = 0;
     static constexpr rocblas_int    batch_count_1 = 1;
