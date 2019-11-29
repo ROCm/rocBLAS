@@ -9,20 +9,6 @@ import com.amd.project.*
 import com.amd.docker.*
 import java.nio.file.Path
 
-////////////////////////////////////////////////////////////////////////
-// Mostly generated from snippet generator 'properties; set job properties'
-// Time-based triggers added to execute nightly tests, eg '30 2 * * *' means 2:30 AM
-properties([
-    pipelineTriggers([cron('0 1 * * *'), [$class: 'PeriodicFolderTrigger', interval: '5m']]),
-    buildDiscarder(logRotator(
-      artifactDaysToKeepStr: '',
-      artifactNumToKeepStr: '',
-      daysToKeepStr: '',
-      numToKeepStr: '10')),
-    disableConcurrentBuilds(),
-    [$class: 'CopyArtifactPermissionProperty', projectNames: '*']
-   ])
-
 
 rocBLASCI:
 {
