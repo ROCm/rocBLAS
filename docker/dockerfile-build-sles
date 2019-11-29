@@ -14,7 +14,6 @@ ARG user_uid
 # * rocblas-bench: libboost-program-options-dev
 # * libhsakmt.so: libnuma1
 RUN zypper refresh && zypper -n --no-gpg-checks install\
-    rock-dkms \
     sudo \
     ca-certificates \
     git \
