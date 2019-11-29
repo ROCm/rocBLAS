@@ -466,26 +466,20 @@ pushd .
     cmake_common_options="${cmake_common_options} -DTensile_TEST_LOCAL_PATH=${tensile_test_local_path}"
   fi
 
-
-case "${ID}" in
-  centos|rhel)
-  cmake_common_options="${cmake_common_options} -DCMAKE_FIND_ROOT_PATH=/usr/lib64/llvm7.0/lib/cmake/"
-  ;;
-esac
-
-  # clients
-
   tensile_opt=""
-    if [[ "${build_tensile}" == false ]]; then
+  if [[ "${build_tensile}" == false ]]; then
     tensile_opt="${tensile_opt} -DBUILD_WITH_TENSILE=OFF"
   fi
 
-    if [[ "${build_tensile_host}" == true ]]; then
+  if [[ "${build_tensile_host}" == true ]]; then
     tensile_opt="${tensile_opt} -DBUILD_WITH_TENSILE_HOST=ON"
   fi
 
+  cmake_common_options="${cmake_common_options} ${tensile_opt}"
+
+
   if [[ "${build_clients}" == true ]]; then
-    cmake_client_options="${cmake_client_options} ${tensile_opt} -DBUILD_CLIENTS_SAMPLES=ON -DBUILD_CLIENTS_TESTS=ON -DBUILD_CLIENTS_BENCHMARKS=ON -DLINK_BLIS=${LINK_BLIS}"
+    cmake_client_options="${cmake_client_options} -DBUILD_CLIENTS_SAMPLES=ON -DBUILD_CLIENTS_TESTS=ON -DBUILD_CLIENTS_BENCHMARKS=ON -DLINK_BLIS=${LINK_BLIS}"
   fi
 
   compiler="hcc"
@@ -493,6 +487,14 @@ esac
     compiler="hipcc"
     cmake_common_options="${cmake_common_options} -DTensile_COMPILER=hipcc"
   fi
+
+
+  case "${ID}" in
+    centos|rhel)
+    cmake_common_options="${cmake_common_options} -DCMAKE_FIND_ROOT_PATH=/usr/lib64/llvm7.0/lib/cmake/"
+    ;;
+  esac
+
 
   # Uncomment for cmake debugging
   # CXX=${compiler} ${cmake_executable} -Wdev --debug-output --trace ${cmake_common_options} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=${rocm_path} ../..
