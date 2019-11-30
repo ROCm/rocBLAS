@@ -13,7 +13,7 @@ import java.nio.file.Path
 rocBLASCI:
 {
 
-    def rocblas = new rocProject('rocBLAS')
+    def rocblas = new rocProject('rocBLAS', 'Debug')
     // customize for project
     rocblas.paths.build_command = './install.sh -lasm_ci -c -g'
 

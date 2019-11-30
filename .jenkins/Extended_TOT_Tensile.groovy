@@ -13,7 +13,7 @@ import java.nio.file.Path
 rocBLASCI:
 {
 
-    def rocblas = new rocProject('rocBLAS')
+    def rocblas = new rocProject('rocBLAS', 'Extended_TOT_Tensile')
     // customize for project
     rocblas.paths.build_command = './install.sh -lasm_ci -c -b develop'
 
@@ -34,7 +34,7 @@ rocBLASCI:
     {
         platform, project->
 
-        def gfilter = "*quick*:*pre_checkin*"
+        def gfilter = "*nightly*"
         commonGroovy.runTestCommand(platform, project, gfilter)
     }
 
