@@ -13,8 +13,7 @@ ARG user_uid
 # * rocblas-test: gfortran, googletest
 # * rocblas-bench: libboost-program-options-dev
 # * libhsakmt.so: libnuma1
-RUN zypper -n update && zypper -n install\
-    rock-dkms \
+RUN zypper refresh && zypper -n --no-gpg-checks install\
     sudo \
     ca-certificates \
     git \
@@ -22,7 +21,6 @@ RUN zypper -n update && zypper -n install\
     gcc-fortran \
     make \
     cmake \
-    fftw3-devel \
     rpm-build \
     dpkg \
     python2-PyYAML \
@@ -30,7 +28,8 @@ RUN zypper -n update && zypper -n install\
     libcxxtools9 \
     libnuma1 \
     llvm7-devel \
-    python3-pip
+    python3-pip \
+    curl
 
 RUN pip3 install wheel && pip3 install tox pyyaml
 

@@ -64,8 +64,9 @@ void testing_rotmg_strided_batched(const Arguments& arg)
     rocblas_int          stride_param = arg.stride_c;
     rocblas_local_handle handle;
 
-    double gpu_time_used, cpu_time_used;
-    double norm_error_host = 0.0, norm_error_device = 0.0;
+    double  gpu_time_used, cpu_time_used;
+    double  norm_error_host = 0.0, norm_error_device = 0.0;
+    const T rel_error = std::numeric_limits<T>::epsilon() * 1000;
 
     // check to prevent undefined memory allocation error
     if(batch_count <= 0)
@@ -84,34 +85,20 @@ void testing_rotmg_strided_batched(const Arguments& arg)
         }
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        if(batch_count < 0)
-            EXPECT_ROCBLAS_STATUS((rocblas_rotmg_strided_batched<T>(handle,
-                                                                    d1,
-                                                                    stride_d1,
-                                                                    d2,
-                                                                    stride_d2,
-                                                                    x1,
-                                                                    stride_x1,
-                                                                    y1,
-                                                                    stride_y1,
-                                                                    params,
-                                                                    stride_param,
-                                                                    batch_count)),
-                                  rocblas_status_invalid_size);
-        else
-            CHECK_ROCBLAS_ERROR((rocblas_rotmg_strided_batched<T>(handle,
-                                                                  d1,
-                                                                  stride_d1,
-                                                                  d2,
-                                                                  stride_d2,
-                                                                  x1,
-                                                                  stride_x1,
-                                                                  y1,
-                                                                  stride_y1,
-                                                                  params,
-                                                                  stride_param,
-                                                                  batch_count)));
-
+        EXPECT_ROCBLAS_STATUS((rocblas_rotmg_strided_batched<T>(handle,
+                                                                d1,
+                                                                stride_d1,
+                                                                d2,
+                                                                stride_d2,
+                                                                x1,
+                                                                stride_x1,
+                                                                y1,
+                                                                stride_y1,
+                                                                params,
+                                                                stride_param,
+                                                                batch_count)),
+                              batch_count < 0 ? rocblas_status_invalid_size
+                                              : rocblas_status_success);
         return;
     }
 
@@ -179,11 +166,12 @@ void testing_rotmg_strided_batched(const Arguments& arg)
 
             if(arg.unit_check)
             {
-                unit_check_general<T>(1, 1, batch_count, 1, stride_d1, rd1, cd1);
-                unit_check_general<T>(1, 1, batch_count, 1, stride_d2, rd2, cd2);
-                unit_check_general<T>(1, 1, batch_count, 1, stride_x1, rx1, cx1);
-                unit_check_general<T>(1, 1, batch_count, 1, stride_y1, ry1, cy1);
-                unit_check_general<T>(1, 5, batch_count, 1, stride_param, rparams, cparams);
+                near_check_general<T>(1, 1, batch_count, 1, stride_d1, rd1, cd1, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, stride_d2, rd2, cd2, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, stride_x1, rx1, cx1, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, stride_y1, ry1, cy1, rel_error);
+                near_check_general<T>(
+                    1, 5, batch_count, 1, stride_param, rparams, cparams, rel_error);
             }
 
             if(arg.norm_check)
@@ -245,11 +233,12 @@ void testing_rotmg_strided_batched(const Arguments& arg)
 
             if(arg.unit_check)
             {
-                unit_check_general<T>(1, 1, batch_count, 1, stride_d1, rd1, cd1);
-                unit_check_general<T>(1, 1, batch_count, 1, stride_d2, rd2, cd2);
-                unit_check_general<T>(1, 1, batch_count, 1, stride_x1, rx1, cx1);
-                unit_check_general<T>(1, 1, batch_count, 1, stride_y1, ry1, cy1);
-                unit_check_general<T>(1, 5, batch_count, 1, stride_param, rparams, cparams);
+                near_check_general<T>(1, 1, batch_count, 1, stride_d1, rd1, cd1, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, stride_d2, rd2, cd2, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, stride_x1, rx1, cx1, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, stride_y1, ry1, cy1, rel_error);
+                near_check_general<T>(
+                    1, 5, batch_count, 1, stride_param, rparams, cparams, rel_error);
             }
 
             if(arg.norm_check)

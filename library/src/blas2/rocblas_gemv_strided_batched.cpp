@@ -94,7 +94,7 @@ namespace
                               incy,
                               "--stride_y",
                               stridey,
-                              "--batch",
+                              "--batch_count",
                               batch_count);
             }
             else
@@ -146,8 +146,10 @@ namespace
 
         if(m < 0 || n < 0 || lda < m || lda < 1 || !incx || !incy || batch_count < 0)
             return rocblas_status_invalid_size;
-        if(!m || !n || !batch_count)
+
+        if(!batch_count || !m || !n)
             return rocblas_status_success;
+
         if(!A || !x || !y || !alpha || !beta)
             return rocblas_status_invalid_pointer;
 
@@ -156,6 +158,7 @@ namespace
                                         m,
                                         n,
                                         alpha,
+                                        0,
                                         A,
                                         0,
                                         lda,
@@ -165,6 +168,7 @@ namespace
                                         incx,
                                         stridex,
                                         beta,
+                                        0,
                                         y,
                                         0,
                                         incy,

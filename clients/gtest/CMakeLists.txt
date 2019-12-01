@@ -39,9 +39,8 @@ find_package( Threads REQUIRED )
 if( BUILD_WITH_TENSILE )
   set(Tensile_TEST_SRC
       gemm_gtest.cpp
-      gemm_parallel_gtest.cpp
+      trmm_gtest.cpp
       trsm_gtest.cpp
-      trsm_ex_gtest.cpp
       trsv_gtest.cpp
       )
 
@@ -117,10 +116,11 @@ if( OS_ID_rhel OR OS_ID_centos OR OS_ID_sles)
         set( OPENMP_LIBRARY /usr/lib64/gcc/x86_64-suse-linux/7/libgomp.so )
     endif()
 
-    if(EXISTS /opt/rocm/hcc/lib/clang/10.0.0/include/immintrin.h)
-        set( CLANG_INCLUDE_DIR /opt/rocm/hcc/lib/clang/10.0.0/include )
-    elseif (EXISTS /opt/rocm/hcc/lib/clang/9.0.0/include/immintrin.h)
-        set( CLANG_INCLUDE_DIR /opt/rocm/hcc/lib/clang/9.0.0/include )
+    message(STATUS "RocmPath: ${ROCM_PATH}")
+    if(EXISTS "${ROCM_PATH}/hcc/lib/clang/10.0.0/include/immintrin.h")
+        set( CLANG_INCLUDE_DIR ${ROCM_PATH}/hcc/lib/clang/10.0.0/include )
+    elseif (EXISTS "${ROCM_PATH}/hcc/lib/clang/9.0.0/include/immintrin.h")
+        set( CLANG_INCLUDE_DIR ${ROCM_PATH}/hcc/lib/clang/9.0.0/include )
     else()
         error("cannot find immintrin.h")
     endif()
@@ -181,7 +181,7 @@ endif( )
 set( ROCBLAS_TEST_DATA "${PROJECT_BINARY_DIR}/staging/rocblas_gtest.data")
 add_custom_command( OUTPUT "${ROCBLAS_TEST_DATA}"
                     COMMAND ../common/rocblas_gentest.py -I ../include rocblas_gtest.yaml -o "${ROCBLAS_TEST_DATA}"
-                    DEPENDS ../common/rocblas_gentest.py rocblas_gtest.yaml ../include/rocblas_common.yaml known_bugs.yaml blas1_gtest.yaml gemm_gtest.yaml gemm_batched_gtest.yaml gemm_strided_batched_gtest.yaml gemv_gtest.yaml symv_gtest.yaml syr_gtest.yaml ger_gtest.yaml trsm_gtest.yaml trtri_gtest.yaml geam_gtest.yaml set_get_vector_gtest.yaml set_get_matrix_gtest.yaml trsv_gtest.yaml logging_mode_gtest.yaml set_get_pointer_mode_gtest.yaml
+                    DEPENDS ../common/rocblas_gentest.py rocblas_gtest.yaml ../include/rocblas_common.yaml known_bugs.yaml blas1_gtest.yaml gemm_gtest.yaml gemm_batched_gtest.yaml gemm_strided_batched_gtest.yaml gemv_gtest.yaml symv_gtest.yaml syr_gtest.yaml ger_gtest.yaml trsm_gtest.yaml trtri_gtest.yaml geam_gtest.yaml set_get_vector_gtest.yaml set_get_matrix_gtest.yaml trmm_gtest.yaml trsv_gtest.yaml logging_mode_gtest.yaml set_get_pointer_mode_gtest.yaml
                     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" )
 add_custom_target( rocblas-test-data
                    DEPENDS "${ROCBLAS_TEST_DATA}" )
@@ -190,9 +190,9 @@ add_dependencies( rocblas-test rocblas-test-data rocblas-common )
 
 if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
   # Remove following when hcc is fixed; hcc emits following spurious warning ROCm v1.6.1
-  # "clang-5.0: warning: argument unused during compilation: '-isystem /opt/rocm/include'"
+  # "clang-5.0: warning: argument unused during compilation: '-isystem ${ROCM_PATH}/include'"
   target_compile_options( rocblas-test PRIVATE -Wno-unused-command-line-argument -mf16c )
-  target_include_directories( rocblas-test PRIVATE /opt/rocm/hsa/include)
+  target_include_directories( rocblas-test PRIVATE ${ROCM_PATH}/hsa/include)
 
 elseif( CMAKE_COMPILER_IS_GNUCXX OR CXX_VERSION_STRING MATCHES "clang" )
   # GCC or hip-clang needs specific flag to turn on f16c intrinsics
@@ -204,7 +204,7 @@ if( OS_ID_rhel OR OS_ID_centos)
     set(CMAKE_CXX_FLAGS "-isystem ${CLANG_INCLUDE_DIR} -isystem ${XXX_OPENMP_INCLUDE_DIR} ${CMAKE_CXX_FLAGS}")
 endif()
 
-# include order workaround to force /opt/rocm/include later in order to ignore installed rocblas 
+# include order workaround to force /opt/rocm/include later in order to ignore installed rocblas
 set(CMAKE_CXX_FLAGS "-isystem /opt/rocm/include ${CMAKE_CXX_FLAGS}")
 
 if( CXX_VERSION_STRING MATCHES "clang" )

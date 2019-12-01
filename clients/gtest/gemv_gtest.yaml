@@ -131,7 +131,7 @@ Tests:
   incx_incy: *incx_incy_range
   alpha_beta: *alpha_beta_range
   batch_count: [ 3 ]
-  
+
 - name: gemv_strided_batched_bad_arg
   category: pre_checkin
   function: gemv_strided_batched_bad_arg

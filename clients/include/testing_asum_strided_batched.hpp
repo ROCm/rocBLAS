@@ -18,21 +18,14 @@ void testing_asum_strided_batched_bad_arg_template(const Arguments& arg)
 {
     rocblas_int    N           = 100;
     rocblas_int    incx        = 1;
-    rocblas_stride stridex     = 1;
+    rocblas_stride stridex     = N;
     rocblas_int    batch_count = 5;
+    T2             h_rocblas_result[1];
 
-    static const size_t safe_size        = 100;
-    T2                  rocblas_result   = 10;
-    T2*                 h_rocblas_result = &rocblas_result;
+    device_strided_batch_vector<T1> dx(N, incx, stridex, batch_count);
+    CHECK_HIP_ERROR(dx.memcheck());
 
     rocblas_local_handle handle;
-    device_vector<T1>    dx(safe_size);
-    if(!dx)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
-
     CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
     EXPECT_ROCBLAS_STATUS((rocblas_asum_strided_batched<T1, T2>(
@@ -44,11 +37,12 @@ void testing_asum_strided_batched_bad_arg_template(const Arguments& arg)
     EXPECT_ROCBLAS_STATUS((rocblas_asum_strided_batched<T1, T2>(
                               nullptr, N, dx, incx, stridex, batch_count, h_rocblas_result)),
                           rocblas_status_invalid_handle);
-}
+};
 
 template <typename T1, typename T2 = T1>
 void testing_asum_strided_batched_template(const Arguments& arg)
 {
+
     rocblas_int    N           = arg.N;
     rocblas_int    incx        = arg.incx;
     rocblas_stride stridex     = arg.stride_x;
@@ -59,66 +53,47 @@ void testing_asum_strided_batched_template(const Arguments& arg)
 
     rocblas_local_handle handle;
 
-    if(batch_count < 0)
-    {
-        static const size_t safe_size = 100; //  arbitrarily set to zero
-        device_vector<T1>   dx(safe_size);
-        device_vector<T2>   d_rocblas_result(std::max(batch_count, 1));
-        if(!dx || !d_rocblas_result)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
-
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        EXPECT_ROCBLAS_STATUS((rocblas_asum_strided_batched<T1, T2>(
-                                  handle, N, dx, incx, stridex, batch_count, d_rocblas_result)),
-                              rocblas_status_invalid_size);
-        return;
-    }
-
     // check to prevent undefined memory allocation error
-    if(N <= 0 || incx <= 0 || batch_count == 0)
+    if(N <= 0 || incx <= 0 || batch_count <= 0)
     {
-        static const size_t safe_size = 100; // arbitrarily set to 100
-        device_vector<T1>   dx(safe_size);
-        device_vector<T2>   d_rocblas_result(std::max(batch_count, 1));
-        if(!dx || !d_rocblas_result)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
+        device_strided_batch_vector<T1> dx(3, 1, 3, 3);
+        CHECK_HIP_ERROR(dx.memcheck());
+        device_vector<T2> dr(std::max(3, std::abs(batch_count)));
+        CHECK_HIP_ERROR(dr.memcheck());
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR((rocblas_asum_strided_batched<T1, T2>(
-            handle, N, dx, incx, stridex, batch_count, d_rocblas_result)));
+        EXPECT_ROCBLAS_STATUS(
+            (rocblas_asum_strided_batched<T1, T2>(handle, N, dx, incx, stridex, batch_count, dr)),
+            (N > 0 && incx > 0 && batch_count < 0) ? rocblas_status_invalid_size
+                                                   : rocblas_status_success);
+
         return;
     }
-
-    T2 rocblas_result_1[batch_count];
-    T2 rocblas_result_2[batch_count];
-    T2 cpu_result[batch_count];
-
-    size_t size_x = (size_t)stridex;
 
     // allocate memory on device
-    device_vector<T1> dx(batch_count * size_x);
-    device_vector<T2> d_rocblas_result_2(batch_count);
-    if(!dx || !d_rocblas_result_2)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
-
     // Naming: dx is in GPU (device) memory. hx is in CPU (host) memory, plz follow this practice
-    host_vector<T1> hx(batch_count * size_x);
 
-    // Initial Data on CPU
-    rocblas_seedrand();
-    rocblas_init<T1>(hx, 1, N, incx, stridex, batch_count);
+    host_strided_batch_vector<T1> hx(N, incx, stridex, batch_count);
+    CHECK_HIP_ERROR(hx.memcheck());
+    device_strided_batch_vector<T1> dx(N, incx, stridex, batch_count);
+    CHECK_HIP_ERROR(dx.memcheck());
 
+    device_vector<T2> dr(batch_count);
+    CHECK_HIP_ERROR(dr.memcheck());
+    host_vector<T2> hr1(batch_count);
+    CHECK_HIP_ERROR(hr1.memcheck());
+    host_vector<T2> hr(batch_count);
+    CHECK_HIP_ERROR(hr.memcheck());
+
+    //
+    // Initialize the host vector.
+    //
+    rocblas_init(hx, true);
+
+    //
     // copy data from CPU to device, does not work for incx != 1
-    CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T1) * size_x * batch_count, hipMemcpyHostToDevice));
+    //
+    CHECK_HIP_ERROR(dx.transfer_from(hx));
 
     double gpu_time_used, cpu_time_used;
 
@@ -126,17 +101,19 @@ void testing_asum_strided_batched_template(const Arguments& arg)
     {
         // GPU BLAS rocblas_pointer_mode_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR((rocblas_asum_strided_batched<T1, T2>(
-            handle, N, dx, incx, stridex, batch_count, rocblas_result_1)));
+        CHECK_ROCBLAS_ERROR(
+            (rocblas_asum_strided_batched<T1, T2>(handle, N, dx, incx, stridex, batch_count, hr1)));
 
         // GPU BgdLAS rocblas_pointer_mode_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR((rocblas_asum_strided_batched<T1, T2>(
-            handle, N, dx, incx, stridex, batch_count, d_rocblas_result_2)));
-        CHECK_HIP_ERROR(hipMemcpy(
-            rocblas_result_2, d_rocblas_result_2, batch_count * sizeof(T2), hipMemcpyDeviceToHost));
+        CHECK_ROCBLAS_ERROR(
+            (rocblas_asum_strided_batched<T1, T2>(handle, N, dx, incx, stridex, batch_count, dr)));
+
+        CHECK_HIP_ERROR(hr.transfer_from(dr));
 
         // CPU BLAS
+        T2 cpu_result[batch_count];
+
         cpu_time_used = get_time_us();
         for(int i = 0; i < batch_count; i++)
         {
@@ -146,18 +123,17 @@ void testing_asum_strided_batched_template(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T2>(batch_count, 1, 1, cpu_result, rocblas_result_1);
-            unit_check_general<T2>(batch_count, 1, 1, cpu_result, rocblas_result_2);
+            unit_check_general<T2>(batch_count, 1, 1, cpu_result, hr1);
+            unit_check_general<T2>(batch_count, 1, 1, cpu_result, hr);
         }
 
         if(arg.norm_check)
         {
-            std::cout << "cpu=" << std::scientific << cpu_result[0]
-                      << ", gpu_host_ptr=" << rocblas_result_1[0]
-                      << ", gpu_dev_ptr=" << rocblas_result_2[0] << "\n";
+            std::cout << "cpu=" << std::scientific << cpu_result[0] << ", gpu_host_ptr=" << hr1[0]
+                      << ", gpu_dev_ptr=" << hr[0] << "\n";
 
-            rocblas_error_1 = std::abs((cpu_result[0] - rocblas_result_1[0]) / cpu_result[0]);
-            rocblas_error_2 = std::abs((cpu_result[0] - rocblas_result_2[0]) / cpu_result[0]);
+            rocblas_error_1 = std::abs((cpu_result[0] - hr1[0]) / cpu_result[0]);
+            rocblas_error_2 = std::abs((cpu_result[0] - hr[0]) / cpu_result[0]);
         }
     }
 
@@ -169,16 +145,14 @@ void testing_asum_strided_batched_template(const Arguments& arg)
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            rocblas_asum_strided_batched<T1, T2>(
-                handle, N, dx, incx, stridex, batch_count, rocblas_result_2);
+            rocblas_asum_strided_batched<T1, T2>(handle, N, dx, incx, stridex, batch_count, hr);
         }
 
         gpu_time_used = get_time_us(); // in microseconds
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            rocblas_asum_strided_batched<T1, T2>(
-                handle, N, dx, incx, stridex, batch_count, rocblas_result_2);
+            rocblas_asum_strided_batched<T1, T2>(handle, N, dx, incx, stridex, batch_count, hr);
         }
 
         gpu_time_used = (get_time_us() - gpu_time_used) / number_hot_calls;

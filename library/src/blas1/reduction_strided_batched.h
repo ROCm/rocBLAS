@@ -155,30 +155,47 @@ inline size_t rocblas_reduction_kernel_block_count(rocblas_int n, rocblas_int NB
     return size_t(n - 1) / NB + 1;
 }
 
-/*! \brief rocblas_reduction_batched_kernel_workspace_size 
+/*! \brief rocblas_reduction_batched_kernel_workspace_size
     Work area for reduction must be at lease sizeof(To) * (blocks + 1) * batch_count
 
     @param[in]
-    outputType To* 
+    outputType To*
         Type of output values
     @param[in]
-    batch_count rocblas_int 
+    batch_count rocblas_int
+        Number of batches
+    ********************************************************************/
+template <rocblas_int NB, typename To>
+size_t rocblas_reduction_kernel_workspace_size(rocblas_int n, rocblas_int batch_count = 1)
+{
+    if(n <= 0)
+        n = 1; // allow for return value of empty set
+    if(batch_count <= 0)
+        batch_count = 1;
+    auto blocks = rocblas_reduction_kernel_block_count(n, NB);
+    return sizeof(To) * (blocks + 1) * batch_count;
+}
+
+/*! \brief rocblas_reduction_batched_kernel_workspace_size
+    Work area for reduction must be at lease sizeof(To) * (blocks + 1) * batch_count
+
+    @param[in]
+    outputType To*
+        Type of output values
+    @param[in]
+    batch_count rocblas_int
         Number of batches
     ********************************************************************/
 template <rocblas_int NB, typename To>
 size_t
     rocblas_reduction_kernel_workspace_size(rocblas_int n, rocblas_int batch_count, To* output_type)
 {
-    if(n <= 0)
-        n = 1; // allow for return value of empty set
-    auto blocks = rocblas_reduction_kernel_block_count(n, NB);
-    return sizeof(To) * (blocks + 1) * batch_count;
+    return rocblas_reduction_kernel_workspace_size<NB, To>(n, batch_count);
 }
 
 // kernel 1 writes partial results per thread block in workspace; number of partial results is
 // blocks
 template <rocblas_int NB,
-          typename Ti,
           typename FETCH,
           typename REDUCE = rocblas_reduce_sum,
           typename TPtrX,
@@ -197,7 +214,7 @@ __global__ void
     ptrdiff_t     tid = hipBlockIdx_x * hipBlockDim_x + tx;
     __shared__ To tmp[NB];
 
-    const Ti* x = load_ptr_batch(xvec, hipBlockIdx_y, shiftx, stridex);
+    const auto* x = load_ptr_batch(xvec, hipBlockIdx_y, shiftx, stridex);
 
     // bound
     if(tid < n)
@@ -289,7 +306,7 @@ __global__ void
     batch_count rocblas_int
               number of instances in the batch
     @param[out]
-    workspace To*  
+    workspace To*
               temporary GPU buffer for inidividual block results for each batch
               and results buffer in case result pointer is to host memory
               Size must be (blocks+1)*batch_count*sizeof(To)
@@ -299,7 +316,6 @@ __global__ void
               return is 0.0 if n, incx<=0.
     ********************************************************************/
 template <rocblas_int NB,
-          typename Ti,
           typename FETCH,
           typename REDUCE   = rocblas_reduce_sum,
           typename FINALIZE = rocblas_finalize_identity,
@@ -318,7 +334,7 @@ rocblas_status rocblas_reduction_strided_batched_kernel(rocblas_handle __restric
 {
     rocblas_int blocks = rocblas_reduction_kernel_block_count(n, NB);
 
-    hipLaunchKernelGGL((rocblas_reduction_strided_batched_kernel_part1<NB, Ti, FETCH, REDUCE>),
+    hipLaunchKernelGGL((rocblas_reduction_strided_batched_kernel_part1<NB, FETCH, REDUCE>),
                        dim3(blocks, batch_count),
                        NB,
                        0,
@@ -360,14 +376,14 @@ rocblas_status rocblas_reduction_strided_batched_kernel(rocblas_handle __restric
                 handle->rocblas_stream,
                 blocks,
                 workspace,
-                (Tr*)(workspace + batch_count * blocks));
+                (Tr*)(workspace + size_t(batch_count) * blocks));
         }
 
         if(std::is_same<FINALIZE, rocblas_finalize_identity>{} || reduceKernel)
         {
             // If FINALIZE is trivial or kernel part2 was called, result is in the
             // beginning of workspace[0]+offset, and can be copied directly.
-            size_t offset = reduceKernel ? batch_count * blocks : 0;
+            size_t offset = reduceKernel ? size_t(batch_count) * blocks : 0;
             RETURN_IF_HIP_ERROR(hipMemcpy(
                 result, workspace + offset, batch_count * sizeof(Tr), hipMemcpyDeviceToHost));
         }
@@ -378,7 +394,7 @@ rocblas_status rocblas_reduction_strided_batched_kernel(rocblas_handle __restric
             To res[batch_count];
             RETURN_IF_HIP_ERROR(
                 hipMemcpy(res, workspace, batch_count * sizeof(To), hipMemcpyDeviceToHost));
-            for(int i = 0; i < batch_count; i++)
+            for(rocblas_int i = 0; i < batch_count; i++)
                 result[i] = Tr(FINALIZE{}(res[i]));
         }
     }

@@ -53,7 +53,7 @@
     } while(0)
 #endif
 
-#define ASSERT_HALF_EQ(a, b) ASSERT_FLOAT_EQ(half_to_float(a), half_to_float(b))
+#define ASSERT_HALF_EQ(a, b) ASSERT_FLOAT_EQ(float(a), float(b))
 
 #define ASSERT_BFLOAT16_EQ(a, b) ASSERT_FLOAT_EQ(float(a), float(b))
 
@@ -305,6 +305,87 @@ inline void unit_check_general(rocblas_int                         M,
                                rocblas_int                         lda,
                                host_vector<rocblas_double_complex> hCPU[],
                                host_vector<rocblas_double_complex> hGPU[])
+{
+    UNIT_CHECK_B(M, N, batch_count, lda, hCPU, hGPU, ASSERT_DOUBLE_COMPLEX_EQ);
+}
+
+template <typename T>
+void unit_check_general(
+    rocblas_int M, rocblas_int N, rocblas_int batch_count, rocblas_int lda, T* hCPU[], T* hGPU[]);
+
+template <>
+inline void unit_check_general(rocblas_int       M,
+                               rocblas_int       N,
+                               rocblas_int       batch_count,
+                               rocblas_int       lda,
+                               rocblas_bfloat16* hCPU[],
+                               rocblas_bfloat16* hGPU[])
+{
+    UNIT_CHECK_B(M, N, batch_count, lda, hCPU, hGPU, ASSERT_BFLOAT16_EQ);
+}
+
+template <>
+inline void unit_check_general(rocblas_int   M,
+                               rocblas_int   N,
+                               rocblas_int   batch_count,
+                               rocblas_int   lda,
+                               rocblas_half* hCPU[],
+                               rocblas_half* hGPU[])
+{
+    UNIT_CHECK_B(M, N, batch_count, lda, hCPU, hGPU, ASSERT_HALF_EQ);
+}
+
+template <>
+inline void unit_check_general(rocblas_int M,
+                               rocblas_int N,
+                               rocblas_int batch_count,
+                               rocblas_int lda,
+                               int*        hCPU[],
+                               int*        hGPU[])
+{
+    UNIT_CHECK_B(M, N, batch_count, lda, hCPU, hGPU, ASSERT_EQ);
+}
+
+template <>
+inline void unit_check_general(rocblas_int M,
+                               rocblas_int N,
+                               rocblas_int batch_count,
+                               rocblas_int lda,
+                               float*      hCPU[],
+                               float*      hGPU[])
+{
+    UNIT_CHECK_B(M, N, batch_count, lda, hCPU, hGPU, ASSERT_FLOAT_EQ);
+}
+
+template <>
+inline void unit_check_general(rocblas_int M,
+                               rocblas_int N,
+                               rocblas_int batch_count,
+                               rocblas_int lda,
+                               double*     hCPU[],
+                               double*     hGPU[])
+{
+    UNIT_CHECK_B(M, N, batch_count, lda, hCPU, hGPU, ASSERT_DOUBLE_EQ);
+}
+
+template <>
+inline void unit_check_general(rocblas_int            M,
+                               rocblas_int            N,
+                               rocblas_int            batch_count,
+                               rocblas_int            lda,
+                               rocblas_float_complex* hCPU[],
+                               rocblas_float_complex* hGPU[])
+{
+    UNIT_CHECK_B(M, N, batch_count, lda, hCPU, hGPU, ASSERT_FLOAT_COMPLEX_EQ);
+}
+
+template <>
+inline void unit_check_general(rocblas_int             M,
+                               rocblas_int             N,
+                               rocblas_int             batch_count,
+                               rocblas_int             lda,
+                               rocblas_double_complex* hCPU[],
+                               rocblas_double_complex* hGPU[])
 {
     UNIT_CHECK_B(M, N, batch_count, lda, hCPU, hGPU, ASSERT_DOUBLE_COMPLEX_EQ);
 }
