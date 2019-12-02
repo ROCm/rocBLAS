@@ -18,7 +18,7 @@ rocBLAS build & installation helper script
       -f | --fork              GitHub fork to use, e.g., ROCmSoftwarePlatform or MyUserName
       -b | --branch            GitHub branch or tag to use, e.g., develop, mybranch or <commit hash>
       -l | --logic             Set Tensile logic target, e.g., asm_full, asm_lite, etc.
-      -a | --architecture      Set GPU architecture, e.g. all, arcturus, fiji, vega10, vega20
+      -a | --architecture      Set Tensile GPU architecture target, e.g. all, gfx000, gfx803, gfx900, gfx906, gfx908
       -o | --cov               Set Tensile code_object_version (V2 or V3)
       -t | --test_local_path   Use a local path for Tensile instead of remote GIT repo
            --cpu_ref_lib       Specify library to use for CPU reference code in testing (blis or lapack)
