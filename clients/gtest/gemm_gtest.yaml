@@ -64,6 +64,7 @@ Definitions:
     - { M:    56, N:    56, K:    56, lda:    56, ldb:    56, ldc:    56, ldd:    56 }
     - { M:    64, N:    64, K:    64, lda:    64, ldb:    64, ldc:    64, ldd:    64 }
     - { M:    72, N:    72, K:    72, lda:    72, ldb:    72, ldc:    72, ldd:    72 }
+    - { M:    32, N:    32, K:     0, lda:    32, ldb:    32, ldc:    32, ldd:    32 }
 
   - &medium_matrix_size_range
     - { M:    -1, N:    -1, K:    -1, lda:    -1, ldb:     1, ldc:     1, ldd:     1 }

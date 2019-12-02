@@ -87,6 +87,12 @@ namespace
         static std::string name_suffix(const Arguments& arg)
         {
             RocBLAS_TestName<gemm_test_template> name;
+
+            if(strstr(arg.function, "_bad_arg") != nullptr)
+            {
+                name << "_bad_arg";
+            }
+
             name << rocblas_datatype2string(arg.a_type);
             bool isEx = (GEMM_TYPE == GEMM_EX || GEMM_TYPE == GEMM_BATCHED_EX
                          || GEMM_TYPE == GEMM_STRIDED_BATCHED_EX);
