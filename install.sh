@@ -23,6 +23,7 @@ rocBLAS build & installation helper script
       -t | --test_local_path   Use a local path for Tensile instead of remote GIT repo
            --cpu_ref_lib       Specify library to use for CPU reference code in testing (blis or lapack)
            --hip-clang         Build library for amdgpu backend using hip-clang
+           --build_dir         Specify name of output directory (default is ./build)
       -n | --no_tensile        Build subset of library that does not require Tensile
       -s | --tensile-host      Build with Tensile host
 EOF
@@ -251,6 +252,7 @@ build_tensile_host=false
 cpu_ref_lib=blis
 build_release=true
 build_hip_clang=false
+build_dir=./build
 
 rocm_path=/opt/rocm
 if ! [ -z ${ROCM_PATH+x} ]; then
@@ -264,7 +266,7 @@ fi
 # check if we have a modern version of getopt that can handle whitespace and long parameters
 getopt -T
 if [[ $? -eq 4 ]]; then
-  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,no_tensile,tensile_host,logic:,architecture:,cov:,fork:,branch:test_local_path:,cpu_ref_lib: --options anshicdgl:o:f:b:t: -- "$@")
+  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,no_tensile,tensile_host,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib: --options nshicdgl:a:o:f:b:t: -- "$@")
 else
   echo "Need a new version of getopt"
   exit 1
@@ -319,6 +321,9 @@ while true; do
     -s|--tensile-host)
         build_tensile_host=true
         shift ;;
+    --build_dir)
+        build_dir=${2}
+        shift 2;;
     --cuda)
         build_cuda=true
         shift ;;
@@ -350,7 +355,6 @@ else
       exit 2
 fi
 
-build_dir=./build
 printf "\033[32mCreating project build directory in: \033[33m${build_dir}\033[0m\n"
 
 # #################################################
