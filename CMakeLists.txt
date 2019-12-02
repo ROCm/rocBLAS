@@ -206,6 +206,7 @@ if( Tensile_ARCHITECTURE STREQUAL "all" )
   set( gpus "gfx803;gfx900;gfx906;gfx908")
 else()
   set( gpus ${Tensile_ARCHITECTURE})
+endif()
 set( AMDGPU_TARGETS ${gpus} CACHE STRING "List of specific machine types for library to target" )
 
 add_subdirectory( library )
