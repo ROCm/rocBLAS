@@ -172,6 +172,11 @@ add_library( rocblas
 
 add_library( roc::rocblas ALIAS rocblas )
 
+# RUNPATH is set only when ROCM_RPATH is defined in the ENV
+if( DEFINED ENV{ROCM_RPATH} )
+  set ( CMAKE_SHARED_LINKER_FLAGS " -Wl,--enable-new-dtags -Wl,--rpath,$ENV{ROCM_RPATH}" )
+endif( )
+
 # Remove this check when we no longer build with older rocm stack(ie < 1.8.2)
 if(TARGET hip::device)
 target_link_libraries( rocblas PRIVATE hip::device )
