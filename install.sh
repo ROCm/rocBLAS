@@ -40,10 +40,10 @@ supported_distro( )
   fi
 
   case "${ID}" in
-    ubuntu|centos|rhel|fedora|sles)
+    ubuntu|centos|rhel|fedora|sles|opensuse-leap)
         true
         ;;
-    *)  printf "This script is currently supported on Ubuntu, CentOS, RHEL and Fedora\n"
+    *)  printf "This script is currently supported on Ubuntu, CentOS, RHEL, SLES, OpenSUSE-Leap, and Fedora\n"
         exit 2
         ;;
   esac
@@ -192,7 +192,7 @@ install_packages( )
       fi
       ;;
 
-    sles)
+    sles|opensuse-leap)
        install_zypper_packages "${client_dependencies_sles[@]}"
 
         if [[ "${build_clients}" == true ]]; then
@@ -200,7 +200,7 @@ install_packages( )
         fi
         ;;
     *)
-      echo "This script is currently supported on Ubuntu, CentOS, RHEL and Fedora"
+      echo "This script is currently supported on Ubuntu, CentOS, RHEL, SLES, OpenSUSE-Leap, and Fedora"
       exit 2
       ;;
   esac
@@ -386,7 +386,7 @@ if [[ "${install_dependencies}" == true ]]; then
     #Download prebuilt AMD multithreaded blis
     if [[ "${cpu_ref_lib}" == blis ]] && [[ ! -f "${build_dir}/deps/blis/lib/libblis.so" ]]; then
       case "${ID}" in
-          centos|rhel|sles)
+          centos|rhel|sles|opensuse-leap)
               curl -L  https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-centos-2.0.tar.gz > blis.tar.gz
               ;;
           ubuntu)
@@ -413,7 +413,7 @@ if [[ "${cpu_ref_lib}" == blis ]] && [[ ! -f "${build_dir}/deps/blis/lib/libblis
   pushd .
   mkdir -p ${build_dir}/deps && cd ${build_dir}/deps
   case "${ID}" in
-    centos|rhel|sles)
+    centos|rhel|sles|opensuse-leap)
       curl -L  https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-centos-2.0.tar.gz > blis.tar.gz
       ;;
     ubuntu)
@@ -528,7 +528,7 @@ pushd .
       fedora)
         elevate_if_not_root dnf install rocblas-*.rpm
       ;;
-      sles)
+      sles|opensuse-leap)
         elevate_if_not_root zypper --no-gpg-checks in -y install rocblas-*.rpm
       ;;
     esac
