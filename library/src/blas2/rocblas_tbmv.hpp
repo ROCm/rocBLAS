@@ -278,7 +278,7 @@ rocblas_status rocblas_tbmv_template(rocblas_handle    handle,
                                      rocblas_int       incx,
                                      rocblas_stride    stridex,
                                      rocblas_int       batch_count,
-                                     const T*          x_copy)
+                                     T*                x_copy)
 {
     // quick return
     if(!m || !batch_count)
