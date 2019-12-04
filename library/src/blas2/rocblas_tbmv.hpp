@@ -302,7 +302,7 @@ rocblas_status rocblas_tbmv_template(rocblas_handle    handle,
                        offsetx,
                        incx,
                        stridex,
-                       (T*)x_copy,
+                       x_copy,
                        0,
                        1,
                        m);
