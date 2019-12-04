@@ -3029,6 +3029,123 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgemv_strided_batched(rocblas_handle      
 /*! \brief BLAS Level 2 API
 
     \details
+    xTBMV performs one of the matrix-vector operations
+
+        x := A*x      or
+        x := A**T*x   or
+        x := A**H*x,
+
+    x is a vectors and A is a banded m by m matrix (see description below).
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+    @param[in]
+    uplo      [rocblas_fill]
+              rocblas_fill_upper: A is an upper banded triangular matrix.
+              rocblas_fill_lower: A is a  lower banded triangular matrix.
+    @param[in]
+    trans     [rocblas_operation]
+              indicates whether matrix A is tranposed (conjugated) or not.
+    @param[in]
+    diag      [rocblas_diagonal]
+              rocblas_diagonal_unit: The main diagonal of A is assumed to consist of only
+                                     1's and is not referenced.
+              rocblas_diagonal_non_unit: No assumptions are made of A's main diagonal.
+    @param[in]
+    m         [rocblas_int]
+              the number of rows and columns of the matrix represented by A.
+    @param[in]
+    k         [rocblas_int]
+              if uplo == rocblas_fill_upper, k specifies the number of super-diagonals
+              of the matrix A.
+              if uplo == rocblas_fill_lower, k specifies the number of sub-diagonals
+              of the matrix A.
+              k must satisfy k > 0 && k < lda.
+    @param[in]
+    A         device pointer storing banded triangular matrix A.
+              if uplo == rocblas_fill_upper:
+                The matrix represented is an upper banded triangular matrix
+                with the main diagonal and k super-diagonals, everything
+                else can be assumed to be 0.
+                The matrix is compacted so that the main diagonal resides on the k'th
+                row, the first super diagonal resides on the RHS of the k-1'th row, etc,
+                with the k'th diagonal on the RHS of the 0'th row.
+                   Ex: (rocblas_fill_upper; m = 5; k = 2)
+                      1 6 9 0 0              0 0 9 8 7
+                      0 2 7 8 0              0 6 7 8 9
+                      0 0 3 8 7     ---->    1 2 3 4 5
+                      0 0 0 4 9              0 0 0 0 0
+                      0 0 0 0 5              0 0 0 0 0
+              if uplo == rocblas_fill_lower:
+                The matrix represnted is a lower banded triangular matrix
+                with the main diagonal and k sub-diagonals, everything else can be
+                assumed to be 0.
+                The matrix is compacted so that the main diagonal resides on the 0'th row,
+                working up to the k'th diagonal residing on the LHS of the k'th row.
+                   Ex: (rocblas_fill_lower; m = 5; k = 2)
+                      1 0 0 0 0              1 2 3 4 5
+                      6 2 0 0 0              6 7 8 9 0
+                      9 7 3 0 0     ---->    9 8 7 0 0
+                      0 8 8 4 0              0 0 0 0 0
+                      0 0 7 9 5              0 0 0 0 0
+    @param[in]
+    lda       [rocblas_int]
+              specifies the leading dimension of A. lda must satisfy lda > k.
+    @param[in]
+    x         device pointer storing vector x.
+    @param[inout]
+    incx      [rocblas_int]
+              specifies the increment for the elements of x.
+
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_stbmv(rocblas_handle    handle,
+                                            rocblas_fill      uplo,
+                                            rocblas_operation trans,
+                                            rocblas_diagonal  diag,
+                                            rocblas_int       m,
+                                            rocblas_int       k,
+                                            const float*      A,
+                                            rocblas_int       lda,
+                                            float*            x,
+                                            rocblas_int       incx);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dtbmv(rocblas_handle    handle,
+                                            rocblas_fill      uplo,
+                                            rocblas_operation trans,
+                                            rocblas_diagonal  diag,
+                                            rocblas_int       m,
+                                            rocblas_int       k,
+                                            const double*     A,
+                                            rocblas_int       lda,
+                                            double*           x,
+                                            rocblas_int       incx);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ctbmv(rocblas_handle               handle,
+                                            rocblas_fill                 uplo,
+                                            rocblas_operation            trans,
+                                            rocblas_diagonal             diag,
+                                            rocblas_int                  m,
+                                            rocblas_int                  k,
+                                            const rocblas_float_complex* A,
+                                            rocblas_int                  lda,
+                                            rocblas_float_complex*       x,
+                                            rocblas_int                  incx);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ztbmv(rocblas_handle                handle,
+                                            rocblas_fill                  uplo,
+                                            rocblas_operation             trans,
+                                            rocblas_diagonal              diag,
+                                            rocblas_int                   m,
+                                            rocblas_int                   k,
+                                            const rocblas_double_complex* A,
+                                            rocblas_int                   lda,
+                                            rocblas_double_complex*       x,
+                                            rocblas_int                   incx);
+
+/*! \brief BLAS Level 2 API
+
+    \details
     trsv solves
 
          A*x = b or A**T*x = b,
