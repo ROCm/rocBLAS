@@ -19,6 +19,13 @@ rocBLAS Debian packages can also be downloaded from the `rocBLAS releases tag <h
 Building from Source
 ********************
 
+Requirements
+````````````
+As a general rule, 32GB of system memory is required to build rocBLAS. This value may be lower
+depending on the target graphics card. This value may also increase as more functions are added to
+rocBLAS and dependencies such as Tensile grow.
+
+
 Download rocBLAS
 ````````````````
 
