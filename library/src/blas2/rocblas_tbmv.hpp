@@ -21,8 +21,7 @@ __device__ T tbmvn_kernel_helper(rocblas_int ty,
                                  rocblas_int k,
                                  const T*    A,
                                  rocblas_int lda,
-                                 const T*    x_copy,
-                                 rocblas_int incx)
+                                 const T*    x_copy)
 {
     T           res_A = 0.0;
     rocblas_int col   = ty; // ty defines the column of banded & regular matrix
@@ -78,8 +77,7 @@ __device__ T tbmvt_kernel_helper(bool        CONJ,
                                  rocblas_int k,
                                  const T*    A,
                                  rocblas_int lda,
-                                 const T*    x_copy,
-                                 rocblas_int incx)
+                                 const T*    x_copy)
 {
     T           res_A = 0.0;
     rocblas_int row   = ty; // for transpose case, ty defines the row
@@ -169,13 +167,12 @@ __device__ void tbmvx_kernel_calc(rocblas_operation transA,
     // if more elegant logic is used.
     if(transA == rocblas_operation_none)
     {
-        res_A = tbmvn_kernel_helper<DIM_Y, T>(ty, ind, upper, diag, m, k, A, lda, x_copy, incx);
+        res_A = tbmvn_kernel_helper<DIM_Y, T>(ty, ind, upper, diag, m, k, A, lda, x_copy);
     }
     else
     {
         bool CONJ = transA == rocblas_operation_conjugate_transpose;
-        res_A
-            = tbmvt_kernel_helper<DIM_Y, T>(CONJ, ty, ind, upper, diag, m, k, A, lda, x_copy, incx);
+        res_A     = tbmvt_kernel_helper<DIM_Y, T>(CONJ, ty, ind, upper, diag, m, k, A, lda, x_copy);
     }
     // Store partial sums for the diagonal
     sdata[tx + ty * DIM_X] = res_A;
@@ -261,6 +258,7 @@ __global__ void tbmvx_kernel(rocblas_operation transA,
 /**
   *  First, makes a copy of 'x', then uses a modified gemv algorithm
   *  to perform x := transA(A) * x_copy
+  *  x_copy should be of size sizeof(T) * m bytes.
   */
 template <typename T>
 rocblas_status rocblas_tbmv_template(rocblas_handle    handle,
@@ -278,7 +276,7 @@ rocblas_status rocblas_tbmv_template(rocblas_handle    handle,
                                      rocblas_int       incx,
                                      rocblas_stride    stridex,
                                      rocblas_int       batch_count,
-                                     const T*          x_copy)
+                                     T*                x_copy)
 {
     // quick return
     if(!m || !batch_count)
@@ -302,7 +300,7 @@ rocblas_status rocblas_tbmv_template(rocblas_handle    handle,
                        offsetx,
                        incx,
                        stridex,
-                       (T*)x_copy,
+                       x_copy,
                        0,
                        1,
                        m);
