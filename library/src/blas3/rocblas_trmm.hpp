@@ -177,17 +177,17 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                     for(int i = ii + offd; i <= ii + isec - 1; i++)
                     {
                         PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                            (rocblas_copy_template<NB, T>)(handle,
-                                                           i - ii + 1 - offd,
-                                                           &a[ii - 1 + (i - 1) * lda],
-                                                           0,
-                                                           1,
-                                                           0,
-                                                           &dt2[i - ii],
-                                                           0,
-                                                           cb,
-                                                           0,
-                                                           1));
+                            (rocblas_copy_template<NB>)(handle,
+                                                        i - ii + 1 - offd,
+                                                        &a[ii - 1 + (i - 1) * lda],
+                                                        0,
+                                                        1,
+                                                        0,
+                                                        &dt2[i - ii],
+                                                        0,
+                                                        cb,
+                                                        0,
+                                                        1));
                     }
                     for(int jj = 1; jj <= n; jj += rb)
                     {
@@ -201,17 +201,17 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                             for(int j = jj; j <= jj + jsec - 1; j++)
                             {
                                 PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                                    (rocblas_copy_template<NB, T>)(handle,
-                                                                   isec,
-                                                                   &c[ii - 1 + (j - 1) * ldc],
-                                                                   0,
-                                                                   1,
-                                                                   0,
-                                                                   &dt1[j - jj],
-                                                                   0,
-                                                                   rb,
-                                                                   0,
-                                                                   1));
+                                    (rocblas_copy_template<NB>)(handle,
+                                                                isec,
+                                                                &c[ii - 1 + (j - 1) * ldc],
+                                                                0,
+                                                                1,
+                                                                0,
+                                                                &dt1[j - jj],
+                                                                0,
+                                                                rb,
+                                                                0,
+                                                                1));
                             }
                         }
                         else
@@ -219,17 +219,17 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                             for(int i = ii; i <= ii + isec - 1; i++)
                             {
                                 PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                                    (rocblas_copy_template<NB, T>)(handle,
-                                                                   jsec,
-                                                                   &c[i - 1 + (jj - 1) * ldc],
-                                                                   0,
-                                                                   ldc,
-                                                                   0,
-                                                                   &dt1[(i - ii) * ldt1],
-                                                                   0,
-                                                                   1,
-                                                                   0,
-                                                                   1));
+                                    (rocblas_copy_template<NB>)(handle,
+                                                                jsec,
+                                                                &c[i - 1 + (jj - 1) * ldc],
+                                                                0,
+                                                                ldc,
+                                                                0,
+                                                                &dt1[(i - ii) * ldt1],
+                                                                0,
+                                                                1,
+                                                                0,
+                                                                1));
                             }
                         }
                         //
@@ -304,17 +304,17 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                         for(int j = jj; j <= jj + jsec - 1; j++)
                         {
                             PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                                (rocblas_copy_template<NB, T>)(handle,
-                                                               isec,
-                                                               &dt1[j - jj],
-                                                               0,
-                                                               rb,
-                                                               0,
-                                                               &c[ii - 1 + (j - 1) * ldc],
-                                                               0,
-                                                               1,
-                                                               0,
-                                                               1));
+                                (rocblas_copy_template<NB>)(handle,
+                                                            isec,
+                                                            &dt1[j - jj],
+                                                            0,
+                                                            rb,
+                                                            0,
+                                                            &c[ii - 1 + (j - 1) * ldc],
+                                                            0,
+                                                            1,
+                                                            0,
+                                                            1));
                         }
                     }
                     //
@@ -371,17 +371,17 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                             for(int j = jj; j <= jj + jsec - 1; j++)
                             {
                                 PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                                    (rocblas_copy_template<NB, T>)(handle,
-                                                                   isec,
-                                                                   &c[ii - 1 + (j - 1) * ldc],
-                                                                   0,
-                                                                   1,
-                                                                   0,
-                                                                   &dt1[j - jj],
-                                                                   0,
-                                                                   rb,
-                                                                   0,
-                                                                   1));
+                                    (rocblas_copy_template<NB>)(handle,
+                                                                isec,
+                                                                &c[ii - 1 + (j - 1) * ldc],
+                                                                0,
+                                                                1,
+                                                                0,
+                                                                &dt1[j - jj],
+                                                                0,
+                                                                rb,
+                                                                0,
+                                                                1));
                             }
                         }
                         else
@@ -389,17 +389,17 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                             for(int i = ii; i <= ii + isec - 1; i++)
                             {
                                 PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                                    (rocblas_copy_template<NB, T>)(handle,
-                                                                   jsec,
-                                                                   &c[i - 1 + (jj - 1) * ldc],
-                                                                   0,
-                                                                   ldc,
-                                                                   0,
-                                                                   &dt1[(i - ii) * ldt1],
-                                                                   0,
-                                                                   1,
-                                                                   0,
-                                                                   1));
+                                    (rocblas_copy_template<NB>)(handle,
+                                                                jsec,
+                                                                &c[i - 1 + (jj - 1) * ldc],
+                                                                0,
+                                                                ldc,
+                                                                0,
+                                                                &dt1[(i - ii) * ldt1],
+                                                                0,
+                                                                1,
+                                                                0,
+                                                                1));
                             }
                         }
                         //
@@ -475,17 +475,17 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                         for(int j = jj; j <= jj + jsec - 1; j++)
                         {
                             PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                                (rocblas_copy_template<NB, T>)(handle,
-                                                               isec,
-                                                               &dt1[j - jj],
-                                                               0,
-                                                               rb,
-                                                               0,
-                                                               &c[ii - 1 + (j - 1) * ldc],
-                                                               0,
-                                                               1,
-                                                               0,
-                                                               1));
+                                (rocblas_copy_template<NB>)(handle,
+                                                            isec,
+                                                            &dt1[j - jj],
+                                                            0,
+                                                            rb,
+                                                            0,
+                                                            &c[ii - 1 + (j - 1) * ldc],
+                                                            0,
+                                                            1,
+                                                            0,
+                                                            1));
                         }
                     }
                     //
@@ -541,17 +541,17 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                     for(int i = ii; i <= ii + isec - 1 - offd; i++)
                     {
                         PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                            (rocblas_copy_template<NB, T>)(handle,
-                                                           ii + isec - i - offd,
-                                                           &a[i + offd - 1 + (i - 1) * lda],
-                                                           0,
-                                                           1,
-                                                           0,
-                                                           &dt2[i - ii + (i - ii + offd) * ldt2],
-                                                           0,
-                                                           cb,
-                                                           0,
-                                                           1));
+                            (rocblas_copy_template<NB>)(handle,
+                                                        ii + isec - i - offd,
+                                                        &a[i + offd - 1 + (i - 1) * lda],
+                                                        0,
+                                                        1,
+                                                        0,
+                                                        &dt2[i - ii + (i - ii + offd) * ldt2],
+                                                        0,
+                                                        cb,
+                                                        0,
+                                                        1));
                     }
                     for(int jj = 1; jj <= n; jj += rb)
                     {
@@ -565,17 +565,17 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                             for(int j = jj; j <= jj + jsec - 1; j++)
                             {
                                 PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                                    (rocblas_copy_template<NB, T>)(handle,
-                                                                   isec,
-                                                                   &c[ii - 1 + (j - 1) * ldc],
-                                                                   0,
-                                                                   1,
-                                                                   0,
-                                                                   &dt1[j - jj],
-                                                                   0,
-                                                                   rb,
-                                                                   0,
-                                                                   1));
+                                    (rocblas_copy_template<NB>)(handle,
+                                                                isec,
+                                                                &c[ii - 1 + (j - 1) * ldc],
+                                                                0,
+                                                                1,
+                                                                0,
+                                                                &dt1[j - jj],
+                                                                0,
+                                                                rb,
+                                                                0,
+                                                                1));
                             }
                         }
                         else
@@ -583,17 +583,17 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                             for(int i = ii; i <= ii + isec - 1; i++)
                             {
                                 PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                                    (rocblas_copy_template<NB, T>)(handle,
-                                                                   jsec,
-                                                                   &c[i - 1 + (jj - 1) * ldc],
-                                                                   0,
-                                                                   ldc,
-                                                                   0,
-                                                                   &dt1[(i - ii) * ldt1],
-                                                                   0,
-                                                                   1,
-                                                                   0,
-                                                                   1));
+                                    (rocblas_copy_template<NB>)(handle,
+                                                                jsec,
+                                                                &c[i - 1 + (jj - 1) * ldc],
+                                                                0,
+                                                                ldc,
+                                                                0,
+                                                                &dt1[(i - ii) * ldt1],
+                                                                0,
+                                                                1,
+                                                                0,
+                                                                1));
                             }
                         }
                         //
@@ -668,17 +668,17 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                         for(int j = jj; j <= jj + jsec - 1; j++)
                         {
                             PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                                (rocblas_copy_template<NB, T>)(handle,
-                                                               isec,
-                                                               &dt1[j - jj],
-                                                               0,
-                                                               rb,
-                                                               0,
-                                                               &c[ii - 1 + (j - 1) * ldc],
-                                                               0,
-                                                               1,
-                                                               0,
-                                                               1));
+                                (rocblas_copy_template<NB>)(handle,
+                                                            isec,
+                                                            &dt1[j - jj],
+                                                            0,
+                                                            rb,
+                                                            0,
+                                                            &c[ii - 1 + (j - 1) * ldc],
+                                                            0,
+                                                            1,
+                                                            0,
+                                                            1));
                         }
                     }
                     //
@@ -734,17 +734,17 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                             for(int j = jj; j <= jj + jsec - 1; j++)
                             {
                                 PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                                    (rocblas_copy_template<NB, T>)(handle,
-                                                                   isec,
-                                                                   &c[ii - 1 + (j - 1) * ldc],
-                                                                   0,
-                                                                   1,
-                                                                   0,
-                                                                   &dt1[j - jj],
-                                                                   0,
-                                                                   rb,
-                                                                   0,
-                                                                   1));
+                                    (rocblas_copy_template<NB>)(handle,
+                                                                isec,
+                                                                &c[ii - 1 + (j - 1) * ldc],
+                                                                0,
+                                                                1,
+                                                                0,
+                                                                &dt1[j - jj],
+                                                                0,
+                                                                rb,
+                                                                0,
+                                                                1));
                             }
                         }
                         else
@@ -752,17 +752,17 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                             for(int i = ii; i <= ii + isec - 1; i++)
                             {
                                 PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                                    (rocblas_copy_template<NB, T>)(handle,
-                                                                   jsec,
-                                                                   &c[i - 1 + (jj - 1) * ldc],
-                                                                   0,
-                                                                   ldc,
-                                                                   0,
-                                                                   &dt1[(i - ii) * ldt1],
-                                                                   0,
-                                                                   1,
-                                                                   0,
-                                                                   1));
+                                    (rocblas_copy_template<NB>)(handle,
+                                                                jsec,
+                                                                &c[i - 1 + (jj - 1) * ldc],
+                                                                0,
+                                                                ldc,
+                                                                0,
+                                                                &dt1[(i - ii) * ldt1],
+                                                                0,
+                                                                1,
+                                                                0,
+                                                                1));
                             }
                         }
                         //
@@ -837,17 +837,17 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                         for(int j = jj; j <= jj + jsec - 1; j++)
                         {
                             PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                                (rocblas_copy_template<NB, T>)(handle,
-                                                               isec,
-                                                               &dt1[j - jj],
-                                                               0,
-                                                               rb,
-                                                               0,
-                                                               &c[ii - 1 + (j - 1) * ldc],
-                                                               0,
-                                                               1,
-                                                               0,
-                                                               1));
+                                (rocblas_copy_template<NB>)(handle,
+                                                            isec,
+                                                            &dt1[j - jj],
+                                                            0,
+                                                            rb,
+                                                            0,
+                                                            &c[ii - 1 + (j - 1) * ldc],
+                                                            0,
+                                                            1,
+                                                            0,
+                                                            1));
                         }
                     }
                     //
@@ -907,17 +907,17 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                         for(int j = jj; j <= jj + jsec - 1; j++)
                         {
                             PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                                (rocblas_copy_template<NB, T>)(handle,
-                                                               isec,
-                                                               &c[ii - 1 + (j - 1) * ldc],
-                                                               0,
-                                                               1,
-                                                               0,
-                                                               &dt1[(j - jj) * ldt1],
-                                                               0,
-                                                               1,
-                                                               0,
-                                                               1));
+                                (rocblas_copy_template<NB>)(handle,
+                                                            isec,
+                                                            &c[ii - 1 + (j - 1) * ldc],
+                                                            0,
+                                                            1,
+                                                            0,
+                                                            &dt1[(j - jj) * ldt1],
+                                                            0,
+                                                            1,
+                                                            0,
+                                                            1));
                         }
                         //
                         //                      C := alpha*T1*A + delta*C, triangular matrix
@@ -1032,17 +1032,17 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                     for(int j = jj + offd; j <= jj + jsec - 1; j++)
                     {
                         PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                            (rocblas_copy_template<NB, T>)(handle,
-                                                           j - jj + 1 - offd,
-                                                           &a[jj - 1 + (j - 1) * lda],
-                                                           0,
-                                                           1,
-                                                           0,
-                                                           &dt2[j - jj],
-                                                           0,
-                                                           cb,
-                                                           0,
-                                                           1));
+                            (rocblas_copy_template<NB>)(handle,
+                                                        j - jj + 1 - offd,
+                                                        &a[jj - 1 + (j - 1) * lda],
+                                                        0,
+                                                        1,
+                                                        0,
+                                                        &dt2[j - jj],
+                                                        0,
+                                                        cb,
+                                                        0,
+                                                        1));
                     }
                     for(int ii = 1; ii <= m; ii += rb)
                     {
@@ -1054,17 +1054,17 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                         for(int j = jj; j <= jj + jsec - 1; j++)
                         {
                             PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                                (rocblas_copy_template<NB, T>)(handle,
-                                                               isec,
-                                                               &c[ii - 1 + (j - 1) * ldc],
-                                                               0,
-                                                               1,
-                                                               0,
-                                                               &dt1[(j - jj) * ldt1],
-                                                               0,
-                                                               1,
-                                                               0,
-                                                               1));
+                                (rocblas_copy_template<NB>)(handle,
+                                                            isec,
+                                                            &c[ii - 1 + (j - 1) * ldc],
+                                                            0,
+                                                            1,
+                                                            0,
+                                                            &dt1[(j - jj) * ldt1],
+                                                            0,
+                                                            1,
+                                                            0,
+                                                            1));
                         }
                         //
                         //                      C := alpha*T1*T2 + delta*C, triangular matrix
@@ -1188,17 +1188,17 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                         for(int j = jj; j <= jj + jsec - 1; j++)
                         {
                             PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                                (rocblas_copy_template<NB, T>)(handle,
-                                                               isec,
-                                                               &c[ii - 1 + (j - 1) * ldc],
-                                                               0,
-                                                               1,
-                                                               0,
-                                                               &dt1[(j - jj) * ldt1],
-                                                               0,
-                                                               1,
-                                                               0,
-                                                               1));
+                                (rocblas_copy_template<NB>)(handle,
+                                                            isec,
+                                                            &c[ii - 1 + (j - 1) * ldc],
+                                                            0,
+                                                            1,
+                                                            0,
+                                                            &dt1[(j - jj) * ldt1],
+                                                            0,
+                                                            1,
+                                                            0,
+                                                            1));
                         }
                         //
                         //                      C := alpha*T1*A + delta*C, triangular matrix
@@ -1316,17 +1316,17 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                     for(int j = jj; j <= jj + jsec - 1 - offd; j++)
                     {
                         PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                            (rocblas_copy_template<NB, T>)(handle,
-                                                           jj + jsec - j - offd,
-                                                           &a[j + offd - 1 + (j - 1) * lda],
-                                                           0,
-                                                           1,
-                                                           0,
-                                                           &dt2[j - jj + (j - jj + offd) * ldt2],
-                                                           0,
-                                                           cb,
-                                                           0,
-                                                           1));
+                            (rocblas_copy_template<NB>)(handle,
+                                                        jj + jsec - j - offd,
+                                                        &a[j + offd - 1 + (j - 1) * lda],
+                                                        0,
+                                                        1,
+                                                        0,
+                                                        &dt2[j - jj + (j - jj + offd) * ldt2],
+                                                        0,
+                                                        cb,
+                                                        0,
+                                                        1));
                     }
                     for(int ii = 1; ii <= m; ii += rb)
                     {
@@ -1338,17 +1338,17 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                         for(int j = jj; j <= jj + jsec - 1; j++)
                         {
                             PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                                (rocblas_copy_template<NB, T>)(handle,
-                                                               isec,
-                                                               &c[ii - 1 + (j - 1) * ldc],
-                                                               0,
-                                                               1,
-                                                               0,
-                                                               &dt1[(j - jj) * ldt1],
-                                                               0,
-                                                               1,
-                                                               0,
-                                                               1));
+                                (rocblas_copy_template<NB>)(handle,
+                                                            isec,
+                                                            &c[ii - 1 + (j - 1) * ldc],
+                                                            0,
+                                                            1,
+                                                            0,
+                                                            &dt1[(j - jj) * ldt1],
+                                                            0,
+                                                            1,
+                                                            0,
+                                                            1));
                         }
                         //
                         //                      C := alpha*T1*T2 + delta*C, triangular matrix

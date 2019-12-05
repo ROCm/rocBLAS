@@ -292,7 +292,7 @@ rocblas_status rocblas_tbmv_template(rocblas_handle    handle,
     dim3 copy_grid(copy_blocks, batch_count);
     dim3 copy_threads(256);
 
-    hipLaunchKernelGGL((copy_kernel<T>),
+    hipLaunchKernelGGL(copy_kernel,
                        copy_grid,
                        copy_threads,
                        0,
