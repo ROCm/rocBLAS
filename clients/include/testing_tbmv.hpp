@@ -52,10 +52,6 @@ void testing_tbmv_bad_arg(const Arguments& arg)
         return;
     }
 
-    // copy data from CPU to device
-    CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(T) * size_A, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T) * size_x, hipMemcpyHostToDevice));
-
     EXPECT_ROCBLAS_STATUS(rocblas_tbmv<T>(handle, uplo, transA, diag, M, K, nullptr, lda, dx, incx),
                           rocblas_status_invalid_pointer);
 
@@ -141,7 +137,8 @@ void testing_tbmv(const Arguments& arg)
 
     if(arg.unit_check || arg.norm_check)
     {
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+        // nothing ever on host for tbmv
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         CHECK_ROCBLAS_ERROR(rocblas_tbmv<T>(handle, uplo, transA, diag, M, K, dA, lda, dx, incx));
 
         // copy output from device to CPU
