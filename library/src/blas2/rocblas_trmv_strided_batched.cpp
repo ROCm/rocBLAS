@@ -163,20 +163,20 @@ namespace
         }
 
         rocblas_stride stridew = m;
-        return rocblas_trmv_strided_batched_template<T>(handle,
-                                                        uplo,
-                                                        transa,
-                                                        diag,
-                                                        m,
-                                                        a,
-                                                        lda,
-                                                        stridea,
-                                                        x,
-                                                        incx,
-                                                        stridex,
-                                                        w,
-                                                        stridew,
-                                                        batch_count);
+        return rocblas_trmv_strided_batched_template(handle,
+                                                     uplo,
+                                                     transa,
+                                                     diag,
+                                                     m,
+                                                     a,
+                                                     lda,
+                                                     stridea,
+                                                     x,
+                                                     incx,
+                                                     stridex,
+                                                     w,
+                                                     stridew,
+                                                     batch_count);
     }
 
 } // namespace

@@ -7,7 +7,7 @@
 #include "rocblas.h"
 #include "trmv_template.hpp"
 
-template <typename T, typename A, typename X, typename W>
+template <typename A, typename X, typename W>
 rocblas_status rocblas_trmv_strided_batched_template(rocblas_handle    handle,
                                                      rocblas_fill      uplo,
                                                      rocblas_operation transa,
@@ -26,20 +26,20 @@ rocblas_status rocblas_trmv_strided_batched_template(rocblas_handle    handle,
     static constexpr rocblas_int NB      = 512;
     static constexpr ptrdiff_t   offseta = 0;
     static constexpr ptrdiff_t   offsetx = 0;
-    return trmv_template<NB, T>(handle,
-                                uplo,
-                                transa,
-                                diag,
-                                m,
-                                a,
-                                offseta,
-                                lda,
-                                stridea,
-                                x,
-                                offsetx,
-                                incx,
-                                stridex,
-                                w,
-                                stridew,
-                                batch_count);
+    return trmv_template<NB>(handle,
+                             uplo,
+                             transa,
+                             diag,
+                             m,
+                             a,
+                             offseta,
+                             lda,
+                             stridea,
+                             x,
+                             offsetx,
+                             incx,
+                             stridex,
+                             w,
+                             stridew,
+                             batch_count);
 }

@@ -6,7 +6,7 @@
 #include "../blas1/rocblas_copy.hpp"
 #include "trmv_device.hpp"
 
-template <rocblas_int NB, typename T, typename A, typename X, typename W>
+template <rocblas_int NB, typename A, typename X, typename W>
 rocblas_status trmv_template(rocblas_handle    handle,
                              rocblas_fill      uplo,
                              rocblas_operation transa,
@@ -117,7 +117,7 @@ rocblas_status trmv_template(rocblas_handle    handle,
     {
         static constexpr rocblas_int offsetw = 0;
         static constexpr rocblas_int incw    = 1;
-        return rocblas_copy_template<1024>(
+        return rocblas_copy_template<NB>(
             handle, m, w, offsetw, incw, stridew, x, offsetx, incx, stridex, batch_count);
     }
 }

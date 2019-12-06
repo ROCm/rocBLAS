@@ -130,7 +130,7 @@ namespace
             return rocblas_status_memory_error;
         }
 
-        return rocblas_trmv_template<T>(handle, uplo, transA, diag, m, A, lda, x, incx, w);
+        return rocblas_trmv_template(handle, uplo, transA, diag, m, A, lda, x, incx, w);
     }
 
 } // namespace

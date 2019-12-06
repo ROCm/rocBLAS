@@ -142,7 +142,7 @@ namespace
         }
 
         rocblas_stride stridew = m;
-        return rocblas_trmv_batched_template<T>(
+        return rocblas_trmv_batched_template(
             handle, uplo, transa, diag, m, a, lda, x, incx, w, stridew, batch_count);
     }
 

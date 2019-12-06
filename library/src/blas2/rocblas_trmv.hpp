@@ -10,7 +10,7 @@
 #include "utility.h"
 #include <limits>
 
-template <typename T, typename A, typename X, typename W>
+template <typename A, typename X, typename W>
 rocblas_status rocblas_trmv_template(rocblas_handle    handle,
                                      rocblas_fill      uplo,
                                      rocblas_operation transa,
@@ -29,20 +29,20 @@ rocblas_status rocblas_trmv_template(rocblas_handle    handle,
     static constexpr rocblas_stride stridea     = 0;
     static constexpr rocblas_stride stridew     = 0;
 
-    return trmv_template<512, T>(handle,
-                                 uplo,
-                                 transa,
-                                 diag,
-                                 m,
-                                 a,
-                                 offseta,
-                                 lda,
-                                 stridea,
-                                 x,
-                                 offsetx,
-                                 incx,
-                                 stridex,
-                                 w,
-                                 stridew,
-                                 batch_count);
+    return trmv_template<512>(handle,
+                              uplo,
+                              transa,
+                              diag,
+                              m,
+                              a,
+                              offseta,
+                              lda,
+                              stridea,
+                              x,
+                              offsetx,
+                              incx,
+                              stridex,
+                              w,
+                              stridew,
+                              batch_count);
 }
