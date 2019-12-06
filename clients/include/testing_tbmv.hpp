@@ -34,15 +34,6 @@ void testing_tbmv_bad_arg(const Arguments& arg)
     size_t size_A = lda * size_t(M);
     size_t size_x = M * size_t(incx);
 
-    // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
-    host_vector<T> hA(size_A);
-    host_vector<T> hx(size_x);
-
-    // Initial Data on CPU
-    rocblas_seedrand();
-    rocblas_init<T>(hA, M, M, lda);
-    rocblas_init<T>(hx, 1, M, incx);
-
     // allocate memory on device
     device_vector<T> dA(size_A);
     device_vector<T> dx(size_x);

@@ -183,4 +183,27 @@ Tests:
   stride_scale: [ 1 ]
   batch_count: [ 3 ]
 
+- name: tbmv_batched_manybatch
+  category: nightly
+  function: tbmv_batched
+  precision: *single_double_precisions
+  uplo: [U, L]
+  transA: [ N, T, C ]
+  diag: [U, N]
+  matrix_size: *small_matrix_size_range
+  incx: [3]
+  batch_count: [256]
+
+- name: tbmv_strided_batched_manybatch
+  category: nightly
+  function: tbmv_strided_batched
+  precision: *single_double_precisions
+  uplo: [U, L]
+  transA: [ N, T, C ]
+  diag: [U, N]
+  matrix_size: *small_matrix_size_range
+  incx: [3]
+  stride_scale: [ 1.5 ]
+  batch_count: [256]
+
 ...

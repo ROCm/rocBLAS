@@ -3155,8 +3155,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztbmv(rocblas_handle                handle
     where (A_i, x_i) is the i-th instance of the batch.
     x_i is a vector and A_i is an m by m matrix, for i = 1, ..., batch_count.
 
-    x is a vectors and A is a banded m by m matrix (see description below).
-
     @param[in]
     handle    [rocblas_handle]
               handle to the rocblas library context queue.
@@ -3281,8 +3279,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztbmv_batched(rocblas_handle              
 
     where (A_i, x_i) is the i-th instance of the batch.
     x_i is a vector and A_i is an m by m matrix, for i = 1, ..., batch_count.
-
-    x is a vectors and A is a banded m by m matrix (see description below).
 
     @param[in]
     handle    [rocblas_handle]

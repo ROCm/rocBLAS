@@ -259,6 +259,9 @@ __global__ void tbmvx_kernel(rocblas_operation transA,
   *  First, makes a copy of 'x', then uses a modified gemv algorithm
   *  to perform x := transA(A) * x_copy
   *  x_copy should be of size sizeof(T) * m bytes * batch_count.
+  *
+  *  Here, U is either a `const T* const*` or a `const T*`
+  *  V is either a `T*` or a `T* const*`
   */
 template <typename T, typename U, typename V>
 rocblas_status rocblas_tbmv_template(rocblas_handle    handle,
