@@ -93,6 +93,25 @@ constexpr double scal_gflop_count<rocblas_double_complex, double>(rocblas_int n)
  * ===========================================================================
  */
 
+/* \brief floating point counts of trmv */
+template <typename T>
+constexpr double trmv_gflop_count(rocblas_int m)
+{
+    return ((m * (m + 1))) / 1e9;
+}
+
+template <>
+constexpr double trmv_gflop_count<rocblas_float_complex>(rocblas_int m)
+{
+    return (2.0 * (m * (m + 1))) / 1e9;
+}
+
+template <>
+constexpr double trmv_gflop_count<rocblas_double_complex>(rocblas_int m)
+{
+    return (2.0 * (m * (m + 1))) / 1e9;
+}
+
 /* \brief floating point counts of GEMV */
 template <typename T>
 constexpr double gemv_gflop_count(rocblas_operation transA, rocblas_int m, rocblas_int n)
