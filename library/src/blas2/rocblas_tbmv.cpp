@@ -45,38 +45,28 @@ namespace
             auto transA_letter = rocblas_transpose_letter(transA);
             auto diag_letter   = rocblas_diag_letter(diag);
 
-            if(handle->pointer_mode == rocblas_pointer_mode_host)
-            {
-                if(layer_mode & rocblas_layer_mode_log_trace)
-                    log_trace(
-                        handle, rocblas_tbmv_name<T>, uplo, transA, diag, m, k, A, lda, x, incx);
+            if(layer_mode & rocblas_layer_mode_log_trace)
+                log_trace(handle, rocblas_tbmv_name<T>, uplo, transA, diag, m, k, A, lda, x, incx);
 
-                if(layer_mode & rocblas_layer_mode_log_bench)
-                {
-                    log_bench(handle,
-                              "./rocblas-bench -f tbmv -r",
-                              rocblas_precision_string<T>,
-                              "--uplo",
-                              uplo_letter,
-                              "--transposeA",
-                              transA_letter,
-                              "--diag",
-                              diag_letter,
-                              "-m",
-                              m,
-                              "-k",
-                              k,
-                              "--lda",
-                              lda,
-                              "--incx",
-                              incx);
-                }
-            }
-            else
+            if(layer_mode & rocblas_layer_mode_log_bench)
             {
-                if(layer_mode & rocblas_layer_mode_log_trace)
-                    log_trace(
-                        handle, rocblas_tbmv_name<T>, uplo, transA, diag, m, k, A, lda, x, incx);
+                log_bench(handle,
+                          "./rocblas-bench -f tbmv -r",
+                          rocblas_precision_string<T>,
+                          "--uplo",
+                          uplo_letter,
+                          "--transposeA",
+                          transA_letter,
+                          "--diag",
+                          diag_letter,
+                          "-m",
+                          m,
+                          "-k",
+                          k,
+                          "--lda",
+                          lda,
+                          "--incx",
+                          incx);
             }
 
             if(layer_mode & rocblas_layer_mode_log_profile)

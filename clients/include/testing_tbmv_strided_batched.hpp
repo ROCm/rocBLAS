@@ -172,8 +172,8 @@ void testing_tbmv_strided_batched(const Arguments& arg)
 
     if(arg.unit_check || arg.norm_check)
     {
-        // nothing ever on host for tbmv
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+        // pointer mode shouldn't matter here
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         CHECK_ROCBLAS_ERROR(rocblas_tbmv_strided_batched<T>(
             handle, uplo, transA, diag, M, K, dA, lda, stride_A, dx, incx, stride_x, batch_count));
 
@@ -235,8 +235,8 @@ void testing_tbmv_strided_batched(const Arguments& arg)
                                             M,
                                             K,
                                             dA,
-                                            stride_A,
                                             lda,
+                                            stride_A,
                                             dx,
                                             incx,
                                             stride_x,

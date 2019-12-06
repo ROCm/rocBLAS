@@ -133,6 +133,7 @@ Tests:
   uplo: [U, L]
   transA: [ N, T, C ]
   diag: [U, N]
+  batch_count: [3]
   matrix_size: *medium_matrix_size_range
   incx_incy: *incx_range
 
@@ -144,6 +145,7 @@ Tests:
   transA: [ N, T, C ]
   diag: [U, N]
   stride_scale: [ 1 ]
+  batch_count: [3]
   matrix_size: *medium_matrix_size_range
   incx_incy: *incx_range
 
