@@ -86,7 +86,7 @@ namespace
                           incy,
                           "--stride_y",
                           stridey,
-                          "--batch",
+                          "--batch_count",
                           batch_count);
             }
         }
@@ -109,7 +109,7 @@ namespace
                         incy,
                         "stride_y",
                         stridey,
-                        "batch",
+                        "batch_count",
                         batch_count);
         }
 

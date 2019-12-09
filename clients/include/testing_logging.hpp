@@ -10,11 +10,10 @@
 #include "rocblas_vector.hpp"
 #include "utility.hpp"
 #include <algorithm>
-#include <cstdio>
-#include <cstdlib>
 #include <fstream>
+#include <string>
 #include <sys/param.h>
-#include <unistd.h>
+#include <type_traits>
 
 template <typename T>
 static constexpr auto precision_letter = "*";
@@ -82,8 +81,6 @@ void testing_logging()
     EXPECT_EQ(setenv_status, 0);
 #endif
 
-    rocblas::reinit_logs(); // reinitialize logging with newly set environment
-
     //
     // call rocBLAS functions with log_trace and log_bench to output log_trace and log_bench files
     //
@@ -131,7 +128,8 @@ void testing_logging()
         return;
     }
 
-    // enclose in {} so rocblas_local_handle destructor called as it goes out of scope
+    // enclose in {} so that handle constructor is called after setenv
+    // and handle destructor is called as handle goes out of scope
     {
         int                  i_result;
         T                    result;
@@ -320,8 +318,6 @@ void testing_logging()
 #ifdef GOOGLE_TEST
     EXPECT_EQ(setenv_status, 0);
 #endif
-
-    rocblas::reinit_logs(); // reinitialize logging, flushing old data to files
 
     //
     // write "golden file"

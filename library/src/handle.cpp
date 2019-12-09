@@ -2,8 +2,12 @@
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "handle.h"
+#include <cerrno>
 #include <cstdio>
 #include <cstdlib>
+#include <fcntl.h>
+#include <mutex>
+#include <unistd.h>
 
 #if BUILD_WITH_TENSILE
 #include "Tensile.h"
@@ -13,8 +17,14 @@
 #endif
 
 /*******************************************************************************
- * constructor
- ******************************************************************************/
+ * Static handle data                                                          *
+ *******************************************************************************/
+constexpr size_t _rocblas_handle::DEFAULT_DEVICE_MEMORY_SIZE;
+constexpr size_t _rocblas_handle::MIN_CHUNK_SIZE;
+
+/*******************************************************************************
+ * Handle Constructor                                                          *
+ *******************************************************************************/
 _rocblas_handle::_rocblas_handle()
 {
 #if BUILD_WITH_TENSILE
@@ -31,7 +41,10 @@ _rocblas_handle::_rocblas_handle()
     THROW_IF_HIP_ERROR(hipGetDevice(&device));
     THROW_IF_HIP_ERROR(hipGetDeviceProperties(&device_properties, device));
 
-    // rocblas by default take the system default stream 0 users cannot create
+    // Initialize logging
+    init_logging();
+
+    // rocblas by default takes the system default stream 0 users cannot create
 
     // Device memory size
     //
@@ -68,8 +81,8 @@ _rocblas_handle::_rocblas_handle()
 }
 
 /*******************************************************************************
- * destructor
- ******************************************************************************/
+ * Handle Destructor                                                           *
+ *******************************************************************************/
 _rocblas_handle::~_rocblas_handle()
 {
     if(device_memory_in_use)
@@ -80,11 +93,15 @@ _rocblas_handle::~_rocblas_handle()
     }
     if(device_memory)
         (hipFree)(device_memory);
+
+    delete log_trace;
+    delete log_bench;
+    delete log_profile;
 }
 
 /*******************************************************************************
- * helper for allocating device memory
- ******************************************************************************/
+ * Helper for allocating device memory                                         *
+ *******************************************************************************/
 void* _rocblas_handle::device_allocator(size_t size)
 {
     if(device_memory_in_use)
@@ -114,8 +131,8 @@ void* _rocblas_handle::device_allocator(size_t size)
 }
 
 /*******************************************************************************
- * start device memory size queries
- ******************************************************************************/
+ * Start device memory size queries                                            *
+ *******************************************************************************/
 extern "C" rocblas_status rocblas_start_device_memory_size_query(rocblas_handle handle)
 {
     if(!handle)
@@ -128,8 +145,8 @@ extern "C" rocblas_status rocblas_start_device_memory_size_query(rocblas_handle 
 }
 
 /*******************************************************************************
- * stop device memory size queries
- ******************************************************************************/
+ * Stop device memory size queries                                             *
+ *******************************************************************************/
 extern "C" rocblas_status rocblas_stop_device_memory_size_query(rocblas_handle handle, size_t* size)
 {
     if(!handle)
@@ -144,8 +161,8 @@ extern "C" rocblas_status rocblas_stop_device_memory_size_query(rocblas_handle h
 }
 
 /*******************************************************************************
- * get the device memory size
- ******************************************************************************/
+ * Get the device memory size                                                  *
+ *******************************************************************************/
 extern "C" rocblas_status rocblas_get_device_memory_size(rocblas_handle handle, size_t* size)
 {
     if(!handle)
@@ -157,8 +174,8 @@ extern "C" rocblas_status rocblas_get_device_memory_size(rocblas_handle handle, 
 }
 
 /*******************************************************************************
- * set the device memory size
- ******************************************************************************/
+ * Set the device memory size                                                  *
+ *******************************************************************************/
 extern "C" rocblas_status rocblas_set_device_memory_size(rocblas_handle handle, size_t size)
 {
     if(!handle)
@@ -192,79 +209,17 @@ extern "C" rocblas_status rocblas_set_device_memory_size(rocblas_handle handle, 
 }
 
 /*******************************************************************************
- * Returns whether device memory is rocblas-managed
- ******************************************************************************/
+ * Returns whether device memory is rocblas-managed                            *
+ *******************************************************************************/
 extern "C" bool rocblas_is_managing_device_memory(rocblas_handle handle)
 {
     return handle && handle->device_memory_is_rocblas_managed;
 }
 
 /*******************************************************************************
- * Static handle data
- ******************************************************************************/
-rocblas_layer_mode    _rocblas_handle::layer_mode = rocblas_layer_mode_none;
-std::ofstream         _rocblas_handle::log_trace_ofs;
-std::ostream*         _rocblas_handle::log_trace_os;
-std::ofstream         _rocblas_handle::log_bench_ofs;
-std::ostream*         _rocblas_handle::log_bench_os;
-std::ofstream         _rocblas_handle::log_profile_ofs;
-std::ostream*         _rocblas_handle::log_profile_os;
-_rocblas_handle::init _rocblas_handle::handle_init;
-constexpr size_t      _rocblas_handle::DEFAULT_DEVICE_MEMORY_SIZE; // Not needed in C++17
-constexpr size_t      _rocblas_handle::MIN_CHUNK_SIZE; // Not needed in C++17
-
-/**
- *  @brief Logging function
- *
- *  @details
- *  open_log_stream Open stream log_os for logging.
- *                  If the environment variable with name environment_variable_name
- *                  is not set, then stream log_os to std::cerr.
- *                  Else open a file at the full logfile path contained in
- *                  the environment variable.
- *                  If opening the file suceeds, stream to the file
- *                  else stream to std::cerr.
- *
- *  @param[in]
- *  environment_variable_name   const char*
- *                              Name of environment variable that contains
- *                              the full logfile path.
- *
- *  @parm[out]
- *  log_os      std::ostream*&
- *              Output stream. Stream to std:cerr if environment_variable_name
- *              is not set, else set to stream to log_ofs
- *
- *  @parm[out]
- *  log_ofs     std::ofstream&
- *              Output file stream. If log_ofs->is_open()==true, then log_os
- *              will stream to log_ofs. Else it will stream to std::cerr.
- */
-
-static void open_log_stream(const char*    environment_variable_name,
-                            std::ostream*& log_os,
-                            std::ofstream& log_ofs)
-{
-    // By default, output to cerr
-    log_os = &std::cerr;
-
-    // if environment variable is set, open file at logfile_pathname contained in the
-    // environment variable
-    auto logfile_pathname = getenv(environment_variable_name);
-    if(logfile_pathname)
-    {
-        log_ofs.open(logfile_pathname, std::ios_base::trunc);
-
-        // if log_ofs is open, then stream to log_ofs, else log_os is already set to std::cerr
-        if(log_ofs.is_open())
-            log_os = &log_ofs;
-    }
-}
-
-/*******************************************************************************
- * Static runtime initialization
- ******************************************************************************/
-_rocblas_handle::init::init()
+ * Initialization of logging                                                   *
+ *******************************************************************************/
+void _rocblas_handle::init_logging()
 {
     // set layer_mode from value of environment variable ROCBLAS_LAYER
     auto str_layer_mode = getenv("ROCBLAS_LAYER");
@@ -274,28 +229,84 @@ _rocblas_handle::init::init()
 
         // open log_trace file
         if(layer_mode & rocblas_layer_mode_log_trace)
-            open_log_stream("ROCBLAS_LOG_TRACE_PATH", log_trace_os, log_trace_ofs);
+            log_trace = new rocblas_logging_stream(getenv("ROCBLAS_LOG_TRACE_PATH"));
 
         // open log_bench file
         if(layer_mode & rocblas_layer_mode_log_bench)
-            open_log_stream("ROCBLAS_LOG_BENCH_PATH", log_bench_os, log_bench_ofs);
+            log_bench = new rocblas_logging_stream(getenv("ROCBLAS_LOG_BENCH_PATH"));
 
         // open log_profile file
         if(layer_mode & rocblas_layer_mode_log_profile)
-            open_log_stream("ROCBLAS_LOG_PROFILE_PATH", log_profile_os, log_profile_ofs);
+            log_profile = new rocblas_logging_stream(getenv("ROCBLAS_LOG_PROFILE_PATH"));
     }
 }
 
-/*******************************************************************************
- * Static reinitialization (for testing only)
- ******************************************************************************/
-namespace rocblas
+/*****************************************************************************************
+ * Construct a rocBLAS logging stream, logging output to a given filename                *
+ * or to stderr if the filename is nullptr or cannot be created                          *
+ *****************************************************************************************/
+rocblas_logging_stream::rocblas_logging_stream(const char* filename)
+    : filehandle(filename ? open(filename, O_WRONLY | O_APPEND | O_CREAT | O_CLOEXEC, 0644)
+                          : STDERR_FILENO)
 {
-    void reinit_logs()
+    fprintf(stderr, "open(%s) returned %d\n", filename, filehandle);
+    if(filehandle == -1)
     {
-        _rocblas_handle::log_trace_ofs.close();
-        _rocblas_handle::log_bench_ofs.close();
-        _rocblas_handle::log_profile_ofs.close();
-        new(&_rocblas_handle::handle_init) _rocblas_handle::init;
+        fprintf(stderr, "Error opening %s: %m\nLogging to stderr instead.\n", filename);
+        filehandle = STDERR_FILENO;
     }
-} // namespace rocblas
+}
+
+/*****************************************************************************************
+ * Flush a logging stream to a file or stderr                                            *
+ *****************************************************************************************/
+void rocblas_logging_stream::flush()
+{
+    if(filehandle >= 0)
+    {
+        std::string s = str();
+        if(s.size())
+        {
+            static std::mutex           mutex;
+            std::lock_guard<std::mutex> lock(mutex);
+
+            do
+            {
+                ssize_t written;
+                do
+                    written = ::write(filehandle, s.data(), s.size());
+                while(written == 0 || (written < 0 && errno == EINTR));
+
+                if(written < 0)
+                {
+                    // Write error message to stdout if error occurred on stderr
+                    fprintf(filehandle == STDERR_FILENO ? stdout : stderr,
+                            "Error when writing to log file: %m\n");
+                    filehandle = -1; // Stop further output to this filehandle.
+                    break;
+                }
+
+                // Remove the bytes written so far
+                s = s.substr(written);
+            } while(s.size());
+        }
+    }
+
+    // Erase the logging stream string buffer
+    clear();
+    str({});
+}
+
+/*****************************************************************************************
+ * Destroy a rocBLAS logging stream, by flushing any data and closing its filehandle     *
+ * if it's not stderr.                                                                   *
+ *****************************************************************************************/
+rocblas_logging_stream::~rocblas_logging_stream()
+{
+    if(filehandle >= 0)
+    {
+        flush();
+        if(filehandle != STDERR_FILENO)
+            ::close(filehandle);
+    }
+}

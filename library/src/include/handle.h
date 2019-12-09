@@ -8,16 +8,28 @@
 #include "rocblas.h"
 #include "utility.h"
 #include <array>
-#include <fstream>
 #include <hip/hip_runtime.h>
-#include <iostream>
+#include <sstream>
 #include <tuple>
 #include <type_traits>
 #include <utility>
 
 /*******************************************************************************
+ * \brief rocblas_logging_stream is a class implementing thread-safe logging.
+ *******************************************************************************/
+struct rocblas_logging_stream : std::ostringstream
+{
+    explicit rocblas_logging_stream(const char* filename);
+    ~rocblas_logging_stream();
+    void flush();
+
+private:
+    int filehandle;
+};
+
+/*******************************************************************************
  * \brief rocblas_handle is a structure holding the rocblas library context.
- * It must be initialized using rocblas_create_handle() and the returned handle mus
+ * It must be initialized using rocblas_create_handle().
  * It should be destroyed at the end using rocblas_destroy_handle().
  * Exactly like CUBLAS, ROCBLAS only uses one stream for one API routine
  ******************************************************************************/
@@ -72,21 +84,12 @@ public:
     rocblas_pointer_mode pointer_mode = rocblas_pointer_mode_host;
 
     // default logging_mode is no logging
-    static rocblas_layer_mode layer_mode;
+    rocblas_layer_mode layer_mode = rocblas_layer_mode_none;
 
     // logging streams
-    static std::ofstream log_trace_ofs;
-    static std::ostream* log_trace_os;
-    static std::ofstream log_bench_ofs;
-    static std::ostream* log_bench_os;
-    static std::ofstream log_profile_ofs;
-    static std::ostream* log_profile_os;
-
-    // static data for startup initialization
-    static struct init
-    {
-        init();
-    } handle_init;
+    rocblas_logging_stream* log_trace   = nullptr;
+    rocblas_logging_stream* log_bench   = nullptr;
+    rocblas_logging_stream* log_profile = nullptr;
 
     static int device_arch_id()
     {
@@ -149,6 +152,9 @@ public:
     }
 
 private:
+    // Initializate logging
+    void init_logging();
+
     // device memory work buffer
     static constexpr size_t DEFAULT_DEVICE_MEMORY_SIZE = 4 * 1048576;
     static constexpr size_t MIN_CHUNK_SIZE             = 64;
@@ -327,10 +333,5 @@ private:
 #define hipFree(ptr)                                                                               \
     _Pragma("GCC warning \"Direct use of hipFree in rocBLAS is deprecated; see CONTRIBUTING.md\"") \
         hipFree(ptr)
-
-namespace rocblas
-{
-    void reinit_logs(); // Reinitialize static data (for testing only)
-}
 
 #endif

@@ -257,7 +257,7 @@ template <typename TUP>
 class argument_profile : tuple_helper
 {
     // Output stream
-    std::ostream& os;
+    rocblas_logging_stream& os;
 
     // Mutex for multithreaded access to table
     std::shared_timed_mutex mutex;
@@ -303,7 +303,7 @@ public:
     }
 
     // Constructor
-    explicit argument_profile(std::ostream& os)
+    explicit argument_profile(rocblas_logging_stream& os)
         : os(os)
     {
     }
@@ -334,7 +334,7 @@ template <typename... Ts>
 inline void log_profile(rocblas_handle handle, const char* func, Ts&&... xs)
 {
     auto tup = std::make_tuple("rocblas_function", func, std::forward<Ts>(xs)...);
-    static argument_profile<decltype(tup)> profile{*handle->log_profile_os};
+    static argument_profile<decltype(tup)> profile{*handle->log_profile};
     static int                             aqe = at_quick_exit([] { profile.~argument_profile(); });
     profile(std::move(tup));
 }
@@ -343,11 +343,12 @@ inline void log_profile(rocblas_handle handle, const char* func, Ts&&... xs)
  * Log values (for log_trace and log_bench)
  ************************************************************************************/
 template <typename H, typename... Ts>
-static inline void log_arguments(std::ostream& os, const char* sep, H head, Ts&&... xs)
+static inline void log_arguments(rocblas_logging_stream& os, const char* sep, H head, Ts&&... xs)
 {
     os << head;
     int x[] = {(os << sep << std::forward<Ts>(xs), 0)...};
     os << std::endl;
+    os.flush();
 }
 
 // if trace logging is turned on with
@@ -356,7 +357,7 @@ static inline void log_arguments(std::ostream& os, const char* sep, H head, Ts&&
 template <typename... Ts>
 inline void log_trace(rocblas_handle handle, Ts&&... xs)
 {
-    log_arguments(*handle->log_trace_os, ",", std::forward<Ts>(xs)...);
+    log_arguments(*handle->log_trace, ",", std::forward<Ts>(xs)...);
 }
 
 // if bench logging is turned on with
@@ -366,7 +367,7 @@ inline void log_trace(rocblas_handle handle, Ts&&... xs)
 template <typename... Ts>
 inline void log_bench(rocblas_handle handle, Ts&&... xs)
 {
-    log_arguments(*handle->log_bench_os, " ", std::forward<Ts>(xs)...);
+    log_arguments(*handle->log_bench, " ", std::forward<Ts>(xs)...);
 }
 
 /************************************************************************************

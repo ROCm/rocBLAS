@@ -7,13 +7,13 @@
 #include "rocblas-auxiliary.h"
 #include "rocblas-types.h"
 #include "utility.h"
-#include <cstdio>
+#include <cstring>
 #include <memory>
 
 /* ============================================================================================ */
 
 /*******************************************************************************
- * ! \brief  indicates whether the pointer is on the host or device.
+ * ! \brief indicates whether the pointer is on the host or device.
  * currently HIP API can only recoginize the input ptr on deive or not
  *  can not recoginize it is on host or not
  ******************************************************************************/
@@ -33,9 +33,8 @@ extern "C" rocblas_pointer_mode rocblas_pointer_to_mode(void* ptr)
 extern "C" rocblas_status rocblas_get_pointer_mode(rocblas_handle        handle,
                                                    rocblas_pointer_mode* mode)
 {
-    // if handle not valid
     if(!handle)
-        return rocblas_status_invalid_pointer;
+        return rocblas_status_invalid_handle;
     *mode = handle->pointer_mode;
     if(handle->layer_mode & rocblas_layer_mode_log_trace)
         log_trace(handle, "rocblas_get_pointer_mode", *mode);
@@ -47,9 +46,8 @@ extern "C" rocblas_status rocblas_get_pointer_mode(rocblas_handle        handle,
  ******************************************************************************/
 extern "C" rocblas_status rocblas_set_pointer_mode(rocblas_handle handle, rocblas_pointer_mode mode)
 {
-    // if handle not valid
     if(!handle)
-        return rocblas_status_invalid_pointer;
+        return rocblas_status_invalid_handle;
     if(handle->layer_mode & rocblas_layer_mode_log_trace)
         log_trace(handle, "rocblas_set_pointer_mode", mode);
     handle->pointer_mode = mode;
@@ -60,56 +58,52 @@ extern "C" rocblas_status rocblas_set_pointer_mode(rocblas_handle handle, rocbla
  * ! \brief create rocblas handle called before any rocblas library routines
  ******************************************************************************/
 extern "C" rocblas_status rocblas_create_handle(rocblas_handle* handle)
+try
 {
-    // if handle not valid
     if(!handle)
         return rocblas_status_invalid_handle;
 
     // allocate on heap
-    try
-    {
-        *handle = new _rocblas_handle();
+    *handle = new _rocblas_handle;
 
-        if((*handle)->layer_mode & rocblas_layer_mode_log_trace)
-            log_trace(*handle, "rocblas_create_handle");
-    }
-    catch(...)
-    {
-        return rocblas_status_internal_error;
-    }
+    if((*handle)->layer_mode & rocblas_layer_mode_log_trace)
+        log_trace(*handle, "rocblas_create_handle");
+
     return rocblas_status_success;
+}
+catch(...)
+{
+    return rocblas_status_memory_error;
 }
 
 /*******************************************************************************
  *! \brief release rocblas handle, will implicitly synchronize host and device
  ******************************************************************************/
 extern "C" rocblas_status rocblas_destroy_handle(rocblas_handle handle)
+try
 {
-    // if handle not valid
     if(!handle)
-        return rocblas_status_invalid_handle;
+        return rocblas_status_success;
+
     if(handle->layer_mode & rocblas_layer_mode_log_trace)
         log_trace(handle, "rocblas_destroy_handle");
+
     // call destructor
-    try
-    {
-        delete handle;
-    }
-    catch(rocblas_status status)
-    {
-        return status;
-    }
+    delete handle;
     return rocblas_status_success;
+}
+catch(...)
+{
+    return rocblas_status_internal_error;
 }
 
 /*******************************************************************************
- *! \brief   set rocblas stream used for all subsequent library function calls.
+ *! \brief set rocblas stream used for all subsequent library function calls.
  *   If not set, all hip kernels will take the default NULL stream.
  *   stream_id must be created before this call
  ******************************************************************************/
 extern "C" rocblas_status rocblas_set_stream(rocblas_handle handle, hipStream_t stream_id)
 {
-    // if handle not valid
     if(!handle)
         return rocblas_status_invalid_handle;
     if(handle->layer_mode & rocblas_layer_mode_log_trace)
@@ -118,12 +112,11 @@ extern "C" rocblas_status rocblas_set_stream(rocblas_handle handle, hipStream_t 
 }
 
 /*******************************************************************************
- *! \brief   get rocblas stream used for all subsequent library function calls.
+ *! \brief get rocblas stream used for all subsequent library function calls.
  *   If not set, all hip kernels will take the default NULL stream.
  ******************************************************************************/
 extern "C" rocblas_status rocblas_get_stream(rocblas_handle handle, hipStream_t* stream_id)
 {
-    // if handle not valid
     if(!handle)
         return rocblas_status_invalid_handle;
     if(handle->layer_mode & rocblas_layer_mode_log_trace)
@@ -132,7 +125,7 @@ extern "C" rocblas_status rocblas_get_stream(rocblas_handle handle, hipStream_t*
 }
 
 /*******************************************************************************
- *! \brief  Non-unit stride vector copy on device. Vectors are void pointers
+ *! \brief Non-unit stride vector copy on device. Vectors are void pointers
      with element size elem_size
  ******************************************************************************/
 // arbitrarily assign max buffer size to 1Mb

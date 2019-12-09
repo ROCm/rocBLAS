@@ -68,7 +68,7 @@ namespace
                           incx,
                           "--incy",
                           incy,
-                          "--batch",
+                          "--batch_count",
                           batch_count);
             }
         }
@@ -79,7 +79,8 @@ namespace
 
         if(layer_mode & rocblas_layer_mode_log_profile)
         {
-            log_profile(handle, name, "N", n, "incx", incx, "incy", incy, "batch", batch_count);
+            log_profile(
+                handle, name, "N", n, "incx", incx, "incy", incy, "batch_count", batch_count);
         }
 
         if(!x || !y)
