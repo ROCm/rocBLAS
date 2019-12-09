@@ -297,7 +297,7 @@ rocblas_status rocblas_tbmv_template(rocblas_handle    handle,
         return status;
 
     // in case of negative inc shift pointer to end of data for negative indexing tid*inc
-    offsetx = incx < 0 ? offsetx - ptrdiff_t(incx) * (m - 1) : offsetx;
+    ptrdiff_t shiftx = incx < 0 ? offsetx - ptrdiff_t(incx) * (m - 1) : offsetx;
 
     // (gemv) TBMVX_DIM_Y must be at least 4, 8 * 8 is very slow only 40Gflop/s
     static constexpr int TBMVX_DIM_X = 64;
@@ -326,7 +326,7 @@ rocblas_status rocblas_tbmv_template(rocblas_handle    handle,
                        strideA,
                        (U)x_copy,
                        x,
-                       offsetx,
+                       shiftx,
                        incx,
                        stridex);
 
