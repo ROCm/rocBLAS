@@ -28,7 +28,6 @@ Definitions:
     - { N:  1000, lda: 1000, stride_a:  1000000 }
     - { N:  2000, lda: 2000, stride_a:  4000000 }
     - { N:  4011, lda: 4011, stride_a: 16088200 }
-    - { N:  8000, lda: 8000, stride_a: 64000000 }
 
   - &incx_incy_range
     - { incx:   2, incy:   1, stride_scale: 1   }
@@ -46,7 +45,6 @@ Definitions:
     - { alpha: -1.0, beta: -1.0, alphai: 0.5, betai: 1.5 }
     - { alpha:  2.0, beta:  1.0, alphai: -1.5, betai: 0.5 }
     - { alpha:  0.0, beta:  1.0, alphai: -0.5, betai: 0 }
-    # - { alpha: 1.0, beta: 0.0, alphai: 0.0, betai: 0.0 }
 
 Tests:
 - name: hemv_bad_arg

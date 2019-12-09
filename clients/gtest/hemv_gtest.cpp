@@ -6,6 +6,7 @@
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_test.hpp"
 #include "testing_hemv.hpp"
+#include "testing_hemv_batched.hpp"
 #include "type_dispatch.hpp"
 #include <cctype>
 #include <cstring>
@@ -38,9 +39,9 @@ namespace
             {
             case HEMV:
                 return !strcmp(arg.function, "hemv") || !strcmp(arg.function, "hemv_bad_arg");
-                // case HEMV_BATCHED:
-                //     return !strcmp(arg.function, "hemv_batched")
-                //            || !strcmp(arg.function, "hemv_batched_bad_arg");
+            case HEMV_BATCHED:
+                return !strcmp(arg.function, "hemv_batched")
+                       || !strcmp(arg.function, "hemv_batched_bad_arg");
                 // case HEMV_STRIDED_BATCHED:
                 //     return !strcmp(arg.function, "hemv_strided_batched")
                 //            || !strcmp(arg.function, "hemv_strided_batched_bad_arg");
@@ -97,10 +98,10 @@ namespace
                 testing_hemv<T>(arg);
             else if(!strcmp(arg.function, "hemv_bad_arg"))
                 testing_hemv_bad_arg<T>(arg);
-            // else if(!strcmp(arg.function, "hemv_batched"))
-            //     testing_hemv_batched<T>(arg);
-            // else if(!strcmp(arg.function, "hemv_batched_bad_arg"))
-            //     testing_hemv_batched_bad_arg<T>(arg);
+            else if(!strcmp(arg.function, "hemv_batched"))
+                testing_hemv_batched<T>(arg);
+            else if(!strcmp(arg.function, "hemv_batched_bad_arg"))
+                testing_hemv_batched_bad_arg<T>(arg);
             // else if(!strcmp(arg.function, "hemv_strided_batched"))
             //     testing_hemv_strided_batched<T>(arg);
             // else if(!strcmp(arg.function, "hemv_strided_batched_bad_arg"))
@@ -117,12 +118,12 @@ namespace
     }
     INSTANTIATE_TEST_CATEGORIES(hemv);
 
-    // using hemv_batched = hemv_template<hemv_testing, HEMV_BATCHED>;
-    // TEST_P(hemv_batched, blas2)
-    // {
-    //     rocblas_simple_dispatch<hemv_testing>(GetParam());
-    // }
-    // INSTANTIATE_TEST_CATEGORIES(hemv_batched);
+    using hemv_batched = hemv_template<hemv_testing, HEMV_BATCHED>;
+    TEST_P(hemv_batched, blas2)
+    {
+        rocblas_simple_dispatch<hemv_testing>(GetParam());
+    }
+    INSTANTIATE_TEST_CATEGORIES(hemv_batched);
 
     // using hemv_strided_batched = hemv_template<hemv_testing, HEMV_STRIDED_BATCHED>;
     // TEST_P(hemv_strided_batched, blas2)
