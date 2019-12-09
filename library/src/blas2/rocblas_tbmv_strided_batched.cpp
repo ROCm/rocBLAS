@@ -118,7 +118,7 @@ namespace
 
         if(m < 0 || k < 0 || lda < m || lda < 1 || !incx || k >= lda || batch_count < 0)
             return rocblas_status_invalid_size;
-        if(!m)
+        if(!m || !batch_count)
             return handle->is_device_memory_size_query() ? rocblas_status_size_unchanged
                                                          : rocblas_status_success;
         if(!A || !x)
@@ -129,22 +129,22 @@ namespace
 
         auto mem_x_copy = handle->device_malloc(sizeof(T) * m * batch_count);
 
-        return rocblas_tbmv_template<T>(handle,
-                                        uplo,
-                                        transA,
-                                        diag,
-                                        m,
-                                        k,
-                                        A,
-                                        0,
-                                        lda,
-                                        stride_A,
-                                        x,
-                                        0,
-                                        incx,
-                                        stride_x,
-                                        batch_count,
-                                        (T*)mem_x_copy);
+        return rocblas_tbmv_template(handle,
+                                     uplo,
+                                     transA,
+                                     diag,
+                                     m,
+                                     k,
+                                     A,
+                                     0,
+                                     lda,
+                                     stride_A,
+                                     x,
+                                     0,
+                                     incx,
+                                     stride_x,
+                                     batch_count,
+                                     (T*)mem_x_copy);
     }
 
 } // namespace

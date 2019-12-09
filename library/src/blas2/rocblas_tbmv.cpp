@@ -103,7 +103,7 @@ namespace
 
         auto mem = handle->device_malloc(sizeof(T) * m);
 
-        return rocblas_tbmv_template<T>(
+        return rocblas_tbmv_template(
             handle, uplo, transA, diag, m, k, A, 0, lda, 0, x, 0, incx, 0, 1, (T*)mem);
     }
 

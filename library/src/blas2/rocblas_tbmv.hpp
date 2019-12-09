@@ -167,12 +167,12 @@ __device__ void tbmvx_kernel_calc(rocblas_operation transA,
     // if more elegant logic is used.
     if(transA == rocblas_operation_none)
     {
-        res_A = tbmvn_kernel_helper<DIM_Y, T>(ty, ind, upper, diag, m, k, A, lda, x_copy);
+        res_A = tbmvn_kernel_helper<DIM_Y>(ty, ind, upper, diag, m, k, A, lda, x_copy);
     }
     else
     {
         bool CONJ = transA == rocblas_operation_conjugate_transpose;
-        res_A     = tbmvt_kernel_helper<DIM_Y, T>(CONJ, ty, ind, upper, diag, m, k, A, lda, x_copy);
+        res_A     = tbmvt_kernel_helper<DIM_Y>(CONJ, ty, ind, upper, diag, m, k, A, lda, x_copy);
     }
     // Store partial sums for the diagonal
     sdata[tx + ty * DIM_X] = res_A;
@@ -228,7 +228,7 @@ __device__ void tbmvx_kernel_calc(rocblas_operation transA,
   *  of each element is preserved in the compaction, and the diagonals are "pushed" upwards and
   *  reside on the same row as the other elements of the same diagonal.
   */
-template <rocblas_int DIM_X, rocblas_int DIM_Y, typename T, typename U, typename V>
+template <rocblas_int DIM_X, rocblas_int DIM_Y, typename U, typename V>
 __global__ void tbmvx_kernel(rocblas_operation transA,
                              bool              upper,
                              bool              diag,
@@ -248,11 +248,11 @@ __global__ void tbmvx_kernel(rocblas_operation transA,
     if(DIM_X * DIM_Y != num_threads)
         return; // need to launch exactly the same number of threads as template parameters indicate
 
-    const T* A      = load_ptr_batch(Aa, hipBlockIdx_y, shifta, strideA);
-    const T* x_copy = load_ptr_batch(xa_copy, hipBlockIdx_y, 0, m);
-    T*       x      = load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex);
+    const auto* A      = load_ptr_batch(Aa, hipBlockIdx_y, shifta, strideA);
+    const auto* x_copy = load_ptr_batch(xa_copy, hipBlockIdx_y, 0, m);
+    auto*       x      = load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex);
 
-    tbmvx_kernel_calc<DIM_X, DIM_Y, T>(transA, upper, diag, m, k, A, lda, x_copy, x, incx);
+    tbmvx_kernel_calc<DIM_X, DIM_Y>(transA, upper, diag, m, k, A, lda, x_copy, x, incx);
 }
 
 /**
@@ -263,7 +263,7 @@ __global__ void tbmvx_kernel(rocblas_operation transA,
   *  Here, U is either a `const T* const*` or a `const T*`
   *  V is either a `T*` or a `T* const*`
   */
-template <typename T, typename U, typename V>
+template <typename U, typename V>
 rocblas_status rocblas_tbmv_template(rocblas_handle    handle,
                                      rocblas_fill      uplo,
                                      rocblas_operation transA,
@@ -310,7 +310,7 @@ rocblas_status rocblas_tbmv_template(rocblas_handle    handle,
 
     // Launch a modified gemv kernel. The logic is similar to gemv just with modified
     // indices for the banded matrices.
-    hipLaunchKernelGGL((tbmvx_kernel<TBMVX_DIM_X, TBMVX_DIM_Y, T>),
+    hipLaunchKernelGGL((tbmvx_kernel<TBMVX_DIM_X, TBMVX_DIM_Y>),
                        tbmvx_grid,
                        tbmvx_threads,
                        0,

@@ -80,6 +80,11 @@ void testing_tbmv_strided_batched_bad_arg(const Arguments& arg)
         rocblas_tbmv_strided_batched<T>(
             nullptr, uplo, transA, diag, M, K, dA, lda, stride_A, dx, incx, stride_x, batch_count),
         rocblas_status_invalid_handle);
+
+    // Adding test to check that if batch_count == 0 we can pass in nullptrs and get a success.
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_tbmv_batched<T>(handle, uplo, transA, diag, M, K, nullptr, lda, nullptr, incx, 0),
+        rocblas_status_success);
 }
 
 template <typename T>
@@ -205,7 +210,6 @@ void testing_tbmv_strided_batched(const Arguments& arg)
     {
         int number_cold_calls = 2;
         int number_hot_calls  = arg.iters;
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
@@ -243,9 +247,11 @@ void testing_tbmv_strided_batched(const Arguments& arg)
                                             batch_count);
         }
 
-        gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;
-        rocblas_gflops    = batch_count * tbmv_gflop_count<T>(M, K) / gpu_time_used * 1e6;
-        rocblas_bandwidth = batch_count * (1.0 * M * M) * sizeof(T) / gpu_time_used / 1e3;
+        gpu_time_used  = (get_time_us() - gpu_time_used) / number_hot_calls;
+        rocblas_gflops = batch_count * tbmv_gflop_count<T>(M, K) / gpu_time_used * 1e6;
+        rocblas_int k1 = K < M ? K : M;
+        rocblas_bandwidth
+            = (M * k1 - ((k1 * (k1 + 1)) / 2.0) + M) * sizeof(T) / gpu_time_used / 1e3;
 
         // only norm_check return an norm error, unit check won't return anything
         std::cout << "M,K,lda,stride_A,incx,stride_x,batch_count,rocblas-Gflops,rocblas-GB/s,us,";

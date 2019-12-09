@@ -106,7 +106,7 @@ namespace
 
         if(m < 0 || k < 0 || lda < m || lda < 1 || !incx || k >= lda || batch_count < 0)
             return rocblas_status_invalid_size;
-        if(!m)
+        if(!m || !batch_count)
             return handle->is_device_memory_size_query() ? rocblas_status_size_unchanged
                                                          : rocblas_status_success;
         if(!A || !x)
@@ -124,22 +124,22 @@ namespace
         setup_batched_array<256>(
             handle->rocblas_stream, (T*)mem_x_copy, m, (T**)mem_x_copy_arr, batch_count);
 
-        return rocblas_tbmv_template<T>(handle,
-                                        uplo,
-                                        transA,
-                                        diag,
-                                        m,
-                                        k,
-                                        A,
-                                        0,
-                                        lda,
-                                        0,
-                                        x,
-                                        0,
-                                        incx,
-                                        0,
-                                        batch_count,
-                                        (T* const*)mem_x_copy_arr);
+        return rocblas_tbmv_template(handle,
+                                     uplo,
+                                     transA,
+                                     diag,
+                                     m,
+                                     k,
+                                     A,
+                                     0,
+                                     lda,
+                                     0,
+                                     x,
+                                     0,
+                                     incx,
+                                     0,
+                                     batch_count,
+                                     (T* const*)mem_x_copy_arr);
     }
 
 } // namespace
