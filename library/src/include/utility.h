@@ -351,10 +351,9 @@ inline std::ostream& operator<<(std::ostream& os, rocblas_half x)
 // Convert the current C++ exception to rocblas_status
 // This allows extern "C" functions to return this function in a catch(...) block
 // while converting all C++ exceptions to an equivalent rocblas_status here
-inline rocblas_status exception_to_rocblas_status()
+inline rocblas_status exception_to_rocblas_status(std::exception_ptr e = std::current_exception())
 try
 {
-    auto e = std::current_exception();
     if(e)
         std::rethrow_exception(e);
     return rocblas_status_success;
