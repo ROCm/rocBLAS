@@ -2792,6 +2792,79 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgemv(rocblas_handle                handle
 /*! \brief BLAS Level 2 API
 
     \details
+    xHEMV performs one of the matrix-vector operations
+
+        y := alpha*A*x    + beta*y
+
+    where alpha and beta are scalars, x and y are n element vectors and A is an
+    n by n hermitian matrix.
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+    @param[in]
+    uplo      [rocblas_fill]
+              rocblas_fill_upper: A is an upper banded triangular matrix.
+              rocblas_fill_lower: A is a  lower banded triangular matrix.
+    @param[in]
+    n         [rocblas_int]
+              the order of the matrix A.
+    @param[in]
+    alpha     device pointer or host pointer to scalar alpha.
+    @param[in]
+    A         device pointer storing matrix A. Of dimension (lda, n).
+              if uplo == rocblas_fill_upper:
+                The upper triangular part of A must contain
+                the upper triangular part of a hermitian matrix. The lower
+                triangular part of A will not be referenced.
+              if uplo == rocblas_fill_lower:
+                The lower triangular part of A must contain
+                the lower triangular part of a hermitian matrix. The upper
+                triangular part of A will not be referenced.
+    @param[in]
+    lda       [rocblas_int]
+              specifies the leading dimension of A. must be >= max(1, n)
+    @param[in]
+    x         device pointer storing vector x.
+    @param[in]
+    incx      [rocblas_int]
+              specifies the increment for the elements of x.
+    @param[in]
+    beta      device pointer or host pointer to scalar beta.
+    @param[inout]
+    y         device pointer storing vector y.
+    @param[in]
+    incy      [rocblas_int]
+              specifies the increment for the elements of y.
+
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_chemv(rocblas_handle               handle,
+                                            rocblas_fill                 uplo,
+                                            rocblas_int                  n,
+                                            const rocblas_float_complex* alpha,
+                                            const rocblas_float_complex* A,
+                                            rocblas_int                  lda,
+                                            const rocblas_float_complex* x,
+                                            rocblas_int                  incx,
+                                            const rocblas_float_complex* beta,
+                                            rocblas_float_complex*       y,
+                                            rocblas_int                  incy);
+
+ROCBLAS_EXPORT rocblas_status rocblas_zhemv(rocblas_handle                handle,
+                                            rocblas_fill                  uplo,
+                                            rocblas_int                   n,
+                                            const rocblas_double_complex* alpha,
+                                            const rocblas_double_complex* A,
+                                            rocblas_int                   lda,
+                                            const rocblas_double_complex* x,
+                                            rocblas_int                   incx,
+                                            const rocblas_double_complex* beta,
+                                            rocblas_double_complex*       y,
+                                            rocblas_int                   incy);
+
+/*! \brief BLAS Level 2 API
+
+    \details
     xGEMV_BATCHED performs a batch of matrix-vector operations
 
         y_i := alpha*A_i*x_i    + beta*y_i,   or
@@ -3435,28 +3508,6 @@ rocblas_dsymv(rocblas_handle handle,
                  const double *x, rocblas_int incx,
                  const double *beta,
                  double *y, rocblas_int incy);
-*/
-
-/* not implemented
-ROCBLAS_EXPORT rocblas_status
-rocblas_chemv(rocblas_handle handle,
-                 rocblas_fill uplo,
-                 rocblas_int n,
-                 const rocblas_float_complex *alpha,
-                 const rocblas_float_complex *A, rocblas_int lda,
-                 const rocblas_float_complex *x, rocblas_int incx,
-                 const rocblas_float_complex *beta,
-                 rocblas_float_complex *y, rocblas_int incy);
-
-ROCBLAS_EXPORT rocblas_status
-rocblas_zhemv(rocblas_handle handle,
-                 rocblas_fill uplo,
-                 rocblas_int n,
-                 const rocblas_double_complex *alpha,
-                 const rocblas_double_complex *A, rocblas_int lda,
-                 const rocblas_double_complex *x, rocblas_int incx,
-                 const rocblas_double_complex *beta,
-                 rocblas_double_complex *y, rocblas_int incy);
 */
 
 /*! \brief BLAS Level 2 API

@@ -113,6 +113,13 @@ constexpr double
     return (8.0 * m * n + 6.0 * (transA == rocblas_operation_none ? m : n)) / 1e9;
 }
 
+/* \brief floating point counts of HEMV */
+template <typename T>
+constexpr double hemv_gflop_count(rocblas_int n)
+{
+    return (8.0 * n * n + 8.0 * n) / 1e9;
+}
+
 /* \brief floating point counts of TRSV */
 template <typename T>
 constexpr double trsv_gflop_count(rocblas_int m)

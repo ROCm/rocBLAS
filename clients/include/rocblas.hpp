@@ -1213,6 +1213,26 @@ static constexpr auto rocblas_gemv_batched<rocblas_float_complex> = rocblas_cgem
 template <>
 static constexpr auto rocblas_gemv_batched<rocblas_double_complex> = rocblas_zgemv_batched;
 
+// hemv
+template <typename T>
+rocblas_status (*rocblas_hemv)(rocblas_handle handle,
+                               rocblas_fill   uplo,
+                               rocblas_int    n,
+                               const T*       alpha,
+                               const T*       A,
+                               rocblas_int    lda,
+                               const T*       x,
+                               rocblas_int    incx,
+                               const T*       beta,
+                               T*             y,
+                               rocblas_int    incy);
+
+template <>
+static constexpr auto rocblas_hemv<rocblas_float_complex> = rocblas_chemv;
+
+template <>
+static constexpr auto rocblas_hemv<rocblas_double_complex> = rocblas_zhemv;
+
 // tbmv
 template <typename T>
 rocblas_status (*rocblas_tbmv)(rocblas_fill      uplo,
