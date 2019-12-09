@@ -297,6 +297,8 @@ struct perf_blas<T,
                 {"iamin", testing_iamin<T>},
                 {"gemv", testing_gemv<T>},
                 {"trmv", testing_trmv<T>},
+                {"trmv_batched", testing_trmv_batched<T>},
+                {"trmv_strided_batched", testing_trmv_strided_batched<T>},
                 {"tbmv", testing_tbmv<T>},
 #if BUILD_WITH_TENSILE
                 {"gemm", testing_gemm<T>},
