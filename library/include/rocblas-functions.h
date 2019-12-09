@@ -3035,7 +3035,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgemv_strided_batched(rocblas_handle      
 
     where x is an n element vector and A is an n by n unit, or non-unit, upper or lower triangular matrix.
 
-    The vector x is overwritten on b.
+    The vector x is overwritten.
 
     @param[in]
     handle    [rocblas_handle]
@@ -3056,7 +3056,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgemv_strided_batched(rocblas_handle      
 
     @param[in]
     m         [rocblas_int]
-              m specifies the number of rows of b. m >= 0.
+              m specifies the number of rows of A. m >= 0.
 
     @param[in]
     A         device pointer storing matrix A,
