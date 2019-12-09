@@ -625,9 +625,14 @@ rocblas_status rocblas_sgeam(rocblas_handle    handle,
                              rocblas_int       ldb,
                              float*            C,
                              rocblas_int       ldc)
+try
 {
     return rocblas_geam_template<float>(
         handle, transA, transB, m, n, alpha, A, lda, beta, B, ldb, C, ldc);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_dgeam(rocblas_handle    handle,
@@ -643,9 +648,14 @@ rocblas_status rocblas_dgeam(rocblas_handle    handle,
                              rocblas_int       ldb,
                              double*           C,
                              rocblas_int       ldc)
+try
 {
     return rocblas_geam_template<double>(
         handle, transA, transB, m, n, alpha, A, lda, beta, B, ldb, C, ldc);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 } // extern "C"

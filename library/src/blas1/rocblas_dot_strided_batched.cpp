@@ -136,9 +136,14 @@ rocblas_status rocblas_sdot_strided_batched(rocblas_handle handle,
                                             rocblas_stride stridey,
                                             rocblas_int    batch_count,
                                             float*         results)
+try
 {
     return rocblas_dot_strided_batched_impl<false>(
         handle, n, x, incx, stridex, y, incy, stridey, batch_count, results);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_ddot_strided_batched(rocblas_handle handle,
@@ -151,9 +156,14 @@ rocblas_status rocblas_ddot_strided_batched(rocblas_handle handle,
                                             rocblas_stride stridey,
                                             rocblas_int    batch_count,
                                             double*        results)
+try
 {
     return rocblas_dot_strided_batched_impl<false>(
         handle, n, x, incx, stridex, y, incy, stridey, batch_count, results);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_hdot_strided_batched(rocblas_handle      handle,
@@ -166,9 +176,14 @@ rocblas_status rocblas_hdot_strided_batched(rocblas_handle      handle,
                                             rocblas_stride      stridey,
                                             rocblas_int         batch_count,
                                             rocblas_half*       result)
+try
 {
     return rocblas_dot_strided_batched_impl<false>(
         handle, n, x, incx, stridex, y, incy, stridey, batch_count, result);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_bfdot_strided_batched(rocblas_handle          handle,
@@ -181,9 +196,14 @@ rocblas_status rocblas_bfdot_strided_batched(rocblas_handle          handle,
                                              rocblas_stride          stridey,
                                              rocblas_int             batch_count,
                                              rocblas_bfloat16*       result)
+try
 {
     return rocblas_dot_strided_batched_impl<false, rocblas_bfloat16, float>(
         handle, n, x, incx, stridex, y, incy, stridey, batch_count, result);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_cdotu_strided_batched(rocblas_handle               handle,
@@ -196,9 +216,14 @@ rocblas_status rocblas_cdotu_strided_batched(rocblas_handle               handle
                                              rocblas_stride               stridey,
                                              rocblas_int                  batch_count,
                                              rocblas_float_complex*       results)
+try
 {
     return rocblas_dot_strided_batched_impl<false>(
         handle, n, x, incx, stridex, y, incy, stridey, batch_count, results);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_zdotu_strided_batched(rocblas_handle                handle,
@@ -211,9 +236,14 @@ rocblas_status rocblas_zdotu_strided_batched(rocblas_handle                handl
                                              rocblas_stride                stridey,
                                              rocblas_int                   batch_count,
                                              rocblas_double_complex*       results)
+try
 {
     return rocblas_dot_strided_batched_impl<false>(
         handle, n, x, incx, stridex, y, incy, stridey, batch_count, results);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_cdotc_strided_batched(rocblas_handle               handle,
@@ -226,9 +256,15 @@ rocblas_status rocblas_cdotc_strided_batched(rocblas_handle               handle
                                              rocblas_stride               stridey,
                                              rocblas_int                  batch_count,
                                              rocblas_float_complex*       results)
+try
+
 {
     return rocblas_dot_strided_batched_impl<true>(
         handle, n, x, incx, stridex, y, incy, stridey, batch_count, results);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_zdotc_strided_batched(rocblas_handle                handle,
@@ -241,9 +277,14 @@ rocblas_status rocblas_zdotc_strided_batched(rocblas_handle                handl
                                              rocblas_stride                stridey,
                                              rocblas_int                   batch_count,
                                              rocblas_double_complex*       results)
+try
 {
     return rocblas_dot_strided_batched_impl<true>(
         handle, n, x, incx, stridex, y, incy, stridey, batch_count, results);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 } // extern "C"

@@ -8,6 +8,7 @@
 #include "rocblas.h"
 #include <cmath>
 #include <complex>
+#include <exception>
 #include <hip/hip_runtime.h>
 #include <type_traits>
 
@@ -346,4 +347,25 @@ inline std::ostream& operator<<(std::ostream& os, rocblas_half x)
 {
     return os << float(x);
 }
+
+// Convert the current C++ exception to rocblas_status
+// This allows extern "C" functions to return this function in a catch(...) block
+// while converting all C++ exceptions to an equivalent rocblas_status here
+inline rocblas_status exception_to_rocblas_status()
+try
+{
+    auto e = std::current_exception();
+    if(e)
+        std::rethrow_exception(e);
+    return rocblas_status_success;
+}
+catch(std::bad_alloc)
+{
+    return rocblas_status_memory_error;
+}
+catch(...)
+{
+    return rocblas_status_internal_error;
+}
+
 #endif
