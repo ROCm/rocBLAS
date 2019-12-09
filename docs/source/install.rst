@@ -34,6 +34,13 @@ Building from source
 Building from source is not necessary, as rocBLAS can be used after installing the pre-built
 packages as described above. If desired, the following instructions can be used to build rocBLAS from source.
 
+Requirements
+````````````
+As a general rule, 64GB of system memory is required for a full rocBLAS build. This value can be lower if
+rocBLAS is built with a different Tensile logic target (see the --logic command for ./install.sh). This value
+may also increase in the future as more functions are added to rocBLAS and dependencies such as Tensile grow.
+
+
 Download rocBLAS
 ----------------
 
