@@ -126,9 +126,14 @@ rocblas_status rocblas_srot_strided_batched(rocblas_handle handle,
                                             const float*   c,
                                             const float*   s,
                                             rocblas_int    batch_count)
+try
 {
     return rocblas_rot_strided_batched_impl(
         handle, n, x, incx, stride_x, y, incy, stride_y, c, s, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_drot_strided_batched(rocblas_handle handle,
@@ -142,9 +147,14 @@ rocblas_status rocblas_drot_strided_batched(rocblas_handle handle,
                                             const double*  c,
                                             const double*  s,
                                             rocblas_int    batch_count)
+try
 {
     return rocblas_rot_strided_batched_impl(
         handle, n, x, incx, stride_x, y, incy, stride_y, c, s, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_crot_strided_batched(rocblas_handle               handle,
@@ -158,9 +168,14 @@ rocblas_status rocblas_crot_strided_batched(rocblas_handle               handle,
                                             const float*                 c,
                                             const rocblas_float_complex* s,
                                             rocblas_int                  batch_count)
+try
 {
     return rocblas_rot_strided_batched_impl(
         handle, n, x, incx, stride_x, y, incy, stride_y, c, s, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_csrot_strided_batched(rocblas_handle         handle,
@@ -174,9 +189,14 @@ rocblas_status rocblas_csrot_strided_batched(rocblas_handle         handle,
                                              const float*           c,
                                              const float*           s,
                                              rocblas_int            batch_count)
+try
 {
     return rocblas_rot_strided_batched_impl(
         handle, n, x, incx, stride_x, y, incy, stride_y, c, s, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_zrot_strided_batched(rocblas_handle                handle,
@@ -190,9 +210,14 @@ rocblas_status rocblas_zrot_strided_batched(rocblas_handle                handle
                                             const double*                 c,
                                             const rocblas_double_complex* s,
                                             rocblas_int                   batch_count)
+try
 {
     return rocblas_rot_strided_batched_impl(
         handle, n, x, incx, stride_x, y, incy, stride_y, c, s, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_zdrot_strided_batched(rocblas_handle          handle,
@@ -206,9 +231,14 @@ rocblas_status rocblas_zdrot_strided_batched(rocblas_handle          handle,
                                              const double*           c,
                                              const double*           s,
                                              rocblas_int             batch_count)
+try
 {
     return rocblas_rot_strided_batched_impl(
         handle, n, x, incx, stride_x, y, incy, stride_y, c, s, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 } // extern "C"

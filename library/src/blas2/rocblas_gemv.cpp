@@ -154,8 +154,13 @@ rocblas_status rocblas_sgemv(rocblas_handle    handle,
                              const float*      beta,
                              float*            y,
                              rocblas_int       incy)
+try
 {
     return rocblas_gemv_impl(handle, transA, m, n, alpha, A, lda, x, incx, beta, y, incy);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_dgemv(rocblas_handle    handle,
@@ -170,8 +175,13 @@ rocblas_status rocblas_dgemv(rocblas_handle    handle,
                              const double*     beta,
                              double*           y,
                              rocblas_int       incy)
+try
 {
     return rocblas_gemv_impl(handle, transA, m, n, alpha, A, lda, x, incx, beta, y, incy);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_cgemv(rocblas_handle               handle,
@@ -186,8 +196,13 @@ rocblas_status rocblas_cgemv(rocblas_handle               handle,
                              const rocblas_float_complex* beta,
                              rocblas_float_complex*       y,
                              rocblas_int                  incy)
+try
 {
     return rocblas_gemv_impl(handle, transA, m, n, alpha, A, lda, x, incx, beta, y, incy);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_zgemv(rocblas_handle                handle,
@@ -202,8 +217,13 @@ rocblas_status rocblas_zgemv(rocblas_handle                handle,
                              const rocblas_double_complex* beta,
                              rocblas_double_complex*       y,
                              rocblas_int                   incy)
+try
 {
     return rocblas_gemv_impl(handle, transA, m, n, alpha, A, lda, x, incx, beta, y, incy);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 } // extern "C"

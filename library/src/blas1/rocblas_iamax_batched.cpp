@@ -68,8 +68,13 @@ extern "C" {
                                  rocblas_int      incx,                                  \
                                  rocblas_int      batch_count,                           \
                                  rocblas_int*     results)                               \
+    try                                                                                  \
     {                                                                                    \
         return rocblas_iamax_batched_impl<S_>(handle, n, x, incx, batch_count, results); \
+    }                                                                                    \
+    catch(...)                                                                           \
+    {                                                                                    \
+        return exception_to_rocblas_status();                                            \
     }
 
 IMPL(rocblas_isamax_batched, float, float);

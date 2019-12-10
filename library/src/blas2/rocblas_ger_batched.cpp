@@ -138,8 +138,13 @@ rocblas_status rocblas_sger_batched(rocblas_handle     handle,
                                     float* const       A[],
                                     rocblas_int        lda,
                                     rocblas_int        batch_count)
+try
 {
     return rocblas_ger_batched_impl(handle, m, n, alpha, x, incx, y, incy, A, lda, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_dger_batched(rocblas_handle      handle,
@@ -153,8 +158,13 @@ rocblas_status rocblas_dger_batched(rocblas_handle      handle,
                                     double* const       A[],
                                     rocblas_int         lda,
                                     rocblas_int         batch_count)
+try
 {
     return rocblas_ger_batched_impl(handle, m, n, alpha, x, incx, y, incy, A, lda, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 } // extern "C"

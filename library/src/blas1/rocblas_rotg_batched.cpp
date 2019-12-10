@@ -71,8 +71,13 @@ rocblas_status rocblas_srotg_batched(rocblas_handle handle,
                                      float* const   c[],
                                      float* const   s[],
                                      rocblas_int    batch_count)
+try
 {
     return rocblas_rotg_batched_impl(handle, a, b, c, s, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_drotg_batched(rocblas_handle handle,
@@ -81,8 +86,13 @@ rocblas_status rocblas_drotg_batched(rocblas_handle handle,
                                      double* const  c[],
                                      double* const  s[],
                                      rocblas_int    batch_count)
+try
 {
     return rocblas_rotg_batched_impl(handle, a, b, c, s, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_crotg_batched(rocblas_handle               handle,
@@ -91,8 +101,13 @@ rocblas_status rocblas_crotg_batched(rocblas_handle               handle,
                                      float* const                 c[],
                                      rocblas_float_complex* const s[],
                                      rocblas_int                  batch_count)
+try
 {
     return rocblas_rotg_batched_impl(handle, a, b, c, s, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_zrotg_batched(rocblas_handle                handle,
@@ -101,8 +116,13 @@ rocblas_status rocblas_zrotg_batched(rocblas_handle                handle,
                                      double* const                 c[],
                                      rocblas_double_complex* const s[],
                                      rocblas_int                   batch_count)
+try
 {
     return rocblas_rotg_batched_impl(handle, a, b, c, s, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 } // extern "C"

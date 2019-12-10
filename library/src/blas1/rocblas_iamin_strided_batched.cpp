@@ -71,9 +71,14 @@ extern "C" {
                                  rocblas_stride stridex,        \
                                  rocblas_int    batch_count,    \
                                  rocblas_int*   results)        \
+    try                                                         \
     {                                                           \
         return rocblas_iamin_strided_batched_impl<S_>(          \
             handle, n, x, incx, stridex, batch_count, results); \
+    }                                                           \
+    catch(...)                                                  \
+    {                                                           \
+        return exception_to_rocblas_status();                   \
     }
 
 IMPL(rocblas_isamin_strided_batched, float, float);

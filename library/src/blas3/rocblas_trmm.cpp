@@ -185,8 +185,13 @@ rocblas_status rocblas_strmm(rocblas_handle    handle,
                              rocblas_int       lda,
                              float*            c,
                              rocblas_int       ldc)
+try
 {
     return rocblas_trmm_impl(handle, side, uplo, transa, diag, m, n, alpha, a, lda, c, ldc);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_dtrmm(rocblas_handle    handle,
@@ -201,8 +206,13 @@ rocblas_status rocblas_dtrmm(rocblas_handle    handle,
                              rocblas_int       lda,
                              double*           c,
                              rocblas_int       ldc)
+try
 {
     return rocblas_trmm_impl(handle, side, uplo, transa, diag, m, n, alpha, a, lda, c, ldc);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 } // extern "C"

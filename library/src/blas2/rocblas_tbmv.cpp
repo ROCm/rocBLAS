@@ -137,8 +137,13 @@ rocblas_status rocblas_stbmv(rocblas_handle    handle,
                              rocblas_int       lda,
                              float*            x,
                              rocblas_int       incx)
+try
 {
     return rocblas_tbmv_impl(handle, uplo, transA, diag, m, k, A, lda, x, incx);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_dtbmv(rocblas_handle    handle,
@@ -151,8 +156,13 @@ rocblas_status rocblas_dtbmv(rocblas_handle    handle,
                              rocblas_int       lda,
                              double*           x,
                              rocblas_int       incx)
+try
 {
     return rocblas_tbmv_impl(handle, uplo, transA, diag, m, k, A, lda, x, incx);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_ctbmv(rocblas_handle               handle,
@@ -165,8 +175,13 @@ rocblas_status rocblas_ctbmv(rocblas_handle               handle,
                              rocblas_int                  lda,
                              rocblas_float_complex*       x,
                              rocblas_int                  incx)
+try
 {
     return rocblas_tbmv_impl(handle, uplo, transA, diag, m, k, A, lda, x, incx);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_ztbmv(rocblas_handle                handle,
@@ -179,8 +194,13 @@ rocblas_status rocblas_ztbmv(rocblas_handle                handle,
                              rocblas_int                   lda,
                              rocblas_double_complex*       x,
                              rocblas_int                   incx)
+try
 {
     return rocblas_tbmv_impl(handle, uplo, transA, diag, m, k, A, lda, x, incx);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 } // extern "C"
