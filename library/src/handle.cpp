@@ -134,6 +134,7 @@ void* _rocblas_handle::device_allocator(size_t size)
  * Start device memory size queries                                            *
  *******************************************************************************/
 extern "C" rocblas_status rocblas_start_device_memory_size_query(rocblas_handle handle)
+try
 {
     if(!handle)
         return rocblas_status_invalid_handle;
@@ -143,11 +144,16 @@ extern "C" rocblas_status rocblas_start_device_memory_size_query(rocblas_handle 
     handle->device_memory_query_size = 0;
     return rocblas_status_success;
 }
+catch(...)
+{
+    return exception_to_rocblas_status();
+}
 
 /*******************************************************************************
  * Stop device memory size queries                                             *
  *******************************************************************************/
 extern "C" rocblas_status rocblas_stop_device_memory_size_query(rocblas_handle handle, size_t* size)
+try
 {
     if(!handle)
         return rocblas_status_invalid_handle;
@@ -159,11 +165,16 @@ extern "C" rocblas_status rocblas_stop_device_memory_size_query(rocblas_handle h
     handle->device_memory_size_query = false;
     return rocblas_status_success;
 }
+catch(...)
+{
+    return exception_to_rocblas_status();
+}
 
 /*******************************************************************************
  * Get the device memory size                                                  *
  *******************************************************************************/
 extern "C" rocblas_status rocblas_get_device_memory_size(rocblas_handle handle, size_t* size)
+try
 {
     if(!handle)
         return rocblas_status_invalid_handle;
@@ -172,11 +183,16 @@ extern "C" rocblas_status rocblas_get_device_memory_size(rocblas_handle handle, 
     *size = handle->device_memory_size;
     return rocblas_status_success;
 }
+catch(...)
+{
+    return exception_to_rocblas_status();
+}
 
 /*******************************************************************************
  * Set the device memory size                                                  *
  *******************************************************************************/
 extern "C" rocblas_status rocblas_set_device_memory_size(rocblas_handle handle, size_t size)
+try
 {
     if(!handle)
         return rocblas_status_invalid_handle;
@@ -206,6 +222,10 @@ extern "C" rocblas_status rocblas_set_device_memory_size(rocblas_handle handle, 
         handle->device_memory_size = size;
     }
     return rocblas_status_success;
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 /*******************************************************************************

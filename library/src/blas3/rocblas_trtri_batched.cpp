@@ -141,9 +141,14 @@ rocblas_status rocblas_strtri_batched(rocblas_handle     handle,
                                       float*             invA[],
                                       rocblas_int        ldinvA,
                                       rocblas_int        batch_count)
+try
 {
     constexpr rocblas_int NB = 16;
     return rocblas_trtri_batched_impl<NB>(handle, uplo, diag, n, A, lda, invA, ldinvA, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_dtrtri_batched(rocblas_handle      handle,
@@ -155,9 +160,14 @@ rocblas_status rocblas_dtrtri_batched(rocblas_handle      handle,
                                       double*             invA[],
                                       rocblas_int         ldinvA,
                                       rocblas_int         batch_count)
+try
 {
     constexpr rocblas_int NB = 16;
     return rocblas_trtri_batched_impl<NB>(handle, uplo, diag, n, A, lda, invA, ldinvA, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 } // extern "C"

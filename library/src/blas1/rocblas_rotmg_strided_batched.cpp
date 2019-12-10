@@ -112,6 +112,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_srotmg_strided_batched(rocblas_handle hand
                                                              float*         param,
                                                              rocblas_stride stride_param,
                                                              rocblas_int    batch_count)
+try
 {
     return rocblas_rotmg_strided_batched_impl(handle,
                                               d1,
@@ -126,6 +127,10 @@ ROCBLAS_EXPORT rocblas_status rocblas_srotmg_strided_batched(rocblas_handle hand
                                               stride_param,
                                               batch_count);
 }
+catch(...)
+{
+    return exception_to_rocblas_status();
+}
 
 ROCBLAS_EXPORT rocblas_status rocblas_drotmg_strided_batched(rocblas_handle handle,
                                                              double*        d1,
@@ -139,6 +144,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotmg_strided_batched(rocblas_handle hand
                                                              double*        param,
                                                              rocblas_stride stride_param,
                                                              rocblas_int    batch_count)
+try
 {
     return rocblas_rotmg_strided_batched_impl(handle,
                                               d1,
@@ -152,6 +158,10 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotmg_strided_batched(rocblas_handle hand
                                               param,
                                               stride_param,
                                               batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 } // extern "C"

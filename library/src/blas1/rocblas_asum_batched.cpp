@@ -65,9 +65,14 @@ extern "C" {
                          rocblas_int         incx,                                     \
                          rocblas_int         batch_count,                              \
                          typeo_*             result)                                   \
+    try                                                                                \
     {                                                                                  \
         constexpr rocblas_int NB = 512;                                                \
         return rocblas_asum_batched_impl<NB>(handle, n, x, incx, batch_count, result); \
+    }                                                                                  \
+    catch(...)                                                                         \
+    {                                                                                  \
+        return exception_to_rocblas_status();                                          \
     }
 
 IMPL(rocblas_sasum_batched, float, float);

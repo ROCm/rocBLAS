@@ -32,6 +32,7 @@ extern "C" rocblas_pointer_mode rocblas_pointer_to_mode(void* ptr)
  ******************************************************************************/
 extern "C" rocblas_status rocblas_get_pointer_mode(rocblas_handle        handle,
                                                    rocblas_pointer_mode* mode)
+try
 {
     if(!handle)
         return rocblas_status_invalid_handle;
@@ -40,11 +41,16 @@ extern "C" rocblas_status rocblas_get_pointer_mode(rocblas_handle        handle,
         log_trace(handle, "rocblas_get_pointer_mode", *mode);
     return rocblas_status_success;
 }
+catch(...)
+{
+    return exception_to_rocblas_status();
+}
 
 /*******************************************************************************
  * ! \brief set pointer mode to host or device
  ******************************************************************************/
 extern "C" rocblas_status rocblas_set_pointer_mode(rocblas_handle handle, rocblas_pointer_mode mode)
+try
 {
     if(!handle)
         return rocblas_status_invalid_handle;
@@ -52,6 +58,10 @@ extern "C" rocblas_status rocblas_set_pointer_mode(rocblas_handle handle, rocbla
         log_trace(handle, "rocblas_set_pointer_mode", mode);
     handle->pointer_mode = mode;
     return rocblas_status_success;
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 /*******************************************************************************
@@ -73,7 +83,7 @@ try
 }
 catch(...)
 {
-    return rocblas_status_memory_error;
+    return exception_to_rocblas_status();
 }
 
 /*******************************************************************************
@@ -94,7 +104,7 @@ try
 }
 catch(...)
 {
-    return rocblas_status_internal_error;
+    return exception_to_rocblas_status();
 }
 
 /*******************************************************************************
@@ -103,6 +113,7 @@ catch(...)
  *   stream_id must be created before this call
  ******************************************************************************/
 extern "C" rocblas_status rocblas_set_stream(rocblas_handle handle, hipStream_t stream_id)
+try
 {
     if(!handle)
         return rocblas_status_invalid_handle;
@@ -110,18 +121,27 @@ extern "C" rocblas_status rocblas_set_stream(rocblas_handle handle, hipStream_t 
         log_trace(handle, "rocblas_set_stream", stream_id);
     return handle->set_stream(stream_id);
 }
+catch(...)
+{
+    return exception_to_rocblas_status();
+}
 
 /*******************************************************************************
  *! \brief get rocblas stream used for all subsequent library function calls.
  *   If not set, all hip kernels will take the default NULL stream.
  ******************************************************************************/
 extern "C" rocblas_status rocblas_get_stream(rocblas_handle handle, hipStream_t* stream_id)
+try
 {
     if(!handle)
         return rocblas_status_invalid_handle;
     if(handle->layer_mode & rocblas_layer_mode_log_trace)
         log_trace(handle, "rocblas_get_stream", *stream_id);
     return handle->get_stream(stream_id);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 /*******************************************************************************
@@ -292,7 +312,7 @@ try
 }
 catch(...) // catch all exceptions
 {
-    return rocblas_status_internal_error;
+    return exception_to_rocblas_status();
 }
 
 /*******************************************************************************
@@ -421,7 +441,7 @@ try
 }
 catch(...) // catch all exceptions
 {
-    return rocblas_status_internal_error;
+    return exception_to_rocblas_status();
 }
 
 /*******************************************************************************
@@ -464,7 +484,7 @@ try
 }
 catch(...) // catch all exceptions
 {
-    return rocblas_status_internal_error;
+    return exception_to_rocblas_status();
 }
 
 /*******************************************************************************
@@ -507,7 +527,7 @@ try
 }
 catch(...) // catch all exceptions
 {
-    return rocblas_status_internal_error;
+    return exception_to_rocblas_status();
 }
 
 /*******************************************************************************
@@ -684,7 +704,7 @@ try
 }
 catch(...) // catch all exceptions
 {
-    return rocblas_status_internal_error;
+    return exception_to_rocblas_status();
 }
 
 /*******************************************************************************
@@ -832,7 +852,7 @@ try
 }
 catch(...) // catch all exceptions
 {
-    return rocblas_status_internal_error;
+    return exception_to_rocblas_status();
 }
 
 /*******************************************************************************
@@ -879,7 +899,7 @@ try
 }
 catch(...) // catch all exceptions
 {
-    return rocblas_status_internal_error;
+    return exception_to_rocblas_status();
 }
 
 /*******************************************************************************
@@ -927,7 +947,7 @@ try
 }
 catch(...) // catch all exceptions
 {
-    return rocblas_status_internal_error;
+    return exception_to_rocblas_status();
 }
 
 // Convert rocblas_status to string

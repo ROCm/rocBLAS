@@ -68,8 +68,13 @@ ROCBLAS_EXPORT rocblas_status rocblas_srotmg_batched(rocblas_handle     handle,
                                                      const float* const y1[],
                                                      float* const       param[],
                                                      rocblas_int        batch_count)
+try
 {
     return rocblas_rotmg_batched_impl(handle, d1, d2, x1, y1, param, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 ROCBLAS_EXPORT rocblas_status rocblas_drotmg_batched(rocblas_handle      handle,
@@ -79,8 +84,13 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotmg_batched(rocblas_handle      handle,
                                                      const double* const y1[],
                                                      double* const       param[],
                                                      rocblas_int         batch_count)
+try
 {
     return rocblas_rotmg_batched_impl(handle, d1, d2, x1, y1, param, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 } // extern "C"
