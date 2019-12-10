@@ -250,7 +250,7 @@ void testing_tbmv_strided_batched(const Arguments& arg)
         gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;
         rocblas_gflops    = batch_count * tbmv_gflop_count<T>(M, K) / gpu_time_used * 1e6;
         rocblas_int k1    = K < M ? K : M;
-        rocblas_bandwidth = batch_count * (M * k1 - ((k1 * (k1 + 1)) / 2.0) + 2 * M) * sizeof(T)
+        rocblas_bandwidth = batch_count * (M * k1 - ((k1 * (k1 + 1)) / 2.0) + 3 * M) * sizeof(T)
                             / gpu_time_used / 1e3;
 
         // only norm_check return an norm error, unit check won't return anything
