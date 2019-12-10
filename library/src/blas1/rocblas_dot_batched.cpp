@@ -117,8 +117,13 @@ rocblas_status rocblas_sdot_batched(rocblas_handle     handle,
                                     rocblas_int        incy,
                                     rocblas_int        batch_count,
                                     float*             results)
+try
 {
     return rocblas_dot_batched_impl<false>(handle, n, x, incx, y, incy, batch_count, results);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_ddot_batched(rocblas_handle      handle,
@@ -129,8 +134,13 @@ rocblas_status rocblas_ddot_batched(rocblas_handle      handle,
                                     rocblas_int         incy,
                                     rocblas_int         batch_count,
                                     double*             results)
+try
 {
     return rocblas_dot_batched_impl<false>(handle, n, x, incx, y, incy, batch_count, results);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_hdot_batched(rocblas_handle            handle,
@@ -141,6 +151,7 @@ rocblas_status rocblas_hdot_batched(rocblas_handle            handle,
                                     rocblas_int               incy,
                                     rocblas_int               batch_count,
                                     rocblas_half*             result)
+try
 {
     return rocblas_dot_batched_impl<false>(handle,
                                            n,
@@ -151,6 +162,10 @@ rocblas_status rocblas_hdot_batched(rocblas_handle            handle,
                                            batch_count,
                                            (rocblas_half*)result);
 }
+catch(...)
+{
+    return exception_to_rocblas_status();
+}
 
 rocblas_status rocblas_bfdot_batched(rocblas_handle                handle,
                                      rocblas_int                   n,
@@ -160,9 +175,14 @@ rocblas_status rocblas_bfdot_batched(rocblas_handle                handle,
                                      rocblas_int                   incy,
                                      rocblas_int                   batch_count,
                                      rocblas_bfloat16*             result)
+try
 {
     return rocblas_dot_batched_impl<false, rocblas_bfloat16, float>(
         handle, n, x, incx, y, incy, batch_count, result);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_cdotu_batched(rocblas_handle                     handle,
@@ -173,8 +193,13 @@ rocblas_status rocblas_cdotu_batched(rocblas_handle                     handle,
                                      rocblas_int                        incy,
                                      rocblas_int                        batch_count,
                                      rocblas_float_complex*             results)
+try
 {
     return rocblas_dot_batched_impl<false>(handle, n, x, incx, y, incy, batch_count, results);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_zdotu_batched(rocblas_handle                      handle,
@@ -185,8 +210,13 @@ rocblas_status rocblas_zdotu_batched(rocblas_handle                      handle,
                                      rocblas_int                         incy,
                                      rocblas_int                         batch_count,
                                      rocblas_double_complex*             results)
+try
 {
     return rocblas_dot_batched_impl<false>(handle, n, x, incx, y, incy, batch_count, results);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_cdotc_batched(rocblas_handle                     handle,
@@ -197,8 +227,13 @@ rocblas_status rocblas_cdotc_batched(rocblas_handle                     handle,
                                      rocblas_int                        incy,
                                      rocblas_int                        batch_count,
                                      rocblas_float_complex*             results)
+try
 {
     return rocblas_dot_batched_impl<true>(handle, n, x, incx, y, incy, batch_count, results);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_zdotc_batched(rocblas_handle                      handle,
@@ -209,8 +244,13 @@ rocblas_status rocblas_zdotc_batched(rocblas_handle                      handle,
                                      rocblas_int                         incy,
                                      rocblas_int                         batch_count,
                                      rocblas_double_complex*             results)
+try
 {
     return rocblas_dot_batched_impl<true>(handle, n, x, incx, y, incy, batch_count, results);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 } // extern "C"

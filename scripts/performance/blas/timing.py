@@ -38,7 +38,7 @@ def runcase(workingdir, mval, nval, kval, ntrial, precision, nbatch,
             devicenum, logfilename, function, side, uplo, diag, transA, transB, alpha, beta, incx, incy, lda, ldb, ldc, iters):
     progname = "rocblas-bench"
     prog = os.path.join(workingdir, progname)
-    
+
     cmd = []
     cmd.append(prog)
 
@@ -132,7 +132,7 @@ def runcase(workingdir, mval, nval, kval, ntrial, precision, nbatch,
     logfile = open(logfilename, "a")
     logfile.write('\n'.join(lines))
     logfile.close()
-    
+
     gf_string = "rocblas-Gflops"
     bw_string = "rocblas-GB/s"
     us_string = "us"
@@ -149,10 +149,10 @@ def runcase(workingdir, mval, nval, kval, ntrial, precision, nbatch,
             bw_line = lines[i].split(",")
             index = bw_line.index(bw_string)
             bw_vals.append(float(re.split(r',\s*(?![^()]*\))', lines[i+1])[index]))
-                        
-                
+
+
     fout.close()
-    
+
     return us_vals, gf_vals, bw_vals
 
 def incrementParam(cur, max, mul, step_size, done):
@@ -162,7 +162,7 @@ def incrementParam(cur, max, mul, step_size, done):
         elif mul != 1 and cur + step_size <= max:
             return cur+step_size, False
     return cur, done
-    
+
 
 def main(argv):
     workingdir = "."
@@ -200,7 +200,7 @@ def main(argv):
     side = "L"
     uplo = "L"
     diag = "N"
-    
+
     try:
         print(argv)
         opts, args = getopt.getopt(argv,"hb:d:I:i:o:Rt:w:m:n:k:M:N:K:y:Y:z:Z:f:r:g:p:s:a:x", ["side=", "uplo=", "diag=", "incx=", "incy=",
@@ -295,7 +295,7 @@ def main(argv):
     print("batch-size: " + str(nbatch))
     # print("data type: " + datatype)
     print("device number: " + str(devicenum))
-    
+
     progname = "rocblas-bench"
     prog = os.path.join(workingdir, progname)
     if not os.path.isfile(prog):
@@ -348,9 +348,9 @@ def main(argv):
         lda, done = incrementParam(lda, LDA, step_mult, step_size, done)
         ldb, done = incrementParam(ldb, LDB, step_mult, step_size, done)
         ldc, done = incrementParam(ldc, LDC, step_mult, step_size, done)
-        
-    
-    
+
+
+
 if __name__ == "__main__":
     main(sys.argv[1:])
-                        
+
