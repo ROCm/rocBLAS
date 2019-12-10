@@ -358,7 +358,11 @@ try
         std::rethrow_exception(e);
     return rocblas_status_success;
 }
-catch(std::bad_alloc)
+catch(const rocblas_status& status)
+{
+    return status;
+}
+catch(const std::bad_alloc&)
 {
     return rocblas_status_memory_error;
 }
