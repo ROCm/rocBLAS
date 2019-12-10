@@ -127,6 +127,11 @@ void testing_hemv_batched_bad_arg(const Arguments& arg)
                                                   incy,
                                                   batch_count),
                           rocblas_status_invalid_handle);
+
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_hemv_batched<T>(
+            handle, uplo, N, nullptr, nullptr, lda, nullptr, incx, nullptr, nullptr, incy, 0),
+        rocblas_status_success);
 }
 
 template <typename T>

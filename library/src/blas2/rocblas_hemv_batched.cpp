@@ -118,13 +118,13 @@ namespace
         if(n < 0 || lda < n || lda < 1 || !incx || !incy || batch_count < 0)
             return rocblas_status_invalid_size;
 
-        if(!n)
+        if(!n || !batch_count)
             return rocblas_status_success;
 
         if(!A || !x || !y || !alpha || !beta)
             return rocblas_status_invalid_pointer;
 
-        return rocblas_hemv_template<T>(
+        return rocblas_hemv_template(
             handle, uplo, n, alpha, A, 0, lda, 0, x, 0, incx, 0, beta, y, 0, incy, 0, batch_count);
     }
 

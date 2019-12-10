@@ -80,25 +80,24 @@ __device__ void hemvn_kernel_calc(rocblas_fill uplo,
 }
 
 /**
-  *  T is of type rocblas_float_complex or rocblas_double_complex.
-  *  U is of type const T* or const T* const*.
-  *  V is of type T* or T* const*.
-  *  W is of type const T* or T.
+  *  U is either: const T* OR T
+  *  V is either: const T* OR const T* const*
+  *  W is either:       T* OR       T* const*
   */
-template <rocblas_int DIM_X, rocblas_int DIM_Y, typename T, typename U, typename V, typename W>
+template <rocblas_int DIM_X, rocblas_int DIM_Y, typename U, typename V, typename W>
 __global__ void hemvn_kernel(rocblas_fill   uplo,
                              rocblas_int    n,
-                             W              alpha_device_host,
-                             U              Aa,
+                             U              alpha_device_host,
+                             V              Aa,
                              ptrdiff_t      shifta,
                              rocblas_int    lda,
                              rocblas_stride strideA,
-                             U              xa,
+                             V              xa,
                              ptrdiff_t      shiftx,
                              rocblas_int    incx,
                              rocblas_stride stridex,
-                             W              beta_device_host,
-                             V              ya,
+                             U              beta_device_host,
+                             W              ya,
                              ptrdiff_t      shifty,
                              rocblas_int    incy,
                              rocblas_stride stridey)
@@ -107,31 +106,36 @@ __global__ void hemvn_kernel(rocblas_fill   uplo,
     if(DIM_X * DIM_Y != num_threads)
         return; // need to launch exactly the same number of threads as template parameters indicate
 
-    const T* A = load_ptr_batch(Aa, hipBlockIdx_y, shifta, strideA);
-    const T* x = load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex);
-    T*       y = load_ptr_batch(ya, hipBlockIdx_y, shifty, stridey);
+    const auto* A = load_ptr_batch(Aa, hipBlockIdx_y, shifta, strideA);
+    const auto* x = load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex);
+    auto*       y = load_ptr_batch(ya, hipBlockIdx_y, shifty, stridey);
 
-    T alpha = load_scalar(alpha_device_host);
-    T beta  = load_scalar(beta_device_host);
+    auto alpha = load_scalar(alpha_device_host);
+    auto beta  = load_scalar(beta_device_host);
 
     hemvn_kernel_calc<DIM_X, DIM_Y>(uplo, n, alpha, A, lda, x, incx, beta, y, incy);
 }
 
-template <typename T, typename U, typename V, typename W>
+/**
+  *  U is always: const T* (either host or device)
+  *  V is either: const T* OR const T* const*
+  *  W is either:       T* OR       T* const*
+  */
+template <typename U, typename V, typename W>
 rocblas_status rocblas_hemv_template(rocblas_handle handle,
                                      rocblas_fill   uplo,
                                      rocblas_int    n,
-                                     const U*       alpha,
-                                     const V*       A,
+                                     U              alpha,
+                                     V              A,
                                      rocblas_int    offseta,
                                      rocblas_int    lda,
                                      rocblas_stride strideA,
-                                     const V*       x,
+                                     V              x,
                                      rocblas_int    offsetx,
                                      rocblas_int    incx,
                                      rocblas_stride stridex,
-                                     const U*       beta,
-                                     W*             y,
+                                     U              beta,
+                                     W              y,
                                      rocblas_int    offsety,
                                      rocblas_int    incy,
                                      rocblas_stride stridey,
@@ -156,7 +160,7 @@ rocblas_status rocblas_hemv_template(rocblas_handle handle,
 
     if(handle->pointer_mode == rocblas_pointer_mode_device)
     {
-        hipLaunchKernelGGL((hemvn_kernel<HEMVN_DIM_X, HEMVN_DIM_Y, T>),
+        hipLaunchKernelGGL((hemvn_kernel<HEMVN_DIM_X, HEMVN_DIM_Y>),
                            hemvn_grid,
                            hemvn_threads,
                            0,
@@ -183,7 +187,7 @@ rocblas_status rocblas_hemv_template(rocblas_handle handle,
         if(!*alpha && *beta == 1)
             return rocblas_status_success;
 
-        hipLaunchKernelGGL((hemvn_kernel<HEMVN_DIM_X, HEMVN_DIM_Y, T>),
+        hipLaunchKernelGGL((hemvn_kernel<HEMVN_DIM_X, HEMVN_DIM_Y>),
                            hemvn_grid,
                            hemvn_threads,
                            0,
@@ -207,7 +211,6 @@ rocblas_status rocblas_hemv_template(rocblas_handle handle,
     }
 
     return rocblas_status_success;
-    // return rocblas_status_not_implemented;
 }
 
 #endif
