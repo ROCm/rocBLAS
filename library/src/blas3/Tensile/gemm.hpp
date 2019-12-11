@@ -469,7 +469,7 @@ inline rocblas_status validateArgs(rocblas_handle    handle,
         return rocblas_status_invalid_handle;
 
     // pointers must be valid
-    if(!c || !a || !b || !alpha || !beta)
+    if(!c || !alpha || !beta || ((!a || !b) && k != 0))
         return rocblas_status_invalid_pointer;
 
     rocblas_int num_rows_a = trans_a == rocblas_operation_none ? m : k;
