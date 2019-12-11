@@ -974,6 +974,8 @@ extern "C" const char* rocblas_status_to_string(rocblas_status status)
         CASE(rocblas_status_size_query_mismatch);
         CASE(rocblas_status_size_increased);
         CASE(rocblas_status_size_unchanged);
+        CASE(rocblas_status_invalid_value);
+        CASE(rocblas_status_continue);
     }
 #undef CASE
     // We don't use default: so that the compiler warns us if any valid enums are missing

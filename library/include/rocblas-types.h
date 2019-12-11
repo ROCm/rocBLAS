@@ -121,6 +121,8 @@ typedef enum rocblas_status_
     rocblas_status_size_query_mismatch = 8, /**< unmatched start/stop size query */
     rocblas_status_size_increased      = 9, /**< queried device memory size increased */
     rocblas_status_size_unchanged      = 10, /**< queried device memory size unchanged */
+    rocblas_status_invalid_value       = 11, /**< passed parameter not valid */
+    rocblas_status_continue            = 12, /**< nothing preventing function to proceed */
 } rocblas_status;
 
 /*! \brief Indicates the precision width of data stored in a blas type. */
