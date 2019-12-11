@@ -125,7 +125,7 @@ bool rocblas_test_sigsetjmp = false;
 static void rocblas_test_sighandler(int sig)
 {
     // If the sigsetjmp is enabled, siglongjmp to it, else raise the signal
-    if(rocblas_test_sigjmp_set)
+    if(rocblas_test_sigsetjmp)
         siglongjmp(rocblas_test_sigjmp_buf, sig);
     else
         raise(sig);
