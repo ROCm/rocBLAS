@@ -91,27 +91,24 @@ inline void rocblas_expect_status(rocblas_status status, rocblas_status expect)
 // sigjmp_buf for transferring control from signal handler back to test
 extern sigjmp_buf rocblas_test_sigjmp_buf;
 
-// Set up signal handlers for detecting fatal signals in rocBLAS
-void rocblas_test_set_sigaction();
-
-// Clear signal handlers for detecting fatal signals in rocBLAS
-void rocblas_test_clear_sigaction();
+// Whether the rocblas test sigsetjmp is enabled
+extern bool rocblas_test_sigsetjmp;
 
 // Macro to wrap test around sigsetjmp handler, to detect fatal signals
-#define CATCH_SIGNALS_AS_FAILURE(test)                      \
-    do                                                      \
-    {                                                       \
-        rocblas_test_set_sigaction();                       \
-        int sig = sigsetjmp(rocblas_test_sigjmp_buf, true); \
-        if(sig)                                             \
-        {                                                   \
-            FAIL() << "Received " << strsignal(sig);        \
-        }                                                   \
-        else                                                \
-        {                                                   \
-            test;                                           \
-        }                                                   \
-        rocblas_test_clear_sigaction();                     \
+#define CATCH_SIGNALS_AS_FAILURE(test)                                     \
+    do                                                                     \
+    {                                                                      \
+        int sig                = sigsetjmp(rocblas_test_sigjmp_buf, true); \
+        rocblas_test_sigsetjmp = true;                                     \
+        if(sig)                                                            \
+        {                                                                  \
+            FAIL() << "Received " << strsignal(sig);                       \
+        }                                                                  \
+        else                                                               \
+        {                                                                  \
+            test;                                                          \
+        }                                                                  \
+        rocblas_test_sigsetjmp = false;                                    \
     } while(0)
 
 /* ============================================================================================ */
