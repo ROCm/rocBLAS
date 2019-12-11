@@ -111,16 +111,46 @@ public:
     }
 };
 
-/* =====================================================================
-      Main function:
-=================================================================== */
+/*********************************************
+ * Signal-handling for detecting test faults *
+ *********************************************/
 
+// sigjmp_buf for transferring control from signal handler to test
+sigjmp_buf rocblas_test_sigjmp_buf;
+
+// Set up signal handlers for detecting fatal memory/instruction errors in rocBLAS
+void rocblas_test_set_sigaction()
+{
+    struct sigaction act;
+    sigemptyset(&act.sa_mask);
+    act.sa_flags   = 0;
+    act.sa_handler = [](int sig) { siglongjmp(rocblas_test_sigjmp_buf, sig); };
+    sigaction(SIGSEGV, &act, nullptr);
+    sigaction(SIGBUS, &act, nullptr);
+    sigaction(SIGILL, &act, nullptr);
+}
+
+// Clear signal handlers for detecting fatal memory/instruction errors in rocBLAS
+void rocblas_test_clear_sigaction()
+{
+    signal(SIGSEGV, SIG_DFL);
+    signal(SIGBUS, SIG_DFL);
+    signal(SIGILL, SIG_DFL);
+}
+
+/******************
+ * Main function: *
+ ******************/
 int main(int argc, char** argv)
 {
     // Print Version
     char blas_version[100];
     rocblas_get_version_string(blas_version, sizeof(blas_version));
+#ifdef USE_TENSILE_HOST
+    printf("rocBLAS version: %s (new Tensile client)\n\n", blas_version);
+#else
     printf("rocBLAS version: %s\n\n", blas_version);
+#endif
 
     // Device Query
     int device_id    = 0;
