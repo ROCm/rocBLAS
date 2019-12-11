@@ -263,9 +263,10 @@ void testing_trmv_strided_batched(const Arguments& arg)
         //
         // Evaluate performance.
         //
-        rocblas_gflops    = (double(batch_count) * trmv_gflop_count<T>(M)) / gpu_time_used * 1e6;
-        rocblas_bandwidth = (double((M * (M + 1)) / 2) * double(batch_count) * double(sizeof(T)))
-                            / gpu_time_used * 1e-3;
+        rocblas_gflops = (double(batch_count) * trmv_gflop_count<T>(M)) / gpu_time_used * 1e6;
+        rocblas_bandwidth
+            = (double((M * (M + 1)) / 2 + 2 * M) * double(batch_count) * double(sizeof(T)))
+              / gpu_time_used * 1e-3;
 
         //
         // Display.

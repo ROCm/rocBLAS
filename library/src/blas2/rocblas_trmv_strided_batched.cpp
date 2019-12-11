@@ -65,14 +65,9 @@ namespace
                           lda,
                           x,
                           incx,
-
-                          "--stride_A",
                           stridea,
-                          "--incx",
                           incx,
-                          "--stride_x",
                           stridex,
-
                           batch_count);
             }
 
