@@ -118,24 +118,38 @@ public:
 // sigjmp_buf for transferring control from signal handler to test
 sigjmp_buf rocblas_test_sigjmp_buf;
 
-// Set up signal handlers for detecting fatal memory/instruction errors in rocBLAS
+// Set up signal handlers for detecting fatal signals in rocBLAS
 void rocblas_test_set_sigaction()
 {
     struct sigaction act;
     sigemptyset(&act.sa_mask);
     act.sa_flags   = 0;
     act.sa_handler = [](int sig) { siglongjmp(rocblas_test_sigjmp_buf, sig); };
-    sigaction(SIGSEGV, &act, nullptr);
+    sigaction(SIGABRT, &act, nullptr);
     sigaction(SIGBUS, &act, nullptr);
+    sigaction(SIGFPE, &act, nullptr);
     sigaction(SIGILL, &act, nullptr);
+    sigaction(SIGPIPE, &act, nullptr);
+    sigaction(SIGQUIT, &act, nullptr);
+    sigaction(SIGSEGV, &act, nullptr);
+    sigaction(SIGSYS, &act, nullptr);
+    sigaction(SIGUSR1, &act, nullptr);
+    sigaction(SIGUSR2, &act, nullptr);
 }
 
-// Clear signal handlers for detecting fatal memory/instruction errors in rocBLAS
+// Clear signal handlers for detecting fatal signals in rocBLAS
 void rocblas_test_clear_sigaction()
 {
-    signal(SIGSEGV, SIG_DFL);
+    signal(SIGABRT, SIG_DFL);
     signal(SIGBUS, SIG_DFL);
+    signal(SIGFPE, SIG_DFL);
     signal(SIGILL, SIG_DFL);
+    signal(SIGPIPE, SIG_DFL);
+    signal(SIGQUIT, SIG_DFL);
+    signal(SIGSEGV, SIG_DFL);
+    signal(SIGSYS, SIG_DFL);
+    signal(SIGUSR1, SIG_DFL);
+    signal(SIGUSR2, SIG_DFL);
 }
 
 /******************
