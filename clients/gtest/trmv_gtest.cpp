@@ -55,8 +55,9 @@ namespace
         {
             RocBLAS_TestName<trmv_template> name;
 
-            name << rocblas_datatype2string(arg.a_type) << '_' << (char)std::toupper(arg.transA)
-                 << '_' << arg.M << '_' << arg.N << '_' << arg.alpha << '_' << arg.lda;
+            name << rocblas_datatype2string(arg.a_type) << '_' << (char)std::toupper(arg.uplo)
+                 << '_' << (char)std::toupper(arg.transA) << '_' << (char)std::toupper(arg.diag)
+                 << '_' << arg.M << '_' << arg.lda;
 
             if(TRMV_TYPE == TRMV_STRIDED_BATCHED)
                 name << '_' << arg.stride_a;
@@ -65,11 +66,6 @@ namespace
 
             if(TRMV_TYPE == TRMV_STRIDED_BATCHED)
                 name << '_' << arg.stride_x;
-
-            name << '_' << arg.beta << '_' << arg.incy;
-
-            if(TRMV_TYPE == TRMV_STRIDED_BATCHED)
-                name << '_' << arg.stride_y;
 
             if(TRMV_TYPE == TRMV_STRIDED_BATCHED || TRMV_TYPE == TRMV_BATCHED)
                 name << '_' << arg.batch_count;

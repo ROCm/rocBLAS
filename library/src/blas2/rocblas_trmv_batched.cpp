@@ -103,7 +103,7 @@ namespace
                             lda,
                             "incx",
                             incx,
-                            "--batch_count",
+                            "batch_count",
                             batch_count);
             }
         }
