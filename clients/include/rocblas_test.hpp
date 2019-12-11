@@ -10,7 +10,10 @@
 #include "test_cleanup.hpp"
 #include <algorithm>
 #include <cstdio>
+#include <cstring>
 #include <iostream>
+#include <setjmp.h>
+#include <signal.h>
 #include <sstream>
 #include <string>
 #include <type_traits>
@@ -84,6 +87,32 @@ inline void rocblas_expect_status(rocblas_status status, rocblas_status expect)
     INSTANTIATE_TEST_CATEGORY(testclass, pre_checkin) \
     INSTANTIATE_TEST_CATEGORY(testclass, nightly)     \
     INSTANTIATE_TEST_CATEGORY(testclass, known_bug)
+
+// sigjmp_buf for transferring control from signal handler back to test
+extern sigjmp_buf rocblas_test_sigjmp_buf;
+
+// Set up signal handlers for detecting fatal memory/instruction errors in rocBLAS
+void rocblas_test_set_sigaction();
+
+// Clear signal handlers for detecting fatal memory/instruction errors in rocBLAS
+void rocblas_test_clear_sigaction();
+
+// Macro to wrap test around sigsetjmp handler, to detect failures due to signals
+#define CATCH_SIGNALS_AS_FAILURE(test)                      \
+    do                                                      \
+    {                                                       \
+        rocblas_test_set_sigaction();                       \
+        int sig = sigsetjmp(rocblas_test_sigjmp_buf, true); \
+        if(sig)                                             \
+        {                                                   \
+            FAIL() << "Received " << strsignal(sig);        \
+        }                                                   \
+        else                                                \
+        {                                                   \
+            test;                                           \
+        }                                                   \
+        rocblas_test_clear_sigaction();                     \
+    } while(0)
 
 /* ============================================================================================ */
 /*! \brief  Normalized test name to conform to Google Tests */
