@@ -2695,6 +2695,132 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotmg_strided_batched(rocblas_handle hand
 /*! \brief BLAS Level 2 API
 
     \details
+    xGBMV performs one of the matrix-vector operations
+
+        y := alpha*A*x    + beta*y,   or
+        y := alpha*A**T*x + beta*y,   or
+        y := alpha*A**H*x + beta*y,
+
+    where alpha and beta are scalars, x and y are vectors and A is an
+    m by n banded matrix with kl sub-diagonals and ku super-diagonals.
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+    @param[in]
+    trans     [rocblas_operation]
+              indicates whether matrix A is tranposed (conjugated) or not
+    @param[in]
+    m         [rocblas_int]
+              number of rows of matrix A
+    @param[in]
+    n         [rocblas_int]
+              number of columns of matrix A
+    @param[in]
+    kl        [rocblas_int]
+              number of sub-diagonals of A
+    @param[in]
+    ku        [rocblas_int]
+              number of super-diagonals of A
+    @param[in]
+    alpha     device pointer or host pointer to scalar alpha.
+    @param[in]
+        A     device pointer storing banded matrix A.
+              Leading (kl + ku + 1) by n part of the matrix contains the coefficients
+              of the banded matrix. The leading diagonal resides in row (ku + 1) with
+              the first super-diagonal above on the RHS of row ku. The first sub-diagonal
+              resides below on the LHS of row ku + 2. This propogates up and down across
+              sub/super-diagonals.
+                Ex: (m = 7; ku = 2, kl = 2)
+                1 2 3 0 0 0 0             0 0 3 3 3 3 3
+                4 1 2 3 0 0 0             0 2 2 2 2 2 2
+                5 4 1 2 3 0 0    ---->    1 1 1 1 1 1 1
+                0 5 4 1 2 3 0             4 4 4 4 4 4 0
+                0 0 5 4 1 2 0             5 5 5 5 5 0 0
+                0 0 0 5 4 1 2             0 0 0 0 0 0 0
+                0 0 0 0 5 4 1             0 0 0 0 0 0 0
+              Note that the empty elements which don't correspond to data will not
+              be referenced.
+    @param[in]
+    lda       [rocblas_int]
+              specifies the leading dimension of A. Must be >= (kl + ku + 1)
+    @param[in]
+    x         device pointer storing vector x.
+    @param[in]
+    incx      [rocblas_int]
+              specifies the increment for the elements of x.
+    @param[in]
+    beta      device pointer or host pointer to scalar beta.
+    @param[inout]
+    y         device pointer storing vector y.
+    @param[in]
+    incy      [rocblas_int]
+              specifies the increment for the elements of y.
+
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_sgbmv(rocblas_handle    handle,
+                                            rocblas_operation trans,
+                                            rocblas_int       m,
+                                            rocblas_int       n,
+                                            rocblas_int       kl,
+                                            rocblas_int       ku,
+                                            const float*      alpha,
+                                            const float*      A,
+                                            rocblas_int       lda,
+                                            const float*      x,
+                                            rocblas_int       incx,
+                                            const float*      beta,
+                                            float*            y,
+                                            rocblas_int       incy);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dgbmv(rocblas_handle    handle,
+                                            rocblas_operation trans,
+                                            rocblas_int       m,
+                                            rocblas_int       n,
+                                            rocblas_int       kl,
+                                            rocblas_int       ku,
+                                            const double*     alpha,
+                                            const double*     A,
+                                            rocblas_int       lda,
+                                            const double*     x,
+                                            rocblas_int       incx,
+                                            const double*     beta,
+                                            double*           y,
+                                            rocblas_int       incy);
+
+ROCBLAS_EXPORT rocblas_status rocblas_cgbmv(rocblas_handle               handle,
+                                            rocblas_operation            trans,
+                                            rocblas_int                  m,
+                                            rocblas_int                  n,
+                                            rocblas_int                  kl,
+                                            rocblas_int                  ku,
+                                            const rocblas_float_complex* alpha,
+                                            const rocblas_float_complex* A,
+                                            rocblas_int                  lda,
+                                            const rocblas_float_complex* x,
+                                            rocblas_int                  incx,
+                                            const rocblas_float_complex* beta,
+                                            rocblas_float_complex*       y,
+                                            rocblas_int                  incy);
+
+ROCBLAS_EXPORT rocblas_status rocblas_zgbmv(rocblas_handle                handle,
+                                            rocblas_operation             trans,
+                                            rocblas_int                   m,
+                                            rocblas_int                   n,
+                                            rocblas_int                   kl,
+                                            rocblas_int                   ku,
+                                            const rocblas_double_complex* alpha,
+                                            const rocblas_double_complex* A,
+                                            rocblas_int                   lda,
+                                            const rocblas_double_complex* x,
+                                            rocblas_int                   incx,
+                                            const rocblas_double_complex* beta,
+                                            rocblas_double_complex*       y,
+                                            rocblas_int                   incy);
+
+/*! \brief BLAS Level 2 API
+
+    \details
     xGEMV performs one of the matrix-vector operations
 
         y := alpha*A*x    + beta*y,   or

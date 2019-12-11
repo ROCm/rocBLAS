@@ -1125,6 +1125,35 @@ static constexpr auto rocblas_syr_batched<float> = rocblas_ssyr_batched;
 template <>
 static constexpr auto rocblas_syr_batched<double> = rocblas_dsyr_batched;
 
+// gbmv
+template <typename T>
+rocblas_status (*rocblas_gbmv)(rocblas_handle    handle,
+                               rocblas_operation transA,
+                               rocblas_int       m,
+                               rocblas_int       n,
+                               rocblas_int       kl,
+                               rocblas_int       ku,
+                               const T*          alpha,
+                               const T*          A,
+                               rocblas_int       lda,
+                               const T*          x,
+                               rocblas_int       incx,
+                               const T*          beta,
+                               T*                y,
+                               rocblas_int       incy);
+
+template <>
+static constexpr auto rocblas_gbmv<float> = rocblas_sgbmv;
+
+template <>
+static constexpr auto rocblas_gbmv<double> = rocblas_dgbmv;
+
+template <>
+static constexpr auto rocblas_gbmv<rocblas_float_complex> = rocblas_cgbmv;
+
+template <>
+static constexpr auto rocblas_gbmv<rocblas_double_complex> = rocblas_zgbmv;
+
 // gemv
 template <typename T>
 rocblas_status (*rocblas_gemv)(rocblas_handle    handle,
