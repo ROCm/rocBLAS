@@ -94,21 +94,34 @@ extern sigjmp_buf rocblas_test_sigjmp_buf;
 // Whether the rocblas test sigsetjmp is enabled
 extern bool rocblas_test_sigsetjmp;
 
+struct rocblas_sigsetjmp
+{
+    rocblas_sigsetjmp()
+    {
+        rocblas_test_sigsetjmp = true;
+    }
+
+    ~rocblas_sigsetjmp()
+    {
+        rocblas_test_sigsetjmp = false;
+    }
+};
+
 // Macro to wrap test around sigsetjmp handler, to detect fatal signals
-#define CATCH_SIGNALS_AS_FAILURE(test)                                     \
-    do                                                                     \
-    {                                                                      \
-        int sig                = sigsetjmp(rocblas_test_sigjmp_buf, true); \
-        rocblas_test_sigsetjmp = true;                                     \
-        if(sig)                                                            \
-        {                                                                  \
-            FAIL() << "Received " << strsignal(sig);                       \
-        }                                                                  \
-        else                                                               \
-        {                                                                  \
-            test;                                                          \
-        }                                                                  \
-        rocblas_test_sigsetjmp = false;                                    \
+#define CATCH_SIGNALS_AS_FAILURE(test)                      \
+    do                                                      \
+    {                                                       \
+        int sig = sigsetjmp(rocblas_test_sigjmp_buf, true); \
+        if(sig)                                             \
+        {                                                   \
+            rocblas_test_sigsetjmp = false;                 \
+            FAIL() << "Received " << strsignal(sig);        \
+        }                                                   \
+        else                                                \
+        {                                                   \
+            rocblas_sigsetjmp x;                            \
+            test;                                           \
+        }                                                   \
     } while(0)
 
 /* ============================================================================================ */
