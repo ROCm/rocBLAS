@@ -109,18 +109,6 @@ namespace
     template <>
     constexpr auto tensile_datatype<rocblas_double_complex> = Tensile::DataType::ComplexDouble;
 
-    /**************************************************************************
-     * Return the value category for a value, as a double precision value,    *
-     * such as whether it's 0, 1, or some other value. Tensile uses a double  *
-     * precision value to express the category of beta. This function is to   *
-     * convert complex or other types to a double representing the category.  *
-     **************************************************************************/
-    template <typename T>
-    constexpr double value_category(const T& beta)
-    {
-        return beta == T(0) ? 0.0 : beta == T(1) ? 1.0 : -12345.0;
-    }
-
     /***************************************************************
      * Contruct a Tensile Problem from a RocblasContractionProblem *
      ***************************************************************/
@@ -396,7 +384,13 @@ try
     auto  tensile_problem = ConstructTensileProblem(problem);
     auto  inputs          = GetTensileInputs(problem);
     auto  solution        = host->library->findBestSolution(tensile_problem, *host->hardware);
-    auto  result          = solution->solve(tensile_problem, inputs, *host->hardware);
+    if(!solution)
+    {
+        static int once
+            = (std::cerr << "Error: No Tensile solution found for " << problem << std::endl, 0);
+        return rocblas_status_internal_error;
+    }
+    auto result = solution->solve(tensile_problem, inputs, *host->hardware);
     host->adapter.launchKernels(result);
     return rocblas_status_success;
 }

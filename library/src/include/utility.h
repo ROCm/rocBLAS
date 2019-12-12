@@ -252,6 +252,7 @@ template <> static constexpr auto rocblas_datatype_from_type<rocblas_bfloat16>  
 
 // return precision string for data type
 template <typename> static constexpr char rocblas_precision_string                [] = "invalid";
+template <> static constexpr char rocblas_precision_string<rocblas_bfloat16      >[] = "bf16_r";
 template <> static constexpr char rocblas_precision_string<rocblas_half          >[] = "f16_r";
 template <> static constexpr char rocblas_precision_string<float                 >[] = "f32_r";
 template <> static constexpr char rocblas_precision_string<double                >[] = "f64_r";
