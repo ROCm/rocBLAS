@@ -114,8 +114,13 @@ extern "C" {
                                  rocblas_int    incx,                                              \
                                  T_*            y,                                                 \
                                  rocblas_int    incy)                                              \
+    try                                                                                            \
     {                                                                                              \
         return rocblas_axpy_impl<256>(handle, n, alpha, x, incx, y, incy, #routine_name_, "axpy"); \
+    }                                                                                              \
+    catch(...)                                                                                     \
+    {                                                                                              \
+        return exception_to_rocblas_status();                                                      \
     }
 
 IMPL(rocblas_saxpy, float);

@@ -72,8 +72,13 @@ ROCBLAS_EXPORT rocblas_status rocblas_srotm(rocblas_handle handle,
                                             float*         y,
                                             rocblas_int    incy,
                                             const float*   param)
+try
 {
     return rocblas_rotm_impl(handle, n, x, incx, y, incy, param);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 ROCBLAS_EXPORT rocblas_status rocblas_drotm(rocblas_handle handle,
@@ -83,8 +88,13 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotm(rocblas_handle handle,
                                             double*        y,
                                             rocblas_int    incy,
                                             const double*  param)
+try
 {
     return rocblas_rotm_impl(handle, n, x, incx, y, incy, param);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 } // extern "C"

@@ -203,7 +203,7 @@ void testing_trmv(const Arguments& arg)
         // Evaluate performance.
         //
         rocblas_gflops    = trmv_gflop_count<T>(M) / gpu_time_used * 1e6;
-        rocblas_bandwidth = (double((M * (M + 1)) / 2) * sizeof(T)) / gpu_time_used * 1e-3;
+        rocblas_bandwidth = (double((M * (M + 1)) / 2 + 2 * M) * sizeof(T)) / gpu_time_used * 1e-3;
 
         //
         // Display.

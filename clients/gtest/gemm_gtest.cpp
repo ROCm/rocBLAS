@@ -160,21 +160,21 @@ namespace
     using gemm = gemm_test_template<gemm_testing, GEMM>;
     TEST_P(gemm, blas3)
     {
-        rocblas_gemm_dispatch<gemm_testing>(GetParam());
+        CATCH_SIGNALS_AS_FAILURE(rocblas_gemm_dispatch<gemm_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(gemm);
 
     using gemm_batched = gemm_test_template<gemm_testing, GEMM_BATCHED>;
     TEST_P(gemm_batched, blas3)
     {
-        rocblas_gemm_dispatch<gemm_testing>(GetParam());
+        CATCH_SIGNALS_AS_FAILURE(rocblas_gemm_dispatch<gemm_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(gemm_batched);
 
     using gemm_strided_batched = gemm_test_template<gemm_testing, GEMM_STRIDED_BATCHED>;
     TEST_P(gemm_strided_batched, blas3)
     {
-        rocblas_gemm_dispatch<gemm_testing>(GetParam());
+        CATCH_SIGNALS_AS_FAILURE(rocblas_gemm_dispatch<gemm_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(gemm_strided_batched);
 
@@ -226,21 +226,21 @@ namespace
     using gemm_ex = gemm_test_template<gemm_ex_testing, GEMM_EX>;
     TEST_P(gemm_ex, blas3)
     {
-        rocblas_gemm_dispatch<gemm_ex_testing>(GetParam());
+        CATCH_SIGNALS_AS_FAILURE(rocblas_gemm_dispatch<gemm_ex_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(gemm_ex);
 
     using gemm_batched_ex = gemm_test_template<gemm_ex_testing, GEMM_BATCHED_EX>;
     TEST_P(gemm_batched_ex, blas3)
     {
-        rocblas_gemm_dispatch<gemm_ex_testing>(GetParam());
+        CATCH_SIGNALS_AS_FAILURE(rocblas_gemm_dispatch<gemm_ex_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(gemm_batched_ex);
 
     using gemm_strided_batched_ex = gemm_test_template<gemm_ex_testing, GEMM_STRIDED_BATCHED_EX>;
     TEST_P(gemm_strided_batched_ex, blas3)
     {
-        rocblas_gemm_dispatch<gemm_ex_testing>(GetParam());
+        CATCH_SIGNALS_AS_FAILURE(rocblas_gemm_dispatch<gemm_ex_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(gemm_strided_batched_ex);
 

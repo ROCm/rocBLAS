@@ -85,8 +85,13 @@ rocblas_status rocblas_srot(rocblas_handle handle,
                             rocblas_int    incy,
                             const float*   c,
                             const float*   s)
+try
 {
     return rocblas_rot_impl(handle, n, x, incx, y, incy, c, s);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_drot(rocblas_handle handle,
@@ -97,8 +102,13 @@ rocblas_status rocblas_drot(rocblas_handle handle,
                             rocblas_int    incy,
                             const double*  c,
                             const double*  s)
+try
 {
     return rocblas_rot_impl(handle, n, x, incx, y, incy, c, s);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_crot(rocblas_handle               handle,
@@ -109,8 +119,13 @@ rocblas_status rocblas_crot(rocblas_handle               handle,
                             rocblas_int                  incy,
                             const float*                 c,
                             const rocblas_float_complex* s)
+try
 {
     return rocblas_rot_impl(handle, n, x, incx, y, incy, c, s);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_csrot(rocblas_handle         handle,
@@ -121,8 +136,13 @@ rocblas_status rocblas_csrot(rocblas_handle         handle,
                              rocblas_int            incy,
                              const float*           c,
                              const float*           s)
+try
 {
     return rocblas_rot_impl(handle, n, x, incx, y, incy, c, s);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_zrot(rocblas_handle                handle,
@@ -133,8 +153,13 @@ rocblas_status rocblas_zrot(rocblas_handle                handle,
                             rocblas_int                   incy,
                             const double*                 c,
                             const rocblas_double_complex* s)
+try
 {
     return rocblas_rot_impl(handle, n, x, incx, y, incy, c, s);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_zdrot(rocblas_handle          handle,
@@ -145,8 +170,13 @@ rocblas_status rocblas_zdrot(rocblas_handle          handle,
                              rocblas_int             incy,
                              const double*           c,
                              const double*           s)
+try
 {
     return rocblas_rot_impl(handle, n, x, incx, y, incy, c, s);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 } // extern "C"

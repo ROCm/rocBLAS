@@ -186,9 +186,14 @@ rocblas_status rocblas_hgemm(rocblas_handle      handle,
                              const rocblas_half* beta,
                              rocblas_half*       C,
                              rocblas_int         ld_c)
+try
 {
     return rocblas_gemm_impl(
         handle, trans_a, trans_b, m, n, k, alpha, A, ld_a, B, ld_b, beta, C, ld_c);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_sgemm(rocblas_handle    handle,
@@ -205,9 +210,14 @@ rocblas_status rocblas_sgemm(rocblas_handle    handle,
                              const float*      beta,
                              float*            C,
                              rocblas_int       ld_c)
+try
 {
     return rocblas_gemm_impl(
         handle, trans_a, trans_b, m, n, k, alpha, A, ld_a, B, ld_b, beta, C, ld_c);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_dgemm(rocblas_handle    handle,
@@ -224,9 +234,14 @@ rocblas_status rocblas_dgemm(rocblas_handle    handle,
                              const double*     beta,
                              double*           C,
                              rocblas_int       ld_c)
+try
 {
     return rocblas_gemm_impl(
         handle, trans_a, trans_b, m, n, k, alpha, A, ld_a, B, ld_b, beta, C, ld_c);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_cgemm(rocblas_handle               handle,
@@ -243,9 +258,14 @@ rocblas_status rocblas_cgemm(rocblas_handle               handle,
                              const rocblas_float_complex* beta,
                              rocblas_float_complex*       C,
                              rocblas_int                  ld_c)
+try
 {
     return rocblas_gemm_impl(
         handle, trans_a, trans_b, m, n, k, alpha, A, ld_a, B, ld_b, beta, C, ld_c);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_zgemm(rocblas_handle                handle,
@@ -262,9 +282,14 @@ rocblas_status rocblas_zgemm(rocblas_handle                handle,
                              const rocblas_double_complex* beta,
                              rocblas_double_complex*       C,
                              rocblas_int                   ld_c)
+try
 {
     return rocblas_gemm_impl(
         handle, trans_a, trans_b, m, n, k, alpha, A, ld_a, B, ld_b, beta, C, ld_c);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 /*******************************************************************************

@@ -150,7 +150,22 @@ constexpr double trsv_gflop_count(rocblas_int m)
 template <typename T>
 constexpr double tbmv_gflop_count(rocblas_int m, rocblas_int k)
 {
-    return ((2 * m * k - k * (k + 1)) + m) / 1e9;
+    rocblas_int k1 = k < m ? k : m;
+    return ((2 * m * k1 - k1 * (k1 + 1)) + m) / 1e9;
+}
+
+template <>
+constexpr double tbmv_gflop_count<rocblas_float_complex>(rocblas_int m, rocblas_int k)
+{
+    rocblas_int k1 = k < m ? k : m;
+    return (4 * (2 * m * k1 - k1 * (k1 + 1)) + 4 * m) / 1e9;
+}
+
+template <>
+constexpr double tbmv_gflop_count<rocblas_double_complex>(rocblas_int m, rocblas_int k)
+{
+    rocblas_int k1 = k < m ? k : m;
+    return (4 * (2 * m * k1 - k1 * (k1 + 1)) + 4 * m) / 1e9;
 }
 
 /* \brief floating point counts of SY(HE)MV */
