@@ -220,9 +220,9 @@ void testing_hemv_batched(const Arguments& arg)
     rocblas_init(hx, false);
 
     if(rocblas_isnan(arg.beta))
-        rocblas_init_nan<T>(hy_1, false);
+        rocblas_init_nan(hy_1, false);
     else
-        rocblas_init<T>(hy_1, false);
+        rocblas_init(hy_1, false);
 
     hy_gold.copy_from(hy_1);
     hy_2.copy_from(hy_1);

@@ -111,6 +111,10 @@ void testing_hemv(const Arguments& arg)
     host_vector<T> hy_1(size_y);
     host_vector<T> hy_2(size_y);
     host_vector<T> hy_gold(size_y);
+    host_vector<T> halpha(1);
+    host_vector<T> hbeta(1);
+    halpha[0] = h_alpha;
+    hbeta[0]  = h_beta;
 
     device_vector<T> dA(size_A);
     device_vector<T> dx(size_x);
@@ -154,10 +158,10 @@ void testing_hemv(const Arguments& arg)
     =================================================================== */
     if(arg.unit_check || arg.norm_check)
     {
-        CHECK_HIP_ERROR(hipMemcpy(dy_1, hy_1, sizeof(T) * size_y, hipMemcpyHostToDevice));
-        CHECK_HIP_ERROR(hipMemcpy(dy_2, hy_2, sizeof(T) * size_y, hipMemcpyHostToDevice));
-        CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(T), hipMemcpyHostToDevice));
-        CHECK_HIP_ERROR(hipMemcpy(d_beta, &h_beta, sizeof(T), hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(dy_1.transfer_from(hy_1));
+        CHECK_HIP_ERROR(dy_2.transfer_from(hy_2));
+        CHECK_HIP_ERROR(d_alpha.transfer_from(halpha));
+        CHECK_HIP_ERROR(d_beta.transfer_from(hbeta));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         CHECK_ROCBLAS_ERROR(
@@ -168,8 +172,8 @@ void testing_hemv(const Arguments& arg)
             rocblas_hemv<T>(handle, uplo, N, d_alpha, dA, lda, dx, incx, d_beta, dy_2, incy));
 
         // copy output from device to CPU
-        CHECK_HIP_ERROR(hipMemcpy(hy_1, dy_1, sizeof(T) * size_y, hipMemcpyDeviceToHost));
-        CHECK_HIP_ERROR(hipMemcpy(hy_2, dy_2, sizeof(T) * size_y, hipMemcpyDeviceToHost));
+        CHECK_HIP_ERROR(hy_1.transfer_from(dy_1));
+        CHECK_HIP_ERROR(hy_2.transfer_from(dy_2));
 
         // CPU BLAS
         cpu_time_used = get_time_us();

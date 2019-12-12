@@ -42,11 +42,9 @@ void testing_hemv_strided_batched_bad_arg(const Arguments& arg)
     device_vector<T> dA(size_A);
     device_vector<T> dx(size_x);
     device_vector<T> dy(size_y);
-    if(!dA || !dx || !dy)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_HIP_ERROR(dA.memcheck());
+    CHECK_HIP_ERROR(dy.memcheck());
+    CHECK_HIP_ERROR(dy.memcheck());
 
     EXPECT_ROCBLAS_STATUS(rocblas_hemv_strided_batched<T>(handle,
                                                           uplo,
@@ -192,11 +190,9 @@ void testing_hemv_strided_batched(const Arguments& arg)
         device_vector<T>    dA1(safe_size);
         device_vector<T>    dx1(safe_size);
         device_vector<T>    dy1(safe_size);
-        if(!dA1 || !dx1 || !dy1)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
+        CHECK_HIP_ERROR(dA1.memcheck());
+        CHECK_HIP_ERROR(dx1.memcheck());
+        CHECK_HIP_ERROR(dy1.memcheck());
 
         EXPECT_ROCBLAS_STATUS(rocblas_hemv_strided_batched<T>(handle,
                                                               uplo,
@@ -232,6 +228,10 @@ void testing_hemv_strided_batched(const Arguments& arg)
     host_vector<T> hy_1(size_y);
     host_vector<T> hy_2(size_y);
     host_vector<T> hy_gold(size_y);
+    host_vector<T> halpha(1);
+    host_vector<T> hbeta(1);
+    halpha[0] = h_alpha;
+    hbeta[0]  = h_beta;
 
     device_vector<T> dA(size_A);
     device_vector<T> dx(size_x);
@@ -239,11 +239,12 @@ void testing_hemv_strided_batched(const Arguments& arg)
     device_vector<T> dy_2(size_y);
     device_vector<T> d_alpha(1);
     device_vector<T> d_beta(1);
-    if((!dA && size_A) || (!dx && size_x) || ((!dy_1 || !dy_2) && size_y) || !d_alpha || !d_beta)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_HIP_ERROR(dA.memcheck());
+    CHECK_HIP_ERROR(dx.memcheck());
+    CHECK_HIP_ERROR(dy_1.memcheck());
+    CHECK_HIP_ERROR(dy_2.memcheck());
+    CHECK_HIP_ERROR(d_alpha.memcheck());
+    CHECK_HIP_ERROR(d_beta.memcheck());
 
     // Initial Data on CPU
     rocblas_seedrand();
@@ -261,9 +262,9 @@ void testing_hemv_strided_batched(const Arguments& arg)
     hy_2    = hy_1;
 
     // copy data from CPU to device
-    CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(T) * size_A, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T) * size_x, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dy_1, hy_1, sizeof(T) * size_y, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(dA.transfer_from(hA));
+    CHECK_HIP_ERROR(dx.transfer_from(hx));
+    CHECK_HIP_ERROR(dy_1.transfer_from(hy_1));
 
     double gpu_time_used, cpu_time_used;
     double rocblas_gflops, cblas_gflops, rocblas_bandwidth;
@@ -275,10 +276,10 @@ void testing_hemv_strided_batched(const Arguments& arg)
     =================================================================== */
     if(arg.unit_check || arg.norm_check)
     {
-        CHECK_HIP_ERROR(hipMemcpy(dy_1, hy_1, sizeof(T) * size_y, hipMemcpyHostToDevice));
-        CHECK_HIP_ERROR(hipMemcpy(dy_2, hy_2, sizeof(T) * size_y, hipMemcpyHostToDevice));
-        CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(T), hipMemcpyHostToDevice));
-        CHECK_HIP_ERROR(hipMemcpy(d_beta, &h_beta, sizeof(T), hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(dy_1.transfer_from(hy_1));
+        CHECK_HIP_ERROR(dy_2.transfer_from(hy_2));
+        CHECK_HIP_ERROR(d_alpha.transfer_from(halpha));
+        CHECK_HIP_ERROR(d_beta.transfer_from(hbeta));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         CHECK_ROCBLAS_ERROR(rocblas_hemv_strided_batched<T>(handle,
@@ -315,8 +316,8 @@ void testing_hemv_strided_batched(const Arguments& arg)
                                                             batch_count));
 
         // copy output from device to CPU
-        CHECK_HIP_ERROR(hipMemcpy(hy_1, dy_1, sizeof(T) * size_y, hipMemcpyDeviceToHost));
-        CHECK_HIP_ERROR(hipMemcpy(hy_2, dy_2, sizeof(T) * size_y, hipMemcpyDeviceToHost));
+        CHECK_HIP_ERROR(hy_1.transfer_from(dy_1));
+        CHECK_HIP_ERROR(hy_2.transfer_from(dy_2));
 
         // CPU BLAS
         cpu_time_used = get_time_us();
