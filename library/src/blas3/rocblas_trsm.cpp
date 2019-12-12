@@ -247,9 +247,14 @@ rocblas_status rocblas_strsm(rocblas_handle    handle,
                              rocblas_int       lda,
                              float*            B,
                              rocblas_int       ldb)
+try
 {
     return rocblas_trsm_ex_impl<STRSM_BLOCK>(
         handle, side, uplo, transA, diag, m, n, alpha, A, lda, B, ldb);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_dtrsm(rocblas_handle    handle,
@@ -264,9 +269,14 @@ rocblas_status rocblas_dtrsm(rocblas_handle    handle,
                              rocblas_int       lda,
                              double*           B,
                              rocblas_int       ldb)
+try
 {
     return rocblas_trsm_ex_impl<DTRSM_BLOCK>(
         handle, side, uplo, transA, diag, m, n, alpha, A, lda, B, ldb);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_trsm_ex(rocblas_handle    handle,
@@ -284,6 +294,7 @@ rocblas_status rocblas_trsm_ex(rocblas_handle    handle,
                                const void*       invA,
                                rocblas_int       invA_size,
                                rocblas_datatype  compute_type)
+try
 {
     switch(compute_type)
     {
@@ -322,6 +333,10 @@ rocblas_status rocblas_trsm_ex(rocblas_handle    handle,
     default:
         return rocblas_status_not_implemented;
     }
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 } // extern "C"

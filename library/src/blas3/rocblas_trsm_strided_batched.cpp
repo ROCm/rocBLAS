@@ -268,6 +268,7 @@ rocblas_status rocblas_strsm_strided_batched(rocblas_handle    handle,
                                              rocblas_int       ldb,
                                              rocblas_stride    stride_B,
                                              rocblas_int       batch_count)
+try
 {
     return rocblas_trsm_strided_batched_ex_impl<STRSM_BLOCK>(handle,
                                                              side,
@@ -285,6 +286,10 @@ rocblas_status rocblas_strsm_strided_batched(rocblas_handle    handle,
                                                              stride_B,
                                                              batch_count);
 }
+catch(...)
+{
+    return exception_to_rocblas_status();
+}
 
 rocblas_status rocblas_dtrsm_strided_batched(rocblas_handle    handle,
                                              rocblas_side      side,
@@ -301,6 +306,7 @@ rocblas_status rocblas_dtrsm_strided_batched(rocblas_handle    handle,
                                              rocblas_int       ldb,
                                              rocblas_stride    stride_B,
                                              rocblas_int       batch_count)
+try
 {
     return rocblas_trsm_strided_batched_ex_impl<DTRSM_BLOCK>(handle,
                                                              side,
@@ -317,6 +323,10 @@ rocblas_status rocblas_dtrsm_strided_batched(rocblas_handle    handle,
                                                              ldb,
                                                              stride_B,
                                                              batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_trsm_strided_batched_ex(rocblas_handle    handle,
@@ -338,6 +348,7 @@ rocblas_status rocblas_trsm_strided_batched_ex(rocblas_handle    handle,
                                                rocblas_int       invA_size,
                                                rocblas_stride    stride_invA,
                                                rocblas_datatype  compute_type)
+try
 {
     switch(compute_type)
     {
@@ -384,6 +395,10 @@ rocblas_status rocblas_trsm_strided_batched_ex(rocblas_handle    handle,
     default:
         return rocblas_status_not_implemented;
     }
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 } // extern "C"

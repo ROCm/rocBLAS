@@ -123,9 +123,14 @@ ROCBLAS_EXPORT rocblas_status rocblas_srotm_strided_batched(rocblas_handle handl
                                                             const float*   param,
                                                             rocblas_stride stride_param,
                                                             rocblas_int    batch_count)
+try
 {
     return rocblas_rotm_strided_batched_impl(
         handle, n, x, incx, stride_x, y, incy, stride_y, param, stride_param, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 ROCBLAS_EXPORT rocblas_status rocblas_drotm_strided_batched(rocblas_handle handle,
@@ -139,9 +144,14 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotm_strided_batched(rocblas_handle handl
                                                             const double*  param,
                                                             rocblas_stride stride_param,
                                                             rocblas_int    batch_count)
+try
 {
     return rocblas_rotm_strided_batched_impl(
         handle, n, x, incx, stride_x, y, incy, stride_y, param, stride_param, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 } // extern "C"

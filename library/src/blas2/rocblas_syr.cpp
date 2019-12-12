@@ -102,8 +102,13 @@ rocblas_status rocblas_ssyr(rocblas_handle handle,
                             rocblas_int    incx,
                             float*         A,
                             rocblas_int    lda)
+try
 {
     return rocblas_syr_impl(handle, uplo, n, alpha, x, incx, A, lda);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_dsyr(rocblas_handle handle,
@@ -114,8 +119,13 @@ rocblas_status rocblas_dsyr(rocblas_handle handle,
                             rocblas_int    incx,
                             double*        A,
                             rocblas_int    lda)
+try
 {
     return rocblas_syr_impl(handle, uplo, n, alpha, x, incx, A, lda);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 } // extern "C"

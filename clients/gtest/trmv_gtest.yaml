@@ -1,0 +1,156 @@
+---
+include: rocblas_common.yaml
+include: known_bugs.yaml
+
+Definitions:
+  - &small_matrix_size_range
+    - { M:    -1, lda:    1, stride_a:       1 }
+    - { M:     1, lda:    0, stride_a:       1 }
+    - { M:     0, lda:    1, stride_a:       1 }
+    - { M:     1, lda:    -1, stride_a:       1 }
+    - { M:    10, lda:   10, stride_a:       100 }
+    - { M:    1, lda:   -1, stride_a:       1 }
+    - { M:    10, lda:    2, stride_a:      20 }
+    - { M:   100, lda:  200, stride_a:    40000 }
+
+  - &medium_matrix_size_range
+    - { M:   300, lda:  400, stride_a:   160000 }
+    - { M:   600, lda:  601, stride_a:   400000 }
+
+  - &large_matrix_size_range
+    - { M:  1000, lda: 1000, stride_a:  1000000 }
+    - { M:  2000, lda: 2000, stride_a:  4000000 }
+    - { M:  4011, lda: 4011, stride_a: 16088200 }
+    - { M:  8000, lda: 8000, stride_a: 64000000 }
+
+  - &incx_range
+    - [2, -2,1,-1,0,3,10]
+
+
+Tests:
+- name: trmv_bad_arg
+  category: pre_checkin
+  function: trmv_bad_arg
+  precision: *single_double_precisions
+  uplo: [L, U]
+  transA: [N, T, C]
+  diag: [N, U]
+
+
+- name: trmv_small
+  category: quick
+  function: trmv
+  precision: *single_double_precisions_complex_real
+  uplo: [L, U]
+  transA: [N, T, C]
+  diag: [N, U]
+  matrix_size: *small_matrix_size_range
+  incx: *incx_range
+
+- name: trmv_medium
+  category: pre_checkin
+  function: trmv
+  precision: *single_double_precisions_complex_real
+  uplo: [L, U]
+  transA: [N, T, C]
+  diag: [N, U]
+  matrix_size: *medium_matrix_size_range
+  incx: *incx_range
+
+- name: trmv_large
+  category: nightly
+  function: trmv
+  precision: *single_double_precisions_complex_real
+  uplo: [L, U]
+  transA: [  N, T, C ]
+  diag: [N, U]
+  matrix_size: *large_matrix_size_range
+  incx: *incx_range
+
+- name: trmv_batched_bad_arg
+  category: pre_checkin
+  function: trmv_batched_bad_arg
+  precision: *single_double_precisions
+  uplo: [L, U]
+  transA: [  N, T, C ]
+  diag: [N, U]
+
+- name: trmv_batched_small
+  category: quick
+  function: trmv_batched
+  precision: *single_double_precisions
+  uplo: [L, U]
+  transA: [N, T, C]
+  diag: [N, U]
+  matrix_size: *small_matrix_size_range
+  incx: *incx_range
+  batch_count: [ -1, 0, 1, 3 ]
+
+- name: trmv_batched_medium
+  category: pre_checkin
+  function: trmv_batched
+  precision: *single_double_precisions_complex_real
+  uplo: [L, U]
+  transA: [N, T, C]
+  diag: [N, U]
+  matrix_size: *medium_matrix_size_range
+  incx: *incx_range
+  batch_count: [ 3 ]
+
+- name: trmv_batched_large
+  category: nightly
+  function: trmv_batched
+  precision: *single_double_precisions
+  uplo: [L, U]
+  transA: [N, T, C]
+  diag: [N, U]
+  matrix_size: *large_matrix_size_range
+  incx: *incx_range
+  batch_count: [ 3 ]
+
+- name: trmv_strided_batched_bad_arg
+  category: pre_checkin
+  function: trmv_strided_batched_bad_arg
+  precision: *single_double_precisions
+  transA: N
+  uplo: [L]
+  transA: [  T ]
+  diag: [N]
+  stride_scale: [ 1 ]
+
+- name: trmv_strided_batched_small
+  category: quick
+  function: trmv_strided_batched
+  precision: *single_double_precisions
+  uplo: [L, U]
+  transA: [N, T, C]
+  diag: [N, U]
+  matrix_size: *small_matrix_size_range
+  incx: *incx_range
+  batch_count: [ -1, 0, 1, 3 ]
+  stride_scale: [ 2 ]
+
+- name: trmv_strided_batched_medium
+  category: pre_checkin
+  function: trmv_strided_batched
+  precision: *single_double_precisions_complex_real
+  uplo: [L, U]
+  transA: [N, T, C]
+  diag: [N, U]
+  matrix_size: *medium_matrix_size_range
+  incx: *incx_range
+  batch_count: [ 3 ]
+  stride_scale: [ 1.2 ]
+
+- name: trmv_strided_batched_large
+  category: nightly
+  function: trmv_strided_batched
+  precision: *single_double_precisions
+  uplo: [L, U]
+  transA: [N, T, C]
+  diag: [N, U]
+  matrix_size: *large_matrix_size_range
+  incx: *incx_range
+  batch_count: [ 3 ]
+  stride_scale: [ 1.2 ]
+...

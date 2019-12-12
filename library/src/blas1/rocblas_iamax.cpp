@@ -57,8 +57,13 @@ extern "C" {
                          const typei_*  x,                              \
                          rocblas_int    incx,                           \
                          rocblas_int*   results)                        \
+    try                                                                 \
     {                                                                   \
         return rocblas_iamax_impl<typew_>(handle, n, x, incx, results); \
+    }                                                                   \
+    catch(...)                                                          \
+    {                                                                   \
+        return exception_to_rocblas_status();                           \
     }
 
 IMPL(rocblas_isamax, float, float);

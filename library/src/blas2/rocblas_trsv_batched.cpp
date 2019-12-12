@@ -176,9 +176,14 @@ rocblas_status rocblas_strsv_batched(rocblas_handle     handle,
                                      rocblas_int        incx,
 
                                      rocblas_int batch_count)
+try
 {
     return rocblas_trsv_batched_ex_impl<STRSV_BLOCK>(
         handle, uplo, transA, diag, m, A, lda, x, incx, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_dtrsv_batched(rocblas_handle      handle,
@@ -191,9 +196,14 @@ rocblas_status rocblas_dtrsv_batched(rocblas_handle      handle,
                                      double* const       x[],
                                      rocblas_int         incx,
                                      rocblas_int         batch_count)
+try
 {
     return rocblas_trsv_batched_ex_impl<DTRSV_BLOCK>(
         handle, uplo, transA, diag, m, A, lda, x, incx, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_trsv_batched_ex(rocblas_handle    handle,
@@ -209,7 +219,7 @@ rocblas_status rocblas_trsv_batched_ex(rocblas_handle    handle,
                                        const void*       invA,
                                        rocblas_int       invA_size,
                                        rocblas_datatype  compute_type)
-
+try
 {
     switch(compute_type)
     {
@@ -244,6 +254,10 @@ rocblas_status rocblas_trsv_batched_ex(rocblas_handle    handle,
     default:
         return rocblas_status_not_implemented;
     }
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 } // extern "C"

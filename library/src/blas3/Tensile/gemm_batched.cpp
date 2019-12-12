@@ -191,9 +191,14 @@ rocblas_status rocblas_hgemm_batched(rocblas_handle            handle,
                                      rocblas_half* const       C[],
                                      rocblas_int               ld_c,
                                      rocblas_int               b_c)
+try
 {
     return rocblas_gemm_batched_impl<rocblas_half>(
         handle, trans_a, trans_b, m, n, k, alpha, A, ld_a, B, ld_b, beta, C, ld_c, b_c);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_sgemm_batched(rocblas_handle     handle,
@@ -211,9 +216,14 @@ rocblas_status rocblas_sgemm_batched(rocblas_handle     handle,
                                      float* const       C[],
                                      rocblas_int        ld_c,
                                      rocblas_int        b_c)
+try
 {
     return rocblas_gemm_batched_impl<float>(
         handle, trans_a, trans_b, m, n, k, alpha, A, ld_a, B, ld_b, beta, C, ld_c, b_c);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_dgemm_batched(rocblas_handle      handle,
@@ -231,9 +241,14 @@ rocblas_status rocblas_dgemm_batched(rocblas_handle      handle,
                                      double* const       C[],
                                      rocblas_int         ld_c,
                                      rocblas_int         b_c)
+try
 {
     return rocblas_gemm_batched_impl<double>(
         handle, trans_a, trans_b, m, n, k, alpha, A, ld_a, B, ld_b, beta, C, ld_c, b_c);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_cgemm_batched(rocblas_handle                     handle,
@@ -251,9 +266,14 @@ rocblas_status rocblas_cgemm_batched(rocblas_handle                     handle,
                                      rocblas_float_complex* const       C[],
                                      rocblas_int                        ld_c,
                                      rocblas_int                        b_c)
+try
 {
     return rocblas_gemm_batched_impl<rocblas_float_complex>(
         handle, trans_a, trans_b, m, n, k, alpha, A, ld_a, B, ld_b, beta, C, ld_c, b_c);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_zgemm_batched(rocblas_handle                      handle,
@@ -271,9 +291,14 @@ rocblas_status rocblas_zgemm_batched(rocblas_handle                      handle,
                                      rocblas_double_complex* const       C[],
                                      rocblas_int                         ld_c,
                                      rocblas_int                         b_c)
+try
 {
     return rocblas_gemm_batched_impl<rocblas_double_complex>(
         handle, trans_a, trans_b, m, n, k, alpha, A, ld_a, B, ld_b, beta, C, ld_c, b_c);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 /*******************************************************************************

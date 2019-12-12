@@ -89,16 +89,26 @@ extern "C" {
 
 rocblas_status rocblas_sscal(
     rocblas_handle handle, rocblas_int n, const float* alpha, float* x, rocblas_int incx)
+try
 {
     constexpr rocblas_int NB = 256;
     return rocblas_scal_impl<NB>(handle, n, alpha, x, incx);
 }
+catch(...)
+{
+    return exception_to_rocblas_status();
+}
 
 rocblas_status rocblas_dscal(
     rocblas_handle handle, rocblas_int n, const double* alpha, double* x, rocblas_int incx)
+try
 {
     constexpr rocblas_int NB = 256;
     return rocblas_scal_impl<NB>(handle, n, alpha, x, incx);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_cscal(rocblas_handle               handle,
@@ -106,9 +116,14 @@ rocblas_status rocblas_cscal(rocblas_handle               handle,
                              const rocblas_float_complex* alpha,
                              rocblas_float_complex*       x,
                              rocblas_int                  incx)
+try
 {
     constexpr rocblas_int NB = 256;
     return rocblas_scal_impl<NB>(handle, n, alpha, x, incx);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_zscal(rocblas_handle                handle,
@@ -116,9 +131,14 @@ rocblas_status rocblas_zscal(rocblas_handle                handle,
                              const rocblas_double_complex* alpha,
                              rocblas_double_complex*       x,
                              rocblas_int                   incx)
+try
 {
     constexpr rocblas_int NB = 256;
     return rocblas_scal_impl<NB>(handle, n, alpha, x, incx);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 // Scal with a real alpha & complex vector
@@ -127,9 +147,14 @@ rocblas_status rocblas_csscal(rocblas_handle         handle,
                               const float*           alpha,
                               rocblas_float_complex* x,
                               rocblas_int            incx)
+try
 {
     constexpr rocblas_int NB = 256;
     return rocblas_scal_impl<NB>(handle, n, alpha, x, incx);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_zdscal(rocblas_handle          handle,
@@ -137,9 +162,14 @@ rocblas_status rocblas_zdscal(rocblas_handle          handle,
                               const double*           alpha,
                               rocblas_double_complex* x,
                               rocblas_int             incx)
+try
 {
     constexpr rocblas_int NB = 256;
     return rocblas_scal_impl<NB>(handle, n, alpha, x, incx);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 } // extern "C"

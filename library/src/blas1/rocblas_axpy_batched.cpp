@@ -123,9 +123,14 @@ extern "C" {
                                  T_* const       y[],                                         \
                                  rocblas_int     incy,                                        \
                                  rocblas_int     batch_count)                                 \
+    try                                                                                       \
     {                                                                                         \
         return rocblas_axpy_batched_impl<256>(                                                \
             handle, n, alpha, x, incx, y, incy, batch_count, #routine_name_, "axpy_batched"); \
+    }                                                                                         \
+    catch(...)                                                                                \
+    {                                                                                         \
+        return exception_to_rocblas_status();                                                 \
     }
 
 IMPL(rocblas_saxpy_batched, float);

@@ -177,6 +177,6 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
     (master_doc, 'rocBLAS', u'rocBLAS Documentation',
-     author, 'rocBLAS', 'One line description of project.',
+     author, 'rocBLAS', 'BLAS for Radeon Open Compute platforM',
      'Miscellaneous'),
 ]

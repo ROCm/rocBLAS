@@ -180,9 +180,14 @@ rocblas_status rocblas_sgemv_batched(rocblas_handle     handle,
                                      float* const       y[],
                                      rocblas_int        incy,
                                      rocblas_int        batch_count)
+try
 {
     return rocblas_gemv_batched_impl(
         handle, transA, m, n, alpha, A, lda, x, incx, beta, y, incy, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_dgemv_batched(rocblas_handle      handle,
@@ -198,9 +203,14 @@ rocblas_status rocblas_dgemv_batched(rocblas_handle      handle,
                                      double* const       y[],
                                      rocblas_int         incy,
                                      rocblas_int         batch_count)
+try
 {
     return rocblas_gemv_batched_impl(
         handle, transA, m, n, alpha, A, lda, x, incx, beta, y, incy, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_cgemv_batched(rocblas_handle                     handle,
@@ -216,9 +226,14 @@ rocblas_status rocblas_cgemv_batched(rocblas_handle                     handle,
                                      rocblas_float_complex* const       y[],
                                      rocblas_int                        incy,
                                      rocblas_int                        batch_count)
+try
 {
     return rocblas_gemv_batched_impl(
         handle, transA, m, n, alpha, A, lda, x, incx, beta, y, incy, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_zgemv_batched(rocblas_handle                      handle,
@@ -234,9 +249,14 @@ rocblas_status rocblas_zgemv_batched(rocblas_handle                      handle,
                                      rocblas_double_complex* const       y[],
                                      rocblas_int                         incy,
                                      rocblas_int                         batch_count)
+try
 {
     return rocblas_gemv_batched_impl(
         handle, transA, m, n, alpha, A, lda, x, incx, beta, y, incy, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 } // extern "C"

@@ -73,6 +73,12 @@ void testing_gemm_bad_arg(const Arguments& arg)
     EXPECT_ROCBLAS_STATUS(
         rocblas_gemm<T>(nullptr, transA, transB, M, N, K, &alpha, dA, lda, dB, ldb, &beta, dC, ldc),
         rocblas_status_invalid_handle);
+
+    // if k == 0 we can test that A and B can both be nullptr without issue.
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_gemm<T>(
+            handle, transA, transB, M, N, 0, &alpha, nullptr, lda, nullptr, ldb, &beta, dC, ldc),
+        rocblas_status_success);
 }
 
 template <typename T>

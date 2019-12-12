@@ -112,8 +112,13 @@ rocblas_status rocblas_sdot(rocblas_handle handle,
                             const float*   y,
                             rocblas_int    incy,
                             float*         result)
+try
 {
     return rocblas_dot_impl<false>(handle, n, x, incx, y, incy, result);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_ddot(rocblas_handle handle,
@@ -123,8 +128,13 @@ rocblas_status rocblas_ddot(rocblas_handle handle,
                             const double*  y,
                             rocblas_int    incy,
                             double*        result)
+try
 {
     return rocblas_dot_impl<false>(handle, n, x, incx, y, incy, result);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_hdot(rocblas_handle      handle,
@@ -134,8 +144,13 @@ rocblas_status rocblas_hdot(rocblas_handle      handle,
                             const rocblas_half* y,
                             rocblas_int         incy,
                             rocblas_half*       result)
+try
 {
     return rocblas_dot_impl<false>(handle, n, x, incx, y, incy, result);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_bfdot(rocblas_handle          handle,
@@ -145,8 +160,13 @@ rocblas_status rocblas_bfdot(rocblas_handle          handle,
                              const rocblas_bfloat16* y,
                              rocblas_int             incy,
                              rocblas_bfloat16*       result)
+try
 {
     return rocblas_dot_impl<false, rocblas_bfloat16, float>(handle, n, x, incx, y, incy, result);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_cdotu(rocblas_handle               handle,
@@ -156,8 +176,13 @@ rocblas_status rocblas_cdotu(rocblas_handle               handle,
                              const rocblas_float_complex* y,
                              rocblas_int                  incy,
                              rocblas_float_complex*       result)
+try
 {
     return rocblas_dot_impl<false>(handle, n, x, incx, y, incy, result);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_zdotu(rocblas_handle                handle,
@@ -167,8 +192,13 @@ rocblas_status rocblas_zdotu(rocblas_handle                handle,
                              const rocblas_double_complex* y,
                              rocblas_int                   incy,
                              rocblas_double_complex*       result)
+try
 {
     return rocblas_dot_impl<false>(handle, n, x, incx, y, incy, result);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_cdotc(rocblas_handle               handle,
@@ -178,8 +208,13 @@ rocblas_status rocblas_cdotc(rocblas_handle               handle,
                              const rocblas_float_complex* y,
                              rocblas_int                  incy,
                              rocblas_float_complex*       result)
+try
 {
     return rocblas_dot_impl<true>(handle, n, x, incx, y, incy, result);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_zdotc(rocblas_handle                handle,
@@ -189,8 +224,13 @@ rocblas_status rocblas_zdotc(rocblas_handle                handle,
                              const rocblas_double_complex* y,
                              rocblas_int                   incy,
                              rocblas_double_complex*       result)
+try
 {
     return rocblas_dot_impl<true>(handle, n, x, incx, y, incy, result);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 } // extern "C"

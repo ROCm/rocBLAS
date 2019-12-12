@@ -72,10 +72,15 @@ extern "C" {
                          rocblas_stride stridex,                \
                          rocblas_int    batch_count,            \
                          typeo_*        results)                \
+    try                                                         \
     {                                                           \
         constexpr rocblas_int NB = 512;                         \
         return rocblas_nrm2_strided_batched_impl<NB>(           \
             handle, n, x, incx, stridex, batch_count, results); \
+    }                                                           \
+    catch(...)                                                  \
+    {                                                           \
+        return exception_to_rocblas_status();                   \
     }
 
 IMPL(rocblas_snrm2_strided_batched, float, float);

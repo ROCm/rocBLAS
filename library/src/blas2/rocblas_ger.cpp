@@ -110,8 +110,13 @@ rocblas_status rocblas_sger(rocblas_handle handle,
                             rocblas_int    incy,
                             float*         A,
                             rocblas_int    lda)
+try
 {
     return rocblas_ger_impl(handle, m, n, alpha, x, incx, y, incy, A, lda);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_dger(rocblas_handle handle,
@@ -124,8 +129,13 @@ rocblas_status rocblas_dger(rocblas_handle handle,
                             rocblas_int    incy,
                             double*        A,
                             rocblas_int    lda)
+try
 {
     return rocblas_ger_impl(handle, m, n, alpha, x, incx, y, incy, A, lda);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 } // extern "C"

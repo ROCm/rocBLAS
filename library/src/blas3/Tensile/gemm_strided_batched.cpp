@@ -231,6 +231,7 @@ rocblas_status rocblas_hgemm_strided_batched(rocblas_handle      handle,
                                              rocblas_int         ld_c,
                                              rocblas_stride      stride_c,
                                              rocblas_int         batch_count)
+try
 {
     return rocblas_gemm_strided_batched_impl(handle,
                                              trans_a,
@@ -251,7 +252,10 @@ rocblas_status rocblas_hgemm_strided_batched(rocblas_handle      handle,
                                              stride_c,
                                              batch_count);
 }
-
+catch(...)
+{
+    return exception_to_rocblas_status();
+}
 rocblas_status rocblas_sgemm_strided_batched(rocblas_handle    handle,
                                              rocblas_operation trans_a,
                                              rocblas_operation trans_b,
@@ -270,6 +274,7 @@ rocblas_status rocblas_sgemm_strided_batched(rocblas_handle    handle,
                                              rocblas_int       ld_c,
                                              rocblas_stride    stride_c,
                                              rocblas_int       batch_count)
+try
 {
     return rocblas_gemm_strided_batched_impl(handle,
                                              trans_a,
@@ -289,6 +294,10 @@ rocblas_status rocblas_sgemm_strided_batched(rocblas_handle    handle,
                                              ld_c,
                                              stride_c,
                                              batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_dgemm_strided_batched(rocblas_handle    handle,
@@ -309,6 +318,7 @@ rocblas_status rocblas_dgemm_strided_batched(rocblas_handle    handle,
                                              rocblas_int       ld_c,
                                              rocblas_stride    stride_c,
                                              rocblas_int       batch_count)
+try
 {
     return rocblas_gemm_strided_batched_impl(handle,
                                              trans_a,
@@ -328,6 +338,10 @@ rocblas_status rocblas_dgemm_strided_batched(rocblas_handle    handle,
                                              ld_c,
                                              stride_c,
                                              batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_cgemm_strided_batched(rocblas_handle               handle,
@@ -348,6 +362,7 @@ rocblas_status rocblas_cgemm_strided_batched(rocblas_handle               handle
                                              rocblas_int                  ld_c,
                                              rocblas_stride               stride_c,
                                              rocblas_int                  batch_count)
+try
 {
     return rocblas_gemm_strided_batched_impl(handle,
                                              trans_a,
@@ -368,6 +383,10 @@ rocblas_status rocblas_cgemm_strided_batched(rocblas_handle               handle
                                              stride_c,
                                              batch_count);
 }
+catch(...)
+{
+    return exception_to_rocblas_status();
+}
 
 rocblas_status rocblas_zgemm_strided_batched(rocblas_handle                handle,
                                              rocblas_operation             trans_a,
@@ -387,6 +406,7 @@ rocblas_status rocblas_zgemm_strided_batched(rocblas_handle                handl
                                              rocblas_int                   ld_c,
                                              rocblas_stride                stride_c,
                                              rocblas_int                   batch_count)
+try
 {
     return rocblas_gemm_strided_batched_impl(handle,
                                              trans_a,
@@ -406,6 +426,10 @@ rocblas_status rocblas_zgemm_strided_batched(rocblas_handle                handl
                                              ld_c,
                                              stride_c,
                                              batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 /*******************************************************************************
