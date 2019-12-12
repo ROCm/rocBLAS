@@ -285,7 +285,7 @@ void testing_hemv_batched(const Arguments& arg)
             cblas_hemv<T>(uplo, N, h_alpha, hA[b], lda, hx[b], incx, h_beta, hy_gold[b], incy);
 
         cpu_time_used = get_time_us() - cpu_time_used;
-        cblas_gflops  = hemv_gflop_count<T>(N) / cpu_time_used * 1e6;
+        cblas_gflops  = batch_count * hemv_gflop_count<T>(N) / cpu_time_used * 1e6;
 
         if(arg.unit_check)
         {
