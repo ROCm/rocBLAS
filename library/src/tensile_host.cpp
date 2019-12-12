@@ -179,18 +179,36 @@ namespace
             Tensile_To, {prob.m, prob.n, prob.batch_count}, {1, prob.ld_d, prob.stride_d}};
 
         // Return the ContractionProblem
-        return Tensile::ContractionProblem{a,
-                                           aops,
-                                           b,
-                                           bops,
-                                           c,
-                                           {},
-                                           d,
-                                           {},
-                                           freeIndex,
-                                           batchIndex,
-                                           boundIndex,
-                                           value_category(*prob.beta)};
+        Tensile::ContractionProblem tensileProblem{a,
+                                                   aops,
+                                                   b,
+                                                   bops,
+                                                   c,
+                                                   {},
+                                                   d,
+                                                   {},
+                                                   freeIndex,
+                                                   batchIndex,
+                                                   boundIndex,
+                                                   value_category(*prob.beta)};
+
+        if(sizeof(Tc) > sizeof(To))
+            tensileProblem.setHighPrecisionAccumulate(true);
+
+        return tensileProblem;
+    }
+
+    template <typename Ti, typename To, typename Tc>
+    void copy_alpha_beta(void* dst, const void* src, size_t size)
+    {
+        memcpy(dst, src, size);
+    }
+
+    template <>
+    void copy_alpha_beta<rocblas_half, rocblas_half, float>(void* dst, const void* src, size_t size)
+    {
+        rocblas_half x = *static_cast<const float*>(src);
+        memcpy(dst, &x, sizeof(x));
     }
 
     /***************************************************************
@@ -199,21 +217,26 @@ namespace
     template <typename Ti, typename To, typename Tc>
     auto GetTensileInputs(const RocblasContractionProblem<Ti, To, Tc>& problem)
     {
+        // Tensile does not support float alpha and beta for HPA half
+        static constexpr bool HPA_workaround = std::is_same<Ti, rocblas_half>{}
+                                               && std::is_same<To, rocblas_half>{}
+                                               && std::is_same<Tc, float>{};
+
         // Tensile types corresponding to Ti, To, Tc
-        using Tensile_Ti = typename rocblas_to_tensile_type<Ti>::type;
-        using Tensile_To = typename rocblas_to_tensile_type<To>::type;
-        using Tensile_Tc = typename rocblas_to_tensile_type<Tc>::type;
+        using Tensile_Ti          = typename rocblas_to_tensile_type<Ti>::type;
+        using Tensile_To          = typename rocblas_to_tensile_type<To>::type;
+        using Tensile_Talpha_beta = typename rocblas_to_tensile_type<
+            typename std::conditional<HPA_workaround, rocblas_half, Tc>::type>::type;
 
         // Make sure rocBLAS and Tensile types are compatible
         // For int8_t we allow the sizes to differ assuming alignment
         static_assert(
             (std::is_same<Tensile_Ti, Tensile::Int8x4>{} || sizeof(Tensile_Ti) == sizeof(Ti))
-                && sizeof(Tensile_To) == sizeof(To) && sizeof(Tensile_Tc) == sizeof(Tc),
+                && sizeof(Tensile_To) == sizeof(To),
             "Tensile and rocBLAS types are not the same size");
 
         static_assert(std::is_standard_layout<Ti>{} && std::is_standard_layout<Tensile_Ti>{}
-                          && std::is_standard_layout<To>{} && std::is_standard_layout<Tensile_To>{}
-                          && std::is_standard_layout<Tc>{} && std::is_standard_layout<Tensile_Tc>{},
+                          && std::is_standard_layout<To>{} && std::is_standard_layout<Tensile_To>{},
                       "Tensile and rocBLAS types are not standard layout types");
 
         // Structure describing the inputs (A, B, C, D, alpha, beta)
@@ -221,8 +244,8 @@ namespace
                                         Tensile_Ti,
                                         Tensile_To,
                                         Tensile_To,
-                                        Tensile_Tc,
-                                        Tensile_Tc>
+                                        Tensile_Talpha_beta,
+                                        Tensile_Talpha_beta>
             inputs;
 
         // Set the A, B, C, D matrices, casting pointer types
@@ -232,9 +255,8 @@ namespace
         inputs.d = reinterpret_cast<Tensile_To*>(problem.D);
 
         // alpha and beta are stored by value in Tensile, and thus must exist on the host.
-        // If they are located on the device, the rocBLAS code needs to copy them to host.
-        memcpy(&inputs.alpha, problem.alpha, sizeof(Tc));
-        memcpy(&inputs.beta, problem.beta, sizeof(Tc));
+        copy_alpha_beta<Ti, To, Tc>(&inputs.alpha, problem.alpha, sizeof(Tc));
+        copy_alpha_beta<Ti, To, Tc>(&inputs.beta, problem.beta, sizeof(Tc));
 
         return inputs;
     }
