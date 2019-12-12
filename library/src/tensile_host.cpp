@@ -198,18 +198,32 @@ namespace
         return tensileProblem;
     }
 
+    // Tensile does not support float alpha and beta for HPA half
+    // We must convert alpha and beta from float to half
     template <typename Ti, typename To, typename Tc>
-    void copy_alpha_beta(void* dst, const void* src, size_t size)
+    struct HPA_workaround
     {
-        memcpy(dst, src, size);
-    }
+        using type = typename rocblas_to_tensile_type<Tc>::type;
+        static void copy(type* dst, const Tc* src)
+        {
+            static_assert(sizeof(*src) == sizeof(*dst),
+                          "Tensile and rocBLAS types are not the same size");
+            memcpy(dst, src, sizeof(Tc));
+        }
+    };
 
     template <>
-    void copy_alpha_beta<rocblas_half, rocblas_half, float>(void* dst, const void* src, size_t size)
+    struct HPA_workaround<rocblas_half, rocblas_half, float>
     {
-        rocblas_half x = *static_cast<const float*>(src);
-        memcpy(dst, &x, sizeof(x));
-    }
+        using type = Tensile::Half;
+        static void copy(type* dst, const float* src)
+        {
+            rocblas_half x(*src);
+            static_assert(sizeof(x) == sizeof(type),
+                          "Tensile and rocBLAS types are not the same size");
+            memcpy(dst, &x, sizeof(x));
+        }
+    };
 
     /***************************************************************
      * Construct the inputs to a Tensile ContractionProblem        *
@@ -217,16 +231,10 @@ namespace
     template <typename Ti, typename To, typename Tc>
     auto GetTensileInputs(const RocblasContractionProblem<Ti, To, Tc>& problem)
     {
-        // Tensile does not support float alpha and beta for HPA half
-        static constexpr bool HPA_workaround = std::is_same<Ti, rocblas_half>{}
-                                               && std::is_same<To, rocblas_half>{}
-                                               && std::is_same<Tc, float>{};
-
         // Tensile types corresponding to Ti, To, Tc
         using Tensile_Ti          = typename rocblas_to_tensile_type<Ti>::type;
         using Tensile_To          = typename rocblas_to_tensile_type<To>::type;
-        using Tensile_Talpha_beta = typename rocblas_to_tensile_type<
-            typename std::conditional<HPA_workaround, rocblas_half, Tc>::type>::type;
+        using Tensile_Talpha_beta = typename HPA_workaround<Ti, To, Tc>::type;
 
         // Make sure rocBLAS and Tensile types are compatible
         // For int8_t we allow the sizes to differ assuming alignment
@@ -236,7 +244,9 @@ namespace
             "Tensile and rocBLAS types are not the same size");
 
         static_assert(std::is_standard_layout<Ti>{} && std::is_standard_layout<Tensile_Ti>{}
-                          && std::is_standard_layout<To>{} && std::is_standard_layout<Tensile_To>{},
+                          && std::is_standard_layout<To>{} && std::is_standard_layout<Tensile_To>{}
+                          && std::is_standard_layout<Tc>{}
+                          && std::is_standard_layout<Tensile_Talpha_beta>{},
                       "Tensile and rocBLAS types are not standard layout types");
 
         // Structure describing the inputs (A, B, C, D, alpha, beta)
@@ -254,9 +264,9 @@ namespace
         inputs.c = reinterpret_cast<const Tensile_To*>(problem.C);
         inputs.d = reinterpret_cast<Tensile_To*>(problem.D);
 
-        // alpha and beta are stored by value in Tensile, and thus must exist on the host.
-        copy_alpha_beta<Ti, To, Tc>(&inputs.alpha, problem.alpha, sizeof(Tc));
-        copy_alpha_beta<Ti, To, Tc>(&inputs.beta, problem.beta, sizeof(Tc));
+        // alpha and beta are stored by value in Tensile, and thus must exist on the host
+        HPA_workaround<Ti, To, Tc>::copy(&inputs.alpha, problem.alpha);
+        HPA_workaround<Ti, To, Tc>::copy(&inputs.beta, problem.beta);
 
         return inputs;
     }
