@@ -87,7 +87,7 @@ namespace
                         "batch_count",
                         batch_count);
 
-        return rocblas_copy_template<NB, T>(
+        return rocblas_copy_template<NB>(
             handle, n, x, 0, incx, stridex, y, 0, incy, stridey, batch_count);
     }
 
@@ -112,10 +112,15 @@ rocblas_status rocblas_scopy_strided_batched(rocblas_handle handle,
                                              rocblas_int    incy,
                                              rocblas_stride stridey,
                                              rocblas_int    batch_count)
+try
 {
     constexpr rocblas_int NB = 256;
     return rocblas_copy_strided_batched_impl<NB>(
         handle, n, x, incx, stridex, y, incy, stridey, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_dcopy_strided_batched(rocblas_handle handle,
@@ -127,10 +132,15 @@ rocblas_status rocblas_dcopy_strided_batched(rocblas_handle handle,
                                              rocblas_int    incy,
                                              rocblas_stride stridey,
                                              rocblas_int    batch_count)
+try
 {
     constexpr rocblas_int NB = 256;
     return rocblas_copy_strided_batched_impl<NB>(
         handle, n, x, incx, stridex, y, incy, stridey, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_hcopy_strided_batched(rocblas_handle      handle,
@@ -142,10 +152,15 @@ rocblas_status rocblas_hcopy_strided_batched(rocblas_handle      handle,
                                              rocblas_int         incy,
                                              rocblas_stride      stridey,
                                              rocblas_int         batch_count)
+try
 {
     constexpr rocblas_int NB = 256;
     return rocblas_copy_strided_batched_impl<NB>(
         handle, n, x, incx, stridex, y, incy, stridey, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_ccopy_strided_batched(rocblas_handle               handle,
@@ -157,10 +172,15 @@ rocblas_status rocblas_ccopy_strided_batched(rocblas_handle               handle
                                              rocblas_int                  incy,
                                              rocblas_stride               stridey,
                                              rocblas_int                  batch_count)
+try
 {
     constexpr rocblas_int NB = 256;
     return rocblas_copy_strided_batched_impl<NB>(
         handle, n, x, incx, stridex, y, incy, stridey, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_zcopy_strided_batched(rocblas_handle                handle,
@@ -172,10 +192,15 @@ rocblas_status rocblas_zcopy_strided_batched(rocblas_handle                handl
                                              rocblas_int                   incy,
                                              rocblas_stride                stridey,
                                              rocblas_int                   batch_count)
+try
 {
     constexpr rocblas_int NB = 256;
     return rocblas_copy_strided_batched_impl<NB>(
         handle, n, x, incx, stridex, y, incy, stridey, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 } // extern "C"

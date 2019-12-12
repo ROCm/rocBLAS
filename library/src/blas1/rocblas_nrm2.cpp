@@ -57,9 +57,14 @@ extern "C" {
 #define IMPL(name_, typei_, typeo_)                                                               \
     rocblas_status name_(                                                                         \
         rocblas_handle handle, rocblas_int n, const typei_* x, rocblas_int incx, typeo_* results) \
+    try                                                                                           \
     {                                                                                             \
         constexpr rocblas_int NB = 512;                                                           \
         return rocblas_nrm2_impl<NB>(handle, n, x, incx, results);                                \
+    }                                                                                             \
+    catch(...)                                                                                    \
+    {                                                                                             \
+        return exception_to_rocblas_status();                                                     \
     }
 
 IMPL(rocblas_snrm2, float, float);

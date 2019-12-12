@@ -80,9 +80,14 @@ rocblas_status rocblas_srotg_strided_batched(rocblas_handle handle,
                                              float*         s,
                                              rocblas_stride stride_s,
                                              rocblas_int    batch_count)
+try
 {
     return rocblas_rotg_strided_batched_impl(
         handle, a, stride_a, b, stride_b, c, stride_c, s, stride_s, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_drotg_strided_batched(rocblas_handle handle,
@@ -95,9 +100,14 @@ rocblas_status rocblas_drotg_strided_batched(rocblas_handle handle,
                                              double*        s,
                                              rocblas_stride stride_s,
                                              rocblas_int    batch_count)
+try
 {
     return rocblas_rotg_strided_batched_impl(
         handle, a, stride_a, b, stride_b, c, stride_c, s, stride_s, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_crotg_strided_batched(rocblas_handle         handle,
@@ -110,9 +120,14 @@ rocblas_status rocblas_crotg_strided_batched(rocblas_handle         handle,
                                              rocblas_float_complex* s,
                                              rocblas_stride         stride_s,
                                              rocblas_int            batch_count)
+try
 {
     return rocblas_rotg_strided_batched_impl(
         handle, a, stride_a, b, stride_b, c, stride_c, s, stride_s, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_zrotg_strided_batched(rocblas_handle          handle,
@@ -125,9 +140,14 @@ rocblas_status rocblas_zrotg_strided_batched(rocblas_handle          handle,
                                              rocblas_double_complex* s,
                                              rocblas_stride          stride_s,
                                              rocblas_int             batch_count)
+try
 {
     return rocblas_rotg_strided_batched_impl(
         handle, a, stride_a, b, stride_b, c, stride_c, s, stride_s, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 } // extern "C"

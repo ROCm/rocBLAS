@@ -65,7 +65,7 @@ namespace
                         "batch_count",
                         batch_count);
 
-        return rocblas_copy_template<NB, T>(handle, n, x, 0, incx, 0, y, 0, incy, 0, batch_count);
+        return rocblas_copy_template<NB>(handle, n, x, 0, incx, 0, y, 0, incy, 0, batch_count);
     }
 
 } // namespace
@@ -87,9 +87,14 @@ rocblas_status rocblas_scopy_batched(rocblas_handle     handle,
                                      float* const       y[],
                                      rocblas_int        incy,
                                      rocblas_int        batch_count)
+try
 {
     constexpr rocblas_int NB = 256;
     return rocblas_copy_batched_impl<NB>(handle, n, x, incx, y, incy, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_dcopy_batched(rocblas_handle      handle,
@@ -99,9 +104,14 @@ rocblas_status rocblas_dcopy_batched(rocblas_handle      handle,
                                      double* const       y[],
                                      rocblas_int         incy,
                                      rocblas_int         batch_count)
+try
 {
     constexpr rocblas_int NB = 256;
     return rocblas_copy_batched_impl<NB>(handle, n, x, incx, y, incy, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_hcopy_batched(rocblas_handle            handle,
@@ -111,9 +121,14 @@ rocblas_status rocblas_hcopy_batched(rocblas_handle            handle,
                                      rocblas_half* const       y[],
                                      rocblas_int               incy,
                                      rocblas_int               batch_count)
+try
 {
     constexpr rocblas_int NB = 256;
     return rocblas_copy_batched_impl<NB>(handle, n, x, incx, y, incy, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_ccopy_batched(rocblas_handle                     handle,
@@ -123,9 +138,14 @@ rocblas_status rocblas_ccopy_batched(rocblas_handle                     handle,
                                      rocblas_float_complex* const       y[],
                                      rocblas_int                        incy,
                                      rocblas_int                        batch_count)
+try
 {
     constexpr rocblas_int NB = 256;
     return rocblas_copy_batched_impl<NB>(handle, n, x, incx, y, incy, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_zcopy_batched(rocblas_handle                      handle,
@@ -135,9 +155,14 @@ rocblas_status rocblas_zcopy_batched(rocblas_handle                      handle,
                                      rocblas_double_complex* const       y[],
                                      rocblas_int                         incy,
                                      rocblas_int                         batch_count)
+try
 {
     constexpr rocblas_int NB = 256;
     return rocblas_copy_batched_impl<NB>(handle, n, x, incx, y, incy, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 } // extern "C"

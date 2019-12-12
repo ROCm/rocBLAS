@@ -40,10 +40,10 @@ supported_distro( )
   fi
 
   case "${ID}" in
-    ubuntu|centos|rhel|fedora|sles)
+    ubuntu|centos|rhel|fedora|sles|opensuse-leap)
         true
         ;;
-    *)  printf "This script is currently supported on Ubuntu, CentOS, RHEL and Fedora\n"
+    *)  printf "This script is currently supported on Ubuntu, CentOS, RHEL, SLES, OpenSUSE-Leap, and Fedora\n"
         exit 2
         ;;
   esac
@@ -146,7 +146,7 @@ install_packages( )
                                       "python34" "PyYAML" "python3*-PyYAML"
                                       "gcc-c++" "libcxx-devel" "rocm-dev" "zlib-devel" )
   local library_dependencies_sles=(   "make" "cmake" "python3-PyYAM"
-                                      "rocm-dev" "gcc-c++" "libcxxtools9" "rpm-build" )
+                                      "rocm-dev" "gcc-c++" "libcxxtools9" "rpm-build" "curl" )
 
   if [[ "${build_cuda}" == true ]]; then
     # Ideally, this could be cuda-cublas-dev, but the package name has a version number in it
@@ -192,7 +192,7 @@ install_packages( )
       fi
       ;;
 
-    sles)
+    sles|opensuse-leap)
        install_zypper_packages "${client_dependencies_sles[@]}"
 
         if [[ "${build_clients}" == true ]]; then
@@ -200,7 +200,7 @@ install_packages( )
         fi
         ;;
     *)
-      echo "This script is currently supported on Ubuntu, CentOS, RHEL and Fedora"
+      echo "This script is currently supported on Ubuntu, CentOS, RHEL, SLES, OpenSUSE-Leap, and Fedora"
       exit 2
       ;;
   esac
@@ -249,6 +249,11 @@ build_tensile_host=false
 cpu_ref_lib=blis
 build_release=true
 build_hip_clang=false
+
+rocm_path=/opt/rocm
+if ! [ -z ${ROCM_PATH+x} ]; then
+    rocm_path=${ROCM_PATH}
+fi
 
 # #################################################
 # Parameter parsing
@@ -377,51 +382,59 @@ if [[ "${install_dependencies}" == true ]]; then
     ${cmake_executable} -lpthread -DBUILD_BOOST=OFF ../../deps
     make -j$(nproc)
     elevate_if_not_root make install
-    popd
 
+    #Download prebuilt AMD multithreaded blis
     if [[ "${cpu_ref_lib}" == blis ]] && [[ ! -f "${build_dir}/deps/blis/lib/libblis.so" ]]; then
-      git submodule update --init
-      cd extern/blis
       case "${ID}" in
-          centos|rhel|sles)
-              ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp generic
+          centos|rhel|sles|opensuse-leap)
+              curl -L  https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-centos-2.0.tar.gz > blis.tar.gz
               ;;
           ubuntu)
-              ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp CC=/opt/rocm/hcc/bin/clang generic
+              curl -L  https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-ubuntu-2.0.tar.gz > blis.tar.gz
               ;;
           *)
               echo "Unsupported OS for this script"
-              ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp generic
+              curl -L  https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-ubuntu-2.0.tar.gz > blis.tar.gz
               ;;
       esac
-      make install
-      cd ../..
+
+      tar -xvf blis.tar.gz
+      mv amd-blis-mt blis
+      rm blis.tar.gz
+      cd blis/lib
+      ln -s libblis-mt.so libblis.so
+      popd
+
     fi
   fi
 fi
 
 if [[ "${cpu_ref_lib}" == blis ]] && [[ ! -f "${build_dir}/deps/blis/lib/libblis.so" ]] && [[ "${build_clients}" == true ]]; then
-  git submodule update --init
-  cd extern/blis
+  pushd .
+  mkdir -p ${build_dir}/deps && cd ${build_dir}/deps
   case "${ID}" in
-    centos|rhel|sles)
-      ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp generic
+    centos|rhel|sles|opensuse-leap)
+      curl -L  https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-centos-2.0.tar.gz > blis.tar.gz
       ;;
     ubuntu)
-      ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp CC=/opt/rocm/hcc/bin/clang generic
+      curl -L  https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-ubuntu-2.0.tar.gz > blis.tar.gz
       ;;
     *)
       echo "Unsupported OS for this script"
-      ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp generic
+      curl -L  https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-ubuntu-2.0.tar.gz > blis.tar.gz
       ;;
   esac
-  make install
-  cd ../..
+  tar -xvf blis.tar.gz
+  mv amd-blis-mt blis
+  rm blis.tar.gz
+  cd blis/lib
+  ln -s libblis-mt.so libblis.so
+  popd
 fi
 
 # We append customary rocm path; if user provides custom rocm path in ${path}, our
 # hard-coded path has lesser priority
-export PATH=${PATH}:/opt/rocm/bin
+export PATH=${PATH}:${rocm_path}/bin:${rocm_path}/hip/bin:${rocm_path}/hcc/bin
 
 pushd .
   # #################################################
@@ -430,7 +443,7 @@ pushd .
   cmake_common_options=""
   cmake_client_options=""
 
-  cmake_common_options="${cmake_common_options} -lpthread -DTensile_LOGIC=${tensile_logic} -DTensile_CODE_OBJECT_VERSION=${tensile_cov}"
+  cmake_common_options="${cmake_common_options} -DROCM_PATH=${rocm_path} -lpthread -DTensile_LOGIC=${tensile_logic} -DTensile_CODE_OBJECT_VERSION=${tensile_cov}"
 
   # build type
   if [[ "${build_release}" == true ]]; then
@@ -453,26 +466,20 @@ pushd .
     cmake_common_options="${cmake_common_options} -DTensile_TEST_LOCAL_PATH=${tensile_test_local_path}"
   fi
 
-
-case "${ID}" in
-  centos|rhel)
-  cmake_common_options="${cmake_common_options} -DCMAKE_FIND_ROOT_PATH=/usr/lib64/llvm7.0/lib/cmake/"
-  ;;
-esac
-
-  # clients
-
   tensile_opt=""
-    if [[ "${build_tensile}" == false ]]; then
+  if [[ "${build_tensile}" == false ]]; then
     tensile_opt="${tensile_opt} -DBUILD_WITH_TENSILE=OFF"
   fi
 
-    if [[ "${build_tensile_host}" == true ]]; then
+  if [[ "${build_tensile_host}" == true ]]; then
     tensile_opt="${tensile_opt} -DBUILD_WITH_TENSILE_HOST=ON"
   fi
 
+  cmake_common_options="${cmake_common_options} ${tensile_opt}"
+
+
   if [[ "${build_clients}" == true ]]; then
-    cmake_client_options="${cmake_client_options} ${tensile_opt} -DBUILD_CLIENTS_SAMPLES=ON -DBUILD_CLIENTS_TESTS=ON -DBUILD_CLIENTS_BENCHMARKS=ON -DLINK_BLIS=${LINK_BLIS}"
+    cmake_client_options="${cmake_client_options} -DBUILD_CLIENTS_SAMPLES=ON -DBUILD_CLIENTS_TESTS=ON -DBUILD_CLIENTS_BENCHMARKS=ON -DLINK_BLIS=${LINK_BLIS}"
   fi
 
   compiler="hcc"
@@ -481,14 +488,22 @@ esac
     cmake_common_options="${cmake_common_options} -DTensile_COMPILER=hipcc"
   fi
 
+
+  case "${ID}" in
+    centos|rhel)
+    cmake_common_options="${cmake_common_options} -DCMAKE_FIND_ROOT_PATH=/usr/lib64/llvm7.0/lib/cmake/"
+    ;;
+  esac
+
+
   # Uncomment for cmake debugging
-  # CXX=${compiler} ${cmake_executable} -Wdev --debug-output --trace ${cmake_common_options} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=/opt/rocm ../..
+  # CXX=${compiler} ${cmake_executable} -Wdev --debug-output --trace ${cmake_common_options} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=${rocm_path} ../..
 
   # Build library with AMD toolchain because of existense of device kernels
   if [[ "${build_clients}" == true ]]; then
-    CXX=${compiler} ${cmake_executable} ${cmake_common_options} ${cmake_client_options} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=/opt/rocm ../..
+    CXX=${compiler} ${cmake_executable} ${cmake_common_options} ${cmake_client_options} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=${rocm_path} ../..
   else
-    CXX=${compiler} ${cmake_executable} ${cmake_common_options} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=/opt/rocm ../..
+    CXX=${compiler} ${cmake_executable} ${cmake_common_options} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=${rocm_path} ../..
   fi
   check_exit_code "$?"
 
@@ -513,7 +528,7 @@ esac
       fedora)
         elevate_if_not_root dnf install rocblas-*.rpm
       ;;
-      sles)
+      sles|opensuse-leap)
         elevate_if_not_root zypper --no-gpg-checks in -y install rocblas-*.rpm
       ;;
     esac

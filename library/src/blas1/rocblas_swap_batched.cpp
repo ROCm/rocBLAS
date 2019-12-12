@@ -92,8 +92,13 @@ rocblas_status rocblas_sswap_batched(rocblas_handle handle,
                                      float*         y[],
                                      rocblas_int    incy,
                                      rocblas_int    batch_count)
+try
 {
     return rocblas_swap_batched_impl(handle, n, x, incx, y, incy, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_dswap_batched(rocblas_handle handle,
@@ -103,8 +108,13 @@ rocblas_status rocblas_dswap_batched(rocblas_handle handle,
                                      double*        y[],
                                      rocblas_int    incy,
                                      rocblas_int    batch_count)
+try
 {
     return rocblas_swap_batched_impl(handle, n, x, incx, y, incy, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_cswap_batched(rocblas_handle         handle,
@@ -114,8 +124,13 @@ rocblas_status rocblas_cswap_batched(rocblas_handle         handle,
                                      rocblas_float_complex* y[],
                                      rocblas_int            incy,
                                      rocblas_int            batch_count)
+try
 {
     return rocblas_swap_batched_impl(handle, n, x, incx, y, incy, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_zswap_batched(rocblas_handle          handle,
@@ -125,8 +140,13 @@ rocblas_status rocblas_zswap_batched(rocblas_handle          handle,
                                      rocblas_double_complex* y[],
                                      rocblas_int             incy,
                                      rocblas_int             batch_count)
+try
 {
     return rocblas_swap_batched_impl(handle, n, x, incx, y, incy, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 } // extern "C"

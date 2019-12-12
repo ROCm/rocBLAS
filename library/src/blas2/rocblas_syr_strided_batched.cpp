@@ -144,9 +144,14 @@ rocblas_status rocblas_ssyr_strided_batched(rocblas_handle handle,
                                             rocblas_int    lda,
                                             rocblas_stride strideA,
                                             rocblas_int    batch_count)
+try
 {
     return rocblas_syr_strided_batched_impl(
         handle, uplo, n, alpha, x, 0, incx, stridex, A, 0, lda, strideA, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_dsyr_strided_batched(rocblas_handle handle,
@@ -160,9 +165,14 @@ rocblas_status rocblas_dsyr_strided_batched(rocblas_handle handle,
                                             rocblas_int    lda,
                                             rocblas_stride strideA,
                                             rocblas_int    batch_count)
+try
 {
     return rocblas_syr_strided_batched_impl(
         handle, uplo, n, alpha, x, 0, incx, stridex, A, 0, lda, strideA, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 } // extern "C"
