@@ -33,7 +33,7 @@ void random_nan_generator(T& n)
 }
 
 //!
-//! @brief Template for initializing a host (non_batche|batched|strided_batched)vector.
+//! @brief Template for initializing a host (non_batched|batched|strided_batched)vector.
 //! @param that That vector.
 //! @param seedReset reset the seed if true, do not reset the seed otherwise.
 //!
@@ -63,7 +63,7 @@ void rocblas_init_template(U& that, bool seedReset = false)
 }
 
 //!
-//! @brief Template for initializing a host (non_batche|batched|strided_batched)vector with NaNs.
+//! @brief Template for initializing a host (non_batched|batched|strided_batched)vector with NaNs.
 //! @param that That vector.
 //! @param seedReset reset the seed if true, do not reset the seed otherwise.
 //!
@@ -132,7 +132,7 @@ void rocblas_init(host_vector<T>& that, bool seedReset = false)
 //!
 //! @brief Initialize a host_strided_batch_vector with NaNs.
 //! @param that The host strided batch vector to be initialized.
-//! @param seedReset reset he seed if true, do not reset the seed otherwise.
+//! @param seedReset reset the seed if true, do not reset the seed otherwise.
 //!
 template <typename T>
 void rocblas_init_nan(host_strided_batch_vector<T>& that, bool seedReset = false)
@@ -143,7 +143,7 @@ void rocblas_init_nan(host_strided_batch_vector<T>& that, bool seedReset = false
 //!
 //! @brief Initialize a host_strided_batch_vector with NaNs.
 //! @param that The host strided batch vector to be initialized.
-//! @param seedReset reset he seed if true, do not reset the seed otherwise.
+//! @param seedReset reset the seed if true, do not reset the seed otherwise.
 //!
 template <typename T>
 void rocblas_init_nan(host_batch_vector<T>& that, bool seedReset = false)

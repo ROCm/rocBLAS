@@ -39,11 +39,9 @@ void testing_hemv_bad_arg(const Arguments& arg)
     device_vector<T> dA(size_A);
     device_vector<T> dx(size_x);
     device_vector<T> dy(size_y);
-    if(!dA || !dx || !dy)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_HIP_ERROR(dA.memcheck());
+    CHECK_HIP_ERROR(dx.memcheck());
+    CHECK_HIP_ERROR(dy.memcheck());
 
     EXPECT_ROCBLAS_STATUS(
         rocblas_hemv<T>(handle, uplo, N, &alpha, nullptr, lda, dx, incx, &beta, dy, incy),
@@ -90,11 +88,9 @@ void testing_hemv(const Arguments& arg)
         device_vector<T>    dA1(safe_size);
         device_vector<T>    dx1(safe_size);
         device_vector<T>    dy1(safe_size);
-        if(!dA1 || !dx1 || !dy1)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
+        CHECK_HIP_ERROR(dA1.memcheck());
+        CHECK_HIP_ERROR(dx1.memcheck());
+        CHECK_HIP_ERROR(dy1.memcheck());
 
         EXPECT_ROCBLAS_STATUS(
             rocblas_hemv<T>(handle, uplo, N, &h_alpha, dA1, lda, dx1, incx, &h_beta, dy1, incy),
@@ -122,15 +118,15 @@ void testing_hemv(const Arguments& arg)
     device_vector<T> dy_2(size_y);
     device_vector<T> d_alpha(1);
     device_vector<T> d_beta(1);
-    if((!dA && size_A) || (!dx && size_x) || ((!dy_1 || !dy_2) && size_y) || !d_alpha || !d_beta)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_HIP_ERROR(dA.memcheck());
+    CHECK_HIP_ERROR(dx.memcheck());
+    CHECK_HIP_ERROR(dy_1.memcheck());
+    CHECK_HIP_ERROR(dy_2.memcheck());
+    CHECK_HIP_ERROR(d_alpha.memcheck());
+    CHECK_HIP_ERROR(d_beta.memcheck());
 
     // Initial Data on CPU
-    rocblas_seedrand();
-    rocblas_init<T>(hA, N, N, lda);
+    rocblas_init(hA, true);
     rocblas_init<T>(hx, 1, N, abs_incx);
 
     if(rocblas_isnan(arg.beta))
@@ -144,9 +140,9 @@ void testing_hemv(const Arguments& arg)
     hy_2    = hy_1;
 
     // copy data from CPU to device
-    CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(T) * size_A, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T) * size_x, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dy_1, hy_1, sizeof(T) * size_y, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(dA.transfer_from(hA));
+    CHECK_HIP_ERROR(dx.transfer_from(hx));
+    CHECK_HIP_ERROR(dy_1.transfer_from(hy_1));
 
     double gpu_time_used, cpu_time_used;
     double rocblas_gflops, cblas_gflops, rocblas_bandwidth;

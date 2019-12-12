@@ -219,7 +219,6 @@ void testing_hemv_batched(const Arguments& arg)
     rocblas_init(hA, true);
     rocblas_init(hx, false);
 
-    rocblas_seedrand();
     if(rocblas_isnan(arg.beta))
         rocblas_init_nan<T>(hy_1, false);
     else
