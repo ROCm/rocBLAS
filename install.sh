@@ -361,7 +361,7 @@ pushd .
   compiler="hcc"
   if [[ "${build_cuda}" == true || "${build_hip_clang}" == true ]]; then
     compiler="hipcc"
-    cmake_common_options="${cmake_common_options} -DTensile_COMPILER=hipcc -DBUILD_TESTING=OFF "
+    cmake_common_options="${cmake_common_options} -DTensile_COMPILER=hipcc"
   fi
 
   # Uncomment for cmake debugging
