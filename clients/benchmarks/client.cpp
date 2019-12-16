@@ -16,6 +16,8 @@
 #include "testing_copy_batched.hpp"
 #include "testing_copy_strided_batched.hpp"
 #include "testing_dot.hpp"
+#include "testing_dot_batched.hpp"
+#include "testing_dot_strided_batched.hpp"
 #include "testing_iamax_iamin.hpp"
 #include "testing_nrm2.hpp"
 #include "testing_nrm2_batched.hpp"
@@ -195,6 +197,8 @@ struct perf_blas<
                 {"copy_batched", testing_copy_batched<T>},
                 {"copy_strided_batched", testing_copy_strided_batched<T>},
                 {"dot", testing_dot<T>},
+                {"dot_batched", testing_dot_batched<T>},
+                {"dot_strided_batched", testing_dot_strided_batched<T>},
                 {"swap", testing_swap<T>},
                 {"swap_batched", testing_swap_batched<T>},
                 {"swap_strided_batched", testing_swap_strided_batched<T>},
