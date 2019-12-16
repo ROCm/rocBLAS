@@ -113,14 +113,16 @@ typedef enum rocblas_status_
     rocblas_status_success         = 0, /**< success */
     rocblas_status_invalid_handle  = 1, /**< handle not initialized, invalid or null */
     rocblas_status_not_implemented = 2, /**< function is not implemented */
-    rocblas_status_invalid_pointer = 3, /**< invalid pointer parameter */
-    rocblas_status_invalid_size    = 4, /**< invalid size parameter */
+    rocblas_status_invalid_pointer = 3, /**< invalid pointer argument */
+    rocblas_status_invalid_size    = 4, /**< invalid size argument */
     rocblas_status_memory_error    = 5, /**< failed internal memory allocation, copy or dealloc */
     rocblas_status_internal_error  = 6, /**< other internal library failure */
     rocblas_status_perf_degraded   = 7, /**< performance degraded due to low device memory */
     rocblas_status_size_query_mismatch = 8, /**< unmatched start/stop size query */
     rocblas_status_size_increased      = 9, /**< queried device memory size increased */
     rocblas_status_size_unchanged      = 10, /**< queried device memory size unchanged */
+    rocblas_status_invalid_value       = 11, /**< passed argument not valid */
+    rocblas_status_continue            = 12, /**< nothing preventing function to proceed */
 } rocblas_status;
 
 /*! \brief Indicates the precision width of data stored in a blas type. */
