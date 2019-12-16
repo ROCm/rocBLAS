@@ -252,6 +252,8 @@ struct perf_blas<T, U, typename std::enable_if<std::is_same<T, rocblas_bfloat16>
     {
         static const func_map map = {
             {"dot", testing_dot<T>},
+            {"dot_batched", testing_dot_batched<T>},
+            {"dot_strided_batched", testing_dot_strided_batched<T>},
         };
         run_function(map, arg);
     }
@@ -266,6 +268,8 @@ struct perf_blas<T, U, typename std::enable_if<std::is_same<T, rocblas_half>{}>:
         static const func_map map
             = { {"axpy", testing_axpy<T>},
                 {"dot", testing_dot<T>},
+                {"dot_batched", testing_dot_batched<T>},
+                {"dot_strided_batched", testing_dot_strided_batched<T>},
 #if BUILD_WITH_TENSILE
                 {"gemm", testing_gemm<T>},
                 {"gemm_batched", testing_gemm_batched<T>},
@@ -294,7 +298,11 @@ struct perf_blas<T,
                 {"copy_batched", testing_copy_batched<T>},
                 {"copy_strided_batched", testing_copy_strided_batched<T>},
                 {"dot", testing_dot<T>},
+                {"dot_batched", testing_dot_batched<T>},
+                {"dot_strided_batched", testing_dot_strided_batched<T>},
                 {"dotc", testing_dotc<T>},
+                {"dotc_batched", testing_dotc_batched<T>},
+                {"dotc_strided_batched", testing_dotc_strided_batched<T>},
                 {"nrm2", testing_nrm2<T>},
                 {"nrm2_batched", testing_nrm2_batched<T>},
                 {"nrm2_strided_batched", testing_nrm2_strided_batched<T>},
