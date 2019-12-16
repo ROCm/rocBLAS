@@ -55,7 +55,7 @@ void ArgumentModel::log_perf(std::stringstream& name_line,
         val_line << cblas_gflops << "," << cpu_us << ",";
         if(arg.norm_check)
         {
-            name_line << "norm1,norm2";
+            name_line << "norm1,norm2,";
             val_line << norm1 << "," << norm2 << ",";
         }
     }
