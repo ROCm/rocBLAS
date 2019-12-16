@@ -72,6 +72,7 @@ if(LINK_BLIS)
 endif()
 
 set( rocblas_benchmark_common
+      ../common/rocblas_arguments.cpp
       ../common/utility.cpp
       ../common/cblas_interface.cpp
       ${BLIS_CPP}

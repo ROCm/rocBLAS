@@ -215,7 +215,7 @@ void testing_dot_strided_batched(const Arguments& arg)
                                                   &cpu_result[b]);
         }
         cpu_time_used = get_time_us() - cpu_time_used;
-        cblas_gflops  = batch_count * dot_gflop_count<CONJ, T>(N) / cpu_time_used * 1e6 * 1;
+        // cblas_gflops  = batch_count * dot_gflop_count<CONJ, T>(N) / cpu_time_used * 1e6 * 1;
 
         if(arg.unit_check)
         {
@@ -239,8 +239,11 @@ void testing_dot_strided_batched(const Arguments& arg)
 
     if(arg.timing)
     {
+        static ArgumentModel testing_dot_strided_batched_arg_model(
+            std::vector<arg_type>({e_N, e_incx, e_incy, e_stride_x, e_stride_y, e_batch_count}));
+
         int number_cold_calls = 2;
-        int number_hot_calls  = 100;
+        int number_hot_calls  = arg.iters;
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
         for(int iter = 0; iter < number_cold_calls; iter++)
@@ -275,25 +278,16 @@ void testing_dot_strided_batched(const Arguments& arg)
                                                     rocblas_result_1);
         }
 
-        gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;
-        rocblas_gflops    = batch_count * dot_gflop_count<CONJ, T>(N) / gpu_time_used * 1e6 * 1;
-        rocblas_bandwidth = batch_count * (2.0 * N) * sizeof(T) / gpu_time_used / 1e3;
+        gpu_time_used = get_time_us() - gpu_time_used;
 
-        std::cout
-            << "N,incx,stridex,incy,stridey,batch_count,rocblas-Gflops,rocblas-GB/s,rocblas-us";
-
-        if(arg.norm_check)
-            std::cout << ",CPU-Gflops,norm_error_host_ptr,norm_error_dev_ptr";
-
-        std::cout << std::endl;
-        std::cout << N << "," << incx << "," << stride_x << "," << incy << "," << stride_y << ","
-                  << batch_count << "," << rocblas_gflops << "," << rocblas_bandwidth << ","
-                  << gpu_time_used;
-
-        if(arg.norm_check)
-            std::cout << "," << cblas_gflops << "," << rocblas_error_1 << "," << rocblas_error_2;
-
-        std::cout << std::endl;
+        testing_dot_strided_batched_arg_model.log_args<T>(std::cout,
+                                                          arg,
+                                                          gpu_time_used,
+                                                          dot_gflop_count<CONJ, T>(N),
+                                                          (2.0 * N) * sizeof(T),
+                                                          cpu_time_used,
+                                                          rocblas_error_1,
+                                                          rocblas_error_2);
     }
 }
 
