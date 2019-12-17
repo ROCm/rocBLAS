@@ -34,15 +34,6 @@ void testing_tbmv_bad_arg(const Arguments& arg)
     size_t size_A = lda * size_t(M);
     size_t size_x = M * size_t(incx);
 
-    // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
-    host_vector<T> hA(size_A);
-    host_vector<T> hx(size_x);
-
-    // Initial Data on CPU
-    rocblas_seedrand();
-    rocblas_init<T>(hA, M, M, lda);
-    rocblas_init<T>(hx, 1, M, incx);
-
     // allocate memory on device
     device_vector<T> dA(size_A);
     device_vector<T> dx(size_x);
@@ -51,10 +42,6 @@ void testing_tbmv_bad_arg(const Arguments& arg)
         CHECK_HIP_ERROR(hipErrorOutOfMemory);
         return;
     }
-
-    // copy data from CPU to device
-    CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(T) * size_A, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T) * size_x, hipMemcpyHostToDevice));
 
     EXPECT_ROCBLAS_STATUS(rocblas_tbmv<T>(handle, uplo, transA, diag, M, K, nullptr, lda, dx, incx),
                           rocblas_status_invalid_pointer);
@@ -141,6 +128,7 @@ void testing_tbmv(const Arguments& arg)
 
     if(arg.unit_check || arg.norm_check)
     {
+        // pointer mode shouldn't matter here
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         CHECK_ROCBLAS_ERROR(rocblas_tbmv<T>(handle, uplo, transA, diag, M, K, dA, lda, dx, incx));
 
@@ -169,7 +157,6 @@ void testing_tbmv(const Arguments& arg)
     {
         int number_cold_calls = 2;
         int number_hot_calls  = arg.iters;
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
@@ -183,9 +170,11 @@ void testing_tbmv(const Arguments& arg)
             rocblas_tbmv<T>(handle, uplo, transA, diag, M, K, dA, lda, dx, incx);
         }
 
-        gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;
-        rocblas_gflops    = tbmv_gflop_count<T>(M, K) / gpu_time_used * 1e6;
-        rocblas_bandwidth = (1.0 * M * M) * sizeof(T) / gpu_time_used / 1e3;
+        gpu_time_used  = (get_time_us() - gpu_time_used) / number_hot_calls;
+        rocblas_gflops = tbmv_gflop_count<T>(M, K) / gpu_time_used * 1e6;
+        rocblas_int k1 = K < M ? K : M;
+        rocblas_bandwidth
+            = (M * k1 - ((k1 * (k1 + 1)) / 2.0) + 3 * M) * sizeof(T) / gpu_time_used / 1e3;
 
         // only norm_check return an norm error, unit check won't return anything
         std::cout << "M,K,lda,incx,rocblas-Gflops,rocblas-GB/s,us,";

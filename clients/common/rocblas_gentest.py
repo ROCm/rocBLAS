@@ -262,6 +262,14 @@ def setdefaults(test):
         else:
             setkey_product(test, 'stride_a', ['N', 'lda', 'stride_scale'])
 
+    elif test['function'] in ('tbmv_strided_batched'):
+        if all([x in test for x in ('M', 'lda', 'stride_scale')]):
+            ldM = int(test['M'] * test['lda'] * test['stride_scale'])
+            test.setdefault('stride_a', ldM)
+        if all([x in test for x in ('M', 'incx', 'stride_scale')]):
+            ldx = int(test['M'] * abs(test['incx']) * test['stride_scale'])
+            test.setdefault('stride_x', ldx)
+
     test.setdefault('stride_x', 0)
     test.setdefault('stride_y', 0)
 
