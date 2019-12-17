@@ -210,7 +210,7 @@ private:
     // Float16 output
     static void print_value(std::ostream& str, rocblas_half x)
     {
-        str << float(x);
+        print_value(str, double(x));
     }
 
     // Floating-point output
