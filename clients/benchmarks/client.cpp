@@ -651,11 +651,13 @@ try
 
         ("kl",
          value<rocblas_int>(&arg.KL)->default_value(128),
-         "Specific matrix size: kl is only applicable to BLAS-2: The number of sub-diagonals of the banded matrix A.")
+         "Specific matrix size: kl is only applicable to BLAS-2: The number of sub-diagonals "
+         "of the banded matrix A.")
 
         ("ku",
          value<rocblas_int>(&arg.KU)->default_value(128),
-         "Specific matrix size: ku is only applicable to BLAS-2: The number of super-diagonals of the banded matrix A.")
+         "Specific matrix size: ku is only applicable to BLAS-2: The number of super-diagonals "
+         "of the banded matrix A.")
 
         ("lda",
          value<rocblas_int>(&arg.lda)->default_value(128),
