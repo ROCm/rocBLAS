@@ -234,6 +234,15 @@ def setdefaults(test):
         if test['function'] in ('gbmv_strided_batched'):
             setkey_product(test, 'stride_a', ['lda', 'N', 'stride_scale'])
 
+    elif test['function'] in ('hemv_strided_batched'):
+        if all([x in test for x in ('N', 'incx', 'incy', 'stride_scale')]):
+            ldx = int(test['N'] * abs(test['incx']) * test['stride_scale'])
+            ldy = int(test['N'] * abs(test['incy']) * test['stride_scale'])
+            ldN = int(test['N'] * test['lda'] * test['stride_scale'])
+            test.setdefault('stride_x', ldx)
+            test.setdefault('stride_y', ldy)
+            test.setdefault('stride_a', ldN)
+
     # we are using stride_c for arg c and stride_d for arg s in rotg
     # these are are single values for each batch
     elif test['function'] in ('rotg_strided_batched'):
