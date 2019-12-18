@@ -213,8 +213,7 @@ void testing_gbmv_strided_batched(const Arguments& arg)
     size_y = dim_y * abs_incy;
 
     // argument sanity check before allocating invalid memory
-    if(M < 0 || N < 0 || lda < M || lda < 1 || !incx || !incy || KL < 0 || KU < 0
-       || batch_count < 0)
+    if(M < 0 || N < 0 || lda < KL + KU + 1 || !incx || !incy || KL < 0 || KU < 0 || batch_count < 0)
     {
         static constexpr size_t safe_size = 100; // arbitrarily set to 100
         device_vector<T>        dA1(safe_size);
@@ -310,7 +309,8 @@ void testing_gbmv_strided_batched(const Arguments& arg)
 
     // Initial Data on CPU
     rocblas_seedrand();
-    rocblas_init<T>(hA, M, N, lda, stride_A, batch_count);
+    // Init a lda * N matrix, not M * N
+    rocblas_init<T>(hA, lda, N, lda, stride_A, batch_count);
     rocblas_init<T>(hx, 1, dim_x, abs_incx, stride_x, batch_count);
 
     if(rocblas_isnan(arg.beta))

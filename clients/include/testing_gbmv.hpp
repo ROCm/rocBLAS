@@ -110,7 +110,7 @@ void testing_gbmv(const Arguments& arg)
     rocblas_local_handle handle;
 
     // argument sanity check before allocating invalid memory
-    if(M < 0 || N < 0 || lda < M || lda < 1 || !incx || !incy || KL < 0 || KU < 0)
+    if(M < 0 || N < 0 || lda < KL + KU + 1 || !incx || !incy || KL < 0 || KU < 0)
     {
         static const size_t safe_size = 100; // arbitrarily set to 100
         device_vector<T>    dA1(safe_size);
@@ -172,7 +172,8 @@ void testing_gbmv(const Arguments& arg)
 
     // Initial Data on CPU
     rocblas_seedrand();
-    rocblas_init<T>(hA, M, N, lda);
+    // Init a lda * N matrix, not M * N
+    rocblas_init<T>(hA, lda, N, lda);
     rocblas_init<T>(hx, 1, dim_x, abs_incx);
 
     if(rocblas_isnan(arg.beta))

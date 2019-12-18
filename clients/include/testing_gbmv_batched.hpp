@@ -168,7 +168,7 @@ void testing_gbmv_batched(const Arguments& arg)
     rocblas_local_handle handle;
 
     // argument sanity check before allocating invalid memory
-    if(M <= 0 || N <= 0 || lda < M || lda < 1 || !incx || !incy || KL < 0 || KU < 0
+    if(M <= 0 || N <= 0 || lda < KL + KU + 1 || !incx || !incy || KL < 0 || KU < 0
        || batch_count <= 0)
     {
         static constexpr size_t safe_size = 100; // arbitrarily set to 100
@@ -195,7 +195,7 @@ void testing_gbmv_batched(const Arguments& arg)
                                                       dy_1A1.ptr_on_device(),
                                                       incy,
                                                       batch_count),
-                              M < 0 || N < 0 || lda < M || lda < 1 || !incx || !incy
+                              M < 0 || N < 0 || lda < KL + KU + 1 || !incx || !incy
                                       || batch_count < 0 || KL < 0 || KU < 0
                                   ? rocblas_status_invalid_size
                                   : rocblas_status_success);

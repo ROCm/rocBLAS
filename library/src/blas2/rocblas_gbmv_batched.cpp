@@ -140,7 +140,7 @@ namespace
                             batch_count);
         }
 
-        if(m < 0 || n < 0 || lda < m || lda < 1 || !incx || !incy || kl < 0 || ku < 0
+        if(m < 0 || n < 0 || lda < ku + kl + 1 || !incx || !incy || kl < 0 || ku < 0
            || batch_count < 0)
             return rocblas_status_invalid_size;
 

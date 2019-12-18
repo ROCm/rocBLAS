@@ -4,15 +4,27 @@ include: known_bugs.yaml
 
 Definitions:
   - &small_matrix_size_range
+    # Invalid Sizes
     - { M:    -1, N:     1, lda:    1, KL:  1, KU:  1 }
     - { M:     1, N:    -1, lda:    1, KL:  1, KU:  1 }
+    - { M:    -1, N:    -1, lda:   -1, KL:  0, KU:  0 }
     - { M:     1, N:     1, lda:    0, KL:  0, KU:  0 }
-    - { M:    10, N:    10, lda:    9, KL:  3, KU:  2 }
+    - { M:    10, N:    10, lda:    2, KL:  8, KU:  2 }
+    - { M:    10, N:    10, lda:   10, KL: -1, KU:  5 }
+    - { M:    10, N:    10, lda:   10, KL:  5, KU: -1 }
+    - { M:    10, N:    10, lda:    5, KL:  3, KU:  2 }
+
+    # lda > KL + KU + 1 && lda < M
+    - { M:     2, N:     2, lda:    1, KL:  0, KU:  0, stride_a: 4 }
+    - { M:    10, N:    10, lda:    9, KL:  3, KU:  2, stride_a: 100 }
+    - { M:    10, N:     5, lda:    4, KL:  1, KU:  1, stride_a: 50 }
+
+    # Quick Return
+    - { M:     0, N:    10, lda:   10, KL:  2, KU:  3 }
     - { M:     0, N:     1, lda:    1, KL:  0, KU:  0 }
     - { M:     1, N:     0, lda:    1, KL:  0, KU:  0 }
-    - { M:    -1, N:    -1, lda:   -1, KL:  0, KU:  0 }
-    - { M:    10, N:    10, lda:    2, KL:  8, KU:  2 }
-    - { M:   100, N:   200, lda:  200, KL:  6, KU:  3 }
+
+    # Regular Cases
     - { M:   100, N:   200, lda:  200, KL: 20, KU:  8 }
     - { M:   100, N:   200, lda:  200, KL: 20, KU: 30 }
     - { M:     5, N:     5, lda:    5, KL:  1, KU:  2 }
@@ -20,8 +32,9 @@ Definitions:
     - { M:     4, N:     6, lda:    6, KL:  1, KU:  2 }
     - { M:    10, N:    20, lda:   20, KL:  2, KU:  1 }
     - { M:    10, N:    20, lda:   20, KL:  6, KU:  3 }
-    - { M:    20, N:    30, lda:   50, KL:  14, KU: 14 }
-    - { M:    20, N:    30, lda:   50, KL:  24, KU: 24 }
+    - { M:    20, N:    30, lda:   50, KL: 14, KU: 14 }
+    - { M:    20, N:    30, lda:   50, KL: 24, KU: 24 }
+
 
   - &medium_matrix_size_range
     - { M:   300, N:   400, lda:  400, KL: 32, KU: 16 }
