@@ -207,12 +207,6 @@ private:
         str << x;
     }
 
-    // Float16 output
-    static void print_value(std::ostream& str, rocblas_half x)
-    {
-        print_value(str, double(x));
-    }
-
     // Floating-point output
     static void print_value(std::ostream& str, double x)
     {
@@ -405,6 +399,18 @@ public:
     bool hasParam(arg_type a);
 
     template <typename T>
+    static void print_value(std::ostream& str, const T& x)
+    {
+        Arguments::print_value(str, x);
+    }
+
+    // Float16 output
+    static void print_value(std::ostream& str, rocblas_half x)
+    {
+        Arguments::print_value(str, double(x));
+    }
+
+    template <typename T>
     void log_args(std::ostream&    str,
                   const Arguments& args,
                   double           gpu_us,
@@ -444,7 +450,7 @@ void ArgumentModel::log_args(std::ostream&    str,
 
     auto print = [&](const char* const name, auto x) mutable {
         name_list << name << delim;
-        Arguments::print_value(value_list, x);
+        print_value(value_list, x);
         value_list << delim;
     };
 
