@@ -214,12 +214,6 @@ private:
         str << x;
     }
 
-    // Float16 output
-    static void print_value(std::ostream& str, rocblas_half x)
-    {
-        print_value(str, double(x));
-    }
-
     // Floating-point output
     static void print_value(std::ostream& str, double x)
     {
