@@ -32,7 +32,7 @@ rocBLASCI:
     rocblas.paths.build_command = 'sudo ./install.sh -lasm_ci -c'
 
     // Define test architectures, optional rocm version argument is available
-    def nodes = new dockerNodes(['gfx900 && ubuntu && hip-clang', 'gfx906 && centos7 && hip-clang'], rocblas)
+    def nodes = new dockerNodes(['gfx900 && ubuntu && hip-clang', 'gfx906 && ubuntu && hip-clang'], rocblas)
 
     boolean formatCheck = true
 
@@ -130,11 +130,7 @@ rocBLASCI:
 
         def command 
         
-        if(platform.jenkinsLabel.contains('hip-clang'))
-        {
-            packageCommand = null
-        }
-        else if(platform.jenkinsLabel.contains('centos'))
+        if(platform.jenkinsLabel.contains('centos'))
         {
             command = """
                     set -x
