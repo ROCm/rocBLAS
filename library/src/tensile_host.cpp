@@ -70,12 +70,6 @@ namespace
         using type = Tensile::Int8x4;
     };
 
-    template <>
-    struct rocblas_to_tensile_type<uint8_t>
-    {
-        using type = Tensile::Int8x4;
-    };
-
     /********************************************************************
      * Variable template to map a rocBLAS type into a Tensile::DataType *
      ********************************************************************/
@@ -84,9 +78,6 @@ namespace
 
     template <>
     constexpr auto tensile_datatype<int8_t> = Tensile::DataType::Int8x4;
-
-    template <>
-    constexpr auto tensile_datatype<uint8_t> = Tensile::DataType::Int8x4;
 
     template <>
     constexpr auto tensile_datatype<int32_t> = Tensile::DataType::Int32;
@@ -178,7 +169,7 @@ namespace
         Tensile::TensorDescriptor d{
             Tensile_To, {prob.m, prob.n, prob.batch_count}, {1, prob.ld_d, prob.stride_d}};
 
-        // Return the ContractionProblem
+        // The ContractionProblem
         Tensile::ContractionProblem tensileProblem{a,
                                                    aops,
                                                    b,
@@ -192,6 +183,7 @@ namespace
                                                    boundIndex,
                                                    value_category(*prob.beta)};
 
+        // If HPA is active, mark it as true
         if(sizeof(Tc) > sizeof(To))
             tensileProblem.setHighPrecisionAccumulate(true);
 
@@ -201,27 +193,25 @@ namespace
     // Tensile does not support float alpha and beta for HPA half
     // We must convert alpha and beta from float to half
     template <typename Ti, typename To, typename Tc>
-    struct HPA_workaround
+    struct AlphaBeta
     {
         using type = typename rocblas_to_tensile_type<Tc>::type;
         static void copy(type* dst, const Tc* src)
         {
             static_assert(sizeof(*src) == sizeof(*dst),
                           "Tensile and rocBLAS types are not the same size");
-            memcpy(dst, src, sizeof(Tc));
+            memcpy(dst, src, sizeof(*dst));
         }
     };
 
     template <>
-    struct HPA_workaround<rocblas_half, rocblas_half, float>
+    struct AlphaBeta<rocblas_half, rocblas_half, float>
     {
         using type = Tensile::Half;
-        static void copy(type* dst, const float* src)
+        static void copy(type* dst, const float* float_src)
         {
-            rocblas_half x(*src);
-            static_assert(sizeof(x) == sizeof(type),
-                          "Tensile and rocBLAS types are not the same size");
-            memcpy(dst, &x, sizeof(x));
+            rocblas_half src(*float_src);
+            AlphaBeta<rocblas_half, rocblas_half, rocblas_half>::copy(dst, &src);
         }
     };
 
@@ -234,7 +224,7 @@ namespace
         // Tensile types corresponding to Ti, To, Tc
         using Tensile_Ti          = typename rocblas_to_tensile_type<Ti>::type;
         using Tensile_To          = typename rocblas_to_tensile_type<To>::type;
-        using Tensile_Talpha_beta = typename HPA_workaround<Ti, To, Tc>::type;
+        using Tensile_Talpha_beta = typename AlphaBeta<Ti, To, Tc>::type;
 
         // Make sure rocBLAS and Tensile types are compatible
         // For int8_t we allow the sizes to differ assuming alignment
@@ -265,8 +255,8 @@ namespace
         inputs.d = reinterpret_cast<Tensile_To*>(problem.D);
 
         // alpha and beta are stored by value in Tensile, and thus must exist on the host
-        HPA_workaround<Ti, To, Tc>::copy(&inputs.alpha, problem.alpha);
-        HPA_workaround<Ti, To, Tc>::copy(&inputs.beta, problem.beta);
+        AlphaBeta<Ti, To, Tc>::copy(&inputs.alpha, problem.alpha);
+        AlphaBeta<Ti, To, Tc>::copy(&inputs.beta, problem.beta);
 
         return inputs;
     }
@@ -414,17 +404,26 @@ try
     // We know that the TensileHost instance is a TensileHostImpl, so we can downcast to it
     auto* host            = static_cast<TensileHostImpl*>(this);
     auto  tensile_problem = ConstructTensileProblem(problem);
-    auto  inputs          = GetTensileInputs(problem);
     auto  solution        = host->library->findBestSolution(tensile_problem, *host->hardware);
-    if(!solution)
+    auto  inputs          = GetTensileInputs(problem);
+
+    if(solution)
     {
-        static int once
-            = (std::cerr << "Error: No Tensile solution found for " << problem << std::endl, 0);
-        return rocblas_status_internal_error;
+        try
+        {
+            auto result = solution->solve(tensile_problem, inputs, *host->hardware);
+            host->adapter.launchKernels(result);
+        }
+        catch(...)
+        {
+            goto error;
+        }
+        return rocblas_status_success;
     }
-    auto result = solution->solve(tensile_problem, inputs, *host->hardware);
-    host->adapter.launchKernels(result);
-    return rocblas_status_success;
+
+error:;
+    static int once = (std::cerr << "Error: No Tensile solution found for " << problem, 0);
+    return rocblas_status_internal_error;
 }
 catch(...)
 {
