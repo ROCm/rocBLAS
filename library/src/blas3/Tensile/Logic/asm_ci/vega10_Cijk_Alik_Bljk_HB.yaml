@@ -1,8 +1,16 @@
-- {MinimumRequiredVersion: 4.6.0}
+- MinimumRequiredVersion: 4.6.0
 - vega10
 - gfx900
-- [Device 6863, Device 6862, Device 687f, Device 6860, Device 6861, 'Vega 10 XTX [Radeon
-    Vega Frontier Edition]', 'Vega [Radeon RX Vega]']
+- - Device 6863
+  - Device 6862
+  - Device 687f
+  - Device 6860
+  - Device 6861
+  - Vega 10 XTX [Radeon Vega Frontier Edition]
+  - Vega [Radeon RX Vega]
+  - Vega
+  - Device 6864
+  - Device 686c
 - AssignedDerivedParameters: true
   Batched: true
   ComplexConjugateA: false
@@ -14,14 +22,24 @@
   Index01A: 0
   Index01B: 1
   Index1: 1
-  IndexAssignmentsA: [3, 0, 2]
-  IndexAssignmentsB: [3, 1, 2]
+  IndexAssignmentsA:
+  - 3
+  - 0
+  - 2
+  IndexAssignmentsB:
+  - 3
+  - 1
+  - 2
   IndexUnroll: 3
   IndexUnrollA: 0
   IndexUnrollB: 0
-  IndicesBatch: [2]
-  IndicesFree: [0, 1]
-  IndicesSummation: [3]
+  IndicesBatch:
+  - 2
+  IndicesFree:
+  - 0
+  - 1
+  IndicesSummation:
+  - 3
   NumIndicesBatch: 1
   NumIndicesC: 3
   NumIndicesFree: 2
@@ -141,14 +159,24 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
-      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -173,7 +201,9 @@
     SubGroupA: 16
     SubGroupB: 4
     SuppresssNoLoadLoop: true
-    ThreadTile: &id001 [2, 2]
+    ThreadTile: &id001
+    - 2
+    - 2
     ThreadTile0: 2
     ThreadTile1: 2
     ThreadTileA: 2
@@ -184,7 +214,10 @@
     VectorAtomicWidth: 2
     VectorStore: true
     VectorWidth: 2
-    WorkGroup: [16, 4, 1]
+    WorkGroup:
+    - 16
+    - 4
+    - 1
     WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
@@ -289,14 +322,24 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
-      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -332,7 +375,10 @@
     VectorAtomicWidth: 2
     VectorStore: true
     VectorWidth: 2
-    WorkGroup: &id003 [16, 8, 1]
+    WorkGroup: &id003
+    - 16
+    - 8
+    - 1
     WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
@@ -437,14 +483,24 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
-      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -480,7 +536,10 @@
     VectorAtomicWidth: 2
     VectorStore: true
     VectorWidth: 2
-    WorkGroup: &id002 [8, 8, 1]
+    WorkGroup: &id002
+    - 8
+    - 8
+    - 1
     WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
@@ -585,14 +644,24 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
-      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -617,7 +686,9 @@
     SubGroupA: 8
     SubGroupB: 8
     SuppresssNoLoadLoop: true
-    ThreadTile: &id004 [4, 4]
+    ThreadTile: &id004
+    - 4
+    - 4
     ThreadTile0: 4
     ThreadTile1: 4
     ThreadTileA: 4
@@ -733,14 +804,24 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
-      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -765,7 +846,9 @@
     SubGroupA: 8
     SubGroupB: 8
     SuppresssNoLoadLoop: true
-    ThreadTile: [8, 8]
+    ThreadTile:
+    - 8
+    - 8
     ThreadTile0: 8
     ThreadTile1: 8
     ThreadTileA: 8
@@ -881,14 +964,24 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
-      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -1029,14 +1122,24 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
-      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -1177,14 +1280,24 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
-      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -1220,7 +1333,10 @@
     VectorAtomicWidth: 2
     VectorStore: true
     VectorWidth: 2
-    WorkGroup: &id005 [16, 16, 1]
+    WorkGroup: &id005
+    - 16
+    - 16
+    - 1
     WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
@@ -1325,14 +1441,24 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
-      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -1473,14 +1599,24 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
-      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -1621,14 +1757,24 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
-      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -1769,14 +1915,24 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
-      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -1812,7 +1968,10 @@
     VectorAtomicWidth: 2
     VectorStore: true
     VectorWidth: 2
-    WorkGroup: &id006 [32, 8, 1]
+    WorkGroup: &id006
+    - 32
+    - 8
+    - 1
     WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
@@ -1917,14 +2076,24 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
-      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -2065,14 +2234,24 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
-      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -2097,7 +2276,9 @@
     SubGroupA: 8
     SubGroupB: 8
     SuppresssNoLoadLoop: true
-    ThreadTile: &id007 [2, 2]
+    ThreadTile: &id007
+    - 2
+    - 2
     ThreadTile0: 2
     ThreadTile1: 2
     ThreadTileA: 2
@@ -2108,7 +2289,10 @@
     VectorAtomicWidth: 2
     VectorStore: true
     VectorWidth: 2
-    WorkGroup: &id008 [8, 8, 1]
+    WorkGroup: &id008
+    - 8
+    - 8
+    - 1
     WorkGroupMapping: 8
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
@@ -2213,14 +2397,24 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
-      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -2256,7 +2450,10 @@
     VectorAtomicWidth: 2
     VectorStore: true
     VectorWidth: 2
-    WorkGroup: &id009 [16, 8, 1]
+    WorkGroup: &id009
+    - 16
+    - 8
+    - 1
     WorkGroupMapping: 8
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
@@ -2361,14 +2558,24 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
-      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -2509,14 +2716,24 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
-      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -2541,7 +2758,9 @@
     SubGroupA: 8
     SubGroupB: 8
     SuppresssNoLoadLoop: true
-    ThreadTile: &id010 [4, 4]
+    ThreadTile: &id010
+    - 4
+    - 4
     ThreadTile0: 4
     ThreadTile1: 4
     ThreadTileA: 4
@@ -2657,14 +2876,24 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
-      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -2689,7 +2918,9 @@
     SubGroupA: 8
     SubGroupB: 8
     SuppresssNoLoadLoop: true
-    ThreadTile: &id011 [8, 8]
+    ThreadTile: &id011
+    - 8
+    - 8
     ThreadTile0: 8
     ThreadTile1: 8
     ThreadTileA: 8
@@ -2805,14 +3036,24 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
-      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -2953,14 +3194,24 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
-      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -3101,14 +3352,24 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
-      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -3249,14 +3510,24 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
-      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -3281,7 +3552,9 @@
     SubGroupA: 8
     SubGroupB: 8
     SuppresssNoLoadLoop: true
-    ThreadTile: [4, 2]
+    ThreadTile:
+    - 4
+    - 2
     ThreadTile0: 4
     ThreadTile1: 2
     ThreadTileA: 4
@@ -3397,14 +3670,24 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
-      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -3545,14 +3828,24 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
-      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -3693,14 +3986,24 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
-      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -3841,14 +4144,24 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
-      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -3989,14 +4302,24 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
-      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -4021,7 +4344,9 @@
     SubGroupA: 8
     SubGroupB: 8
     SuppresssNoLoadLoop: true
-    ThreadTile: [8, 4]
+    ThreadTile:
+    - 8
+    - 4
     ThreadTile0: 8
     ThreadTile1: 4
     ThreadTileA: 8
@@ -4137,14 +4462,24 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
-      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -4285,14 +4620,24 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
-      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -4328,7 +4673,10 @@
     VectorAtomicWidth: 2
     VectorStore: true
     VectorWidth: 4
-    WorkGroup: &id012 [32, 8, 1]
+    WorkGroup: &id012
+    - 32
+    - 8
+    - 1
     WorkGroupMapping: 8
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
@@ -4433,14 +4781,24 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
-      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -4581,14 +4939,24 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
-      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -4613,7 +4981,9 @@
     SubGroupA: 16
     SubGroupB: 16
     SuppresssNoLoadLoop: true
-    ThreadTile: &id014 [8, 4]
+    ThreadTile: &id014
+    - 8
+    - 4
     ThreadTile0: 8
     ThreadTile1: 4
     ThreadTileA: 8
@@ -4624,7 +4994,10 @@
     VectorAtomicWidth: 2
     VectorStore: true
     VectorWidth: 4
-    WorkGroup: &id013 [16, 16, 1]
+    WorkGroup: &id013
+    - 16
+    - 16
+    - 1
     WorkGroupMapping: 8
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
@@ -4729,14 +5102,24 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
-      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -4761,7 +5144,9 @@
     SubGroupA: 16
     SubGroupB: 16
     SuppresssNoLoadLoop: true
-    ThreadTile: &id016 [4, 4]
+    ThreadTile: &id016
+    - 4
+    - 4
     ThreadTile0: 4
     ThreadTile1: 4
     ThreadTileA: 4
@@ -4877,14 +5262,24 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
-      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -4909,7 +5304,9 @@
     SubGroupA: 16
     SubGroupB: 16
     SuppresssNoLoadLoop: true
-    ThreadTile: &id015 [4, 8]
+    ThreadTile: &id015
+    - 4
+    - 8
     ThreadTile0: 4
     ThreadTile1: 8
     ThreadTileA: 4
@@ -5025,14 +5422,24 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
-      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -5173,14 +5580,24 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
-      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -5205,7 +5622,9 @@
     SubGroupA: 16
     SubGroupB: 16
     SuppresssNoLoadLoop: true
-    ThreadTile: &id017 [8, 8]
+    ThreadTile: &id017
+    - 8
+    - 8
     ThreadTile0: 8
     ThreadTile1: 8
     ThreadTileA: 8
@@ -5321,14 +5740,24 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
-      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -5364,7 +5793,10 @@
     VectorAtomicWidth: 2
     VectorStore: true
     VectorWidth: 4
-    WorkGroup: [8, 8, 1]
+    WorkGroup:
+    - 8
+    - 8
+    - 1
     WorkGroupMapping: 8
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
@@ -5469,14 +5901,24 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
-      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -5617,14 +6059,24 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
-      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -5761,14 +6213,24 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
-      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -5792,7 +6254,9 @@
     SubGroup1: 4
     SubGroupA: 16
     SubGroupB: 4
-    ThreadTile: &id018 [8, 8]
+    ThreadTile: &id018
+    - 8
+    - 8
     ThreadTile0: 8
     ThreadTile1: 8
     ThreadTileA: 8
@@ -5803,7 +6267,10 @@
     VectorAtomicWidth: 2
     VectorStore: true
     VectorWidth: 8
-    WorkGroup: &id019 [16, 4, 4]
+    WorkGroup: &id019
+    - 16
+    - 4
+    - 4
     WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AssertFree0ElementMultiple: 2
@@ -5904,14 +6371,24 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
-      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -6047,14 +6524,24 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
-      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -6186,14 +6673,24 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
-      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -6329,14 +6826,24 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
-      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -6472,14 +6979,24 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA: [3, 0, 2]
-      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsA:
+      - 3
+      - 0
+      - 2
+      IndexAssignmentsB:
+      - 3
+      - 1
+      - 2
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch: [2]
-      IndicesFree: [0, 1]
-      IndicesSummation: [3]
+      IndicesBatch:
+      - 2
+      IndicesFree:
+      - 0
+      - 1
+      IndicesSummation:
+      - 3
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -6517,1585 +7034,4748 @@
     WorkGroup: *id019
     WorkGroupMapping: 8
     WorkGroupMappingType: B
-- [2, 3, 0, 1]
-- - - [1024, 1024, 1, 3328]
-    - [34, 16034.4]
-  - - [64, 6784, 1, 256]
-    - [8, 6552.25]
-  - - [2944, 4288, 1, 1280]
-    - [34, 20218.2]
-  - - [128, 256, 1, 1280]
-    - [23, 1715.81]
-  - - [1760, 32, 1, 1760]
-    - [23, 2708.73]
-  - - [2368, 5888, 1, 256]
-    - [34, 19603.3]
-  - - [5888, 1856, 1, 256]
-    - [34, 18978.1]
-  - - [704, 6784, 1, 256]
-    - [34, 14749.9]
-  - - [512, 24000, 1, 1536]
-    - [34, 19124.6]
-  - - [128, 6784, 1, 3328]
-    - [4, 12922.2]
-  - - [5888, 1856, 1, 3328]
-    - [34, 18440.7]
-  - - [5056, 704, 1, 256]
-    - [34, 14336.8]
-  - - [2048, 400, 1, 512]
-    - [34, 7963.59]
-  - - [5888, 2944, 1, 3328]
-    - [34, 19381.6]
-  - - [1856, 4288, 1, 256]
-    - [34, 18275.0]
-  - - [5056, 5056, 1, 3328]
-    - [34, 18414.0]
-  - - [1408, 5888, 1, 1280]
-    - [34, 20752.1]
-  - - [1024, 3584, 1, 3328]
-    - [34, 17719.7]
-  - - [512, 48000, 1, 2048]
-    - [37, 14816.9]
-  - - [448, 3584, 1, 3328]
-    - [34, 13808.5]
-  - - [256, 4288, 1, 3328]
-    - [31, 11935.4]
-  - - [5888, 1408, 1, 1280]
-    - [34, 21636.0]
-  - - [704, 1856, 1, 3328]
-    - [31, 14057.1]
-  - - [1024, 2368, 1, 256]
-    - [33, 12544.9]
-  - - [5056, 6784, 1, 1280]
-    - [34, 19783.8]
-  - - [1408, 64, 1, 1280]
-    - [23, 3638.08]
-  - - [448, 1024, 1, 1280]
-    - [31, 9631.8]
-  - - [4096, 32, 1, 4096]
-    - [27, 2325.91]
-  - - [5056, 5056, 1, 1280]
-    - [34, 20343.5]
-  - - [448, 5056, 1, 256]
-    - [33, 11842.5]
-  - - [6784, 448, 1, 256]
-    - [33, 13658.4]
-  - - [2368, 128, 1, 256]
-    - [19, 4941.07]
-  - - [1760, 6400, 1, 1760]
-    - [34, 20069.3]
-  - - [5888, 704, 1, 1280]
-    - [33, 17444.2]
-  - - [64, 5056, 1, 256]
-    - [6, 5129.58]
-  - - [6784, 4288, 1, 3328]
-    - [34, 18100.2]
-  - - [1856, 2368, 1, 3328]
-    - [34, 17105.9]
-  - - [5888, 2944, 1, 1280]
-    - [34, 19480.2]
-  - - [5888, 1024, 1, 256]
-    - [34, 16523.9]
-  - - [448, 64, 1, 1280]
-    - [23, 1487.79]
-  - - [3072, 64, 1, 1024]
-    - [27, 3401.53]
-  - - [16384, 3200, 1, 4096]
-    - [37, 14135.6]
-  - - [2944, 64, 1, 256]
-    - [8, 3763.91]
-  - - [1408, 2944, 1, 256]
-    - [34, 16334.3]
-  - - [256, 1856, 1, 1280]
-    - [31, 10061.4]
-  - - [6784, 5056, 1, 3328]
-    - [34, 18178.8]
-  - - [5056, 5056, 1, 256]
-    - [34, 21034.1]
-  - - [448, 704, 1, 1280]
-    - [31, 6924.8]
-  - - [64, 1024, 1, 1280]
-    - [20, 3208.0]
-  - - [1024, 3584, 1, 1280]
-    - [34, 18015.9]
-  - - [2368, 2944, 1, 1280]
-    - [34, 18991.3]
-  - - [448, 448, 1, 3328]
-    - [24, 6253.09]
-  - - [6784, 6784, 1, 1280]
-    - [34, 19290.4]
-  - - [1024, 256, 1, 3328]
-    - [24, 8895.21]
-  - - [1408, 4288, 1, 1280]
-    - [34, 20524.3]
-  - - [3584, 4288, 1, 1280]
-    - [34, 21334.8]
-  - - [2368, 704, 1, 1280]
-    - [34, 14079.3]
-  - - [5056, 4288, 1, 3328]
-    - [34, 18513.5]
-  - - [3584, 2368, 1, 3328]
-    - [34, 18206.0]
-  - - [64, 704, 1, 1280]
-    - [20, 2276.45]
-  - - [4288, 256, 1, 256]
-    - [31, 8842.9]
-  - - [6144, 32, 1, 2560]
-    - [3, 4168.46]
-  - - [6784, 448, 1, 1280]
-    - [33, 15947.9]
-  - - [128, 3584, 1, 1280]
-    - [31, 9527.64]
-  - - [4288, 2944, 1, 256]
-    - [34, 19159.7]
-  - - [1856, 64, 1, 1280]
-    - [23, 4321.08]
-  - - [1760, 16, 1, 1760]
-    - [20, 1411.51]
-  - - [6144, 24000, 1, 2560]
-    - [34, 16724.4]
-  - - [5888, 64, 1, 3328]
-    - [19, 8873.07]
-  - - [2944, 256, 1, 3328]
-    - [31, 12796.5]
-  - - [5056, 2368, 1, 1280]
-    - [34, 20093.3]
-  - - [448, 3584, 1, 1280]
-    - [34, 13553.7]
-  - - [6784, 5888, 1, 256]
-    - [34, 20871.3]
-  - - [256, 4288, 1, 1280]
-    - [31, 11217.1]
-  - - [704, 128, 1, 1280]
-    - [23, 3707.36]
-  - - [1408, 448, 1, 1280]
-    - [31, 10129.7]
-  - - [1024, 1408, 1, 256]
-    - [33, 11171.9]
-  - - [2368, 2368, 1, 3328]
-    - [34, 18492.4]
-  - - [5056, 704, 1, 3328]
-    - [34, 17642.6]
-  - - [1408, 1856, 1, 256]
-    - [34, 12666.5]
-  - - [1408, 256, 1, 1280]
-    - [24, 7883.96]
-  - - [3072, 128, 1, 1024]
-    - [28, 5452.02]
-  - - [3584, 2368, 1, 1280]
-    - [34, 18528.0]
-  - - [704, 5888, 1, 256]
-    - [34, 14183.4]
-  - - [6784, 128, 1, 1280]
-    - [32, 11731.6]
-  - - [2560, 1600, 1, 2560]
-    - [33, 14369.4]
-  - - [6784, 64, 1, 256]
-    - [8, 6609.92]
-  - - [6144, 5984, 1, 2048]
-    - [37, 15052.7]
-  - - [3584, 704, 1, 3328]
-    - [33, 16317.3]
-  - - [1408, 1408, 1, 256]
-    - [33, 12456.7]
-  - - [1856, 128, 1, 256]
-    - [16, 4437.93]
-  - - [2944, 64, 1, 1280]
-    - [16, 5537.0]
-  - - [448, 4288, 1, 256]
-    - [32, 12005.1]
-  - - [64, 3584, 1, 3328]
-    - [24, 7736.53]
-  - - [704, 2368, 1, 1280]
-    - [34, 14141.4]
-  - - [7680, 16, 1, 2560]
-    - [5, 2682.64]
-  - - [1856, 2368, 1, 1280]
-    - [34, 17649.0]
-  - - [2368, 128, 1, 3328]
-    - [24, 7519.28]
-  - - [2944, 128, 1, 256]
-    - [31, 5919.43]
-  - - [448, 1408, 1, 256]
-    - [31, 7841.53]
-  - - [64, 5056, 1, 3328]
-    - [22, 8005.26]
-  - - [1408, 1024, 1, 1280]
-    - [33, 14334.5]
-  - - [2368, 256, 1, 1280]
-    - [31, 9744.15]
-  - - [6784, 704, 1, 256]
-    - [32, 14567.6]
-  - - [2048, 1600, 1, 512]
-    - [37, 11765.5]
-  - - [2048, 7000, 1, 2048]
-    - [37, 14517.2]
-  - - [256, 3584, 1, 3328]
-    - [34, 13982.5]
-  - - [1408, 3584, 1, 256]
-    - [34, 16964.4]
-  - - [3584, 4288, 1, 3328]
-    - [34, 19131.6]
-  - - [5888, 1856, 1, 1280]
-    - [34, 20948.8]
-  - - [5056, 1024, 1, 3328]
-    - [34, 19142.5]
-  - - [5056, 64, 1, 1280]
-    - [19, 7042.03]
-  - - [1024, 704, 1, 256]
-    - [31, 9508.93]
-  - - [128, 448, 1, 256]
-    - [2, 1785.35]
-  - - [2368, 3584, 1, 1280]
-    - [34, 19852.4]
-  - - [1024, 256, 1, 256]
-    - [31, 4897.03]
-  - - [448, 448, 1, 256]
-    - [31, 3986.21]
-  - - [2944, 3584, 1, 3328]
-    - [34, 18638.6]
-  - - [7680, 32, 1, 2560]
-    - [25, 4705.37]
-  - - [256, 256, 1, 3328]
-    - [20, 3384.29]
-  - - [128, 1024, 1, 3328]
-    - [23, 5220.42]
-  - - [6784, 2944, 1, 256]
-    - [34, 20628.0]
-  - - [64, 1856, 1, 1280]
-    - [20, 4540.98]
-  - - [448, 256, 1, 256]
-    - [23, 2696.31]
-  - - [4288, 2368, 1, 3328]
-    - [34, 18013.9]
-  - - [1856, 2368, 1, 256]
-    - [34, 14818.3]
-  - - [3584, 6784, 1, 3328]
-    - [34, 18529.0]
-  - - [256, 1024, 1, 256]
-    - [31, 4950.49]
-  - - [1024, 128, 1, 1280]
-    - [23, 4902.32]
-  - - [3072, 32, 1, 1024]
-    - [2, 2129.97]
-  - - [4288, 128, 1, 1280]
-    - [31, 8692.99]
-  - - [5056, 4288, 1, 1280]
-    - [34, 19513.5]
-  - - [5888, 64, 1, 256]
-    - [31, 5788.02]
-  - - [6784, 1856, 1, 3328]
-    - [34, 18019.2]
-  - - [1408, 5056, 1, 1280]
-    - [34, 21027.4]
-  - - [1856, 256, 1, 1280]
-    - [31, 10111.0]
-  - - [64, 5888, 1, 3328]
-    - [6, 8995.65]
-  - - [6784, 5888, 1, 3328]
-    - [34, 18330.7]
-  - - [8448, 12000, 1, 2816]
-    - [34, 17850.1]
-  - - [448, 256, 1, 3328]
-    - [23, 4748.91]
-  - - [4096, 800, 1, 1024]
-    - [37, 11167.9]
-  - - [8192, 3200, 1, 2048]
-    - [37, 14572.3]
-  - - [2368, 5056, 1, 1280]
-    - [34, 19982.7]
-  - - [256, 1408, 1, 3328]
-    - [24, 8878.15]
-  - - [6784, 128, 1, 3328]
-    - [17, 12883.8]
-  - - [1024, 5056, 1, 1280]
-    - [34, 20761.6]
-  - - [4288, 1024, 1, 256]
-    - [32, 14718.3]
-  - - [2368, 1408, 1, 256]
-    - [33, 13290.1]
-  - - [704, 704, 1, 3328]
-    - [31, 10689.6]
-  - - [5888, 448, 1, 1280]
-    - [34, 15953.9]
-  - - [3584, 256, 1, 3328]
-    - [34, 13973.0]
-  - - [704, 5888, 1, 3328]
-    - [32, 16819.7]
-  - - [1024, 6784, 1, 1280]
-    - [34, 19953.0]
-  - - [128, 3584, 1, 3328]
-    - [35, 9942.22]
-  - - [128, 704, 1, 1280]
-    - [23, 3725.08]
-  - - [3584, 2944, 1, 1280]
-    - [34, 19375.2]
-  - - [1856, 128, 1, 3328]
-    - [24, 8191.19]
-  - - [128, 2944, 1, 1280]
-    - [22, 8263.22]
-  - - [512, 24000, 1, 2048]
-    - [37, 13505.9]
-  - - [448, 1856, 1, 1280]
-    - [32, 11348.9]
-  - - [1408, 5056, 1, 3328]
-    - [34, 19355.2]
-  - - [1856, 1856, 1, 3328]
-    - [34, 16995.4]
-  - - [3584, 128, 1, 256]
-    - [31, 7077.71]
-  - - [2560, 800, 1, 2560]
-    - [34, 12889.6]
-  - - [448, 1408, 1, 3328]
-    - [31, 10286.4]
-  - - [2368, 2368, 1, 256]
-    - [32, 15665.8]
-  - - [4288, 4288, 1, 1280]
-    - [34, 19495.4]
-  - - [64, 448, 1, 1280]
-    - [20, 1524.41]
-  - - [5888, 1024, 1, 1280]
-    - [34, 20601.8]
-  - - [512, 48000, 1, 2560]
-    - [34, 18199.2]
-  - - [8448, 16, 1, 2816]
-    - [21, 3356.24]
-  - - [704, 6784, 1, 3328]
-    - [34, 18129.9]
-  - - [2560, 6400, 1, 2560]
-    - [34, 18549.8]
-  - - [5056, 1024, 1, 1280]
-    - [34, 19933.6]
-  - - [448, 5888, 1, 3328]
-    - [34, 16218.5]
-  - - [1024, 2944, 1, 1280]
-    - [34, 18604.2]
-  - - [5056, 5888, 1, 1280]
-    - [34, 20148.3]
-  - - [448, 6784, 1, 256]
-    - [32, 13694.0]
-  - - [256, 3584, 1, 256]
-    - [31, 9381.17]
-  - - [256, 2944, 1, 3328]
-    - [31, 12245.8]
-  - - [256, 448, 1, 256]
-    - [1, 3002.67]
-  - - [6144, 16, 1, 2560]
-    - [18, 2525.86]
-  - - [3584, 5888, 1, 256]
-    - [34, 20801.0]
-  - - [2944, 3584, 1, 256]
-    - [34, 17031.4]
-  - - [1408, 704, 1, 256]
-    - [31, 9958.03]
-  - - [6784, 1024, 1, 3328]
-    - [34, 18924.1]
-  - - [6784, 2944, 1, 3328]
-    - [34, 18888.5]
-  - - [2944, 5056, 1, 3328]
-    - [34, 18797.7]
-  - - [64, 64, 1, 3328]
-    - [20, 231.763]
-  - - [6784, 2368, 1, 1280]
-    - [34, 20069.9]
-  - - [4288, 5888, 1, 1280]
-    - [34, 19618.1]
-  - - [4288, 4288, 1, 256]
-    - [34, 19703.4]
-  - - [8448, 32, 1, 2816]
-    - [16, 5892.65]
-  - - [448, 2944, 1, 3328]
-    - [32, 13713.1]
-  - - [4288, 1856, 1, 1280]
-    - [34, 20043.6]
-  - - [1856, 2944, 1, 3328]
-    - [34, 17248.6]
-  - - [256, 6784, 1, 3328]
-    - [34, 15664.4]
-  - - [64, 5888, 1, 256]
-    - [8, 5946.43]
-  - - [5056, 1024, 1, 256]
-    - [32, 15848.0]
-  - - [704, 64, 1, 3328]
-    - [23, 2329.35]
-  - - [5056, 1856, 1, 3328]
-    - [34, 18395.5]
-  - - [1856, 1408, 1, 256]
-    - [34, 12684.2]
-  - - [448, 2368, 1, 1280]
-    - [31, 10645.3]
-  - - [1408, 128, 1, 1280]
-    - [24, 5502.1]
-  - - [4096, 7000, 1, 4096]
-    - [37, 14701.3]
-  - - [5056, 256, 1, 3328]
-    - [31, 13978.4]
-  - - [1024, 5888, 1, 1280]
-    - [34, 20536.8]
-  - - [6144, 24000, 1, 2048]
-    - [37, 15481.8]
-  - - [64, 128, 1, 256]
-    - [2, 333.066]
-  - - [128, 1856, 1, 1280]
-    - [22, 6981.36]
-  - - [5056, 3584, 1, 256]
-    - [34, 20398.4]
-  - - [1856, 1024, 1, 1280]
-    - [34, 16051.0]
-  - - [1856, 1856, 1, 1280]
-    - [34, 16929.3]
-  - - [4096, 400, 1, 1024]
-    - [37, 9951.02]
-  - - [3072, 24000, 1, 1024]
-    - [34, 16502.3]
-  - - [128, 4288, 1, 3328]
-    - [31, 9235.45]
-  - - [1856, 1024, 1, 3328]
-    - [34, 16189.8]
-  - - [256, 2368, 1, 256]
-    - [31, 7730.47]
-  - - [1024, 448, 1, 3328]
-    - [31, 10591.1]
-  - - [1856, 704, 1, 1280]
-    - [32, 12983.2]
-  - - [5888, 5888, 1, 3328]
-    - [34, 17995.2]
-  - - [6784, 1024, 1, 256]
-    - [34, 18159.9]
-  - - [5056, 5888, 1, 3328]
-    - [34, 18466.7]
-  - - [1856, 1024, 1, 256]
-    - [32, 12231.1]
-  - - [512, 48000, 1, 1536]
-    - [34, 18871.0]
-  - - [5056, 1408, 1, 3328]
-    - [34, 19727.7]
-  - - [8448, 5984, 1, 2816]
-    - [34, 18211.2]
-  - - [1024, 1024, 1, 1280]
-    - [32, 14402.9]
-  - - [4288, 1024, 1, 3328]
-    - [34, 17462.1]
-  - - [2048, 128, 1, 2048]
-    - [12, 3292.84]
-  - - [1024, 24000, 1, 2560]
-    - [34, 17025.2]
-  - - [2944, 1408, 1, 3328]
-    - [34, 19378.5]
-  - - [2944, 4288, 1, 3328]
-    - [34, 18157.5]
-  - - [256, 2944, 1, 256]
-    - [31, 9075.16]
-  - - [5056, 2944, 1, 256]
-    - [34, 19731.7]
-  - - [1024, 700, 1, 512]
-    - [36, 8055.88]
-  - - [2368, 1856, 1, 256]
-    - [32, 13610.0]
-  - - [128, 448, 1, 1280]
-    - [20, 2783.37]
-  - - [128, 6784, 1, 1280]
-    - [32, 11568.8]
-  - - [1408, 3584, 1, 3328]
-    - [34, 18989.2]
-  - - [2368, 6784, 1, 256]
-    - [34, 20136.8]
-  - - [5056, 1408, 1, 1280]
-    - [34, 21027.3]
-  - - [704, 3584, 1, 1280]
-    - [32, 16076.1]
-  - - [1408, 5888, 1, 3328]
-    - [34, 20166.5]
-  - - [1856, 5056, 1, 256]
-    - [34, 17799.1]
-  - - [6784, 6784, 1, 256]
-    - [34, 22282.1]
-  - - [1408, 704, 1, 3328]
-    - [33, 14534.2]
-  - - [128, 5888, 1, 1280]
-    - [31, 11474.0]
-  - - [2368, 4288, 1, 1280]
-    - [34, 18412.8]
-  - - [3584, 1856, 1, 1280]
-    - [34, 18052.7]
-  - - [704, 1408, 1, 3328]
-    - [32, 14435.3]
-  - - [704, 64, 1, 1280]
-    - [20, 2237.2]
-  - - [5888, 5056, 1, 256]
-    - [34, 20953.4]
-  - - [8448, 48000, 1, 2816]
-    - [34, 17431.4]
-  - - [3584, 448, 1, 256]
-    - [32, 10352.4]
-  - - [3584, 3584, 1, 1280]
-    - [34, 20073.8]
-  - - [7680, 64, 1, 2560]
-    - [26, 7164.24]
-  - - [256, 6784, 1, 256]
-    - [33, 10585.2]
-  - - [1856, 3584, 1, 3328]
-    - [34, 18248.0]
-  - - [5056, 256, 1, 1280]
-    - [31, 13368.4]
-  - - [2560, 32, 1, 2560]
-    - [23, 3239.22]
-  - - [3584, 3584, 1, 256]
-    - [34, 19659.5]
-  - - [6784, 4288, 1, 1280]
-    - [34, 19489.6]
-  - - [704, 5056, 1, 256]
-    - [34, 14488.9]
-  - - [6784, 128, 1, 256]
-    - [31, 8244.26]
-  - - [64, 1408, 1, 3328]
-    - [23, 4085.2]
-  - - [704, 448, 1, 256]
-    - [31, 4999.87]
-  - - [2944, 2368, 1, 1280]
-    - [34, 18910.8]
-  - - [448, 64, 1, 3328]
-    - [20, 1592.25]
-  - - [6784, 3584, 1, 256]
-    - [34, 21144.0]
-  - - [256, 1856, 1, 3328]
-    - [32, 10218.4]
-  - - [128, 64, 1, 1280]
-    - [20, 436.888]
-  - - [128, 1408, 1, 256]
-    - [1, 3797.78]
-  - - [64, 128, 1, 3328]
-    - [23, 464.695]
-  - - [2944, 2944, 1, 3328]
-    - [34, 18413.3]
-  - - [5056, 6784, 1, 256]
-    - [34, 20472.7]
-  - - [1408, 4288, 1, 3328]
-    - [34, 19385.7]
-  - - [6784, 256, 1, 1280]
-    - [34, 13740.5]
-  - - [2368, 704, 1, 3328]
-    - [34, 15042.4]
-  - - [128, 4288, 1, 256]
-    - [31, 7025.28]
-  - - [3584, 6784, 1, 256]
-    - [34, 21165.3]
-  - - [128, 128, 1, 3328]
-    - [20, 917.806]
-  - - [5056, 1856, 1, 256]
-    - [34, 17877.6]
-  - - [4608, 5984, 1, 1536]
-    - [34, 18901.9]
-  - - [256, 128, 1, 256]
-    - [13, 1132.45]
-  - - [1760, 3200, 1, 1760]
-    - [34, 19339.8]
-  - - [4096, 1600, 1, 1024]
-    - [37, 14235.4]
-  - - [704, 4288, 1, 256]
-    - [32, 13799.6]
-  - - [256, 448, 1, 3328]
-    - [20, 4879.31]
-  - - [1408, 6784, 1, 1280]
-    - [34, 20023.2]
-  - - [7680, 24000, 1, 2560]
-    - [34, 17346.7]
-  - - [64, 2368, 1, 1280]
-    - [20, 4626.71]
-  - - [4608, 48000, 1, 1536]
-    - [34, 17567.2]
-  - - [6144, 48000, 1, 2048]
-    - [37, 15319.1]
-  - - [64, 6784, 1, 3328]
-    - [8, 9733.56]
-  - - [2944, 256, 1, 1280]
-    - [31, 12024.9]
-  - - [2048, 16, 1, 2048]
-    - [2, 840.395]
-  - - [1024, 24000, 1, 1536]
-    - [34, 19108.8]
-  - - [5056, 2368, 1, 3328]
-    - [34, 18653.4]
-  - - [2944, 4288, 1, 256]
-    - [34, 18493.8]
-  - - [1408, 3584, 1, 1280]
-    - [34, 20212.6]
-  - - [2368, 64, 1, 256]
-    - [23, 3099.07]
-  - - [256, 256, 1, 256]
-    - [13, 2040.4]
-  - - [704, 128, 1, 3328]
-    - [23, 4081.06]
-  - - [8192, 1600, 1, 2048]
-    - [37, 12933.2]
-  - - [1856, 704, 1, 256]
-    - [31, 10649.8]
-  - - [1408, 448, 1, 3328]
-    - [31, 10308.8]
-  - - [512, 24000, 1, 2560]
-    - [34, 18771.2]
-  - - [2368, 6784, 1, 3328]
-    - [34, 18887.4]
-  - - [5056, 704, 1, 1280]
-    - [34, 17389.0]
-  - - [1856, 4288, 1, 3328]
-    - [34, 18770.0]
-  - - [1408, 5888, 1, 256]
-    - [34, 19332.3]
-  - - [4288, 64, 1, 1280]
-    - [19, 6079.54]
-  - - [256, 64, 1, 256]
-    - [2, 650.784]
-  - - [704, 1856, 1, 256]
-    - [32, 10380.7]
-  - - [2560, 64, 1, 2560]
-    - [24, 5351.72]
-  - - [3584, 704, 1, 1280]
-    - [33, 16064.3]
-  - - [256, 2368, 1, 1280]
-    - [31, 9726.08]
-  - - [3584, 448, 1, 3328]
-    - [34, 14456.0]
-  - - [704, 2368, 1, 3328]
-    - [34, 14168.8]
-  - - [2944, 448, 1, 256]
-    - [33, 10502.4]
-  - - [448, 5056, 1, 3328]
-    - [31, 14288.5]
-  - - [2368, 128, 1, 1280]
-    - [6, 6801.89]
-  - - [4288, 448, 1, 256]
-    - [33, 11446.2]
-  - - [448, 5888, 1, 256]
-    - [34, 12402.8]
-  - - [64, 5056, 1, 1280]
-    - [24, 7150.1]
-  - - [2048, 3200, 1, 512]
-    - [37, 14467.3]
-  - - [5888, 2368, 1, 256]
-    - [34, 19595.3]
-  - - [704, 448, 1, 3328]
-    - [24, 7449.77]
-  - - [6784, 704, 1, 3328]
-    - [34, 18946.3]
-  - - [1408, 2944, 1, 3328]
-    - [34, 20502.9]
-  - - [4608, 12000, 1, 1536]
-    - [34, 18325.4]
-  - - [64, 1024, 1, 256]
-    - [1, 1952.43]
-  - - [2368, 448, 1, 1280]
-    - [31, 10620.6]
-  - - [128, 3584, 1, 256]
-    - [31, 6893.06]
-  - - [1856, 448, 1, 3328]
-    - [34, 12693.2]
-  - - [128, 5056, 1, 256]
-    - [31, 8016.21]
-  - - [2368, 704, 1, 256]
-    - [32, 10688.8]
-  - - [3584, 2368, 1, 256]
-    - [34, 17764.9]
-  - - [5888, 5056, 1, 1280]
-    - [34, 19881.2]
-  - - [128, 1024, 1, 1280]
-    - [23, 4881.21]
-  - - [8448, 24000, 1, 2816]
-    - [34, 17546.2]
-  - - [64, 704, 1, 256]
-    - [2, 1557.12]
-  - - [4288, 256, 1, 1280]
-    - [32, 10983.3]
-  - - [3584, 3584, 1, 3328]
-    - [34, 18358.6]
-  - - [704, 704, 1, 256]
-    - [31, 7646.46]
-  - - [5888, 6784, 1, 256]
-    - [34, 21485.3]
-  - - [4288, 2944, 1, 3328]
-    - [34, 18544.5]
-  - - [1856, 64, 1, 256]
-    - [7, 2870.64]
-  - - [1024, 16, 1, 500000]
-    - [9, 915.962]
-  - - [4288, 128, 1, 3328]
-    - [31, 9315.68]
-  - - [7680, 128, 1, 2560]
-    - [29, 9712.07]
-  - - [256, 5056, 1, 1280]
-    - [33, 12794.9]
-  - - [6784, 5888, 1, 1280]
-    - [34, 19927.7]
-  - - [2048, 800, 1, 512]
-    - [34, 10475.7]
-  - - [704, 128, 1, 256]
-    - [15, 2341.52]
-  - - [5888, 4288, 1, 1280]
-    - [34, 20468.6]
-  - - [1024, 24000, 1, 2048]
-    - [37, 14652.6]
-  - - [448, 256, 1, 1280]
-    - [23, 4413.73]
-  - - [1024, 256, 1, 1280]
-    - [16, 7664.42]
-  - - [256, 1408, 1, 1280]
-    - [24, 7874.01]
-  - - [3072, 16, 1, 1024]
-    - [2, 1200.44]
-  - - [1408, 1856, 1, 1280]
-    - [33, 16749.1]
-  - - [5888, 448, 1, 3328]
-    - [34, 15909.3]
-  - - [704, 5888, 1, 1280]
-    - [32, 17427.3]
-  - - [1024, 6784, 1, 3328]
-    - [34, 18919.6]
-  - - [704, 2944, 1, 1280]
-    - [32, 16352.9]
-  - - [6784, 64, 1, 3328]
-    - [8, 9723.87]
-  - - [5056, 2944, 1, 3328]
-    - [34, 18847.5]
-  - - [448, 128, 1, 256]
-    - [13, 1679.45]
-  - - [1408, 1408, 1, 3328]
-    - [34, 17902.6]
-  - - [1856, 128, 1, 1280]
-    - [24, 6876.14]
-  - - [448, 4288, 1, 1280]
-    - [32, 15122.7]
-  - - [64, 3584, 1, 256]
-    - [8, 4478.53]
-  - - [128, 2944, 1, 3328]
-    - [24, 9186.01]
-  - - [3584, 704, 1, 256]
-    - [34, 12333.4]
-  - - [2944, 448, 1, 3328]
-    - [32, 13716.3]
-  - - [3584, 1408, 1, 3328]
-    - [34, 19120.5]
-  - - [2368, 1024, 1, 1280]
-    - [33, 15535.7]
-  - - [2944, 6784, 1, 1280]
-    - [34, 19847.4]
-  - - [1856, 6784, 1, 256]
-    - [34, 19152.1]
-  - - [4288, 448, 1, 3328]
-    - [33, 14727.8]
-  - - [4288, 3584, 1, 1280]
-    - [34, 20297.7]
-  - - [6144, 12000, 1, 2048]
-    - [37, 15508.8]
-  - - [8192, 800, 1, 2048]
-    - [37, 11289.0]
-  - - [5888, 1024, 1, 3328]
-    - [34, 19290.5]
-  - - [704, 6784, 1, 1280]
-    - [34, 19143.1]
-  - - [5888, 128, 1, 256]
-    - [31, 8710.91]
-  - - [4096, 16, 1, 4096]
-    - [11, 1347.63]
-  - - [704, 5056, 1, 1280]
-    - [34, 17413.6]
-  - - [64, 704, 1, 3328]
-    - [20, 2332.04]
-  - - [2944, 1856, 1, 256]
-    - [32, 15302.5]
-  - - [5056, 64, 1, 256]
-    - [8, 5082.99]
-  - - [3584, 5056, 1, 256]
-    - [34, 20319.0]
-  - - [5888, 5056, 1, 3328]
-    - [34, 18632.7]
-  - - [128, 5056, 1, 3328]
-    - [19, 10530.6]
-  - - [3584, 6784, 1, 1280]
-    - [34, 19573.7]
-  - - [1856, 5888, 1, 256]
-    - [34, 19387.3]
-  - - [64, 448, 1, 3328]
-    - [20, 1580.54]
-  - - [4288, 4288, 1, 3328]
-    - [34, 18165.6]
-  - - [4288, 1408, 1, 1280]
-    - [34, 20597.2]
-  - - [64, 1856, 1, 256]
-    - [1, 3040.72]
-  - - [4288, 2368, 1, 256]
-    - [34, 17858.1]
-  - - [2944, 5056, 1, 1280]
-    - [34, 20043.8]
-  - - [256, 4288, 1, 256]
-    - [31, 8905.25]
-  - - [6784, 2368, 1, 3328]
-    - [34, 18530.0]
-  - - [256, 1024, 1, 1280]
-    - [24, 7836.89]
-  - - [4288, 1856, 1, 3328]
-    - [34, 18773.0]
-  - - [1856, 2944, 1, 1280]
-    - [34, 17922.6]
-  - - [2048, 1600, 1, 2048]
-    - [36, 9411.41]
-  - - [3584, 64, 1, 1280]
-    - [16, 6311.36]
-  - - [4288, 6784, 1, 3328]
-    - [34, 18038.7]
-  - - [3584, 1024, 1, 1280]
-    - [34, 18046.6]
-  - - [1024, 4288, 1, 256]
-    - [34, 14675.5]
-  - - [5888, 3584, 1, 3328]
-    - [34, 18998.2]
-  - - [5056, 3584, 1, 3328]
-    - [34, 18752.5]
-  - - [1408, 128, 1, 3328]
-    - [24, 6415.92]
-  - - [2368, 1408, 1, 1280]
-    - [34, 16390.4]
-  - - [5056, 2944, 1, 1280]
-    - [34, 20569.6]
-  - - [3584, 256, 1, 256]
-    - [31, 9190.84]
-  - - [1024, 6784, 1, 256]
-    - [34, 18050.7]
-  - - [3584, 2944, 1, 256]
-    - [34, 18642.3]
-  - - [448, 128, 1, 3328]
-    - [23, 2964.63]
-  - - [3584, 1408, 1, 1280]
-    - [34, 20114.6]
-  - - [64, 4288, 1, 3328]
-    - [22, 7013.24]
-  - - [5056, 6784, 1, 3328]
-    - [34, 18097.2]
-  - - [128, 2944, 1, 256]
-    - [31, 5892.86]
-  - - [3584, 4288, 1, 256]
-    - [34, 20458.7]
-  - - [1856, 6784, 1, 3328]
-    - [34, 18978.6]
-  - - [3584, 128, 1, 3328]
-    - [31, 10430.2]
-  - - [2368, 64, 1, 3328]
-    - [22, 5403.76]
-  - - [1024, 448, 1, 1280]
-    - [31, 9714.5]
-  - - [5056, 1408, 1, 256]
-    - [34, 18637.8]
-  - - [64, 256, 1, 1280]
-    - [20, 868.422]
-  - - [3584, 1024, 1, 256]
-    - [34, 15262.7]
-  - - [256, 704, 1, 256]
-    - [16, 3663.73]
-  - - [5888, 5888, 1, 256]
-    - [34, 21175.5]
-  - - [4288, 1024, 1, 1280]
-    - [34, 16985.1]
-  - - [5888, 128, 1, 3328]
-    - [31, 12629.5]
-  - - [448, 6784, 1, 3328]
-    - [32, 16253.1]
-  - - [2944, 1408, 1, 1280]
-    - [34, 20256.3]
-  - - [2944, 1856, 1, 3328]
-    - [34, 17651.7]
-  - - [128, 1024, 1, 256]
-    - [1, 3306.51]
-  - - [64, 64, 1, 256]
-    - [2, 119.961]
-  - - [3584, 5888, 1, 1280]
-    - [34, 20371.0]
-  - - [6784, 1856, 1, 1280]
-    - [34, 20035.7]
-  - - [5888, 256, 1, 3328]
-    - [32, 15704.8]
-  - - [1856, 5888, 1, 3328]
-    - [34, 19465.7]
-  - - [3584, 1408, 1, 256]
-    - [34, 15668.8]
-  - - [64, 448, 1, 256]
-    - [2, 1113.31]
-  - - [704, 3584, 1, 3328]
-    - [32, 16763.7]
-  - - [4096, 3200, 1, 1024]
-    - [37, 15095.3]
-  - - [5056, 448, 1, 1280]
-    - [33, 14560.8]
-  - - [3584, 1856, 1, 3328]
-    - [34, 19016.7]
-  - - [1408, 704, 1, 1280]
-    - [33, 13518.6]
-  - - [2944, 1024, 1, 256]
-    - [34, 14330.6]
-  - - [448, 1408, 1, 1280]
-    - [31, 10139.1]
-  - - [2368, 4288, 1, 3328]
-    - [34, 17713.1]
-  - - [1024, 1408, 1, 1280]
-    - [33, 14351.0]
-  - - [256, 128, 1, 1280]
-    - [23, 1700.34]
-  - - [704, 1408, 1, 1280]
-    - [32, 13647.8]
-  - - [6784, 5056, 1, 256]
-    - [34, 21277.5]
-  - - [3584, 5056, 1, 3328]
-    - [34, 18481.3]
-  - - [4288, 5888, 1, 256]
-    - [34, 20964.3]
-  - - [448, 2944, 1, 256]
-    - [32, 10502.4]
-  - - [2944, 6784, 1, 256]
-    - [34, 20634.2]
-  - - [2368, 2368, 1, 1280]
-    - [34, 17617.0]
-  - - [1856, 3584, 1, 1280]
-    - [34, 19718.9]
-  - - [64, 2944, 1, 256]
-    - [1, 3807.89]
-  - - [5056, 3584, 1, 1280]
-    - [34, 19746.2]
-  - - [256, 5888, 1, 256]
-    - [32, 11448.6]
-  - - [128, 256, 1, 3328]
-    - [20, 1801.92]
-  - - [1856, 1408, 1, 3328]
-    - [32, 17352.1]
-  - - [1024, 4288, 1, 3328]
-    - [34, 17084.0]
-  - - [448, 2368, 1, 256]
-    - [33, 8408.87]
-  - - [64, 1408, 1, 1280]
-    - [20, 3698.56]
-  - - [64, 6784, 1, 1280]
-    - [31, 8574.07]
-  - - [2944, 2368, 1, 3328]
-    - [34, 19025.7]
-  - - [704, 4288, 1, 3328]
-    - [32, 16959.2]
-  - - [1408, 128, 1, 256]
-    - [31, 3579.59]
-  - - [1024, 1856, 1, 1280]
-    - [34, 16066.8]
-  - - [2048, 6400, 1, 2048]
-    - [37, 14258.4]
-  - - [512, 48000, 1, 2816]
-    - [34, 18820.2]
-  - - [5124, 9124, 1, 2560]
-    - [34, 17079.2]
-  - - [128, 2368, 1, 3328]
-    - [22, 7577.88]
-  - - [1024, 5888, 1, 256]
-    - [34, 17569.0]
-  - - [64, 2944, 1, 1280]
-    - [24, 5632.77]
-  - - [5056, 64, 1, 3328]
-    - [24, 7841.18]
-  - - [1408, 2368, 1, 256]
-    - [34, 13717.2]
-  - - [2944, 704, 1, 3328]
-    - [33, 16985.4]
-  - - [64, 128, 1, 1280]
-    - [23, 438.249]
-  - - [1024, 8, 1, 500000]
-    - [9, 457.947]
-  - - [2944, 2944, 1, 1280]
-    - [34, 20340.0]
-  - - [6784, 256, 1, 3328]
-    - [34, 14491.9]
-  - - [1408, 5056, 1, 256]
-    - [34, 18428.4]
-  - - [5056, 128, 1, 3328]
-    - [31, 10897.7]
-  - - [128, 128, 1, 1280]
-    - [20, 868.422]
-  - - [448, 704, 1, 256]
-    - [31, 4954.31]
-  - - [1856, 256, 1, 3328]
-    - [31, 10952.4]
-  - - [2944, 128, 1, 3328]
-    - [24, 8971.81]
-  - - [448, 1024, 1, 3328]
-    - [31, 10483.3]
-  - - [256, 448, 1, 1280]
-    - [20, 4524.53]
-  - - [4608, 24000, 1, 1536]
-    - [34, 17631.5]
-  - - [704, 256, 1, 1280]
-    - [24, 5766.95]
-  - - [64, 2368, 1, 3328]
-    - [22, 5378.14]
-  - - [256, 704, 1, 3328]
-    - [24, 6325.65]
-  - - [4096, 64, 1, 4096]
-    - [10, 4176.05]
-  - - [1408, 4288, 1, 256]
-    - [34, 17622.4]
-  - - [5888, 2368, 1, 1280]
-    - [34, 19741.4]
-  - - [128, 256, 1, 256]
-    - [2, 1143.88]
-  - - [256, 64, 1, 1280]
-    - [23, 871.091]
-  - - [2368, 5888, 1, 1280]
-    - [34, 20726.4]
-  - - [5888, 256, 1, 1280]
-    - [32, 14934.5]
-  - - [1760, 128, 1, 1760]
-    - [22, 7146.2]
-  - - [704, 1024, 1, 1280]
-    - [31, 11620.0]
-  - - [2368, 1856, 1, 3328]
-    - [34, 17353.9]
-  - - [2944, 704, 1, 256]
-    - [33, 12859.3]
-  - - [2368, 6784, 1, 1280]
-    - [34, 19638.2]
-  - - [2368, 1024, 1, 3328]
-    - [32, 16117.7]
-  - - [1856, 4288, 1, 1280]
-    - [34, 20385.3]
-  - - [704, 3584, 1, 256]
-    - [34, 12333.4]
-  - - [704, 2944, 1, 3328]
-    - [32, 16079.1]
-  - - [1856, 5056, 1, 3328]
-    - [34, 17729.5]
-  - - [3584, 5056, 1, 1280]
-    - [34, 20031.7]
-  - - [2944, 1024, 1, 3328]
-    - [34, 17870.2]
-  - - [2368, 256, 1, 256]
-    - [31, 7730.67]
-  - - [1408, 6784, 1, 256]
-    - [34, 18503.5]
-  - - [6784, 1408, 1, 3328]
-    - [34, 18521.9]
-  - - [1024, 2368, 1, 1280]
-    - [33, 15364.8]
-  - - [704, 64, 1, 256]
-    - [2, 1557.12]
-  - - [256, 2368, 1, 3328]
-    - [31, 10335.8]
-  - - [6784, 2944, 1, 1280]
-    - [34, 19709.1]
-  - - [3584, 448, 1, 1280]
-    - [34, 13442.1]
-  - - [2944, 6784, 1, 3328]
-    - [34, 18641.3]
-  - - [448, 5056, 1, 1280]
-    - [33, 14604.3]
-  - - [64, 2944, 1, 3328]
-    - [22, 6623.55]
-  - - [4288, 704, 1, 256]
-    - [33, 13655.0]
-  - - [64, 64, 1, 1280]
-    - [15, 201.641]
-  - - [5888, 704, 1, 256]
-    - [33, 13630.1]
-  - - [256, 5888, 1, 3328]
-    - [32, 15668.5]
-  - - [6784, 4288, 1, 256]
-    - [34, 20909.2]
-  - - [5888, 256, 1, 256]
-    - [32, 11083.3]
-  - - [6784, 1024, 1, 1280]
-    - [34, 19420.4]
-  - - [704, 448, 1, 1280]
-    - [24, 6933.6]
-  - - [512, 16, 1, 500000]
-    - [9, 457.989]
-  - - [128, 64, 1, 3328]
-    - [20, 463.526]
-  - - [448, 64, 1, 256]
-    - [2, 1065.47]
-  - - [2944, 704, 1, 1280]
-    - [33, 16293.4]
-  - - [6784, 3584, 1, 1280]
-    - [34, 20370.0]
-  - - [1024, 704, 1, 1280]
-    - [31, 11566.1]
-  - - [1408, 2944, 1, 1280]
-    - [34, 20377.3]
-  - - [256, 1856, 1, 256]
-    - [31, 7363.33]
-  - - [2048, 800, 1, 2048]
-    - [36, 7697.05]
-  - - [1408, 2368, 1, 3328]
-    - [32, 15899.8]
-  - - [128, 1408, 1, 3328]
-    - [22, 6380.49]
-  - - [2368, 2944, 1, 256]
-    - [34, 17872.7]
-  - - [704, 1856, 1, 1280]
-    - [31, 13495.4]
-  - - [1408, 256, 1, 3328]
-    - [24, 8863.55]
-  - - [2944, 5888, 1, 256]
-    - [34, 19948.5]
-  - - [3584, 1856, 1, 256]
-    - [33, 15942.0]
-  - - [2368, 448, 1, 256]
-    - [31, 8877.09]
-  - - [4288, 256, 1, 3328]
-    - [32, 11450.5]
-  - - [1408, 64, 1, 256]
-    - [15, 2324.07]
-  - - [2560, 16, 1, 2560]
-    - [20, 1773.87]
-  - - [4288, 2944, 1, 1280]
-    - [34, 19514.6]
-  - - [5056, 448, 1, 3328]
-    - [33, 15091.6]
-  - - [1024, 64, 1, 256]
-    - [0, 1952.54]
-  - - [64, 2368, 1, 256]
-    - [1, 3468.54]
-  - - [4288, 5056, 1, 3328]
-    - [34, 17714.2]
-  - - [2944, 256, 1, 256]
-    - [31, 9236.12]
-  - - [1024, 128, 1, 3328]
-    - [23, 5324.25]
-  - - [256, 5056, 1, 3328]
-    - [31, 14022.2]
-  - - [5056, 2368, 1, 256]
-    - [34, 19316.5]
-  - - [4288, 704, 1, 3328]
-    - [33, 16585.8]
-  - - [448, 3584, 1, 256]
-    - [33, 10237.8]
-  - - [2368, 64, 1, 1280]
-    - [3, 4610.44]
-  - - [1408, 448, 1, 256]
-    - [31, 7869.81]
-  - - [1024, 1408, 1, 3328]
-    - [32, 14994.2]
-  - - [2944, 5888, 1, 1280]
-    - [34, 20449.7]
-  - - [5888, 3584, 1, 256]
-    - [34, 20706.5]
-  - - [1408, 1856, 1, 3328]
-    - [33, 16676.8]
-  - - [6784, 1408, 1, 1280]
-    - [34, 19445.3]
-  - - [704, 2944, 1, 256]
-    - [32, 12767.5]
-  - - [4288, 64, 1, 256]
-    - [8, 4516.24]
-  - - [2944, 5888, 1, 3328]
-    - [34, 19412.5]
-  - - [64, 4288, 1, 1280]
-    - [22, 6206.84]
-  - - [6784, 64, 1, 1280]
-    - [8, 8784.96]
-  - - [1408, 6784, 1, 3328]
-    - [34, 18577.2]
-  - - [1408, 64, 1, 3328]
-    - [23, 4076.96]
-  - - [1408, 1408, 1, 1280]
-    - [34, 16661.4]
-  - - [16384, 400, 1, 4096]
-    - [37, 10835.0]
-  - - [448, 4288, 1, 3328]
-    - [32, 15766.4]
-  - - [704, 2368, 1, 256]
-    - [32, 10688.6]
-  - - [2944, 448, 1, 1280]
-    - [33, 13052.7]
-  - - [5888, 2368, 1, 3328]
-    - [34, 19108.1]
-  - - [5124, 9124, 1, 1760]
-    - [34, 17893.8]
-  - - [4288, 5056, 1, 256]
-    - [34, 20173.5]
-  - - [4288, 448, 1, 1280]
-    - [33, 15088.3]
-  - - [5888, 704, 1, 3328]
-    - [33, 17008.6]
-  - - [4288, 3584, 1, 3328]
-    - [34, 18931.7]
-  - - [128, 2368, 1, 256]
-    - [6, 4894.79]
-  - - [1408, 1024, 1, 256]
-    - [33, 11507.4]
-  - - [8192, 400, 1, 2048]
-    - [36, 8842.77]
-  - - [128, 64, 1, 256]
-    - [1, 267.085]
-  - - [2560, 7000, 1, 2560]
-    - [34, 18009.6]
-  - - [448, 1024, 1, 256]
-    - [31, 7239.36]
-  - - [6784, 6784, 1, 3328]
-    - [34, 18436.1]
-  - - [704, 5056, 1, 3328]
-    - [34, 16833.0]
-  - - [1024, 64, 1, 1280]
-    - [20, 3180.94]
-  - - [64, 1024, 1, 3328]
-    - [23, 3289.72]
-  - - [2368, 2944, 1, 3328]
-    - [34, 18780.4]
-  - - [448, 448, 1, 1280]
-    - [31, 6041.96]
-  - - [2368, 3584, 1, 256]
-    - [34, 17949.8]
-  - - [1856, 448, 1, 256]
-    - [32, 8353.22]
-  - - [128, 5056, 1, 1280]
-    - [19, 9541.57]
-  - - [5124, 9124, 1, 4096]
-    - [37, 14410.2]
-  - - [7680, 48000, 1, 2560]
-    - [34, 16801.9]
-  - - [1024, 48000, 1, 2816]
-    - [34, 18451.3]
-  - - [1856, 1856, 1, 256]
-    - [32, 14088.3]
-  - - [4288, 1408, 1, 3328]
-    - [34, 18875.8]
-  - - [3584, 64, 1, 3328]
-    - [22, 7397.79]
-  - - [5124, 9124, 1, 2048]
-    - [37, 15106.0]
-  - - [4288, 5056, 1, 1280]
-    - [34, 18973.0]
-  - - [5888, 6784, 1, 1280]
-    - [34, 19164.6]
-  - - [256, 1024, 1, 3328]
-    - [24, 8935.71]
-  - - [1760, 1600, 1, 1760]
-    - [34, 17620.8]
-  - - [1856, 64, 1, 3328]
-    - [23, 4982.8]
-  - - [5888, 1408, 1, 3328]
-    - [34, 20144.7]
-  - - [256, 5056, 1, 256]
-    - [31, 10330.5]
-  - - [7680, 12000, 1, 2560]
-    - [34, 17466.1]
-  - - [1024, 128, 1, 256]
-    - [1, 3355.44]
-  - - [1408, 256, 1, 256]
-    - [31, 5636.47]
-  - - [2368, 5056, 1, 256]
-    - [34, 19217.8]
-  - - [256, 1408, 1, 256]
-    - [31, 5662.07]
-  - - [1024, 5056, 1, 256]
-    - [34, 17187.7]
-  - - [2368, 1408, 1, 3328]
-    - [34, 16082.4]
-  - - [1024, 48000, 1, 1536]
-    - [34, 18613.6]
-  - - [5888, 448, 1, 256]
-    - [32, 12252.7]
-  - - [2560, 3200, 1, 2560]
-    - [37, 17097.9]
-  - - [6784, 5056, 1, 1280]
-    - [34, 19040.2]
-  - - [1024, 48000, 1, 2560]
-    - [34, 17514.3]
-  - - [4608, 32, 1, 1536]
-    - [22, 3788.8]
-  - - [4288, 6784, 1, 1280]
-    - [34, 19189.7]
-  - - [128, 704, 1, 256]
-    - [1, 2452.16]
-  - - [2368, 448, 1, 3328]
-    - [31, 11451.5]
-  - - [128, 5888, 1, 3328]
-    - [31, 12582.5]
-  - - [16384, 800, 1, 4096]
-    - [37, 12725.2]
-  - - [448, 128, 1, 1280]
-    - [23, 2722.21]
-  - - [1024, 64, 1, 3328]
-    - [23, 3345.82]
-  - - [3072, 48000, 1, 1024]
-    - [34, 16805.5]
-  - - [64, 3584, 1, 1280]
-    - [22, 6382.43]
-  - - [6784, 1408, 1, 256]
-    - [34, 18503.5]
-  - - [5888, 4288, 1, 256]
-    - [34, 19669.4]
-  - - [5056, 5888, 1, 256]
-    - [34, 20086.1]
-  - - [2368, 1024, 1, 256]
-    - [32, 12892.3]
-  - - [1856, 6784, 1, 1280]
-    - [34, 19014.8]
-  - - [3584, 128, 1, 1280]
-    - [31, 9667.08]
-  - - [4288, 128, 1, 256]
-    - [31, 7051.37]
-  - - [6784, 1856, 1, 256]
-    - [34, 19034.8]
-  - - [4288, 3584, 1, 256]
-    - [34, 20435.1]
-  - - [64, 256, 1, 3328]
-    - [20, 925.887]
-  - - [6784, 448, 1, 3328]
-    - [33, 16900.9]
-  - - [5056, 1856, 1, 1280]
-    - [34, 19321.9]
-  - - [1408, 1024, 1, 3328]
-    - [32, 15018.5]
-  - - [2368, 256, 1, 3328]
-    - [31, 10371.2]
-  - - [5888, 3584, 1, 1280]
-    - [34, 20533.9]
-  - - [5888, 128, 1, 1280]
-    - [31, 11627.6]
-  - - [1024, 2944, 1, 256]
-    - [34, 14310.9]
-  - - [448, 6784, 1, 1280]
-    - [32, 16525.0]
-  - - [256, 3584, 1, 1280]
-    - [32, 12503.2]
-  - - [3584, 1024, 1, 3328]
-    - [34, 17359.6]
-  - - [2944, 1856, 1, 1280]
-    - [34, 18574.9]
-  - - [5056, 256, 1, 256]
-    - [31, 10306.7]
-  - - [128, 5888, 1, 256]
-    - [31, 8653.09]
-  - - [2368, 3584, 1, 3328]
-    - [34, 17971.7]
-  - - [3584, 5888, 1, 3328]
-    - [34, 17912.4]
-  - - [2944, 3584, 1, 1280]
-    - [34, 20474.0]
-  - - [1856, 5888, 1, 1280]
-    - [34, 20247.9]
-  - - [256, 256, 1, 1280]
-    - [23, 3172.04]
-  - - [2048, 3200, 1, 2048]
-    - [37, 11585.7]
-  - - [4288, 1408, 1, 256]
-    - [34, 16494.1]
-  - - [3584, 64, 1, 256]
-    - [8, 4555.84]
-  - - [64, 1856, 1, 3328]
-    - [20, 4950.42]
-  - - [1024, 1024, 1, 256]
-    - [33, 10473.5]
-  - - [4288, 2368, 1, 1280]
-    - [34, 18368.5]
-  - - [2944, 5056, 1, 256]
-    - [34, 19754.5]
-  - - [256, 128, 1, 3328]
-    - [23, 1799.7]
-  - - [512, 8, 1, 500000]
-    - [9, 228.992]
-  - - [6784, 2368, 1, 256]
-    - [34, 20107.6]
-  - - [1024, 1024, 1, 1024]
-    - [37, 9624.88]
-  - - [2944, 64, 1, 3328]
-    - [24, 6567.02]
-  - - [1024, 24000, 1, 2816]
-    - [34, 18540.8]
-  - - [7680, 5984, 1, 2560]
-    - [34, 17286.8]
-  - - [4288, 1856, 1, 256]
-    - [34, 18202.5]
-  - - [1856, 2944, 1, 256]
-    - [32, 15327.3]
-  - - [6144, 48000, 1, 2560]
-    - [34, 16802.2]
-  - - [64, 5888, 1, 1280]
-    - [6, 7960.21]
-  - - [1760, 800, 1, 1760]
-    - [30, 14769.6]
-  - - [1856, 1408, 1, 1280]
-    - [32, 16289.9]
-  - - [704, 1024, 1, 256]
-    - [31, 8929.66]
-  - - [1024, 4288, 1, 1280]
-    - [34, 17579.4]
-  - - [2368, 5056, 1, 3328]
-    - [34, 19176.8]
-  - - [1024, 5056, 1, 3328]
-    - [34, 20334.0]
-  - - [1024, 1856, 1, 3328]
-    - [34, 15950.9]
-  - - [704, 704, 1, 1280]
-    - [31, 10572.9]
-  - - [128, 2368, 1, 1280]
-    - [24, 6819.65]
-  - - [3584, 256, 1, 1280]
-    - [32, 12542.7]
-  - - [5888, 64, 1, 1280]
-    - [8, 7883.06]
-  - - [128, 704, 1, 3328]
-    - [20, 4089.33]
-  - - [4288, 6784, 1, 256]
-    - [34, 21049.2]
-  - - [3584, 2944, 1, 3328]
-    - [34, 18600.5]
-  - - [128, 1856, 1, 256]
-    - [31, 4486.38]
-  - - [64, 4288, 1, 256]
-    - [6, 4559.77]
-  - - [5888, 2944, 1, 256]
-    - [34, 20742.9]
-  - - [5056, 128, 1, 1280]
-    - [31, 9334.54]
-  - - [448, 1856, 1, 3328]
-    - [34, 12706.1]
-  - - [5056, 4288, 1, 256]
-    - [34, 20288.2]
-  - - [1024, 448, 1, 256]
-    - [31, 6953.46]
-  - - [1024, 3584, 1, 256]
-    - [34, 15063.2]
-  - - [2944, 128, 1, 1280]
-    - [24, 7999.35]
-  - - [2048, 32, 1, 2048]
-    - [20, 1740.52]
-  - - [64, 256, 1, 256]
-    - [2, 650.835]
-  - - [704, 256, 1, 3328]
-    - [24, 6390.59]
-  - - [256, 704, 1, 1280]
-    - [24, 5788.44]
-  - - [5888, 5888, 1, 1280]
-    - [34, 19612.2]
-  - - [448, 5888, 1, 1280]
-    - [34, 16134.6]
-  - - [4288, 704, 1, 1280]
-    - [33, 16538.5]
-  - - [2944, 1408, 1, 256]
-    - [34, 17094.5]
-  - - [256, 2944, 1, 1280]
-    - [31, 11188.1]
-  - - [2560, 128, 1, 2560]
-    - [16, 6793.22]
-  - - [2368, 5888, 1, 3328]
-    - [34, 18535.9]
-  - - [704, 1024, 1, 3328]
-    - [31, 11902.8]
-  - - [2368, 1856, 1, 1280]
-    - [34, 17575.4]
-  - - [1856, 448, 1, 1280]
-    - [34, 11313.2]
-  - - [128, 6784, 1, 256]
-    - [31, 8289.91]
-  - - [5888, 4288, 1, 3328]
-    - [34, 18480.5]
-  - - [6784, 704, 1, 1280]
-    - [34, 19019.5]
-  - - [5056, 448, 1, 256]
-    - [32, 11987.6]
-  - - [1856, 5056, 1, 1280]
-    - [34, 18291.0]
-  - - [2944, 1024, 1, 1280]
-    - [34, 18644.1]
-  - - [2368, 4288, 1, 256]
-    - [32, 16710.1]
-  - - [1024, 2368, 1, 3328]
-    - [32, 16129.6]
-  - - [4288, 64, 1, 3328]
-    - [24, 6926.6]
-  - - [704, 1408, 1, 256]
-    - [32, 9815.51]
-  - - [4096, 128, 1, 4096]
-    - [25, 4420.58]
-  - - [4288, 5888, 1, 3328]
-    - [34, 18183.9]
-  - - [4608, 16, 1, 1536]
-    - [23, 2288.59]
-  - - [448, 2944, 1, 1280]
-    - [32, 13045.3]
-  - - [1024, 2944, 1, 3328]
-    - [34, 18538.0]
-  - - [2048, 64, 1, 2048]
-    - [9, 2382.49]
-  - - [256, 6784, 1, 1280]
-    - [34, 14603.1]
-  - - [1856, 3584, 1, 256]
-    - [34, 16120.8]
-  - - [128, 448, 1, 3328]
-    - [20, 2964.66]
-  - - [1856, 256, 1, 256]
-    - [31, 7297.72]
-  - - [5056, 128, 1, 256]
-    - [31, 7959.21]
-  - - [512, 24000, 1, 2816]
-    - [34, 19912.5]
-  - - [256, 5888, 1, 1280]
-    - [32, 14891.8]
-  - - [16384, 1600, 1, 4096]
-    - [37, 13616.9]
-  - - [448, 2368, 1, 3328]
-    - [31, 11326.3]
-  - - [64, 1408, 1, 256]
-    - [14, 2511.56]
-  - - [2944, 2368, 1, 256]
-    - [34, 16742.5]
-  - - [1024, 1856, 1, 256]
-    - [32, 11855.7]
-  - - [6784, 3584, 1, 3328]
-    - [34, 18761.0]
-  - - [1760, 7000, 1, 1760]
-    - [34, 18875.1]
-  - - [1024, 704, 1, 3328]
-    - [31, 12207.9]
-  - - [1024, 5888, 1, 3328]
-    - [34, 19003.6]
-  - - [1408, 2368, 1, 1280]
-    - [34, 16390.4]
-  - - [128, 1408, 1, 1280]
-    - [24, 5531.39]
-  - - [256, 64, 1, 3328]
-    - [20, 922.402]
-  - - [128, 1856, 1, 3328]
-    - [22, 8203.82]
-  - - [2944, 2944, 1, 256]
-    - [34, 18142.2]
-  - - [6784, 256, 1, 256]
-    - [32, 10932.3]
-  - - [128, 4288, 1, 1280]
-    - [31, 8781.6]
-  - - [5888, 1408, 1, 256]
-    - [34, 19138.5]
-  - - [128, 128, 1, 256]
-    - [2, 608.841]
-  - - [1760, 64, 1, 1760]
-    - [23, 4460.39]
-  - - [448, 704, 1, 3328]
-    - [24, 7597.58]
-  - - [448, 1856, 1, 256]
-    - [31, 8501.68]
-  - - [1856, 704, 1, 3328]
-    - [31, 14162.2]
-  - - [5888, 6784, 1, 3328]
-    - [34, 18051.4]
-  - - [704, 4288, 1, 1280]
-    - [32, 16491.5]
-  - - [704, 256, 1, 256]
-    - [31, 3600.26]
-  - - [1024, 48000, 1, 2048]
-    - [37, 15241.5]
-  - - [512, 128, 1, 784]
-    - [39, 3366.99]
-  - - [1024, 256, 1, 196]
-    - [41, 4989.82]
-  - - [256, 64, 1, 3136]
-    - [43, 2259.27]
-  - - [256, 1024, 1, 196]
-    - [41, 4816.52]
-  - - [64, 256, 1, 3136]
-    - [42, 2425.14]
-  - - [128, 512, 1, 784]
-    - [38, 3196.38]
-  - - [64, 64, 1, 3136]
-    - [40, 583.84]
+- - 2
+  - 3
+  - 0
+  - 1
+- - - - 1024
+      - 1024
+      - 1
+      - 3328
+    - - 34
+      - 16034.4
+  - - - 64
+      - 6784
+      - 1
+      - 256
+    - - 8
+      - 6552.25
+  - - - 2944
+      - 4288
+      - 1
+      - 1280
+    - - 34
+      - 20218.2
+  - - - 128
+      - 256
+      - 1
+      - 1280
+    - - 23
+      - 1715.81
+  - - - 1760
+      - 32
+      - 1
+      - 1760
+    - - 23
+      - 2708.73
+  - - - 2368
+      - 5888
+      - 1
+      - 256
+    - - 34
+      - 19603.3
+  - - - 5888
+      - 1856
+      - 1
+      - 256
+    - - 34
+      - 18978.1
+  - - - 704
+      - 6784
+      - 1
+      - 256
+    - - 34
+      - 14749.9
+  - - - 512
+      - 24000
+      - 1
+      - 1536
+    - - 34
+      - 19124.6
+  - - - 128
+      - 6784
+      - 1
+      - 3328
+    - - 4
+      - 12922.2
+  - - - 5888
+      - 1856
+      - 1
+      - 3328
+    - - 34
+      - 18440.7
+  - - - 5056
+      - 704
+      - 1
+      - 256
+    - - 34
+      - 14336.8
+  - - - 2048
+      - 400
+      - 1
+      - 512
+    - - 34
+      - 7963.59
+  - - - 5888
+      - 2944
+      - 1
+      - 3328
+    - - 34
+      - 19381.6
+  - - - 1856
+      - 4288
+      - 1
+      - 256
+    - - 34
+      - 18275.0
+  - - - 5056
+      - 5056
+      - 1
+      - 3328
+    - - 34
+      - 18414.0
+  - - - 1408
+      - 5888
+      - 1
+      - 1280
+    - - 34
+      - 20752.1
+  - - - 1024
+      - 3584
+      - 1
+      - 3328
+    - - 34
+      - 17719.7
+  - - - 512
+      - 48000
+      - 1
+      - 2048
+    - - 37
+      - 14816.9
+  - - - 448
+      - 3584
+      - 1
+      - 3328
+    - - 34
+      - 13808.5
+  - - - 256
+      - 4288
+      - 1
+      - 3328
+    - - 31
+      - 11935.4
+  - - - 5888
+      - 1408
+      - 1
+      - 1280
+    - - 34
+      - 21636.0
+  - - - 704
+      - 1856
+      - 1
+      - 3328
+    - - 31
+      - 14057.1
+  - - - 1024
+      - 2368
+      - 1
+      - 256
+    - - 33
+      - 12544.9
+  - - - 5056
+      - 6784
+      - 1
+      - 1280
+    - - 34
+      - 19783.8
+  - - - 1408
+      - 64
+      - 1
+      - 1280
+    - - 23
+      - 3638.08
+  - - - 448
+      - 1024
+      - 1
+      - 1280
+    - - 31
+      - 9631.8
+  - - - 4096
+      - 32
+      - 1
+      - 4096
+    - - 27
+      - 2325.91
+  - - - 5056
+      - 5056
+      - 1
+      - 1280
+    - - 34
+      - 20343.5
+  - - - 448
+      - 5056
+      - 1
+      - 256
+    - - 33
+      - 11842.5
+  - - - 6784
+      - 448
+      - 1
+      - 256
+    - - 33
+      - 13658.4
+  - - - 2368
+      - 128
+      - 1
+      - 256
+    - - 19
+      - 4941.07
+  - - - 1760
+      - 6400
+      - 1
+      - 1760
+    - - 34
+      - 20069.3
+  - - - 5888
+      - 704
+      - 1
+      - 1280
+    - - 33
+      - 17444.2
+  - - - 64
+      - 5056
+      - 1
+      - 256
+    - - 6
+      - 5129.58
+  - - - 6784
+      - 4288
+      - 1
+      - 3328
+    - - 34
+      - 18100.2
+  - - - 1856
+      - 2368
+      - 1
+      - 3328
+    - - 34
+      - 17105.9
+  - - - 5888
+      - 2944
+      - 1
+      - 1280
+    - - 34
+      - 19480.2
+  - - - 5888
+      - 1024
+      - 1
+      - 256
+    - - 34
+      - 16523.9
+  - - - 448
+      - 64
+      - 1
+      - 1280
+    - - 23
+      - 1487.79
+  - - - 3072
+      - 64
+      - 1
+      - 1024
+    - - 27
+      - 3401.53
+  - - - 16384
+      - 3200
+      - 1
+      - 4096
+    - - 37
+      - 14135.6
+  - - - 2944
+      - 64
+      - 1
+      - 256
+    - - 8
+      - 3763.91
+  - - - 1408
+      - 2944
+      - 1
+      - 256
+    - - 34
+      - 16334.3
+  - - - 256
+      - 1856
+      - 1
+      - 1280
+    - - 31
+      - 10061.4
+  - - - 6784
+      - 5056
+      - 1
+      - 3328
+    - - 34
+      - 18178.8
+  - - - 5056
+      - 5056
+      - 1
+      - 256
+    - - 34
+      - 21034.1
+  - - - 448
+      - 704
+      - 1
+      - 1280
+    - - 31
+      - 6924.8
+  - - - 64
+      - 1024
+      - 1
+      - 1280
+    - - 20
+      - 3208.0
+  - - - 1024
+      - 3584
+      - 1
+      - 1280
+    - - 34
+      - 18015.9
+  - - - 2368
+      - 2944
+      - 1
+      - 1280
+    - - 34
+      - 18991.3
+  - - - 448
+      - 448
+      - 1
+      - 3328
+    - - 24
+      - 6253.09
+  - - - 6784
+      - 6784
+      - 1
+      - 1280
+    - - 34
+      - 19290.4
+  - - - 1024
+      - 256
+      - 1
+      - 3328
+    - - 24
+      - 8895.21
+  - - - 1408
+      - 4288
+      - 1
+      - 1280
+    - - 34
+      - 20524.3
+  - - - 3584
+      - 4288
+      - 1
+      - 1280
+    - - 34
+      - 21334.8
+  - - - 2368
+      - 704
+      - 1
+      - 1280
+    - - 34
+      - 14079.3
+  - - - 5056
+      - 4288
+      - 1
+      - 3328
+    - - 34
+      - 18513.5
+  - - - 3584
+      - 2368
+      - 1
+      - 3328
+    - - 34
+      - 18206.0
+  - - - 64
+      - 704
+      - 1
+      - 1280
+    - - 20
+      - 2276.45
+  - - - 4288
+      - 256
+      - 1
+      - 256
+    - - 31
+      - 8842.9
+  - - - 6144
+      - 32
+      - 1
+      - 2560
+    - - 3
+      - 4168.46
+  - - - 6784
+      - 448
+      - 1
+      - 1280
+    - - 33
+      - 15947.9
+  - - - 128
+      - 3584
+      - 1
+      - 1280
+    - - 31
+      - 9527.64
+  - - - 4288
+      - 2944
+      - 1
+      - 256
+    - - 34
+      - 19159.7
+  - - - 1856
+      - 64
+      - 1
+      - 1280
+    - - 23
+      - 4321.08
+  - - - 1760
+      - 16
+      - 1
+      - 1760
+    - - 20
+      - 1411.51
+  - - - 6144
+      - 24000
+      - 1
+      - 2560
+    - - 34
+      - 16724.4
+  - - - 5888
+      - 64
+      - 1
+      - 3328
+    - - 19
+      - 8873.07
+  - - - 2944
+      - 256
+      - 1
+      - 3328
+    - - 31
+      - 12796.5
+  - - - 5056
+      - 2368
+      - 1
+      - 1280
+    - - 34
+      - 20093.3
+  - - - 448
+      - 3584
+      - 1
+      - 1280
+    - - 34
+      - 13553.7
+  - - - 6784
+      - 5888
+      - 1
+      - 256
+    - - 34
+      - 20871.3
+  - - - 256
+      - 4288
+      - 1
+      - 1280
+    - - 31
+      - 11217.1
+  - - - 704
+      - 128
+      - 1
+      - 1280
+    - - 23
+      - 3707.36
+  - - - 1408
+      - 448
+      - 1
+      - 1280
+    - - 31
+      - 10129.7
+  - - - 1024
+      - 1408
+      - 1
+      - 256
+    - - 33
+      - 11171.9
+  - - - 2368
+      - 2368
+      - 1
+      - 3328
+    - - 34
+      - 18492.4
+  - - - 5056
+      - 704
+      - 1
+      - 3328
+    - - 34
+      - 17642.6
+  - - - 1408
+      - 1856
+      - 1
+      - 256
+    - - 34
+      - 12666.5
+  - - - 1408
+      - 256
+      - 1
+      - 1280
+    - - 24
+      - 7883.96
+  - - - 3072
+      - 128
+      - 1
+      - 1024
+    - - 28
+      - 5452.02
+  - - - 3584
+      - 2368
+      - 1
+      - 1280
+    - - 34
+      - 18528.0
+  - - - 704
+      - 5888
+      - 1
+      - 256
+    - - 34
+      - 14183.4
+  - - - 6784
+      - 128
+      - 1
+      - 1280
+    - - 32
+      - 11731.6
+  - - - 2560
+      - 1600
+      - 1
+      - 2560
+    - - 33
+      - 14369.4
+  - - - 6784
+      - 64
+      - 1
+      - 256
+    - - 8
+      - 6609.92
+  - - - 6144
+      - 5984
+      - 1
+      - 2048
+    - - 37
+      - 15052.7
+  - - - 3584
+      - 704
+      - 1
+      - 3328
+    - - 33
+      - 16317.3
+  - - - 1408
+      - 1408
+      - 1
+      - 256
+    - - 33
+      - 12456.7
+  - - - 1856
+      - 128
+      - 1
+      - 256
+    - - 16
+      - 4437.93
+  - - - 2944
+      - 64
+      - 1
+      - 1280
+    - - 16
+      - 5537.0
+  - - - 448
+      - 4288
+      - 1
+      - 256
+    - - 32
+      - 12005.1
+  - - - 64
+      - 3584
+      - 1
+      - 3328
+    - - 24
+      - 7736.53
+  - - - 704
+      - 2368
+      - 1
+      - 1280
+    - - 34
+      - 14141.4
+  - - - 7680
+      - 16
+      - 1
+      - 2560
+    - - 5
+      - 2682.64
+  - - - 1856
+      - 2368
+      - 1
+      - 1280
+    - - 34
+      - 17649.0
+  - - - 2368
+      - 128
+      - 1
+      - 3328
+    - - 24
+      - 7519.28
+  - - - 2944
+      - 128
+      - 1
+      - 256
+    - - 31
+      - 5919.43
+  - - - 448
+      - 1408
+      - 1
+      - 256
+    - - 31
+      - 7841.53
+  - - - 64
+      - 5056
+      - 1
+      - 3328
+    - - 22
+      - 8005.26
+  - - - 1408
+      - 1024
+      - 1
+      - 1280
+    - - 33
+      - 14334.5
+  - - - 2368
+      - 256
+      - 1
+      - 1280
+    - - 31
+      - 9744.15
+  - - - 6784
+      - 704
+      - 1
+      - 256
+    - - 32
+      - 14567.6
+  - - - 2048
+      - 1600
+      - 1
+      - 512
+    - - 37
+      - 11765.5
+  - - - 2048
+      - 7000
+      - 1
+      - 2048
+    - - 37
+      - 14517.2
+  - - - 256
+      - 3584
+      - 1
+      - 3328
+    - - 34
+      - 13982.5
+  - - - 1408
+      - 3584
+      - 1
+      - 256
+    - - 34
+      - 16964.4
+  - - - 3584
+      - 4288
+      - 1
+      - 3328
+    - - 34
+      - 19131.6
+  - - - 5888
+      - 1856
+      - 1
+      - 1280
+    - - 34
+      - 20948.8
+  - - - 5056
+      - 1024
+      - 1
+      - 3328
+    - - 34
+      - 19142.5
+  - - - 5056
+      - 64
+      - 1
+      - 1280
+    - - 19
+      - 7042.03
+  - - - 1024
+      - 704
+      - 1
+      - 256
+    - - 31
+      - 9508.93
+  - - - 128
+      - 448
+      - 1
+      - 256
+    - - 2
+      - 1785.35
+  - - - 2368
+      - 3584
+      - 1
+      - 1280
+    - - 34
+      - 19852.4
+  - - - 1024
+      - 256
+      - 1
+      - 256
+    - - 31
+      - 4897.03
+  - - - 448
+      - 448
+      - 1
+      - 256
+    - - 31
+      - 3986.21
+  - - - 2944
+      - 3584
+      - 1
+      - 3328
+    - - 34
+      - 18638.6
+  - - - 7680
+      - 32
+      - 1
+      - 2560
+    - - 25
+      - 4705.37
+  - - - 256
+      - 256
+      - 1
+      - 3328
+    - - 20
+      - 3384.29
+  - - - 128
+      - 1024
+      - 1
+      - 3328
+    - - 23
+      - 5220.42
+  - - - 6784
+      - 2944
+      - 1
+      - 256
+    - - 34
+      - 20628.0
+  - - - 64
+      - 1856
+      - 1
+      - 1280
+    - - 20
+      - 4540.98
+  - - - 448
+      - 256
+      - 1
+      - 256
+    - - 23
+      - 2696.31
+  - - - 4288
+      - 2368
+      - 1
+      - 3328
+    - - 34
+      - 18013.9
+  - - - 1856
+      - 2368
+      - 1
+      - 256
+    - - 34
+      - 14818.3
+  - - - 3584
+      - 6784
+      - 1
+      - 3328
+    - - 34
+      - 18529.0
+  - - - 256
+      - 1024
+      - 1
+      - 256
+    - - 31
+      - 4950.49
+  - - - 1024
+      - 128
+      - 1
+      - 1280
+    - - 23
+      - 4902.32
+  - - - 3072
+      - 32
+      - 1
+      - 1024
+    - - 2
+      - 2129.97
+  - - - 4288
+      - 128
+      - 1
+      - 1280
+    - - 31
+      - 8692.99
+  - - - 5056
+      - 4288
+      - 1
+      - 1280
+    - - 34
+      - 19513.5
+  - - - 5888
+      - 64
+      - 1
+      - 256
+    - - 31
+      - 5788.02
+  - - - 6784
+      - 1856
+      - 1
+      - 3328
+    - - 34
+      - 18019.2
+  - - - 1408
+      - 5056
+      - 1
+      - 1280
+    - - 34
+      - 21027.4
+  - - - 1856
+      - 256
+      - 1
+      - 1280
+    - - 31
+      - 10111.0
+  - - - 64
+      - 5888
+      - 1
+      - 3328
+    - - 6
+      - 8995.65
+  - - - 6784
+      - 5888
+      - 1
+      - 3328
+    - - 34
+      - 18330.7
+  - - - 8448
+      - 12000
+      - 1
+      - 2816
+    - - 34
+      - 17850.1
+  - - - 448
+      - 256
+      - 1
+      - 3328
+    - - 23
+      - 4748.91
+  - - - 4096
+      - 800
+      - 1
+      - 1024
+    - - 37
+      - 11167.9
+  - - - 8192
+      - 3200
+      - 1
+      - 2048
+    - - 37
+      - 14572.3
+  - - - 2368
+      - 5056
+      - 1
+      - 1280
+    - - 34
+      - 19982.7
+  - - - 256
+      - 1408
+      - 1
+      - 3328
+    - - 24
+      - 8878.15
+  - - - 6784
+      - 128
+      - 1
+      - 3328
+    - - 17
+      - 12883.8
+  - - - 1024
+      - 5056
+      - 1
+      - 1280
+    - - 34
+      - 20761.6
+  - - - 4288
+      - 1024
+      - 1
+      - 256
+    - - 32
+      - 14718.3
+  - - - 2368
+      - 1408
+      - 1
+      - 256
+    - - 33
+      - 13290.1
+  - - - 704
+      - 704
+      - 1
+      - 3328
+    - - 31
+      - 10689.6
+  - - - 5888
+      - 448
+      - 1
+      - 1280
+    - - 34
+      - 15953.9
+  - - - 3584
+      - 256
+      - 1
+      - 3328
+    - - 34
+      - 13973.0
+  - - - 704
+      - 5888
+      - 1
+      - 3328
+    - - 32
+      - 16819.7
+  - - - 1024
+      - 6784
+      - 1
+      - 1280
+    - - 34
+      - 19953.0
+  - - - 128
+      - 3584
+      - 1
+      - 3328
+    - - 35
+      - 9942.22
+  - - - 128
+      - 704
+      - 1
+      - 1280
+    - - 23
+      - 3725.08
+  - - - 3584
+      - 2944
+      - 1
+      - 1280
+    - - 34
+      - 19375.2
+  - - - 1856
+      - 128
+      - 1
+      - 3328
+    - - 24
+      - 8191.19
+  - - - 128
+      - 2944
+      - 1
+      - 1280
+    - - 22
+      - 8263.22
+  - - - 512
+      - 24000
+      - 1
+      - 2048
+    - - 37
+      - 13505.9
+  - - - 448
+      - 1856
+      - 1
+      - 1280
+    - - 32
+      - 11348.9
+  - - - 1408
+      - 5056
+      - 1
+      - 3328
+    - - 34
+      - 19355.2
+  - - - 1856
+      - 1856
+      - 1
+      - 3328
+    - - 34
+      - 16995.4
+  - - - 3584
+      - 128
+      - 1
+      - 256
+    - - 31
+      - 7077.71
+  - - - 2560
+      - 800
+      - 1
+      - 2560
+    - - 34
+      - 12889.6
+  - - - 448
+      - 1408
+      - 1
+      - 3328
+    - - 31
+      - 10286.4
+  - - - 2368
+      - 2368
+      - 1
+      - 256
+    - - 32
+      - 15665.8
+  - - - 4288
+      - 4288
+      - 1
+      - 1280
+    - - 34
+      - 19495.4
+  - - - 64
+      - 448
+      - 1
+      - 1280
+    - - 20
+      - 1524.41
+  - - - 5888
+      - 1024
+      - 1
+      - 1280
+    - - 34
+      - 20601.8
+  - - - 512
+      - 48000
+      - 1
+      - 2560
+    - - 34
+      - 18199.2
+  - - - 8448
+      - 16
+      - 1
+      - 2816
+    - - 21
+      - 3356.24
+  - - - 704
+      - 6784
+      - 1
+      - 3328
+    - - 34
+      - 18129.9
+  - - - 2560
+      - 6400
+      - 1
+      - 2560
+    - - 34
+      - 18549.8
+  - - - 5056
+      - 1024
+      - 1
+      - 1280
+    - - 34
+      - 19933.6
+  - - - 448
+      - 5888
+      - 1
+      - 3328
+    - - 34
+      - 16218.5
+  - - - 1024
+      - 2944
+      - 1
+      - 1280
+    - - 34
+      - 18604.2
+  - - - 5056
+      - 5888
+      - 1
+      - 1280
+    - - 34
+      - 20148.3
+  - - - 448
+      - 6784
+      - 1
+      - 256
+    - - 32
+      - 13694.0
+  - - - 256
+      - 3584
+      - 1
+      - 256
+    - - 31
+      - 9381.17
+  - - - 256
+      - 2944
+      - 1
+      - 3328
+    - - 31
+      - 12245.8
+  - - - 256
+      - 448
+      - 1
+      - 256
+    - - 1
+      - 3002.67
+  - - - 6144
+      - 16
+      - 1
+      - 2560
+    - - 18
+      - 2525.86
+  - - - 3584
+      - 5888
+      - 1
+      - 256
+    - - 34
+      - 20801.0
+  - - - 2944
+      - 3584
+      - 1
+      - 256
+    - - 34
+      - 17031.4
+  - - - 1408
+      - 704
+      - 1
+      - 256
+    - - 31
+      - 9958.03
+  - - - 6784
+      - 1024
+      - 1
+      - 3328
+    - - 34
+      - 18924.1
+  - - - 6784
+      - 2944
+      - 1
+      - 3328
+    - - 34
+      - 18888.5
+  - - - 2944
+      - 5056
+      - 1
+      - 3328
+    - - 34
+      - 18797.7
+  - - - 64
+      - 64
+      - 1
+      - 3328
+    - - 20
+      - 231.763
+  - - - 6784
+      - 2368
+      - 1
+      - 1280
+    - - 34
+      - 20069.9
+  - - - 4288
+      - 5888
+      - 1
+      - 1280
+    - - 34
+      - 19618.1
+  - - - 4288
+      - 4288
+      - 1
+      - 256
+    - - 34
+      - 19703.4
+  - - - 8448
+      - 32
+      - 1
+      - 2816
+    - - 16
+      - 5892.65
+  - - - 448
+      - 2944
+      - 1
+      - 3328
+    - - 32
+      - 13713.1
+  - - - 4288
+      - 1856
+      - 1
+      - 1280
+    - - 34
+      - 20043.6
+  - - - 1856
+      - 2944
+      - 1
+      - 3328
+    - - 34
+      - 17248.6
+  - - - 256
+      - 6784
+      - 1
+      - 3328
+    - - 34
+      - 15664.4
+  - - - 64
+      - 5888
+      - 1
+      - 256
+    - - 8
+      - 5946.43
+  - - - 5056
+      - 1024
+      - 1
+      - 256
+    - - 32
+      - 15848.0
+  - - - 704
+      - 64
+      - 1
+      - 3328
+    - - 23
+      - 2329.35
+  - - - 5056
+      - 1856
+      - 1
+      - 3328
+    - - 34
+      - 18395.5
+  - - - 1856
+      - 1408
+      - 1
+      - 256
+    - - 34
+      - 12684.2
+  - - - 448
+      - 2368
+      - 1
+      - 1280
+    - - 31
+      - 10645.3
+  - - - 1408
+      - 128
+      - 1
+      - 1280
+    - - 24
+      - 5502.1
+  - - - 4096
+      - 7000
+      - 1
+      - 4096
+    - - 37
+      - 14701.3
+  - - - 5056
+      - 256
+      - 1
+      - 3328
+    - - 31
+      - 13978.4
+  - - - 1024
+      - 5888
+      - 1
+      - 1280
+    - - 34
+      - 20536.8
+  - - - 6144
+      - 24000
+      - 1
+      - 2048
+    - - 37
+      - 15481.8
+  - - - 64
+      - 128
+      - 1
+      - 256
+    - - 2
+      - 333.066
+  - - - 128
+      - 1856
+      - 1
+      - 1280
+    - - 22
+      - 6981.36
+  - - - 5056
+      - 3584
+      - 1
+      - 256
+    - - 34
+      - 20398.4
+  - - - 1856
+      - 1024
+      - 1
+      - 1280
+    - - 34
+      - 16051.0
+  - - - 1856
+      - 1856
+      - 1
+      - 1280
+    - - 34
+      - 16929.3
+  - - - 4096
+      - 400
+      - 1
+      - 1024
+    - - 37
+      - 9951.02
+  - - - 3072
+      - 24000
+      - 1
+      - 1024
+    - - 34
+      - 16502.3
+  - - - 128
+      - 4288
+      - 1
+      - 3328
+    - - 31
+      - 9235.45
+  - - - 1856
+      - 1024
+      - 1
+      - 3328
+    - - 34
+      - 16189.8
+  - - - 256
+      - 2368
+      - 1
+      - 256
+    - - 31
+      - 7730.47
+  - - - 1024
+      - 448
+      - 1
+      - 3328
+    - - 31
+      - 10591.1
+  - - - 1856
+      - 704
+      - 1
+      - 1280
+    - - 32
+      - 12983.2
+  - - - 5888
+      - 5888
+      - 1
+      - 3328
+    - - 34
+      - 17995.2
+  - - - 6784
+      - 1024
+      - 1
+      - 256
+    - - 34
+      - 18159.9
+  - - - 5056
+      - 5888
+      - 1
+      - 3328
+    - - 34
+      - 18466.7
+  - - - 1856
+      - 1024
+      - 1
+      - 256
+    - - 32
+      - 12231.1
+  - - - 512
+      - 48000
+      - 1
+      - 1536
+    - - 34
+      - 18871.0
+  - - - 5056
+      - 1408
+      - 1
+      - 3328
+    - - 34
+      - 19727.7
+  - - - 8448
+      - 5984
+      - 1
+      - 2816
+    - - 34
+      - 18211.2
+  - - - 1024
+      - 1024
+      - 1
+      - 1280
+    - - 32
+      - 14402.9
+  - - - 4288
+      - 1024
+      - 1
+      - 3328
+    - - 34
+      - 17462.1
+  - - - 2048
+      - 128
+      - 1
+      - 2048
+    - - 12
+      - 3292.84
+  - - - 1024
+      - 24000
+      - 1
+      - 2560
+    - - 34
+      - 17025.2
+  - - - 2944
+      - 1408
+      - 1
+      - 3328
+    - - 34
+      - 19378.5
+  - - - 2944
+      - 4288
+      - 1
+      - 3328
+    - - 34
+      - 18157.5
+  - - - 256
+      - 2944
+      - 1
+      - 256
+    - - 31
+      - 9075.16
+  - - - 5056
+      - 2944
+      - 1
+      - 256
+    - - 34
+      - 19731.7
+  - - - 1024
+      - 700
+      - 1
+      - 512
+    - - 36
+      - 8055.88
+  - - - 2368
+      - 1856
+      - 1
+      - 256
+    - - 32
+      - 13610.0
+  - - - 128
+      - 448
+      - 1
+      - 1280
+    - - 20
+      - 2783.37
+  - - - 128
+      - 6784
+      - 1
+      - 1280
+    - - 32
+      - 11568.8
+  - - - 1408
+      - 3584
+      - 1
+      - 3328
+    - - 34
+      - 18989.2
+  - - - 2368
+      - 6784
+      - 1
+      - 256
+    - - 34
+      - 20136.8
+  - - - 5056
+      - 1408
+      - 1
+      - 1280
+    - - 34
+      - 21027.3
+  - - - 704
+      - 3584
+      - 1
+      - 1280
+    - - 32
+      - 16076.1
+  - - - 1408
+      - 5888
+      - 1
+      - 3328
+    - - 34
+      - 20166.5
+  - - - 1856
+      - 5056
+      - 1
+      - 256
+    - - 34
+      - 17799.1
+  - - - 6784
+      - 6784
+      - 1
+      - 256
+    - - 34
+      - 22282.1
+  - - - 1408
+      - 704
+      - 1
+      - 3328
+    - - 33
+      - 14534.2
+  - - - 128
+      - 5888
+      - 1
+      - 1280
+    - - 31
+      - 11474.0
+  - - - 2368
+      - 4288
+      - 1
+      - 1280
+    - - 34
+      - 18412.8
+  - - - 3584
+      - 1856
+      - 1
+      - 1280
+    - - 34
+      - 18052.7
+  - - - 704
+      - 1408
+      - 1
+      - 3328
+    - - 32
+      - 14435.3
+  - - - 704
+      - 64
+      - 1
+      - 1280
+    - - 20
+      - 2237.2
+  - - - 5888
+      - 5056
+      - 1
+      - 256
+    - - 34
+      - 20953.4
+  - - - 8448
+      - 48000
+      - 1
+      - 2816
+    - - 34
+      - 17431.4
+  - - - 3584
+      - 448
+      - 1
+      - 256
+    - - 32
+      - 10352.4
+  - - - 3584
+      - 3584
+      - 1
+      - 1280
+    - - 34
+      - 20073.8
+  - - - 7680
+      - 64
+      - 1
+      - 2560
+    - - 26
+      - 7164.24
+  - - - 256
+      - 6784
+      - 1
+      - 256
+    - - 33
+      - 10585.2
+  - - - 1856
+      - 3584
+      - 1
+      - 3328
+    - - 34
+      - 18248.0
+  - - - 5056
+      - 256
+      - 1
+      - 1280
+    - - 31
+      - 13368.4
+  - - - 2560
+      - 32
+      - 1
+      - 2560
+    - - 23
+      - 3239.22
+  - - - 3584
+      - 3584
+      - 1
+      - 256
+    - - 34
+      - 19659.5
+  - - - 6784
+      - 4288
+      - 1
+      - 1280
+    - - 34
+      - 19489.6
+  - - - 704
+      - 5056
+      - 1
+      - 256
+    - - 34
+      - 14488.9
+  - - - 6784
+      - 128
+      - 1
+      - 256
+    - - 31
+      - 8244.26
+  - - - 64
+      - 1408
+      - 1
+      - 3328
+    - - 23
+      - 4085.2
+  - - - 704
+      - 448
+      - 1
+      - 256
+    - - 31
+      - 4999.87
+  - - - 2944
+      - 2368
+      - 1
+      - 1280
+    - - 34
+      - 18910.8
+  - - - 448
+      - 64
+      - 1
+      - 3328
+    - - 20
+      - 1592.25
+  - - - 6784
+      - 3584
+      - 1
+      - 256
+    - - 34
+      - 21144.0
+  - - - 256
+      - 1856
+      - 1
+      - 3328
+    - - 32
+      - 10218.4
+  - - - 128
+      - 64
+      - 1
+      - 1280
+    - - 20
+      - 436.888
+  - - - 128
+      - 1408
+      - 1
+      - 256
+    - - 1
+      - 3797.78
+  - - - 64
+      - 128
+      - 1
+      - 3328
+    - - 23
+      - 464.695
+  - - - 2944
+      - 2944
+      - 1
+      - 3328
+    - - 34
+      - 18413.3
+  - - - 5056
+      - 6784
+      - 1
+      - 256
+    - - 34
+      - 20472.7
+  - - - 1408
+      - 4288
+      - 1
+      - 3328
+    - - 34
+      - 19385.7
+  - - - 6784
+      - 256
+      - 1
+      - 1280
+    - - 34
+      - 13740.5
+  - - - 2368
+      - 704
+      - 1
+      - 3328
+    - - 34
+      - 15042.4
+  - - - 128
+      - 4288
+      - 1
+      - 256
+    - - 31
+      - 7025.28
+  - - - 3584
+      - 6784
+      - 1
+      - 256
+    - - 34
+      - 21165.3
+  - - - 128
+      - 128
+      - 1
+      - 3328
+    - - 20
+      - 917.806
+  - - - 5056
+      - 1856
+      - 1
+      - 256
+    - - 34
+      - 17877.6
+  - - - 4608
+      - 5984
+      - 1
+      - 1536
+    - - 34
+      - 18901.9
+  - - - 256
+      - 128
+      - 1
+      - 256
+    - - 13
+      - 1132.45
+  - - - 1760
+      - 3200
+      - 1
+      - 1760
+    - - 34
+      - 19339.8
+  - - - 4096
+      - 1600
+      - 1
+      - 1024
+    - - 37
+      - 14235.4
+  - - - 704
+      - 4288
+      - 1
+      - 256
+    - - 32
+      - 13799.6
+  - - - 256
+      - 448
+      - 1
+      - 3328
+    - - 20
+      - 4879.31
+  - - - 1408
+      - 6784
+      - 1
+      - 1280
+    - - 34
+      - 20023.2
+  - - - 7680
+      - 24000
+      - 1
+      - 2560
+    - - 34
+      - 17346.7
+  - - - 64
+      - 2368
+      - 1
+      - 1280
+    - - 20
+      - 4626.71
+  - - - 4608
+      - 48000
+      - 1
+      - 1536
+    - - 34
+      - 17567.2
+  - - - 6144
+      - 48000
+      - 1
+      - 2048
+    - - 37
+      - 15319.1
+  - - - 64
+      - 6784
+      - 1
+      - 3328
+    - - 8
+      - 9733.56
+  - - - 2944
+      - 256
+      - 1
+      - 1280
+    - - 31
+      - 12024.9
+  - - - 2048
+      - 16
+      - 1
+      - 2048
+    - - 2
+      - 840.395
+  - - - 1024
+      - 24000
+      - 1
+      - 1536
+    - - 34
+      - 19108.8
+  - - - 5056
+      - 2368
+      - 1
+      - 3328
+    - - 34
+      - 18653.4
+  - - - 2944
+      - 4288
+      - 1
+      - 256
+    - - 34
+      - 18493.8
+  - - - 1408
+      - 3584
+      - 1
+      - 1280
+    - - 34
+      - 20212.6
+  - - - 2368
+      - 64
+      - 1
+      - 256
+    - - 23
+      - 3099.07
+  - - - 256
+      - 256
+      - 1
+      - 256
+    - - 13
+      - 2040.4
+  - - - 704
+      - 128
+      - 1
+      - 3328
+    - - 23
+      - 4081.06
+  - - - 8192
+      - 1600
+      - 1
+      - 2048
+    - - 37
+      - 12933.2
+  - - - 1856
+      - 704
+      - 1
+      - 256
+    - - 31
+      - 10649.8
+  - - - 1408
+      - 448
+      - 1
+      - 3328
+    - - 31
+      - 10308.8
+  - - - 512
+      - 24000
+      - 1
+      - 2560
+    - - 34
+      - 18771.2
+  - - - 2368
+      - 6784
+      - 1
+      - 3328
+    - - 34
+      - 18887.4
+  - - - 5056
+      - 704
+      - 1
+      - 1280
+    - - 34
+      - 17389.0
+  - - - 1856
+      - 4288
+      - 1
+      - 3328
+    - - 34
+      - 18770.0
+  - - - 1408
+      - 5888
+      - 1
+      - 256
+    - - 34
+      - 19332.3
+  - - - 4288
+      - 64
+      - 1
+      - 1280
+    - - 19
+      - 6079.54
+  - - - 256
+      - 64
+      - 1
+      - 256
+    - - 2
+      - 650.784
+  - - - 704
+      - 1856
+      - 1
+      - 256
+    - - 32
+      - 10380.7
+  - - - 2560
+      - 64
+      - 1
+      - 2560
+    - - 24
+      - 5351.72
+  - - - 3584
+      - 704
+      - 1
+      - 1280
+    - - 33
+      - 16064.3
+  - - - 256
+      - 2368
+      - 1
+      - 1280
+    - - 31
+      - 9726.08
+  - - - 3584
+      - 448
+      - 1
+      - 3328
+    - - 34
+      - 14456.0
+  - - - 704
+      - 2368
+      - 1
+      - 3328
+    - - 34
+      - 14168.8
+  - - - 2944
+      - 448
+      - 1
+      - 256
+    - - 33
+      - 10502.4
+  - - - 448
+      - 5056
+      - 1
+      - 3328
+    - - 31
+      - 14288.5
+  - - - 2368
+      - 128
+      - 1
+      - 1280
+    - - 6
+      - 6801.89
+  - - - 4288
+      - 448
+      - 1
+      - 256
+    - - 33
+      - 11446.2
+  - - - 448
+      - 5888
+      - 1
+      - 256
+    - - 34
+      - 12402.8
+  - - - 64
+      - 5056
+      - 1
+      - 1280
+    - - 24
+      - 7150.1
+  - - - 2048
+      - 3200
+      - 1
+      - 512
+    - - 37
+      - 14467.3
+  - - - 5888
+      - 2368
+      - 1
+      - 256
+    - - 34
+      - 19595.3
+  - - - 704
+      - 448
+      - 1
+      - 3328
+    - - 24
+      - 7449.77
+  - - - 6784
+      - 704
+      - 1
+      - 3328
+    - - 34
+      - 18946.3
+  - - - 1408
+      - 2944
+      - 1
+      - 3328
+    - - 34
+      - 20502.9
+  - - - 4608
+      - 12000
+      - 1
+      - 1536
+    - - 34
+      - 18325.4
+  - - - 64
+      - 1024
+      - 1
+      - 256
+    - - 1
+      - 1952.43
+  - - - 2368
+      - 448
+      - 1
+      - 1280
+    - - 31
+      - 10620.6
+  - - - 128
+      - 3584
+      - 1
+      - 256
+    - - 31
+      - 6893.06
+  - - - 1856
+      - 448
+      - 1
+      - 3328
+    - - 34
+      - 12693.2
+  - - - 128
+      - 5056
+      - 1
+      - 256
+    - - 31
+      - 8016.21
+  - - - 2368
+      - 704
+      - 1
+      - 256
+    - - 32
+      - 10688.8
+  - - - 3584
+      - 2368
+      - 1
+      - 256
+    - - 34
+      - 17764.9
+  - - - 5888
+      - 5056
+      - 1
+      - 1280
+    - - 34
+      - 19881.2
+  - - - 128
+      - 1024
+      - 1
+      - 1280
+    - - 23
+      - 4881.21
+  - - - 8448
+      - 24000
+      - 1
+      - 2816
+    - - 34
+      - 17546.2
+  - - - 64
+      - 704
+      - 1
+      - 256
+    - - 2
+      - 1557.12
+  - - - 4288
+      - 256
+      - 1
+      - 1280
+    - - 32
+      - 10983.3
+  - - - 3584
+      - 3584
+      - 1
+      - 3328
+    - - 34
+      - 18358.6
+  - - - 704
+      - 704
+      - 1
+      - 256
+    - - 31
+      - 7646.46
+  - - - 5888
+      - 6784
+      - 1
+      - 256
+    - - 34
+      - 21485.3
+  - - - 4288
+      - 2944
+      - 1
+      - 3328
+    - - 34
+      - 18544.5
+  - - - 1856
+      - 64
+      - 1
+      - 256
+    - - 7
+      - 2870.64
+  - - - 1024
+      - 16
+      - 1
+      - 500000
+    - - 9
+      - 915.962
+  - - - 4288
+      - 128
+      - 1
+      - 3328
+    - - 31
+      - 9315.68
+  - - - 7680
+      - 128
+      - 1
+      - 2560
+    - - 29
+      - 9712.07
+  - - - 256
+      - 5056
+      - 1
+      - 1280
+    - - 33
+      - 12794.9
+  - - - 6784
+      - 5888
+      - 1
+      - 1280
+    - - 34
+      - 19927.7
+  - - - 2048
+      - 800
+      - 1
+      - 512
+    - - 34
+      - 10475.7
+  - - - 704
+      - 128
+      - 1
+      - 256
+    - - 15
+      - 2341.52
+  - - - 5888
+      - 4288
+      - 1
+      - 1280
+    - - 34
+      - 20468.6
+  - - - 1024
+      - 24000
+      - 1
+      - 2048
+    - - 37
+      - 14652.6
+  - - - 448
+      - 256
+      - 1
+      - 1280
+    - - 23
+      - 4413.73
+  - - - 1024
+      - 256
+      - 1
+      - 1280
+    - - 16
+      - 7664.42
+  - - - 256
+      - 1408
+      - 1
+      - 1280
+    - - 24
+      - 7874.01
+  - - - 3072
+      - 16
+      - 1
+      - 1024
+    - - 2
+      - 1200.44
+  - - - 1408
+      - 1856
+      - 1
+      - 1280
+    - - 33
+      - 16749.1
+  - - - 5888
+      - 448
+      - 1
+      - 3328
+    - - 34
+      - 15909.3
+  - - - 704
+      - 5888
+      - 1
+      - 1280
+    - - 32
+      - 17427.3
+  - - - 1024
+      - 6784
+      - 1
+      - 3328
+    - - 34
+      - 18919.6
+  - - - 704
+      - 2944
+      - 1
+      - 1280
+    - - 32
+      - 16352.9
+  - - - 6784
+      - 64
+      - 1
+      - 3328
+    - - 8
+      - 9723.87
+  - - - 5056
+      - 2944
+      - 1
+      - 3328
+    - - 34
+      - 18847.5
+  - - - 448
+      - 128
+      - 1
+      - 256
+    - - 13
+      - 1679.45
+  - - - 1408
+      - 1408
+      - 1
+      - 3328
+    - - 34
+      - 17902.6
+  - - - 1856
+      - 128
+      - 1
+      - 1280
+    - - 24
+      - 6876.14
+  - - - 448
+      - 4288
+      - 1
+      - 1280
+    - - 32
+      - 15122.7
+  - - - 64
+      - 3584
+      - 1
+      - 256
+    - - 8
+      - 4478.53
+  - - - 128
+      - 2944
+      - 1
+      - 3328
+    - - 24
+      - 9186.01
+  - - - 3584
+      - 704
+      - 1
+      - 256
+    - - 34
+      - 12333.4
+  - - - 2944
+      - 448
+      - 1
+      - 3328
+    - - 32
+      - 13716.3
+  - - - 3584
+      - 1408
+      - 1
+      - 3328
+    - - 34
+      - 19120.5
+  - - - 2368
+      - 1024
+      - 1
+      - 1280
+    - - 33
+      - 15535.7
+  - - - 2944
+      - 6784
+      - 1
+      - 1280
+    - - 34
+      - 19847.4
+  - - - 1856
+      - 6784
+      - 1
+      - 256
+    - - 34
+      - 19152.1
+  - - - 4288
+      - 448
+      - 1
+      - 3328
+    - - 33
+      - 14727.8
+  - - - 4288
+      - 3584
+      - 1
+      - 1280
+    - - 34
+      - 20297.7
+  - - - 6144
+      - 12000
+      - 1
+      - 2048
+    - - 37
+      - 15508.8
+  - - - 8192
+      - 800
+      - 1
+      - 2048
+    - - 37
+      - 11289.0
+  - - - 5888
+      - 1024
+      - 1
+      - 3328
+    - - 34
+      - 19290.5
+  - - - 704
+      - 6784
+      - 1
+      - 1280
+    - - 34
+      - 19143.1
+  - - - 5888
+      - 128
+      - 1
+      - 256
+    - - 31
+      - 8710.91
+  - - - 4096
+      - 16
+      - 1
+      - 4096
+    - - 11
+      - 1347.63
+  - - - 704
+      - 5056
+      - 1
+      - 1280
+    - - 34
+      - 17413.6
+  - - - 64
+      - 704
+      - 1
+      - 3328
+    - - 20
+      - 2332.04
+  - - - 2944
+      - 1856
+      - 1
+      - 256
+    - - 32
+      - 15302.5
+  - - - 5056
+      - 64
+      - 1
+      - 256
+    - - 8
+      - 5082.99
+  - - - 3584
+      - 5056
+      - 1
+      - 256
+    - - 34
+      - 20319.0
+  - - - 5888
+      - 5056
+      - 1
+      - 3328
+    - - 34
+      - 18632.7
+  - - - 128
+      - 5056
+      - 1
+      - 3328
+    - - 19
+      - 10530.6
+  - - - 3584
+      - 6784
+      - 1
+      - 1280
+    - - 34
+      - 19573.7
+  - - - 1856
+      - 5888
+      - 1
+      - 256
+    - - 34
+      - 19387.3
+  - - - 64
+      - 448
+      - 1
+      - 3328
+    - - 20
+      - 1580.54
+  - - - 4288
+      - 4288
+      - 1
+      - 3328
+    - - 34
+      - 18165.6
+  - - - 4288
+      - 1408
+      - 1
+      - 1280
+    - - 34
+      - 20597.2
+  - - - 64
+      - 1856
+      - 1
+      - 256
+    - - 1
+      - 3040.72
+  - - - 4288
+      - 2368
+      - 1
+      - 256
+    - - 34
+      - 17858.1
+  - - - 2944
+      - 5056
+      - 1
+      - 1280
+    - - 34
+      - 20043.8
+  - - - 256
+      - 4288
+      - 1
+      - 256
+    - - 31
+      - 8905.25
+  - - - 6784
+      - 2368
+      - 1
+      - 3328
+    - - 34
+      - 18530.0
+  - - - 256
+      - 1024
+      - 1
+      - 1280
+    - - 24
+      - 7836.89
+  - - - 4288
+      - 1856
+      - 1
+      - 3328
+    - - 34
+      - 18773.0
+  - - - 1856
+      - 2944
+      - 1
+      - 1280
+    - - 34
+      - 17922.6
+  - - - 2048
+      - 1600
+      - 1
+      - 2048
+    - - 36
+      - 9411.41
+  - - - 3584
+      - 64
+      - 1
+      - 1280
+    - - 16
+      - 6311.36
+  - - - 4288
+      - 6784
+      - 1
+      - 3328
+    - - 34
+      - 18038.7
+  - - - 3584
+      - 1024
+      - 1
+      - 1280
+    - - 34
+      - 18046.6
+  - - - 1024
+      - 4288
+      - 1
+      - 256
+    - - 34
+      - 14675.5
+  - - - 5888
+      - 3584
+      - 1
+      - 3328
+    - - 34
+      - 18998.2
+  - - - 5056
+      - 3584
+      - 1
+      - 3328
+    - - 34
+      - 18752.5
+  - - - 1408
+      - 128
+      - 1
+      - 3328
+    - - 24
+      - 6415.92
+  - - - 2368
+      - 1408
+      - 1
+      - 1280
+    - - 34
+      - 16390.4
+  - - - 5056
+      - 2944
+      - 1
+      - 1280
+    - - 34
+      - 20569.6
+  - - - 3584
+      - 256
+      - 1
+      - 256
+    - - 31
+      - 9190.84
+  - - - 1024
+      - 6784
+      - 1
+      - 256
+    - - 34
+      - 18050.7
+  - - - 3584
+      - 2944
+      - 1
+      - 256
+    - - 34
+      - 18642.3
+  - - - 448
+      - 128
+      - 1
+      - 3328
+    - - 23
+      - 2964.63
+  - - - 3584
+      - 1408
+      - 1
+      - 1280
+    - - 34
+      - 20114.6
+  - - - 64
+      - 4288
+      - 1
+      - 3328
+    - - 22
+      - 7013.24
+  - - - 5056
+      - 6784
+      - 1
+      - 3328
+    - - 34
+      - 18097.2
+  - - - 128
+      - 2944
+      - 1
+      - 256
+    - - 31
+      - 5892.86
+  - - - 3584
+      - 4288
+      - 1
+      - 256
+    - - 34
+      - 20458.7
+  - - - 1856
+      - 6784
+      - 1
+      - 3328
+    - - 34
+      - 18978.6
+  - - - 3584
+      - 128
+      - 1
+      - 3328
+    - - 31
+      - 10430.2
+  - - - 2368
+      - 64
+      - 1
+      - 3328
+    - - 22
+      - 5403.76
+  - - - 1024
+      - 448
+      - 1
+      - 1280
+    - - 31
+      - 9714.5
+  - - - 5056
+      - 1408
+      - 1
+      - 256
+    - - 34
+      - 18637.8
+  - - - 64
+      - 256
+      - 1
+      - 1280
+    - - 20
+      - 868.422
+  - - - 3584
+      - 1024
+      - 1
+      - 256
+    - - 34
+      - 15262.7
+  - - - 256
+      - 704
+      - 1
+      - 256
+    - - 16
+      - 3663.73
+  - - - 5888
+      - 5888
+      - 1
+      - 256
+    - - 34
+      - 21175.5
+  - - - 4288
+      - 1024
+      - 1
+      - 1280
+    - - 34
+      - 16985.1
+  - - - 5888
+      - 128
+      - 1
+      - 3328
+    - - 31
+      - 12629.5
+  - - - 448
+      - 6784
+      - 1
+      - 3328
+    - - 32
+      - 16253.1
+  - - - 2944
+      - 1408
+      - 1
+      - 1280
+    - - 34
+      - 20256.3
+  - - - 2944
+      - 1856
+      - 1
+      - 3328
+    - - 34
+      - 17651.7
+  - - - 128
+      - 1024
+      - 1
+      - 256
+    - - 1
+      - 3306.51
+  - - - 64
+      - 64
+      - 1
+      - 256
+    - - 2
+      - 119.961
+  - - - 3584
+      - 5888
+      - 1
+      - 1280
+    - - 34
+      - 20371.0
+  - - - 6784
+      - 1856
+      - 1
+      - 1280
+    - - 34
+      - 20035.7
+  - - - 5888
+      - 256
+      - 1
+      - 3328
+    - - 32
+      - 15704.8
+  - - - 1856
+      - 5888
+      - 1
+      - 3328
+    - - 34
+      - 19465.7
+  - - - 3584
+      - 1408
+      - 1
+      - 256
+    - - 34
+      - 15668.8
+  - - - 64
+      - 448
+      - 1
+      - 256
+    - - 2
+      - 1113.31
+  - - - 704
+      - 3584
+      - 1
+      - 3328
+    - - 32
+      - 16763.7
+  - - - 4096
+      - 3200
+      - 1
+      - 1024
+    - - 37
+      - 15095.3
+  - - - 5056
+      - 448
+      - 1
+      - 1280
+    - - 33
+      - 14560.8
+  - - - 3584
+      - 1856
+      - 1
+      - 3328
+    - - 34
+      - 19016.7
+  - - - 1408
+      - 704
+      - 1
+      - 1280
+    - - 33
+      - 13518.6
+  - - - 2944
+      - 1024
+      - 1
+      - 256
+    - - 34
+      - 14330.6
+  - - - 448
+      - 1408
+      - 1
+      - 1280
+    - - 31
+      - 10139.1
+  - - - 2368
+      - 4288
+      - 1
+      - 3328
+    - - 34
+      - 17713.1
+  - - - 1024
+      - 1408
+      - 1
+      - 1280
+    - - 33
+      - 14351.0
+  - - - 256
+      - 128
+      - 1
+      - 1280
+    - - 23
+      - 1700.34
+  - - - 704
+      - 1408
+      - 1
+      - 1280
+    - - 32
+      - 13647.8
+  - - - 6784
+      - 5056
+      - 1
+      - 256
+    - - 34
+      - 21277.5
+  - - - 3584
+      - 5056
+      - 1
+      - 3328
+    - - 34
+      - 18481.3
+  - - - 4288
+      - 5888
+      - 1
+      - 256
+    - - 34
+      - 20964.3
+  - - - 448
+      - 2944
+      - 1
+      - 256
+    - - 32
+      - 10502.4
+  - - - 2944
+      - 6784
+      - 1
+      - 256
+    - - 34
+      - 20634.2
+  - - - 2368
+      - 2368
+      - 1
+      - 1280
+    - - 34
+      - 17617.0
+  - - - 1856
+      - 3584
+      - 1
+      - 1280
+    - - 34
+      - 19718.9
+  - - - 64
+      - 2944
+      - 1
+      - 256
+    - - 1
+      - 3807.89
+  - - - 5056
+      - 3584
+      - 1
+      - 1280
+    - - 34
+      - 19746.2
+  - - - 256
+      - 5888
+      - 1
+      - 256
+    - - 32
+      - 11448.6
+  - - - 128
+      - 256
+      - 1
+      - 3328
+    - - 20
+      - 1801.92
+  - - - 1856
+      - 1408
+      - 1
+      - 3328
+    - - 32
+      - 17352.1
+  - - - 1024
+      - 4288
+      - 1
+      - 3328
+    - - 34
+      - 17084.0
+  - - - 448
+      - 2368
+      - 1
+      - 256
+    - - 33
+      - 8408.87
+  - - - 64
+      - 1408
+      - 1
+      - 1280
+    - - 20
+      - 3698.56
+  - - - 64
+      - 6784
+      - 1
+      - 1280
+    - - 31
+      - 8574.07
+  - - - 2944
+      - 2368
+      - 1
+      - 3328
+    - - 34
+      - 19025.7
+  - - - 704
+      - 4288
+      - 1
+      - 3328
+    - - 32
+      - 16959.2
+  - - - 1408
+      - 128
+      - 1
+      - 256
+    - - 31
+      - 3579.59
+  - - - 1024
+      - 1856
+      - 1
+      - 1280
+    - - 34
+      - 16066.8
+  - - - 2048
+      - 6400
+      - 1
+      - 2048
+    - - 37
+      - 14258.4
+  - - - 512
+      - 48000
+      - 1
+      - 2816
+    - - 34
+      - 18820.2
+  - - - 5124
+      - 9124
+      - 1
+      - 2560
+    - - 34
+      - 17079.2
+  - - - 128
+      - 2368
+      - 1
+      - 3328
+    - - 22
+      - 7577.88
+  - - - 1024
+      - 5888
+      - 1
+      - 256
+    - - 34
+      - 17569.0
+  - - - 64
+      - 2944
+      - 1
+      - 1280
+    - - 24
+      - 5632.77
+  - - - 5056
+      - 64
+      - 1
+      - 3328
+    - - 24
+      - 7841.18
+  - - - 1408
+      - 2368
+      - 1
+      - 256
+    - - 34
+      - 13717.2
+  - - - 2944
+      - 704
+      - 1
+      - 3328
+    - - 33
+      - 16985.4
+  - - - 64
+      - 128
+      - 1
+      - 1280
+    - - 23
+      - 438.249
+  - - - 1024
+      - 8
+      - 1
+      - 500000
+    - - 9
+      - 457.947
+  - - - 2944
+      - 2944
+      - 1
+      - 1280
+    - - 34
+      - 20340.0
+  - - - 6784
+      - 256
+      - 1
+      - 3328
+    - - 34
+      - 14491.9
+  - - - 1408
+      - 5056
+      - 1
+      - 256
+    - - 34
+      - 18428.4
+  - - - 5056
+      - 128
+      - 1
+      - 3328
+    - - 31
+      - 10897.7
+  - - - 128
+      - 128
+      - 1
+      - 1280
+    - - 20
+      - 868.422
+  - - - 448
+      - 704
+      - 1
+      - 256
+    - - 31
+      - 4954.31
+  - - - 1856
+      - 256
+      - 1
+      - 3328
+    - - 31
+      - 10952.4
+  - - - 2944
+      - 128
+      - 1
+      - 3328
+    - - 24
+      - 8971.81
+  - - - 448
+      - 1024
+      - 1
+      - 3328
+    - - 31
+      - 10483.3
+  - - - 256
+      - 448
+      - 1
+      - 1280
+    - - 20
+      - 4524.53
+  - - - 4608
+      - 24000
+      - 1
+      - 1536
+    - - 34
+      - 17631.5
+  - - - 704
+      - 256
+      - 1
+      - 1280
+    - - 24
+      - 5766.95
+  - - - 64
+      - 2368
+      - 1
+      - 3328
+    - - 22
+      - 5378.14
+  - - - 256
+      - 704
+      - 1
+      - 3328
+    - - 24
+      - 6325.65
+  - - - 4096
+      - 64
+      - 1
+      - 4096
+    - - 10
+      - 4176.05
+  - - - 1408
+      - 4288
+      - 1
+      - 256
+    - - 34
+      - 17622.4
+  - - - 5888
+      - 2368
+      - 1
+      - 1280
+    - - 34
+      - 19741.4
+  - - - 128
+      - 256
+      - 1
+      - 256
+    - - 2
+      - 1143.88
+  - - - 256
+      - 64
+      - 1
+      - 1280
+    - - 23
+      - 871.091
+  - - - 2368
+      - 5888
+      - 1
+      - 1280
+    - - 34
+      - 20726.4
+  - - - 5888
+      - 256
+      - 1
+      - 1280
+    - - 32
+      - 14934.5
+  - - - 1760
+      - 128
+      - 1
+      - 1760
+    - - 22
+      - 7146.2
+  - - - 704
+      - 1024
+      - 1
+      - 1280
+    - - 31
+      - 11620.0
+  - - - 2368
+      - 1856
+      - 1
+      - 3328
+    - - 34
+      - 17353.9
+  - - - 2944
+      - 704
+      - 1
+      - 256
+    - - 33
+      - 12859.3
+  - - - 2368
+      - 6784
+      - 1
+      - 1280
+    - - 34
+      - 19638.2
+  - - - 2368
+      - 1024
+      - 1
+      - 3328
+    - - 32
+      - 16117.7
+  - - - 1856
+      - 4288
+      - 1
+      - 1280
+    - - 34
+      - 20385.3
+  - - - 704
+      - 3584
+      - 1
+      - 256
+    - - 34
+      - 12333.4
+  - - - 704
+      - 2944
+      - 1
+      - 3328
+    - - 32
+      - 16079.1
+  - - - 1856
+      - 5056
+      - 1
+      - 3328
+    - - 34
+      - 17729.5
+  - - - 3584
+      - 5056
+      - 1
+      - 1280
+    - - 34
+      - 20031.7
+  - - - 2944
+      - 1024
+      - 1
+      - 3328
+    - - 34
+      - 17870.2
+  - - - 2368
+      - 256
+      - 1
+      - 256
+    - - 31
+      - 7730.67
+  - - - 1408
+      - 6784
+      - 1
+      - 256
+    - - 34
+      - 18503.5
+  - - - 6784
+      - 1408
+      - 1
+      - 3328
+    - - 34
+      - 18521.9
+  - - - 1024
+      - 2368
+      - 1
+      - 1280
+    - - 33
+      - 15364.8
+  - - - 704
+      - 64
+      - 1
+      - 256
+    - - 2
+      - 1557.12
+  - - - 256
+      - 2368
+      - 1
+      - 3328
+    - - 31
+      - 10335.8
+  - - - 6784
+      - 2944
+      - 1
+      - 1280
+    - - 34
+      - 19709.1
+  - - - 3584
+      - 448
+      - 1
+      - 1280
+    - - 34
+      - 13442.1
+  - - - 2944
+      - 6784
+      - 1
+      - 3328
+    - - 34
+      - 18641.3
+  - - - 448
+      - 5056
+      - 1
+      - 1280
+    - - 33
+      - 14604.3
+  - - - 64
+      - 2944
+      - 1
+      - 3328
+    - - 22
+      - 6623.55
+  - - - 4288
+      - 704
+      - 1
+      - 256
+    - - 33
+      - 13655.0
+  - - - 64
+      - 64
+      - 1
+      - 1280
+    - - 15
+      - 201.641
+  - - - 5888
+      - 704
+      - 1
+      - 256
+    - - 33
+      - 13630.1
+  - - - 256
+      - 5888
+      - 1
+      - 3328
+    - - 32
+      - 15668.5
+  - - - 6784
+      - 4288
+      - 1
+      - 256
+    - - 34
+      - 20909.2
+  - - - 5888
+      - 256
+      - 1
+      - 256
+    - - 32
+      - 11083.3
+  - - - 6784
+      - 1024
+      - 1
+      - 1280
+    - - 34
+      - 19420.4
+  - - - 704
+      - 448
+      - 1
+      - 1280
+    - - 24
+      - 6933.6
+  - - - 512
+      - 16
+      - 1
+      - 500000
+    - - 9
+      - 457.989
+  - - - 128
+      - 64
+      - 1
+      - 3328
+    - - 20
+      - 463.526
+  - - - 448
+      - 64
+      - 1
+      - 256
+    - - 2
+      - 1065.47
+  - - - 2944
+      - 704
+      - 1
+      - 1280
+    - - 33
+      - 16293.4
+  - - - 6784
+      - 3584
+      - 1
+      - 1280
+    - - 34
+      - 20370.0
+  - - - 1024
+      - 704
+      - 1
+      - 1280
+    - - 31
+      - 11566.1
+  - - - 1408
+      - 2944
+      - 1
+      - 1280
+    - - 34
+      - 20377.3
+  - - - 256
+      - 1856
+      - 1
+      - 256
+    - - 31
+      - 7363.33
+  - - - 2048
+      - 800
+      - 1
+      - 2048
+    - - 36
+      - 7697.05
+  - - - 1408
+      - 2368
+      - 1
+      - 3328
+    - - 32
+      - 15899.8
+  - - - 128
+      - 1408
+      - 1
+      - 3328
+    - - 22
+      - 6380.49
+  - - - 2368
+      - 2944
+      - 1
+      - 256
+    - - 34
+      - 17872.7
+  - - - 704
+      - 1856
+      - 1
+      - 1280
+    - - 31
+      - 13495.4
+  - - - 1408
+      - 256
+      - 1
+      - 3328
+    - - 24
+      - 8863.55
+  - - - 2944
+      - 5888
+      - 1
+      - 256
+    - - 34
+      - 19948.5
+  - - - 3584
+      - 1856
+      - 1
+      - 256
+    - - 33
+      - 15942.0
+  - - - 2368
+      - 448
+      - 1
+      - 256
+    - - 31
+      - 8877.09
+  - - - 4288
+      - 256
+      - 1
+      - 3328
+    - - 32
+      - 11450.5
+  - - - 1408
+      - 64
+      - 1
+      - 256
+    - - 15
+      - 2324.07
+  - - - 2560
+      - 16
+      - 1
+      - 2560
+    - - 20
+      - 1773.87
+  - - - 4288
+      - 2944
+      - 1
+      - 1280
+    - - 34
+      - 19514.6
+  - - - 5056
+      - 448
+      - 1
+      - 3328
+    - - 33
+      - 15091.6
+  - - - 1024
+      - 64
+      - 1
+      - 256
+    - - 0
+      - 1952.54
+  - - - 64
+      - 2368
+      - 1
+      - 256
+    - - 1
+      - 3468.54
+  - - - 4288
+      - 5056
+      - 1
+      - 3328
+    - - 34
+      - 17714.2
+  - - - 2944
+      - 256
+      - 1
+      - 256
+    - - 31
+      - 9236.12
+  - - - 1024
+      - 128
+      - 1
+      - 3328
+    - - 23
+      - 5324.25
+  - - - 256
+      - 5056
+      - 1
+      - 3328
+    - - 31
+      - 14022.2
+  - - - 5056
+      - 2368
+      - 1
+      - 256
+    - - 34
+      - 19316.5
+  - - - 4288
+      - 704
+      - 1
+      - 3328
+    - - 33
+      - 16585.8
+  - - - 448
+      - 3584
+      - 1
+      - 256
+    - - 33
+      - 10237.8
+  - - - 2368
+      - 64
+      - 1
+      - 1280
+    - - 3
+      - 4610.44
+  - - - 1408
+      - 448
+      - 1
+      - 256
+    - - 31
+      - 7869.81
+  - - - 1024
+      - 1408
+      - 1
+      - 3328
+    - - 32
+      - 14994.2
+  - - - 2944
+      - 5888
+      - 1
+      - 1280
+    - - 34
+      - 20449.7
+  - - - 5888
+      - 3584
+      - 1
+      - 256
+    - - 34
+      - 20706.5
+  - - - 1408
+      - 1856
+      - 1
+      - 3328
+    - - 33
+      - 16676.8
+  - - - 6784
+      - 1408
+      - 1
+      - 1280
+    - - 34
+      - 19445.3
+  - - - 704
+      - 2944
+      - 1
+      - 256
+    - - 32
+      - 12767.5
+  - - - 4288
+      - 64
+      - 1
+      - 256
+    - - 8
+      - 4516.24
+  - - - 2944
+      - 5888
+      - 1
+      - 3328
+    - - 34
+      - 19412.5
+  - - - 64
+      - 4288
+      - 1
+      - 1280
+    - - 22
+      - 6206.84
+  - - - 6784
+      - 64
+      - 1
+      - 1280
+    - - 8
+      - 8784.96
+  - - - 1408
+      - 6784
+      - 1
+      - 3328
+    - - 34
+      - 18577.2
+  - - - 1408
+      - 64
+      - 1
+      - 3328
+    - - 23
+      - 4076.96
+  - - - 1408
+      - 1408
+      - 1
+      - 1280
+    - - 34
+      - 16661.4
+  - - - 16384
+      - 400
+      - 1
+      - 4096
+    - - 37
+      - 10835.0
+  - - - 448
+      - 4288
+      - 1
+      - 3328
+    - - 32
+      - 15766.4
+  - - - 704
+      - 2368
+      - 1
+      - 256
+    - - 32
+      - 10688.6
+  - - - 2944
+      - 448
+      - 1
+      - 1280
+    - - 33
+      - 13052.7
+  - - - 5888
+      - 2368
+      - 1
+      - 3328
+    - - 34
+      - 19108.1
+  - - - 5124
+      - 9124
+      - 1
+      - 1760
+    - - 34
+      - 17893.8
+  - - - 4288
+      - 5056
+      - 1
+      - 256
+    - - 34
+      - 20173.5
+  - - - 4288
+      - 448
+      - 1
+      - 1280
+    - - 33
+      - 15088.3
+  - - - 5888
+      - 704
+      - 1
+      - 3328
+    - - 33
+      - 17008.6
+  - - - 4288
+      - 3584
+      - 1
+      - 3328
+    - - 34
+      - 18931.7
+  - - - 128
+      - 2368
+      - 1
+      - 256
+    - - 6
+      - 4894.79
+  - - - 1408
+      - 1024
+      - 1
+      - 256
+    - - 33
+      - 11507.4
+  - - - 8192
+      - 400
+      - 1
+      - 2048
+    - - 36
+      - 8842.77
+  - - - 128
+      - 64
+      - 1
+      - 256
+    - - 1
+      - 267.085
+  - - - 2560
+      - 7000
+      - 1
+      - 2560
+    - - 34
+      - 18009.6
+  - - - 448
+      - 1024
+      - 1
+      - 256
+    - - 31
+      - 7239.36
+  - - - 6784
+      - 6784
+      - 1
+      - 3328
+    - - 34
+      - 18436.1
+  - - - 704
+      - 5056
+      - 1
+      - 3328
+    - - 34
+      - 16833.0
+  - - - 1024
+      - 64
+      - 1
+      - 1280
+    - - 20
+      - 3180.94
+  - - - 64
+      - 1024
+      - 1
+      - 3328
+    - - 23
+      - 3289.72
+  - - - 2368
+      - 2944
+      - 1
+      - 3328
+    - - 34
+      - 18780.4
+  - - - 448
+      - 448
+      - 1
+      - 1280
+    - - 31
+      - 6041.96
+  - - - 2368
+      - 3584
+      - 1
+      - 256
+    - - 34
+      - 17949.8
+  - - - 1856
+      - 448
+      - 1
+      - 256
+    - - 32
+      - 8353.22
+  - - - 128
+      - 5056
+      - 1
+      - 1280
+    - - 19
+      - 9541.57
+  - - - 5124
+      - 9124
+      - 1
+      - 4096
+    - - 37
+      - 14410.2
+  - - - 7680
+      - 48000
+      - 1
+      - 2560
+    - - 34
+      - 16801.9
+  - - - 1024
+      - 48000
+      - 1
+      - 2816
+    - - 34
+      - 18451.3
+  - - - 1856
+      - 1856
+      - 1
+      - 256
+    - - 32
+      - 14088.3
+  - - - 4288
+      - 1408
+      - 1
+      - 3328
+    - - 34
+      - 18875.8
+  - - - 3584
+      - 64
+      - 1
+      - 3328
+    - - 22
+      - 7397.79
+  - - - 5124
+      - 9124
+      - 1
+      - 2048
+    - - 37
+      - 15106.0
+  - - - 4288
+      - 5056
+      - 1
+      - 1280
+    - - 34
+      - 18973.0
+  - - - 5888
+      - 6784
+      - 1
+      - 1280
+    - - 34
+      - 19164.6
+  - - - 256
+      - 1024
+      - 1
+      - 3328
+    - - 24
+      - 8935.71
+  - - - 1760
+      - 1600
+      - 1
+      - 1760
+    - - 34
+      - 17620.8
+  - - - 1856
+      - 64
+      - 1
+      - 3328
+    - - 23
+      - 4982.8
+  - - - 5888
+      - 1408
+      - 1
+      - 3328
+    - - 34
+      - 20144.7
+  - - - 256
+      - 5056
+      - 1
+      - 256
+    - - 31
+      - 10330.5
+  - - - 7680
+      - 12000
+      - 1
+      - 2560
+    - - 34
+      - 17466.1
+  - - - 1024
+      - 128
+      - 1
+      - 256
+    - - 1
+      - 3355.44
+  - - - 1408
+      - 256
+      - 1
+      - 256
+    - - 31
+      - 5636.47
+  - - - 2368
+      - 5056
+      - 1
+      - 256
+    - - 34
+      - 19217.8
+  - - - 256
+      - 1408
+      - 1
+      - 256
+    - - 31
+      - 5662.07
+  - - - 1024
+      - 5056
+      - 1
+      - 256
+    - - 34
+      - 17187.7
+  - - - 2368
+      - 1408
+      - 1
+      - 3328
+    - - 34
+      - 16082.4
+  - - - 1024
+      - 48000
+      - 1
+      - 1536
+    - - 34
+      - 18613.6
+  - - - 5888
+      - 448
+      - 1
+      - 256
+    - - 32
+      - 12252.7
+  - - - 2560
+      - 3200
+      - 1
+      - 2560
+    - - 37
+      - 17097.9
+  - - - 6784
+      - 5056
+      - 1
+      - 1280
+    - - 34
+      - 19040.2
+  - - - 1024
+      - 48000
+      - 1
+      - 2560
+    - - 34
+      - 17514.3
+  - - - 4608
+      - 32
+      - 1
+      - 1536
+    - - 22
+      - 3788.8
+  - - - 4288
+      - 6784
+      - 1
+      - 1280
+    - - 34
+      - 19189.7
+  - - - 128
+      - 704
+      - 1
+      - 256
+    - - 1
+      - 2452.16
+  - - - 2368
+      - 448
+      - 1
+      - 3328
+    - - 31
+      - 11451.5
+  - - - 128
+      - 5888
+      - 1
+      - 3328
+    - - 31
+      - 12582.5
+  - - - 16384
+      - 800
+      - 1
+      - 4096
+    - - 37
+      - 12725.2
+  - - - 448
+      - 128
+      - 1
+      - 1280
+    - - 23
+      - 2722.21
+  - - - 1024
+      - 64
+      - 1
+      - 3328
+    - - 23
+      - 3345.82
+  - - - 3072
+      - 48000
+      - 1
+      - 1024
+    - - 34
+      - 16805.5
+  - - - 64
+      - 3584
+      - 1
+      - 1280
+    - - 22
+      - 6382.43
+  - - - 6784
+      - 1408
+      - 1
+      - 256
+    - - 34
+      - 18503.5
+  - - - 5888
+      - 4288
+      - 1
+      - 256
+    - - 34
+      - 19669.4
+  - - - 5056
+      - 5888
+      - 1
+      - 256
+    - - 34
+      - 20086.1
+  - - - 2368
+      - 1024
+      - 1
+      - 256
+    - - 32
+      - 12892.3
+  - - - 1856
+      - 6784
+      - 1
+      - 1280
+    - - 34
+      - 19014.8
+  - - - 3584
+      - 128
+      - 1
+      - 1280
+    - - 31
+      - 9667.08
+  - - - 4288
+      - 128
+      - 1
+      - 256
+    - - 31
+      - 7051.37
+  - - - 6784
+      - 1856
+      - 1
+      - 256
+    - - 34
+      - 19034.8
+  - - - 4288
+      - 3584
+      - 1
+      - 256
+    - - 34
+      - 20435.1
+  - - - 64
+      - 256
+      - 1
+      - 3328
+    - - 20
+      - 925.887
+  - - - 6784
+      - 448
+      - 1
+      - 3328
+    - - 33
+      - 16900.9
+  - - - 5056
+      - 1856
+      - 1
+      - 1280
+    - - 34
+      - 19321.9
+  - - - 1408
+      - 1024
+      - 1
+      - 3328
+    - - 32
+      - 15018.5
+  - - - 2368
+      - 256
+      - 1
+      - 3328
+    - - 31
+      - 10371.2
+  - - - 5888
+      - 3584
+      - 1
+      - 1280
+    - - 34
+      - 20533.9
+  - - - 5888
+      - 128
+      - 1
+      - 1280
+    - - 31
+      - 11627.6
+  - - - 1024
+      - 2944
+      - 1
+      - 256
+    - - 34
+      - 14310.9
+  - - - 448
+      - 6784
+      - 1
+      - 1280
+    - - 32
+      - 16525.0
+  - - - 256
+      - 3584
+      - 1
+      - 1280
+    - - 32
+      - 12503.2
+  - - - 3584
+      - 1024
+      - 1
+      - 3328
+    - - 34
+      - 17359.6
+  - - - 2944
+      - 1856
+      - 1
+      - 1280
+    - - 34
+      - 18574.9
+  - - - 5056
+      - 256
+      - 1
+      - 256
+    - - 31
+      - 10306.7
+  - - - 128
+      - 5888
+      - 1
+      - 256
+    - - 31
+      - 8653.09
+  - - - 2368
+      - 3584
+      - 1
+      - 3328
+    - - 34
+      - 17971.7
+  - - - 3584
+      - 5888
+      - 1
+      - 3328
+    - - 34
+      - 17912.4
+  - - - 2944
+      - 3584
+      - 1
+      - 1280
+    - - 34
+      - 20474.0
+  - - - 1856
+      - 5888
+      - 1
+      - 1280
+    - - 34
+      - 20247.9
+  - - - 256
+      - 256
+      - 1
+      - 1280
+    - - 23
+      - 3172.04
+  - - - 2048
+      - 3200
+      - 1
+      - 2048
+    - - 37
+      - 11585.7
+  - - - 4288
+      - 1408
+      - 1
+      - 256
+    - - 34
+      - 16494.1
+  - - - 3584
+      - 64
+      - 1
+      - 256
+    - - 8
+      - 4555.84
+  - - - 64
+      - 1856
+      - 1
+      - 3328
+    - - 20
+      - 4950.42
+  - - - 1024
+      - 1024
+      - 1
+      - 256
+    - - 33
+      - 10473.5
+  - - - 4288
+      - 2368
+      - 1
+      - 1280
+    - - 34
+      - 18368.5
+  - - - 2944
+      - 5056
+      - 1
+      - 256
+    - - 34
+      - 19754.5
+  - - - 256
+      - 128
+      - 1
+      - 3328
+    - - 23
+      - 1799.7
+  - - - 512
+      - 8
+      - 1
+      - 500000
+    - - 9
+      - 228.992
+  - - - 6784
+      - 2368
+      - 1
+      - 256
+    - - 34
+      - 20107.6
+  - - - 1024
+      - 1024
+      - 1
+      - 1024
+    - - 37
+      - 9624.88
+  - - - 2944
+      - 64
+      - 1
+      - 3328
+    - - 24
+      - 6567.02
+  - - - 1024
+      - 24000
+      - 1
+      - 2816
+    - - 34
+      - 18540.8
+  - - - 7680
+      - 5984
+      - 1
+      - 2560
+    - - 34
+      - 17286.8
+  - - - 4288
+      - 1856
+      - 1
+      - 256
+    - - 34
+      - 18202.5
+  - - - 1856
+      - 2944
+      - 1
+      - 256
+    - - 32
+      - 15327.3
+  - - - 6144
+      - 48000
+      - 1
+      - 2560
+    - - 34
+      - 16802.2
+  - - - 64
+      - 5888
+      - 1
+      - 1280
+    - - 6
+      - 7960.21
+  - - - 1760
+      - 800
+      - 1
+      - 1760
+    - - 30
+      - 14769.6
+  - - - 1856
+      - 1408
+      - 1
+      - 1280
+    - - 32
+      - 16289.9
+  - - - 704
+      - 1024
+      - 1
+      - 256
+    - - 31
+      - 8929.66
+  - - - 1024
+      - 4288
+      - 1
+      - 1280
+    - - 34
+      - 17579.4
+  - - - 2368
+      - 5056
+      - 1
+      - 3328
+    - - 34
+      - 19176.8
+  - - - 1024
+      - 5056
+      - 1
+      - 3328
+    - - 34
+      - 20334.0
+  - - - 1024
+      - 1856
+      - 1
+      - 3328
+    - - 34
+      - 15950.9
+  - - - 704
+      - 704
+      - 1
+      - 1280
+    - - 31
+      - 10572.9
+  - - - 128
+      - 2368
+      - 1
+      - 1280
+    - - 24
+      - 6819.65
+  - - - 3584
+      - 256
+      - 1
+      - 1280
+    - - 32
+      - 12542.7
+  - - - 5888
+      - 64
+      - 1
+      - 1280
+    - - 8
+      - 7883.06
+  - - - 128
+      - 704
+      - 1
+      - 3328
+    - - 20
+      - 4089.33
+  - - - 4288
+      - 6784
+      - 1
+      - 256
+    - - 34
+      - 21049.2
+  - - - 3584
+      - 2944
+      - 1
+      - 3328
+    - - 34
+      - 18600.5
+  - - - 128
+      - 1856
+      - 1
+      - 256
+    - - 31
+      - 4486.38
+  - - - 64
+      - 4288
+      - 1
+      - 256
+    - - 6
+      - 4559.77
+  - - - 5888
+      - 2944
+      - 1
+      - 256
+    - - 34
+      - 20742.9
+  - - - 5056
+      - 128
+      - 1
+      - 1280
+    - - 31
+      - 9334.54
+  - - - 448
+      - 1856
+      - 1
+      - 3328
+    - - 34
+      - 12706.1
+  - - - 5056
+      - 4288
+      - 1
+      - 256
+    - - 34
+      - 20288.2
+  - - - 1024
+      - 448
+      - 1
+      - 256
+    - - 31
+      - 6953.46
+  - - - 1024
+      - 3584
+      - 1
+      - 256
+    - - 34
+      - 15063.2
+  - - - 2944
+      - 128
+      - 1
+      - 1280
+    - - 24
+      - 7999.35
+  - - - 2048
+      - 32
+      - 1
+      - 2048
+    - - 20
+      - 1740.52
+  - - - 64
+      - 256
+      - 1
+      - 256
+    - - 2
+      - 650.835
+  - - - 704
+      - 256
+      - 1
+      - 3328
+    - - 24
+      - 6390.59
+  - - - 256
+      - 704
+      - 1
+      - 1280
+    - - 24
+      - 5788.44
+  - - - 5888
+      - 5888
+      - 1
+      - 1280
+    - - 34
+      - 19612.2
+  - - - 448
+      - 5888
+      - 1
+      - 1280
+    - - 34
+      - 16134.6
+  - - - 4288
+      - 704
+      - 1
+      - 1280
+    - - 33
+      - 16538.5
+  - - - 2944
+      - 1408
+      - 1
+      - 256
+    - - 34
+      - 17094.5
+  - - - 256
+      - 2944
+      - 1
+      - 1280
+    - - 31
+      - 11188.1
+  - - - 2560
+      - 128
+      - 1
+      - 2560
+    - - 16
+      - 6793.22
+  - - - 2368
+      - 5888
+      - 1
+      - 3328
+    - - 34
+      - 18535.9
+  - - - 704
+      - 1024
+      - 1
+      - 3328
+    - - 31
+      - 11902.8
+  - - - 2368
+      - 1856
+      - 1
+      - 1280
+    - - 34
+      - 17575.4
+  - - - 1856
+      - 448
+      - 1
+      - 1280
+    - - 34
+      - 11313.2
+  - - - 128
+      - 6784
+      - 1
+      - 256
+    - - 31
+      - 8289.91
+  - - - 5888
+      - 4288
+      - 1
+      - 3328
+    - - 34
+      - 18480.5
+  - - - 6784
+      - 704
+      - 1
+      - 1280
+    - - 34
+      - 19019.5
+  - - - 5056
+      - 448
+      - 1
+      - 256
+    - - 32
+      - 11987.6
+  - - - 1856
+      - 5056
+      - 1
+      - 1280
+    - - 34
+      - 18291.0
+  - - - 2944
+      - 1024
+      - 1
+      - 1280
+    - - 34
+      - 18644.1
+  - - - 2368
+      - 4288
+      - 1
+      - 256
+    - - 32
+      - 16710.1
+  - - - 1024
+      - 2368
+      - 1
+      - 3328
+    - - 32
+      - 16129.6
+  - - - 4288
+      - 64
+      - 1
+      - 3328
+    - - 24
+      - 6926.6
+  - - - 704
+      - 1408
+      - 1
+      - 256
+    - - 32
+      - 9815.51
+  - - - 4096
+      - 128
+      - 1
+      - 4096
+    - - 25
+      - 4420.58
+  - - - 4288
+      - 5888
+      - 1
+      - 3328
+    - - 34
+      - 18183.9
+  - - - 4608
+      - 16
+      - 1
+      - 1536
+    - - 23
+      - 2288.59
+  - - - 448
+      - 2944
+      - 1
+      - 1280
+    - - 32
+      - 13045.3
+  - - - 1024
+      - 2944
+      - 1
+      - 3328
+    - - 34
+      - 18538.0
+  - - - 2048
+      - 64
+      - 1
+      - 2048
+    - - 9
+      - 2382.49
+  - - - 256
+      - 6784
+      - 1
+      - 1280
+    - - 34
+      - 14603.1
+  - - - 1856
+      - 3584
+      - 1
+      - 256
+    - - 34
+      - 16120.8
+  - - - 128
+      - 448
+      - 1
+      - 3328
+    - - 20
+      - 2964.66
+  - - - 1856
+      - 256
+      - 1
+      - 256
+    - - 31
+      - 7297.72
+  - - - 5056
+      - 128
+      - 1
+      - 256
+    - - 31
+      - 7959.21
+  - - - 512
+      - 24000
+      - 1
+      - 2816
+    - - 34
+      - 19912.5
+  - - - 256
+      - 5888
+      - 1
+      - 1280
+    - - 32
+      - 14891.8
+  - - - 16384
+      - 1600
+      - 1
+      - 4096
+    - - 37
+      - 13616.9
+  - - - 448
+      - 2368
+      - 1
+      - 3328
+    - - 31
+      - 11326.3
+  - - - 64
+      - 1408
+      - 1
+      - 256
+    - - 14
+      - 2511.56
+  - - - 2944
+      - 2368
+      - 1
+      - 256
+    - - 34
+      - 16742.5
+  - - - 1024
+      - 1856
+      - 1
+      - 256
+    - - 32
+      - 11855.7
+  - - - 6784
+      - 3584
+      - 1
+      - 3328
+    - - 34
+      - 18761.0
+  - - - 1760
+      - 7000
+      - 1
+      - 1760
+    - - 34
+      - 18875.1
+  - - - 1024
+      - 704
+      - 1
+      - 3328
+    - - 31
+      - 12207.9
+  - - - 1024
+      - 5888
+      - 1
+      - 3328
+    - - 34
+      - 19003.6
+  - - - 1408
+      - 2368
+      - 1
+      - 1280
+    - - 34
+      - 16390.4
+  - - - 128
+      - 1408
+      - 1
+      - 1280
+    - - 24
+      - 5531.39
+  - - - 256
+      - 64
+      - 1
+      - 3328
+    - - 20
+      - 922.402
+  - - - 128
+      - 1856
+      - 1
+      - 3328
+    - - 22
+      - 8203.82
+  - - - 2944
+      - 2944
+      - 1
+      - 256
+    - - 34
+      - 18142.2
+  - - - 6784
+      - 256
+      - 1
+      - 256
+    - - 32
+      - 10932.3
+  - - - 128
+      - 4288
+      - 1
+      - 1280
+    - - 31
+      - 8781.6
+  - - - 5888
+      - 1408
+      - 1
+      - 256
+    - - 34
+      - 19138.5
+  - - - 128
+      - 128
+      - 1
+      - 256
+    - - 2
+      - 608.841
+  - - - 1760
+      - 64
+      - 1
+      - 1760
+    - - 23
+      - 4460.39
+  - - - 448
+      - 704
+      - 1
+      - 3328
+    - - 24
+      - 7597.58
+  - - - 448
+      - 1856
+      - 1
+      - 256
+    - - 31
+      - 8501.68
+  - - - 1856
+      - 704
+      - 1
+      - 3328
+    - - 31
+      - 14162.2
+  - - - 5888
+      - 6784
+      - 1
+      - 3328
+    - - 34
+      - 18051.4
+  - - - 704
+      - 4288
+      - 1
+      - 1280
+    - - 32
+      - 16491.5
+  - - - 704
+      - 256
+      - 1
+      - 256
+    - - 31
+      - 3600.26
+  - - - 1024
+      - 48000
+      - 1
+      - 2048
+    - - 37
+      - 15241.5
+  - - - 512
+      - 128
+      - 1
+      - 784
+    - - 39
+      - 3366.99
+  - - - 1024
+      - 256
+      - 1
+      - 196
+    - - 41
+      - 4989.82
+  - - - 256
+      - 64
+      - 1
+      - 3136
+    - - 43
+      - 2259.27
+  - - - 256
+      - 1024
+      - 1
+      - 196
+    - - 41
+      - 4816.52
+  - - - 64
+      - 256
+      - 1
+      - 3136
+    - - 42
+      - 2425.14
+  - - - 128
+      - 512
+      - 1
+      - 784
+    - - 38
+      - 3196.38
+  - - - 64
+      - 64
+      - 1
+      - 3136
+    - - 40
+      - 583.84
 - null

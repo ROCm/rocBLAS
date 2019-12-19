@@ -2,11 +2,11 @@
  * Copyright 2016-2019 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "rocblas_gemv.hpp"
-#include "gemv_device.hpp"
 #include "handle.h"
 #include "logging.h"
 #include "rocblas.h"
 #include "utility.h"
+#include <limits>
 
 namespace
 {
@@ -39,9 +39,6 @@ namespace
             return rocblas_status_invalid_handle;
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
-        if(!alpha || !beta)
-            return rocblas_status_invalid_pointer;
-
         auto layer_mode = handle->layer_mode;
         if(layer_mode
            & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
@@ -57,22 +54,17 @@ namespace
                               transA,
                               m,
                               n,
-                              *alpha,
+                              log_trace_scalar_value(alpha),
                               A,
                               lda,
                               x,
                               incx,
-                              *beta,
+                              log_trace_scalar_value(beta),
                               y,
                               incy);
 
                 if(layer_mode & rocblas_layer_mode_log_bench)
                 {
-                    std::stringstream alphass;
-                    alphass << "--alpha " << std::real(*alpha)
-                            << (std::imag(*alpha) != 0
-                                    ? (" --alphai " + std::to_string(std::imag(*alpha)))
-                                    : "");
                     log_bench(handle,
                               "./rocblas-bench -f gemv -r",
                               rocblas_precision_string<T>,
@@ -82,13 +74,12 @@ namespace
                               m,
                               "-n",
                               n,
-                              alphass.str(),
+                              LOG_BENCH_SCALAR_VALUE(alpha),
                               "--lda",
                               lda,
                               "--incx",
                               incx,
-                              "--beta",
-                              *beta,
+                              LOG_BENCH_SCALAR_VALUE(beta),
                               "--incy",
                               incy);
                 }
@@ -128,12 +119,17 @@ namespace
                             incy);
         }
 
-        if(!A || !x || !y)
-            return rocblas_status_invalid_pointer;
         if(m < 0 || n < 0 || lda < m || lda < 1 || !incx || !incy)
             return rocblas_status_invalid_size;
 
-        return rocblas_gemv_template(handle, transA, m, n, alpha, A, lda, x, incx, beta, y, incy);
+        if(!m || !n)
+            return rocblas_status_success;
+
+        if(!A || !x || !y || !alpha || !beta)
+            return rocblas_status_invalid_pointer;
+
+        return rocblas_gemv_template<T>(
+            handle, transA, m, n, alpha, 0, A, 0, lda, 0, x, 0, incx, 0, beta, 0, y, 0, incy, 0, 1);
     }
 
 } // namespace
@@ -158,8 +154,13 @@ rocblas_status rocblas_sgemv(rocblas_handle    handle,
                              const float*      beta,
                              float*            y,
                              rocblas_int       incy)
+try
 {
     return rocblas_gemv_impl(handle, transA, m, n, alpha, A, lda, x, incx, beta, y, incy);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_dgemv(rocblas_handle    handle,
@@ -174,8 +175,13 @@ rocblas_status rocblas_dgemv(rocblas_handle    handle,
                              const double*     beta,
                              double*           y,
                              rocblas_int       incy)
+try
 {
     return rocblas_gemv_impl(handle, transA, m, n, alpha, A, lda, x, incx, beta, y, incy);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_cgemv(rocblas_handle               handle,
@@ -190,8 +196,13 @@ rocblas_status rocblas_cgemv(rocblas_handle               handle,
                              const rocblas_float_complex* beta,
                              rocblas_float_complex*       y,
                              rocblas_int                  incy)
+try
 {
     return rocblas_gemv_impl(handle, transA, m, n, alpha, A, lda, x, incx, beta, y, incy);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_zgemv(rocblas_handle                handle,
@@ -206,8 +217,13 @@ rocblas_status rocblas_zgemv(rocblas_handle                handle,
                              const rocblas_double_complex* beta,
                              rocblas_double_complex*       y,
                              rocblas_int                   incy)
+try
 {
     return rocblas_gemv_impl(handle, transA, m, n, alpha, A, lda, x, incx, beta, y, incy);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 } // extern "C"

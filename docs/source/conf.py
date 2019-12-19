@@ -56,8 +56,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'rocBLAS'
-copyright = u'2016-2018, Advanced Mirco Devices'
-author = u'Advanced Mirco Devices'
+copyright = u'2016-2018, Advanced Micro Devices'
+author = u'Advanced Micro Devices'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -156,7 +156,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
     (master_doc, 'rocBLAS.tex', u'rocBLAS Documentation',
-     u'Advanced Mirco Devices', 'manual'),
+     u'Advanced Micro Devices', 'manual'),
 ]
 
 
@@ -177,6 +177,6 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
     (master_doc, 'rocBLAS', u'rocBLAS Documentation',
-     author, 'rocBLAS', 'One line description of project.',
+     author, 'rocBLAS', 'BLAS for Radeon Open Compute platforM',
      'Miscellaneous'),
 ]

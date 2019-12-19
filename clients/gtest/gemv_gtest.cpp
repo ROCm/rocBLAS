@@ -6,6 +6,8 @@
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_test.hpp"
 #include "testing_gemv.hpp"
+#include "testing_gemv_batched.hpp"
+#include "testing_gemv_strided_batched.hpp"
 #include "type_dispatch.hpp"
 #include <cctype>
 #include <cstring>
@@ -13,6 +15,69 @@
 
 namespace
 {
+    // possible gemv test cases
+    enum gemv_test_type
+    {
+        GEMV,
+        GEMV_BATCHED,
+        GEMV_STRIDED_BATCHED,
+    };
+
+    //gemv test template
+    template <template <typename...> class FILTER, gemv_test_type GEMV_TYPE>
+    struct gemv_template : RocBLAS_Test<gemv_template<FILTER, GEMV_TYPE>, FILTER>
+    {
+        // Filter for which types apply to this suite
+        static bool type_filter(const Arguments& arg)
+        {
+            return rocblas_simple_dispatch<gemv_template::template type_filter_functor>(arg);
+        }
+
+        // Filter for which functions apply to this suite
+        static bool function_filter(const Arguments& arg)
+        {
+            switch(GEMV_TYPE)
+            {
+            case GEMV:
+                return !strcmp(arg.function, "gemv") || !strcmp(arg.function, "gemv_bad_arg");
+            case GEMV_BATCHED:
+                return !strcmp(arg.function, "gemv_batched")
+                       || !strcmp(arg.function, "gemv_batched_bad_arg");
+            case GEMV_STRIDED_BATCHED:
+                return !strcmp(arg.function, "gemv_strided_batched")
+                       || !strcmp(arg.function, "gemv_strided_batched_bad_arg");
+            }
+            return false;
+        }
+
+        // Google Test name suffix based on parameters
+        static std::string name_suffix(const Arguments& arg)
+        {
+            RocBLAS_TestName<gemv_template> name;
+
+            name << rocblas_datatype2string(arg.a_type) << '_' << (char)std::toupper(arg.transA)
+                 << '_' << arg.M << '_' << arg.N << '_' << arg.alpha << '_' << arg.lda;
+
+            if(GEMV_TYPE == GEMV_STRIDED_BATCHED)
+                name << '_' << arg.stride_a;
+
+            name << '_' << arg.incx;
+
+            if(GEMV_TYPE == GEMV_STRIDED_BATCHED)
+                name << '_' << arg.stride_x;
+
+            name << '_' << arg.beta << '_' << arg.incy;
+
+            if(GEMV_TYPE == GEMV_STRIDED_BATCHED)
+                name << '_' << arg.stride_y;
+
+            if(GEMV_TYPE == GEMV_STRIDED_BATCHED || GEMV_TYPE == GEMV_BATCHED)
+                name << '_' << arg.batch_count;
+
+            return std::move(name);
+        }
+    };
+
     // By default, arbitrary type combinations are invalid.
     // The unnamed second parameter is used for enable_if below.
     template <typename, typename = void>
@@ -28,51 +93,46 @@ namespace
         typename std::enable_if<std::is_same<T, float>{} || std::is_same<T, double>{}
                                 || std::is_same<T, rocblas_float_complex>{}
                                 || std::is_same<T, rocblas_double_complex>{}>::type>
+        : rocblas_test_valid
     {
-        explicit operator bool()
-        {
-            return true;
-        }
         void operator()(const Arguments& arg)
         {
             if(!strcmp(arg.function, "gemv"))
                 testing_gemv<T>(arg);
             else if(!strcmp(arg.function, "gemv_bad_arg"))
                 testing_gemv_bad_arg<T>(arg);
+            else if(!strcmp(arg.function, "gemv_batched"))
+                testing_gemv_batched<T>(arg);
+            else if(!strcmp(arg.function, "gemv_batched_bad_arg"))
+                testing_gemv_batched_bad_arg<T>(arg);
+            else if(!strcmp(arg.function, "gemv_strided_batched"))
+                testing_gemv_strided_batched<T>(arg);
+            else if(!strcmp(arg.function, "gemv_strided_batched_bad_arg"))
+                testing_gemv_strided_batched_bad_arg<T>(arg);
             else
                 FAIL() << "Internal error: Test called with unknown function: " << arg.function;
         }
     };
 
-    struct gemv : RocBLAS_Test<gemv, gemv_testing>
-    {
-        // Filter for which types apply to this suite
-        static bool type_filter(const Arguments& arg)
-        {
-            return rocblas_simple_dispatch<type_filter_functor>(arg);
-        }
-
-        // Filter for which functions apply to this suite
-        static bool function_filter(const Arguments& arg)
-        {
-            return !strcmp(arg.function, "gemv") || !strcmp(arg.function, "gemv_bad_arg");
-        }
-
-        // Google Test name suffix based on parameters
-        static std::string name_suffix(const Arguments& arg)
-        {
-            return RocBLAS_TestName<gemv>{}
-                   << rocblas_datatype2string(arg.a_type) << '_' << (char)std::toupper(arg.transA)
-                   << '_' << arg.M << '_' << arg.N << '_' << arg.alpha << '_' << arg.alphai << '_'
-                   << arg.lda << '_' << arg.incx << '_' << arg.beta << '_' << arg.betai << '_'
-                   << arg.incy;
-        }
-    };
-
+    using gemv = gemv_template<gemv_testing, GEMV>;
     TEST_P(gemv, blas2)
     {
         rocblas_simple_dispatch<gemv_testing>(GetParam());
     }
     INSTANTIATE_TEST_CATEGORIES(gemv);
+
+    using gemv_batched = gemv_template<gemv_testing, GEMV_BATCHED>;
+    TEST_P(gemv_batched, blas2)
+    {
+        rocblas_simple_dispatch<gemv_testing>(GetParam());
+    }
+    INSTANTIATE_TEST_CATEGORIES(gemv_batched);
+
+    using gemv_strided_batched = gemv_template<gemv_testing, GEMV_STRIDED_BATCHED>;
+    TEST_P(gemv_strided_batched, blas2)
+    {
+        rocblas_simple_dispatch<gemv_testing>(GetParam());
+    }
+    INSTANTIATE_TEST_CATEGORIES(gemv_strided_batched);
 
 } // namespace

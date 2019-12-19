@@ -7,14 +7,6 @@ cmake_minimum_required( VERSION 3.5 )
 
 add_definitions(-D_ROCBLAS_INTERNAL_BFLOAT16_)
 
-# Consider removing this in the future
-# This should appear before the project command, because it does not use FORCE
-if( WIN32 )
-  set( CMAKE_INSTALL_PREFIX "${PROJECT_BINARY_DIR}/package" CACHE PATH "Install path prefix, prepended onto install directories" )
-else( )
-  set( CMAKE_INSTALL_PREFIX "/opt/rocm" CACHE PATH "Install path prefix, prepended onto install directories" )
-endif( )
-
 # This has to be initialized before the project() command appears
 # Set the default of CMAKE_BUILD_TYPE to be release, unless user specifies with -D.  MSVC_IDE does not use CMAKE_BUILD_TYPE
 if( NOT DEFINED CMAKE_CONFIGURATION_TYPES AND NOT DEFINED CMAKE_BUILD_TYPE )
@@ -23,6 +15,15 @@ endif()
 
 # This project may compile dependencies for clients
 project( rocblas-clients LANGUAGES CXX )
+
+if(OS_ID_rhel OR OS_ID_centos OR OS_ID_sles)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp=libgomp -pthread")
+else()
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -pthread")
+endif()
+
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
 
 list( APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake )
 
@@ -33,12 +34,12 @@ include( build-options )
 set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
 
 if( NOT TARGET rocblas )
-  find_package( rocblas REQUIRED CONFIG PATHS /opt/rocm/rocblas )
+  find_package( rocblas REQUIRED CONFIG PATHS ${ROCM_PATH}/rocblas /opt/rocm/rocblas )
 endif( )
 
 # Hip headers required of all clients; clients use hip to allocate device memory
-list( APPEND CMAKE_PREFIX_PATH /opt/rocm )
-find_package( hip REQUIRED CONFIG PATHS ${CMAKE_PREFIX_PATH} )
+list( APPEND CMAKE_PREFIX_PATH ${ROCM_PATH} /opt/rocm )
+find_package( hip REQUIRED CONFIG PATHS ${ROCM_PATH} )
 
 # Quietly look for CUDA, but if not found it's not an error
 # The presense of hip is not sufficient to determine if we want a rocm or cuda backend
@@ -75,3 +76,46 @@ add_custom_command( OUTPUT "${ROCBLAS_GENTEST}"
                     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" )
 
 add_custom_target( rocblas-common DEPENDS "${ROCBLAS_COMMON}" "${ROCBLAS_TEMPLATE}" "${ROCBLAS_GENTEST}" )
+
+
+# TODO: move to rocm-cmake
+include(CMakeParseArguments)
+
+function(rocm_create_package_clients)
+    set(options)
+    set(oneValueArgs LIB_NAME DESCRIPTION SECTION MAINTAINER VERSION)
+    set(multiValueArgs DEPENDS)
+
+    cmake_parse_arguments(PARSE "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+
+    string(CONCAT PACKAGE_NAME ${PARSE_LIB_NAME} "-clients-" ${PARSE_VERSION} "-Linux.deb")
+    string(CONCAT DEB_CONTROL_FILE_CONTENT "Package: " ${PARSE_LIB_NAME} "-clients"
+                                           "\nVersion: " ${PARSE_VERSION}
+                                           "\nSection: " ${PARSE_SECTION}
+                                           "\nPriority: optional"
+                                           "\nArchitecture: amd64"
+                                           "\nMaintainer: " ${PARSE_MAINTAINER}
+                                           "\nDescription: " ${PARSE_DESCRIPTION}
+                                           "\nDepends: " ${PARSE_LIB_NAME} "(>=" ${PARSE_VERSION} ")\n\n")
+
+    if(EXISTS "${PROJECT_BINARY_DIR}/package")
+        file(REMOVE_RECURSE "${PROJECT_BINARY_DIR}/package")
+    endif()
+    file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/package/${CMAKE_INSTALL_PREFIX}/${PARSE_LIB_NAME}/bin")
+    file(WRITE "${PROJECT_BINARY_DIR}/package/DEBIAN/control" ${DEB_CONTROL_FILE_CONTENT})
+
+    add_custom_target(package_clients
+        COMMAND ${CMAKE_COMMAND} -E remove -f "${PROJECT_BINARY_DIR}/package/${CMAKE_INSTALL_PREFIX}/${PARSE_LIB_NAME}/bin/*"
+        COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_BINARY_DIR}/staging/*" "${PROJECT_BINARY_DIR}/package/${CMAKE_INSTALL_PREFIX}/${PARSE_LIB_NAME}/bin"
+        COMMAND dpkg -b "${PROJECT_BINARY_DIR}/package/"  ${PACKAGE_NAME})
+endfunction(rocm_create_package_clients)
+
+
+if (BUILD_CLIENTS_SAMPLES OR  BUILD_CLIENTS_TESTS OR BUILD_CLIENTS_SELFTEST OR BUILD_CLIENTS_RIDER)
+
+rocm_create_package_clients(LIB_NAME rocblas
+                            DESCRIPTION "Radeon Open Compute BLAS library"
+                            MAINTAINER "rocblas-maintainer@amd.com>"
+                            SECTION "dev"
+                            VERSION ${rocblas_VERSION})
+endif()

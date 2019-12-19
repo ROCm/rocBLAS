@@ -62,6 +62,8 @@ struct Arguments
     rocblas_int stride_b; //  stride_b > transB == 'N' ? ldb * N : ldb * K
     rocblas_int stride_c; //  stride_c > ldc * N
     rocblas_int stride_d; //  stride_d > ldd * N
+    rocblas_int stride_x;
+    rocblas_int stride_y;
 
     rocblas_int norm_check;
     rocblas_int unit_check;
@@ -145,6 +147,8 @@ struct Arguments
         ROCBLAS_FORMAT_CHECK(stride_b);
         ROCBLAS_FORMAT_CHECK(stride_c);
         ROCBLAS_FORMAT_CHECK(stride_d);
+        ROCBLAS_FORMAT_CHECK(stride_x);
+        ROCBLAS_FORMAT_CHECK(stride_y);
         ROCBLAS_FORMAT_CHECK(norm_check);
         ROCBLAS_FORMAT_CHECK(unit_check);
         ROCBLAS_FORMAT_CHECK(timing);
@@ -161,37 +165,28 @@ struct Arguments
     template <typename T>
     T get_alpha() const
     {
-        return rocblas_isnan(alpha) ? T(0) : convert_alpha_beta<T>(alpha, alphai);
+        return rocblas_isnan(alpha) || rocblas_isnan(alphai) ? T(0)
+                                                             : convert_alpha_beta<T>(alpha, alphai);
     }
 
     template <typename T>
     T get_beta() const
     {
-        return rocblas_isnan(beta) ? T(0) : convert_alpha_beta<T>(beta, betai);
+        return rocblas_isnan(beta) || rocblas_isnan(betai) ? T(0)
+                                                           : convert_alpha_beta<T>(beta, betai);
     }
 
 private:
-    template <typename T,
-              typename U,
-              typename std::enable_if<!is_complex<T> && !std::is_same<T, rocblas_half>{}, int>::type
-              = 0>
+    template <typename T, typename U, typename std::enable_if<!is_complex<T>, int>::type = 0>
     static T convert_alpha_beta(U r, U i)
     {
         return T(r);
     }
 
-    template <typename T, typename U, typename std::enable_if<is_complex<T>, int>::type = 0>
+    template <typename T, typename U, typename std::enable_if<+is_complex<T>, int>::type = 0>
     static T convert_alpha_beta(U r, U i)
     {
         return T(r, i);
-    }
-
-    template <typename T,
-              typename U,
-              typename std::enable_if<std::is_same<T, rocblas_half>{}, int>::type = 0>
-    static T convert_alpha_beta(U r, U i)
-    {
-        return float_to_half(r);
     }
 
     // Function to read Structures data from stream
@@ -260,48 +255,53 @@ private:
             delim = ',';
         };
 
-        print("function", arg.function);
-        print("a_type", rocblas_datatype2string(arg.a_type));
-        print("b_type", rocblas_datatype2string(arg.b_type));
-        print("c_type", rocblas_datatype2string(arg.c_type));
-        print("d_type", rocblas_datatype2string(arg.d_type));
-        print("compute_type", rocblas_datatype2string(arg.compute_type));
-        print("transA", arg.transA);
-        print("transB", arg.transB);
-        print("M", arg.M);
-        print("N", arg.N);
-        print("K", arg.K);
-        print("lda", arg.lda);
-        print("ldb", arg.ldb);
-        print("ldc", arg.ldc);
-        print("ldd", arg.ldd);
-        print("incx", arg.incx);
-        print("incy", arg.incy);
-        print("incd", arg.incd);
-        print("incb", arg.incb);
-        print("alpha", arg.alpha);
-        print("alphai", arg.alphai);
-        print("beta", arg.beta);
-        print("betai", arg.betai);
-        print("side", arg.side);
-        print("uplo", arg.uplo);
-        print("diag", arg.diag);
-        print("batch_count", arg.batch_count);
-        print("stride_a", arg.stride_a);
-        print("stride_b", arg.stride_b);
-        print("stride_c", arg.stride_c);
-        print("stride_d", arg.stride_d);
-        print("algo", arg.algo);
-        print("solution_index", arg.solution_index);
-        print("flags", arg.flags);
-        print("name", arg.name);
-        print("category", arg.category);
-        print("norm_check", arg.norm_check);
-        print("unit_check", arg.unit_check);
-        print("timing", arg.timing);
-        print("iters", arg.iters);
-        print("initialization", arg.initialization);
+#define PRINT(n) print(#n, arg.n)
 
+        PRINT(function);
+        PRINT(a_type);
+        PRINT(b_type);
+        PRINT(c_type);
+        PRINT(d_type);
+        PRINT(compute_type);
+        PRINT(transA);
+        PRINT(transB);
+        PRINT(M);
+        PRINT(N);
+        PRINT(K);
+        PRINT(lda);
+        PRINT(ldb);
+        PRINT(ldc);
+        PRINT(ldd);
+        PRINT(incx);
+        PRINT(incy);
+        PRINT(incd);
+        PRINT(incb);
+        PRINT(alpha);
+        PRINT(alphai);
+        PRINT(beta);
+        PRINT(betai);
+        PRINT(side);
+        PRINT(uplo);
+        PRINT(diag);
+        PRINT(batch_count);
+        PRINT(stride_a);
+        PRINT(stride_b);
+        PRINT(stride_c);
+        PRINT(stride_d);
+        PRINT(stride_x);
+        PRINT(stride_y);
+        PRINT(algo);
+        PRINT(solution_index);
+        PRINT(flags);
+        PRINT(name);
+        PRINT(category);
+        PRINT(norm_check);
+        PRINT(unit_check);
+        PRINT(timing);
+        PRINT(iters);
+        PRINT(initialization);
+
+#undef PRINT
         return str << " }\n";
     }
 };

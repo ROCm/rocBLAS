@@ -13,10 +13,12 @@
 #include <functional>
 #include <iomanip>
 #include <iostream>
+#include <limits>
 #include <map>
 #include <memory>
 #include <mutex>
 #include <shared_mutex>
+#include <sstream>
 #include <string>
 #include <tuple>
 #include <type_traits>
@@ -365,6 +367,145 @@ template <typename... Ts>
 inline void log_bench(rocblas_handle handle, Ts&&... xs)
 {
     log_arguments(*handle->log_bench_os, " ", std::forward<Ts>(xs)...);
+}
+
+/************************************************************************************
+ * Trace log scalar values pointed to by pointer
+ ************************************************************************************/
+
+inline float log_trace_scalar_value(const rocblas_half* value)
+{
+    return value ? float(*value) : std::numeric_limits<float>::quiet_NaN();
+}
+
+template <typename T, typename std::enable_if<!is_complex<T>, int>::type = 0>
+inline T log_trace_scalar_value(const T* value)
+{
+    return value ? *value : std::numeric_limits<T>::quiet_NaN();
+}
+
+template <typename T, typename std::enable_if<+is_complex<T>, int>::type = 0>
+inline T log_trace_scalar_value(const T* value)
+{
+    return value ? *value
+                 : T{std::numeric_limits<typename T::value_type>::quiet_NaN(),
+                     std::numeric_limits<typename T::value_type>::quiet_NaN()};
+}
+
+/************************************************************************************
+ * Bench log scalar values pointed to by pointer
+ ************************************************************************************/
+
+inline std::string log_bench_scalar_value(const char* name, const rocblas_half* value)
+{
+    std::stringstream ss;
+    ss << "--" << name << " " << (value ? float(*value) : std::numeric_limits<float>::quiet_NaN());
+    return ss.str();
+}
+
+template <typename T, typename std::enable_if<!is_complex<T>, int>::type = 0>
+inline std::string log_bench_scalar_value(const char* name, const T* value)
+{
+    std::stringstream ss;
+    ss << "--" << name << " " << (value ? *value : std::numeric_limits<T>::quiet_NaN());
+    return ss.str();
+}
+
+template <typename T, typename std::enable_if<+is_complex<T>, int>::type = 0>
+inline std::string log_bench_scalar_value(const char* name, const T* value)
+{
+    std::stringstream ss;
+    ss << "--" << name << " "
+       << (value ? std::real(*value) : std::numeric_limits<typename T::value_type>::quiet_NaN());
+    if(value && std::imag(*value))
+        ss << " --" << name << "i " << std::imag(*value);
+    return ss.str();
+}
+
+#define LOG_BENCH_SCALAR_VALUE(name) log_bench_scalar_value(#name, name)
+
+/************************************************************************************
+ * Log alpha and beta with dynamic compute_type in *_ex functions
+ ************************************************************************************/
+
+inline rocblas_status log_trace_alpha_beta_ex(rocblas_datatype   compute_type,
+                                              const void*        alpha,
+                                              const void*        beta,
+                                              std::stringstream& alphass,
+                                              std::stringstream& betass)
+{
+    switch(compute_type)
+    {
+    case rocblas_datatype_f16_r:
+        alphass << log_trace_scalar_value(reinterpret_cast<const rocblas_half*>(alpha));
+        betass << log_trace_scalar_value(reinterpret_cast<const rocblas_half*>(beta));
+        break;
+    case rocblas_datatype_f32_r:
+        alphass << log_trace_scalar_value(reinterpret_cast<const float*>(alpha));
+        betass << log_trace_scalar_value(reinterpret_cast<const float*>(beta));
+        break;
+    case rocblas_datatype_f64_r:
+        alphass << log_trace_scalar_value(reinterpret_cast<const double*>(alpha));
+        betass << log_trace_scalar_value(reinterpret_cast<const double*>(beta));
+        break;
+    case rocblas_datatype_i32_r:
+        alphass << log_trace_scalar_value(reinterpret_cast<const int32_t*>(alpha));
+        betass << log_trace_scalar_value(reinterpret_cast<const int32_t*>(beta));
+        break;
+    case rocblas_datatype_f32_c:
+        alphass << log_trace_scalar_value(reinterpret_cast<const rocblas_float_complex*>(alpha));
+        betass << log_trace_scalar_value(reinterpret_cast<const rocblas_float_complex*>(beta));
+        break;
+    case rocblas_datatype_f64_c:
+        alphass << log_trace_scalar_value(reinterpret_cast<const rocblas_double_complex*>(alpha));
+        betass << log_trace_scalar_value(reinterpret_cast<const rocblas_double_complex*>(beta));
+        break;
+    default:
+        return rocblas_status_not_implemented;
+    }
+    return rocblas_status_success;
+}
+
+inline rocblas_status log_bench_alpha_beta_ex(rocblas_datatype compute_type,
+                                              const void*      alpha,
+                                              const void*      beta,
+                                              std::string&     alphas,
+                                              std::string&     betas)
+{
+    switch(compute_type)
+    {
+    case rocblas_datatype_f16_r:
+        alphas = log_bench_scalar_value("alpha", reinterpret_cast<const rocblas_half*>(alpha));
+        betas  = log_bench_scalar_value("beta", reinterpret_cast<const rocblas_half*>(beta));
+        break;
+    case rocblas_datatype_f32_r:
+        alphas = log_bench_scalar_value("alpha", reinterpret_cast<const float*>(alpha));
+        betas  = log_bench_scalar_value("beta", reinterpret_cast<const float*>(beta));
+        break;
+    case rocblas_datatype_f64_r:
+        alphas = log_bench_scalar_value("alpha", reinterpret_cast<const double*>(alpha));
+        betas  = log_bench_scalar_value("beta", reinterpret_cast<const double*>(beta));
+        break;
+    case rocblas_datatype_i32_r:
+        alphas = log_bench_scalar_value("alpha", reinterpret_cast<const int32_t*>(alpha));
+        betas  = log_bench_scalar_value("beta", reinterpret_cast<const int32_t*>(beta));
+        break;
+    case rocblas_datatype_f32_c:
+        alphas = log_bench_scalar_value("alpha",
+                                        reinterpret_cast<const rocblas_float_complex*>(alpha));
+        betas
+            = log_bench_scalar_value("beta", reinterpret_cast<const rocblas_float_complex*>(beta));
+        break;
+    case rocblas_datatype_f64_c:
+        alphas = log_bench_scalar_value("alpha",
+                                        reinterpret_cast<const rocblas_double_complex*>(alpha));
+        betas
+            = log_bench_scalar_value("beta", reinterpret_cast<const rocblas_double_complex*>(beta));
+        break;
+    default:
+        return rocblas_status_not_implemented;
+    }
+    return rocblas_status_success;
 }
 
 #endif

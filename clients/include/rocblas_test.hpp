@@ -10,7 +10,10 @@
 #include "test_cleanup.hpp"
 #include <algorithm>
 #include <cstdio>
+#include <cstring>
 #include <iostream>
+#include <setjmp.h>
+#include <signal.h>
 #include <sstream>
 #include <string>
 #include <type_traits>
@@ -27,29 +30,6 @@
 #define EXPECT_ROCBLAS_STATUS ASSERT_EQ
 
 #else // GOOGLE_TEST
-
-inline const char* rocblas_status_to_string(rocblas_status status)
-{
-    switch(status)
-    {
-    case rocblas_status_success:
-        return "rocblas_status_success";
-    case rocblas_status_invalid_handle:
-        return "rocblas_status_invalid_handle";
-    case rocblas_status_not_implemented:
-        return "rocblas_status_not_implemented";
-    case rocblas_status_invalid_pointer:
-        return "rocblas_status_invalid_pointer";
-    case rocblas_status_invalid_size:
-        return "rocblas_status_invalid_size";
-    case rocblas_status_memory_error:
-        return "rocblas_status_memory_error";
-    case rocblas_status_internal_error:
-        return "rocblas_status_internal_error";
-    default:
-        return "<undefined rocblas_status value>";
-    }
-}
 
 inline void rocblas_expect_status(rocblas_status status, rocblas_status expect)
 {
@@ -107,6 +87,42 @@ inline void rocblas_expect_status(rocblas_status status, rocblas_status expect)
     INSTANTIATE_TEST_CATEGORY(testclass, pre_checkin) \
     INSTANTIATE_TEST_CATEGORY(testclass, nightly)     \
     INSTANTIATE_TEST_CATEGORY(testclass, known_bug)
+
+// sigjmp_buf for transferring control from signal handler back to test
+extern sigjmp_buf rocblas_test_sigjmp_buf;
+
+// Whether the rocblas test sigsetjmp is enabled
+extern bool rocblas_test_sigsetjmp;
+
+struct rocblas_sigsetjmp
+{
+    rocblas_sigsetjmp()
+    {
+        rocblas_test_sigsetjmp = true;
+    }
+
+    ~rocblas_sigsetjmp()
+    {
+        rocblas_test_sigsetjmp = false;
+    }
+};
+
+// Macro to wrap test around sigsetjmp handler, to detect fatal signals
+#define CATCH_SIGNALS_AS_FAILURE(test)                      \
+    do                                                      \
+    {                                                       \
+        int sig = sigsetjmp(rocblas_test_sigjmp_buf, true); \
+        if(sig)                                             \
+        {                                                   \
+            rocblas_test_sigsetjmp = false;                 \
+            FAIL() << "Received " << strsignal(sig);        \
+        }                                                   \
+        else                                                \
+        {                                                   \
+            rocblas_sigsetjmp x;                            \
+            test;                                           \
+        }                                                   \
+    } while(0)
 
 /* ============================================================================================ */
 /*! \brief  Normalized test name to conform to Google Tests */
@@ -221,6 +237,21 @@ public:
 #endif // GOOGLE_TEST
 
 // ----------------------------------------------------------------------------
+// Normal tests which return true when converted to bool
+// ----------------------------------------------------------------------------
+struct rocblas_test_valid
+{
+    // Return true to indicate the type combination is valid, for filtering
+    virtual explicit operator bool() final
+    {
+        return true;
+    }
+
+    // Require derived class to define functor which takes (const Arguments &)
+    virtual void operator()(const Arguments&) = 0;
+};
+
+// ----------------------------------------------------------------------------
 // Error case which returns false when converted to bool. A void specialization
 // of the FILTER class template above, should be derived from this class, in
 // order to indicate that the type combination is invalid.
@@ -228,13 +259,13 @@ public:
 struct rocblas_test_invalid
 {
     // Return false to indicate the type combination is invalid, for filtering
-    explicit operator bool()
+    virtual explicit operator bool() final
     {
         return false;
     }
 
     // If this specialization is actually called, print fatal error message
-    void operator()(const Arguments&)
+    virtual void operator()(const Arguments&) final
     {
         static constexpr char msg[] = "Internal error: Test called with invalid types\n";
 

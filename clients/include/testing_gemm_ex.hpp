@@ -3,6 +3,7 @@
  * ************************************************************************ */
 #include "cblas_interface.hpp"
 #include "flops.hpp"
+#include "handle.h"
 #include "near.hpp"
 #include "norm.hpp"
 #include "rocblas.hpp"
@@ -241,6 +242,68 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
                           rocblas_status_invalid_handle);
 }
 
+namespace
+{
+    bool is_replacement_kernel(rocblas_operation transA,
+                               rocblas_operation transB,
+                               rocblas_int       m,
+                               rocblas_int       n,
+                               rocblas_int       k)
+    {
+        int arc = _rocblas_handle::device_arch_id();
+        if(arc == 908 && transA == rocblas_operation_transpose && transB == rocblas_operation_none
+           && ((m == 512 && n == 512 && k == 512) || (m == 1024 && n == 1024 && k == 1024)
+               || (m == 2048 && n == 2048 && k == 2048) || (m == 4096 && n == 4096 && k == 4096)
+               || (m == 960 && n == 1024 && k == 1024) || (m == 3840 && n == 4096 && k == 4096)))
+            return true;
+        return false;
+    }
+
+    template <typename Ti, typename To, typename Tc>
+    void reference_gemm(rocblas_operation transA,
+                        rocblas_operation transB,
+                        rocblas_int       m,
+                        rocblas_int       n,
+                        rocblas_int       k,
+                        Tc                alpha,
+                        Ti*               A,
+                        rocblas_int       lda,
+                        Ti*               B,
+                        rocblas_int       ldb,
+                        Tc                beta,
+                        To*               C,
+                        rocblas_int       ldc)
+    {
+        cblas_gemm<Ti, To, Tc>(transA, transB, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc);
+    }
+
+    template <>
+    void reference_gemm(rocblas_operation transA,
+                        rocblas_operation transB,
+                        rocblas_int       m,
+                        rocblas_int       n,
+                        rocblas_int       k,
+                        float             alpha,
+                        rocblas_bfloat16* A,
+                        rocblas_int       lda,
+                        rocblas_bfloat16* B,
+                        rocblas_int       ldb,
+                        float             beta,
+                        rocblas_bfloat16* C,
+                        rocblas_int       ldc)
+    {
+        const size_t       size_C = size_t(ldc) * size_t(n);
+        host_vector<float> C_float(size_C);
+        for(int i = 0; i < size_C; ++i)
+            C_float[i] = C[i];
+        cblas_gemm<rocblas_bfloat16, float, float>(
+            transA, transB, m, n, k, alpha, A, lda, B, ldb, beta, C_float, ldc);
+        bool round = !is_replacement_kernel(transA, transB, m, n, k);
+        for(int i = 0; i < size_C; ++i)
+            C[i] = round ? rocblas_bfloat16(C_float[i]) : float_to_bfloat16_truncate(C_float[i]);
+    }
+}
+
 template <typename Ti, typename To, typename Tc>
 void testing_gemm_ex(const Arguments& arg)
 {
@@ -248,9 +311,9 @@ void testing_gemm_ex(const Arguments& arg)
     int32_t           solution_index(arg.solution_index);
     uint32_t          flags(arg.flags);
 
-    bool nantest = rocblas_isnan(arg.beta);
+    bool nantest = rocblas_isnan(arg.beta) || rocblas_isnan(arg.betai);
     if(!std::is_same<To, float>{} && !std::is_same<To, double>{}
-       && !std::is_same<To, rocblas_half>{} && nantest)
+       && !std::is_same<To, rocblas_half>{} && !is_complex<To> && nantest)
         return; // Exclude integers or other types which don't support NaN
 
     Tc h_alpha_Tc = arg.get_alpha<Tc>();
@@ -367,9 +430,9 @@ void testing_gemm_ex(const Arguments& arg)
         // 65500 65500             2   -2
         // 65500 65500            -2    2
         //
-        const rocblas_half ieee_half_near_max = float_to_half(65504.0 - 4.0);
-        const rocblas_half positive_two       = float_to_half(2.0);
-        const rocblas_half negative_two       = float_to_half(-2.0);
+        const rocblas_half ieee_half_near_max(65504.0 - 4.0);
+        const rocblas_half positive_two(2.0);
+        const rocblas_half negative_two(-2.0);
         if(M >= 2 && N >= 2 && K >= 2)
         {
             hA[0]       = Ti(ieee_half_near_max);
@@ -522,7 +585,7 @@ void testing_gemm_ex(const Arguments& arg)
         }
         cpu_time_used = get_time_us();
 
-        cblas_gemm<Ti, To, Tc>(
+        reference_gemm<Ti, To, Tc>(
             transA, transB, M, N, K, h_alpha_Tc, hA, lda, hB, ldb, h_beta_Tc, hD_gold, ldd);
 
         cpu_time_used = get_time_us() - cpu_time_used;

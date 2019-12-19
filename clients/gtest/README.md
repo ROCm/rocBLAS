@@ -51,7 +51,7 @@ if(!dx || !dy)
 ```
 
 The general outline of the function should be:
-1. Adjust any arguments (e.g. use `float_to_half` when the data type is `rocblas_half`).
+1. Convert any scalar arguments (e.g., `alpha` and `beta`) to `double`.
 2. If the problem size arguments are invalid, use a `safe_size` to allocate arrays,
 call the rocBLAS routine with the original arguments, and verify that it returns
 `rocblas_status_invalid_size`. Return.
@@ -109,10 +109,9 @@ Make the primary definition of this class template derive from the `rocblas_test
 ```
 D. Create one or more partial specializations of the class template conditionally enabled by the type parameters matching legal combinations of types.
 
-If the first type argument is `void`, then these partial specializations must
-not apply, so that the default based on `rocblas_test_invalid` can perform the correct behavior when `void` is passed to indicate failure.
+If the first type argument is `void`, then these partial specializations must not apply, so that the default based on `rocblas_test_invalid` can perform the correct behavior when `void` is passed to indicate failure.
 
-In the partial specialzation(s), create an explicit conversion to `bool` which returns `true` in the specialization. (By contrast, `rocblas_test_invalid` returns `false` when converted to `bool`.)
+In the partial specialization(s), derive from the `rocblas_test_valid` class.
 
 In the partial specialization(s), create a functional `operator()` which takes a `const Arguments&` parameter and calls templated test functions (usually in `include/testing_*.hpp`) with the specialization's template arguments when the `arg.function` string matches the function name. If `arg.function` does not match any function related to this test, mark it as a test failure. For example:
 ```c++
@@ -121,10 +120,8 @@ In the partial specialization(s), create a functional `operator()` which takes a
                     typename std::enable_if<
                     std::is_same<T, float>::value ||
                     std::is_same<T, double>::value
-                   >::type>
+                   >::type> : rocblas_test_valid
 {
-    explicit operator bool() { return true; }
-
     void operator()(const Arguments& arg)
     {
         if(!strcmp(arg.function, "syr"))
@@ -271,7 +268,7 @@ include: blas1_gtest.yaml
 ```cmake
 add_custom_command( OUTPUT "${ROCBLAS_TEST_DATA}"
                     COMMAND ../common/rocblas_gentest.py -I ../include rocblas_gtest.yaml -o "${ROCBLAS_TEST_DATA}"
-                    DEPENDS ../common/rocblas_gentest.py rocblas_gtest.yaml ../include/rocblas_common.yaml known_bugs.yaml blas1_gtest.yaml gemm_gtest.yaml gemm_strided_batched_gtest.yaml gemv_gtest.yaml symv_gtest.yaml syr_gtest.yaml ger_gtest.yaml trsm_gtest.yaml trtri_gtest.yaml geam_gtest.yaml set_get_vector_gtest.yaml set_get_matrix_gtest.yaml
+                    DEPENDS ../common/rocblas_gentest.py rocblas_gtest.yaml ../include/rocblas_common.yaml known_bugs.yaml blas1_gtest.yaml gemm_gtest.yaml gemm_batched_gtest.yaml gemm_strided_batched_gtest.yaml gemv_gtest.yaml symv_gtest.yaml syr_gtest.yaml ger_gtest.yaml trsm_gtest.yaml trtri_gtest.yaml geam_gtest.yaml set_get_vector_gtest.yaml set_get_matrix_gtest.yaml
                     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" )
 ```
 **VI.** Add the `.cpp` file to the list of sources for `rocblas-test` in `CMakeLists.txt`. For example:

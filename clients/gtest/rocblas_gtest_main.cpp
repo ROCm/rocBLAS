@@ -111,16 +111,61 @@ public:
     }
 };
 
-/* =====================================================================
-      Main function:
-=================================================================== */
+/*********************************************
+ * Signal-handling for detecting test faults *
+ *********************************************/
 
+// sigjmp_buf for transferring control from signal handler to test
+sigjmp_buf rocblas_test_sigjmp_buf;
+
+// Whether the sigsetjmp is enabled
+bool rocblas_test_sigsetjmp = false;
+
+// rocblas test signal handler
+static void rocblas_test_sighandler(int sig)
+{
+    // If the sigsetjmp is enabled, siglongjmp to it, else raise the signal
+    if(rocblas_test_sigsetjmp)
+        siglongjmp(rocblas_test_sigjmp_buf, sig);
+    else
+        raise(sig);
+}
+
+// Set up signal handlers for detecting fatal signals in rocBLAS
+static void rocblas_test_sigaction()
+{
+    struct sigaction act;
+    sigemptyset(&act.sa_mask);
+    act.sa_flags   = SA_RESETHAND | SA_NODEFER;
+    act.sa_handler = rocblas_test_sighandler;
+
+    sigaction(SIGABRT, &act, nullptr);
+    sigaction(SIGBUS, &act, nullptr);
+    sigaction(SIGFPE, &act, nullptr);
+    sigaction(SIGILL, &act, nullptr);
+    sigaction(SIGPIPE, &act, nullptr);
+    sigaction(SIGQUIT, &act, nullptr);
+    sigaction(SIGSEGV, &act, nullptr);
+    sigaction(SIGSYS, &act, nullptr);
+    sigaction(SIGUSR1, &act, nullptr);
+    sigaction(SIGUSR2, &act, nullptr);
+}
+
+/******************
+ * Main function: *
+ ******************/
 int main(int argc, char** argv)
 {
+    rocblas_test_sigaction(); // Set signal handler
+
     // Print Version
     char blas_version[100];
     rocblas_get_version_string(blas_version, sizeof(blas_version));
+#ifdef USE_TENSILE_HOST
+    printf("rocBLAS version: %s (new Tensile client)\n\n", blas_version);
+#else
     printf("rocBLAS version: %s\n\n", blas_version);
+#endif
 
     // Device Query
     int device_id    = 0;

@@ -26,7 +26,6 @@
  * \brief rocblas_bfloat16.h provides struct for rocblas_bfloat16 typedef
  */
 
-#pragma once
 #ifndef _ROCBLAS_BFLOAT16_H_
 #define _ROCBLAS_BFLOAT16_H_
 
@@ -36,6 +35,7 @@
 // include a minimal definition of rocblas_bfloat16
 
 #include <stdint.h>
+/*! \brief Struct to represent a 16 bit brain floating point number. */
 typedef struct
 {
     uint16_t data;
@@ -63,7 +63,7 @@ struct rocblas_bfloat16
     }
 
     // zero extend lower 16 bits of bfloat16 to convert to IEEE float
-    explicit constexpr __host__ __device__ operator float() const
+    constexpr __host__ __device__ operator float() const
     {
         union
         {
@@ -223,30 +223,29 @@ constexpr __host__ __device__ rocblas_bfloat16 operator--(rocblas_bfloat16& a, i
     --a;
     return orig;
 }
-constexpr __host__ __device__ bool isinf(rocblas_bfloat16 a)
+
+namespace std
 {
-    return !(~a.data & 0x7f80) && !(a.data & 0x7f);
-}
-constexpr __host__ __device__ bool isnan(rocblas_bfloat16 a)
-{
-    return !(~a.data & 0x7f80) && +(a.data & 0x7f);
-}
-constexpr __host__ __device__ bool iszero(rocblas_bfloat16 a)
-{
-    return !(a.data & 0x7fff);
-}
-constexpr __host__ __device__ rocblas_bfloat16 abs(rocblas_bfloat16 a)
-{
-    a.data &= 0x7fff;
-    return a;
-}
-inline rocblas_bfloat16 sin(rocblas_bfloat16 a)
-{
-    return rocblas_bfloat16(sinf(float(a)));
-}
-inline rocblas_bfloat16 cos(rocblas_bfloat16 a)
-{
-    return rocblas_bfloat16(cosf(float(a)));
+    constexpr __host__ __device__ bool isinf(rocblas_bfloat16 a)
+    {
+        return !(~a.data & 0x7f80) && !(a.data & 0x7f);
+    }
+    constexpr __host__ __device__ bool isnan(rocblas_bfloat16 a)
+    {
+        return !(~a.data & 0x7f80) && +(a.data & 0x7f);
+    }
+    constexpr __host__ __device__ bool iszero(rocblas_bfloat16 a)
+    {
+        return !(a.data & 0x7fff);
+    }
+    inline rocblas_bfloat16 sin(rocblas_bfloat16 a)
+    {
+        return rocblas_bfloat16(sinf(float(a)));
+    }
+    inline rocblas_bfloat16 cos(rocblas_bfloat16 a)
+    {
+        return rocblas_bfloat16(cosf(float(a)));
+    }
 }
 
 #endif // __cplusplus < 201402L || (!defined(__HCC__) && !defined(__HIPCC__))

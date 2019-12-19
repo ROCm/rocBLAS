@@ -7,22 +7,53 @@
 #include "rocblas_data.hpp"
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_parse_data.hpp"
+// blas1
 #include "testing_asum.hpp"
+#include "testing_asum_batched.hpp"
+#include "testing_asum_strided_batched.hpp"
 #include "testing_axpy.hpp"
 #include "testing_copy.hpp"
+#include "testing_copy_batched.hpp"
+#include "testing_copy_strided_batched.hpp"
 #include "testing_dot.hpp"
-#include "testing_geam.hpp"
-#include "testing_gemv.hpp"
-#include "testing_ger.hpp"
 #include "testing_iamax_iamin.hpp"
 #include "testing_nrm2.hpp"
+#include "testing_nrm2_batched.hpp"
+#include "testing_nrm2_strided_batched.hpp"
+#include "testing_rot.hpp"
+#include "testing_rot_batched.hpp"
+#include "testing_rot_strided_batched.hpp"
+#include "testing_rotg.hpp"
+#include "testing_rotg_batched.hpp"
+#include "testing_rotg_strided_batched.hpp"
+#include "testing_rotm.hpp"
+#include "testing_rotm_batched.hpp"
+#include "testing_rotm_strided_batched.hpp"
+#include "testing_rotmg.hpp"
+#include "testing_rotmg_batched.hpp"
+#include "testing_rotmg_strided_batched.hpp"
 #include "testing_scal.hpp"
+#include "testing_scal_batched.hpp"
+#include "testing_scal_strided_batched.hpp"
 #include "testing_set_get_matrix.hpp"
+#include "testing_set_get_matrix_async.hpp"
 #include "testing_set_get_vector.hpp"
+#include "testing_set_get_vector_async.hpp"
 #include "testing_swap.hpp"
+#include "testing_swap_batched.hpp"
+#include "testing_swap_strided_batched.hpp"
+// blas2
+#include "testing_gemv.hpp"
+#include "testing_gemv_batched.hpp"
+#include "testing_gemv_strided_batched.hpp"
+#include "testing_ger.hpp"
 #include "testing_syr.hpp"
-#include "testing_trtri.hpp"
-#include "testing_trtri_batched.hpp"
+#include "testing_tbmv.hpp"
+#include "testing_tbmv_batched.hpp"
+#include "testing_tbmv_strided_batched.hpp"
+#include "testing_trmv.hpp"
+#include "testing_trmv_batched.hpp"
+#include "testing_trmv_strided_batched.hpp"
 #include "type_dispatch.hpp"
 #include "utility.hpp"
 #include <algorithm>
@@ -32,23 +63,59 @@
 #include <cstdio>
 #include <cstring>
 #include <iostream>
+#include <map>
 #include <stdexcept>
 #include <string>
 #include <type_traits>
 
-using namespace std::literals;
+using namespace std::literals; // For std::string literals of form "str"s
+
+struct str_less
+{
+    bool operator()(const char* a, const char* b) const
+    {
+        return strcmp(a, b) < 0;
+    }
+};
+
+// Map from const char* to function taking const Arguments& using comparison above
+using func_map = std::map<const char*, void (*)(const Arguments&), str_less>;
+
+// Run a function by using map to map arg.function to function
+void run_function(const func_map& map, const Arguments& arg, const std::string& msg = "")
+{
+    auto match = map.find(arg.function);
+    if(match == map.end())
+        throw std::invalid_argument("Invalid combination --function "s + arg.function
+                                    + " --a_type "s + rocblas_datatype2string(arg.a_type) + msg);
+    match->second(arg);
+}
 
 #if BUILD_WITH_TENSILE
+
+#include "testing_geam.hpp"
 #include "testing_gemm.hpp"
+#include "testing_gemm_batched.hpp"
+#include "testing_gemm_batched_ex.hpp"
 #include "testing_gemm_ex.hpp"
 #include "testing_gemm_strided_batched.hpp"
 #include "testing_gemm_strided_batched_ex.hpp"
+#include "testing_trmm.hpp"
 #include "testing_trsm.hpp"
+#include "testing_trsm_batched.hpp"
+#include "testing_trsm_batched_ex.hpp"
 #include "testing_trsm_ex.hpp"
+#include "testing_trsm_strided_batched.hpp"
+#include "testing_trsm_strided_batched_ex.hpp"
 #include "testing_trsv.hpp"
+#include "testing_trsv_batched.hpp"
+#include "testing_trsv_strided_batched.hpp"
+#include "testing_trtri.hpp"
+#include "testing_trtri_batched.hpp"
+#include "testing_trtri_strided_batched.hpp"
 
 // Template to dispatch testing_gemm_ex for performance tests
-// When Ti == void or complex, the test is marked invalid
+// When Ti == void or Ti == To == Tc == bfloat16, the test is marked invalid
 template <typename Ti, typename To = Ti, typename Tc = To, typename = void>
 struct perf_gemm_ex : rocblas_test_invalid
 {
@@ -58,20 +125,23 @@ template <typename Ti, typename To, typename Tc>
 struct perf_gemm_ex<Ti,
                     To,
                     Tc,
-                    typename std::enable_if<!std::is_same<Ti, void>{} && !is_complex<Ti>>::type>
+                    typename std::enable_if<!std::is_same<Ti, void>{}
+                                            && !(std::is_same<Ti, To>{} && std::is_same<Ti, Tc>{}
+                                                 && std::is_same<Ti, rocblas_bfloat16>{})>::type>
+    : rocblas_test_valid
 {
-    explicit operator bool()
-    {
-        return true;
-    }
     void operator()(const Arguments& arg)
     {
-        testing_gemm_ex<Ti, To, Tc>(arg);
+        static const func_map map = {
+            {"gemm_ex", testing_gemm_ex<Ti, To, Tc>},
+            {"gemm_batched_ex", testing_gemm_batched_ex<Ti, To, Tc>},
+        };
+        run_function(map, arg);
     }
 };
 
 // Template to dispatch testing_gemm_strided_batched_ex for performance tests
-// When Ti == void or complex, the test is marked invalid
+// When Ti == void or Ti == To == Tc == bfloat16, the test is marked invalid
 template <typename Ti, typename To = Ti, typename Tc = To, typename = void>
 struct perf_gemm_strided_batched_ex : rocblas_test_invalid
 {
@@ -82,19 +152,21 @@ struct perf_gemm_strided_batched_ex<
     Ti,
     To,
     Tc,
-    typename std::enable_if<!std::is_same<Ti, void>{} && !is_complex<Ti>>::type>
+    typename std::enable_if<!std::is_same<Ti, void>{}
+                            && !(std::is_same<Ti, To>{} && std::is_same<Ti, Tc>{}
+                                 && std::is_same<Ti, rocblas_bfloat16>{})>::type>
+    : rocblas_test_valid
 {
-    explicit operator bool()
-    {
-        return true;
-    }
     void operator()(const Arguments& arg)
     {
-        testing_gemm_strided_batched_ex<Ti, To, Tc>(arg);
+        static const func_map map = {
+            {"gemm_strided_batched_ex", testing_gemm_strided_batched_ex<Ti, To, Tc>},
+        };
+        run_function(map, arg);
     }
 };
 
-#endif
+#endif // BUILD_WITH_TENSILE
 
 template <typename T, typename U = T, typename = void>
 struct perf_blas : rocblas_test_invalid
@@ -106,79 +178,97 @@ struct perf_blas<
     T,
     U,
     typename std::enable_if<std::is_same<T, float>{} || std::is_same<T, double>{}>::type>
+    : rocblas_test_valid
 {
-    explicit operator bool()
-    {
-        return true;
-    }
     void operator()(const Arguments& arg)
     {
-        if(!strcmp(arg.function, "gemm"))
-            testing_gemm<T>(arg);
-        else if(!strcmp(arg.function, "gemm_strided_batched"))
-            testing_gemm_strided_batched<T>(arg);
-        else if(!strcmp(arg.function, "trsm"))
-            testing_trsm<T>(arg);
-        else if(!strcmp(arg.function, "trsm_ex"))
-            testing_trsm_ex<T>(arg);
-        else if(!strcmp(arg.function, "trsv"))
-            testing_trsv<T>(arg);
-        else if(!strcmp(arg.function, "asum"))
-            testing_asum<T>(arg);
-        else if(!strcmp(arg.function, "axpy"))
-            testing_axpy<T>(arg);
-        else if(!strcmp(arg.function, "copy"))
-            testing_copy<T>(arg);
-        else if(!strcmp(arg.function, "dot"))
-            testing_dot<T>(arg);
-        else if(!strcmp(arg.function, "swap"))
-            testing_swap<T>(arg);
-        else if(!strcmp(arg.function, "iamax"))
-            testing_iamax<T>(arg);
-        else if(!strcmp(arg.function, "iamin"))
-            testing_iamin<T>(arg);
-        else if(!strcmp(arg.function, "nrm2"))
-            testing_nrm2<T>(arg);
-        else if(!strcmp(arg.function, "gemv"))
-            testing_gemv<T>(arg);
-        else if(!strcmp(arg.function, "ger"))
-            testing_ger<T>(arg);
-        else if(!strcmp(arg.function, "syr"))
-            testing_syr<T>(arg);
-        else if(!strcmp(arg.function, "trtri"))
-            testing_trtri<T>(arg);
-        else if(!strcmp(arg.function, "trtri_batched"))
-            testing_trtri_batched<T>(arg);
-        else if(!strcmp(arg.function, "geam"))
-            testing_geam<T>(arg);
-        else if(!strcmp(arg.function, "set_get_vector"))
-            testing_set_get_vector<T>(arg);
-        else if(!strcmp(arg.function, "set_get_matrix"))
-            testing_set_get_matrix<T>(arg);
-        else
-            throw std::invalid_argument("Invalid combination --function "s + arg.function
-                                        + " --a_type "s + rocblas_datatype2string(arg.a_type));
+        static const func_map map
+            = { {"asum", testing_asum<T>},
+                {"axpy", testing_axpy<T>},
+                {"copy", testing_copy<T>},
+                {"copy_batched", testing_copy_batched<T>},
+                {"copy_strided_batched", testing_copy_strided_batched<T>},
+                {"dot", testing_dot<T>},
+                {"swap", testing_swap<T>},
+                {"swap_batched", testing_swap_batched<T>},
+                {"swap_strided_batched", testing_swap_strided_batched<T>},
+                {"iamax", testing_iamax<T>},
+                {"iamin", testing_iamin<T>},
+                {"nrm2", testing_nrm2<T>},
+                {"nrm2_batched", testing_nrm2_batched<T>},
+                {"nrm2_strided_batched", testing_nrm2_strided_batched<T>},
+                {"set_get_vector", testing_set_get_vector<T>},
+                {"set_get_matrix", testing_set_get_matrix<T>},
+                {"rotm", testing_rotm<T>},
+                {"rotm_batched", testing_rotm_batched<T>},
+                {"rotm_strided_batched", testing_rotm_strided_batched<T>},
+                {"rotmg", testing_rotmg<T>},
+                {"rotmg_batched", testing_rotmg_batched<T>},
+                {"rotmg_strided_batched", testing_rotmg_strided_batched<T>},
+                {"gemv", testing_gemv<T>},
+                {"gemv_batched", testing_gemv_batched<T>},
+                {"gemv_strided_batched", testing_gemv_strided_batched<T>},
+                {"trmv", testing_trmv<T>},
+                {"trmv_batched", testing_trmv_batched<T>},
+                {"trmv_strided_batched", testing_trmv_strided_batched<T>},
+                {"ger", testing_ger<T>},
+                {"syr", testing_syr<T>},
+                {"tbmv", testing_tbmv<T>},
+                {"tbmv_batched", testing_tbmv_batched<T>},
+                {"tbmv_strided_batched", testing_tbmv_strided_batched<T>},
+#if BUILD_WITH_TENSILE
+                {"geam", testing_geam<T>},
+                {"trmm", testing_trmm<T>},
+                {"trtri", testing_trtri<T>},
+                {"trtri_batched", testing_trtri_batched<T>},
+                {"trtri_strided_batched", testing_trtri_strided_batched<T>},
+                {"gemm", testing_gemm<T>},
+                {"gemm_batched", testing_gemm_batched<T>},
+                {"gemm_strided_batched", testing_gemm_strided_batched<T>},
+                {"trsm", testing_trsm<T>},
+                {"trsm_ex", testing_trsm_ex<T>},
+                {"trsm_batched", testing_trsm_batched<T>},
+                {"trsm_batched_ex", testing_trsm_batched_ex<T>},
+                {"trsm_strided_batched", testing_trsm_strided_batched<T>},
+                {"trsm_strided_batched_ex", testing_trsm_strided_batched_ex<T>},
+                {"trsv", testing_trsv<T>},
+                {"trsv_batched", testing_trsv_batched<T>},
+                {"trsv_strided_batched", testing_trsv_strided_batched<T>},
+#endif
+              };
+        run_function(map, arg);
+    }
+};
+
+template <typename T, typename U>
+struct perf_blas<T, U, typename std::enable_if<std::is_same<T, rocblas_bfloat16>{}>::type>
+    : rocblas_test_valid
+{
+    void operator()(const Arguments& arg)
+    {
+        static const func_map map = {
+            {"dot", testing_dot<T>},
+        };
+        run_function(map, arg);
     }
 };
 
 template <typename T, typename U>
 struct perf_blas<T, U, typename std::enable_if<std::is_same<T, rocblas_half>{}>::type>
+    : rocblas_test_valid
 {
-    explicit operator bool()
-    {
-        return true;
-    }
     void operator()(const Arguments& arg)
     {
-        if(!strcmp(arg.function, "axpy"))
-            testing_axpy<T>(arg);
-        else if(!strcmp(arg.function, "gemm"))
-            testing_gemm<T>(arg);
-        else if(!strcmp(arg.function, "gemm_strided_batched"))
-            testing_gemm_strided_batched<T>(arg);
-        else
-            throw std::invalid_argument("Invalid combination --function "s + arg.function
-                                        + " --a_type "s + rocblas_datatype2string(arg.a_type));
+        static const func_map map
+            = { {"axpy", testing_axpy<T>},
+                {"dot", testing_dot<T>},
+#if BUILD_WITH_TENSILE
+                {"gemm", testing_gemm<T>},
+                {"gemm_batched", testing_gemm_batched<T>},
+                {"gemm_strided_batched", testing_gemm_strided_batched<T>},
+#endif
+              };
+        run_function(map, arg);
     }
 };
 
@@ -187,36 +277,75 @@ struct perf_blas<T,
                  U,
                  typename std::enable_if<std::is_same<T, rocblas_double_complex>{}
                                          || std::is_same<T, rocblas_float_complex>{}>::type>
+    : rocblas_test_valid
 {
-    explicit operator bool()
-    {
-        return true;
-    }
     void operator()(const Arguments& arg)
     {
-        if(!strcmp(arg.function, "asum"))
-            testing_asum<T>(arg);
-        else if(!strcmp(arg.function, "axpy"))
-            testing_axpy<T>(arg);
-        else if(!strcmp(arg.function, "copy"))
-            testing_copy<T>(arg);
-        else if(!strcmp(arg.function, "dot"))
-            testing_dot<T>(arg);
-        else if(!strcmp(arg.function, "dotc"))
-            testing_dotc<T>(arg);
-        else if(!strcmp(arg.function, "nrm2"))
-            testing_nrm2<T>(arg);
-        else if(!strcmp(arg.function, "swap"))
-            testing_swap<T>(arg);
-        else if(!strcmp(arg.function, "iamax"))
-            testing_iamax<T>(arg);
-        else if(!strcmp(arg.function, "iamin"))
-            testing_iamin<T>(arg);
-        else if(!strcmp(arg.function, "gemv"))
-            testing_gemv<T>(arg);
-        else
-            throw std::invalid_argument("Invalid combination --function "s + arg.function
-                                        + " --a_type "s + rocblas_datatype2string(arg.a_type));
+        static const func_map map
+            = { {"asum", testing_asum<T>},
+                {"asum_batched", testing_asum_batched<T>},
+                {"asum_strided_batched", testing_asum_strided_batched<T>},
+                {"axpy", testing_axpy<T>},
+                {"copy", testing_copy<T>},
+                {"copy_batched", testing_copy_batched<T>},
+                {"copy_strided_batched", testing_copy_strided_batched<T>},
+                {"dot", testing_dot<T>},
+                {"dotc", testing_dotc<T>},
+                {"nrm2", testing_nrm2<T>},
+                {"nrm2_batched", testing_nrm2_batched<T>},
+                {"nrm2_strided_batched", testing_nrm2_strided_batched<T>},
+                {"swap", testing_swap<T>},
+                {"swap_batched", testing_swap_batched<T>},
+                {"swap_strided_batched", testing_swap_strided_batched<T>},
+                {"iamax", testing_iamax<T>},
+                {"iamin", testing_iamin<T>},
+                {"gemv", testing_gemv<T>},
+                {"trmv", testing_trmv<T>},
+                {"trmv_batched", testing_trmv_batched<T>},
+                {"trmv_strided_batched", testing_trmv_strided_batched<T>},
+                {"tbmv", testing_tbmv<T>},
+                {"tbmv_batched", testing_tbmv_batched<T>},
+                {"tbmv_strided_batched", testing_tbmv_strided_batched<T>},
+#if BUILD_WITH_TENSILE
+                {"gemm", testing_gemm<T>},
+                {"gemm_batched", testing_gemm_batched<T>},
+                {"gemm_strided_batched", testing_gemm_strided_batched<T>},
+#endif
+              };
+        run_function(map, arg);
+    }
+};
+
+template <typename Ti, typename To = Ti, typename Tc = To, typename = void>
+struct perf_blas_rot : rocblas_test_invalid
+{
+};
+
+template <typename Ti, typename To, typename Tc>
+struct perf_blas_rot<
+    Ti,
+    To,
+    Tc,
+    typename std::enable_if<(
+        (std::is_same<Ti, float>{} && std::is_same<Ti, To>{} && std::is_same<To, Tc>{})
+        || (std::is_same<Ti, double>{} && std::is_same<Ti, To>{} && std::is_same<To, Tc>{})
+        || (std::is_same<Ti, rocblas_float_complex>{} && std::is_same<To, float>{}
+            && std::is_same<Tc, rocblas_float_complex>{})
+        || (std::is_same<Ti, rocblas_float_complex>{} && std::is_same<To, float>{}
+            && std::is_same<Tc, float>{})
+        || (std::is_same<Ti, rocblas_double_complex>{} && std::is_same<To, double>{}
+            && std::is_same<Tc, rocblas_double_complex>{})
+        || (std::is_same<Ti, rocblas_double_complex>{} && std::is_same<To, double>{}
+            && std::is_same<Tc, double>{}))>::type> : rocblas_test_valid
+{
+    void operator()(const Arguments& arg)
+    {
+        static const func_map map = {
+            {"rot", testing_rot<Ti, To, Tc>},
+            {"rot_batched", testing_rot_batched<Ti, To, Tc>},
+            {"rot_strided_batched", testing_rot_strided_batched<Ti, To, Tc>},
+        };
+        run_function(map, arg);
     }
 };
 
@@ -236,18 +365,42 @@ struct perf_blas_scal<
         || (std::is_same<Ta, Tb>{} && std::is_same<Ta, double>{})
         || (std::is_same<Ta, Tb>{} && std::is_same<Ta, rocblas_float_complex>{})
         || (std::is_same<Ta, Tb>{} && std::is_same<Ta, rocblas_double_complex>{})>::type>
+    : rocblas_test_valid
 {
-    explicit operator bool()
-    {
-        return true;
-    }
     void operator()(const Arguments& arg)
     {
-        if(!strcmp(arg.function, "scal"))
-            testing_scal<Ta, Tb>(arg);
-        else
-            throw std::invalid_argument("Invalid combination --function "s + arg.function
-                                        + " --a_type "s + rocblas_datatype2string(arg.a_type));
+        static const func_map map = {
+            {"scal", testing_scal<Ta, Tb>},
+            {"scal_batched", testing_scal_batched<Ta, Tb>},
+            {"scal_strided_batched", testing_scal_strided_batched<Ta, Tb>},
+        };
+        run_function(map, arg);
+    }
+};
+
+template <typename Ta, typename Tb = Ta, typename = void>
+struct perf_blas_rotg : rocblas_test_invalid
+{
+};
+
+template <typename Ta, typename Tb>
+struct perf_blas_rotg<
+    Ta,
+    Tb,
+    typename std::enable_if<
+        (std::is_same<Ta, rocblas_double_complex>{} && std::is_same<Tb, double>{})
+        || (std::is_same<Ta, rocblas_float_complex>{} && std::is_same<Tb, float>{})
+        || (std::is_same<Ta, Tb>{} && std::is_same<Ta, float>{})
+        || (std::is_same<Ta, Tb>{} && std::is_same<Ta, double>{})>::type> : rocblas_test_valid
+{
+    void operator()(const Arguments& arg)
+    {
+        static const func_map map = {
+            {"rotg", testing_rotg<Ta, Tb>},
+            {"rotg_batched", testing_rotg_batched<Ta, Tb>},
+            {"rotg_strided_batched", testing_rotg_strided_batched<Ta, Tb>},
+        };
+        run_function(map, arg, " --b_type "s + rocblas_datatype2string(arg.b_type));
     }
 };
 
@@ -266,7 +419,7 @@ int run_bench_test(Arguments& arg)
         function += sizeof(prefix) - 1;
 
 #if BUILD_WITH_TENSILE
-    if(!strcmp(function, "gemm"))
+    if(!strcmp(function, "gemm") || !strcmp(function, "gemm_batched"))
     {
         // adjust dimension for GEMM routines
         rocblas_int min_lda = arg.transA == 'N' ? arg.M : arg.K;
@@ -340,7 +493,7 @@ int run_bench_test(Arguments& arg)
         }
     }
 
-    if(!strcmp(function, "gemm_ex"))
+    if(!strcmp(function, "gemm_ex") || !strcmp(function, "gemm_batched_ex"))
     {
         // adjust dimension for GEMM routines
         rocblas_int min_lda = arg.transA == 'N' ? arg.M : arg.K;
@@ -410,8 +563,15 @@ int run_bench_test(Arguments& arg)
     else
 #endif
     {
-        if(!strcmp(function, "scal"))
+        if(!strcmp(function, "scal") || !strcmp(function, "scal_batched")
+           || !strcmp(function, "scal_strided_batched"))
             rocblas_blas1_dispatch<perf_blas_scal>(arg);
+        else if(!strcmp(function, "rotg") || !strcmp(function, "rotg_batched")
+                || !strcmp(function, "rotg_strided_batched"))
+            rocblas_blas1_dispatch<perf_blas_rotg>(arg);
+        else if(!strcmp(function, "rot") || !strcmp(function, "rot_batched")
+                || !strcmp(function, "rot_strided_batched"))
+            rocblas_blas1_dispatch<perf_blas_rot>(arg);
         else
             rocblas_simple_dispatch<perf_blas>(arg);
     }
@@ -427,13 +587,28 @@ int rocblas_bench_datafile()
     return ret;
 }
 
+// Replace --batch with --batch_count for backward compatibility
+void fix_batch(int argc, char* argv[])
+{
+    static char b_c[] = "--batch_count";
+    for(int i = 1; i < argc; ++i)
+        if(!strcmp(argv[i], "--batch"))
+        {
+            static int once = fprintf(
+                stderr,
+                "%s warning: --batch is deprecated, and --batch_count should be used instead.\n",
+                argv[0]);
+            argv[i] = b_c;
+        }
+}
+
 using namespace boost::program_options;
 
 int main(int argc, char* argv[])
 try
 {
-    Arguments arg;
-
+    fix_batch(argc, argv);
+    Arguments   arg;
     std::string function;
     std::string precision;
     std::string a_type;
@@ -442,7 +617,6 @@ try
     std::string d_type;
     std::string compute_type;
     std::string initialization;
-
     rocblas_int device_id;
     bool        datafile = rocblas_parse_data(argc, argv);
 
@@ -461,7 +635,7 @@ try
 
         ("sizek,k",
          value<rocblas_int>(&arg.K)->default_value(128),
-         "Specific matrix size:sizek is only applicable to BLAS-3: the number of columns in "
+         "Specific matrix size: sizek is only applicable to BLAS-3: the number of columns in "
          "A and rows in B.")
 
         ("lda",
@@ -500,6 +674,16 @@ try
          "Specific stride of strided_batched matrix D, is only applicable to strided batched"
          "BLAS_EX: second dimension * leading dimension.")
 
+        ("stride_x",
+         value<rocblas_int>(&arg.stride_x)->default_value(128*128),
+         "Specific stride of strided_batched vector x, is only applicable to strided batched"
+         "BLAS_2: second dimension.")
+
+        ("stride_y",
+         value<rocblas_int>(&arg.stride_y)->default_value(128*128),
+         "Specific stride of strided_batched vector y, is only applicable to strided batched"
+         "BLAS_2: leading dimension.")
+
         ("incx",
          value<rocblas_int>(&arg.incx)->default_value(1),
          "increment between values in x vector")
@@ -518,7 +702,7 @@ try
          value<double>(&arg.beta)->default_value(0.0), "specifies the scalar beta")
 
         ("betai",
-         value<double>(&arg.beta)->default_value(0.0), "specifies the imaginary part of the scalar beta")
+         value<double>(&arg.betai)->default_value(0.0), "specifies the imaginary part of the scalar beta")
 
         ("function,f",
          value<std::string>(&function),
@@ -573,9 +757,9 @@ try
          value<char>(&arg.diag)->default_value('N'),
          "U = unit diagonal, N = non unit diagonal. Only applicable to certain routines") // xtrsm xtrsm_ex xtrsv
 
-        ("batch",
+        ("batch_count",
          value<rocblas_int>(&arg.batch_count)->default_value(1),
-         "Number of matrices. Only applicable to batched routines") // xtrsm xtrsm_ex xtrmm xgemm
+         "Number of matrices. Only applicable to batched routines")
 
         ("verify,v",
          value<rocblas_int>(&arg.norm_check)->default_value(0),

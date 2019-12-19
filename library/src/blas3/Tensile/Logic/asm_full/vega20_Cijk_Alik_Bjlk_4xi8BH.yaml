@@ -195,7 +195,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: [32, 4, 1]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
     _staggerStrideShift: 3
   - AggressivePerfMode: 1
@@ -355,7 +355,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: [16, 16, 1]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
     _staggerStrideShift: 3
   - AggressivePerfMode: 1
@@ -515,7 +515,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: [16, 16, 1]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
     _staggerStrideShift: 3
   - AggressivePerfMode: 1
@@ -675,7 +675,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: [8, 16, 1]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
     _staggerStrideShift: 3
   - AggressivePerfMode: 1
@@ -835,7 +835,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: [16, 16, 1]
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
     _staggerStrideShift: 3
   - AggressivePerfMode: 1
@@ -995,7 +995,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: [8, 8, 2]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
     _staggerStrideShift: 3
   - AggressivePerfMode: 1
@@ -1155,7 +1155,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: [8, 8, 2]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
     _staggerStrideShift: 3
   - AggressivePerfMode: 1
@@ -1315,7 +1315,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: [4, 8, 4]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
     _staggerStrideShift: 2
   - AggressivePerfMode: 1
@@ -1475,7 +1475,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: [4, 8, 4]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
     _staggerStrideShift: 2
   - AggressivePerfMode: 1
@@ -1635,7 +1635,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: [4, 8, 4]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
     _staggerStrideShift: 2
   - AggressivePerfMode: 1
@@ -1795,7 +1795,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: [8, 8, 2]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
     _staggerStrideShift: 2
   - AggressivePerfMode: 1
@@ -1955,7 +1955,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: [8, 16, 2]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
     _staggerStrideShift: 2
   - AggressivePerfMode: 1
@@ -2115,7 +2115,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: [8, 16, 2]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
     _staggerStrideShift: 2
   - AggressivePerfMode: 1
@@ -2275,7 +2275,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: [4, 8, 4]
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
     _staggerStrideShift: 2
   - AggressivePerfMode: 1
@@ -2435,7 +2435,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: [4, 8, 4]
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
     _staggerStrideShift: 2
   - AggressivePerfMode: 1
@@ -2595,7 +2595,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: [4, 8, 4]
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
     _staggerStrideShift: 2
   - AggressivePerfMode: 1
@@ -2755,7 +2755,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: [8, 8, 2]
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
     _staggerStrideShift: 2
   - AggressivePerfMode: 1
@@ -2915,7 +2915,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: [8, 8, 2]
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
     _staggerStrideShift: 2
   - AggressivePerfMode: 1
@@ -3075,7 +3075,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: [8, 16, 2]
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
     _staggerStrideShift: 2
   - AggressivePerfMode: 1
@@ -3235,7 +3235,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: [4, 8, 4]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
     _staggerStrideShift: 2
   - AggressivePerfMode: 1
@@ -3395,7 +3395,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: [4, 8, 4]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
     _staggerStrideShift: 2
   - AggressivePerfMode: 1
@@ -3555,7 +3555,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: [4, 8, 4]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
     _staggerStrideShift: 2
   - AggressivePerfMode: 1
@@ -3715,7 +3715,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: [8, 8, 2]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
     _staggerStrideShift: 2
   - AggressivePerfMode: 1
@@ -3875,7 +3875,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: [8, 8, 2]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
     _staggerStrideShift: 2
   - AggressivePerfMode: 1
@@ -4035,7 +4035,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: [16, 8, 4]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
     _staggerStrideShift: 2
   - AggressivePerfMode: 1
@@ -4195,7 +4195,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: [8, 16, 2]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
     _staggerStrideShift: 2
   - AggressivePerfMode: 1
@@ -4355,7 +4355,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: [8, 16, 2]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
     _staggerStrideShift: 2
   - AggressivePerfMode: 1
@@ -4515,7 +4515,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: [4, 8, 4]
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
     _staggerStrideShift: 2
   - AggressivePerfMode: 1
@@ -4675,7 +4675,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: [4, 8, 4]
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
     _staggerStrideShift: 2
   - AggressivePerfMode: 1
@@ -4835,7 +4835,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: [4, 8, 4]
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
     _staggerStrideShift: 2
   - AggressivePerfMode: 1
@@ -4995,7 +4995,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: [8, 16, 2]
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
     _staggerStrideShift: 2
   - AggressivePerfMode: 1
@@ -5155,7 +5155,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: [4, 8, 4]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
     _staggerStrideShift: 2
   - AggressivePerfMode: 1
@@ -5315,7 +5315,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: [8, 16, 2]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
     _staggerStrideShift: 2
   - AggressivePerfMode: 1
@@ -5475,7 +5475,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: [4, 8, 4]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
     _staggerStrideShift: 1
   - AggressivePerfMode: 1
@@ -5635,7 +5635,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: [16, 8, 4]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
     _staggerStrideShift: 1
   - AggressivePerfMode: 1
@@ -5795,7 +5795,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: [16, 8, 4]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
     _staggerStrideShift: 1
   - AggressivePerfMode: 1
@@ -5955,7 +5955,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: [4, 8, 4]
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
     _staggerStrideShift: 1
   - AggressivePerfMode: 1
@@ -6115,7 +6115,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: [16, 8, 4]
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
     _staggerStrideShift: 1
   - AggressivePerfMode: 1
@@ -6275,7 +6275,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: [4, 8, 4]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
     _staggerStrideShift: 1
   - AggressivePerfMode: 1
@@ -6435,7 +6435,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: [16, 8, 4]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
     _staggerStrideShift: 1
   - AggressivePerfMode: 1
@@ -6595,7 +6595,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: [16, 8, 4]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
     _staggerStrideShift: 1
   - AggressivePerfMode: 1
@@ -6755,7 +6755,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: [4, 8, 4]
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
     _staggerStrideShift: 1
   - AggressivePerfMode: 1
@@ -6915,7 +6915,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: [4, 8, 4]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
     _staggerStrideShift: 1
   - AggressivePerfMode: 1
@@ -7071,7 +7071,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: [16, 16, 1]
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
     _staggerStrideShift: 3
   - AggressivePerfMode: 1
@@ -7231,7 +7231,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: [16, 16, 1]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
     _staggerStrideShift: 3
   - AggressivePerfMode: 1
@@ -7391,7 +7391,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: [16, 16, 1]
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
     _staggerStrideShift: 3
   - AggressivePerfMode: 1
@@ -7547,7 +7547,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: [16, 16, 1]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
     _staggerStrideShift: 2
   - AggressivePerfMode: 1
@@ -7707,7 +7707,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: [16, 16, 1]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
     _staggerStrideShift: 2
   - AggressivePerfMode: 1
@@ -7863,7 +7863,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: [16, 16, 1]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
     _staggerStrideShift: 2
   - AggressivePerfMode: 1
@@ -8023,7 +8023,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: [16, 16, 1]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
     _staggerStrideShift: 2
   - AggressivePerfMode: 1
@@ -8179,7 +8179,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: [16, 16, 1]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
     _staggerStrideShift: 2
   - AggressivePerfMode: 1
@@ -8339,7 +8339,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: [16, 16, 1]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
     _staggerStrideShift: 2
   - AggressivePerfMode: 1
@@ -8495,7 +8495,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: [16, 16, 1]
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
     _staggerStrideShift: 2
   - AggressivePerfMode: 1
@@ -8655,7 +8655,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: [16, 16, 1]
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
     _staggerStrideShift: 2
   - AggressivePerfMode: 1
@@ -8811,7 +8811,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: [16, 16, 1]
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
     _staggerStrideShift: 2
   - AggressivePerfMode: 1
@@ -8971,7 +8971,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: [16, 16, 1]
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
     _staggerStrideShift: 2
   - AggressivePerfMode: 1
@@ -9127,7 +9127,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: [16, 16, 1]
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
     _staggerStrideShift: 2
   - AggressivePerfMode: 1
@@ -9287,7 +9287,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: [16, 16, 1]
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
     _staggerStrideShift: 2
   - AggressivePerfMode: 1
@@ -9447,7 +9447,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: [16, 16, 1]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
     _staggerStrideShift: 1
   - AggressivePerfMode: 1
@@ -9607,7 +9607,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: [16, 16, 1]
-    WorkGroupMapping: -4
+    WorkGroupMapping: 4
     WorkGroupMappingType: B
     _staggerStrideShift: 1
   - AggressivePerfMode: 1
@@ -9767,7 +9767,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: [8, 8, 1]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
     _staggerStrideShift: 4
   - AggressivePerfMode: 1
@@ -9927,7 +9927,7 @@
     VectorStore: true
     VectorWidth: 4
     WorkGroup: [8, 8, 1]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
     _staggerStrideShift: 5
   - AggressivePerfMode: 1
@@ -10087,7 +10087,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: [8, 8, 2]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
     _staggerStrideShift: 3
   - AggressivePerfMode: 1
@@ -10247,7 +10247,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: [4, 4, 4]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
     _staggerStrideShift: 3
   - AggressivePerfMode: 1
@@ -10407,7 +10407,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: [8, 8, 4]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
     _staggerStrideShift: 2
   - AggressivePerfMode: 1
@@ -10567,7 +10567,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: [8, 8, 1]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
     _staggerStrideShift: 4
   - AggressivePerfMode: 1
@@ -10727,7 +10727,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: [8, 8, 4]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
     _staggerStrideShift: 2
   - AggressivePerfMode: 1
@@ -10887,7 +10887,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: [8, 8, 1]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
     _staggerStrideShift: 4
   - AggressivePerfMode: 1
@@ -11047,7 +11047,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: [4, 4, 4]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
     _staggerStrideShift: 3
   - AggressivePerfMode: 1
@@ -11207,7 +11207,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: [8, 8, 4]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
     _staggerStrideShift: 2
   - AggressivePerfMode: 1
@@ -11367,7 +11367,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: [4, 4, 4]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
     _staggerStrideShift: 3
   - AggressivePerfMode: 1
@@ -11527,7 +11527,7 @@
     VectorStore: true
     VectorWidth: 2
     WorkGroup: [8, 8, 4]
-    WorkGroupMapping: -1
+    WorkGroupMapping: 1
     WorkGroupMappingType: B
     _staggerStrideShift: 2
 - [2, 3, 0, 1]

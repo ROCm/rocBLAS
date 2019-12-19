@@ -293,7 +293,7 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
     int32_t           solution_index(arg.solution_index);
     uint32_t          flags(arg.flags);
 
-    bool nantest    = rocblas_isnan(arg.beta);
+    bool nantest    = rocblas_isnan(arg.beta) || rocblas_isnan(arg.betai);
     Tc   h_alpha_Tc = arg.get_alpha<Tc>();
     Tc   h_beta_Tc  = arg.get_beta<Tc>();
 
@@ -427,22 +427,22 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
         std::cout << "----A-----------------" << std::endl;
         for(int i = 0; i < size_a; i++)
         {
-            cout << half_to_float(hA[i]) << "  ";
+            cout << float(hA[i]) << "  ";
         }
         std::cout << std::endl << "-----B-----------------" << std::endl;
         for(int i = 0; i < size_b; i++)
         {
-            cout << half_to_float(hB[i]) << "  ";
+            cout << float(hB[i]) << "  ";
         }
         std::cout << std::endl << "-----C-----------------" << std::endl;
         for(int i = 0; i < size_c; i++)
         {
-            cout << half_to_float(hC[i]) << "  ";
+            cout << float(hC[i]) << "  ";
         }
         std::cout << std::endl << "-----D-----------------" << std::endl;
         for(int i = 0; i < size_d; i++)
         {
-            cout << half_to_float(hD_1[i]) << "  ";
+            cout << float(hD_1[i]) << "  ";
         }
         std::cout << std::endl << "-----------------------" << std::endl;
     }
@@ -486,9 +486,9 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
         // 65500 65500             2   -2
         // 65500 65500            -2    2
         //
-        const rocblas_half ieee_half_near_max = float_to_half(65504.0 - 4.0);
-        const rocblas_half positive_two       = float_to_half(2.0);
-        const rocblas_half negative_two       = float_to_half(-2.0);
+        const rocblas_half ieee_half_near_max(65504.0 - 4.0);
+        const rocblas_half positive_two      (2.0);
+        const rocblas_half negative_two      (-2.0);
         if(M >= 2 && N >= 2 && K >= 2)
         {
             hA[0]       = ieee_half_near_max;
@@ -577,7 +577,7 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
         std::cout << std::endl << "-----hD_1---------------------------------------" << std::endl;
         if(std::is_same<To, rocblas_half>{})
             for(int i = 0; i < size_d; i++)
-                cout << half_to_float(hD_1[i]) << "  ";
+                cout << float(hD_1[i]) << "  ";
         else
             for(int i = 0; i < size_d; i++)
                 cout << hD_1[i] << "  ";
@@ -625,7 +625,7 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
         std::cout << std::endl << "-----hD_2---------------------------------------" << std::endl;
         if(std::is_same<To, rocblas_half>{})
             for(int i = 0; i < size_d; i++)
-                cout << half_to_float(hD_2[i]) << "  ";
+                cout << float(hD_2[i]) << "  ";
         else
             for(int i = 0; i < size_d; i++)
                 cout << hD_2[i] << "  ";
@@ -668,7 +668,7 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
         std::cout << std::endl << "---gold---gold---gold---------------------" << std::endl;
         if(std::is_same<To, rocblas_half>{})
             for(int i = 0; i < size_d; i++)
-                std::cout << half_to_float(hD_gold[i]) << "  ";
+                std::cout << float(hD_gold[i]) << "  ";
         else
             for(int i = 0; i < size_d; i++)
                 std::cout << hD_gold[i] << "  ";
@@ -685,11 +685,11 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
                     {
                         if(std::is_same<To, rocblas_half>{})
                         {
-                            std::cout
-                                << "batch, i, j, hd_gold, hd_1= " << i3 << ", " << i2 << ", " << i1
-                                << ", " << half_to_float(hD_gold[i1 + (i2 * ldd) + (i3 * stride_d)])
-                                << ", " << half_to_float(hD_1[i1 + (i2 * ldd) + (i3 * stride_d)])
-                                << ", " << std::endl;
+                            std::cout << "batch, i, j, hd_gold, hd_1= " << i3 << ", " << i2 << ", "
+                                      << i1 << ", "
+                                      << float(hD_gold[i1 + (i2 * ldd) + (i3 * stride_d)]) << ", "
+                                      << float(hD_1[i1 + (i2 * ldd) + (i3 * stride_d)]) << ", "
+                                      << std::endl;
                         }
                         else
                         {

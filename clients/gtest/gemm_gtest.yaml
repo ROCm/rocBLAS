@@ -155,6 +155,16 @@ Definitions:
     - { alpha:  1, beta:  3 }
     - { alpha:  1, beta:  1 }
 
+  - &complex_alpha_beta_range
+    - { alpha:  2, beta:  0, alphai:  0, betai:  0 }
+    - { alpha:  0, beta:  3, alphai:  0, betai:  0 }
+    - { alpha:  5, beta:  0, alphai:  0, betai:  5 }
+    - { alpha: -5, beta:  0, alphai: -5, betai:  0 }
+    - { alpha:  0, beta:  5, alphai:  0, betai: -5 }
+    - { alpha:  1, beta:  3, alphai:  3, betai:  1 }
+    - { alpha: -1, beta: -3, alphai:  3, betai:  1 }
+    - { alpha:  0, beta:  0, alphai:  2, betai:  1 }
+
   - &transA_transB_range
     - { transA: N, transB: N }
     - { transA: N, transB: T }
@@ -2340,20 +2350,34 @@ Tests:
   function:
     - gemm_bad_arg
     - gemm_ex_bad_arg
+    - gemm_batched_ex_bad_arg
     - gemm_strided_batched_ex_bad_arg
   precision: *half_single_double_precisions
+  transA: N
+  transB: N
+
+- name: gemm_bad_arg
+  category: pre_checkin
+  function:
+    - gemm_bad_arg
+    - gemm_ex_bad_arg
+    - gemm_batched_ex_bad_arg
+    - gemm_strided_batched_ex_bad_arg
+  precision: *single_double_precisions_complex
   transA: N
   transB: N
 
 - name: gemm_NaN
   category: pre_checkin
   function:
-    gemm: *single_double_precisions   # Half precision NaN doesn't work now
-    gemm_ex: *single_double_precisions
+    gemm: *single_double_precisions_complex_real   # Half precision NaN doesn't work now
+    gemm_ex: *single_double_precisions_complex_real
   matrix_size: *medium_matrix_size_range
   transA_transB: *transA_transB_range
   alpha: [ 0.0, 1.0, -1.0, 2.0 ]
+  alphai: [ -1.0, 0.0, 1.0]
   beta: .NaN  # converted to 0.0 in test code
+  betai: .NaN
 
 - name: gemm_small
   category: quick
@@ -2364,6 +2388,15 @@ Tests:
   transA_transB: *transA_transB_range
   alpha_beta: *alpha_beta_range
 
+- name: gemm_small_complex
+  category: quick
+  function:
+    gemm: *single_double_precisions_complex
+    gemm_ex: *single_double_precisions_complex
+  matrix_size: *small_matrix_size_range
+  transA_transB: *transA_transB_range
+  alpha_beta: *complex_alpha_beta_range
+
 - name: gemm_medium
   category: pre_checkin
   function:
@@ -2373,11 +2406,29 @@ Tests:
   transA_transB: *transA_transB_range
   alpha_beta: *alpha_beta_range
 
+- name: gemm_medium_complex
+  category: pre_checkin
+  function:
+    gemm: *single_double_precisions_complex
+    gemm_ex: *single_double_precisions_complex
+  matrix_size: *medium_matrix_size_range
+  transA_transB: *transA_transB_range
+  alpha_beta: *alpha_beta_range
+
 - name: gemm_large
   category: nightly
   function:
     gemm: *half_single_double_precisions
     gemm_ex: *real_precisions
+  matrix_size: *large_matrix_size_range
+  transA_transB: *transA_transB_range
+  alpha_beta: *alpha_beta_range
+
+- name: gemm_large
+  category: nightly
+  function:
+    gemm: *single_double_precisions_complex
+    gemm_ex: *single_double_precisions_complex
   matrix_size: *large_matrix_size_range
   transA_transB: *transA_transB_range
   alpha_beta: *alpha_beta_range
@@ -2446,7 +2497,7 @@ Tests:
 - name: inception4_fwd
   category: nightly
   function:
-    gemmn: *half_single_double_precisions
+    gemm: *half_single_double_precisions
   transA: N
   transB: N
   matrix_size: *inception4_fwd_sizes
@@ -2790,4 +2841,21 @@ Tests:
     - { M: 1536, N: 1536 }
     - { M: 3072, N: 3072 }
     - { M: 6144, N: 6144 }
+
+- name: gemm_bf16
+  category: quick
+  function: gemm_ex
+  precision: *hpa_bf16_precision
+  transA: T
+  transB: N
+  alpha: 1
+  beta: 0
+  matrix_size:
+    - { M:  512, N:  512, K:  512 }
+    - { M: 1024, N: 1024, K: 1024 }
+    - { M: 2048, N: 2048, K: 2048 }
+    - { M: 4096, N: 4096, K: 4096 }
+    - { M:  960, N: 1024, K: 1024 }
+    - { M: 3840, N: 4096, K: 4096 }
+
 ...

@@ -4,18 +4,11 @@
    contain the root `toctree` directive.
 
 Welcome to rocBLAS's documentation!
-==================================
+===================================
 
 .. toctree::
-   :maxdepth: 4 
+   :maxdepth: 4
    :caption: Contents:
 
-   library 
-   api
-   allapi
-
-Indices and tables
-==================
-
-* :ref:`genindex`
-* :ref:`search`
+   usermanual
+   designdoc

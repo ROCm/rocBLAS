@@ -22,18 +22,8 @@ void testing_gemm_strided_batched(const Arguments& arg)
     rocblas_int N = arg.N;
     rocblas_int K = arg.K;
 
-    T h_alpha;
-    T h_beta;
-    if(std::is_same<T, rocblas_half>{})
-    {
-        h_alpha = float_to_half(arg.alpha);
-        h_beta  = float_to_half(rocblas_isnan(arg.beta) ? 0 : arg.beta);
-    }
-    else
-    {
-        h_alpha = arg.alpha;
-        h_beta  = rocblas_isnan(arg.beta) ? 0 : arg.beta;
-    }
+    T h_alpha = arg.get_alpha<T>();
+    T h_beta  = arg.get_beta<T>();
 
     rocblas_int lda = arg.lda;
     rocblas_int ldb = arg.ldb;
@@ -54,12 +44,9 @@ void testing_gemm_strided_batched(const Arguments& arg)
     rocblas_int B_row = transB == rocblas_operation_none ? K : N;
     rocblas_int B_col = transB == rocblas_operation_none ? N : K;
 
-    // Early exit
-    if(!M || !N || !batch_count)
-        return;
-
     // check here to prevent undefined memory allocation error
-    if(M < 0 || N < 0 || K < 0 || lda < A_row || ldb < B_row || ldc < M || batch_count < 0)
+    // Note: K==0 is not an early exit, since C must still be multiplied by beta
+    if(M <= 0 || N <= 0 || K < 0 || lda < A_row || ldb < B_row || ldc < M || batch_count <= 0)
     {
         static const size_t safe_size = 100; // arbitrarily set to 100
         device_vector<T>    dA(safe_size);
@@ -89,7 +76,8 @@ void testing_gemm_strided_batched(const Arguments& arg)
                                                               ldc,
                                                               stride_c,
                                                               batch_count),
-                              rocblas_status_invalid_size);
+                              !M || !N || !batch_count ? rocblas_status_success
+                                                       : rocblas_status_invalid_size);
         return;
     }
 
@@ -132,7 +120,7 @@ void testing_gemm_strided_batched(const Arguments& arg)
 
     rocblas_init<T>(hA, A_row, A_col, lda, stride_a, batch_count);
     rocblas_init_alternating_sign<T>(hB, B_row, B_col, ldb, stride_b, batch_count);
-    if(rocblas_isnan(arg.beta))
+    if(rocblas_isnan(arg.beta) || rocblas_isnan(arg.betai))
         rocblas_init_nan<T>(hC_1, M, N, ldc, stride_c, batch_count);
     else
         rocblas_init<T>(hC_1, M, N, ldc, stride_c, batch_count);
@@ -315,11 +303,9 @@ void testing_gemm_strided_batched(const Arguments& arg)
         std::cout << std::endl;
 
         std::cout << arg.transA << "," << arg.transB << "," << M << "," << N << "," << K << ","
-                  << (std::is_same<T, rocblas_half>{} ? half_to_float(h_alpha) : h_alpha) << ","
-                  << lda << "," << stride_a << "," << ldb << "," << stride_b << ","
-                  << (std::is_same<T, rocblas_half>{} ? half_to_float(h_beta) : h_beta) << ","
-                  << ldc << "," << stride_c << "," << batch_count << "," << rocblas_gflops << ","
-                  << gpu_time_used;
+                  << arg.get_alpha<T>() << "," << lda << "," << stride_a << "," << ldb << ","
+                  << stride_b << "," << arg.get_beta<T>() << "," << ldc << "," << stride_c << ","
+                  << batch_count << "," << rocblas_gflops << "," << gpu_time_used;
 
         if(arg.norm_check)
             std::cout << "," << cblas_gflops << "," << cpu_time_used << "," << rocblas_error;

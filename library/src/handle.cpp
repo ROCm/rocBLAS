@@ -5,11 +5,28 @@
 #include <cstdio>
 #include <cstdlib>
 
+#if BUILD_WITH_TENSILE
+#include "Tensile.h"
+#ifdef USE_TENSILE_HOST
+#include "tensile_host.hpp"
+#endif
+#endif
+
 /*******************************************************************************
  * constructor
  ******************************************************************************/
 _rocblas_handle::_rocblas_handle()
 {
+#if BUILD_WITH_TENSILE
+    static int dummy = (tensileInitialize(), 0);
+#ifdef USE_TENSILE_HOST
+    // Cache the Tensile host on the first handle, since it takes
+    // up to 10 seconds to load; later handles reuse the same host
+    static TensileHost* hostImpl = createTensileHost();
+    host                         = hostImpl;
+#endif
+#endif
+
     // default device is active device
     THROW_IF_HIP_ERROR(hipGetDevice(&device));
     THROW_IF_HIP_ERROR(hipGetDeviceProperties(&device_properties, device));
@@ -100,6 +117,7 @@ void* _rocblas_handle::device_allocator(size_t size)
  * start device memory size queries
  ******************************************************************************/
 extern "C" rocblas_status rocblas_start_device_memory_size_query(rocblas_handle handle)
+try
 {
     if(!handle)
         return rocblas_status_invalid_handle;
@@ -109,11 +127,16 @@ extern "C" rocblas_status rocblas_start_device_memory_size_query(rocblas_handle 
     handle->device_memory_query_size = 0;
     return rocblas_status_success;
 }
+catch(...)
+{
+    return exception_to_rocblas_status();
+}
 
 /*******************************************************************************
  * stop device memory size queries
  ******************************************************************************/
 extern "C" rocblas_status rocblas_stop_device_memory_size_query(rocblas_handle handle, size_t* size)
+try
 {
     if(!handle)
         return rocblas_status_invalid_handle;
@@ -125,11 +148,16 @@ extern "C" rocblas_status rocblas_stop_device_memory_size_query(rocblas_handle h
     handle->device_memory_size_query = false;
     return rocblas_status_success;
 }
+catch(...)
+{
+    return exception_to_rocblas_status();
+}
 
 /*******************************************************************************
  * get the device memory size
  ******************************************************************************/
 extern "C" rocblas_status rocblas_get_device_memory_size(rocblas_handle handle, size_t* size)
+try
 {
     if(!handle)
         return rocblas_status_invalid_handle;
@@ -138,11 +166,16 @@ extern "C" rocblas_status rocblas_get_device_memory_size(rocblas_handle handle, 
     *size = handle->device_memory_size;
     return rocblas_status_success;
 }
+catch(...)
+{
+    return exception_to_rocblas_status();
+}
 
 /*******************************************************************************
  * set the device memory size
  ******************************************************************************/
 extern "C" rocblas_status rocblas_set_device_memory_size(rocblas_handle handle, size_t size)
+try
 {
     if(!handle)
         return rocblas_status_invalid_handle;
@@ -172,6 +205,10 @@ extern "C" rocblas_status rocblas_set_device_memory_size(rocblas_handle handle, 
         handle->device_memory_size = size;
     }
     return rocblas_status_success;
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 /*******************************************************************************
