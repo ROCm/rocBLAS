@@ -52,6 +52,7 @@ if( BUILD_WITH_TENSILE )
       ${Tensile_RUNTIME_LANGUAGE}
       ${Tensile_COMPILER}
       ${Tensile_CODE_OBJECT_VERSION}
+      ${Tensile_ARCHITECTURE}
       ${Tensile_MERGE_FILES}
       ${Tensile_SHORT_FILENAMES}
       ${Tensile_PRINT_DEBUG}
@@ -135,6 +136,9 @@ set( rocblas_blas2_source
   blas2/rocblas_ger.cpp
   blas2/rocblas_ger_batched.cpp
   blas2/rocblas_ger_strided_batched.cpp
+  blas2/rocblas_hemv.cpp
+  blas2/rocblas_hemv_batched.cpp
+  blas2/rocblas_hemv_strided_batched.cpp
   blas2/rocblas_syr.cpp
   blas2/rocblas_syr_batched.cpp
   blas2/rocblas_syr_strided_batched.cpp
@@ -203,6 +207,11 @@ add_library( rocblas
 )
 
 add_library( roc::rocblas ALIAS rocblas )
+
+# RUNPATH is set only when ROCM_RPATH is defined in the ENV
+if( DEFINED ENV{ROCM_RPATH} )
+  set ( CMAKE_SHARED_LINKER_FLAGS " -Wl,--enable-new-dtags -Wl,--rpath,$ENV{ROCM_RPATH}" )
+endif( )
 
 # Remove this check when we no longer build with older rocm stack(ie < 1.8.2)
 if(TARGET hip::device)
