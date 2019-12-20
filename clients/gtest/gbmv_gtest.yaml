@@ -15,9 +15,9 @@ Definitions:
     - { M:    10, N:    10, lda:    5, KL:  3, KU:  2 }
 
     # lda > KL + KU + 1 && lda < M
-    - { M:     2, N:     2, lda:    1, KL:  0, KU:  0, stride_a: 4 }
-    - { M:    10, N:    10, lda:    9, KL:  3, KU:  2, stride_a: 100 }
-    - { M:    10, N:     5, lda:    4, KL:  1, KU:  1, stride_a: 50 }
+    - { M:     2, N:     2, lda:    1, KL:  0, KU:  0 }
+    - { M:    10, N:    10, lda:    9, KL:  3, KU:  2 }
+    - { M:    10, N:     5, lda:    4, KL:  1, KU:  1 }
 
     # Quick Return
     - { M:     0, N:    10, lda:   10, KL:  2, KU:  3 }

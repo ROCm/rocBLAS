@@ -117,24 +117,44 @@ template <typename T>
 constexpr double gbmv_gflop_count(
     rocblas_operation transA, rocblas_int m, rocblas_int n, rocblas_int kl, rocblas_int ku)
 {
-    // TODO: this.
-    return 2.0 / 1e9;
+    rocblas_int dim_x = transA == rocblas_operation_none ? n : m;
+    rocblas_int k1    = dim_x < kl ? dim_x : kl;
+    rocblas_int k2    = dim_x < ku ? dim_x : ku;
+
+    // kl and ku ops, plus main diagonal ops
+    double d1 = ((2 * k1 * dim_x) - (k1 * (k1 + 1))) + dim_x;
+    double d2 = ((2 * k2 * dim_x) - (k2 * (k2 + 1))) + 2 * dim_x;
+
+    // add y operations
+    return (d1 + d2 + 2 * dim_x) / 1e9;
 }
 
 template <>
 constexpr double gbmv_gflop_count<rocblas_float_complex>(
     rocblas_operation transA, rocblas_int m, rocblas_int n, rocblas_int kl, rocblas_int ku)
 {
-    // TODO: this.
-    return 2.0 / 1e9;
+    rocblas_int dim_x = transA == rocblas_operation_none ? n : m;
+    rocblas_int k1    = dim_x < kl ? dim_x : kl;
+    rocblas_int k2    = dim_x < ku ? dim_x : ku;
+
+    double d1 = 4 * ((2 * k1 * dim_x) - (k1 * (k1 + 1))) + 6 * dim_x;
+    double d2 = 4 * ((2 * k2 * dim_x) - (k2 * (k2 + 1))) + 8 * dim_x;
+
+    return (d1 + d2 + 8 * dim_x) / 1e9;
 }
 
 template <>
 constexpr double gbmv_gflop_count<rocblas_double_complex>(
     rocblas_operation transA, rocblas_int m, rocblas_int n, rocblas_int kl, rocblas_int ku)
 {
-    // TODO: this.
-    return 2.0 / 1e9;
+    rocblas_int dim_x = transA == rocblas_operation_none ? n : m;
+    rocblas_int k1    = dim_x < kl ? dim_x : kl;
+    rocblas_int k2    = dim_x < ku ? dim_x : ku;
+
+    double d1 = 4 * ((2 * k1 * dim_x) - (k1 * (k1 + 1))) + 6 * dim_x;
+    double d2 = 4 * ((2 * k2 * dim_x) - (k2 * (k2 + 1))) + 8 * dim_x;
+
+    return (d1 + d2 + 8 * dim_x) / 1e9;
 }
 
 /* \brief floating point counts of GEMV */

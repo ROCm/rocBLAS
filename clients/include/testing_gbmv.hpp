@@ -259,9 +259,15 @@ void testing_gbmv(const Arguments& arg)
                 handle, transA, M, N, KL, KU, &h_alpha, dA, lda, dx, incx, &h_beta, dy_1, incy);
         }
 
-        gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;
-        rocblas_gflops    = gbmv_gflop_count<T>(transA, M, N, KL, KU) / gpu_time_used * 1e6;
-        rocblas_bandwidth = (1.0 * M * N) * sizeof(T) / gpu_time_used / 1e3;
+        gpu_time_used  = (get_time_us() - gpu_time_used) / number_hot_calls;
+        rocblas_gflops = gbmv_gflop_count<T>(transA, M, N, KL, KU) / gpu_time_used * 1e6;
+
+        rocblas_int k1      = dim_x < KL ? dim_x : KL;
+        rocblas_int k2      = dim_x < KU ? dim_x : KU;
+        rocblas_int d1      = ((k1 * dim_x) - (k1 * (k1 + 1) / 2));
+        rocblas_int d2      = ((k2 * dim_x) - (k2 * (k2 + 1) / 2));
+        double      num_els = double(d1 + d2 + dim_x);
+        rocblas_bandwidth   = (num_els) * sizeof(T) / gpu_time_used / 1e3;
 
         // only norm_check return an norm error, unit check won't return anything
         std::cout << "M,N,KL,KU,alpha,lda,incx,beta,incy,rocblas-Gflops,rocblas-GB/s,";

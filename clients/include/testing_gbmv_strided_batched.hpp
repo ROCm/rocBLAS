@@ -478,7 +478,13 @@ void testing_gbmv_strided_batched(const Arguments& arg)
         gpu_time_used = (get_time_us() - gpu_time_used) / number_hot_calls;
         rocblas_gflops
             = batch_count * gbmv_gflop_count<T>(transA, M, N, KL, KU) / gpu_time_used * 1e6;
-        rocblas_bandwidth = batch_count * (1.0 * M * N) * sizeof(T) / gpu_time_used / 1e3;
+
+        rocblas_int k1      = dim_x < KL ? dim_x : KL;
+        rocblas_int k2      = dim_x < KU ? dim_x : KU;
+        rocblas_int d1      = ((k1 * dim_x) - (k1 * (k1 + 1) / 2));
+        rocblas_int d2      = ((k2 * dim_x) - (k2 * (k2 + 1) / 2));
+        double      num_els = double(d1 + d2 + dim_x);
+        rocblas_bandwidth   = batch_count * (num_els) * sizeof(T) / gpu_time_used / 1e3;
 
         // only norm_check return an norm error, unit check won't return anything
         std::cout
