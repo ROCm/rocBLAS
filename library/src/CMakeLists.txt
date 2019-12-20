@@ -206,9 +206,9 @@ rocm_export_targets(
 rocm_install_symlink_subdir( rocblas )
 
 #Control for enabling or disabling header testing
-option (RUN_HEADER_TESTING ON)
+option (RUN_HEADER_TESTING "Enable or disable header testing" ${BUILD_TESTING})
 
-if(BUILD_TESTING AND RUN_HEADER_TESTING)
+if(RUN_HEADER_TESTING)
 # Compilation tests to ensure that header files work independently,
 # and that public header files work across several languages
 add_custom_command(
