@@ -6,7 +6,7 @@ The aim of rocBLAS is to provide:
 - functionality similar to legacy blas, adapted to run on GPUs
 - high performance robust implementation
 
-rocBLAS is written in C++14 and HIP. It uses AMD's ROCm runtime to run on GPU devices. 
+rocBLAS is written in C++14 and HIP. It uses AMD's ROCm runtime to run on GPU devices.
 
 The rocBLAS API is a thin C89 API using the `Hourglass Pattern <https://github.com/CppCon/CppCon2014/blob/master/Presentations/Hourglass%20Interfaces%20for%20C%2B%2B%20APIs/Hourglass%20Interfaces%20for%20C%2B%2B%20APIs%20-%20Stefanus%20Du%20Toit%20-%20CppCon%202014.pdf/>`_. It contains:
 
@@ -40,7 +40,7 @@ Before calling a rocBLAS arrays must be copied to the device. Integer scalars li
 
 Error handling is by returning a rocblas_status. Functions conform to the Legacy BLAS argument checking.
 
-Below is a simple example code for calling function rocblas_sscal. 
+Below is a simple example code for calling function rocblas_sscal.
 
 .. code:: cpp
 
@@ -48,37 +48,37 @@ Below is a simple example code for calling function rocblas_sscal.
    #include <vector>
    #include "hip/hip_runtime_api.h"
    #include "rocblas.h"
-   
+
    using namespace std;
-   
+
    int main()
    {
        rocblas_int n = 10240;
        float alpha = 10.0;
-   
+
        vector<float> hx(n);
        vector<float> hz(n);
        float* dx;
-   
+
        rocblas_handle handle;
        rocblas_create_handle(&handle);
-   
+
        // allocate memory on device
        hipMalloc(&dx, n * sizeof(float));
-   
+
        // Initial Data on CPU,
        srand(1);
        for( int i = 0; i < n; ++i )
        {
            hx[i] = rand() % 10 + 1;  //generate a integer number between [1, 10]
        }
-   
+
        // copy array from host memory to device memory
        hipMemcpy(dx, hx.data(), sizeof(float) * n, hipMemcpyHostToDevice);
-   
+
        // call rocBLAS function
        rocblas_status status = rocblas_sscal(handle, n, &alpha, dx, 1);
-   
+
        // check status for errors
        if(status == rocblas_status_success)
        {
@@ -91,7 +91,7 @@ Below is a simple example code for calling function rocblas_sscal.
 
        // copy output from device memory to host memory
        hipMemcpy(hx.data(), dx, sizeof(float) * n, hipMemcpyDeviceToHost);
-   
+
        hipFree(dx);
        rocblas_destroy_handle(handle);
        return 0;
