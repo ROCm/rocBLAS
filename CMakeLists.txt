@@ -150,6 +150,8 @@ option( BUILD_VERBOSE "Output additional build information" OFF )
 # BUILD_SHARED_LIBS is a cmake built-in; we make it an explicit option such that it shows in cmake-gui
 option( BUILD_SHARED_LIBS "Build rocBLAS as a shared library" ON )
 
+option( BUILD_TESTING "Build tests for rocBLAS" ON )
+
 include( clients/cmake/build-options.cmake )
 
 # force library install path to lib (CentOS 7 defaults to lib64)
