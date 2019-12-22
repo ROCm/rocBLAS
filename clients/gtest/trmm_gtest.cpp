@@ -65,7 +65,7 @@ namespace
 
     TEST_P(trmm, blas3)
     {
-        rocblas_simple_dispatch<trmm_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<trmm_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(trmm);
 
