@@ -113,21 +113,21 @@ namespace
     using trmv = trmv_template<trmv_testing, TRMV>;
     TEST_P(trmv, blas2)
     {
-        rocblas_simple_dispatch<trmv_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<trmv_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(trmv);
 
     using trmv_batched = trmv_template<trmv_testing, TRMV_BATCHED>;
     TEST_P(trmv_batched, blas2)
     {
-        rocblas_simple_dispatch<trmv_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<trmv_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(trmv_batched);
 
     using trmv_strided_batched = trmv_template<trmv_testing, TRMV_STRIDED_BATCHED>;
     TEST_P(trmv_strided_batched, blas2)
     {
-        rocblas_simple_dispatch<trmv_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<trmv_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(trmv_strided_batched);
 

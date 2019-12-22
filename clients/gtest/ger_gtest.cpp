@@ -123,21 +123,21 @@ namespace
     using ger = ger_template<ger_testing, GER>;
     TEST_P(ger, blas2)
     {
-        rocblas_simple_dispatch<ger_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<ger_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(ger);
 
     using ger_batched = ger_template<ger_testing, GER_BATCHED>;
     TEST_P(ger_batched, blas2)
     {
-        rocblas_simple_dispatch<ger_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<ger_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(ger_batched);
 
     using ger_strided_batched = ger_template<ger_testing, GER_STRIDED_BATCHED>;
     TEST_P(ger_strided_batched, blas2)
     {
-        rocblas_simple_dispatch<ger_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<ger_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(ger_strided_batched);
 
