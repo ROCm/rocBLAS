@@ -359,7 +359,7 @@ inline bool NAME::function_filter(const Arguments& arg)                        \
                                                                                \
 TEST_P(NAME, blas1)                                                            \
 {                                                                              \
-    rocblas_blas1_dispatch<blas1_##NAME::template testing>(GetParam());        \
+    CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_blas1_dispatch<blas1_##NAME::template testing>(GetParam())); \
 }                                                                              \
                                                                                \
 INSTANTIATE_TEST_CATEGORIES(NAME)

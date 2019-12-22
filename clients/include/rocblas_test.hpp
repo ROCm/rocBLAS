@@ -88,40 +88,23 @@ inline void rocblas_expect_status(rocblas_status status, rocblas_status expect)
     INSTANTIATE_TEST_CATEGORY(testclass, nightly)     \
     INSTANTIATE_TEST_CATEGORY(testclass, known_bug)
 
-// sigjmp_buf for transferring control from signal handler back to test
-extern sigjmp_buf rocblas_test_sigjmp_buf;
-
-// Whether the rocblas test sigsetjmp is enabled
-extern bool rocblas_test_sigsetjmp;
-
-struct rocblas_sigsetjmp
-{
-    rocblas_sigsetjmp()
-    {
-        rocblas_test_sigsetjmp = true;
-    }
-
-    ~rocblas_sigsetjmp()
-    {
-        rocblas_test_sigsetjmp = false;
-    }
-};
-
-// Macro to wrap test around sigsetjmp handler, to detect fatal signals
-#define CATCH_SIGNALS_AS_FAILURE(test)                      \
-    do                                                      \
-    {                                                       \
-        int sig = sigsetjmp(rocblas_test_sigjmp_buf, true); \
-        if(sig)                                             \
-        {                                                   \
-            rocblas_test_sigsetjmp = false;                 \
-            FAIL() << "Received " << strsignal(sig);        \
-        }                                                   \
-        else                                                \
-        {                                                   \
-            rocblas_sigsetjmp x;                            \
-            test;                                           \
-        }                                                   \
+// Macro to wrap test around try-catch block, to detect fatal signals or exceptions
+// Signals are caught and thrown as rocblas_signal_exception exceptions
+#define CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(test)    \
+    do                                                    \
+    {                                                     \
+        try                                               \
+        {                                                 \
+            test;                                         \
+        }                                                 \
+        catch(const rocblas_signal_exception& e)          \
+        {                                                 \
+            FAIL() << "Received " << strsignal(e.signal); \
+        }                                                 \
+        catch(...)                                        \
+        {                                                 \
+            FAIL() << "Received unhandled exception";     \
+        }                                                 \
     } while(0)
 
 /* ============================================================================================ */

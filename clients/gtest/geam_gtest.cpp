@@ -66,7 +66,7 @@ namespace
 
     TEST_P(geam, blas3)
     {
-        rocblas_simple_dispatch<geam_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<geam_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(geam);
 

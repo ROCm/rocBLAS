@@ -119,21 +119,21 @@ namespace
     using syr = syr_template<syr_testing, SYR>;
     TEST_P(syr, blas2)
     {
-        rocblas_simple_dispatch<syr_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<syr_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(syr);
 
     using syr_batched = syr_template<syr_testing, SYR_BATCHED>;
     TEST_P(syr_batched, blas2)
     {
-        rocblas_simple_dispatch<syr_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<syr_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(syr_batched);
 
     using syr_strided_batched = syr_template<syr_testing, SYR_STRIDED_BATCHED>;
     TEST_P(syr_strided_batched, blas2)
     {
-        rocblas_simple_dispatch<syr_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<syr_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(syr_strided_batched);
 
