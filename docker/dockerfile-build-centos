@@ -10,7 +10,7 @@ ARG user_uid
 RUN yum install -y \
     sudo \
     rock-dkms \
-    rocm_smi64 \
+    rocm-smi-lib64 \
     centos-release-scl \
     devtoolset-7 \
     ca-certificates \
