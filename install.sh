@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Author: Kent Knox
 
-set -x #echo on
+/bin/ln -fs ../../.githooks/pre-commit "$(dirname "$0")/.git/hooks/"
 
 # #################################################
 # helper functions
@@ -327,6 +327,8 @@ while true; do
         ;;
   esac
 done
+
+set -x
 
 if [[ "${cpu_ref_lib}" == blis ]]; then
   LINK_BLIS=true
