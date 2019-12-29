@@ -403,7 +403,6 @@ rocblas_status
     auto* host            = static_cast<TensileHostImpl*>(this);
     auto  tensile_problem = ConstructTensileProblem(problem);
     auto  solution        = host->library->findBestSolution(tensile_problem, *host->hardware);
-    auto  inputs          = GetTensileInputs(problem);
 
     if(!solution)
     {
@@ -414,6 +413,7 @@ rocblas_status
     }
     try
     {
+        auto inputs = GetTensileInputs(problem);
         auto result = solution->solve(tensile_problem, inputs, *host->hardware);
         host->adapter.launchKernels(result);
     }
