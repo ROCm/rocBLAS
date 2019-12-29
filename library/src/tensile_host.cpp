@@ -395,11 +395,9 @@ TensileHost* createTensileHost()
  * runContractionProblem calls Tensile to run a contraction problem described *
  * by RocblasContractionProblem                                               *
  ******************************************************************************/
-//
 template <typename Ti, typename To, typename Tc>
 rocblas_status
     TensileHost::runContractionProblem(const RocblasContractionProblem<Ti, To, Tc>& problem)
-try
 {
     // We know that the TensileHost instance is a TensileHostImpl, so we can downcast to it
     auto* host            = static_cast<TensileHostImpl*>(this);
@@ -407,27 +405,23 @@ try
     auto  solution        = host->library->findBestSolution(tensile_problem, *host->hardware);
     auto  inputs          = GetTensileInputs(problem);
 
-    if(solution)
+    if(!solution)
     {
-        try
-        {
-            auto result = solution->solve(tensile_problem, inputs, *host->hardware);
-            host->adapter.launchKernels(result);
-        }
-        catch(...)
-        {
-            goto error;
-        }
-        return rocblas_status_success;
+    error:
+        // We print the error message only once, on the first solution not found, to avoid excessive logging.
+        static int once = (std::cerr << "Error: No Tensile solution found for " << problem, 0);
+        return rocblas_status_internal_error;
     }
-
-error:;
-    static int once = (std::cerr << "Error: No Tensile solution found for " << problem, 0);
-    return rocblas_status_internal_error;
-}
-catch(...)
-{
-    return rocblas_status_internal_error;
+    try
+    {
+        auto result = solution->solve(tensile_problem, inputs, *host->hardware);
+        host->adapter.launchKernels(result);
+    }
+    catch(...)
+    {
+        goto error;
+    }
+    return rocblas_status_success;
 }
 
 /******************************************************************************
