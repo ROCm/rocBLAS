@@ -181,4 +181,5 @@ catch(...)
 {
     return exception_to_rocblas_status();
 }
+
 } // extern "C"
