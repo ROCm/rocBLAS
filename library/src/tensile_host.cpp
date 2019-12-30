@@ -37,37 +37,37 @@ namespace
     template <typename T>
     struct rocblas_to_tensile_type
     {
-        using type = T;
+        using tensile_type = T;
     };
 
     template <>
     struct rocblas_to_tensile_type<rocblas_float_complex>
     {
-        using type = std::complex<float>;
+        using tensile_type = std::complex<float>;
     };
 
     template <>
     struct rocblas_to_tensile_type<rocblas_double_complex>
     {
-        using type = std::complex<double>;
+        using tensile_type = std::complex<double>;
     };
 
     template <>
     struct rocblas_to_tensile_type<rocblas_half>
     {
-        using type = Tensile::Half;
+        using tensile_type = Tensile::Half;
     };
 
     template <>
     struct rocblas_to_tensile_type<rocblas_bfloat16>
     {
-        using type = Tensile::BFloat16;
+        using tensile_type = Tensile::BFloat16;
     };
 
     template <>
     struct rocblas_to_tensile_type<int8_t>
     {
-        using type = Tensile::Int8x4;
+        using tensile_type = Tensile::Int8x4;
     };
 
     /********************************************************************
@@ -190,28 +190,36 @@ namespace
         return tensileProblem;
     }
 
-    // Tensile does not support float alpha and beta for HPA half
-    // We must convert alpha and beta from float to half
-    template <typename Ti, typename To, typename Tc>
+    /*************************************************************************
+     * Class for converting alpha and beta between rocBLAS and Tensile types *
+     * By default, alpha and beta are the same type as Tc compute_type       *
+     *************************************************************************/
+    template <typename Ti, typename To = Ti, typename Tc = To>
     struct AlphaBeta
     {
-        using type = typename rocblas_to_tensile_type<Tc>::type;
-        static void copy(type* dst, const Tc* src)
+        using tensile_type = typename rocblas_to_tensile_type<Tc>::type;
+        static void copy(tensile_type* dst, const Tc* src)
         {
             static_assert(sizeof(*src) == sizeof(*dst),
                           "Tensile and rocBLAS types are not the same size");
+            static_assert(std::is_standard_layout<tensile_type>{} && std::is_standard_layout<Tc>{},
+                          "Tensile or rocBLAS types are not standard layout types");
             memcpy(dst, src, sizeof(*dst));
         }
     };
 
+    /**************************************************************
+     * Tensile does not support float alpha and beta for HPA half *
+     * We must convert alpha and beta from float to half          *
+     **************************************************************/
     template <>
     struct AlphaBeta<rocblas_half, rocblas_half, float>
     {
-        using type = Tensile::Half;
-        static void copy(type* dst, const float* float_src)
+        using tensile_type = Tensile::Half;
+        static void copy(tensile_type* dst, const float* float_src)
         {
             rocblas_half src(*float_src);
-            AlphaBeta<rocblas_half, rocblas_half, rocblas_half>::copy(dst, &src);
+            AlphaBeta<rocblas_half>::copy(dst, &src);
         }
     };
 
@@ -219,12 +227,12 @@ namespace
      * Construct the inputs to a Tensile ContractionProblem        *
      ***************************************************************/
     template <typename Ti, typename To, typename Tc>
-    auto GetTensileInputs(const RocblasContractionProblem<Ti, To, Tc>& problem)
+    inline auto GetTensileInputs(const RocblasContractionProblem<Ti, To, Tc>& problem)
     {
         // Tensile types corresponding to Ti, To, Tc
-        using Tensile_Ti          = typename rocblas_to_tensile_type<Ti>::type;
-        using Tensile_To          = typename rocblas_to_tensile_type<To>::type;
-        using Tensile_Talpha_beta = typename AlphaBeta<Ti, To, Tc>::type;
+        using Tensile_Ti          = typename rocblas_to_tensile_type<Ti>::tensile_type;
+        using Tensile_To          = typename rocblas_to_tensile_type<To>::tensile_type;
+        using Tensile_Talpha_beta = typename AlphaBeta<Ti, To, Tc>::tensile_type;
 
         // Make sure rocBLAS and Tensile types are compatible
         // For int8_t we allow the sizes to differ assuming alignment
@@ -234,10 +242,8 @@ namespace
             "Tensile and rocBLAS types are not the same size");
 
         static_assert(std::is_standard_layout<Ti>{} && std::is_standard_layout<Tensile_Ti>{}
-                          && std::is_standard_layout<To>{} && std::is_standard_layout<Tensile_To>{}
-                          && std::is_standard_layout<Tc>{}
-                          && std::is_standard_layout<Tensile_Talpha_beta>{},
-                      "Tensile and rocBLAS types are not standard layout types");
+                          && std::is_standard_layout<To>{} && std::is_standard_layout<Tensile_To>{},
+                      "Tensile or rocBLAS types are not standard layout types");
 
         // Structure describing the inputs (A, B, C, D, alpha, beta)
         Tensile::TypedContractionInputs<Tensile_Ti,
@@ -248,13 +254,14 @@ namespace
                                         Tensile_Talpha_beta>
             inputs;
 
-        // Set the A, B, C, D matrices, casting pointer types
+        // Set the A, B, C, D matrices pointers in Tensile
         inputs.a = reinterpret_cast<const Tensile_Ti*>(problem.A);
         inputs.b = reinterpret_cast<const Tensile_Ti*>(problem.B);
         inputs.c = reinterpret_cast<const Tensile_To*>(problem.C);
         inputs.d = reinterpret_cast<Tensile_To*>(problem.D);
 
-        // alpha and beta are stored by value in Tensile, and thus must exist on the host
+        // alpha and beta are stored by value in Tensile::TypedContractionInputs
+        // alpha and beta are copied from host to Tensile::TypedContractionInputs
         AlphaBeta<Ti, To, Tc>::copy(&inputs.alpha, problem.alpha);
         AlphaBeta<Ti, To, Tc>::copy(&inputs.beta, problem.beta);
 
@@ -266,6 +273,11 @@ namespace
      *******************************************************************************/
     class TensileHostImpl : public TensileHost
     {
+        /************************************************************
+         * Allow TensileHost to downcast and access TensileHostImpl *
+         ************************************************************/
+        friend class TensileHost;
+
         /*******************
          * Class variables *
          *******************/
@@ -378,8 +390,6 @@ namespace
                 Tensile::MasterSolutionLibrary<Tensile::ContractionProblem>>(
                 Tensile::LoadLibraryFile<Tensile::ContractionProblem>(path));
         }
-
-        friend class TensileHost; // Allow TensileHost to downcast and access TensileHostImpl
     };
 }
 
@@ -406,8 +416,8 @@ rocblas_status
 
     if(!solution)
     {
-    error:
-        // We print the error message only once, on the first solution not found, to avoid excessive logging.
+        // We print the error message only once, to avoid excessive logging
+    error:;
         static int once = (std::cerr << "Error: No Tensile solution found for " << problem, 0);
         return rocblas_status_internal_error;
     }
