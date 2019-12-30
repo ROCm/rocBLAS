@@ -197,7 +197,7 @@ namespace
     template <typename Ti, typename To = Ti, typename Tc = To>
     struct AlphaBeta
     {
-        using tensile_type = typename rocblas_to_tensile_type<Tc>::type;
+        using tensile_type = typename rocblas_to_tensile_type<Tc>::tensile_type;
         static void copy(tensile_type* dst, const Tc* src)
         {
             static_assert(sizeof(*src) == sizeof(*dst),
@@ -215,7 +215,7 @@ namespace
     template <>
     struct AlphaBeta<rocblas_half, rocblas_half, float>
     {
-        using tensile_type = Tensile::Half;
+        using tensile_type = typename rocblas_to_tensile_type<rocblas_half>::tensile_type;
         static void copy(tensile_type* dst, const float* float_src)
         {
             rocblas_half src(*float_src);
