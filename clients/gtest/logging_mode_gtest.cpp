@@ -60,7 +60,8 @@ namespace
 
     TEST_P(logging, auxilliary)
     {
-        rocblas_simple_dispatch<logging_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(
+            rocblas_simple_dispatch<logging_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(logging);
 

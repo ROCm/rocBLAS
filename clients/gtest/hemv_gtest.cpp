@@ -115,21 +115,21 @@ namespace
     using hemv = hemv_template<hemv_testing, HEMV>;
     TEST_P(hemv, blas2)
     {
-        rocblas_simple_dispatch<hemv_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<hemv_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(hemv);
 
     using hemv_batched = hemv_template<hemv_testing, HEMV_BATCHED>;
     TEST_P(hemv_batched, blas2)
     {
-        rocblas_simple_dispatch<hemv_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<hemv_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(hemv_batched);
 
     using hemv_strided_batched = hemv_template<hemv_testing, HEMV_STRIDED_BATCHED>;
     TEST_P(hemv_strided_batched, blas2)
     {
-        rocblas_simple_dispatch<hemv_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<hemv_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(hemv_strided_batched);
 
