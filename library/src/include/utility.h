@@ -349,13 +349,6 @@ inline std::ostream& operator<<(std::ostream& os, rocblas_half x)
     return os << float(x);
 }
 
-// Exception for propagating signals in an exception-safe way
-// Mainly used in tests
-struct rocblas_signal_exception
-{
-    int signal;
-};
-
 // Convert the current C++ exception to rocblas_status
 // This allows extern "C" functions to return this function in a catch(...) block
 // while converting all C++ exceptions to an equivalent rocblas_status here
@@ -373,10 +366,6 @@ catch(const rocblas_status& status)
 catch(const std::bad_alloc&)
 {
     return rocblas_status_memory_error;
-}
-catch(const rocblas_signal_exception&)
-{
-    throw; // Propagate signals thrown as exceptions
 }
 catch(...)
 {
