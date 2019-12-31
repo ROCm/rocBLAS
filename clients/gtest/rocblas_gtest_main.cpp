@@ -137,6 +137,10 @@ extern "C" void rocblas_test_signal_handler(int sig)
     // to default, and reraise the signal
     if(!rocblas_sighandler_enabled)
     {
+        static constexpr char msg[]
+            = "A signal has been raised outside of a test's execution scope."
+              " It will be handled normally.\n";
+        write(STDERR_FILENO, msg, sizeof(msg) - 1);
         signal(sig, SIG_DFL);
         raise(sig);
         return;
@@ -150,7 +154,6 @@ extern "C" void rocblas_test_signal_handler(int sig)
         if(!is_recursive.test_and_set())
         {
             pthread_kill(rocblas_test_sighandler_tid, sig);
-            sleep(1);
             return;
         }
         else
@@ -161,6 +164,9 @@ extern "C" void rocblas_test_signal_handler(int sig)
             abort();
         }
     }
+
+    // Clear the recursive flag, since we are finally handling the signal
+    is_recursive.clear();
 
     // Jump back to the handler code
     // Note: This bypasses stack unwinding, and may lead to memory leaks, but
