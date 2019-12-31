@@ -11,9 +11,8 @@
 #include <algorithm>
 #include <cstdio>
 #include <cstring>
+#include <functional>
 #include <iostream>
-#include <setjmp.h>
-#include <signal.h>
 #include <sstream>
 #include <string>
 #include <type_traits>
@@ -88,24 +87,12 @@ inline void rocblas_expect_status(rocblas_status status, rocblas_status expect)
     INSTANTIATE_TEST_CATEGORY(testclass, nightly)     \
     INSTANTIATE_TEST_CATEGORY(testclass, known_bug)
 
-// Macro to wrap test around try-catch block, to detect fatal signals or exceptions
-// Signals are caught and thrown as rocblas_signal_exception exceptions
-#define CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(test)    \
-    do                                                    \
-    {                                                     \
-        try                                               \
-        {                                                 \
-            test;                                         \
-        }                                                 \
-        catch(const rocblas_signal_exception& e)          \
-        {                                                 \
-            FAIL() << "Received " << strsignal(e.signal); \
-        }                                                 \
-        catch(...)                                        \
-        {                                                 \
-            FAIL() << "Received unhandled exception";     \
-        }                                                 \
-    } while(0)
+// Function to catch signals and exceptions as failures
+void catch_signals_and_exceptions_as_failures(const std::function<void()>& test);
+
+// Macro to call catch_signals_and_exceptions_as_failures() with a lambda expression
+#define CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(test) \
+    catch_signals_and_exceptions_as_failures([&] { test; })
 
 /* ============================================================================================ */
 /*! \brief  Normalized test name to conform to Google Tests */
