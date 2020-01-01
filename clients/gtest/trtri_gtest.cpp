@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2019 Advanced Micro Devices, Inc.
+ * Copyright 2018-2020 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
 
@@ -86,21 +86,24 @@ namespace
     using trtri = trtri_template<trtri_k>;
     TEST_P(trtri, blas3)
     {
-        rocblas_simple_dispatch<trtri_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(
+            rocblas_simple_dispatch<trtri_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(trtri);
 
     using trtri_batched = trtri_template<trtri_batched_k>;
     TEST_P(trtri_batched, blas3)
     {
-        rocblas_simple_dispatch<trtri_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(
+            rocblas_simple_dispatch<trtri_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(trtri_batched);
 
     using trtri_strided_batched = trtri_template<trtri_strided_batched_k>;
     TEST_P(trtri_strided_batched, blas3)
     {
-        rocblas_simple_dispatch<trtri_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(
+            rocblas_simple_dispatch<trtri_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(trtri_strided_batched);
 

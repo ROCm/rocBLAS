@@ -224,9 +224,9 @@ void catch_signals_and_exceptions_as_failures(const std::function<void()>& test)
     }
 }
 
-/******************
- * Main function: *
- ******************/
+/*****************
+ * Main function *
+ *****************/
 int main(int argc, char** argv)
 {
     // Set signal handler
@@ -235,6 +235,7 @@ int main(int argc, char** argv)
     // Print Version
     char blas_version[100];
     rocblas_get_version_string(blas_version, sizeof(blas_version));
+
 #ifdef USE_TENSILE_HOST
     printf("rocBLAS version: %s (new Tensile client)\n\n", blas_version);
 #else

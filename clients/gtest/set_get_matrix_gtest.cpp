@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2019 Advanced Micro Devices, Inc.
+ * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "rocblas_data.hpp"
@@ -91,7 +91,8 @@ namespace
         = matrix_set_get_template<set_get_matrix_testing, SET_GET_MATRIX_SYNC>;
     TEST_P(set_get_matrix_sync, auxilliary)
     {
-        rocblas_simple_dispatch<set_get_matrix_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(
+            rocblas_simple_dispatch<set_get_matrix_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(set_get_matrix_sync);
 
@@ -99,7 +100,8 @@ namespace
         = matrix_set_get_template<set_get_matrix_testing, SET_GET_MATRIX_ASYNC>;
     TEST_P(set_get_matrix_async, auxilliary)
     {
-        rocblas_simple_dispatch<set_get_matrix_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(
+            rocblas_simple_dispatch<set_get_matrix_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(set_get_matrix_async);
 
