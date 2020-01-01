@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2019 Advanced Micro Devices, Inc.
+ * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "rocblas_data.hpp"
@@ -119,13 +119,13 @@ public:
  *********************************************/
 
 // Id of the thread which is catching signals
-static pthread_t rocblas_test_sighandler_tid;
+static volatile pthread_t rocblas_test_sighandler_tid;
 
 // sigjmp_buf describing stack frame to go back to
 static sigjmp_buf rocblas_sigjmp_buf;
 
 // Whether rocblas_sigjmp_buf is set
-static sig_atomic_t rocblas_sighandler_enabled = false;
+static volatile sig_atomic_t rocblas_sighandler_enabled = false;
 
 // Whether the signal handler has been reached recursively
 static std::atomic_flag is_recursive = ATOMIC_FLAG_INIT;
@@ -137,10 +137,6 @@ extern "C" void rocblas_test_signal_handler(int sig)
     // to default, and reraise the signal
     if(!rocblas_sighandler_enabled)
     {
-        static constexpr char msg[]
-            = "A signal has been raised outside of a test's execution scope."
-              " It will be handled normally.\n";
-        write(STDERR_FILENO, msg, sizeof(msg) - 1);
         signal(sig, SIG_DFL);
         raise(sig);
         return;
@@ -154,6 +150,7 @@ extern "C" void rocblas_test_signal_handler(int sig)
         if(!is_recursive.test_and_set())
         {
             pthread_kill(rocblas_test_sighandler_tid, sig);
+            sleep(1);
             return;
         }
         else
@@ -161,6 +158,7 @@ extern "C" void rocblas_test_signal_handler(int sig)
             static constexpr char msg[] = "A thread other than the main thread"
                                           " has received a fatal signal, and cannot be recovered\n";
             write(STDERR_FILENO, msg, sizeof(msg) - 1);
+            signal(SIGABRT, SIG_DFL);
             abort();
         }
     }
@@ -180,7 +178,7 @@ static void rocblas_test_sigaction()
 {
     struct sigaction act;
     sigemptyset(&act.sa_mask);
-    act.sa_flags   = SA_NODEFER;
+    act.sa_flags   = 0;
     act.sa_handler = rocblas_test_signal_handler;
 
     for(int sig :
@@ -195,6 +193,9 @@ void catch_signals_and_exceptions_as_failures(const std::function<void()>& test)
 {
     // Save this thread's id, to detect signals in different threads
     rocblas_test_sighandler_tid = pthread_self();
+
+    // Clear the recursive flag
+    is_recursive.clear();
 
     // Set up the return point
     int sig = sigsetjmp(rocblas_sigjmp_buf, false);
