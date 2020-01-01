@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2019 Advanced Micro Devices, Inc.
+ * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "rocblas_data.hpp"
@@ -141,7 +141,8 @@ static void rocblas_test_sigaction()
  ******************/
 int main(int argc, char** argv)
 {
-    rocblas_test_sigaction(); // Set signal handler
+    // Set signal handler
+    rocblas_test_sigaction();
 
     // Print Version
     char blas_version[100];
