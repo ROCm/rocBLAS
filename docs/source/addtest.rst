@@ -279,7 +279,7 @@ In the body following this ``TEST_P`` macro, call the dispatch function from ste
 
 .. code-block:: c++
 
-   TEST_P(gemm, blas3) { rocblas_gemm_dispatch<gemm_testing>(GetParam()); }
+   TEST_P(gemm, blas3) { CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_gemm_dispatch<gemm_testing>(GetParam())); }
 
 The ``CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES()`` macro detects signals such as ``SIGSEGV`` and uncaught C++ exceptions returned from rocBLAS C APIs as failures, without terminating the test program.
 
