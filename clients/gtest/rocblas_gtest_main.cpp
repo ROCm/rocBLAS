@@ -6,6 +6,10 @@
 #include "rocblas_parse_data.hpp"
 #include "test_cleanup.hpp"
 #include "utility.hpp"
+#include <atomic>
+#include <cerrno>
+#include <csetjmp>
+#include <csignal>
 #include <cstdlib>
 #include <gtest/gtest.h>
 
@@ -114,31 +118,99 @@ public:
 /*********************************************
  * Signal-handling for detecting test faults *
  *********************************************/
+// Id of the thread which is catching signals
+static volatile pthread_t rocblas_test_sighandler_tid;
+
+// sigjmp_buf describing stack frame to go back to
+static sigjmp_buf rocblas_sigjmp_buf;
+
+// Whether rocblas_sigjmp_buf is set and catching signals is enabled
+static volatile sig_atomic_t rocblas_sighandler_enabled = false;
+
+// Signal handler
+extern "C" void rocblas_test_signal_handler(int sig)
+{
+    int e = errno; // Save errno
+
+    // If the signal handler is disabled, restore this signal's disposition
+    // to default, and reraise the signal
+    if(!rocblas_sighandler_enabled)
+    {
+        signal(sig, SIG_DFL);
+        raise(sig);
+        errno = e; // Restore errno
+        return;
+    }
+
+    // If the thread receiving the signal is different from the thread
+    // catching signals, send the signal to the thread catching signals.
+    if(!pthread_equal(pthread_self(), rocblas_test_sighandler_tid))
+    {
+        pthread_kill(rocblas_test_sighandler_tid, sig);
+        sleep(1);
+        errno = e; // Restore errno
+        return;
+    }
+
+    // Jump back to the handler code
+    // Note: This bypasses stack unwinding, and may lead to memory leaks, but
+    // it is better than crashing. Throwing exceptions from signal handlers is
+    // poorly supported, and may result in recursive calls to std::terminate.
+    errno = e; // Restore errno
+    siglongjmp(rocblas_sigjmp_buf, sig);
+}
+
+// Set up signal handlers
 static void rocblas_test_sigaction()
 {
     struct sigaction act;
-    sigemptyset(&act.sa_mask);
-    act.sa_flags = SA_RESETHAND | SA_NODEFER;
+    sigfillset(&act.sa_mask);
+    act.sa_flags   = 0;
+    act.sa_handler = rocblas_test_signal_handler;
 
-    // A C++ binding signal handler, and throwing from a signal handler, are undefined in standard C++,
-    // but are supported by GCC/Clang, and greatly simplify the code.
-    act.sa_handler = [](int sig) { throw rocblas_signal_exception{sig}; };
-
-    sigaction(SIGABRT, &act, nullptr);
-    sigaction(SIGBUS, &act, nullptr);
-    sigaction(SIGFPE, &act, nullptr);
-    sigaction(SIGILL, &act, nullptr);
-    sigaction(SIGPIPE, &act, nullptr);
-    sigaction(SIGQUIT, &act, nullptr);
-    sigaction(SIGSEGV, &act, nullptr);
-    sigaction(SIGSYS, &act, nullptr);
-    sigaction(SIGUSR1, &act, nullptr);
-    sigaction(SIGUSR2, &act, nullptr);
+    for(int sig :
+        {SIGABRT, SIGBUS, SIGFPE, SIGILL, SIGPIPE, SIGQUIT, SIGSEGV, SIGSYS, SIGUSR1, SIGUSR2})
+    {
+        sigaction(sig, &act, nullptr);
+    }
 }
 
-/******************
- * Main function: *
- ******************/
+// Lambda wrapper which detects signals and exceptions in an invokable function
+void catch_signals_and_exceptions_as_failures(const std::function<void()>& test)
+{
+    // Save this thread's id, to detect signals in different threads
+    rocblas_test_sighandler_tid = pthread_self();
+
+    // Set up the return point
+    int sig = sigsetjmp(rocblas_sigjmp_buf, true);
+
+    // If this is a return, indicate the signal received
+    if(sig)
+    {
+        rocblas_sighandler_enabled = false;
+        FAIL() << "Received " << strsignal(sig) << " signal";
+    }
+    else
+    {
+        // Run the test function, catching signals and exceptions
+        // Disable the signal handler after running the test
+        rocblas_sighandler_enabled = true;
+        try
+        {
+            test();
+            rocblas_sighandler_enabled = false;
+        }
+        catch(...)
+        {
+            rocblas_sighandler_enabled = false;
+            FAIL() << "Received unhandled exception";
+        }
+    }
+}
+
+/*****************
+ * Main function *
+ *****************/
 int main(int argc, char** argv)
 {
     // Set signal handler
