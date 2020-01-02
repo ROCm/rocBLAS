@@ -111,6 +111,12 @@ namespace
         static constexpr Tensile::DataType Tensile_Ti = tensile_datatype<Ti>;
         static constexpr Tensile::DataType Tensile_To = tensile_datatype<To>;
 
+        // Tensor descriptors for a, b
+        Tensile::TensorDescriptor a, b;
+
+        // Tensor ops for matrices, like complex conjugate
+        Tensile::TensorOps aops, bops, cops, dops;
+
         // Tensile Indices for contraction problem
         Tensile::ContractionProblem::FreeIndices  freeIndex(2);
         Tensile::ContractionProblem::BoundIndices boundIndex(1);
@@ -123,7 +129,6 @@ namespace
         freeIndex[1].c = freeIndex[1].d = 1;
 
         // If A is transposed, swap the free and bound dimensions and their ranks
-        Tensile::TensorDescriptor a;
         if(prob.trans_a != rocblas_operation_none)
         {
             a = {Tensile_Ti, {prob.k, prob.m, prob.batch_count}, {1, prob.ld_a, prob.stride_a}};
@@ -138,12 +143,10 @@ namespace
         }
 
         // If A is complex and conjugated, add a ComplexConjugate op to aops
-        Tensile::TensorOps aops;
         if(is_complex<Ti> && prob.trans_a == rocblas_operation_conjugate_transpose)
-            aops = {Tensile::TensorOp::Type::ComplexConjugate};
+            aops.push_back(Tensile::TensorOp::Type::ComplexConjugate);
 
         // If B is transposed, swap the free and bound dimensions and their ranks
-        Tensile::TensorDescriptor b;
         if(prob.trans_b != rocblas_operation_none)
         {
             b = {Tensile_Ti, {prob.n, prob.k, prob.batch_count}, {1, prob.ld_b, prob.stride_b}};
@@ -158,9 +161,8 @@ namespace
         }
 
         // If B is complex and conjugated, add a ComplexConjugate op to bops
-        Tensile::TensorOps bops;
         if(is_complex<Ti> && prob.trans_b == rocblas_operation_conjugate_transpose)
-            bops = {Tensile::TensorOp::Type::ComplexConjugate};
+            bops.push_back(Tensile::TensorOp::Type::ComplexConjugate);
 
         // Descriptor for input matrix C
         Tensile::TensorDescriptor c{
@@ -176,9 +178,9 @@ namespace
                                                    b,
                                                    bops,
                                                    c,
-                                                   {},
+                                                   cops,
                                                    d,
-                                                   {},
+                                                   dops,
                                                    freeIndex,
                                                    batchIndex,
                                                    boundIndex,
@@ -392,7 +394,8 @@ namespace
                 Tensile::LoadLibraryFile<Tensile::ContractionProblem>(path));
         }
     };
-}
+
+} // namespace
 
 /*****************************************************************************
  * createTensileHost returns an instance of TensileHostImpl as a TensileHost *
