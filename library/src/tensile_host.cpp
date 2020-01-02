@@ -436,14 +436,14 @@ rocblas_status
     catch(const std::exception& e)
     {
         static int once
-            = (std::cerr << "Error: " << (solution ? "No " : "") << "Tensile solution found, but "
+            = (std::cerr << "Error: " << (solution ? "" : "No ") << "Tensile solution found, but "
                          << e.what() << " exception thown for " << problem,
                0);
     }
     catch(...)
     {
         static int once
-            = (std::cerr << "Error: " << (solution ? "No " : "")
+            = (std::cerr << "Error: " << (solution ? "" : "No ")
                          << "Tensile solution found, but unknown exception thown for " << problem,
                0);
     }
