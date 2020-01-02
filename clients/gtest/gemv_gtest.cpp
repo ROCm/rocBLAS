@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2019 Advanced Micro Devices, Inc.
+ * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "rocblas_data.hpp"
@@ -117,21 +117,21 @@ namespace
     using gemv = gemv_template<gemv_testing, GEMV>;
     TEST_P(gemv, blas2)
     {
-        rocblas_simple_dispatch<gemv_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<gemv_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(gemv);
 
     using gemv_batched = gemv_template<gemv_testing, GEMV_BATCHED>;
     TEST_P(gemv_batched, blas2)
     {
-        rocblas_simple_dispatch<gemv_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<gemv_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(gemv_batched);
 
     using gemv_strided_batched = gemv_template<gemv_testing, GEMV_STRIDED_BATCHED>;
     TEST_P(gemv_strided_batched, blas2)
     {
-        rocblas_simple_dispatch<gemv_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<gemv_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(gemv_strided_batched);
 

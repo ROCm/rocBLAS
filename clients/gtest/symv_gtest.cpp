@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2019 Advanced Micro Devices, Inc.
+ * Copyright 2018-2020 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
 
@@ -68,7 +68,7 @@ struct symv_testing<
 
     TEST_P(symv, blas2)
     {
-        rocblas_simple_dispatch<symv_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<symv_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(symv);
 
