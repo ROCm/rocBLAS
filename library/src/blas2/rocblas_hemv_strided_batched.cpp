@@ -190,6 +190,7 @@ rocblas_status rocblas_chemv_strided_batched(rocblas_handle               handle
                                              rocblas_int                  incy,
                                              rocblas_stride               stride_y,
                                              rocblas_int                  batch_count)
+try
 {
     return rocblas_hemv_strided_batched_impl(handle,
                                              uplo,
@@ -207,6 +208,10 @@ rocblas_status rocblas_chemv_strided_batched(rocblas_handle               handle
                                              stride_y,
                                              batch_count);
 }
+catch(...)
+{
+    return exception_to_rocblas_status();
+}
 
 rocblas_status rocblas_zhemv_strided_batched(rocblas_handle                handle,
                                              rocblas_fill                  uplo,
@@ -223,6 +228,7 @@ rocblas_status rocblas_zhemv_strided_batched(rocblas_handle                handl
                                              rocblas_int                   incy,
                                              rocblas_stride                stride_y,
                                              rocblas_int                   batch_count)
+try
 {
     return rocblas_hemv_strided_batched_impl(handle,
                                              uplo,
@@ -239,6 +245,10 @@ rocblas_status rocblas_zhemv_strided_batched(rocblas_handle                handl
                                              incy,
                                              stride_y,
                                              batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 } // extern "C"
