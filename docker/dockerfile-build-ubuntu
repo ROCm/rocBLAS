@@ -16,7 +16,7 @@ ARG user_uid
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     sudo \
     rock-dkms \
-    rocm_smi64 \
+    rocm-smi-lib64 \
     ca-certificates \
     git \
     make \
