@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2019 Advanced Micro Devices, Inc.
+ * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "rocblas_data.hpp"
@@ -118,21 +118,21 @@ namespace
     using tbmv = tbmv_template<tbmv_testing, TBMV>;
     TEST_P(tbmv, blas2)
     {
-        rocblas_simple_dispatch<tbmv_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<tbmv_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(tbmv);
 
     using tbmv_batched = tbmv_template<tbmv_testing, TBMV_BATCHED>;
     TEST_P(tbmv_batched, blas2)
     {
-        rocblas_simple_dispatch<tbmv_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<tbmv_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(tbmv_batched);
 
     using tbmv_strided_batched = tbmv_template<tbmv_testing, TBMV_STRIDED_BATCHED>;
     TEST_P(tbmv_strided_batched, blas2)
     {
-        rocblas_simple_dispatch<tbmv_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<tbmv_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(tbmv_strided_batched);
 

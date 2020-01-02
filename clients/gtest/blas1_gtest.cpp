@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2019 Advanced Micro Devices, Inc.
+ * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "rocblas_data.hpp"
 #include "rocblas_datatype2string.hpp"
@@ -359,7 +359,7 @@ inline bool NAME::function_filter(const Arguments& arg)                        \
                                                                                \
 TEST_P(NAME, blas1)                                                            \
 {                                                                              \
-    rocblas_blas1_dispatch<blas1_##NAME::template testing>(GetParam());        \
+    CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_blas1_dispatch<blas1_##NAME::template testing>(GetParam())); \
 }                                                                              \
                                                                                \
 INSTANTIATE_TEST_CATEGORIES(NAME)
