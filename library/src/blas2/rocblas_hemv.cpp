@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2019 Advanced Micro Devices, Inc.
+ * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "rocblas_hemv.hpp"
 #include "handle.h"
@@ -142,8 +142,13 @@ rocblas_status rocblas_chemv(rocblas_handle               handle,
                              const rocblas_float_complex* beta,
                              rocblas_float_complex*       y,
                              rocblas_int                  incy)
+try
 {
     return rocblas_hemv_impl(handle, uplo, n, alpha, A, lda, x, incx, beta, y, incy);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_zhemv(rocblas_handle                handle,
@@ -157,8 +162,13 @@ rocblas_status rocblas_zhemv(rocblas_handle                handle,
                              const rocblas_double_complex* beta,
                              rocblas_double_complex*       y,
                              rocblas_int                   incy)
+try
 {
     return rocblas_hemv_impl(handle, uplo, n, alpha, A, lda, x, incx, beta, y, incy);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 } // extern "C"

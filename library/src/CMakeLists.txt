@@ -1,5 +1,5 @@
 # ########################################################################
-# Copyright 2016-2019 Advanced Micro Devices, Inc.
+# Copyright 2016-2020 Advanced Micro Devices, Inc.
 # ########################################################################
 
 # ########################################################################
@@ -55,6 +55,7 @@ if( BUILD_WITH_TENSILE )
       ${Tensile_RUNTIME_LANGUAGE}
       ${Tensile_COMPILER}
       ${Tensile_CODE_OBJECT_VERSION}
+      ${Tensile_ARCHITECTURE}
       ${Tensile_MERGE_FILES}
       ${Tensile_SHORT_FILENAMES}
       ${Tensile_PRINT_DEBUG}
@@ -74,7 +75,7 @@ if( BUILD_WITH_TENSILE )
   else()
     # Create a unique name for Tensile compiled for rocBLAS
     set_target_properties( Tensile PROPERTIES OUTPUT_NAME tensile-rocblas CXX_EXTENSIONS NO )
-      
+
     target_compile_features( Tensile PRIVATE cxx_static_assert cxx_nullptr cxx_auto_type )
     # Remove this check when we no longer build with older rocm stack(ie < 1.8.2)
     if(TARGET hip::device)
@@ -323,7 +324,10 @@ rocm_export_targets(
 
 rocm_install_symlink_subdir( rocblas )
 
-if(BUILD_TESTING)
+#Control for enabling or disabling header testing
+option (RUN_HEADER_TESTING "Enable or disable header testing" ${BUILD_TESTING})
+
+if(RUN_HEADER_TESTING)
 # Compilation tests to ensure that header files work independently,
 # and that public header files work across several languages
 add_custom_command(

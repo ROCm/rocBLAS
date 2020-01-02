@@ -18,10 +18,12 @@ rocBLAS build & installation helper script
       -f | --fork              GitHub fork to use, e.g., ROCmSoftwarePlatform or MyUserName
       -b | --branch            GitHub branch or tag to use, e.g., develop, mybranch or <commit hash>
       -l | --logic             Set Tensile logic target, e.g., asm_full, asm_lite, etc.
+      -a | --architecture      Set Tensile GPU architecture target, e.g. all, gfx000, gfx803, gfx900, gfx906, gfx908
       -o | --cov               Set Tensile code_object_version (V2 or V3)
       -t | --test_local_path   Use a local path for Tensile instead of remote GIT repo
            --cpu_ref_lib       Specify library to use for CPU reference code in testing (blis or lapack)
            --hip-clang         Build library for amdgpu backend using hip-clang
+           --build_dir         Specify name of output directory (default is ./build)
       -n | --no_tensile        Build subset of library that does not require Tensile
       -s | --tensile-host      Build with Tensile host
 EOF
@@ -238,6 +240,7 @@ install_package=false
 install_dependencies=false
 install_prefix=rocblas-install
 tensile_logic=asm_full
+tensile_architecture=all
 tensile_cov=V2
 tensile_fork=
 tensile_tag=
@@ -249,6 +252,7 @@ build_tensile_host=false
 cpu_ref_lib=blis
 build_release=true
 build_hip_clang=false
+build_dir=./build
 
 rocm_path=/opt/rocm
 if ! [ -z ${ROCM_PATH+x} ]; then
@@ -262,7 +266,7 @@ fi
 # check if we have a modern version of getopt that can handle whitespace and long parameters
 getopt -T
 if [[ $? -eq 4 ]]; then
-  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,no_tensile,tensile_host,logic:,cov:,fork:,branch:test_local_path:,cpu_ref_lib: --options nshicdgl:o:f:b:t: -- "$@")
+  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,no_tensile,tensile_host,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib: --options nshicdgl:a:o:f:b:t: -- "$@")
 else
   echo "Need a new version of getopt"
   exit 1
@@ -296,6 +300,9 @@ while true; do
     -l|--logic)
         tensile_logic=${2}
         shift 2 ;;
+    -a|--architecture)
+        tensile_architecture=${2}
+        shift 2 ;;
     -o|--cov)
         tensile_cov=${2}
         shift 2 ;;
@@ -314,6 +321,9 @@ while true; do
     -s|--tensile-host)
         build_tensile_host=true
         shift ;;
+    --build_dir)
+        build_dir=${2}
+        shift 2;;
     --cuda)
         build_cuda=true
         shift ;;
@@ -345,7 +355,6 @@ else
       exit 2
 fi
 
-build_dir=./build
 printf "\033[32mCreating project build directory in: \033[33m${build_dir}\033[0m\n"
 
 # #################################################
@@ -443,7 +452,7 @@ pushd .
   cmake_common_options=""
   cmake_client_options=""
 
-  cmake_common_options="${cmake_common_options} -DROCM_PATH=${rocm_path} -lpthread -DTensile_LOGIC=${tensile_logic} -DTensile_CODE_OBJECT_VERSION=${tensile_cov}"
+  cmake_common_options="${cmake_common_options} -DROCM_PATH=${rocm_path} -lpthread -DTensile_LOGIC=${tensile_logic} -DTensile_ARCHITECTURE=${tensile_architecture} -DTensile_CODE_OBJECT_VERSION=${tensile_cov}"
 
   # build type
   if [[ "${build_release}" == true ]]; then
@@ -480,6 +489,10 @@ pushd .
 
   if [[ "${build_clients}" == true ]]; then
     cmake_client_options="${cmake_client_options} -DBUILD_CLIENTS_SAMPLES=ON -DBUILD_CLIENTS_TESTS=ON -DBUILD_CLIENTS_BENCHMARKS=ON -DLINK_BLIS=${LINK_BLIS}"
+  fi
+
+  if ["${build_hip_clang}" == true ]; then
+      cmake_common_options="${cmake_common_options} -DRUN_HEADER_TESTING=OFF"
   fi
 
   compiler="hcc"
