@@ -22,6 +22,7 @@
 #include <cstdio>
 #include <cstdlib>
 #include <dlfcn.h>
+#include <exception>
 #include <glob.h>
 #include <libgen.h>
 #include <memory>
@@ -409,29 +410,45 @@ template <typename Ti, typename To, typename Tc>
 rocblas_status
     TensileHost::runContractionProblem(const RocblasContractionProblem<Ti, To, Tc>& problem)
 {
-    // We know that the TensileHost instance is a TensileHostImpl, so we can downcast to it
-    auto* host            = static_cast<TensileHostImpl*>(this);
-    auto  tensile_problem = ConstructTensileProblem(problem);
-    auto  solution        = host->library->findBestSolution(tensile_problem, *host->hardware);
+    std::shared_ptr<Tensile::ContractionSolution> solution;
+    rocblas_status                                status = rocblas_status_internal_error;
 
-    if(!solution)
-    {
-        // We print the error message only once, to avoid excessive logging
-    error:;
-        static int once = (std::cerr << "Error: No Tensile solution found for " << problem, 0);
-        return rocblas_status_internal_error;
-    }
     try
     {
-        auto inputs = GetTensileInputs(problem);
-        auto result = solution->solve(tensile_problem, inputs, *host->hardware);
-        host->adapter.launchKernels(result);
+        // We know that the TensileHost instance is a TensileHostImpl, so we can downcast to it
+        auto* host            = static_cast<TensileHostImpl*>(this);
+        auto  tensile_problem = ConstructTensileProblem(problem);
+        solution              = host->library->findBestSolution(tensile_problem, *host->hardware);
+
+        if(!solution)
+        {
+            // We print the error message only once, to avoid excessive logging
+            static int once = (std::cerr << "Error: No Tensile solution found for " << problem, 0);
+        }
+        else
+        {
+            auto inputs = GetTensileInputs(problem);
+            auto result = solution->solve(tensile_problem, inputs, *host->hardware);
+            host->adapter.launchKernels(result);
+            status = rocblas_status_success;
+        }
+    }
+    catch(const std::exception& e)
+    {
+        static int once
+            = (std::cerr << "Error: " << (solution ? "No " : "") << "Tensile solution found, but "
+                         << e.what() << " exception thown for " << problem,
+               0);
     }
     catch(...)
     {
-        goto error;
+        static int once
+            = (std::cerr << "Error: " << (solution ? "No " : "")
+                         << "Tensile solution found, but unknown exception thown for " << problem,
+               0);
     }
-    return rocblas_status_success;
+
+    return status;
 }
 
 /******************************************************************************
