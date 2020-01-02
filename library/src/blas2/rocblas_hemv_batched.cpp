@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2019 Advanced Micro Devices, Inc.
+ * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "handle.h"
 #include "logging.h"
@@ -181,4 +181,5 @@ catch(...)
 {
     return exception_to_rocblas_status();
 }
+
 } // extern "C"

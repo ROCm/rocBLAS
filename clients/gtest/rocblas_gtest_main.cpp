@@ -168,8 +168,7 @@ static void rocblas_test_sigaction()
     act.sa_flags   = 0;
     act.sa_handler = rocblas_test_signal_handler;
 
-    for(int sig :
-        {SIGABRT, SIGBUS, SIGFPE, SIGILL, SIGPIPE, SIGQUIT, SIGSEGV, SIGSYS, SIGUSR1, SIGUSR2})
+    for(int sig : {SIGABRT, SIGBUS, SIGFPE, SIGILL, SIGPIPE, SIGSEGV, SIGSYS, SIGUSR1, SIGUSR2})
     {
         sigaction(sig, &act, nullptr);
     }
