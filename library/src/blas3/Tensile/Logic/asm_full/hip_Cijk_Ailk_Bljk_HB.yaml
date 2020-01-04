@@ -761,7 +761,7 @@
     VectorAtomicWidth: 2
     VectorStore: true
     VectorWidth: 1
-    WorkGroup: *id001 
+    WorkGroup: *id001
     WorkGroupMapping: 8
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
