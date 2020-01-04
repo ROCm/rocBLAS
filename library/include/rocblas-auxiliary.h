@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2019 Advanced Micro Devices, Inc.
+ * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #ifndef _ROCBLAS_AUXILIARY_H_

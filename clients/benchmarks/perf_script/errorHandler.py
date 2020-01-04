@@ -1,5 +1,5 @@
 # ########################################################################
-# Copyright 2016-2019 Advanced Micro Devices, Inc.
+# Copyright 2016-2020 Advanced Micro Devices, Inc.
 #
 # ########################################################################
 
@@ -17,8 +17,8 @@ DIM_INCO_FILE_FMT = 500 #incorrect file format for dimension
 DIM_FILE_VAL_INCO = 501 #Value coming from dimension file is incorrect
 
 #__errorTable : Defines all the errors in the system. Add a new error code and
-#               error message here 
-"""Error table is defined as private to this module""" 
+#               error message here
+"""Error table is defined as private to this module"""
 errorTable = {
               UINS_CAT: 'Application is not able to find the installed catalyst',
               WIN_REG_SEARCH_FAIL: 'Windows Registry search for catalysts version is unsuccessful',
@@ -30,21 +30,21 @@ errorTable = {
               }
 
 #--------------------------------Class Definitions-----------------------------
-class TimeoutException(Exception): 
+class TimeoutException(Exception):
     pass
 
 """Base class for handling all the application generated exception"""
 class ApplicationException(Exception):
-    
+
     def __init__(self, fileName, errno, msg = ""):
         self.fileName = fileName
         self.errno = errno
         self.mess = errorTable[errno] + msg
         self.message = 'Application ERROR:'+repr(self.fileName+'-'+str(self.errno)+'-'+self.mess)
-        
+
     def __str__(self):
         return repr(self.fileName+'-'+str(self.errno)+'-'+self.mess)
-    
+
 
 #--------------------------------Global Function-------------------------------
 if __name__ == '__main__':
