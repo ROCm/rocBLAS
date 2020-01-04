@@ -4,6 +4,8 @@
 # are installed, and if so, uses the installed version to format
 # the staged changes.
 
+set -x
+
 format=/opt/rocm/hcc/bin/clang-format
 
 # Redirect stdout to stderr.
@@ -19,15 +21,25 @@ else
     against=4b825dc642cb6eb9a060e54bf8d69288fbee4904
 fi
 
+if [[ "$1" == "--reformat" ]]; then
+    files=$(git ls-files --exclude-standard)
+else
+    files=$(git diff-index --cached --name-only $against)
+fi
+
+[[ -z "$files" ]] && exit
+
 # Change the copyright date at the top of any text files
-for file in $(git diff-index --cached --name-only $against); do
-    /usr/bin/perl -pi -e 'INIT { exit 1 if !-f $ARGV[0] || -B $ARGV[0]; $year = (localtime)[5] + 1900 }
+for file in $files; do
+    if [[ -e $file ]]; then
+        /usr/bin/perl -pi -e 'INIT { exit 1 if !-f $ARGV[0] || -B $ARGV[0]; $year = (localtime)[5] + 1900 }
             s/^([*\/#[:space:]]*)Copyright\s+(?:\(C\)\s*)?(\d+)(?:\s*-\s*\d+)?/qq($1Copyright $2@{[$year != $2 ? "-$year" : ""]})/ie
             if $. < 10' "$file" && git add -u "$file"
+    fi
 done
 
 # do the formatting
-for file in $(git diff-index --cached --name-only $against | grep -E '\.c$|\.h$|\.hpp$|\.cpp$|\.cl$|\.in$|\.txt$|\.yaml$|\.sh$|\.py$|\.pl$|\.cmake$|\.md$|\.rst$'); do
+for file in $(echo $files | grep -E '\.c$|\.h$|\.hpp$|\.cpp$|\.cl$|\.in$|\.txt$|\.yaml$|\.sh$|\.py$|\.pl$|\.cmake$|\.md$|\.rst$'); do
     if [[ -e $file ]]; then
         sed -i -e 's/[[:space:]]*$//' "$file" # Remove whitespace at end of lines
         sed -i -e '$a\' "$file" # Add missing newline to end of file
@@ -37,7 +49,7 @@ done
 
 # if clang-format exists, run it on C/C++ files
 if [[ -x $format ]]; then
-    for file in $(git diff-index --cached --name-only $against | grep -E '\.c$|\.h$|\.hpp$|\.cpp$|\.cl$|\.h\.in$|\.hpp\.in$|\.cpp\.in$'); do
+    for file in $(echo $files | grep -E '\.c$|\.h$|\.hpp$|\.cpp$|\.cl$|\.h\.in$|\.hpp\.in$|\.cpp\.in$'); do
         if [[ -e $file ]]; then
             echo "$format $file"
             "$format" -i -style=file "$file"

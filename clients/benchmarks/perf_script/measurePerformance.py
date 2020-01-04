@@ -1,5 +1,5 @@
 # ########################################################################
-# Copyright 2016-2019 Advanced Micro Devices, Inc.
+# Copyright 2016-2020 Advanced Micro Devices, Inc.
 #
 # ########################################################################
 
@@ -20,7 +20,7 @@ from performanceUtility import timeout, log
 
 IAM = 'BLAS'
 TIMOUT_VAL = 900  #In seconds
-   
+
 """
 define and parse parameters
 """
@@ -147,12 +147,12 @@ def checkTimeOutPut2(args):
     #return ret
     currCommandProcess = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     printLog("Curr Command Process id = "+str(currCommandProcess.pid))
-    ret = currCommandProcess.communicate()    
+    ret = currCommandProcess.communicate()
     if(ret[0] == None or ret[0] == ''):
         errCode = currCommandProcess.poll()
         raise subprocess.CalledProcessError(errCode, args, output=ret[1])
     return ret[0]
-	
+
 #Spawns a separate thread to execute the library command and wait for that thread to complete
 #This wait is of 900 seconds (15 minutes). If still the thread is alive then we kill the thread
 def checkTimeOutPut(args):
@@ -176,7 +176,7 @@ def checkTimeOutPut(args):
     currCommandProcess = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     thread = Thread(target=executeCommand)
     thread.start()
-    thread.join(TIMOUT_VAL) #wait for the thread to complete 
+    thread.join(TIMOUT_VAL) #wait for the thread to complete
     if thread.is_alive():
         printLog('ERROR: Killing the process - terminating thread because it is taking too much of time to execute')
         currCommandProcess.kill()
@@ -249,7 +249,7 @@ if not args.problemsize.count(None):
         lda = []
         ldb = []
         ldc = []
-    
+
         sizem.append(int(n[0][0]))
         sizen.append(int(n[0][1]))
         sizek.append(int(n[0][2]))
@@ -261,7 +261,7 @@ if not args.problemsize.count(None):
             lda.append(0)
             ldb.append(0)
             ldc.append(0)
-    
+
         combos = itertools.product(sizem,sizen,sizek,lda,ldb,ldc)
         combos = list(itertools.islice(combos, None))
         for n in combos:
@@ -308,7 +308,7 @@ vi = 0
 #test_combinations = test_combinations[:5]
 for params in test_combinations:
     vi = vi+1
-    printLog('preparing command: '+ str(vi))  
+    printLog('preparing command: '+ str(vi))
     device = params.device
     sizem = params.sizem
     sizen = params.sizen
@@ -333,7 +333,7 @@ for params in test_combinations:
     else:
         printLog( 'ERROR: unknown value for side')
         quit()
-        
+
     if params.uplo == 'upper':
         uplo = 'U'
     elif params.uplo == 'lower':
@@ -373,7 +373,7 @@ for params in test_combinations:
         transa = 'C'
     else:
         printLog( 'ERROR: unknown value for transa')
-        
+
     if params.transb == 'none':
         transb = 'N'
     elif params.transb == 'transpose':
@@ -382,7 +382,7 @@ for params in test_combinations:
         transb = 'C'
     else:
         printLog( 'ERROR: unknown value for transb')
-     
+
     if library == 'acmlblas':
         arguments = [executable(library),
                      '-m', sizem,
@@ -425,7 +425,7 @@ for params in test_combinations:
         quit()
 
     writeline = True
-   
+
     try:
         printLog('Executing Command: '+str(arguments))
         output = checkTimeOutPut(arguments);
@@ -464,7 +464,7 @@ for params in test_combinations:
             printLog( str(clientCrash))
             printLog('In original code we quit here - 1')
             continue
-            #quit()  
+            #quit()
 
     if writeline:
         gflopsoutput = itertools.ifilter( lambda x: x.count('Gflops'), output)

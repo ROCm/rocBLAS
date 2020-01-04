@@ -95,7 +95,7 @@ for(int n = 0; n < testlist.length; ++n)
     real[] hy;
 
     int dataidx = 0;
-    
+
     bool moretoread = true;
     file fin = input(filename);
     while(moretoread) {
@@ -103,8 +103,8 @@ for(int n = 0; n < testlist.length; ++n)
         if(a == 0) {
             moretoread = false;
             break;
-        } 
-        
+        }
+
         int N = fin;
         //Flush out time
 
@@ -121,7 +121,7 @@ for(int n = 0; n < testlist.length; ++n)
             x[n].push(a);
 
             data[n][dataidx] = new real[N];
-            
+
             real vals[] = new real[N];
             for(int i = 0; i < N; ++i) {
                 vals[i] = fin;
@@ -135,13 +135,13 @@ for(int n = 0; n < testlist.length; ++n)
             ++dataidx;
         }
 
-        //Flush out bandwidth 
+        //Flush out bandwidth
         N = fin;
         for(int i = 0; i < N; ++i) {
             real temp = fin;
         }
     }
-   
+
     pen graphpen = Pen(n);
     if(n == 2)
         graphpen = darkgreen;
@@ -157,7 +157,7 @@ for(int n = 0; n < testlist.length; ++n)
         }
     }
     errorbars(z, dp, dm, graphpen);
-    
+
     guide g = scale(0.5mm) * unitcircle;
     marker mark = marker(g, Draw(graphpen + solid));
 
@@ -169,8 +169,8 @@ for(int n = 0; n < testlist.length; ++n)
         if(y[n][i] <= 0.0)
 	    drawme[i] = false;
     }
-     
-    draw(graph(x[n], y[n], drawme), graphpen,  
+
+    draw(graph(x[n], y[n], drawme), graphpen,
          myleg ? legends[n] : texify(filename), mark);
 }
 
@@ -218,7 +218,7 @@ if(speedup > 1) {
                 pair[] zy;
                 pair[] dp;
                 pair[] dm;
-            
+
                 for(int i = 0; i < x[n].length; ++i) {
                     for(int j = 0; j < x[n+next].length; ++j) {
                         if (x[n][i] == x[n+next][j]) {
@@ -233,21 +233,21 @@ if(speedup > 1) {
 
                             dp.push((0 , hi - val));
                             dm.push((0 , low - val));
-                    
+
                             ymin = min(val, ymin);
                             ymax = max(val, ymax);
                             break;
                         }
                     }
                 }
-            
+
                 if(baseval.length > 0){
                     pen p = Pen(penidx)+dashed;
                     ++penidx;
-                    
+
                     guide g = scale(0.5mm) * unitcircle;
                     marker mark = marker(g, Draw(p + solid));
-                            
+
                     draw(pic,graph(pic,baseval, yval),p,legends[n] + " vs " + legends[n+next],mark);
                     errorbars(pic, zy, dp, dm, p);
                 }
@@ -259,14 +259,14 @@ if(speedup > 1) {
                     draw(pic,graph(pic,fakex, fakey),invisible);
                 }
 
-	        } 
+	        }
         }
 
 	    yequals(pic, 1.0, lightgrey);
         yaxis(pic,"speedup",Right,  black,LeftTicks);
         attach(legend(pic),point(plain.E), 60*plain.E - 40 *plain.N  );
     });
-    
+
 
     add(secondary);
 }

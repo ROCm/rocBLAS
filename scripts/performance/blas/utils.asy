@@ -13,7 +13,7 @@ string[] set_legends(string runlegs)
 	 ++n;
 	 int pos=find(runlegs,",",lastpos);
 	 if(lastpos == -1) {runleg=""; flag=false;}
-    
+
 	 runleg=substr(runlegs,lastpos,pos-lastpos);
 
 	 lastpos=pos > 0 ? pos+1 : -1;
