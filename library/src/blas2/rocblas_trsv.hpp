@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2019 Advanced Micro Devices, Inc.
+ * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "../blas3/trtri_trsm.hpp"
 #include "handle.h"
