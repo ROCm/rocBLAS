@@ -16,7 +16,7 @@ rocBLASCI:
     def rocblas = new rocProject('rocBLAS', 'Extended')
     // customize for project
     rocblas.paths.build_command = './install.sh -lasm_ci -c'
-    rocblas.timeout.test = 600    
+    rocblas.timeout.test = 600
 
     // Define test architectures, optional rocm version argument is available
     def nodes = new dockerNodes(['ubuntu && gfx900', 'centos7 && gfx900', 'centos7 && gfx906', 'sles && gfx906'], rocblas)
@@ -42,7 +42,7 @@ rocBLASCI:
     def packageCommand =
     {
         platform, project->
-        
+
         commonGroovy.runPackageCommand(platform, project)
     }
 

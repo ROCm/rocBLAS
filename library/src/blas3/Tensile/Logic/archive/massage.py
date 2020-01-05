@@ -101,7 +101,7 @@ class LibraryLogic:
           self.__set_rangeLogic(data[8])
         else:
           self.__set_rangeLogic(None)
-    
+
       else:
         printExit("Invalid Logic file: %s" % filename)
 
@@ -154,7 +154,7 @@ class LibraryLogic:
 
   deviceNames = property(__get_deviceNames,__set_deviceNames)
 
-  
+
   #problemTypeState
   def __get_problemType(self):
     return self.__problemType
@@ -179,7 +179,7 @@ class LibraryLogic:
 
   def __set_indexOrder(self,value):
     self.__indexOrder = value
-  
+
   indexOrder = property(__get_indexOrder,__set_indexOrder)
 
 
@@ -202,11 +202,11 @@ class LibraryLogic:
   rangeLogic = property(__get_rangeLogic,__set_rangeLogic)
 
   def writeLibraryLogic(self,filename):
-  
+
     data = []
 
     data.append({"MinimumRequiredVersion":self.versionString})
-    data.append(self.scheduleName)     
+    data.append(self.scheduleName)
     data.append(self.architectureName)
     data.append(self.deviceNames)
     data.append(self.problemType)
@@ -228,7 +228,7 @@ class LibraryLogic:
 def MassageTensileLogic(origionalLibraryLogic):
 
   ouputLibraryLogic = copy.deepcopy(origionalLibraryLogic)
-  
+
   inputSolutionList = origionalLibraryLogic.solutionStates
   outputSolutionList = ouputLibraryLogic.solutionStates
 
@@ -270,7 +270,7 @@ def MassageTensileLogic(origionalLibraryLogic):
 
   for exact in origionalLibraryLogic.exactLogic:
     # example exact entry [[123,124,1,123], [5, 4312.3]]
-    # the first fiedl in [5, 4312.3] is the mapping to the 
+    # the first fiedl in [5, 4312.3] is the mapping to the
     # kernel configuration
     oldSolutionIndex = exact[1][0]
     if oldSolutionIndex in solutionIndexMapper:
@@ -282,7 +282,7 @@ def MassageTensileLogic(origionalLibraryLogic):
   return ouputLibraryLogic
 
 def MassageLogicFile(inputFileName, outputFileName):
-  
+
   _, fileName = os.path.split(inputFileName)
   print ("processing file: " + fileName)
   libraryLogic = LibraryLogic(inputFileName)
@@ -296,11 +296,11 @@ def RunMassage():
   print("# Merge Library Logic")
   print(HR)
   print("")
-  
+
   ##############################################################################
   # Parse Command Line Arguments
   ##############################################################################
-  
+
   argParser = argparse.ArgumentParser()
   argParser.add_argument("InputPath", help="Path to the un massaged LibraryLogic.yaml files.")
   argParser.add_argument("OutputPath", help="Where to write the massaged files?")
@@ -325,7 +325,7 @@ def RunMassage():
   for unmassagedLogicFilePath in inputLogicFiles:
     _, fileName = os.path.split(unmassagedLogicFilePath)
 
-      
+
     outputLogicFilePath = os.path.join(outputPath, fileName)
 
     try:
