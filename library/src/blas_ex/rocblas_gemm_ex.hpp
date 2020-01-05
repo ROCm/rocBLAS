@@ -939,7 +939,7 @@ rocblas_status rocblas_gemm_ex_template(rocblas_handle    handle,
             }
 
 #ifdef USE_TENSILE_HOST
-            rb_status = gemm_ex_typecasting<BATCHED, int8_t, int8_t, int32_t>(EX_TYPECASTING_PARM);
+            rb_status = gemm_ex_typecasting<BATCHED, int8_t, int32_t>(EX_TYPECASTING_PARM);
 #else
             rb_status
                 = gemm_ex_typecasting<BATCHED, TensileInt8x4, TensileInt32>(EX_TYPECASTING_PARM);

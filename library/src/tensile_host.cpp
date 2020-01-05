@@ -187,7 +187,7 @@ namespace
                                                    value_category(*prob.beta)};
 
         // If HPA is active, mark it as true
-        if(sizeof(Tc) > sizeof(To))
+        if(sizeof(Tc) > sizeof(Ti))
             tensileProblem.setHighPrecisionAccumulate(true);
 
         return tensileProblem;
@@ -239,8 +239,8 @@ namespace
 
         // Make sure rocBLAS and Tensile types are compatible
         // For int8_t we allow the sizes to differ, assuming alignment
-        static_assert((sizeof(Tensile_Ti) == sizeof(Ti) && sizeof(Tensile_To) == sizeof(To))
-                          || std::is_same<Ti, int8_t>{},
+        static_assert((sizeof(Tensile_Ti) == sizeof(Ti) || std::is_same<Ti, int8_t>{})
+                          && sizeof(Tensile_To) == sizeof(To),
                       "Tensile and rocBLAS types are not the same size");
 
         static_assert(std::is_standard_layout<Ti>{} && std::is_standard_layout<Tensile_Ti>{}
@@ -483,6 +483,6 @@ template rocblas_status TensileHost::runContractionProblem(
     const RocblasContractionProblem<rocblas_bfloat16, rocblas_bfloat16, float>&);
 
 template rocblas_status
-    TensileHost::runContractionProblem(const RocblasContractionProblem<int8_t, int8_t, int32_t>&);
+    TensileHost::runContractionProblem(const RocblasContractionProblem<int8_t, int32_t, int32_t>&);
 
 #endif
