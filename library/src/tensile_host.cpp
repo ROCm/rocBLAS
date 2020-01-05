@@ -218,7 +218,7 @@ namespace
     template <>
     struct AlphaBeta<rocblas_half, rocblas_half, float>
     {
-        using tensile_type = typename rocblas_to_tensile_type<rocblas_half>::tensile_type;
+        using tensile_type = Tensile::Half;
         static void copy(tensile_type* dst, const float* float_src)
         {
             rocblas_half src(*float_src);
@@ -238,11 +238,10 @@ namespace
         using Tensile_Talpha_beta = typename AlphaBeta<Ti, To, Tc>::tensile_type;
 
         // Make sure rocBLAS and Tensile types are compatible
-        // For int8_t we allow the sizes to differ assuming alignment
-        static_assert(
-            (std::is_same<Tensile_Ti, Tensile::Int8x4>{} || sizeof(Tensile_Ti) == sizeof(Ti))
-                && sizeof(Tensile_To) == sizeof(To),
-            "Tensile and rocBLAS types are not the same size");
+        // For int8_t we allow the sizes to differ, assuming alignment
+        static_assert((sizeof(Tensile_Ti) == sizeof(Ti) && sizeof(Tensile_To) == sizeof(To))
+                          || std::is_same<Ti, int8_t>{},
+                      "Tensile and rocBLAS types are not the same size");
 
         static_assert(std::is_standard_layout<Ti>{} && std::is_standard_layout<Tensile_Ti>{}
                           && std::is_standard_layout<To>{} && std::is_standard_layout<Tensile_To>{},
@@ -402,6 +401,7 @@ namespace
  *****************************************************************************/
 TensileHost* createTensileHost()
 {
+    //    static int once = (tensileInitialize(), 0);
     return new TensileHostImpl;
 }
 
@@ -413,8 +413,8 @@ template <typename Ti, typename To, typename Tc>
 rocblas_status
     TensileHost::runContractionProblem(const RocblasContractionProblem<Ti, To, Tc>& problem)
 {
-    std::shared_ptr<Tensile::ContractionSolution> solution;
     rocblas_status                                status = rocblas_status_internal_error;
+    std::shared_ptr<Tensile::ContractionSolution> solution;
 
     try
     {
@@ -483,6 +483,6 @@ template rocblas_status TensileHost::runContractionProblem(
     const RocblasContractionProblem<rocblas_bfloat16, rocblas_bfloat16, float>&);
 
 template rocblas_status
-    TensileHost::runContractionProblem(const RocblasContractionProblem<int8_t, int32_t, int32_t>&);
+    TensileHost::runContractionProblem(const RocblasContractionProblem<int8_t, int8_t, int32_t>&);
 
 #endif
