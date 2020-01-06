@@ -24,6 +24,7 @@ rocBLAS build & installation helper script
            --hip-clang         Build library for amdgpu backend using hip-clang
       -n | --no_tensile        Build subset of library that does not require Tensile
       -s | --tensile-host      Build with Tensile host
+           --skipldconf        Skip ld.so.conf entry
 EOF
 #          --prefix            Specify an alternate CMAKE_INSTALL_PREFIX for cmake
 #          --cuda              Build library for cuda backend
@@ -249,6 +250,7 @@ build_tensile_host=false
 cpu_ref_lib=blis
 build_release=true
 build_hip_clang=false
+skip_ld_conf_entry=false
 
 rocm_path=/opt/rocm
 if ! [ -z ${ROCM_PATH+x} ]; then
@@ -262,7 +264,7 @@ fi
 # check if we have a modern version of getopt that can handle whitespace and long parameters
 getopt -T
 if [[ $? -eq 4 ]]; then
-  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,no_tensile,tensile_host,logic:,cov:,fork:,branch:test_local_path:,cpu_ref_lib: --options nshicdgl:o:f:b:t: -- "$@")
+  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,no_tensile,tensile-host,logic:,cov:,fork:,branch:test_local_path:,cpu_ref_lib:,skipldconf --options nshicdgl:o:f:b:t: -- "$@")
 else
   echo "Need a new version of getopt"
   exit 1
@@ -323,6 +325,9 @@ while true; do
     --hip-clang)
         build_hip_clang=true
         tensile_cov=V3
+        shift ;;
+    --skipldconf)
+        skip_ld_conf_entry=true
         shift ;;
     --prefix)
         install_prefix=${2}
@@ -458,6 +463,9 @@ pushd .
     cmake_common_options="${cmake_common_options} -DTensile_TEST_LOCAL_PATH=${tensile_test_local_path}"
   fi
 
+  if [[ "${skip_ld_conf_entry}" == true ]]; then
+    cmake_common_options="${cmake_common_options} -DROCM_DISABLE_LDCONFIG=ON"
+  fi
 
 case "${ID}" in
   centos|rhel)
