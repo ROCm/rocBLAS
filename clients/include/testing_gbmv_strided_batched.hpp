@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2019 Advanced Micro Devices, Inc.
+ * Copyright 2018-2020 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
 
@@ -410,8 +410,8 @@ void testing_gbmv_strided_batched(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, dim_y, 1, abs_incy, stride_y, hy_gold, hy_1);
-            unit_check_general<T>(1, dim_y, 1, abs_incy, stride_y, hy_gold, hy_2);
+            unit_check_general<T>(1, dim_y, batch_count, abs_incy, stride_y, hy_gold, hy_1);
+            unit_check_general<T>(1, dim_y, batch_count, abs_incy, stride_y, hy_gold, hy_2);
         }
 
         if(arg.norm_check)

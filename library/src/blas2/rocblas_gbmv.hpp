@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2019 Advanced Micro Devices, Inc.
+ * Copyright 2019-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #ifndef __ROCBLAS_GBMV_HPP__
 #define __ROCBLAS_GBMV_HPP__
@@ -258,7 +258,7 @@ rocblas_status rocblas_gbmv_template(rocblas_handle    handle,
                                      rocblas_int       batch_count)
 {
     // quick return
-    if(!m || !batch_count)
+    if(!m || !n || !batch_count)
         return rocblas_status_success;
 
     // in case of negative inc shift pointer to end of data for negative indexing tid*inc
@@ -340,7 +340,6 @@ rocblas_status rocblas_gbmv_template(rocblas_handle    handle,
     }
 
     return rocblas_status_success;
-    // return rocblas_status_not_implemented;
 }
 
 #endif

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2019 Advanced Micro Devices, Inc.
+ * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #ifndef _ROCBLAS_FUNCTIONS_H_
@@ -2731,7 +2731,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotmg_strided_batched(rocblas_handle hand
               the first super-diagonal above on the RHS of row ku. The first sub-diagonal
               resides below on the LHS of row ku + 2. This propogates up and down across
               sub/super-diagonals.
-                Ex: (m = 7; ku = 2, kl = 2)
+                Ex: (m = n = 7; ku = 2, kl = 2)
                 1 2 3 0 0 0 0             0 0 3 3 3 3 3
                 4 1 2 3 0 0 0             0 2 2 2 2 2 2
                 5 4 1 2 3 0 0    ---->    1 1 1 1 1 1 1
@@ -2859,7 +2859,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgbmv(rocblas_handle                handle
               the first super-diagonal above on the RHS of row ku. The first sub-diagonal
               resides below on the LHS of row ku + 2. This propogates up and down across
               sub/super-diagonals.
-                Ex: (m = 7; ku = 2, kl = 2)
+                Ex: (m = n = 7; ku = 2, kl = 2)
                 1 2 3 0 0 0 0             0 0 3 3 3 3 3
                 4 1 2 3 0 0 0             0 2 2 2 2 2 2
                 5 4 1 2 3 0 0    ---->    1 1 1 1 1 1 1
@@ -2994,7 +2994,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgbmv_batched(rocblas_handle              
               the first super-diagonal above on the RHS of row ku. The first sub-diagonal
               resides below on the LHS of row ku + 2. This propogates up and down across
               sub/super-diagonals.
-                Ex: (m = 7; ku = 2, kl = 2)
+                Ex: (m = n = 7; ku = 2, kl = 2)
                 1 2 3 0 0 0 0             0 0 3 3 3 3 3
                 4 1 2 3 0 0 0             0 2 2 2 2 2 2
                 5 4 1 2 3 0 0    ---->    1 1 1 1 1 1 1
