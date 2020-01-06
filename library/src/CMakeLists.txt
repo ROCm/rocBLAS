@@ -1,4 +1,4 @@
-# ########################################################################
+########################################################################
 # Copyright 2016-2020 Advanced Micro Devices, Inc.
 # ########################################################################
 
@@ -44,7 +44,9 @@ if( BUILD_WITH_TENSILE )
   set( Tensile_RUNTIME_LANGUAGE "HIP" )
   message( STATUS "AMDGPU_TARGETS=${AMDGPU_TARGETS}" )
   if( BUILD_WITH_TENSILE_HOST )
-    set( PACKAGE_TENSILE_LIBRARY ON )
+    #TODO update when this feature has been validated
+    #set( PACKAGE_TENSILE_LIBRARY ON )
+    set( PACKAGE_TENSILE_LIBRARY OFF )
     set( USE_LEGACY_CODE OFF )
   else()
     set( PACKAGE_TENSILE_LIBRARY OFF )
