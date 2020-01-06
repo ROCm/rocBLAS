@@ -1,9 +1,11 @@
 // This file is for internal AMD use.
 // If you are interested in running your own Jenkins, please raise a github issue for assistance.
 
-def runCompileCommand(platform, project)
+def runCompileCommand(platform, project, specificGPU=false)
 {
     project.paths.construct_build_prefix()
+
+    String architecture = (specificGPU) ? "-a" + project.email.gpuLabel(platform.jenkinsLabel) : ""
 
     def command
 
@@ -12,7 +14,7 @@ def runCompileCommand(platform, project)
         command = """#!/usr/bin/env bash
                 set -x
                 cd ${project.paths.project_build_prefix}
-                LD_LIBRARY_PATH=/opt/rocm/hcc/lib CXX=/opt/rocm/bin/hipcc ${project.paths.build_command} --hip-clang
+                LD_LIBRARY_PATH=/opt/rocm/hcc/lib CXX=/opt/rocm/bin/hipcc ${project.paths.build_command} ${architecture} --hip-clang
                 """
     }
     else if(platform.jenkinsLabel.contains('sles'))
@@ -20,7 +22,7 @@ def runCompileCommand(platform, project)
         command = """#!/usr/bin/env bash
                 set -x
                 cd ${project.paths.project_build_prefix}
-                LD_LIBRARY_PATH=/opt/rocm/hcc/lib CXX=/opt/rocm/bin/hipcc sudo ${project.paths.build_command}
+                LD_LIBRARY_PATH=/opt/rocm/hcc/lib CXX=/opt/rocm/bin/hipcc sudo ${project.paths.build_command} ${architecture}
                 """
     }
 
@@ -29,7 +31,7 @@ def runCompileCommand(platform, project)
         command = """#!/usr/bin/env bash
                 set -x
                 cd ${project.paths.project_build_prefix}
-                LD_LIBRARY_PATH=/opt/rocm/hcc/lib CXX=/opt/rocm/bin/hcc ${project.paths.build_command}
+                LD_LIBRARY_PATH=/opt/rocm/hcc/lib CXX=/opt/rocm/bin/hcc ${project.paths.build_command} ${architecture}
                 """
     }
     platform.runCommand(this, command)

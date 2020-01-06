@@ -68,7 +68,7 @@ def getdistro():
 # Get the version number for rocm
 def getrocmversion():
     import subprocess, tempfile
-    cmd = ["apt", "show", "rocm-libs"]
+    cmd = ["apt", "show", "rocm-dev"]
     fout = tempfile.TemporaryFile(mode="w+")
     ferr = tempfile.TemporaryFile(mode="w+")
     p = subprocess.Popen(cmd,stdout=fout, stderr=ferr)

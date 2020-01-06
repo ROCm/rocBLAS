@@ -1,0 +1,141 @@
+---
+include: ../../../build/release/clients/staging/rocblas_common.yaml
+# include: known_bugs.yaml
+
+Definitions:
+
+Tests:
+- name: axpy
+  function: axpy
+  precision: *single_double_precisions
+  N: 40000000
+  n: 9216
+  incy: 1
+  incx: 1 
+  alpha: 1
+  step_size: 2
+  step_mult: 1
+  samples: 10
+  flops: '2*n'
+  mem: '3*n'
+
+- name: axpy
+  function: axpy
+  precision: *single_double_precisions_complex
+  N: 40000000
+  n: 9216
+  incy: 1
+  incx: 1 
+  alpha: 1
+  step_size: 2
+  step_mult: 1
+  samples: 10
+  flops: '8*n'
+  mem: '6*n'
+
+- name: dot
+  function: dot
+  precision: *single_double_precisions
+  N: 40000000
+  n: 9216
+  incy: 1
+  incx: 1
+  step_mult: 1
+  step_size: 2
+  samples: 10
+  flops: '2*n'
+  mem: '2*n'
+
+- name: dot
+  function: dot
+  precision: *single_double_precisions_complex
+  N: 40000000
+  n: 9216
+  incy: 1
+  incx: 1
+  step_mult: 1
+  step_size: 2
+  samples: 10
+  flops: '8*n'
+  mem: '4*n'
+
+- name: gemv
+  function: gemv
+  precision: *single_double_precisions
+  m: 1024
+  n: 1024
+  M: 16384
+  N: 16384
+  lda: 16384
+  LDA: 16384
+  transA: N
+  incy: 1
+  incx: 1 
+  alpha: 1
+  beta: 1
+  step_size: 512
+  samples: 10
+  flops: '2*(n*n+n)'
+  mem: '(n*n+3*n)'
+
+- name: gemv
+  function: gemv
+  precision: *single_double_precisions_complex
+  m: 1024
+  n: 1024
+  M: 16384
+  N: 16384
+  lda: 16384
+  LDA: 16384
+  transA: N
+  incy: 1
+  incx: 1 
+  alpha: 1
+  beta: 1
+  step_size: 1024
+  samples: 10
+  flops: '8*(n*n+n)'
+  mem: '2*(n*n+3*n)'
+
+- name: trsm
+  function: trsm
+  precision: *double_precision
+  side: R
+  uplo: L
+  transA: T
+  diag: U
+  m: 384
+  M: 45000
+  n: 384
+  N: 384
+  lda: 384
+  LDA: 384
+  ldb: 384
+  LDB: 45000
+  alpha: 1
+  step_size: 384
+  samples: 10
+
+- name: gemm
+  function: gemm
+  precision: *single_double_precisions_complex_real
+  m: 384
+  n: 384
+  k: 384
+  M: 10000
+  N: 10000
+  K: 10000
+  lda: 384
+  ldb: 384
+  ldc: 384
+  LDA: 10000
+  LDB: 10000
+  LDC: 10000
+  transA: N
+  transB: T
+  alpha: 1
+  beta: 1
+  step_size: 384
+  samples: 10
+
+...
