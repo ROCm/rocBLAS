@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2019 Advanced Micro Devices, Inc.
+ * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #ifndef ROCBLAS_TEST_H_
@@ -11,9 +11,8 @@
 #include <algorithm>
 #include <cstdio>
 #include <cstring>
+#include <functional>
 #include <iostream>
-#include <setjmp.h>
-#include <signal.h>
 #include <sstream>
 #include <string>
 #include <type_traits>
@@ -88,41 +87,12 @@ inline void rocblas_expect_status(rocblas_status status, rocblas_status expect)
     INSTANTIATE_TEST_CATEGORY(testclass, nightly)     \
     INSTANTIATE_TEST_CATEGORY(testclass, known_bug)
 
-// sigjmp_buf for transferring control from signal handler back to test
-extern sigjmp_buf rocblas_test_sigjmp_buf;
+// Function to catch signals and exceptions as failures
+void catch_signals_and_exceptions_as_failures(const std::function<void()>& test);
 
-// Whether the rocblas test sigsetjmp is enabled
-extern bool rocblas_test_sigsetjmp;
-
-struct rocblas_sigsetjmp
-{
-    rocblas_sigsetjmp()
-    {
-        rocblas_test_sigsetjmp = true;
-    }
-
-    ~rocblas_sigsetjmp()
-    {
-        rocblas_test_sigsetjmp = false;
-    }
-};
-
-// Macro to wrap test around sigsetjmp handler, to detect fatal signals
-#define CATCH_SIGNALS_AS_FAILURE(test)                      \
-    do                                                      \
-    {                                                       \
-        int sig = sigsetjmp(rocblas_test_sigjmp_buf, true); \
-        if(sig)                                             \
-        {                                                   \
-            rocblas_test_sigsetjmp = false;                 \
-            FAIL() << "Received " << strsignal(sig);        \
-        }                                                   \
-        else                                                \
-        {                                                   \
-            rocblas_sigsetjmp x;                            \
-            test;                                           \
-        }                                                   \
-    } while(0)
+// Macro to call catch_signals_and_exceptions_as_failures() with a lambda expression
+#define CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(test) \
+    catch_signals_and_exceptions_as_failures([&] { test; })
 
 /* ============================================================================================ */
 /*! \brief  Normalized test name to conform to Google Tests */

@@ -1,11 +1,15 @@
 /* ************************************************************************
- * Copyright 2018-2019 Advanced Micro Devices, Inc.
+ * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "rocblas_data.hpp"
 #include "rocblas_parse_data.hpp"
 #include "test_cleanup.hpp"
 #include "utility.hpp"
+#include <atomic>
+#include <cerrno>
+#include <csetjmp>
+#include <csignal>
 #include <cstdlib>
 #include <gtest/gtest.h>
 
@@ -114,53 +118,107 @@ public:
 /*********************************************
  * Signal-handling for detecting test faults *
  *********************************************/
+// Id of the thread which is catching signals
+static volatile pthread_t rocblas_test_sighandler_tid;
 
-// sigjmp_buf for transferring control from signal handler to test
-sigjmp_buf rocblas_test_sigjmp_buf;
+// sigjmp_buf describing stack frame to go back to
+static sigjmp_buf rocblas_sigjmp_buf;
 
-// Whether the sigsetjmp is enabled
-bool rocblas_test_sigsetjmp = false;
+// Whether rocblas_sigjmp_buf is set and catching signals is enabled
+static volatile sig_atomic_t rocblas_sighandler_enabled = false;
 
-// rocblas test signal handler
-static void rocblas_test_sighandler(int sig)
+// Signal handler
+extern "C" void rocblas_test_signal_handler(int sig)
 {
-    // If the sigsetjmp is enabled, siglongjmp to it, else raise the signal
-    if(rocblas_test_sigsetjmp)
-        siglongjmp(rocblas_test_sigjmp_buf, sig);
-    else
+    int e = errno; // Save errno
+
+    // If the signal handler is disabled, restore this signal's disposition
+    // to default, and reraise the signal
+    if(!rocblas_sighandler_enabled)
+    {
+        signal(sig, SIG_DFL);
         raise(sig);
+        errno = e; // Restore errno
+        return;
+    }
+
+    // If the thread receiving the signal is different from the thread
+    // catching signals, send the signal to the thread catching signals.
+    if(!pthread_equal(pthread_self(), rocblas_test_sighandler_tid))
+    {
+        pthread_kill(rocblas_test_sighandler_tid, sig);
+        sleep(1);
+        errno = e; // Restore errno
+        return;
+    }
+
+    // Jump back to the handler code
+    // Note: This bypasses stack unwinding, and may lead to memory leaks, but
+    // it is better than crashing. Throwing exceptions from signal handlers is
+    // poorly supported, and may result in recursive calls to std::terminate.
+    errno = e; // Restore errno
+    siglongjmp(rocblas_sigjmp_buf, sig);
 }
 
-// Set up signal handlers for detecting fatal signals in rocBLAS
+// Set up signal handlers
 static void rocblas_test_sigaction()
 {
     struct sigaction act;
-    sigemptyset(&act.sa_mask);
-    act.sa_flags   = SA_RESETHAND | SA_NODEFER;
-    act.sa_handler = rocblas_test_sighandler;
+    sigfillset(&act.sa_mask);
+    act.sa_flags   = 0;
+    act.sa_handler = rocblas_test_signal_handler;
 
-    sigaction(SIGABRT, &act, nullptr);
-    sigaction(SIGBUS, &act, nullptr);
-    sigaction(SIGFPE, &act, nullptr);
-    sigaction(SIGILL, &act, nullptr);
-    sigaction(SIGPIPE, &act, nullptr);
-    sigaction(SIGQUIT, &act, nullptr);
-    sigaction(SIGSEGV, &act, nullptr);
-    sigaction(SIGSYS, &act, nullptr);
-    sigaction(SIGUSR1, &act, nullptr);
-    sigaction(SIGUSR2, &act, nullptr);
+    for(int sig : {SIGABRT, SIGBUS, SIGFPE, SIGILL, SIGPIPE, SIGSEGV, SIGSYS, SIGUSR1, SIGUSR2})
+    {
+        sigaction(sig, &act, nullptr);
+    }
 }
 
-/******************
- * Main function: *
- ******************/
+// Lambda wrapper which detects signals and exceptions in an invokable function
+void catch_signals_and_exceptions_as_failures(const std::function<void()>& test)
+{
+    // Save this thread's id, to detect signals in different threads
+    rocblas_test_sighandler_tid = pthread_self();
+
+    // Set up the return point
+    int sig = sigsetjmp(rocblas_sigjmp_buf, true);
+
+    // If this is a return, indicate the signal received
+    if(sig)
+    {
+        rocblas_sighandler_enabled = false;
+        FAIL() << "Received " << strsignal(sig) << " signal";
+    }
+    else
+    {
+        // Run the test function, catching signals and exceptions
+        // Disable the signal handler after running the test
+        rocblas_sighandler_enabled = true;
+        try
+        {
+            test();
+            rocblas_sighandler_enabled = false;
+        }
+        catch(...)
+        {
+            rocblas_sighandler_enabled = false;
+            FAIL() << "Received unhandled exception";
+        }
+    }
+}
+
+/*****************
+ * Main function *
+ *****************/
 int main(int argc, char** argv)
 {
-    rocblas_test_sigaction(); // Set signal handler
+    // Set signal handler
+    rocblas_test_sigaction();
 
     // Print Version
     char blas_version[100];
     rocblas_get_version_string(blas_version, sizeof(blas_version));
+
 #ifdef USE_TENSILE_HOST
     printf("rocBLAS version: %s (new Tensile client)\n\n", blas_version);
 #else
