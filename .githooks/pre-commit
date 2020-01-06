@@ -39,8 +39,8 @@ for file in $files; do
 done
 
 # do the formatting
-for file in $(echo $files | grep -E '\.c$|\.h$|\.hpp$|\.cpp$|\.cl$|\.in$|\.txt$|\.yaml$|\.sh$|\.py$|\.pl$|\.cmake$|\.md$|\.rst$'); do
-    if [[ -e $file ]]; then
+for file in $files; do
+    if [[ -e $file ]] && echo $file | grep -Eq '\.c$|\.h$|\.hpp$|\.cpp$|\.cl$|\.in$|\.txt$|\.yaml$|\.sh$|\.py$|\.pl$|\.cmake$|\.md$|\.rst$'; then
         sed -i -e 's/[[:space:]]*$//' "$file" # Remove whitespace at end of lines
         sed -i -e '$a\' "$file" # Add missing newline to end of file
         git add -u "$file"
@@ -49,8 +49,8 @@ done
 
 # if clang-format exists, run it on C/C++ files
 if [[ -x $format ]]; then
-    for file in $(echo $files | grep -E '\.c$|\.h$|\.hpp$|\.cpp$|\.cl$|\.h\.in$|\.hpp\.in$|\.cpp\.in$'); do
-        if [[ -e $file ]]; then
+    for file in $files; do
+       if [[ -e $file ]] && echo $file | grep -Eq '\.c$|\.h$|\.hpp$|\.cpp$|\.cl$|\.h\.in$|\.hpp\.in$|\.cpp\.in$'; then
             echo "$format $file"
             "$format" -i -style=file "$file"
             git add -u "$file"
