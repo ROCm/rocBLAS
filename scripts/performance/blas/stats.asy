@@ -9,7 +9,7 @@ real getmedian(real[] vals)
 {
    vals = sort(vals);
    int half = quotient(vals.length, 2);
-   return (vals.length % 2 == 0) 
+   return (vals.length % 2 == 0)
       ? 0.5 * ( vals[half - 1] + vals[half] ) : vals[half];
    return 0;
 }
@@ -31,7 +31,7 @@ real[] mediandev(real[] vals)
    }
    real median = getmedian(resample);
    medlh[0] = median;
-   
+
    // Number of resamples to perform:
    int nperm = 2000;
    real medians[] = new real[nperm];
@@ -54,7 +54,7 @@ real[] mediandev(real[] vals)
 real[] ratiodev(real[] vA, real[] vB) {
     real[] medlh = new real[2];
 
-    
+
     real ratio = getmedian(vA) / getmedian(vB);
 
     int nboot = 2000;
@@ -68,7 +68,7 @@ real[] ratiodev(real[] vA, real[] vB) {
     ratios = sort(ratios);
     real low = ratios[(int)floor(nboot * 0.025)];
     real high = ratios[(int)ceil(nboot * 0.975)];
-    
+
    medlh[0] = low;
    medlh[1] = high;
 

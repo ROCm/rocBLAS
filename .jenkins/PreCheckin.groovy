@@ -41,7 +41,7 @@ rocBLASCI:
     def packageCommand =
     {
         platform, project->
-        
+
         commonGroovy.runPackageCommand(platform, project)
     }
 
