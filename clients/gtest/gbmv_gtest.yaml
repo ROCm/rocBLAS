@@ -34,6 +34,7 @@ Definitions:
     - { M:    10, N:    20, lda:   20, KL:  6, KU:  3 }
     - { M:    20, N:    30, lda:   50, KL: 14, KU: 14 }
     - { M:    20, N:    30, lda:   50, KL: 24, KU: 24 }
+    - { M:    20, N:    20, lda:  100, KL: 40, KU: 40 }
 
 
   - &medium_matrix_size_range
