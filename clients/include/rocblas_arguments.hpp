@@ -76,7 +76,7 @@ struct Arguments
 
     char function[64];
     char name[64];
-    char category[32];
+    char category[64];
 
     rocblas_initialization initialization;
     char                   known_bug_platforms[64];
