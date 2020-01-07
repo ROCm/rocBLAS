@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2019 Advanced Micro Devices, Inc.
+ * Copyright 2018-2020 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
 
@@ -202,7 +202,7 @@ void testing_gbmv_batched(const Arguments& arg)
         return;
     }
 
-    size_t size_A = lda * static_cast<size_t>(N);
+    size_t size_A = lda * size_t(N);
     size_t size_x, dim_x, abs_incx;
     size_t size_y, dim_y, abs_incy;
 
@@ -349,7 +349,7 @@ void testing_gbmv_batched(const Arguments& arg)
     if(arg.timing)
     {
         int number_cold_calls = 2;
-        int number_hot_calls  = 100;
+        int number_hot_calls  = arg.iters;
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
         for(int iter = 0; iter < number_cold_calls; iter++)

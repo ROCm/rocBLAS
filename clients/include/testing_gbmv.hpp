@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2019 Advanced Micro Devices, Inc.
+ * Copyright 2018-2020 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
 
@@ -61,9 +61,9 @@ void testing_gbmv_bad_arg(const Arguments& arg)
     }
 
     // copy data from CPU to device
-    CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(T) * size_A, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T) * size_x, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dy, hy, sizeof(T) * size_y, hipMemcpyHostToDevice));
+    dA.transfer_from(hA);
+    dx.transfer_from(hx);
+    dy.transfer_from(hy);
 
     EXPECT_ROCBLAS_STATUS(
         rocblas_gbmv<T>(
@@ -157,6 +157,10 @@ void testing_gbmv(const Arguments& arg)
     host_vector<T> hy_1(size_y);
     host_vector<T> hy_2(size_y);
     host_vector<T> hy_gold(size_y);
+    host_vector<T> halpha(1);
+    host_vector<T> hbeta(1);
+    halpha[0] = h_alpha;
+    hbeta[0]  = h_beta;
 
     device_vector<T> dA(size_A);
     device_vector<T> dx(size_x);
@@ -187,9 +191,9 @@ void testing_gbmv(const Arguments& arg)
     hy_2    = hy_1;
 
     // copy data from CPU to device
-    CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(T) * size_A, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T) * size_x, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dy_1, hy_1, sizeof(T) * size_y, hipMemcpyHostToDevice));
+    dA.transfer_from(hA);
+    dx.transfer_from(hx);
+    dy_1.transfer_from(hy_1);
 
     double gpu_time_used, cpu_time_used;
     double rocblas_gflops, cblas_gflops, rocblas_bandwidth;
@@ -201,10 +205,10 @@ void testing_gbmv(const Arguments& arg)
     =================================================================== */
     if(arg.unit_check || arg.norm_check)
     {
-        CHECK_HIP_ERROR(hipMemcpy(dy_1, hy_1, sizeof(T) * size_y, hipMemcpyHostToDevice));
-        CHECK_HIP_ERROR(hipMemcpy(dy_2, hy_2, sizeof(T) * size_y, hipMemcpyHostToDevice));
-        CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(T), hipMemcpyHostToDevice));
-        CHECK_HIP_ERROR(hipMemcpy(d_beta, &h_beta, sizeof(T), hipMemcpyHostToDevice));
+        dy_1.transfer_from(hy_1);
+        dy_2.transfer_from(hy_2);
+        d_alpha.transfer_from(halpha);
+        d_beta.transfer_from(hbeta);
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         CHECK_ROCBLAS_ERROR(rocblas_gbmv<T>(
@@ -215,8 +219,8 @@ void testing_gbmv(const Arguments& arg)
             handle, transA, M, N, KL, KU, d_alpha, dA, lda, dx, incx, d_beta, dy_2, incy));
 
         // copy output from device to CPU
-        CHECK_HIP_ERROR(hipMemcpy(hy_1, dy_1, sizeof(T) * size_y, hipMemcpyDeviceToHost));
-        CHECK_HIP_ERROR(hipMemcpy(hy_2, dy_2, sizeof(T) * size_y, hipMemcpyDeviceToHost));
+        hy_1.transfer_from(dy_1);
+        hy_2.transfer_from(dy_2);
 
         // CPU BLAS
         cpu_time_used = get_time_us();
