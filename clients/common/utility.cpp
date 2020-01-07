@@ -155,10 +155,10 @@ bool match_test_category(const char* category,
         test_category += sizeof(prefix) - 1;
 
         // Regular expression for token delimiters
-        static const std::regex regex("[:, \\f\\n\\r\\t\\v]+");
+        static const std::regex regex("[:, \\f\\n\\r\\t\\v]+", std::regex_constants::optimize);
 
         // The name of the current GPU platform
-        const char* platform = rocblas_device_platform();
+        static const char* platform = rocblas_device_platform();
 
         // Token iterator
         std::cregex_token_iterator iter(
