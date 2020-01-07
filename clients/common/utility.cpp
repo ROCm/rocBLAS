@@ -3,6 +3,7 @@
  * ************************************************************************ */
 
 #include "utility.hpp"
+#include "../../library/src/include/handle.h"
 #include "rocblas_random.hpp"
 #include <cstdlib>
 #include <cstring>
@@ -118,14 +119,28 @@ void set_device(rocblas_int device_id)
     }
 }
 
-const char* device_platform()
+/*********************************
+ * Return the device platform ID *
+ *********************************/
+static inline const char* rocblas_device_platform()
 {
     switch(_rocblas_handle::device_arch_id())
     {
+    case 803:
+        return "gfx803";
+    case 900:
+        return "gfx900";
+    case 906:
+        return "gfx906";
+    case 908:
+        return "gfx908";
     }
+    return "unknown";
 }
 
-// Function which matches category with test_category, accounting for known_bug_platforms
+/******************************************************************************************
+ * Function which matches category with test_category, accounting for known_bug_platforms *
+ ******************************************************************************************/
 bool match_test_category(const char* category,
                          const char* test_category,
                          const char* known_bug_platforms)
@@ -143,7 +158,7 @@ bool match_test_category(const char* category,
         static const std::regex regex("[:, \\f\\n\\r\\t\\v]+");
 
         // The name of the current GPU platform
-        const char* platform = device_platform();
+        const char* platform = rocblas_device_platform();
 
         // Token iterator
         std::cregex_token_iterator iter(
@@ -153,7 +168,7 @@ bool match_test_category(const char* category,
         for(; iter != std::cregex_token_iterator(); ++iter)
         {
             // If a platform matches, set test_category to known_bug
-            if(!strcasecmp(iter->str(), platform))
+            if(!strcasecmp(iter->str().c_str(), platform))
             {
                 test_category = "known_bug";
                 break;

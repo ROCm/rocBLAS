@@ -66,6 +66,12 @@ inline void rocblas_expect_status(rocblas_status status, rocblas_status expect)
 
 #ifdef GOOGLE_TEST
 
+/* ============================================================================================ */
+// Function which matches category with test_category, accounting for known_bug_platforms
+bool match_test_category(const char* category,
+                         const char* test_category,
+                         const char* known_bug_platforms);
+
 // The tests are instantiated by filtering through the RocBLAS_Data stream
 // The filter is by category and by the type_filter() and function_filter()
 // functions in the testclass

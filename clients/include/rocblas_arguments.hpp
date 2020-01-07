@@ -79,6 +79,7 @@ struct Arguments
     char category[32];
 
     rocblas_initialization initialization;
+    char                   known_bug_platforms[64];
 
     // Validate input format.
     // rocblas_gentest.py is expected to conform to this format.
@@ -160,6 +161,7 @@ struct Arguments
         ROCBLAS_FORMAT_CHECK(name);
         ROCBLAS_FORMAT_CHECK(category);
         ROCBLAS_FORMAT_CHECK(initialization);
+        ROCBLAS_FORMAT_CHECK(known_bug_platforms);
     }
 
     template <typename T>
@@ -300,6 +302,7 @@ private:
         PRINT(timing);
         PRINT(iters);
         PRINT(initialization);
+        PRINT(known_bug_platforms);
 
 #undef PRINT
         return str << " }\n";
