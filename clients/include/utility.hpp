@@ -67,6 +67,12 @@ double get_time_us_sync(hipStream_t stream);
 std::string rocblas_exepath();
 
 /* ============================================================================================ */
+// Function which matches category with test_category, accounting for known_bug_platforms
+bool match_test_category(const char* category,
+                         const char* test_category,
+                         const char* known_bug_platforms);
+
+/* ============================================================================================ */
 /*! \brief  Debugging purpose, print out CPU and GPU result matrix, not valid in complex number  */
 template <typename T>
 inline void rocblas_print_matrix(

@@ -409,7 +409,10 @@ def instantiate(test):
                                        else value):
                         break
                 else:  # All values specified in known bug match test case
-                    test['category'] = 'known_bug'
+                    if test['known_bug_platforms'].strip():
+                        test['category'] = 'known_bug_platforms_' + test['category']
+                    else:
+                        test['category'] = 'known_bug'
                     break
 
         write_test(test)

@@ -70,15 +70,16 @@ inline void rocblas_expect_status(rocblas_status status, rocblas_status expect)
 // The filter is by category and by the type_filter() and function_filter()
 // functions in the testclass
 #define INSTANTIATE_TEST_CATEGORY(testclass, categ0ry)                                           \
-    INSTANTIATE_TEST_CASE_P(categ0ry,                                                            \
-                            testclass,                                                           \
-                            testing::ValuesIn(RocBLAS_TestData::begin([](const Arguments& arg) { \
-                                                  return !strcmp(arg.category, #categ0ry)        \
-                                                         && testclass::type_filter(arg)          \
-                                                         && testclass::function_filter(arg);     \
-                                              }),                                                \
-                                              RocBLAS_TestData::end()),                          \
-                            testclass::PrintToStringParamName());
+    INSTANTIATE_TEST_CASE_P(                                                                     \
+        categ0ry,                                                                                \
+        testclass,                                                                               \
+        testing::ValuesIn(                                                                       \
+            RocBLAS_TestData::begin([](const Arguments& arg) {                                   \
+                return testclass::type_filter(arg) && testclass::function_filter(arg)            \
+                       && match_test_category(#categ0ry, arg.category, arg.known_bug_platforms); \
+            }),                                                                                  \
+            RocBLAS_TestData::end()),                                                            \
+        testclass::PrintToStringParamName());
 
 // Instantiate all test categories
 #define INSTANTIATE_TEST_CATEGORIES(testclass)        \
