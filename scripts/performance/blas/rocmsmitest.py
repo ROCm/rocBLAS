@@ -5,18 +5,18 @@ import argparse
 import io
 from contextlib import redirect_stdout
 
-def parseRocmsmi(func, arg, matchStr):
+def parseRocmsmi(func, args, searchStr):
     f = io.StringIO()
     with redirect_stdout(f):
-        if arg is not None:
-            func(arg)
+        if args is not None:
+            func(*args)
         else:
             func()
     lines = f.getvalue().split('\n')
     output = ''
     for line in lines:
-        if matchStr in line:
-            output = line[line.find(matchStr)+len(matchStr):]
+        if searchStr in line:
+            output = line[line.find(searchStr)+len(searchStr):]
     return output
     
 if __name__ == '__main__':
@@ -57,17 +57,21 @@ if __name__ == '__main__':
             
             print("\nshowVbiosVersion:")
             smi.showVbiosVersion(deviceList)
-            vbios = parseRocmsmi(smi.showVbiosVersion, deviceList, 'VBIOS version: ')
+            vbios = parseRocmsmi(smi.showVbiosVersion, [deviceList], 'VBIOS version: ')
             print("VBIOS:", vbios)
             
             print("\nshowId:", vbios)
             smi.showId(deviceList)
-            deviceId = parseRocmsmi(smi.showId, deviceList, 'GPU ID: ')
+            deviceId = parseRocmsmi(smi.showId, [deviceList], 'GPU ID: ')
             print("device ID:", deviceId)
             
             print("\nshowPerformanceLevel")
             smi.showPerformanceLevel(deviceList)
-            performanceLevel = parseRocmsmi(smi.showPerformanceLevel, deviceList, 'Performance Level: ')
+            performanceLevel = parseRocmsmi(smi.showPerformanceLevel, [deviceList], 'Performance Level: ')
             print("Performance Level:", performanceLevel)
+            
+            print("\nshowMemInfo")
+            smi.showMemInfo(deviceList, ['vram'])
+            vram = parseRocmsmi(smi.showMemInfo, [deviceList, ['vram']], 'vram Total Memory (B): ')
         else:
             print("Selected device is not an AMD GPU")
