@@ -4,8 +4,10 @@
 #ifndef __ROCBLAS_GEMM_EX_HPP
 #define __ROCBLAS_GEMM_EX_HPP
 
+#ifndef USE_TENSILE_HOST
 #include "Tensile.h"
 #include "TensileTypes.h"
+#endif
 #include "gemm.hpp"
 #include "handle.h"
 #include "logging.h"
