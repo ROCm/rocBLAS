@@ -120,7 +120,6 @@ namespace
         return rocblas_hemv_template(
             handle, uplo, n, alpha, A, 0, lda, 0, x, 0, incx, 0, beta, y, 0, incy, 0, 1);
     }
-
 } // namespace
 
 /*

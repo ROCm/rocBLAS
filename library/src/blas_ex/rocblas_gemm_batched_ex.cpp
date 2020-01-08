@@ -1,8 +1,7 @@
 /* ************************************************************************
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include "Tensile.h"
-#include "TensileTypes.h"
+
 #include "handle.h"
 #include "logging.h"
 #include "rocblas.h"
