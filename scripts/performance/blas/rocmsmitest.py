@@ -11,13 +11,16 @@ if __name__ == '__main__':
     if args.d is not None:
         deviceNum = int(args.d)
         deviceList = smi.listDevices(True)
+        
         print("Device List:", deviceList)
+        
+        deviceList = deviceList[deviceNum]
         
         device = deviceList[deviceNum]
         print("Device", deviceNum, ":", device)
         
         print("showAllConciseHw")
-        smi.showAllConciseHw(deviceList[1:])
+        smi.showAllConciseHw(deviceList)
         
         print("showProductName")
         smi.showProductName(deviceList)
