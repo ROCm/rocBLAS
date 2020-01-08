@@ -42,14 +42,14 @@ rocBLASCI:
                         alias python=python3
                         python -V
 
-                        python rocmsmitest.py
+                        python rocmsmitest.py -d ${env.EXECUTOR_NUMBER}
                         
                         popd
                     """
         platform.runCommand(this, command)
 
-        commonGroovy = load "${project.paths.project_src_prefix}/.jenkins/Common.groovy"
-        commonGroovy.runCompileCommand(platform, project)
+        // commonGroovy = load "${project.paths.project_src_prefix}/.jenkins/Common.groovy"
+        // commonGroovy.runCompileCommand(platform, project)
     }
 
     def testCommand =
