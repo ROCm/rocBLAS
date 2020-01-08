@@ -18,7 +18,7 @@ rocBLASCI:
     rocblas.paths.build_command = './install.sh -lasm_ci -c'
 
     // Define test architectures, optional rocm version argument is available
-    def nodes = new dockerNodes(['ubuntu && gfx906 && perf'], rocblas)
+    def nodes = new dockerNodes(['ubuntu && gfx803'], rocblas)
 
     boolean formatCheck = true
 
@@ -28,6 +28,28 @@ rocBLASCI:
 
         commonGroovy = load "${project.paths.project_src_prefix}/.jenkins/Common.groovy"
         commonGroovy.runCompileCommand(platform, project)
+
+        def command = """#!/usr/bin/env bash
+                        set -x
+                        pwd
+                        cd ${project.paths.project_build_prefix}
+                        workingdir=`pwd`
+
+                        pushd scripts/performance/blas/
+                        
+                        shopt expand_aliases
+                        shopt -s expand_aliases
+                        shopt expand_aliases
+                        
+                        python -V
+                        alias python=python3
+                        python -V
+
+                        python rocmsmitest.py
+                        
+                        popd
+                    """
+        platform.runCommand(this, command)
     }
 
     def testCommand =
@@ -81,6 +103,6 @@ rocBLASCI:
         platform.archiveArtifacts(this, """${project.paths.project_build_prefix}/perfoutput.tar""")
     }
 
-    buildProject(rocblas, formatCheck, nodes.dockerArray, compileCommand, testCommand, packageCommand)
+    buildProject(rocblas, formatCheck, nodes.dockerArray, compileCommand, null, null)
 
 }
