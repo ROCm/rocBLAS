@@ -1,5 +1,5 @@
 /* ************************************************************************
-* Copyright 2016-2019 Advanced Micro Devices, Inc.
+* Copyright 2016-2020 Advanced Micro Devices, Inc.
 * ************************************************************************ */
 #ifndef __ROCBLAS_TRSM_HPP__
 #define __ROCBLAS_TRSM_HPP__

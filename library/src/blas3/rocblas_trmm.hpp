@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2019 Advanced Micro Devices, Inc.
+ * Copyright 2019-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "../blas1/rocblas_copy.hpp"
 #include "../blas1/rocblas_scal.hpp"

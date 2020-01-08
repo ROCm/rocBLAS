@@ -1,14 +1,15 @@
 /* ************************************************************************
- * Copyright 2016-2019 Advanced Micro Devices, Inc.
+ * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "handle.h"
 #include <cstdio>
 #include <cstdlib>
 
 #if BUILD_WITH_TENSILE
-#include "Tensile.h"
 #ifdef USE_TENSILE_HOST
 #include "tensile_host.hpp"
+#else
+#include "Tensile.h"
 #endif
 #endif
 
@@ -18,12 +19,13 @@
 _rocblas_handle::_rocblas_handle()
 {
 #if BUILD_WITH_TENSILE
-    static int dummy = (tensileInitialize(), 0);
 #ifdef USE_TENSILE_HOST
     // Cache the Tensile host on the first handle, since it takes
     // up to 10 seconds to load; later handles reuse the same host
     static TensileHost* hostImpl = createTensileHost();
     host                         = hostImpl;
+#else
+    static int dummy = (tensileInitialize(), 0);
 #endif
 #endif
 

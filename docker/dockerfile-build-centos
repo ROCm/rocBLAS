@@ -31,7 +31,7 @@ RUN yum install -y \
     llvm7.0-static \
     libcxx-devel \
     boost-devel \
-    zlib-devel \ 
+    zlib-devel \
     libgomp \
     numactl-libs \
     rpm-build \
