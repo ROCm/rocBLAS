@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2019 Advanced Micro Devices, Inc.
+ * Copyright 2018-2020 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
 
@@ -1213,6 +1213,72 @@ static constexpr auto rocblas_gemv_batched<rocblas_float_complex> = rocblas_cgem
 template <>
 static constexpr auto rocblas_gemv_batched<rocblas_double_complex> = rocblas_zgemv_batched;
 
+// hemv
+template <typename T>
+rocblas_status (*rocblas_hemv)(rocblas_handle handle,
+                               rocblas_fill   uplo,
+                               rocblas_int    n,
+                               const T*       alpha,
+                               const T*       A,
+                               rocblas_int    lda,
+                               const T*       x,
+                               rocblas_int    incx,
+                               const T*       beta,
+                               T*             y,
+                               rocblas_int    incy);
+
+template <>
+static constexpr auto rocblas_hemv<rocblas_float_complex> = rocblas_chemv;
+
+template <>
+static constexpr auto rocblas_hemv<rocblas_double_complex> = rocblas_zhemv;
+
+// hemv_batched
+template <typename T>
+rocblas_status (*rocblas_hemv_batched)(rocblas_handle handle,
+                                       rocblas_fill   uplo,
+                                       rocblas_int    n,
+                                       const T*       alpha,
+                                       const T* const A[],
+                                       rocblas_int    lda,
+                                       const T* const x[],
+                                       rocblas_int    incx,
+                                       const T*       beta,
+                                       T* const       y[],
+                                       rocblas_int    incy,
+                                       rocblas_int    batch_count);
+
+template <>
+static constexpr auto rocblas_hemv_batched<rocblas_float_complex> = rocblas_chemv_batched;
+
+template <>
+static constexpr auto rocblas_hemv_batched<rocblas_double_complex> = rocblas_zhemv_batched;
+
+// hemv_strided_batched
+template <typename T>
+rocblas_status (*rocblas_hemv_strided_batched)(rocblas_handle handle,
+                                               rocblas_fill   uplo,
+                                               rocblas_int    n,
+                                               const T*       alpha,
+                                               const T*       A,
+                                               rocblas_int    lda,
+                                               rocblas_stride stride_A,
+                                               const T*       x,
+                                               rocblas_int    incx,
+                                               rocblas_stride stride_x,
+                                               const T*       beta,
+                                               T*             y,
+                                               rocblas_int    incy,
+                                               rocblas_stride stride_y,
+                                               rocblas_int    batch_count);
+
+template <>
+static constexpr auto
+    rocblas_hemv_strided_batched<rocblas_float_complex> = rocblas_chemv_strided_batched;
+
+template <>
+static constexpr auto
+    rocblas_hemv_strided_batched<rocblas_double_complex> = rocblas_zhemv_strided_batched;
 // trmv
 template <typename T>
 rocblas_status (*rocblas_trmv)(rocblas_handle    handle,

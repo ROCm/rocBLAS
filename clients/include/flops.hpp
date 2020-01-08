@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2019 Advanced Micro Devices, Inc.
+ * Copyright 2018-2020 Advanced Micro Devices, Inc.
  *
  * ************************************************************************/
 
@@ -130,6 +130,13 @@ constexpr double
     gemv_gflop_count<rocblas_double_complex>(rocblas_operation transA, rocblas_int m, rocblas_int n)
 {
     return (8.0 * m * n + 6.0 * (transA == rocblas_operation_none ? m : n)) / 1e9;
+}
+
+/* \brief floating point counts of HEMV */
+template <typename T>
+constexpr double hemv_gflop_count(rocblas_int n)
+{
+    return (8.0 * n * n + 8.0 * n) / 1e9;
 }
 
 /* \brief floating point counts of TRSV */

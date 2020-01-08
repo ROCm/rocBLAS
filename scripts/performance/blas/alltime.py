@@ -18,21 +18,18 @@ Usage:
 
 \talltime.py
 \t\t-A          working directory A
-# \t\t-B        working directory B (optional)
+\t\t-B          working directory B (optional)
 \t\t-i          input yaml
 \t\t-o          output directory
+\t\t-b          output directory for the base run
 \t\t-T          do not perform BLAS functions; just generate document
 \t\t-f          document format: pdf (default) or docx (Need forked docx plugin)
 \t\t-d          device number (default: 0)
-# \t\t-g        generate graphs via Asymptote: 0(default) or 1
-# \t\t-S        plot speedup (default: 1, disabled: 0)
+\t\t-g          generate graphs via Asymptote: 0(default) or 1
+\t\t-S          plot speedup (default: 1, disabled: 0)
 '''
-# \t\t-a          label for directory A
-# \t\t-g          generate graphs via Asymptote: 0(default) or 1 #doesn't do anything
-# \t\t-s          short run   #Doesn't do anything
+
 # \t\t-t          data type: gflops #Maybe use option to plot time graphs too
-# \t\t-b          label for directory B
-# \t\t-N          Number of samples (default: 10) #Do we want to use median and take multiple samples (Will take longer to run due to rocblas-bench launch overhead)
 
 
 def nextpow(val, radix):
@@ -43,9 +40,10 @@ def nextpow(val, radix):
 
 class rundata:
 
-    def __init__(self, wdir, diridx, label,
+    def __init__(self, wdir, odir, diridx, label,
                  data, hwinfo):
         self.wdir = wdir
+        self.odir = odir
         self.diridx = diridx
         self.minnsize = data['n']
         self.maxNsize = data['N']
@@ -95,15 +93,15 @@ class rundata:
                 print("flops and mem equations produce errors")
 
 
-    def outfilename(self, outdir):
+    def outfilename(self):
         outfile = str(self.function)
         outfile += "_" + self.precision
         outfile += "_" + self.label.replace(' ', '_').replace('/', '_')
         outfile += ".dat"
-        outfile = os.path.join(outdir, outfile)
+        outfile = os.path.join(self.odir, outfile)
         return outfile
 
-    def runcmd(self, outdir, nsample):
+    def runcmd(self, nsample):
         cmd = ["./timing.py"]
 
         cmd.append("-w")
@@ -191,18 +189,18 @@ class rundata:
             cmd.append("-x")
 
         cmd.append("-o")
-        cmd.append(self.outfilename(outdir))
+        cmd.append(self.outfilename())
 
         # cmd.append("-t")
         # cmd.append("gflops")
 
         return cmd
 
-    def executerun(self, outdir, nsample):
+    def executerun(self, nsample):
         fout = tempfile.TemporaryFile(mode="w+")
         ferr = tempfile.TemporaryFile(mode="w+")
 
-        proc = subprocess.Popen(self.runcmd(outdir, nsample), stdout=fout, stderr=ferr,
+        proc = subprocess.Popen(self.runcmd(nsample), stdout=fout, stderr=ferr,
                                 env=os.environ.copy())
         proc.wait()
         rc = proc.returncode
@@ -318,10 +316,10 @@ class figure:
         self.runs = []
         self.caption = caption
 
-    def inputfiles(self, outdir):
+    def inputfiles(self):
         files = []
         for run in self.runs:
-            files.append(run.outfilename(outdir))
+            files.append(run.outfilename())
         return files
 
     def labels(self):
@@ -356,7 +354,7 @@ class figure:
         asycmd.append("datagraphs.asy")
 
         asycmd.append("-u")
-        asycmd.append('filenames="' + ",".join(self.inputfiles(outdir)) + '"')
+        asycmd.append('filenames="' + ",".join(self.inputfiles()) + '"')
 
         asycmd.append("-u")
         asycmd.append('legendlist="' + ",".join(self.labels()) + '"')
@@ -474,10 +472,9 @@ def main(argv):
     dirA = "."
     dirB = None
     dryrun = False
-    labelA = None
-    labelB = None
     inputYaml = ""
     outdir = "."
+    baseOutDir = "."
     speedup = False
     datatype = "gflops"
     # shortrun = False
@@ -500,14 +497,12 @@ def main(argv):
             dirA = arg
         elif opt in ("-B"):
             dirB = arg
-        elif opt in ("-a"):
-            labelA = arg
-        elif opt in ("-b"):
-            labelB = arg
         elif opt in ("-i"):
             inputYaml = arg
         elif opt in ("-o"):
             outdir = arg
+        elif opt in ("-b"):
+            baseOutDir = arg
         elif opt in ("-T"):
             dryrun = True
         # elif opt in ("-s"):
@@ -544,31 +539,30 @@ def main(argv):
         print("unable to find input yaml file: " + inputYaml)
         sys.exit(1)
 
-    if labelA == None:
-        labelA = dirA
-
-
     print("dirA: "+ dirA)
-    print("labelA: "+ labelA)
 
     if not dryrun and not binaryisok(dirA, "rocblas-bench"):
         print("unable to find " + "rocblas-bench" + " in " + dirA)
         print("please specify with -A")
         sys.exit(1)
 
-    dirlist = [[dirA, labelA]]
+    dirlist = [[dirA, outdir]]
     if not dirB == None:
-        if labelB == None:
-            labelB = dirB
-
         print("dirB: "+ dirB)
-        print("labelB: "+ labelB)
+
         if not dryrun and not binaryisok(dirB, "rocblas-bench"):
             print("unable to find " + "rocblas-bench" + " in " + dirB)
             print("please specify with -B")
             sys.exit(1)
 
-        dirlist.append([dirB, labelB])
+        if not os.path.exists(baseOutDir):
+            os.makedirs(baseOutDir)
+
+        dirlist.append([dirB, baseOutDir])
+
+    elif dryrun:
+        dirlist.append([dirB, baseOutDir])
+
     print("outdir: " + outdir)
     # if shortrun:
     #     print("short run")
@@ -618,8 +612,9 @@ def main(argv):
         for test in tests:
             for idx, lwdir in enumerate(dirlist):
                 wdir = lwdir[0]
-                label = getLabel(test) + ' run ' + chr(idx+65) if len(dirlist) > 1 else getLabel(test) #labelling runs A and B for now (can swap with rocblas version)
-                fig.runs.append( rundata(wdir, idx, label,
+                odir = lwdir[1]
+                label = getLabel(test)
+                fig.runs.append( rundata(wdir, odir, idx, label,
                                             test, hwinfo) )
         figs.append(fig)
 
@@ -627,9 +622,9 @@ def main(argv):
     for fig in figs:
         print(fig.name)
         for run in fig.runs:
-            print(" ".join(run.runcmd(outdir, nsample)))
             if not dryrun:
-                run.executerun(outdir, nsample)
+                print(" ".join(run.runcmd(nsample)))
+                run.executerun(nsample)
 
     #generate plots
     if doAsy:

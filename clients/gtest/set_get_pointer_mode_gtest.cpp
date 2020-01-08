@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2019 Advanced Micro Devices, Inc.
+ * Copyright 2019-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "rocblas.hpp"
@@ -13,8 +13,8 @@
 
 namespace
 {
-    template <typename = void>
-    struct testing_set_get_pointer_mode
+    template <typename...>
+    struct testing_set_get_pointer_mode : rocblas_test_valid
     {
         void operator()(const Arguments& arg)
         {
@@ -52,7 +52,7 @@ namespace
 
     TEST_P(set_get_pointer_mode, auxilliary)
     {
-        testing_set_get_pointer_mode<>{}(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(testing_set_get_pointer_mode<>{}(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(set_get_pointer_mode)
 
