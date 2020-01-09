@@ -32,6 +32,9 @@ rocBLASCI:
                         cd ${project.paths.project_build_prefix}
                         workingdir=`pwd`
 
+                        mkdir -p build/release/clients/staging
+                        touch build/release/clients/staging/rocblas-bench
+
                         pushd scripts/performance/blas/
                         
                         shopt expand_aliases
@@ -44,8 +47,7 @@ rocBLASCI:
 
                         python rocmsmitest.py -d ${env.EXECUTOR_NUMBER}
 
-                        mkdir -p build/release/clients/staging
-                        touch build/release/clients/staging/rocblas-bench
+                        
                         python alltime.py -A \$workingdir/build/release/clients/staging -o \$workingdir/perfoutput -i perf.yaml -S 0 -g 0 -d ${env.EXECUTOR_NUMBER}
                         
                         popd
