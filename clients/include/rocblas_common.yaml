@@ -223,6 +223,8 @@ Arguments:
   - M: rocblas_int
   - N: rocblas_int
   - K: rocblas_int
+  - KL: rocblas_int
+  - KU: rocblas_int
   - lda: rocblas_int
   - ldb: rocblas_int
   - ldc: rocblas_int
@@ -304,6 +306,8 @@ Defaults:
   M: -1
   N: -1
   K: -1
+  KL: -1
+  KU: -1
   incx: 0
   incy: 0
   incd: 0

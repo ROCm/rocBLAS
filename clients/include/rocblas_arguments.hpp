@@ -29,6 +29,9 @@ struct Arguments
     rocblas_int N;
     rocblas_int K;
 
+    rocblas_int KL;
+    rocblas_int KU;
+
     rocblas_int lda;
     rocblas_int ldb;
     rocblas_int ldc;
@@ -121,6 +124,8 @@ struct Arguments
         ROCBLAS_FORMAT_CHECK(M);
         ROCBLAS_FORMAT_CHECK(N);
         ROCBLAS_FORMAT_CHECK(K);
+        ROCBLAS_FORMAT_CHECK(KL);
+        ROCBLAS_FORMAT_CHECK(KU);
         ROCBLAS_FORMAT_CHECK(lda);
         ROCBLAS_FORMAT_CHECK(ldb);
         ROCBLAS_FORMAT_CHECK(ldc);
@@ -270,6 +275,8 @@ private:
         PRINT(M);
         PRINT(N);
         PRINT(K);
+        PRINT(KL);
+        PRINT(KU);
         PRINT(lda);
         PRINT(ldb);
         PRINT(ldc);
