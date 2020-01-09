@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2019 Advanced Micro Devices, Inc.
+ * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #ifndef _ROCBLAS_FUNCTIONS_H_
@@ -3322,6 +3322,281 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrmv_strided_batched(rocblas_handle      
                                                             rocblas_int                   m,
                                                             const rocblas_double_complex* A,
                                                             rocblas_int                   lda,
+                                                            rocblas_stride                stridea,
+                                                            rocblas_double_complex*       x,
+                                                            rocblas_int                   incx,
+                                                            rocblas_stride                stridex,
+                                                            rocblas_int batch_count);
+
+/*! \brief BLAS Level 2 API
+
+    \details
+    tpmv performs one of the matrix-vector operations
+
+         x = A*x or x = A**T*x,
+
+    where x is an n element vector and A is an n by n unit, or non-unit, upper or lower triangular matrix.
+
+    The vector x is overwritten.
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+
+    @param[in]
+    uplo    [rocblas_fill]
+            rocblas_fill_upper:  A is an upper triangular matrix.
+            rocblas_fill_lower:  A is a  lower triangular matrix.
+
+    @param[in]
+    transA     [rocblas_operation]
+
+    @param[in]
+    diag    [rocblas_diagonal]
+            rocblas_diagonal_unit:     A is assumed to be unit triangular.
+            rocblas_diagonal_non_unit:  A is not assumed to be unit triangular.
+
+    @param[in]
+    m         [rocblas_int]
+              m specifies the number of rows of A. m >= 0.
+
+    @param[in]
+    A         device pointer storing matrix A,
+              of dimension ( lda, m )
+
+    @param[in]
+    x         device pointer storing vector x.
+
+    @param[in]
+    incx      [rocblas_int]
+              specifies the increment for the elements of x.
+
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_stpmv(rocblas_handle    handle,
+                                            rocblas_fill      uplo,
+                                            rocblas_operation transA,
+                                            rocblas_diagonal  diag,
+                                            rocblas_int       m,
+                                            const float*      A,
+                                            float*            x,
+                                            rocblas_int       incx);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dtpmv(rocblas_handle    handle,
+                                            rocblas_fill      uplo,
+                                            rocblas_operation transA,
+                                            rocblas_diagonal  diag,
+                                            rocblas_int       m,
+                                            const double*     A,
+                                            double*           x,
+                                            rocblas_int       incx);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ctpmv(rocblas_handle               handle,
+                                            rocblas_fill                 uplo,
+                                            rocblas_operation            transA,
+                                            rocblas_diagonal             diag,
+                                            rocblas_int                  m,
+                                            const rocblas_float_complex* A,
+                                            rocblas_float_complex*       x,
+                                            rocblas_int                  incx);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ztpmv(rocblas_handle                handle,
+                                            rocblas_fill                  uplo,
+                                            rocblas_operation             transA,
+                                            rocblas_diagonal              diag,
+                                            rocblas_int                   m,
+                                            const rocblas_double_complex* A,
+                                            rocblas_double_complex*       x,
+                                            rocblas_int                   incx);
+
+/*! \brief BLAS Level 2 API
+
+    \details
+    tpmv_batched performs one of the matrix-vector operations
+
+         x_i = A_i*x_i or x_i = A**T*x_i, 0 \le i < batch_count
+
+    where x_i is an n element vector and A_i is an n by n (unit, or non-unit, upper or lower triangular matrix)
+
+    The vectors x_i are overwritten.
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+
+    @param[in]
+    uplo    [rocblas_fill]
+            rocblas_fill_upper:  A_i is an upper triangular matrix.
+            rocblas_fill_lower:  A_i is a  lower triangular matrix.
+
+    @param[in]
+    transA     [rocblas_operation]
+
+    @param[in]
+    diag    [rocblas_diagonal]
+            rocblas_diagonal_unit:     A_i is assumed to be unit triangular.
+            rocblas_diagonal_non_unit:  A_i is not assumed to be unit triangular.
+
+    @param[in]
+    m         [rocblas_int]
+              m specifies the number of rows of matrices A_i. m >= 0.
+
+    @param[in]
+    A         device pointer storing pointer of matrices A_i,
+              of dimension ( lda, m )
+
+    @param[in]
+    x         device pointer storing vectors x_i.
+
+    @param[in]
+    incx      [rocblas_int]
+              specifies the increment for the elements of vectors x_i.
+
+    @param[in]
+    batch_count [rocblas_int]
+              The number of batched matrices/vectors.
+
+
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_stpmv_batched(rocblas_handle      handle,
+                                                    rocblas_fill        uplo,
+                                                    rocblas_operation   transA,
+                                                    rocblas_diagonal    diag,
+                                                    rocblas_int         m,
+                                                    const float* const* A,
+                                                    float* const*       x,
+                                                    rocblas_int         incx,
+                                                    rocblas_int         batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dtpmv_batched(rocblas_handle       handle,
+                                                    rocblas_fill         uplo,
+                                                    rocblas_operation    transA,
+                                                    rocblas_diagonal     diag,
+                                                    rocblas_int          m,
+                                                    const double* const* A,
+                                                    double* const*       x,
+                                                    rocblas_int          incx,
+                                                    rocblas_int          batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ctpmv_batched(rocblas_handle                      handle,
+                                                    rocblas_fill                        uplo,
+                                                    rocblas_operation                   transA,
+                                                    rocblas_diagonal                    diag,
+                                                    rocblas_int                         m,
+                                                    const rocblas_float_complex* const* A,
+                                                    rocblas_float_complex* const*       x,
+                                                    rocblas_int                         incx,
+                                                    rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ztpmv_batched(rocblas_handle                       handle,
+                                                    rocblas_fill                         uplo,
+                                                    rocblas_operation                    transA,
+                                                    rocblas_diagonal                     diag,
+                                                    rocblas_int                          m,
+                                                    const rocblas_double_complex* const* A,
+                                                    rocblas_double_complex* const*       x,
+                                                    rocblas_int                          incx,
+                                                    rocblas_int batch_count);
+
+/*! \brief BLAS Level 2 API
+
+    \details
+    tpmv_strided_batched performs one of the matrix-vector operations
+
+         x_i = A_i*x_i or x_i = A**T*x_i, 0 \le i < batch_count
+
+    where x_i is an n element vector and A_i is an n by n (unit, or non-unit, upper or lower triangular matrix)
+    with strides specifying how to retrieve $x_i$ (resp. $A_i$) from $x_{i-1}$ (resp. $A_i$).
+
+    The vectors x_i are overwritten.
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+
+    @param[in]
+    uplo    [rocblas_fill]
+            rocblas_fill_upper:  A_i is an upper triangular matrix.
+            rocblas_fill_lower:  A_i is a  lower triangular matrix.
+
+    @param[in]
+    transA     [rocblas_operation]
+
+    @param[in]
+    diag    [rocblas_diagonal]
+            rocblas_diagonal_unit:     A_i is assumed to be unit triangular.
+            rocblas_diagonal_non_unit:  A_i is not assumed to be unit triangular.
+
+    @param[in]
+    m         [rocblas_int]
+              m specifies the number of rows of matrices A_i. m >= 0.
+
+    @param[in]
+    A         device pointer of the matrix A_0,
+              of dimension ( lda, m )
+
+    @param[in]
+    stride_a  [rocblas_stride]
+              stride from the start of one A_i matrix to the next A_{i + 1}
+
+    @param[in]
+    x         device pointer storing the vector x_0.
+
+    @param[in]
+    incx      [rocblas_int]
+              specifies the increment for the elements of one vector x.
+
+    @param[in]
+    stride_x  [rocblas_stride]
+              stride from the start of one x_i vector to the next x_{i + 1}
+
+    @param[in]
+    batch_count [rocblas_int]
+              The number of batched matrices/vectors.
+
+
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_stpmv_strided_batched(rocblas_handle    handle,
+                                                            rocblas_fill      uplo,
+                                                            rocblas_operation transA,
+                                                            rocblas_diagonal  diag,
+                                                            rocblas_int       m,
+                                                            const float*      A,
+                                                            rocblas_stride    stridea,
+                                                            float*            x,
+                                                            rocblas_int       incx,
+                                                            rocblas_stride    stridex,
+                                                            rocblas_int       batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dtpmv_strided_batched(rocblas_handle    handle,
+                                                            rocblas_fill      uplo,
+                                                            rocblas_operation transA,
+                                                            rocblas_diagonal  diag,
+                                                            rocblas_int       m,
+                                                            const double*     A,
+                                                            rocblas_stride    stridea,
+                                                            double*           x,
+                                                            rocblas_int       incx,
+                                                            rocblas_stride    stridex,
+                                                            rocblas_int       batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ctpmv_strided_batched(rocblas_handle               handle,
+                                                            rocblas_fill                 uplo,
+                                                            rocblas_operation            transA,
+                                                            rocblas_diagonal             diag,
+                                                            rocblas_int                  m,
+                                                            const rocblas_float_complex* A,
+                                                            rocblas_stride               stridea,
+                                                            rocblas_float_complex*       x,
+                                                            rocblas_int                  incx,
+                                                            rocblas_stride               stridex,
+                                                            rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ztpmv_strided_batched(rocblas_handle                handle,
+                                                            rocblas_fill                  uplo,
+                                                            rocblas_operation             transA,
+                                                            rocblas_diagonal              diag,
+                                                            rocblas_int                   m,
+                                                            const rocblas_double_complex* A,
                                                             rocblas_stride                stridea,
                                                             rocblas_double_complex*       x,
                                                             rocblas_int                   incx,

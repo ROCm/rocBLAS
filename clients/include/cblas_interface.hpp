@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2019 Advanced Micro Devices, Inc.
+ * Copyright 2018-2020 Advanced Micro Devices, Inc.
  *
  * ************************************************************************/
 
@@ -798,6 +798,68 @@ inline void cblas_trsv(rocblas_fill      uplo,
                 lda,
                 x,
                 incx);
+}
+
+// tpmv
+template <typename T>
+void cblas_tpmv(rocblas_fill      uplo,
+                rocblas_operation transA,
+                rocblas_diagonal  diag,
+                rocblas_int       m,
+                const T*          A,
+                T*                x,
+                rocblas_int       incx);
+
+template <>
+inline void cblas_tpmv(rocblas_fill      uplo,
+                       rocblas_operation transA,
+                       rocblas_diagonal  diag,
+                       rocblas_int       m,
+                       const float*      A,
+                       float*            x,
+                       rocblas_int       incx)
+{
+    cblas_stpmv(
+        CblasColMajor, CBLAS_UPLO(uplo), CBLAS_TRANSPOSE(transA), CBLAS_DIAG(diag), m, A, x, incx);
+}
+
+template <>
+inline void cblas_tpmv(rocblas_fill      uplo,
+                       rocblas_operation transA,
+                       rocblas_diagonal  diag,
+                       rocblas_int       m,
+                       const double*     A,
+                       double*           x,
+                       rocblas_int       incx)
+{
+    cblas_dtpmv(
+        CblasColMajor, CBLAS_UPLO(uplo), CBLAS_TRANSPOSE(transA), CBLAS_DIAG(diag), m, A, x, incx);
+}
+
+template <>
+inline void cblas_tpmv(rocblas_fill                 uplo,
+                       rocblas_operation            transA,
+                       rocblas_diagonal             diag,
+                       rocblas_int                  m,
+                       const rocblas_float_complex* A,
+                       rocblas_float_complex*       x,
+                       rocblas_int                  incx)
+{
+    cblas_ctpmv(
+        CblasColMajor, CBLAS_UPLO(uplo), CBLAS_TRANSPOSE(transA), CBLAS_DIAG(diag), m, A, x, incx);
+}
+
+template <>
+inline void cblas_tpmv(rocblas_fill                  uplo,
+                       rocblas_operation             transA,
+                       rocblas_diagonal              diag,
+                       rocblas_int                   m,
+                       const rocblas_double_complex* A,
+                       rocblas_double_complex*       x,
+                       rocblas_int                   incx)
+{
+    cblas_ztpmv(
+        CblasColMajor, CBLAS_UPLO(uplo), CBLAS_TRANSPOSE(transA), CBLAS_DIAG(diag), m, A, x, incx);
 }
 
 // trmv

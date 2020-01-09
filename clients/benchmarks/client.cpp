@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2019 Advanced Micro Devices, Inc.
+ * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "rocblas.h"
@@ -49,6 +49,9 @@
 #include "testing_ger.hpp"
 #include "testing_syr.hpp"
 #include "testing_tbmv.hpp"
+#include "testing_tpmv.hpp"
+#include "testing_tpmv_batched.hpp"
+#include "testing_tpmv_strided_batched.hpp"
 #include "testing_trmv.hpp"
 #include "testing_trmv_batched.hpp"
 #include "testing_trmv_strided_batched.hpp"
@@ -206,6 +209,9 @@ struct perf_blas<
                 {"gemv", testing_gemv<T>},
                 {"gemv_batched", testing_gemv_batched<T>},
                 {"gemv_strided_batched", testing_gemv_strided_batched<T>},
+                {"tpmv", testing_tpmv<T>},
+                {"tpmv_batched", testing_tpmv_batched<T>},
+                {"tpmv_strided_batched", testing_tpmv_strided_batched<T>},
                 {"trmv", testing_trmv<T>},
                 {"trmv_batched", testing_trmv_batched<T>},
                 {"trmv_strided_batched", testing_trmv_strided_batched<T>},
@@ -296,6 +302,9 @@ struct perf_blas<T,
                 {"iamax", testing_iamax<T>},
                 {"iamin", testing_iamin<T>},
                 {"gemv", testing_gemv<T>},
+                {"tpmv", testing_tpmv<T>},
+                {"tpmv_batched", testing_tpmv_batched<T>},
+                {"tpmv_strided_batched", testing_tpmv_strided_batched<T>},
                 {"trmv", testing_trmv<T>},
                 {"trmv_batched", testing_trmv_batched<T>},
                 {"trmv_strided_batched", testing_trmv_strided_batched<T>},

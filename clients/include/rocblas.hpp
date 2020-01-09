@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2019 Advanced Micro Devices, Inc.
+ * Copyright 2018-2020 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
 
@@ -1212,6 +1212,81 @@ static constexpr auto rocblas_gemv_batched<rocblas_float_complex> = rocblas_cgem
 
 template <>
 static constexpr auto rocblas_gemv_batched<rocblas_double_complex> = rocblas_zgemv_batched;
+
+// tpmv
+template <typename T>
+rocblas_status (*rocblas_tpmv)(rocblas_handle    handle,
+                               rocblas_fill      uplo,
+                               rocblas_operation transA,
+                               rocblas_diagonal  diag,
+                               rocblas_int       m,
+                               const T*          A,
+                               T*                x,
+                               rocblas_int       incx);
+
+template <>
+static constexpr auto rocblas_tpmv<float> = rocblas_stpmv;
+
+template <>
+static constexpr auto rocblas_tpmv<double> = rocblas_dtpmv;
+
+template <>
+static constexpr auto rocblas_tpmv<rocblas_float_complex> = rocblas_ctpmv;
+
+template <>
+static constexpr auto rocblas_tpmv<rocblas_double_complex> = rocblas_ztpmv;
+
+// tpmv_strided_batched
+template <typename T>
+rocblas_status (*rocblas_tpmv_strided_batched)(rocblas_handle    handle,
+                                               rocblas_fill      uplo,
+                                               rocblas_operation transA,
+                                               rocblas_diagonal  diag,
+                                               rocblas_int       m,
+                                               const T*          A,
+                                               rocblas_stride    stridea,
+                                               T*                x,
+                                               rocblas_stride    stridex,
+                                               rocblas_int       incx,
+                                               rocblas_int       batch_count);
+
+template <>
+static constexpr auto rocblas_tpmv_strided_batched<float> = rocblas_stpmv_strided_batched;
+
+template <>
+static constexpr auto rocblas_tpmv_strided_batched<double> = rocblas_dtpmv_strided_batched;
+
+template <>
+static constexpr auto
+    rocblas_tpmv_strided_batched<rocblas_float_complex> = rocblas_ctpmv_strided_batched;
+
+template <>
+static constexpr auto
+    rocblas_tpmv_strided_batched<rocblas_double_complex> = rocblas_ztpmv_strided_batched;
+
+// tpmv_batched
+template <typename T>
+rocblas_status (*rocblas_tpmv_batched)(rocblas_handle    handle,
+                                       rocblas_fill      uplo,
+                                       rocblas_operation transA,
+                                       rocblas_diagonal  diag,
+                                       rocblas_int       m,
+                                       const T* const*   A,
+                                       T* const*         x,
+                                       rocblas_int       incx,
+                                       rocblas_int       batch_count);
+
+template <>
+static constexpr auto rocblas_tpmv_batched<float> = rocblas_stpmv_batched;
+
+template <>
+static constexpr auto rocblas_tpmv_batched<double> = rocblas_dtpmv_batched;
+
+template <>
+static constexpr auto rocblas_tpmv_batched<rocblas_float_complex> = rocblas_ctpmv_batched;
+
+template <>
+static constexpr auto rocblas_tpmv_batched<rocblas_double_complex> = rocblas_ztpmv_batched;
 
 // trmv
 template <typename T>

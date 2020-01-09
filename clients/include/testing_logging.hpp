@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2019 Advanced Micro Devices, Inc.
+ * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "../../library/src/include/handle.h"
@@ -170,6 +170,8 @@ void testing_logging()
         rocblas_gemv<T>(handle, transA, m, n, &alpha, da, lda, dx, incx, &beta, dy, incy);
 
         rocblas_trmv<T>(handle, uplo, transA, diag, m, da, lda, dx, incx);
+
+        rocblas_tpmv<T>(handle, uplo, transA, diag, m, da, dx, incx);
 
         if(BUILD_WITH_TENSILE)
         {
@@ -472,12 +474,25 @@ void testing_logging()
                    << incx << "," << (void*)&beta << "," << (void*)dy << "," << incy << '\n';
     }
 
+    //
+    // TRMV
+    //
     trace_ofs2 << replaceX<T>("rocblas_Xtrmv") << "," << uplo << "," << transA << "," << diag << ","
                << m << "," << (void*)da << "," << lda << "," << (void*)dx << "," << incx << '\n';
 
     bench_ofs2 << "./rocblas-bench -f trmv -r " << rocblas_precision_string<T> << " --uplo "
                << uplo_letter << " --transposeA " << transA_letter << " --diag " << diag_letter
                << " -m " << m << " --lda " << lda << " --incx " << incx << '\n';
+
+    //
+    // TPMV
+    //
+    trace_ofs2 << replaceX<T>("rocblas_Xtpmv") << "," << uplo << "," << transA << "," << diag << ","
+               << m << "," << (void*)da << "," << (void*)dx << "," << incx << '\n';
+
+    bench_ofs2 << "./rocblas-bench -f tpmv -r " << rocblas_precision_string<T> << " --uplo "
+               << uplo_letter << " --transposeA " << transA_letter << " --diag " << diag_letter
+               << " -m " << m << " --incx " << incx << '\n';
 
     // BLAS3
 
