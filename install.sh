@@ -139,17 +139,17 @@ install_packages( )
   # dependencies needed to build the rocblas library
   local library_dependencies_ubuntu=( "make" "cmake-curses-gui" "pkg-config"
                                       "python2.7" "python3" "python-yaml" "python3-yaml"
-                                      "llvm-6.0-dev" "rocm-smi*" "zlib1g-dev")
+                                      "llvm-6.0-dev" "zlib1g-dev")
   local library_dependencies_centos=( "epel-release"
                                       "make" "cmake3" "rpm-build"
                                       "python34" "PyYAML" "python3*-PyYAML"
                                       "gcc-c++" "llvm7.0-devel" "llvm7.0-static"
-                                      "rocm-smi*" "zlib-devel" )
+                                      "zlib-devel" )
   local library_dependencies_fedora=( "make" "cmake" "rpm-build"
                                       "python34" "PyYAML" "python3*-PyYAML"
-                                      "gcc-c++" "libcxx-devel" "rocm-smi*" "zlib-devel" )
+                                      "gcc-c++" "libcxx-devel" "zlib-devel" )
   local library_dependencies_sles=(   "make" "cmake" "python3-PyYAM"
-                                      "rocm-smi*" "gcc-c++" "libcxxtools9" "rpm-build" "curl" )
+                                      "gcc-c++" "libcxxtools9" "rpm-build" "curl" )
 
   if [[ "${build_cuda}" == true ]]; then
     # Ideally, this could be cuda-cublas-dev, but the package name has a version number in it
