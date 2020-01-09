@@ -224,8 +224,10 @@ def setdefaults(test):
         setkey_product(test, 'stride_x', ['M', 'incx', 'stride_scale'])
         setkey_product(test, 'stride_a', ['M', 'lda', 'stride_scale'])
 
-    elif test['function'] in ('gemv_strided_batched', 'gbmv_strided_batched', 'ger_strided_batched', 'trsv_strided_batched'):
-        if test['function'] in ('ger_strided_batched', 'trsv_strided_batched') or test['transA'] in ('T', 'C'):
+    elif test['function'] in ('gemv_strided_batched', 'gbmv_strided_batched',
+                              'ger_strided_batched', 'trsv_strided_batched'):
+        if test['function'] in ('ger_strided_batched', 'trsv_strided_batched'
+                                ) or test['transA'] in ('T', 'C'):
             setkey_product(test, 'stride_x', ['M', 'incx', 'stride_scale'])
             setkey_product(test, 'stride_y', ['N', 'incy', 'stride_scale'])
         else:
@@ -263,7 +265,8 @@ def setdefaults(test):
             test.setdefault('stride_x', int(test['stride_scale']))
             test.setdefault('stride_y', int(test['stride_scale']))
 
-    elif test['function'] in ('trsm_strided_batched', 'trsm_strided_batched_ex'):
+    elif test['function'] in ('trsm_strided_batched',
+                              'trsm_strided_batched_ex'):
         setkey_product(test, 'stride_b', ['N', 'ldb', 'stride_scale'])
 
         if test['side'].upper() == 'L':
