@@ -25,15 +25,21 @@ rocBLASCI:
     def compileCommand =
     {
         platform, project->
+        
+        commonGroovy = load "${project.paths.project_src_prefix}/.jenkins/Common.groovy"
+        commonGroovy.runCompileCommand(platform, project)
+    }
 
+    def testCommand =
+    {
+        platform, project->
+        echo "TEST STAGE"
+        String sudo = auxiliary.sudo(platform.jenkinsLabel)    
         def command = """#!/usr/bin/env bash
                         set -x
                         pwd
                         cd ${project.paths.project_build_prefix}
                         workingdir=`pwd`
-
-                        mkdir -p build/release/clients/staging
-                        touch build/release/clients/staging/rocblas-bench
 
                         pushd scripts/performance/blas/
                         
@@ -51,40 +57,9 @@ rocBLASCI:
                         cat \$workingdir/perfoutput/specs.txt
                         
                         popd
-                    """
-        platform.runCommand(this, command)
 
-        // commonGroovy = load "${project.paths.project_src_prefix}/.jenkins/Common.groovy"
-        // commonGroovy.runCompileCommand(platform, project)
-    }
-
-    def testCommand =
-    {
-        platform, project->
-        echo "TEST STAGE"
-        String sudo = auxiliary.sudo(platform.jenkinsLabel)    
-        def command = """#!/usr/bin/env bash
-                        set -x
-                        pwd
-                        cd ${project.paths.project_build_prefix}
-                        workingdir=`pwd`
-
-                        mkdir perfoutput
-                        pushd scripts/performance/blas/
-                        
-                        shopt expand_aliases
-                        shopt -s expand_aliases
-                        shopt expand_aliases
-                        
-                        python -V
-                        alias python=python3
-                        python -V
-
-                        python alltime.py -A \$workingdir/build/release/clients/staging -o \$workingdir/perfoutput -i perf.yaml -S 0 -g 0 -d ${env.EXECUTOR_NUMBER}
-                        
-                        popd
                         ls perfoutput
-                        tar -cvf perfoutput.tar
+                        tar -cvf perfoutput.tar perfoutput
                         
                         wget http://10.216.151.18:8080/job/Performance/job/${project.name}/job/develop/lastSuccessfulBuild/artifact/*zip*/archive.zip
                         wgetreturn=\$?

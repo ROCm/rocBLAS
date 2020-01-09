@@ -458,7 +458,7 @@ def getDeviceSpecs(device, sclk):
         hwinfo["theoMaxCompute"] = hwinfo["sclk"]/1000.00 * 64 * 128 # 64 CU, 128 ops/ clk
         hwinfo["Bandwidth"] = 1000
         hwinfo["Device"] = 'Vega 20'
-    elif 'Vega 10' in device:
+    elif '0x7300' in device:
         hwinfo["theoMaxCompute"] = hwinfo["sclk"]/1000.00 * 60 * 128
         hwinfo["Bandwidth"] = 484
         hwinfo["Device"] = 'Vega 10'
