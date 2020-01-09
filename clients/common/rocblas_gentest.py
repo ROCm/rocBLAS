@@ -17,7 +17,8 @@ import yaml
 TYPE_RE = re.compile(r'[a-z_A-Z]\w*(:?\s*\*\s*\d+)?$')
 
 # Regex for integer ranges A..B[..C]
-INT_RANGE_RE = re.compile(r'\s*(-?\d+)\s*\.\.\s*(-?\d+)\s*(?:\.\.\s*(-?\d+)\s*)?$')
+INT_RANGE_RE = re.compile(
+    r'\s*(-?\d+)\s*\.\.\s*(-?\d+)\s*(?:\.\.\s*(-?\d+)\s*)?$')
 
 # Regex for include: YAML extension
 INCLUDE_RE = re.compile(r'include\s*:\s*(.*)')
@@ -219,8 +220,10 @@ def setdefaults(test):
         if all([x in test for x in ('M', 'lda', 'stride_scale')]):
             ldM = int(test['M'] * test['lda'] * test['stride_scale'])
             test.setdefault('stride_a', ldM)
-    elif test['function'] in ('gemv_strided_batched', 'ger_strided_batched', 'trsv_strided_batched'):
-        if test['function'] in ('ger_strided_batched', 'trsv_strided_batched') or test['transA'] in ('T', 'C'):
+    elif test['function'] in ('gemv_strided_batched', 'ger_strided_batched',
+                              'trsv_strided_batched'):
+        if test['function'] in ('ger_strided_batched', 'trsv_strided_batched'
+                                ) or test['transA'] in ('T', 'C'):
             if all([x in test for x in ('M', 'incx', 'stride_scale')]):
                 ldx = int(test['M'] * abs(test['incx']) * test['stride_scale'])
                 test.setdefault('stride_x', ldx)
@@ -264,7 +267,8 @@ def setdefaults(test):
             test.setdefault('stride_x', int(test['stride_scale']))
             test.setdefault('stride_y', int(test['stride_scale']))
 
-    elif test['function'] in ('trsm_strided_batched', 'trsm_strided_batched_ex'):
+    elif test['function'] in ('trsm_strided_batched',
+                              'trsm_strided_batched_ex'):
         if all([x in test for x in ('N', 'ldb', 'stride_scale')]):
             ldN = int(test['N'] * test['ldb'] * test['stride_scale'])
             test.setdefault('stride_b', ldN)
@@ -393,23 +397,31 @@ def instantiate(test):
 
         # For enum arguments, replace name with value
         for typename in enum_args:
-            test[typename] = datatypes[test[typename]]
+            if test[typename] in datatypes:
+                test[typename] = datatypes[test[typename]]
 
         # Match known bugs
         if test['category'] not in ('known_bug', 'disabled'):
             for bug in param['known_bugs']:
                 for key, value in bug.items():
+                    if key == 'known_bug_platforms':
+                        continue
                     if key not in test:
                         break
                     if key == 'function':
                         if not fnmatchcase(test[key], value):
                             break
                     # For keys declared as enums, compare resulting values
-                    elif test[key] != (datatypes.get(value) if key in enum_args
-                                       else value):
+                    elif test[key] != (datatypes.get(value, value)
+                                       if key in enum_args else value):
                         break
                 else:  # All values specified in known bug match test case
-                    test['category'] = 'known_bug'
+                    if (bug.get('known_bug_platforms', '').
+                            strip(' :,\f\n\r\t\v')):
+                        test['category'] = ('known_bug_platforms_' +
+                                            test['category'])
+                    else:
+                        test['category'] = 'known_bug'
                     break
 
         write_test(test)
@@ -450,8 +462,8 @@ def generate(test, function):
                 except TypeError as err:
                     sys.exit("TypeError: " + str(err) + " for " + argname +
                              ", which has type " + str(type(item)) +
-                             "\nA name listed in \"Dictionary lists to expand\" "
-                             "must be a defined as a dictionary.\n")
+                             "\nA name listed in \"Dictionary lists to "
+                             "expand\" must be a defined as a dictionary.\n")
             return
 
     for key in sorted(list(test)):
