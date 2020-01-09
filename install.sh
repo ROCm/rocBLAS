@@ -139,15 +139,15 @@ install_packages( )
   # dependencies needed to build the rocblas library
   local library_dependencies_ubuntu=( "make" "cmake-curses-gui" "pkg-config"
                                       "python2.7" "python3" "python-yaml" "python3-yaml"
-                                      "llvm-6.0-dev" "rocm-dev" "zlib1g-dev")
+                                      "llvm-6.0-dev" "rocm-dev" "zlib1g-dev" "curl" )
   local library_dependencies_centos=( "epel-release"
                                       "make" "cmake3" "rpm-build"
                                       "python34" "PyYAML" "python3*-PyYAML"
                                       "gcc-c++" "llvm7.0-devel" "llvm7.0-static"
-                                      "rocm-dev" "zlib-devel" )
+                                      "rocm-dev" "zlib-devel" "curl" )
   local library_dependencies_fedora=( "make" "cmake" "rpm-build"
                                       "python34" "PyYAML" "python3*-PyYAML"
-                                      "gcc-c++" "libcxx-devel" "rocm-dev" "zlib-devel" )
+                                      "gcc-c++" "libcxx-devel" "rocm-dev" "zlib-devel" "curl" )
   local library_dependencies_sles=(   "make" "cmake" "python3-PyYAM"
                                       "rocm-dev" "gcc-c++" "libcxxtools9" "rpm-build" "curl" )
 
