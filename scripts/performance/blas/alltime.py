@@ -454,11 +454,15 @@ def getDeviceSpecs(device, sclk):
     hwinfo["sclk"] = int(sclk.split('M')[0])
     # print(hwinfo["sclk"])
     # print(hwinfo["sclk"]/1000.00 * 64 * 128)
-    if 'Vega 20' in device:
+    if '0x66' in device:
         hwinfo["theoMaxCompute"] = hwinfo["sclk"]/1000.00 * 64 * 128 # 64 CU, 128 ops/ clk
         hwinfo["Bandwidth"] = 1000
         hwinfo["Device"] = 'Vega 20'
-    elif '0x7300' in device:
+    elif '0x68' in device:
+        hwinfo["theoMaxCompute"] = hwinfo["sclk"]/1000.00 * 56 * 128
+        hwinfo["Bandwidth"] = 484 #to be confirmed
+        hwinfo["Device"] = 'Vega 20'
+    elif '0x73' in device:
         hwinfo["theoMaxCompute"] = hwinfo["sclk"]/1000.00 * 60 * 128
         hwinfo["Bandwidth"] = 484
         hwinfo["Device"] = 'Vega 10'

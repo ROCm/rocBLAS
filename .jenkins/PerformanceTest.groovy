@@ -18,14 +18,18 @@ rocBLASCI:
     rocblas.paths.build_command = './install.sh -lasm_ci -c'
 
     // Define test architectures, optional rocm version argument is available
-    def nodes = new dockerNodes(['ubuntu && gfx803 && perf'], rocblas)
+    def nodes = new dockerNodes(['ubuntu && gfx906 && perf'], rocblas)
 
     boolean formatCheck = true
+
+    def commonGroovy
+
+    rocblas.timeout.test = 600
 
     def compileCommand =
     {
         platform, project->
-        
+
         commonGroovy = load "${project.paths.project_src_prefix}/.jenkins/Common.groovy"
         commonGroovy.runCompileCommand(platform, project)
     }
@@ -34,7 +38,7 @@ rocBLASCI:
     {
         platform, project->
         echo "TEST STAGE"
-        String sudo = auxiliary.sudo(platform.jenkinsLabel)    
+        String sudo = auxiliary.sudo(platform.jenkinsLabel)
         def command = """#!/usr/bin/env bash
                         set -x
                         pwd
@@ -42,25 +46,27 @@ rocBLASCI:
                         workingdir=`pwd`
 
                         pushd scripts/performance/blas/
-                        
+
                         shopt expand_aliases
                         shopt -s expand_aliases
                         shopt expand_aliases
-                        
+
                         python -V
                         alias python=python3
                         python -V
-                        
+
+                        #Executor number is one less than the card number in CI
+                        let CARDNUM=\$EXECUTOR_NUMBER+1
                         python alltime.py -A \$workingdir/build/release/clients/staging -o \$workingdir/perfoutput -i perf.yaml -S 0 -g 0 -d ${env.EXECUTOR_NUMBER}
 
                         ls \$workingdir/perfoutput
                         cat \$workingdir/perfoutput/specs.txt
-                        
+
                         popd
 
                         ls perfoutput
                         tar -cvf perfoutput.tar perfoutput
-                        
+
                         wget http://10.216.151.18:8080/job/Performance/job/${project.name}/job/develop/lastSuccessfulBuild/artifact/*zip*/archive.zip
                         wgetreturn=\$?
                         if [[ \$wgetreturn -eq 8 ]]; then
