@@ -408,7 +408,7 @@ if [[ "${install_dependencies}" == true ]]; then
               ;;
           *)
               echo "Unsupported OS for this script"
-              wget -O  https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-ubuntu-2.0.tar.gz > blis.tar.gz
+              wget -O blis.tar.gz https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-ubuntu-2.0.tar.gz
               ;;
       esac
 
