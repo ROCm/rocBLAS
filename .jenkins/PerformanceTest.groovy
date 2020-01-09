@@ -84,6 +84,6 @@ rocBLASCI:
         platform.archiveArtifacts(this, """${project.paths.project_build_prefix}/perfoutput.tar""")
     }
 
-    buildProject(rocblas, formatCheck, nodes.dockerArray, compileCommand, null, null)
+    buildProject(rocblas, formatCheck, nodes.dockerArray, compileCommand, testCommand, packageCommand)
 
 }
