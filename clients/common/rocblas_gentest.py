@@ -235,7 +235,7 @@ def setdefaults(test):
                 ldy = int(test['M'] * abs(test['incy']) * test['stride_scale'])
                 test.setdefault('stride_y', ldy)
 
-    elif test['function'] in ('hemv_strided_batched'):
+    elif test['function'] in ('hemv_strided_batched', 'hbmv_strided_batched'):
         if all([x in test for x in ('N', 'incx', 'incy', 'stride_scale')]):
             ldx = int(test['N'] * abs(test['incx']) * test['stride_scale'])
             ldy = int(test['N'] * abs(test['incy']) * test['stride_scale'])
