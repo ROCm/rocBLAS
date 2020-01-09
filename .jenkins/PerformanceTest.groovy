@@ -44,11 +44,11 @@ rocBLASCI:
                         python -V
                         alias python=python3
                         python -V
-
-                        python rocmsmitest.py -d ${env.EXECUTOR_NUMBER}
-
                         
                         python alltime.py -A \$workingdir/build/release/clients/staging -o \$workingdir/perfoutput -i perf.yaml -S 0 -g 0 -d ${env.EXECUTOR_NUMBER}
+
+                        ls \$workingdir/perfoutput
+                        cat \$workingdir/perfoutput/specs.txt
                         
                         popd
                     """
