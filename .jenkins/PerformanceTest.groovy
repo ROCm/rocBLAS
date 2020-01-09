@@ -43,6 +43,10 @@ rocBLASCI:
                         python -V
 
                         python rocmsmitest.py -d ${env.EXECUTOR_NUMBER}
+
+                        mkdir -p build/release/staging
+                        touch build/release/staing/rocblas-bench
+                        python alltime.py -A \$workingdir/build/release/clients/staging -o \$workingdir/perfoutput -i perf.yaml -S 0 -g 0 -d ${env.EXECUTOR_NUMBER}
                         
                         popd
                     """

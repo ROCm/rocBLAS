@@ -1,3 +1,28 @@
+import sys
+sys.path.append('/opt/rocm/bin')
+import rocm_smi as smi
+import io
+from contextlib import redirect_stdout
+
+#get device name from rocm-smi
+def getDeviceName(devicenum):
+    return smi.parseDeviceNumber(devicenum)
+
+#parse information from rocmsmi
+def parseRocmsmi(func, args, searchStr):
+    f = io.StringIO()
+    with redirect_stdout(f):
+        if args is not None:
+            func(*args)
+        else:
+            func()
+    lines = f.getvalue().split('\n')
+    output = ''
+    for line in lines:
+        if searchStr in line:
+            output = line[line.find(searchStr)+len(searchStr):]
+    return output
+
 # Get the hostname
 def gethostname():
     import socket
@@ -81,134 +106,51 @@ def getrocmversion():
             return line[len(searchstr):].strip()
 
 
-# Get the vbios version for the specified device
+# Get the vbios version from rocm-smi
 def getvbios(devicenum):
-    import subprocess, tempfile
-    cmd = ["/opt/rocm/bin/rocm-smi", "-v", "-d", str(devicenum)]
-    fout = tempfile.TemporaryFile(mode="w+")
-    ferr = tempfile.TemporaryFile(mode="w+")
-    p = subprocess.Popen(cmd,stdout=fout, stderr=ferr)
-    p.wait()
-    fout.seek(0)
-    cout = fout.read()
-    searchstr = "GPU["+str(devicenum)+"]"
-    for line in cout.split("\n"):
-        if line.startswith(searchstr):
-            tmp = line[len(searchstr):].strip()[1:]
-            pos = tmp.find(":")
-            return tmp[pos+1:].strip()
+    deviceList = [getDeviceName(devicenum)]
+    print("\nshowVbiosVersion:")
+    smi.showVbiosVersion(deviceList)
+    vbios = parseRocmsmi(smi.showVbiosVersion, [deviceList], 'VBIOS version: ')
+    print("VBIOS:", vbios)
+    return vbios
 
-# Get the name of the device from lshw which has index devicenum
+# Get the device id from rocm-smi
 def getdeviceinfo(devicenum):
-    import subprocess, tempfile, re
-    cmd = ["lshw", "-C", "video"]
-    fout = tempfile.TemporaryFile(mode="w+")
-    ferr = tempfile.TemporaryFile(mode="w+")
-    p = subprocess.Popen(cmd,stdout=fout, stderr=ferr)
-    p.wait()
-    fout.seek(0)
-    cout = fout.read()
-    searchstr = "-display"
-    indices = []
-    name = ""
-    for idx, line in enumerate(cout.split("\n")):
-        if re.search(searchstr, line) != None:
-            indices.append(idx)
-    for idx, line in enumerate(cout.split("\n")):
-        if idx >= indices[devicenum]:
-            searchstr = "product:"
-            if re.search(searchstr, line) != None:
-                pos = line.find(":")
-                name += line[pos+1:].strip()
-    # We also use rocm-smi to get more info
-    cmd = ["/opt/rocm/bin/rocm-smi", "-i", "-d", str(devicenum)]
-    fout = tempfile.TemporaryFile(mode="w+")
-    ferr = tempfile.TemporaryFile(mode="w+")
-    p = subprocess.Popen(cmd,stdout=fout, stderr=ferr)
-    p.wait()
-    fout.seek(0)
-    cout = fout.read()
-    searchstr = "GPU["+str(devicenum)+"]"
-    for line in cout.split("\n"):
-        if line.startswith(searchstr):
-            line = line[len(searchstr):].strip()
-            line = re.sub(":", "", line)
-            line = re.sub("GPU ID", "", line)
-            name += " " + line.strip()
-
-    return name
+    deviceList = [getDeviceName(devicenum)]
+    print("\nshowId:")
+    smi.showId(deviceList)
+    deviceId = parseRocmsmi(smi.showId, [deviceList], 'GPU ID: ')
+    print("device ID:", deviceId)
+    return deviceId
 
 # Get the vram for the specified device
 def getvram(devicenum):
-    import subprocess, tempfile, re
-    cmd = ["/opt/rocm/bin/rocm-smi", "--showmeminfo", "vram", "-d", str(devicenum)]
-    fout = tempfile.TemporaryFile(mode="w+")
-    ferr = tempfile.TemporaryFile(mode="w+")
-    p = subprocess.Popen(cmd,stdout=fout, stderr=ferr)
-    p.wait()
-    fout.seek(0)
-    cout = fout.read()
-    searchstr = "GPU["+str(devicenum)+"]"
-    for line in cout.split("\n"):
-        if line.startswith(searchstr):
-            line = line[len(searchstr):].strip()
-            prestring = "vram :: total:"
-            line = re.sub(":", "", line)
-            line = re.sub("vram", "", line)
-            line = re.sub("total", "", line)
-            pos = line.find("used")
-            return line[:pos].strip()
+    deviceList = [getDeviceName(devicenum)]
+    print("\nshowMemInfo")
+    smi.showMemInfo(deviceList, ['vram'])
+    vram = parseRocmsmi(smi.showMemInfo, [deviceList, ['vram']], 'vram Total Memory (B): ')
+    return vram
 
 # Get the performance level for the specified device
 def getperflevel(devicenum):
-    import subprocess, tempfile, re
-    cmd = ["/opt/rocm/bin/rocm-smi", "-p", "-d", str(devicenum)]
-    fout = tempfile.TemporaryFile(mode="w+")
-    ferr = tempfile.TemporaryFile(mode="w+")
-    p = subprocess.Popen(cmd,stdout=fout, stderr=ferr)
-    p.wait()
-    fout.seek(0)
-    cout = fout.read()
-    searchstr = "GPU["+str(devicenum)+"]"
-    for line in cout.split("\n"):
-        if line.startswith(searchstr):
-            line = line[len(searchstr):].strip()
-            skipstr = "Performance Level "
-            line = re.sub(":", "", line)[len(skipstr):].strip()
-            return line
+    deviceList = [getDeviceName(devicenum)]
+    print("\nshowPerformanceLevel")
+    smi.showPerformanceLevel(deviceList)
+    performanceLevel = parseRocmsmi(smi.showPerformanceLevel, [deviceList], 'Performance Level: ')
+    print("Performance Level:", performanceLevel)
+    return performanceLevel
 
 # Get the memory clock for the specified device
 def getmclk(devicenum):
-    import subprocess, tempfile, re
-    cmd = ["/opt/rocm/bin/rocm-smi", "--showclocks", "-d", str(devicenum)]
-    fout = tempfile.TemporaryFile(mode="w+")
-    ferr = tempfile.TemporaryFile(mode="w+")
-    p = subprocess.Popen(cmd,stdout=fout, stderr=ferr)
-    p.wait()
-    fout.seek(0)
-    cout = fout.read()
-    searchstr = "mclk"
-    for line in cout.split("\n"):
-        m = re.search(searchstr, line)
-        if m != None:
-            p0 = line.find("(")
-            p1 = line.find(")")
-            return line[p0+1:p1]
+    print("\ngetCurrentClock mclk")
+    mclk = smi.getCurrentClock(getDeviceName(devicenum), 'mclk', 'freq')
+    print("mclk:", mclk)
+    return mclk
 
 # Get the system clock for the specified device
 def getsclk(devicenum):
-    import subprocess, tempfile, re
-    cmd = ["/opt/rocm/bin/rocm-smi", "--showclocks", "-d", str(devicenum)]
-    fout = tempfile.TemporaryFile(mode="w+")
-    ferr = tempfile.TemporaryFile(mode="w+")
-    p = subprocess.Popen(cmd,stdout=fout, stderr=ferr)
-    p.wait()
-    fout.seek(0)
-    cout = fout.read()
-    searchstr = "sclk"
-    for line in cout.split("\n"):
-        m = re.search(searchstr, line)
-        if m != None:
-            p0 = line.find("(")
-            p1 = line.find(")")
-            return line[p0+1:p1]
+    print("\ngetCurrentClock sclk")
+    sclk = smi.getCurrentClock(getDeviceName(devicenum), 'sclk', 'freq')
+    print("sclk:", sclk)
+    return sclk

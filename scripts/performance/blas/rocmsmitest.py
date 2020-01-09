@@ -55,12 +55,12 @@ if __name__ == '__main__':
             mclk = smi.getCurrentClock(device, 'mclk', 'freq')
             print("mclk:", mclk)
             
-            print("\nshowVbiosVersion:")
+            print("\nshowVbiosVersion")
             smi.showVbiosVersion(deviceList)
             vbios = parseRocmsmi(smi.showVbiosVersion, [deviceList], 'VBIOS version: ')
             print("VBIOS:", vbios)
             
-            print("\nshowId:", vbios)
+            print("\nshowId")
             smi.showId(deviceList)
             deviceId = parseRocmsmi(smi.showId, [deviceList], 'GPU ID: ')
             print("device ID:", deviceId)
