@@ -261,8 +261,9 @@ Arguments:
   - flags: c_uint
   - function: c_char*64
   - name: c_char*64
-  - category: c_char*32
+  - category: c_char*64
   - initialization: rocblas_initialization
+  - known_bug_platforms: c_char*64
 
 # These named dictionary lists [ {dict1}, {dict2}, etc. ] supply subsets of
 # test arguments in a structured way. The dictionaries are applied to the test
@@ -327,4 +328,5 @@ Defaults:
   workspace_size: 0
   initialization: rocblas_initialization_random_int
   category: nightly
+  known_bug_platforms: ''
   name: '*'
