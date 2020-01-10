@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2019 Advanced Micro Devices, Inc.
+ * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "rocblas_rotmg.hpp"
 #include "handle.h"
@@ -52,14 +52,24 @@ extern "C" {
 
 ROCBLAS_EXPORT rocblas_status rocblas_srotmg(
     rocblas_handle handle, float* d1, float* d2, float* x1, const float* y1, float* param)
+try
 {
     return rocblas_rotmg_impl(handle, d1, d2, x1, y1, param);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 ROCBLAS_EXPORT rocblas_status rocblas_drotmg(
     rocblas_handle handle, double* d1, double* d2, double* x1, const double* y1, double* param)
+try
 {
     return rocblas_rotmg_impl(handle, d1, d2, x1, y1, param);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 } // extern "C"

@@ -1,5 +1,5 @@
 # ########################################################################
-# Copyright 2016 Advanced Micro Devices, Inc.
+# Copyright 2016-2020 Advanced Micro Devices, Inc.
 # ########################################################################
 # Helper cmake script to automate building dependencies for rocblas
 # This script can be invoked manually by the user with 'cmake -P'
@@ -8,12 +8,6 @@
 cmake_minimum_required( VERSION 3.5 )
 
 list( APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/../cmake )
-
-# Consider removing this in the future
-# It can be annoying for visual studio developers to build a project that tries to install into 'program files'
-if( WIN32 AND CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT )
-  set( CMAKE_INSTALL_PREFIX "${PROJECT_BINARY_DIR}/package" CACHE PATH "Install path prefix, prepended onto install directories" FORCE )
-endif( )
 
 # This has to be initialized before the project() command appears
 # Set the default of CMAKE_BUILD_TYPE to be release, unless user specifies with -D.  MSVC_IDE does not use CMAKE_BUILD_TYPE

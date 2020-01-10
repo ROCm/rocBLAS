@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2019 Advanced Micro Devices, Inc.
+ * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "rocblas_axpy_strided_batched.hpp"
 #include "logging.h"
@@ -157,6 +157,7 @@ extern "C" {
                                  rocblas_int    incy,                          \
                                  rocblas_stride stridey,                       \
                                  rocblas_int    batch_count)                   \
+    try                                                                        \
     {                                                                          \
         return rocblas_axpy_strided_batched_impl<256>(handle,                  \
                                                       n,                       \
@@ -170,6 +171,10 @@ extern "C" {
                                                       batch_count,             \
                                                       #routine_name_,          \
                                                       "axpy_strided_batched"); \
+    }                                                                          \
+    catch(...)                                                                 \
+    {                                                                          \
+        return exception_to_rocblas_status();                                  \
     }
 
 IMPL(rocblas_saxpy_strided_batched, float);

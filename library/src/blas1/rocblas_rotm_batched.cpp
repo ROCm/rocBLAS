@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2019 Advanced Micro Devices, Inc.
+ * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "handle.h"
 #include "logging.h"
@@ -87,8 +87,13 @@ ROCBLAS_EXPORT rocblas_status rocblas_srotm_batched(rocblas_handle     handle,
                                                     rocblas_int        incy,
                                                     const float* const param[],
                                                     rocblas_int        batch_count)
+try
 {
     return rocblas_rotm_batched_impl(handle, n, x, incx, y, incy, param, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 ROCBLAS_EXPORT rocblas_status rocblas_drotm_batched(rocblas_handle      handle,
@@ -99,8 +104,13 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotm_batched(rocblas_handle      handle,
                                                     rocblas_int         incy,
                                                     const double* const param[],
                                                     rocblas_int         batch_count)
+try
 {
     return rocblas_rotm_batched_impl(handle, n, x, incx, y, incy, param, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 } // extern "C"

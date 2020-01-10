@@ -1,5 +1,5 @@
-# ########################################################################
-# Copyright 2016-2019 Advanced Micro Devices, Inc.
+########################################################################
+# Copyright 2016-2020 Advanced Micro Devices, Inc.
 # ########################################################################
 
 # ########################################################################
@@ -34,7 +34,8 @@ if( BUILD_WITH_TENSILE )
     set( BUILD_SHARED_LIBS OFF )
   else( )
     if( BUILD_WITH_TENSILE_HOST )
-      list( APPEND package_targets Tensile TensileHost )
+        #list( APPEND package_targets Tensile TensileHost )
+      list( APPEND package_targets TensileHost )
     else()
       list( APPEND package_targets Tensile )
     endif()
@@ -43,47 +44,75 @@ if( BUILD_WITH_TENSILE )
   set( Tensile_RUNTIME_LANGUAGE "HIP" )
   message( STATUS "AMDGPU_TARGETS=${AMDGPU_TARGETS}" )
   if( BUILD_WITH_TENSILE_HOST )
-    set( PACKAGE_TENSILE_LIBRARY ON )
+    #TODO update when this feature has been validated
+    #set( PACKAGE_TENSILE_LIBRARY ON )
+    set( PACKAGE_TENSILE_LIBRARY OFF )
+    set( USE_LEGACY_CODE OFF )
   else()
     set( PACKAGE_TENSILE_LIBRARY OFF )
+    set( USE_LEGACY_CODE ON )
   endif()
   TensileCreateLibraryCmake(
       ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/Logic/${Tensile_LOGIC}
       ${Tensile_RUNTIME_LANGUAGE}
       ${Tensile_COMPILER}
       ${Tensile_CODE_OBJECT_VERSION}
+      ${Tensile_ARCHITECTURE}
       ${Tensile_MERGE_FILES}
       ${Tensile_SHORT_FILENAMES}
       ${Tensile_PRINT_DEBUG}
       ${PACKAGE_TENSILE_LIBRARY}
+      ${USE_LEGACY_CODE}
    )
 
-  # Create a unique name for Tensile compiled for rocBLAS
-  set_target_properties( Tensile PROPERTIES OUTPUT_NAME tensile-rocblas CXX_EXTENSIONS NO )
+  ## Create a unique name for Tensile compiled for rocBLAS
+  #  set_target_properties( Tensile PROPERTIES OUTPUT_NAME tensile-rocblas CXX_EXTENSIONS NO )
   # build gemm with Tensile Host library
   if( BUILD_WITH_TENSILE_HOST )
-    target_compile_definitions( Tensile PUBLIC USE_TENSILE_HOST )
-  endif()
-  target_compile_features( Tensile PRIVATE cxx_static_assert cxx_nullptr cxx_auto_type )
-  # Remove this check when we no longer build with older rocm stack(ie < 1.8.2)
-  if(TARGET hip::device)
-    target_link_libraries( Tensile PRIVATE hip::device )
+      # Create a unique name for Tensile compiled for rocBLAS
+      set_target_properties( TensileHost PROPERTIES OUTPUT_NAME tensile-rocblas CXX_EXTENSIONS NO )
+      #target_compile_definitions( Tensile PUBLIC USE_TENSILE_HOST )
+      target_compile_definitions( TensileHost PUBLIC USE_TENSILE_HOST )
+      #endif()
   else()
-    target_link_libraries( Tensile PRIVATE hip::hip_hcc hip::hip_device hcc::hccshared )
+    # Create a unique name for Tensile compiled for rocBLAS
+    set_target_properties( Tensile PROPERTIES OUTPUT_NAME tensile-rocblas CXX_EXTENSIONS NO )
+
+    target_compile_features( Tensile PRIVATE cxx_static_assert cxx_nullptr cxx_auto_type )
+    # Remove this check when we no longer build with older rocm stack(ie < 1.8.2)
+    if(TARGET hip::device)
+      target_link_libraries( Tensile PRIVATE hip::device )
+    else()
+      target_link_libraries( Tensile PRIVATE hip::hip_hcc hip::hip_device hcc::hccshared )
+    endif()
   endif()
 
   if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
     # Remove following when hcc is fixed; hcc emits following spurious warning ROCm v1.6.1
     # "clang-5.0: warning: argument unused during compilation: '-isystem /opt/rocm/include'"
-    target_compile_options( Tensile PRIVATE -Wno-unused-command-line-argument -fno-gpu-rdc -Wno-deprecated-declarations)
+    # target_compile_options( Tensile PRIVATE -Wno-unused-command-line-argument -fno-gpu-rdc -Wno-deprecated-declarations)
     foreach( target ${AMDGPU_TARGETS} )
-      target_compile_options( Tensile PRIVATE --amdgpu-target=${target} )
+      if( BUILD_WITH_TENSILE_HOST )
+          # Remove following when hcc is fixed; hcc emits following spurious warning ROCm v1.6.1
+          # "clang-5.0: warning: argument unused during compilation: '-isystem /opt/rocm/include'"
+          target_compile_options( TensileHost PRIVATE -Wno-unused-command-line-argument -fno-gpu-rdc -Wno-deprecated-declarations)
+          target_compile_options( TensileHost PRIVATE --amdgpu-target=${target} )
+      else()
+          # Remove following when hcc is fixed; hcc emits following spurious warning ROCm v1.6.1
+          # "clang-5.0: warning: argument unused during compilation: '-isystem /opt/rocm/include'"
+          target_compile_options( Tensile PRIVATE -Wno-unused-command-line-argument -fno-gpu-rdc -Wno-deprecated-declarations)
+          target_compile_options( Tensile PRIVATE --amdgpu-target=${target} )
+      endif()
     endforeach( )
   endif( )
 
   if( ROCBLAS_SHARED_LIBS )
     set( BUILD_SHARED_LIBS ON )
-    set_target_properties( Tensile PROPERTIES POSITION_INDEPENDENT_CODE ON )
+    if( BUILD_WITH_TENSILE_HOST )
+        set_target_properties( TensileHost PROPERTIES POSITION_INDEPENDENT_CODE ON )
+    else()
+      set_target_properties( Tensile PROPERTIES POSITION_INDEPENDENT_CODE ON )
+    endif()
   endif()
 
   #rocblas_gemm and rocblas_trsm require tensile
@@ -129,12 +158,24 @@ set( rocblas_blas2_source
   blas2/rocblas_gemv.cpp
   blas2/rocblas_gemv_batched.cpp
   blas2/rocblas_gemv_strided_batched.cpp
+  blas2/rocblas_gbmv.cpp
+  blas2/rocblas_gbmv_batched.cpp
+  blas2/rocblas_gbmv_strided_batched.cpp
+  blas2/rocblas_trmv.cpp
+  blas2/rocblas_trmv_batched.cpp
+  blas2/rocblas_trmv_strided_batched.cpp
   blas2/rocblas_ger.cpp
   blas2/rocblas_ger_batched.cpp
   blas2/rocblas_ger_strided_batched.cpp
+  blas2/rocblas_hemv.cpp
+  blas2/rocblas_hemv_batched.cpp
+  blas2/rocblas_hemv_strided_batched.cpp
   blas2/rocblas_syr.cpp
   blas2/rocblas_syr_batched.cpp
   blas2/rocblas_syr_strided_batched.cpp
+  blas2/rocblas_tbmv.cpp
+  blas2/rocblas_tbmv_batched.cpp
+  blas2/rocblas_tbmv_strided_batched.cpp
 )
 
 set( rocblas_auxiliary_source
@@ -198,6 +239,11 @@ add_library( rocblas
 
 add_library( roc::rocblas ALIAS rocblas )
 
+# RUNPATH is set only when ROCM_RPATH is defined in the ENV
+if( DEFINED ENV{ROCM_RPATH} )
+  set ( CMAKE_SHARED_LINKER_FLAGS " -Wl,--enable-new-dtags -Wl,--rpath,$ENV{ROCM_RPATH}" )
+endif( )
+
 # Remove this check when we no longer build with older rocm stack(ie < 1.8.2)
 if(TARGET hip::device)
 target_link_libraries( rocblas PRIVATE hip::device )
@@ -230,7 +276,8 @@ target_include_directories( rocblas
 
 if( BUILD_WITH_TENSILE )
   if( BUILD_WITH_TENSILE_HOST )
-    target_link_libraries( rocblas PRIVATE Tensile TensileHost )
+      #target_link_libraries( rocblas PRIVATE Tensile TensileHost )
+    target_link_libraries( rocblas PRIVATE TensileHost )
   else()
     target_link_libraries( rocblas PRIVATE Tensile )
   endif()
@@ -282,7 +329,10 @@ rocm_export_targets(
 
 rocm_install_symlink_subdir( rocblas )
 
-if(BUILD_TESTING)
+#Control for enabling or disabling header testing
+option (RUN_HEADER_TESTING "Enable or disable header testing" ${BUILD_TESTING})
+
+if(RUN_HEADER_TESTING)
 # Compilation tests to ensure that header files work independently,
 # and that public header files work across several languages
 add_custom_command(

@@ -21,7 +21,6 @@ RUN zypper refresh && zypper -n --no-gpg-checks install\
     gcc-fortran \
     make \
     cmake \
-    fftw3-devel \
     rpm-build \
     dpkg \
     python2-PyYAML \
@@ -29,7 +28,8 @@ RUN zypper refresh && zypper -n --no-gpg-checks install\
     libcxxtools9 \
     libnuma1 \
     llvm7-devel \
-    python3-pip
+    python3-pip \
+    wget
 
 RUN pip3 install wheel && pip3 install tox pyyaml
 

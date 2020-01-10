@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2019 Advanced Micro Devices, Inc.
+ * Copyright 2019-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 /*! \file
@@ -355,7 +355,7 @@ namespace std
     {
         T tr = rocblas_complex_num<T>::abs(z.x), ti = rocblas_complex_num<T>::abs(z.y);
         return tr > ti ? (ti /= tr, tr * rocblas_complex_num<T>::sqrt(ti * ti + 1))
-                       : (tr /= ti, ti * rocblas_complex_num<T>::sqrt(tr * tr + 1));
+                       : ti ? (tr /= ti, ti * rocblas_complex_num<T>::sqrt(tr * tr + 1)) : 0;
     }
 }
 

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2019 Advanced Micro Devices, Inc.
+ * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "rocblas_iamax.hpp"
@@ -57,8 +57,13 @@ extern "C" {
                          const typei_*  x,                              \
                          rocblas_int    incx,                           \
                          rocblas_int*   results)                        \
+    try                                                                 \
     {                                                                   \
         return rocblas_iamax_impl<typew_>(handle, n, x, incx, results); \
+    }                                                                   \
+    catch(...)                                                          \
+    {                                                                   \
+        return exception_to_rocblas_status();                           \
     }
 
 IMPL(rocblas_isamax, float, float);

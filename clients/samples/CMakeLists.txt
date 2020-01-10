@@ -1,5 +1,5 @@
 # ########################################################################
-# Copyright 2016-2019 Advanced Micro Devices, Inc.
+# Copyright 2016-2020 Advanced Micro Devices, Inc.
 # ########################################################################
 
 get_target_property( HIPHCC_LOCATION hip::hip_hcc IMPORTED_LOCATION_RELEASE )
@@ -15,13 +15,11 @@ add_executable( example-scal-template example_scal_template.cpp ${rocblas_sample
 if( BUILD_WITH_TENSILE )
   add_executable( example-sgemm example_sgemm.cpp ${rocblas_samples_common} )
   add_executable( example-sgemm-strided-batched example_sgemm_strided_batched.cpp ${rocblas_samples_common} )
-  add_executable( example-i8_r_gemm_ex example_i8_r_gemm_ex.cpp ${rocblas_samples_common} )
-  add_executable( example_bf16_r_gemm_ex example_bf16_r_gemm_ex.cpp ${rocblas_samples_common} )
 endif( )
 
 set( sample_list_base example-sscal example-scal-template)
 if( BUILD_WITH_TENSILE )
-  set( sample_list_tensile example-sgemm example-sgemm-strided-batched example-i8_r_gemm_ex example_bf16_r_gemm_ex)
+  set( sample_list_tensile example-sgemm example-sgemm-strided-batched )
 endif( )
 set( sample_list ${sample_list_base} ${sample_list_tensile} )
 foreach( exe ${sample_list} )
@@ -61,9 +59,9 @@ foreach( exe ${sample_list} )
 
   if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
     # Remove following when hcc is fixed; hcc emits following spurious warning ROCm v1.6.1
-    # "clang-5.0: warning: argument unused during compilation: '-isystem /opt/rocm/include'"
+    # "clang-5.0: warning: argument unused during compilation: '-isystem ${ROCM_PATH}/include'"
     target_compile_options( ${exe} PRIVATE -Wno-unused-command-line-argument )
-    target_include_directories( ${exe} PRIVATE /opt/rocm/hsa/include)
+    target_include_directories( ${exe} PRIVATE ${ROCM_PATH}/hsa/include)
   elseif( CMAKE_COMPILER_IS_GNUCXX OR CXX_VERSION_STRING MATCHES "clang" )
     # GCC or hip-clang needs specific flags to turn on f16c intrinsics
     target_compile_options( ${exe} PRIVATE -mf16c )

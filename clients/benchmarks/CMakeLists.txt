@@ -1,5 +1,5 @@
 # ########################################################################
-# Copyright 2016-2019 Advanced Micro Devices, Inc.
+# Copyright 2016-2020 Advanced Micro Devices, Inc.
 # ########################################################################
 
 # set( Boost_DEBUG ON )
@@ -78,10 +78,11 @@ if( OS_ID_rhel OR OS_ID_centos OR OS_ID_sles)
         set( OPENMP_LIBRARY /usr/lib64/gcc/x86_64-suse-linux/7/libgomp.so )
     endif()
 
-    if(EXISTS /opt/rocm/hcc/lib/clang/10.0.0/include/immintrin.h)
-        set( CLANG_INCLUDE_DIR /opt/rocm/hcc/lib/clang/10.0.0/include )
-    elseif (EXISTS /opt/rocm/hcc/lib/clang/9.0.0/include/immintrin.h)
-        set( CLANG_INCLUDE_DIR /opt/rocm/hcc/lib/clang/9.0.0/include )
+    message(STATUS "RocmPath: ${ROCM_PATH}")
+    if(EXISTS "${ROCM_PATH}/hcc/lib/clang/10.0.0/include/immintrin.h")
+        set( CLANG_INCLUDE_DIR ${ROCM_PATH}/hcc/lib/clang/10.0.0/include )
+    elseif (EXISTS "${ROCM_PATH}/hcc/lib/clang/9.0.0/include/immintrin.h")
+        set( CLANG_INCLUDE_DIR ${ROCM_PATH}/hcc/lib/clang/9.0.0/include )
     else()
         error("cannot find immintrin.h")
     endif()
@@ -140,9 +141,9 @@ endif( )
 
 if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
   # Remove following when hcc is fixed; hcc emits following spurious warning ROCm v1.6.1
-  # "clang-5.0: warning: argument unused during compilation: '-isystem /opt/rocm/include'"
+  # "clang-5.0: warning: argument unused during compilation: '-isystem ${ROCM_PATH}/include'"
   target_compile_options( rocblas-bench PRIVATE -Wno-unused-command-line-argument -mf16c )
-  target_include_directories( rocblas-bench PRIVATE /opt/rocm/hsa/include)
+  target_include_directories( rocblas-bench PRIVATE ${ROCM_PATH}/hsa/include)
 
 elseif( CMAKE_COMPILER_IS_GNUCXX OR CXX_VERSION_STRING MATCHES "clang")
   # GCC or hip-clang needs specific flags to turn on f16c intrinsics

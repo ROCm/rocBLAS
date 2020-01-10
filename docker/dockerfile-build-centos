@@ -10,19 +10,15 @@ ARG user_uid
 RUN yum install -y \
     sudo \
     rock-dkms \
-    rocm_smi64 \
+    rocm-smi-lib64 \
     centos-release-scl \
     devtoolset-7 \
     ca-certificates \
     git \
     cmake3 \
     make \
-    clang \
-    clang-devel \
     gcc-c++ \
     gcc-gfortran \
-    gtest-devel \ 
-    gtest \
     pkgconfig \
     python27 \
     python36 \
@@ -35,7 +31,7 @@ RUN yum install -y \
     llvm7.0-static \
     libcxx-devel \
     boost-devel \
-    zlib-devel \ 
+    zlib-devel \
     libgomp \
     numactl-libs \
     rpm-build \

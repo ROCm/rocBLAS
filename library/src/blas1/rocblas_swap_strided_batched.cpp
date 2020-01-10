@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2019 Advanced Micro Devices, Inc.
+ * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "logging.h"
@@ -113,9 +113,14 @@ rocblas_status rocblas_sswap_strided_batched(rocblas_handle handle,
                                              rocblas_int    incy,
                                              rocblas_stride stridey,
                                              rocblas_int    batch_count)
+try
 {
     return rocblas_swap_strided_batched_impl(
         handle, n, x, incx, stridex, y, incy, stridey, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_dswap_strided_batched(rocblas_handle handle,
@@ -127,9 +132,14 @@ rocblas_status rocblas_dswap_strided_batched(rocblas_handle handle,
                                              rocblas_int    incy,
                                              rocblas_stride stridey,
                                              rocblas_int    batch_count)
+try
 {
     return rocblas_swap_strided_batched_impl(
         handle, n, x, incx, stridex, y, incy, stridey, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_cswap_strided_batched(rocblas_handle         handle,
@@ -141,9 +151,14 @@ rocblas_status rocblas_cswap_strided_batched(rocblas_handle         handle,
                                              rocblas_int            incy,
                                              rocblas_stride         stridey,
                                              rocblas_int            batch_count)
+try
 {
     return rocblas_swap_strided_batched_impl(
         handle, n, x, incx, stridex, y, incy, stridey, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_zswap_strided_batched(rocblas_handle          handle,
@@ -155,9 +170,14 @@ rocblas_status rocblas_zswap_strided_batched(rocblas_handle          handle,
                                              rocblas_int             incy,
                                              rocblas_stride          stridey,
                                              rocblas_int             batch_count)
+try
 {
     return rocblas_swap_strided_batched_impl(
         handle, n, x, incx, stridex, y, incy, stridey, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 } // extern "C"

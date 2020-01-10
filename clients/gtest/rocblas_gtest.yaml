@@ -1,11 +1,15 @@
 include: blas1_gtest.yaml
+include: gbmv_gtest.yaml
 include: gemv_gtest.yaml
+include: hemv_gtest.yaml
 include: gemm_gtest.yaml
 include: gemm_batched_gtest.yaml
 include: gemm_strided_batched_gtest.yaml
 include: symv_gtest.yaml
 include: syr_gtest.yaml
 include: ger_gtest.yaml
+include: tbmv_gtest.yaml
+include: trmv_gtest.yaml
 include: trmm_gtest.yaml
 include: trsm_gtest.yaml
 include: trtri_gtest.yaml
