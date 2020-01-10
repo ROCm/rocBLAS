@@ -1,7 +1,7 @@
 - {MinimumRequiredVersion: 4.6.0}
 - arcturus
 - gfx908
-- [Device 7380, Device 7388, Device 738c]
+- [Device 7380, Device 7388, Device 738c, Device 7390]
 - AssignedDerivedParameters: true
   Batched: true
   ComplexConjugateA: false
@@ -64334,7 +64334,7 @@
     SubGroupA: 16
     SubGroupB: 4
     SuppresssNoLoadLoop: false
-    ThreadTile: *id001 
+    ThreadTile: *id001
     ThreadTile0: 2
     ThreadTile1: 2
     ThreadTileA: 2
@@ -64345,7 +64345,7 @@
     VectorAtomicWidth: 1
     VectorStore: true
     VectorWidth: 2
-    WorkGroup: *id007 
+    WorkGroup: *id007
     WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
@@ -64494,7 +64494,7 @@
     VectorAtomicWidth: 1
     VectorStore: true
     VectorWidth: 2
-    WorkGroup: *id002 
+    WorkGroup: *id002
     WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
@@ -64632,7 +64632,7 @@
     SubGroupA: 8
     SubGroupB: 8
     SuppresssNoLoadLoop: false
-    ThreadTile: *id003 
+    ThreadTile: *id003
     ThreadTile0: 4
     ThreadTile1: 2
     ThreadTileA: 4
@@ -64781,7 +64781,7 @@
     SubGroupA: 8
     SubGroupB: 8
     SuppresssNoLoadLoop: false
-    ThreadTile: *id005 
+    ThreadTile: *id005
     ThreadTile0: 4
     ThreadTile1: 4
     ThreadTileA: 4
@@ -64941,7 +64941,7 @@
     VectorAtomicWidth: 1
     VectorStore: true
     VectorWidth: 2
-    WorkGroup: *id004 
+    WorkGroup: *id004
     WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
@@ -65984,7 +65984,7 @@
     VectorAtomicWidth: 1
     VectorStore: true
     VectorWidth: 2
-    WorkGroup: *id006 
+    WorkGroup: *id006
     WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
@@ -67463,7 +67463,7 @@
     SubGroupA: 8
     SubGroupB: 8
     SuppresssNoLoadLoop: false
-    ThreadTile: *id009 
+    ThreadTile: *id009
     ThreadTile0: 2
     ThreadTile1: 2
     ThreadTileA: 2
@@ -67474,7 +67474,7 @@
     VectorAtomicWidth: 1
     VectorStore: true
     VectorWidth: 2
-    WorkGroup: *id008 
+    WorkGroup: *id008
     WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
@@ -67612,7 +67612,7 @@
     SubGroupA: 8
     SubGroupB: 8
     SuppresssNoLoadLoop: false
-    ThreadTile: *id010 
+    ThreadTile: *id010
     ThreadTile0: 4
     ThreadTile1: 2
     ThreadTileA: 4
@@ -68357,7 +68357,7 @@
     SubGroupA: 8
     SubGroupB: 8
     SuppresssNoLoadLoop: false
-    ThreadTile: *id013 
+    ThreadTile: *id013
     ThreadTile0: 4
     ThreadTile1: 4
     ThreadTileA: 4
@@ -68506,7 +68506,7 @@
     SubGroupA: 8
     SubGroupB: 8
     SuppresssNoLoadLoop: false
-    ThreadTile: *id015 
+    ThreadTile: *id015
     ThreadTile0: 8
     ThreadTile1: 4
     ThreadTileA: 8
@@ -68666,7 +68666,7 @@
     VectorAtomicWidth: 1
     VectorStore: true
     VectorWidth: 2
-    WorkGroup: *id011 
+    WorkGroup: *id011
     WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
@@ -68964,7 +68964,7 @@
     VectorAtomicWidth: 1
     VectorStore: true
     VectorWidth: 2
-    WorkGroup: *id012 
+    WorkGroup: *id012
     WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
@@ -69262,7 +69262,7 @@
     VectorAtomicWidth: 1
     VectorStore: true
     VectorWidth: 4
-    WorkGroup: *id014 
+    WorkGroup: *id014
     WorkGroupMapping: 8
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
@@ -74030,7 +74030,7 @@
     VectorAtomicWidth: 1
     VectorStore: true
     VectorWidth: 4
-    WorkGroup: *id016 
+    WorkGroup: *id016
     WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
@@ -74168,7 +74168,7 @@
     SubGroupA: 16
     SubGroupB: 16
     SuppresssNoLoadLoop: false
-    ThreadTile: *id017 
+    ThreadTile: *id017
     ThreadTile0: 4
     ThreadTile1: 4
     ThreadTileA: 4
@@ -74317,7 +74317,7 @@
     SubGroupA: 16
     SubGroupB: 16
     SuppresssNoLoadLoop: false
-    ThreadTile: *id018 
+    ThreadTile: *id018
     ThreadTile0: 4
     ThreadTile1: 8
     ThreadTileA: 4
@@ -74466,7 +74466,7 @@
     SubGroupA: 16
     SubGroupB: 16
     SuppresssNoLoadLoop: false
-    ThreadTile: *id019 
+    ThreadTile: *id019
     ThreadTile0: 8
     ThreadTile1: 4
     ThreadTileA: 8
@@ -75062,7 +75062,7 @@
     SubGroupA: 16
     SubGroupB: 16
     SuppresssNoLoadLoop: true
-    ThreadTile: *id020 
+    ThreadTile: *id020
     ThreadTile0: 8
     ThreadTile1: 8
     ThreadTileA: 8
@@ -75073,7 +75073,7 @@
     VectorAtomicWidth: 1
     VectorStore: true
     VectorWidth: 4
-    WorkGroup: *id021 
+    WorkGroup: *id021
     WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
@@ -75360,7 +75360,7 @@
     SubGroupA: 16
     SubGroupB: 16
     SuppresssNoLoadLoop: true
-    ThreadTile: *id022 
+    ThreadTile: *id022
     ThreadTile0: 4
     ThreadTile1: 4
     ThreadTileA: 4
@@ -75509,7 +75509,7 @@
     SubGroupA: 16
     SubGroupB: 16
     SuppresssNoLoadLoop: true
-    ThreadTile: *id023 
+    ThreadTile: *id023
     ThreadTile0: 4
     ThreadTile1: 8
     ThreadTileA: 4
@@ -75658,7 +75658,7 @@
     SubGroupA: 16
     SubGroupB: 16
     SuppresssNoLoadLoop: true
-    ThreadTile: *id024 
+    ThreadTile: *id024
     ThreadTile0: 6
     ThreadTile1: 8
     ThreadTileA: 6
@@ -75807,7 +75807,7 @@
     SubGroupA: 16
     SubGroupB: 16
     SuppresssNoLoadLoop: true
-    ThreadTile: *id025 
+    ThreadTile: *id025
     ThreadTile0: 8
     ThreadTile1: 4
     ThreadTileA: 8
@@ -75956,7 +75956,7 @@
     SubGroupA: 16
     SubGroupB: 16
     SuppresssNoLoadLoop: true
-    ThreadTile: *id026 
+    ThreadTile: *id026
     ThreadTile0: 8
     ThreadTile1: 6
     ThreadTileA: 8
@@ -77159,7 +77159,7 @@
     VectorAtomicWidth: 1
     VectorStore: true
     VectorWidth: 2
-    WorkGroup: *id027 
+    WorkGroup: *id027
     WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
@@ -77446,7 +77446,7 @@
     SubGroupA: 4
     SubGroupB: 4
     SuppresssNoLoadLoop: true
-    ThreadTile: *id028 
+    ThreadTile: *id028
     ThreadTile0: 2
     ThreadTile1: 2
     ThreadTileA: 2
@@ -77457,7 +77457,7 @@
     VectorAtomicWidth: 1
     VectorStore: true
     VectorWidth: 2
-    WorkGroup: *id029 
+    WorkGroup: *id029
     WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
@@ -77606,7 +77606,7 @@
     VectorAtomicWidth: 1
     VectorStore: true
     VectorWidth: 2
-    WorkGroup: *id031 
+    WorkGroup: *id031
     WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
@@ -77904,7 +77904,7 @@
     VectorAtomicWidth: 1
     VectorStore: true
     VectorWidth: 2
-    WorkGroup: *id030 
+    WorkGroup: *id030
     WorkGroupMapping: 1
     WorkGroupMappingType: B
   - AggressivePerfMode: 1
@@ -78931,7 +78931,7 @@
     SubGroup1: 16
     SubGroupA: 16
     SubGroupB: 16
-    ThreadTile: *id032 
+    ThreadTile: *id032
     ThreadTile0: 4
     ThreadTile1: 8
     ThreadTileA: 4
@@ -78942,7 +78942,7 @@
     VectorAtomicWidth: 1
     VectorStore: true
     VectorWidth: 2
-    WorkGroup: *id035 
+    WorkGroup: *id035
     WorkGroupMapping: 1
     WorkGroupMappingType: B
     fractionalPerpOverhangA: 0
@@ -79088,7 +79088,7 @@
     VectorAtomicWidth: 1
     VectorStore: true
     VectorWidth: 4
-    WorkGroup: *id034 
+    WorkGroup: *id034
     WorkGroupMapping: 1
     WorkGroupMappingType: B
     fractionalPerpOverhangA: 0
@@ -79230,7 +79230,7 @@
     VectorAtomicWidth: 1
     VectorStore: true
     VectorWidth: 4
-    WorkGroup: *id033 
+    WorkGroup: *id033
     WorkGroupMapping: 1
     WorkGroupMappingType: B
     fractionalPerpOverhangA: 0
@@ -79791,7 +79791,7 @@
     SubGroup1: 16
     SubGroupA: 16
     SubGroupB: 16
-    ThreadTile: *id036 
+    ThreadTile: *id036
     ThreadTile0: 4
     ThreadTile1: 4
     ThreadTileA: 4
