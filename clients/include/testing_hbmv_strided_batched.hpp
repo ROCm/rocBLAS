@@ -398,10 +398,11 @@ void testing_hbmv_strided_batched(const Arguments& arg)
                                             batch_count);
         }
 
-        gpu_time_used  = (get_time_us() - gpu_time_used) / number_hot_calls;
-        rocblas_gflops = batch_count * hbmv_gflop_count<T>(N, K) / gpu_time_used * 1e6;
-        rocblas_bandwidth
-            = batch_count * (((N * (N + 1.0)) / 2.0) + 3.0 * N) * sizeof(T) / gpu_time_used / 1e3;
+        gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;
+        rocblas_gflops    = batch_count * hbmv_gflop_count<T>(N, K) / gpu_time_used * 1e6;
+        rocblas_int k1    = K < N ? K : N;
+        rocblas_bandwidth = batch_count * (N * k1 - ((k1 * (k1 + 1)) / 2.0) + 3 * N) * sizeof(T)
+                            / gpu_time_used / 1e3;
 
         // only norm_check return an norm error, unit check won't return anything
         std::cout << "N,K,alpha,lda,stride_A,incx,stride_x,beta,incy,stride_y,batch_count,rocblas-"

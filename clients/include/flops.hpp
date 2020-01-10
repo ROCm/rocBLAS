@@ -181,7 +181,6 @@ constexpr double
 template <typename T>
 constexpr double hbmv_gflop_count(rocblas_int n, rocblas_int k)
 {
-    // TODO: check this
     rocblas_int k1 = k < n ? k : n;
     return (8.0 * ((2 * k1 + 1) * n - k1 * (k1 + 1)) + 8 * n) / 1e9;
 }

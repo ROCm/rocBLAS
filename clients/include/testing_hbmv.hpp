@@ -216,9 +216,11 @@ void testing_hbmv(const Arguments& arg)
             rocblas_hbmv<T>(handle, uplo, N, K, &h_alpha, dA, lda, dx, incx, &h_beta, dy_1, incy);
         }
 
-        gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;
-        rocblas_gflops    = hbmv_gflop_count<T>(N, K) / gpu_time_used * 1e6;
-        rocblas_bandwidth = (((N * (N + 1.0)) / 2.0) + 3.0 * N) * sizeof(T) / gpu_time_used / 1e3;
+        gpu_time_used  = (get_time_us() - gpu_time_used) / number_hot_calls;
+        rocblas_gflops = hbmv_gflop_count<T>(N, K) / gpu_time_used * 1e6;
+        rocblas_int k1 = K < N ? K : N;
+        rocblas_bandwidth
+            = (N * k1 - ((k1 * (k1 + 1)) / 2.0) + 3 * N) * sizeof(T) / gpu_time_used / 1e3;
 
         // only norm_check return an norm error, unit check won't return anything
         std::cout << "N,K,alpha,lda,incx,beta,incy,rocblas-Gflops,rocblas-GB/s,";

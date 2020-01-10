@@ -17,6 +17,7 @@ Definitions:
     # regular cases
     - { N:     1, K:    0, lda:    1 }
     - { N:     4, K:    2, lda:    4 }
+    - { N:     5, K:   10, lda:   20 }
     - { N:     9, K:    8, lda:    9 }
     - { N:    10, K:    1, lda:    2 }
     - { N:    16, K:    4, lda:   16 }

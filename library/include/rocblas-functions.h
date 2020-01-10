@@ -3019,9 +3019,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgbmv_batched(rocblas_handle              
     stride_x  [rocblas_stride]
               stride from the start of one vector (x_i) and the next one (x_i+1)
     @param[in]
-    stride_x  [rocblas_stride]
-              stride from the start of one vector (x_i) to the next one (x_i+1)
-    @param[in]
     beta      device pointer or host pointer to scalar beta.
     @param[inout]
     y         device pointer to first vector (y_1).
