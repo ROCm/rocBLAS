@@ -67,8 +67,8 @@ set( BLIS_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/build/deps/blis/include/blis )
 set( BLIS_LIBRARY ${CMAKE_SOURCE_DIR}/build/deps/blis/lib/libblis.so )
 
 
-if( OS_ID_rhel OR OS_ID_centos OR OS_ID_sles)
-    if( OS_ID_rhel OR OS_ID_centos)
+if( OS_ID_rhel OR OS_ID_sles)
+    if( OS_ID_rhel )
         # defer OpenMP include as search order must come after clang
         set( XXX_OPENMP_INCLUDE_DIR /opt/rh/devtoolset-7/root/usr/lib/gcc/x86_64-redhat-linux/7/include )
         set( OPENMP_LIBRARY /opt/rh/devtoolset-7/root/usr/lib/gcc/x86_64-redhat-linux/7/libgomp.so )
@@ -135,7 +135,7 @@ if( CUDA_FOUND )
 else( )
   # auto set in hip_common.h
   #target_compile_definitions( rocblas-bench PRIVATE __HIP_PLATFORM_HCC__ )
-  target_link_libraries( rocblas-bench PRIVATE ${HIPHCC_LOCATION} )
+  target_link_libraries( rocblas-bench PRIVATE ${HIPHCC_LOCATION} -stdlib=libc++)
 endif( )
 
 if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
@@ -149,7 +149,7 @@ elseif( CMAKE_COMPILER_IS_GNUCXX OR CXX_VERSION_STRING MATCHES "clang")
   target_compile_options( rocblas-bench PRIVATE -mf16c )
 endif( )
 
-if( OS_ID_rhel OR OS_ID_centos)
+if( OS_ID_rhel )
     # force clang includes to take precedence over devtoolset-7 which we only want for OpenMP
     set(CMAKE_CXX_FLAGS "-isystem ${CLANG_INCLUDE_DIR} -isystem ${XXX_OPENMP_INCLUDE_DIR} ${CMAKE_CXX_FLAGS}")
 endif()

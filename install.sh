@@ -394,6 +394,7 @@ if [[ "${install_dependencies}" == true ]]; then
       make install
       cd ../..
     fi
+  popd
   fi
 fi
 
