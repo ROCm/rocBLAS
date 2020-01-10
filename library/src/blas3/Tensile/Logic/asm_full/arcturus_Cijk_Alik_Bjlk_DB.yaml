@@ -1,7 +1,7 @@
 - {MinimumRequiredVersion: 4.7.2}
 - arcturus
 - gfx908
-- [Device 7380, Device 7388, Device 738c]
+- [Device 7380, Device 7388, Device 738c, Device 7390]
 - AssignedDerivedParameters: true
   Batched: true
   ComplexConjugateA: false
