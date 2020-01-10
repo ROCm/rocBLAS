@@ -148,7 +148,7 @@ install_packages( )
   local library_dependencies_fedora=( "make" "cmake" "rpm-build"
                                       "python34" "PyYAML" "python3*-PyYAML" "python3*-distutils-extra"
                                       "gcc-c++" "libcxx-devel" "zlib-devel" "wget" )
-  local library_dependencies_sles=(   "make" "cmake" "python3-PyYAM"
+  local library_dependencies_sles=(   "make" "cmake" "python3-PyYAM" "python3-distutils-extra"
                                       "gcc-c++" "libcxxtools9" "rpm-build" "wget" )
 
   if [[ "${build_cuda}" == true ]]; then
