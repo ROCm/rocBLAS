@@ -135,17 +135,17 @@ install_packages( )
   # dependencies needed to build the rocblas library
   local library_dependencies_ubuntu=( "make" "cmake-curses-gui" "pkg-config"
                                       "python2.7" "python3" "python-yaml" "python3-yaml"
-                                      "llvm-6.0-dev" "rocm-dev" "zlib1g-dev")
+                                      "llvm-6.0-dev" "zlib1g-dev" "wget")
   local library_dependencies_centos=( "epel-release"
                                       "make" "cmake3" "rpm-build"
                                       "python34" "PyYAML" "python3*-PyYAML"
                                       "gcc-c++" "llvm7.0-devel" "llvm7.0-static"
-                                      "rocm-dev" "zlib-devel" )
+                                      "zlib-devel" "wget" )
   local library_dependencies_fedora=( "make" "cmake" "rpm-build"
                                       "python34" "PyYAML" "python3*-PyYAML"
-                                      "gcc-c++" "libcxx-devel" "rocm-dev" "zlib-devel" )
+                                      "gcc-c++" "libcxx-devel" "zlib-devel" "wget" )
   local library_dependencies_sles=(   "make" "cmake" "python3-PyYAM"
-                                      "rocm-dev" "gcc-c++" "libcxxtools9" "rpm-build" "curl" )
+                                      "gcc-c++" "libcxxtools9" "rpm-build" "wget" )
 
   if [[ "${build_cuda}" == true ]]; then
     # Ideally, this could be cuda-cublas-dev, but the package name has a version number in it
@@ -153,6 +153,14 @@ install_packages( )
     library_dependencies_centos+=( "" ) # how to install cuda on centos?
     library_dependencies_fedora+=( "" ) # how to install cuda on fedora?
     library_dependencies_sles+=( "" )
+  fi
+
+  if [[ "${build_hip_clang}" == false ]]; then
+    # Installing rocm-dev installs hip-hcc, which overwrites the hip-vdi runtime
+    library_dependencies_ubuntu+=( "rocm-dev" )
+    library_dependencies_centos+=( "rocm-dev" )
+    library_dependencies_fedora+=( "rocm-dev" )
+    library_dependencies_sles+=( "rocm-dev" )
   fi
 
   # dependencies to build the client
@@ -374,47 +382,52 @@ if [[ "${install_dependencies}" == true ]]; then
     ${cmake_executable} -lpthread -DBUILD_BOOST=OFF ../../deps
     make -j$(nproc)
     elevate_if_not_root make install
-    popd
 
+    #Download prebuilt AMD multithreaded blis
     if [[ "${cpu_ref_lib}" == blis ]] && [[ ! -f "${build_dir}/deps/blis/lib/libblis.so" ]]; then
-      git submodule update --init
-      cd extern/blis
       case "${ID}" in
-          centos|rhel|sles)
-              ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp auto
+          centos|rhel|sles|opensuse-leap)
+              wget -O blis.tar.gz https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-centos-2.0.tar.gz
               ;;
           ubuntu)
-              ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp CC=/opt/rocm/hcc/bin/clang auto
+              wget -O blis.tar.gz https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-ubuntu-2.0.tar.gz
               ;;
           *)
               echo "Unsupported OS for this script"
-              ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp auto
+              wget -O blis.tar.gz https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-ubuntu-2.0.tar.gz
               ;;
       esac
-      make install
-      cd ../..
-    fi
-  popd
-  fi
-fi
 
-if [[ "${cpu_ref_lib}" == blis ]] && [[ ! -f "${build_dir}/deps/blis/lib/libblis.so" ]] && [[ "${build_clients}" == true ]]; then
-  git submodule update --init
-  cd extern/blis
+      tar -xvf blis.tar.gz
+      mv amd-blis-mt blis
+      rm blis.tar.gz
+      cd blis/lib
+      ln -s libblis-mt.so libblis.so
+      popd
+    fi
+    popd
+  fi
+elif [[ "${cpu_ref_lib}" == blis ]] && [[ ! -f "${build_dir}/deps/blis/lib/libblis.so" ]] && [[ "${build_clients}" == true ]]; then
+  pushd .
+  mkdir -p ${build_dir}/deps && cd ${build_dir}/deps
   case "${ID}" in
-    centos|rhel|sles)
-      ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp auto
+    centos|rhel|sles|opensuse-leap)
+      wget -O blis.tar.gz https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-centos-2.0.tar.gz
       ;;
     ubuntu)
-      ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp CC=/opt/rocm/hcc/bin/clang auto
+      wget -O blis.tar.gz https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-ubuntu-2.0.tar.gz
       ;;
     *)
       echo "Unsupported OS for this script"
-      ./configure --prefix=../../${build_dir}/deps/blis --enable-threading=openmp auto
+      wget -O blis.tar.gz https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-ubuntu-2.0.tar.gz
       ;;
   esac
-  make install
-  cd ../..
+  tar -xvf blis.tar.gz
+  mv amd-blis-mt blis
+  rm blis.tar.gz
+  cd blis/lib
+  ln -s libblis-mt.so libblis.so
+  popd
 fi
 
 # We append customary rocm path; if user provides custom rocm path in ${path}, our
