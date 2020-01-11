@@ -5,7 +5,7 @@
 # For debugging, uncomment this
 # set( CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -g -O0" )
 if(EXISTS /etc/redhat-release)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp=libgomp -pthread")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp=libgomp -pthread -stdlib=libstdc++ -std=c++11")
 else()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -pthread")
 endif()
@@ -178,7 +178,7 @@ if( CUDA_FOUND )
 else( )
   # auto set in hip_common.h
   #target_compile_definitions( rocblas-test PRIVATE __HIP_PLATFORM_HCC__ )
-  target_link_libraries( rocblas-test PRIVATE ${HIPHCC_LOCATION} -stdlib=libc++)
+  target_link_libraries( rocblas-test PRIVATE ${HIPHCC_LOCATION})
 endif( )
 
 set( ROCBLAS_TEST_DATA "${PROJECT_BINARY_DIR}/staging/rocblas_gtest.data")
@@ -207,11 +207,8 @@ if( OS_ID_rhel )
     set(CMAKE_CXX_FLAGS "-isystem ${CLANG_INCLUDE_DIR} -isystem ${XXX_OPENMP_INCLUDE_DIR} ${CMAKE_CXX_FLAGS}")
 endif()
 
-# include order workaround to force /opt/rocm/include later in order to ignore installed rocblas
-set(CMAKE_CXX_FLAGS "-isystem /opt/rocm/include ${CMAKE_CXX_FLAGS}")
-
 if( CXX_VERSION_STRING MATCHES "clang" )
-  target_link_libraries( rocblas-test PRIVATE -lpthread -lm )
+  target_link_libraries( rocblas-test PRIVATE -lpthread -lm -stdlib=libstdc++ )
 endif( )
 
 set_target_properties( rocblas-test PROPERTIES CXX_EXTENSIONS NO )
