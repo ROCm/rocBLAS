@@ -11,7 +11,7 @@ template <rocblas_int DIM_X,
           rocblas_int DIM_Y,
           typename T,
           typename U,
-          typename std::enable_if<!std::is_same<T, rocblas_double_complex>{}, int>::type = 0>
+          std::enable_if_t<!std::is_same<T, rocblas_double_complex>{}, int> = 0>
 __device__ void gemvn_kernel_calc(rocblas_int m,
                                   rocblas_int n,
                                   U           alpha,

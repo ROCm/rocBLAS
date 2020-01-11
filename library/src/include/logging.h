@@ -135,14 +135,14 @@ protected:
      * Compute value hashes for (key1, value1, key2, value2, ...) tuples
      ************************************************************************************/
     // Workaround for compilers which don't implement C++14 enum hash (LWG 2148)
-    template <typename T, typename std::enable_if<std::is_enum<T>{}, int>::type = 0>
+    template <typename T, std::enable_if_t<std::is_enum<T>{}, int> = 0>
     static size_t hash(const T& x)
     {
         return std::hash<typename std::underlying_type<T>::type>{}(x);
     }
 
     // Default hash for non-enum types
-    template <typename T, typename std::enable_if<!std::is_enum<T>{}, int>::type = 0>
+    template <typename T, std::enable_if_t<!std::is_enum<T>{}, int> = 0>
     static size_t hash(const T& x)
     {
         return std::hash<T>{}(x);
@@ -378,13 +378,13 @@ inline float log_trace_scalar_value(const rocblas_half* value)
     return value ? float(*value) : std::numeric_limits<float>::quiet_NaN();
 }
 
-template <typename T, typename std::enable_if<!is_complex<T>, int>::type = 0>
+template <typename T, std::enable_if_t<!is_complex<T>, int> = 0>
 inline T log_trace_scalar_value(const T* value)
 {
     return value ? *value : std::numeric_limits<T>::quiet_NaN();
 }
 
-template <typename T, typename std::enable_if<+is_complex<T>, int>::type = 0>
+template <typename T, std::enable_if_t<+is_complex<T>, int> = 0>
 inline T log_trace_scalar_value(const T* value)
 {
     return value ? *value
@@ -403,7 +403,7 @@ inline std::string log_bench_scalar_value(const char* name, const rocblas_half* 
     return ss.str();
 }
 
-template <typename T, typename std::enable_if<!is_complex<T>, int>::type = 0>
+template <typename T, std::enable_if_t<!is_complex<T>, int> = 0>
 inline std::string log_bench_scalar_value(const char* name, const T* value)
 {
     std::stringstream ss;
@@ -411,7 +411,7 @@ inline std::string log_bench_scalar_value(const char* name, const T* value)
     return ss.str();
 }
 
-template <typename T, typename std::enable_if<+is_complex<T>, int>::type = 0>
+template <typename T, std::enable_if_t<+is_complex<T>, int> = 0>
 inline std::string log_bench_scalar_value(const char* name, const T* value)
 {
     std::stringstream ss;
