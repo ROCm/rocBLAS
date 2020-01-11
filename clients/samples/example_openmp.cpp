@@ -59,8 +59,8 @@ int main()
     }
 
     // allocate memory on device
-    hipMalloc(&dx, N * NUM_THREADS * sizeof(float));
-    hipMalloc(&dy, N * NUM_THREADS * sizeof(float));
+    (hipMalloc)(&dx, N * NUM_THREADS * sizeof(float));
+    (hipMalloc)(&dy, N * NUM_THREADS * sizeof(float));
 
     // Initial Data on CPU
     srand(1);
@@ -129,8 +129,8 @@ int main()
 
     printf("%d    %8.2f         \n", (int)N * NUM_THREADS, gpu_time_used);
 
-    hipFree(dx);
-    hipFree(dy);
+    (hipFree)(dx);
+    (hipFree)(dy);
 
     // Destroy handle/streams
     for(rocblas_int i = 0; i < NUM_THREADS; i++)

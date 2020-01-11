@@ -31,7 +31,7 @@ int main()
     rocblas_create_handle(&handle);
 
     // allocate memory on device
-    hipMalloc(&dx, N * sizeof(float));
+    (hipMalloc)(&dx, N * sizeof(float));
 
     // Initial Data on CPU
     srand(1);
@@ -84,7 +84,7 @@ int main()
         printf("SSCAL TEST PASSES\n");
     }
 
-    hipFree(dx);
+    (hipFree)(dx);
     rocblas_destroy_handle(handle);
     return rocblas_status_success;
 }

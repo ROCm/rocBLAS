@@ -30,7 +30,7 @@ int main()
     rocblas_create_handle(&handle);
 
     // allocate memory on device
-    hipMalloc(&dx, N * sizeof(float));
+    (hipMalloc)(&dx, N * sizeof(float));
 
     // Initial Data on CPU
     srand(1);
@@ -72,7 +72,7 @@ int main()
 
     printf("%d    %8.2f        \n", (int)N, gpu_time_used);
 
-    hipFree(dx);
+    (hipFree)(dx);
     rocblas_destroy_handle(handle);
     return rocblas_status_success;
 }

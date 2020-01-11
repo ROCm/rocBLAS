@@ -541,9 +541,9 @@ int main(int argc, char* argv[])
 
     // allocate memory on device
     float *da, *db, *dc;
-    CHECK_HIP_ERROR(hipMalloc(&da, size_a * sizeof(float)));
-    CHECK_HIP_ERROR(hipMalloc(&db, size_b * sizeof(float)));
-    CHECK_HIP_ERROR(hipMalloc(&dc, size_c * sizeof(float)));
+    CHECK_HIP_ERROR((hipMalloc)(&da, size_a * sizeof(float)));
+    CHECK_HIP_ERROR((hipMalloc)(&db, size_b * sizeof(float)));
+    CHECK_HIP_ERROR((hipMalloc)(&dc, size_c * sizeof(float)));
 
     // copy matrices from host to device
     CHECK_HIP_ERROR(hipMemcpy(da, ha.data(), sizeof(float) * size_a, hipMemcpyHostToDevice));
@@ -624,9 +624,9 @@ int main(int argc, char* argv[])
         std::cout << "PASS, " << max_relative_error << std::endl;
     }
 
-    CHECK_HIP_ERROR(hipFree(da));
-    CHECK_HIP_ERROR(hipFree(db));
-    CHECK_HIP_ERROR(hipFree(dc));
+    CHECK_HIP_ERROR((hipFree)(da));
+    CHECK_HIP_ERROR((hipFree)(db));
+    CHECK_HIP_ERROR((hipFree)(dc));
     CHECK_ROCBLAS_ERROR(rocblas_destroy_handle(handle));
     return EXIT_SUCCESS;
 }
