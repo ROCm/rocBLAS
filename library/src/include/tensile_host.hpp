@@ -14,10 +14,6 @@
 #endif
 
 #include "handle.h"
-#include <cmath>
-#include <cstdio>
-#include <cstring>
-#include <iomanip>
 #include <ostream>
 
 /**************************************************************************
@@ -37,7 +33,7 @@ constexpr double value_category(const T& beta)
  * contraction problem, to be passed to runContractionProblem.      *
  ********************************************************************/
 template <typename Ti, typename To = Ti, typename Tc = To>
-struct RocblasContractionProblem
+class RocblasContractionProblem
 {
     rocblas_handle    handle;
     rocblas_operation trans_a;
@@ -64,6 +60,14 @@ struct RocblasContractionProblem
     size_t    stride_d = stride_c;
     size_t    batch_count;
 
+    // Function to print RocblasContractionProblem out to stream in YAML format
+    std::ostream&        print(std::ostream&);
+    friend std::ostream& operator<<(std::ostream& os, const RocblasContractionProblem& prob)
+    {
+        return prob.print(os);
+    }
+
+public:
     // gemm
     // gemm_strided_batched
     RocblasContractionProblem(rocblas_handle    handle,
@@ -150,92 +154,6 @@ struct RocblasContractionProblem
         , stride_d(stride_d)
         , batch_count(batch_count)
     {
-    }
-
-    // print_value is for formatting different data types
-
-    // Default output
-    template <typename T>
-    static void print_value(std::ostream& str, const T& x)
-    {
-        str << x;
-    }
-
-    // Floating-point output
-    static void print_value(std::ostream& str, double x)
-    {
-        if(std::isnan(x))
-            str << ".nan";
-        else if(std::isinf(x))
-            str << (x < 0 ? "-.inf" : ".inf");
-        else
-        {
-            char s[32];
-            snprintf(s, sizeof(s) - 2, "%.17g", x);
-
-            // If no decimal point or exponent, append .0
-            char* end = s + strcspn(s, ".eE");
-            if(!*end)
-                strcat(end, ".0");
-            str << s;
-        }
-    }
-
-    // Character output
-    static void print_value(std::ostream& str, char c)
-    {
-        char s[]{c, 0};
-        str << std::quoted(s, '\'');
-    }
-
-    // bool output
-    static void print_value(std::ostream& str, bool b)
-    {
-        str << (b ? "true" : "false");
-    }
-
-    // string output
-    static void print_value(std::ostream& str, const char* s)
-    {
-        str << std::quoted(s);
-    }
-
-    // Function to print Arguments out to stream in YAML format
-    friend std::ostream& operator<<(std::ostream& str, const RocblasContractionProblem& prob)
-    {
-        // delim starts as '{' opening brace and becomes ',' afterwards
-        auto print = [&, delim = '{'](const char* name, auto x) mutable {
-            str << delim << " " << name << ": ";
-            print_value(str, x);
-            delim = ',';
-        };
-
-#define PRINT(name, value) print(#name, value)
-
-        PRINT(a_type, rocblas_precision_string<Ti>);
-        PRINT(b_type, rocblas_precision_string<Ti>);
-        PRINT(c_type, rocblas_precision_string<To>);
-        PRINT(d_type, rocblas_precision_string<To>);
-        PRINT(compute_type, rocblas_precision_string<Tc>);
-        PRINT(transA, rocblas_transpose_letter(prob.trans_a));
-        PRINT(transB, rocblas_transpose_letter(prob.trans_b));
-        PRINT(M, prob.m);
-        PRINT(N, prob.n);
-        PRINT(K, prob.k);
-        PRINT(lda, prob.ld_a);
-        PRINT(ldb, prob.ld_b);
-        PRINT(ldc, prob.ld_c);
-        PRINT(ldd, prob.ld_d);
-        PRINT(beta, value_category(prob.beta));
-        PRINT(batch_count, prob.batch_count);
-        PRINT(stride_a, prob.stride_a);
-        PRINT(stride_b, prob.stride_b);
-        PRINT(stride_c, prob.stride_c);
-        PRINT(stride_d, prob.stride_d);
-
-#undef PRINT
-        str << " }\n";
-        return str;
     }
 };
 

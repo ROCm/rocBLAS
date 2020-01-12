@@ -182,6 +182,7 @@ set( rocblas_auxiliary_source
   handle.cpp
   rocblas_auxiliary.cpp
   buildinfo.cpp
+  rocblas_ostream.cpp
 )
 
 set( rocblas_blas1_source
