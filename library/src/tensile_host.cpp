@@ -1,3 +1,4 @@
+
 /* ************************************************************************
  * Copyright 2019-2020 Advanced Micro Devices, Inc.
  * ************************************************************************/
@@ -8,6 +9,7 @@
 
 #include "tensile_host.hpp"
 #include "rocblas.h"
+#include "tuple_helper.hpp"
 //#include <Tensile/AMDGPU.hpp>
 #include <Tensile/Contractions.hpp>
 #include <Tensile/EmbeddedLibrary.hpp>
@@ -24,6 +26,7 @@
 #include <dlfcn.h>
 #include <exception>
 #include <glob.h>
+#include <iomanip>
 #include <libgen.h>
 #include <memory>
 #include <string>
@@ -427,6 +430,7 @@ rocblas_status
         {
             // We print the error message only once, to avoid excessive logging
             static int once = (std::cerr << "Error: No Tensile solution found for " << problem, 0);
+            status          = rocblas_status_not_implemented;
         }
         else
         {
@@ -452,6 +456,38 @@ rocblas_status
     }
 
     return status;
+}
+
+/***************************************************
+ * Print a RocblasContractionProblem for debugging *
+ ***************************************************/
+template <typename Ti, typename To, typename Tc>
+std::ostream& RocblasContractionProblem::print(std::ostream& str)
+{
+    tuple_helper::print_tuple_pairs(
+        str,
+        std::forward_as_tuple(
+            ROCBLAS_NAME_VALUE_PAIR(a_type, rocblas_precision_string<Ti>),
+            ROCBLAS_NAME_VALUE_PAIR(b_type, rocblas_precision_string<Ti>),
+            ROCBLAS_NAME_VALUE_PAIR(c_type, rocblas_precision_string<To>),
+            ROCBLAS_NAME_VALUE_PAIR(d_type, rocblas_precision_string<To>),
+            ROCBLAS_NAME_VALUE_PAIR(compute_type, rocblas_precision_string<Tc>),
+            ROCBLAS_NAME_VALUE_PAIR(transA, rocblas_transpose_letter(prob.trans_a)),
+            ROCBLAS_NAME_VALUE_PAIR(transB, rocblas_transpose_letter(prob.trans_b)),
+            ROCBLAS_NAME_VALUE_PAIR(M, prob.m),
+            ROCBLAS_NAME_VALUE_PAIR(N, prob.n),
+            ROCBLAS_NAME_VALUE_PAIR(K, prob.k),
+            ROCBLAS_NAME_VALUE_PAIR(lda, prob.ld_a),
+            ROCBLAS_NAME_VALUE_PAIR(ldb, prob.ld_b),
+            ROCBLAS_NAME_VALUE_PAIR(ldc, prob.ld_c),
+            ROCBLAS_NAME_VALUE_PAIR(ldd, prob.ld_d),
+            ROCBLAS_NAME_VALUE_PAIR(beta, value_category(prob.beta)),
+            ROCBLAS_NAME_VALUE_PAIR(batch_count, prob.batch_count),
+            ROCBLAS_NAME_VALUE_PAIR(stride_a, prob.stride_a),
+            ROCBLAS_NAME_VALUE_PAIR(stride_b, prob.stride_b),
+            ROCBLAS_NAME_VALUE_PAIR(stride_c, prob.stride_c),
+            ROCBLAS_NAME_VALUE_PAIR(stride_d, prob.stride_d)));
+    return str;
 }
 
 /******************************************************************************

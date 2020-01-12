@@ -4,6 +4,7 @@
 #include "handle.h"
 #include <cstdio>
 #include <cstdlib>
+#include <unistd.h>
 
 #if BUILD_WITH_TENSILE
 #ifdef USE_TENSILE_HOST
@@ -225,12 +226,9 @@ extern "C" bool rocblas_is_managing_device_memory(rocblas_handle handle)
  * Static handle data
  ******************************************************************************/
 rocblas_layer_mode    _rocblas_handle::layer_mode = rocblas_layer_mode_none;
-std::ofstream         _rocblas_handle::log_trace_ofs;
-std::ostream*         _rocblas_handle::log_trace_os;
-std::ofstream         _rocblas_handle::log_bench_ofs;
-std::ostream*         _rocblas_handle::log_bench_os;
-std::ofstream         _rocblas_handle::log_profile_ofs;
-std::ostream*         _rocblas_handle::log_profile_os;
+rocblas_ostream*      _rocblas_handle::log_trace_os;
+rocblas_ostream*      _rocblas_handle::log_bench_os;
+rocblas_ostream*      _rocblas_handle::log_profile_os;
 _rocblas_handle::init _rocblas_handle::handle_init;
 constexpr size_t      _rocblas_handle::DEFAULT_DEVICE_MEMORY_SIZE; // Not needed in C++17
 constexpr size_t      _rocblas_handle::MIN_CHUNK_SIZE; // Not needed in C++17
@@ -241,11 +239,9 @@ constexpr size_t      _rocblas_handle::MIN_CHUNK_SIZE; // Not needed in C++17
  *  @details
  *  open_log_stream Open stream log_os for logging.
  *                  If the environment variable with name environment_variable_name
- *                  is not set, then stream log_os to std::cerr.
+ *                  is not set, then stream log_os to stderr.
  *                  Else open a file at the full logfile path contained in
  *                  the environment variable.
- *                  If opening the file suceeds, stream to the file
- *                  else stream to std::cerr.
  *
  *  @param[in]
  *  environment_variable_name   const char*
@@ -253,34 +249,19 @@ constexpr size_t      _rocblas_handle::MIN_CHUNK_SIZE; // Not needed in C++17
  *                              the full logfile path.
  *
  *  @parm[out]
- *  log_os      std::ostream*&
- *              Output stream. Stream to std:cerr if environment_variable_name
- *              is not set, else set to stream to log_ofs
- *
- *  @parm[out]
- *  log_ofs     std::ofstream&
- *              Output file stream. If log_ofs->is_open()==true, then log_os
- *              will stream to log_ofs. Else it will stream to std::cerr.
+ *  log_os      rocblas_ostream*&
+ *              Output stream. Stream to filename in environment_variable_name
+ *              if set, else set to stderr
  */
 
-static void open_log_stream(const char*    environment_variable_name,
-                            std::ostream*& log_os,
-                            std::ofstream& log_ofs)
+static void open_log_stream(const char* environment_variable_name, rocblas_ostream*& log_os)
 {
-    // By default, output to cerr
-    log_os = &std::cerr;
-
     // if environment variable is set, open file at logfile_pathname contained in the
     // environment variable
-    auto logfile_pathname = getenv(environment_variable_name);
-    if(logfile_pathname)
-    {
-        log_ofs.open(logfile_pathname, std::ios_base::trunc);
+    const char* logfile_pathname = getenv(environment_variable_name);
 
-        // if log_ofs is open, then stream to log_ofs, else log_os is already set to std::cerr
-        if(log_ofs.is_open())
-            log_os = &log_ofs;
-    }
+    log_os = logfile_pathname ? new rocblas_ostream(logfile_pathname)
+                              : new rocblas_ostream(STDERR_FILENO);
 }
 
 /*******************************************************************************
@@ -296,15 +277,15 @@ _rocblas_handle::init::init()
 
         // open log_trace file
         if(layer_mode & rocblas_layer_mode_log_trace)
-            open_log_stream("ROCBLAS_LOG_TRACE_PATH", log_trace_os, log_trace_ofs);
+            open_log_stream("ROCBLAS_LOG_TRACE_PATH", log_trace_os);
 
         // open log_bench file
         if(layer_mode & rocblas_layer_mode_log_bench)
-            open_log_stream("ROCBLAS_LOG_BENCH_PATH", log_bench_os, log_bench_ofs);
+            open_log_stream("ROCBLAS_LOG_BENCH_PATH", log_bench_os);
 
         // open log_profile file
         if(layer_mode & rocblas_layer_mode_log_profile)
-            open_log_stream("ROCBLAS_LOG_PROFILE_PATH", log_profile_os, log_profile_ofs);
+            open_log_stream("ROCBLAS_LOG_PROFILE_PATH", log_profile_os);
     }
 }
 
@@ -315,9 +296,9 @@ namespace rocblas
 {
     void reinit_logs()
     {
-        _rocblas_handle::log_trace_ofs.close();
-        _rocblas_handle::log_bench_ofs.close();
-        _rocblas_handle::log_profile_ofs.close();
+        delete _rocblas_handle::log_trace_os;
+        delete _rocblas_handle::log_bench_os;
+        delete _rocblas_handle::log_profile_os;
         new(&_rocblas_handle::handle_init) _rocblas_handle::init;
     }
 } // namespace rocblas

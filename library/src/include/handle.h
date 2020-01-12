@@ -6,11 +6,10 @@
 #define _ROCBLAS_HANDLE_H_
 
 #include "rocblas.h"
+#include "rocblas_ostream.hpp"
 #include "utility.h"
 #include <array>
-#include <fstream>
 #include <hip/hip_runtime.h>
-#include <iostream>
 #include <tuple>
 #include <type_traits>
 #include <utility>
@@ -75,12 +74,9 @@ public:
     static rocblas_layer_mode layer_mode;
 
     // logging streams
-    static std::ofstream log_trace_ofs;
-    static std::ostream* log_trace_os;
-    static std::ofstream log_bench_ofs;
-    static std::ostream* log_bench_os;
-    static std::ofstream log_profile_ofs;
-    static std::ostream* log_profile_os;
+    static rocblas_ostream* log_trace_os;
+    static rocblas_ostream* log_bench_os;
+    static rocblas_ostream* log_profile_os;
 
     // static data for startup initialization
     static struct init
