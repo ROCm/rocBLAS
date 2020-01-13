@@ -194,7 +194,7 @@ rocblas_status rocblas_hbmv_template(rocblas_handle handle,
                                      rocblas_int    batch_count)
 {
     //quick return
-    if(!n || batch_count < 0)
+    if(!n || !batch_count)
         return rocblas_status_success;
 
     hipStream_t rocblas_stream = handle->rocblas_stream;

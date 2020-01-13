@@ -157,7 +157,7 @@ void testing_hbmv_batched(const Arguments& arg)
     rocblas_local_handle handle;
 
     // argument sanity check before allocating invalid memory
-    if(N < 0 || /*lda < N ||*/ K < 0 || lda <= K || !incx || !incy || batch_count <= 0)
+    if(N <= 0 || K < 0 || lda <= K || !incx || !incy || batch_count <= 0)
     {
         static const size_t    safe_size = 100; // arbitrarily set to 100
         device_batch_vector<T> dA1(safe_size, 1, 5);
@@ -289,8 +289,8 @@ void testing_hbmv_batched(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            // unit_check_general<T>(1, N, batch_count, abs_incy, hy_gold, hy_1);
-            // unit_check_general<T>(1, N, batch_count, abs_incy, hy_gold, hy_2);
+            unit_check_general<T>(1, N, batch_count, abs_incy, hy_gold, hy_1);
+            unit_check_general<T>(1, N, batch_count, abs_incy, hy_gold, hy_2);
         }
 
         if(arg.norm_check)

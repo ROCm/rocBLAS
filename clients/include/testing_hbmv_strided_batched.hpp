@@ -191,7 +191,7 @@ void testing_hbmv_strided_batched(const Arguments& arg)
     rocblas_local_handle handle;
 
     // argument sanity check before allocating invalid memory
-    if(N < 0 || K < 0 || lda <= K || !incx || !incy || batch_count <= 0)
+    if(N <= 0 || K < 0 || lda <= K || !incx || !incy || batch_count <= 0)
     {
         static const size_t            safe_size = 100; // arbitrarily set to 100
         device_strided_batch_vector<T> dA1(safe_size, 1, safe_size, 2);
@@ -238,6 +238,13 @@ void testing_hbmv_strided_batched(const Arguments& arg)
     host_vector<T>               hbeta(1);
     halpha[0] = h_alpha;
     hbeta[0]  = h_beta;
+    CHECK_HIP_ERROR(hA.memcheck());
+    CHECK_HIP_ERROR(hx.memcheck());
+    CHECK_HIP_ERROR(hy_1.memcheck());
+    CHECK_HIP_ERROR(hy_2.memcheck());
+    CHECK_HIP_ERROR(hy_gold.memcheck());
+    CHECK_HIP_ERROR(halpha.memcheck());
+    CHECK_HIP_ERROR(hbeta.memcheck());
 
     device_strided_batch_vector<T> dA(size_A, 1, stride_A, batch_count);
     device_strided_batch_vector<T> dx(N, incx, stride_x, batch_count);
