@@ -43,12 +43,20 @@
 #include "testing_swap_batched.hpp"
 #include "testing_swap_strided_batched.hpp"
 // blas2
+#include "testing_gbmv.hpp"
+#include "testing_gbmv_batched.hpp"
+#include "testing_gbmv_strided_batched.hpp"
 #include "testing_gemv.hpp"
 #include "testing_gemv_batched.hpp"
 #include "testing_gemv_strided_batched.hpp"
 #include "testing_ger.hpp"
+#include "testing_hemv.hpp"
+#include "testing_hemv_batched.hpp"
+#include "testing_hemv_strided_batched.hpp"
 #include "testing_syr.hpp"
 #include "testing_tbmv.hpp"
+#include "testing_tbmv_batched.hpp"
+#include "testing_tbmv_strided_batched.hpp"
 #include "testing_tpmv.hpp"
 #include "testing_tpmv_batched.hpp"
 #include "testing_tpmv_strided_batched.hpp"
@@ -206,6 +214,9 @@ struct perf_blas<
                 {"rotmg", testing_rotmg<T>},
                 {"rotmg_batched", testing_rotmg_batched<T>},
                 {"rotmg_strided_batched", testing_rotmg_strided_batched<T>},
+                {"gbmv", testing_gbmv<T>},
+                {"gbmv_batched", testing_gbmv_batched<T>},
+                {"gbmv_strided_batched", testing_gbmv_strided_batched<T>},
                 {"gemv", testing_gemv<T>},
                 {"gemv_batched", testing_gemv_batched<T>},
                 {"gemv_strided_batched", testing_gemv_strided_batched<T>},
@@ -218,6 +229,8 @@ struct perf_blas<
                 {"ger", testing_ger<T>},
                 {"syr", testing_syr<T>},
                 {"tbmv", testing_tbmv<T>},
+                {"tbmv_batched", testing_tbmv_batched<T>},
+                {"tbmv_strided_batched", testing_tbmv_strided_batched<T>},
 #if BUILD_WITH_TENSILE
                 {"geam", testing_geam<T>},
                 {"trmm", testing_trmm<T>},
@@ -301,7 +314,15 @@ struct perf_blas<T,
                 {"swap_strided_batched", testing_swap_strided_batched<T>},
                 {"iamax", testing_iamax<T>},
                 {"iamin", testing_iamin<T>},
+                {"gbmv", testing_gbmv<T>},
+                {"gbmv_batched", testing_gbmv_batched<T>},
+                {"gbmv_strided_batched", testing_gbmv_strided_batched<T>},
                 {"gemv", testing_gemv<T>},
+                {"gemv_batched", testing_gemv_batched<T>},
+                {"gemv_strided_batched", testing_gemv_strided_batched<T>},
+                {"hemv", testing_hemv<T>},
+                {"hemv_batched", testing_hemv_batched<T>},
+                {"hemv_strided_batched", testing_hemv_strided_batched<T>},
                 {"tpmv", testing_tpmv<T>},
                 {"tpmv_batched", testing_tpmv_batched<T>},
                 {"tpmv_strided_batched", testing_tpmv_strided_batched<T>},
@@ -309,6 +330,8 @@ struct perf_blas<T,
                 {"trmv_batched", testing_trmv_batched<T>},
                 {"trmv_strided_batched", testing_trmv_strided_batched<T>},
                 {"tbmv", testing_tbmv<T>},
+                {"tbmv_batched", testing_tbmv_batched<T>},
+                {"tbmv_strided_batched", testing_tbmv_strided_batched<T>},
 #if BUILD_WITH_TENSILE
                 {"gemm", testing_gemm<T>},
                 {"gemm_batched", testing_gemm_batched<T>},
@@ -638,8 +661,18 @@ try
 
         ("sizek,k",
          value<rocblas_int>(&arg.K)->default_value(128),
-         "Specific matrix size: sizek is only applicable to BLAS-3: the number of columns in "
-         "A and rows in B.")
+         "Specific matrix size: BLAS-2: the number of sub or super-diagonals of A. BLAS-3: "
+         "the number of columns in A and rows in B.")
+
+        ("kl",
+         value<rocblas_int>(&arg.KL)->default_value(128),
+         "Specific matrix size: kl is only applicable to BLAS-2: The number of sub-diagonals "
+         "of the banded matrix A.")
+
+        ("ku",
+         value<rocblas_int>(&arg.KU)->default_value(128),
+         "Specific matrix size: ku is only applicable to BLAS-2: The number of super-diagonals "
+         "of the banded matrix A.")
 
         ("lda",
          value<rocblas_int>(&arg.lda)->default_value(128),

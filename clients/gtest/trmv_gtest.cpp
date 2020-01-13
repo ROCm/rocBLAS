@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2019 Advanced Micro Devices, Inc.
+ * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "rocblas_data.hpp"
@@ -55,8 +55,9 @@ namespace
         {
             RocBLAS_TestName<trmv_template> name;
 
-            name << rocblas_datatype2string(arg.a_type) << '_' << (char)std::toupper(arg.transA)
-                 << '_' << arg.M << '_' << arg.N << '_' << arg.alpha << '_' << arg.lda;
+            name << rocblas_datatype2string(arg.a_type) << '_' << (char)std::toupper(arg.uplo)
+                 << '_' << (char)std::toupper(arg.transA) << '_' << (char)std::toupper(arg.diag)
+                 << '_' << arg.M << '_' << arg.lda;
 
             if(TRMV_TYPE == TRMV_STRIDED_BATCHED)
                 name << '_' << arg.stride_a;
@@ -65,11 +66,6 @@ namespace
 
             if(TRMV_TYPE == TRMV_STRIDED_BATCHED)
                 name << '_' << arg.stride_x;
-
-            name << '_' << arg.beta << '_' << arg.incy;
-
-            if(TRMV_TYPE == TRMV_STRIDED_BATCHED)
-                name << '_' << arg.stride_y;
 
             if(TRMV_TYPE == TRMV_STRIDED_BATCHED || TRMV_TYPE == TRMV_BATCHED)
                 name << '_' << arg.batch_count;
@@ -117,21 +113,21 @@ namespace
     using trmv = trmv_template<trmv_testing, TRMV>;
     TEST_P(trmv, blas2)
     {
-        rocblas_simple_dispatch<trmv_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<trmv_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(trmv);
 
     using trmv_batched = trmv_template<trmv_testing, TRMV_BATCHED>;
     TEST_P(trmv_batched, blas2)
     {
-        rocblas_simple_dispatch<trmv_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<trmv_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(trmv_batched);
 
     using trmv_strided_batched = trmv_template<trmv_testing, TRMV_STRIDED_BATCHED>;
     TEST_P(trmv_strided_batched, blas2)
     {
-        rocblas_simple_dispatch<trmv_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<trmv_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(trmv_strided_batched);
 

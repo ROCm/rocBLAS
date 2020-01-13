@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2019 Advanced Micro Devices, Inc.
+ * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "rocblas_tbmv.hpp"
 #include "handle.h"
@@ -45,38 +45,28 @@ namespace
             auto transA_letter = rocblas_transpose_letter(transA);
             auto diag_letter   = rocblas_diag_letter(diag);
 
-            if(handle->pointer_mode == rocblas_pointer_mode_host)
-            {
-                if(layer_mode & rocblas_layer_mode_log_trace)
-                    log_trace(
-                        handle, rocblas_tbmv_name<T>, uplo, transA, diag, m, k, A, lda, x, incx);
+            if(layer_mode & rocblas_layer_mode_log_trace)
+                log_trace(handle, rocblas_tbmv_name<T>, uplo, transA, diag, m, k, A, lda, x, incx);
 
-                if(layer_mode & rocblas_layer_mode_log_bench)
-                {
-                    log_bench(handle,
-                              "./rocblas-bench -f tbmv -r",
-                              rocblas_precision_string<T>,
-                              "--uplo",
-                              uplo_letter,
-                              "--transposeA",
-                              transA_letter,
-                              "--diag",
-                              diag_letter,
-                              "-m",
-                              m,
-                              "-k",
-                              k,
-                              "--lda",
-                              lda,
-                              "--incx",
-                              incx);
-                }
-            }
-            else
+            if(layer_mode & rocblas_layer_mode_log_bench)
             {
-                if(layer_mode & rocblas_layer_mode_log_trace)
-                    log_trace(
-                        handle, rocblas_tbmv_name<T>, uplo, transA, diag, m, k, A, lda, x, incx);
+                log_bench(handle,
+                          "./rocblas-bench -f tbmv -r",
+                          rocblas_precision_string<T>,
+                          "--uplo",
+                          uplo_letter,
+                          "--transposeA",
+                          transA_letter,
+                          "--diag",
+                          diag_letter,
+                          "-m",
+                          m,
+                          "-k",
+                          k,
+                          "--lda",
+                          lda,
+                          "--incx",
+                          incx);
             }
 
             if(layer_mode & rocblas_layer_mode_log_profile)
@@ -113,7 +103,7 @@ namespace
 
         auto mem = handle->device_malloc(sizeof(T) * m);
 
-        return rocblas_tbmv_template<T>(
+        return rocblas_tbmv_template(
             handle, uplo, transA, diag, m, k, A, 0, lda, 0, x, 0, incx, 0, 1, (T*)mem);
     }
 
@@ -137,8 +127,13 @@ rocblas_status rocblas_stbmv(rocblas_handle    handle,
                              rocblas_int       lda,
                              float*            x,
                              rocblas_int       incx)
+try
 {
     return rocblas_tbmv_impl(handle, uplo, transA, diag, m, k, A, lda, x, incx);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_dtbmv(rocblas_handle    handle,
@@ -151,8 +146,13 @@ rocblas_status rocblas_dtbmv(rocblas_handle    handle,
                              rocblas_int       lda,
                              double*           x,
                              rocblas_int       incx)
+try
 {
     return rocblas_tbmv_impl(handle, uplo, transA, diag, m, k, A, lda, x, incx);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_ctbmv(rocblas_handle               handle,
@@ -165,8 +165,13 @@ rocblas_status rocblas_ctbmv(rocblas_handle               handle,
                              rocblas_int                  lda,
                              rocblas_float_complex*       x,
                              rocblas_int                  incx)
+try
 {
     return rocblas_tbmv_impl(handle, uplo, transA, diag, m, k, A, lda, x, incx);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_ztbmv(rocblas_handle                handle,
@@ -179,8 +184,13 @@ rocblas_status rocblas_ztbmv(rocblas_handle                handle,
                              rocblas_int                   lda,
                              rocblas_double_complex*       x,
                              rocblas_int                   incx)
+try
 {
     return rocblas_tbmv_impl(handle, uplo, transA, diag, m, k, A, lda, x, incx);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 } // extern "C"

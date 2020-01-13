@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2019 Advanced Micro Devices, Inc.
+ * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "rocblas_trmv_batched.hpp"
 #include "handle.h"
@@ -103,7 +103,7 @@ namespace
                             lda,
                             "incx",
                             incx,
-                            "--batch_count",
+                            "batch_count",
                             batch_count);
             }
         }
@@ -171,9 +171,14 @@ extern "C" {
                                  T_* const*        x,                     \
                                  rocblas_int       incx,                  \
                                  rocblas_int       batch_count)           \
+    try                                                                   \
     {                                                                     \
         return rocblas_trmv_batched_impl(                                 \
             handle, uplo, transa, diag, m, a, lda, x, incx, batch_count); \
+    }                                                                     \
+    catch(...)                                                            \
+    {                                                                     \
+        return exception_to_rocblas_status();                             \
     }
 
 IMPL(rocblas_strmv_batched, float);

@@ -1,8 +1,6 @@
 /* ************************************************************************
- * Copyright 2016-2019 Advanced Micro Devices, Inc.
+ * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include "Tensile.h"
-#include "TensileTypes.h"
 #include "handle.h"
 #include "logging.h"
 #include "rocblas.h"
@@ -38,6 +36,7 @@ extern "C" rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    hand
                                                           rocblas_gemm_algo algo,
                                                           int32_t           solution_index,
                                                           uint32_t          flags)
+try
 {
     if(!handle)
         return rocblas_status_invalid_handle;
@@ -299,4 +298,8 @@ extern "C" rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    hand
                                            stride_d,
                                            batch_count,
                                            compute_type);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }

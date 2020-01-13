@@ -18,21 +18,18 @@ Usage:
 
 \talltime.py
 \t\t-A          working directory A
-# \t\t-B        working directory B (optional) 
+\t\t-B          working directory B (optional)
 \t\t-i          input yaml
 \t\t-o          output directory
+\t\t-b          output directory for the base run
 \t\t-T          do not perform BLAS functions; just generate document
 \t\t-f          document format: pdf (default) or docx (Need forked docx plugin)
 \t\t-d          device number (default: 0)
-# \t\t-g        generate graphs via Asymptote: 0(default) or 1 
-# \t\t-S        plot speedup (default: 1, disabled: 0)
+\t\t-g          generate graphs via Asymptote: 0(default) or 1
+\t\t-S          plot speedup (default: 1, disabled: 0)
 '''
-# \t\t-a          label for directory A
-# \t\t-g          generate graphs via Asymptote: 0(default) or 1 #doesn't do anything
-# \t\t-s          short run   #Doesn't do anything
+
 # \t\t-t          data type: gflops #Maybe use option to plot time graphs too
-# \t\t-b          label for directory B
-# \t\t-N          Number of samples (default: 10) #Do we want to use median and take multiple samples (Will take longer to run due to rocblas-bench launch overhead)
 
 
 def nextpow(val, radix):
@@ -42,10 +39,11 @@ def nextpow(val, radix):
     return x
 
 class rundata:
-    
-    def __init__(self, wdir, diridx, label,
+
+    def __init__(self, wdir, odir, diridx, label,
                  data, hwinfo):
         self.wdir = wdir
+        self.odir = odir
         self.diridx = diridx
         self.minnsize = data['n']
         self.maxNsize = data['N']
@@ -63,10 +61,10 @@ class rundata:
         self.beta = data['beta']
         self.iters = data['iters']
         self.samples = data['samples']
-        self.lda = data['lda']    
+        self.lda = data['lda']
         self.ldb = data['ldb']
         self.ldc = data['ldc']
-        self.LDA = data['LDA']    
+        self.LDA = data['LDA']
         self.LDB = data['LDB']
         self.LDC = data['LDC']
         self.transA = data['transA']
@@ -93,19 +91,19 @@ class rundata:
                 self.theoMax = hwinfo['Bandwidth'] / float(eval(memeq)) * eval (flopseq) * 32 / precisionBits / 4   #4 bytes scaled to type
             except:
                 print("flops and mem equations produce errors")
-            
 
-    def outfilename(self, outdir):
+
+    def outfilename(self):
         outfile = str(self.function)
         outfile += "_" + self.precision
         outfile += "_" + self.label.replace(' ', '_').replace('/', '_')
         outfile += ".dat"
-        outfile = os.path.join(outdir, outfile)
+        outfile = os.path.join(self.odir, outfile)
         return outfile
-        
-    def runcmd(self, outdir, nsample):
+
+    def runcmd(self, nsample):
         cmd = ["./timing.py"]
-        
+
         cmd.append("-w")
         cmd.append(self.wdir)
 
@@ -114,7 +112,7 @@ class rundata:
 
         cmd.append("-a")
         cmd.append(str(self.samples))
-        
+
         cmd.append("-b")
         cmd.append(str(self.nbatch))
 
@@ -122,7 +120,7 @@ class rundata:
         cmd.append(str(self.minmsize))
         cmd.append("-M")
         cmd.append(str(self.maxMsize))
-        
+
         cmd.append("-n")
         cmd.append(str(self.minnsize))
         cmd.append("-N")
@@ -189,20 +187,20 @@ class rundata:
 
         if self.step_mult == 1:
             cmd.append("-x")
-            
+
         cmd.append("-o")
-        cmd.append(self.outfilename(outdir))
+        cmd.append(self.outfilename())
 
         # cmd.append("-t")
         # cmd.append("gflops")
-            
+
         return cmd
 
-    def executerun(self, outdir, nsample):
+    def executerun(self, nsample):
         fout = tempfile.TemporaryFile(mode="w+")
         ferr = tempfile.TemporaryFile(mode="w+")
-            
-        proc = subprocess.Popen(self.runcmd(outdir, nsample), stdout=fout, stderr=ferr,
+
+        proc = subprocess.Popen(self.runcmd(nsample), stdout=fout, stderr=ferr,
                                 env=os.environ.copy())
         proc.wait()
         rc = proc.returncode
@@ -211,12 +209,12 @@ class rundata:
         return rc
 
 class yamldata:
-    
+
     def __init__(self, configFile):
         self.configFile = configFile
         self.testcases = []
         self.executerun()
-    
+
     def reorderdata(self):
         oldData = self.testcases
         newData = []
@@ -230,9 +228,9 @@ class yamldata:
                 newData.append(type)
                 names.append((name,precision, side))
         self.testcases = newData
-    
+
     #Monkey Patch
-    def write_test(self, test): 
+    def write_test(self, test):
         self.testcases.append(test)
 
     #Monkey Patch
@@ -299,12 +297,12 @@ class getVersion:
         self.prog = os.path.join(self.wdir, "rocblas-bench")
         self.version = ""
         self.executerun()
-        
+
     def runcmd(self):
         cmd = [self.prog]
-        
+
         cmd.append("--version")
-            
+
         return cmd
 
     def executerun(self):
@@ -317,11 +315,11 @@ class figure:
         self.name = name
         self.runs = []
         self.caption = caption
-    
-    def inputfiles(self, outdir):
+
+    def inputfiles(self):
         files = []
         for run in self.runs:
-            files.append(run.outfilename(outdir))
+            files.append(run.outfilename())
         return files
 
     def labels(self):
@@ -329,7 +327,7 @@ class figure:
         for run in self.runs:
             labels.append(run.label)
         return labels
-    
+
     def filename(self, outdir, docformat):
         outfigure = self.name
         outfigure += ".pdf"
@@ -339,10 +337,10 @@ class figure:
         #     outfigure += ".png"
         return os.path.join(outdir, outfigure)
 
-        
+
     def asycmd(self, outdir, docformat, datatype, ncompare):
         asycmd = ["asy"]
-        
+
         asycmd.append("-f")
         asycmd.append("pdf")
         # if docformat == "pdf":
@@ -356,7 +354,7 @@ class figure:
         asycmd.append("datagraphs.asy")
 
         asycmd.append("-u")
-        asycmd.append('filenames="' + ",".join(self.inputfiles(outdir)) + '"')
+        asycmd.append('filenames="' + ",".join(self.inputfiles()) + '"')
 
         asycmd.append("-u")
         asycmd.append('legendlist="' + ",".join(self.labels()) + '"')
@@ -370,11 +368,11 @@ class figure:
 
         asycmd.append("-u")
         asycmd.append('speedup=' + str(ncompare))
-            
+
         if datatype == "gflops":
             asycmd.append("-u")
             asycmd.append('ylabel="GFLOP/sec"')
-        
+
         if self.runs[0].theoMax != -1:
             asycmd.append("-u")
             asycmd.append('theoMax=' + str(self.runs[0].theoMax))
@@ -386,7 +384,7 @@ class figure:
         asycmd.append(self.filename(outdir, docformat) )
 
         print(" ".join(asycmd))
-                    
+
         return asycmd
 
     def executeasy(self, outdir, docformat, datatype, ncompare):
@@ -397,7 +395,7 @@ class figure:
         if asyrc != 0:
             print("****asy fail****")
         return asyrc
-    
+
 def getLabel(test):
     if test['function']=='gemm':
         return 'transA ' + test['transA']+ ' transB ' + test['transB']
@@ -457,7 +455,7 @@ def getDeviceSpecs(device, sclk):
     # print(hwinfo["sclk"])
     # print(hwinfo["sclk"]/1000.00 * 64 * 128)
     if 'Vega 20' in device:
-        hwinfo["theoMaxCompute"] = hwinfo["sclk"]/1000.00 * 64 * 128 # 64 CU, 128 ops/ clk 
+        hwinfo["theoMaxCompute"] = hwinfo["sclk"]/1000.00 * 64 * 128 # 64 CU, 128 ops/ clk
         hwinfo["Bandwidth"] = 1000
         hwinfo["Device"] = 'Vega 20'
     elif 'Vega 10' in device:
@@ -466,18 +464,17 @@ def getDeviceSpecs(device, sclk):
         hwinfo["Device"] = 'Vega 10'
     else:
         print("Device type not supported or found - needed to display theoretical max")
-    
+
     return hwinfo
 
-    
+
 def main(argv):
     dirA = "."
     dirB = None
     dryrun = False
-    labelA = None
-    labelB = None
     inputYaml = ""
     outdir = "."
+    baseOutDir = "."
     speedup = False
     datatype = "gflops"
     # shortrun = False
@@ -485,7 +482,7 @@ def main(argv):
     devicenum = 0
     doAsy = False
     nsample = 10
-    
+
     try:
         opts, args = getopt.getopt(argv,"hA:f:B:Tt:a:b:o:S:sg:d:N:i:")
     except getopt.GetoptError:
@@ -500,14 +497,12 @@ def main(argv):
             dirA = arg
         elif opt in ("-B"):
             dirB = arg
-        elif opt in ("-a"):
-            labelA = arg
-        elif opt in ("-b"):
-            labelB = arg
         elif opt in ("-i"):
             inputYaml = arg
         elif opt in ("-o"):
             outdir = arg
+        elif opt in ("-b"):
+            baseOutDir = arg
         elif opt in ("-T"):
             dryrun = True
         # elif opt in ("-s"):
@@ -544,40 +539,39 @@ def main(argv):
         print("unable to find input yaml file: " + inputYaml)
         sys.exit(1)
 
-    if labelA == None:
-        labelA = dirA
-
-        
     print("dirA: "+ dirA)
-    print("labelA: "+ labelA)
-    
+
     if not dryrun and not binaryisok(dirA, "rocblas-bench"):
         print("unable to find " + "rocblas-bench" + " in " + dirA)
         print("please specify with -A")
         sys.exit(1)
-        
-    dirlist = [[dirA, labelA]]
-    if not dirB == None:
-        if labelB == None:
-            labelB = dirB
 
+    dirlist = [[dirA, outdir]]
+    if not dirB == None:
         print("dirB: "+ dirB)
-        print("labelB: "+ labelB)
+
         if not dryrun and not binaryisok(dirB, "rocblas-bench"):
             print("unable to find " + "rocblas-bench" + " in " + dirB)
             print("please specify with -B")
             sys.exit(1)
 
-        dirlist.append([dirB, labelB])
+        if not os.path.exists(baseOutDir):
+            os.makedirs(baseOutDir)
+
+        dirlist.append([dirB, baseOutDir])
+
+    elif dryrun:
+        dirlist.append([dirB, baseOutDir])
+
     print("outdir: " + outdir)
     # if shortrun:
     #     print("short run")
     print("output format: " + docformat)
     print("device number: " + str(devicenum))
-    
+
     if not os.path.exists(outdir):
         os.makedirs(outdir)
-    
+
     rocBlasVersion = getVersion(dirA)
     sclk = getspecs.getsclk(devicenum)
     device = getspecs.getdeviceinfo(devicenum)
@@ -618,8 +612,9 @@ def main(argv):
         for test in tests:
             for idx, lwdir in enumerate(dirlist):
                 wdir = lwdir[0]
-                label = getLabel(test) + ' run ' + chr(idx+65) if len(dirlist) > 1 else getLabel(test) #labelling runs A and B for now (can swap with rocblas version)
-                fig.runs.append( rundata(wdir, idx, label,
+                odir = lwdir[1]
+                label = getLabel(test)
+                fig.runs.append( rundata(wdir, odir, idx, label,
                                             test, hwinfo) )
         figs.append(fig)
 
@@ -627,9 +622,9 @@ def main(argv):
     for fig in figs:
         print(fig.name)
         for run in fig.runs:
-            print(" ".join(run.runcmd(outdir, nsample)))
             if not dryrun:
-                run.executerun(outdir, nsample)
+                print(" ".join(run.runcmd(nsample)))
+                run.executerun(nsample)
 
     #generate plots
     if doAsy:
@@ -641,16 +636,16 @@ def main(argv):
             fig.executeasy(outdir, docformat, datatype, ncompare)
 
         if docformat == "pdf":
-            maketex(figs, outdir, nsample)    
+            maketex(figs, outdir, nsample)
         if docformat == "docx":
-            makedocx(figs, outdir, nsample)    
+            makedocx(figs, outdir, nsample)
 
 def binaryisok(dirname, progname):
     prog = os.path.join(dirname, progname)
     return os.path.isfile(prog)
-        
+
 def maketex(figs, outdir, nsample):
-    
+
     header = '''\documentclass[12pt]{article}
 \\usepackage{graphicx}
 \\usepackage{url}
@@ -660,15 +655,15 @@ def maketex(figs, outdir, nsample):
     texstring = header
 
     texstring += "\n\\section{Introduction}\n"
-    
+
     texstring += "Each data point represents the median of " + str(nsample) + " values, with error bars showing the 95\\% confidence interval for the median.\n\n"
     #TODO change message
     # texstring += "The following figures display the performance of the user specified rocBLAS functions \n\n"
 
 
-    
+
     texstring += "\\vspace{1cm}\n"
-    
+
     # texstring += "\\begin{tabular}{ll}"
     # texstring += labelA +" &\\url{"+ dirA+"} \\\\\n"
     # if not dirB == None:
@@ -676,7 +671,7 @@ def maketex(figs, outdir, nsample):
     # texstring += "\\end{tabular}\n\n"
 
     # texstring += "\\vspace{1cm}\n"
-    
+
     specfilename = os.path.join(outdir, "specs.txt")
     if os.path.isfile(specfilename):
         specs = ""
@@ -689,18 +684,18 @@ def maketex(figs, outdir, nsample):
                 texstring += "\\begin{itemize}\n"
             elif line.startswith("Device info"):
                 texstring += "\\end{itemize}\n"
-                texstring += line 
+                texstring += line
                 texstring += "\\begin{itemize}\n"
             else:
                 if line.strip() != "":
                     texstring += "\\item " + line + "\n"
         texstring += "\\end{itemize}\n"
         texstring += "\n"
-        
+
     texstring += "\\clearpage\n"
 
     texstring += "\n\\section{Figures}\n"
-    
+
     for fig in figs:
         print(fig.filename(outdir, "pdf"))
         print(fig.caption)
@@ -713,9 +708,9 @@ def maketex(figs, outdir, nsample):
    \\caption{''' + fig.caption + '''}
 \\end{figure}
 '''
-            
+
     texstring += "\n\\end{document}\n"
-   
+
     fname = os.path.join(outdir, 'figs.tex')
 
     with open(fname, 'w') as outfile:
@@ -723,7 +718,7 @@ def maketex(figs, outdir, nsample):
 
     fout = open(os.path.join(outdir, "texcmd.log"), 'w+')
     ferr = open(os.path.join(outdir, "texcmd.err"), 'w+')
-                    
+
     latexcmd = ["latexmk", "-pdf", 'figs.tex']
     print(" ".join(latexcmd))
     texproc =  subprocess.Popen(latexcmd, cwd=outdir, stdout=fout, stderr=ferr,
@@ -751,9 +746,9 @@ def pdf2emf(pdfname):
     if proc.returncode != 0:
         print("svg2emf failed!")
         sys.exit(1)
-    
+
     return emfname
-        
+
 def makedocx(figs, outdir, nsample):
     import docx
 
@@ -778,9 +773,9 @@ def makedocx(figs, outdir, nsample):
         # document.add_paragraph(emfname)
         document.add_picture(emfname, width=docx.shared.Inches(6))
         document.add_paragraph((fig.caption).replace('\\', ''))
-                         
+
     document.save(os.path.join(outdir,'figs.docx'))
-    
+
 if __name__ == "__main__":
     main(sys.argv[1:])
-                        
+

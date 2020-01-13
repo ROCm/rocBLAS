@@ -1,5 +1,5 @@
 # ########################################################################
-# Copyright 2016-2019 Advanced Micro Devices, Inc.
+# Copyright 2016-2020 Advanced Micro Devices, Inc.
 # ########################################################################
 
 # The ROCm platform requires Ubuntu 16.04 or Fedora 24, which has cmake 3.5
@@ -138,7 +138,7 @@ get_os_id(OS_ID)
 message (STATUS "OS detected is ${OS_ID}")
 
 # Versioning via rocm-cmake
-set ( VERSION_STRING "2.13.0" )
+set ( VERSION_STRING "2.15.0" )
 rocm_setup_version( VERSION ${VERSION_STRING} )
 
 # Append our library helper cmake path and the cmake path for hip (for convenience)
@@ -164,6 +164,7 @@ option( BUILD_WITH_TENSILE_HOST "Use the new tensile client for gemm?" OFF )
 
 if( BUILD_WITH_TENSILE )
   set( Tensile_LOGIC "asm_full" CACHE STRING "Tensile to use which logic?")
+  set( Tensile_ARCHITECTURE "all" CACHE STRING "Tensile to use which architecture?")
   set( Tensile_CODE_OBJECT_VERSION "V2" CACHE STRING "Tensile code_object_version")
   set( Tensile_COMPILER "hcc" CACHE STRING "Tensile compiler")
 
@@ -172,7 +173,8 @@ if( BUILD_WITH_TENSILE )
   option( Tensile_PRINT_DEBUG "Tensile to print runtime debug info?" OFF )
 
   set( Tensile_TEST_LOCAL_PATH "" CACHE PATH "Use local Tensile directory instead of fetching a GitHub branch" )
-  set_property( CACHE Tensile_LOGIC PROPERTY STRINGS asm_full asm_lite hip_lite other )
+  set_property( CACHE Tensile_ARCHITECTURE PROPERTY STRINGS all gfx803 gfx900 gfx906 gfx908)
+  set_property( CACHE Tensile_LOGIC PROPERTY STRINGS asm_full asm_lite asm_miopen hip_lite other )
   set_property( CACHE Tensile_CODE_OBJECT_VERSION PROPERTY STRINGS V2 V3 )
   set_property( CACHE Tensile_COMPILER PROPERTY STRINGS hcc hipcc)
 
@@ -199,7 +201,12 @@ if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
 endif( )
 
 # CMake list of machine targets
-set( AMDGPU_TARGETS gfx803;gfx900;gfx906;gfx908 CACHE STRING "List of specific machine types for library to target" )
+if( Tensile_ARCHITECTURE STREQUAL "all" )
+  set( gpus "gfx803;gfx900;gfx906;gfx908")
+else()
+  set( gpus ${Tensile_ARCHITECTURE})
+endif()
+set( AMDGPU_TARGETS ${gpus} CACHE STRING "List of specific machine types for library to target" )
 
 add_subdirectory( library )
 

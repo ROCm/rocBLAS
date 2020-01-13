@@ -1,11 +1,13 @@
 /* ************************************************************************
- * Copyright 2018-2019 Advanced Micro Devices, Inc.
+ * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "rocblas_data.hpp"
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_test.hpp"
 #include "testing_tbmv.hpp"
+#include "testing_tbmv_batched.hpp"
+#include "testing_tbmv_strided_batched.hpp"
 #include "type_dispatch.hpp"
 #include <cctype>
 #include <cstring>
@@ -17,6 +19,8 @@ namespace
     enum tbmv_test_type
     {
         TBMV,
+        TBMV_BATCHED,
+        TBMV_STRIDED_BATCHED,
     };
 
     //tbmv test template
@@ -36,6 +40,12 @@ namespace
             {
             case TBMV:
                 return !strcmp(arg.function, "tbmv") || !strcmp(arg.function, "tbmv_bad_arg");
+            case TBMV_BATCHED:
+                return !strcmp(arg.function, "tbmv_batched")
+                       || !strcmp(arg.function, "tbmv_batched_bad_arg");
+            case TBMV_STRIDED_BATCHED:
+                return !strcmp(arg.function, "tbmv_strided_batched")
+                       || !strcmp(arg.function, "tbmv_strided_batched_bad_arg");
             }
             return false;
         }
@@ -54,7 +64,16 @@ namespace
                  << '_' << (char)std::toupper(arg.transA) << '_' << (char)std::toupper(arg.diag)
                  << '_' << arg.M << '_' << arg.K << '_' << arg.lda;
 
+            if(TBMV_TYPE == TBMV_STRIDED_BATCHED)
+                name << '_' << arg.stride_a;
+
             name << '_' << arg.incx;
+
+            if(TBMV_TYPE == TBMV_STRIDED_BATCHED)
+                name << '_' << arg.stride_x;
+
+            if(TBMV_TYPE == TBMV_BATCHED || TBMV_TYPE == TBMV_STRIDED_BATCHED)
+                name << '_' << arg.batch_count;
 
             return std::move(name);
         }
@@ -83,6 +102,14 @@ namespace
                 testing_tbmv<T>(arg);
             else if(!strcmp(arg.function, "tbmv_bad_arg"))
                 testing_tbmv_bad_arg<T>(arg);
+            else if(!strcmp(arg.function, "tbmv_batched"))
+                testing_tbmv_batched<T>(arg);
+            else if(!strcmp(arg.function, "tbmv_batched_bad_arg"))
+                testing_tbmv_batched_bad_arg<T>(arg);
+            else if(!strcmp(arg.function, "tbmv_strided_batched"))
+                testing_tbmv_strided_batched<T>(arg);
+            else if(!strcmp(arg.function, "tbmv_strided_batched_bad_arg"))
+                testing_tbmv_strided_batched_bad_arg<T>(arg);
             else
                 FAIL() << "Internal error: Test called with unknown function: " << arg.function;
         }
@@ -91,8 +118,22 @@ namespace
     using tbmv = tbmv_template<tbmv_testing, TBMV>;
     TEST_P(tbmv, blas2)
     {
-        rocblas_simple_dispatch<tbmv_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<tbmv_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(tbmv);
+
+    using tbmv_batched = tbmv_template<tbmv_testing, TBMV_BATCHED>;
+    TEST_P(tbmv_batched, blas2)
+    {
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<tbmv_testing>(GetParam()));
+    }
+    INSTANTIATE_TEST_CATEGORIES(tbmv_batched);
+
+    using tbmv_strided_batched = tbmv_template<tbmv_testing, TBMV_STRIDED_BATCHED>;
+    TEST_P(tbmv_strided_batched, blas2)
+    {
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<tbmv_testing>(GetParam()));
+    }
+    INSTANTIATE_TEST_CATEGORIES(tbmv_strided_batched);
 
 } // namespace

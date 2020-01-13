@@ -1,19 +1,19 @@
 #!/bin/bash
 
 # This script needs to be edited to bump old develop version to new master version for new release.
-# - run this script in develop branch 
+# - run this script in develop branch
 # - after running this script merge develop into master
 # - after running this script and merging develop into master, run bump_develop_version.sh in master and
 #   merge master into develop
 
-OLD_ROCBLAS_VERSION="2.10.0"
-NEW_ROCBLAS_VERSION="2.12.0"
+OLD_ROCBLAS_VERSION="2.13.1"
+NEW_ROCBLAS_VERSION="2.14.0"
 
-OLD_TENSILE_VERSION="Tensile 4.13.0"
+OLD_TENSILE_VERSION="Tensile 4.14.0"
 NEW_TENSILE_VERSION="Tensile 4.14.0"
 
-OLD_TENSILE_HASH="a89467f8e7627782acf5c5e24e82095cea39aa9d"
-NEW_TENSILE_HASH="78e72fbb35c3fba688deab3895f70f2f39f537af"
+OLD_TENSILE_HASH="d52cdbf1f3ef0e860cb8a7dc2acbd9fdb46260e6"
+NEW_TENSILE_HASH="d52cdbf1f3ef0e860cb8a7dc2acbd9fdb46260e6"
 
 OLD_MINIMUM_REQUIRED_VERSION="MinimumRequiredVersion: 4.6.0"
 NEW_MINIMUM_REQUIRED_VERSION="MinimumRequiredVersion: 4.7.1"

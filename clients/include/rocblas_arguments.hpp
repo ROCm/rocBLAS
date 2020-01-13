@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2019 Advanced Micro Devices, Inc.
+ * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #ifndef ROCBLAS_ARGUMENTS_H_
@@ -28,6 +28,9 @@ struct Arguments
     rocblas_int M;
     rocblas_int N;
     rocblas_int K;
+
+    rocblas_int KL;
+    rocblas_int KU;
 
     rocblas_int lda;
     rocblas_int ldb;
@@ -76,9 +79,10 @@ struct Arguments
 
     char function[64];
     char name[64];
-    char category[32];
+    char category[64];
 
     rocblas_initialization initialization;
+    char                   known_bug_platforms[64];
 
     // Validate input format.
     // rocblas_gentest.py is expected to conform to this format.
@@ -120,6 +124,8 @@ struct Arguments
         ROCBLAS_FORMAT_CHECK(M);
         ROCBLAS_FORMAT_CHECK(N);
         ROCBLAS_FORMAT_CHECK(K);
+        ROCBLAS_FORMAT_CHECK(KL);
+        ROCBLAS_FORMAT_CHECK(KU);
         ROCBLAS_FORMAT_CHECK(lda);
         ROCBLAS_FORMAT_CHECK(ldb);
         ROCBLAS_FORMAT_CHECK(ldc);
@@ -160,6 +166,7 @@ struct Arguments
         ROCBLAS_FORMAT_CHECK(name);
         ROCBLAS_FORMAT_CHECK(category);
         ROCBLAS_FORMAT_CHECK(initialization);
+        ROCBLAS_FORMAT_CHECK(known_bug_platforms);
     }
 
     template <typename T>
@@ -268,6 +275,8 @@ private:
         PRINT(M);
         PRINT(N);
         PRINT(K);
+        PRINT(KL);
+        PRINT(KU);
         PRINT(lda);
         PRINT(ldb);
         PRINT(ldc);
@@ -300,6 +309,7 @@ private:
         PRINT(timing);
         PRINT(iters);
         PRINT(initialization);
+        PRINT(known_bug_platforms);
 
 #undef PRINT
         return str << " }\n";

@@ -50,7 +50,7 @@ def getram():
         if not m == None:
             return line.strip()[len(searchstr):].strip()
 
-# Get the Linux distro information        
+# Get the Linux distro information
 def getdistro():
     import subprocess, tempfile
     cmd = ["lsb_release", "-a"]
@@ -65,7 +65,7 @@ def getdistro():
         if line.startswith(searchstr):
             return line[len(searchstr):].strip()
 
-# Get the version number for rocm        
+# Get the version number for rocm
 def getrocmversion():
     import subprocess, tempfile
     cmd = ["apt", "show", "rocm-libs"]
@@ -80,8 +80,8 @@ def getrocmversion():
         if line.startswith(searchstr):
             return line[len(searchstr):].strip()
 
-        
-# Get the vbios version for the specified device        
+
+# Get the vbios version for the specified device
 def getvbios(devicenum):
     import subprocess, tempfile
     cmd = ["/opt/rocm/bin/rocm-smi", "-v", "-d", str(devicenum)]
@@ -135,10 +135,10 @@ def getdeviceinfo(devicenum):
             line = re.sub(":", "", line)
             line = re.sub("GPU ID", "", line)
             name += " " + line.strip()
-            
+
     return name
-    
-# Get the vram for the specified device        
+
+# Get the vram for the specified device
 def getvram(devicenum):
     import subprocess, tempfile, re
     cmd = ["/opt/rocm/bin/rocm-smi", "--showmeminfo", "vram", "-d", str(devicenum)]
@@ -159,7 +159,7 @@ def getvram(devicenum):
             pos = line.find("used")
             return line[:pos].strip()
 
-# Get the performance level for the specified device        
+# Get the performance level for the specified device
 def getperflevel(devicenum):
     import subprocess, tempfile, re
     cmd = ["/opt/rocm/bin/rocm-smi", "-p", "-d", str(devicenum)]
@@ -195,7 +195,7 @@ def getmclk(devicenum):
             p1 = line.find(")")
             return line[p0+1:p1]
 
-# Get the system clock for the specified device        
+# Get the system clock for the specified device
 def getsclk(devicenum):
     import subprocess, tempfile, re
     cmd = ["/opt/rocm/bin/rocm-smi", "--showclocks", "-d", str(devicenum)]

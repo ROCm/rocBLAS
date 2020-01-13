@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2019 Advanced Micro Devices, Inc.
+ * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "rocblas_trmv_strided_batched.hpp"
 #include "handle.h"
@@ -65,14 +65,9 @@ namespace
                           lda,
                           x,
                           incx,
-
-                          "--stride_A",
                           stridea,
-                          "--incx",
                           incx,
-                          "--stride_x",
                           stridex,
-
                           batch_count);
             }
 
@@ -206,9 +201,14 @@ extern "C" {
                                  rocblas_int       incx,                                    \
                                  rocblas_stride    stridex,                                 \
                                  rocblas_int       batch_count)                             \
+    try                                                                                     \
     {                                                                                       \
         return rocblas_trmv_strided_batched_impl(                                           \
             handle, uplo, transA, diag, m, A, lda, stridea, x, incx, stridex, batch_count); \
+    }                                                                                       \
+    catch(...)                                                                              \
+    {                                                                                       \
+        return exception_to_rocblas_status();                                               \
     }
 
 IMPL(rocblas_strmv_strided_batched, float);

@@ -131,6 +131,51 @@ constexpr double trmv_gflop_count<rocblas_double_complex>(rocblas_int m)
     return (2.0 * m * (2.0 * m + 1.0)) / 1e9;
 }
 
+/* \brief floating point counts of GBMV */
+template <typename T>
+constexpr double gbmv_gflop_count(
+    rocblas_operation transA, rocblas_int m, rocblas_int n, rocblas_int kl, rocblas_int ku)
+{
+    rocblas_int dim_x = transA == rocblas_operation_none ? n : m;
+    rocblas_int k1    = dim_x < kl ? dim_x : kl;
+    rocblas_int k2    = dim_x < ku ? dim_x : ku;
+
+    // kl and ku ops, plus main diagonal ops
+    double d1 = ((2 * k1 * dim_x) - (k1 * (k1 + 1))) + dim_x;
+    double d2 = ((2 * k2 * dim_x) - (k2 * (k2 + 1))) + 2 * dim_x;
+
+    // add y operations
+    return (d1 + d2 + 2 * dim_x) / 1e9;
+}
+
+template <>
+constexpr double gbmv_gflop_count<rocblas_float_complex>(
+    rocblas_operation transA, rocblas_int m, rocblas_int n, rocblas_int kl, rocblas_int ku)
+{
+    rocblas_int dim_x = transA == rocblas_operation_none ? n : m;
+    rocblas_int k1    = dim_x < kl ? dim_x : kl;
+    rocblas_int k2    = dim_x < ku ? dim_x : ku;
+
+    double d1 = 4 * ((2 * k1 * dim_x) - (k1 * (k1 + 1))) + 6 * dim_x;
+    double d2 = 4 * ((2 * k2 * dim_x) - (k2 * (k2 + 1))) + 8 * dim_x;
+
+    return (d1 + d2 + 8 * dim_x) / 1e9;
+}
+
+template <>
+constexpr double gbmv_gflop_count<rocblas_double_complex>(
+    rocblas_operation transA, rocblas_int m, rocblas_int n, rocblas_int kl, rocblas_int ku)
+{
+    rocblas_int dim_x = transA == rocblas_operation_none ? n : m;
+    rocblas_int k1    = dim_x < kl ? dim_x : kl;
+    rocblas_int k2    = dim_x < ku ? dim_x : ku;
+
+    double d1 = 4 * ((2 * k1 * dim_x) - (k1 * (k1 + 1))) + 6 * dim_x;
+    double d2 = 4 * ((2 * k2 * dim_x) - (k2 * (k2 + 1))) + 8 * dim_x;
+
+    return (d1 + d2 + 8 * dim_x) / 1e9;
+}
+
 /* \brief floating point counts of GEMV */
 template <typename T>
 constexpr double gemv_gflop_count(rocblas_operation transA, rocblas_int m, rocblas_int n)
@@ -151,6 +196,13 @@ constexpr double
     return (8.0 * m * n + 6.0 * (transA == rocblas_operation_none ? m : n)) / 1e9;
 }
 
+/* \brief floating point counts of HEMV */
+template <typename T>
+constexpr double hemv_gflop_count(rocblas_int n)
+{
+    return (8.0 * n * n + 8.0 * n) / 1e9;
+}
+
 /* \brief floating point counts of TRSV */
 template <typename T>
 constexpr double trsv_gflop_count(rocblas_int m)
@@ -162,7 +214,22 @@ constexpr double trsv_gflop_count(rocblas_int m)
 template <typename T>
 constexpr double tbmv_gflop_count(rocblas_int m, rocblas_int k)
 {
-    return ((2 * m * k - k * (k + 1)) + m) / 1e9;
+    rocblas_int k1 = k < m ? k : m;
+    return ((2 * m * k1 - k1 * (k1 + 1)) + m) / 1e9;
+}
+
+template <>
+constexpr double tbmv_gflop_count<rocblas_float_complex>(rocblas_int m, rocblas_int k)
+{
+    rocblas_int k1 = k < m ? k : m;
+    return (4 * (2 * m * k1 - k1 * (k1 + 1)) + 4 * m) / 1e9;
+}
+
+template <>
+constexpr double tbmv_gflop_count<rocblas_double_complex>(rocblas_int m, rocblas_int k)
+{
+    rocblas_int k1 = k < m ? k : m;
+    return (4 * (2 * m * k1 - k1 * (k1 + 1)) + 4 * m) / 1e9;
 }
 
 /* \brief floating point counts of SY(HE)MV */

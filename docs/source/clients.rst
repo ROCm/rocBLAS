@@ -6,7 +6,7 @@ rocBLAS builds 2 clients in the directory rocBLAS/build/release/clients/staging
 
 1. rocblas-test: used rocBLAS correctness tests.
 
-2. rocblas-benchmark: used to benchmark rocBLAS functions. 
+2. rocblas-benchmark: used to benchmark rocBLAS functions.
 
 rocblas-test
 ============
@@ -77,6 +77,6 @@ it will output the following 12 times:
 
    ./rocblas-bench -f gemm -r f32_r --transposeA N --transposeB N -m 4096 -n 4096 -k 4096 --alpha 1 --lda 4096 --ldb 4096 --beta 0 --ldc 4096
 
-The reason for the 12 times is because it calls rocblas_sgemm 12 times to measure its performance. 
+The reason for the 12 times is because it calls rocblas_sgemm 12 times to measure its performance.
 
 
