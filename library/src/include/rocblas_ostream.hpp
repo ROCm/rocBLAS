@@ -46,17 +46,24 @@ class log_worker
     // Worker thread which waits for strings to log
     void worker();
 
+    // Initial slice of struct stat which contains device ID and inode
+    struct dev_ino
+    {
+        dev_t st_dev; /* ID of device containing file */
+        ino_t st_ino; /* Inode number */
+    };
+
     // Compares device IDs and inodes for containers
     struct file_id_less
     {
-        bool operator()(const struct stat& lhs, const struct stat& rhs) const
+        bool operator()(const struct dev_ino& lhs, const struct dev_ino& rhs) const
         {
             return lhs.st_dev < rhs.st_dev || (lhs.st_dev == rhs.st_dev && lhs.st_ino < rhs.st_ino);
         }
     };
 
     // Map from file_id to a log_worker shared_ptr
-    static std::map<struct stat, std::shared_ptr<log_worker>, file_id_less> map;
+    static std::map<struct dev_ino, std::shared_ptr<log_worker>, file_id_less> map;
 
     // Mutex for accessing the map
     static std::mutex map_mutex;
@@ -93,34 +100,39 @@ public:
  ***************************************************************************/
 class rocblas_ostream
 {
-    // Output stream for formatted IO
-    std::ostream& os;
+    // Output buffer for formatted IO
+    std::ostringstream& os;
 
     // Worker thread for accepting logs
     std::shared_ptr<log_worker> worker;
 
+    // Construct from various streams. We do not support std::ostream, because
+    // we cannot guarantee atomic logging using std::ofstream without using
+    // coarse-grained locking. With POSIX filehandles, we can restrict all
+    // writers to the same device/inode to one thread, and do fine-grained
+    // locking. With std::ostringstream, we assume strings are thread-local.
 public:
-    // Construct from std::ostream (does not guarantee atomicity)
-    explicit rocblas_ostream(std::ostream& stream)
-        : os(stream)
+    explicit rocblas_ostream(std::ostringstream& str)
+        : os(str)
+        , worker(nullptr) // no worker for strings, assumed thread-local
     {
     }
 
-    // Construct from filehandle
+    // Construct from a filehandle
     explicit rocblas_ostream(int filehandle)
         : os(*new std::ostringstream)
         , worker(log_worker::get_worker(filehandle))
     {
     }
 
-    // Construct from C filename
+    // Construct from a C filename
     explicit rocblas_ostream(const char* filename)
         : os(*new std::ostringstream)
         , worker(log_worker::get_worker(filename))
     {
     }
 
-    // Construct from std::string filename
+    // Construct from a std::string filename
     explicit rocblas_ostream(const std::string& filename)
         : rocblas_ostream(filename.c_str())
     {

@@ -72,31 +72,34 @@ void log_worker::worker()
     }
 }
 
-std::shared_ptr<log_worker> log_worker::get_worker(int fh)
+std::shared_ptr<log_worker> log_worker::get_worker(int filehandle)
 {
     struct stat statbuf;
 
     // Get the device ID and inode, to detect files already open
-    if(fstat(fh, &statbuf))
+    if(fstat(filehandle, &statbuf))
     {
         perror("error executing fstat()");
         return {};
     }
 
+    // Worker smart pointer and whether new worker was inserted into map
+    decltype(map::iterator) worker = nullptr;
+    //    std::shared_ptr<log_worker>* worker = nullptr;
+    bool inserted;
+
     // Lock the map
     std::lock_guard<std::mutex> lock(map_mutex);
 
-    std::shared_ptr<log_worker> worker;
-
     // Insert an element if it doesn't already exist
-    bool inserted;
-    std::tie(worker, inserted) = map.emplace(statbuf, nullptr);
+    std::tie(worker, inserted) = map.emplace(*reinterpret_cast<const dev_ino*>(&statbuf), nullptr);
 
-    // If a new entry was inserted, replace its shared_ptr with a new worker
+    // If a new entry was inserted, replace its nullptr shared_ptr with a new worker
     if(inserted)
-        worker = std::make_shared<log_worker>(fh);
+        *worker = std::make_shared<log_worker>(filehandle);
 
-    return worker;
+    // Return the existing or new worker matching the filehandle
+    return *worker;
 }
 
 std::shared_ptr<log_worker> log_worker::get_worker(const char* filename)
@@ -142,16 +145,20 @@ void rocblas_ostream::flush()
 // Destroy the rocblas_ostream
 rocblas_ostream::~rocblas_ostream()
 {
+    // Flush any pending IO
     flush();
+
+    // If we had a worker, we delete its temporary ostringstream
     if(worker)
-        delete dynamic_cast<std::ostringstream*>(&os);
+        delete &os;
 }
 
 // Floating-point output
+// We use <cstdio> and <cstring> functions for fine-grained control of output
 rocblas_ostream& operator<<(rocblas_ostream& os, double x)
 {
     char        s[32] = "";
-    const char* out   = s;
+    const char* out;
 
     if(std::isnan(x))
         out = ".nan";
@@ -165,6 +172,8 @@ rocblas_ostream& operator<<(rocblas_ostream& os, double x)
         char* end = s + strcspn(s, ".eE");
         if(!*end)
             strcat(end, ".0");
+
+        out = s;
     }
     os.os << out;
     return os;

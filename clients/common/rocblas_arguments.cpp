@@ -49,11 +49,11 @@ void Arguments::validate(std::istream& ifs)
     if(strcmp(trailer, "ROCblas"))
         error("trailer");
 
-    auto check_func = [&, sig = (unsigned char)0](const char* name, auto&& elem) mutable {
-        static_assert(sizeof(elem) <= 255,
+    auto check_func = [&, sig = (unsigned char)0](const char* name, auto&& value) mutable {
+        static_assert(sizeof(value) <= 255,
                       "One of the fields of Arguments is too large (> 255 bytes)");
-        for(unsigned char i = 0; i < sizeof(elem); ++i)
-            if(reinterpret_cast<const unsigned char*>(&elem)[i] ^ sig ^ i)
+        for(unsigned char i = 0; i < sizeof(value); ++i)
+            if(reinterpret_cast<const unsigned char*>(&value)[i] ^ sig ^ i)
                 error(name);
         sig += 89;
     };
