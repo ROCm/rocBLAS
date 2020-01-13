@@ -30,6 +30,9 @@ rocBLASCI:
     {
         platform, project->
 
+        // Print out available environment variables
+        echo sh(script: 'env|sort', returnStdout: true)
+
         commonGroovy = load "${project.paths.project_src_prefix}/.jenkins/Common.groovy"
         commonGroovy.runCompileCommand(platform, project)
     }
@@ -55,9 +58,11 @@ rocBLASCI:
                         alias python=python3
                         python -V
 
-                        #Executor number is one less than the card number in CI
-                        let CARDNUM=\$EXECUTOR_NUMBER+1
-                        python alltime.py -A \$workingdir/build/release/clients/staging -o \$workingdir/perfoutput -i perf.yaml -S 0 -g 0 -d ${env.EXECUTOR_NUMBER}
+                        #get device name from /dev/dri
+                        DEVICENAME=`ls /dev/dri |  sed 's/.*\(card[0-9]\).*/\1/'`
+                        #get device num from device name
+                        DEVICENUM=`echo $devicename |  sed 's/.*\([0-9]\).*/\1/'`
+                        python alltime.py -A \$workingdir/build/release/clients/staging -o \$workingdir/perfoutput -i perf.yaml -S 0 -g 0 -d \$DEVICENUM
 
                         ls \$workingdir/perfoutput
                         cat \$workingdir/perfoutput/specs.txt
