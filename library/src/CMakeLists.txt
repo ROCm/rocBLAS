@@ -165,6 +165,9 @@ set( rocblas_blas2_source
   blas2/rocblas_ger_batched.cpp
   blas2/rocblas_ger_strided_batched.cpp
   blas2/rocblas_hemv.cpp
+  blas2/rocblas_hpmv.cpp
+  blas2/rocblas_hpmv_batched.cpp
+  blas2/rocblas_hpmv_strided_batched.cpp
   blas2/rocblas_hemv_batched.cpp
   blas2/rocblas_hemv_strided_batched.cpp
   blas2/rocblas_syr.cpp

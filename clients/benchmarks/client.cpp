@@ -50,6 +50,9 @@
 #include "testing_hemv.hpp"
 #include "testing_hemv_batched.hpp"
 #include "testing_hemv_strided_batched.hpp"
+#include "testing_hpmv.hpp"
+#include "testing_hpmv_batched.hpp"
+#include "testing_hpmv_strided_batched.hpp"
 #include "testing_syr.hpp"
 #include "testing_tbmv.hpp"
 #include "testing_tbmv_batched.hpp"
@@ -306,6 +309,9 @@ struct perf_blas<T,
                 {"hemv", testing_hemv<T>},
                 {"hemv_batched", testing_hemv_batched<T>},
                 {"hemv_strided_batched", testing_hemv_strided_batched<T>},
+                {"hpmv", testing_hpmv<T>},
+                {"hpmv_batched", testing_hpmv_batched<T>},
+                {"hpmv_strided_batched", testing_hpmv_strided_batched<T>},
                 {"trmv", testing_trmv<T>},
                 {"trmv_batched", testing_trmv_batched<T>},
                 {"trmv_strided_batched", testing_trmv_strided_batched<T>},
