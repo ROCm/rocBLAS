@@ -257,11 +257,11 @@ constexpr size_t      _rocblas_handle::MIN_CHUNK_SIZE; // Not needed in C++17
 static void open_log_stream(const char* environment_variable_name, rocblas_ostream*& log_os)
 {
     // if environment variable is set, open file at logfile_pathname contained in the
-    // environment variable
+    // environment variable; else use a dup of stderr (so that it can be closed separately)
     const char* logfile_pathname = getenv(environment_variable_name);
 
     log_os = logfile_pathname ? new rocblas_ostream(logfile_pathname)
-                              : new rocblas_ostream(STDERR_FILENO);
+                              : new rocblas_ostream(dup(STDERR_FILENO));
 }
 
 /*******************************************************************************

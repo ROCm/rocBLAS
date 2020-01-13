@@ -187,4 +187,9 @@ static_assert(std::is_trivial<Arguments>{},
               "Arguments is not a trivial type, and thus is "
               "incompatible with C.");
 
+#undef ROCBLAS_SELECTOR
+#undef ROCBLAS_SELECT_1ARG
+#undef ROCBLAS_SELECT_2ARG
+#undef ROCBLAS_NAME_VALUE_PAIR
+
 #endif

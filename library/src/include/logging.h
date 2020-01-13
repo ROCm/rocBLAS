@@ -185,8 +185,8 @@ inline T log_trace_scalar_value(const T* value)
  *************************************************/
 inline std::string log_bench_scalar_value(const char* name, const rocblas_half* value)
 {
-    std::stringstream ss;
-    rocblas_ostream   os(ss);
+    std::ostringstream ss;
+    rocblas_ostream    os(ss);
     os << "--" << name << " " << (value ? float(*value) : std::numeric_limits<float>::quiet_NaN());
     return ss.str();
 }
@@ -194,8 +194,8 @@ inline std::string log_bench_scalar_value(const char* name, const rocblas_half* 
 template <typename T, typename std::enable_if<!is_complex<T>, int>::type = 0>
 inline std::string log_bench_scalar_value(const char* name, const T* value)
 {
-    std::stringstream ss;
-    rocblas_ostream   os(ss);
+    std::ostringstream ss;
+    rocblas_ostream    os(ss);
     os << "--" << name << " " << (value ? *value : std::numeric_limits<T>::quiet_NaN());
     return ss.str();
 }
@@ -203,8 +203,8 @@ inline std::string log_bench_scalar_value(const char* name, const T* value)
 template <typename T, typename std::enable_if<+is_complex<T>, int>::type = 0>
 inline std::string log_bench_scalar_value(const char* name, const T* value)
 {
-    std::stringstream ss;
-    rocblas_ostream   os(ss);
+    std::ostringstream ss;
+    rocblas_ostream    os(ss);
     os << "--" << name << " "
        << (value ? std::real(*value) : std::numeric_limits<typename T::value_type>::quiet_NaN());
     if(value && std::imag(*value))
@@ -217,11 +217,11 @@ inline std::string log_bench_scalar_value(const char* name, const T* value)
 /******************************************************************
  * Log alpha and beta with dynamic compute_type in *_ex functions *
  ******************************************************************/
-inline rocblas_status log_trace_alpha_beta_ex(rocblas_datatype   compute_type,
-                                              const void*        alpha,
-                                              const void*        beta,
-                                              std::stringstream& alphass,
-                                              std::stringstream& betass)
+inline rocblas_status log_trace_alpha_beta_ex(rocblas_datatype    compute_type,
+                                              const void*         alpha,
+                                              const void*         beta,
+                                              std::ostringstream& alphass,
+                                              std::ostringstream& betass)
 {
     rocblas_ostream alphaos(alphass);
     rocblas_ostream betaos(betass);
