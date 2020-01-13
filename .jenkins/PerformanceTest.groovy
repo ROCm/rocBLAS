@@ -60,10 +60,10 @@ rocBLASCI:
 
                         #get device name from /dev/dri
                         devicename=$(echo $(ls /dev/dri) | sed 's/.*\\(card[0-9]\\).*/\\1/')
-                        echo $devicename
+                        echo \$devicename
                         #get device num from device name
                         devicenum=$(echo $devicename | sed 's/.*\\([0-9]\\).*/\\1/')
-                        echo $devicenum
+                        echo \$devicenum
                         python alltime.py -A \$workingdir/build/release/clients/staging -o \$workingdir/perfoutput -i perf.yaml -S 0 -g 0 -d \$devicenum
 
                         ls \$workingdir/perfoutput
