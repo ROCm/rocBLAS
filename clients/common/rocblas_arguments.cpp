@@ -3,6 +3,7 @@
  * ************************************************************************ */
 
 #include "rocblas_arguments.hpp"
+#include "../../library/src/include/rocblas_ostream.hpp"
 #include "../../library/src/include/tuple_helper.hpp"
 #include <cstdlib>
 #include <cstring>
@@ -11,9 +12,11 @@
 
 // Function to print Arguments out to stream in YAML format
 // Google Tests uses this automatically to dump parameters
-std::ostream& operator<<(std::ostream& str, const Arguments& arg)
+std::ostream& operator<<(std::ostream& os, const Arguments& arg)
 {
-    return tuple_helper::print_tuple_pairs(str, arg.as_tuple());
+    rocblas_ostringstream str;
+    tuple_helper::print_tuple_pairs(str, arg.as_tuple());
+    return os << str.str();
 }
 
 // Function to read Structures data from stream

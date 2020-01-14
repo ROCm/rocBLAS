@@ -4,7 +4,6 @@
 #include "handle.h"
 #include <cstdio>
 #include <cstdlib>
-#include <unistd.h>
 
 #if BUILD_WITH_TENSILE
 #ifdef USE_TENSILE_HOST
@@ -257,11 +256,11 @@ constexpr size_t      _rocblas_handle::MIN_CHUNK_SIZE; // Not needed in C++17
 static void open_log_stream(const char* environment_variable_name, rocblas_ostream*& log_os)
 {
     // if environment variable is set, open file at logfile_pathname contained in the
-    // environment variable; else use a dup of stderr (so that it can be closed separately)
+    // environment variable; else use stderr
     const char* logfile_pathname = getenv(environment_variable_name);
 
     log_os = logfile_pathname ? new rocblas_ostream(logfile_pathname)
-                              : new rocblas_ostream(dup(STDERR_FILENO));
+                              : new rocblas_ostream(STDERR_FILENO);
 }
 
 /*******************************************************************************
@@ -269,6 +268,9 @@ static void open_log_stream(const char* environment_variable_name, rocblas_ostre
  ******************************************************************************/
 _rocblas_handle::init::init()
 {
+    // nullify output stream pointers
+    log_trace_os = log_bench_os = log_profile_os = nullptr;
+
     // set layer_mode from value of environment variable ROCBLAS_LAYER
     auto str_layer_mode = getenv("ROCBLAS_LAYER");
     if(str_layer_mode)

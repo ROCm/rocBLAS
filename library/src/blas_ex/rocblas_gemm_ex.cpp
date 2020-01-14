@@ -62,8 +62,8 @@ try
             {
                 if(layer_mode & rocblas_layer_mode_log_trace)
                 {
-                    std::stringstream alphass, betass;
-                    if(log_trace_alpha_beta_ex(compute_type, alpha, beta, alphass, betass)
+                    rocblas_ostringstream alphaos, betaos;
+                    if(log_trace_alpha_beta_ex(compute_type, alpha, beta, alphaos, betaos)
                        == rocblas_status_success)
                     {
                         log_trace(handle,
@@ -73,14 +73,14 @@ try
                                   m,
                                   n,
                                   k,
-                                  alphass.str(),
+                                  alphaos.str(),
                                   a,
                                   a_type_string,
                                   lda,
                                   b,
                                   b_type_string,
                                   ldb,
-                                  betass.str(),
+                                  betaos.str(),
                                   c,
                                   c_type_string,
                                   ldc,
