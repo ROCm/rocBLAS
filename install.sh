@@ -139,7 +139,7 @@ install_packages( )
   local library_dependencies_centos=( "epel-release"
                                       "make" "cmake3" "rpm-build"
                                       "python34" "PyYAML" "python3*-PyYAML"
-                                      "gcc-c++" "llvm7.0-devel" "llvm7.0-static"
+                                      "llvm7.0-devel" "llvm7.0-static"
                                       "zlib-devel" "wget" )
   local library_dependencies_fedora=( "make" "cmake" "rpm-build"
                                       "python34" "PyYAML" "python3*-PyYAML"
@@ -183,6 +183,7 @@ install_packages( )
 #     yum -y update brings *all* installed packages up to date
 #     without seeking user approval
 #     elevate_if_not_root yum -y update
+      elevate_if_not_root yum -y remove gcc gcc-c++
       install_yum_packages "${library_dependencies_centos[@]}"
 
       if [[ "${build_clients}" == true ]]; then
