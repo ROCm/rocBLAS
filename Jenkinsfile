@@ -29,10 +29,11 @@ rocBLASCI:
 
     def rocblas = new rocProject('rocBLAS')
     // customize for project
-    rocblas.paths.build_command = 'sudo ./install.sh -lasm_ci -c -oV3'
+    rocblas.paths.build_command = './install.sh -lasm_ci -c -oV3'
 
     // Define test architectures, optional rocm version argument is available
-    def nodes = new dockerNodes(['gfx900 && ubuntu && hip-clang', 'gfx906 && ubuntu && hip-clang', 'gfx908 && ubuntu && hip-clang'], rocblas)
+    def nodes = new dockerNodes(['gfx900 && centos7 && hip-clang', 'gfx906 && centos7 && hip-clang', 'gfx900 && ubuntu && hip-clang',
+				'gfx906 && ubuntu && hip-clang', 'gfx908 && ubuntu && hip-clang'], rocblas)
 
     boolean formatCheck = true
 
