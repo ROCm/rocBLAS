@@ -219,7 +219,7 @@ void testing_tpmv_strided_batched(const Arguments& arg)
         //
         {
             gpu_time_used        = get_time_us(); // in microseconds
-            int number_hot_calls = 100;
+            int number_hot_calls = arg.iters;
             for(int iter = 0; iter < number_hot_calls; iter++)
             {
                 rocblas_tpmv_strided_batched<T>(

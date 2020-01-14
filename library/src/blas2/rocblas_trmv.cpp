@@ -157,8 +157,13 @@ extern "C" {
                                  rocblas_int       lda,                           \
                                  T_*               x,                             \
                                  rocblas_int       incx)                          \
+    try                                                                           \
     {                                                                             \
         return rocblas_trmv_impl(handle, uplo, transA, diag, m, A, lda, x, incx); \
+    }                                                                             \
+    catch(...)                                                                    \
+    {                                                                             \
+        return exception_to_rocblas_status();                                     \
     }
 
 IMPL(rocblas_strmv, float);

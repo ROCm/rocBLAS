@@ -182,9 +182,14 @@ extern "C" {
                                  rocblas_int       incx,                               \
                                  rocblas_stride    stridex,                            \
                                  rocblas_int       batch_count)                        \
+    try                                                                                \
     {                                                                                  \
         return rocblas_tpmv_strided_batched_impl(                                      \
             handle, uplo, transA, diag, m, A, stridea, x, incx, stridex, batch_count); \
+    }                                                                                  \
+    catch(...)                                                                         \
+    {                                                                                  \
+        return exception_to_rocblas_status();                                          \
     }
 
 IMPL(rocblas_stpmv_strided_batched, float);

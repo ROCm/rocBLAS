@@ -164,8 +164,13 @@ extern "C" {
                                  T_* const*        x,                                             \
                                  rocblas_int       incx,                                          \
                                  rocblas_int       batch_count)                                   \
+    try                                                                                           \
     {                                                                                             \
         return rocblas_tpmv_batched_impl(handle, uplo, transa, diag, m, a, x, incx, batch_count); \
+    }                                                                                             \
+    catch(...)                                                                                    \
+    {                                                                                             \
+        return exception_to_rocblas_status();                                                     \
     }
 
 IMPL(rocblas_stpmv_batched, float);

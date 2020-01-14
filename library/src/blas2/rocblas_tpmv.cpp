@@ -151,8 +151,13 @@ extern "C" {
                                  const T_*         A,                        \
                                  T_*               x,                        \
                                  rocblas_int       incx)                     \
+    try                                                                      \
     {                                                                        \
         return rocblas_tpmv_impl(handle, uplo, transA, diag, m, A, x, incx); \
+    }                                                                        \
+    catch(...)                                                               \
+    {                                                                        \
+        return exception_to_rocblas_status();                                \
     }
 
 IMPL(rocblas_stpmv, float);

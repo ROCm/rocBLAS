@@ -121,8 +121,7 @@ void testing_tpmv(const Arguments& arg)
 
     rocblas_int size_A = (M * (M + 1)) / 2;
     rocblas_int size_x, dim_x, abs_incx;
-    dim_x = M;
-    std::cout << "size_A " << size_A << std::endl;
+    dim_x    = M;
     abs_incx = incx >= 0 ? incx : -incx;
     size_x   = dim_x * abs_incx;
 
@@ -153,15 +152,6 @@ void testing_tpmv(const Arguments& arg)
     double rocblas_gflops, cblas_gflops, rocblas_bandwidth;
     double rocblas_error;
 
-#if 0
-    std::cout << " A" << std::endl;
-    std::cout <<  hA  << std::endl;
-    std::cout << " x" << std::endl;
-    std::cout <<  hx  << std::endl;
-    std::cout << " M" << std::endl;
-    std::cout << M    << std::endl;
-#endif
-
     /* =====================================================================
      ROCBLAS
      =================================================================== */
@@ -183,12 +173,7 @@ void testing_tpmv(const Arguments& arg)
             cpu_time_used = get_time_us() - cpu_time_used;
             cblas_gflops  = tpmv_gflop_count<T>(M) / cpu_time_used * 1e6;
         }
-#if 0
-    std::cout << " x" << std::endl;
-    std::cout <<  hx  << std::endl;
-    std::cout << " res" << std::endl;
-    std::cout <<  hres  << std::endl;
-#endif
+
         //
         // Unit check.
         //
@@ -224,7 +209,7 @@ void testing_tpmv(const Arguments& arg)
         //
         {
             gpu_time_used        = get_time_us(); // in microseconds
-            int number_hot_calls = 100;
+            int number_hot_calls = arg.iters;
             for(int iter = 0; iter < number_hot_calls; iter++)
             {
                 rocblas_tpmv<T>(handle, uplo, transA, diag, M, dA, dx, incx);
