@@ -165,7 +165,7 @@ install_packages( )
 
   # dependencies to build the client
   local client_dependencies_ubuntu=( "gfortran" "libomp-dev" "libboost-program-options-dev")
-  local client_dependencies_centos=( "gcc-gfortran" "libgomp" "boost-devel")
+  local client_dependencies_centos=( "devtoolset-7-gcc-gfortran" "libgomp" "boost-devel")
   local client_dependencies_fedora=( "gcc-gfortran" "libgomp" "boost-devel")
   local client_dependencies_sles=( "gcc-fortran" "libgomp1" "libboost_program_options1_66_0-devel" )
 
@@ -183,7 +183,6 @@ install_packages( )
 #     yum -y update brings *all* installed packages up to date
 #     without seeking user approval
 #     elevate_if_not_root yum -y update
-      elevate_if_not_root yum -y remove gcc gcc-c++
       install_yum_packages "${library_dependencies_centos[@]}"
 
       if [[ "${build_clients}" == true ]]; then
