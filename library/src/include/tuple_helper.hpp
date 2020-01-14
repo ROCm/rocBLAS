@@ -53,17 +53,17 @@ public:
 
     // Print a tuple which is expected to be (name1, value1, name2, value2, ...)
     template <typename TUP>
-    static rocblas_ostream& print_tuple_pairs(rocblas_ostream& str, const TUP& tuple)
+    static rocblas_ostream& print_tuple_pairs(rocblas_ostream& os, const TUP& tuple)
     {
         static_assert(std::tuple_size<TUP>{} % 2 == 0, "Tuple size must be even");
 
         // delim starts as '{' and becomes ',' afterwards
         auto print_argument = [&, delim = '{'](const char* name, auto&& value) mutable {
-            str << delim << ' ' << name << ": " << value;
+            os << delim << ' ' << name << ": " << value;
             delim = ',';
         };
         apply_pairs(print_argument, tuple);
-        return str << " }";
+        return os << " }";
     }
 
     /************************************************************************************

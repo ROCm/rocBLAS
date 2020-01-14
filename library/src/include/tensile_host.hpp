@@ -60,12 +60,8 @@ class RocblasContractionProblem
     size_t    stride_d = stride_c;
     size_t    batch_count;
 
-    // Function to print RocblasContractionProblem out to stream in YAML format
-    std::ostream&        print(std::ostream&);
-    friend std::ostream& operator<<(std::ostream& os, const RocblasContractionProblem& prob)
-    {
-        return prob.print(os);
-    }
+    // Functions to print RocblasContractionProblem out to stream in YAML format
+    friend roblas_ostream& operator<<(rocblas_ostream& os, const RocblasContractionProblem& prob);
 
 public:
     // gemm

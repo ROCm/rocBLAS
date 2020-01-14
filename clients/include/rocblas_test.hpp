@@ -250,7 +250,7 @@ struct rocblas_test_invalid
         FAIL() << msg;
 #else
         fputs(msg, stderr);
-        exit(EXIT_FAILURE);
+        abort();
 #endif
     }
 };

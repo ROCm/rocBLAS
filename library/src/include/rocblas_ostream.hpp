@@ -10,15 +10,11 @@
 #include <deque>
 #include <fcntl.h>
 #include <iomanip>
-#include <map>
 #include <memory>
 #include <mutex>
 #include <ostream>
 #include <string>
-#include <sys/stat.h>
-#include <sys/types.h>
 #include <thread>
-#include <tuple>
 #include <unistd.h>
 #include <utility>
 
@@ -29,7 +25,7 @@
 class log_worker
 {
     // Log file
-    int filehandle;
+    FILE* file;
 
     // This worker's thread
     std::thread worker_thread;
@@ -46,41 +42,15 @@ class log_worker
     // Worker thread which waits for strings to log
     void worker();
 
-    // Initial slice of struct stat which contains device ID and inode
-    struct dev_ino
-    {
-        dev_t st_dev; /* ID of device containing file */
-        ino_t st_ino; /* Inode number */
-    };
-
-    // Compares device IDs and inodes for containers
-    struct file_id_less
-    {
-        bool operator()(const struct dev_ino& lhs, const struct dev_ino& rhs) const
-        {
-            return lhs.st_dev < rhs.st_dev || (lhs.st_dev == rhs.st_dev && lhs.st_ino < rhs.st_ino);
-        }
-    };
-
-    // Map from file_id to a log_worker shared_ptr
-    static std::map<struct dev_ino, std::shared_ptr<log_worker>, file_id_less> map;
-
-    // Mutex for accessing the map
-    static std::mutex map_mutex;
-
 public:
-    // Enqueue a string to be written and freed by the worker
-    void enqueue(std::shared_ptr<std::string> str);
+    // Enqueue a string to be written
+    void enqueue(std::shared_ptr<std::string>);
 
     // Constructor creates a worker thread
-    explicit log_worker(int fh)
-        : filehandle(dup(fh))
-        , worker_thread([=] { worker(); })
-    {
-    }
+    explicit log_worker(int fd);
 
-    // Get worker for filehandle
-    static std::shared_ptr<log_worker> get_worker(int fh);
+    // Get worker for file descriptor
+    static std::shared_ptr<log_worker> get_worker(int fd);
 
     // Get worker for filename
     static std::shared_ptr<log_worker> get_worker(const char* filename);
@@ -108,20 +78,22 @@ class rocblas_ostream
 
     // Construct from various streams. We do not support std::ostream, because
     // we cannot guarantee atomic logging using std::ofstream without using
-    // coarse-grained locking. With POSIX filehandles, we can restrict all
-    // writers to the same device/inode to one thread, and do fine-grained
+    // coarse-grained locking. With POSIX file descriptors, we can restrict
+    // all writers to the same device/inode to one thread, and do fine-grained
     // locking. With std::ostringstream, we assume strings are thread-local.
-public:
+
+protected:
     explicit rocblas_ostream(std::ostringstream& str)
         : os(str)
         , worker(nullptr) // no worker for strings, assumed thread-local
     {
     }
 
+public:
     // Construct from a filehandle
-    explicit rocblas_ostream(int filehandle)
+    explicit rocblas_ostream(int fd)
         : os(*new std::ostringstream)
-        , worker(log_worker::get_worker(filehandle))
+        , worker(log_worker::get_worker(fcntl(fd, F_DUPFD_CLOEXEC)))
     {
     }
 
@@ -155,10 +127,15 @@ public:
     // Floating-point output
     friend rocblas_ostream& operator<<(rocblas_ostream& os, double x);
 
-    friend rocblas_ostream& operator<<(rocblas_ostream& os, rocblas_half x)
+    friend rocblas_ostream& operator<<(rocblas_ostream& os, rocblas_half half)
     {
-        os.os << double(x);
+        os.os << double(half);
         return os;
+    }
+
+    friend rocblas_ostream& operator<<(rocblas_ostream& os, const rocblas_bfloat16& bf16)
+    {
+        return os << double(bf16);
     }
 
     // Complex output
@@ -195,6 +172,41 @@ public:
     {
         os.os << s.c_str();
         return os;
+    }
+
+    // Disallow default and copy construction and assignment
+    rocblas_ostream()                       = delete;
+    rocblas_ostream(const rocblas_ostream&) = delete;
+    rocblas_ostream& operator=(const rocblas_ostream&) = delete;
+    rocblas_ostream& operator=(rocblas_ostream&&) = delete;
+
+    // Allow move constructor
+    rocblas_ostream(rocblas_ostream&& other)
+        : os(other.os)
+        , worker(std::move(other.worker))
+    {
+    }
+};
+
+// rocblas_ostringstream acts like std::ostringstream
+struct rocblas_ostringstream : rocblas_ostream, std::ostringstream
+{
+    rocblas_ostringstream()
+        : rocblas_ostream(static_cast<std::ostringstream&>(*this))
+        , std::ostringstream()
+    {
+    }
+
+    rocblas_ostringstream(rocblas_ostringstream&& other)
+        : rocblas_ostream(std::move(other))
+        , std::ostringstream(std::move(other))
+    {
+    }
+
+    explicit rocblas_ostringstream(const std::string& s)
+        : rocblas_ostream(static_cast<std::ostringstream&>(*this))
+        , std::ostringstream(s)
+    {
     }
 };
 
