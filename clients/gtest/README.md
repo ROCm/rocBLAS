@@ -117,10 +117,8 @@ In the partial specialization(s), create a functional `operator()` which takes a
 ```c++
  template <typename T>
  struct syr_testing<T,
-                    typename std::enable_if<
-                    std::is_same<T, float>::value ||
-                    std::is_same<T, double>::value
-                   >::type> : rocblas_test_valid
+                    std::enable_if_t<std::is_same<T, float>::value || std::is_same<T, double>::value>
+                   > : rocblas_test_valid
 {
     void operator()(const Arguments& arg)
     {
