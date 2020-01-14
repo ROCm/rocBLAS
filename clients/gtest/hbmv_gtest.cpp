@@ -89,8 +89,8 @@ namespace
     // is valid. When the condition is false, this specialization does not apply.
     template <typename T>
     struct hbmv_testing<T,
-                        typename std::enable_if<std::is_same<T, rocblas_float_complex>{}
-                                                || std::is_same<T, rocblas_double_complex>{}>::type>
+                        std::enable_if_t<std::is_same<T, rocblas_float_complex>{}
+                                         || std::is_same<T, rocblas_double_complex>{}>>
         : rocblas_test_valid
     {
         void operator()(const Arguments& arg)
