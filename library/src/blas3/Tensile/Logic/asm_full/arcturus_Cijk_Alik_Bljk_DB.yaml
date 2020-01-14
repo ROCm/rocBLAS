@@ -1,10 +1,7 @@
-- MinimumRequiredVersion: 4.7.2
+- {MinimumRequiredVersion: 4.7.2}
 - arcturus
 - gfx908
-- - Device 7380
-  - Device 7388
-  - Device 738c
-  - Device 7390
+- [Device 7380, Device 7388, Device 738c, Device 7390]
 - AssignedDerivedParameters: true
   Batched: true
   ComplexConjugateA: false
@@ -16,24 +13,14 @@
   Index01A: 0
   Index01B: 1
   Index1: 1
-  IndexAssignmentsA:
-  - 3
-  - 0
-  - 2
-  IndexAssignmentsB:
-  - 3
-  - 1
-  - 2
+  IndexAssignmentsA: [3, 0, 2]
+  IndexAssignmentsB: [3, 1, 2]
   IndexUnroll: 3
   IndexUnrollA: 0
   IndexUnrollB: 0
-  IndicesBatch:
-  - 2
-  IndicesFree:
-  - 0
-  - 1
-  IndicesSummation:
-  - 3
+  IndicesBatch: [2]
+  IndicesFree: [0, 1]
+  IndicesSummation: [3]
   NumIndicesBatch: 1
   NumIndicesC: 3
   NumIndicesFree: 2
@@ -138,10 +125,8 @@
     PackBatchDims: 0
     PackFreeDims: 1
     PackGranularity: 2
-    PackedC0Indices:
-    - I
-    PackedC1Indices:
-    - J
+    PackedC0Indices: [I]
+    PackedC1Indices: [J]
     PerformanceSyncLocation: -1
     PerformanceWaitCount: -1
     PerformanceWaitLocation: -1
@@ -160,24 +145,14 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA:
-      - 3
-      - 0
-      - 2
-      IndexAssignmentsB:
-      - 3
-      - 1
-      - 2
+      IndexAssignmentsA: [3, 0, 2]
+      IndexAssignmentsB: [3, 1, 2]
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch:
-      - 2
-      IndicesFree:
-      - 0
-      - 1
-      IndicesSummation:
-      - 3
+      IndicesBatch: [2]
+      IndicesFree: [0, 1]
+      IndicesSummation: [3]
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -209,9 +184,7 @@
     SubGroupA: 16
     SubGroupB: 16
     SuppressNoLoadLoop: true
-    ThreadTile:
-    - 4
-    - 4
+    ThreadTile: [4, 4]
     ThreadTile0: 4
     ThreadTile1: 4
     ThreadTileA: 4
@@ -222,10 +195,7 @@
     VectorAtomicWidth: 1
     VectorStore: true
     VectorWidth: 2
-    WorkGroup:
-    - 16
-    - 16
-    - 1
+    WorkGroup: [16, 16, 1]
     WorkGroupMapping: 8
     WorkGroupMappingType: B
     _staggerStrideShift: 2
@@ -316,10 +286,8 @@
     PackBatchDims: 0
     PackFreeDims: 1
     PackGranularity: 2
-    PackedC0Indices:
-    - I
-    PackedC1Indices:
-    - J
+    PackedC0Indices: [I]
+    PackedC1Indices: [J]
     PerformanceSyncLocation: -1
     PerformanceWaitCount: -1
     PerformanceWaitLocation: -1
@@ -338,24 +306,14 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA:
-      - 3
-      - 0
-      - 2
-      IndexAssignmentsB:
-      - 3
-      - 1
-      - 2
+      IndexAssignmentsA: [3, 0, 2]
+      IndexAssignmentsB: [3, 1, 2]
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch:
-      - 2
-      IndicesFree:
-      - 0
-      - 1
-      IndicesSummation:
-      - 3
+      IndicesBatch: [2]
+      IndicesFree: [0, 1]
+      IndicesSummation: [3]
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -387,9 +345,7 @@
     SubGroupA: 16
     SubGroupB: 16
     SuppressNoLoadLoop: true
-    ThreadTile:
-    - 4
-    - 4
+    ThreadTile: [4, 4]
     ThreadTile0: 4
     ThreadTile1: 4
     ThreadTileA: 4
@@ -400,10 +356,7 @@
     VectorAtomicWidth: 1
     VectorStore: true
     VectorWidth: 2
-    WorkGroup:
-    - 16
-    - 16
-    - 1
+    WorkGroup: [16, 16, 1]
     WorkGroupMapping: 8
     WorkGroupMappingType: B
     _staggerStrideShift: 3
@@ -496,10 +449,8 @@
     PackBatchDims: 0
     PackFreeDims: 1
     PackGranularity: 2
-    PackedC0Indices:
-    - I
-    PackedC1Indices:
-    - J
+    PackedC0Indices: [I]
+    PackedC1Indices: [J]
     PerformanceSyncLocation: -1
     PerformanceWaitCount: -1
     PerformanceWaitLocation: -1
@@ -520,34 +471,20 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA:
-      - 3
-      - 0
-      - 2
-      IndexAssignmentsB:
-      - 3
-      - 1
-      - 2
-      IndexAssignmentsLD:
-      - 4
-      - 5
-      - 6
-      - 7
+      IndexAssignmentsA: [3, 0, 2]
+      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsLD: [4, 5, 6, 7]
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch:
-      - 2
-      IndicesFree:
-      - 0
-      - 1
-      IndicesSummation:
-      - 3
+      IndicesBatch: [2]
+      IndicesFree: [0, 1]
+      IndicesSummation: [3]
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
-      NumIndicesLD: 4
       NumIndicesSummation: 1
+      NumIndicesLD: 4
       OperationType: GEMM
       SilentHighPrecisionAccumulate: false
       TLUA: false
@@ -575,9 +512,7 @@
     SubGroupA: 16
     SubGroupB: 8
     SuppressNoLoadLoop: false
-    ThreadTile:
-    - 4
-    - 4
+    ThreadTile: [4, 4]
     ThreadTile0: 4
     ThreadTile1: 4
     ThreadTileA: 4
@@ -588,10 +523,7 @@
     VectorAtomicWidth: 1
     VectorStore: true
     VectorWidth: 1
-    WorkGroup:
-    - 16
-    - 8
-    - 1
+    WorkGroup: [16, 8, 1]
     WorkGroupMapping: 1
     WorkGroupMappingType: B
     _staggerStrideShift: 2
@@ -683,10 +615,8 @@
     PackBatchDims: 0
     PackFreeDims: 1
     PackGranularity: 2
-    PackedC0Indices:
-    - I
-    PackedC1Indices:
-    - J
+    PackedC0Indices: [I]
+    PackedC1Indices: [J]
     PerformanceSyncLocation: -1
     PerformanceWaitCount: -1
     PerformanceWaitLocation: -1
@@ -705,24 +635,14 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA:
-      - 3
-      - 0
-      - 2
-      IndexAssignmentsB:
-      - 3
-      - 1
-      - 2
+      IndexAssignmentsA: [3, 0, 2]
+      IndexAssignmentsB: [3, 1, 2]
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch:
-      - 2
-      IndicesFree:
-      - 0
-      - 1
-      IndicesSummation:
-      - 3
+      IndicesBatch: [2]
+      IndicesFree: [0, 1]
+      IndicesSummation: [3]
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -754,9 +674,7 @@
     SubGroupA: 16
     SubGroupB: 16
     SuppressNoLoadLoop: true
-    ThreadTile:
-    - 4
-    - 4
+    ThreadTile: [4, 4]
     ThreadTile0: 4
     ThreadTile1: 4
     ThreadTileA: 4
@@ -767,10 +685,7 @@
     VectorAtomicWidth: 1
     VectorStore: true
     VectorWidth: 2
-    WorkGroup:
-    - 16
-    - 16
-    - 1
+    WorkGroup: [16, 16, 1]
     WorkGroupMapping: 8
     WorkGroupMappingType: B
     _staggerStrideShift: 2
@@ -862,10 +777,8 @@
     PackBatchDims: 0
     PackFreeDims: 1
     PackGranularity: 2
-    PackedC0Indices:
-    - I
-    PackedC1Indices:
-    - J
+    PackedC0Indices: [I]
+    PackedC1Indices: [J]
     PerformanceSyncLocation: -1
     PerformanceWaitCount: -1
     PerformanceWaitLocation: -1
@@ -884,24 +797,14 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA:
-      - 3
-      - 0
-      - 2
-      IndexAssignmentsB:
-      - 3
-      - 1
-      - 2
+      IndexAssignmentsA: [3, 0, 2]
+      IndexAssignmentsB: [3, 1, 2]
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch:
-      - 2
-      IndicesFree:
-      - 0
-      - 1
-      IndicesSummation:
-      - 3
+      IndicesBatch: [2]
+      IndicesFree: [0, 1]
+      IndicesSummation: [3]
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
@@ -933,9 +836,7 @@
     SubGroupA: 16
     SubGroupB: 16
     SuppressNoLoadLoop: true
-    ThreadTile:
-    - 4
-    - 4
+    ThreadTile: [4, 4]
     ThreadTile0: 4
     ThreadTile1: 4
     ThreadTileA: 4
@@ -946,10 +847,7 @@
     VectorAtomicWidth: 1
     VectorStore: true
     VectorWidth: 2
-    WorkGroup:
-    - 16
-    - 16
-    - 1
+    WorkGroup: [16, 16, 1]
     WorkGroupMapping: 8
     WorkGroupMappingType: B
     _staggerStrideShift: 3
@@ -1042,10 +940,8 @@
     PackBatchDims: 0
     PackFreeDims: 1
     PackGranularity: 2
-    PackedC0Indices:
-    - I
-    PackedC1Indices:
-    - J
+    PackedC0Indices: [I]
+    PackedC1Indices: [J]
     PerformanceSyncLocation: -1
     PerformanceWaitCount: -1
     PerformanceWaitLocation: -1
@@ -1066,34 +962,20 @@
       Index01A: 0
       Index01B: 1
       Index1: 1
-      IndexAssignmentsA:
-      - 3
-      - 0
-      - 2
-      IndexAssignmentsB:
-      - 3
-      - 1
-      - 2
-      IndexAssignmentsLD:
-      - 4
-      - 5
-      - 6
-      - 7
+      IndexAssignmentsA: [3, 0, 2]
+      IndexAssignmentsB: [3, 1, 2]
+      IndexAssignmentsLD: [4, 5, 6, 7]
       IndexUnroll: 3
       IndexUnrollA: 0
       IndexUnrollB: 0
-      IndicesBatch:
-      - 2
-      IndicesFree:
-      - 0
-      - 1
-      IndicesSummation:
-      - 3
+      IndicesBatch: [2]
+      IndicesFree: [0, 1]
+      IndicesSummation: [3]
       NumIndicesBatch: 1
       NumIndicesC: 3
       NumIndicesFree: 2
-      NumIndicesLD: 4
       NumIndicesSummation: 1
+      NumIndicesLD: 4
       OperationType: GEMM
       SilentHighPrecisionAccumulate: false
       TLUA: false
@@ -1121,9 +1003,7 @@
     SubGroupA: 16
     SubGroupB: 8
     SuppressNoLoadLoop: false
-    ThreadTile:
-    - 4
-    - 4
+    ThreadTile: [4, 4]
     ThreadTile0: 4
     ThreadTile1: 4
     ThreadTileA: 4
@@ -1134,75 +1014,29 @@
     VectorAtomicWidth: 1
     VectorStore: true
     VectorWidth: 1
-    WorkGroup:
-    - 16
-    - 8
-    - 1
+    WorkGroup: [16, 8, 1]
     WorkGroupMapping: 1
     WorkGroupMappingType: B
     _staggerStrideShift: 2
-- - 2
-  - 3
-  - 0
-  - 1
-- - - - 1
-      - 64
-      - 1
-      - 64
-    - - 1
-      - 0.428463
-  - - - 64
-      - 1
-      - 1
-      - 64
-    - - 1
-      - 0.451101
-  - - - 1
-      - 1
-      - 1
-      - 64
-    - - 1
-      - 0.00617776
-  - - - 64
-      - 64
-      - 1
-      - 64
-    - - 0
-      - 27.1934
-  - - - 128
-      - 1
-      - 1
-      - 128
-    - - 2
-      - 1.03434
-  - - - 1
-      - 64
-      - 1
-      - 64
-    - - 4
-      - 0.528463
-  - - - 64
-      - 1
-      - 1
-      - 64
-    - - 4
-      - 0.551101
-  - - - 1
-      - 1
-      - 1
-      - 64
-    - - 4
-      - 0.10617776
-  - - - 64
-      - 64
-      - 1
-      - 64
-    - - 3
-      - 27.2934
-  - - - 128
-      - 1
-      - 1
-      - 128
-    - - 5
-      - 1.13434
+- [2, 3, 0, 1]
+- - - [1, 64, 1, 64]
+    - [1, 0.428463]
+  - - [64, 1, 1, 64]
+    - [1, 0.451101]
+  - - [1, 1, 1, 64]
+    - [1, 0.00617776]
+  - - [64, 64, 1, 64]
+    - [0, 27.1934]
+  - - [128, 1, 1, 128]
+    - [2, 1.03434]
+  - - [1, 64, 1, 64]
+    - [4, 0.528463]
+  - - [64, 1, 1, 64]
+    - [4, 0.551101]
+  - - [1, 1, 1, 64]
+    - [4, 0.10617776]
+  - - [64, 64, 1, 64]
+    - [3, 27.2934]
+  - - [128, 1, 1, 128]
+    - [5, 1.13434]
 - null
