@@ -139,17 +139,17 @@ install_packages( )
   # dependencies needed to build the rocblas library
   local library_dependencies_ubuntu=( "make" "cmake-curses-gui" "pkg-config"
                                       "python2.7" "python3" "python-yaml" "python3-yaml"
-                                      "llvm-6.0-dev" "rocm-dev" "zlib1g-dev")
+                                      "llvm-6.0-dev" "zlib1g-dev" "wget")
   local library_dependencies_centos=( "epel-release"
                                       "make" "cmake3" "rpm-build"
                                       "python34" "PyYAML" "python3*-PyYAML"
                                       "gcc-c++" "llvm7.0-devel" "llvm7.0-static"
-                                      "rocm-dev" "zlib-devel" )
+                                      "zlib-devel" "wget" )
   local library_dependencies_fedora=( "make" "cmake" "rpm-build"
                                       "python34" "PyYAML" "python3*-PyYAML"
-                                      "gcc-c++" "libcxx-devel" "rocm-dev" "zlib-devel" )
+                                      "gcc-c++" "libcxx-devel" "zlib-devel" "wget" )
   local library_dependencies_sles=(   "make" "cmake" "python3-PyYAM"
-                                      "rocm-dev" "gcc-c++" "libcxxtools9" "rpm-build" "curl" )
+                                      "gcc-c++" "libcxxtools9" "rpm-build" "wget" )
 
   if [[ "${build_cuda}" == true ]]; then
     # Ideally, this could be cuda-cublas-dev, but the package name has a version number in it
@@ -157,6 +157,14 @@ install_packages( )
     library_dependencies_centos+=( "" ) # how to install cuda on centos?
     library_dependencies_fedora+=( "" ) # how to install cuda on fedora?
     library_dependencies_sles+=( "" )
+  fi
+
+  if [[ "${build_hip_clang}" == false ]]; then
+    # Installing rocm-dev installs hip-hcc, which overwrites the hip-vdi runtime
+    library_dependencies_ubuntu+=( "rocm-dev" )
+    library_dependencies_centos+=( "rocm-dev" )
+    library_dependencies_fedora+=( "rocm-dev" )
+    library_dependencies_sles+=( "rocm-dev" )
   fi
 
   # dependencies to build the client
@@ -401,14 +409,14 @@ if [[ "${install_dependencies}" == true ]]; then
     if [[ "${cpu_ref_lib}" == blis ]] && [[ ! -f "${build_dir}/deps/blis/lib/libblis.so" ]]; then
       case "${ID}" in
           centos|rhel|sles|opensuse-leap)
-              curl -L  https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-centos-2.0.tar.gz > blis.tar.gz
+              wget -O blis.tar.gz https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-centos-2.0.tar.gz
               ;;
           ubuntu)
-              curl -L  https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-ubuntu-2.0.tar.gz > blis.tar.gz
+              wget -O blis.tar.gz https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-ubuntu-2.0.tar.gz
               ;;
           *)
               echo "Unsupported OS for this script"
-              curl -L  https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-ubuntu-2.0.tar.gz > blis.tar.gz
+              wget -O blis.tar.gz https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-ubuntu-2.0.tar.gz
               ;;
       esac
 
@@ -418,24 +426,22 @@ if [[ "${install_dependencies}" == true ]]; then
       cd blis/lib
       ln -s libblis-mt.so libblis.so
       popd
-
     fi
+    popd
   fi
-fi
-
-if [[ "${cpu_ref_lib}" == blis ]] && [[ ! -f "${build_dir}/deps/blis/lib/libblis.so" ]] && [[ "${build_clients}" == true ]]; then
+elif [[ "${cpu_ref_lib}" == blis ]] && [[ ! -f "${build_dir}/deps/blis/lib/libblis.so" ]] && [[ "${build_clients}" == true ]]; then
   pushd .
   mkdir -p ${build_dir}/deps && cd ${build_dir}/deps
   case "${ID}" in
     centos|rhel|sles|opensuse-leap)
-      curl -L  https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-centos-2.0.tar.gz > blis.tar.gz
+      wget -O blis.tar.gz https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-centos-2.0.tar.gz
       ;;
     ubuntu)
-      curl -L  https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-ubuntu-2.0.tar.gz > blis.tar.gz
+      wget -O blis.tar.gz https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-ubuntu-2.0.tar.gz
       ;;
     *)
       echo "Unsupported OS for this script"
-      curl -L  https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-ubuntu-2.0.tar.gz > blis.tar.gz
+      wget -O blis.tar.gz https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-ubuntu-2.0.tar.gz
       ;;
   esac
   tar -xvf blis.tar.gz
