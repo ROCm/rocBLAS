@@ -6,8 +6,15 @@
 
 #include "utility.h"
 
-#define uat(_i, _j) (((_j) * ((_j) + 1)) / 2 + (_i))
-#define lat(_i, _j) ((_j)*m + ((_i) - (_j)) - (((_j)-1) * (_j)) / 2)
+#ifdef tmpv_calc_upperat
+#error tmpv_calc_upperat is already defined
+#endif
+#define tmpv_calc_upperat(_i, _j) (((_j) * ((_j) + 1)) / 2 + (_i))
+
+#ifdef tmpv_calc_lowerat
+#error tmpv_calc_lowerat is already defined
+#endif
+#define tmpv_calc_lowerat(_i, _j) ((_j)*m + ((_i) - (_j)) - (((_j)-1) * (_j)) / 2)
 
 template <rocblas_int NB, typename T>
 __device__ void tpmvn_kernel_calc(rocblas_fill     uplo,
@@ -27,22 +34,22 @@ __device__ void tpmvn_kernel_calc(rocblas_fill     uplo,
         {
             if(diag == rocblas_diagonal_non_unit)
             {
-                res *= A[uat(tid, tid)];
+                res *= A[tmpv_calc_upperat(tid, tid)];
             }
             for(rocblas_int col = tid + 1; col < m; ++col)
             {
-                res += A[uat(tid, col)] * x[col * incx];
+                res += A[tmpv_calc_upperat(tid, col)] * x[col * incx];
             }
         }
         else
         {
             if(diag == rocblas_diagonal_non_unit)
             {
-                res *= A[lat(tid, tid)];
+                res *= A[tmpv_calc_lowerat(tid, tid)];
             }
             for(rocblas_int col = 0; col < tid; ++col)
             {
-                res += A[lat(tid, col)] * x[col * incx];
+                res += A[tmpv_calc_lowerat(tid, col)] * x[col * incx];
             }
         }
 
@@ -68,22 +75,22 @@ __device__ void tpmvc_kernel_calc(rocblas_fill     uplo,
         {
             if(diag == rocblas_diagonal_non_unit)
             {
-                res *= conj(A[uat(tid, tid)]);
+                res *= conj(A[tmpv_calc_upperat(tid, tid)]);
             }
             for(rocblas_int row = 0; row < tid; ++row)
             {
-                res += conj(A[uat(row, tid)]) * x[row * incx];
+                res += conj(A[tmpv_calc_upperat(row, tid)]) * x[row * incx];
             }
         }
         else
         {
             if(diag == rocblas_diagonal_non_unit)
             {
-                res *= conj(A[lat(tid, tid)]);
+                res *= conj(A[tmpv_calc_lowerat(tid, tid)]);
             }
             for(rocblas_int row = tid + 1; row < m; ++row)
             {
-                res += conj(A[lat(row, tid)]) * x[row * incx];
+                res += conj(A[tmpv_calc_lowerat(row, tid)]) * x[row * incx];
             }
         }
         w[tid] = res;
@@ -113,24 +120,24 @@ __device__ void tpmvt_kernel_calc(rocblas_fill     uplo,
         {
             if(diag == rocblas_diagonal_non_unit)
             {
-                res *= A[uat(tid, tid)];
+                res *= A[tmpv_calc_upperat(tid, tid)];
             }
 
             for(rocblas_int row = 0; row < tid; ++row)
             {
-                res += A[uat(row, tid)] * x[row * incx];
+                res += A[tmpv_calc_upperat(row, tid)] * x[row * incx];
             }
         }
         else
         {
             if(diag == rocblas_diagonal_non_unit)
             {
-                res *= A[lat(tid, tid)];
+                res *= A[tmpv_calc_lowerat(tid, tid)];
             }
 
             for(rocblas_int row = tid + 1; row < m; ++row)
             {
-                res += A[lat(row, tid)] * x[row * incx];
+                res += A[tmpv_calc_lowerat(row, tid)] * x[row * incx];
             }
         }
         w[tid] = res;
@@ -209,5 +216,5 @@ __global__ void tpmvc_kernel(rocblas_fill     uplo,
                           load_ptr_batch(w, hipBlockIdx_y, shiftw, stridew));
 }
 
-#undef uat
-#undef lat
+#undef tmpv_calc_upperat
+#undef tmpv_calc_lowerat
