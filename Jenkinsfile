@@ -37,16 +37,19 @@ rocBLASCI:
 
     boolean formatCheck = true
 
+    rocblas.timeout.compiler = 300
+    rocblas.timeout.test = 600
+
     def compileCommand =
     {
         platform, project->
 
         project.paths.construct_build_prefix()
-
+	def prepend = platform.jenkinsLabel.contains('centos') ? "/opt/rh/devtoolset-7/root/usr/bin:/opt/rocm/bin" : "/opt/rocm/bin"
         def command = """#!/usr/bin/env bash
                     set -x
                     cd ${project.paths.project_build_prefix}
-                    export PATH=/opt/rocm/bin:$PATH
+                    export PATH=${prepend}:$PATH
                     LD_LIBRARY_PATH=/opt/rocm/lib CXX=/opt/rocm/bin/hipcc ${project.paths.build_command} --hip-clang
                     """
         platform.runCommand(this, command)
@@ -72,16 +75,15 @@ rocBLASCI:
     def packageCommand =
     {
         platform, project->
-        String sudo = auxiliary.sudo(platform.jenkinsLabel)
 
         def command = """
                     set -x
                     cd ${project.paths.project_build_prefix}/build/release
-                    ${sudo} make package
-                    ${sudo} make package_clients
-                    ${sudo} mkdir -p package
-                    ${sudo} mv *.deb package/
-                    ${sudo} mv clients/*.deb package/
+                    make package
+                    make package_clients
+                    mkdir -p package
+                    mv *.deb package/
+                    mv clients/*.deb package/
                 """
 
             platform.runCommand(this, command)

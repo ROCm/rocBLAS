@@ -80,7 +80,7 @@ if( OS_ID_rhel OR OS_ID_sles OR OS_ID_centos)
         set( OPENMP_INCLUDE_DIR /usr/lib64/gcc/x86_64-suse-linux/7/include/ )
         set( OPENMP_LIBRARY /usr/lib64/gcc/x86_64-suse-linux/7/libgomp.so )
     endif()
-   
+
     if(EXISTS /opt/rocm/hcc/lib/clang/10.0.0/include/immintrin.h AND CMAKE_CXX_COMPILER MATCHES ".*/hcc$")
         set( CLANG_INCLUDE_DIR /opt/rocm/hcc/lib/clang/10.0.0/include )
     elseif (EXISTS /opt/rocm/hcc/lib/clang/9.0.0/include/immintrin.h)
