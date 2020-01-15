@@ -239,20 +239,15 @@ def setdefaults(test):
 
     elif test['function'] in ('hemv_strided_batched'):
         if all([x in test for x in ('N', 'incx', 'incy', 'stride_scale')]):
-            ldx = int(test['N'] * abs(test['incx']) * test['stride_scale'])
-            ldy = int(test['N'] * abs(test['incy']) * test['stride_scale'])
-            ldN = int(test['N'] * test['lda'] * test['stride_scale'])
-            test.setdefault('stride_x', ldx)
-            test.setdefault('stride_y', ldy)
-            test.setdefault('stride_a', ldN)
+            setkey_product(test, 'stride_x', ['N', 'incx', 'stride_scale'])
+            setkey_product(test, 'stride_y', ['N', 'incy', 'stride_scale'])
+            setkey_product(test, 'stride_a', ['N', 'lda', 'stride_scale'])
 
     elif test['function'] in ('hpmv_strided_batched'):
         if all([x in test for x in ('N', 'incx', 'incy', 'stride_scale')]):
-            ldx = int(test['N'] * abs(test['incx'] * test['stride_scale']))
-            ldy = int(test['N'] * abs(test['incy'] * test['stride_scale']))
+            setkey_product(test, 'stride_x', ['N', 'incx', 'stride_scale'])
+            setkey_product(test, 'stride_y', ['N', 'incy', 'stride_scale'])
             ldN = int(test['N'] * (test['N'] + 1) * test['stride_scale'] / 2)
-            test.setdefault('stride_x', ldx)
-            test.setdefault('stride_y', ldy)
             test.setdefault('stride_a', ldN)
 
     # we are using stride_c for arg c and stride_d for arg s in rotg
