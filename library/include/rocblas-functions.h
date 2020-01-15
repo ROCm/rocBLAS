@@ -6432,6 +6432,32 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrmm(rocblas_handle    handle,
                                             double*           B,
                                             rocblas_int       ldb);
 
+ROCBLAS_EXPORT rocblas_status rocblas_ctrmm(rocblas_handle               handle,
+                                            rocblas_side                 side,
+                                            rocblas_fill                 uplo,
+                                            rocblas_operation            transA,
+                                            rocblas_diagonal             diag,
+                                            rocblas_int                  m,
+                                            rocblas_int                  n,
+                                            const rocblas_float_complex* alpha,
+                                            const rocblas_float_complex* A,
+                                            rocblas_int                  lda,
+                                            rocblas_float_complex*       B,
+                                            rocblas_int                  ldb);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ztrmm(rocblas_handle                handle,
+                                            rocblas_side                  side,
+                                            rocblas_fill                  uplo,
+                                            rocblas_operation             transA,
+                                            rocblas_diagonal              diag,
+                                            rocblas_int                   m,
+                                            rocblas_int                   n,
+                                            const rocblas_double_complex* alpha,
+                                            const rocblas_double_complex* A,
+                                            rocblas_int                   lda,
+                                            rocblas_double_complex*       B,
+                                            rocblas_int                   ldb);
+
 /*! \brief BLAS Level 3 API
 
     \details
