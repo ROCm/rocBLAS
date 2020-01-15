@@ -226,7 +226,7 @@ void testing_dot_strided_batched(const Arguments& arg)
         if(arg.norm_check)
         {
             rocblas_cout << "cpu=" << cpu_result << ", gpu_host_ptr=" << rocblas_result_1
-                         << ", gpu_device_ptr=" << rocblas_result_2 << "\n";
+                         << ", gpu_device_ptr=" << rocblas_result_2 << std::endl;
             for(int b = 0; b < batch_count; ++b)
             {
                 rocblas_error_1

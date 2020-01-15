@@ -154,7 +154,7 @@ void testing_dot(const Arguments& arg)
         if(arg.norm_check)
         {
             rocblas_cout << "cpu=" << cpu_result << ", gpu_host_ptr=" << rocblas_result_1
-                         << ", gpu_device_ptr=" << rocblas_result_2 << "\n";
+                         << ", gpu_device_ptr=" << rocblas_result_2 << std::endl;
 
             rocblas_error_1 = double(rocblas_abs((cpu_result - rocblas_result_1) / cpu_result));
             rocblas_error_2 = double(rocblas_abs((cpu_result - rocblas_result_2) / cpu_result));
