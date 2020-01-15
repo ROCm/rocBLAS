@@ -15,7 +15,7 @@ rocBLASCI:
 
     def rocblas = new rocProject('rocBLAS', 'PreCheckin_TOT_Tensile')
     // customize for project
-    rocblas.paths.build_command = './install.sh -lasm_ci -c -b develop'
+    rocblas.paths.build_command = './install.sh -lasm_ci -cu -b develop'
 
     // Define test architectures, optional rocm version argument is available
     def nodes = new dockerNodes(['gfx900 && ubuntu', 'gfx906 && centos7'], rocblas)
