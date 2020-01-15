@@ -214,10 +214,15 @@ rocblas_status rocblas_ctrtri_strided_batched(rocblas_handle               handl
                                               rocblas_int                  ldinvA,
                                               rocblas_stride               bsinvA,
                                               rocblas_int                  batch_count)
+try
 {
     constexpr rocblas_int NB = 16;
     return rocblas_trtri_strided_batched_impl<NB>(
         handle, uplo, diag, n, A, lda, bsa, invA, ldinvA, bsinvA, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_ztrtri_strided_batched(rocblas_handle                handle,
@@ -231,10 +236,15 @@ rocblas_status rocblas_ztrtri_strided_batched(rocblas_handle                hand
                                               rocblas_int                   ldinvA,
                                               rocblas_stride                bsinvA,
                                               rocblas_int                   batch_count)
+try
 {
     constexpr rocblas_int NB = 16;
     return rocblas_trtri_strided_batched_impl<NB>(
         handle, uplo, diag, n, A, lda, bsa, invA, ldinvA, bsinvA, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 } // extern "C"

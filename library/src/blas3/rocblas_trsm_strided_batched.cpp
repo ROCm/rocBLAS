@@ -348,6 +348,7 @@ rocblas_status rocblas_ctrsm_strided_batched(rocblas_handle               handle
                                              rocblas_int                  ldb,
                                              rocblas_stride               stride_B,
                                              rocblas_int                  batch_count)
+try
 {
     return rocblas_trsm_strided_batched_ex_impl<STRSM_BLOCK>(handle,
                                                              side,
@@ -365,6 +366,10 @@ rocblas_status rocblas_ctrsm_strided_batched(rocblas_handle               handle
                                                              stride_B,
                                                              batch_count);
 }
+catch(...)
+{
+    return exception_to_rocblas_status();
+}
 
 rocblas_status rocblas_ztrsm_strided_batched(rocblas_handle                handle,
                                              rocblas_side                  side,
@@ -381,6 +386,7 @@ rocblas_status rocblas_ztrsm_strided_batched(rocblas_handle                handl
                                              rocblas_int                   ldb,
                                              rocblas_stride                stride_B,
                                              rocblas_int                   batch_count)
+try
 {
     return rocblas_trsm_strided_batched_ex_impl<DTRSM_BLOCK>(handle,
                                                              side,
@@ -397,6 +403,10 @@ rocblas_status rocblas_ztrsm_strided_batched(rocblas_handle                handl
                                                              ldb,
                                                              stride_B,
                                                              batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_trsm_strided_batched_ex(rocblas_handle    handle,

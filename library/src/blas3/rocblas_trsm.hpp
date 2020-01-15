@@ -4,7 +4,6 @@
 #ifndef __ROCBLAS_TRSM_HPP__
 #define __ROCBLAS_TRSM_HPP__
 
-#include "../../../clients/include/rocblas_math.hpp"
 #include "../blas_ex/rocblas_gemm_ex.hpp"
 #include "handle.h"
 #include "rocblas.h"
@@ -1539,7 +1538,6 @@ rocblas_status rocblas_trsm_template(rocblas_handle    handle,
     else
     {
         if(side == rocblas_side_left)
-        {
             status = rocblas_trsm_left<BLOCK, BATCHED, T>(handle,
                                                           uplo,
                                                           transA,
@@ -1560,7 +1558,6 @@ rocblas_status rocblas_trsm_template(rocblas_handle    handle,
                                                           stride_invA,
                                                           V(BATCHED ? x_temparr : x_temp),
                                                           x_temp_els);
-        }
         else
             status = rocblas_trsm_right<BLOCK, BATCHED, T>(handle,
                                                            uplo,

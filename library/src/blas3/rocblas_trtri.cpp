@@ -141,9 +141,14 @@ rocblas_status rocblas_ctrtri(rocblas_handle               handle,
                               rocblas_int                  lda,
                               rocblas_float_complex*       invA,
                               rocblas_int                  ldinvA)
+try
 {
     constexpr rocblas_int NB = 16;
     return rocblas_trtri_impl<NB>(handle, uplo, diag, n, A, lda, invA, ldinvA);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_ztrtri(rocblas_handle                handle,
@@ -154,9 +159,14 @@ rocblas_status rocblas_ztrtri(rocblas_handle                handle,
                               rocblas_int                   lda,
                               rocblas_double_complex*       invA,
                               rocblas_int                   ldinvA)
+try
 {
     constexpr rocblas_int NB = 16;
     return rocblas_trtri_impl<NB>(handle, uplo, diag, n, A, lda, invA, ldinvA);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 } // extern "C"

@@ -416,16 +416,6 @@ inline void trsm_err_res_check(rocblas_double_complex max_error,
     trsm_err_res_check<double>(std::abs(max_error), M, std::abs(forward_tolerance), std::abs(eps));
 }
 
-// inline void trsm_err_res_check(rocblas_float_complex max_error, rocblas_int M, rocblas_float_complex forward_tolerance, rocblas_float_complex eps)
-// {
-//     trsm_err_res_check<float>(std::abs(max_error), M, std::abs(forward_tolerance), std::abs(eps));
-// }
-
-// inline void trsm_err_res_check(rocblas_double_complex max_error, rocblas_int M, rocblas_double_complex forward_tolerance, rocblas_double_complex eps)
-// {
-//     trsm_err_res_check<double>(std::abs(max_error), M, std::abs(forward_tolerance), std::abs(eps));
-// }
-
 template <typename T>
 double get_epsilon()
 {
