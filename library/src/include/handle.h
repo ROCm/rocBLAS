@@ -107,8 +107,8 @@ public:
     // Maximum size is accumulated in device_memory_query_size
     // Returns rocblas_status_size_increased or rocblas_status_size_unchanged
     template <typename... Ss,
-              typename = typename std::enable_if<
-                  sizeof...(Ss) && conjunction<std::is_constructible<size_t, Ss>...>{}>::type>
+              typename = std::enable_if_t<sizeof...(Ss)
+                                          && conjunction<std::is_constructible<size_t, Ss>...>{}>>
     rocblas_status set_optimal_device_memory_size(Ss... sizes)
     {
         if(!device_memory_size_query)
@@ -129,10 +129,8 @@ public:
 
     // Allocate one or more sizes
     template <typename... Ss,
-              typename std::enable_if<sizeof...(Ss)
-                                          && conjunction<std::is_constructible<size_t, Ss>...>{},
-                                      int>::type
-              = 0>
+              std::enable_if_t<sizeof...(Ss) && conjunction<std::is_constructible<size_t, Ss>...>{},
+                               int> = 0>
     auto device_malloc(Ss... sizes)
     {
         return _device_malloc<sizeof...(Ss)>(this, size_t(sizes)...);
@@ -237,8 +235,7 @@ private:
         }
 
         // Conversion to any pointer type, but only if N == 1
-        template <typename T,
-                  typename = typename std::enable_if<std::is_pointer<T>{} && N == 1>::type>
+        template <typename T, typename = std::enable_if_t<std::is_pointer<T>{} && N == 1>>
         explicit operator T() const
         {
             return T(pointers[0]);

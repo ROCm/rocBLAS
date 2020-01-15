@@ -9,7 +9,7 @@ template <typename T,
           typename T2,
           typename U,
           typename V,
-          typename std::enable_if<!is_complex<V>, int>::type = 0>
+          std::enable_if_t<!is_complex<V>, int> = 0>
 __global__ void rot_kernel(rocblas_int    n,
                            T2             x_in,
                            rocblas_int    offset_x,
@@ -40,11 +40,7 @@ __global__ void rot_kernel(rocblas_int    n,
     }
 }
 
-template <typename T,
-          typename T2,
-          typename U,
-          typename V,
-          typename std::enable_if<is_complex<V>, int>::type = 0>
+template <typename T, typename T2, typename U, typename V, std::enable_if_t<is_complex<V>, int> = 0>
 __global__ void rot_kernel(rocblas_int    n,
                            T2             x_in,
                            rocblas_int    offset_x,
