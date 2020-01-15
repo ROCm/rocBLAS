@@ -20,11 +20,11 @@ rocBLAS build & installation helper script
       -l | --logic             Set Tensile logic target, e.g., asm_full, asm_lite, etc.
       -a | --architecture      Set Tensile GPU architecture target, e.g. all, gfx000, gfx803, gfx900, gfx906, gfx908
       -o | --cov               Set Tensile code_object_version (V2 or V3)
-      -t | --test-local-path   Use a local path for Tensile instead of remote GIT repo
-           --cpu-ref-lib       Specify library to use for CPU reference code in testing (blis or lapack)
+      -t | --test_local_path   Use a local path for Tensile instead of remote GIT repo
+           --cpu_ref_lib       Specify library to use for CPU reference code in testing (blis or lapack)
            --hip-clang         Build library for amdgpu backend using hip-clang
-           --build-dir         Specify name of output directory (default is ./build)
-      -n | --no-tensile        Build subset of library that does not require Tensile
+           --build_dir         Specify name of output directory (default is ./build)
+      -n | --no_tensile        Build subset of library that does not require Tensile
       -s | --tensile-host      Build with Tensile host
       -u | --use-tag-only      Ignore Tensile version and just use the Tensile tag
            --skipldconf        Skip ld.so.conf entry
@@ -278,7 +278,7 @@ fi
 # check if we have a modern version of getopt that can handle whitespace and long parameters
 getopt -T
 if [[ $? -eq 4 ]]; then
-  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,no-tensile,tensile-host,use-tag-only,logic:,architecture:,cov:,fork:,branch:,build_dir:,test-local-path:,cpu-ref-lib:,skipldconf --options nshicdgul:a:o:f:b:t: -- "$@")
+  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,no_tensile,tensile-host,use-tag-only,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,skipldconf --options nshicdgul:a:o:f:b:t: -- "$@")
 else
   echo "Need a new version of getopt"
   exit 1
@@ -324,22 +324,22 @@ while true; do
     -b|--branch)
         tensile_tag=${2}
         shift 2 ;;
-    -t|--test-local-path)
+    -t|--test_local_path)
         tensile_test_local_path=${2}
         shift 2 ;;
-    -n|--no-tensile)
+    -n|--no_tensile)
         build_tensile=false
         shift ;;
     -s|--tensile-host)
         build_tensile_host=true
         shift ;;
-    --build-dir)
+    --build_dir)
         build_dir=${2}
         shift 2;;
     --cuda)
         build_cuda=true
         shift ;;
-    --cpu-ref-lib)
+    --cpu_ref_lib)
         cpu_ref_lib=${2}
         shift 2 ;;
     --hip-clang)
