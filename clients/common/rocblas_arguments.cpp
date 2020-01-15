@@ -3,7 +3,6 @@
  * ************************************************************************ */
 
 #include "rocblas_arguments.hpp"
-#include "../../library/src/include/rocblas_ostream.hpp"
 #include "../../library/src/include/tuple_helper.hpp"
 #include <cstdlib>
 #include <cstring>
@@ -11,19 +10,24 @@
 #include <iostream>
 
 // Function to print Arguments out to stream in YAML format
+rocblas_ostream& operator<<(rocblas_ostream& os, const Arguments& arg)
+{
+    return tuple_helper::print_tuple_pairs(os, arg.as_tuple());
+}
+
 // Google Tests uses this automatically to dump parameters
 std::ostream& operator<<(std::ostream& os, const Arguments& arg)
 {
-    rocblas_ostringstream str;
-    tuple_helper::print_tuple_pairs(str, arg.as_tuple());
-    return os << str.str();
+    rocblas_ostream oss;
+    // Print to rocblas_ostream, then transfer to std::ostream
+    return os << (oss << arg);
 }
 
 // Function to read Structures data from stream
-std::istream& operator>>(std::istream& str, Arguments& arg)
+std::istream& operator>>(std::istream& is, Arguments& arg)
 {
-    str.read(reinterpret_cast<char*>(&arg), sizeof(arg));
-    return str;
+    is.read(reinterpret_cast<char*>(&arg), sizeof(arg));
+    return is;
 }
 
 // rocblas_gentest.py is expected to conform to this format.
@@ -31,13 +35,13 @@ std::istream& operator>>(std::istream& str, Arguments& arg)
 void Arguments::validate(std::istream& ifs)
 {
     auto error = [](const char* name) {
-        std::cerr << "Arguments field " << name
-                  << " does not match format.\n\n"
-                     "Fatal error: Binary test data does match input format.\n"
-                     "Ensure that rocblas_arguments.hpp and rocblas_common.yaml\n"
-                     "define exactly the same Arguments, that rocblas_gentest.py\n"
-                     "generates the data correctly, and that endianness is the same."
-                  << std::endl;
+        rocblas_cerr << "Arguments field " << name
+                     << " does not match format.\n\n"
+                        "Fatal error: Binary test data does match input format.\n"
+                        "Ensure that rocblas_arguments.hpp and rocblas_common.yaml\n"
+                        "define exactly the same Arguments, that rocblas_gentest.py\n"
+                        "generates the data correctly, and that endianness is the same."
+                     << std::endl;
         abort();
     };
 

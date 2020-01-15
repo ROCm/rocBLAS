@@ -4,6 +4,7 @@
 #include "handle.h"
 #include <cstdio>
 #include <cstdlib>
+#include <unistd.h>
 
 #if BUILD_WITH_TENSILE
 #ifdef USE_TENSILE_HOST
@@ -52,9 +53,10 @@ _rocblas_handle::_rocblas_handle()
         if(env)
         {
             static int once
-                = fputs("Warning: Environment variable WORKBUF_TRSM_B_CHNK is obsolete.\n"
-                        "Use ROCBLAS_DEVICE_MEMORY_SIZE instead.\n",
-                        stderr);
+                = (rocblas_cerr << "Warning: Environment variable WORKBUF_TRSM_B_CHNK is "
+                                   "obsolete.\nUse ROCBLAS_DEVICE_MEMORY_SIZE instead."
+                                << std::endl,
+                   0);
             device_memory_size = strtoul(env, nullptr, 0);
             if(device_memory_size)
                 device_memory_size = device_memory_size * 1024 + 1024 * 1024 * 2;
@@ -76,8 +78,9 @@ _rocblas_handle::~_rocblas_handle()
 {
     if(device_memory_in_use)
     {
-        fputs("rocBLAS internal error: Handle object destroyed while device memory still in use.\n",
-              stderr);
+        rocblas_cerr
+            << "rocBLAS internal error: Handle object destroyed while device memory still in use."
+            << std::endl;
         abort();
     }
     if(device_memory)
@@ -91,9 +94,9 @@ void* _rocblas_handle::device_allocator(size_t size)
 {
     if(device_memory_in_use)
     {
-        fputs("rocBLAS internal error: Cannot allocate device memory while it is already "
-              "allocated.\n",
-              stderr);
+        rocblas_cerr << "rocBLAS internal error: Cannot allocate device memory while it is already "
+                        "allocated."
+                     << std::endl;
         abort();
     }
     if(size > device_memory_size)

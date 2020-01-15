@@ -307,24 +307,24 @@ void testing_gemm_batched(const Arguments& arg)
         gpu_time_used  = (get_time_us() - gpu_time_used) / number_hot_calls;
         rocblas_gflops = gemm_gflop_count<T>(M, N, K) * batch_count / gpu_time_used * 1e6;
 
-        std::cout << "transA,transB,M,N,K,alpha,lda,ldb,beta,ldc,Batch_Count,"
-                     "rocblas-Gflops,"
-                     "us";
+        rocblas_cout << "transA,transB,M,N,K,alpha,lda,ldb,beta,ldc,Batch_Count,"
+                        "rocblas-Gflops,"
+                        "us";
 
         if(arg.norm_check)
-            std::cout << ",CPU-Gflops,us,norm-error";
+            rocblas_cout << ",CPU-Gflops,us,norm-error";
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
 
-        std::cout << arg.transA << "," << arg.transB << "," << M << "," << N << "," << K << ","
-                  << arg.get_alpha<T>() << "," << lda << "," << ldb << "," << arg.get_beta<T>()
-                  << "," << ldc << "," << batch_count << "," << rocblas_gflops << ","
-                  << gpu_time_used;
+        rocblas_cout << arg.transA << "," << arg.transB << "," << M << "," << N << "," << K << ","
+                     << arg.get_alpha<T>() << "," << lda << "," << ldb << "," << arg.get_beta<T>()
+                     << "," << ldc << "," << batch_count << "," << rocblas_gflops << ","
+                     << gpu_time_used;
 
         if(arg.norm_check)
-            std::cout << "," << cblas_gflops << "," << cpu_time_used << "," << rocblas_error;
+            rocblas_cout << "," << cblas_gflops << "," << cpu_time_used << "," << rocblas_error;
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
     }
 }
 

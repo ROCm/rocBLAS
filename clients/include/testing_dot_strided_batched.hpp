@@ -225,8 +225,8 @@ void testing_dot_strided_batched(const Arguments& arg)
 
         if(arg.norm_check)
         {
-            std::cout << "cpu=" << cpu_result << ", gpu_host_ptr=" << rocblas_result_1
-                      << ", gpu_device_ptr=" << rocblas_result_2 << "\n";
+            rocblas_cout << "cpu=" << cpu_result << ", gpu_host_ptr=" << rocblas_result_1
+                         << ", gpu_device_ptr=" << rocblas_result_2 << "\n";
             for(int b = 0; b < batch_count; ++b)
             {
                 rocblas_error_1
@@ -279,21 +279,21 @@ void testing_dot_strided_batched(const Arguments& arg)
         rocblas_gflops    = batch_count * dot_gflop_count<CONJ, T>(N) / gpu_time_used * 1e6 * 1;
         rocblas_bandwidth = batch_count * (2.0 * N) * sizeof(T) / gpu_time_used / 1e3;
 
-        std::cout
+        rocblas_cout
             << "N,incx,stridex,incy,stridey,batch_count,rocblas-Gflops,rocblas-GB/s,rocblas-us";
 
         if(arg.norm_check)
-            std::cout << ",CPU-Gflops,norm_error_host_ptr,norm_error_dev_ptr";
+            rocblas_cout << ",CPU-Gflops,norm_error_host_ptr,norm_error_dev_ptr";
 
-        std::cout << std::endl;
-        std::cout << N << "," << incx << "," << stride_x << "," << incy << "," << stride_y << ","
-                  << batch_count << "," << rocblas_gflops << "," << rocblas_bandwidth << ","
-                  << gpu_time_used;
+        rocblas_cout << std::endl;
+        rocblas_cout << N << "," << incx << "," << stride_x << "," << incy << "," << stride_y << ","
+                     << batch_count << "," << rocblas_gflops << "," << rocblas_bandwidth << ","
+                     << gpu_time_used;
 
         if(arg.norm_check)
-            std::cout << "," << cblas_gflops << "," << rocblas_error_1 << "," << rocblas_error_2;
+            rocblas_cout << "," << cblas_gflops << "," << rocblas_error_1 << "," << rocblas_error_2;
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
     }
 }
 

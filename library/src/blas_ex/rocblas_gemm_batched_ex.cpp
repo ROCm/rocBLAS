@@ -63,7 +63,7 @@ try
             {
                 if(layer_mode & rocblas_layer_mode_log_trace)
                 {
-                    rocblas_ostringstream alphaos, betaos;
+                    rocblas_ostream alphaos, betaos;
 
                     if(log_trace_alpha_beta_ex(compute_type, alpha, beta, alphaos, betaos)
                        == rocblas_status_success)

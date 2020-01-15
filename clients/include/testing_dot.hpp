@@ -153,8 +153,8 @@ void testing_dot(const Arguments& arg)
 
         if(arg.norm_check)
         {
-            std::cout << "cpu=" << cpu_result << ", gpu_host_ptr=" << rocblas_result_1
-                      << ", gpu_device_ptr=" << rocblas_result_2 << "\n";
+            rocblas_cout << "cpu=" << cpu_result << ", gpu_host_ptr=" << rocblas_result_1
+                         << ", gpu_device_ptr=" << rocblas_result_2 << "\n";
 
             rocblas_error_1 = double(rocblas_abs((cpu_result - rocblas_result_1) / cpu_result));
             rocblas_error_2 = double(rocblas_abs((cpu_result - rocblas_result_2) / cpu_result));
@@ -185,19 +185,19 @@ void testing_dot(const Arguments& arg)
         rocblas_gflops    = dot_gflop_count<CONJ, T>(N) / gpu_time_used * 1e6 * 1;
         rocblas_bandwidth = (2.0 * N) * sizeof(T) / gpu_time_used / 1e3;
 
-        std::cout << "N,incx,incy,rocblas-Gflops,rocblas-GB/s,rocblas-us";
+        rocblas_cout << "N,incx,incy,rocblas-Gflops,rocblas-GB/s,rocblas-us";
 
         if(arg.norm_check)
-            std::cout << ",CPU-Gflops,norm_error_host_ptr,norm_error_dev_ptr";
+            rocblas_cout << ",CPU-Gflops,norm_error_host_ptr,norm_error_dev_ptr";
 
-        std::cout << std::endl;
-        std::cout << N << "," << incx << "," << incy << "," << rocblas_gflops << ","
-                  << rocblas_bandwidth << "," << gpu_time_used;
+        rocblas_cout << std::endl;
+        rocblas_cout << N << "," << incx << "," << incy << "," << rocblas_gflops << ","
+                     << rocblas_bandwidth << "," << gpu_time_used;
 
         if(arg.norm_check)
-            std::cout << "," << cblas_gflops << "," << rocblas_error_1 << "," << rocblas_error_2;
+            rocblas_cout << "," << cblas_gflops << "," << rocblas_error_1 << "," << rocblas_error_2;
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
     }
 }
 

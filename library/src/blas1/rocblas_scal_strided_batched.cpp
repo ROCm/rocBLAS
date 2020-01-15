@@ -54,7 +54,7 @@ namespace
             // ANSWER: -r is syntatic sugar; the types can be specified separately
             if(layer_mode & rocblas_layer_mode_log_bench)
             {
-                std::stringstream alphass;
+                rocblas_ostream alphass;
                 alphass << "--alpha " << std::real(*alpha)
                         << (std::imag(*alpha) != 0
                                 ? (" --alphai " + std::to_string(std::imag(*alpha)))

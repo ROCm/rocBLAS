@@ -5,6 +5,7 @@
 #ifndef ROCBLAS_INIT_H_
 #define ROCBLAS_INIT_H_
 
+#include "../../library/src/include/rocblas_ostream.hpp"
 #include "rocblas.h"
 #include "rocblas_math.hpp"
 #include "rocblas_random.hpp"
@@ -150,7 +151,7 @@ void rocblas_packInt8(
     std::vector<T>& A, size_t M, size_t N, size_t batch_count, size_t lda, size_t stride_a)
 {
     if(N % 4 != 0)
-        std::cerr << "ERROR: dimension must be a multiple of 4 in order to pack" << std::endl;
+        rocblas_cerr << "ERROR: dimension must be a multiple of 4 in order to pack" << std::endl;
 
     std::vector<T> temp(A);
     for(size_t count = 0; count < batch_count; count++)

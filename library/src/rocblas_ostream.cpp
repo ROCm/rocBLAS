@@ -7,25 +7,23 @@
 #include <type_traits>
 
 /***********************************************************************
- * log_worker functions handle logging in a single thread              *
+ * rocblas_ostream::worker functions handle logging in a single thread *
  ***********************************************************************/
 
 // enqueue a string to be written and freed by the worker
-void log_worker::enqueue(std::shared_ptr<std::string> ptr)
+void rocblas_ostream::worker::enqueue(std::shared_ptr<std::string> ptr)
 {
     // Only nullptr or nonzero sized strings are sent
     if(!ptr || ptr->size())
     {
-        { // Keep lock for as short as possible
-            std::lock_guard<std::mutex> lock(mutex);
-            queue.push_back(ptr);
-        }
-        cond.notify_all();
+        std::lock_guard<std::mutex> lock(mutex);
+        queue.push(ptr);
+        cond.notify_one();
     }
 }
 
 // Worker thread which waits for strings to be logged
-void log_worker::worker()
+void rocblas_ostream::worker::thread_function()
 {
     // Clear any errors in the file
     clearerr(file);
@@ -40,19 +38,19 @@ void log_worker::worker()
 
         // With the mutex locked, pop data from the front of queue
         std::shared_ptr<std::string> log = queue.front();
-        queue.pop_front();
+        queue.pop();
 
         // A nullptr indicates closing of the file
         if(!log)
             break;
 
-        // Temporarily unlock mutex, allowing other writers to queue
+        // Temporarily unlock mutex, unblocking other threads
         lock.unlock();
 
         // Write the data
         fwrite(log->data(), 1, log->size(), file);
 
-        // Delete the data
+        // Unreference the data
         log.reset();
 
         // Flush the data and detect error
@@ -68,9 +66,9 @@ void log_worker::worker()
 }
 
 // Constructor creates a worker thread
-log_worker::log_worker(int fd)
+rocblas_ostream::worker::worker(int fd)
     : file(fdopen(fd, "a"))
-    , worker_thread([=] { worker(); })
+    , thread([=] { thread_function(); })
 {
     if(!file)
     {
@@ -79,9 +77,25 @@ log_worker::log_worker(int fd)
     }
 }
 
-// Get worker for file descriptor
-std::shared_ptr<log_worker> log_worker::get_worker(int fd)
+// Destroy a worker when all references to it are gone
+rocblas_ostream::worker::~worker()
 {
+    enqueue(nullptr); // Tell the worker thread to exit
+    thread.join(); // Wait for the worker thread to exit
+    fclose(file); // Close the file
+}
+
+/***********************************************************************
+ * rocblas_ostream functions                                           *
+ ***********************************************************************/
+
+// Get worker for file descriptor
+std::shared_ptr<rocblas_ostream::worker> rocblas_ostream::get_worker(int fd)
+{
+    // For a fd indicating an error
+    if(fd == -1)
+        return nullptr;
+
     // Initial slice of struct stat which contains device ID and inode
     struct file_id_t
     {
@@ -102,12 +116,12 @@ std::shared_ptr<log_worker> log_worker::get_worker(int fd)
     {
         bool operator()(const file_id_t& lhs, const file_id_t& rhs) const
         {
-            return lhs.st_dev < rhs.st_dev || (lhs.st_dev == rhs.st_dev && lhs.st_ino < rhs.st_ino);
+            return lhs.st_ino < rhs.st_ino || (lhs.st_ino == rhs.st_ino && lhs.st_dev < rhs.st_dev);
         }
     };
 
-    // Map from file_id to a log_worker shared_ptr
-    static std::map<file_id_t, std::shared_ptr<log_worker>, file_id_less> map;
+    // Map from file_id to a worker shared_ptr
+    static std::map<file_id_t, std::shared_ptr<worker>, file_id_less> map;
 
     // Mutex for accessing the map
     static std::mutex map_mutex;
@@ -130,67 +144,59 @@ std::shared_ptr<log_worker> log_worker::get_worker(int fd)
     std::lock_guard<std::mutex> lock(map_mutex);
 
     // Insert an element if it doesn't already exist
-    auto worker = map.emplace(file_id, nullptr).first;
+    auto worker_iter = map.emplace(file_id, nullptr).first;
 
     // If a new entry was inserted, or an old entry is empty, create worker
-    if(!worker->second)
-        worker->second = std::make_shared<log_worker>(fd);
+    if(!worker_iter->second)
+        worker_iter->second = std::make_shared<worker>(fd);
 
     // Return the existing or new worker matching the file
-    return worker->second;
+    return worker_iter->second;
+}
+
+// Construct from a file descriptor, which is duped
+rocblas_ostream::rocblas_ostream(int fd)
+    : worker_ptr(get_worker(fcntl(fd, F_DUPFD_CLOEXEC)))
+{
+    if(!worker_ptr)
+    {
+        dprintf(STDERR_FILENO, "Cannot clone file descriptor %d: %m\n", fd);
+        abort();
+    }
 }
 
 // Open a file and return a worker
-std::shared_ptr<log_worker> log_worker::get_worker(const char* filename)
+std::shared_ptr<rocblas_ostream::worker> rocblas_ostream::get_worker(const char* filename)
 {
-    int fd = open(filename, O_WRONLY | O_CREAT | O_APPEND, 0644);
-    if(fd == -1)
+    int fd = open(filename, O_WRONLY | O_CREAT | O_APPEND | O_CLOEXEC, 0644);
+    return fd == -1 ? nullptr : get_worker(fd);
+}
+
+// Construct from a C filename
+rocblas_ostream::rocblas_ostream(const char* filename)
+    : worker_ptr(get_worker(filename))
+{
+    if(!worker_ptr)
     {
-        fprintf(stderr, "Cannot open %s: %m\n", filename);
+        dprintf(STDERR_FILENO, "Cannot open %s: %m\n", filename);
         abort();
     }
-    return get_worker(fd);
 }
 
-// Destroy a worker when all references to it are gone
-log_worker::~log_worker()
-{
-    enqueue(nullptr); // Tell the worker thread to exit
-    worker_thread.join(); // Wait for the worker thread to exit
-    fclose(file); // Close the file
-}
-
-/***********************************************************************
- * rocblas_ostream functions                                           *
- ***********************************************************************/
-
-// Flush the output
+// Flush the output atomically
 ROCBLAS_EXPORT void rocblas_ostream::flush()
 {
-    if(worker)
+    if(worker_ptr)
     {
-        worker->enqueue(std::make_shared<std::string>(os.str()));
-        os.clear();
-        os.str({});
+        worker_ptr->enqueue(std::make_shared<std::string>(os.str()));
+        clear();
     }
-}
-
-// Destroy the rocblas_ostream
-ROCBLAS_EXPORT rocblas_ostream::~rocblas_ostream()
-{
-    // Flush any pending IO
-    flush();
-
-    // If we had a worker, we delete its temporary ostringstream
-    if(worker)
-        delete &os;
 }
 
 // Floating-point output
-// We use <cstdio> and <cstring> functions for fine-grained control of output
 ROCBLAS_EXPORT rocblas_ostream& operator<<(rocblas_ostream& os, double x)
 {
-    char        s[32] = "";
+    char        s[32];
     const char* out;
 
     if(std::isnan(x))
@@ -199,15 +205,39 @@ ROCBLAS_EXPORT rocblas_ostream& operator<<(rocblas_ostream& os, double x)
         out = x < 0 ? "-.inf" : ".inf";
     else
     {
+        out = s;
         snprintf(s, sizeof(s) - 2, "%.17g", x);
 
         // If no decimal point or exponent, append .0
-        char* end = s + strcspn(s, ".eE");
-        if(!*end)
-            strcat(end, ".0");
-
-        out = s;
+        for(char* end = s; *end != '.' && *end != 'e' && *end != 'E'; ++end)
+        {
+            if(!*end)
+            {
+                end[0] = '.';
+                end[1] = '0';
+                end[2] = '\0';
+                break;
+            }
+        }
     }
     os.os << out;
     return os;
 }
+
+// IO Manipulators
+ROCBLAS_EXPORT rocblas_ostream& operator<<(rocblas_ostream& os, std::ostream& (*pf)(std::ostream&))
+{
+    // Output the manipulator to the buffer
+    os.os << pf;
+
+    // If the manipulator is std::endl or std::flush, flush the output
+    if(pf == static_cast<std::ostream& (*)(std::ostream&)>(std::endl)
+       || pf == static_cast<std::ostream& (*)(std::ostream&)>(std::flush))
+        os.flush();
+
+    return os;
+}
+
+// Output streams
+ROCBLAS_EXPORT rocblas_ostream rocblas_cout(STDOUT_FILENO);
+ROCBLAS_EXPORT rocblas_ostream rocblas_cerr(STDERR_FILENO);

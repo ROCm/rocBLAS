@@ -135,8 +135,7 @@ static inline void log_arguments(rocblas_ostream& os, const char* sep, H head, T
 {
     os << head;
     int x[] = {(os << sep << std::forward<Ts>(xs), 0)...};
-    os << "\n";
-    os.flush();
+    os << std::endl;
 }
 
 // if trace logging is turned on with
@@ -185,7 +184,7 @@ inline T log_trace_scalar_value(const T* value)
  *************************************************/
 inline std::string log_bench_scalar_value(const char* name, const rocblas_half* value)
 {
-    rocblas_ostringstream ss;
+    rocblas_ostream ss;
     ss << "--" << name << " " << (value ? float(*value) : std::numeric_limits<float>::quiet_NaN());
     return ss.str();
 }
@@ -193,7 +192,7 @@ inline std::string log_bench_scalar_value(const char* name, const rocblas_half* 
 template <typename T, typename std::enable_if<!is_complex<T>, int>::type = 0>
 inline std::string log_bench_scalar_value(const char* name, const T* value)
 {
-    rocblas_ostringstream ss;
+    rocblas_ostream ss;
     ss << "--" << name << " " << (value ? *value : std::numeric_limits<T>::quiet_NaN());
     return ss.str();
 }
@@ -201,7 +200,7 @@ inline std::string log_bench_scalar_value(const char* name, const T* value)
 template <typename T, typename std::enable_if<+is_complex<T>, int>::type = 0>
 inline std::string log_bench_scalar_value(const char* name, const T* value)
 {
-    rocblas_ostringstream ss;
+    rocblas_ostream ss;
     ss << "--" << name << " "
        << (value ? std::real(*value) : std::numeric_limits<typename T::value_type>::quiet_NaN());
     if(value && std::imag(*value))
