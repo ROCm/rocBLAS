@@ -1,5 +1,5 @@
 /* ************************************************************************
-* Copyright 2016-2019 Advanced Micro Devices, Inc.
+* Copyright 2016-2020 Advanced Micro Devices, Inc.
 * ************************************************************************ */
 
 #ifndef __ROCBLAS_TRTRI_HPP__
@@ -568,10 +568,10 @@ rocblas_status trtri_gemm_block(rocblas_handle handle,
         RETURN_IF_HIP_ERROR(hipMemcpy(host_C, C, batch_count * sizeof(T*), hipMemcpyDeviceToHost));
     }
 
-    rocblas_status     status       = rocblas_status_success;
-    static constexpr T one          = 1;
-    static constexpr T zero         = 0;
-    static constexpr T negative_one = -1;
+    rocblas_status status       = rocblas_status_success;
+    static const T one          = T(1);
+    static const T zero         = T(0);
+    static const T negative_one = T(-1);
 
     // first batched gemm compute C = A21*invA11 (lower) or C = A12*invA22 (upper)
     // distance between each invA11 or invA22 is sub_stride_invA, sub_stride_A for each A21 or A12, C

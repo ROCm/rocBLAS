@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2019 Advanced Micro Devices, Inc.
+ * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "cblas_interface.hpp"
@@ -130,12 +130,12 @@ void testing_trsm_batched(const Arguments& arg)
                          K,
                          K,
                          K,
-                         1.0,
+                         T(1.0),
                          hA[b],
                          lda,
                          hA[b],
                          lda,
-                         0.0,
+                         T(0.0),
                          AAT[b],
                          lda);
 
@@ -147,7 +147,7 @@ void testing_trsm_batched(const Arguments& arg)
             {
                 int idx    = i + j * lda;
                 hA[b][idx] = AAT[b][idx];
-                t += AAT[b][idx] > 0 ? AAT[b][idx] : -AAT[b][idx];
+                t += std::abs(AAT[b][idx]);
             }
             hA[b][i + i * lda] = t;
         }
@@ -215,9 +215,9 @@ void testing_trsm_batched(const Arguments& arg)
     T max_res_2 = 0.0;
     if(arg.unit_check || arg.norm_check)
     {
-        T error_eps_multiplier    = ERROR_EPS_MULTIPLIER;
-        T residual_eps_multiplier = RESIDUAL_EPS_MULTIPLIER;
-        T eps                     = std::numeric_limits<T>::epsilon();
+        double error_eps_multiplier    = ERROR_EPS_MULTIPLIER;
+        double residual_eps_multiplier = RESIDUAL_EPS_MULTIPLIER;
+        double eps                     = get_epsilon<T>();
 
         // calculate dXorB <- A^(-1) B   rocblas_device_pointer_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
@@ -283,12 +283,12 @@ void testing_trsm_batched(const Arguments& arg)
                         err_2 += std::abs(hXorB_2[b][idx]);
                     }
                 }
-                max_err_1 = max_err_1 > err_1 ? max_err_1 : err_1;
-                max_err_2 = max_err_2 > err_2 ? max_err_2 : err_2;
+                max_err_1 = std::abs(max_err_1) > std::abs(err_1) ? max_err_1 : err_1;
+                max_err_2 = std::abs(max_err_2) > std::abs(err_2) ? max_err_2 : err_2;
             }
 
-            trsm_err_res_check<T>(max_err_1, M, error_eps_multiplier, eps);
-            trsm_err_res_check<T>(max_err_2, M, error_eps_multiplier, eps);
+            trsm_err_res_check<T>(std::abs(max_err_1), M, error_eps_multiplier, eps);
+            trsm_err_res_check<T>(std::abs(max_err_2), M, error_eps_multiplier, eps);
 
             // Residual Check
             // hXorB <- hA * (A^(-1) B) ;
@@ -319,11 +319,11 @@ void testing_trsm_batched(const Arguments& arg)
                         res_2 += std::abs(hXorB_2[b][idx]);
                     }
                 }
-                max_res_1 = max_res_1 > res_1 ? max_res_1 : res_1;
-                max_res_2 = max_res_2 > res_2 ? max_res_2 : res_2;
+                max_res_1 = std::abs(max_res_1) > std::abs(res_1) ? max_res_1 : res_1;
+                max_res_2 = std::abs(max_res_2) > std::abs(res_2) ? max_res_2 : res_2;
             }
-            trsm_err_res_check<T>(max_res_1, M, residual_eps_multiplier, eps);
-            trsm_err_res_check<T>(max_res_2, M, residual_eps_multiplier, eps);
+            trsm_err_res_check<T>(std::abs(max_res_1), M, residual_eps_multiplier, eps);
+            trsm_err_res_check<T>(std::abs(max_res_2), M, residual_eps_multiplier, eps);
         }
     }
 

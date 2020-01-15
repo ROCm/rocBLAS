@@ -424,6 +424,9 @@ def generate(test, function):
                     case.update(item)  # original test merged with each item
                     generate(case, function)
                 except TypeError as err:
+                    print("***")
+                    print(item)
+                    print(test['function'])
                     sys.exit("TypeError: " + str(err) + " for " + argname +
                              ", which has type " + str(type(item)) +
                              "\nA name listed in \"Dictionary lists to expand\" "

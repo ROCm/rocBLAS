@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2019 Advanced Micro Devices, Inc.
+ * Copyright 2019-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "gemm.hpp"
@@ -276,6 +276,42 @@ rocblas_status rocblas_dtrsm_batched(rocblas_handle      handle,
         handle, side, uplo, transA, diag, m, n, alpha, A, lda, B, ldb, batch_count);
 }
 
+rocblas_status rocblas_ctrsm_batched(rocblas_handle                     handle,
+                                     rocblas_side                       side,
+                                     rocblas_fill                       uplo,
+                                     rocblas_operation                  transA,
+                                     rocblas_diagonal                   diag,
+                                     rocblas_int                        m,
+                                     rocblas_int                        n,
+                                     const rocblas_float_complex*       alpha,
+                                     const rocblas_float_complex* const A[],
+                                     rocblas_int                        lda,
+                                     rocblas_float_complex*             B[],
+                                     rocblas_int                        ldb,
+                                     rocblas_int                        batch_count)
+{
+    return rocblas_trsm_batched_ex_impl<STRSM_BLOCK>(
+        handle, side, uplo, transA, diag, m, n, alpha, A, lda, B, ldb, batch_count);
+}
+
+rocblas_status rocblas_ztrsm_batched(rocblas_handle                      handle,
+                                     rocblas_side                        side,
+                                     rocblas_fill                        uplo,
+                                     rocblas_operation                   transA,
+                                     rocblas_diagonal                    diag,
+                                     rocblas_int                         m,
+                                     rocblas_int                         n,
+                                     const rocblas_double_complex*       alpha,
+                                     const rocblas_double_complex* const A[],
+                                     rocblas_int                         lda,
+                                     rocblas_double_complex*             B[],
+                                     rocblas_int                         ldb,
+                                     rocblas_int                         batch_count)
+{
+    return rocblas_trsm_batched_ex_impl<DTRSM_BLOCK>(
+        handle, side, uplo, transA, diag, m, n, alpha, A, lda, B, ldb, batch_count);
+}
+
 rocblas_status rocblas_trsm_batched_ex(rocblas_handle    handle,
                                        rocblas_side      side,
                                        rocblas_fill      uplo,
@@ -328,6 +364,41 @@ rocblas_status rocblas_trsm_batched_ex(rocblas_handle    handle,
                                                          batch_count,
                                                          (const float* const*)(invA),
                                                          invA_size);
+    case rocblas_datatype_f64_c:
+        return rocblas_trsm_batched_ex_impl<DTRSM_BLOCK>(
+            handle,
+            side,
+            uplo,
+            transA,
+            diag,
+            m,
+            n,
+            (rocblas_double_complex*)(alpha),
+            (const rocblas_double_complex* const*)(A),
+            lda,
+            (rocblas_double_complex**)(B),
+            ldb,
+            batch_count,
+            (const rocblas_double_complex* const*)(invA),
+            invA_size);
+
+    case rocblas_datatype_f32_c:
+        return rocblas_trsm_batched_ex_impl<STRSM_BLOCK>(
+            handle,
+            side,
+            uplo,
+            transA,
+            diag,
+            m,
+            n,
+            (rocblas_float_complex*)(alpha),
+            (const rocblas_float_complex* const*)(A),
+            lda,
+            (rocblas_float_complex**)(B),
+            ldb,
+            batch_count,
+            (const rocblas_float_complex* const*)(invA),
+            invA_size);
 
     default:
         return rocblas_status_not_implemented;

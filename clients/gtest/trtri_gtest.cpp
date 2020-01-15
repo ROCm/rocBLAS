@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2019 Advanced Micro Devices, Inc.
+ * Copyright 2018-2020 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
 
@@ -28,7 +28,9 @@ namespace
     template <typename T>
     struct trtri_testing<
         T,
-        typename std::enable_if<std::is_same<T, float>{} || std::is_same<T, double>{}>::type>
+        typename std::enable_if<std::is_same<T, float>{} || std::is_same<T, double>{}
+                                || std::is_same<T, rocblas_float_complex>{}
+                                || std::is_same<T, rocblas_double_complex>{}>::type>
         : rocblas_test_valid
     {
         void operator()(const Arguments& arg)

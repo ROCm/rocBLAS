@@ -1,9 +1,10 @@
 /* ************************************************************************
-* Copyright 2016-2019 Advanced Micro Devices, Inc.
+* Copyright 2016-2020 Advanced Micro Devices, Inc.
 * ************************************************************************ */
 #ifndef __ROCBLAS_TRSM_HPP__
 #define __ROCBLAS_TRSM_HPP__
 
+#include "../../../clients/include/rocblas_math.hpp"
 #include "../blas_ex/rocblas_gemm_ex.hpp"
 #include "handle.h"
 #include "rocblas.h"
@@ -19,11 +20,11 @@ namespace
     using std::min;
 
     template <typename T>
-    constexpr T negative_one = -1;
+    const T negative_one = -1;
     template <typename T>
-    constexpr T zero = 0;
+    const T zero = 0;
     template <typename T>
-    constexpr T one = 1;
+    const T one = 1;
 
     template <typename T, typename U, typename V>
     __global__ void copy_matrix_trsm(rocblas_int    rows,
@@ -1538,6 +1539,7 @@ rocblas_status rocblas_trsm_template(rocblas_handle    handle,
     else
     {
         if(side == rocblas_side_left)
+        {
             status = rocblas_trsm_left<BLOCK, BATCHED, T>(handle,
                                                           uplo,
                                                           transA,
@@ -1558,6 +1560,7 @@ rocblas_status rocblas_trsm_template(rocblas_handle    handle,
                                                           stride_invA,
                                                           V(BATCHED ? x_temparr : x_temp),
                                                           x_temp_els);
+        }
         else
             status = rocblas_trsm_right<BLOCK, BATCHED, T>(handle,
                                                            uplo,

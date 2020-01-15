@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2019 Advanced Micro Devices, Inc.
+ * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "rocblas.h"
@@ -292,9 +292,18 @@ struct perf_blas<T,
                 {"gemv", testing_gemv<T>},
                 {"tbmv", testing_tbmv<T>},
 #if BUILD_WITH_TENSILE
+                {"trtri", testing_trtri<T>},
+                {"trtri_batched", testing_trtri_batched<T>},
+                {"trtri_strided_batched", testing_trtri_strided_batched<T>},
                 {"gemm", testing_gemm<T>},
                 {"gemm_batched", testing_gemm_batched<T>},
                 {"gemm_strided_batched", testing_gemm_strided_batched<T>},
+                {"trsm", testing_trsm<T>},
+                {"trsm_ex", testing_trsm_ex<T>},
+                {"trsm_batched", testing_trsm_batched<T>},
+                {"trsm_batched_ex", testing_trsm_batched_ex<T>},
+                {"trsm_strided_batched", testing_trsm_strided_batched<T>},
+                {"trsm_strided_batched_ex", testing_trsm_strided_batched_ex<T>},
 #endif
               };
         run_function(map, arg);

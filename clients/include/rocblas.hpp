@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2019 Advanced Micro Devices, Inc.
+ * Copyright 2018-2020 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
 
@@ -1491,6 +1491,12 @@ static constexpr auto rocblas_trsm<float> = rocblas_strsm;
 template <>
 static constexpr auto rocblas_trsm<double> = rocblas_dtrsm;
 
+template <>
+static constexpr auto rocblas_trsm<rocblas_float_complex> = rocblas_ctrsm;
+
+template <>
+static constexpr auto rocblas_trsm<rocblas_double_complex> = rocblas_ztrsm;
+
 // trsm_batched
 template <typename T>
 rocblas_status (*rocblas_trsm_batched)(rocblas_handle    handle,
@@ -1512,6 +1518,12 @@ static constexpr auto rocblas_trsm_batched<float> = rocblas_strsm_batched;
 
 template <>
 static constexpr auto rocblas_trsm_batched<double> = rocblas_dtrsm_batched;
+
+template <>
+static constexpr auto rocblas_trsm_batched<rocblas_float_complex> = rocblas_ctrsm_batched;
+
+template <>
+static constexpr auto rocblas_trsm_batched<rocblas_double_complex> = rocblas_ztrsm_batched;
 
 // trsm_strided_batched
 template <typename T>
@@ -1537,6 +1549,14 @@ static constexpr auto rocblas_trsm_strided_batched<float> = rocblas_strsm_stride
 template <>
 static constexpr auto rocblas_trsm_strided_batched<double> = rocblas_dtrsm_strided_batched;
 
+template <>
+static constexpr auto
+    rocblas_trsm_strided_batched<rocblas_float_complex> = rocblas_ctrsm_strided_batched;
+
+template <>
+static constexpr auto
+    rocblas_trsm_strided_batched<rocblas_double_complex> = rocblas_ztrsm_strided_batched;
+
 // trtri
 template <typename T>
 rocblas_status (*rocblas_trtri)(rocblas_handle   handle,
@@ -1553,6 +1573,12 @@ static constexpr auto rocblas_trtri<float> = rocblas_strtri;
 
 template <>
 static constexpr auto rocblas_trtri<double> = rocblas_dtrtri;
+
+template <>
+static constexpr auto rocblas_trtri<rocblas_float_complex> = rocblas_ctrtri;
+
+template <>
+static constexpr auto rocblas_trtri<rocblas_double_complex> = rocblas_ztrtri;
 
 // trtri_batched
 template <typename T>
@@ -1571,6 +1597,12 @@ static constexpr auto rocblas_trtri_batched<float> = rocblas_strtri_batched;
 
 template <>
 static constexpr auto rocblas_trtri_batched<double> = rocblas_dtrtri_batched;
+
+template <>
+static constexpr auto rocblas_trtri_batched<rocblas_float_complex> = rocblas_ctrtri_batched;
+
+template <>
+static constexpr auto rocblas_trtri_batched<rocblas_double_complex> = rocblas_ztrtri_batched;
 
 // trtri_strided_batched
 template <typename T>
@@ -1591,5 +1623,13 @@ static constexpr auto rocblas_trtri_strided_batched<float> = rocblas_strtri_stri
 
 template <>
 static constexpr auto rocblas_trtri_strided_batched<double> = rocblas_dtrtri_strided_batched;
+
+template <>
+static constexpr auto
+    rocblas_trtri_strided_batched<rocblas_float_complex> = rocblas_ctrtri_strided_batched;
+
+template <>
+static constexpr auto
+    rocblas_trtri_strided_batched<rocblas_double_complex> = rocblas_ztrtri_strided_batched;
 
 #endif // _ROCBLAS_HPP_
