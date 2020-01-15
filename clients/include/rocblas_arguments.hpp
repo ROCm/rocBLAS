@@ -159,14 +159,13 @@ struct Arguments
     }
 
 private:
-    // Conversion from (real, imag) pair of values to T type
-    template <typename T, typename U, typename std::enable_if<!is_complex<T>, int>::type = 0>
+    template <typename T, typename U, std::enable_if_t<!is_complex<T>, int> = 0>
     static T convert_alpha_beta(U r, U i)
     {
         return T(r);
     }
 
-    template <typename T, typename U, typename std::enable_if<+is_complex<T>, int>::type = 0>
+    template <typename T, typename U, std::enable_if_t<+is_complex<T>, int> = 0>
     static T convert_alpha_beta(U r, U i)
     {
         return T(r, i);
