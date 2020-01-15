@@ -177,25 +177,17 @@ void testing_hpmv_strided_batched(const Arguments& arg)
     // argument sanity check before allocating invalid memory
     if(N <= 0 || !incx || !incy || batch_count <= 0)
     {
-        static const size_t safe_size = 100; // arbitrarily set to 100
-        device_vector<T>    dA1(safe_size);
-        device_vector<T>    dx1(safe_size);
-        device_vector<T>    dy1(safe_size);
-        CHECK_HIP_ERROR(dA1.memcheck());
-        CHECK_HIP_ERROR(dx1.memcheck());
-        CHECK_HIP_ERROR(dy1.memcheck());
-
         EXPECT_ROCBLAS_STATUS(rocblas_hpmv_strided_batched<T>(handle,
                                                               uplo,
                                                               N,
                                                               &h_alpha,
-                                                              dA1,
+                                                              nullptr,
                                                               stride_A,
-                                                              dx1,
+                                                              nullptr,
                                                               incx,
                                                               stride_x,
                                                               &h_beta,
-                                                              dy1,
+                                                              nullptr,
                                                               incy,
                                                               stride_y,
                                                               batch_count),

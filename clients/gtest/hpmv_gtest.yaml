@@ -46,7 +46,7 @@ Tests:
   category: pre_checkin
   function: hpmv_bad_arg
   precision: *single_double_precisions_complex
-  uplo: [ U, L ]
+  uplo: N
 
 - name: hpmv_NaN
   category: pre_checkin

@@ -79,16 +79,9 @@ void testing_hpmv(const Arguments& arg)
     // argument sanity check before allocating invalid memory
     if(N < 0 || !incx || !incy)
     {
-        static const size_t safe_size = 100; // arbitrarily set to 100
-        device_vector<T>    dA1(safe_size);
-        device_vector<T>    dx1(safe_size);
-        device_vector<T>    dy1(safe_size);
-        CHECK_HIP_ERROR(dA1.memcheck());
-        CHECK_HIP_ERROR(dx1.memcheck());
-        CHECK_HIP_ERROR(dy1.memcheck());
-
         EXPECT_ROCBLAS_STATUS(
-            rocblas_hpmv<T>(handle, uplo, N, &h_alpha, dA1, dx1, incx, &h_beta, dy1, incy),
+            rocblas_hpmv<T>(
+                handle, uplo, N, &h_alpha, nullptr, nullptr, incx, &h_beta, nullptr, incy),
             rocblas_status_invalid_size);
 
         return;

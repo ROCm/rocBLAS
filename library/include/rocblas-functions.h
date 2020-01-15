@@ -4006,7 +4006,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zhemv_strided_batched(rocblas_handle      
 /*! \brief BLAS Level 2 API
 
     \details
-    xHPMV performs one of the matrix-vector operations
+    xHPMV performs the matrix-vector operation
 
         y := alpha*A*x + beta*y
 
@@ -4027,7 +4027,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zhemv_strided_batched(rocblas_handle      
     alpha     device pointer or host pointer to scalar alpha.
     @param[in]
     AP        device pointer storing the packed version of the specified triangular portion of
-              the hermitian matrix A.
+              the hermitian matrix A. Of at least size ((n * (n + 1)) / 2).
               if uplo == rocblas_fill_upper:
                 The upper triangular portion of the hermitian matrix A is supplied.
                 The matrix is compacted so that AP contains the triangular portion column-by-column
@@ -4091,7 +4091,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zhpmv(rocblas_handle                handle
 /*! \brief BLAS Level 2 API
 
     \details
-    xHPMV_BATCHED performs one of the matrix-vector operations
+    xHPMV_BATCHED performs the matrix-vector operation
 
         y_i := alpha*A_i*x_i + beta*y_i
 
@@ -4112,20 +4112,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_zhpmv(rocblas_handle                handle
     @param[in]
     alpha     device pointer or host pointer to scalar alpha.
     @param[in]
-    AP        device array of device pointers storing each matrix A_i of dimension (lda, n).
-              if uplo == rocblas_fill_upper:
-                The upper triangular part of each A_i must contain
-                the upper triangular part of a hermitian matrix. The lower
-                triangular part of each A_i will not be referenced.
-              if uplo == rocblas_fill_lower:
-                The lower triangular part of each A_i must contain
-                the lower triangular part of a hermitian matrix. The upper
-                triangular part of each A_i will not be referenced.
-              As a hermitian matrix, the imaginary part of the main diagonal
-              of each A_i will not be referenced and is assumed to be == 0.
-
     AP      device pointer of device pointers storing the packed version of the specified triangular
-            portion of each hermitian matrix A_i.
+            portion of each hermitian matrix A_i. Each A_i is of at least size ((n * (n + 1)) / 2).
             if uplo == rocblas_fill_upper:
             The upper triangular portion of each hermitian matrix A_i is supplied.
             The matrix is compacted so that each AP_i contains the triangular portion column-by-column
@@ -4194,7 +4182,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zhpmv_batched(rocblas_handle              
 /*! \brief BLAS Level 2 API
 
     \details
-    xHPMV_STRIDED_BATCHED performs one of the matrix-vector operations
+    xHPMV_STRIDED_BATCHED performs the matrix-vector operation
 
         y_i := alpha*A_i*x_i + beta*y_i
 
@@ -4216,7 +4204,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zhpmv_batched(rocblas_handle              
     alpha     device pointer or host pointer to scalar alpha.
     @param[in]
     AP        device pointer pointing to the beginning of the first matrix (AP_1). Stores the packed
-              version of the specified triangular portion of each hermitian matrix AP_i of dimension (lda, n).
+              version of the specified triangular portion of each hermitian matrix AP_i of size ((n * (n + 1)) / 2).
               if uplo == rocblas_fill_upper:
                 The upper triangular portion of each hermitian matrix A_i is supplied.
                 The matrix is compacted so that each AP_i contains the triangular portion column-by-column
