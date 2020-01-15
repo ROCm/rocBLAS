@@ -1,3 +1,7 @@
+/* ************************************************************************
+ * Copyright 2019-2020 Advanced Micro Devices, Inc.
+ * ************************************************************************ */
+
 #include "rocblas_parse_data.hpp"
 #include "rocblas_data.hpp"
 #include "utility.hpp"

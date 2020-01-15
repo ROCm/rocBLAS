@@ -1,3 +1,7 @@
+/* ************************************************************************
+ * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * ************************************************************************ */
+
 #ifndef _ROCBLAS_TYPE_DISPATCH_
 #define _ROCBLAS_TYPE_DISPATCH_
 #include "rocblas.h"
