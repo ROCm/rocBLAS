@@ -233,7 +233,7 @@ int main(int argc, char** argv)
     int device_count = query_device_property();
     if(device_count <= device_id)
     {
-        rocblas_cerr << "Error: invalid device ID. There may not be such device ID.\n";
+        rocblas_cerr << "Error: invalid device ID. There may not be such device ID." << std::endl;
         return -1;
     }
     set_device(device_id);
