@@ -7,15 +7,16 @@
 #include "utility.h"
 
 template <typename U, typename V>
-__global__ void copy_kernel(rocblas_int    n,
-                            const U        xa,
-                            ptrdiff_t      shiftx,
-                            rocblas_int    incx,
-                            rocblas_stride stridex,
-                            V              ya,
-                            ptrdiff_t      shifty,
-                            rocblas_int    incy,
-                            rocblas_stride stridey)
+__global__ void copy_kernel(rocblas_int       n,
+                            const U           xa,
+                            ptrdiff_t         shiftx,
+                            rocblas_int       incx,
+                            rocblas_stride    stridex,
+                            V                 ya,
+                            ptrdiff_t         shifty,
+                            rocblas_int       incy,
+                            rocblas_stride    stridey,
+                            rocblas_operation conjugate_transpose)
 {
     ptrdiff_t tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     // bound
@@ -24,22 +25,30 @@ __global__ void copy_kernel(rocblas_int    n,
         const auto* x = load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex);
         auto*       y = load_ptr_batch(ya, hipBlockIdx_y, shifty, stridey);
 
-        y[tid * incy] = x[tid * incx];
+        if(conjugate_transpose != rocblas_operation_conjugate_transpose)
+        {
+            y[tid * incy] = x[tid * incx];
+        }
+        else
+        {
+            y[tid * incy] = conj(x[tid * incx]);
+        }
     }
 }
 
 template <rocblas_int NB, typename U, typename V>
-rocblas_status rocblas_copy_template(rocblas_handle handle,
-                                     rocblas_int    n,
-                                     U              x,
-                                     rocblas_int    offsetx,
-                                     rocblas_int    incx,
-                                     rocblas_stride stridex,
-                                     V              y,
-                                     rocblas_int    offsety,
-                                     rocblas_int    incy,
-                                     rocblas_stride stridey,
-                                     rocblas_int    batch_count)
+rocblas_status rocblas_copy_template(rocblas_handle    handle,
+                                     rocblas_int       n,
+                                     U                 x,
+                                     rocblas_int       offsetx,
+                                     rocblas_int       incx,
+                                     rocblas_stride    stridex,
+                                     V                 y,
+                                     rocblas_int       offsety,
+                                     rocblas_int       incy,
+                                     rocblas_stride    stridey,
+                                     rocblas_int       batch_count,
+                                     rocblas_operation conjugate_transpose = rocblas_operation_none)
 {
     // Quick return if possible.
     if(n <= 0 || !batch_count)
@@ -72,7 +81,8 @@ rocblas_status rocblas_copy_template(rocblas_handle handle,
                        y,
                        shifty,
                        incy,
-                       stridey);
+                       stridey,
+                       conjugate_transpose);
 
     return rocblas_status_success;
 }

@@ -168,7 +168,6 @@ void testing_trmm(const Arguments& arg)
             auto err1     = std::abs(norm_check_general<T>('F', M, N, ldb, cpuB, hB_1));
             auto err2     = std::abs(norm_check_general<T>('F', M, N, ldb, cpuB, hB_2));
             rocblas_error = err1 > err2 ? err1 : err2;
-            rocblas_error = err1;
         }
     }
 

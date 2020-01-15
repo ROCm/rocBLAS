@@ -359,6 +359,28 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                 for(int ii = m - ((m - 1) % cb); ii >= 1; ii -= cb)
                 {
                     isec = cb < m - ii + 1 ? cb : m - ii + 1;
+                    //
+                    //                   T2 := A or T2 := conjg( A ), a unit or non-unit
+                    //                   upper triangular diagonal block of A is copied to
+                    //                   the upper triangular part of T2.
+                    //
+                    for(int j = ii + offd; j <= ii + isec - 1; j++)
+                    {
+                        PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
+                            (rocblas_copy_template<NB>)(handle,
+                                                        j - ii + 1 - offd,
+                                                        &a[ii - 1 + (j - 1) * lda],
+                                                        0,
+                                                        1,
+                                                        0,
+                                                        &dt2[(j - ii) * ldt2],
+                                                        0,
+                                                        1,
+                                                        0,
+                                                        1,
+                                                        transa));
+                    }
+
                     for(int jj = 1; jj <= n; jj += rb)
                     {
                         jsec = rb < n - jj + 1 ? rb : n - jj + 1;
@@ -419,7 +441,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                                 PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                                     (rocblas_scal_template<NB, T>)(handle,
                                                                    jsec,
-                                                                   &a[i - 1 + (i - 1) * lda],
+                                                                   &dt2[i - ii + (i - ii) * ldt2],
                                                                    0,
                                                                    &dt1[(i - ii) * ldt1],
                                                                    0,
@@ -455,7 +477,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                                                                0,
                                                                rb,
                                                                0,
-                                                               &a[ii - 1 + (i - 1) * lda],
+                                                               &dt2[(i - ii) * ldt2],
                                                                0,
                                                                1,
                                                                0,
@@ -497,7 +519,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                     {
                         PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                             (rocblas_gemm_template<false, false>)(handle,
-                                                                  rocblas_operation_transpose,
+                                                                  transa,
                                                                   rocblas_operation_none,
                                                                   isec,
                                                                   n,
@@ -722,6 +744,28 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                 {
                     rocblas_int ii = 1 > ix - cb + 1 ? 1 : ix - cb + 1;
                     isec           = ix - ii + 1;
+                    //
+                    //    T2 := A or T2 := conjg( A ), a unit or non-unit
+                    //    lower triangular diagonal block of A is copied to
+                    //    the lower triangular part of T2.
+                    //
+                    for(int j = ii; j <= ii + isec - 1 - offd; j++)
+                    {
+                        PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
+                            (rocblas_copy_template<NB>)(handle,
+                                                        ii + isec - j - offd,
+                                                        &a[j + offd - 1 + (j - 1) * lda],
+                                                        0,
+                                                        1,
+                                                        0,
+                                                        &dt2[j - ii + offd + (j - ii) * ldt2],
+                                                        0,
+                                                        1,
+                                                        0,
+                                                        1,
+                                                        transa));
+                    }
+
                     for(int jj = 1; jj <= n; jj += rb)
                     {
                         jsec = rb < n - jj + 1 ? rb : n - jj + 1;
@@ -780,15 +824,18 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                                 auto saved_pointer_mode
                                     = handle->push_pointer_mode(rocblas_pointer_mode_device);
                                 PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                                    (rocblas_scal_template<NB, T>)(handle,
-                                                                   jsec,
-                                                                   &a[i - 1 + (i - 1) * lda],
-                                                                   0,
-                                                                   &dt1[(i - ii) * ldt1],
-                                                                   0,
-                                                                   1,
-                                                                   0,
-                                                                   1));
+                                    (rocblas_scal_template<
+                                        NB,
+                                        T>)(handle,
+                                            jsec,
+                                            //                                                                 &a[i - 1 + (i - 1) * lda],
+                                            &dt2[i - ii + (i - ii) * ldt2],
+                                            0,
+                                            &dt1[(i - ii) * ldt1],
+                                            0,
+                                            1,
+                                            0,
+                                            1));
                             }
                             tsec = ii + isec - 1 - i;
                             if(tsec == 0)
@@ -807,27 +854,29 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                             else
                             {
                                 PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                                    (rocblas_gemv_template<T>)(handle,
-                                                               rocblas_operation_none,
-                                                               jsec,
-                                                               tsec,
-                                                               alpha,
-                                                               0,
-                                                               &dt1[(i - ii + 1) * ldt1],
-                                                               0,
-                                                               rb,
-                                                               0,
-                                                               &a[i + (i - 1) * lda],
-                                                               0,
-                                                               1,
-                                                               0,
-                                                               alpha,
-                                                               0,
-                                                               &dt1[(i - ii) * ldt1],
-                                                               0,
-                                                               1,
-                                                               0,
-                                                               1));
+                                    (rocblas_gemv_template<
+                                        T>)(handle,
+                                            rocblas_operation_none,
+                                            jsec,
+                                            tsec,
+                                            alpha,
+                                            0,
+                                            &dt1[(i - ii + 1) * ldt1],
+                                            0,
+                                            rb,
+                                            0,
+                                            //                                                             &a[i + (i - 1) * lda],
+                                            &dt2[i - ii + 1 + (i - ii) * ldt2],
+                                            0,
+                                            1,
+                                            0,
+                                            alpha,
+                                            0,
+                                            &dt1[(i - ii) * ldt1],
+                                            0,
+                                            1,
+                                            0,
+                                            1));
                             }
                         }
                         //
@@ -859,7 +908,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                     {
                         PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                             (rocblas_gemm_template<false, false>)(handle,
-                                                                  rocblas_operation_transpose,
+                                                                  transa,
                                                                   rocblas_operation_none,
                                                                   isec,
                                                                   n,
@@ -1042,7 +1091,8 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                                                         0,
                                                         cb,
                                                         0,
-                                                        1));
+                                                        1,
+                                                        transa));
                     }
                     for(int ii = 1; ii <= m; ii += rb)
                     {
@@ -1143,7 +1193,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                             (rocblas_gemm_template<false,
                                                    false>)(handle,
                                                            rocblas_operation_none,
-                                                           rocblas_operation_transpose,
+                                                           transa,
                                                            m,
                                                            jsec,
                                                            n - jj - jsec + 1,
@@ -1313,6 +1363,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                     //                  triangular diagonal block of A is copied to the
                     //                  upper triangular part of T2.
                     //
+                    // noconj
                     for(int j = jj; j <= jj + jsec - 1 - offd; j++)
                     {
                         PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
@@ -1326,7 +1377,8 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                                                         0,
                                                         cb,
                                                         0,
-                                                        1));
+                                                        1,
+                                                        transa));
                     }
                     for(int ii = 1; ii <= m; ii += rb)
                     {
@@ -1424,7 +1476,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                         PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                             (rocblas_gemm_template<false, false>)(handle,
                                                                   rocblas_operation_none,
-                                                                  rocblas_operation_transpose,
+                                                                  transa,
                                                                   m,
                                                                   jsec,
                                                                   jj - 1,
