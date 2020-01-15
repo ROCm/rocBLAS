@@ -19,6 +19,12 @@
 #include <unordered_map>
 #include <utility>
 
+// Suppress warnings about hipMalloc(), hipFree() except in rocblas-test and rocblas-bench
+#if !defined(GOOGLE_TEST) && !defined(ROCBLAS_BENCH)
+#undef hipMalloc
+#undef hipFree
+#endif
+
 #ifdef GOOGLE_TEST
 #include <gtest/gtest.h>
 
@@ -34,8 +40,8 @@ inline void rocblas_expect_status(rocblas_status status, rocblas_status expect)
 {
     if(status != expect)
     {
-        std::cerr << "rocBLAS status error: Expected " << rocblas_status_to_string(expect)
-                  << ", received " << rocblas_status_to_string(status) << std::endl;
+        rocblas_cerr << "rocBLAS status error: Expected " << rocblas_status_to_string(expect)
+                     << ", received " << rocblas_status_to_string(status) << std::endl;
         if(expect == rocblas_status_success)
             exit(EXIT_FAILURE);
     }

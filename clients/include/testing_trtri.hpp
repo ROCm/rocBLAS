@@ -153,22 +153,22 @@ void testing_trtri(const Arguments& arg)
     if(arg.timing)
     {
         // only norm_check return an norm error, unit check won't return anything
-        std::cout << "N, lda, uplo, diag, rocblas-Gflops (us) ";
+        rocblas_cout << "N, lda, uplo, diag, rocblas-Gflops (us) ";
         if(arg.norm_check)
         {
-            std::cout << "CPU-Gflops(us), norm-error";
+            rocblas_cout << "CPU-Gflops(us), norm-error";
         }
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
 
-        std::cout << N << ',' << lda << ',' << char_uplo << ',' << char_diag << ','
-                  << rocblas_gflops << "(" << gpu_time_used << "),";
+        rocblas_cout << N << ',' << lda << ',' << char_uplo << ',' << char_diag << ','
+                     << rocblas_gflops << "(" << gpu_time_used << "),";
 
         if(arg.norm_check)
         {
-            std::cout << cblas_gflops << "(" << cpu_time_used << "),";
-            std::cout << rocblas_error;
+            rocblas_cout << cblas_gflops << "(" << cpu_time_used << "),";
+            rocblas_cout << rocblas_error;
         }
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
     }
 }

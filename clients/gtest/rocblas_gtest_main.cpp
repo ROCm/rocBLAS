@@ -212,6 +212,9 @@ void catch_signals_and_exceptions_as_failures(const std::function<void()>& test)
  *****************/
 int main(int argc, char** argv)
 {
+    // Prevent unnecessary synchronization between C and C++ streams
+    std::ios::sync_with_stdio(false);
+
     // Set signal handler
     rocblas_test_sigaction();
 
@@ -230,7 +233,7 @@ int main(int argc, char** argv)
     int device_count = query_device_property();
     if(device_count <= device_id)
     {
-        std::cerr << "Error: invalid device ID. There may not be such device ID.\n";
+        rocblas_cerr << "Error: invalid device ID. There may not be such device ID.\n";
         return -1;
     }
     set_device(device_id);

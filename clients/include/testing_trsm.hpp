@@ -297,21 +297,21 @@ void testing_trsm(const Arguments& arg)
         cblas_gflops  = trsm_gflop_count<T>(M, N, K) / cpu_time_used * 1e6;
 
         // only norm_check return an norm error, unit check won't return anything
-        std::cout << "M,N,lda,ldb,side,uplo,transA,diag,rocblas-Gflops,us";
+        rocblas_cout << "M,N,lda,ldb,side,uplo,transA,diag,rocblas-Gflops,us";
 
         if(arg.norm_check)
-            std::cout << ",CPU-Gflops,us,norm_error_host_ptr,norm_error_dev_ptr";
+            rocblas_cout << ",CPU-Gflops,us,norm_error_host_ptr,norm_error_dev_ptr";
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
 
-        std::cout << M << ',' << N << ',' << lda << ',' << ldb << ',' << char_side << ','
-                  << char_uplo << ',' << char_transA << ',' << char_diag << ',' << rocblas_gflops
-                  << "," << gpu_time_used / number_hot_calls;
+        rocblas_cout << M << ',' << N << ',' << lda << ',' << ldb << ',' << char_side << ','
+                     << char_uplo << ',' << char_transA << ',' << char_diag << ',' << rocblas_gflops
+                     << "," << gpu_time_used / number_hot_calls;
 
         if(arg.norm_check)
-            std::cout << "," << cblas_gflops << "," << cpu_time_used << "," << max_err_1 << ","
-                      << max_err_2;
+            rocblas_cout << "," << cblas_gflops << "," << cpu_time_used << "," << max_err_1 << ","
+                         << max_err_2;
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
     }
 }

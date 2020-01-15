@@ -138,18 +138,18 @@ void testing_copy(const Arguments& arg)
 
         gpu_time_used = (get_time_us() - gpu_time_used) / number_hot_calls;
 
-        std::cout << "N,incx,incy,rocblas-us";
+        rocblas_cout << "N,incx,incy,rocblas-us";
 
         if(arg.norm_check)
-            std::cout << ",CPU-us,error";
+            rocblas_cout << ",CPU-us,error";
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
 
-        std::cout << N << "," << incx << "," << incy << "," << gpu_time_used;
+        rocblas_cout << N << "," << incx << "," << incy << "," << gpu_time_used;
 
         if(arg.norm_check)
-            std::cout << "," << cpu_time_used << "," << rocblas_error;
+            rocblas_cout << "," << cpu_time_used << "," << rocblas_error;
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
     }
 }

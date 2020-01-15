@@ -5,7 +5,8 @@
 
 #include "rocblas.h"
 #include "rocblas_init.hpp"
-#include "utility.hpp"
+#include "rocblas_test.hpp"
+#include "timing.hpp"
 #include <cstdio>
 #include <cstdlib>
 #include <hip/hip_runtime.h>

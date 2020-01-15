@@ -204,22 +204,22 @@ void testing_trtri_batched(const Arguments& arg)
     if(arg.timing)
     {
         // only norm_check return an norm error, unit check won't return anything
-        std::cout << "batch, N, lda, rocblas-Gflops (us) ";
+        rocblas_cout << "batch, N, lda, rocblas-Gflops (us) ";
         if(arg.norm_check)
         {
-            std::cout << "CPU-Gflops(us), norm-error";
+            rocblas_cout << "CPU-Gflops(us), norm-error";
         }
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
 
-        std::cout << batch_count << ',' << N << ',' << lda << ',' << rocblas_gflops << "("
-                  << gpu_time_used << "),";
+        rocblas_cout << batch_count << ',' << N << ',' << lda << ',' << rocblas_gflops << "("
+                     << gpu_time_used << "),";
 
         if(arg.norm_check)
         {
-            std::cout << cblas_gflops << "(" << cpu_time_used << "),";
-            std::cout << rocblas_error;
+            rocblas_cout << cblas_gflops << "(" << cpu_time_used << "),";
+            rocblas_cout << rocblas_error;
         }
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
     }
 }

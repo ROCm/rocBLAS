@@ -271,21 +271,21 @@ void testing_trmv_strided_batched(const Arguments& arg)
         //
         // Display.
         //
-        std::cout << "M,lda,stride_a,incx,stride_x,batch_count, "
-                     "uplo,transA,diag,rocblas-Gflops,rocblas-GB/s,";
+        rocblas_cout << "M,lda,stride_a,incx,stride_x,batch_count, "
+                        "uplo,transA,diag,rocblas-Gflops,rocblas-GB/s,";
         if(arg.norm_check)
         {
-            std::cout << "CPU-Gflops,norm_error";
+            rocblas_cout << "CPU-Gflops,norm_error";
         }
-        std::cout << std::endl;
-        std::cout << M << "," << lda << "," << stride_a << "," << incx << "," << stride_x << ","
-                  << batch_count << "," << char_uplo << ',' << char_transA << ',' << char_diag
-                  << ',' << rocblas_gflops << "," << rocblas_bandwidth << ",";
+        rocblas_cout << std::endl;
+        rocblas_cout << M << "," << lda << "," << stride_a << "," << incx << "," << stride_x << ","
+                     << batch_count << "," << char_uplo << ',' << char_transA << ',' << char_diag
+                     << ',' << rocblas_gflops << "," << rocblas_bandwidth << ",";
         if(arg.norm_check)
         {
-            std::cout << cblas_gflops << ',';
-            std::cout << rocblas_error;
+            rocblas_cout << cblas_gflops << ',';
+            rocblas_cout << rocblas_error;
         }
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
     }
 }

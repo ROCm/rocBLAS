@@ -5,64 +5,18 @@
 #include <cmath>
 #include <complex>
 #include <condition_variable>
+#include <cstdint>
 #include <cstdlib>
-#include <cstring>
-#include <deque>
 #include <fcntl.h>
 #include <iomanip>
 #include <memory>
 #include <mutex>
-#include <ostream>
+#include <queue>
+#include <sstream>
 #include <string>
 #include <thread>
 #include <unistd.h>
 #include <utility>
-
-/******************************************************************************
- * The log_worker class sets up a worker thread for writing to log files.     *
- * Two files are considered the same if they have the same device ID / inode. *
- ******************************************************************************/
-class log_worker
-{
-    // Log file
-    FILE* file;
-
-    // This worker's thread
-    std::thread worker_thread;
-
-    // Condition variable for worker notification
-    std::condition_variable cond;
-
-    // Mutex for this thread's queue
-    std::mutex mutex;
-
-    // Queue of strings to be logged
-    std::deque<std::shared_ptr<std::string>> queue;
-
-    // Worker thread which waits for strings to log
-    void worker();
-
-public:
-    // Enqueue a string to be written
-    void enqueue(std::shared_ptr<std::string>);
-
-    // Constructor creates a worker thread
-    explicit log_worker(int fd);
-
-    // Get worker for file descriptor
-    static std::shared_ptr<log_worker> get_worker(int fd);
-
-    // Get worker for filename
-    static std::shared_ptr<log_worker> get_worker(const char* filename);
-
-    // Destroy a worker when all references to it are gone
-    ~log_worker();
-
-    // Disallow default construction, copying, assignment
-    log_worker()                  = delete;
-    log_worker(const log_worker&) = delete;
-    log_worker& operator=(const log_worker&) = delete;
-};
 
 /***************************************************************************
  * The rocblas_ostream class performs atomic IO on log files, and provides *
@@ -70,39 +24,62 @@ public:
  ***************************************************************************/
 class rocblas_ostream
 {
+    /**************************************************************************
+     * The worker class sets up a worker thread for writing to log files. Two *
+     * files are considered the same if they have the same device ID / inode. *
+     **************************************************************************/
+    class worker
+    {
+        // Log file
+        FILE* file;
+
+        // This worker's thread
+        std::thread thread;
+
+        // Condition variable for worker notification
+        std::condition_variable cond;
+
+        // Mutex for this thread's queue
+        std::mutex mutex;
+
+        // Queue of strings to be logged
+        std::queue<std::shared_ptr<std::string>> queue;
+
+        // Worker thread which waits for strings to log
+        void thread_function();
+
+    public:
+        // Constructor creates a worker thread
+        explicit worker(int fd);
+
+        // Enqueue a string to be written
+        void enqueue(std::shared_ptr<std::string>);
+
+        // Destroy a worker when all references to it are gone
+        ~worker();
+    };
+
+    // Get worker for file descriptor
+    static std::shared_ptr<worker> get_worker(int fd);
+
+    // Get worker for filename
+    static std::shared_ptr<worker> get_worker(const char* filename);
+
     // Output buffer for formatted IO
-    std::ostringstream& os;
+    std::ostringstream os;
 
     // Worker thread for accepting logs
-    std::shared_ptr<log_worker> worker;
-
-    // Construct from various streams. We do not support std::ostream, because
-    // we cannot guarantee atomic logging using std::ofstream without using
-    // coarse-grained locking. With POSIX file descriptors, we can restrict
-    // all writers to the same device/inode to one thread, and do fine-grained
-    // locking. With std::ostringstream, we assume strings are thread-local.
-
-protected:
-    explicit rocblas_ostream(std::ostringstream& str)
-        : os(str)
-        , worker(nullptr) // no worker for strings, assumed thread-local
-    {
-    }
+    std::shared_ptr<worker> worker_ptr;
 
 public:
-    // Construct from a filehandle
-    explicit rocblas_ostream(int fd)
-        : os(*new std::ostringstream)
-        , worker(log_worker::get_worker(fcntl(fd, F_DUPFD_CLOEXEC)))
-    {
-    }
+    // Default constructor is a std::ostringstream with no worker
+    rocblas_ostream() = default;
+
+    // Construct from a file descriptor, which is duped
+    explicit rocblas_ostream(int fd);
 
     // Construct from a C filename
-    explicit rocblas_ostream(const char* filename)
-        : os(*new std::ostringstream)
-        , worker(log_worker::get_worker(filename))
-    {
-    }
+    explicit rocblas_ostream(const char* filename);
 
     // Construct from a std::string filename
     explicit rocblas_ostream(const std::string& filename)
@@ -110,11 +87,31 @@ public:
     {
     }
 
-    // Destroy the rocblas_ostream
-    ~rocblas_ostream();
+    // Convert stream output to string
+    std::string str() const
+    {
+        return os.str();
+    }
+
+    // Clear the buffer
+    void clear()
+    {
+        os.clear();
+        os.str({});
+    }
 
     // Flush the output atomically
     void flush();
+
+    // Destroy the rocblas_ostream
+    virtual ~rocblas_ostream()
+    {
+        flush(); // Flush any pending IO
+    }
+
+    /*************************************************************************
+     * Non-member friend functions for formatted output                      *
+     *************************************************************************/
 
     // Default output
     template <typename T>
@@ -129,13 +126,39 @@ public:
 
     friend rocblas_ostream& operator<<(rocblas_ostream& os, rocblas_half half)
     {
-        os.os << double(half);
+        os << double(half);
         return os;
     }
 
-    friend rocblas_ostream& operator<<(rocblas_ostream& os, const rocblas_bfloat16& bf16)
+    friend rocblas_ostream& operator<<(rocblas_ostream& os, rocblas_bfloat16 bf16)
     {
-        return os << double(bf16);
+        os << double(bf16);
+        return os;
+    }
+
+    // Integer output
+    friend rocblas_ostream& operator<<(rocblas_ostream& os, int32_t x)
+    {
+        os.os << x;
+        return os;
+    }
+
+    friend rocblas_ostream& operator<<(rocblas_ostream& os, uint32_t x)
+    {
+        os.os << x;
+        return os;
+    }
+
+    friend rocblas_ostream& operator<<(rocblas_ostream& os, int64_t x)
+    {
+        os.os << x;
+        return os;
+    }
+
+    friend rocblas_ostream& operator<<(rocblas_ostream& os, uint64_t x)
+    {
+        os.os << x;
+        return os;
     }
 
     // Complex output
@@ -170,44 +193,21 @@ public:
 
     friend rocblas_ostream& operator<<(rocblas_ostream& os, const std::string& s)
     {
-        os.os << s.c_str();
-        return os;
+        return os << s.c_str();
     }
 
-    // Disallow default and copy construction and assignment
-    rocblas_ostream()                       = delete;
-    rocblas_ostream(const rocblas_ostream&) = delete;
-    rocblas_ostream& operator=(const rocblas_ostream&) = delete;
-    rocblas_ostream& operator=(rocblas_ostream&&) = delete;
-
-    // Allow move constructor
-    rocblas_ostream(rocblas_ostream&& other)
-        : os(other.os)
-        , worker(std::move(other.worker))
+    // Transfer rocblas_ostream to std::ostream
+    friend std::ostream& operator<<(std::ostream& os, const rocblas_ostream& str)
     {
+        return os << str.str();
     }
+
+    // IO Manipulators
+    friend rocblas_ostream& operator<<(rocblas_ostream& os, std::ostream& (*pf)(std::ostream&));
 };
 
-// rocblas_ostringstream acts like std::ostringstream
-struct rocblas_ostringstream : rocblas_ostream, std::ostringstream
-{
-    rocblas_ostringstream()
-        : rocblas_ostream(static_cast<std::ostringstream&>(*this))
-        , std::ostringstream()
-    {
-    }
-
-    rocblas_ostringstream(rocblas_ostringstream&& other)
-        : rocblas_ostream(std::move(other))
-        , std::ostringstream(std::move(other))
-    {
-    }
-
-    explicit rocblas_ostringstream(const std::string& s)
-        : rocblas_ostream(static_cast<std::ostringstream&>(*this))
-        , std::ostringstream(s)
-    {
-    }
-};
+// Output streams
+extern rocblas_ostream rocblas_cout;
+extern rocblas_ostream rocblas_cerr;
 
 #endif

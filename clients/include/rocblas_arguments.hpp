@@ -5,6 +5,7 @@
 #ifndef ROCBLAS_ARGUMENTS_H_
 #define ROCBLAS_ARGUMENTS_H_
 
+#include "../../library/src/include/rocblas_ostream.hpp"
 #include "rocblas.h"
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_math.hpp"
@@ -173,7 +174,8 @@ private:
 
     // Function to print Arguments out to stream in YAML format
     // Google Tests uses this automatically to dump parameters
-    friend std::ostream& operator<<(std::ostream& str, const Arguments& arg);
+    friend rocblas_ostream& operator<<(rocblas_ostream& str, const Arguments& arg);
+    friend std::ostream&    operator<<(std::ostream& str, const Arguments& arg);
 
     // Function to read Structures data from stream
     friend std::istream& operator>>(std::istream& str, Arguments& arg);
