@@ -138,7 +138,7 @@ get_os_id(OS_ID)
 message (STATUS "OS detected is ${OS_ID}")
 
 # Versioning via rocm-cmake
-set ( VERSION_STRING "2.15.0" )
+set ( VERSION_STRING "2.15.1" )
 rocm_setup_version( VERSION ${VERSION_STRING} )
 
 # Append our library helper cmake path and the cmake path for hip (for convenience)
@@ -191,7 +191,7 @@ if( BUILD_WITH_TENSILE )
     message (STATUS "using GIT Tensile fork=${tensile_fork} from branch=${tensile_tag}")
   endif()
   list(APPEND CMAKE_PREFIX_PATH ${VIRTUALENV_HOME_DIR})
-  find_package(Tensile 4.14.0 EXACT REQUIRED HIP LLVM OpenMP PATHS "${INSTALLED_TENSILE_PATH}")
+  find_package(Tensile 4.15.0 EXACT REQUIRED HIP LLVM OpenMP PATHS "${INSTALLED_TENSILE_PATH}")
 endif()
 
 # Find HCC/HIP dependencies
