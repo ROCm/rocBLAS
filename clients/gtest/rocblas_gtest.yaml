@@ -1,6 +1,7 @@
 include: blas1_gtest.yaml
 include: gbmv_gtest.yaml
 include: gemv_gtest.yaml
+include: hbmv_gtest.yaml
 include: hemv_gtest.yaml
 include: gemm_gtest.yaml
 include: gemm_batched_gtest.yaml
