@@ -10,7 +10,6 @@ ARG user_uid
 RUN yum install -y \
     sudo \
     rock-dkms \
-    rocm_smi64 \
     centos-release-scl \
     devtoolset-7 \
     ca-certificates \
@@ -19,7 +18,6 @@ RUN yum install -y \
     make \
     clang \
     clang-devel \
-    gcc-c++ \
     gcc-gfortran \
     gtest-devel \ 
     gtest \
