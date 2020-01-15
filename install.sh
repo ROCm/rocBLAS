@@ -138,17 +138,17 @@ install_packages( )
 
   # dependencies needed to build the rocblas library
   local library_dependencies_ubuntu=( "make" "cmake-curses-gui" "pkg-config"
-                                      "python2.7" "python3" "python-yaml" "python3-yaml"
+                                      "python2.7" "python3" "python-yaml" "python3-yaml" "python3*-distutils"
                                       "llvm-6.0-dev" "zlib1g-dev" "wget")
   local library_dependencies_centos=( "epel-release"
                                       "make" "cmake3" "rpm-build"
-                                      "python34" "PyYAML" "python3*-PyYAML"
+                                      "python34" "PyYAML" "python3*-PyYAML" "python3*-distutils-extra"
                                       "gcc-c++" "llvm7.0-devel" "llvm7.0-static"
                                       "zlib-devel" "wget" )
   local library_dependencies_fedora=( "make" "cmake" "rpm-build"
-                                      "python34" "PyYAML" "python3*-PyYAML"
+                                      "python34" "PyYAML" "python3*-PyYAML" "python3*-distutils-extra"
                                       "gcc-c++" "libcxx-devel" "zlib-devel" "wget" )
-  local library_dependencies_sles=(   "make" "cmake" "python3-PyYAM"
+  local library_dependencies_sles=(   "make" "cmake" "python3-PyYAM" "python3-distutils-extra"
                                       "gcc-c++" "libcxxtools9" "rpm-build" "wget" )
 
   if [[ "${build_cuda}" == true ]]; then
@@ -169,9 +169,9 @@ install_packages( )
 
   # dependencies to build the client
   local client_dependencies_ubuntu=( "gfortran" "libomp-dev" "libboost-program-options-dev")
-  local client_dependencies_centos=( "gcc-gfortran" "libgomp" "boost-devel")
-  local client_dependencies_fedora=( "gcc-gfortran" "libgomp" "boost-devel")
-  local client_dependencies_sles=( "gcc-fortran" "libgomp1" "libboost_program_options1_66_0-devel" "boost-devel")
+  local client_dependencies_centos=( "devtoolset-7-gcc-gfortran" "libgomp" "boost-devel" )
+  local client_dependencies_fedora=( "gcc-gfortran" "libgomp" "boost-devel" )
+  local client_dependencies_sles=( "gcc-fortran" "libgomp1" "libboost_program_options1_66_0-devel" )
 
   case "${ID}" in
     ubuntu)
@@ -507,7 +507,7 @@ pushd .
   fi
 
   if ["${build_hip_clang}" == true ]; then
-      cmake_common_options="${cmake_common_options} -DRUN_HEADER_TESTING=OFF"
+      cmake_common_options="${cmake_common_options} -DRUN_HEADER_TESTING=OFF -DCOMPILER_RT_BUILD_BUILTINS=ON -DLLVM_CONFIG_PATH=/usr/lib64/llvm7.0/bin/llvm-config"
   fi
 
   compiler="hcc"

@@ -68,6 +68,4 @@ foreach( exe ${sample_list} )
   endif( )
 endforeach( )
 
-# include order workaround to force /opt/rocm/include later in order to ignore installed rocblas
-set(CMAKE_CXX_FLAGS "-isystem /opt/rocm/include ${CMAKE_CXX_FLAGS}")
 
