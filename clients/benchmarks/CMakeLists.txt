@@ -9,9 +9,13 @@ set( Boost_ADDITIONAL_VERSIONS 1.65.1 1.65 )
 set( Boost_USE_STATIC_LIBS OFF )
 
 if(EXISTS /etc/redhat-release)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp=libgomp -pthread -stdlib=libstdc++ -std=c++14")
+    if(CXX_VERSION_STRING MATCHES "clang")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp=libgomp -pthread -stdlib=libstdc++ -std=c++14")
+    else()
+        set(CMAKE_CXX_FLAGS "-isystem /opt/rocm/include ${CMAKE_CXX_FLAGS} -fopenmp=libgomp -pthread")
+    endif()
 else()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -pthread")
+    set(CMAKE_CXX_FLAGS "-isystem /opt/rocm/include ${CMAKE_CXX_FLAGS} -fopenmp -pthread")
 endif()
 
 find_package( Boost COMPONENTS program_options )
@@ -76,16 +80,24 @@ if( OS_ID_rhel OR OS_ID_sles OR OS_ID_centos)
         set( OPENMP_INCLUDE_DIR /usr/lib64/gcc/x86_64-suse-linux/7/include/ )
         set( OPENMP_LIBRARY /usr/lib64/gcc/x86_64-suse-linux/7/libgomp.so )
     endif()
+   
+    if(EXISTS /opt/rocm/hcc/lib/clang/10.0.0/include/immintrin.h AND CMAKE_CXX_COMPILER MATCHES ".*/hcc$")
+        set( CLANG_INCLUDE_DIR /opt/rocm/hcc/lib/clang/10.0.0/include )
+    elseif (EXISTS /opt/rocm/hcc/lib/clang/9.0.0/include/immintrin.h)
+        set( CLANG_INCLUDE_DIR /opt/rocm/hcc/lib/clang/9.0.0/include AND CMAKE_CXX_COMPILER MATCHES ".*/hcc$")
+    else()
+        set( CLANG_INCLUDE_DIR )
+    endif()
 
     # External header includes included as system files
     target_include_directories( rocblas-bench
       SYSTEM PRIVATE
+        $<BUILD_INTERFACE:${CLANG_INCLUDE_DIR}>
         $<BUILD_INTERFACE:${OPENMP_INCLUDE_DIR}>
         $<BUILD_INTERFACE:${BLIS_INCLUDE_DIR}>
         $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
         $<BUILD_INTERFACE:${HIP_INCLUDE_DIRS}>
         $<BUILD_INTERFACE:${HCC_INCLUDE_DIRS}>
-        $<BUILD_INTERFACE:${GTEST_INCLUDE_DIRS}>
         $<BUILD_INTERFACE:${CBLAS_INCLUDE_DIRS}>
         )
 
@@ -101,7 +113,6 @@ else()
         $<BUILD_INTERFACE:${HIP_INCLUDE_DIRS}>
         $<BUILD_INTERFACE:${HCC_INCLUDE_DIRS}>
         $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
-        $<BUILD_INTERFACE:${GTEST_INCLUDE_DIRS}>
         $<BUILD_INTERFACE:${CBLAS_INCLUDE_DIRS}>
         $<BUILD_INTERFACE:${BLIS_INCLUDE_DIR}>
     )
