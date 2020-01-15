@@ -196,9 +196,7 @@ constexpr double hemv_gflop_count(rocblas_int n)
 template <typename T>
 constexpr double hpmv_gflop_count(rocblas_int n)
 {
-    // TODO: this.
-    return 0.0;
-    // return (8.0 * n * n + 8.0 * n) / 1e9;
+    return (8.0 * n * n + 8.0 * n) / 1e9;
 }
 
 /* \brief floating point counts of TRSV */

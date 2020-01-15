@@ -268,80 +268,80 @@ void testing_hpmv_strided_batched(const Arguments& arg)
     /* =====================================================================
            ROCBLAS
     =================================================================== */
-    // if(arg.unit_check || arg.norm_check)
-    // {
-    //     CHECK_HIP_ERROR(dy_1.transfer_from(hy_1));
-    //     CHECK_HIP_ERROR(dy_2.transfer_from(hy_2));
-    //     CHECK_HIP_ERROR(d_alpha.transfer_from(halpha));
-    //     CHECK_HIP_ERROR(d_beta.transfer_from(hbeta));
+    if(arg.unit_check || arg.norm_check)
+    {
+        CHECK_HIP_ERROR(dy_1.transfer_from(hy_1));
+        CHECK_HIP_ERROR(dy_2.transfer_from(hy_2));
+        CHECK_HIP_ERROR(d_alpha.transfer_from(halpha));
+        CHECK_HIP_ERROR(d_beta.transfer_from(hbeta));
 
-    //     CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-    //     CHECK_ROCBLAS_ERROR(rocblas_hpmv_strided_batched<T>(handle,
-    //                                                         uplo,
-    //                                                         N,
-    //                                                         &h_alpha,
-    //                                                         dA,
-    //                                                         stride_A,
-    //                                                         dx,
-    //                                                         incx,
-    //                                                         stride_x,
-    //                                                         &h_beta,
-    //                                                         dy_1,
-    //                                                         incy,
-    //                                                         stride_y,
-    //                                                         batch_count));
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+        CHECK_ROCBLAS_ERROR(rocblas_hpmv_strided_batched<T>(handle,
+                                                            uplo,
+                                                            N,
+                                                            &h_alpha,
+                                                            dA,
+                                                            stride_A,
+                                                            dx,
+                                                            incx,
+                                                            stride_x,
+                                                            &h_beta,
+                                                            dy_1,
+                                                            incy,
+                                                            stride_y,
+                                                            batch_count));
 
-    //     CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-    //     CHECK_ROCBLAS_ERROR(rocblas_hpmv_strided_batched<T>(handle,
-    //                                                         uplo,
-    //                                                         N,
-    //                                                         d_alpha,
-    //                                                         dA,
-    //                                                         stride_A,
-    //                                                         dx,
-    //                                                         incx,
-    //                                                         stride_x,
-    //                                                         d_beta,
-    //                                                         dy_2,
-    //                                                         incy,
-    //                                                         stride_y,
-    //                                                         batch_count));
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+        CHECK_ROCBLAS_ERROR(rocblas_hpmv_strided_batched<T>(handle,
+                                                            uplo,
+                                                            N,
+                                                            d_alpha,
+                                                            dA,
+                                                            stride_A,
+                                                            dx,
+                                                            incx,
+                                                            stride_x,
+                                                            d_beta,
+                                                            dy_2,
+                                                            incy,
+                                                            stride_y,
+                                                            batch_count));
 
-    //     // copy output from device to CPU
-    //     CHECK_HIP_ERROR(hy_1.transfer_from(dy_1));
-    //     CHECK_HIP_ERROR(hy_2.transfer_from(dy_2));
+        // copy output from device to CPU
+        CHECK_HIP_ERROR(hy_1.transfer_from(dy_1));
+        CHECK_HIP_ERROR(hy_2.transfer_from(dy_2));
 
-    //     // CPU BLAS
-    //     cpu_time_used = get_time_us();
+        // CPU BLAS
+        cpu_time_used = get_time_us();
 
-    //     for(int b = 0; b < batch_count; b++)
-    //         cblas_hpmv<T>(uplo,
-    //                       N,
-    //                       h_alpha,
-    //                       hA + b * stride_A,
-    //                       hx + b * stride_x,
-    //                       incx,
-    //                       h_beta,
-    //                       hy_gold + b * stride_y,
-    //                       incy);
+        for(int b = 0; b < batch_count; b++)
+            cblas_hpmv<T>(uplo,
+                          N,
+                          h_alpha,
+                          hA + b * stride_A,
+                          hx + b * stride_x,
+                          incx,
+                          h_beta,
+                          hy_gold + b * stride_y,
+                          incy);
 
-    //     cpu_time_used = get_time_us() - cpu_time_used;
-    //     cblas_gflops  = batch_count * hpmv_gflop_count<T>(N) / cpu_time_used * 1e6;
+        cpu_time_used = get_time_us() - cpu_time_used;
+        cblas_gflops  = batch_count * hpmv_gflop_count<T>(N) / cpu_time_used * 1e6;
 
-    //     if(arg.unit_check)
-    //     {
-    //         unit_check_general<T>(1, N, batch_count, abs_incy, stride_y, hy_gold, hy_1);
-    //         unit_check_general<T>(1, N, batch_count, abs_incy, stride_y, hy_gold, hy_2);
-    //     }
+        if(arg.unit_check)
+        {
+            unit_check_general<T>(1, N, batch_count, abs_incy, stride_y, hy_gold, hy_1);
+            unit_check_general<T>(1, N, batch_count, abs_incy, stride_y, hy_gold, hy_2);
+        }
 
-    //     if(arg.norm_check)
-    //     {
-    //         rocblas_error_1
-    //             = norm_check_general<T>('F', 1, N, abs_incy, stride_y, batch_count, hy_gold, hy_1);
-    //         rocblas_error_2
-    //             = norm_check_general<T>('F', 1, N, abs_incy, stride_y, batch_count, hy_gold, hy_2);
-    //     }
-    // }
+        if(arg.norm_check)
+        {
+            rocblas_error_1
+                = norm_check_general<T>('F', 1, N, abs_incy, stride_y, batch_count, hy_gold, hy_1);
+            rocblas_error_2
+                = norm_check_general<T>('F', 1, N, abs_incy, stride_y, batch_count, hy_gold, hy_2);
+        }
+    }
 
     if(arg.timing)
     {
