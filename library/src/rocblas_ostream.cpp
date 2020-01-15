@@ -1,3 +1,7 @@
+/* ************************************************************************
+ * Copyright 2020 Advanced Micro Devices, Inc.
+ * ************************************************************************ */
+
 #include "rocblas_ostream.hpp"
 #include <cerrno>
 #include <cstddef>
@@ -54,7 +58,7 @@ void rocblas_ostream::worker::thread_function()
         log.reset();
 
         // Flush the data and detect error
-        if(ferror(file) || fflush(file))
+        if(ferror(file))
         {
             perror("Error writing log file");
             break;
@@ -120,12 +124,6 @@ std::shared_ptr<rocblas_ostream::worker> rocblas_ostream::get_worker(int fd)
         }
     };
 
-    // Map from file_id to a worker shared_ptr
-    static std::map<file_id_t, std::shared_ptr<worker>, file_id_less> map;
-
-    // Mutex for accessing the map
-    static std::mutex map_mutex;
-
     // C++ allows type punning of common initial sequences
     union
     {
@@ -139,6 +137,12 @@ std::shared_ptr<rocblas_ostream::worker> rocblas_ostream::get_worker(int fd)
         perror("Error executing fstat()");
         return {};
     }
+
+    // Map from file_id to a worker shared_ptr
+    static std::map<file_id_t, std::shared_ptr<worker>, file_id_less> map;
+
+    // Mutex for accessing the map
+    static std::mutex map_mutex;
 
     // Lock the map
     std::lock_guard<std::mutex> lock(map_mutex);
@@ -160,7 +164,7 @@ rocblas_ostream::rocblas_ostream(int fd)
 {
     if(!worker_ptr)
     {
-        dprintf(STDERR_FILENO, "Cannot clone file descriptor %d: %m\n", fd);
+        dprintf(STDERR_FILENO, "Cannot dup file descriptor %d: %m\n", fd);
         abort();
     }
 }

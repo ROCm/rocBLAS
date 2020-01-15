@@ -244,7 +244,7 @@ inline rocblas_status log_trace_alpha_beta_ex(rocblas_datatype compute_type,
         break;
     case rocblas_datatype_f64_c:
         alphass << log_trace_scalar_value(reinterpret_cast<const rocblas_double_complex*>(alpha));
-        alphass << log_trace_scalar_value(reinterpret_cast<const rocblas_double_complex*>(beta));
+        betass << log_trace_scalar_value(reinterpret_cast<const rocblas_double_complex*>(beta));
         break;
     default:
         return rocblas_status_not_implemented;

@@ -701,7 +701,8 @@ namespace
         {
             static int msg
                 = (rocblas_cerr << "WARNING: TRSV invA_size argument is too small; invA argument "
-                                   "is being ignored; TRSV performance is degraded\n",
+                                   "is being ignored; TRSV performance is degraded"
+                                << std::endl,
                    0);
             perf_status   = rocblas_status_perf_degraded;
             supplied_invA = nullptr;
