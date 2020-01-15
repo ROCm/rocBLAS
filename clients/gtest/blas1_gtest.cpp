@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2019 Advanced Micro Devices, Inc.
+ * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "rocblas_data.hpp"
 #include "rocblas_datatype2string.hpp"
@@ -320,51 +320,46 @@ namespace
 
 // Creates tests for one of the BLAS 1 functions
 // ARG passes 1-3 template arguments to the testing_* function
-// clang-format off
-#define BLAS1_TESTING(NAME, ARG)                                               \
-struct blas1_##NAME                                                            \
-{                                                                              \
-    template <typename Ti, typename To = Ti, typename Tc = To, typename = void>\
-    struct testing : rocblas_test_invalid {};                                  \
-                                                                               \
-    template <typename Ti, typename To, typename Tc>                           \
-    struct testing<Ti,                                                         \
-                   To,                                                         \
-                   Tc,                                                         \
-                   typename std::enable_if<                                    \
-                       blas1_enabled<blas1::NAME, Ti, To, Tc>{}>::type>        \
-       : rocblas_test_valid                                                    \
-    {                                                                          \
-        void operator()(const Arguments& arg)                                  \
-        {                                                                      \
-            if(!strcmp(arg.function, #NAME))                                   \
-                testing_##NAME<ARG(Ti, To, Tc)>(arg);                          \
-            else if(!strcmp(arg.function, #NAME "_bad_arg"))                   \
-                testing_##NAME##_bad_arg<ARG(Ti, To, Tc)>(arg);                \
-            else                                                               \
-                FAIL() << "Internal error: Test called with unknown function: "\
-                       << arg.function;                                        \
-        }                                                                      \
-    };                                                                         \
-};                                                                             \
-                                                                               \
-using NAME = blas1_test_template<blas1_##NAME::template testing, blas1::NAME>; \
-                                                                               \
-template<>                                                                     \
-inline bool NAME::function_filter(const Arguments& arg)                        \
-{                                                                              \
-    return !strcmp(arg.function, #NAME) ||                                     \
-           !strcmp(arg.function, #NAME "_bad_arg");                            \
-}                                                                              \
-                                                                               \
-TEST_P(NAME, blas1)                                                            \
-{                                                                              \
-    rocblas_blas1_dispatch<blas1_##NAME::template testing>(GetParam());        \
-}                                                                              \
-                                                                               \
-INSTANTIATE_TEST_CATEGORIES(NAME)
-
-    // clang-format on
+#define BLAS1_TESTING(NAME, ARG)                                                               \
+    struct blas1_##NAME                                                                        \
+    {                                                                                          \
+        template <typename Ti, typename To = Ti, typename Tc = To, typename = void>            \
+        struct testing : rocblas_test_invalid                                                  \
+        {                                                                                      \
+        };                                                                                     \
+                                                                                               \
+        template <typename Ti, typename To, typename Tc>                                       \
+        struct testing<Ti, To, Tc, std::enable_if_t<blas1_enabled<blas1::NAME, Ti, To, Tc>{}>> \
+            : rocblas_test_valid                                                               \
+        {                                                                                      \
+            void operator()(const Arguments& arg)                                              \
+            {                                                                                  \
+                if(!strcmp(arg.function, #NAME))                                               \
+                    testing_##NAME<ARG(Ti, To, Tc)>(arg);                                      \
+                else if(!strcmp(arg.function, #NAME "_bad_arg"))                               \
+                    testing_##NAME##_bad_arg<ARG(Ti, To, Tc)>(arg);                            \
+                else                                                                           \
+                    FAIL() << "Internal error: Test called with unknown function: "            \
+                           << arg.function;                                                    \
+            }                                                                                  \
+        };                                                                                     \
+    };                                                                                         \
+                                                                                               \
+    using NAME = blas1_test_template<blas1_##NAME::template testing, blas1::NAME>;             \
+                                                                                               \
+    template <>                                                                                \
+    inline bool NAME::function_filter(const Arguments& arg)                                    \
+    {                                                                                          \
+        return !strcmp(arg.function, #NAME) || !strcmp(arg.function, #NAME "_bad_arg");        \
+    }                                                                                          \
+                                                                                               \
+    TEST_P(NAME, blas1)                                                                        \
+    {                                                                                          \
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(                                              \
+            rocblas_blas1_dispatch<blas1_##NAME::template testing>(GetParam()));               \
+    }                                                                                          \
+                                                                                               \
+    INSTANTIATE_TEST_CATEGORIES(NAME)
 
 #define ARG1(Ti, To, Tc) Ti
 #define ARG2(Ti, To, Tc) Ti, To

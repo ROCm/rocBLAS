@@ -16,7 +16,6 @@ ARG user_uid
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
     rock-dkms \
     sudo \
-    rocm_smi64 \
     ca-certificates \
     git \
     make \
@@ -38,6 +37,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
     libpthread-stubs0-dev \
     libomp-dev \
     zlib1g-dev \
+    wget \
     && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*

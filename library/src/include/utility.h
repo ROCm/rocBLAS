@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2019 Advanced Micro Devices, Inc.
+ * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #ifndef UTILITY_H
@@ -8,6 +8,7 @@
 #include "rocblas.h"
 #include <cmath>
 #include <complex>
+#include <exception>
 #include <hip/hip_runtime.h>
 #include <type_traits>
 
@@ -30,13 +31,13 @@ __device__ inline rocblas_half2
 
 // Conjugate a value. For most types, simply return argument; for
 // rocblas_float_complex and rocblas_double_complex, return std::conj(z)
-template <typename T, typename std::enable_if<!is_complex<T>, int>::type = 0>
+template <typename T, std::enable_if_t<!is_complex<T>, int> = 0>
 __device__ __host__ inline T conj(const T& z)
 {
     return z;
 }
 
-template <typename T, typename std::enable_if<is_complex<T>, int>::type = 0>
+template <typename T, std::enable_if_t<is_complex<T>, int> = 0>
 __device__ __host__ inline T conj(const T& z)
 {
     return std::conj(z);
@@ -251,6 +252,7 @@ template <> static constexpr auto rocblas_datatype_from_type<rocblas_bfloat16>  
 
 // return precision string for data type
 template <typename> static constexpr char rocblas_precision_string                [] = "invalid";
+template <> static constexpr char rocblas_precision_string<rocblas_bfloat16      >[] = "bf16_r";
 template <> static constexpr char rocblas_precision_string<rocblas_half          >[] = "f16_r";
 template <> static constexpr char rocblas_precision_string<float                 >[] = "f32_r";
 template <> static constexpr char rocblas_precision_string<double                >[] = "f64_r";
@@ -309,14 +311,14 @@ constexpr rocblas_status get_rocblas_status_for_hip_status(hipError_t status)
 }
 
 // Absolute value
-template <typename T, typename std::enable_if<!is_complex<T>, int>::type = 0>
+template <typename T, std::enable_if_t<!is_complex<T>, int> = 0>
 __device__ __host__ inline T rocblas_abs(T x)
 {
     return x < 0 ? -x : x;
 }
 
 // For complex, we have defined a __device__ __host__ compatible std::abs
-template <typename T, typename std::enable_if<is_complex<T>, int>::type = 0>
+template <typename T, std::enable_if_t<is_complex<T>, int> = 0>
 __device__ __host__ inline auto rocblas_abs(T x)
 {
     return std::abs(x);
@@ -346,4 +348,28 @@ inline std::ostream& operator<<(std::ostream& os, rocblas_half x)
 {
     return os << float(x);
 }
+
+// Convert the current C++ exception to rocblas_status
+// This allows extern "C" functions to return this function in a catch(...) block
+// while converting all C++ exceptions to an equivalent rocblas_status here
+inline rocblas_status exception_to_rocblas_status(std::exception_ptr e = std::current_exception())
+try
+{
+    if(e)
+        std::rethrow_exception(e);
+    return rocblas_status_success;
+}
+catch(const rocblas_status& status)
+{
+    return status;
+}
+catch(const std::bad_alloc&)
+{
+    return rocblas_status_memory_error;
+}
+catch(...)
+{
+    return rocblas_status_internal_error;
+}
+
 #endif

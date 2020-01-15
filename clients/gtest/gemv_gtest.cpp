@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2019 Advanced Micro Devices, Inc.
+ * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "rocblas_data.hpp"
@@ -79,7 +79,7 @@ namespace
     };
 
     // By default, arbitrary type combinations are invalid.
-    // The unnamed second parameter is used for enable_if below.
+    // The unnamed second parameter is used for enable_if_t below.
     template <typename, typename = void>
     struct gemv_testing : rocblas_test_invalid
     {
@@ -88,11 +88,10 @@ namespace
     // When the condition in the second argument is satisfied, the type combination
     // is valid. When the condition is false, this specialization does not apply.
     template <typename T>
-    struct gemv_testing<
-        T,
-        typename std::enable_if<std::is_same<T, float>{} || std::is_same<T, double>{}
-                                || std::is_same<T, rocblas_float_complex>{}
-                                || std::is_same<T, rocblas_double_complex>{}>::type>
+    struct gemv_testing<T,
+                        std::enable_if_t<std::is_same<T, float>{} || std::is_same<T, double>{}
+                                         || std::is_same<T, rocblas_float_complex>{}
+                                         || std::is_same<T, rocblas_double_complex>{}>>
         : rocblas_test_valid
     {
         void operator()(const Arguments& arg)
@@ -117,21 +116,21 @@ namespace
     using gemv = gemv_template<gemv_testing, GEMV>;
     TEST_P(gemv, blas2)
     {
-        rocblas_simple_dispatch<gemv_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<gemv_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(gemv);
 
     using gemv_batched = gemv_template<gemv_testing, GEMV_BATCHED>;
     TEST_P(gemv_batched, blas2)
     {
-        rocblas_simple_dispatch<gemv_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<gemv_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(gemv_batched);
 
     using gemv_strided_batched = gemv_template<gemv_testing, GEMV_STRIDED_BATCHED>;
     TEST_P(gemv_strided_batched, blas2)
     {
-        rocblas_simple_dispatch<gemv_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<gemv_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(gemv_strided_batched);
 

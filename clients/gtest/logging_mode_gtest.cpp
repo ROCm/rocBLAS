@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2019 Advanced Micro Devices, Inc.
+ * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "rocblas_data.hpp"
@@ -14,7 +14,7 @@
 namespace
 {
     // By default, this test does not apply to any types.
-    // The unnamed second parameter is used for enable_if below.
+    // The unnamed second parameter is used for enable_if_t below.
     template <typename, typename = void>
     struct logging_testing : rocblas_test_invalid
     {
@@ -23,9 +23,8 @@ namespace
     // When the condition in the second argument is satisfied, the type combination
     // is valid. When the condition is false, this specialization does not apply.
     template <typename T>
-    struct logging_testing<
-        T,
-        typename std::enable_if<std::is_same<T, float>{} || std::is_same<T, double>{}>::type>
+    struct logging_testing<T,
+                           std::enable_if_t<std::is_same<T, float>{} || std::is_same<T, double>{}>>
         : rocblas_test_valid
     {
         void operator()(const Arguments& arg)
@@ -60,7 +59,8 @@ namespace
 
     TEST_P(logging, auxilliary)
     {
-        rocblas_simple_dispatch<logging_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(
+            rocblas_simple_dispatch<logging_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(logging);
 

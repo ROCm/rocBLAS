@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2019 Advanced Micro Devices, Inc.
+ * Copyright 2018-2020 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
 
@@ -25,7 +25,7 @@ namespace
     };
 
     // By default, this test does not apply to any types.
-    // The unnamed second parameter is used for enable_if below.
+    // The unnamed second parameter is used for enable_if_t below.
     template <typename, typename = void>
     struct trsv_testing : rocblas_test_invalid
     {
@@ -34,9 +34,7 @@ namespace
     // When the condition in the second argument is satisfied, the type combination
     // is valid. When the condition is false, this specialization does not apply.
     template <typename T>
-    struct trsv_testing<
-        T,
-        typename std::enable_if<std::is_same<T, float>{} || std::is_same<T, double>{}>::type>
+    struct trsv_testing<T, std::enable_if_t<std::is_same<T, float>{} || std::is_same<T, double>{}>>
         : rocblas_test_valid
     {
         void operator()(const Arguments& arg)
@@ -102,21 +100,21 @@ namespace
     using trsv = trsv_template<trsv_testing, TRSV>;
     TEST_P(trsv, blas2)
     {
-        rocblas_simple_dispatch<trsv_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<trsv_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(trsv);
 
     using trsv_batched = trsv_template<trsv_testing, TRSV_BATCHED>;
     TEST_P(trsv_batched, blas2)
     {
-        rocblas_simple_dispatch<trsv_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<trsv_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(trsv_batched);
 
     using trsv_strided_batched = trsv_template<trsv_testing, TRSV_STRIDED_BATCHED>;
     TEST_P(trsv_strided_batched, blas2)
     {
-        rocblas_simple_dispatch<trsv_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<trsv_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(trsv_strided_batched);
 

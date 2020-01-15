@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2019 Advanced Micro Devices, Inc.
+ * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "rocblas_data.hpp"
 #include "rocblas_datatype2string.hpp"
@@ -133,11 +133,11 @@ namespace
     // When Ti = To = Tc != void, this test applies.
     // When converted to bool, this functor returns true.
     template <typename T>
-    struct gemm_testing<T,
-                        T,
-                        T,
-                        typename std::enable_if<!std::is_same<T, void>{}
-                                                && !std::is_same<T, rocblas_bfloat16>{}>::type>
+    struct gemm_testing<
+        T,
+        T,
+        T,
+        std::enable_if_t<!std::is_same<T, void>{} && !std::is_same<T, rocblas_bfloat16>{}>>
         : rocblas_test_valid
     {
         void operator()(const Arguments& arg)
@@ -160,21 +160,21 @@ namespace
     using gemm = gemm_test_template<gemm_testing, GEMM>;
     TEST_P(gemm, blas3)
     {
-        rocblas_gemm_dispatch<gemm_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_gemm_dispatch<gemm_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(gemm);
 
     using gemm_batched = gemm_test_template<gemm_testing, GEMM_BATCHED>;
     TEST_P(gemm_batched, blas3)
     {
-        rocblas_gemm_dispatch<gemm_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_gemm_dispatch<gemm_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(gemm_batched);
 
     using gemm_strided_batched = gemm_test_template<gemm_testing, GEMM_STRIDED_BATCHED>;
     TEST_P(gemm_strided_batched, blas3)
     {
-        rocblas_gemm_dispatch<gemm_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_gemm_dispatch<gemm_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(gemm_strided_batched);
 
@@ -199,9 +199,8 @@ namespace
         Ti,
         To,
         Tc,
-        typename std::enable_if<!std::is_same<Ti, void>{}
-                                && !(std::is_same<Ti, Tc>{}
-                                     && std::is_same<Ti, rocblas_bfloat16>{})>::type>
+        std::enable_if_t<!std::is_same<Ti, void>{}
+                         && !(std::is_same<Ti, Tc>{} && std::is_same<Ti, rocblas_bfloat16>{})>>
         : rocblas_test_valid
     {
         void operator()(const Arguments& arg)
@@ -226,21 +225,24 @@ namespace
     using gemm_ex = gemm_test_template<gemm_ex_testing, GEMM_EX>;
     TEST_P(gemm_ex, blas3)
     {
-        rocblas_gemm_dispatch<gemm_ex_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(
+            rocblas_gemm_dispatch<gemm_ex_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(gemm_ex);
 
     using gemm_batched_ex = gemm_test_template<gemm_ex_testing, GEMM_BATCHED_EX>;
     TEST_P(gemm_batched_ex, blas3)
     {
-        rocblas_gemm_dispatch<gemm_ex_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(
+            rocblas_gemm_dispatch<gemm_ex_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(gemm_batched_ex);
 
     using gemm_strided_batched_ex = gemm_test_template<gemm_ex_testing, GEMM_STRIDED_BATCHED_EX>;
     TEST_P(gemm_strided_batched_ex, blas3)
     {
-        rocblas_gemm_dispatch<gemm_ex_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(
+            rocblas_gemm_dispatch<gemm_ex_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(gemm_strided_batched_ex);
 

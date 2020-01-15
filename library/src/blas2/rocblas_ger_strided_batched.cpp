@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2019 Advanced Micro Devices, Inc.
+ * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "handle.h"
 #include "logging.h"
@@ -178,9 +178,14 @@ rocblas_status rocblas_sger_strided_batched(rocblas_handle handle,
                                             rocblas_int    lda,
                                             rocblas_stride strideA,
                                             rocblas_int    batch_count)
+try
 {
     return rocblas_ger_strided_batched_impl(
         handle, m, n, alpha, x, incx, stridex, y, incy, stridey, A, lda, strideA, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_dger_strided_batched(rocblas_handle handle,
@@ -197,9 +202,14 @@ rocblas_status rocblas_dger_strided_batched(rocblas_handle handle,
                                             rocblas_int    lda,
                                             rocblas_stride strideA,
                                             rocblas_int    batch_count)
+try
 {
     return rocblas_ger_strided_batched_impl(
         handle, m, n, alpha, x, incx, stridex, y, incy, stridey, A, lda, strideA, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 } // extern "C"

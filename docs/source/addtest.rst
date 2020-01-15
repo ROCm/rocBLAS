@@ -144,10 +144,8 @@ In the partial specialization(s), create a functional ``operator()`` which takes
 
     template <typename T>
     struct syr_testing<T,
-                       typename std::enable_if<
-                       std::is_same<T, float>::value ||
-                       std::is_same<T, double>::value
-                      >::type> : rocblas_test_valid
+                      std::enable_if_t<std::is_same<T, float>::value || std::is_same<T, double>::value>
+                      > : rocblas_test_valid
    {
        void operator()(const Arguments& arg)
        {
@@ -275,11 +273,13 @@ G. Choose a non-type-specific shorthand name for the test, which will be display
 
 H. Pass the name created in step G to the ``TEST_P`` macro, along with a broad test category name that this test belongs to (so that Google Test filtering can be used to select all tests in a category).
 
-In the body following this ``TEST_P`` macro, call the dispatch function from step E, passing it the class from step C as a template template argument, and passing the result of ``GetParam()`` as an ``Arguments`` structure. For example:
+In the body following this ``TEST_P`` macro, call the dispatch function from step E, passing it the class from step C as a template template argument, passing the result of ``GetParam()`` as an ``Arguments`` structure, and wrapping the call in the ``CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES()`` macro. For example:
 
 .. code-block:: c++
 
-   TEST_P(gemm, blas3) { rocblas_gemm_dispatch<gemm_testing>(GetParam()); }
+   TEST_P(gemm, blas3) { CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_gemm_dispatch<gemm_testing>(GetParam())); }
+
+The ``CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES()`` macro detects signals such as ``SIGSEGV`` and uncaught C++ exceptions returned from rocBLAS C APIs as failures, without terminating the test program.
 
 I. Call the ``INSTANTIATE_TEST_CATEGORIES`` macro which instantiates the Google Tests across all test categories (\ ``quick``\ , ``pre_checkin``\ , ``nightly``\ , ``known_bug``\ ), passing it the same test name as in steps G and H. For example:
 

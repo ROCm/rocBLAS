@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2019 Advanced Micro Devices, Inc.
+ * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "rocblas_copy.hpp"
 #include "handle.h"
@@ -70,9 +70,14 @@ rocblas_status rocblas_scopy(rocblas_handle handle,
                              rocblas_int    incx,
                              float*         y,
                              rocblas_int    incy)
+try
 {
     constexpr int NB = 256;
     return rocblas_copy_impl<NB>(handle, n, x, incx, y, incy);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_dcopy(rocblas_handle handle,
@@ -81,9 +86,14 @@ rocblas_status rocblas_dcopy(rocblas_handle handle,
                              rocblas_int    incx,
                              double*        y,
                              rocblas_int    incy)
+try
 {
     constexpr int NB = 256;
     return rocblas_copy_impl<NB>(handle, n, x, incx, y, incy);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_hcopy(rocblas_handle      handle,
@@ -92,9 +102,14 @@ rocblas_status rocblas_hcopy(rocblas_handle      handle,
                              rocblas_int         incx,
                              rocblas_half*       y,
                              rocblas_int         incy)
+try
 {
     constexpr int NB = 256;
     return rocblas_copy_impl<NB>(handle, n, x, incx, y, incy);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_ccopy(rocblas_handle               handle,
@@ -103,9 +118,14 @@ rocblas_status rocblas_ccopy(rocblas_handle               handle,
                              rocblas_int                  incx,
                              rocblas_float_complex*       y,
                              rocblas_int                  incy)
+try
 {
     constexpr int NB = 256;
     return rocblas_copy_impl<NB>(handle, n, x, incx, y, incy);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_zcopy(rocblas_handle                handle,
@@ -114,9 +134,14 @@ rocblas_status rocblas_zcopy(rocblas_handle                handle,
                              rocblas_int                   incx,
                              rocblas_double_complex*       y,
                              rocblas_int                   incy)
+try
 {
     constexpr int NB = 256;
     return rocblas_copy_impl<NB>(handle, n, x, incx, y, incy);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 } // extern "C"

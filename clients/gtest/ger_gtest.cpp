@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2019 Advanced Micro Devices, Inc.
+ * Copyright 2018-2020 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
 
@@ -87,7 +87,7 @@ namespace
     };
 
     // By default, this test does not apply to any types.
-    // The unnamed second parameter is used for enable_if below.
+    // The unnamed second parameter is used for enable_if_t below.
     template <typename, typename = void>
     struct ger_testing : rocblas_test_invalid
     {
@@ -96,9 +96,7 @@ namespace
     // When the condition in the second argument is satisfied, the type combination
     // is valid. When the condition is false, this specialization does not apply.
     template <typename T>
-    struct ger_testing<
-        T,
-        typename std::enable_if<std::is_same<T, float>{} || std::is_same<T, double>{}>::type>
+    struct ger_testing<T, std::enable_if_t<std::is_same<T, float>{} || std::is_same<T, double>{}>>
         : rocblas_test_valid
     {
         void operator()(const Arguments& arg)
@@ -123,21 +121,21 @@ namespace
     using ger = ger_template<ger_testing, GER>;
     TEST_P(ger, blas2)
     {
-        rocblas_simple_dispatch<ger_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<ger_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(ger);
 
     using ger_batched = ger_template<ger_testing, GER_BATCHED>;
     TEST_P(ger_batched, blas2)
     {
-        rocblas_simple_dispatch<ger_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<ger_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(ger_batched);
 
     using ger_strided_batched = ger_template<ger_testing, GER_STRIDED_BATCHED>;
     TEST_P(ger_strided_batched, blas2)
     {
-        rocblas_simple_dispatch<ger_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<ger_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(ger_strided_batched);
 

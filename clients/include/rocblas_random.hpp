@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2019 Advanced Micro Devices, Inc.
+ * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #ifndef ROCBLAS_RANDOM_H_
@@ -45,7 +45,7 @@ class rocblas_nan_rng
 
 public:
     // Random integer
-    template <typename T, typename std::enable_if<std::is_integral<T>{}, int>::type = 0>
+    template <typename T, std::enable_if_t<std::is_integral<T>{}, int> = 0>
     explicit operator T()
     {
         return std::uniform_int_distribution<T>{}(rocblas_rng);

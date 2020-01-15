@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2019 Advanced Micro Devices, Inc.
+ * Copyright 2018-2020 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
 
@@ -15,7 +15,7 @@
 namespace
 {
     // By default, this test does not apply to any types.
-    // The unnamed second parameter is used for enable_if below.
+    // The unnamed second parameter is used for enable_if_t below.
     template <typename, typename = void>
     struct symv_testing : rocblas_test_invalid
     {
@@ -28,7 +28,7 @@ namespace
 template <typename T>
 struct symv_testing<
     T,
-    typename std::enable_if<std::is_same<T, float>{} || std::is_same<T, double>{}>::type>
+    std::enable_if_t<std::is_same<T, float>{} || std::is_same<T, double>{}>>
     : rocblas_test_valid
 {
     void operator()(const Arguments& arg)
@@ -68,7 +68,7 @@ struct symv_testing<
 
     TEST_P(symv, blas2)
     {
-        rocblas_simple_dispatch<symv_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<symv_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(symv);
 

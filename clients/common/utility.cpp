@@ -1,11 +1,13 @@
 /* ************************************************************************
- * Copyright 2018-2019 Advanced Micro Devices, Inc.
+ * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "utility.hpp"
+#include "../../library/src/include/handle.h"
 #include "rocblas_random.hpp"
 #include <cstdlib>
 #include <cstring>
+#include <regex>
 #include <sys/time.h>
 
 // Random number generator
@@ -115,4 +117,47 @@ void set_device(rocblas_int device_id)
         printf("Set device error: cannot set device ID %d, there may not be such device ID\n",
                (int)device_id);
     }
+}
+
+/******************************************************************************************
+ * Function which matches category with test_category, accounting for known_bug_platforms *
+ ******************************************************************************************/
+bool match_test_category(const char* category,
+                         const char* test_category,
+                         const char* known_bug_platforms)
+{
+    // Prefix for tests matching known bugs, but only on certain platforms
+    static constexpr char prefix[] = "known_bug_platforms_";
+
+    // If the test category matches the prefix
+    if(!strncmp(test_category, prefix, sizeof(prefix) - 1))
+    {
+        // Move test_category past the prefix to get the normal test category name
+        test_category += sizeof(prefix) - 1;
+
+        // Regular expression for token delimiters
+        static const std::regex regex("[:, \\f\\n\\r\\t\\v]+", std::regex_constants::optimize);
+
+        // The name of the current GPU platform
+        static const std::string platform
+            = "gfx" + std::to_string(_rocblas_handle::device_arch_id());
+
+        // Token iterator
+        std::cregex_token_iterator iter(
+            known_bug_platforms, known_bug_platforms + strlen(known_bug_platforms), regex, -1);
+
+        // Iterate across tokens
+        for(; iter != std::cregex_token_iterator(); ++iter)
+        {
+            // If a platform matches, set test_category to known_bug
+            if(iter->str() == platform)
+            {
+                test_category = "known_bug";
+                break;
+            }
+        }
+    }
+
+    // Return whether test_category matches the requested category
+    return !strcmp(test_category, category);
 }

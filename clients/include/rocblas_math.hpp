@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2019 Advanced Micro Devices, Inc.
+ * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #ifndef ROCBLAS_MATH_H_
@@ -31,20 +31,19 @@ inline __host__ rocblas_bfloat16 float_to_bfloat16_truncate(float val)
 /* ============================================================================================ */
 /*! \brief  returns true if value is NaN */
 
-template <typename T, typename std::enable_if<std::is_integral<T>{}, int>::type = 0>
+template <typename T, std::enable_if_t<std::is_integral<T>{}, int> = 0>
 inline bool rocblas_isnan(T)
 {
     return false;
 }
 
-template <typename T,
-          typename std::enable_if<!std::is_integral<T>{} && !is_complex<T>, int>::type = 0>
+template <typename T, std::enable_if_t<!std::is_integral<T>{} && !is_complex<T>, int> = 0>
 inline bool rocblas_isnan(T arg)
 {
     return std::isnan(arg);
 }
 
-template <typename T, typename std::enable_if<is_complex<T>, int>::type = 0>
+template <typename T, std::enable_if_t<is_complex<T>, int> = 0>
 inline bool rocblas_isnan(const T& arg)
 {
     return rocblas_isnan(std::real(arg)) || rocblas_isnan(std::imag(arg));

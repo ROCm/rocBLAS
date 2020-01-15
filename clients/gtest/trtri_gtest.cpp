@@ -17,7 +17,7 @@
 namespace
 {
     // By default, this test does not apply to any types.
-    // The unnamed second parameter is used for enable_if below.
+    // The unnamed second parameter is used for enable_if_t below.
     template <typename, typename = void>
     struct trtri_testing : rocblas_test_invalid
     {
@@ -26,11 +26,10 @@ namespace
     // When the condition in the second argument is satisfied, the type combination
     // is valid. When the condition is false, this specialization does not apply.
     template <typename T>
-    struct trtri_testing<
-        T,
-        typename std::enable_if<std::is_same<T, float>{} || std::is_same<T, double>{}
-                                || std::is_same<T, rocblas_float_complex>{}
-                                || std::is_same<T, rocblas_double_complex>{}>::type>
+    struct trtri_testing<T,
+                         std::enable_if_t<std::is_same<T, float>{} || std::is_same<T, double>{}
+                                          || std::is_same<T, rocblas_float_complex>{}
+                                          || std::is_same<T, rocblas_double_complex>{}>>
         : rocblas_test_valid
     {
         void operator()(const Arguments& arg)
@@ -88,21 +87,24 @@ namespace
     using trtri = trtri_template<trtri_k>;
     TEST_P(trtri, blas3)
     {
-        rocblas_simple_dispatch<trtri_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(
+            rocblas_simple_dispatch<trtri_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(trtri);
 
     using trtri_batched = trtri_template<trtri_batched_k>;
     TEST_P(trtri_batched, blas3)
     {
-        rocblas_simple_dispatch<trtri_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(
+            rocblas_simple_dispatch<trtri_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(trtri_batched);
 
     using trtri_strided_batched = trtri_template<trtri_strided_batched_k>;
     TEST_P(trtri_strided_batched, blas3)
     {
-        rocblas_simple_dispatch<trtri_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(
+            rocblas_simple_dispatch<trtri_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(trtri_strided_batched);
 

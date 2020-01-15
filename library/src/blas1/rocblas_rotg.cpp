@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2019 Advanced Micro Devices, Inc.
+ * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "rocblas_rotg.hpp"
 #include "handle.h"
@@ -57,13 +57,23 @@ namespace
 extern "C" {
 
 rocblas_status rocblas_srotg(rocblas_handle handle, float* a, float* b, float* c, float* s)
+try
 {
     return rocblas_rotg_impl(handle, a, b, c, s);
 }
+catch(...)
+{
+    return exception_to_rocblas_status();
+}
 
 rocblas_status rocblas_drotg(rocblas_handle handle, double* a, double* b, double* c, double* s)
+try
 {
     return rocblas_rotg_impl(handle, a, b, c, s);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_crotg(rocblas_handle         handle,
@@ -71,8 +81,13 @@ rocblas_status rocblas_crotg(rocblas_handle         handle,
                              rocblas_float_complex* b,
                              float*                 c,
                              rocblas_float_complex* s)
+try
 {
     return rocblas_rotg_impl(handle, a, b, c, s);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_zrotg(rocblas_handle          handle,
@@ -80,8 +95,13 @@ rocblas_status rocblas_zrotg(rocblas_handle          handle,
                              rocblas_double_complex* b,
                              double*                 c,
                              rocblas_double_complex* s)
+try
 {
     return rocblas_rotg_impl(handle, a, b, c, s);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 } // extern "C"

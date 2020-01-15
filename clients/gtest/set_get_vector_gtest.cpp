@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2019 Advanced Micro Devices, Inc.
+ * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "rocblas_data.hpp"
@@ -60,7 +60,7 @@ namespace
     };
 
     // By default, arbitrary type combinations are invalid.
-    // The unnamed second parameter is used for enable_if below.
+    // The unnamed second parameter is used for enable_if_t below.
     template <typename, typename = void>
     struct set_get_vector_testing : rocblas_test_invalid
     {
@@ -71,7 +71,7 @@ namespace
     template <typename T>
     struct set_get_vector_testing<
         T,
-        typename std::enable_if<std::is_same<T, float>{} || std::is_same<T, double>{}>::type>
+        std::enable_if_t<std::is_same<T, float>{} || std::is_same<T, double>{}>>
         : rocblas_test_valid
     {
         void operator()(const Arguments& arg)
@@ -88,14 +88,16 @@ namespace
     using set_get_vector_sync = vec_set_get_template<set_get_vector_testing, SET_GET_VECTOR_SYNC>;
     TEST_P(set_get_vector_sync, auxilliary)
     {
-        rocblas_simple_dispatch<set_get_vector_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(
+            rocblas_simple_dispatch<set_get_vector_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(set_get_vector_sync);
 
     using set_get_vector_async = vec_set_get_template<set_get_vector_testing, SET_GET_VECTOR_ASYNC>;
     TEST_P(set_get_vector_async, auxilliary)
     {
-        rocblas_simple_dispatch<set_get_vector_testing>(GetParam());
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(
+            rocblas_simple_dispatch<set_get_vector_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(set_get_vector_async);
 

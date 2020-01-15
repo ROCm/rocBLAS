@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2019 Advanced Micro Devices, Inc.
+ * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "rocblas_trsv.hpp"
 #include "handle.h"
@@ -157,8 +157,13 @@ rocblas_status rocblas_strsv(rocblas_handle    handle,
                              rocblas_int       lda,
                              float*            x,
                              rocblas_int       incx)
+try
 {
     return rocblas_trsv_ex_impl<STRSV_BLOCK>(handle, uplo, transA, diag, m, A, lda, x, incx);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_dtrsv(rocblas_handle    handle,
@@ -170,8 +175,13 @@ rocblas_status rocblas_dtrsv(rocblas_handle    handle,
                              rocblas_int       lda,
                              double*           x,
                              rocblas_int       incx)
+try
 {
     return rocblas_trsv_ex_impl<DTRSV_BLOCK>(handle, uplo, transA, diag, m, A, lda, x, incx);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 rocblas_status rocblas_trsv_ex(rocblas_handle    handle,
@@ -186,7 +196,7 @@ rocblas_status rocblas_trsv_ex(rocblas_handle    handle,
                                const void*       invA,
                                rocblas_int       invA_size,
                                rocblas_datatype  compute_type)
-
+try
 {
     switch(compute_type)
     {
@@ -219,6 +229,10 @@ rocblas_status rocblas_trsv_ex(rocblas_handle    handle,
     default:
         return rocblas_status_not_implemented;
     }
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 } // extern "C"
