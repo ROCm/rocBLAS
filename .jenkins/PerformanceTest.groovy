@@ -33,6 +33,41 @@ rocBLASCI:
         // Print out available environment variables
         echo sh(script: 'env|sort', returnStdout: true)
 
+        def command = """#!/usr/bin/env bash
+                        set -x
+                        pwd
+                        cd ${project.paths.project_build_prefix}
+                        workingdir=`pwd`
+
+                        pushd scripts/performance/blas/
+
+                        shopt expand_aliases
+                        shopt -s expand_aliases
+                        shopt expand_aliases
+
+                        python -V
+                        alias python=python3
+                        python -V
+
+                        #get device name from /dev/dri
+                        devicename=\$(echo \$(ls /dev/dri) | sed 's/.*\\(card[0-9]\\).*/\\1/')
+                        echo \$devicename
+                        #get device num from device name
+                        wget -nv http://10.216.151.18:8080/job/Performance/job/rocBLAS/job/PR-895/lastSuccessfulBuild/artifact/*zip*/archive.zip
+                        wgetreturn=\$?
+                        if [[ \$wgetreturn -eq 8 ]]; then
+                            echo "Download error"
+                        else
+                            unzip -o archive.zip
+                            tar archive/*/*/*/perfoutput.tar
+                            mv perfoutput perfoutput2
+                            tar archive/*/*/*/perfoutput.tar
+                            pushd scripts/performance/blas/
+                            python alltime.py -T -o \$workingdir/perfoutput -b \$workingdir/perfoutput2 -g 1 -i perf.yaml
+                        fi
+                        """
+        platform.runCommand(this, command)
+
         commonGroovy = load "${project.paths.project_src_prefix}/.jenkins/Common.groovy"
         commonGroovy.runCompileCommand(platform, project)
     }
@@ -72,12 +107,18 @@ rocBLASCI:
                         popd
 
                         ls perfoutput
-                        tar -cvf perfoutput.tar perfoutput
+                        tar -cvf perfoutput_${project.email.gpuLabel}.tar perfoutput
 
-                        wget http://10.216.151.18:8080/job/Performance/job/${project.name}/job/develop/lastSuccessfulBuild/artifact/*zip*/archive.zip
+                        #wget http://10.216.151.18:8080/job/Performance/job/${project.name}/job/develop/lastSuccessfulBuild/artifact/*zip*/archive.zip
+                        wget -nv http://10.216.151.18:8080/job/Performance/job/rocBLAS/job/PR-895/lastSuccessfulBuild/artifact/*zip*/archive.zip
                         wgetreturn=\$?
                         if [[ \$wgetreturn -eq 8 ]]; then
                             echo "Download error"
+                        else
+                            unzip -o archive.zip
+                            tar archive/*/*/*/perfoutput_${project.email.gpuLabel}.tar
+                            pushd scripts/performance/blas/
+                            python alltime.py -T -o \$workingdir/perfoutput -b \$workingdir/perfoutput_${project.email.gpuLabel} -g 1 -i perf.yaml
                         fi
 
                         if [[ -z "${env.CHANGE_ID}" ]]
