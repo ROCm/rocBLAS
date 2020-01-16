@@ -17,26 +17,6 @@
 #include "unit.hpp"
 #include "utility.hpp"
 
-//!
-//! @brief Overload output operator.
-//! @param os The ostream.
-//! @param that That host batch vector.
-//!
-template <typename T>
-std::ostream& operator<<(std::ostream& os, const host_vector<T>& that)
-{
-    auto n   = that.n();
-    auto inc = std::abs(that.inc());
-    os << " " << n << " ";
-    os << "{ " << that[0];
-    for(rocblas_int i = 1; i < n; ++i)
-    {
-        os << ", " << that[i * inc];
-    }
-    os << " }" << std::endl;
-    return os;
-}
-
 template <typename T>
 void testing_tpmv_bad_arg(const Arguments& arg)
 {
