@@ -53,7 +53,7 @@ rocBLASCI:
                         # get device num from device name
                         devicenum=\$(echo \$devicename | sed 's/.*\\([0-9]\\).*/\\1/')
                         echo \$devicenum
-                        wget -nv http://10.216.151.18:8080/job/Performance/job/rocBLAS/job/PR-895/lastSuccessfulBuild/artifact/*zip*/archive.zip
+                        wget -nv http://10.216.151.18:8080/job/Performance/job/rocBLAS/view/change-requests/job/PR-895/102/artifact/*zip*/archive.zip
                         wgetreturn=\$?
                         if [[ \$wgetreturn -eq 8 ]]; then
                             echo "Download error"
@@ -112,7 +112,8 @@ rocBLASCI:
                         ls perfoutput
                         
                         #wget http://10.216.151.18:8080/job/Performance/job/${project.name}/job/develop/lastSuccessfulBuild/artifact/*zip*/archive.zip
-                        wget -nv http://10.216.151.18:8080/job/Performance/job/rocBLAS/job/PR-895/lastSuccessfulBuild/artifact/*zip*/archive.zip
+                        # wget -nv http://10.216.151.18:8080/job/Performance/job/rocBLAS/job/PR-895/lastSuccessfulBuild/artifact/*zip*/archive.zip
+                        wget -nv http://10.216.151.18:8080/job/Performance/job/rocBLAS/view/change-requests/job/PR-895/102/artifact/*zip*/archive.zip
                         wgetreturn=\$?
                         if [[ \$wgetreturn -eq 8 ]]; then
                             echo "Download error"
