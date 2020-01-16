@@ -103,9 +103,9 @@ if( OS_ID_rhel OR OS_ID_sles OR OS_ID_centos)
         )
 
     if(LINK_BLIS)
-      target_link_libraries( rocblas-bench PRIVATE ${OPENMP_LIBRARY} ${BLIS_LIBRARY} ${Boost_LIBRARIES} ${GTEST_LIBRARIES} cblas lapack roc::rocblas )
+      target_link_libraries( rocblas-bench PRIVATE ${OPENMP_LIBRARY} ${BLIS_LIBRARY} ${Boost_LIBRARIES} cblas lapack roc::rocblas )
     else()
-      target_link_libraries( rocblas-bench PRIVATE ${OPENMP_LIBRARY} ${Boost_LIBRARIES} ${GTEST_LIBRARIES} cblas lapack roc::rocblas )
+      target_link_libraries( rocblas-bench PRIVATE ${OPENMP_LIBRARY} ${Boost_LIBRARIES} cblas lapack roc::rocblas )
     endif()
 else()
     # External header includes included as system files
@@ -119,9 +119,9 @@ else()
     )
 
     if(LINK_BLIS)
-      target_link_libraries( rocblas-bench PRIVATE ${GTEST_LIBRARIES} ${Boost_LIBRARIES} ${BLIS_LIBRARY} cblas lapack roc::rocblas )
+      target_link_libraries( rocblas-bench PRIVATE ${Boost_LIBRARIES} ${BLIS_LIBRARY} cblas lapack roc::rocblas )
     else()
-      target_link_libraries( rocblas-bench PRIVATE ${GTEST_LIBRARIES} ${Boost_LIBRARIES} cblas lapack roc::rocblas )
+      target_link_libraries( rocblas-bench PRIVATE ${Boost_LIBRARIES} cblas lapack roc::rocblas )
     endif()
 endif()
 

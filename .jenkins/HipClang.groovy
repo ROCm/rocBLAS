@@ -17,6 +17,9 @@ rocBLASCI:
     // Define test architectures, optional rocm version argument is available
     def nodes = new dockerNodes(['gfx900 && centos7 && hip-clang', 'gfx906 && ubuntu && hip-clang'], rocblas)
 
+    rocblas.timeout.compile = 300
+    rocblas.timeout.test = 600
+
     boolean formatCheck = true
 
     def commonGroovy
