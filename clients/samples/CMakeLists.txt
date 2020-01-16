@@ -60,6 +60,8 @@ foreach( exe ${sample_list} )
   if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
     # Remove following when hcc is fixed; hcc emits following spurious warning ROCm v1.6.1
     # "clang-5.0: warning: argument unused during compilation: '-isystem ${ROCM_PATH}/include'"
+    # include order workaround to force /opt/rocm/include later in order to ignore installed rocblas
+    set(CMAKE_CXX_FLAGS "-isystem /opt/rocm/include ${CMAKE_CXX_FLAGS}")
     target_compile_options( ${exe} PRIVATE -Wno-unused-command-line-argument )
     target_include_directories( ${exe} PRIVATE ${ROCM_PATH}/hsa/include)
   elseif( CMAKE_COMPILER_IS_GNUCXX OR CXX_VERSION_STRING MATCHES "clang" )
@@ -67,5 +69,10 @@ foreach( exe ${sample_list} )
     target_compile_options( ${exe} PRIVATE -mf16c )
   endif( )
 endforeach( )
+
+if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
+  # include order workaround to force /opt/rocm/include later in order to ignore installed rocblas
+  set(CMAKE_CXX_FLAGS "-isystem /opt/rocm/include ${CMAKE_CXX_FLAGS}")
+endif()
 
 

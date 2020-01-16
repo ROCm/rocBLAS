@@ -507,7 +507,7 @@ pushd .
   fi
 
   if ["${build_hip_clang}" == true ]; then
-      cmake_common_options="${cmake_common_options} -DRUN_HEADER_TESTING=OFF -DCOMPILER_RT_BUILD_BUILTINS=ON -DLLVM_CONFIG_PATH=/usr/lib64/llvm7.0/bin/llvm-config"
+      cmake_common_options="${cmake_common_options} -DRUN_HEADER_TESTING=OFF"
   fi
 
   compiler="hcc"
