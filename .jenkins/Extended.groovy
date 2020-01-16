@@ -19,7 +19,7 @@ rocBLASCI:
     rocblas.timeout.test = 600
 
     // Define test architectures, optional rocm version argument is available
-    def nodes = new dockerNodes(['ubuntu && gfx900', 'centos7 && gfx900', 'centos7 && gfx906', 'sles && gfx906'], rocblas)
+    def nodes = new dockerNodes(['ubuntu && gfx900', 'centos7 && gfx906', 'sles && gfx906'], rocblas)
 
     boolean formatCheck = true
 
