@@ -39,8 +39,6 @@ rocBLASCI:
                         cd ${project.paths.project_build_prefix}
                         workingdir=`pwd`
 
-                        pushd scripts/performance/blas/
-
                         shopt expand_aliases
                         shopt -s expand_aliases
                         shopt expand_aliases
