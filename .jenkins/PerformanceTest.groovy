@@ -63,7 +63,7 @@ rocBLASCI:
                             mv perfoutput perfoutput2
                             tar -xvf archive/*/*/perfoutput.tar
                             pushd scripts/performance/blas/
-                            python alltime.py -T -o \$workingdir/perfoutput -b \$workingdir/perfoutput2 -g 1 -i perf.yaml
+                            python alltime.py -T -o \$workingdir/perfoutput -b \$workingdir/perfoutput2 -g 1 -i perf.yaml -d \$devicenum
                         fi
                         """
         platform.runCommand(this, command)
@@ -113,7 +113,7 @@ rocBLASCI:
                             unzip -o archive.zip
                             tar -xvf archive/*/*/perfoutput_${project.email.gpuLabel}.tar
                             pushd scripts/performance/blas/
-                            python alltime.py -T -o \$workingdir/perfoutput -b \$workingdir/perfoutput_${project.email.gpuLabel} -g 1 -i perf.yaml
+                            python alltime.py -T -o \$workingdir/perfoutput -b \$workingdir/perfoutput_${project.email.gpuLabel} -g 1 -d \$devicenum -i perf.yaml
                             popd
                             tar -cvf perfoutput_${project.email.gpuLabel}.tar perfoutput
                         fi
