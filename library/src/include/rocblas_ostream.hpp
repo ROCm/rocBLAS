@@ -11,16 +11,23 @@
 #include <condition_variable>
 #include <cstdint>
 #include <cstdlib>
-#include <fcntl.h>
 #include <iomanip>
 #include <memory>
 #include <mutex>
 #include <queue>
 #include <sstream>
 #include <string>
+#include <sys/stat.h>
 #include <thread>
 #include <unistd.h>
 #include <utility>
+
+/*****************************************************************************
+ * rocBLAS output streams                                                    *
+ *****************************************************************************/
+
+#define rocblas_cout (rocblas_ostream::cout())
+#define rocblas_cerr (rocblas_ostream::cerr())
 
 /***************************************************************************
  * The rocblas_ostream class performs atomic IO on log files, and provides *
@@ -63,17 +70,49 @@ class rocblas_ostream
         ~worker();
     };
 
+    // Initial slice of struct stat which contains device ID and inode
+    struct file_id_t
+    {
+        dev_t st_dev; // ID of device containing file
+        ino_t st_ino; // Inode number
+    };
+
+    // Compares device IDs and inodes for containers
+    struct file_id_less
+    {
+        bool operator()(const file_id_t& lhs, const file_id_t& rhs) const
+        {
+            return lhs.st_ino < rhs.st_ino || (lhs.st_ino == rhs.st_ino && lhs.st_dev < rhs.st_dev);
+        }
+    };
+
+    // Map from file_id to a worker shared_ptr
+    // Implemented as singleton to avoid the static initialization order fiasco
+    static auto& map()
+    {
+        static std::map<file_id_t, std::shared_ptr<worker>, file_id_less> map;
+        return map;
+    }
+
+    // Mutex for accessing the map
+    // Implemented as singleton to avoid the static initialization order fiasco
+    static auto& map_mutex()
+    {
+        static std::recursive_mutex map_mutex;
+        return map_mutex;
+    }
+
     // Get worker for file descriptor
     static std::shared_ptr<worker> get_worker(int fd);
-
-    // Get worker for filename
-    static std::shared_ptr<worker> get_worker(const char* filename);
 
     // Output buffer for formatted IO
     std::ostringstream os;
 
     // Worker thread for accepting logs
     std::shared_ptr<worker> worker_ptr;
+
+    // Flag indicating whether YAML mode is turned on
+    bool yaml = false;
 
 public:
     // Default constructor is a std::ostringstream with no worker
@@ -113,6 +152,25 @@ public:
         flush(); // Flush any pending IO
     }
 
+    // stdout
+    // Implemented as singleton to avoid the static initialization order fiasco
+    static rocblas_ostream& cout()
+    {
+        static rocblas_ostream cout(STDOUT_FILENO);
+        return cout;
+    }
+
+    // stderr
+    // Implemented as singleton to avoid the static initialization order fiasco
+    static rocblas_ostream& cerr()
+    {
+        static rocblas_ostream cerr(STDERR_FILENO);
+        return cerr;
+    }
+
+    // abort() function which safely flushes all IO
+    friend void rocblas_abort();
+
     /*************************************************************************
      * Non-member friend functions for formatted output                      *
      *************************************************************************/
@@ -125,19 +183,26 @@ public:
         return os;
     }
 
-    // Floating-point output
-    friend rocblas_ostream& operator<<(rocblas_ostream& os, double x);
-
-    friend rocblas_ostream& operator<<(rocblas_ostream& os, rocblas_half half)
+    // Complex output
+    template <typename T>
+    friend rocblas_ostream& operator<<(rocblas_ostream& os, const rocblas_complex_num<T>& x)
     {
-        os << double(half);
+        if(os.yaml)
+            os.os << "'(" << std::real(x) << "," << std::imag(x) << ")'";
+        else
+            os.os << x;
         return os;
     }
 
+    // Floating-point output
+    friend rocblas_ostream& operator<<(rocblas_ostream& os, double x);
+    friend rocblas_ostream& operator<<(rocblas_ostream& os, rocblas_half half)
+    {
+        return os << double(half);
+    }
     friend rocblas_ostream& operator<<(rocblas_ostream& os, rocblas_bfloat16 bf16)
     {
-        os << double(bf16);
-        return os;
+        return os << double(bf16);
     }
 
     // Integer output
@@ -146,72 +211,44 @@ public:
         os.os << x;
         return os;
     }
-
     friend rocblas_ostream& operator<<(rocblas_ostream& os, uint32_t x)
     {
         os.os << x;
         return os;
     }
-
     friend rocblas_ostream& operator<<(rocblas_ostream& os, int64_t x)
     {
         os.os << x;
         return os;
     }
-
     friend rocblas_ostream& operator<<(rocblas_ostream& os, uint64_t x)
     {
         os.os << x;
         return os;
     }
 
-    // Complex output
-    template <typename T>
-    friend rocblas_ostream& operator<<(rocblas_ostream& os, const rocblas_complex_num<T>& x)
-    {
-        os.os << "'(" << std::real(x) << "," << std::imag(x) << ")'";
-        return os;
-    }
+    // bool output
+    friend rocblas_ostream& operator<<(rocblas_ostream& os, bool b);
 
     // Character output
-    friend rocblas_ostream& operator<<(rocblas_ostream& os, char c)
-    {
-        char s[]{c, 0};
-        os.os << std::quoted(s, '\'');
-        return os;
-    }
+    friend rocblas_ostream& operator<<(rocblas_ostream& os, char c);
 
-    // bool output
-    friend rocblas_ostream& operator<<(rocblas_ostream& os, bool b)
-    {
-        os.os << (b ? "true" : "false");
-        return os;
-    }
-
-    // string output
-    friend rocblas_ostream& operator<<(rocblas_ostream& os, const char* s)
-    {
-        os.os << std::quoted(s);
-        return os;
-    }
-
-    friend rocblas_ostream& operator<<(rocblas_ostream& os, const std::string& s)
-    {
-        return os << s.c_str();
-    }
+    // String output
+    friend rocblas_ostream& operator<<(rocblas_ostream& os, const char* s);
+    friend rocblas_ostream& operator<<(rocblas_ostream& os, const std::string& s);
 
     // Transfer rocblas_ostream to std::ostream
-    friend std::ostream& operator<<(std::ostream& os, const rocblas_ostream& str)
-    {
-        return os << str.str();
-    }
+    friend std::ostream& operator<<(std::ostream& os, const rocblas_ostream& str);
 
     // IO Manipulators
     friend rocblas_ostream& operator<<(rocblas_ostream& os, std::ostream& (*pf)(std::ostream&));
+
+    // YAML Manipulators
+    static std::ostream& yaml_on(std::ostream&);
+    static std::ostream& yaml_off(std::ostream&);
 };
 
-// Output streams
-extern rocblas_ostream rocblas_cout;
-extern rocblas_ostream rocblas_cerr;
+// abort() function which safely flushes all IO
+void rocblas_abort();
 
 #endif

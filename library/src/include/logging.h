@@ -104,6 +104,7 @@ public:
     }
     catch(...)
     {
+        return;
     }
 };
 

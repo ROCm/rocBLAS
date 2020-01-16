@@ -7,7 +7,6 @@
 
 #include "rocblas.h"
 #include "rocblas_test.hpp"
-#include "timing.hpp"
 #include "utility.h"
 #include <cstdio>
 #include <iostream>
@@ -15,17 +14,18 @@
 #include <type_traits>
 #include <vector>
 
-#if defined(GOOGLE_TEST) || defined(ROCBLAS_BENCH)
+/*!\file
+ * \brief provide common utilities
+ */
+
 // We use rocblas_cout and rocblas_cerr instead of stdout, stderr, std::cout and std::cerr
-// This must come after the header #includes above, to avoid poisoning system headers
+// This must come after the header #includes above, to avoid poisoning system headers.
+// This is only enable for rocblas-test and rocblas-bench.
+#if defined(GOOGLE_TEST) || defined(ROCBLAS_BENCH)
 #undef stdout
 #undef stderr
 #pragma GCC poison cout cerr stdout stderr
 #endif
-
-/*!\file
- * \brief provide common utilities
- */
 
 /* ============================================================================================ */
 /*! \brief  local handle which is automatically created and destroyed  */
@@ -60,6 +60,16 @@ rocblas_int query_device_property();
 
 /*  set current device to device_id */
 void set_device(rocblas_int device_id);
+
+/* ============================================================================================ */
+/*  timing: HIP only provides very limited timers function clock() and not general;
+            rocblas sync CPU and device and use more accurate CPU timer*/
+
+/*! \brief  CPU Timer(in microsecond): synchronize with the default device and return wall time */
+double get_time_us(void);
+
+/*! \brief  CPU Timer(in microsecond): synchronize with given queue/stream and return wall time */
+double get_time_us_sync(hipStream_t stream);
 
 /* ============================================================================================ */
 // Return path of this executable

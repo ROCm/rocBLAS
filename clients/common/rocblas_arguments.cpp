@@ -15,7 +15,7 @@ rocblas_ostream& operator<<(rocblas_ostream& os, const Arguments& arg)
     return tuple_helper::print_tuple_pairs(os, arg.as_tuple());
 }
 
-// Google Tests uses this automatically to dump parameters
+// Google Tests uses this automatically with std::ostream to dump parameters
 std::ostream& operator<<(std::ostream& os, const Arguments& arg)
 {
     rocblas_ostream oss;
@@ -30,21 +30,24 @@ std::istream& operator>>(std::istream& is, Arguments& arg)
     return is;
 }
 
+// Error message about incompatible binary file format
+static void error(const char* name)
+{
+
+    rocblas_cerr << "Arguments field " << name
+                 << " does not match format.\n\n"
+                    "Fatal error: Binary test data does match input format.\n"
+                    "Ensure that rocblas_arguments.hpp and rocblas_common.yaml\n"
+                    "define exactly the same Arguments, that rocblas_gentest.py\n"
+                    "generates the data correctly, and that endianness is the same."
+                 << std::endl;
+    rocblas_abort();
+}
+
 // rocblas_gentest.py is expected to conform to this format.
 // rocblas_gentest.py uses rocblas_common.yaml to generate this format.
 void Arguments::validate(std::istream& ifs)
 {
-    auto error = [](const char* name) {
-        rocblas_cerr << "Arguments field " << name
-                     << " does not match format.\n\n"
-                        "Fatal error: Binary test data does match input format.\n"
-                        "Ensure that rocblas_arguments.hpp and rocblas_common.yaml\n"
-                        "define exactly the same Arguments, that rocblas_gentest.py\n"
-                        "generates the data correctly, and that endianness is the same."
-                     << std::endl;
-        abort();
-    };
-
     char      header[8]{}, trailer[8]{};
     Arguments arg{};
     ifs.read(header, sizeof(header));

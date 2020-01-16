@@ -20,7 +20,7 @@
            all rocblas routine take the NULL (0) stream.
 */
 #include "rocblas.hpp"
-#include "rocblas_test.hpp"
+#include "utility.hpp"
 #include <cstdio>
 #include <cstdlib>
 #include <hip/hip_runtime.h>

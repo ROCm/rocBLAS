@@ -9,16 +9,11 @@
 #include "rocblas.h"
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_math.hpp"
+#include <cstddef>
 #include <istream>
+#include <map>
 #include <ostream>
-
-// ROCBLAS_NAME_VALUE_PAIR(name) gives a string name and the named Arguments member
-// ROCBLAS_NAME_VALUE_PAIR(name, value) gives a string name and the passed in value
-#define ROCBLAS_SELECTOR(_1, _2, _3, ...) _3
-#define ROCBLAS_SELECT_1ARG(NAME) #NAME, NAME
-#define ROCBLAS_SELECT_2ARG(NAME, VALUE) #NAME, VALUE
-#define ROCBLAS_NAME_VALUE_PAIR(...) \
-    ROCBLAS_SELECTOR(__VA_ARGS__, ROCBLAS_SELECT_2ARG, ROCBLAS_SELECT_1ARG)(__VA_ARGS__)
+#include <tuple>
 
 /***************************************************************************
  *! \brief Class used to parse command arguments in both client & gtest    *
@@ -27,6 +22,9 @@
  ***************************************************************************/
 struct Arguments
 {
+    /*************************************************************************
+     *                    Beginning Of Arguments                             *
+     *************************************************************************/
     rocblas_int M;
     rocblas_int N;
     rocblas_int K;
@@ -86,58 +84,91 @@ struct Arguments
     rocblas_initialization initialization;
     char                   known_bug_platforms[64];
 
-    /**********************
-     * Tuple of arguments *
-     **********************/
+    /*************************************************************************
+     *                     End Of Arguments                                  *
+     *************************************************************************/
+
+    // Generic macro which operates over the list of arguments
+    // (in order of declaration)
+    // clang-format off
+
+#define FOR_EACH_ARGUMENT(OPER) \
+    OPER(M),                    \
+    OPER(N),                    \
+    OPER(K),                    \
+    OPER(KL),                   \
+    OPER(KU),                   \
+    OPER(lda),                  \
+    OPER(ldb),                  \
+    OPER(ldc),                  \
+    OPER(ldd),                  \
+    OPER(a_type),               \
+    OPER(b_type),               \
+    OPER(c_type),               \
+    OPER(d_type),               \
+    OPER(compute_type),         \
+    OPER(incx),                 \
+    OPER(incy),                 \
+    OPER(incd),                 \
+    OPER(incb),                 \
+    OPER(alpha),                \
+    OPER(alphai),               \
+    OPER(beta),                 \
+    OPER(betai),                \
+    OPER(transA),               \
+    OPER(transB),               \
+    OPER(side),                 \
+    OPER(uplo),                 \
+    OPER(diag),                 \
+    OPER(batch_count),          \
+    OPER(stride_a),             \
+    OPER(stride_b),             \
+    OPER(stride_c),             \
+    OPER(stride_d),             \
+    OPER(stride_x),             \
+    OPER(stride_y),             \
+    OPER(norm_check),           \
+    OPER(unit_check),           \
+    OPER(timing),               \
+    OPER(iters),                \
+    OPER(algo),                 \
+    OPER(solution_index),       \
+    OPER(flags),                \
+    OPER(function),             \
+    OPER(name),                 \
+    OPER(category),             \
+    OPER(initialization),       \
+    OPER(known_bug_platforms)
+
+  /***************************************
+   * Tuple of argument name, value pairs *
+   ***************************************/
+    #define NAME_VALUE_PAIR(NAME) #NAME, NAME
     auto as_tuple() const
     {
-        return std::forward_as_tuple(ROCBLAS_NAME_VALUE_PAIR(M),
-                                     ROCBLAS_NAME_VALUE_PAIR(N),
-                                     ROCBLAS_NAME_VALUE_PAIR(K),
-                                     ROCBLAS_NAME_VALUE_PAIR(KL),
-                                     ROCBLAS_NAME_VALUE_PAIR(KU),
-                                     ROCBLAS_NAME_VALUE_PAIR(lda),
-                                     ROCBLAS_NAME_VALUE_PAIR(ldb),
-                                     ROCBLAS_NAME_VALUE_PAIR(ldc),
-                                     ROCBLAS_NAME_VALUE_PAIR(ldd),
-                                     ROCBLAS_NAME_VALUE_PAIR(a_type),
-                                     ROCBLAS_NAME_VALUE_PAIR(b_type),
-                                     ROCBLAS_NAME_VALUE_PAIR(c_type),
-                                     ROCBLAS_NAME_VALUE_PAIR(d_type),
-                                     ROCBLAS_NAME_VALUE_PAIR(compute_type),
-                                     ROCBLAS_NAME_VALUE_PAIR(incx),
-                                     ROCBLAS_NAME_VALUE_PAIR(incy),
-                                     ROCBLAS_NAME_VALUE_PAIR(incd),
-                                     ROCBLAS_NAME_VALUE_PAIR(incb),
-                                     ROCBLAS_NAME_VALUE_PAIR(alpha),
-                                     ROCBLAS_NAME_VALUE_PAIR(alphai),
-                                     ROCBLAS_NAME_VALUE_PAIR(beta),
-                                     ROCBLAS_NAME_VALUE_PAIR(betai),
-                                     ROCBLAS_NAME_VALUE_PAIR(transA),
-                                     ROCBLAS_NAME_VALUE_PAIR(transB),
-                                     ROCBLAS_NAME_VALUE_PAIR(side),
-                                     ROCBLAS_NAME_VALUE_PAIR(uplo),
-                                     ROCBLAS_NAME_VALUE_PAIR(diag),
-                                     ROCBLAS_NAME_VALUE_PAIR(batch_count),
-                                     ROCBLAS_NAME_VALUE_PAIR(stride_a),
-                                     ROCBLAS_NAME_VALUE_PAIR(stride_b),
-                                     ROCBLAS_NAME_VALUE_PAIR(stride_c),
-                                     ROCBLAS_NAME_VALUE_PAIR(stride_d),
-                                     ROCBLAS_NAME_VALUE_PAIR(stride_x),
-                                     ROCBLAS_NAME_VALUE_PAIR(stride_y),
-                                     ROCBLAS_NAME_VALUE_PAIR(norm_check),
-                                     ROCBLAS_NAME_VALUE_PAIR(unit_check),
-                                     ROCBLAS_NAME_VALUE_PAIR(timing),
-                                     ROCBLAS_NAME_VALUE_PAIR(iters),
-                                     ROCBLAS_NAME_VALUE_PAIR(algo),
-                                     ROCBLAS_NAME_VALUE_PAIR(solution_index),
-                                     ROCBLAS_NAME_VALUE_PAIR(flags),
-                                     ROCBLAS_NAME_VALUE_PAIR(function),
-                                     ROCBLAS_NAME_VALUE_PAIR(name),
-                                     ROCBLAS_NAME_VALUE_PAIR(category),
-                                     ROCBLAS_NAME_VALUE_PAIR(initialization),
-                                     ROCBLAS_NAME_VALUE_PAIR(known_bug_platforms));
+        return std::make_tuple(FOR_EACH_ARGUMENT(NAME_VALUE_PAIR));
     }
+
+  /***************************************
+   * Map of argument names to offsets    *
+   ***************************************/
+    #define NAME_OFFSET_PAIR(NAME) { #NAME, offsetof(Arguments, NAME) }
+    static const auto& as_map()
+    {
+        static std::map<const char*, size_t> map{FOR_EACH_ARGUMENT(NAME_OFFSET_PAIR)};
+        return map;
+    }
+
+#if 0
+    //TODO: Implement function to get Arguments by name
+    auto&& get(const char* name) &&
+    {
+        auto& map = this->as_map();
+
+    }
+#endif
+
+    // clang-format on
 
     // Validate input format.
     static void validate(std::istream& ifs);
@@ -172,14 +203,16 @@ private:
     }
 
     // Function to print Arguments out to stream in YAML format
-    // Google Tests uses this automatically to dump parameters
     friend rocblas_ostream& operator<<(rocblas_ostream& str, const Arguments& arg);
-    friend std::ostream&    operator<<(std::ostream& str, const Arguments& arg);
+
+    // Google Tests uses this with std:ostream automatically to dump parameters
+    friend std::ostream& operator<<(std::ostream& str, const Arguments& arg);
 
     // Function to read Structures data from stream
     friend std::istream& operator>>(std::istream& str, Arguments& arg);
 };
 
+// We make sure that the Arguments struct is C-compatible
 static_assert(std::is_standard_layout<Arguments>{},
               "Arguments is not a standard layout type, and thus is "
               "incompatible with C.");
@@ -188,9 +221,6 @@ static_assert(std::is_trivial<Arguments>{},
               "Arguments is not a trivial type, and thus is "
               "incompatible with C.");
 
-#undef ROCBLAS_SELECTOR
-#undef ROCBLAS_SELECT_1ARG
-#undef ROCBLAS_SELECT_2ARG
-#undef ROCBLAS_NAME_VALUE_PAIR
-
+#undef NAME_VALUE_PAIR
+#undef NAME_OFFSET_PAIR
 #endif

@@ -44,6 +44,7 @@ set( rocblas_benchmark_common
       ../common/utility.cpp
       ../common/cblas_interface.cpp
       ../common/rocblas_arguments.cpp
+      ../common/argument_model.cpp
       ${BLIS_CPP}
       ../common/rocblas_parse_data.cpp
     )
@@ -163,3 +164,4 @@ set_target_properties( rocblas-bench PROPERTIES CXX_EXTENSIONS NO )
 set_target_properties( rocblas-bench PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )
 add_dependencies( rocblas-bench rocblas-common )
 add_subdirectory ( ./perf_script )
+target_compile_options( rocblas-bench PRIVATE -DROCBLAS_BENCH )

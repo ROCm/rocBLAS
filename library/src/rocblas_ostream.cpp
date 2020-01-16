@@ -3,12 +3,234 @@
  * ************************************************************************ */
 
 #include "rocblas_ostream.hpp"
+#include <atomic>
 #include <cerrno>
+#include <csignal>
 #include <cstddef>
 #include <cstdio>
+#include <fcntl.h>
 #include <map>
-#include <sys/stat.h>
 #include <type_traits>
+
+/***********************************************************************
+ * rocblas_ostream functions                                           *
+ ***********************************************************************/
+
+// abort() function which safely flushes all IO
+ROCBLAS_EXPORT void rocblas_abort()
+{
+    // Make sure the alarm action is default
+    signal(SIGALRM, SIG_DFL);
+
+    // Timeout
+    alarm(2);
+
+    // Obtain the map lock
+    rocblas_ostream::map_mutex().lock();
+
+    // Clear the map
+    rocblas_ostream::map().clear();
+
+    // TODO: Use synchronization with other threads instead of arbitrary time
+    sleep(1);
+
+    // Flush any remaining files
+    fflush(NULL);
+
+    // Abort
+    abort();
+}
+
+// Get worker for file descriptor
+std::shared_ptr<rocblas_ostream::worker> rocblas_ostream::get_worker(int fd)
+{
+    // For a fd indicating an error
+    if(fd == -1)
+        return nullptr;
+
+    // C++ allows type punning of common initial sequences
+    union
+    {
+        struct stat statbuf;
+        file_id_t   file_id;
+    };
+
+    // Assert common initial sequence
+    static_assert(std::is_standard_layout<file_id_t>{} && std::is_standard_layout<struct stat>{}
+                      && offsetof(file_id_t, st_dev) == 0 && offsetof(struct stat, st_dev) == 0
+                      && offsetof(file_id_t, st_ino) == offsetof(struct stat, st_ino)
+                      && std::is_same<decltype(file_id_t::st_dev), decltype(stat::st_dev)>{}
+                      && std::is_same<decltype(file_id_t::st_ino), decltype(stat::st_ino)>{},
+                  "struct stat and file_id_t are not layout-compatible");
+
+    // Get the device ID and inode, to detect files already open
+    if(fstat(fd, &statbuf))
+    {
+        perror("Error executing fstat()");
+        return {};
+    }
+
+    // Lock the map
+    std::lock_guard<std::recursive_mutex> lock(map_mutex());
+
+    // Insert a nullptr element if it doesn't already exist
+    auto& worker_ptr = map().emplace(file_id, nullptr).first->second;
+
+    // If a new entry was inserted, or an old entry is empty, create worker
+    if(!worker_ptr)
+        worker_ptr = std::make_shared<worker>(fd);
+
+    // Return the existing or new worker matching the file
+    return worker_ptr;
+}
+
+// Construct rocblas_ostream from a file descriptor, which is duped
+ROCBLAS_EXPORT rocblas_ostream::rocblas_ostream(int fd)
+    : worker_ptr(get_worker(fcntl(fd, F_DUPFD_CLOEXEC, 0)))
+{
+    if(!worker_ptr)
+    {
+        dprintf(STDERR_FILENO, "Cannot dup file descriptor %d: %m\n", fd);
+        rocblas_abort();
+    }
+}
+
+// Construct from a filename
+ROCBLAS_EXPORT rocblas_ostream::rocblas_ostream(const char* filename)
+    : worker_ptr(get_worker(open(filename, O_WRONLY | O_CREAT | O_APPEND | O_CLOEXEC, 0644)))
+{
+    if(!worker_ptr)
+    {
+        dprintf(STDERR_FILENO, "Cannot open %s: %m\n", filename);
+        rocblas_abort();
+    }
+}
+
+// Flush the output atomically
+ROCBLAS_EXPORT void rocblas_ostream::flush()
+{
+    if(worker_ptr)
+    {
+        worker_ptr->enqueue(std::make_shared<std::string>(os.str()));
+        clear();
+    }
+}
+
+/***********************************************************************
+ * Formatted Output                                                    *
+ ***********************************************************************/
+
+// Floating-point output
+ROCBLAS_EXPORT rocblas_ostream& operator<<(rocblas_ostream& os, double x)
+{
+    char        s[32];
+    const char* out;
+
+    if(std::isnan(x))
+        out = os.yaml ? ".nan" : "nan";
+    else if(std::isinf(x))
+        out = os.yaml ? (x < 0 ? "-.inf" : ".inf") : (x < 0 ? "-inf" : "inf");
+    else
+    {
+        out = s;
+        snprintf(s, sizeof(s) - 2, "%.17g", x);
+
+        // If no decimal point or exponent, append .0
+        for(char* end = s; *end != '.' && *end != 'e' && *end != 'E'; ++end)
+        {
+            if(!*end)
+            {
+                end[0] = '.';
+                end[1] = '0';
+                end[2] = '\0';
+                break;
+            }
+        }
+    }
+    os.os << out;
+    return os;
+}
+
+// bool output
+ROCBLAS_EXPORT rocblas_ostream& operator<<(rocblas_ostream& os, bool b)
+{
+    if(os.yaml)
+        os.os << (b ? "true" : "false");
+    else
+        os.os << (b ? 1 : 0);
+    return os;
+}
+
+// Character output
+ROCBLAS_EXPORT rocblas_ostream& operator<<(rocblas_ostream& os, char c)
+{
+    if(os.yaml)
+    {
+        char s[]{c, 0};
+        os.os << std::quoted(s, '\'');
+    }
+    else
+        os.os << c;
+    return os;
+}
+
+// String output
+ROCBLAS_EXPORT rocblas_ostream& operator<<(rocblas_ostream& os, const char* s)
+{
+    if(os.yaml)
+        os.os << std::quoted(s);
+    else
+        os.os << s;
+    return os;
+}
+
+ROCBLAS_EXPORT rocblas_ostream& operator<<(rocblas_ostream& os, const std::string& s)
+{
+    if(os.yaml)
+        os << std::quoted(s.c_str());
+    else
+        os << s;
+    return os;
+}
+
+// Transfer rocblas_ostream to std::ostream
+ROCBLAS_EXPORT std::ostream& operator<<(std::ostream& os, const rocblas_ostream& str)
+{
+    return os << str.str();
+}
+
+// IO Manipulators
+ROCBLAS_EXPORT rocblas_ostream& operator<<(rocblas_ostream& os, std::ostream& (*pf)(std::ostream&))
+{
+    if(pf == rocblas_ostream::yaml_on)
+        os.yaml = true;
+    else if(pf == rocblas_ostream::yaml_off)
+        os.yaml = false;
+    else
+    {
+        // Output the manipulator to the buffer
+        if(pf)
+            os.os << pf;
+
+        // If the manipulator is std::endl or std::flush, flush the output
+        if(pf == static_cast<std::ostream& (*)(std::ostream&)>(std::endl)
+           || pf == static_cast<std::ostream& (*)(std::ostream&)>(std::flush))
+        {
+            os.flush();
+        }
+    }
+    return os;
+}
+
+// YAML Manipulators (only used for their addresses and signatures now)
+ROCBLAS_EXPORT std::ostream& rocblas_ostream::yaml_on(std::ostream& os)
+{
+    return os;
+}
+ROCBLAS_EXPORT std::ostream& rocblas_ostream::yaml_off(std::ostream& os)
+{
+    return os;
+}
 
 /***********************************************************************
  * rocblas_ostream::worker functions handle logging in a single thread *
@@ -57,7 +279,7 @@ void rocblas_ostream::worker::thread_function()
         // Unreference the data
         log.reset();
 
-        // Flush the data and detect error
+        // Detect error
         if(ferror(file))
         {
             perror("Error writing log file");
@@ -67,6 +289,9 @@ void rocblas_ostream::worker::thread_function()
         // Re-lock the mutex in preparation for cond.wait
         lock.lock();
     }
+
+    // Flush all files
+    fflush(NULL);
 }
 
 // Constructor creates a worker thread
@@ -77,171 +302,22 @@ rocblas_ostream::worker::worker(int fd)
     if(!file)
     {
         perror("fdopen() error");
-        abort();
+        rocblas_abort();
     }
 }
 
 // Destroy a worker when all references to it are gone
 rocblas_ostream::worker::~worker()
 {
-    enqueue(nullptr); // Tell the worker thread to exit
-    thread.join(); // Wait for the worker thread to exit
-    fclose(file); // Close the file
+    // Tell the worker thread to exit
+    enqueue(nullptr);
+
+    // Wait for the thread to exit
+    thread.join();
+
+    // Flush all files
+    fflush(NULL);
+
+    // Close the file
+    fclose(file);
 }
-
-/***********************************************************************
- * rocblas_ostream functions                                           *
- ***********************************************************************/
-
-// Get worker for file descriptor
-std::shared_ptr<rocblas_ostream::worker> rocblas_ostream::get_worker(int fd)
-{
-    // For a fd indicating an error
-    if(fd == -1)
-        return nullptr;
-
-    // Initial slice of struct stat which contains device ID and inode
-    struct file_id_t
-    {
-        dev_t st_dev; // ID of device containing file
-        ino_t st_ino; // Inode number
-    };
-
-    // Assert common initial sequence
-    static_assert(std::is_standard_layout<file_id_t>{} && std::is_standard_layout<struct stat>{}
-                      && offsetof(file_id_t, st_dev) == 0 && offsetof(struct stat, st_dev) == 0
-                      && offsetof(file_id_t, st_ino) == offsetof(struct stat, st_ino)
-                      && std::is_same<decltype(file_id_t::st_dev), decltype(stat::st_dev)>{}
-                      && std::is_same<decltype(file_id_t::st_ino), decltype(stat::st_ino)>{},
-                  "struct stat and file_id_t are not layout-compatible");
-
-    // Compares device IDs and inodes for containers
-    struct file_id_less
-    {
-        bool operator()(const file_id_t& lhs, const file_id_t& rhs) const
-        {
-            return lhs.st_ino < rhs.st_ino || (lhs.st_ino == rhs.st_ino && lhs.st_dev < rhs.st_dev);
-        }
-    };
-
-    // C++ allows type punning of common initial sequences
-    union
-    {
-        struct stat statbuf;
-        file_id_t   file_id;
-    };
-
-    // Get the device ID and inode, to detect files already open
-    if(fstat(fd, &statbuf))
-    {
-        perror("Error executing fstat()");
-        return {};
-    }
-
-    // Map from file_id to a worker shared_ptr
-    static std::map<file_id_t, std::shared_ptr<worker>, file_id_less> map;
-
-    // Mutex for accessing the map
-    static std::mutex map_mutex;
-
-    // Lock the map
-    std::lock_guard<std::mutex> lock(map_mutex);
-
-    // Insert an element if it doesn't already exist
-    auto worker_iter = map.emplace(file_id, nullptr).first;
-
-    // If a new entry was inserted, or an old entry is empty, create worker
-    if(!worker_iter->second)
-        worker_iter->second = std::make_shared<worker>(fd);
-
-    // Return the existing or new worker matching the file
-    return worker_iter->second;
-}
-
-// Construct from a file descriptor, which is duped
-rocblas_ostream::rocblas_ostream(int fd)
-    : worker_ptr(get_worker(fcntl(fd, F_DUPFD_CLOEXEC)))
-{
-    if(!worker_ptr)
-    {
-        dprintf(STDERR_FILENO, "Cannot dup file descriptor %d: %m\n", fd);
-        abort();
-    }
-}
-
-// Open a file and return a worker
-std::shared_ptr<rocblas_ostream::worker> rocblas_ostream::get_worker(const char* filename)
-{
-    int fd = open(filename, O_WRONLY | O_CREAT | O_APPEND | O_CLOEXEC, 0644);
-    return fd == -1 ? nullptr : get_worker(fd);
-}
-
-// Construct from a C filename
-rocblas_ostream::rocblas_ostream(const char* filename)
-    : worker_ptr(get_worker(filename))
-{
-    if(!worker_ptr)
-    {
-        dprintf(STDERR_FILENO, "Cannot open %s: %m\n", filename);
-        abort();
-    }
-}
-
-// Flush the output atomically
-ROCBLAS_EXPORT void rocblas_ostream::flush()
-{
-    if(worker_ptr)
-    {
-        worker_ptr->enqueue(std::make_shared<std::string>(os.str()));
-        clear();
-    }
-}
-
-// Floating-point output
-ROCBLAS_EXPORT rocblas_ostream& operator<<(rocblas_ostream& os, double x)
-{
-    char        s[32];
-    const char* out;
-
-    if(std::isnan(x))
-        out = ".nan";
-    else if(std::isinf(x))
-        out = x < 0 ? "-.inf" : ".inf";
-    else
-    {
-        out = s;
-        snprintf(s, sizeof(s) - 2, "%.17g", x);
-
-        // If no decimal point or exponent, append .0
-        for(char* end = s; *end != '.' && *end != 'e' && *end != 'E'; ++end)
-        {
-            if(!*end)
-            {
-                end[0] = '.';
-                end[1] = '0';
-                end[2] = '\0';
-                break;
-            }
-        }
-    }
-    os.os << out;
-    return os;
-}
-
-// IO Manipulators
-ROCBLAS_EXPORT rocblas_ostream& operator<<(rocblas_ostream& os, std::ostream& (*pf)(std::ostream&))
-{
-    // Output the manipulator to the buffer
-    os.os << pf;
-
-    // If the manipulator is std::endl or std::flush, flush the output
-    if(pf == static_cast<std::ostream& (*)(std::ostream&)>(std::endl)
-       || pf == static_cast<std::ostream& (*)(std::ostream&)>(std::flush))
-        os.flush();
-
-    return os;
-}
-
-// Output streams
-ROCBLAS_EXPORT rocblas_ostream rocblas_cout(STDOUT_FILENO);
-ROCBLAS_EXPORT rocblas_ostream rocblas_cerr(STDERR_FILENO);

@@ -12,6 +12,7 @@
 #include <hip/hip_runtime.h>
 #include <tuple>
 #include <type_traits>
+#include <unistd.h>
 #include <utility>
 
 /*******************************************************************************

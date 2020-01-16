@@ -21,18 +21,24 @@
 class tuple_helper
 {
     // Recursion to traverse the tuple
-    template <typename TUP, size_t idx = std::tuple_size<TUP>{}>
+    template <typename TUP, size_t size = std::tuple_size<TUP>{}>
     struct apply_pairs_recurse
     {
         template <typename FUNC>
         void operator()(FUNC&& action, const TUP& tuple)
         {
-            static constexpr size_t i = std::tuple_size<TUP>{} - idx;
+            // Current pair is at (i, i+1)
+            constexpr size_t i = std::tuple_size<TUP>{} - size;
+
+            //Perform the action, passing the 2 elements of the pair
             action(std::get<i>(tuple), std::get<i + 1>(tuple));
-            apply_pairs_recurse<TUP, idx - 2>{}(std::forward<FUNC>(action), tuple);
+
+            // Recursve to the next pair
+            apply_pairs_recurse<TUP, size - 2>{}(std::forward<FUNC>(action), tuple);
         }
     };
 
+    // Leaf node
     template <typename TUP>
     struct apply_pairs_recurse<TUP, 0>
     {
@@ -43,7 +49,7 @@ class tuple_helper
     };
 
 public:
-    // Apply a function to pairs in a tuple which is expected to be (name1, value1, name2, value2, ...)
+    // Apply a function to pairs in a tuple (name1, value1, name2, value2, ...)
     template <typename FUNC, typename TUP>
     __attribute__((flatten)) static void apply_pairs(FUNC&& action, const TUP& tuple)
     {
@@ -58,12 +64,13 @@ public:
         static_assert(std::tuple_size<TUP>{} % 2 == 0, "Tuple size must be even");
 
         // delim starts as '{' and becomes ',' afterwards
+        os << rocblas_ostream::yaml_on;
         auto print_argument = [&, delim = '{'](const char* name, auto&& value) mutable {
             os << delim << ' ' << name << ": " << value;
             delim = ',';
         };
         apply_pairs(print_argument, tuple);
-        return os << " }";
+        return os << " }" << rocblas_ostream::yaml_off;
     }
 
     /************************************************************************************
@@ -100,14 +107,14 @@ private:
     }
 
     // Combine tuple value hashes, computing hash of all tuple values
-    template <typename TUP, size_t idx = std::tuple_size<TUP>{}>
+    template <typename TUP, size_t size = std::tuple_size<TUP>{}>
     struct tuple_hash_recurse
     {
         size_t operator()(const TUP& tup)
         {
-            static constexpr size_t i = std::tuple_size<TUP>{} - idx;
+            constexpr size_t i = std::tuple_size<TUP>{} - size;
             size_t seed = hash(std::get<i + 1>(tup)) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-            return seed ^ tuple_hash_recurse<TUP, idx - 2>{}(tup);
+            return seed ^ tuple_hash_recurse<TUP, size - 2>{}(tup);
         }
     };
 
@@ -159,14 +166,14 @@ private:
     }
 
     // Recursively compare tuple values, short-circuiting
-    template <typename TUP, size_t idx = std::tuple_size<TUP>{}>
+    template <typename TUP, size_t size = std::tuple_size<TUP>{}>
     struct tuple_equal_recurse
     {
         bool operator()(const TUP& t1, const TUP& t2) const
         {
-            static constexpr size_t i = std::tuple_size<TUP>{} - idx;
+            constexpr size_t i = std::tuple_size<TUP>{} - size;
             return equal(std::get<i + 1>(t1), std::get<i + 1>(t2))
-                   && tuple_equal_recurse<TUP, idx - 2>{}(t1, t2);
+                   && tuple_equal_recurse<TUP, size - 2>{}(t1, t2);
         }
     };
 

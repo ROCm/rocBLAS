@@ -4,7 +4,6 @@
 #include "handle.h"
 #include <cstdio>
 #include <cstdlib>
-#include <unistd.h>
 
 #if BUILD_WITH_TENSILE
 #ifdef USE_TENSILE_HOST
