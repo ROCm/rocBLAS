@@ -30,7 +30,7 @@ void testing_syr_strided_batched_bad_arg()
     rocblas_local_handle handle;
 
     size_t abs_incx = incx >= 0 ? incx : -incx;
-    size_t size_A   = lda * N;
+    size_t size_A   = size_t(lda) * N;
     size_t size_x   = N * abs_incx;
 
     // allocate memory on device
