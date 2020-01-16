@@ -59,9 +59,9 @@ rocBLASCI:
                             echo "Download error"
                         else
                             unzip -o archive.zip
-                            tar -xvf archive/*/*/*/perfoutput.tar
+                            tar -xvf archive/*/*/perfoutput.tar
                             mv perfoutput perfoutput2
-                            tar -xvf archive/*/*/*/perfoutput.tar
+                            tar -xvf archive/*/*/perfoutput.tar
                             pushd scripts/performance/blas/
                             python alltime.py -T -o \$workingdir/perfoutput -b \$workingdir/perfoutput2 -g 1 -i perf.yaml
                         fi
@@ -93,12 +93,7 @@ rocBLASCI:
                         alias python=python3
                         python -V
 
-                        #get device name from /dev/dri
-                        devicename=\$(echo \$(ls /dev/dri) | sed 's/.*\\(card[0-9]\\).*/\\1/')
-                        echo \$devicename
-                        #get device num from device name
-                        devicenum=\$(echo \$devicename | sed 's/.*\\([0-9]\\).*/\\1/')
-                        echo \$devicenum
+                        echo ${project.email.gpuLabel}
                         python alltime.py -A \$workingdir/build/release/clients/staging -o \$workingdir/perfoutput -i perf.yaml -S 0 -g 0 -d \$devicenum
 
                         ls \$workingdir/perfoutput
@@ -116,7 +111,7 @@ rocBLASCI:
                             python alltime.py -T -o \$workingdir/perfoutput -S 0 -g 1 -i perf.yaml
                         else
                             unzip -o archive.zip
-                            tar -xvf archive/*/*/*/perfoutput_${project.email.gpuLabel}.tar
+                            tar -xvf archive/*/*/perfoutput_${project.email.gpuLabel}.tar
                             pushd scripts/performance/blas/
                             python alltime.py -T -o \$workingdir/perfoutput -b \$workingdir/perfoutput_${project.email.gpuLabel} -g 1 -i perf.yaml
                             popd
