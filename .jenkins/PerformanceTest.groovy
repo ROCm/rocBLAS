@@ -18,7 +18,7 @@ rocBLASCI:
     rocblas.paths.build_command = './install.sh -lasm_ci -c'
 
     // Define test architectures, optional rocm version argument is available
-    def nodes = new dockerNodes(['ubuntu && gfx906 && perf'], rocblas)
+    def nodes = new dockerNodes(['ubuntu && gfx803 && perf'], rocblas)
 
     boolean formatCheck = true
 
@@ -47,10 +47,12 @@ rocBLASCI:
                         alias python=python3
                         python -V
 
-                        #get device name from /dev/dri
+                        # get device name from /dev/dri
                         devicename=\$(echo \$(ls /dev/dri) | sed 's/.*\\(card[0-9]\\).*/\\1/')
                         echo \$devicename
-                        #get device num from device name
+                        # get device num from device name
+                        devicenum=\$(echo \$devicename | sed 's/.*\\([0-9]\\).*/\\1/')
+                        echo \$devicenum
                         wget -nv http://10.216.151.18:8080/job/Performance/job/rocBLAS/job/PR-895/lastSuccessfulBuild/artifact/*zip*/archive.zip
                         wgetreturn=\$?
                         if [[ \$wgetreturn -eq 8 ]]; then
@@ -62,6 +64,8 @@ rocBLASCI:
                             tar -xvf archive/*/*/perfoutput.tar
                             pushd scripts/performance/blas/
                             python alltime.py -T -o \$workingdir/perfoutput -b \$workingdir/perfoutput2 -g 1 -i perf.yaml -d \$devicenum
+                            ls \$workingdir/perfoutput
+                            ls \$workingdir/perfoutput2
                         fi
                         """
         platform.runCommand(this, command)
@@ -91,6 +95,12 @@ rocBLASCI:
                         alias python=python3
                         python -V
 
+                        # get device name from /dev/dri
+                        devicename=\$(echo \$(ls /dev/dri) | sed 's/.*\\(card[0-9]\\).*/\\1/')
+                        echo \$devicename
+                        # get device num from device name
+                        devicenum=\$(echo \$devicename | sed 's/.*\\([0-9]\\).*/\\1/')
+                        echo \$devicenum
                         echo ${project.email.gpuLabel}
                         python alltime.py -A \$workingdir/build/release/clients/staging -o \$workingdir/perfoutput -i perf.yaml -S 0 -g 0 -d \$devicenum
 
