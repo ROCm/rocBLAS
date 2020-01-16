@@ -2695,6 +2695,423 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotmg_strided_batched(rocblas_handle hand
 /*! \brief BLAS Level 2 API
 
     \details
+    xGBMV performs one of the matrix-vector operations
+
+        y := alpha*A*x    + beta*y,   or
+        y := alpha*A**T*x + beta*y,   or
+        y := alpha*A**H*x + beta*y,
+
+    where alpha and beta are scalars, x and y are vectors and A is an
+    m by n banded matrix with kl sub-diagonals and ku super-diagonals.
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+    @param[in]
+    trans     [rocblas_operation]
+              indicates whether matrix A is tranposed (conjugated) or not
+    @param[in]
+    m         [rocblas_int]
+              number of rows of matrix A
+    @param[in]
+    n         [rocblas_int]
+              number of columns of matrix A
+    @param[in]
+    kl        [rocblas_int]
+              number of sub-diagonals of A
+    @param[in]
+    ku        [rocblas_int]
+              number of super-diagonals of A
+    @param[in]
+    alpha     device pointer or host pointer to scalar alpha.
+    @param[in]
+        A     device pointer storing banded matrix A.
+              Leading (kl + ku + 1) by n part of the matrix contains the coefficients
+              of the banded matrix. The leading diagonal resides in row (ku + 1) with
+              the first super-diagonal above on the RHS of row ku. The first sub-diagonal
+              resides below on the LHS of row ku + 2. This propogates up and down across
+              sub/super-diagonals.
+                Ex: (m = n = 7; ku = 2, kl = 2)
+                1 2 3 0 0 0 0             0 0 3 3 3 3 3
+                4 1 2 3 0 0 0             0 2 2 2 2 2 2
+                5 4 1 2 3 0 0    ---->    1 1 1 1 1 1 1
+                0 5 4 1 2 3 0             4 4 4 4 4 4 0
+                0 0 5 4 1 2 0             5 5 5 5 5 0 0
+                0 0 0 5 4 1 2             0 0 0 0 0 0 0
+                0 0 0 0 5 4 1             0 0 0 0 0 0 0
+              Note that the empty elements which don't correspond to data will not
+              be referenced.
+    @param[in]
+    lda       [rocblas_int]
+              specifies the leading dimension of A. Must be >= (kl + ku + 1)
+    @param[in]
+    x         device pointer storing vector x.
+    @param[in]
+    incx      [rocblas_int]
+              specifies the increment for the elements of x.
+    @param[in]
+    beta      device pointer or host pointer to scalar beta.
+    @param[inout]
+    y         device pointer storing vector y.
+    @param[in]
+    incy      [rocblas_int]
+              specifies the increment for the elements of y.
+
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_sgbmv(rocblas_handle    handle,
+                                            rocblas_operation trans,
+                                            rocblas_int       m,
+                                            rocblas_int       n,
+                                            rocblas_int       kl,
+                                            rocblas_int       ku,
+                                            const float*      alpha,
+                                            const float*      A,
+                                            rocblas_int       lda,
+                                            const float*      x,
+                                            rocblas_int       incx,
+                                            const float*      beta,
+                                            float*            y,
+                                            rocblas_int       incy);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dgbmv(rocblas_handle    handle,
+                                            rocblas_operation trans,
+                                            rocblas_int       m,
+                                            rocblas_int       n,
+                                            rocblas_int       kl,
+                                            rocblas_int       ku,
+                                            const double*     alpha,
+                                            const double*     A,
+                                            rocblas_int       lda,
+                                            const double*     x,
+                                            rocblas_int       incx,
+                                            const double*     beta,
+                                            double*           y,
+                                            rocblas_int       incy);
+
+ROCBLAS_EXPORT rocblas_status rocblas_cgbmv(rocblas_handle               handle,
+                                            rocblas_operation            trans,
+                                            rocblas_int                  m,
+                                            rocblas_int                  n,
+                                            rocblas_int                  kl,
+                                            rocblas_int                  ku,
+                                            const rocblas_float_complex* alpha,
+                                            const rocblas_float_complex* A,
+                                            rocblas_int                  lda,
+                                            const rocblas_float_complex* x,
+                                            rocblas_int                  incx,
+                                            const rocblas_float_complex* beta,
+                                            rocblas_float_complex*       y,
+                                            rocblas_int                  incy);
+
+ROCBLAS_EXPORT rocblas_status rocblas_zgbmv(rocblas_handle                handle,
+                                            rocblas_operation             trans,
+                                            rocblas_int                   m,
+                                            rocblas_int                   n,
+                                            rocblas_int                   kl,
+                                            rocblas_int                   ku,
+                                            const rocblas_double_complex* alpha,
+                                            const rocblas_double_complex* A,
+                                            rocblas_int                   lda,
+                                            const rocblas_double_complex* x,
+                                            rocblas_int                   incx,
+                                            const rocblas_double_complex* beta,
+                                            rocblas_double_complex*       y,
+                                            rocblas_int                   incy);
+
+/*! \brief BLAS Level 2 API
+
+    \details
+    xGBMV_BATCHED performs one of the matrix-vector operations
+
+        y_i := alpha*A_i*x_i    + beta*y_i,   or
+        y_i := alpha*A_i**T*x_i + beta*y_i,   or
+        y_i := alpha*A_i**H*x_i + beta*y_i,
+
+    where (A_i, x_i, y_i) is the i-th instance of the batch.
+    alpha and beta are scalars, x_i and y_i are vectors and A_i is an
+    m by n banded matrix with kl sub-diagonals and ku super-diagonals,
+    for i = 1, ..., batch_count.
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+    @param[in]
+    trans     [rocblas_operation]
+              indicates whether matrix A is tranposed (conjugated) or not
+    @param[in]
+    m         [rocblas_int]
+              number of rows of each matrix A_i
+    @param[in]
+    n         [rocblas_int]
+              number of columns of each matrix A_i
+    @param[in]
+    kl        [rocblas_int]
+              number of sub-diagonals of each A_i
+    @param[in]
+    ku        [rocblas_int]
+              number of super-diagonals of each A_i
+    @param[in]
+    alpha     device pointer or host pointer to scalar alpha.
+    @param[in]
+        A     device array of device pointers storing each banded matrix A_i.
+              Leading (kl + ku + 1) by n part of the matrix contains the coefficients
+              of the banded matrix. The leading diagonal resides in row (ku + 1) with
+              the first super-diagonal above on the RHS of row ku. The first sub-diagonal
+              resides below on the LHS of row ku + 2. This propogates up and down across
+              sub/super-diagonals.
+                Ex: (m = n = 7; ku = 2, kl = 2)
+                1 2 3 0 0 0 0             0 0 3 3 3 3 3
+                4 1 2 3 0 0 0             0 2 2 2 2 2 2
+                5 4 1 2 3 0 0    ---->    1 1 1 1 1 1 1
+                0 5 4 1 2 3 0             4 4 4 4 4 4 0
+                0 0 5 4 1 2 0             5 5 5 5 5 0 0
+                0 0 0 5 4 1 2             0 0 0 0 0 0 0
+                0 0 0 0 5 4 1             0 0 0 0 0 0 0
+              Note that the empty elements which don't correspond to data will not
+              be referenced.
+    @param[in]
+    lda       [rocblas_int]
+              specifies the leading dimension of each A_i. Must be >= (kl + ku + 1)
+    @param[in]
+    x         device array of device pointers storing each vector x_i.
+    @param[in]
+    incx      [rocblas_int]
+              specifies the increment for the elements of each x_i.
+    @param[in]
+    beta      device pointer or host pointer to scalar beta.
+    @param[inout]
+    y         device array of device pointers storing each vector y_i.
+    @param[in]
+    incy      [rocblas_int]
+              specifies the increment for the elements of each y_i.
+    @param[in]
+    batch_count [rocblas_int]
+                specifies the number of instances in the batch.
+
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_sgbmv_batched(rocblas_handle     handle,
+                                                    rocblas_operation  trans,
+                                                    rocblas_int        m,
+                                                    rocblas_int        n,
+                                                    rocblas_int        kl,
+                                                    rocblas_int        ku,
+                                                    const float*       alpha,
+                                                    const float* const A[],
+                                                    rocblas_int        lda,
+                                                    const float* const x[],
+                                                    rocblas_int        incx,
+                                                    const float*       beta,
+                                                    float* const       y[],
+                                                    rocblas_int        incy,
+                                                    rocblas_int        batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dgbmv_batched(rocblas_handle      handle,
+                                                    rocblas_operation   trans,
+                                                    rocblas_int         m,
+                                                    rocblas_int         n,
+                                                    rocblas_int         kl,
+                                                    rocblas_int         ku,
+                                                    const double*       alpha,
+                                                    const double* const A[],
+                                                    rocblas_int         lda,
+                                                    const double* const x[],
+                                                    rocblas_int         incx,
+                                                    const double*       beta,
+                                                    double* const       y[],
+                                                    rocblas_int         incy,
+                                                    rocblas_int         batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_cgbmv_batched(rocblas_handle                     handle,
+                                                    rocblas_operation                  trans,
+                                                    rocblas_int                        m,
+                                                    rocblas_int                        n,
+                                                    rocblas_int                        kl,
+                                                    rocblas_int                        ku,
+                                                    const rocblas_float_complex*       alpha,
+                                                    const rocblas_float_complex* const A[],
+                                                    rocblas_int                        lda,
+                                                    const rocblas_float_complex* const x[],
+                                                    rocblas_int                        incx,
+                                                    const rocblas_float_complex*       beta,
+                                                    rocblas_float_complex* const       y[],
+                                                    rocblas_int                        incy,
+                                                    rocblas_int                        batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_zgbmv_batched(rocblas_handle                      handle,
+                                                    rocblas_operation                   trans,
+                                                    rocblas_int                         m,
+                                                    rocblas_int                         n,
+                                                    rocblas_int                         kl,
+                                                    rocblas_int                         ku,
+                                                    const rocblas_double_complex*       alpha,
+                                                    const rocblas_double_complex* const A[],
+                                                    rocblas_int                         lda,
+                                                    const rocblas_double_complex* const x[],
+                                                    rocblas_int                         incx,
+                                                    const rocblas_double_complex*       beta,
+                                                    rocblas_double_complex* const       y[],
+                                                    rocblas_int                         incy,
+                                                    rocblas_int batch_count);
+
+/*! \brief BLAS Level 2 API
+
+    \details
+    xGBMV_STRIDED_BATCHED performs one of the matrix-vector operations
+
+        y_i := alpha*A_i*x_i    + beta*y_i,   or
+        y_i := alpha*A_i**T*x_i + beta*y_i,   or
+        y_i := alpha*A_i**H*x_i + beta*y_i,
+
+    where (A_i, x_i, y_i) is the i-th instance of the batch.
+    alpha and beta are scalars, x_i and y_i are vectors and A_i is an
+    m by n banded matrix with kl sub-diagonals and ku super-diagonals,
+    for i = 1, ..., batch_count.
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+    @param[in]
+    trans     [rocblas_operation]
+              indicates whether matrix A is tranposed (conjugated) or not
+    @param[in]
+    m         [rocblas_int]
+              number of rows of matrix A
+    @param[in]
+    n         [rocblas_int]
+              number of columns of matrix A
+    @param[in]
+    kl        [rocblas_int]
+              number of sub-diagonals of A
+    @param[in]
+    ku        [rocblas_int]
+              number of super-diagonals of A
+    @param[in]
+    alpha     device pointer or host pointer to scalar alpha.
+    @param[in]
+        A     device pointer to first banded matrix (A_1).
+              Leading (kl + ku + 1) by n part of the matrix contains the coefficients
+              of the banded matrix. The leading diagonal resides in row (ku + 1) with
+              the first super-diagonal above on the RHS of row ku. The first sub-diagonal
+              resides below on the LHS of row ku + 2. This propogates up and down across
+              sub/super-diagonals.
+                Ex: (m = n = 7; ku = 2, kl = 2)
+                1 2 3 0 0 0 0             0 0 3 3 3 3 3
+                4 1 2 3 0 0 0             0 2 2 2 2 2 2
+                5 4 1 2 3 0 0    ---->    1 1 1 1 1 1 1
+                0 5 4 1 2 3 0             4 4 4 4 4 4 0
+                0 0 5 4 1 2 0             5 5 5 5 5 0 0
+                0 0 0 5 4 1 2             0 0 0 0 0 0 0
+                0 0 0 0 5 4 1             0 0 0 0 0 0 0
+              Note that the empty elements which don't correspond to data will not
+              be referenced.
+    @param[in]
+    lda       [rocblas_int]
+              specifies the leading dimension of A. Must be >= (kl + ku + 1)
+    @param[in]
+    stride_A  [rocblas_stride]
+              stride from the start of one matrix (A_i) and the next one (A_i+1)
+    @param[in]
+    x         device pointer to first vector (x_1).
+    @param[in]
+    incx      [rocblas_int]
+              specifies the increment for the elements of x.
+    @param[in]
+    stride_x  [rocblas_stride]
+              stride from the start of one vector (x_i) and the next one (x_i+1)
+    @param[in]
+    beta      device pointer or host pointer to scalar beta.
+    @param[inout]
+    y         device pointer to first vector (y_1).
+    @param[in]
+    incy      [rocblas_int]
+              specifies the increment for the elements of y.
+    @param[in]
+    stride_y  [rocblas_stride]
+              stride from the start of one vector (y_i) and the next one (x_i+1)
+    @param[in]
+    batch_count [rocblas_int]
+                specifies the number of instances in the batch.
+
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_sgbmv_strided_batched(rocblas_handle    handle,
+                                                            rocblas_operation trans,
+                                                            rocblas_int       m,
+                                                            rocblas_int       n,
+                                                            rocblas_int       kl,
+                                                            rocblas_int       ku,
+                                                            const float*      alpha,
+                                                            const float*      A,
+                                                            rocblas_int       lda,
+                                                            rocblas_stride    stride_A,
+                                                            const float*      x,
+                                                            rocblas_int       incx,
+                                                            rocblas_stride    stride_x,
+                                                            const float*      beta,
+                                                            float*            y,
+                                                            rocblas_int       incy,
+                                                            rocblas_stride    stride_y,
+                                                            rocblas_int       batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dgbmv_strided_batched(rocblas_handle    handle,
+                                                            rocblas_operation trans,
+                                                            rocblas_int       m,
+                                                            rocblas_int       n,
+                                                            rocblas_int       kl,
+                                                            rocblas_int       ku,
+                                                            const double*     alpha,
+                                                            const double*     A,
+                                                            rocblas_int       lda,
+                                                            rocblas_stride    stride_A,
+                                                            const double*     x,
+                                                            rocblas_int       incx,
+                                                            rocblas_stride    stride_x,
+                                                            const double*     beta,
+                                                            double*           y,
+                                                            rocblas_int       incy,
+                                                            rocblas_stride    stride_y,
+                                                            rocblas_int       batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_cgbmv_strided_batched(rocblas_handle               handle,
+                                                            rocblas_operation            trans,
+                                                            rocblas_int                  m,
+                                                            rocblas_int                  n,
+                                                            rocblas_int                  kl,
+                                                            rocblas_int                  ku,
+                                                            const rocblas_float_complex* alpha,
+                                                            const rocblas_float_complex* A,
+                                                            rocblas_int                  lda,
+                                                            rocblas_stride               stride_A,
+                                                            const rocblas_float_complex* x,
+                                                            rocblas_int                  incx,
+                                                            rocblas_stride               stride_x,
+                                                            const rocblas_float_complex* beta,
+                                                            rocblas_float_complex*       y,
+                                                            rocblas_int                  incy,
+                                                            rocblas_stride               stride_y,
+                                                            rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_zgbmv_strided_batched(rocblas_handle                handle,
+                                                            rocblas_operation             trans,
+                                                            rocblas_int                   m,
+                                                            rocblas_int                   n,
+                                                            rocblas_int                   kl,
+                                                            rocblas_int                   ku,
+                                                            const rocblas_double_complex* alpha,
+                                                            const rocblas_double_complex* A,
+                                                            rocblas_int                   lda,
+                                                            rocblas_stride                stride_A,
+                                                            const rocblas_double_complex* x,
+                                                            rocblas_int                   incx,
+                                                            rocblas_stride                stride_x,
+                                                            const rocblas_double_complex* beta,
+                                                            rocblas_double_complex*       y,
+                                                            rocblas_int                   incy,
+                                                            rocblas_stride                stride_y,
+                                                            rocblas_int batch_count);
+
+/*! \brief BLAS Level 2 API
+
+    \details
     xGEMV performs one of the matrix-vector operations
 
         y := alpha*A*x    + beta*y,   or
@@ -2788,247 +3205,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgemv(rocblas_handle                handle
                                             const rocblas_double_complex* beta,
                                             rocblas_double_complex*       y,
                                             rocblas_int                   incy);
-
-/*! \brief BLAS Level 2 API
-
-    \details
-    xHEMV performs one of the matrix-vector operations
-
-        y := alpha*A*x + beta*y
-
-    where alpha and beta are scalars, x and y are n element vectors and A is an
-    n by n hermitian matrix.
-
-    @param[in]
-    handle    [rocblas_handle]
-              handle to the rocblas library context queue.
-    @param[in]
-    uplo      [rocblas_fill]
-              rocblas_fill_upper: A is an upper banded triangular matrix.
-              rocblas_fill_lower: A is a  lower banded triangular matrix.
-    @param[in]
-    n         [rocblas_int]
-              the order of the matrix A.
-    @param[in]
-    alpha     device pointer or host pointer to scalar alpha.
-    @param[in]
-    A         device pointer storing matrix A. Of dimension (lda, n).
-              if uplo == rocblas_fill_upper:
-                The upper triangular part of A must contain
-                the upper triangular part of a hermitian matrix. The lower
-                triangular part of A will not be referenced.
-              if uplo == rocblas_fill_lower:
-                The lower triangular part of A must contain
-                the lower triangular part of a hermitian matrix. The upper
-                triangular part of A will not be referenced.
-              As a hermitian matrix, the imaginary part of the main diagonal
-              of A will not be referenced and is assumed to be == 0.
-    @param[in]
-    lda       [rocblas_int]
-              specifies the leading dimension of A. must be >= max(1, n)
-    @param[in]
-    x         device pointer storing vector x.
-    @param[in]
-    incx      [rocblas_int]
-              specifies the increment for the elements of x.
-    @param[in]
-    beta      device pointer or host pointer to scalar beta.
-    @param[inout]
-    y         device pointer storing vector y.
-    @param[in]
-    incy      [rocblas_int]
-              specifies the increment for the elements of y.
-
-    ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_chemv(rocblas_handle               handle,
-                                            rocblas_fill                 uplo,
-                                            rocblas_int                  n,
-                                            const rocblas_float_complex* alpha,
-                                            const rocblas_float_complex* A,
-                                            rocblas_int                  lda,
-                                            const rocblas_float_complex* x,
-                                            rocblas_int                  incx,
-                                            const rocblas_float_complex* beta,
-                                            rocblas_float_complex*       y,
-                                            rocblas_int                  incy);
-
-ROCBLAS_EXPORT rocblas_status rocblas_zhemv(rocblas_handle                handle,
-                                            rocblas_fill                  uplo,
-                                            rocblas_int                   n,
-                                            const rocblas_double_complex* alpha,
-                                            const rocblas_double_complex* A,
-                                            rocblas_int                   lda,
-                                            const rocblas_double_complex* x,
-                                            rocblas_int                   incx,
-                                            const rocblas_double_complex* beta,
-                                            rocblas_double_complex*       y,
-                                            rocblas_int                   incy);
-
-/*! \brief BLAS Level 2 API
-
-    \details
-    xHEMV_BATCHED performs one of the matrix-vector operations
-
-        y_i := alpha*A_i*x_i + beta*y_i
-
-    where alpha and beta are scalars, x_i and y_i are n element vectors and A_i is an
-    n by n hermitian matrix, for each batch in i = [1, batch_count].
-
-    @param[in]
-    handle    [rocblas_handle]
-              handle to the rocblas library context queue.
-    @param[in]
-    uplo      [rocblas_fill]
-              rocblas_fill_upper: A is an upper banded triangular matrix.
-              rocblas_fill_lower: A is a  lower banded triangular matrix.
-    @param[in]
-    n         [rocblas_int]
-              the order of each matrix A_i.
-    @param[in]
-    alpha     device pointer or host pointer to scalar alpha.
-    @param[in]
-    A         device array of device pointers storing each matrix A_i of dimension (lda, n).
-              if uplo == rocblas_fill_upper:
-                The upper triangular part of each A_i must contain
-                the upper triangular part of a hermitian matrix. The lower
-                triangular part of each A_i will not be referenced.
-              if uplo == rocblas_fill_lower:
-                The lower triangular part of each A_i must contain
-                the lower triangular part of a hermitian matrix. The upper
-                triangular part of each A_i will not be referenced.
-              As a hermitian matrix, the imaginary part of the main diagonal
-              of each A_i will not be referenced and is assumed to be == 0.
-    @param[in]
-    lda       [rocblas_int]
-              specifies the leading dimension of each A_i. must be >= max(1, n)
-    @param[in]
-    x         device array of device pointers storing each vector x_i.
-    @param[in]
-    incx      [rocblas_int]
-              specifies the increment for the elements of each x_i.
-    @param[in]
-    beta      device pointer or host pointer to scalar beta.
-    @param[inout]
-    y         device array of device pointers storing each vector y_i.
-    @param[in]
-    incy      [rocblas_int]
-              specifies the increment for the elements of y.
-    @param[in]
-    batch_count [rocblas_int]
-                number of instances in the batch.
-
-    ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_chemv_batched(rocblas_handle                     handle,
-                                                    rocblas_fill                       uplo,
-                                                    rocblas_int                        n,
-                                                    const rocblas_float_complex*       alpha,
-                                                    const rocblas_float_complex* const A[],
-                                                    rocblas_int                        lda,
-                                                    const rocblas_float_complex* const x[],
-                                                    rocblas_int                        incx,
-                                                    const rocblas_float_complex*       beta,
-                                                    rocblas_float_complex* const       y[],
-                                                    rocblas_int                        incy,
-                                                    rocblas_int                        batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_zhemv_batched(rocblas_handle                      handle,
-                                                    rocblas_fill                        uplo,
-                                                    rocblas_int                         n,
-                                                    const rocblas_double_complex*       alpha,
-                                                    const rocblas_double_complex* const A[],
-                                                    rocblas_int                         lda,
-                                                    const rocblas_double_complex* const x[],
-                                                    rocblas_int                         incx,
-                                                    const rocblas_double_complex*       beta,
-                                                    rocblas_double_complex* const       y[],
-                                                    rocblas_int                         incy,
-                                                    rocblas_int batch_count);
-
-/*! \brief BLAS Level 2 API
-
-    \details
-    xHEMV_STRIDED_BATCHED performs one of the matrix-vector operations
-
-        y_i := alpha*A_i*x_i + beta*y_i
-
-    where alpha and beta are scalars, x_i and y_i are n element vectors and A_i is an
-    n by n hermitian matrix, for each batch in i = [1, batch_count].
-
-    @param[in]
-    handle    [rocblas_handle]
-              handle to the rocblas library context queue.
-    @param[in]
-    uplo      [rocblas_fill]
-              rocblas_fill_upper: A is an upper banded triangular matrix.
-              rocblas_fill_lower: A is a  lower banded triangular matrix.
-    @param[in]
-    n         [rocblas_int]
-              the order of each matrix A_i.
-    @param[in]
-    alpha     device pointer or host pointer to scalar alpha.
-    @param[in]
-    A         device array of device pointers storing each matrix A_i of dimension (lda, n).
-              if uplo == rocblas_fill_upper:
-                The upper triangular part of each A_i must contain
-                the upper triangular part of a hermitian matrix. The lower
-                triangular part of each A_i will not be referenced.
-              if uplo == rocblas_fill_lower:
-                The lower triangular part of each A_i must contain
-                the lower triangular part of a hermitian matrix. The upper
-                triangular part of each A_i will not be referenced.
-              As a hermitian matrix, the imaginary part of the main diagonal
-              of each A_i will not be referenced and is assumed to be == 0.
-    @param[in]
-    lda       [rocblas_int]
-              specifies the leading dimension of each A_i. must be >= max(1, n)
-    @param[in]
-    x         device array of device pointers storing each vector x_i.
-    @param[in]
-    incx      [rocblas_int]
-              specifies the increment for the elements of each x_i.
-    @param[in]
-    beta      device pointer or host pointer to scalar beta.
-    @param[inout]
-    y         device array of device pointers storing each vector y_i.
-    @param[in]
-    incy      [rocblas_int]
-              specifies the increment for the elements of y.
-    @param[in]
-    batch_count [rocblas_int]
-                number of instances in the batch.
-
-    ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_chemv_strided_batched(rocblas_handle               handle,
-                                                            rocblas_fill                 uplo,
-                                                            rocblas_int                  n,
-                                                            const rocblas_float_complex* alpha,
-                                                            const rocblas_float_complex* A,
-                                                            rocblas_int                  lda,
-                                                            rocblas_stride               stride_A,
-                                                            const rocblas_float_complex* x,
-                                                            rocblas_int                  incx,
-                                                            rocblas_stride               stride_x,
-                                                            const rocblas_float_complex* beta,
-                                                            rocblas_float_complex*       y,
-                                                            rocblas_int                  incy,
-                                                            rocblas_stride               stride_y,
-                                                            rocblas_int batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_zhemv_strided_batched(rocblas_handle                handle,
-                                                            rocblas_fill                  uplo,
-                                                            rocblas_int                   n,
-                                                            const rocblas_double_complex* alpha,
-                                                            const rocblas_double_complex* A,
-                                                            rocblas_int                   lda,
-                                                            rocblas_stride                stride_A,
-                                                            const rocblas_double_complex* x,
-                                                            rocblas_int                   incx,
-                                                            rocblas_stride                stride_x,
-                                                            const rocblas_double_complex* beta,
-                                                            rocblas_double_complex*       y,
-                                                            rocblas_int                   incy,
-                                                            rocblas_stride                stride_y,
-                                                            rocblas_int batch_count);
 
 /*! \brief BLAS Level 2 API
 
@@ -3265,6 +3441,566 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgemv_strided_batched(rocblas_handle      
                                                             rocblas_double_complex*       y,
                                                             rocblas_int                   incy,
                                                             rocblas_stride                stridey,
+                                                            rocblas_int batch_count);
+
+/*! \brief BLAS Level 2 API
+
+    \details
+    xHBMV performs the matrix-vector operations
+
+        y := alpha*A*x + beta*y
+
+    where alpha and beta are scalars, x and y are n element vectors and A is an
+    n by n hermitian band matrix, with k super-diagonals.
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+    @param[in]
+    uplo      [rocblas_fill]
+              rocblas_fill_upper: The upper triangular part of A is being supplied.
+              rocblas_fill_lower: The lower triangular part of A is being supplied.
+    @param[in]
+    n         [rocblas_int]
+              the order of the matrix A.
+    @param[in]
+    k         [rocblas_int]
+              the number of super-diagonals of the matrix A. Must be >= 0.
+    @param[in]
+    alpha     device pointer or host pointer to scalar alpha.
+    @param[in]
+    A         device pointer storing matrix A. Of dimension (lda, n).
+              if uplo == rocblas_fill_upper:
+                The leading (k + 1) by n part of A must contain the upper
+                triangular band part of the hermitian matrix, with the leading
+                diagonal in row (k + 1), the first super-diagonal on the RHS
+                of row k, etc.
+                The top left k by x triangle of A will not be referenced.
+                    Ex (upper, lda = n = 4, k = 1):
+                    A                             Represented matrix
+                    (0,0) (5,9) (6,8) (7,7)       (1, 0) (5, 9) (0, 0) (0, 0)
+                    (1,0) (2,0) (3,0) (4,0)       (5,-9) (2, 0) (6, 8) (0, 0)
+                    (0,0) (0,0) (0,0) (0,0)       (0, 0) (6,-8) (3, 0) (7, 7)
+                    (0,0) (0,0) (0,0) (0,0)       (0, 0) (0, 0) (7,-7) (4, 0)
+
+              if uplo == rocblas_fill_lower:
+                The leading (k + 1) by n part of A must contain the lower
+                triangular band part of the hermitian matrix, with the leading
+                diagonal in row (1), the first sub-diagonal on the LHS of
+                row 2, etc.
+                The bottom right k by k triangle of A will not be referenced.
+                    Ex (lower, lda = 2, n = 4, k = 1):
+                    A                               Represented matrix
+                    (1,0) (2,0) (3,0) (4,0)         (1, 0) (5,-9) (0, 0) (0, 0)
+                    (5,9) (6,8) (7,7) (0,0)         (5, 9) (2, 0) (6,-8) (0, 0)
+                                                    (0, 0) (6, 8) (3, 0) (7,-7)
+                                                    (0, 0) (0, 0) (7, 7) (4, 0)
+
+              As a hermitian matrix, the imaginary part of the main diagonal
+              of A will not be referenced and is assumed to be == 0.
+    @param[in]
+    lda       [rocblas_int]
+              specifies the leading dimension of A. must be >= k + 1
+    @param[in]
+    x         device pointer storing vector x.
+    @param[in]
+    incx      [rocblas_int]
+              specifies the increment for the elements of x.
+    @param[in]
+    beta      device pointer or host pointer to scalar beta.
+    @param[inout]
+    y         device pointer storing vector y.
+    @param[in]
+    incy      [rocblas_int]
+              specifies the increment for the elements of y.
+
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_chbmv(rocblas_handle               handle,
+                                            rocblas_fill                 uplo,
+                                            rocblas_int                  n,
+                                            rocblas_int                  k,
+                                            const rocblas_float_complex* alpha,
+                                            const rocblas_float_complex* A,
+                                            rocblas_int                  lda,
+                                            const rocblas_float_complex* x,
+                                            rocblas_int                  incx,
+                                            const rocblas_float_complex* beta,
+                                            rocblas_float_complex*       y,
+                                            rocblas_int                  incy);
+
+ROCBLAS_EXPORT rocblas_status rocblas_zhbmv(rocblas_handle                handle,
+                                            rocblas_fill                  uplo,
+                                            rocblas_int                   n,
+                                            rocblas_int                   k,
+                                            const rocblas_double_complex* alpha,
+                                            const rocblas_double_complex* A,
+                                            rocblas_int                   lda,
+                                            const rocblas_double_complex* x,
+                                            rocblas_int                   incx,
+                                            const rocblas_double_complex* beta,
+                                            rocblas_double_complex*       y,
+                                            rocblas_int                   incy);
+
+/*! \brief BLAS Level 2 API
+
+    \details
+    xHBMV_BATCHED performs one of the matrix-vector operations
+
+        y_i := alpha*A_i*x_i + beta*y_i
+
+    where alpha and beta are scalars, x_i and y_i are n element vectors and A_i is an
+    n by n hermitian band matrix with k super-diagonals, for each batch in i = [1, batch_count].
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+    @param[in]
+    uplo      [rocblas_fill]
+              rocblas_fill_upper: The upper triangular part of each A_i is being supplied.
+              rocblas_fill_lower: The lower triangular part of each A_i is being supplied.
+    @param[in]
+    n         [rocblas_int]
+              the order of each matrix A_i.
+    @param[in]
+    k         [rocblas_int]
+              the number of super-diagonals of each matrix A_i. Must be >= 0.
+    @param[in]
+    alpha     device pointer or host pointer to scalar alpha.
+    @param[in]
+    A         device array of device pointers storing each matrix_i A of dimension (lda, n).
+              if uplo == rocblas_fill_upper:
+                The leading (k + 1) by n part of each A_i must contain the upper
+                triangular band part of the hermitian matrix, with the leading
+                diagonal in row (k + 1), the first super-diagonal on the RHS
+                of row k, etc.
+                The top left k by x triangle of each A_i will not be referenced.
+                    Ex (upper, lda = n = 4, k = 1):
+                    A                             Represented matrix
+                    (0,0) (5,9) (6,8) (7,7)       (1, 0) (5, 9) (0, 0) (0, 0)
+                    (1,0) (2,0) (3,0) (4,0)       (5,-9) (2, 0) (6, 8) (0, 0)
+                    (0,0) (0,0) (0,0) (0,0)       (0, 0) (6,-8) (3, 0) (7, 7)
+                    (0,0) (0,0) (0,0) (0,0)       (0, 0) (0, 0) (7,-7) (4, 0)
+
+              if uplo == rocblas_fill_lower:
+                The leading (k + 1) by n part of each A_i must contain the lower
+                triangular band part of the hermitian matrix, with the leading
+                diagonal in row (1), the first sub-diagonal on the LHS of
+                row 2, etc.
+                The bottom right k by k triangle of each A_i will not be referenced.
+                    Ex (lower, lda = 2, n = 4, k = 1):
+                    A                               Represented matrix
+                    (1,0) (2,0) (3,0) (4,0)         (1, 0) (5,-9) (0, 0) (0, 0)
+                    (5,9) (6,8) (7,7) (0,0)         (5, 9) (2, 0) (6,-8) (0, 0)
+                                                    (0, 0) (6, 8) (3, 0) (7,-7)
+                                                    (0, 0) (0, 0) (7, 7) (4, 0)
+
+              As a hermitian matrix, the imaginary part of the main diagonal
+              of each A_i will not be referenced and is assumed to be == 0.
+    @param[in]
+    lda       [rocblas_int]
+              specifies the leading dimension of each A_i. must be >= max(1, n)
+    @param[in]
+    x         device array of device pointers storing each vector x_i.
+    @param[in]
+    incx      [rocblas_int]
+              specifies the increment for the elements of each x_i.
+    @param[in]
+    beta      device pointer or host pointer to scalar beta.
+    @param[inout]
+    y         device array of device pointers storing each vector y_i.
+    @param[in]
+    incy      [rocblas_int]
+              specifies the increment for the elements of y.
+    @param[in]
+    batch_count [rocblas_int]
+                number of instances in the batch.
+
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_chbmv_batched(rocblas_handle                     handle,
+                                                    rocblas_fill                       uplo,
+                                                    rocblas_int                        n,
+                                                    rocblas_int                        k,
+                                                    const rocblas_float_complex*       alpha,
+                                                    const rocblas_float_complex* const A[],
+                                                    rocblas_int                        lda,
+                                                    const rocblas_float_complex* const x[],
+                                                    rocblas_int                        incx,
+                                                    const rocblas_float_complex*       beta,
+                                                    rocblas_float_complex* const       y[],
+                                                    rocblas_int                        incy,
+                                                    rocblas_int                        batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_zhbmv_batched(rocblas_handle                      handle,
+                                                    rocblas_fill                        uplo,
+                                                    rocblas_int                         n,
+                                                    rocblas_int                         k,
+                                                    const rocblas_double_complex*       alpha,
+                                                    const rocblas_double_complex* const A[],
+                                                    rocblas_int                         lda,
+                                                    const rocblas_double_complex* const x[],
+                                                    rocblas_int                         incx,
+                                                    const rocblas_double_complex*       beta,
+                                                    rocblas_double_complex* const       y[],
+                                                    rocblas_int                         incy,
+                                                    rocblas_int batch_count);
+
+/*! \brief BLAS Level 2 API
+
+    \details
+    xHBMV_STRIDED_BATCHED performs one of the matrix-vector operations
+
+        y_i := alpha*A_i*x_i + beta*y_i
+
+    where alpha and beta are scalars, x_i and y_i are n element vectors and A_i is an
+    n by n hermitian band matrix with k super-diagonals, for each batch in i = [1, batch_count].
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+    @param[in]
+    uplo      [rocblas_fill]
+              rocblas_fill_upper: The upper triangular part of each A_i is being supplied.
+              rocblas_fill_lower: The lower triangular part of each A_i is being supplied.
+    @param[in]
+    n         [rocblas_int]
+              the order of each matrix A_i.
+    @param[in]
+    k         [rocblas_int]
+              the number of super-diagonals of each matrix A_i. Must be >= 0.
+    @param[in]
+    alpha     device pointer or host pointer to scalar alpha.
+    @param[in]
+    A         device array pointing to the first matrix A_1. Each A_i is of dimension (lda, n).
+              if uplo == rocblas_fill_upper:
+                The leading (k + 1) by n part of each A_i must contain the upper
+                triangular band part of the hermitian matrix, with the leading
+                diagonal in row (k + 1), the first super-diagonal on the RHS
+                of row k, etc.
+                The top left k by x triangle of each A_i will not be referenced.
+                    Ex (upper, lda = n = 4, k = 1):
+                    A                             Represented matrix
+                    (0,0) (5,9) (6,8) (7,7)       (1, 0) (5, 9) (0, 0) (0, 0)
+                    (1,0) (2,0) (3,0) (4,0)       (5,-9) (2, 0) (6, 8) (0, 0)
+                    (0,0) (0,0) (0,0) (0,0)       (0, 0) (6,-8) (3, 0) (7, 7)
+                    (0,0) (0,0) (0,0) (0,0)       (0, 0) (0, 0) (7,-7) (4, 0)
+
+              if uplo == rocblas_fill_lower:
+                The leading (k + 1) by n part of each A_i must contain the lower
+                triangular band part of the hermitian matrix, with the leading
+                diagonal in row (1), the first sub-diagonal on the LHS of
+                row 2, etc.
+                The bottom right k by k triangle of each A_i will not be referenced.
+                    Ex (lower, lda = 2, n = 4, k = 1):
+                    A                               Represented matrix
+                    (1,0) (2,0) (3,0) (4,0)         (1, 0) (5,-9) (0, 0) (0, 0)
+                    (5,9) (6,8) (7,7) (0,0)         (5, 9) (2, 0) (6,-8) (0, 0)
+                                                    (0, 0) (6, 8) (3, 0) (7,-7)
+                                                    (0, 0) (0, 0) (7, 7) (4, 0)
+
+              As a hermitian matrix, the imaginary part of the main diagonal
+              of each A_i will not be referenced and is assumed to be == 0.
+    @param[in]
+    lda       [rocblas_int]
+              specifies the leading dimension of each A_i. must be >= max(1, n)
+    @param[in]
+    stride_A  [rocblas_stride]
+              stride from the start of one matrix (A_i) and the next one (A_i+1)
+    @param[in]
+    x         device array pointing to the first vector y_1.
+    @param[in]
+    incx      [rocblas_int]
+              specifies the increment for the elements of each x_i.
+    @param[in]
+    stride_x  [rocblas_stride]
+              stride from the start of one vector (x_i) and the next one (x_i+1)
+    @param[in]
+    beta      device pointer or host pointer to scalar beta.
+    @param[inout]
+    y         device array pointing to the first vector y_1.
+    @param[in]
+    incy      [rocblas_int]
+              specifies the increment for the elements of y.
+    @param[in]
+    stride_y  [rocblas_stride]
+              stride from the start of one vector (y_i) and the next one (y_i+1)
+    @param[in]
+    batch_count [rocblas_int]
+                number of instances in the batch.
+
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_chbmv_strided_batched(rocblas_handle               handle,
+                                                            rocblas_fill                 uplo,
+                                                            rocblas_int                  n,
+                                                            rocblas_int                  k,
+                                                            const rocblas_float_complex* alpha,
+                                                            const rocblas_float_complex* A,
+                                                            rocblas_int                  lda,
+                                                            rocblas_stride               stride_A,
+                                                            const rocblas_float_complex* x,
+                                                            rocblas_int                  incx,
+                                                            rocblas_stride               stride_x,
+                                                            const rocblas_float_complex* beta,
+                                                            rocblas_float_complex*       y,
+                                                            rocblas_int                  incy,
+                                                            rocblas_stride               stride_y,
+                                                            rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_zhbmv_strided_batched(rocblas_handle                handle,
+                                                            rocblas_fill                  uplo,
+                                                            rocblas_int                   n,
+                                                            rocblas_int                   k,
+                                                            const rocblas_double_complex* alpha,
+                                                            const rocblas_double_complex* A,
+                                                            rocblas_int                   lda,
+                                                            rocblas_stride                stride_A,
+                                                            const rocblas_double_complex* x,
+                                                            rocblas_int                   incx,
+                                                            rocblas_stride                stride_x,
+                                                            const rocblas_double_complex* beta,
+                                                            rocblas_double_complex*       y,
+                                                            rocblas_int                   incy,
+                                                            rocblas_stride                stride_y,
+                                                            rocblas_int batch_count);
+
+/*! \brief BLAS Level 2 API
+
+    \details
+    xHEMV performs one of the matrix-vector operations
+
+        y := alpha*A*x + beta*y
+
+    where alpha and beta are scalars, x and y are n element vectors and A is an
+    n by n hermitian matrix.
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+    @param[in]
+    uplo      [rocblas_fill]
+              rocblas_fill_upper: the upper triangular part of the hermitian matrix A is supplied.
+              rocblas_fill_lower: the lower triangular part of the hermitian matrix A is supplied.
+    @param[in]
+    n         [rocblas_int]
+              the order of the matrix A.
+    @param[in]
+    alpha     device pointer or host pointer to scalar alpha.
+    @param[in]
+    A         device pointer storing matrix A. Of dimension (lda, n).
+              if uplo == rocblas_fill_upper:
+                The upper triangular part of A must contain
+                the upper triangular part of a hermitian matrix. The lower
+                triangular part of A will not be referenced.
+              if uplo == rocblas_fill_lower:
+                The lower triangular part of A must contain
+                the lower triangular part of a hermitian matrix. The upper
+                triangular part of A will not be referenced.
+              As a hermitian matrix, the imaginary part of the main diagonal
+              of A will not be referenced and is assumed to be == 0.
+    @param[in]
+    lda       [rocblas_int]
+              specifies the leading dimension of A. must be >= max(1, n)
+    @param[in]
+    x         device pointer storing vector x.
+    @param[in]
+    incx      [rocblas_int]
+              specifies the increment for the elements of x.
+    @param[in]
+    beta      device pointer or host pointer to scalar beta.
+    @param[inout]
+    y         device pointer storing vector y.
+    @param[in]
+    incy      [rocblas_int]
+              specifies the increment for the elements of y.
+
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_chemv(rocblas_handle               handle,
+                                            rocblas_fill                 uplo,
+                                            rocblas_int                  n,
+                                            const rocblas_float_complex* alpha,
+                                            const rocblas_float_complex* A,
+                                            rocblas_int                  lda,
+                                            const rocblas_float_complex* x,
+                                            rocblas_int                  incx,
+                                            const rocblas_float_complex* beta,
+                                            rocblas_float_complex*       y,
+                                            rocblas_int                  incy);
+
+ROCBLAS_EXPORT rocblas_status rocblas_zhemv(rocblas_handle                handle,
+                                            rocblas_fill                  uplo,
+                                            rocblas_int                   n,
+                                            const rocblas_double_complex* alpha,
+                                            const rocblas_double_complex* A,
+                                            rocblas_int                   lda,
+                                            const rocblas_double_complex* x,
+                                            rocblas_int                   incx,
+                                            const rocblas_double_complex* beta,
+                                            rocblas_double_complex*       y,
+                                            rocblas_int                   incy);
+
+/*! \brief BLAS Level 2 API
+
+    \details
+    xHEMV_BATCHED performs one of the matrix-vector operations
+
+        y_i := alpha*A_i*x_i + beta*y_i
+
+    where alpha and beta are scalars, x_i and y_i are n element vectors and A_i is an
+    n by n hermitian matrix, for each batch in i = [1, batch_count].
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+    @param[in]
+    uplo      [rocblas_fill]
+              rocblas_fill_upper: the upper triangular part of the hermitian matrix A is supplied.
+              rocblas_fill_lower: the lower triangular part of the hermitian matrix A is supplied.
+    @param[in]
+    n         [rocblas_int]
+              the order of each matrix A_i.
+    @param[in]
+    alpha     device pointer or host pointer to scalar alpha.
+    @param[in]
+    A         device array of device pointers storing each matrix A_i of dimension (lda, n).
+              if uplo == rocblas_fill_upper:
+                The upper triangular part of each A_i must contain
+                the upper triangular part of a hermitian matrix. The lower
+                triangular part of each A_i will not be referenced.
+              if uplo == rocblas_fill_lower:
+                The lower triangular part of each A_i must contain
+                the lower triangular part of a hermitian matrix. The upper
+                triangular part of each A_i will not be referenced.
+              As a hermitian matrix, the imaginary part of the main diagonal
+              of each A_i will not be referenced and is assumed to be == 0.
+    @param[in]
+    lda       [rocblas_int]
+              specifies the leading dimension of each A_i. must be >= max(1, n)
+    @param[in]
+    x         device array of device pointers storing each vector x_i.
+    @param[in]
+    incx      [rocblas_int]
+              specifies the increment for the elements of each x_i.
+    @param[in]
+    beta      device pointer or host pointer to scalar beta.
+    @param[inout]
+    y         device array of device pointers storing each vector y_i.
+    @param[in]
+    incy      [rocblas_int]
+              specifies the increment for the elements of y.
+    @param[in]
+    batch_count [rocblas_int]
+                number of instances in the batch.
+
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_chemv_batched(rocblas_handle                     handle,
+                                                    rocblas_fill                       uplo,
+                                                    rocblas_int                        n,
+                                                    const rocblas_float_complex*       alpha,
+                                                    const rocblas_float_complex* const A[],
+                                                    rocblas_int                        lda,
+                                                    const rocblas_float_complex* const x[],
+                                                    rocblas_int                        incx,
+                                                    const rocblas_float_complex*       beta,
+                                                    rocblas_float_complex* const       y[],
+                                                    rocblas_int                        incy,
+                                                    rocblas_int                        batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_zhemv_batched(rocblas_handle                      handle,
+                                                    rocblas_fill                        uplo,
+                                                    rocblas_int                         n,
+                                                    const rocblas_double_complex*       alpha,
+                                                    const rocblas_double_complex* const A[],
+                                                    rocblas_int                         lda,
+                                                    const rocblas_double_complex* const x[],
+                                                    rocblas_int                         incx,
+                                                    const rocblas_double_complex*       beta,
+                                                    rocblas_double_complex* const       y[],
+                                                    rocblas_int                         incy,
+                                                    rocblas_int batch_count);
+
+/*! \brief BLAS Level 2 API
+
+    \details
+    xHEMV_STRIDED_BATCHED performs one of the matrix-vector operations
+
+        y_i := alpha*A_i*x_i + beta*y_i
+
+    where alpha and beta are scalars, x_i and y_i are n element vectors and A_i is an
+    n by n hermitian matrix, for each batch in i = [1, batch_count].
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+    @param[in]
+    uplo      [rocblas_fill]
+              rocblas_fill_upper: the upper triangular part of the hermitian matrix A is supplied.
+              rocblas_fill_lower: the lower triangular part of the hermitian matrix A is supplied.
+    @param[in]
+    n         [rocblas_int]
+              the order of each matrix A_i.
+    @param[in]
+    alpha     device pointer or host pointer to scalar alpha.
+    @param[in]
+    A         device array of device pointers storing each matrix A_i of dimension (lda, n).
+              if uplo == rocblas_fill_upper:
+                The upper triangular part of each A_i must contain
+                the upper triangular part of a hermitian matrix. The lower
+                triangular part of each A_i will not be referenced.
+              if uplo == rocblas_fill_lower:
+                The lower triangular part of each A_i must contain
+                the lower triangular part of a hermitian matrix. The upper
+                triangular part of each A_i will not be referenced.
+              As a hermitian matrix, the imaginary part of the main diagonal
+              of each A_i will not be referenced and is assumed to be == 0.
+    @param[in]
+    lda       [rocblas_int]
+              specifies the leading dimension of each A_i. must be >= max(1, n)
+    @param[in]
+    x         device array of device pointers storing each vector x_i.
+    @param[in]
+    incx      [rocblas_int]
+              specifies the increment for the elements of each x_i.
+    @param[in]
+    beta      device pointer or host pointer to scalar beta.
+    @param[inout]
+    y         device array of device pointers storing each vector y_i.
+    @param[in]
+    incy      [rocblas_int]
+              specifies the increment for the elements of y.
+    @param[in]
+    batch_count [rocblas_int]
+                number of instances in the batch.
+
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_chemv_strided_batched(rocblas_handle               handle,
+                                                            rocblas_fill                 uplo,
+                                                            rocblas_int                  n,
+                                                            const rocblas_float_complex* alpha,
+                                                            const rocblas_float_complex* A,
+                                                            rocblas_int                  lda,
+                                                            rocblas_stride               stride_A,
+                                                            const rocblas_float_complex* x,
+                                                            rocblas_int                  incx,
+                                                            rocblas_stride               stride_x,
+                                                            const rocblas_float_complex* beta,
+                                                            rocblas_float_complex*       y,
+                                                            rocblas_int                  incy,
+                                                            rocblas_stride               stride_y,
+                                                            rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_zhemv_strided_batched(rocblas_handle                handle,
+                                                            rocblas_fill                  uplo,
+                                                            rocblas_int                   n,
+                                                            const rocblas_double_complex* alpha,
+                                                            const rocblas_double_complex* A,
+                                                            rocblas_int                   lda,
+                                                            rocblas_stride                stride_A,
+                                                            const rocblas_double_complex* x,
+                                                            rocblas_int                   incx,
+                                                            rocblas_stride                stride_x,
+                                                            const rocblas_double_complex* beta,
+                                                            rocblas_double_complex*       y,
+                                                            rocblas_int                   incy,
+                                                            rocblas_stride                stride_y,
                                                             rocblas_int batch_count);
 
 /*! \brief BLAS Level 2 API

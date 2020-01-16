@@ -101,7 +101,7 @@ public:
     }
 
     // Conversion from different complex (explicit)
-    template <typename U, typename std::enable_if<std::is_constructible<T, U>{}, int>::type = 0>
+    template <typename U, std::enable_if_t<std::is_constructible<T, U>{}, int> = 0>
     __device__ __host__ explicit rocblas_complex_num(const rocblas_complex_num<U>& z)
         : x(z.x)
         , y(z.y)
@@ -125,37 +125,37 @@ public:
     }
 
     // complex-real operations
-    template <typename U, typename std::enable_if<std::is_convertible<U, T>{}, int>::type = 0>
+    template <typename U, std::enable_if_t<std::is_convertible<U, T>{}, int> = 0>
     __device__ __host__ auto& operator+=(const U& rhs)
     {
         return (x += T(rhs)), *this;
     }
 
-    template <typename U, typename std::enable_if<std::is_convertible<U, T>{}, int>::type = 0>
+    template <typename U, std::enable_if_t<std::is_convertible<U, T>{}, int> = 0>
     __device__ __host__ auto& operator-=(const U& rhs)
     {
         return (x -= T(rhs)), *this;
     }
 
-    template <typename U, typename std::enable_if<std::is_convertible<U, T>{}, int>::type = 0>
+    template <typename U, std::enable_if_t<std::is_convertible<U, T>{}, int> = 0>
     __device__ __host__ auto& operator*=(const U& rhs)
     {
         return (x *= rhs), (y *= T(rhs)), *this;
     }
 
-    template <typename U, typename std::enable_if<std::is_convertible<U, T>{}, int>::type = 0>
+    template <typename U, std::enable_if_t<std::is_convertible<U, T>{}, int> = 0>
     __device__ __host__ auto& operator/=(const U& rhs)
     {
         return (x /= T(rhs)), (y /= T(rhs)), *this;
     }
 
-    template <typename U, typename std::enable_if<std::is_convertible<U, T>{}, int>::type = 0>
+    template <typename U, std::enable_if_t<std::is_convertible<U, T>{}, int> = 0>
     __device__ __host__ bool operator==(const U& rhs) const
     {
         return x == T(rhs) && y == 0;
     }
 
-    template <typename U, typename std::enable_if<std::is_convertible<U, T>{}, int>::type = 0>
+    template <typename U, std::enable_if_t<std::is_convertible<U, T>{}, int> = 0>
     __device__ __host__ bool operator!=(const U& rhs) const
     {
         return !(*this == rhs);
@@ -271,28 +271,28 @@ public:
     }
 
     // real-complex operations (complex-real is handled above)
-    template <typename U, typename std::enable_if<std::is_convertible<U, T>{}, int>::type = 0>
+    template <typename U, std::enable_if_t<std::is_convertible<U, T>{}, int> = 0>
     friend __device__ __host__ rocblas_complex_num operator+(const U&                   lhs,
                                                              const rocblas_complex_num& rhs)
     {
         return {T(lhs) + rhs.x, rhs.y};
     }
 
-    template <typename U, typename std::enable_if<std::is_convertible<U, T>{}, int>::type = 0>
+    template <typename U, std::enable_if_t<std::is_convertible<U, T>{}, int> = 0>
     friend __device__ __host__ rocblas_complex_num operator-(const U&                   lhs,
                                                              const rocblas_complex_num& rhs)
     {
         return {T(lhs) - rhs.x, -rhs.y};
     }
 
-    template <typename U, typename std::enable_if<std::is_convertible<U, T>{}, int>::type = 0>
+    template <typename U, std::enable_if_t<std::is_convertible<U, T>{}, int> = 0>
     friend __device__ __host__ rocblas_complex_num operator*(const U&                   lhs,
                                                              const rocblas_complex_num& rhs)
     {
         return {T(lhs) * rhs.x, T(lhs) * rhs.y};
     }
 
-    template <typename U, typename std::enable_if<std::is_convertible<U, T>{}, int>::type = 0>
+    template <typename U, std::enable_if_t<std::is_convertible<U, T>{}, int> = 0>
     friend __device__ __host__ rocblas_complex_num operator/(const U&                   lhs,
                                                              const rocblas_complex_num& rhs)
     {
@@ -310,13 +310,13 @@ public:
         }
     }
 
-    template <typename U, typename std::enable_if<std::is_convertible<U, T>{}, int>::type = 0>
+    template <typename U, std::enable_if_t<std::is_convertible<U, T>{}, int> = 0>
     friend __device__ __host__ bool operator==(const U& lhs, const rocblas_complex_num& rhs)
     {
         return T(lhs) == rhs.x && 0 == rhs.y;
     }
 
-    template <typename U, typename std::enable_if<std::is_convertible<U, T>{}, int>::type = 0>
+    template <typename U, std::enable_if_t<std::is_convertible<U, T>{}, int> = 0>
     friend __device__ __host__ bool operator!=(const U& lhs, const rocblas_complex_num& rhs)
     {
         return !(lhs == rhs);
@@ -355,7 +355,7 @@ namespace std
     {
         T tr = rocblas_complex_num<T>::abs(z.x), ti = rocblas_complex_num<T>::abs(z.y);
         return tr > ti ? (ti /= tr, tr * rocblas_complex_num<T>::sqrt(ti * ti + 1))
-                       : (tr /= ti, ti * rocblas_complex_num<T>::sqrt(tr * tr + 1));
+                       : ti ? (tr /= ti, ti * rocblas_complex_num<T>::sqrt(tr * tr + 1)) : 0;
     }
 }
 

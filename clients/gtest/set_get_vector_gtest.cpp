@@ -60,7 +60,7 @@ namespace
     };
 
     // By default, arbitrary type combinations are invalid.
-    // The unnamed second parameter is used for enable_if below.
+    // The unnamed second parameter is used for enable_if_t below.
     template <typename, typename = void>
     struct set_get_vector_testing : rocblas_test_invalid
     {
@@ -71,7 +71,7 @@ namespace
     template <typename T>
     struct set_get_vector_testing<
         T,
-        typename std::enable_if<std::is_same<T, float>{} || std::is_same<T, double>{}>::type>
+        std::enable_if_t<std::is_same<T, float>{} || std::is_same<T, double>{}>>
         : rocblas_test_valid
     {
         void operator()(const Arguments& arg)

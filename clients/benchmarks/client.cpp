@@ -43,10 +43,16 @@
 #include "testing_swap_batched.hpp"
 #include "testing_swap_strided_batched.hpp"
 // blas2
+#include "testing_gbmv.hpp"
+#include "testing_gbmv_batched.hpp"
+#include "testing_gbmv_strided_batched.hpp"
 #include "testing_gemv.hpp"
 #include "testing_gemv_batched.hpp"
 #include "testing_gemv_strided_batched.hpp"
 #include "testing_ger.hpp"
+#include "testing_hbmv.hpp"
+#include "testing_hbmv_batched.hpp"
+#include "testing_hbmv_strided_batched.hpp"
 #include "testing_hemv.hpp"
 #include "testing_hemv_batched.hpp"
 #include "testing_hemv_strided_batched.hpp"
@@ -128,9 +134,9 @@ template <typename Ti, typename To, typename Tc>
 struct perf_gemm_ex<Ti,
                     To,
                     Tc,
-                    typename std::enable_if<!std::is_same<Ti, void>{}
-                                            && !(std::is_same<Ti, To>{} && std::is_same<Ti, Tc>{}
-                                                 && std::is_same<Ti, rocblas_bfloat16>{})>::type>
+                    std::enable_if_t<!std::is_same<Ti, void>{}
+                                     && !(std::is_same<Ti, To>{} && std::is_same<Ti, Tc>{}
+                                          && std::is_same<Ti, rocblas_bfloat16>{})>>
     : rocblas_test_valid
 {
     void operator()(const Arguments& arg)
@@ -155,10 +161,9 @@ struct perf_gemm_strided_batched_ex<
     Ti,
     To,
     Tc,
-    typename std::enable_if<!std::is_same<Ti, void>{}
-                            && !(std::is_same<Ti, To>{} && std::is_same<Ti, Tc>{}
-                                 && std::is_same<Ti, rocblas_bfloat16>{})>::type>
-    : rocblas_test_valid
+    std::enable_if_t<!std::is_same<Ti, void>{}
+                     && !(std::is_same<Ti, To>{} && std::is_same<Ti, Tc>{}
+                          && std::is_same<Ti, rocblas_bfloat16>{})>> : rocblas_test_valid
 {
     void operator()(const Arguments& arg)
     {
@@ -177,10 +182,7 @@ struct perf_blas : rocblas_test_invalid
 };
 
 template <typename T, typename U>
-struct perf_blas<
-    T,
-    U,
-    typename std::enable_if<std::is_same<T, float>{} || std::is_same<T, double>{}>::type>
+struct perf_blas<T, U, std::enable_if_t<std::is_same<T, float>{} || std::is_same<T, double>{}>>
     : rocblas_test_valid
 {
     void operator()(const Arguments& arg)
@@ -208,6 +210,9 @@ struct perf_blas<
                 {"rotmg", testing_rotmg<T>},
                 {"rotmg_batched", testing_rotmg_batched<T>},
                 {"rotmg_strided_batched", testing_rotmg_strided_batched<T>},
+                {"gbmv", testing_gbmv<T>},
+                {"gbmv_batched", testing_gbmv_batched<T>},
+                {"gbmv_strided_batched", testing_gbmv_strided_batched<T>},
                 {"gemv", testing_gemv<T>},
                 {"gemv_batched", testing_gemv_batched<T>},
                 {"gemv_strided_batched", testing_gemv_strided_batched<T>},
@@ -244,8 +249,7 @@ struct perf_blas<
 };
 
 template <typename T, typename U>
-struct perf_blas<T, U, typename std::enable_if<std::is_same<T, rocblas_bfloat16>{}>::type>
-    : rocblas_test_valid
+struct perf_blas<T, U, std::enable_if_t<std::is_same<T, rocblas_bfloat16>{}>> : rocblas_test_valid
 {
     void operator()(const Arguments& arg)
     {
@@ -257,8 +261,7 @@ struct perf_blas<T, U, typename std::enable_if<std::is_same<T, rocblas_bfloat16>
 };
 
 template <typename T, typename U>
-struct perf_blas<T, U, typename std::enable_if<std::is_same<T, rocblas_half>{}>::type>
-    : rocblas_test_valid
+struct perf_blas<T, U, std::enable_if_t<std::is_same<T, rocblas_half>{}>> : rocblas_test_valid
 {
     void operator()(const Arguments& arg)
     {
@@ -278,9 +281,8 @@ struct perf_blas<T, U, typename std::enable_if<std::is_same<T, rocblas_half>{}>:
 template <typename T, typename U>
 struct perf_blas<T,
                  U,
-                 typename std::enable_if<std::is_same<T, rocblas_double_complex>{}
-                                         || std::is_same<T, rocblas_float_complex>{}>::type>
-    : rocblas_test_valid
+                 std::enable_if_t<std::is_same<T, rocblas_double_complex>{}
+                                  || std::is_same<T, rocblas_float_complex>{}>> : rocblas_test_valid
 {
     void operator()(const Arguments& arg)
     {
@@ -302,7 +304,15 @@ struct perf_blas<T,
                 {"swap_strided_batched", testing_swap_strided_batched<T>},
                 {"iamax", testing_iamax<T>},
                 {"iamin", testing_iamin<T>},
+                {"gbmv", testing_gbmv<T>},
+                {"gbmv_batched", testing_gbmv_batched<T>},
+                {"gbmv_strided_batched", testing_gbmv_strided_batched<T>},
                 {"gemv", testing_gemv<T>},
+                {"gemv_batched", testing_gemv_batched<T>},
+                {"gemv_strided_batched", testing_gemv_strided_batched<T>},
+                {"hbmv", testing_hbmv<T>},
+                {"hbmv_batched", testing_hbmv_batched<T>},
+                {"hbmv_strided_batched", testing_hbmv_strided_batched<T>},
                 {"hemv", testing_hemv<T>},
                 {"hemv_batched", testing_hemv_batched<T>},
                 {"hemv_strided_batched", testing_hemv_strided_batched<T>},
@@ -332,17 +342,17 @@ struct perf_blas_rot<
     Ti,
     To,
     Tc,
-    typename std::enable_if<(
-        (std::is_same<Ti, float>{} && std::is_same<Ti, To>{} && std::is_same<To, Tc>{})
-        || (std::is_same<Ti, double>{} && std::is_same<Ti, To>{} && std::is_same<To, Tc>{})
-        || (std::is_same<Ti, rocblas_float_complex>{} && std::is_same<To, float>{}
-            && std::is_same<Tc, rocblas_float_complex>{})
-        || (std::is_same<Ti, rocblas_float_complex>{} && std::is_same<To, float>{}
-            && std::is_same<Tc, float>{})
-        || (std::is_same<Ti, rocblas_double_complex>{} && std::is_same<To, double>{}
-            && std::is_same<Tc, rocblas_double_complex>{})
-        || (std::is_same<Ti, rocblas_double_complex>{} && std::is_same<To, double>{}
-            && std::is_same<Tc, double>{}))>::type> : rocblas_test_valid
+    std::enable_if_t<(std::is_same<Ti, float>{} && std::is_same<Ti, To>{} && std::is_same<To, Tc>{})
+                     || (std::is_same<Ti, double>{} && std::is_same<Ti, To>{}
+                         && std::is_same<To, Tc>{})
+                     || (std::is_same<Ti, rocblas_float_complex>{} && std::is_same<To, float>{}
+                         && std::is_same<Tc, rocblas_float_complex>{})
+                     || (std::is_same<Ti, rocblas_float_complex>{} && std::is_same<To, float>{}
+                         && std::is_same<Tc, float>{})
+                     || (std::is_same<Ti, rocblas_double_complex>{} && std::is_same<To, double>{}
+                         && std::is_same<Tc, rocblas_double_complex>{})
+                     || (std::is_same<Ti, rocblas_double_complex>{} && std::is_same<To, double>{}
+                         && std::is_same<Tc, double>{})>> : rocblas_test_valid
 {
     void operator()(const Arguments& arg)
     {
@@ -364,13 +374,12 @@ template <typename Ta, typename Tb>
 struct perf_blas_scal<
     Ta,
     Tb,
-    typename std::enable_if<
-        (std::is_same<Ta, double>{} && std::is_same<Tb, rocblas_double_complex>{})
-        || (std::is_same<Ta, float>{} && std::is_same<Tb, rocblas_float_complex>{})
-        || (std::is_same<Ta, Tb>{} && std::is_same<Ta, float>{})
-        || (std::is_same<Ta, Tb>{} && std::is_same<Ta, double>{})
-        || (std::is_same<Ta, Tb>{} && std::is_same<Ta, rocblas_float_complex>{})
-        || (std::is_same<Ta, Tb>{} && std::is_same<Ta, rocblas_double_complex>{})>::type>
+    std::enable_if_t<(std::is_same<Ta, double>{} && std::is_same<Tb, rocblas_double_complex>{})
+                     || (std::is_same<Ta, float>{} && std::is_same<Tb, rocblas_float_complex>{})
+                     || (std::is_same<Ta, Tb>{} && std::is_same<Ta, float>{})
+                     || (std::is_same<Ta, Tb>{} && std::is_same<Ta, double>{})
+                     || (std::is_same<Ta, Tb>{} && std::is_same<Ta, rocblas_float_complex>{})
+                     || (std::is_same<Ta, Tb>{} && std::is_same<Ta, rocblas_double_complex>{})>>
     : rocblas_test_valid
 {
     void operator()(const Arguments& arg)
@@ -393,11 +402,11 @@ template <typename Ta, typename Tb>
 struct perf_blas_rotg<
     Ta,
     Tb,
-    typename std::enable_if<
-        (std::is_same<Ta, rocblas_double_complex>{} && std::is_same<Tb, double>{})
-        || (std::is_same<Ta, rocblas_float_complex>{} && std::is_same<Tb, float>{})
-        || (std::is_same<Ta, Tb>{} && std::is_same<Ta, float>{})
-        || (std::is_same<Ta, Tb>{} && std::is_same<Ta, double>{})>::type> : rocblas_test_valid
+    std::enable_if_t<(std::is_same<Ta, rocblas_double_complex>{} && std::is_same<Tb, double>{})
+                     || (std::is_same<Ta, rocblas_float_complex>{} && std::is_same<Tb, float>{})
+                     || (std::is_same<Ta, Tb>{} && std::is_same<Ta, float>{})
+                     || (std::is_same<Ta, Tb>{} && std::is_same<Ta, double>{})>>
+    : rocblas_test_valid
 {
     void operator()(const Arguments& arg)
     {
@@ -641,8 +650,18 @@ try
 
         ("sizek,k",
          value<rocblas_int>(&arg.K)->default_value(128),
-         "Specific matrix size: sizek is only applicable to BLAS-3: the number of columns in "
-         "A and rows in B.")
+         "Specific matrix size: BLAS-2: the number of sub or super-diagonals of A. BLAS-3: "
+         "the number of columns in A and rows in B.")
+
+        ("kl",
+         value<rocblas_int>(&arg.KL)->default_value(128),
+         "Specific matrix size: kl is only applicable to BLAS-2: The number of sub-diagonals "
+         "of the banded matrix A.")
+
+        ("ku",
+         value<rocblas_int>(&arg.KU)->default_value(128),
+         "Specific matrix size: ku is only applicable to BLAS-2: The number of super-diagonals "
+         "of the banded matrix A.")
 
         ("lda",
          value<rocblas_int>(&arg.lda)->default_value(128),
