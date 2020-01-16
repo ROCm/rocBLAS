@@ -1181,9 +1181,40 @@ inline void cblas_ger(rocblas_int m,
 }
 
 // syr
+
+// cblas_syr doesn't have complex support so implementation below for float/double complex
 template <typename T>
 void cblas_syr(
-    rocblas_fill uplo, rocblas_int n, T alpha, T* x, rocblas_int incx, T* A, rocblas_int lda);
+    rocblas_fill uplo, rocblas_int n, T alpha, T* xa, rocblas_int incx, T* A, rocblas_int lda)
+{
+    if(n <= 0)
+        return;
+
+    T* x = (incx < 0) ? xa - ptrdiff_t(incx) * (n - 1) : xa;
+
+    if(uplo == rocblas_fill_upper)
+    {
+        for(int j = 0; j < n; ++j)
+        {
+            T tmp = alpha * x[j * incx];
+            for(int i = 0; i <= j; ++i)
+            {
+                A[i + j * lda] = A[i + j * lda] + x[i * incx] * tmp;
+            }
+        }
+    }
+    else
+    {
+        for(int j = 0; j < n; ++j)
+        {
+            T tmp = alpha * x[j * incx];
+            for(int i = j; i < n; ++i)
+            {
+                A[i + j * lda] = A[i + j * lda] + x[i * incx] * tmp;
+            }
+        }
+    }
+}
 
 template <>
 inline void cblas_syr(rocblas_fill uplo,

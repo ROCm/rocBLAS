@@ -1,8 +1,8 @@
 /* ************************************************************************
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include "rocblas_syr_batched.hpp"
 #include "logging.h"
+#include "rocblas_syr.hpp"
 #include "utility.h"
 
 namespace
@@ -13,6 +13,10 @@ namespace
     constexpr char rocblas_syr_batched_name<float>[] = "rocblas_ssyr_batched";
     template <>
     constexpr char rocblas_syr_batched_name<double>[] = "rocblas_dsyr_batched";
+    template <>
+    constexpr char rocblas_syr_batched_name<rocblas_float_complex>[] = "rocblas_csyr_batched";
+    template <>
+    constexpr char rocblas_syr_batched_name<rocblas_double_complex>[] = "rocblas_zsyr_batched";
 
     template <typename T>
     rocblas_status rocblas_syr_batched_impl(rocblas_handle handle,
@@ -30,8 +34,7 @@ namespace
         if(!handle)
             return rocblas_status_invalid_handle;
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
-        if(!alpha)
-            return rocblas_status_invalid_pointer;
+
         auto layer_mode = handle->layer_mode;
         if(layer_mode
            & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
@@ -42,8 +45,15 @@ namespace
             if(handle->pointer_mode == rocblas_pointer_mode_host)
             {
                 if(layer_mode & rocblas_layer_mode_log_trace)
-                    log_trace(
-                        handle, rocblas_syr_batched_name<T>, uplo, n, *alpha, 0, x, incx, A, lda);
+                    log_trace(handle,
+                              rocblas_syr_batched_name<T>,
+                              uplo,
+                              n,
+                              log_trace_scalar_value(alpha),
+                              x,
+                              incx,
+                              A,
+                              lda);
 
                 if(layer_mode & rocblas_layer_mode_log_bench)
                     log_bench(handle,
@@ -54,7 +64,7 @@ namespace
                               "-n",
                               n,
                               "--alpha",
-                              *alpha,
+                              LOG_BENCH_SCALAR_VALUE(alpha),
                               "--incx",
                               incx,
                               "--lda",
@@ -92,15 +102,13 @@ namespace
                             batch_count);
         }
 
-        if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
-            return rocblas_status_not_implemented;
-        if(!x || !A)
-            return rocblas_status_invalid_pointer;
-        if(n < 0 || !incx || lda < n || lda < 1 || batch_count < 0)
-            return rocblas_status_invalid_size;
+        rocblas_status arg_status
+            = rocblas_syr_arg_check<T>(uplo, n, alpha, 0, x, 0, incx, 0, A, 0, lda, 0, batch_count);
+        if(arg_status != rocblas_status_continue)
+            return arg_status;
 
-        return rocblas_syr_batched_template(
-            handle, uplo, n, alpha, 0, x, 0, incx, A, 0, lda, batch_count);
+        return rocblas_syr_template<T>(
+            handle, uplo, n, alpha, 0, x, 0, incx, 0, A, 0, lda, 0, batch_count);
     }
 
 }
@@ -113,40 +121,35 @@ namespace
 
 extern "C" {
 
-rocblas_status rocblas_ssyr_batched(rocblas_handle     handle,
-                                    rocblas_fill       uplo,
-                                    rocblas_int        n,
-                                    const float*       alpha,
-                                    const float* const x[],
-                                    rocblas_int        incx,
-                                    float* const       A[],
-                                    rocblas_int        lda,
-                                    rocblas_int        batch_count)
-try
-{
-    return rocblas_syr_batched_impl(handle, uplo, n, alpha, x, 0, incx, A, 0, lda, batch_count);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
+#ifdef IMPL
+#error IMPL ALREADY DEFINED
+#endif
 
-rocblas_status rocblas_dsyr_batched(rocblas_handle      handle,
-                                    rocblas_fill        uplo,
-                                    rocblas_int         n,
-                                    const double*       alpha,
-                                    const double* const x[],
-                                    rocblas_int         incx,
-                                    double* const       A[],
-                                    rocblas_int         lda,
-                                    rocblas_int         batch_count)
-try
-{
-    return rocblas_syr_batched_impl(handle, uplo, n, alpha, x, 0, incx, A, 0, lda, batch_count);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
+#define IMPL(routine_name_, T_)                                          \
+    rocblas_status routine_name_(rocblas_handle  handle,                 \
+                                 rocblas_fill    uplo,                   \
+                                 rocblas_int     n,                      \
+                                 const T_*       alpha,                  \
+                                 const T_* const x[],                    \
+                                 rocblas_int     incx,                   \
+                                 T_* const       A[],                    \
+                                 rocblas_int     lda,                    \
+                                 rocblas_int     batch_count)            \
+    try                                                                  \
+    {                                                                    \
+        return rocblas_syr_batched_impl(                                 \
+            handle, uplo, n, alpha, x, 0, incx, A, 0, lda, batch_count); \
+    }                                                                    \
+    catch(...)                                                           \
+    {                                                                    \
+        return exception_to_rocblas_status();                            \
+    }
+
+IMPL(rocblas_ssyr_batched, float);
+IMPL(rocblas_dsyr_batched, double);
+IMPL(rocblas_csyr_batched, rocblas_float_complex);
+IMPL(rocblas_zsyr_batched, rocblas_double_complex);
+
+#undef IMPL
 
 } // extern "C"
