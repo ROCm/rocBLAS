@@ -1209,6 +1209,52 @@ inline void cblas_syr(rocblas_fill uplo,
     cblas_dsyr(CblasColMajor, CBLAS_UPLO(uplo), n, alpha, x, incx, A, lda);
 }
 
+// hbmv
+template <typename T>
+void cblas_hbmv(rocblas_fill uplo,
+                rocblas_int  n,
+                rocblas_int  k,
+                T            alpha,
+                T*           A,
+                rocblas_int  lda,
+                T*           x,
+                rocblas_int  incx,
+                T            beta,
+                T*           y,
+                rocblas_int  incy);
+
+template <>
+inline void cblas_hbmv(rocblas_fill           uplo,
+                       rocblas_int            n,
+                       rocblas_int            k,
+                       rocblas_float_complex  alpha,
+                       rocblas_float_complex* A,
+                       rocblas_int            lda,
+                       rocblas_float_complex* x,
+                       rocblas_int            incx,
+                       rocblas_float_complex  beta,
+                       rocblas_float_complex* y,
+                       rocblas_int            incy)
+{
+    cblas_chbmv(CblasColMajor, CBLAS_UPLO(uplo), n, k, &alpha, A, lda, x, incx, &beta, y, incy);
+}
+
+template <>
+inline void cblas_hbmv(rocblas_fill            uplo,
+                       rocblas_int             n,
+                       rocblas_int             k,
+                       rocblas_double_complex  alpha,
+                       rocblas_double_complex* A,
+                       rocblas_int             lda,
+                       rocblas_double_complex* x,
+                       rocblas_int             incx,
+                       rocblas_double_complex  beta,
+                       rocblas_double_complex* y,
+                       rocblas_int             incy)
+{
+    cblas_zhbmv(CblasColMajor, CBLAS_UPLO(uplo), n, k, &alpha, A, lda, x, incx, &beta, y, incy);
+}
+
 // hemv
 template <typename T>
 void cblas_hemv(rocblas_fill uplo,

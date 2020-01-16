@@ -26,6 +26,7 @@ rocBLAS build & installation helper script
            --build_dir         Specify name of output directory (default is ./build)
       -n | --no_tensile        Build subset of library that does not require Tensile
       -s | --tensile-host      Build with Tensile host
+      -u | --use-tag-only      Ignore Tensile version and just use the Tensile tag
            --skipldconf        Skip ld.so.conf entry
 EOF
 #          --prefix            Specify an alternate CMAKE_INSTALL_PREFIX for cmake
@@ -138,17 +139,17 @@ install_packages( )
 
   # dependencies needed to build the rocblas library
   local library_dependencies_ubuntu=( "make" "cmake-curses-gui" "pkg-config"
-                                      "python2.7" "python3" "python-yaml" "python3-yaml"
+                                      "python2.7" "python3" "python-yaml" "python3-yaml" "python3*-distutils"
                                       "llvm-6.0-dev" "zlib1g-dev" "wget")
   local library_dependencies_centos=( "epel-release"
                                       "make" "cmake3" "rpm-build"
-                                      "python34" "PyYAML" "python3*-PyYAML"
+                                      "python34" "PyYAML" "python3*-PyYAML" "python3*-distutils-extra"
                                       "gcc-c++" "llvm7.0-devel" "llvm7.0-static"
                                       "zlib-devel" "wget" )
   local library_dependencies_fedora=( "make" "cmake" "rpm-build"
-                                      "python34" "PyYAML" "python3*-PyYAML"
+                                      "python34" "PyYAML" "python3*-PyYAML" "python3*-distutils-extra"
                                       "gcc-c++" "libcxx-devel" "zlib-devel" "wget" )
-  local library_dependencies_sles=(   "make" "cmake" "python3-PyYAM"
+  local library_dependencies_sles=(   "make" "cmake" "python3-PyYAM" "python3-distutils-extra"
                                       "gcc-c++" "libcxxtools9" "rpm-build" "wget" )
 
   if [[ "${build_cuda}" == true ]]; then
@@ -254,6 +255,7 @@ tensile_cov=V2
 tensile_fork=
 tensile_tag=
 tensile_test_local_path=
+tensile_version=true
 build_clients=false
 build_cuda=false
 build_tensile=true
@@ -276,7 +278,7 @@ fi
 # check if we have a modern version of getopt that can handle whitespace and long parameters
 getopt -T
 if [[ $? -eq 4 ]]; then
-  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,no_tensile,tensile-host,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,skipldconf --options nshicdgl:a:o:f:b:t: -- "$@")
+  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,no_tensile,tensile-host,use-tag-only,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,skipldconf --options nshicdgul:a:o:f:b:t: -- "$@")
 else
   echo "Need a new version of getopt"
   exit 1
@@ -346,6 +348,9 @@ while true; do
         shift ;;
     --skipldconf)
         skip_ld_conf_entry=true
+        shift ;;
+    -u|--use-tag-only)
+        tensile_version=false
         shift ;;
     --prefix)
         install_prefix=${2}
@@ -490,6 +495,10 @@ pushd .
     cmake_common_options="${cmake_common_options} -DROCM_DISABLE_LDCONFIG=ON"
   fi
 
+  if [[ "${tensile_version}" == false ]]; then
+    cmake_common_options="${cmake_common_options} -DSUPPRESS_TENSILE_VERSION=ON"
+  fi
+
   tensile_opt=""
   if [[ "${build_tensile}" == false ]]; then
     tensile_opt="${tensile_opt} -DBUILD_WITH_TENSILE=OFF"
@@ -506,7 +515,7 @@ pushd .
     cmake_client_options="${cmake_client_options} -DBUILD_CLIENTS_SAMPLES=ON -DBUILD_CLIENTS_TESTS=ON -DBUILD_CLIENTS_BENCHMARKS=ON -DLINK_BLIS=${LINK_BLIS}"
   fi
 
-  if ["${build_hip_clang}" == true ]; then
+  if [["${build_hip_clang}" == true ]]; then
       cmake_common_options="${cmake_common_options} -DRUN_HEADER_TESTING=OFF"
   fi
 
