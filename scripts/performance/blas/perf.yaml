@@ -1,5 +1,5 @@
 ---
-include: ../../../build/release/clients/staging/rocblas_common.yaml
+include: ../../../clients/include/rocblas_common.yaml
 # include: known_bugs.yaml
 
 Definitions:
@@ -11,7 +11,7 @@ Tests:
   N: 40000000
   n: 9216
   incy: 1
-  incx: 1 
+  incx: 1
   alpha: 1
   step_size: 2
   step_mult: 1
@@ -25,7 +25,7 @@ Tests:
   N: 40000000
   n: 9216
   incy: 1
-  incx: 1 
+  incx: 1
   alpha: 1
   step_size: 2
   step_mult: 1
@@ -70,7 +70,7 @@ Tests:
   LDA: 16384
   transA: N
   incy: 1
-  incx: 1 
+  incx: 1
   alpha: 1
   beta: 1
   step_size: 512
@@ -89,7 +89,7 @@ Tests:
   LDA: 16384
   transA: N
   incy: 1
-  incx: 1 
+  incx: 1
   alpha: 1
   beta: 1
   step_size: 1024
