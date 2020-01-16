@@ -38,8 +38,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-ins
     libomp-dev \
     zlib1g-dev \
     lshw \
-    lsb-release \
-    unzip \
+    lsb-release
 
 # Packages for latex and asymptote
 RUN DEBIAN_FRONTEND=noninteractive apt-get install -y \
