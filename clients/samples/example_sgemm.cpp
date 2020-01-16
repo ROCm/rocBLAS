@@ -3,7 +3,7 @@
  * ************************************************************************ */
 
 #include "rocblas.h"
-#include "rocblas_test.hpp"
+#include "utility.hpp"
 #include <hip/hip_runtime.h>
 
 #define DIM1 1023

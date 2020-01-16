@@ -2,8 +2,6 @@
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#define ROCBLAS_BENCH 1
-
 #include "rocblas.h"
 #include "rocblas.hpp"
 #include "rocblas_data.hpp"
