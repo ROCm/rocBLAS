@@ -41,7 +41,15 @@ namespace
             if(handle->pointer_mode == rocblas_pointer_mode_host)
             {
                 if(layer_mode & rocblas_layer_mode_log_trace)
-                    log_trace(handle, rocblas_spr_batched_name<T>, uplo, n, *alpha, 0, x, incx, AP);
+                    log_trace(handle,
+                              rocblas_spr_batched_name<T>,
+                              uplo,
+                              n,
+                              log_trace_scalar_value(alpha),
+                              0,
+                              x,
+                              incx,
+                              AP);
 
                 if(layer_mode & rocblas_layer_mode_log_bench)
                     log_bench(handle,
@@ -51,8 +59,7 @@ namespace
                               uplo_letter,
                               "-n",
                               n,
-                              "--alpha",
-                              *alpha,
+                              LOG_BENCH_SCALAR_VALUE(alpha),
                               "--incx",
                               incx,
                               "--batch_count",
@@ -65,7 +72,7 @@ namespace
                               rocblas_spr_batched_name<T>,
                               uplo,
                               n,
-                              alpha,
+                              log_trace_scalar_value(alpha),
                               x,
                               incx,
                               AP,

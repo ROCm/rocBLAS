@@ -1176,28 +1176,6 @@ inline void cblas_spr(rocblas_fill            uplo,
     zspr_(&u, &n, &alpha, x, &incx, A);
 }
 
-// template <>
-// inline void cblas_spr(rocblas_fill           uplo,
-//                       rocblas_int            n,
-//                       rocblas_float_complex  alpha,
-//                       rocblas_float_complex* x,
-//                       rocblas_int            incx,
-//                       rocblas_float_complex* A)
-// {
-//     cblas_cspr(CblasColMajor, CBLAS_UPLO(uplo), n, &alpha, x, incx, A);
-// }
-
-// template <>
-// inline void cblas_spr(rocblas_fill            uplo,
-//                       rocblas_int             n,
-//                       rocblas_double_complex  alpha,
-//                       rocblas_double_complex* x,
-//                       rocblas_int             incx,
-//                       rocblas_double_complex* A)
-// {
-//     cblas_zspr(CblasColMajor, CBLAS_UPLO(uplo), n, &alpha, x, incx, A);
-// }
-
 // syr
 template <typename T>
 void cblas_syr(
