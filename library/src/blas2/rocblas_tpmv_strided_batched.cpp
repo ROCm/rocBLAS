@@ -1,7 +1,7 @@
 /* ************************************************************************
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include "rocblas_trmv_strided_batched.hpp"
+#include "rocblas_tpmv_strided_batched.hpp"
 #include "handle.h"
 #include "logging.h"
 #include "rocblas.h"
@@ -14,26 +14,25 @@ namespace
 {
 
     template <typename>
-    constexpr char rocblas_trmv_strided_batched_name[] = "unknown";
+    constexpr char rocblas_tpmv_strided_batched_name[] = "unknown";
     template <>
-    constexpr char rocblas_trmv_strided_batched_name<float>[] = "rocblas_strmv_strided_batched";
+    constexpr char rocblas_tpmv_strided_batched_name<float>[] = "rocblas_stpmv_strided_batched";
     template <>
-    constexpr char rocblas_trmv_strided_batched_name<double>[] = "rocblas_dtrmv_strided_batched";
+    constexpr char rocblas_tpmv_strided_batched_name<double>[] = "rocblas_dtpmv_strided_batched";
     template <>
-    constexpr char rocblas_trmv_strided_batched_name<rocblas_float_complex>[]
-        = "rocblas_ctrmv_strided_batched";
+    constexpr char rocblas_tpmv_strided_batched_name<rocblas_float_complex>[]
+        = "rocblas_ctpmv_strided_batched";
     template <>
-    constexpr char rocblas_trmv_strided_batched_name<rocblas_double_complex>[]
-        = "rocblas_ztrmv_strided_batched";
+    constexpr char rocblas_tpmv_strided_batched_name<rocblas_double_complex>[]
+        = "rocblas_ztpmv_strided_batched";
 
     template <typename T>
-    rocblas_status rocblas_trmv_strided_batched_impl(rocblas_handle    handle,
+    rocblas_status rocblas_tpmv_strided_batched_impl(rocblas_handle    handle,
                                                      rocblas_fill      uplo,
                                                      rocblas_operation transa,
                                                      rocblas_diagonal  diag,
                                                      rocblas_int       m,
                                                      const T*          a,
-                                                     rocblas_int       lda,
                                                      rocblas_stride    stridea,
                                                      T*                x,
                                                      rocblas_int       incx,
@@ -56,13 +55,12 @@ namespace
             if(layer_mode & rocblas_layer_mode_log_trace)
             {
                 log_trace(handle,
-                          rocblas_trmv_strided_batched_name<T>,
+                          rocblas_tpmv_strided_batched_name<T>,
                           uplo,
                           transa,
                           diag,
                           m,
                           a,
-                          lda,
                           x,
                           incx,
                           stridea,
@@ -76,7 +74,7 @@ namespace
                 log_bench(handle,
                           "./rocblas-bench",
                           "-f",
-                          "trmv_strided_batched",
+                          "tpmv_strided_batched",
                           "-r",
                           rocblas_precision_string<T>,
                           "--uplo",
@@ -87,8 +85,6 @@ namespace
                           diag_letter,
                           "-m",
                           m,
-                          "--lda",
-                          lda,
                           "--stride_A",
                           stridea,
                           "--incx",
@@ -102,7 +98,7 @@ namespace
             if(layer_mode & rocblas_layer_mode_log_profile)
             {
                 log_profile(handle,
-                            rocblas_trmv_strided_batched_name<T>,
+                            rocblas_tpmv_strided_batched_name<T>,
                             "uplo",
                             uplo_letter,
                             "transA",
@@ -111,8 +107,6 @@ namespace
                             diag_letter,
                             "M",
                             m,
-                            "lda",
-                            lda,
                             "stride_A",
                             stridea,
                             "incx",
@@ -129,7 +123,7 @@ namespace
             return rocblas_status_invalid_value;
         }
 
-        if(m < 0 || lda < m || lda < 1 || !incx || batch_count < 0)
+        if(m < 0 || !incx || batch_count < 0)
         {
             return rocblas_status_invalid_size;
         }
@@ -158,20 +152,8 @@ namespace
         }
 
         rocblas_stride stridew = m;
-        return rocblas_trmv_strided_batched_template(handle,
-                                                     uplo,
-                                                     transa,
-                                                     diag,
-                                                     m,
-                                                     a,
-                                                     lda,
-                                                     stridea,
-                                                     x,
-                                                     incx,
-                                                     stridex,
-                                                     w,
-                                                     stridew,
-                                                     batch_count);
+        return rocblas_tpmv_strided_batched_template(
+            handle, uplo, transa, diag, m, a, stridea, x, incx, stridex, w, stridew, batch_count);
     }
 
 } // namespace
@@ -188,33 +170,32 @@ extern "C" {
 #error IMPL ALREADY DEFINED
 #endif
 
-#define IMPL(routine_name_, T_)                                                             \
-    rocblas_status routine_name_(rocblas_handle    handle,                                  \
-                                 rocblas_fill      uplo,                                    \
-                                 rocblas_operation transA,                                  \
-                                 rocblas_diagonal  diag,                                    \
-                                 rocblas_int       m,                                       \
-                                 const T_*         A,                                       \
-                                 rocblas_int       lda,                                     \
-                                 rocblas_stride    stridea,                                 \
-                                 T_*               x,                                       \
-                                 rocblas_int       incx,                                    \
-                                 rocblas_stride    stridex,                                 \
-                                 rocblas_int       batch_count)                             \
-    try                                                                                     \
-    {                                                                                       \
-        return rocblas_trmv_strided_batched_impl(                                           \
-            handle, uplo, transA, diag, m, A, lda, stridea, x, incx, stridex, batch_count); \
-    }                                                                                       \
-    catch(...)                                                                              \
-    {                                                                                       \
-        return exception_to_rocblas_status();                                               \
+#define IMPL(routine_name_, T_)                                                        \
+    rocblas_status routine_name_(rocblas_handle    handle,                             \
+                                 rocblas_fill      uplo,                               \
+                                 rocblas_operation transA,                             \
+                                 rocblas_diagonal  diag,                               \
+                                 rocblas_int       m,                                  \
+                                 const T_*         A,                                  \
+                                 rocblas_stride    stridea,                            \
+                                 T_*               x,                                  \
+                                 rocblas_int       incx,                               \
+                                 rocblas_stride    stridex,                            \
+                                 rocblas_int       batch_count)                        \
+    try                                                                                \
+    {                                                                                  \
+        return rocblas_tpmv_strided_batched_impl(                                      \
+            handle, uplo, transA, diag, m, A, stridea, x, incx, stridex, batch_count); \
+    }                                                                                  \
+    catch(...)                                                                         \
+    {                                                                                  \
+        return exception_to_rocblas_status();                                          \
     }
 
-IMPL(rocblas_strmv_strided_batched, float);
-IMPL(rocblas_dtrmv_strided_batched, double);
-IMPL(rocblas_ctrmv_strided_batched, rocblas_float_complex);
-IMPL(rocblas_ztrmv_strided_batched, rocblas_double_complex);
+IMPL(rocblas_stpmv_strided_batched, float);
+IMPL(rocblas_dtpmv_strided_batched, double);
+IMPL(rocblas_ctpmv_strided_batched, rocblas_float_complex);
+IMPL(rocblas_ztpmv_strided_batched, rocblas_double_complex);
 
 #undef IMPL
 
