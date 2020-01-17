@@ -13,6 +13,12 @@ namespace
     constexpr char rocblas_spr_strided_batched_name<float>[] = "rocblas_sspr_strided_batched";
     template <>
     constexpr char rocblas_spr_strided_batched_name<double>[] = "rocblas_dspr_strided_batched";
+    template <>
+    constexpr char rocblas_spr_strided_batched_name<rocblas_float_complex>[]
+        = "rocblas_cspr_strided_batched";
+    template <>
+    constexpr char rocblas_spr_strided_batched_name<rocblas_double_complex>[]
+        = "rocblas_zspr_strided_batched";
 
     template <typename T>
     rocblas_status rocblas_spr_strided_batched_impl(rocblas_handle handle,
@@ -113,8 +119,9 @@ namespace
         if(!x || !AP)
             return rocblas_status_invalid_pointer;
 
+        constexpr rocblas_int offset_x = 0, offset_A = 0;
         return rocblas_spr_template(
-            handle, uplo, n, alpha, x, 0, incx, stridex, AP, 0, strideA, batch_count);
+            handle, uplo, n, alpha, x, offset_x, incx, stridex, AP, offset_A, strideA, batch_count);
     }
 
 }
