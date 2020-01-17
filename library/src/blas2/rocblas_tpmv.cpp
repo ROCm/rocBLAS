@@ -1,7 +1,7 @@
 /* ************************************************************************
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include "rocblas_trmv.hpp"
+#include "rocblas_tpmv.hpp"
 #include "handle.h"
 #include "logging.h"
 #include "rocblas.h"
@@ -13,24 +13,23 @@
 namespace
 {
     template <typename>
-    constexpr char rocblas_trmv_name[] = "unknown";
+    constexpr char rocblas_tpmv_name[] = "unknown";
     template <>
-    constexpr char rocblas_trmv_name<float>[] = "rocblas_strmv";
+    constexpr char rocblas_tpmv_name<float>[] = "rocblas_stpmv";
     template <>
-    constexpr char rocblas_trmv_name<double>[] = "rocblas_dtrmv";
+    constexpr char rocblas_tpmv_name<double>[] = "rocblas_dtpmv";
     template <>
-    constexpr char rocblas_trmv_name<rocblas_float_complex>[] = "rocblas_ctrmv";
+    constexpr char rocblas_tpmv_name<rocblas_float_complex>[] = "rocblas_ctpmv";
     template <>
-    constexpr char rocblas_trmv_name<rocblas_double_complex>[] = "rocblas_ztrmv";
+    constexpr char rocblas_tpmv_name<rocblas_double_complex>[] = "rocblas_ztpmv";
 
     template <typename T>
-    rocblas_status rocblas_trmv_impl(rocblas_handle    handle,
+    rocblas_status rocblas_tpmv_impl(rocblas_handle    handle,
                                      rocblas_fill      uplo,
                                      rocblas_operation transA,
                                      rocblas_diagonal  diag,
                                      rocblas_int       m,
                                      const T*          A,
-                                     rocblas_int       lda,
                                      T*                x,
                                      rocblas_int       incx)
     {
@@ -49,7 +48,7 @@ namespace
             auto diag_letter   = rocblas_diag_letter(diag);
             if(layer_mode & rocblas_layer_mode_log_trace)
             {
-                log_trace(handle, rocblas_trmv_name<T>, uplo, transA, diag, m, A, lda, x, incx);
+                log_trace(handle, rocblas_tpmv_name<T>, uplo, transA, diag, m, A, x, incx);
             }
 
             if(layer_mode & rocblas_layer_mode_log_bench)
@@ -57,7 +56,7 @@ namespace
                 log_bench(handle,
                           "./rocblas-bench",
                           "-f",
-                          "trmv",
+                          "tpmv",
                           "-r",
                           rocblas_precision_string<T>,
                           "--uplo",
@@ -68,8 +67,6 @@ namespace
                           diag_letter,
                           "-m",
                           m,
-                          "--lda",
-                          lda,
                           "--incx",
                           incx);
             }
@@ -77,7 +74,7 @@ namespace
             if(layer_mode & rocblas_layer_mode_log_profile)
             {
                 log_profile(handle,
-                            rocblas_trmv_name<T>,
+                            rocblas_tpmv_name<T>,
                             "uplo",
                             uplo_letter,
                             "transA",
@@ -86,8 +83,6 @@ namespace
                             diag_letter,
                             "M",
                             m,
-                            "lda",
-                            lda,
                             "incx",
                             incx);
             }
@@ -98,7 +93,7 @@ namespace
             return rocblas_status_invalid_value;
         }
 
-        if(m < 0 || lda < m || lda < 1 || !incx)
+        if(m < 0 || !incx)
         {
             return rocblas_status_invalid_size;
         }
@@ -130,7 +125,7 @@ namespace
             return rocblas_status_memory_error;
         }
 
-        return rocblas_trmv_template(handle, uplo, transA, diag, m, A, lda, x, incx, w);
+        return rocblas_tpmv_template(handle, uplo, transA, diag, m, A, x, incx, w);
     }
 
 } // namespace
@@ -147,29 +142,28 @@ extern "C" {
 #error IMPL ALREADY DEFINED
 #endif
 
-#define IMPL(routine_name_, T_)                                                   \
-    rocblas_status routine_name_(rocblas_handle    handle,                        \
-                                 rocblas_fill      uplo,                          \
-                                 rocblas_operation transA,                        \
-                                 rocblas_diagonal  diag,                          \
-                                 rocblas_int       m,                             \
-                                 const T_*         A,                             \
-                                 rocblas_int       lda,                           \
-                                 T_*               x,                             \
-                                 rocblas_int       incx)                          \
-    try                                                                           \
-    {                                                                             \
-        return rocblas_trmv_impl(handle, uplo, transA, diag, m, A, lda, x, incx); \
-    }                                                                             \
-    catch(...)                                                                    \
-    {                                                                             \
-        return exception_to_rocblas_status();                                     \
+#define IMPL(routine_name_, T_)                                              \
+    rocblas_status routine_name_(rocblas_handle    handle,                   \
+                                 rocblas_fill      uplo,                     \
+                                 rocblas_operation transA,                   \
+                                 rocblas_diagonal  diag,                     \
+                                 rocblas_int       m,                        \
+                                 const T_*         A,                        \
+                                 T_*               x,                        \
+                                 rocblas_int       incx)                     \
+    try                                                                      \
+    {                                                                        \
+        return rocblas_tpmv_impl(handle, uplo, transA, diag, m, A, x, incx); \
+    }                                                                        \
+    catch(...)                                                               \
+    {                                                                        \
+        return exception_to_rocblas_status();                                \
     }
 
-IMPL(rocblas_strmv, float);
-IMPL(rocblas_dtrmv, double);
-IMPL(rocblas_ctrmv, rocblas_float_complex);
-IMPL(rocblas_ztrmv, rocblas_double_complex);
+IMPL(rocblas_stpmv, float);
+IMPL(rocblas_dtpmv, double);
+IMPL(rocblas_ctpmv, rocblas_float_complex);
+IMPL(rocblas_ztpmv, rocblas_double_complex);
 
 #undef IMPL
 

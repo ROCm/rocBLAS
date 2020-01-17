@@ -18,10 +18,9 @@
 #include "utility.hpp"
 
 template <typename T>
-void testing_trmv_bad_arg(const Arguments& arg)
+void testing_tpmv_bad_arg(const Arguments& arg)
 {
     const rocblas_int       M      = 100;
-    const rocblas_int       lda    = 100;
     const rocblas_int       incx   = 1;
     const rocblas_operation transA = rocblas_operation_none;
     const rocblas_fill      uplo   = rocblas_fill_lower;
@@ -29,12 +28,12 @@ void testing_trmv_bad_arg(const Arguments& arg)
 
     rocblas_local_handle handle;
 
-    size_t size_A = lda * size_t(M);
+    size_t size_A = (M * (M + 1)) / 2;
     size_t size_x = M * size_t(incx);
 
-    host_vector<T> hA(size_A);
+    host_vector<T> hA((rocblas_int)size_A, (rocblas_int)1);
     CHECK_HIP_ERROR(hA.memcheck());
-    host_vector<T> hx(size_x);
+    host_vector<T> hx((rocblas_int)size_x, (rocblas_int)1);
     CHECK_HIP_ERROR(hx.memcheck());
     device_vector<T> dA(size_A);
     CHECK_HIP_ERROR(dA.memcheck());
@@ -44,20 +43,20 @@ void testing_trmv_bad_arg(const Arguments& arg)
     //
     // Checks.
     //
-    EXPECT_ROCBLAS_STATUS(rocblas_trmv<T>(handle, uplo, transA, diag, M, nullptr, lda, dx, incx),
+    EXPECT_ROCBLAS_STATUS(rocblas_tpmv<T>(handle, uplo, transA, diag, M, nullptr, dx, incx),
                           rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_trmv<T>(handle, uplo, transA, diag, M, dA, lda, nullptr, incx),
+    EXPECT_ROCBLAS_STATUS(rocblas_tpmv<T>(handle, uplo, transA, diag, M, dA, nullptr, incx),
                           rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_trmv<T>(nullptr, uplo, transA, diag, M, dA, lda, dx, incx),
+    EXPECT_ROCBLAS_STATUS(rocblas_tpmv<T>(nullptr, uplo, transA, diag, M, dA, dx, incx),
                           rocblas_status_invalid_handle);
 }
 
 template <typename T>
-void testing_trmv(const Arguments& arg)
+void testing_tpmv(const Arguments& arg)
 {
-    rocblas_int M = arg.M, lda = arg.lda, incx = arg.incx;
+    rocblas_int M = arg.M, incx = arg.incx;
 
     char char_uplo = arg.uplo, char_transA = arg.transA, char_diag = arg.diag;
 
@@ -66,7 +65,7 @@ void testing_trmv(const Arguments& arg)
     rocblas_diagonal     diag   = char2rocblas_diagonal(char_diag);
     rocblas_local_handle handle;
 
-    if(M < 0 || lda < M || lda < 1 || !incx)
+    if(M < 0 || !incx)
     {
         static const size_t safe_size = 100; // arbitrarily set to 100
         device_vector<T>    dA1(safe_size);
@@ -74,7 +73,7 @@ void testing_trmv(const Arguments& arg)
         device_vector<T> dx1(safe_size);
         CHECK_HIP_ERROR(dx1.memcheck());
 
-        EXPECT_ROCBLAS_STATUS(rocblas_trmv<T>(handle, uplo, transA, diag, M, dA1, lda, dx1, incx),
+        EXPECT_ROCBLAS_STATUS(rocblas_tpmv<T>(handle, uplo, transA, diag, M, dA1, dx1, incx),
                               rocblas_status_invalid_size);
 
         return;
@@ -83,27 +82,26 @@ void testing_trmv(const Arguments& arg)
     if(M == 0)
     {
         EXPECT_ROCBLAS_STATUS(
-            rocblas_trmv<T>(handle, uplo, transA, diag, M, nullptr, lda, nullptr, incx),
+            rocblas_tpmv<T>(handle, uplo, transA, diag, M, nullptr, nullptr, incx),
             rocblas_status_success);
         return;
     }
 
-    size_t size_A = lda * size_t(M);
-    size_t size_x, dim_x, abs_incx;
-    dim_x = M;
-
+    rocblas_int size_A = (M * (M + 1)) / 2;
+    rocblas_int size_x, dim_x, abs_incx;
+    dim_x    = M;
     abs_incx = incx >= 0 ? incx : -incx;
     size_x   = dim_x * abs_incx;
 
-    host_vector<T> hA(size_A);
+    host_vector<T> hA(size_A, 1);
     CHECK_HIP_ERROR(hA.memcheck());
-    host_vector<T> hx(size_x);
+    host_vector<T> hx(M, incx);
     CHECK_HIP_ERROR(hx.memcheck());
     device_vector<T> dA(size_A);
     CHECK_HIP_ERROR(dA.memcheck());
     device_vector<T> dx(size_x);
     CHECK_HIP_ERROR(dx.memcheck());
-    host_vector<T> hres(size_x);
+    host_vector<T> hres(M, incx);
     CHECK_HIP_ERROR(hres.memcheck());
 
     //
@@ -131,7 +129,7 @@ void testing_trmv(const Arguments& arg)
         //
         // ROCBLAS
         //
-        CHECK_ROCBLAS_ERROR(rocblas_trmv<T>(handle, uplo, transA, diag, M, dA, lda, dx, incx));
+        CHECK_ROCBLAS_ERROR(rocblas_tpmv<T>(handle, uplo, transA, diag, M, dA, dx, incx));
         CHECK_HIP_ERROR(hres.transfer_from(dx));
 
         //
@@ -139,9 +137,9 @@ void testing_trmv(const Arguments& arg)
         //
         {
             cpu_time_used = get_time_us();
-            cblas_trmv<T>(uplo, transA, diag, M, hA, lda, hx, incx);
+            cblas_tpmv<T>(uplo, transA, diag, M, hA, hx, incx);
             cpu_time_used = get_time_us() - cpu_time_used;
-            cblas_gflops  = trmv_gflop_count<T>(M) / cpu_time_used * 1e6;
+            cblas_gflops  = tpmv_gflop_count<T>(M) / cpu_time_used * 1e6;
         }
 
         //
@@ -170,7 +168,7 @@ void testing_trmv(const Arguments& arg)
             int number_cold_calls = 2;
             for(int iter = 0; iter < number_cold_calls; iter++)
             {
-                rocblas_trmv<T>(handle, uplo, transA, diag, M, dA, lda, dx, incx);
+                rocblas_tpmv<T>(handle, uplo, transA, diag, M, dA, dx, incx);
             }
         }
 
@@ -182,7 +180,7 @@ void testing_trmv(const Arguments& arg)
             int number_hot_calls = arg.iters;
             for(int iter = 0; iter < number_hot_calls; iter++)
             {
-                rocblas_trmv<T>(handle, uplo, transA, diag, M, dA, lda, dx, incx);
+                rocblas_tpmv<T>(handle, uplo, transA, diag, M, dA, dx, incx);
             }
             gpu_time_used = (get_time_us() - gpu_time_used) / number_hot_calls;
         }
@@ -190,21 +188,21 @@ void testing_trmv(const Arguments& arg)
         //
         // Evaluate performance.
         //
-        rocblas_gflops    = trmv_gflop_count<T>(M) / gpu_time_used * 1e6;
-        rocblas_bandwidth = (double((M * (M + 1)) / 2 + 2 * M) * sizeof(T)) / gpu_time_used * 1e-3;
+        rocblas_gflops    = tpmv_gflop_count<T>(M) / gpu_time_used * 1e6;
+        rocblas_bandwidth = (double((M * (M + 1)) / 2) * sizeof(T)) / gpu_time_used * 1e-3;
 
         //
         // Display.
         //
-        std::cout << "M,lda,incx,uplo,transA,diag,rocblas-Gflops,rocblas-GB/s,";
+        std::cout << "M,incx,uplo,transA,diag,rocblas-Gflops,rocblas-GB/s,";
         if(arg.norm_check)
         {
             std::cout << "CPU-Gflops,norm_error";
         }
         std::cout << std::endl;
-        std::cout << M << "," << lda << "," << incx << "," << incx << "," << incx << "," << incx
-                  << "," << char_uplo << ',' << char_transA << ',' << char_diag << ','
-                  << rocblas_gflops << "," << rocblas_bandwidth << ",";
+        std::cout << M << "," << incx << "," << incx << "," << incx << "," << incx << ","
+                  << char_uplo << ',' << char_transA << ',' << char_diag << ',' << rocblas_gflops
+                  << "," << rocblas_bandwidth << ",";
 
         if(arg.norm_check)
         {
