@@ -202,7 +202,6 @@ def setkey_product(test, key, vals):
                 result *= test[x]
         test[key] = int(result)
 
-
 def setdefaults(test):
     """Set default values for parameters"""
     # Do not put constant defaults here -- use rocblas_common.yaml for that.
@@ -220,6 +219,11 @@ def setdefaults(test):
         # we are using stride_c for param in rotm
         if all([x in test for x in ('stride_scale')]):
             test.setdefault('stride_c', int(test['stride_scale']) * 5)
+
+    elif test['function'] in ('tpmv_strided_batched'):
+        setkey_product(test, 'stride_x', ['M', 'incx', 'stride_scale'])
+## Let's use M * M (> (M * (M+1)) / 2) as a 'stride' size for the packed format.
+        setkey_product(test, 'stride_a', ['M', 'M', 'stride_scale'])
 
     elif test['function'] in ('trmv_strided_batched'):
         setkey_product(test, 'stride_x', ['M', 'incx', 'stride_scale'])
