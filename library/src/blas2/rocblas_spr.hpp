@@ -20,15 +20,15 @@ __device__ void
         AP[index] += alpha * x[tx * incx] * x[ty * incx];
 }
 
-template <rocblas_int DIM_X, rocblas_int DIM_Y, typename U, typename V, typename W>
+template <rocblas_int DIM_X, rocblas_int DIM_Y, typename TScal, typename TConstPtr, typename TPtr>
 __global__ void rocblas_spr_kernel(bool           upper,
                                    rocblas_int    n,
-                                   U              alphaa,
-                                   V              xa,
+                                   TScal          alphaa,
+                                   TConstPtr      xa,
                                    ptrdiff_t      shift_x,
                                    rocblas_int    incx,
                                    rocblas_stride stride_x,
-                                   W              APa,
+                                   TPtr           APa,
                                    ptrdiff_t      shift_A,
                                    rocblas_stride stride_A)
 {
@@ -44,26 +44,26 @@ __global__ void rocblas_spr_kernel(bool           upper,
 }
 
 /**
- * U is always: const T* (either host or device)
- * V is either: const T* OR const T* const*
- * W is either:       T* OR       T* const*
+ * TScal     is always: const T* (either host or device)
+ * TConstPtr is either: const T* OR const T* const*
+ * TPtr      is either:       T* OR       T* const*
  */
-template <typename U, typename V, typename W>
+template <typename TScal, typename TConstPtr, typename TPtr>
 rocblas_status rocblas_spr_template(rocblas_handle handle,
                                     rocblas_fill   uplo,
                                     rocblas_int    n,
-                                    U              alpha,
-                                    V              x,
+                                    TScal          alpha,
+                                    TConstPtr      x,
                                     rocblas_int    offset_x,
                                     rocblas_int    incx,
                                     rocblas_stride stride_x,
-                                    W              AP,
+                                    TPtr           AP,
                                     rocblas_int    offset_A,
                                     rocblas_stride stride_A,
                                     rocblas_int    batch_count)
 {
     // Quick return if possible. Not Argument error
-    if(!n)
+    if(!n || !batch_count)
         return rocblas_status_success;
 
     // in case of negative inc, shift pointer to end of data for negative indexing tid*inc

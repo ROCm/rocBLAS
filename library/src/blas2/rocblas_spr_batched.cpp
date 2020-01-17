@@ -13,6 +13,10 @@ namespace
     constexpr char rocblas_spr_batched_name<float>[] = "rocblas_sspr_batched";
     template <>
     constexpr char rocblas_spr_batched_name<double>[] = "rocblas_dspr_batched";
+    template <>
+    constexpr char rocblas_spr_batched_name<rocblas_float_complex>[] = "rocblas_cspr_batched";
+    template <>
+    constexpr char rocblas_spr_batched_name<rocblas_double_complex>[] = "rocblas_zspr_batched";
 
     template <typename T>
     rocblas_status rocblas_spr_batched_impl(rocblas_handle handle,
@@ -20,10 +24,8 @@ namespace
                                             rocblas_int    n,
                                             const T*       alpha,
                                             const T* const x[],
-                                            rocblas_int    shiftx,
                                             rocblas_int    incx,
                                             T* const       AP[],
-                                            rocblas_int    shiftA,
                                             rocblas_int    batch_count)
     {
         if(!handle)
@@ -101,7 +103,20 @@ namespace
         if(!x || !AP)
             return rocblas_status_invalid_pointer;
 
-        return rocblas_spr_template(handle, uplo, n, alpha, x, 0, incx, 0, AP, 0, 0, batch_count);
+        constexpr rocblas_int    offset_x = 0, offset_A = 0;
+        constexpr rocblas_stride stride_x = 0, stride_A = 0;
+        return rocblas_spr_template(handle,
+                                    uplo,
+                                    n,
+                                    alpha,
+                                    x,
+                                    offset_x,
+                                    incx,
+                                    stride_x,
+                                    AP,
+                                    offset_A,
+                                    stride_A,
+                                    batch_count);
     }
 
 }
@@ -124,7 +139,7 @@ rocblas_status rocblas_sspr_batched(rocblas_handle     handle,
                                     rocblas_int        batch_count)
 try
 {
-    return rocblas_spr_batched_impl(handle, uplo, n, alpha, x, 0, incx, AP, 0, batch_count);
+    return rocblas_spr_batched_impl(handle, uplo, n, alpha, x, incx, AP, batch_count);
 }
 catch(...)
 {
@@ -141,7 +156,7 @@ rocblas_status rocblas_dspr_batched(rocblas_handle      handle,
                                     rocblas_int         batch_count)
 try
 {
-    return rocblas_spr_batched_impl(handle, uplo, n, alpha, x, 0, incx, AP, 0, batch_count);
+    return rocblas_spr_batched_impl(handle, uplo, n, alpha, x, incx, AP, batch_count);
 }
 catch(...)
 {
@@ -158,7 +173,7 @@ rocblas_status rocblas_cspr_batched(rocblas_handle                     handle,
                                     rocblas_int                        batch_count)
 try
 {
-    return rocblas_spr_batched_impl(handle, uplo, n, alpha, x, 0, incx, AP, 0, batch_count);
+    return rocblas_spr_batched_impl(handle, uplo, n, alpha, x, incx, AP, batch_count);
 }
 catch(...)
 {
@@ -175,7 +190,7 @@ rocblas_status rocblas_zspr_batched(rocblas_handle                      handle,
                                     rocblas_int                         batch_count)
 try
 {
-    return rocblas_spr_batched_impl(handle, uplo, n, alpha, x, 0, incx, AP, 0, batch_count);
+    return rocblas_spr_batched_impl(handle, uplo, n, alpha, x, incx, AP, batch_count);
 }
 catch(...)
 {

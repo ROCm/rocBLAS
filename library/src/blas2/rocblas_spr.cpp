@@ -13,6 +13,10 @@ namespace
     constexpr char rocblas_spr_name<float>[] = "rocblas_sspr";
     template <>
     constexpr char rocblas_spr_name<double>[] = "rocblas_dspr";
+    template <>
+    constexpr char rocblas_spr_name<rocblas_float_complex>[] = "rocblas_cspr";
+    template <>
+    constexpr char rocblas_spr_name<rocblas_double_complex>[] = "rocblas_zspr";
 
     template <typename T>
     rocblas_status rocblas_spr_impl(rocblas_handle handle,
@@ -85,7 +89,20 @@ namespace
         if(!x || !AP)
             return rocblas_status_invalid_pointer;
 
-        return rocblas_spr_template(handle, uplo, n, alpha, x, 0, incx, 0, AP, 0, 0, 1);
+        constexpr rocblas_int    offset_x = 0, offset_A = 0, batch_count = 1;
+        constexpr rocblas_stride stride_x = 0, stride_A = 0;
+        return rocblas_spr_template(handle,
+                                    uplo,
+                                    n,
+                                    alpha,
+                                    x,
+                                    offset_x,
+                                    incx,
+                                    stride_x,
+                                    AP,
+                                    offset_A,
+                                    stride_A,
+                                    batch_count);
     }
 
 }
