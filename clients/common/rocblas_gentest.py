@@ -247,7 +247,7 @@ def setdefaults(test):
         if all([x in test for x in ('N', 'incx', 'incy', 'stride_scale')]):
             setkey_product(test, 'stride_x', ['N', 'incx', 'stride_scale'])
             setkey_product(test, 'stride_y', ['N', 'incy', 'stride_scale'])
-            ldN = int(test['N'] * (test['N'] + 1) * test['stride_scale'] / 2)
+            ldN = int((test['N'] * (test['N'] + 1) * test['stride_scale']) / 2)
             test.setdefault('stride_a', ldN)
 
     # we are using stride_c for arg c and stride_d for arg s in rotg

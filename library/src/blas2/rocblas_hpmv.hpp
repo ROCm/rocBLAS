@@ -99,19 +99,19 @@ __device__ void hpmv_kernel_calc(bool        upper,
 /**
   *  Loads pointers and launches the actual calculation kernel.
   */
-template <rocblas_int DIM_X, rocblas_int DIM_Y, typename U, typename V, typename W>
+template <rocblas_int DIM_X, rocblas_int DIM_Y, typename TScal, typename TConstPtr, typename TPtr>
 __global__ void hpmv_kernel(bool           upper,
                             rocblas_int    n,
-                            U              alphaa,
-                            V              APa,
+                            TScal          alphaa,
+                            TConstPtr      APa,
                             ptrdiff_t      shifta,
                             rocblas_stride strideA,
-                            V              xa,
+                            TConstPtr      xa,
                             ptrdiff_t      shiftx,
                             rocblas_int    incx,
                             rocblas_stride stridex,
-                            U              betaa,
-                            W              ya,
+                            TScal          betaa,
+                            TPtr           ya,
                             ptrdiff_t      shifty,
                             rocblas_int    incy,
                             rocblas_stride stridey)
@@ -131,24 +131,24 @@ __global__ void hpmv_kernel(bool           upper,
 }
 
 /**
-  *  U is always: const T* (either host or device)
-  *  V is either: const T* OR const T* const*
-  *  W is either:       T* OR       T* const*
+  *  TScal     is always: const T* (either host or device)
+  *  TConstPtr is either: const T* OR const T* const*
+  *  TPtr      is either:       T* OR       T* const*
   */
-template <typename U, typename V, typename W>
+template <typename TScal, typename TConstPtr, typename TPtr>
 rocblas_status rocblas_hpmv_template(rocblas_handle handle,
                                      rocblas_fill   uplo,
                                      rocblas_int    n,
-                                     U              alpha,
-                                     V              AP,
+                                     TScal          alpha,
+                                     TConstPtr      AP,
                                      rocblas_int    offseta,
                                      rocblas_stride strideA,
-                                     V              x,
+                                     TConstPtr      x,
                                      rocblas_int    offsetx,
                                      rocblas_int    incx,
                                      rocblas_stride stridex,
-                                     U              beta,
-                                     W              y,
+                                     TScal          beta,
+                                     TPtr           y,
                                      rocblas_int    offsety,
                                      rocblas_int    incy,
                                      rocblas_stride stridey,

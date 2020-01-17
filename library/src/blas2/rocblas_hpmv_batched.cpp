@@ -120,8 +120,25 @@ namespace
         if(!AP || !x || !y || !alpha || !beta)
             return rocblas_status_invalid_pointer;
 
-        return rocblas_hpmv_template(
-            handle, uplo, n, alpha, AP, 0, 0, x, 0, incx, 0, beta, y, 0, incy, 0, batch_count);
+        constexpr rocblas_int    offset_A = 0, offset_x = 0, offset_y = 0;
+        constexpr rocblas_stride stride_A = 0, stride_x = 0, stride_y = 0;
+        return rocblas_hpmv_template(handle,
+                                     uplo,
+                                     n,
+                                     alpha,
+                                     AP,
+                                     offset_A,
+                                     stride_A,
+                                     x,
+                                     offset_x,
+                                     incx,
+                                     stride_x,
+                                     beta,
+                                     y,
+                                     offset_y,
+                                     incy,
+                                     stride_y,
+                                     batch_count);
     }
 
 } // namespace

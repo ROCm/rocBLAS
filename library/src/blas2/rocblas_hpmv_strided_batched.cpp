@@ -141,20 +141,21 @@ namespace
         if(!AP || !x || !y || !alpha || !beta)
             return rocblas_status_invalid_pointer;
 
+        constexpr rocblas_int offset_A = 0, offset_x = 0, offset_y = 0;
         return rocblas_hpmv_template(handle,
                                      uplo,
                                      n,
                                      alpha,
                                      AP,
-                                     0,
+                                     offset_A,
                                      stride_A,
                                      x,
-                                     0,
+                                     offset_x,
                                      incx,
                                      stride_x,
                                      beta,
                                      y,
-                                     0,
+                                     offset_y,
                                      incy,
                                      stride_y,
                                      batch_count);
