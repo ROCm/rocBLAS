@@ -1298,6 +1298,46 @@ inline void cblas_hemv(rocblas_fill            uplo,
     cblas_zhemv(CblasColMajor, CBLAS_UPLO(uplo), n, &alpha, A, lda, x, incx, &beta, y, incy);
 }
 
+// hpmv
+template <typename T>
+void cblas_hpmv(rocblas_fill uplo,
+                rocblas_int  n,
+                T            alpha,
+                T*           A,
+                T*           x,
+                rocblas_int  incx,
+                T            beta,
+                T*           y,
+                rocblas_int  incy);
+
+template <>
+inline void cblas_hpmv(rocblas_fill           uplo,
+                       rocblas_int            n,
+                       rocblas_float_complex  alpha,
+                       rocblas_float_complex* A,
+                       rocblas_float_complex* x,
+                       rocblas_int            incx,
+                       rocblas_float_complex  beta,
+                       rocblas_float_complex* y,
+                       rocblas_int            incy)
+{
+    cblas_chpmv(CblasColMajor, CBLAS_UPLO(uplo), n, &alpha, A, x, incx, &beta, y, incy);
+}
+
+template <>
+inline void cblas_hpmv(rocblas_fill            uplo,
+                       rocblas_int             n,
+                       rocblas_double_complex  alpha,
+                       rocblas_double_complex* A,
+                       rocblas_double_complex* x,
+                       rocblas_int             incx,
+                       rocblas_double_complex  beta,
+                       rocblas_double_complex* y,
+                       rocblas_int             incy)
+{
+    cblas_zhpmv(CblasColMajor, CBLAS_UPLO(uplo), n, &alpha, A, x, incx, &beta, y, incy);
+}
+
 /*
  * ===========================================================================
  *    level 3 BLAS
