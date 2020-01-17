@@ -240,7 +240,19 @@ constexpr double ger_gflop_count(rocblas_int m, rocblas_int n)
 template <typename T>
 constexpr double spr_gflop_count(rocblas_int n)
 {
-    return 0.0;
+    return (n * (n + 1) + n) / 1e9;
+}
+
+template <>
+constexpr double spr_gflop_count<rocblas_float_complex>(rocblas_int n)
+{
+    return 4 * spr_gflop_count<float>(n);
+}
+
+template <>
+constexpr double spr_gflop_count<rocblas_double_complex>(rocblas_int n)
+{
+    return spr_gflop_count<rocblas_float_complex>(n);
 }
 
 /* \brief floating point counts of SYR */

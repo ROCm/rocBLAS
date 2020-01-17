@@ -180,10 +180,9 @@ void testing_spr_strided_batched(const Arguments& arg)
                 handle, uplo, N, &h_alpha, dx, incx, stride_x, dA_1, stride_A, batch_count);
         }
 
-        gpu_time_used  = (get_time_us() - gpu_time_used) / number_hot_calls;
-        rocblas_gflops = batch_count * spr_gflop_count<T>(N) / gpu_time_used * 1e6;
-        rocblas_bandwidth
-            = 0.0; //batch_count * (2.0 * N * (N + 1)) / 2 * sizeof(T) / gpu_time_used / 1e3;
+        gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;
+        rocblas_gflops    = batch_count * spr_gflop_count<T>(N) / gpu_time_used * 1e6;
+        rocblas_bandwidth = batch_count * (2.0 * N * (N + 1)) / 2 * sizeof(T) / gpu_time_used / 1e3;
 
         // only norm_check return an norm error, unit check won't return anything
         std::cout << "N,alpha,incx,stride_x,stride_A,batch_count,rocblas-Gflops,rocblas-GB/s";
