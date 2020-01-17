@@ -54,6 +54,7 @@ namespace
                               log_trace_scalar_value(alpha),
                               x,
                               incx,
+                              stridex,
                               AP,
                               batch_count);
 
