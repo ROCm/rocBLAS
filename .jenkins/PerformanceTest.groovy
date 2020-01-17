@@ -9,6 +9,7 @@ import com.amd.project.*
 import com.amd.docker.*
 import java.nio.file.Path
 
+properties(auxiliary.setProperties())
 
 rocBLASCI:
 {
@@ -18,7 +19,7 @@ rocBLASCI:
     rocblas.paths.build_command = './install.sh -lasm_ci -c'
 
     // Define test architectures, optional rocm version argument is available
-    def nodes = new dockerNodes(['ubuntu && gfx803 && perf'], rocblas)
+    def nodes = new dockerNodes(['ubuntu && gfx803 && perf', 'ubuntu && gfx900 && perf'], rocblas)
 
     boolean formatCheck = true
 
@@ -34,6 +35,16 @@ rocBLASCI:
         echo sh(script: 'env|sort', returnStdout: true)
 
         String gpuLabel = project.email.gpuLabel(platform.jenkinsLabel)
+
+        commonGroovy = load "${project.paths.project_src_prefix}/.jenkins/Common.groovy"
+        commonGroovy.runCompileCommand(platform, project)
+    }
+
+    def testCommand =
+    {
+        platform, project->
+        
+        String gpuLabel = project.email.gpuLabel(platform.jenkinsLabel)
         def command = """#!/usr/bin/env bash
                         set -x
                         pwd
@@ -44,76 +55,48 @@ rocBLASCI:
                         shopt -s expand_aliases
                         shopt expand_aliases
 
-                        wget -nv http://10.216.151.18:8080/job/Performance/job/rocBLAS/view/change-requests/job/PR-895/102/artifact/*zip*/archive.zip
-                        unzip -o archive.zip
-                        tar -xvf archive/*/*/perfoutput.tar
+                        python -V
+                        alias python=python3
+                        python -V
+
+                        # get device name from /dev/dri
+                        devicename=\$(echo \$(ls /dev/dri) | sed 's/.*\\(card[0-9]\\).*/\\1/')
+                        echo \$devicename
+                        # get device num from device name
+                        devicenum=\$(echo \$devicename | sed 's/.*\\([0-9]\\).*/\\1/')
+                        echo \$devicenum
+                        echo ${gpuLabel}
+                        export PATH=/opt/asy/bin:${PATH}
+                        pushd scripts/performance/blas/
+                        python alltime.py -A \$workingdir/build/release/clients/staging -o \$workingdir/perfoutput -i perf.yaml -S 0 -g 0 -d \$devicenum
+                        popd
+
+                        ls \$workingdir/perfoutput
+                        cat \$workingdir/perfoutput/specs.txt
+                        
+                        wget http://10.216.151.18:8080/job/Performance/job/${project.name}/job/develop/lastSuccessfulBuild/artifact/*zip*/archive.zip
+                        wgetreturn=\$?
+                        pushd scripts/performance/blas/
+                        if [[ \$wgetreturn -eq 8 ]]; then
+                            echo "Download error"
+                            python alltime.py -T -o \$workingdir/perfoutput -S 0 -g 1 -i perf.yaml
+                        else
+                            unzip -o archive.zip
+                            tar -xvf archive/*/*/perfoutput_${gpuLabel}.tar
+                            python alltime.py -T -o \$workingdir/perfoutput -b \$workingdir/perfoutput_${project.email.gpuLabel} -g 1 -d \$devicenum -i perf.yaml
+                        fi
+                        popd
+
                         tar -cvf perfoutput_${gpuLabel}.tar perfoutput
+
+                        if [[ -z "${env.CHANGE_ID}" ]]
+                        then
+                            echo "This is not a pull request"
+                        else
+                            echo "This is a pull request"
+                        fi
                     """
         platform.runCommand(this, command)
-
-        // commonGroovy = load "${project.paths.project_src_prefix}/.jenkins/Common.groovy"
-        // commonGroovy.runCompileCommand(platform, project)
-    }
-
-    def testCommand =
-    {
-        platform, project->
-        
-        // String gpuLabel = project.email.gpuLabel(platform.jenkinsLabel)
-        // def command = """#!/usr/bin/env bash
-        //                 set -x
-        //                 pwd
-        //                 cd ${project.paths.project_build_prefix}
-        //                 workingdir=`pwd`
-
-        //                 pushd scripts/performance/blas/
-
-        //                 shopt expand_aliases
-        //                 shopt -s expand_aliases
-        //                 shopt expand_aliases
-
-        //                 python -V
-        //                 alias python=python3
-        //                 python -V
-
-        //                 # get device name from /dev/dri
-        //                 devicename=\$(echo \$(ls /dev/dri) | sed 's/.*\\(card[0-9]\\).*/\\1/')
-        //                 echo \$devicename
-        //                 # get device num from device name
-        //                 devicenum=\$(echo \$devicename | sed 's/.*\\([0-9]\\).*/\\1/')
-        //                 echo \$devicenum
-        //                 echo ${gpuLabel}
-        //                 export PATH=/opt/asy/bin:${PATH}
-        //                 python alltime.py -A \$workingdir/build/release/clients/staging -o \$workingdir/perfoutput -i perf.yaml -S 0 -g 0 -d \$devicenum
-
-        //                 ls \$workingdir/perfoutput
-        //                 cat \$workingdir/perfoutput/specs.txt
-                        
-        //                 # wget http://10.216.151.18:8080/job/Performance/job/${project.name}/job/develop/lastSuccessfulBuild/artifact/*zip*/archive.zip
-        //                 # wget -nv http://10.216.151.18:8080/job/Performance/job/rocBLAS/job/PR-895/lastSuccessfulBuild/artifact/*zip*/archive.zip
-        //                 wget -nv http://10.216.151.18:8080/job/Performance/job/rocBLAS/view/change-requests/job/PR-895/102/artifact/*zip*/archive.zip
-        //                 wgetreturn=\$?
-        //                 if [[ \$wgetreturn -eq 8 ]]; then
-        //                     echo "Download error"
-        //                     python alltime.py -T -o \$workingdir/perfoutput -S 0 -g 1 -i perf.yaml
-        //                 else
-        //                     unzip -o archive.zip
-        //                     tar -xvf archive/*/*/perfoutput_${gpuLabel}.tar
-        //                     python alltime.py -T -o \$workingdir/perfoutput -b \$workingdir/perfoutput_${project.email.gpuLabel} -g 1 -d \$devicenum -i perf.yaml
-        //                     popd
-        //                     tar -cvf perfoutput_${gpuLabel}.tar perfoutput
-        //                 fi
-
-        //                 popd
-
-        //                 if [[ -z "${env.CHANGE_ID}" ]]
-        //                 then
-        //                     echo "This is not a pull request"
-        //                 else
-        //                     echo "This is a pull request"
-        //                 fi
-        //             """
-        // platform.runCommand(this, command)
     }
 
     def packageCommand =
