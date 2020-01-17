@@ -33,47 +33,6 @@ rocBLASCI:
         // Print out available environment variables
         echo sh(script: 'env|sort', returnStdout: true)
 
-        String gpuLabel = project.email.gpuLabel(platform.jenkinsLabel)
-
-        def command = """#!/usr/bin/env bash
-                        set -x
-                        pwd
-                        cd ${project.paths.project_build_prefix}
-                        workingdir=`pwd`
-
-                        shopt expand_aliases
-                        shopt -s expand_aliases
-                        shopt expand_aliases
-
-                        python -V
-                        alias python=python3
-                        python -V
-
-                        # get device name from /dev/dri
-                        devicename=\$(echo \$(ls /dev/dri) | sed 's/.*\\(card[0-9]\\).*/\\1/')
-                        echo \$devicename
-                        # get device num from device name
-                        devicenum=\$(echo \$devicename | sed 's/.*\\([0-9]\\).*/\\1/')
-                        echo \$devicenum
-                        echo ${gpuLabel}
-                        export PATH=/opt/asy/bin:${PATH}
-                        wget -nv http://10.216.151.18:8080/job/Performance/job/rocBLAS/view/change-requests/job/PR-895/102/artifact/*zip*/archive.zip
-                        wgetreturn=\$?
-                        if [[ \$wgetreturn -eq 8 ]]; then
-                            echo "Download error"
-                        else
-                            unzip -o archive.zip
-                            tar -xvf archive/*/*/perfoutput.tar
-                            mv perfoutput perfoutput2
-                            tar -xvf archive/*/*/perfoutput.tar
-                            pushd scripts/performance/blas/
-                            python alltime.py -T -o \$workingdir/perfoutput -b \$workingdir/perfoutput2 -g 1 -i perf.yaml -d \$devicenum
-                            ls \$workingdir/perfoutput
-                            ls \$workingdir/perfoutput2
-                        fi
-                        """
-        platform.runCommand(this, command)
-
         commonGroovy = load "${project.paths.project_src_prefix}/.jenkins/Common.groovy"
         commonGroovy.runCompileCommand(platform, project)
     }
@@ -116,7 +75,7 @@ rocBLASCI:
 
                         ls perfoutput
                         
-                        #wget http://10.216.151.18:8080/job/Performance/job/${project.name}/job/develop/lastSuccessfulBuild/artifact/*zip*/archive.zip
+                        # wget http://10.216.151.18:8080/job/Performance/job/${project.name}/job/develop/lastSuccessfulBuild/artifact/*zip*/archive.zip
                         # wget -nv http://10.216.151.18:8080/job/Performance/job/rocBLAS/job/PR-895/lastSuccessfulBuild/artifact/*zip*/archive.zip
                         wget -nv http://10.216.151.18:8080/job/Performance/job/rocBLAS/view/change-requests/job/PR-895/102/artifact/*zip*/archive.zip
                         wgetreturn=\$?
@@ -125,11 +84,11 @@ rocBLASCI:
                             python alltime.py -T -o \$workingdir/perfoutput -S 0 -g 1 -i perf.yaml
                         else
                             unzip -o archive.zip
-                            tar -xvf archive/*/*/perfoutput_${project.email.gpuLabel}.tar
+                            tar -xvf archive/*/*/perfoutput_${gpuLabel}.tar
                             pushd scripts/performance/blas/
                             python alltime.py -T -o \$workingdir/perfoutput -b \$workingdir/perfoutput_${project.email.gpuLabel} -g 1 -d \$devicenum -i perf.yaml
                             popd
-                            tar -cvf perfoutput_${project.email.gpuLabel}.tar perfoutput
+                            tar -cvf perfoutput_${gpuLabel}.tar perfoutput
                         fi
 
                         if [[ -z "${env.CHANGE_ID}" ]]
