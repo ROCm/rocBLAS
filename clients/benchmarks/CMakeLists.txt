@@ -141,6 +141,11 @@ else( )
   target_link_libraries( rocblas-bench PRIVATE ${HIPHCC_LOCATION} )
 endif( )
 
+# qualify this based on what hip-clang platform?
+if(CXX_VERSION_STRING MATCHES "clang")
+  target_link_libraries( rocblas-bench PRIVATE /opt/rocm/hcc/lib/libclang_rt.builtins-x86_64.a )
+endif( )
+
 if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
   # Remove following when hcc is fixed; hcc emits following spurious warning ROCm v1.6.1
   # "clang-5.0: warning: argument unused during compilation: '-isystem ${ROCM_PATH}/include'"

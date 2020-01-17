@@ -213,5 +213,10 @@ if( CXX_VERSION_STRING MATCHES "clang" )
   target_link_libraries( rocblas-test PRIVATE -lpthread -lm -stdlib=libstdc++ )
 endif( )
 
+# qualify this based on what hip-clang platform?
+if(CXX_VERSION_STRING MATCHES "clang")
+  target_link_libraries( rocblas-test PRIVATE /opt/rocm/hcc/lib/libclang_rt.builtins-x86_64.a )
+endif( )
+
 set_target_properties( rocblas-test PROPERTIES CXX_EXTENSIONS NO )
 set_target_properties( rocblas-test PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )
