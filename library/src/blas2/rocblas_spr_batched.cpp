@@ -24,10 +24,8 @@ namespace
                                             rocblas_int    n,
                                             const T*       alpha,
                                             const T* const x[],
-                                            rocblas_int    shiftx,
                                             rocblas_int    incx,
                                             T* const       AP[],
-                                            rocblas_int    shiftA,
                                             rocblas_int    batch_count)
     {
         if(!handle)
@@ -158,7 +156,7 @@ rocblas_status rocblas_dspr_batched(rocblas_handle      handle,
                                     rocblas_int         batch_count)
 try
 {
-    return rocblas_spr_batched_impl(handle, uplo, n, alpha, x, 0, incx, AP, 0, batch_count);
+    return rocblas_spr_batched_impl(handle, uplo, n, alpha, x, incx, AP, batch_count);
 }
 catch(...)
 {
@@ -175,7 +173,7 @@ rocblas_status rocblas_cspr_batched(rocblas_handle                     handle,
                                     rocblas_int                        batch_count)
 try
 {
-    return rocblas_spr_batched_impl(handle, uplo, n, alpha, x, 0, incx, AP, 0, batch_count);
+    return rocblas_spr_batched_impl(handle, uplo, n, alpha, x, incx, AP, batch_count);
 }
 catch(...)
 {
@@ -192,7 +190,7 @@ rocblas_status rocblas_zspr_batched(rocblas_handle                      handle,
                                     rocblas_int                         batch_count)
 try
 {
-    return rocblas_spr_batched_impl(handle, uplo, n, alpha, x, 0, incx, AP, 0, batch_count);
+    return rocblas_spr_batched_impl(handle, uplo, n, alpha, x, incx, AP, batch_count);
 }
 catch(...)
 {

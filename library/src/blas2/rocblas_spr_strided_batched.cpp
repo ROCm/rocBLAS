@@ -26,11 +26,9 @@ namespace
                                                     rocblas_int    n,
                                                     const T*       alpha,
                                                     const T*       x,
-                                                    rocblas_int    shiftx,
                                                     rocblas_int    incx,
                                                     rocblas_stride stridex,
                                                     T*             AP,
-                                                    rocblas_int    shiftA,
                                                     rocblas_stride strideA,
                                                     rocblas_int    batch_count)
     {
@@ -147,7 +145,7 @@ rocblas_status rocblas_sspr_strided_batched(rocblas_handle handle,
 try
 {
     return rocblas_spr_strided_batched_impl(
-        handle, uplo, n, alpha, x, 0, incx, stridex, AP, 0, strideA, batch_count);
+        handle, uplo, n, alpha, x, incx, stridex, AP, strideA, batch_count);
 }
 catch(...)
 {
@@ -167,7 +165,7 @@ rocblas_status rocblas_dspr_strided_batched(rocblas_handle handle,
 try
 {
     return rocblas_spr_strided_batched_impl(
-        handle, uplo, n, alpha, x, 0, incx, stridex, AP, 0, strideA, batch_count);
+        handle, uplo, n, alpha, x, incx, stridex, AP, strideA, batch_count);
 }
 catch(...)
 {
@@ -187,7 +185,7 @@ rocblas_status rocblas_cspr_strided_batched(rocblas_handle               handle,
 try
 {
     return rocblas_spr_strided_batched_impl(
-        handle, uplo, n, alpha, x, 0, incx, stridex, AP, 0, strideA, batch_count);
+        handle, uplo, n, alpha, x, incx, stridex, AP, strideA, batch_count);
 }
 catch(...)
 {
@@ -207,7 +205,7 @@ rocblas_status rocblas_zspr_strided_batched(rocblas_handle                handle
 try
 {
     return rocblas_spr_strided_batched_impl(
-        handle, uplo, n, alpha, x, 0, incx, stridex, AP, 0, strideA, batch_count);
+        handle, uplo, n, alpha, x, incx, stridex, AP, strideA, batch_count);
 }
 catch(...)
 {
