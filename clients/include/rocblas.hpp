@@ -1519,6 +1519,71 @@ template <>
 static constexpr auto
     rocblas_hemv_strided_batched<rocblas_double_complex> = rocblas_zhemv_strided_batched;
 
+// hpmv
+template <typename T>
+rocblas_status (*rocblas_hpmv)(rocblas_handle handle,
+                               rocblas_fill   uplo,
+                               rocblas_int    n,
+                               const T*       alpha,
+                               const T*       A,
+                               rocblas_int    lda,
+                               const T*       x,
+                               rocblas_int    incx,
+                               const T*       beta,
+                               T*             y,
+                               rocblas_int    incy);
+
+template <>
+static constexpr auto rocblas_hpmv<rocblas_float_complex> = rocblas_chpmv;
+
+template <>
+static constexpr auto rocblas_hpmv<rocblas_double_complex> = rocblas_zhpmv;
+
+// hpmv_batched
+template <typename T>
+rocblas_status (*rocblas_hpmv_batched)(rocblas_handle handle,
+                                       rocblas_fill   uplo,
+                                       rocblas_int    n,
+                                       const T*       alpha,
+                                       const T* const A[],
+                                       const T* const x[],
+                                       rocblas_int    incx,
+                                       const T*       beta,
+                                       T* const       y[],
+                                       rocblas_int    incy,
+                                       rocblas_int    batch_count);
+
+template <>
+static constexpr auto rocblas_hpmv_batched<rocblas_float_complex> = rocblas_chpmv_batched;
+
+template <>
+static constexpr auto rocblas_hpmv_batched<rocblas_double_complex> = rocblas_zhpmv_batched;
+
+// hpmv_strided_batched
+template <typename T>
+rocblas_status (*rocblas_hpmv_strided_batched)(rocblas_handle handle,
+                                               rocblas_fill   uplo,
+                                               rocblas_int    n,
+                                               const T*       alpha,
+                                               const T*       A,
+                                               rocblas_stride stride_A,
+                                               const T*       x,
+                                               rocblas_int    incx,
+                                               rocblas_stride stride_x,
+                                               const T*       beta,
+                                               T*             y,
+                                               rocblas_int    incy,
+                                               rocblas_stride stride_y,
+                                               rocblas_int    batch_count);
+
+template <>
+static constexpr auto
+    rocblas_hpmv_strided_batched<rocblas_float_complex> = rocblas_chpmv_strided_batched;
+
+template <>
+static constexpr auto
+    rocblas_hpmv_strided_batched<rocblas_double_complex> = rocblas_zhpmv_strided_batched;
+
 // trmv
 template <typename T>
 rocblas_status (*rocblas_trmv)(rocblas_handle    handle,
