@@ -68,7 +68,6 @@ namespace
                               uplo_letter,
                               "-n",
                               n,
-                              "--alpha",
                               LOG_BENCH_SCALAR_VALUE(alpha),
                               "--incx",
                               incx,
