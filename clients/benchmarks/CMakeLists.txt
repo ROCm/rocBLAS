@@ -143,7 +143,7 @@ endif( )
 
 # qualify this based on what hip-clang platform?
 if(CXX_VERSION_STRING MATCHES "clang")
-  target_link_libraries( rocblas-bench PRIVATE /opt/rocm/hcc/lib/libclang_rt.builtins-x86_64.a )
+  target_link_libraries( rocblas-bench PRIVATE ${ROCM_PATH}/lib/libclang_rt.builtins-x86_64.a )
 endif( )
 
 if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )

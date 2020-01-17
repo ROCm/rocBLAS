@@ -169,7 +169,7 @@ install_packages( )
 
   # dependencies to build the client
   local client_dependencies_ubuntu=( "gfortran" "libomp-dev" "libboost-program-options-dev")
-  local client_dependencies_centos=( "devtoolset-7-gcc-gfortran" "libgomp" "boost-devel" )
+  local client_dependencies_centos=( "libgomp" "boost-devel" )
   local client_dependencies_fedora=( "gcc-gfortran" "libgomp" "boost-devel" )
   local client_dependencies_sles=( "gcc-fortran" "libgomp1" "libboost_program_options1_66_0-devel" )
 
@@ -506,7 +506,7 @@ pushd .
     cmake_client_options="${cmake_client_options} -DBUILD_CLIENTS_SAMPLES=ON -DBUILD_CLIENTS_TESTS=ON -DBUILD_CLIENTS_BENCHMARKS=ON -DLINK_BLIS=${LINK_BLIS}"
   fi
 
-  if ["${build_hip_clang}" == true ]; then
+  if [["${build_hip_clang}" == true ]]; then
       cmake_common_options="${cmake_common_options} -DRUN_HEADER_TESTING=OFF"
   fi
 
