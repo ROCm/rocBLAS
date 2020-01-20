@@ -255,11 +255,14 @@ constexpr double symv_gflop_count(rocblas_int n)
 }
 
 /* \brief floating point counts of GER */
-template <typename T>
+template <typename T, bool CONJ>
 constexpr double ger_gflop_count(rocblas_int m, rocblas_int n)
 {
-    rocblas_int min = (m < n) ? m : n;
-    return (2.0 * m * n + min) / 1e9;
+    rocblas_int min   = (m < n) ? m : n;
+    double      flops = (2.0 * m * n + min);
+    // if (CONJ)
+    //   flops +=
+    return flops / 1e9;
 }
 
 /* \brief floating point counts of SPR */

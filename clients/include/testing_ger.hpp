@@ -4,6 +4,7 @@
 
 #include "cblas_interface.hpp"
 #include "flops.hpp"
+#include "near.hpp"
 #include "norm.hpp"
 #include "rocblas.hpp"
 #include "rocblas_init.hpp"
@@ -14,7 +15,7 @@
 #include "unit.hpp"
 #include "utility.hpp"
 
-template <typename T>
+template <typename T, bool CONJ = false>
 void testing_ger_bad_arg(const Arguments& arg)
 {
     rocblas_int M     = 100;
@@ -42,17 +43,21 @@ void testing_ger_bad_arg(const Arguments& arg)
         return;
     }
 
-    EXPECT_ROCBLAS_STATUS(rocblas_ger<T>(handle, M, N, &alpha, nullptr, incx, dy, incy, dA_1, lda),
-                          rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(rocblas_ger<T>(handle, M, N, &alpha, dx, incx, nullptr, incy, dA_1, lda),
-                          rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(rocblas_ger<T>(handle, M, N, &alpha, dx, incx, dy, incy, nullptr, lda),
-                          rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(rocblas_ger<T>(nullptr, M, N, &alpha, dx, incx, dy, incy, dA_1, lda),
-                          rocblas_status_invalid_handle);
+    EXPECT_ROCBLAS_STATUS(
+        (rocblas_ger<T, CONJ>(handle, M, N, &alpha, nullptr, incx, dy, incy, dA_1, lda)),
+        rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS(
+        (rocblas_ger<T, CONJ>(handle, M, N, &alpha, dx, incx, nullptr, incy, dA_1, lda)),
+        rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS(
+        (rocblas_ger<T, CONJ>(handle, M, N, &alpha, dx, incx, dy, incy, nullptr, lda)),
+        rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS(
+        (rocblas_ger<T, CONJ>(nullptr, M, N, &alpha, dx, incx, dy, incy, dA_1, lda)),
+        rocblas_status_invalid_handle);
 }
 
-template <typename T>
+template <typename T, bool CONJ = false>
 void testing_ger(const Arguments& arg)
 {
     rocblas_int M       = arg.M;
@@ -77,8 +82,9 @@ void testing_ger(const Arguments& arg)
             return;
         }
 
-        EXPECT_ROCBLAS_STATUS(rocblas_ger<T>(handle, M, N, &h_alpha, dx, incx, dy, incy, dA_1, lda),
-                              rocblas_status_invalid_size);
+        EXPECT_ROCBLAS_STATUS(
+            (rocblas_ger<T, CONJ>(handle, M, N, &h_alpha, dx, incx, dy, incy, dA_1, lda)),
+            rocblas_status_invalid_size);
 
         return;
     }
@@ -139,10 +145,12 @@ void testing_ger(const Arguments& arg)
         CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(T), hipMemcpyHostToDevice));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR(rocblas_ger<T>(handle, M, N, &h_alpha, dx, incx, dy, incy, dA_1, lda));
+        CHECK_ROCBLAS_ERROR(
+            (rocblas_ger<T, CONJ>(handle, M, N, &h_alpha, dx, incx, dy, incy, dA_1, lda)));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR(rocblas_ger<T>(handle, M, N, d_alpha, dx, incx, dy, incy, dA_2, lda));
+        CHECK_ROCBLAS_ERROR(
+            (rocblas_ger<T, CONJ>(handle, M, N, d_alpha, dx, incx, dy, incy, dA_2, lda)));
 
         // copy output from device to CPU
         hipMemcpy(hA_1, dA_1, sizeof(T) * N * lda, hipMemcpyDeviceToHost);
@@ -151,10 +159,10 @@ void testing_ger(const Arguments& arg)
         // CPU BLAS
         cpu_time_used = get_time_us();
 
-        cblas_ger<T>(M, N, h_alpha, hx, incx, hy, incy, hA_gold, lda);
+        cblas_ger<T, CONJ>(M, N, h_alpha, hx, incx, hy, incy, hA_gold, lda);
 
         cpu_time_used = get_time_us() - cpu_time_used;
-        cblas_gflops  = ger_gflop_count<T>(M, N) / cpu_time_used * 1e6;
+        cblas_gflops  = ger_gflop_count<T, CONJ>(M, N) / cpu_time_used * 1e6;
 
         if(arg.unit_check)
         {
@@ -172,23 +180,23 @@ void testing_ger(const Arguments& arg)
     if(arg.timing)
     {
         int number_cold_calls = 2;
-        int number_hot_calls  = 100;
+        int number_hot_calls  = arg.iters;
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            rocblas_ger<T>(handle, M, N, &h_alpha, dx, incx, dy, incy, dA_1, lda);
+            rocblas_ger<T, CONJ>(handle, M, N, &h_alpha, dx, incx, dy, incy, dA_1, lda);
         }
 
         gpu_time_used = get_time_us(); // in microseconds
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            rocblas_ger<T>(handle, M, N, &h_alpha, dx, incx, dy, incy, dA_1, lda);
+            rocblas_ger<T, CONJ>(handle, M, N, &h_alpha, dx, incx, dy, incy, dA_1, lda);
         }
 
         gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;
-        rocblas_gflops    = ger_gflop_count<T>(M, N) / gpu_time_used * 1e6;
+        rocblas_gflops    = ger_gflop_count<T, CONJ>(M, N) / gpu_time_used * 1e6;
         rocblas_bandwidth = (2.0 * M * N) * sizeof(T) / gpu_time_used / 1e3;
 
         // only norm_check return an norm error, unit check won't return anything

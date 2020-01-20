@@ -5550,9 +5550,10 @@ rocblas_dsymv(rocblas_handle handle,
 /*! \brief BLAS Level 2 API
 
     \details
-    xGER performs the matrix-vector operations
+    xGER,xGERU,xGERC performs the matrix-vector operations
 
-        A := A + alpha*x*y**T
+        A := A + alpha*x*y**T , OR
+        A := A + alpha*x*y**H for xGERC
 
     where alpha is a scalar, x and y are vectors, and A is an
     m by n matrix.
@@ -5609,12 +5610,57 @@ ROCBLAS_EXPORT rocblas_status rocblas_dger(rocblas_handle handle,
                                            double*        A,
                                            rocblas_int    lda);
 
+ROCBLAS_EXPORT rocblas_status rocblas_cgeru(rocblas_handle               handle,
+                                            rocblas_int                  m,
+                                            rocblas_int                  n,
+                                            const rocblas_float_complex* alpha,
+                                            const rocblas_float_complex* x,
+                                            rocblas_int                  incx,
+                                            const rocblas_float_complex* y,
+                                            rocblas_int                  incy,
+                                            rocblas_float_complex*       A,
+                                            rocblas_int                  lda);
+
+ROCBLAS_EXPORT rocblas_status rocblas_zgeru(rocblas_handle                handle,
+                                            rocblas_int                   m,
+                                            rocblas_int                   n,
+                                            const rocblas_double_complex* alpha,
+                                            const rocblas_double_complex* x,
+                                            rocblas_int                   incx,
+                                            const rocblas_double_complex* y,
+                                            rocblas_int                   incy,
+                                            rocblas_double_complex*       A,
+                                            rocblas_int                   lda);
+
+ROCBLAS_EXPORT rocblas_status rocblas_cgerc(rocblas_handle               handle,
+                                            rocblas_int                  m,
+                                            rocblas_int                  n,
+                                            const rocblas_float_complex* alpha,
+                                            const rocblas_float_complex* x,
+                                            rocblas_int                  incx,
+                                            const rocblas_float_complex* y,
+                                            rocblas_int                  incy,
+                                            rocblas_float_complex*       A,
+                                            rocblas_int                  lda);
+
+ROCBLAS_EXPORT rocblas_status rocblas_zgerc(rocblas_handle                handle,
+                                            rocblas_int                   m,
+                                            rocblas_int                   n,
+                                            const rocblas_double_complex* alpha,
+                                            const rocblas_double_complex* x,
+                                            rocblas_int                   incx,
+                                            const rocblas_double_complex* y,
+                                            rocblas_int                   incy,
+                                            rocblas_double_complex*       A,
+                                            rocblas_int                   lda);
+
 /*! \brief BLAS Level 2 API
 
     \details
-    xGER_BATCHED performs a batch of the matrix-vector operations
+    xGER.xGERU,xGERC_BATCHED performs a batch of the matrix-vector operations
 
-        A_i := A_i + alpha*x_i*y_i**T
+        A := A + alpha*x*y**T , OR
+        A := A + alpha*x*y**H for xGERC
 
     where (A_i, x_i, y_i) is the i-th instance of the batch.
     alpha is a scalar, x_i and y_i are vectors and A_i is an
@@ -5677,12 +5723,61 @@ ROCBLAS_EXPORT rocblas_status rocblas_dger_batched(rocblas_handle      handle,
                                                    rocblas_int         lda,
                                                    rocblas_int         batch_count);
 
+ROCBLAS_EXPORT rocblas_status rocblas_cgeru_batched(rocblas_handle                     handle,
+                                                    rocblas_int                        m,
+                                                    rocblas_int                        n,
+                                                    const rocblas_float_complex*       alpha,
+                                                    const rocblas_float_complex* const x[],
+                                                    rocblas_int                        incx,
+                                                    const rocblas_float_complex* const y[],
+                                                    rocblas_int                        incy,
+                                                    rocblas_float_complex* const       A[],
+                                                    rocblas_int                        lda,
+                                                    rocblas_int                        batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_zgeru_batched(rocblas_handle                      handle,
+                                                    rocblas_int                         m,
+                                                    rocblas_int                         n,
+                                                    const rocblas_double_complex*       alpha,
+                                                    const rocblas_double_complex* const x[],
+                                                    rocblas_int                         incx,
+                                                    const rocblas_double_complex* const y[],
+                                                    rocblas_int                         incy,
+                                                    rocblas_double_complex* const       A[],
+                                                    rocblas_int                         lda,
+                                                    rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_cgerc_batched(rocblas_handle                     handle,
+                                                    rocblas_int                        m,
+                                                    rocblas_int                        n,
+                                                    const rocblas_float_complex*       alpha,
+                                                    const rocblas_float_complex* const x[],
+                                                    rocblas_int                        incx,
+                                                    const rocblas_float_complex* const y[],
+                                                    rocblas_int                        incy,
+                                                    rocblas_float_complex* const       A[],
+                                                    rocblas_int                        lda,
+                                                    rocblas_int                        batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_zgerc_batched(rocblas_handle                      handle,
+                                                    rocblas_int                         m,
+                                                    rocblas_int                         n,
+                                                    const rocblas_double_complex*       alpha,
+                                                    const rocblas_double_complex* const x[],
+                                                    rocblas_int                         incx,
+                                                    const rocblas_double_complex* const y[],
+                                                    rocblas_int                         incy,
+                                                    rocblas_double_complex* const       A[],
+                                                    rocblas_int                         lda,
+                                                    rocblas_int batch_count);
+
 /*! \brief BLAS Level 2 API
 
     \details
-    xGER_STRIDED_BATCHED performs the matrix-vector operations
+    xGERC,xGERU,xGERC_STRIDED_BATCHED performs the matrix-vector operations
 
-        A_i := A_i + alpha*x_i*y_i**T
+        A_i := A_i + alpha*x_i*y_i**T, OR
+        A_i := A_i + alpha*x_i*y_i**H  for xGERC
 
     where (A_i, x_i, y_i) is the i-th instance of the batch.
     alpha is a scalar, x_i and y_i are vectors and A_i is an
@@ -5766,23 +5861,65 @@ ROCBLAS_EXPORT rocblas_status rocblas_dger_strided_batched(rocblas_handle handle
                                                            rocblas_stride strideA,
                                                            rocblas_int    batch_count);
 
-/* not implemented
-ROCBLAS_EXPORT rocblas_status
-rocblas_cger(rocblas_handle handle,
-                 rocblas_int m, rocblas_int n,
-                 const rocblas_float_complex *alpha,
-                 const rocblas_float_complex *x, rocblas_int incx,
-                 const rocblas_float_complex *y, rocblas_int incy,
-                       rocblas_float_complex *A, rocblas_int lda);
+ROCBLAS_EXPORT rocblas_status rocblas_cgeru_strided_batched(rocblas_handle               handle,
+                                                            rocblas_int                  m,
+                                                            rocblas_int                  n,
+                                                            const rocblas_float_complex* alpha,
+                                                            const rocblas_float_complex* x,
+                                                            rocblas_int                  incx,
+                                                            rocblas_stride               stridex,
+                                                            const rocblas_float_complex* y,
+                                                            rocblas_int                  incy,
+                                                            rocblas_stride               stridey,
+                                                            rocblas_float_complex*       A,
+                                                            rocblas_int                  lda,
+                                                            rocblas_stride               strideA,
+                                                            rocblas_int batch_count);
 
-ROCBLAS_EXPORT rocblas_status
-rocblas_zger(rocblas_handle handle,
-                 rocblas_int m, rocblas_int n,
-                 const rocblas_double_complex *alpha,
-                 const rocblas_double_complex *x, rocblas_int incx,
-                 const rocblas_double_complex *y, rocblas_int incy,
-                       rocblas_double_complex *A, rocblas_int lda);
-*/
+ROCBLAS_EXPORT rocblas_status rocblas_zgeru_strided_batched(rocblas_handle                handle,
+                                                            rocblas_int                   m,
+                                                            rocblas_int                   n,
+                                                            const rocblas_double_complex* alpha,
+                                                            const rocblas_double_complex* x,
+                                                            rocblas_int                   incx,
+                                                            rocblas_stride                stridex,
+                                                            const rocblas_double_complex* y,
+                                                            rocblas_int                   incy,
+                                                            rocblas_stride                stridey,
+                                                            rocblas_double_complex*       A,
+                                                            rocblas_int                   lda,
+                                                            rocblas_stride                strideA,
+                                                            rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_cgerc_strided_batched(rocblas_handle               handle,
+                                                            rocblas_int                  m,
+                                                            rocblas_int                  n,
+                                                            const rocblas_float_complex* alpha,
+                                                            const rocblas_float_complex* x,
+                                                            rocblas_int                  incx,
+                                                            rocblas_stride               stridex,
+                                                            const rocblas_float_complex* y,
+                                                            rocblas_int                  incy,
+                                                            rocblas_stride               stridey,
+                                                            rocblas_float_complex*       A,
+                                                            rocblas_int                  lda,
+                                                            rocblas_stride               strideA,
+                                                            rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_zgerc_strided_batched(rocblas_handle                handle,
+                                                            rocblas_int                   m,
+                                                            rocblas_int                   n,
+                                                            const rocblas_double_complex* alpha,
+                                                            const rocblas_double_complex* x,
+                                                            rocblas_int                   incx,
+                                                            rocblas_stride                stridex,
+                                                            const rocblas_double_complex* y,
+                                                            rocblas_int                   incy,
+                                                            rocblas_stride                stridey,
+                                                            rocblas_double_complex*       A,
+                                                            rocblas_int                   lda,
+                                                            rocblas_stride                strideA,
+                                                            rocblas_int batch_count);
 
 /*! \brief BLAS Level 2 API
 

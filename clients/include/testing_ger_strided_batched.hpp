@@ -14,7 +14,7 @@
 #include "unit.hpp"
 #include "utility.hpp"
 
-template <typename T>
+template <typename T, bool CONJ>
 void testing_ger_strided_batched_bad_arg(const Arguments& arg)
 {
     rocblas_int M           = 100;
@@ -46,69 +46,69 @@ void testing_ger_strided_batched_bad_arg(const Arguments& arg)
         return;
     }
 
-    EXPECT_ROCBLAS_STATUS(rocblas_ger_strided_batched<T>(handle,
-                                                         M,
-                                                         N,
-                                                         &alpha,
-                                                         nullptr,
-                                                         incx,
-                                                         stride_x,
-                                                         dy,
-                                                         incy,
-                                                         stride_y,
-                                                         dA_1,
-                                                         lda,
-                                                         stride_a,
-                                                         batch_count),
+    EXPECT_ROCBLAS_STATUS((rocblas_ger_strided_batched<T, CONJ>(handle,
+                                                                M,
+                                                                N,
+                                                                &alpha,
+                                                                nullptr,
+                                                                incx,
+                                                                stride_x,
+                                                                dy,
+                                                                incy,
+                                                                stride_y,
+                                                                dA_1,
+                                                                lda,
+                                                                stride_a,
+                                                                batch_count)),
                           rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(rocblas_ger_strided_batched<T>(handle,
-                                                         M,
-                                                         N,
-                                                         &alpha,
-                                                         dx,
-                                                         incx,
-                                                         stride_x,
-                                                         nullptr,
-                                                         incy,
-                                                         stride_y,
-                                                         dA_1,
-                                                         lda,
-                                                         stride_a,
-                                                         batch_count),
+    EXPECT_ROCBLAS_STATUS((rocblas_ger_strided_batched<T, CONJ>(handle,
+                                                                M,
+                                                                N,
+                                                                &alpha,
+                                                                dx,
+                                                                incx,
+                                                                stride_x,
+                                                                nullptr,
+                                                                incy,
+                                                                stride_y,
+                                                                dA_1,
+                                                                lda,
+                                                                stride_a,
+                                                                batch_count)),
                           rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(rocblas_ger_strided_batched<T>(handle,
-                                                         M,
-                                                         N,
-                                                         &alpha,
-                                                         dx,
-                                                         incx,
-                                                         stride_x,
-                                                         dy,
-                                                         incy,
-                                                         stride_y,
-                                                         nullptr,
-                                                         lda,
-                                                         stride_a,
-                                                         batch_count),
+    EXPECT_ROCBLAS_STATUS((rocblas_ger_strided_batched<T, CONJ>(handle,
+                                                                M,
+                                                                N,
+                                                                &alpha,
+                                                                dx,
+                                                                incx,
+                                                                stride_x,
+                                                                dy,
+                                                                incy,
+                                                                stride_y,
+                                                                nullptr,
+                                                                lda,
+                                                                stride_a,
+                                                                batch_count)),
                           rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(rocblas_ger_strided_batched<T>(nullptr,
-                                                         M,
-                                                         N,
-                                                         &alpha,
-                                                         dx,
-                                                         incx,
-                                                         stride_x,
-                                                         dy,
-                                                         incy,
-                                                         stride_y,
-                                                         dA_1,
-                                                         lda,
-                                                         stride_a,
-                                                         batch_count),
+    EXPECT_ROCBLAS_STATUS((rocblas_ger_strided_batched<T, CONJ>(nullptr,
+                                                                M,
+                                                                N,
+                                                                &alpha,
+                                                                dx,
+                                                                incx,
+                                                                stride_x,
+                                                                dy,
+                                                                incy,
+                                                                stride_y,
+                                                                dA_1,
+                                                                lda,
+                                                                stride_a,
+                                                                batch_count)),
                           rocblas_status_invalid_handle);
 }
 
-template <typename T>
+template <typename T, bool CONJ>
 void testing_ger_strided_batched(const Arguments& arg)
 {
     rocblas_int M           = arg.M;
@@ -143,20 +143,20 @@ void testing_ger_strided_batched(const Arguments& arg)
             return;
         }
 
-        EXPECT_ROCBLAS_STATUS(rocblas_ger_strided_batched<T>(handle,
-                                                             M,
-                                                             N,
-                                                             &h_alpha,
-                                                             dx,
-                                                             incx,
-                                                             stride_x,
-                                                             dy,
-                                                             incy,
-                                                             stride_y,
-                                                             dA_1,
-                                                             lda,
-                                                             stride_a,
-                                                             batch_count),
+        EXPECT_ROCBLAS_STATUS((rocblas_ger_strided_batched<T, CONJ>(handle,
+                                                                    M,
+                                                                    N,
+                                                                    &h_alpha,
+                                                                    dx,
+                                                                    incx,
+                                                                    stride_x,
+                                                                    dy,
+                                                                    incy,
+                                                                    stride_y,
+                                                                    dA_1,
+                                                                    lda,
+                                                                    stride_a,
+                                                                    batch_count)),
                               M < 0 || N < 0 || lda < M || lda < 1 || !incx || !incy
                                       || batch_count < 0
                                   ? rocblas_status_invalid_size
@@ -218,35 +218,35 @@ void testing_ger_strided_batched(const Arguments& arg)
         CHECK_HIP_ERROR(hipMemcpy(dA_2, hA_2, sizeof(T) * size_A, hipMemcpyHostToDevice));
         CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(T), hipMemcpyHostToDevice));
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR(rocblas_ger_strided_batched<T>(handle,
-                                                           M,
-                                                           N,
-                                                           &h_alpha,
-                                                           dx,
-                                                           incx,
-                                                           stride_x,
-                                                           dy,
-                                                           incy,
-                                                           stride_y,
-                                                           dA_1,
-                                                           lda,
-                                                           stride_a,
-                                                           batch_count));
+        CHECK_ROCBLAS_ERROR((rocblas_ger_strided_batched<T, CONJ>(handle,
+                                                                  M,
+                                                                  N,
+                                                                  &h_alpha,
+                                                                  dx,
+                                                                  incx,
+                                                                  stride_x,
+                                                                  dy,
+                                                                  incy,
+                                                                  stride_y,
+                                                                  dA_1,
+                                                                  lda,
+                                                                  stride_a,
+                                                                  batch_count)));
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR(rocblas_ger_strided_batched<T>(handle,
-                                                           M,
-                                                           N,
-                                                           d_alpha,
-                                                           dx,
-                                                           incx,
-                                                           stride_x,
-                                                           dy,
-                                                           incy,
-                                                           stride_y,
-                                                           dA_2,
-                                                           lda,
-                                                           stride_a,
-                                                           batch_count));
+        CHECK_ROCBLAS_ERROR((rocblas_ger_strided_batched<T, CONJ>(handle,
+                                                                  M,
+                                                                  N,
+                                                                  d_alpha,
+                                                                  dx,
+                                                                  incx,
+                                                                  stride_x,
+                                                                  dy,
+                                                                  incy,
+                                                                  stride_y,
+                                                                  dA_2,
+                                                                  lda,
+                                                                  stride_a,
+                                                                  batch_count)));
 
         // copy output from device to CPU
         hipMemcpy(hA_1, dA_1, sizeof(T) * size_A, hipMemcpyDeviceToHost);
@@ -257,19 +257,19 @@ void testing_ger_strided_batched(const Arguments& arg)
 
         for(int b = 0; b < batch_count; ++b)
         {
-            cblas_ger<T>(M,
-                         N,
-                         h_alpha,
-                         hx + b * stride_x,
-                         incx,
-                         hy + b * stride_y,
-                         incy,
-                         hA_gold + b * stride_a,
-                         lda);
+            cblas_ger<T, CONJ>(M,
+                               N,
+                               h_alpha,
+                               hx + b * stride_x,
+                               incx,
+                               hy + b * stride_y,
+                               incy,
+                               hA_gold + b * stride_a,
+                               lda);
         }
 
         cpu_time_used = get_time_us() - cpu_time_used;
-        cblas_gflops  = batch_count * ger_gflop_count<T>(M, N) / cpu_time_used * 1e6;
+        cblas_gflops  = batch_count * ger_gflop_count<T, CONJ>(M, N) / cpu_time_used * 1e6;
 
         if(arg.unit_check)
         {
@@ -289,49 +289,49 @@ void testing_ger_strided_batched(const Arguments& arg)
     if(arg.timing)
     {
         int number_cold_calls = 2;
-        int number_hot_calls  = 100;
+        int number_hot_calls  = arg.iters;
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            rocblas_ger_strided_batched<T>(handle,
-                                           M,
-                                           N,
-                                           &h_alpha,
-                                           dx,
-                                           incx,
-                                           stride_x,
-                                           dy,
-                                           incy,
-                                           stride_y,
-                                           dA_1,
-                                           lda,
-                                           stride_a,
-                                           batch_count);
+            rocblas_ger_strided_batched<T, CONJ>(handle,
+                                                 M,
+                                                 N,
+                                                 &h_alpha,
+                                                 dx,
+                                                 incx,
+                                                 stride_x,
+                                                 dy,
+                                                 incy,
+                                                 stride_y,
+                                                 dA_1,
+                                                 lda,
+                                                 stride_a,
+                                                 batch_count);
         }
 
         gpu_time_used = get_time_us(); // in microseconds
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            rocblas_ger_strided_batched<T>(handle,
-                                           M,
-                                           N,
-                                           &h_alpha,
-                                           dx,
-                                           incx,
-                                           stride_x,
-                                           dy,
-                                           incy,
-                                           stride_y,
-                                           dA_1,
-                                           lda,
-                                           stride_a,
-                                           batch_count);
+            rocblas_ger_strided_batched<T, CONJ>(handle,
+                                                 M,
+                                                 N,
+                                                 &h_alpha,
+                                                 dx,
+                                                 incx,
+                                                 stride_x,
+                                                 dy,
+                                                 incy,
+                                                 stride_y,
+                                                 dA_1,
+                                                 lda,
+                                                 stride_a,
+                                                 batch_count);
         }
 
         gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;
-        rocblas_gflops    = batch_count * ger_gflop_count<T>(M, N) / gpu_time_used * 1e6;
+        rocblas_gflops    = batch_count * ger_gflop_count<T, CONJ>(M, N) / gpu_time_used * 1e6;
         rocblas_bandwidth = batch_count * (2.0 * M * N) * sizeof(T) / gpu_time_used / 1e3;
 
         // only norm_check return an norm error, unit check won't return anything

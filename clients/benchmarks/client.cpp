@@ -50,6 +50,8 @@
 #include "testing_gemv_batched.hpp"
 #include "testing_gemv_strided_batched.hpp"
 #include "testing_ger.hpp"
+#include "testing_ger_batched.hpp"
+#include "testing_ger_strided_batched.hpp"
 #include "testing_hbmv.hpp"
 #include "testing_hbmv_batched.hpp"
 #include "testing_hbmv_strided_batched.hpp"
@@ -227,13 +229,15 @@ struct perf_blas<T, U, std::enable_if_t<std::is_same<T, float>{} || std::is_same
                 {"gemv", testing_gemv<T>},
                 {"gemv_batched", testing_gemv_batched<T>},
                 {"gemv_strided_batched", testing_gemv_strided_batched<T>},
+                {"ger", testing_ger<T, false>},
+                {"ger_batched", testing_ger<T, false>},
+                {"ger_strided_batched", testing_ger<T, false>},
                 {"tpmv", testing_tpmv<T>},
                 {"tpmv_batched", testing_tpmv_batched<T>},
                 {"tpmv_strided_batched", testing_tpmv_strided_batched<T>},
                 {"trmv", testing_trmv<T>},
                 {"trmv_batched", testing_trmv_batched<T>},
                 {"trmv_strided_batched", testing_trmv_strided_batched<T>},
-                {"ger", testing_ger<T>},
                 {"spr", testing_spr<T>},
                 {"spr_batched", testing_spr_batched<T>},
                 {"spr_strided_batched", testing_spr_strided_batched<T>},
@@ -329,6 +333,12 @@ struct perf_blas<T,
                 {"gemv", testing_gemv<T>},
                 {"gemv_batched", testing_gemv_batched<T>},
                 {"gemv_strided_batched", testing_gemv_strided_batched<T>},
+                {"geru", testing_ger<T, false>},
+                {"geru_batched", testing_ger<T, false>},
+                {"geru_strided_batched", testing_ger<T, false>},
+                {"gerc", testing_ger<T, true>},
+                {"gerc_batched", testing_ger<T, true>},
+                {"gerc_strided_batched", testing_ger<T, true>},
                 {"hbmv", testing_hbmv<T>},
                 {"hbmv_batched", testing_hbmv_batched<T>},
                 {"hbmv_strided_batched", testing_hbmv_strided_batched<T>},

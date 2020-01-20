@@ -6,7 +6,7 @@
 #include "rocblas.h"
 #include "utility.h"
 
-template <typename T, typename U, typename V, typename W>
+template <bool CONJ, typename T, typename U, typename V, typename W>
 __global__ void ger_kernel(rocblas_int    m,
                            rocblas_int    n,
                            W              alpha_device_host,
@@ -35,11 +35,42 @@ __global__ void ger_kernel(rocblas_int    m,
         const T* __restrict__ x = load_ptr_batch(xa, hipBlockIdx_z, shiftx, stridex);
         const T* __restrict__ y = load_ptr_batch(ya, hipBlockIdx_z, shifty, stridey);
 
-        A[tx + lda * ty] += alpha * x[tx * incx] * y[ty * incy];
+        A[tx + lda * ty] += alpha * x[tx * incx] * T(CONJ ? conj(y[ty * incy]) : y[ty * incy]);
     }
 }
 
-template <typename T, typename U, typename V, typename W>
+template <bool CONJ, typename T, typename U, typename V, typename W>
+inline rocblas_status rocblas_ger_arg_check(rocblas_int    m,
+                                            rocblas_int    n,
+                                            const W*       alpha,
+                                            rocblas_stride stride_alpha,
+                                            const U*       x,
+                                            rocblas_int    offsetx,
+                                            rocblas_int    incx,
+                                            rocblas_int    stridex,
+                                            const U*       y,
+                                            rocblas_int    offsety,
+                                            rocblas_int    incy,
+                                            rocblas_int    stridey,
+                                            V*             A,
+                                            rocblas_int    offsetA,
+                                            rocblas_int    lda,
+                                            rocblas_int    strideA,
+                                            rocblas_int    batch_count)
+{
+    if(m < 0 || n < 0 || !incx || !incy || lda < m || lda < 1 || batch_count < 0)
+        return rocblas_status_invalid_size;
+
+    if(!m || !n || !batch_count)
+        return rocblas_status_success;
+
+    if(!alpha || !x || !y || !A)
+        return rocblas_status_invalid_pointer;
+
+    return rocblas_status_continue;
+}
+
+template <bool CONJ, typename T, typename U, typename V, typename W>
 rocblas_status rocblas_ger_template(rocblas_handle handle,
                                     rocblas_int    m,
                                     rocblas_int    n,
@@ -78,7 +109,7 @@ rocblas_status rocblas_ger_template(rocblas_handle handle,
     dim3 threads(GEMV_DIM_X, GEMV_DIM_Y);
 
     if(handle->pointer_mode == rocblas_pointer_mode_device)
-        hipLaunchKernelGGL(ger_kernel<T>,
+        hipLaunchKernelGGL(ger_kernel<CONJ, T>,
                            grid,
                            threads,
                            0,
@@ -100,7 +131,7 @@ rocblas_status rocblas_ger_template(rocblas_handle handle,
                            lda,
                            strideA);
     else
-        hipLaunchKernelGGL(ger_kernel<T>,
+        hipLaunchKernelGGL(ger_kernel<CONJ, T>,
                            grid,
                            threads,
                            0,
