@@ -250,8 +250,9 @@ def setdefaults(test):
             test.setdefault('stride_y', ldy)
             test.setdefault('stride_a', ldN)
 
-    elif test['function'] in ('spr_strided_batched'):
+    elif test['function'] in ('spr_strided_batched', 'spr2_strided_batched'):
         setkey_product(test, 'stride_x', ['N', 'incx', 'stride_scale'])
+        setkey_product(test, 'stride_y', ['N', 'incy', 'stride_scale'])
         if 'stride_scale' in test:
             ldN = int((test['N'] * (test['N'] + 1) * test['stride_scale']) / 2)
             test.setdefault('stride_a', ldN)
