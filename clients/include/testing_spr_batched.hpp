@@ -168,14 +168,28 @@ void testing_spr_batched(const Arguments& arg)
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            rocblas_spr_batched<T>(handle, uplo, N, &h_alpha, dx, incx, dA_1, batch_count);
+            rocblas_spr_batched<T>(handle,
+                                   uplo,
+                                   N,
+                                   &h_alpha,
+                                   dx.ptr_on_device(),
+                                   incx,
+                                   dA_1.ptr_on_device(),
+                                   batch_count);
         }
 
         gpu_time_used = get_time_us(); // in microseconds
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            rocblas_spr_batched<T>(handle, uplo, N, &h_alpha, dx, incx, dA_1, batch_count);
+            rocblas_spr_batched<T>(handle,
+                                   uplo,
+                                   N,
+                                   &h_alpha,
+                                   dx.ptr_on_device(),
+                                   incx,
+                                   dA_1.ptr_on_device(),
+                                   batch_count);
         }
 
         gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;
