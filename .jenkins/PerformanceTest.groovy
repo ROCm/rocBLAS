@@ -34,8 +34,6 @@ rocBLASCI:
         // Print out available environment variables
         echo sh(script: 'env|sort', returnStdout: true)
 
-        String gpuLabel = project.email.gpuLabel(platform.jenkinsLabel)
-
         commonGroovy = load "${project.paths.project_src_prefix}/.jenkins/Common.groovy"
         commonGroovy.runCompileCommand(platform, project)
     }
@@ -83,7 +81,7 @@ rocBLASCI:
                         else
                             unzip -o archive.zip
                             tar -xvf archive/*/*/perfoutput_${gpuLabel}.tar
-                            python alltime.py -T -o \$workingdir/perfoutput -b \$workingdir/perfoutput_${project.email.gpuLabel} -g 1 -d \$devicenum -i perf.yaml
+                            python alltime.py -T -o \$workingdir/perfoutput -b \$workingdir/perfoutput_${gpuLabel} -g 1 -d \$devicenum -i perf.yaml
                         fi
                         popd
 
