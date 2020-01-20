@@ -81,14 +81,14 @@ if(LINK_BLIS)
   set( BLIS_CPP ../common/blis_interface.cpp )
 endif()
 
-set( rocblas_testmark_common
+set( rocblas_benchmark_common
       ../common/utility.cpp
       ../common/cblas_interface.cpp
       ${BLIS_CPP}
       ../common/rocblas_parse_data.cpp
     )
 
-add_executable( rocblas-test ${rocblas_no_tensile_test_source} ${rocblas_test_source} ${rocblas_testmark_common} )
+add_executable( rocblas-test ${rocblas_no_tensile_test_source} ${rocblas_test_source} ${rocblas_benchmark_common} )
 
 if( BUILD_WITH_TENSILE )
     target_compile_definitions( rocblas-test PRIVATE BUILD_WITH_TENSILE=1 GOOGLE_TEST )
