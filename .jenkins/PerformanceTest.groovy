@@ -72,12 +72,13 @@ rocBLASCI:
                         ls \$workingdir/perfoutput
                         cat \$workingdir/perfoutput/specs.txt
                         
-                        wget http://10.216.151.18:8080/job/Performance/job/${project.name}/job/develop/lastSuccessfulBuild/artifact/*zip*/archive.zip
+                        # wget http://10.216.151.18:8080/job/Performance/job/${project.name}/job/develop/lastSuccessfulBuild/artifact/*zip*/archive.zip
+                        wget http://10.216.151.18:8080/job/Performance/job/rocBLAS/job/PR-895/lastSuccessfulBuild/artifact/*zip*/archive.zip
                         wgetreturn=\$?
                         pushd scripts/performance/blas/
                         if [[ \$wgetreturn -eq 8 ]]; then
                             echo "Download error"
-                            python alltime.py -T -o \$workingdir/perfoutput -S 0 -g 1 -i perf.yaml
+                            python alltime.py -T -o \$workingdir/perfoutput -S 0 -g 1 -i perf.yaml -d \$devicenum
                         else
                             unzip -o archive.zip
                             tar -xvf archive/*/*/perfoutput_${gpuLabel}.tar
