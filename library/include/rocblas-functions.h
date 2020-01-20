@@ -5800,7 +5800,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zspr_strided_batched(rocblas_handle       
 /*! \brief BLAS Level 2 API
 
     \details
-    xSPR2 performs the matrix-vector operations
+    xSPR2 performs the matrix-vector operation
 
         A := A + alpha*x*y**T + alpha*y*x**T
 
@@ -5882,7 +5882,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dspr2(rocblas_handle handle,
 /*! \brief BLAS Level 2 API
 
     \details
-    xSPR2_BATCHED performs the matrix-vector operations
+    xSPR2_BATCHED performs the matrix-vector operation
 
         A_i := A_i + alpha*x_i*y_i**T + alpha*y*x**T
 
@@ -5969,7 +5969,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dspr2_batched(rocblas_handle      handle,
 /*! \brief BLAS Level 2 API
 
     \details
-    xSPR_STRIDED_BATCHED performs the matrix-vector operations
+    xSPR_STRIDED_BATCHED performs the matrix-vector operation
 
         A_i := A_i + alpha*x_i*x_i**T
 

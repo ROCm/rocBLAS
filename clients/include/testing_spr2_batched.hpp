@@ -165,17 +165,8 @@ void testing_spr2_batched(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            if(std::is_same<T, float>{} || std::is_same<T, double>{})
-            {
-                unit_check_general<T>(1, size_A, batch_count, 1, hA_gold, hA_1);
-                unit_check_general<T>(1, size_A, batch_count, 1, hA_gold, hA_2);
-            }
-            else
-            {
-                const double tol = N * sum_error_tolerance<T>;
-                near_check_general<T>(1, size_A, batch_count, 1, hA_gold, hA_1, tol);
-                near_check_general<T>(1, size_A, batch_count, 1, hA_gold, hA_2, tol);
-            }
+            unit_check_general<T>(1, size_A, batch_count, 1, hA_gold, hA_1);
+            unit_check_general<T>(1, size_A, batch_count, 1, hA_gold, hA_2);
         }
 
         if(arg.norm_check)
@@ -193,21 +184,37 @@ void testing_spr2_batched(const Arguments& arg)
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            rocblas_spr2_batched<T>(
-                handle, uplo, N, &h_alpha, dx, incx, dy, incy, dA_1, batch_count);
+            rocblas_spr2_batched<T>(handle,
+                                    uplo,
+                                    N,
+                                    &h_alpha,
+                                    dx.ptr_on_device(),
+                                    incx,
+                                    dy.ptr_on_device(),
+                                    incy,
+                                    dA_1.ptr_on_device(),
+                                    batch_count);
         }
 
         gpu_time_used = get_time_us(); // in microseconds
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            rocblas_spr2_batched<T>(
-                handle, uplo, N, &h_alpha, dx, incx, dy, incy, dA_1, batch_count);
+            rocblas_spr2_batched<T>(handle,
+                                    uplo,
+                                    N,
+                                    &h_alpha,
+                                    dx.ptr_on_device(),
+                                    incx,
+                                    dy.ptr_on_device(),
+                                    incy,
+                                    dA_1.ptr_on_device(),
+                                    batch_count);
         }
 
         gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;
         rocblas_gflops    = batch_count * spr2_gflop_count<T>(N) / gpu_time_used * 1e6;
-        rocblas_bandwidth = batch_count * (2.0 * N * (N + 1)) / 2 * sizeof(T) / gpu_time_used / 1e3;
+        rocblas_bandwidth = batch_count * (5.0 * N * (N + 1)) / 2 * sizeof(T) / gpu_time_used / 1e3;
 
         // only norm_check return an norm error, unit check won't return anything
         std::cout << "N,alpha,incx,incy,batch_count,rocblas-Gflops,rocblas-GB/s";

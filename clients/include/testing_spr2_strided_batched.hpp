@@ -119,8 +119,6 @@ void testing_spr2_strided_batched(const Arguments& arg)
     // argument check before allocating invalid memory
     if(N <= 0 || !incx || !incy || batch_count <= 0)
     {
-        static constexpr size_t safe_size = 100; // arbitrarily set to 100
-
         EXPECT_ROCBLAS_STATUS(rocblas_spr2_strided_batched<T>(handle,
                                                               uplo,
                                                               N,
@@ -239,17 +237,8 @@ void testing_spr2_strided_batched(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            if(std::is_same<T, float>{} || std::is_same<T, double>{})
-            {
-                unit_check_general<T>(1, size_A, batch_count, 1, stride_A, hA_gold, hA_1);
-                unit_check_general<T>(1, size_A, batch_count, 1, stride_A, hA_gold, hA_2);
-            }
-            else
-            {
-                const double tol = N * sum_error_tolerance<T>;
-                near_check_general<T>(1, size_A, batch_count, 1, stride_A, hA_gold, hA_1, tol);
-                near_check_general<T>(1, size_A, batch_count, 1, stride_A, hA_gold, hA_2, tol);
-            }
+            unit_check_general<T>(1, size_A, batch_count, 1, stride_A, hA_gold, hA_1);
+            unit_check_general<T>(1, size_A, batch_count, 1, stride_A, hA_gold, hA_2);
         }
 
         if(arg.norm_check)
@@ -305,7 +294,7 @@ void testing_spr2_strided_batched(const Arguments& arg)
 
         gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;
         rocblas_gflops    = batch_count * spr2_gflop_count<T>(N) / gpu_time_used * 1e6;
-        rocblas_bandwidth = batch_count * (2.0 * N * (N + 1)) / 2 * sizeof(T) / gpu_time_used / 1e3;
+        rocblas_bandwidth = batch_count * (5.0 * N * (N + 1)) / 2 * sizeof(T) / gpu_time_used / 1e3;
 
         // only norm_check return an norm error, unit check won't return anything
         std::cout << "N,alpha,incx,incy,stride_x,stride_y,stride_A,batch_count,rocblas-Gflops,"

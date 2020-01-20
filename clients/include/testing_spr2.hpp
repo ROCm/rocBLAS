@@ -148,17 +148,8 @@ void testing_spr2(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            if(std::is_same<T, float>{} || std::is_same<T, double>{})
-            {
-                unit_check_general<T>(1, size_A, 1, hA_gold, hA_1);
-                unit_check_general<T>(1, size_A, 1, hA_gold, hA_2);
-            }
-            else
-            {
-                const double tol = N * sum_error_tolerance<T>;
-                near_check_general<T>(1, size_A, 1, hA_gold, hA_1, tol);
-                near_check_general<T>(1, size_A, 1, hA_gold, hA_2, tol);
-            }
+            unit_check_general<T>(1, size_A, 1, hA_gold, hA_1);
+            unit_check_general<T>(1, size_A, 1, hA_gold, hA_2);
         }
 
         if(arg.norm_check)
@@ -188,7 +179,7 @@ void testing_spr2(const Arguments& arg)
 
         gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;
         rocblas_gflops    = spr2_gflop_count<T>(N) / gpu_time_used * 1e6;
-        rocblas_bandwidth = (2.0 * N * (N + 1)) / 2 * sizeof(T) / gpu_time_used / 1e3;
+        rocblas_bandwidth = (5.0 * N * (N + 1)) / 2 * sizeof(T) / gpu_time_used / 1e3;
 
         // only norm_check return an norm error, unit check won't return anything
         std::cout << "N,alpha,incx,incy,rocblas-Gflops,rocblas-GB/s";
