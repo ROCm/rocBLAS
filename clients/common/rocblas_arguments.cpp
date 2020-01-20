@@ -7,7 +7,6 @@
 #include <cstdlib>
 #include <cstring>
 #include <iomanip>
-#include <iostream>
 
 // Function to print Arguments out to stream in YAML format
 rocblas_ostream& operator<<(rocblas_ostream& os, const Arguments& arg)
@@ -31,11 +30,10 @@ std::istream& operator>>(std::istream& is, Arguments& arg)
 }
 
 // Error message about incompatible binary file format
-static void error(const char* name)
+static void validation_error [[noreturn]] (const char* name)
 {
-
-    rocblas_cerr << "Arguments field " << name
-                 << " does not match format.\n\n"
+    rocblas_cerr << "Arguments field \"" << name
+                 << "\" does not match format.\n\n"
                     "Fatal error: Binary test data does match input format.\n"
                     "Ensure that rocblas_arguments.hpp and rocblas_common.yaml\n"
                     "define exactly the same Arguments, that rocblas_gentest.py\n"
@@ -50,24 +48,32 @@ void Arguments::validate(std::istream& ifs)
 {
     char      header[8]{}, trailer[8]{};
     Arguments arg{};
+
     ifs.read(header, sizeof(header));
     ifs >> arg;
     ifs.read(trailer, sizeof(trailer));
 
     if(strcmp(header, "rocBLAS"))
-        error("header");
-    if(strcmp(trailer, "ROCblas"))
-        error("trailer");
+        validation_error("header");
 
-    auto check_func = [&, sig = (unsigned char)0](const char* name, auto&& value) mutable {
-        static_assert(sizeof(value) <= 255,
-                      "One of the fields of Arguments is too large (> 255 bytes)");
-        for(unsigned char i = 0; i < sizeof(value); ++i)
+    if(strcmp(trailer, "ROCblas"))
+        validation_error("trailer");
+
+    auto check_func = [sig = 0u](const char* name, const auto& value) mutable {
+        if(sizeof(value) > 256)
+        {
+            rocblas_cerr << "Fatal error: Arguments field \"" << name
+                         << "\" is too large (greater than 256 bytes)." << std::endl;
+            rocblas_abort();
+        }
+        for(size_t i = 0; i < sizeof(value); ++i)
+        {
             if(reinterpret_cast<const unsigned char*>(&value)[i] ^ sig ^ i)
-                error(name);
-        sig += 89;
+                validation_error(name);
+        }
+        sig = (sig + 89) % 256;
     };
 
-    // Apply check_func to each member of Arguments as a tuple
+    // Apply check_func to each pair (name, value) of Arguments as a tuple
     tuple_helper::apply_pairs(check_func, arg.as_tuple());
 }

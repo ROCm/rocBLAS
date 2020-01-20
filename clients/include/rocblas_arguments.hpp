@@ -88,10 +88,9 @@ struct Arguments
      *                     End Of Arguments                                  *
      *************************************************************************/
 
-    // Generic macro which operates over the list of arguments
-    // (in order of declaration)
     // clang-format off
 
+// Generic macro which operates over the list of arguments in order of declaration
 #define FOR_EACH_ARGUMENT(OPER) \
     OPER(M),                    \
     OPER(N),                    \
@@ -140,22 +139,23 @@ struct Arguments
     OPER(initialization),       \
     OPER(known_bug_platforms)
 
-  /***************************************
-   * Tuple of argument name, value pairs *
-   ***************************************/
+   /**************************************************************
+    * Tuple of argument name, value pairs, preserving references *
+    **************************************************************/
     #define NAME_VALUE_PAIR(NAME) #NAME, NAME
     auto as_tuple() const
     {
-        return std::make_tuple(FOR_EACH_ARGUMENT(NAME_VALUE_PAIR));
+        return std::forward_as_tuple(FOR_EACH_ARGUMENT(NAME_VALUE_PAIR));
     }
 
-  /***************************************
-   * Map of argument names to offsets    *
-   ***************************************/
+   /***************************************
+    * Map of argument names to offsets    *
+    ***************************************/
     #define NAME_OFFSET_PAIR(NAME) { #NAME, offsetof(Arguments, NAME) }
     static const auto& as_map()
     {
-        static std::map<const char*, size_t> map{FOR_EACH_ARGUMENT(NAME_OFFSET_PAIR)};
+        // Compute map only once, returning const reference to computed map
+        static const std::map<const char*, size_t> map{FOR_EACH_ARGUMENT(NAME_OFFSET_PAIR)};
         return map;
     }
 

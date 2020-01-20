@@ -7,19 +7,21 @@
 
 #include "handle.h"
 #include "rocblas_ostream.hpp"
-#include <cstdlib>
+#include <cstddef>
 #include <cstring>
-#include <functional>
 #include <string>
 #include <tuple>
-#include <type_traits>
 #include <utility>
 
-/***********************************************************************
- * Tuple helper class provides operations on std::tuple argument lists *
- ***********************************************************************/
+/*****************************************************
+ * Tuple helper class provides operations on tuples  *
+ *****************************************************/
 class tuple_helper
 {
+    /********************************************************************
+     * Traverse (key, value) pairs, applying functions or printing YAML *
+     ********************************************************************/
+
     // Recursion to traverse the tuple
     template <typename TUP, size_t size = std::tuple_size<TUP>{}>
     struct apply_pairs_recurse
@@ -33,7 +35,7 @@ class tuple_helper
             //Perform the action, passing the 2 elements of the pair
             action(std::get<i>(tuple), std::get<i + 1>(tuple));
 
-            // Recursve to the next pair
+            // Recurse to the next pair, forwarding the action
             apply_pairs_recurse<TUP, size - 2>{}(std::forward<FUNC>(action), tuple);
         }
     };
@@ -63,29 +65,28 @@ public:
     {
         static_assert(std::tuple_size<TUP>{} % 2 == 0, "Tuple size must be even");
 
-        // delim starts as '{' and becomes ',' afterwards
+        // Turn YAML formatting on
         os << rocblas_ostream::yaml_on;
-        auto print_argument = [&, delim = '{'](const char* name, auto&& value) mutable {
-            os << delim << ' ' << name << ": " << value;
-            delim = ',';
+
+        // delim starts as "{ " and becomes ", " afterwards
+        auto print_pair = [&os, delim = "{ "](const char* name, const auto& value) mutable {
+            os << delim << name << ": " << value;
+            delim = ", ";
         };
-        apply_pairs(print_argument, tuple);
-        return os << " }" << rocblas_ostream::yaml_off;
+
+        // Call print_argument for each (name, value) tuple pair
+        apply_pairs(std::move(print_pair), tuple);
+
+        // Closing brace and turn YAML formatting off
+        return os << " }\n" << rocblas_ostream::yaml_off;
     }
 
-    /************************************************************************************
-     * Compute value hashes for (key1, value1, key2, value2, ...) tuples
-     ************************************************************************************/
+    /*********************************************************************
+     * Compute value hashes for (key1, value1, key2, value2, ...) tuples *
+     *********************************************************************/
 private:
-    // Workaround for compilers which don't implement C++14 enum hash (LWG 2148)
-    template <typename T, typename std::enable_if<std::is_enum<T>{}, int>::type = 0>
-    static size_t hash(const T& x)
-    {
-        return std::hash<typename std::underlying_type<T>::type>{}(x);
-    }
-
-    // Default hash for non-enum types
-    template <typename T, typename std::enable_if<!std::is_enum<T>{}, int>::type = 0>
+    // Default hash
+    template <typename T>
     static size_t hash(const T& x)
     {
         return std::hash<T>{}(x);
@@ -100,7 +101,7 @@ private:
         return seed;
     }
 
-    // For consistency with above
+    // For std::string consistency with above
     static size_t hash(const std::string& s)
     {
         return hash(s.c_str());
@@ -112,9 +113,14 @@ private:
     {
         size_t operator()(const TUP& tup)
         {
+            // Current pair is at (i, i+1)
             constexpr size_t i = std::tuple_size<TUP>{} - size;
-            size_t seed = hash(std::get<i + 1>(tup)) + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-            return seed ^ tuple_hash_recurse<TUP, size - 2>{}(tup);
+
+            // Compute the hash of the remaining pairs
+            size_t seed = tuple_hash_recurse<TUP, size - 2>{}(tup);
+
+            // Combine the hash of the remaining pairs with the hash of the current pair
+            return seed ^ (hash(std::get<i + 1>(tup)) + 0x9e3779b9 + (seed << 6) + (seed >> 2));
         }
     };
 
@@ -140,44 +146,40 @@ public:
         }
     };
 
-    /************************************************************************************
-     * Test (key1, value1, key2, value2, ...) tuples for equality of values
-     ************************************************************************************/
+    /************************************************************************
+     * Test (key1, value1, key2, value2, ...) tuples for equality of values *
+     ************************************************************************/
 private:
+    // Default comparison
     template <typename T>
     static bool equal(const T& x1, const T& x2)
     {
         return x1 == x2;
     }
 
+    // C-string == C-string
     static bool equal(const char* s1, const char* s2)
     {
         return !strcmp(s1, s2);
     }
 
-    static bool equal(const std::string& s1, const char* s2)
-    {
-        return !strcmp(s1.c_str(), s2);
-    }
-
-    static bool equal(const char* s1, const std::string& s2)
-    {
-        return !strcmp(s1, s2.c_str());
-    }
-
-    // Recursively compare tuple values, short-circuiting
+    // Recursively compare tuple values for equality, short-circuiting on false
     template <typename TUP, size_t size = std::tuple_size<TUP>{}>
     struct tuple_equal_recurse
     {
         bool operator()(const TUP& t1, const TUP& t2) const
         {
+            // Current pair is at (i, i+1)
             constexpr size_t i = std::tuple_size<TUP>{} - size;
+
+            // Compare the values of the current pair
+            // Continue with the later pairs, short-circuiting on false
             return equal(std::get<i + 1>(t1), std::get<i + 1>(t2))
                    && tuple_equal_recurse<TUP, size - 2>{}(t1, t2);
         }
     };
 
-    // Leaf node
+    // Leaf node returns true when there are no more values to compare
     template <typename TUP>
     struct tuple_equal_recurse<TUP, 0>
     {
@@ -188,7 +190,7 @@ private:
     };
 
 public:
-    // Equality test class compatible with STL containers
+    // Tuple key,value equality test class compatible with STL associative containers
     template <typename TUP>
     struct equal_t
     {
