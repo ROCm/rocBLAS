@@ -21,61 +21,38 @@ class tuple_helper
     /********************************************************************
      * Traverse (key, value) pairs, applying functions or printing YAML *
      ********************************************************************/
-
-    // Recursion to traverse the tuple
-    template <typename TUP, size_t size = std::tuple_size<TUP>{}>
-    struct apply_pairs_recurse
+    template <typename FUNC, typename TUP, size_t... I>
+    static void apply_pairs_impl(FUNC&& action, const TUP& tuple, std::index_sequence<I...>)
     {
-        template <typename FUNC>
-        void operator()(FUNC&& action, const TUP& tuple)
-        {
-            // Current pair is at (i, i+1)
-            constexpr size_t i = std::tuple_size<TUP>{} - size;
-
-            //Perform the action, passing the 2 elements of the pair
-            action(std::get<i>(tuple), std::get<i + 1>(tuple));
-
-            // Recurse to the next pair, forwarding the action
-            apply_pairs_recurse<TUP, size - 2>{}(std::forward<FUNC>(action), tuple);
-        }
-    };
-
-    // Leaf node
-    template <typename TUP>
-    struct apply_pairs_recurse<TUP, 0>
-    {
-        template <typename FUNC>
-        void operator()(FUNC&& action, const TUP& tuple)
-        {
-        }
-    };
+        auto dummy = {(action(std::get<I * 2>(tuple), std::get<I * 2 + 1>(tuple)), 0)...};
+    }
 
 public:
     // Apply a function to pairs in a tuple (name1, value1, name2, value2, ...)
     template <typename FUNC, typename TUP>
-    __attribute__((flatten)) static void apply_pairs(FUNC&& action, const TUP& tuple)
+    static void apply_pairs(FUNC&& action, const TUP& tuple)
     {
         static_assert(std::tuple_size<TUP>{} % 2 == 0, "Tuple size must be even");
-        apply_pairs_recurse<TUP>{}(std::forward<FUNC>(action), tuple);
+        apply_pairs_impl(std::forward<FUNC>(action),
+                         tuple,
+                         std::make_index_sequence<std::tuple_size<TUP>{} / 2>{});
     }
 
     // Print a tuple which is expected to be (name1, value1, name2, value2, ...)
     template <typename TUP>
     static rocblas_ostream& print_tuple_pairs(rocblas_ostream& os, const TUP& tuple)
     {
-        static_assert(std::tuple_size<TUP>{} % 2 == 0, "Tuple size must be even");
-
-        // Turn YAML formatting on
-        os << rocblas_ostream::yaml_on;
-
         // delim starts as "{ " and becomes ", " afterwards
         auto print_pair = [&os, delim = "{ "](const char* name, const auto& value) mutable {
             os << delim << name << ": " << value;
             delim = ", ";
         };
 
+        // Turn YAML formatting on
+        os << rocblas_ostream::yaml_on;
+
         // Call print_argument for each (name, value) tuple pair
-        apply_pairs(std::move(print_pair), tuple);
+        apply_pairs(print_pair, tuple);
 
         // Closing brace and turn YAML formatting off
         return os << " }\n" << rocblas_ostream::yaml_off;
@@ -107,32 +84,16 @@ private:
         return hash(s.c_str());
     }
 
-    // Combine tuple value hashes, computing hash of all tuple values
-    template <typename TUP, size_t size = std::tuple_size<TUP>{}>
-    struct tuple_hash_recurse
+    // Iterate over pairs, combining hash values
+    template <typename TUP, size_t... I>
+    static size_t hash(const TUP& tuple, std::index_sequence<I...>)
     {
-        size_t operator()(const TUP& tup)
-        {
-            // Current pair is at (i, i+1)
-            constexpr size_t i = std::tuple_size<TUP>{} - size;
-
-            // Compute the hash of the remaining pairs
-            size_t seed = tuple_hash_recurse<TUP, size - 2>{}(tup);
-
-            // Combine the hash of the remaining pairs with the hash of the current pair
-            return seed ^ (hash(std::get<i + 1>(tup)) + 0x9e3779b9 + (seed << 6) + (seed >> 2));
-        }
-    };
-
-    // Leaf node
-    template <typename TUP>
-    struct tuple_hash_recurse<TUP, 0>
-    {
-        size_t operator()(const TUP&)
-        {
-            return 0;
-        }
-    };
+        size_t seed = 0;
+        auto   dummy
+            = {(seed ^= hash(std::get<I * 2 + 1>(tuple)) + 0x9e3779b9 + (seed << 6) + (seed >> 2),
+                0)...};
+        return seed;
+    }
 
 public:
     // Hash function class compatible with STL containers
@@ -140,9 +101,9 @@ public:
     struct hash_t
     {
         static_assert(std::tuple_size<TUP>{} % 2 == 0, "Tuple size must be even");
-        __attribute__((flatten)) size_t operator()(const TUP& x) const
+        size_t operator()(const TUP& tuple) const
         {
-            return tuple_hash_recurse<TUP>{}(x);
+            return hash(tuple, std::make_index_sequence<std::tuple_size<TUP>{} / 2>{});
         }
     };
 
@@ -163,41 +124,24 @@ private:
         return !strcmp(s1, s2);
     }
 
-    // Recursively compare tuple values for equality, short-circuiting on false
-    template <typename TUP, size_t size = std::tuple_size<TUP>{}>
-    struct tuple_equal_recurse
+    // Compute equality of values in tuple (name, value) pairs
+    template <typename TUP, size_t... I>
+    static bool equal(const TUP& t1, const TUP& t2, std::index_sequence<I...>)
     {
-        bool operator()(const TUP& t1, const TUP& t2) const
-        {
-            // Current pair is at (i, i+1)
-            constexpr size_t i = std::tuple_size<TUP>{} - size;
-
-            // Compare the values of the current pair
-            // Continue with the later pairs, short-circuiting on false
-            return equal(std::get<i + 1>(t1), std::get<i + 1>(t2))
-                   && tuple_equal_recurse<TUP, size - 2>{}(t1, t2);
-        }
-    };
-
-    // Leaf node returns true when there are no more values to compare
-    template <typename TUP>
-    struct tuple_equal_recurse<TUP, 0>
-    {
-        bool operator()(const TUP&, const TUP&) const
-        {
-            return true;
-        }
-    };
+        bool ret   = true;
+        auto dummy = {(ret = ret && equal(std::get<I * 2 + 1>(t1), std::get<I * 2 + 1>(t2)), 0)...};
+        return ret;
+    }
 
 public:
-    // Tuple key,value equality test class compatible with STL associative containers
+    // Tuple (name, value) equality test class is compatible with STL associative containers
     template <typename TUP>
     struct equal_t
     {
         static_assert(std::tuple_size<TUP>{} % 2 == 0, "Tuple size must be even");
-        __attribute__((flatten)) bool operator()(const TUP& x, const TUP& y) const
+        bool operator()(const TUP& t1, const TUP& t2) const
         {
-            return tuple_equal_recurse<TUP>{}(x, y);
+            return equal(t1, t2, std::make_index_sequence<std::tuple_size<TUP>{} / 2>{});
         }
     };
 };

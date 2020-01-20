@@ -38,7 +38,7 @@ ROCBLAS_EXPORT void rocblas_abort()
     fflush(NULL);
 
     // Abort
-    abort();
+    std::abort();
 }
 
 // Get worker for file descriptor
