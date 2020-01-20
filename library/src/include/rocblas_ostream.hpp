@@ -22,6 +22,9 @@
 #include <unistd.h>
 #include <utility>
 
+// abort() function which safely flushes all IO
+void rocblas_abort [[noreturn]] ();
+
 /*****************************************************************************
  * rocBLAS output streams                                                    *
  *****************************************************************************/
@@ -247,8 +250,5 @@ public:
     static std::ostream& yaml_on(std::ostream&);
     static std::ostream& yaml_off(std::ostream&);
 };
-
-// abort() function which safely flushes all IO
-void rocblas_abort();
 
 #endif
