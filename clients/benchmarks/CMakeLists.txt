@@ -9,9 +9,13 @@ set( Boost_ADDITIONAL_VERSIONS 1.65.1 1.65 )
 set( Boost_USE_STATIC_LIBS OFF )
 
 if(EXISTS /etc/redhat-release)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp=libgomp -pthread")
+    if(CXX_VERSION_STRING MATCHES "clang")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp=libgomp -pthread -stdlib=libstdc++ -std=c++14")
+    else()
+        set(CMAKE_CXX_FLAGS "-isystem /opt/rocm/include ${CMAKE_CXX_FLAGS} -fopenmp=libgomp -pthread")
+    endif()
 else()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -pthread")
+    set(CMAKE_CXX_FLAGS "-isystem /opt/rocm/include ${CMAKE_CXX_FLAGS} -fopenmp -pthread")
 endif()
 
 find_package( Boost COMPONENTS program_options )
@@ -66,8 +70,7 @@ target_include_directories( rocblas-bench
 set( BLIS_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/build/deps/blis/include/blis )
 set( BLIS_LIBRARY ${CMAKE_SOURCE_DIR}/build/deps/blis/lib/libblis.so )
 
-
-if( OS_ID_rhel OR OS_ID_centos OR OS_ID_sles)
+if( OS_ID_rhel OR OS_ID_sles OR OS_ID_centos)
     if( OS_ID_rhel OR OS_ID_centos)
         # defer OpenMP include as search order must come after clang
         set( XXX_OPENMP_INCLUDE_DIR /opt/rh/devtoolset-7/root/usr/lib/gcc/x86_64-redhat-linux/7/include )
@@ -79,31 +82,31 @@ if( OS_ID_rhel OR OS_ID_centos OR OS_ID_sles)
     endif()
 
     message(STATUS "RocmPath: ${ROCM_PATH}")
-    if(EXISTS "${ROCM_PATH}/hcc/lib/clang/10.0.0/include/immintrin.h")
+    if(EXISTS ${ROCM_PATH}/hcc/lib/clang/10.0.0/include/immintrin.h AND CMAKE_CXX_COMPILER MATCHES ".*/hcc$")
         set( CLANG_INCLUDE_DIR ${ROCM_PATH}/hcc/lib/clang/10.0.0/include )
-    elseif (EXISTS "${ROCM_PATH}/hcc/lib/clang/9.0.0/include/immintrin.h")
-        set( CLANG_INCLUDE_DIR ${ROCM_PATH}/hcc/lib/clang/9.0.0/include )
+    elseif (EXISTS /opt/rocm/hcc/lib/clang/9.0.0/include/immintrin.h)
+        set( CLANG_INCLUDE_DIR ${ROCM_PATH}/hcc/lib/clang/9.0.0/include AND CMAKE_CXX_COMPILER MATCHES ".*/hcc$")
     else()
-        error("cannot find immintrin.h")
+        set( CLANG_INCLUDE_DIR )
     endif()
 
     # External header includes included as system files
     target_include_directories( rocblas-bench
       SYSTEM PRIVATE
         $<BUILD_INTERFACE:${CLANG_INCLUDE_DIR}>
+        $<BUILD_INTERFACE:${OPENMP_INCLUDE_DIR}>
         $<BUILD_INTERFACE:${BLIS_INCLUDE_DIR}>
+        $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
         $<BUILD_INTERFACE:${HIP_INCLUDE_DIRS}>
         $<BUILD_INTERFACE:${HCC_INCLUDE_DIRS}>
-        $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
         $<BUILD_INTERFACE:${CBLAS_INCLUDE_DIRS}>
-        $<BUILD_INTERFACE:${OPENMP_INCLUDE_DIR}>
         )
-    if(LINK_BLIS)
-      target_link_libraries( rocblas-bench PRIVATE ${Boost_LIBRARIES} ${BLIS_LIBRARY} ${OPENMP_LIBRARY} cblas lapack roc::rocblas )
-    else()
-      target_link_libraries( rocblas-bench PRIVATE ${Boost_LIBRARIES} ${OPENMP_LIBRARY} cblas lapack roc::rocblas )
-    endif()
 
+    if(LINK_BLIS)
+      target_link_libraries( rocblas-bench PRIVATE ${OPENMP_LIBRARY} ${BLIS_LIBRARY} ${Boost_LIBRARIES} cblas lapack roc::rocblas )
+    else()
+      target_link_libraries( rocblas-bench PRIVATE ${OPENMP_LIBRARY} ${Boost_LIBRARIES} cblas lapack roc::rocblas )
+    endif()
 else()
     # External header includes included as system files
     target_include_directories( rocblas-bench
@@ -120,7 +123,6 @@ else()
     else()
       target_link_libraries( rocblas-bench PRIVATE ${Boost_LIBRARIES} cblas lapack roc::rocblas )
     endif()
-
 endif()
 
 get_target_property( HIPHCC_LOCATION hip::hip_hcc IMPORTED_LOCATION_RELEASE )
@@ -144,19 +146,19 @@ if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
   # "clang-5.0: warning: argument unused during compilation: '-isystem ${ROCM_PATH}/include'"
   target_compile_options( rocblas-bench PRIVATE -Wno-unused-command-line-argument -mf16c )
   target_include_directories( rocblas-bench PRIVATE ${ROCM_PATH}/hsa/include)
-
 elseif( CMAKE_COMPILER_IS_GNUCXX OR CXX_VERSION_STRING MATCHES "clang")
   # GCC or hip-clang needs specific flags to turn on f16c intrinsics
   target_compile_options( rocblas-bench PRIVATE -mf16c )
 endif( )
 
-if( OS_ID_rhel OR OS_ID_centos)
-    # force clang includes to take precedence over devtoolset-7 which we only want for OpenMP
+if( CXX_VERSION_STRING MATCHES "clang" )
+  target_link_libraries( rocblas-bench PRIVATE -lpthread -lm -stdlib=libstdc++ ${ROCM_PATH}/lib/libclang_rt.builtins-x86_64.a )
+else( )
+  if(OS_ID_rhel OR OS_ID_centos)
     set(CMAKE_CXX_FLAGS "-isystem ${CLANG_INCLUDE_DIR} -isystem ${XXX_OPENMP_INCLUDE_DIR} ${CMAKE_CXX_FLAGS}")
-endif()
-
-# include order workaround to force /opt/rocm/include later in order to ignore installed rocblas
-set(CMAKE_CXX_FLAGS "-isystem /opt/rocm/include ${CMAKE_CXX_FLAGS}")
+  endif( )
+  set(CMAKE_CXX_FLAGS "-isystem ${ROCM_PATH}/include ${CMAKE_CXX_FLAGS}")
+endif( )
 
 set_target_properties( rocblas-bench PROPERTIES CXX_EXTENSIONS NO )
 set_target_properties( rocblas-bench PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )
