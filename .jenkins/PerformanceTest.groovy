@@ -84,6 +84,8 @@ rocBLASCI:
                             tar -xvf archive/*/*/perfoutput_${gpuLabel}.tar
                             python alltime.py -T -o \$workingdir/perfoutput -b \$workingdir/perfoutput_${gpuLabel} -g 1 -d \$devicenum -i perf.yaml
                         fi
+                        echo "Uploading Data..."
+                        python uploadData.py -a ${gpuLabel} -f \$workingdir/perfoutput
                         popd
 
                         tar -cvf perfoutput_${gpuLabel}.tar perfoutput
