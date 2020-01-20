@@ -141,11 +141,6 @@ else( )
   target_link_libraries( rocblas-bench PRIVATE ${HIPHCC_LOCATION} )
 endif( )
 
-# qualify this based on what hip-clang platform?
-if(CXX_VERSION_STRING MATCHES "clang")
-  target_link_libraries( rocblas-bench PRIVATE ${ROCM_PATH}/lib/libclang_rt.builtins-x86_64.a )
-endif( )
-
 if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
   # Remove following when hcc is fixed; hcc emits following spurious warning ROCm v1.6.1
   # "clang-5.0: warning: argument unused during compilation: '-isystem ${ROCM_PATH}/include'"
@@ -154,6 +149,15 @@ if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
 elseif( CMAKE_COMPILER_IS_GNUCXX OR CXX_VERSION_STRING MATCHES "clang")
   # GCC or hip-clang needs specific flags to turn on f16c intrinsics
   target_compile_options( rocblas-bench PRIVATE -mf16c )
+endif( )
+
+if( CXX_VERSION_STRING MATCHES "clang" )
+  target_link_libraries( rocblas-test PRIVATE -lpthread -lm -stdlib=libstdc++ ${ROCM_PATH}/lib/libclang_rt.builtins-x86_64.a )
+else( )
+  if(OS_ID_rhel OR OS_ID_centos)
+    set(CMAKE_CXX_FLAGS "-isystem ${CLANG_INCLUDE_DIR} -isystem ${OPENMP_INCLUDE_DIR} ${CMAKE_CXX_FLAGS}")
+  endif( )
+  set(CMAKE_CXX_FLAGS "-isystem ${ROCM_PATH}/include ${CMAKE_CXX_FLAGS}")
 endif( )
 
 set_target_properties( rocblas-bench PROPERTIES CXX_EXTENSIONS NO )
