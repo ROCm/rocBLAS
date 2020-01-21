@@ -278,7 +278,7 @@ constexpr double spr_gflop_count<rocblas_double_complex>(rocblas_int n)
 template <typename T>
 constexpr double spr2_gflop_count(rocblas_int n)
 {
-    return (2 * (n + 1) * n + 2 * n) / 1e9;
+    return double(2 * (n + 1) * n + 2 * n) / 1e9;
 }
 
 /* \brief floating point counts of SYR */

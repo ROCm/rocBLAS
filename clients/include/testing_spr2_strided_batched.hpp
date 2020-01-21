@@ -30,7 +30,7 @@ void testing_spr2_strided_batched_bad_arg()
 
     rocblas_local_handle handle;
 
-    size_t size_A = N * (N + 1) / 2;
+    size_t size_A = size_t(N) * (N + 1) / 2;
 
     // allocate memory on device
     device_strided_batch_vector<T> dA_1(size_A, 1, stride_A, batch_count);
@@ -140,7 +140,7 @@ void testing_spr2_strided_batched(const Arguments& arg)
 
     size_t abs_incx = incx >= 0 ? incx : -incx;
     size_t abs_incy = incy >= 0 ? incy : -incy;
-    size_t size_A   = size_t(N * (N + 1) / 2);
+    size_t size_A   = size_t(N) * (N + 1) / 2;
 
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
     host_strided_batch_vector<T> hA_1(size_A, 1, stride_A, batch_count);
@@ -306,7 +306,7 @@ void testing_spr2_strided_batched(const Arguments& arg)
         std::cout << std::endl;
 
         std::cout << N << "," << h_alpha << "," << incx << "," << incy << "," << stride_x << ","
-                  << stride_x << "," << stride_A << "," << batch_count << "," << rocblas_gflops
+                  << stride_y << "," << stride_A << "," << batch_count << "," << rocblas_gflops
                   << "," << rocblas_bandwidth;
 
         if(arg.norm_check)

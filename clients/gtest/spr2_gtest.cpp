@@ -70,6 +70,11 @@ namespace
                 if(SPR2_TYPE == SPR2_STRIDED_BATCHED)
                     name << '_' << arg.stride_x;
 
+                name << '_' << arg.incy;
+
+                if(SPR2_TYPE == SPR2_STRIDED_BATCHED)
+                    name << '_' << arg.stride_y;
+
                 if(SPR2_TYPE == SPR2_STRIDED_BATCHED)
                     name << '_' << arg.stride_a;
 

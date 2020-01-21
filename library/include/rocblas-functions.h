@@ -5852,7 +5852,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zspr_strided_batched(rocblas_handle       
                 so that:
                 AP(0) = A(0,0)
                 AP(1) = A(1,0)
-                AP(2) = A(2,1), etc.
+                AP(n) = A(2,1), etc.
                     Ex: (rocblas_fill_lower; n = 4)
                         1 2 3 4
                         2 5 6 7    -----> [1, 2, 3, 4, 5, 6, 7, 8, 9, 0]
@@ -5934,7 +5934,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dspr2(rocblas_handle handle,
                 so that:
                 AP(0) = A(0,0)
                 AP(1) = A(1,0)
-                AP(2) = A(2,1), etc.
+                AP(n) = A(2,1), etc.
                     Ex: (rocblas_fill_lower; n = 4)
                         1 2 3 4
                         2 5 6 7    -----> [1, 2, 3, 4, 5, 6, 7, 8, 9, 0]
@@ -6027,7 +6027,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dspr2_batched(rocblas_handle      handle,
                 so that:
                 AP(0) = A(0,0)
                 AP(1) = A(1,0)
-                AP(2) = A(2,1), etc.
+                AP(n) = A(2,1), etc.
                     Ex: (rocblas_fill_lower; n = 4)
                         1 2 3 4
                         2 5 6 7    -----> [1, 2, 3, 4, 5, 6, 7, 8, 9, 0]

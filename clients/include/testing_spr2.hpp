@@ -27,9 +27,9 @@ void testing_spr2_bad_arg()
 
     size_t abs_incx = incx >= 0 ? incx : -incx;
     size_t abs_incy = incy >= 0 ? incy : -incy;
-    size_t size_A   = N * (N + 1) / 2;
-    size_t size_x   = N * abs_incx;
-    size_t size_y   = N * abs_incy;
+    size_t size_A   = size_t(N) * (N + 1) / 2;
+    size_t size_x   = size_t(N) * abs_incx;
+    size_t size_y   = size_t(N) * abs_incy;
 
     // allocate memory on device
     device_vector<T> dA_1(size_A);
@@ -74,9 +74,9 @@ void testing_spr2(const Arguments& arg)
 
     size_t abs_incx = incx >= 0 ? incx : -incx;
     size_t abs_incy = incy >= 0 ? incy : -incy;
-    size_t size_A   = N * (N + 1) / 2;
-    size_t size_x   = N * abs_incx;
-    size_t size_y   = N * abs_incy;
+    size_t size_A   = size_t(N) * (N + 1) / 2;
+    size_t size_x   = size_t(N) * abs_incx;
+    size_t size_y   = size_t(N) * abs_incy;
 
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
     host_vector<T> hA_1(size_A);

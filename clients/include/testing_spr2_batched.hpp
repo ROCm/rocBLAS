@@ -26,7 +26,7 @@ void testing_spr2_batched_bad_arg()
     rocblas_int          batch_count = 2;
     rocblas_local_handle handle;
 
-    size_t size_A = N * (N + 1) / 2;
+    size_t size_A = size_t(N) * (N + 1) / 2;
 
     // allocate memory on device
     device_batch_vector<T> dx(N, incx, batch_count);
@@ -76,7 +76,7 @@ void testing_spr2_batched(const Arguments& arg)
         return;
     }
 
-    size_t size_A = N * (N + 1) / 2;
+    size_t size_A = size_t(N) * (N + 1) / 2;
 
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
     host_batch_vector<T> hA_1(size_A, 1, batch_count);

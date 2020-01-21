@@ -19,8 +19,6 @@ __device__ void spr2_kernel_calc(bool        upper,
     rocblas_int ty = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
 
     int index = upper ? ((ty * (ty + 1)) / 2) + tx : ((ty * (2 * n - ty + 1)) / 2) + (tx - ty);
-    if(index < 0 || index > (n * (n + 1)) / 2)
-        return;
 
     if(upper ? ty < n && tx <= ty : tx < n && ty <= tx)
         AP[index] += alpha * x[tx * incx] * y[ty * incy] + alpha * y[tx * incy] * x[ty * incx];
@@ -58,6 +56,7 @@ __global__ void rocblas_spr2_kernel(bool           upper,
  * TScal     is always: const T* (either host or device)
  * TConstPtr is either: const T* OR const T* const*
  * TPtr      is either:       T* OR       T* const*
+ * Where T is the bast type (float or double)
  */
 template <typename TScal, typename TConstPtr, typename TPtr>
 rocblas_status rocblas_spr2_template(rocblas_handle handle,
