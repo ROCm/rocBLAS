@@ -28,6 +28,21 @@ namespace
     constexpr char rocblas_ger_batched_name<true, rocblas_double_complex>[]
         = "rocblas_zgerc_batched";
 
+    template <bool, typename>
+    constexpr char rocblas_ger_batched_fn_name[] = "unknown";
+    template <>
+    constexpr char rocblas_ger_batched_fn_name<false, float>[] = "ger_batched";
+    template <>
+    constexpr char rocblas_ger_batched_fn_name<false, double>[] = "ger_batched";
+    template <>
+    constexpr char rocblas_ger_batched_fn_name<false, rocblas_float_complex>[] = "geru_batched";
+    template <>
+    constexpr char rocblas_ger_batched_fn_name<false, rocblas_double_complex>[] = "geru_batched";
+    template <>
+    constexpr char rocblas_ger_batched_fn_name<true, rocblas_float_complex>[] = "gerc_batched";
+    template <>
+    constexpr char rocblas_ger_batched_fn_name<true, rocblas_double_complex>[] = "gerc_batched";
+
     template <bool CONJ, typename T>
     rocblas_status rocblas_ger_batched_impl(rocblas_handle handle,
                                             rocblas_int    m,
@@ -64,7 +79,9 @@ namespace
 
             if(layer_mode & rocblas_layer_mode_log_bench)
                 log_bench(handle,
-                          "./rocblas-bench -f ger_batched -r",
+                          "./rocblas-bench -f",
+                          rocblas_ger_batched_fn_name<CONJ, T>,
+                          "-r",
                           rocblas_precision_string<T>,
                           "-m",
                           m,

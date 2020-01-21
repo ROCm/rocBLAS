@@ -57,8 +57,9 @@ Tests:
 
 - name: geruc_small
   category: quick
-  function: geru
-  function: gerc
+  function:
+  - geru
+  - gerc
   precision: *single_double_precisions_complex
   matrix_size: *small_matrix_size_range
   incx_incy: *incx_incy_range
@@ -66,8 +67,9 @@ Tests:
 
 - name: geruc_medium
   category: pre_checkin
-  function: geru
-  function: gerc
+  function:
+  - geru
+  - gerc
   precision: *single_double_precisions_complex
   matrix_size: *medium_matrix_size_range
   incx_incy: *incx_incy_range
@@ -75,8 +77,9 @@ Tests:
 
 - name: geruc_large
   category: nightly
-  function: geru
-  function: gerc
+  function:
+  - geru
+  - gerc
   precision: *single_double_precisions_complex
   matrix_size: *large_matrix_size_range
   incx_incy: *incx_incy_range
@@ -84,8 +87,9 @@ Tests:
 
 - name: geruc_batched_small
   category: quick
-  function: geru_batched
-  function: gerc_batched
+  function:
+  - geru_batched
+  - gerc_batched
   precision: *single_double_precisions_complex
   matrix_size: *small_matrix_size_range
   incx_incy: *incx_incy_range
@@ -94,8 +98,9 @@ Tests:
 
 - name: geruc_batched_medium
   category: pre_checkin
-  function: geru_batched
-  function: gerc_batched
+  function:
+  - geru_batched
+  - gerc_batched
   precision: *single_double_precisions_complex
   matrix_size: *medium_matrix_size_range
   incx_incy: *incx_incy_range
@@ -104,8 +109,9 @@ Tests:
 
 - name: geruc_batched_large
   category: nightly
-  function: geru_batched
-  function: gerc_batched
+  function:
+  - geru_batched
+  - gerc_batched
   precision: *single_double_precisions_complex
   matrix_size: *large_matrix_size_range
   incx_incy: *nightly_incx_incy_range
@@ -114,8 +120,9 @@ Tests:
 
 - name: geruc_strided_batched_small
   category: quick
-  function: geru_strided_batched
-  function: gerc_strided_batched
+  function:
+  - geru_strided_batched
+  - gerc_strided_batched
   precision: *single_double_precisions_complex
   matrix_size: *small_matrix_size_range
   incx_incy: *incx_incy_range
@@ -125,8 +132,9 @@ Tests:
 
 - name: geruc_strided_batched_medium
   category: pre_checkin
-  function: geru_strided_batched
-  function: gerc_strided_batched
+  function:
+  - geru_strided_batched
+  - gerc_strided_batched
   precision: *single_double_precisions_complex
   matrix_size: *medium_matrix_size_range
   incx_incy: *incx_incy_range
@@ -136,8 +144,9 @@ Tests:
 
 - name: geruc_strided_batched_large
   category: nightly
-  function: geru_strided_batched
-  function: gerc_strided_batched
+  function:
+  - geru_strided_batched
+  - gerc_strided_batched
   precision: *single_double_precisions_complex
   matrix_size: *large_matrix_size_range
   incx_incy: *nightly_incx_incy_range

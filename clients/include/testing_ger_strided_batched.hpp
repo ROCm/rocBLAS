@@ -273,8 +273,17 @@ void testing_ger_strided_batched(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(M, N, batch_count, lda, stride_a, hA_gold, hA_1);
-            unit_check_general<T>(M, N, batch_count, lda, stride_a, hA_gold, hA_2);
+            if(std::is_same<T, float>{} || std::is_same<T, double>{})
+            {
+                unit_check_general<T>(M, N, batch_count, lda, stride_a, hA_gold, hA_1);
+                unit_check_general<T>(M, N, batch_count, lda, stride_a, hA_gold, hA_2);
+            }
+            else
+            {
+                const double tol = N * sum_error_tolerance<T>;
+                near_check_general<T>(M, N, batch_count, lda, stride_a, hA_gold, hA_1, tol);
+                near_check_general<T>(M, N, batch_count, lda, stride_a, hA_gold, hA_2, tol);
+            }
         }
 
         if(arg.norm_check)

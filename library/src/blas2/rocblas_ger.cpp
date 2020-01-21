@@ -24,6 +24,21 @@ namespace
     template <>
     constexpr char rocblas_ger_name<true, rocblas_double_complex>[] = "rocblas_zgerc";
 
+    template <bool, typename>
+    constexpr char rocblas_ger_fn_name[] = "unknown";
+    template <>
+    constexpr char rocblas_ger_fn_name<false, float>[] = "ger";
+    template <>
+    constexpr char rocblas_ger_fn_name<false, double>[] = "ger";
+    template <>
+    constexpr char rocblas_ger_fn_name<false, rocblas_float_complex>[] = "geru";
+    template <>
+    constexpr char rocblas_ger_fn_name<false, rocblas_double_complex>[] = "geru";
+    template <>
+    constexpr char rocblas_ger_fn_name<true, rocblas_float_complex>[] = "gerc";
+    template <>
+    constexpr char rocblas_ger_fn_name<true, rocblas_double_complex>[] = "gerc";
+
     template <bool CONJ, typename T>
     rocblas_status rocblas_ger_impl(rocblas_handle handle,
                                     rocblas_int    m,
@@ -58,7 +73,9 @@ namespace
 
             if(layer_mode & rocblas_layer_mode_log_bench)
                 log_bench(handle,
-                          "./rocblas-bench -f ger -r",
+                          "./rocblas-bench -f",
+                          rocblas_ger_fn_name<CONJ, T>,
+                          "-r",
                           rocblas_precision_string<T>,
                           "-m",
                           m,

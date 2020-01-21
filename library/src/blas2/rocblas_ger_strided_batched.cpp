@@ -30,6 +30,25 @@ namespace
     constexpr char rocblas_ger_strided_batched_name<true, rocblas_double_complex>[]
         = "rocblas_zgerc_strided_batched";
 
+    template <bool, typename>
+    constexpr char rocblas_ger_strided_batched_fn_name[] = "unknown";
+    template <>
+    constexpr char rocblas_ger_strided_batched_fn_name<false, float>[] = "ger_strided_batched";
+    template <>
+    constexpr char rocblas_ger_strided_batched_fn_name<false, double>[] = "ger_strided_batched";
+    template <>
+    constexpr char rocblas_ger_strided_batched_fn_name<false, rocblas_float_complex>[]
+        = "geru_strided_batched";
+    template <>
+    constexpr char rocblas_ger_strided_batched_fn_name<false, rocblas_double_complex>[]
+        = "geru_strided_batched";
+    template <>
+    constexpr char rocblas_ger_strided_batched_fn_name<true, rocblas_float_complex>[]
+        = "gerc_strided_batched";
+    template <>
+    constexpr char rocblas_ger_strided_batched_fn_name<true, rocblas_double_complex>[]
+        = "gerc_strided_batched";
+
     template <bool CONJ, typename T>
     rocblas_status rocblas_ger_strided_batched_impl(rocblas_handle handle,
                                                     rocblas_int    m,
@@ -72,7 +91,9 @@ namespace
 
             if(layer_mode & rocblas_layer_mode_log_bench)
                 log_bench(handle,
-                          "./rocblas-bench -f ger_strided_batched -r",
+                          "./rocblas-bench -f",
+                          rocblas_ger_strided_batched_fn_name<CONJ, T>,
+                          "-r",
                           rocblas_precision_string<T>,
                           "-m",
                           m,
@@ -81,15 +102,15 @@ namespace
                           LOG_BENCH_SCALAR_VALUE(alpha),
                           "--incx",
                           incx,
-                          "--stridex",
+                          "--stride_x",
                           stridex,
                           "--incy",
                           incy,
-                          "--stridey",
+                          "--stride_y",
                           stridey,
                           "--lda",
                           lda,
-                          "--strideA",
+                          "--stride_a",
                           strideA,
                           "--batch_count",
                           batch_count);
@@ -123,15 +144,15 @@ namespace
                         n,
                         "incx",
                         incx,
-                        "stridex",
+                        "stride_x",
                         stridex,
                         "incy",
                         incy,
-                        "stridey",
+                        "stride_y",
                         stridey,
                         "lda",
                         lda,
-                        "strideA",
+                        "stride_a",
                         strideA,
                         "batch_count",
                         batch_count);
