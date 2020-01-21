@@ -4,6 +4,7 @@ Converts data file from rocBLAS perf script and uploads to InfluxDB
 
 import datetime
 import os
+import sys
 import argparse
 from influxdb import InfluxDBClient
 
@@ -36,7 +37,7 @@ if __name__ == '__main__':
         dataFolder = args.f
     else:
         print("No data folder specified")
-        exit()
+        sys.exit(2)
 
     if args.a in gfxArchs:
         gfxArch = args.a
@@ -111,5 +112,5 @@ if __name__ == '__main__':
         client.write_points(json_body)
     else:
         print("Invalid gfx architecture")
-        exit()
+        sys.exit(2)
 

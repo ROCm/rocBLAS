@@ -79,18 +79,19 @@ rocBLASCI:
                         # wget http://10.216.151.18:8080/job/Performance/job/${project.name}/job/develop/lastSuccessfulBuild/artifact/*zip*/archive.zip
                         wget http://10.216.151.18:8080/job/Performance/job/rocBLAS/job/PR-895/lastSuccessfulBuild/artifact/*zip*/archive.zip
                         wgetreturn=\$?
-                        if [[ \$wgetreturn -eq 8 ]]; then
-                            echo "Download error"
-                            pushd scripts/performance/blas/
-                            python alltime.py -T -o \$workingdir/perfoutput -S 0 -g 1 -i perf.yaml -d \$devicenum
-                            popd
-                        else
-                            unzip -o archive.zip
-                            tar -xvf archive/*/*/perfoutput_${gpuLabel}.tar
+                        unzip -o archive.zip
+                        if tar -xvf archive/*/*/perfoutput_${gpuLabel}.tar
+                        then
+                            echo "Previous run found"
                             pushd scripts/performance/blas/
                             python alltime.py -T -o \$workingdir/perfoutput -b \$workingdir/perfoutput_${gpuLabel} -g 1 -d \$devicenum -i perf.yaml
                             popd
                             mv perfoutput_${gpuLabel} perfoutput_${gpuLabel}_old
+                        else
+                            echo "Previous run NOT found"
+                            pushd scripts/performance/blas/
+                            python alltime.py -T -o \$workingdir/perfoutput -S 0 -g 1 -i perf.yaml -d \$devicenum
+                            popd
                         fi
                         
                         mv perfoutput perfoutput_${gpuLabel}
