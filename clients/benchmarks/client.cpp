@@ -60,6 +60,8 @@
 #include "testing_hpmv_batched.hpp"
 #include "testing_hpmv_strided_batched.hpp"
 #include "testing_syr.hpp"
+#include "testing_syr_batched.hpp"
+#include "testing_syr_strided_batched.hpp"
 #include "testing_tbmv.hpp"
 #include "testing_tbmv_batched.hpp"
 #include "testing_tbmv_strided_batched.hpp"
@@ -230,6 +232,8 @@ struct perf_blas<T, U, std::enable_if_t<std::is_same<T, float>{} || std::is_same
                 {"trmv_strided_batched", testing_trmv_strided_batched<T>},
                 {"ger", testing_ger<T>},
                 {"syr", testing_syr<T>},
+                {"syr_batched", testing_syr_batched<T>},
+                {"syr_strided_batched", testing_syr_strided_batched<T>},
                 {"tbmv", testing_tbmv<T>},
                 {"tbmv_batched", testing_tbmv_batched<T>},
                 {"tbmv_strided_batched", testing_tbmv_strided_batched<T>},
@@ -328,6 +332,9 @@ struct perf_blas<T,
                 {"hpmv", testing_hpmv<T>},
                 {"hpmv_batched", testing_hpmv_batched<T>},
                 {"hpmv_strided_batched", testing_hpmv_strided_batched<T>},
+                {"syr", testing_syr<T>},
+                {"syr_batched", testing_syr_batched<T>},
+                {"syr_strided_batched", testing_syr_strided_batched<T>},
                 {"tpmv", testing_tpmv<T>},
                 {"tpmv_batched", testing_tpmv_batched<T>},
                 {"tpmv_strided_batched", testing_tpmv_strided_batched<T>},
