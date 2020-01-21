@@ -128,10 +128,8 @@ void testing_nrm2_template(const Arguments& arg)
 
         if(arg.norm_check)
         {
-            printf("cpu=%e, gpu_host_ptr=%e, gpu_dev_ptr=%e\n",
-                   cpu_result,
-                   rocblas_result_1,
-                   rocblas_result_2);
+            rocblas_cout << "cpu=" << cpu_result << ", gpu_host_ptr=" << rocblas_result_1
+                         << ", gpu_dev_ptr=" << rocblas_result_2 << "\n";
             rocblas_error_1 = std::abs((cpu_result - rocblas_result_1) / cpu_result);
             rocblas_error_2 = std::abs((cpu_result - rocblas_result_2) / cpu_result);
         }

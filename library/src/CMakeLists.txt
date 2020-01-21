@@ -1,4 +1,4 @@
-########################################################################
+# ########################################################################
 # Copyright 2016-2020 Advanced Micro Devices, Inc.
 # ########################################################################
 
@@ -158,6 +158,9 @@ set( rocblas_blas2_source
   blas2/rocblas_gemv.cpp
   blas2/rocblas_gemv_batched.cpp
   blas2/rocblas_gemv_strided_batched.cpp
+  blas2/rocblas_tpmv.cpp
+  blas2/rocblas_tpmv_batched.cpp
+  blas2/rocblas_tpmv_strided_batched.cpp
   blas2/rocblas_gbmv.cpp
   blas2/rocblas_gbmv_batched.cpp
   blas2/rocblas_gbmv_strided_batched.cpp
@@ -167,7 +170,13 @@ set( rocblas_blas2_source
   blas2/rocblas_ger.cpp
   blas2/rocblas_ger_batched.cpp
   blas2/rocblas_ger_strided_batched.cpp
+  blas2/rocblas_hbmv.cpp
+  blas2/rocblas_hbmv_batched.cpp
+  blas2/rocblas_hbmv_strided_batched.cpp
   blas2/rocblas_hemv.cpp
+  blas2/rocblas_hpmv.cpp
+  blas2/rocblas_hpmv_batched.cpp
+  blas2/rocblas_hpmv_strided_batched.cpp
   blas2/rocblas_hemv_batched.cpp
   blas2/rocblas_hemv_strided_batched.cpp
   blas2/rocblas_syr.cpp

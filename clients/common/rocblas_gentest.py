@@ -203,7 +203,6 @@ def setkey_product(test, key, vals):
                 result *= test[x]
         test[key] = int(result)
 
-
 def setdefaults(test):
     """Set default values for parameters"""
     # Do not put constant defaults here -- use rocblas_common.yaml for that.
@@ -222,6 +221,11 @@ def setdefaults(test):
         if all([x in test for x in ('stride_scale')]):
             test.setdefault('stride_c', int(test['stride_scale']) * 5)
 
+    elif test['function'] in ('tpmv_strided_batched'):
+        setkey_product(test, 'stride_x', ['M', 'incx', 'stride_scale'])
+## Let's use M * M (> (M * (M+1)) / 2) as a 'stride' size for the packed format.
+        setkey_product(test, 'stride_a', ['M', 'M', 'stride_scale'])
+
     elif test['function'] in ('trmv_strided_batched'):
         setkey_product(test, 'stride_x', ['M', 'incx', 'stride_scale'])
         setkey_product(test, 'stride_a', ['M', 'lda', 'stride_scale'])
@@ -238,13 +242,17 @@ def setdefaults(test):
         if test['function'] in ('gbmv_strided_batched'):
             setkey_product(test, 'stride_a', ['lda', 'N', 'stride_scale'])
 
-    elif test['function'] in ('hemv_strided_batched'):
+    elif test['function'] in ('hemv_strided_batched', 'hbmv_strided_batched'):
         if all([x in test for x in ('N', 'incx', 'incy', 'stride_scale')]):
-            ldx = int(test['N'] * abs(test['incx']) * test['stride_scale'])
-            ldy = int(test['N'] * abs(test['incy']) * test['stride_scale'])
-            ldN = int(test['N'] * test['lda'] * test['stride_scale'])
-            test.setdefault('stride_x', ldx)
-            test.setdefault('stride_y', ldy)
+            setkey_product(test, 'stride_x', ['N', 'incx', 'stride_scale'])
+            setkey_product(test, 'stride_y', ['N', 'incy', 'stride_scale'])
+            setkey_product(test, 'stride_a', ['N', 'lda', 'stride_scale'])
+
+    elif test['function'] in ('hpmv_strided_batched'):
+        if all([x in test for x in ('N', 'incx', 'incy', 'stride_scale')]):
+            setkey_product(test, 'stride_x', ['N', 'incx', 'stride_scale'])
+            setkey_product(test, 'stride_y', ['N', 'incy', 'stride_scale'])
+            ldN = int((test['N'] * (test['N'] + 1) * test['stride_scale']) / 2)
             test.setdefault('stride_a', ldN)
 
     # we are using stride_c for arg c and stride_d for arg s in rotg

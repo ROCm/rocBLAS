@@ -20,11 +20,14 @@
 
 // We use rocblas_cout and rocblas_cerr instead of stdout, stderr, std::cout and std::cerr
 // This must come after the header #includes above, to avoid poisoning system headers.
-// This is only enable for rocblas-test and rocblas-bench.
+// This is only enabled for rocblas-test and rocblas-bench.
 #if defined(GOOGLE_TEST) || defined(ROCBLAS_BENCH)
 #undef stdout
 #undef stderr
-#pragma GCC poison cout cerr stdout stderr
+// All stdio and std::ostream functions related to stdout and stderr are poisoned, as are functions
+// which can create buffer overflows
+#pragma GCC poison cout cerr clog stdout stderr gets puts putchar fprintf printf sprintf vfprintf \
+    vprintf vsprintf
 #endif
 
 /* ============================================================================================ */
@@ -84,11 +87,9 @@ inline void rocblas_print_matrix(
     for(size_t i = 0; i < m; i++)
         for(size_t j = 0; j < n; j++)
         {
-            printf("matrix  col %d, row %d, CPU result=%f, GPU result=%f\n",
-                   i,
-                   j,
-                   CPU_result[j + i * lda],
-                   GPU_result[j + i * lda]);
+            rocblas_cout << "matrix  col " << i << ", row " << j
+                         << ", CPU result=" << CPU_result[j + i * lda]
+                         << ", GPU result=" << GPU_result[j + i * lda] << "\n";
         }
 }
 

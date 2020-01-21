@@ -2,11 +2,24 @@
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+#include <boost/program_options.hpp>
+
 #include "rocblas.h"
 #include "rocblas.hpp"
 #include "rocblas_data.hpp"
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_parse_data.hpp"
+#include "type_dispatch.hpp"
+#include "utility.hpp"
+#include <algorithm>
+#include <cctype>
+#include <cstdio>
+#include <cstring>
+#include <iostream>
+#include <map>
+#include <stdexcept>
+#include <string>
+#include <type_traits>
 // blas1
 #include "testing_asum.hpp"
 #include "testing_asum_batched.hpp"
@@ -50,29 +63,28 @@
 #include "testing_gemv_batched.hpp"
 #include "testing_gemv_strided_batched.hpp"
 #include "testing_ger.hpp"
+#include "testing_hbmv.hpp"
+#include "testing_hbmv_batched.hpp"
+#include "testing_hbmv_strided_batched.hpp"
 #include "testing_hemv.hpp"
 #include "testing_hemv_batched.hpp"
 #include "testing_hemv_strided_batched.hpp"
+#include "testing_hpmv.hpp"
+#include "testing_hpmv_batched.hpp"
+#include "testing_hpmv_strided_batched.hpp"
 #include "testing_syr.hpp"
+#include "testing_syr_batched.hpp"
+#include "testing_syr_strided_batched.hpp"
 #include "testing_tbmv.hpp"
 #include "testing_tbmv_batched.hpp"
 #include "testing_tbmv_strided_batched.hpp"
+#include "testing_tpmv.hpp"
+#include "testing_tpmv_batched.hpp"
+#include "testing_tpmv_strided_batched.hpp"
 #include "testing_trmv.hpp"
 #include "testing_trmv_batched.hpp"
 #include "testing_trmv_strided_batched.hpp"
-#include "type_dispatch.hpp"
-#include "utility.hpp"
-#include <algorithm>
 #undef I
-#include <boost/program_options.hpp>
-#include <cctype>
-#include <cstdio>
-#include <cstring>
-#include <iostream>
-#include <map>
-#include <stdexcept>
-#include <string>
-#include <type_traits>
 
 using namespace std::literals; // For std::string literals of form "str"s
 
@@ -213,11 +225,16 @@ struct perf_blas<T, U, std::enable_if_t<std::is_same<T, float>{} || std::is_same
                 {"gemv", testing_gemv<T>},
                 {"gemv_batched", testing_gemv_batched<T>},
                 {"gemv_strided_batched", testing_gemv_strided_batched<T>},
+                {"tpmv", testing_tpmv<T>},
+                {"tpmv_batched", testing_tpmv_batched<T>},
+                {"tpmv_strided_batched", testing_tpmv_strided_batched<T>},
                 {"trmv", testing_trmv<T>},
                 {"trmv_batched", testing_trmv_batched<T>},
                 {"trmv_strided_batched", testing_trmv_strided_batched<T>},
                 {"ger", testing_ger<T>},
                 {"syr", testing_syr<T>},
+                {"syr_batched", testing_syr_batched<T>},
+                {"syr_strided_batched", testing_syr_strided_batched<T>},
                 {"tbmv", testing_tbmv<T>},
                 {"tbmv_batched", testing_tbmv_batched<T>},
                 {"tbmv_strided_batched", testing_tbmv_strided_batched<T>},
@@ -307,9 +324,21 @@ struct perf_blas<T,
                 {"gemv", testing_gemv<T>},
                 {"gemv_batched", testing_gemv_batched<T>},
                 {"gemv_strided_batched", testing_gemv_strided_batched<T>},
+                {"hbmv", testing_hbmv<T>},
+                {"hbmv_batched", testing_hbmv_batched<T>},
+                {"hbmv_strided_batched", testing_hbmv_strided_batched<T>},
                 {"hemv", testing_hemv<T>},
                 {"hemv_batched", testing_hemv_batched<T>},
                 {"hemv_strided_batched", testing_hemv_strided_batched<T>},
+                {"hpmv", testing_hpmv<T>},
+                {"hpmv_batched", testing_hpmv_batched<T>},
+                {"hpmv_strided_batched", testing_hpmv_strided_batched<T>},
+                {"syr", testing_syr<T>},
+                {"syr_batched", testing_syr_batched<T>},
+                {"syr_strided_batched", testing_syr_strided_batched<T>},
+                {"tpmv", testing_tpmv<T>},
+                {"tpmv_batched", testing_tpmv_batched<T>},
+                {"tpmv_strided_batched", testing_tpmv_strided_batched<T>},
                 {"trmv", testing_trmv<T>},
                 {"trmv_batched", testing_trmv_batched<T>},
                 {"trmv_strided_batched", testing_trmv_strided_batched<T>},
@@ -617,9 +646,6 @@ using namespace boost::program_options;
 int main(int argc, char* argv[])
 try
 {
-    // Prevent unnecessary synchronization between C and C++ streams
-    std::ios::sync_with_stdio(false);
-
     fix_batch(argc, argv);
     Arguments   arg;
     std::string function;

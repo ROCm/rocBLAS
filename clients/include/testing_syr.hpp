@@ -4,6 +4,7 @@
 
 #include "cblas_interface.hpp"
 #include "flops.hpp"
+#include "near.hpp"
 #include "norm.hpp"
 #include "rocblas.hpp"
 #include "rocblas_init.hpp"
@@ -26,7 +27,7 @@ void testing_syr_bad_arg()
 
     size_t abs_incx = incx >= 0 ? incx : -incx;
     size_t size_A   = lda * N;
-    size_t size_x   = N * abs_incx;
+    size_t size_x   = size_t(N) * abs_incx;
 
     // allocate memory on device
     device_vector<T> dA_1(size_A);
@@ -58,7 +59,7 @@ void testing_syr(const Arguments& arg)
     rocblas_local_handle handle;
 
     // argument check before allocating invalid memory
-    if(N < 0 || lda < N || lda < 1 || !incx)
+    if(N <= 0 || lda < N || lda < 1 || !incx)
     {
         static const size_t safe_size = 100; // arbitrarily set to 100
 
@@ -71,13 +72,14 @@ void testing_syr(const Arguments& arg)
         }
 
         EXPECT_ROCBLAS_STATUS(rocblas_syr<T>(handle, uplo, N, &h_alpha, dx, incx, dA_1, lda),
-                              rocblas_status_invalid_size);
+                              (N < 0 || lda < N || lda < 1 || !incx) ? rocblas_status_invalid_size
+                                                                     : rocblas_status_success);
 
         return;
     }
 
     size_t abs_incx = incx >= 0 ? incx : -incx;
-    size_t size_A   = lda * N;
+    size_t size_A   = size_t(lda) * N;
     size_t size_x   = N * abs_incx;
 
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
@@ -143,8 +145,17 @@ void testing_syr(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(N, N, lda, hA_gold, hA_1);
-            unit_check_general<T>(N, N, lda, hA_gold, hA_2);
+            if(std::is_same<T, float>{} || std::is_same<T, double>{})
+            {
+                unit_check_general<T>(N, N, lda, hA_gold, hA_1);
+                unit_check_general<T>(N, N, lda, hA_gold, hA_2);
+            }
+            else
+            {
+                const double tol = N * sum_error_tolerance<T>;
+                near_check_general<T>(N, N, lda, hA_gold, hA_1, tol);
+                near_check_general<T>(N, N, lda, hA_gold, hA_2, tol);
+            }
         }
 
         if(arg.norm_check)
@@ -157,7 +168,7 @@ void testing_syr(const Arguments& arg)
     if(arg.timing)
     {
         int number_cold_calls = 2;
-        int number_hot_calls  = 100;
+        int number_hot_calls  = arg.iters;
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
         for(int iter = 0; iter < number_cold_calls; iter++)

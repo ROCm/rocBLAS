@@ -164,7 +164,13 @@ void testing_trtri_batched(const Arguments& arg)
         {
             rocblas_int info = cblas_trtri<T>(char_uplo, char_diag, N, hB[i], lda);
             if(info != 0)
-                printf("error in cblas_trtri\n");
+            {
+#ifdef GOOGLE_TEST
+                FAIL() << "error in cblas_trtri";
+#else
+                rocblas_cerr << "error in cblas_trtri" << std::endl;
+#endif
+            }
         }
         if(arg.timing)
         {
@@ -189,14 +195,12 @@ void testing_trtri_batched(const Arguments& arg)
             {
                 rocblas_error = fmax(rocblas_error,
                                      norm_check_symmetric<T>('F', char_uplo, N, lda, hB[i], hA[i]));
-                // printf("error=%f, %lu\n", rocblas_error, i);
             }
             rocblas_error = 0.0;
             for(size_t i = 0; i < batch_count; i++)
             {
                 rocblas_error = fmax(
                     rocblas_error, norm_check_symmetric<T>('F', char_uplo, N, lda, hB[i], hA_2[i]));
-                // printf("error=%f, %lu\n", rocblas_error, i);
             }
         }
     } // end of norm_check

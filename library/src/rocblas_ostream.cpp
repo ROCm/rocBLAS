@@ -222,16 +222,6 @@ ROCBLAS_EXPORT rocblas_ostream& operator<<(rocblas_ostream& os, std::ostream& (*
     return os;
 }
 
-// YAML Manipulators (only used for their addresses now)
-ROCBLAS_EXPORT std::ostream& rocblas_ostream::yaml_on(std::ostream& os)
-{
-    return os;
-}
-ROCBLAS_EXPORT std::ostream& rocblas_ostream::yaml_off(std::ostream& os)
-{
-    return os;
-}
-
 /***********************************************************************
  * rocblas_ostream::worker functions handle logging in a single thread *
  ***********************************************************************/

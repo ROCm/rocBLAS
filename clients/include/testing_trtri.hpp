@@ -130,7 +130,13 @@ void testing_trtri(const Arguments& arg)
         rocblas_int info = cblas_trtri<T>(char_uplo, char_diag, N, hB, lda);
 
         if(info != 0)
-            printf("error in cblas_trtri\n");
+        {
+#ifdef GOOGLE_TEST
+            FAIL() << "error in cblas_trtri";
+#else
+            rocblas_cerr << "error in cblas_trtri" << std::endl;
+#endif
+        }
 
         if(arg.timing)
         {
