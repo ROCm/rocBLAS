@@ -17,18 +17,18 @@
  ***********************************************************************/
 
 // abort() function which safely flushes all IO
-ROCBLAS_EXPORT void rocblas_abort()
+ROCBLAS_EXPORT extern "C" void rocblas_abort()
 {
     // Make sure the alarm action is default
     signal(SIGALRM, SIG_DFL);
 
-    // Timeout
+    // Timeout in case of deadlock
     alarm(2);
 
     // Obtain the map lock
     rocblas_ostream::map_mutex().lock();
 
-    // Clear the map
+    // Clear the map, stopping workers
     rocblas_ostream::map().clear();
 
     // TODO: Use synchronization with other threads instead of arbitrary time
@@ -37,7 +37,7 @@ ROCBLAS_EXPORT void rocblas_abort()
     // Flush any remaining files
     fflush(NULL);
 
-    // Abort
+    // std::abort() instead of of abort() since std::abort() is [[noreturn]]
     std::abort();
 }
 
@@ -67,7 +67,7 @@ std::shared_ptr<rocblas_ostream::worker> rocblas_ostream::get_worker(int fd)
     if(fstat(fd, &statbuf))
     {
         perror("Error executing fstat()");
-        return {};
+        return nullptr;
     }
 
     // Lock the map
@@ -135,7 +135,7 @@ ROCBLAS_EXPORT rocblas_ostream& operator<<(rocblas_ostream& os, double x)
         out = s;
         snprintf(s, sizeof(s) - 2, "%.17g", x);
 
-        // If no decimal point or exponent, append .0
+        // If no decimal point or exponent, append .0 to indicate floating point
         for(char* end = s; *end != '.' && *end != 'e' && *end != 'E'; ++end)
         {
             if(!*end)
@@ -222,7 +222,7 @@ ROCBLAS_EXPORT rocblas_ostream& operator<<(rocblas_ostream& os, std::ostream& (*
     return os;
 }
 
-// YAML Manipulators (only used for their addresses and signatures now)
+// YAML Manipulators (only used for their addresses now)
 ROCBLAS_EXPORT std::ostream& rocblas_ostream::yaml_on(std::ostream& os)
 {
     return os;
