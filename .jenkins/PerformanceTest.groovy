@@ -19,7 +19,7 @@ rocBLASCI:
     rocblas.paths.build_command = './install.sh -lasm_ci -c'
 
     // Define test architectures, optional rocm version argument is available
-    def nodes = new dockerNodes(['ubuntu && gfx803 && perf'], rocblas)
+    def nodes = new dockerNodes(['ubuntu && gfx803 && perf', 'ubuntu && gfx900 && perf', 'ubuntu && gfx906 && perf'], rocblas)
 
     boolean formatCheck = true
 
@@ -79,14 +79,15 @@ rocBLASCI:
                         # wget http://10.216.151.18:8080/job/Performance/job/${project.name}/job/develop/lastSuccessfulBuild/artifact/*zip*/archive.zip
                         wget http://10.216.151.18:8080/job/Performance/job/rocBLAS/job/PR-895/lastSuccessfulBuild/artifact/*zip*/archive.zip
                         wgetreturn=\$?
-                        pushd scripts/performance/blas/
                         if [[ \$wgetreturn -eq 8 ]]; then
                             echo "Download error"
+                            pushd scripts/performance/blas/
                             python alltime.py -T -o \$workingdir/perfoutput -S 0 -g 1 -i perf.yaml -d \$devicenum
                             popd
                         else
                             unzip -o archive.zip
                             tar -xvf archive/*/*/perfoutput_${gpuLabel}.tar
+                            pushd scripts/performance/blas/
                             python alltime.py -T -o \$workingdir/perfoutput -b \$workingdir/perfoutput_${gpuLabel} -g 1 -d \$devicenum -i perf.yaml
                             popd
                             mv perfoutput_${gpuLabel} perfoutput_${gpuLabel}_old
