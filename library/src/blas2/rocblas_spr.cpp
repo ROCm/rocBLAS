@@ -89,8 +89,8 @@ namespace
         if(!x || !AP)
             return rocblas_status_invalid_pointer;
 
-        constexpr rocblas_int    offset_x = 0, offset_A = 0, batch_count = 1;
-        constexpr rocblas_stride stride_x = 0, stride_A = 0;
+        static constexpr rocblas_int    offset_x = 0, offset_A = 0, batch_count = 1;
+        static constexpr rocblas_stride stride_x = 0, stride_A = 0;
         return rocblas_spr_template(handle,
                                     uplo,
                                     n,

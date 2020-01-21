@@ -256,9 +256,7 @@ def setdefaults(test):
 
     elif test['function'] in ('spr_strided_batched'):
         setkey_product(test, 'stride_x', ['N', 'incx', 'stride_scale'])
-        if 'stride_scale' in test:
-            ldN = int((test['N'] * (test['N'] + 1) * test['stride_scale']) / 2)
-            test.setdefault('stride_a', ldN)
+        setkey_product(test, 'stride_a', ['N', 'N', 'stride_scale'])
 
     # we are using stride_c for arg c and stride_d for arg s in rotg
     # these are are single values for each batch
