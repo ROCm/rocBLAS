@@ -126,8 +126,11 @@ add_subdirectory( src )
 # endif( )
 
 # Package specific CPACK vars
-set( CPACK_DEBIAN_PACKAGE_DEPENDS "rocm-dev (>= 2.5.27)" )
-set( CPACK_RPM_PACKAGE_REQUIRES "rocm-dev >= 2.5.27" )
+if( NOT CXX_VERSION_STRING MATCHES "clang" )
+    set( CPACK_DEBIAN_PACKAGE_DEPENDS "rocm-dev (>= 2.5.27)" )
+    set( CPACK_RPM_PACKAGE_REQUIRES "rocm-dev >= 2.5.27" )
+endif()
+
 set( CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/../LICENSE.md" )
 
 if( NOT CPACK_PACKAGING_INSTALL_PREFIX )
