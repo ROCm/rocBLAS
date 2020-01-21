@@ -246,9 +246,15 @@ public:
     // IO Manipulators
     friend rocblas_ostream& operator<<(rocblas_ostream& os, std::ostream& (*pf)(std::ostream&));
 
-    // YAML Manipulators
-    static std::ostream& yaml_on(std::ostream&);
-    static std::ostream& yaml_off(std::ostream&);
+    // YAML Manipulators (only used for their addresses now)
+    static std::ostream& yaml_on(std::ostream& os)
+    {
+        return os;
+    }
+    static std::ostream& yaml_off(std::ostream& os)
+    {
+        return os;
+    }
 };
 
 #endif

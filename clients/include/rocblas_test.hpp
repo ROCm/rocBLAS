@@ -47,20 +47,16 @@ inline void rocblas_expect_status(rocblas_status status, rocblas_status expect)
     }
 }
 
-#define CHECK_HIP_ERROR(ERROR)                    \
-    do                                            \
-    {                                             \
-        auto error = ERROR;                       \
-        if(error != hipSuccess)                   \
-        {                                         \
-            fprintf(stderr,                       \
-                    "error: '%s'(%d) at %s:%d\n", \
-                    hipGetErrorString(error),     \
-                    error,                        \
-                    __FILE__,                     \
-                    __LINE__);                    \
-            exit(EXIT_FAILURE);                   \
-        }                                         \
+#define CHECK_HIP_ERROR(ERROR)                                                     \
+    do                                                                             \
+    {                                                                              \
+        auto error = ERROR;                                                        \
+        if(error != hipSuccess)                                                    \
+        {                                                                          \
+            rocblas_cerr << "error: " << hipGetErrorString(error) << " (" << error \
+                         << ") at " __FILE__ ":" << __LINE__ << std::endl;         \
+            rocblas_abort();                                                       \
+        }                                                                          \
     } while(0)
 
 #define EXPECT_ROCBLAS_STATUS rocblas_expect_status
@@ -137,15 +133,15 @@ public:
 
         // Warn about unset letter parameters
         if(name.find('*') != name.npos)
-            fputs("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-                  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
-                  "Warning: Character * found in name."
-                  " This means a required letter parameter\n"
-                  "(e.g., transA, diag, etc.) has not been set in the YAML file."
-                  " Check the YAML file.\n"
-                  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-                  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n",
-                  stderr);
+            rocblas_cerr << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+                            "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+                            "Warning: Character * found in name."
+                            " This means a required letter parameter\n"
+                            "(e.g., transA, diag, etc.) has not been set in the YAML file."
+                            " Check the YAML file.\n"
+                            "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+                            "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+                         << std::endl;
 
         // Replace non-alphanumeric characters with letters
         std::replace(name.begin(), name.end(), '-', 'n'); // minus

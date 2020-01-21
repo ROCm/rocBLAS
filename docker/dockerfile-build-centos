@@ -10,7 +10,6 @@ ARG user_uid
 RUN yum install -y \
     sudo \
     rock-dkms \
-    rocm-smi-lib64 \
     centos-release-scl \
     devtoolset-7 \
     ca-certificates \
@@ -18,6 +17,9 @@ RUN yum install -y \
     cmake3 \
     make \
     gcc-c++ \
+    clang \
+    clang-devel \
+    devtoolset-7-gcc-gfortran \
     gcc-gfortran \
     pkgconfig \
     python27 \

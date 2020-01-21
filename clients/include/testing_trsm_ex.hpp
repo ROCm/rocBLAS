@@ -22,15 +22,13 @@
 template <typename T>
 void printMatrix(const char* name, T* A, rocblas_int m, rocblas_int n, rocblas_int lda)
 {
-    printf("---------- %s ----------\n", name);
+    rocblas_cout << "---------- " << name << " ----------\n";
     int max_size = 3;
     for(int i = 0; i < m; i++)
     {
         for(int j = 0; j < n; j++)
-        {
-            printf("%0.2f ", A[i + j * lda]);
-        }
-        printf("\n");
+            rocblas_cout << A[i + j * lda] << " ";
+        rocblas_cout << "\n";
     }
 }
 

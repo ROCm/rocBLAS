@@ -212,9 +212,6 @@ void catch_signals_and_exceptions_as_failures(const std::function<void()>& test)
  *****************/
 int main(int argc, char** argv)
 {
-    // Prevent unnecessary synchronization between C and C++ streams
-    std::ios::sync_with_stdio(false);
-
     // Set signal handler
     rocblas_test_sigaction();
 
@@ -223,9 +220,9 @@ int main(int argc, char** argv)
     rocblas_get_version_string(blas_version, sizeof(blas_version));
 
 #ifdef USE_TENSILE_HOST
-    printf("rocBLAS version: %s (new Tensile client)\n\n", blas_version);
+    rocblas_cout << "rocBLAS version: " << blas_version << " (new Tensile client)\n" << std::endl;
 #else
-    printf("rocBLAS version: %s\n\n", blas_version);
+    rocblas_cout << "rocBLAS version: " << blas_version << "\n" << std::endl;
 #endif
 
     // Device Query

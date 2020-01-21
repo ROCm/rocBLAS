@@ -95,7 +95,7 @@ namespace
 
         if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
         {
-            return rocblas_status_not_implemented;
+            return rocblas_status_invalid_value;
         }
 
         if(m < 0 || lda < m || lda < 1 || !incx)
@@ -157,8 +157,13 @@ extern "C" {
                                  rocblas_int       lda,                           \
                                  T_*               x,                             \
                                  rocblas_int       incx)                          \
+    try                                                                           \
     {                                                                             \
         return rocblas_trmv_impl(handle, uplo, transA, diag, m, A, lda, x, incx); \
+    }                                                                             \
+    catch(...)                                                                    \
+    {                                                                             \
+        return exception_to_rocblas_status();                                     \
     }
 
 IMPL(rocblas_strmv, float);

@@ -93,6 +93,25 @@ constexpr double scal_gflop_count<rocblas_double_complex, double>(rocblas_int n)
  * ===========================================================================
  */
 
+/* \brief floating point counts of tpmv */
+template <typename T>
+constexpr double tpmv_gflop_count(rocblas_int m)
+{
+    return (m * m) / 1e9;
+}
+
+template <>
+constexpr double tpmv_gflop_count<rocblas_float_complex>(rocblas_int m)
+{
+    return (2.0 * m * (2.0 * m + 1.0)) / 1e9;
+}
+
+template <>
+constexpr double tpmv_gflop_count<rocblas_double_complex>(rocblas_int m)
+{
+    return (2.0 * m * (2.0 * m + 1.0)) / 1e9;
+}
+
 /* \brief floating point counts of trmv */
 template <typename T>
 constexpr double trmv_gflop_count(rocblas_int m)
@@ -177,9 +196,24 @@ constexpr double
     return (8.0 * m * n + 6.0 * (transA == rocblas_operation_none ? m : n)) / 1e9;
 }
 
+/* \brief floating point counts of HBMV */
+template <typename T>
+constexpr double hbmv_gflop_count(rocblas_int n, rocblas_int k)
+{
+    rocblas_int k1 = k < n ? k : n;
+    return (8.0 * ((2 * k1 + 1) * n - k1 * (k1 + 1)) + 8 * n) / 1e9;
+}
+
 /* \brief floating point counts of HEMV */
 template <typename T>
 constexpr double hemv_gflop_count(rocblas_int n)
+{
+    return (8.0 * n * n + 8.0 * n) / 1e9;
+}
+
+/* \brief floating point counts of HPMV */
+template <typename T>
+constexpr double hpmv_gflop_count(rocblas_int n)
 {
     return (8.0 * n * n + 8.0 * n) / 1e9;
 }
@@ -233,6 +267,18 @@ template <typename T>
 constexpr double syr_gflop_count(rocblas_int n)
 {
     return (n * (n + 1) + n) / 1e9;
+}
+
+template <>
+constexpr double syr_gflop_count<rocblas_float_complex>(rocblas_int n)
+{
+    return 4 * syr_gflop_count<float>(n);
+}
+
+template <>
+constexpr double syr_gflop_count<rocblas_double_complex>(rocblas_int n)
+{
+    return syr_gflop_count<rocblas_float_complex>(n);
 }
 
 /*

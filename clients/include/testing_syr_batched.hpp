@@ -4,6 +4,7 @@
 
 #include "cblas_interface.hpp"
 #include "flops.hpp"
+#include "near.hpp"
 #include "norm.hpp"
 #include "rocblas.hpp"
 #include "rocblas_init.hpp"
@@ -196,8 +197,17 @@ void testing_syr_batched(const Arguments& arg)
         {
             for(int i = 0; i < batch_count; i++)
             {
-                unit_check_general<T>(N, N, lda, hA_gold[i], hA_1[i]);
-                unit_check_general<T>(N, N, lda, hA_gold[i], hA_2[i]);
+                if(std::is_same<T, float>{} || std::is_same<T, double>{})
+                {
+                    unit_check_general<T>(N, N, lda, hA_gold[i], hA_1[i]);
+                    unit_check_general<T>(N, N, lda, hA_gold[i], hA_2[i]);
+                }
+                else
+                {
+                    const double tol = N * sum_error_tolerance<T>;
+                    near_check_general<T>(N, N, lda, hA_gold[i], hA_1[i], tol);
+                    near_check_general<T>(N, N, lda, hA_gold[i], hA_2[i], tol);
+                }
             }
         }
 
@@ -214,7 +224,7 @@ void testing_syr_batched(const Arguments& arg)
     if(arg.timing)
     {
         int number_cold_calls = 2;
-        int number_hot_calls  = 100;
+        int number_hot_calls  = arg.iters;
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
         for(int iter = 0; iter < number_cold_calls; iter++)
