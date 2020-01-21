@@ -1239,9 +1239,10 @@ inline void cblas_spr(rocblas_fill            uplo,
 }
 
 // syr
+
 template <typename T>
-void cblas_syr(
-    rocblas_fill uplo, rocblas_int n, T alpha, T* x, rocblas_int incx, T* A, rocblas_int lda);
+inline void cblas_syr(
+    rocblas_fill uplo, rocblas_int n, T alpha, T* xa, rocblas_int incx, T* A, rocblas_int lda);
 
 template <>
 inline void cblas_syr(rocblas_fill uplo,
@@ -1266,6 +1267,86 @@ inline void cblas_syr(rocblas_fill uplo,
 {
     cblas_dsyr(CblasColMajor, CBLAS_UPLO(uplo), n, alpha, x, incx, A, lda);
 }
+
+// blis flame symbols
+extern "C" {
+void csyr_(char*                  uplo,
+           int*                   n,
+           rocblas_float_complex* alpha,
+           rocblas_float_complex* x,
+           int*                   incx,
+           rocblas_float_complex* a,
+           int*                   lda);
+void zsyr_(char*                   uplo,
+           int*                    n,
+           rocblas_double_complex* alpha,
+           rocblas_double_complex* x,
+           int*                    incx,
+           rocblas_double_complex* a,
+           int*                    lda);
+}
+
+template <>
+inline void cblas_syr(rocblas_fill           uplo,
+                      rocblas_int            n,
+                      rocblas_float_complex  alpha,
+                      rocblas_float_complex* xa,
+                      rocblas_int            incx,
+                      rocblas_float_complex* A,
+                      rocblas_int            lda)
+{
+    char u = uplo == rocblas_fill_upper ? 'U' : 'L';
+    csyr_(&u, &n, &alpha, xa, &incx, A, &lda);
+}
+
+template <>
+inline void cblas_syr(rocblas_fill            uplo,
+                      rocblas_int             n,
+                      rocblas_double_complex  alpha,
+                      rocblas_double_complex* xa,
+                      rocblas_int             incx,
+                      rocblas_double_complex* A,
+                      rocblas_int             lda)
+{
+    char u = uplo == rocblas_fill_upper ? 'U' : 'L';
+    zsyr_(&u, &n, &alpha, xa, &incx, A, &lda);
+}
+
+/* working cpu template code in case flame symbols disappear
+// cblas_syr doesn't have complex support so implementation below for float/double complex
+template <typename T>
+void cblas_syr(
+    rocblas_fill uplo, rocblas_int n, T alpha, T* xa, rocblas_int incx, T* A, rocblas_int lda)
+{
+    if(n <= 0)
+        return;
+
+    T* x = (incx < 0) ? xa - ptrdiff_t(incx) * (n - 1) : xa;
+
+    if(uplo == rocblas_fill_upper)
+    {
+        for(int j = 0; j < n; ++j)
+        {
+            T tmp = alpha * x[j * incx];
+            for(int i = 0; i <= j; ++i)
+            {
+                A[i + j * lda] = A[i + j * lda] + x[i * incx] * tmp;
+            }
+        }
+    }
+    else
+    {
+        for(int j = 0; j < n; ++j)
+        {
+            T tmp = alpha * x[j * incx];
+            for(int i = j; i < n; ++i)
+            {
+                A[i + j * lda] = A[i + j * lda] + x[i * incx] * tmp;
+            }
+        }
+    }
+}
+*/
 
 // hbmv
 template <typename T>
