@@ -23,7 +23,7 @@
 #include <utility>
 
 // abort() function which safely flushes all IO
-void rocblas_abort [[noreturn]] ();
+extern "C" void rocblas_abort [[noreturn]] ();
 
 /*****************************************************************************
  * rocBLAS output streams                                                    *

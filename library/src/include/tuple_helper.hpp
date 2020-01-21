@@ -22,18 +22,19 @@ class tuple_helper
      * Traverse (key, value) pairs, applying functions or printing YAML *
      ********************************************************************/
     template <typename FUNC, typename TUP, size_t... I>
-    static void apply_pairs_impl(FUNC&& action, const TUP& tuple, std::index_sequence<I...>)
+    static void apply_pairs_impl(FUNC&& func, const TUP& tuple, std::index_sequence<I...>)
     {
-        auto dummy = {(action(std::get<I * 2>(tuple), std::get<I * 2 + 1>(tuple)), 0)...};
+        // TODO: Replace with C++17 fold expression
+        (void)(int[]){(func(std::get<I * 2>(tuple), std::get<I * 2 + 1>(tuple)), 0)...};
     }
 
 public:
     // Apply a function to pairs in a tuple (name1, value1, name2, value2, ...)
     template <typename FUNC, typename TUP>
-    static void apply_pairs(FUNC&& action, const TUP& tuple)
+    static void apply_pairs(FUNC&& func, const TUP& tuple)
     {
         static_assert(std::tuple_size<TUP>{} % 2 == 0, "Tuple size must be even");
-        apply_pairs_impl(std::forward<FUNC>(action),
+        apply_pairs_impl(std::forward<FUNC>(func),
                          tuple,
                          std::make_index_sequence<std::tuple_size<TUP>{} / 2>{});
     }
@@ -42,6 +43,8 @@ public:
     template <typename TUP>
     static rocblas_ostream& print_tuple_pairs(rocblas_ostream& os, const TUP& tuple)
     {
+        static_assert(std::tuple_size<TUP>{} % 2 == 0, "Tuple size must be even");
+
         // delim starts as "{ " and becomes ", " afterwards
         auto print_pair = [&os, delim = "{ "](const char* name, const auto& value) mutable {
             os << delim << name << ": " << value;
@@ -89,9 +92,8 @@ private:
     static size_t hash(const TUP& tuple, std::index_sequence<I...>)
     {
         size_t seed = 0;
-        auto   dummy
-            = {(seed ^= hash(std::get<I * 2 + 1>(tuple)) + 0x9e3779b9 + (seed << 6) + (seed >> 2),
-                0)...};
+        for(size_t h : {hash(std::get<I * 2 + 1>(tuple))...})
+            seed ^= h + 0x9e3779b9 + (seed << 6) + (seed >> 2);
         return seed;
     }
 
@@ -128,8 +130,9 @@ private:
     template <typename TUP, size_t... I>
     static bool equal(const TUP& t1, const TUP& t2, std::index_sequence<I...>)
     {
-        bool ret   = true;
-        auto dummy = {(ret = ret && equal(std::get<I * 2 + 1>(t1), std::get<I * 2 + 1>(t2)), 0)...};
+        // TODO: Replace with C++17 fold expression
+        bool ret = true;
+        (void)(bool[]){ret = ret && equal(std::get<I * 2 + 1>(t1), std::get<I * 2 + 1>(t2))...};
         return ret;
     }
 
