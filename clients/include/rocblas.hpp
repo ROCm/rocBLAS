@@ -1087,6 +1087,12 @@ static constexpr auto rocblas_syr<float> = rocblas_ssyr;
 template <>
 static constexpr auto rocblas_syr<double> = rocblas_dsyr;
 
+template <>
+static constexpr auto rocblas_syr<rocblas_float_complex> = rocblas_csyr;
+
+template <>
+static constexpr auto rocblas_syr<rocblas_double_complex> = rocblas_zsyr;
+
 // syr strided batched
 template <typename T>
 rocblas_status (*rocblas_syr_strided_batched)(rocblas_handle handle,
@@ -1107,6 +1113,14 @@ static constexpr auto rocblas_syr_strided_batched<float> = rocblas_ssyr_strided_
 template <>
 static constexpr auto rocblas_syr_strided_batched<double> = rocblas_dsyr_strided_batched;
 
+template <>
+static constexpr auto
+    rocblas_syr_strided_batched<rocblas_float_complex> = rocblas_csyr_strided_batched;
+
+template <>
+static constexpr auto
+    rocblas_syr_strided_batched<rocblas_double_complex> = rocblas_zsyr_strided_batched;
+
 // syr batched
 template <typename T>
 rocblas_status (*rocblas_syr_batched)(rocblas_handle handle,
@@ -1124,6 +1138,12 @@ static constexpr auto rocblas_syr_batched<float> = rocblas_ssyr_batched;
 
 template <>
 static constexpr auto rocblas_syr_batched<double> = rocblas_dsyr_batched;
+
+template <>
+static constexpr auto rocblas_syr_batched<rocblas_float_complex> = rocblas_csyr_batched;
+
+template <>
+static constexpr auto rocblas_syr_batched<rocblas_double_complex> = rocblas_zsyr_batched;
 
 // gbmv
 template <typename T>
