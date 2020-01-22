@@ -60,6 +60,7 @@ void testing_dotc_bad_arg(const Arguments& arg)
 template <typename T, bool CONJ = false>
 void testing_dot(const Arguments& arg)
 {
+
     rocblas_int N    = arg.N;
     rocblas_int incx = arg.incx;
     rocblas_int incy = arg.incy;
@@ -164,7 +165,7 @@ void testing_dot(const Arguments& arg)
     if(arg.timing)
     {
         int number_cold_calls = 2;
-        int number_hot_calls  = 100;
+        int number_hot_calls  = arg.iters;
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
         for(int iter = 0; iter < number_cold_calls; iter++)
@@ -181,23 +182,16 @@ void testing_dot(const Arguments& arg)
                   : rocblas_dot<T>)(handle, N, dx, incx, dy, incy, &rocblas_result_1);
         }
 
-        gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;
-        rocblas_gflops    = dot_gflop_count<CONJ, T>(N) / gpu_time_used * 1e6 * 1;
-        rocblas_bandwidth = (2.0 * N) * sizeof(T) / gpu_time_used / 1e3;
+        gpu_time_used = get_time_us() - gpu_time_used;
 
-        rocblas_cout << "N,incx,incy,rocblas-Gflops,rocblas-GB/s,rocblas-us";
-
-        if(arg.norm_check)
-            rocblas_cout << ",CPU-Gflops,norm_error_host_ptr,norm_error_dev_ptr";
-
-        rocblas_cout << std::endl;
-        rocblas_cout << N << "," << incx << "," << incy << "," << rocblas_gflops << ","
-                     << rocblas_bandwidth << "," << gpu_time_used;
-
-        if(arg.norm_check)
-            rocblas_cout << "," << cblas_gflops << "," << rocblas_error_1 << "," << rocblas_error_2;
-
-        rocblas_cout << std::endl;
+        ArgumentModel<e_N, e_incx, e_incy>{}.log_args<T>(rocblas_cout,
+                                                         arg,
+                                                         gpu_time_used,
+                                                         dot_gflop_count<CONJ, T>(N),
+                                                         (2.0 * N) * sizeof(T),
+                                                         cpu_time_used,
+                                                         rocblas_error_1,
+                                                         rocblas_error_2);
     }
 }
 

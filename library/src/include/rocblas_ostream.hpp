@@ -241,6 +241,17 @@ public:
     friend rocblas_ostream& operator<<(rocblas_ostream& os, const std::string& s);
 
     // Transfer rocblas_ostream to std::ostream
+    friend std::ostream& operator<<(std::ostream& os, const rocblas_ostream& str)
+    {
+        return os << str.str();
+    }
+
+    // Transfer rocblas_ostream to rocblas_ostream
+    friend rocblas_ostream& operator<<(rocblas_ostream& os, const rocblas_ostream& str)
+    {
+        return os << str.str();
+    }
+
     friend std::ostream& operator<<(std::ostream& os, const rocblas_ostream& str);
 
     // IO Manipulators
