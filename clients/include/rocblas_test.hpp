@@ -5,6 +5,7 @@
 #ifndef ROCBLAS_TEST_H_
 #define ROCBLAS_TEST_H_
 
+#include "argument_model.hpp"
 #include "rocblas.h"
 #include "rocblas_arguments.hpp"
 #include "test_cleanup.hpp"

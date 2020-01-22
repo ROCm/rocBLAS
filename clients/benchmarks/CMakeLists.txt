@@ -48,7 +48,6 @@ set( rocblas_benchmark_common
       ../common/utility.cpp
       ../common/cblas_interface.cpp
       ../common/rocblas_arguments.cpp
-      ../common/argument_model.cpp
       ${BLIS_CPP}
       ../common/rocblas_parse_data.cpp
     )

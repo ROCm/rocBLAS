@@ -86,7 +86,6 @@ endif()
 
 set( rocblas_benchmark_common
       ../common/rocblas_arguments.cpp
-      ../common/argument_model.cpp
       ../common/utility.cpp
       ../common/cblas_interface.cpp
       ${BLIS_CPP}

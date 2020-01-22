@@ -193,12 +193,6 @@ ROCBLAS_EXPORT rocblas_ostream& operator<<(rocblas_ostream& os, const std::strin
     return os;
 }
 
-// Transfer rocblas_ostream to std::ostream
-ROCBLAS_EXPORT std::ostream& operator<<(std::ostream& os, const rocblas_ostream& str)
-{
-    return os << str.str();
-}
-
 // IO Manipulators
 ROCBLAS_EXPORT rocblas_ostream& operator<<(rocblas_ostream& os, std::ostream& (*pf)(std::ostream&))
 {

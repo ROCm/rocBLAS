@@ -1,224 +1,152 @@
 /* ************************************************************************
  * Copyright 2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#if 0
+
 #ifndef _ARGUMENT_MODEL_HPP_
 #define _ARGUMENT_MODEL_HPP_
 
 #include "rocblas_arguments.hpp"
 
-enum arg_type
-{
-    e_M,
-    e_N,
-    e_K,
-    e_lda,
-    e_ldb,
-    e_ldc,
-    e_ldd,
-    e_a_type,
-    e_b_type,
-    e_c_type,
-    e_d_type,
-    e_compute_type,
-    e_incx,
-    e_incy,
-    e_incb,
-    e_incd,
-    e_alpha,
-    e_beta,
-    e_transA,
-    e_transB,
-    e_side,
-    e_uplo,
-    e_diag,
-    e_batch_count,
-    e_stride_a,
-    e_stride_b,
-    e_stride_c,
-    e_stride_d,
-    e_stride_x,
-    e_stride_y,
-    e_algo,
-    e_solution_index,
-
-};
-
-#define CTOKEN(n) const char* const c_tok_##n = #n
-CTOKEN(M);
-CTOKEN(N);
-CTOKEN(K);
-CTOKEN(lda);
-CTOKEN(ldb);
-CTOKEN(ldc);
-CTOKEN(ldd);
-CTOKEN(a_type);
-CTOKEN(b_type);
-CTOKEN(c_type);
-CTOKEN(d_type);
-CTOKEN(compute_type);
-CTOKEN(incx);
-CTOKEN(incy);
-CTOKEN(incb);
-CTOKEN(incd);
-CTOKEN(alpha);
-CTOKEN(beta);
-CTOKEN(transA);
-CTOKEN(transB);
-CTOKEN(side);
-CTOKEN(uplo);
-CTOKEN(diag);
-CTOKEN(batch_count);
-CTOKEN(stride_a);
-CTOKEN(stride_b);
-CTOKEN(stride_c);
-CTOKEN(stride_d);
-CTOKEN(stride_x);
-CTOKEN(stride_y);
-CTOKEN(algo);
-CTOKEN(solution_index);
-#undef CTOKEN
-
+// ArgumentModel template has a variadic list of argument enums
+template <rocblas_argument... Args>
 class ArgumentModel
 {
+    // Whether model has a particular parameter (compile-time)
+    static constexpr bool has(rocblas_argument param)
+    {
+        // TODO: Replace with C++17 fold expression
+        for(auto x : {Args...})
+            if(x == param)
+                return true;
+        return false;
+    }
+
+    template <rocblas_argument>
+    struct apply
+    {
+    };
+
+// Macro defining specializations for specific arguments
+// e_alpha and e_beta get turned into negative sentinel value specializations
+
+// clang-format off
+#define CASE(NAME)                                              \
+    template <>                                                 \
+    struct apply<e_##NAME == e_alpha ? rocblas_argument(-1) :   \
+                 e_##NAME == e_beta  ? rocblas_argument(-2) :   \
+                 e_##NAME>                                      \
+    {                                                           \
+        auto operator()()                                       \
+        {                                                       \
+            return                                              \
+                [](auto&& func, const Arguments& arg, auto)     \
+                {                                               \
+                    func(#NAME, arg.NAME);                      \
+                };                                              \
+        }                                                       \
+    };
+
+    // Go through every argument and define specializations
+    FOR_EACH_ARGUMENT(CASE, )
+#undef CASE
+
+    // Specialization for e_alpha
+    template <>
+    struct apply<e_alpha>
+    {
+        auto operator()()
+        {
+            return
+                [](auto&& func, const Arguments& arg, auto T)
+                {
+                    func("alpha", arg.get_alpha<decltype(T)>());
+                };
+        }
+    };
+
+    // Specialization for e_beta
+    template <>
+    struct apply<e_beta>
+    {
+        auto operator()()
+        {
+            return
+                [](auto&& func, const Arguments& arg, auto T)
+                {
+                    func("beta", arg.get_beta<decltype(T)>());
+                };
+        }
+    };
+    // clang-format on
+
 public:
-    ArgumentModel(const std::vector<arg_type>& params);
-    virtual ~ArgumentModel() {}
-
-    bool hasParam(arg_type a);
-
-    template <typename T>
-    static void print_value(std::ostream& str, const T& x)
+    void log_perf(rocblas_ostream& name_line,
+                  rocblas_ostream& val_line,
+                  const Arguments& arg,
+                  double           gpu_us,
+                  double           gflops,
+                  double           gpu_bytes,
+                  double           cpu_us,
+                  double           norm1,
+                  double           norm2)
     {
-        Arguments::print_value(str, x);
+        constexpr bool has_batch_count = has(e_batch_count);
+        rocblas_int    batch_count     = has_batch_count ? arg.batch_count : 1;
+        rocblas_int    hot_calls       = arg.iters < 1 ? 1 : arg.iters;
+
+        // per/us to per/sec *10^6
+        double rocblas_gflops = gflops * batch_count * hot_calls / gpu_us * 1e6;
+        double cblas_gflops   = gflops * batch_count / cpu_us * 1e6;
+
+        // bytes/us to GB/s = 10^6 * 10^-9 = 10^-3
+        double rocblas_GBps = gpu_bytes * batch_count / gpu_us / 1e3;
+
+        name_line << "rocblas-Gflops,rocblas-GB/s,rocblas-us,";
+        val_line << rocblas_gflops << "," << rocblas_GBps << "," << gpu_us << ",";
+
+        if(arg.unit_check || arg.norm_check)
+        {
+            name_line << "CPU-Gflops,CPU-us,";
+            val_line << cblas_gflops << "," << cpu_us << ",";
+            if(arg.norm_check)
+            {
+                name_line << "norm_error_host_ptr,norm_error_device_ptr,";
+                val_line << norm1 << "," << norm2 << ",";
+            }
+        }
     }
 
-    // Float16 output
-    static void print_value(std::ostream& str, rocblas_half x)
-    {
-        Arguments::print_value(str, double(x));
-    }
-
     template <typename T>
-    void log_args(std::ostream&    str,
-                  const Arguments& args,
+    void log_args(rocblas_ostream& str,
+                  const Arguments& arg,
                   double           gpu_us,
                   double           gflops,
                   double           gpu_bytes = 0,
                   double           cpu_us    = 0,
                   double           norm1     = 0,
-                  double           norm2     = 0);
+                  double           norm2     = 0)
+    {
+        rocblas_ostream name_list;
+        rocblas_ostream value_list;
 
-    virtual void log_perf(std::stringstream& name_str,
-                          std::stringstream& val_str,
-                          const Arguments&   arg,
-                          double             gpu_us,
-                          double             gflops,
-                          double             gpu_bytes,
-                          double             cpu_us,
-                          double             norm1,
-                          double             norm2);
+        // Output (name, value) pairs to name_list and value_list
+        auto print = [&, delim = ""](const char* name, auto&& value) mutable {
+            name_list << delim << name;
+            value_list << delim << value;
+            delim = ",";
+        };
 
-protected:
-    std::vector<arg_type> m_args;
+        // Apply the arguments, calling print on each one
+        // TODO: Replace with C++17 fold comma expression
+        (void)(int[]){(apply<Args>{}()(print, arg, T{}), 0)...};
+
+        if(arg.timing)
+        {
+            log_perf(name_list, value_list, arg, gpu_us, gflops, gpu_bytes, cpu_us, norm1, norm2);
+        }
+
+        str << name_list << "\n" << value_list << std::endl;
+    }
 };
-
-template <typename T>
-void ArgumentModel::log_args(std::ostream&    str,
-                             const Arguments& arg,
-                             double           gpu_us,
-                             double           gflops,
-                             double           gpu_bytes,
-                             double           cpu_us,
-                             double           norm1,
-                             double           norm2)
-{
-    std::stringstream name_list;
-    std::stringstream value_list;
-    const char        delim = ',';
-
-    auto print = [&](const char* const name, auto x) mutable {
-        name_list << name << delim;
-        print_value(value_list, x);
-        value_list << delim;
-    };
-
-#define CASE(x)                  \
-    case(e_##x):                 \
-    {                            \
-        print(c_tok_##x, arg.x); \
-    }                            \
-    break
-
-    for(auto&& i : m_args)
-    {
-        switch(i)
-        {
-        case e_alpha:
-        {
-            T a = arg.get_alpha<T>();
-            print(c_tok_alpha, a);
-        }
-        break;
-        case e_beta:
-        {
-            T b = arg.get_beta<T>();
-            print(c_tok_beta, b);
-        }
-        break;
-
-            CASE(M);
-            CASE(N);
-            CASE(K);
-            CASE(lda);
-            CASE(ldb);
-            CASE(ldc);
-            CASE(ldd);
-            CASE(a_type);
-            CASE(b_type);
-            CASE(c_type);
-            CASE(d_type);
-            CASE(compute_type);
-            CASE(incx);
-            CASE(incy);
-            CASE(incd);
-            CASE(incb);
-            // alpha beta special cased above
-            CASE(transA);
-            CASE(transB);
-            CASE(side);
-            CASE(uplo);
-            CASE(diag);
-            CASE(batch_count);
-            CASE(stride_a);
-            CASE(stride_b);
-            CASE(stride_c);
-            CASE(stride_d);
-            CASE(stride_x);
-            CASE(stride_y);
-            CASE(algo);
-            CASE(solution_index);
-
-            // default:
-            // {
-            //     name_list << "unknown,";
-            //     value_list << "unknown,";
-            // }
-            // break;
-        }
-    }
-
-#undef CASE
-
-    if(arg.timing)
-    {
-        log_perf(name_list, value_list, arg, gpu_us, gflops, gpu_bytes, cpu_us, norm1, norm2);
-    }
-
-    str << name_list.str() << std::endl;
-    str << value_list.str() << std::endl;
-}
-
-#endif
 
 #endif

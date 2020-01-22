@@ -15,6 +15,9 @@
 #include <ostream>
 #include <tuple>
 
+// Predeclare enumerator
+enum rocblas_argument : int;
+
 /***************************************************************************
  *! \brief Class used to parse command arguments in both client & gtest    *
  * WARNING: If this data is changed, then rocblas_common.yaml must also be *
@@ -91,87 +94,79 @@ struct Arguments
     // clang-format off
 
 // Generic macro which operates over the list of arguments in order of declaration
-#define FOR_EACH_ARGUMENT(OPER) \
-    OPER(M),                    \
-    OPER(N),                    \
-    OPER(K),                    \
-    OPER(KL),                   \
-    OPER(KU),                   \
-    OPER(lda),                  \
-    OPER(ldb),                  \
-    OPER(ldc),                  \
-    OPER(ldd),                  \
-    OPER(a_type),               \
-    OPER(b_type),               \
-    OPER(c_type),               \
-    OPER(d_type),               \
-    OPER(compute_type),         \
-    OPER(incx),                 \
-    OPER(incy),                 \
-    OPER(incd),                 \
-    OPER(incb),                 \
-    OPER(alpha),                \
-    OPER(alphai),               \
-    OPER(beta),                 \
-    OPER(betai),                \
-    OPER(transA),               \
-    OPER(transB),               \
-    OPER(side),                 \
-    OPER(uplo),                 \
-    OPER(diag),                 \
-    OPER(batch_count),          \
-    OPER(stride_a),             \
-    OPER(stride_b),             \
-    OPER(stride_c),             \
-    OPER(stride_d),             \
-    OPER(stride_x),             \
-    OPER(stride_y),             \
-    OPER(norm_check),           \
-    OPER(unit_check),           \
-    OPER(timing),               \
-    OPER(iters),                \
-    OPER(algo),                 \
-    OPER(solution_index),       \
-    OPER(flags),                \
-    OPER(function),             \
-    OPER(name),                 \
-    OPER(category),             \
-    OPER(initialization),       \
+#define FOR_EACH_ARGUMENT(OPER, SEP) \
+    OPER(M) SEP                      \
+    OPER(N) SEP                      \
+    OPER(K) SEP                      \
+    OPER(KL) SEP                     \
+    OPER(KU) SEP                     \
+    OPER(lda) SEP                    \
+    OPER(ldb) SEP                    \
+    OPER(ldc) SEP                    \
+    OPER(ldd) SEP                    \
+    OPER(a_type) SEP                 \
+    OPER(b_type) SEP                 \
+    OPER(c_type) SEP                 \
+    OPER(d_type) SEP                 \
+    OPER(compute_type) SEP           \
+    OPER(incx) SEP                   \
+    OPER(incy) SEP                   \
+    OPER(incd) SEP                   \
+    OPER(incb) SEP                   \
+    OPER(alpha) SEP                  \
+    OPER(alphai) SEP                 \
+    OPER(beta) SEP                   \
+    OPER(betai) SEP                  \
+    OPER(transA) SEP                 \
+    OPER(transB) SEP                 \
+    OPER(side) SEP                   \
+    OPER(uplo) SEP                   \
+    OPER(diag) SEP                   \
+    OPER(batch_count) SEP            \
+    OPER(stride_a) SEP               \
+    OPER(stride_b) SEP               \
+    OPER(stride_c) SEP               \
+    OPER(stride_d) SEP               \
+    OPER(stride_x) SEP               \
+    OPER(stride_y) SEP               \
+    OPER(norm_check) SEP             \
+    OPER(unit_check) SEP             \
+    OPER(timing) SEP                 \
+    OPER(iters) SEP                  \
+    OPER(algo) SEP                   \
+    OPER(solution_index) SEP         \
+    OPER(flags) SEP                  \
+    OPER(function) SEP               \
+    OPER(name) SEP                   \
+    OPER(category) SEP               \
+    OPER(initialization) SEP         \
     OPER(known_bug_platforms)
 
-   /**************************************************************
-    * Tuple of argument name, value pairs, preserving references *
-    **************************************************************/
-    #define NAME_VALUE_PAIR(NAME) #NAME, NAME
-    auto as_tuple() const
-    {
-        return std::forward_as_tuple(FOR_EACH_ARGUMENT(NAME_VALUE_PAIR));
-    }
-
-   /***************************************
-    * Map of argument names to offsets    *
-    ***************************************/
-    #define NAME_OFFSET_PAIR(NAME) { #NAME, offsetof(Arguments, NAME) }
-    static const auto& as_map()
-    {
-        // Compute map only once, returning const reference to computed map
-        static const std::map<const char*, size_t> map{FOR_EACH_ARGUMENT(NAME_OFFSET_PAIR)};
-        return map;
-    }
-
-#if 0
-    //TODO: Implement function to get Arguments by name
-    auto&& get(const char* name) &&
-    {
-        auto& map = this->as_map();
-
-    }
-#endif
+#define COMMA_SEPARATOR ,
 
     // clang-format on
 
+    /**************************************************************
+    * Tuple of argument name, value pairs, preserving references *
+    **************************************************************/
+#define NAME_VALUE_PAIR(NAME) #NAME, NAME
+    auto as_tuple() const
+    {
+        return std::forward_as_tuple(FOR_EACH_ARGUMENT(NAME_VALUE_PAIR, COMMA_SEPARATOR));
+    }
+#undef NAME_VALUE_PAIR
+
     // Validate input format.
     static void validate(std::istream& ifs);
+
+    // Function to print Arguments out to stream in YAML format
+    friend rocblas_ostream& operator<<(rocblas_ostream& str, const Arguments& arg);
+
+    // Google Tests uses this with std:ostream automatically to dump parameters
+    friend std::ostream& operator<<(std::ostream& str, const Arguments& arg);
+
+    // Function to read Arguments data from stream
+    friend std::istream& operator>>(std::istream& str, Arguments& arg);
 
     // Convert (alpha, alphai) and (beta, betai) to a particular type
     // Return alpha, beta adjusted to 0 for when they are NaN
@@ -201,15 +196,6 @@ private:
     {
         return T(r, i);
     }
-
-    // Function to print Arguments out to stream in YAML format
-    friend rocblas_ostream& operator<<(rocblas_ostream& str, const Arguments& arg);
-
-    // Google Tests uses this with std:ostream automatically to dump parameters
-    friend std::ostream& operator<<(std::ostream& str, const Arguments& arg);
-
-    // Function to read Structures data from stream
-    friend std::istream& operator>>(std::istream& str, Arguments& arg);
 };
 
 // We make sure that the Arguments struct is C-compatible
@@ -221,6 +207,12 @@ static_assert(std::is_trivial<Arguments>{},
               "Arguments is not a trivial type, and thus is "
               "incompatible with C.");
 
-#undef NAME_VALUE_PAIR
-#undef NAME_OFFSET_PAIR
+// Arguments enumerators
+#define CREATE_ENUM(NAME) e_##NAME
+enum rocblas_argument : int
+{
+    FOR_EACH_ARGUMENT(CREATE_ENUM, COMMA_SEPARATOR)
+};
+#undef CREATE_ENUM
+
 #endif
