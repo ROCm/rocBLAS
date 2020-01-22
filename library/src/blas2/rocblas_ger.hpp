@@ -35,7 +35,7 @@ __global__ void ger_kernel(rocblas_int    m,
         const T* __restrict__ x = load_ptr_batch(xa, hipBlockIdx_z, shiftx, stridex);
         const T* __restrict__ y = load_ptr_batch(ya, hipBlockIdx_z, shifty, stridey);
 
-        A[tx + lda * ty] += alpha * x[tx * incx] * T(CONJ ? conj(y[ty * incy]) : y[ty * incy]);
+        A[tx + lda * ty] += alpha * x[tx * incx] * (CONJ ? conj(y[ty * incy]) : y[ty * incy]);
     }
 }
 
@@ -109,7 +109,7 @@ rocblas_status rocblas_ger_template(rocblas_handle handle,
     dim3 threads(GEMV_DIM_X, GEMV_DIM_Y);
 
     if(handle->pointer_mode == rocblas_pointer_mode_device)
-        hipLaunchKernelGGL(ger_kernel<CONJ, T>,
+        hipLaunchKernelGGL((ger_kernel<CONJ, T>),
                            grid,
                            threads,
                            0,
@@ -131,7 +131,7 @@ rocblas_status rocblas_ger_template(rocblas_handle handle,
                            lda,
                            strideA);
     else
-        hipLaunchKernelGGL(ger_kernel<CONJ, T>,
+        hipLaunchKernelGGL((ger_kernel<CONJ, T>),
                            grid,
                            threads,
                            0,

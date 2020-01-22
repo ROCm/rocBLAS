@@ -258,7 +258,6 @@ constexpr double symv_gflop_count(rocblas_int n)
 template <typename T, bool CONJ>
 constexpr double ger_gflop_count(rocblas_int m, rocblas_int n)
 {
-    // conjugate not counted
     rocblas_int min = (m < n) ? m : n;
     return (2.0 * m * n + min) / 1e9;
 }
@@ -282,17 +281,43 @@ constexpr double spr_gflop_count<rocblas_double_complex>(rocblas_int n)
     return spr_gflop_count<rocblas_float_complex>(n);
 }
 
+template <>
+constexpr double ger_gflop_count<rocblas_float_complex, false>(rocblas_int m, rocblas_int n)
+{
+    // conjugate not counted
+    return 4.0 * ger_gflop_count<float, false>(m, n);
+}
+
+template <>
+constexpr double ger_gflop_count<rocblas_float_complex, true>(rocblas_int m, rocblas_int n)
+{
+
+    return 4.0 * ger_gflop_count<float, false>(m, n) + n; // conjugate +n
+}
+
+template <>
+constexpr double ger_gflop_count<rocblas_double_complex, false>(rocblas_int m, rocblas_int n)
+{
+    return ger_gflop_count<rocblas_float_complex, false>(m, n);
+}
+
+template <>
+constexpr double ger_gflop_count<rocblas_double_complex, true>(rocblas_int m, rocblas_int n)
+{
+    return ger_gflop_count<rocblas_float_complex, true>(m, n);
+}
+
 /* \brief floating point counts of SYR */
 template <typename T>
 constexpr double syr_gflop_count(rocblas_int n)
 {
-    return (n * (n + 1) + n) / 1e9;
+    return (n * (n + 1.0) + n) / 1e9;
 }
 
 template <>
 constexpr double syr_gflop_count<rocblas_float_complex>(rocblas_int n)
 {
-    return 4 * syr_gflop_count<float>(n);
+    return 4.0 * syr_gflop_count<float>(n);
 }
 
 template <>

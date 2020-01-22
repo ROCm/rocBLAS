@@ -5657,7 +5657,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgerc(rocblas_handle                handle
 /*! \brief BLAS Level 2 API
 
     \details
-    xGER.xGERU,xGERC_BATCHED performs a batch of the matrix-vector operations
+    xGER,xGERU,xGERC_BATCHED performs a batch of the matrix-vector operations
 
         A := A + alpha*x*y**T , OR
         A := A + alpha*x*y**H for xGERC
@@ -5807,7 +5807,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgerc_batched(rocblas_handle              
               take care to ensure that stride_x is of appropriate size, for a typical
               case this means stride_x >= m * incx.
     @param[inout]
-    y         device pointer to the first vector (y_0) in the batch.
+    y         device pointer to the first vector (y_1) in the batch.
     @param[in]
     incy      [rocblas_int]
               specifies the increment for the elements of each vector y_i.
