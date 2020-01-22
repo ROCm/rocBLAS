@@ -252,8 +252,8 @@ struct rocblas_test_invalid
 #ifdef GOOGLE_TEST
         FAIL() << msg;
 #else
-        fputs(msg, stderr);
-        abort();
+        write(STDERR_FILENO, msg, sizeof(msg) - 1);
+        rocblas_abort();
 #endif
     }
 };
