@@ -262,6 +262,25 @@ constexpr double ger_gflop_count(rocblas_int m, rocblas_int n)
     return (2.0 * m * n + min) / 1e9;
 }
 
+/* \brief floating point counts of SPR */
+template <typename T>
+constexpr double spr_gflop_count(rocblas_int n)
+{
+    return (double(n) * (n + 1) + n) / 1e9;
+}
+
+template <>
+constexpr double spr_gflop_count<rocblas_float_complex>(rocblas_int n)
+{
+    return double(6.0 * n + 4.0 * n * (n + 1)) / 1e9;
+}
+
+template <>
+constexpr double spr_gflop_count<rocblas_double_complex>(rocblas_int n)
+{
+    return spr_gflop_count<rocblas_float_complex>(n);
+}
+
 /* \brief floating point counts of SYR */
 template <typename T>
 constexpr double syr_gflop_count(rocblas_int n)
