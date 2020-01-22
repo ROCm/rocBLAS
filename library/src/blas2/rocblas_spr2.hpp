@@ -93,7 +93,7 @@ rocblas_status rocblas_spr2_template(rocblas_handle handle,
     dim3 spr2_threads(SPR2_DIM_X, SPR2_DIM_Y);
 
     if(rocblas_pointer_mode_device == handle->pointer_mode)
-        hipLaunchKernelGGL(rocblas_spr2_kernel<SPR2_DIM_X, SPR2_DIM_Y>,
+        hipLaunchKernelGGL((rocblas_spr2_kernel<SPR2_DIM_X, SPR2_DIM_Y>),
                            spr2_grid,
                            spr2_threads,
                            0,
@@ -113,7 +113,7 @@ rocblas_status rocblas_spr2_template(rocblas_handle handle,
                            offset_A,
                            stride_A);
     else
-        hipLaunchKernelGGL(rocblas_spr2_kernel<SPR2_DIM_X, SPR2_DIM_Y>,
+        hipLaunchKernelGGL((rocblas_spr2_kernel<SPR2_DIM_X, SPR2_DIM_Y>),
                            spr2_grid,
                            spr2_threads,
                            0,
