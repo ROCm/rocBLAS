@@ -174,11 +174,14 @@ set( rocblas_blas2_source
   blas2/rocblas_hbmv_batched.cpp
   blas2/rocblas_hbmv_strided_batched.cpp
   blas2/rocblas_hemv.cpp
+  blas2/rocblas_hemv_batched.cpp
+  blas2/rocblas_hemv_strided_batched.cpp
   blas2/rocblas_hpmv.cpp
   blas2/rocblas_hpmv_batched.cpp
   blas2/rocblas_hpmv_strided_batched.cpp
-  blas2/rocblas_hemv_batched.cpp
-  blas2/rocblas_hemv_strided_batched.cpp
+  blas2/rocblas_hpr.cpp
+  blas2/rocblas_hpr_batched.cpp
+  blas2/rocblas_hpr_strided_batched.cpp
   blas2/rocblas_spr.cpp
   blas2/rocblas_spr_batched.cpp
   blas2/rocblas_spr_strided_batched.cpp
