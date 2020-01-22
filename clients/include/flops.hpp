@@ -266,13 +266,13 @@ constexpr double ger_gflop_count(rocblas_int m, rocblas_int n)
 template <typename T>
 constexpr double spr_gflop_count(rocblas_int n)
 {
-    return (n * (n + 1) + n) / 1e9;
+    return (double(n) * (n + 1) + n) / 1e9;
 }
 
 template <>
 constexpr double spr_gflop_count<rocblas_float_complex>(rocblas_int n)
 {
-    return 4 * spr_gflop_count<float>(n);
+    return double(6.0 * n + 4.0 * n * (n + 1)) / 1e9;
 }
 
 template <>

@@ -25,7 +25,7 @@ void testing_spr_batched_bad_arg()
     rocblas_int          batch_count = 2;
     rocblas_local_handle handle;
 
-    size_t size_A = N * (N + 1) / 2;
+    size_t size_A = size_t(N) * (N + 1) / 2;
 
     // allocate memory on device
     device_batch_vector<T> dx(N, incx, batch_count);
@@ -67,7 +67,7 @@ void testing_spr_batched(const Arguments& arg)
         return;
     }
 
-    size_t size_A = N * (N + 1) / 2;
+    size_t size_A = size_t(N) * (N + 1) / 2;
 
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
     host_batch_vector<T> hA_1(size_A, 1, batch_count);
@@ -140,16 +140,17 @@ void testing_spr_batched(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            if(std::is_same<T, float>{} || std::is_same<T, double>{})
-            {
-                unit_check_general<T>(1, size_A, batch_count, 1, hA_gold, hA_1);
-                unit_check_general<T>(1, size_A, batch_count, 1, hA_gold, hA_2);
-            }
-            else
+            if(std::is_same<T, rocblas_float_complex>{}
+               || std::is_same<T, rocblas_double_complex>{})
             {
                 const double tol = N * sum_error_tolerance<T>;
                 near_check_general<T>(1, size_A, batch_count, 1, hA_gold, hA_1, tol);
                 near_check_general<T>(1, size_A, batch_count, 1, hA_gold, hA_2, tol);
+            }
+            else
+            {
+                unit_check_general<T>(1, size_A, batch_count, 1, hA_gold, hA_1);
+                unit_check_general<T>(1, size_A, batch_count, 1, hA_gold, hA_2);
             }
         }
 
@@ -168,14 +169,28 @@ void testing_spr_batched(const Arguments& arg)
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            rocblas_spr_batched<T>(handle, uplo, N, &h_alpha, dx, incx, dA_1, batch_count);
+            rocblas_spr_batched<T>(handle,
+                                   uplo,
+                                   N,
+                                   &h_alpha,
+                                   dx.ptr_on_device(),
+                                   incx,
+                                   dA_1.ptr_on_device(),
+                                   batch_count);
         }
 
         gpu_time_used = get_time_us(); // in microseconds
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            rocblas_spr_batched<T>(handle, uplo, N, &h_alpha, dx, incx, dA_1, batch_count);
+            rocblas_spr_batched<T>(handle,
+                                   uplo,
+                                   N,
+                                   &h_alpha,
+                                   dx.ptr_on_device(),
+                                   incx,
+                                   dA_1.ptr_on_device(),
+                                   batch_count);
         }
 
         gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;

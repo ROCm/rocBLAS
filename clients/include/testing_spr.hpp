@@ -25,8 +25,8 @@ void testing_spr_bad_arg()
     rocblas_local_handle handle;
 
     size_t abs_incx = incx >= 0 ? incx : -incx;
-    size_t size_A   = N * (N + 1) / 2;
-    size_t size_x   = N * abs_incx;
+    size_t size_A   = size_t(N) * (N + 1) / 2;
+    size_t size_x   = size_t(N) * abs_incx;
 
     // allocate memory on device
     device_vector<T> dA_1(size_A);
@@ -63,8 +63,8 @@ void testing_spr(const Arguments& arg)
     }
 
     size_t abs_incx = incx >= 0 ? incx : -incx;
-    size_t size_A   = N * (N + 1) / 2;
-    size_t size_x   = N * abs_incx;
+    size_t size_A   = size_t(N) * (N + 1) / 2;
+    size_t size_x   = size_t(N) * abs_incx;
 
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
     host_vector<T> hA_1(size_A);
@@ -130,16 +130,17 @@ void testing_spr(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            if(std::is_same<T, float>{} || std::is_same<T, double>{})
-            {
-                unit_check_general<T>(1, size_A, 1, hA_gold, hA_1);
-                unit_check_general<T>(1, size_A, 1, hA_gold, hA_2);
-            }
-            else
+            if(std::is_same<T, rocblas_float_complex>{}
+               || std::is_same<T, rocblas_double_complex>{})
             {
                 const double tol = N * sum_error_tolerance<T>;
                 near_check_general<T>(1, size_A, 1, hA_gold, hA_1, tol);
                 near_check_general<T>(1, size_A, 1, hA_gold, hA_2, tol);
+            }
+            else
+            {
+                unit_check_general<T>(1, size_A, 1, hA_gold, hA_1);
+                unit_check_general<T>(1, size_A, 1, hA_gold, hA_2);
             }
         }
 
