@@ -1180,6 +1180,64 @@ inline void cblas_ger(rocblas_int m,
     cblas_dger(CblasColMajor, m, n, alpha, x, incx, y, incy, A, lda);
 }
 
+// spr
+extern "C" {
+void cspr_(char*                  uplo,
+           int*                   n,
+           rocblas_float_complex* alpha,
+           rocblas_float_complex* x,
+           int*                   incx,
+           rocblas_float_complex* A);
+
+void zspr_(char*                   uplo,
+           int*                    n,
+           rocblas_double_complex* alpha,
+           rocblas_double_complex* x,
+           int*                    incx,
+           rocblas_double_complex* A);
+}
+
+template <typename T>
+void cblas_spr(rocblas_fill uplo, rocblas_int n, T alpha, T* x, rocblas_int incx, T* A);
+
+template <>
+inline void
+    cblas_spr(rocblas_fill uplo, rocblas_int n, float alpha, float* x, rocblas_int incx, float* A)
+{
+    cblas_sspr(CblasColMajor, CBLAS_UPLO(uplo), n, alpha, x, incx, A);
+}
+
+template <>
+inline void cblas_spr(
+    rocblas_fill uplo, rocblas_int n, double alpha, double* x, rocblas_int incx, double* A)
+{
+    cblas_dspr(CblasColMajor, CBLAS_UPLO(uplo), n, alpha, x, incx, A);
+}
+
+template <>
+inline void cblas_spr(rocblas_fill           uplo,
+                      rocblas_int            n,
+                      rocblas_float_complex  alpha,
+                      rocblas_float_complex* x,
+                      rocblas_int            incx,
+                      rocblas_float_complex* A)
+{
+    char u = uplo == rocblas_fill_upper ? 'U' : 'L';
+    cspr_(&u, &n, &alpha, x, &incx, A);
+}
+
+template <>
+inline void cblas_spr(rocblas_fill            uplo,
+                      rocblas_int             n,
+                      rocblas_double_complex  alpha,
+                      rocblas_double_complex* x,
+                      rocblas_int             incx,
+                      rocblas_double_complex* A)
+{
+    char u = uplo == rocblas_fill_upper ? 'U' : 'L';
+    zspr_(&u, &n, &alpha, x, &incx, A);
+}
+
 // syr
 
 template <typename T>
