@@ -36,6 +36,9 @@ void testing_hpr_bad_arg()
     CHECK_HIP_ERROR(dA_1.memcheck());
     CHECK_HIP_ERROR(dx.memcheck());
 
+    EXPECT_ROCBLAS_STATUS((rocblas_hpr<T, U>)(handle, rocblas_fill_full, N, &alpha, dx, incx, dA_1),
+                          rocblas_status_invalid_value);
+
     EXPECT_ROCBLAS_STATUS((rocblas_hpr<T, U>)(handle, uplo, N, &alpha, nullptr, incx, dA_1),
                           rocblas_status_invalid_pointer);
 

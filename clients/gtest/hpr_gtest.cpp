@@ -64,8 +64,9 @@ namespace
             }
             else
             {
-                name << '_' << (char)std::toupper(arg.uplo) << '_' << arg.N << '_' << arg.alpha
-                     << '_' << arg.incx;
+                // For alpha: T doesn't really matter here, just whether it's real or complex, in hpr's case it's always complex.
+                name << '_' << (char)std::toupper(arg.uplo) << '_' << arg.N << '_'
+                     << arg.get_alpha<rocblas_double_complex>() << '_' << arg.incx;
 
                 if(HPR_TYPE == HPR_STRIDED_BATCHED)
                     name << '_' << arg.stride_x;
