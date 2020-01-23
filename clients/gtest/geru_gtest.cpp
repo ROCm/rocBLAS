@@ -63,7 +63,8 @@ namespace
             }
             else
             {
-                name << '_' << arg.M << '_' << arg.N << '_' << arg.alpha << '_' << arg.incx;
+                name << '_' << arg.M << '_' << arg.N << '_' << arg.alpha << 'r' << arg.alphai << 'i'
+                     << '_' << arg.incx;
 
                 if(GERU_TYPE == GERU_STRIDED_BATCHED)
                     name << '_' << arg.stride_x;
