@@ -4439,7 +4439,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zhpr_batched(rocblas_handle               
 /*! \brief BLAS Level 2 API
 
     \details
-    xSPR_STRIDED_BATCHED performs the matrix-vector operations
+    xHPR_STRIDED_BATCHED performs the matrix-vector operations
 
         A_i := A_i + alpha*x_i*x_i**T
 
