@@ -156,18 +156,9 @@ void testing_hpr_batched(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            if(std::is_same<T, rocblas_float_complex>{}
-               || std::is_same<T, rocblas_double_complex>{})
-            {
-                const double tol = N * sum_error_tolerance<T>;
-                near_check_general<T>(1, size_A, batch_count, 1, hA_gold, hA_1, tol);
-                near_check_general<T>(1, size_A, batch_count, 1, hA_gold, hA_2, tol);
-            }
-            else
-            {
-                unit_check_general<T>(1, size_A, batch_count, 1, hA_gold, hA_1);
-                unit_check_general<T>(1, size_A, batch_count, 1, hA_gold, hA_2);
-            }
+            const double tol = N * sum_error_tolerance<T>;
+            near_check_general<T>(1, size_A, batch_count, 1, hA_gold, hA_1, tol);
+            near_check_general<T>(1, size_A, batch_count, 1, hA_gold, hA_2, tol);
         }
 
         if(arg.norm_check)

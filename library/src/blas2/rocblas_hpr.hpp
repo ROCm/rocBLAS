@@ -17,7 +17,11 @@ __device__ void
     if(upper ? ty < n && tx < ty : tx < n && ty < tx)
         AP[index] += alpha * x[tx * incx] * conj(x[ty * incx]);
     else if(tx == ty && tx < n)
-        AP[index] = std::real(AP[index]) + alpha * x[tx * incx] * conj(x[ty * incx]);
+    {
+        T x_real  = std::real(x[tx * incx]);
+        T x_imag  = std::imag(x[tx * incx]);
+        AP[index] = std::real(AP[index]) + alpha * ((x_real * x_real) + (x_imag * x_imag));
+    }
 }
 
 template <rocblas_int DIM_X, rocblas_int DIM_Y, typename TScal, typename TConstPtr, typename TPtr>
@@ -42,6 +46,7 @@ __global__ void rocblas_hpr_kernel(bool           upper,
 
     if(!alpha)
         return;
+
     hpr_kernel_calc(upper, n, alpha, x, incx, AP);
 }
 
@@ -73,17 +78,17 @@ rocblas_status rocblas_hpr_template(rocblas_handle handle,
     // in case of negative inc, shift pointer to end of data for negative indexing tid*inc
     ptrdiff_t shift_x = incx < 0 ? offset_x - ptrdiff_t(incx) * (n - 1) : offset_x;
 
-    static constexpr int hpr_DIM_X = 128;
-    static constexpr int hpr_DIM_Y = 8;
-    rocblas_int          blocksX   = (n - 1) / hpr_DIM_X + 1;
-    rocblas_int          blocksY   = (n - 1) / hpr_DIM_Y + 1;
+    static constexpr int HPR_DIM_X = 128;
+    static constexpr int HPR_DIM_Y = 8;
+    rocblas_int          blocksX   = (n - 1) / HPR_DIM_X + 1;
+    rocblas_int          blocksY   = (n - 1) / HPR_DIM_Y + 1;
 
     dim3 hpr_grid(blocksX, blocksY, batch_count);
-    dim3 hpr_threads(hpr_DIM_X, hpr_DIM_Y);
+    dim3 hpr_threads(HPR_DIM_X, HPR_DIM_Y);
 
     if(rocblas_pointer_mode_device == handle->pointer_mode)
     {
-        hipLaunchKernelGGL((rocblas_hpr_kernel<hpr_DIM_X, hpr_DIM_Y>),
+        hipLaunchKernelGGL((rocblas_hpr_kernel<HPR_DIM_X, HPR_DIM_Y>),
                            hpr_grid,
                            hpr_threads,
                            0,
@@ -100,11 +105,7 @@ rocblas_status rocblas_hpr_template(rocblas_handle handle,
                            stride_A);
     }
     else
-    {
-        if(!(*alpha))
-            return rocblas_status_success;
-
-        hipLaunchKernelGGL((rocblas_hpr_kernel<hpr_DIM_X, hpr_DIM_Y>),
+        hipLaunchKernelGGL((rocblas_hpr_kernel<HPR_DIM_X, HPR_DIM_Y>),
                            hpr_grid,
                            hpr_threads,
                            0,
@@ -119,7 +120,6 @@ rocblas_status rocblas_hpr_template(rocblas_handle handle,
                            AP,
                            offset_A,
                            stride_A);
-    }
 
     return rocblas_status_success;
 }

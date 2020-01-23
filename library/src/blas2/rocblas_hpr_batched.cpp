@@ -10,10 +10,6 @@ namespace
     template <typename>
     constexpr char rocblas_hpr_batched_name[] = "unknown";
     template <>
-    constexpr char rocblas_hpr_batched_name<float>[] = "rocblas_shpr_batched";
-    template <>
-    constexpr char rocblas_hpr_batched_name<double>[] = "rocblas_dhpr_batched";
-    template <>
     constexpr char rocblas_hpr_batched_name<rocblas_float_complex>[] = "rocblas_chpr_batched";
     template <>
     constexpr char rocblas_hpr_batched_name<rocblas_double_complex>[] = "rocblas_zhpr_batched";
