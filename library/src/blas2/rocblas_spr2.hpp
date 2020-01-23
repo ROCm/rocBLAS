@@ -49,6 +49,9 @@ __global__ void rocblas_spr2_kernel(bool           upper,
     const auto* y     = load_ptr_batch(ya, hipBlockIdx_z, shift_y, stride_y);
     auto        alpha = load_scalar(alphaa);
 
+    if(!alpha)
+        return;
+
     spr2_kernel_calc(upper, n, alpha, x, incx, y, incy, AP);
 }
 
