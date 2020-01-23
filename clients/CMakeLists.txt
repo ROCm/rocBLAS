@@ -106,6 +106,7 @@ function(rocm_create_package_clients)
 
     add_custom_target(package_clients
         COMMAND ${CMAKE_COMMAND} -E remove -f "${PROJECT_BINARY_DIR}/package/${CMAKE_INSTALL_PREFIX}/${PARSE_LIB_NAME}/bin/*"
+        COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_SOURCE_DIR}/build/deps/blis" "${PROJECT_BINARY_DIR}/package/${CMAKE_INSTALL_PREFIX}/${PARSE_LIB_NAME}/lib"
         COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_BINARY_DIR}/staging/*" "${PROJECT_BINARY_DIR}/package/${CMAKE_INSTALL_PREFIX}/${PARSE_LIB_NAME}/bin"
         COMMAND dpkg -b "${PROJECT_BINARY_DIR}/package/"  ${PACKAGE_NAME})
 endfunction(rocm_create_package_clients)

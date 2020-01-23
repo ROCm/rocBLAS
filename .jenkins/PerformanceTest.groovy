@@ -69,8 +69,15 @@ rocBLASCI:
                         export PATH=/opt/asy/bin:${PATH}
                         pushd scripts/performance/blas/
                         python alltime.py -A \$workingdir/build/release/clients/staging -o \$workingdir/perfoutput -i perf.yaml -S 0 -g 0 -d \$devicenum
-                        echo "Uploading Data..."
+                        if [ $? = 0 ]
+                        then
+                            echo "Uploading Data..."
                         python uploadData.py -a ${gpuLabel} -f \$workingdir/perfoutput
+                        else
+                            echo "Performance script failed"
+                            exit 1
+                        fi
+
                         popd
 
                         ls \$workingdir/perfoutput

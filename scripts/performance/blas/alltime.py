@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 
 import sys, getopt
 sys.path.append('../../../clients/common/')
@@ -206,6 +206,7 @@ class rundata:
         rc = proc.returncode
         if rc != 0:
             print("****fail****")
+            sys.exit(1)
         return rc
 
 class yamldata:
