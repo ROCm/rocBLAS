@@ -10,10 +10,6 @@ namespace
     template <typename>
     constexpr char rocblas_hpr_strided_batched_name[] = "unknown";
     template <>
-    constexpr char rocblas_hpr_strided_batched_name<float>[] = "rocblas_shpr_strided_batched";
-    template <>
-    constexpr char rocblas_hpr_strided_batched_name<double>[] = "rocblas_dhpr_strided_batched";
-    template <>
     constexpr char rocblas_hpr_strided_batched_name<rocblas_float_complex>[]
         = "rocblas_chpr_strided_batched";
     template <>
@@ -34,9 +30,12 @@ namespace
     {
         if(!handle)
             return rocblas_status_invalid_handle;
+
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
+
         if(!alpha)
             return rocblas_status_invalid_pointer;
+
         auto layer_mode = handle->layer_mode;
         if(layer_mode
            & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench

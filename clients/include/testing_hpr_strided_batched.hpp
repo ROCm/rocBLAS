@@ -93,8 +93,6 @@ void testing_hpr_strided_batched(const Arguments& arg)
     // argument check before allocating invalid memory
     if(N <= 0 || !incx || batch_count <= 0)
     {
-        static constexpr size_t safe_size = 100; // arbitrarily set to 100
-
         EXPECT_ROCBLAS_STATUS((rocblas_hpr_strided_batched<T, U>)(handle,
                                                                   uplo,
                                                                   N,
@@ -196,19 +194,9 @@ void testing_hpr_strided_batched(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            if(std::is_same<T, rocblas_float_complex>{}
-               || std::is_same<T, rocblas_double_complex>{})
-            {
-                const double tol = N * sum_error_tolerance<T>;
-                near_check_general<T>(1, size_A, batch_count, 1, stride_A, hA_gold, hA_1, tol);
-                near_check_general<T>(1, size_A, batch_count, 1, stride_A, hA_gold, hA_2, tol);
-            }
-            else
-            {
-                assert(false);
-                unit_check_general<T>(1, size_A, batch_count, 1, stride_A, hA_gold, hA_1);
-                unit_check_general<T>(1, size_A, batch_count, 1, stride_A, hA_gold, hA_2);
-            }
+            const double tol = N * sum_error_tolerance<T>;
+            near_check_general<T>(1, size_A, batch_count, 1, stride_A, hA_gold, hA_1, tol);
+            near_check_general<T>(1, size_A, batch_count, 1, stride_A, hA_gold, hA_2, tol);
         }
 
         if(arg.norm_check)
