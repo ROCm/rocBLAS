@@ -69,16 +69,11 @@ void testing_hpr_batched(const Arguments& arg)
     // argument check before allocating invalid memory
     if(N <= 0 || !incx || batch_count <= 0)
     {
-        EXPECT_ROCBLAS_STATUS((rocblas_hpr_batched<T, U>)(handle,
-                                                          uplo,
-                                                          N,
-                                                          &h_alpha,
-                                                          nullptr,
-                                                          incx,
-                                                          nullptr,
-                                                          batch_count),
-                              N < 0 || !incx || batch_count < 0 ? rocblas_status_invalid_size
-                                                                : rocblas_status_success);
+        EXPECT_ROCBLAS_STATUS(
+            (rocblas_hpr_batched<T,
+                                 U>)(handle, uplo, N, nullptr, nullptr, incx, nullptr, batch_count),
+            N < 0 || !incx || batch_count < 0 ? rocblas_status_invalid_size
+                                              : rocblas_status_success);
         return;
     }
 

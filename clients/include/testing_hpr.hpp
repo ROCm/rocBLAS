@@ -63,9 +63,8 @@ void testing_hpr(const Arguments& arg)
     // argument check before allocating invalid memory
     if(N < 0 || !incx)
     {
-        EXPECT_ROCBLAS_STATUS(
-            (rocblas_hpr<T, U>)(handle, uplo, N, &h_alpha, nullptr, incx, nullptr),
-            rocblas_status_invalid_size);
+        EXPECT_ROCBLAS_STATUS((rocblas_hpr<T, U>)(handle, uplo, N, nullptr, nullptr, incx, nullptr),
+                              rocblas_status_invalid_size);
 
         return;
     }

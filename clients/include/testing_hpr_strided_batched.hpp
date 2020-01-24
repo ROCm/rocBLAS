@@ -108,7 +108,7 @@ void testing_hpr_strided_batched(const Arguments& arg)
         EXPECT_ROCBLAS_STATUS((rocblas_hpr_strided_batched<T, U>)(handle,
                                                                   uplo,
                                                                   N,
-                                                                  &h_alpha,
+                                                                  nullptr,
                                                                   nullptr,
                                                                   incx,
                                                                   stride_x,
