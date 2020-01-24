@@ -66,7 +66,7 @@ rocBLASCI:
                         devicenum=\$(echo \$devicename | sed 's/.*\\([0-9]\\).*/\\1/')
                         echo \$devicenum
                         echo ${gpuLabel}
-                        export PATH=/opt/asy/bin:${PATH}
+                        export PATH=/opt/asy/bin:\${PATH}
                         pushd scripts/performance/blas/
                         python alltime.py -A \$workingdir/build/release/clients/staging -o \$workingdir/perfoutput -i perf.yaml -S 0 -g 0 -d \$devicenum
                         if [ $? = 0 ]
