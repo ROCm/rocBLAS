@@ -343,6 +343,23 @@ __device__ __host__ inline rocblas_half rocblas_abs(rocblas_half x)
     return t.x;
 }
 
+template <typename>
+struct rocblas_real_type
+{
+};
+
+template <>
+struct rocblas_real_type<rocblas_float_complex>
+{
+    using type = float;
+};
+
+template <>
+struct rocblas_real_type<rocblas_double_complex>
+{
+    using type = double;
+};
+
 // Output rocblas_half value
 inline std::ostream& operator<<(std::ostream& os, rocblas_half x)
 {
