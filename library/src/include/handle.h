@@ -23,18 +23,6 @@
  ******************************************************************************/
 struct _rocblas_handle
 {
-private:
-    // Emulate C++17 std::conjunction
-    template <class...>
-    struct conjunction : std::true_type
-    {
-    };
-    template <class T, class... Ts>
-    struct conjunction<T, Ts...> : std::integral_constant<bool, T{} && conjunction<Ts...>{}>
-    {
-    };
-
-public:
 #ifdef USE_TENSILE_HOST
     struct TensileHost* host = nullptr;
 #endif
@@ -108,18 +96,15 @@ public:
     // Maximum size is accumulated in device_memory_query_size
     // Returns rocblas_status_size_increased or rocblas_status_size_unchanged
     template <typename... Ss,
-              typename = std::enable_if_t<sizeof...(Ss)
-                                          && conjunction<std::is_constructible<size_t, Ss>...>{}>>
+              typename = std::enable_if_t<
+                  sizeof...(Ss) && std::conjunction<std::is_constructible<size_t, Ss>...>{}>>
     rocblas_status set_optimal_device_memory_size(Ss... sizes)
     {
         if(!device_memory_size_query)
             return rocblas_status_internal_error;
 
         // Compute the total size, rounding up each size to multiples of MIN_CHUNK_SIZE
-        // TODO: Replace with C++17 fold expression
-        // size_t total = (0 + ... + roundup_device_memory_size(size_t(sizes)));
-        size_t total = 0;
-        (void)(size_t[]){total += roundup_device_memory_size(size_t(sizes))...};
+        size_t total = (0 + ... + roundup_device_memory_size(size_t(sizes)));
 
         if(total > device_memory_query_size)
         {
@@ -130,9 +115,10 @@ public:
     }
 
     // Allocate one or more sizes
-    template <typename... Ss,
-              std::enable_if_t<sizeof...(Ss) && conjunction<std::is_constructible<size_t, Ss>...>{},
-                               int> = 0>
+    template <
+        typename... Ss,
+        std::enable_if_t<sizeof...(Ss) && std::conjunction<std::is_constructible<size_t, Ss>...>{},
+                         int> = 0>
     auto device_malloc(Ss... sizes)
     {
         return _device_malloc<sizeof...(Ss)>(this, size_t(sizes)...);
@@ -264,9 +250,9 @@ private:
     static int get_device_arch_id()
     {
         int deviceId;
-        hipGetDevice(&deviceId);
+        (void)hipGetDevice(&deviceId);
         hipDeviceProp_t deviceProperties;
-        hipGetDeviceProperties(&deviceProperties, deviceId);
+        (void)hipGetDeviceProperties(&deviceProperties, deviceId);
         return deviceProperties.gcnArch;
     }
 

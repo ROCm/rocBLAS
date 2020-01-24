@@ -231,8 +231,6 @@ rocblas_ostream*      _rocblas_handle::log_trace_os;
 rocblas_ostream*      _rocblas_handle::log_bench_os;
 rocblas_ostream*      _rocblas_handle::log_profile_os;
 _rocblas_handle::init _rocblas_handle::handle_init;
-constexpr size_t      _rocblas_handle::DEFAULT_DEVICE_MEMORY_SIZE; // Not needed in C++17
-constexpr size_t      _rocblas_handle::MIN_CHUNK_SIZE; // Not needed in C++17
 
 /**
  *  @brief Logging function
