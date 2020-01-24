@@ -62,6 +62,9 @@
 #include "testing_hpmv_batched.hpp"
 #include "testing_hpmv_strided_batched.hpp"
 #include "testing_spr.hpp"
+#include "testing_spr2.hpp"
+#include "testing_spr2_batched.hpp"
+#include "testing_spr2_strided_batched.hpp"
 #include "testing_spr_batched.hpp"
 #include "testing_spr_strided_batched.hpp"
 #include "testing_syr.hpp"
@@ -238,6 +241,9 @@ struct perf_blas<T, U, std::enable_if_t<std::is_same<T, float>{} || std::is_same
                 {"spr", testing_spr<T>},
                 {"spr_batched", testing_spr_batched<T>},
                 {"spr_strided_batched", testing_spr_strided_batched<T>},
+                {"spr2", testing_spr2<T>},
+                {"spr2_batched", testing_spr2_batched<T>},
+                {"spr2_strided_batched", testing_spr2_strided_batched<T>},
                 {"ger", testing_ger<T, false>},
                 {"ger_batched", testing_ger_batched<T, false>},
                 {"ger_strided_batched", testing_ger_strided_batched<T, false>},

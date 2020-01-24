@@ -1238,6 +1238,43 @@ inline void cblas_spr(rocblas_fill            uplo,
     zspr_(&u, &n, &alpha, x, &incx, A);
 }
 
+// spr2
+template <typename T>
+void cblas_spr2(rocblas_fill uplo,
+                rocblas_int  n,
+                T            alpha,
+                T*           x,
+                rocblas_int  incx,
+                T*           y,
+                rocblas_int  incy,
+                T*           A);
+
+template <>
+inline void cblas_spr2(rocblas_fill uplo,
+                       rocblas_int  n,
+                       float        alpha,
+                       float*       x,
+                       rocblas_int  incx,
+                       float*       y,
+                       rocblas_int  incy,
+                       float*       A)
+{
+    cblas_sspr2(CblasColMajor, CBLAS_UPLO(uplo), n, alpha, x, incx, y, incy, A);
+}
+
+template <>
+inline void cblas_spr2(rocblas_fill uplo,
+                       rocblas_int  n,
+                       double       alpha,
+                       double*      x,
+                       rocblas_int  incx,
+                       double*      y,
+                       rocblas_int  incy,
+                       double*      A)
+{
+    cblas_dspr2(CblasColMajor, CBLAS_UPLO(uplo), n, alpha, x, incx, y, incy, A);
+}
+
 // ger,geru,gerc
 template <>
 inline void cblas_ger<rocblas_float_complex, false>(rocblas_int            m,
@@ -1296,7 +1333,6 @@ inline void cblas_ger<rocblas_double_complex, true>(rocblas_int             m,
 }
 
 // syr
-
 template <typename T>
 inline void cblas_syr(
     rocblas_fill uplo, rocblas_int n, T alpha, T* xa, rocblas_int incx, T* A, rocblas_int lda);

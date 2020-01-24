@@ -79,6 +79,7 @@ set(rocblas_no_tensile_test_source
     geru_gtest.cpp
     gerc_gtest.cpp
     spr_gtest.cpp
+    spr2_gtest.cpp
     syr_gtest.cpp
     symv_gtest.cpp
     )
@@ -201,7 +202,7 @@ endif( )
 set( ROCBLAS_TEST_DATA "${PROJECT_BINARY_DIR}/staging/rocblas_gtest.data")
 add_custom_command( OUTPUT "${ROCBLAS_TEST_DATA}"
                     COMMAND ../common/rocblas_gentest.py -I ../include rocblas_gtest.yaml -o "${ROCBLAS_TEST_DATA}"
-                    DEPENDS ../common/rocblas_gentest.py ../include/rocblas_common.yaml *.yaml 
+                    DEPENDS ../common/rocblas_gentest.py ../include/rocblas_common.yaml *.yaml
                     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" )
 add_custom_target( rocblas-test-data
                    DEPENDS "${ROCBLAS_TEST_DATA}" )

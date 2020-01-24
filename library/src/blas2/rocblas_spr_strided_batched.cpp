@@ -34,9 +34,9 @@ namespace
     {
         if(!handle)
             return rocblas_status_invalid_handle;
+
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
-        if(!alpha)
-            return rocblas_status_invalid_pointer;
+
         auto layer_mode = handle->layer_mode;
         if(layer_mode
            & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
@@ -110,12 +110,12 @@ namespace
         }
 
         if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
-            return rocblas_status_not_implemented;
+            return rocblas_status_invalid_value;
         if(n < 0 || !incx || batch_count < 0)
             return rocblas_status_invalid_size;
         if(!n || !batch_count)
             return rocblas_status_success;
-        if(!x || !AP)
+        if(!x || !AP || !alpha)
             return rocblas_status_invalid_pointer;
 
         static constexpr rocblas_int offset_x = 0, offset_A = 0;
