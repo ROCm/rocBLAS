@@ -163,7 +163,7 @@ void testing_logging()
         rocblas_swap<T>(handle, n, dx, incx, dy, incy);
 
         // BLAS2
-        rocblas_ger<T>(handle, m, n, &alpha, dx, incx, dy, incy, da, lda);
+        rocblas_ger<T, false>(handle, m, n, &alpha, dx, incx, dy, incy, da, lda);
 
         rocblas_syr<T>(handle, uplo, n, &alpha, dx, incx, da, lda);
 
