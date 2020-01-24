@@ -288,14 +288,6 @@ constexpr double sbmv_gflop_count(rocblas_int n, rocblas_int k)
     return (2.0 * ((2.0 * k1 + 1) * n - k1 * (k1 + 1)) + 2.0 * n) / 1e9;
 }
 
-/* \brief floating point counts of GER */
-template <typename T, bool CONJ>
-constexpr double ger_gflop_count(rocblas_int m, rocblas_int n)
-{
-    rocblas_int min = (m < n) ? m : n;
-    return (2.0 * m * n + min) / 1e9;
-}
-
 /* \brief floating point counts of SPR */
 template <typename T>
 constexpr double spr_gflop_count(rocblas_int n)
