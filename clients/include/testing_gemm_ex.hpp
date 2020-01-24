@@ -417,7 +417,7 @@ void testing_gemm_ex(const Arguments& arg)
         rocblas_init<To>(hC, M, N, ldc);
     rocblas_init<To>(hD_1, M, N, ldd);
 
-    if(std::is_same<To, rocblas_half>{} && std::is_same<Tc, float>{})
+    if constexpr(std::is_same<To, rocblas_half>{} && std::is_same<Tc, float>{})
     {
         // half precision IEEE has max and lowest values 65504 and -65504,
         // float precision IEEE has max and lowest values 3.403e+38 and -3.403e+38
@@ -445,7 +445,7 @@ void testing_gemm_ex(const Arguments& arg)
             hB[ldb + 1] = Ti(positive_two);
         }
     }
-    else if(std::is_same<Ti, rocblas_bfloat16>{} && std::is_same<Tc, float>{})
+    else if constexpr(std::is_same<Ti, rocblas_bfloat16>{} && std::is_same<Tc, float>{})
     {
         // half precision IEEE has max and lowest values 65504 and -65504,
         // float precision IEEE has max and lowest values 3.403e+38 and -3.403e+38

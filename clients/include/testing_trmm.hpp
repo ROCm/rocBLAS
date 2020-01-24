@@ -20,8 +20,8 @@ template <typename T>
 void testing_trmm(const Arguments& arg)
 {
     bool nantest = rocblas_isnan(arg.alpha) || rocblas_isnan(arg.alphai);
-    if(!std::is_same<T, float>{} && !std::is_same<T, double>{} && !std::is_same<T, rocblas_half>{}
-       && !is_complex<T> && nantest)
+    if constexpr(!std::is_same<T, float>{} && !std::is_same<T, double>{}
+                 && !std::is_same<T, rocblas_half>{} && !is_complex<T> && nantest)
         return; // Exclude integers or other types which don't support NaN
 
     rocblas_int M   = arg.M;
