@@ -142,19 +142,7 @@ struct Arguments
     OPER(initialization) SEP         \
     OPER(known_bug_platforms)
 
-#define COMMA_SEPARATOR ,
-
     // clang-format on
-
-    /**************************************************************
-    * Tuple of argument name, value pairs, preserving references *
-    **************************************************************/
-#define NAME_VALUE_PAIR(NAME) #NAME, NAME
-    auto as_tuple() const
-    {
-        return std::forward_as_tuple(FOR_EACH_ARGUMENT(NAME_VALUE_PAIR, COMMA_SEPARATOR));
-    }
-#undef NAME_VALUE_PAIR
 
     // Validate input format.
     static void validate(std::istream& ifs);
@@ -209,10 +197,42 @@ static_assert(std::is_trivial<Arguments>{},
 
 // Arguments enumerators
 #define CREATE_ENUM(NAME) e_##NAME
+#define COMMA_SEPARATOR ,
 enum rocblas_argument : int
 {
     FOR_EACH_ARGUMENT(CREATE_ENUM, COMMA_SEPARATOR)
 };
 #undef CREATE_ENUM
+#undef COMMA_SEPARATOR
+
+struct ArgumentsHelper
+{
+    template <rocblas_argument>
+    static constexpr auto apply = nullptr;
+
+    // Macro defining specializations for specific arguments
+    // e_alpha and e_beta get turned into negative sentinel value specializations
+#define APPLY(NAME)                                                                         \
+    template <>                                                                             \
+    static constexpr auto                                                                   \
+        apply<e_##NAME == e_alpha ? rocblas_argument(-1)                                    \
+                                  : e_##NAME == e_beta ? rocblas_argument(-2) : e_##NAME> = \
+            [](auto&& func, const Arguments& arg, auto) { func(#NAME, arg.NAME); }
+
+    // Specialize apply for each Argument
+    FOR_EACH_ARGUMENT(APPLY, ;);
+
+    // Specialization for e_alpha
+    template <>
+    static constexpr auto apply<e_alpha> = [](auto&& func, const Arguments& arg, auto T) {
+        func("alpha", arg.get_alpha<decltype(T)>());
+    };
+
+    // Specialization for e_beta
+    template <>
+    static constexpr auto apply<e_beta> = [](auto&& func, const Arguments& arg, auto T) {
+        func("beta", arg.get_beta<decltype(T)>());
+    };
+};
 
 #endif

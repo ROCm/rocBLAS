@@ -299,14 +299,15 @@ namespace
             if(ldc == m)
             {
                 // one call to hipMemset because matrix C is coniguous
-                hipMemset(C, 0, sizeof(T) * m * n); //  unit-test-covered
+                RETURN_IF_HIP_ERROR(hipMemset(C, 0, sizeof(T) * m * n)); //  unit-test-covered
             }
             else
             {
                 // n calls to hipMemset because matrix C is coniguous
                 // note that matrix C is always normal (not transpose)
                 for(int i = 0; i < n; i++)
-                    hipMemset(&C[i * ldc], 0, sizeof(T) * m); //  unit-test-covered
+                    RETURN_IF_HIP_ERROR(
+                        hipMemset(&C[i * ldc], 0, sizeof(T) * m)); //  unit-test-covered
             }
         }
         else if(C == A)

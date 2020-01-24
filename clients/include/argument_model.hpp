@@ -11,74 +11,6 @@
 template <rocblas_argument... Args>
 class ArgumentModel
 {
-    // Whether model has a particular parameter (compile-time)
-    static constexpr bool has(rocblas_argument param)
-    {
-        // TODO: Replace with C++17 fold expression
-        for(auto x : {Args...})
-            if(x == param)
-                return true;
-        return false;
-    }
-
-    template <rocblas_argument>
-    struct apply
-    {
-    };
-
-// Macro defining specializations for specific arguments
-// e_alpha and e_beta get turned into negative sentinel value specializations
-
-// clang-format off
-#define CASE(NAME)                                              \
-    template <>                                                 \
-    struct apply<e_##NAME == e_alpha ? rocblas_argument(-1) :   \
-                 e_##NAME == e_beta  ? rocblas_argument(-2) :   \
-                 e_##NAME>                                      \
-    {                                                           \
-        auto operator()()                                       \
-        {                                                       \
-            return                                              \
-                [](auto&& func, const Arguments& arg, auto)     \
-                {                                               \
-                    func(#NAME, arg.NAME);                      \
-                };                                              \
-        }                                                       \
-    };
-
-    // Go through every argument and define specializations
-    FOR_EACH_ARGUMENT(CASE, )
-#undef CASE
-
-    // Specialization for e_alpha
-    template <>
-    struct apply<e_alpha>
-    {
-        auto operator()()
-        {
-            return
-                [](auto&& func, const Arguments& arg, auto T)
-                {
-                    func("alpha", arg.get_alpha<decltype(T)>());
-                };
-        }
-    };
-
-    // Specialization for e_beta
-    template <>
-    struct apply<e_beta>
-    {
-        auto operator()()
-        {
-            return
-                [](auto&& func, const Arguments& arg, auto T)
-                {
-                    func("beta", arg.get_beta<decltype(T)>());
-                };
-        }
-    };
-    // clang-format on
-
 public:
     void log_perf(rocblas_ostream& name_line,
                   rocblas_ostream& val_line,
@@ -90,7 +22,7 @@ public:
                   double           norm1,
                   double           norm2)
     {
-        constexpr bool has_batch_count = has(e_batch_count);
+        constexpr bool has_batch_count = ((Args == e_batch_count) || ...);
         rocblas_int    batch_count     = has_batch_count ? arg.batch_count : 1;
         rocblas_int    hot_calls       = arg.iters < 1 ? 1 : arg.iters;
 
@@ -137,13 +69,10 @@ public:
         };
 
         // Apply the arguments, calling print on each one
-        // TODO: Replace with C++17 fold comma expression
-        (void)(int[]){(apply<Args>{}()(print, arg, T{}), 0)...};
+        (ArgumentsHelper::apply<Args>(print, arg, T{}), ...);
 
         if(arg.timing)
-        {
             log_perf(name_list, value_list, arg, gpu_us, gflops, gpu_bytes, cpu_us, norm1, norm2);
-        }
 
         str << name_list << "\n" << value_list << std::endl;
     }

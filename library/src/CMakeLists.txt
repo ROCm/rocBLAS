@@ -261,7 +261,7 @@ else()
 target_link_libraries( rocblas PRIVATE hip::hip_hcc hip::hip_device hcc::hccshared )
 endif()
 
-set_target_properties( rocblas PROPERTIES CXX_STANDARD 14 CXX_STANDARD_REQUIRED ON )
+set_target_properties( rocblas PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON )
 
 if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
   # Remove following when hcc is fixed; hcc emits following spurious warning ROCm v1.6.1

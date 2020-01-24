@@ -11,7 +11,23 @@
 // Function to print Arguments out to stream in YAML format
 rocblas_ostream& operator<<(rocblas_ostream& os, const Arguments& arg)
 {
-    return tuple_helper::print_tuple_pairs(os, arg.as_tuple());
+    // delim starts as "{ " and becomes ", " afterwards
+    auto print_pair = [&os, delim = "{ "](const char* name, const auto& value) mutable {
+        os << delim << name << ": " << value;
+        delim = ", ";
+    };
+
+    // Turn YAML formatting on
+    os << rocblas_ostream::yaml_on;
+
+#define SEMICOLON_SEPARATOR ;
+
+    // Call print_pair for each (name, value) tuple pair
+#define NAME_VALUE_PAIR(NAME) print_pair(#NAME, arg.NAME)
+    FOR_EACH_ARGUMENT(NAME_VALUE_PAIR, SEMICOLON_SEPARATOR);
+
+    // Closing brace and turn YAML formatting off
+    return os << " }\n" << rocblas_ostream::yaml_off;
 }
 
 // Google Tests uses this automatically with std::ostream to dump parameters
@@ -75,5 +91,6 @@ void Arguments::validate(std::istream& ifs)
     };
 
     // Apply check_func to each pair (name, value) of Arguments as a tuple
-    tuple_helper::apply_pairs(check_func, arg.as_tuple());
+#define CHECK_FUNC(NAME) check_func(#NAME, arg.NAME)
+    FOR_EACH_ARGUMENT(CHECK_FUNC, SEMICOLON_SEPARATOR);
 }

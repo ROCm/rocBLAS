@@ -5,8 +5,8 @@
 # The ROCm platform requires Ubuntu 16.04 or Fedora 24, which has cmake 3.5
 cmake_minimum_required( VERSION 3.5 )
 
-# We use C++14 features, this will add compile option: -std=c++14
-set( CMAKE_CXX_STANDARD 14 )
+# We use C++17 features, this will add compile option: -std=c++17
+set( CMAKE_CXX_STANDARD 17 )
 # Without this line, it will add -std=gnu++14 instead, which has some issues.
 set( CMAKE_CXX_EXTENSIONS OFF )
 
