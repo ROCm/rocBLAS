@@ -182,6 +182,9 @@ set( rocblas_blas2_source
   blas2/rocblas_hpr.cpp
   blas2/rocblas_hpr_batched.cpp
   blas2/rocblas_hpr_strided_batched.cpp
+  blas2/rocblas_hpr2.cpp
+  blas2/rocblas_hpr2_batched.cpp
+  blas2/rocblas_hpr2_strided_batched.cpp
   blas2/rocblas_spr.cpp
   blas2/rocblas_spr_batched.cpp
   blas2/rocblas_spr_strided_batched.cpp
