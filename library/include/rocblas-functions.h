@@ -4290,9 +4290,9 @@ ROCBLAS_EXPORT rocblas_status rocblas_zhpmv_strided_batched(rocblas_handle      
     \details
     xHPR performs the matrix-vector operations
 
-        A := A + alpha*x*x**T
+        A := A + alpha*x*x**H
 
-    where alpha is a scalar, x is a vector, and A is an
+    where alpha is a real scalar, x is a vector, and A is an
     n by n hermitian matrix, supplied in packed form.
 
     @param[in]
@@ -4363,9 +4363,9 @@ ROCBLAS_EXPORT rocblas_status rocblas_zhpr(rocblas_handle                handle,
     \details
     xHPR_BATCHED performs the matrix-vector operations
 
-        A_i := A_i + alpha*x_i*x_i**T
+        A_i := A_i + alpha*x_i*x_i**H
 
-    where alpha is a scalar, x_i is a vector, and A_i is an
+    where alpha is a real scalar, x_i is a vector, and A_i is an
     n by n symmetric matrix, supplied in packed form, for i = 1, ..., batch_count.
 
     @param[in]
@@ -4441,9 +4441,9 @@ ROCBLAS_EXPORT rocblas_status rocblas_zhpr_batched(rocblas_handle               
     \details
     xHPR_STRIDED_BATCHED performs the matrix-vector operations
 
-        A_i := A_i + alpha*x_i*x_i**T
+        A_i := A_i + alpha*x_i*x_i**H
 
-    where alpha is a scalar, x_i is a vector, and A_i is an
+    where alpha is a real scalar, x_i is a vector, and A_i is an
     n by n symmetric matrix, supplied in packed form, for i = 1, ..., batch_count.
 
     @param[in]

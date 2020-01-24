@@ -39,6 +39,18 @@ void testing_hpr_strided_batched_bad_arg()
     CHECK_HIP_ERROR(dx.memcheck());
 
     EXPECT_ROCBLAS_STATUS((rocblas_hpr_strided_batched<T, U>)(handle,
+                                                              rocblas_fill_full,
+                                                              N,
+                                                              &alpha,
+                                                              dx,
+                                                              incx,
+                                                              stride_x,
+                                                              dA_1,
+                                                              stride_A,
+                                                              batch_count),
+                          rocblas_status_invalid_value);
+
+    EXPECT_ROCBLAS_STATUS((rocblas_hpr_strided_batched<T, U>)(handle,
                                                               uplo,
                                                               N,
                                                               &alpha,
