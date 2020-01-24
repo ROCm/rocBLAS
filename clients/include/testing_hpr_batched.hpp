@@ -36,6 +36,11 @@ void testing_hpr_batched_bad_arg()
     CHECK_HIP_ERROR(dA_1.memcheck());
 
     EXPECT_ROCBLAS_STATUS(
+        (rocblas_hpr_batched<T,
+                             U>)(handle, rocblas_fill_full, N, &alpha, dx, incx, dA_1, batch_count),
+        rocblas_status_invalid_value);
+
+    EXPECT_ROCBLAS_STATUS(
         (rocblas_hpr_batched<T, U>)(handle, uplo, N, &alpha, nullptr, incx, dA_1, batch_count),
         rocblas_status_invalid_pointer);
 
