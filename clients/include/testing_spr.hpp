@@ -34,6 +34,9 @@ void testing_spr_bad_arg()
     CHECK_HIP_ERROR(dA_1.memcheck());
     CHECK_HIP_ERROR(dx.memcheck());
 
+    EXPECT_ROCBLAS_STATUS(rocblas_spr<T>(handle, rocblas_fill_full, N, &alpha, dx, incx, dA_1),
+                          rocblas_status_invalid_value);
+
     EXPECT_ROCBLAS_STATUS(rocblas_spr<T>(handle, uplo, N, &alpha, nullptr, incx, dA_1),
                           rocblas_status_invalid_pointer);
 
@@ -56,7 +59,7 @@ void testing_spr(const Arguments& arg)
     // argument check before allocating invalid memory
     if(N < 0 || !incx)
     {
-        EXPECT_ROCBLAS_STATUS(rocblas_spr<T>(handle, uplo, N, &h_alpha, nullptr, incx, nullptr),
+        EXPECT_ROCBLAS_STATUS(rocblas_spr<T>(handle, uplo, N, nullptr, nullptr, incx, nullptr),
                               rocblas_status_invalid_size);
 
         return;

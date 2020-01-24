@@ -38,6 +38,11 @@ void testing_spr_strided_batched_bad_arg()
 
     EXPECT_ROCBLAS_STATUS(
         rocblas_spr_strided_batched<T>(
+            handle, rocblas_fill_full, N, &alpha, dx, incx, stride_x, dA_1, stride_A, batch_count),
+        rocblas_status_invalid_value);
+
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_spr_strided_batched<T>(
             handle, uplo, N, &alpha, nullptr, incx, stride_x, dA_1, stride_A, batch_count),
         rocblas_status_invalid_pointer);
 
@@ -72,7 +77,7 @@ void testing_spr_strided_batched(const Arguments& arg)
 
         EXPECT_ROCBLAS_STATUS(
             rocblas_spr_strided_batched<T>(
-                handle, uplo, N, &h_alpha, nullptr, incx, stride_x, nullptr, stride_A, batch_count),
+                handle, uplo, N, nullptr, nullptr, incx, stride_x, nullptr, stride_A, batch_count),
             N < 0 || !incx || batch_count < 0 ? rocblas_status_invalid_size
                                               : rocblas_status_success);
         return;

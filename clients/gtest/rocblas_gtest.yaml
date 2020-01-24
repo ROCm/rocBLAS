@@ -10,8 +10,10 @@ include: gemm_batched_gtest.yaml
 include: gemm_strided_batched_gtest.yaml
 include: symv_gtest.yaml
 include: spr_gtest.yaml
+include: spr2_gtest.yaml
 include: syr_gtest.yaml
 include: ger_gtest.yaml
+include: geruc_gtest.yaml
 include: tbmv_gtest.yaml
 include: trmv_gtest.yaml
 include: tpmv_gtest.yaml
