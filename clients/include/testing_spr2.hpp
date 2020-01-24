@@ -39,6 +39,10 @@ void testing_spr2_bad_arg()
     CHECK_HIP_ERROR(dx.memcheck());
     CHECK_HIP_ERROR(dy.memcheck());
 
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_spr2<T>(handle, rocblas_fill_full, N, &alpha, dx, incx, dy, incy, dA_1),
+        rocblas_status_invalid_value);
+
     EXPECT_ROCBLAS_STATUS(rocblas_spr2<T>(handle, uplo, N, &alpha, nullptr, incx, dy, incy, dA_1),
                           rocblas_status_invalid_pointer);
 
@@ -66,7 +70,7 @@ void testing_spr2(const Arguments& arg)
     if(N < 0 || !incx || !incy)
     {
         EXPECT_ROCBLAS_STATUS(
-            rocblas_spr2<T>(handle, uplo, N, &h_alpha, nullptr, incx, nullptr, incy, nullptr),
+            rocblas_spr2<T>(handle, uplo, N, nullptr, nullptr, incx, nullptr, incy, nullptr),
             rocblas_status_invalid_size);
 
         return;

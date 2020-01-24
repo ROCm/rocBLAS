@@ -36,6 +36,11 @@ void testing_spr2_batched_bad_arg()
     CHECK_HIP_ERROR(dy.memcheck());
     CHECK_HIP_ERROR(dA_1.memcheck());
 
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_spr2_batched<T>(
+            handle, rocblas_fill_full, N, &alpha, dx, incx, dy, incy, dA_1, batch_count),
+        rocblas_status_invalid_value);
+
     EXPECT_ROCBLAS_STATUS(rocblas_spr2_batched<T>(
                               handle, uplo, N, &alpha, nullptr, incx, dy, incy, dA_1, batch_count),
                           rocblas_status_invalid_pointer);
@@ -70,7 +75,7 @@ void testing_spr2_batched(const Arguments& arg)
     {
         EXPECT_ROCBLAS_STATUS(
             rocblas_spr2_batched<T>(
-                handle, uplo, N, &h_alpha, nullptr, incx, nullptr, incy, nullptr, batch_count),
+                handle, uplo, N, nullptr, nullptr, incx, nullptr, incy, nullptr, batch_count),
             N < 0 || !incx || !incy || batch_count < 0 ? rocblas_status_invalid_size
                                                        : rocblas_status_success);
         return;

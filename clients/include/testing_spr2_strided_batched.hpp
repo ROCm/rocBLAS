@@ -41,6 +41,21 @@ void testing_spr2_strided_batched_bad_arg()
     CHECK_HIP_ERROR(dy.memcheck());
 
     EXPECT_ROCBLAS_STATUS(rocblas_spr2_strided_batched<T>(handle,
+                                                          rocblas_fill_full,
+                                                          N,
+                                                          &alpha,
+                                                          dx,
+                                                          incx,
+                                                          stride_x,
+                                                          dy,
+                                                          incy,
+                                                          stride_y,
+                                                          dA_1,
+                                                          stride_A,
+                                                          batch_count),
+                          rocblas_status_invalid_value);
+
+    EXPECT_ROCBLAS_STATUS(rocblas_spr2_strided_batched<T>(handle,
                                                           uplo,
                                                           N,
                                                           &alpha,
@@ -122,7 +137,7 @@ void testing_spr2_strided_batched(const Arguments& arg)
         EXPECT_ROCBLAS_STATUS(rocblas_spr2_strided_batched<T>(handle,
                                                               uplo,
                                                               N,
-                                                              &h_alpha,
+                                                              nullptr,
                                                               nullptr,
                                                               incx,
                                                               stride_x,
