@@ -350,6 +350,18 @@ struct rocblas_real_type
 };
 
 template <>
+struct rocblas_real_type<float>
+{
+    using type = float;
+};
+
+template <>
+struct rocblas_real_type<double>
+{
+    using type = double;
+};
+
+template <>
 struct rocblas_real_type<rocblas_float_complex>
 {
     using type = float;
