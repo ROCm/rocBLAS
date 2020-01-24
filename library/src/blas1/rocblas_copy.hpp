@@ -6,17 +6,16 @@
 #include "rocblas.h"
 #include "utility.h"
 
-template <typename U, typename V>
-__global__ void copy_kernel(rocblas_int       n,
-                            const U           xa,
-                            ptrdiff_t         shiftx,
-                            rocblas_int       incx,
-                            rocblas_stride    stridex,
-                            V                 ya,
-                            ptrdiff_t         shifty,
-                            rocblas_int       incy,
-                            rocblas_stride    stridey,
-                            rocblas_operation conjugate_transpose)
+template <bool CONJ, typename U, typename V>
+__global__ void copy_kernel(rocblas_int    n,
+                            const U        xa,
+                            ptrdiff_t      shiftx,
+                            rocblas_int    incx,
+                            rocblas_stride stridex,
+                            V              ya,
+                            ptrdiff_t      shifty,
+                            rocblas_int    incy,
+                            rocblas_stride stridey)
 {
     ptrdiff_t tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     // bound
@@ -25,30 +24,22 @@ __global__ void copy_kernel(rocblas_int       n,
         const auto* x = load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex);
         auto*       y = load_ptr_batch(ya, hipBlockIdx_y, shifty, stridey);
 
-        if(conjugate_transpose != rocblas_operation_conjugate_transpose)
-        {
-            y[tid * incy] = x[tid * incx];
-        }
-        else
-        {
-            y[tid * incy] = conj(x[tid * incx]);
-        }
+        y[tid * incy] = CONJ ? conj(x[tid * incx]) : x[tid * incx];
     }
 }
 
-template <rocblas_int NB, typename U, typename V>
-rocblas_status rocblas_copy_template(rocblas_handle    handle,
-                                     rocblas_int       n,
-                                     U                 x,
-                                     rocblas_int       offsetx,
-                                     rocblas_int       incx,
-                                     rocblas_stride    stridex,
-                                     V                 y,
-                                     rocblas_int       offsety,
-                                     rocblas_int       incy,
-                                     rocblas_stride    stridey,
-                                     rocblas_int       batch_count,
-                                     rocblas_operation conjugate_transpose = rocblas_operation_none)
+template <bool CONJ, rocblas_int NB, typename U, typename V>
+rocblas_status rocblas_copy_template(rocblas_handle handle,
+                                     rocblas_int    n,
+                                     U              x,
+                                     rocblas_int    offsetx,
+                                     rocblas_int    incx,
+                                     rocblas_stride stridex,
+                                     V              y,
+                                     rocblas_int    offsety,
+                                     rocblas_int    incy,
+                                     rocblas_stride stridey,
+                                     rocblas_int    batch_count)
 {
     // Quick return if possible.
     if(n <= 0 || !batch_count)
@@ -68,7 +59,7 @@ rocblas_status rocblas_copy_template(rocblas_handle    handle,
     dim3 grid(blocks, batch_count);
     dim3 threads(NB);
 
-    hipLaunchKernelGGL(copy_kernel,
+    hipLaunchKernelGGL(copy_kernel<CONJ>,
                        grid,
                        threads,
                        0,
@@ -81,8 +72,7 @@ rocblas_status rocblas_copy_template(rocblas_handle    handle,
                        y,
                        shifty,
                        incy,
-                       stridey,
-                       conjugate_transpose);
+                       stridey);
 
     return rocblas_status_success;
 }
