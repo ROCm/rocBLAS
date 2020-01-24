@@ -18,7 +18,7 @@
 template <typename T>
 void testing_hpr_bad_arg()
 {
-    using U = typename rocblas_real_type<T>::type;
+    using U = rocblas_real_t<T>;
 
     rocblas_fill         uplo  = rocblas_fill_upper;
     rocblas_int          N     = 100;
@@ -52,7 +52,7 @@ void testing_hpr_bad_arg()
 template <typename T>
 void testing_hpr(const Arguments& arg)
 {
-    using U = typename rocblas_real_type<T>::type;
+    using U = rocblas_real_t<T>;
 
     rocblas_int          N       = arg.N;
     rocblas_int          incx    = arg.incx;
