@@ -1011,7 +1011,7 @@ static constexpr auto rocblas_rotmg_strided_batched<double> = rocblas_drotmg_str
  */
 
 // ger
-template <typename T>
+template <typename T, bool CONJ>
 rocblas_status (*rocblas_ger)(rocblas_handle handle,
                               rocblas_int    m,
                               rocblas_int    n,
@@ -1024,12 +1024,24 @@ rocblas_status (*rocblas_ger)(rocblas_handle handle,
                               rocblas_int    lda);
 
 template <>
-static constexpr auto rocblas_ger<float> = rocblas_sger;
+static constexpr auto rocblas_ger<float, false> = rocblas_sger;
 
 template <>
-static constexpr auto rocblas_ger<double> = rocblas_dger;
+static constexpr auto rocblas_ger<double, false> = rocblas_dger;
 
-template <typename T>
+template <>
+static constexpr auto rocblas_ger<rocblas_float_complex, false> = rocblas_cgeru;
+
+template <>
+static constexpr auto rocblas_ger<rocblas_double_complex, false> = rocblas_zgeru;
+
+template <>
+static constexpr auto rocblas_ger<rocblas_float_complex, true> = rocblas_cgerc;
+
+template <>
+static constexpr auto rocblas_ger<rocblas_double_complex, true> = rocblas_zgerc;
+
+template <typename T, bool CONJ>
 rocblas_status (*rocblas_ger_batched)(rocblas_handle handle,
                                       rocblas_int    m,
                                       rocblas_int    n,
@@ -1043,12 +1055,24 @@ rocblas_status (*rocblas_ger_batched)(rocblas_handle handle,
                                       rocblas_int    batch_count);
 
 template <>
-static constexpr auto rocblas_ger_batched<float> = rocblas_sger_batched;
+static constexpr auto rocblas_ger_batched<float, false> = rocblas_sger_batched;
 
 template <>
-static constexpr auto rocblas_ger_batched<double> = rocblas_dger_batched;
+static constexpr auto rocblas_ger_batched<double, false> = rocblas_dger_batched;
 
-template <typename T>
+template <>
+static constexpr auto rocblas_ger_batched<rocblas_float_complex, false> = rocblas_cgeru_batched;
+
+template <>
+static constexpr auto rocblas_ger_batched<rocblas_double_complex, false> = rocblas_zgeru_batched;
+
+template <>
+static constexpr auto rocblas_ger_batched<rocblas_float_complex, true> = rocblas_cgerc_batched;
+
+template <>
+static constexpr auto rocblas_ger_batched<rocblas_double_complex, true> = rocblas_zgerc_batched;
+
+template <typename T, bool CONJ>
 rocblas_status (*rocblas_ger_strided_batched)(rocblas_handle handle,
                                               rocblas_int    m,
                                               rocblas_int    n,
@@ -1065,10 +1089,26 @@ rocblas_status (*rocblas_ger_strided_batched)(rocblas_handle handle,
                                               rocblas_int    batch_count);
 
 template <>
-static constexpr auto rocblas_ger_strided_batched<float> = rocblas_sger_strided_batched;
+static constexpr auto rocblas_ger_strided_batched<float, false> = rocblas_sger_strided_batched;
 
 template <>
-static constexpr auto rocblas_ger_strided_batched<double> = rocblas_dger_strided_batched;
+static constexpr auto rocblas_ger_strided_batched<double, false> = rocblas_dger_strided_batched;
+
+template <>
+static constexpr auto
+    rocblas_ger_strided_batched<rocblas_float_complex, false> = rocblas_cgeru_strided_batched;
+
+template <>
+static constexpr auto
+    rocblas_ger_strided_batched<rocblas_double_complex, false> = rocblas_zgeru_strided_batched;
+
+template <>
+static constexpr auto
+    rocblas_ger_strided_batched<rocblas_float_complex, true> = rocblas_cgerc_strided_batched;
+
+template <>
+static constexpr auto
+    rocblas_ger_strided_batched<rocblas_double_complex, true> = rocblas_zgerc_strided_batched;
 
 // spr
 template <typename T>

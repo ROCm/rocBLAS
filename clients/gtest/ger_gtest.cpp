@@ -102,17 +102,17 @@ namespace
         void operator()(const Arguments& arg)
         {
             if(!strcmp(arg.function, "ger"))
-                testing_ger<T>(arg);
+                testing_ger<T, false>(arg);
             else if(!strcmp(arg.function, "ger_bad_arg"))
-                testing_ger_bad_arg<T>(arg);
+                testing_ger_bad_arg<T, false>(arg);
             else if(!strcmp(arg.function, "ger_batched"))
-                testing_ger_batched<T>(arg);
+                testing_ger_batched<T, false>(arg);
             else if(!strcmp(arg.function, "ger_batched_bad_arg"))
-                testing_ger_batched_bad_arg<T>(arg);
+                testing_ger_batched_bad_arg<T, false>(arg);
             else if(!strcmp(arg.function, "ger_strided_batched"))
-                testing_ger_strided_batched<T>(arg);
+                testing_ger_strided_batched<T, false>(arg);
             else if(!strcmp(arg.function, "ger_strided_batched_bad_arg"))
-                testing_ger_strided_batched_bad_arg<T>(arg);
+                testing_ger_strided_batched_bad_arg<T, false>(arg);
             else
                 FAIL() << "Internal error: Test called with unknown function: " << arg.function;
         }
