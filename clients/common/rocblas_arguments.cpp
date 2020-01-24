@@ -20,11 +20,9 @@ rocblas_ostream& operator<<(rocblas_ostream& os, const Arguments& arg)
     // Turn YAML formatting on
     os << rocblas_ostream::yaml_on;
 
-#define SEMICOLON_SEPARATOR ;
-
     // Call print_pair for each (name, value) tuple pair
 #define NAME_VALUE_PAIR(NAME) print_pair(#NAME, arg.NAME)
-    FOR_EACH_ARGUMENT(NAME_VALUE_PAIR, SEMICOLON_SEPARATOR);
+    FOR_EACH_ARGUMENT(NAME_VALUE_PAIR, ;);
 
     // Closing brace and turn YAML formatting off
     return os << " }\n" << rocblas_ostream::yaml_off;
@@ -92,5 +90,5 @@ void Arguments::validate(std::istream& ifs)
 
     // Apply check_func to each pair (name, value) of Arguments as a tuple
 #define CHECK_FUNC(NAME) check_func(#NAME, arg.NAME)
-    FOR_EACH_ARGUMENT(CHECK_FUNC, SEMICOLON_SEPARATOR);
+    FOR_EACH_ARGUMENT(CHECK_FUNC, ;);
 }
