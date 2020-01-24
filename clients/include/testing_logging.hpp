@@ -173,7 +173,7 @@ void testing_logging()
 
         rocblas_tpmv<T>(handle, uplo, transA, diag, m, da, dx, incx);
 
-        if(BUILD_WITH_TENSILE)
+        if constexpr(BUILD_WITH_TENSILE)
         {
             // BLAS3
             rocblas_geam<T>(handle, transA, transB, m, n, &alpha, da, lda, &beta, db, ldb, dc, ldc);
@@ -212,7 +212,7 @@ void testing_logging()
         // tritri
 
         // BLAS_EX
-        if(BUILD_WITH_TENSILE)
+        if constexpr(BUILD_WITH_TENSILE)
         {
             void*             alpha       = 0;
             void*             beta        = 0;
@@ -231,7 +231,7 @@ void testing_logging()
             rocblas_datatype  d_type;
             rocblas_datatype  compute_type;
 
-            if(std::is_same<T, rocblas_half>{})
+            if constexpr(std::is_same<T, rocblas_half>{})
             {
                 a_type       = rocblas_datatype_f16_r;
                 b_type       = rocblas_datatype_f16_r;
@@ -241,7 +241,7 @@ void testing_logging()
                 alpha        = &alpha_half;
                 beta         = &beta_half;
             }
-            else if(std::is_same<T, float>{})
+            else if constexpr(std::is_same<T, float>{})
             {
                 a_type       = rocblas_datatype_f32_r;
                 b_type       = rocblas_datatype_f32_r;
@@ -251,7 +251,7 @@ void testing_logging()
                 alpha        = &alpha_float;
                 beta         = &beta_float;
             }
-            else if(std::is_same<T, double>{})
+            else if constexpr(std::is_same<T, double>{})
             {
                 a_type       = rocblas_datatype_f64_r;
                 b_type       = rocblas_datatype_f64_r;
@@ -496,7 +496,7 @@ void testing_logging()
 
     // BLAS3
 
-    if(BUILD_WITH_TENSILE)
+    if constexpr(BUILD_WITH_TENSILE)
     {
         if(test_pointer_mode == rocblas_pointer_mode_host)
         {
@@ -594,7 +594,7 @@ void testing_logging()
         {
             rocblas_datatype a_type, b_type, c_type, d_type, compute_type;
 
-            if(std::is_same<T, rocblas_half>{})
+            if constexpr(std::is_same<T, rocblas_half>{})
             {
                 a_type       = rocblas_datatype_f16_r;
                 b_type       = rocblas_datatype_f16_r;
@@ -602,7 +602,7 @@ void testing_logging()
                 d_type       = rocblas_datatype_f16_r;
                 compute_type = rocblas_datatype_f16_r;
             }
-            else if(std::is_same<T, float>{})
+            else if constexpr(std::is_same<T, float>{})
             {
                 a_type       = rocblas_datatype_f32_r;
                 b_type       = rocblas_datatype_f32_r;
@@ -610,7 +610,7 @@ void testing_logging()
                 d_type       = rocblas_datatype_f32_r;
                 compute_type = rocblas_datatype_f32_r;
             }
-            if(std::is_same<T, double>{})
+            if constexpr(std::is_same<T, double>{})
             {
                 a_type       = rocblas_datatype_f64_r;
                 b_type       = rocblas_datatype_f64_r;

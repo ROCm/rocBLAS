@@ -422,7 +422,7 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
     rocblas_init<To>(hD_1, M, N, ldd, stride_d, batch_count);
 
 #if DEBUG_PRINT
-    if(std::is_same<To, rocblas_half>{})
+    if constexpr(std::is_same<To, rocblas_half>{})
     {
         rocblas_cout << "----A-----------------" << std::endl;
         for(int i = 0; i < size_a; i++)
@@ -473,7 +473,7 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
 #endif
 
 #if 0 // Copied from testing_gemm_ex.hpp
-    if(std::is_same<To, rocblas_half>{} && std::is_same<Tc, float>{})
+    if constexpr(std::is_same<To, rocblas_half>{} && std::is_same<Tc, float>{})
     {
         // half precision IEEE has max and lowest values 65504 and -65504,
         // foat precision IEEE has max and lowest values 3.403e+38 and -3.403e+38
@@ -576,7 +576,7 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
 #if DEBUG_PRINT
         rocblas_cout << std::endl
                      << "-----hD_1---------------------------------------" << std::endl;
-        if(std::is_same<To, rocblas_half>{})
+        if constexpr(std::is_same<To, rocblas_half>{})
             for(int i = 0; i < size_d; i++)
                 cout << float(hD_1[i]) << "  ";
         else
@@ -625,7 +625,7 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
 #if DEBUG_PRINT
         rocblas_cout << std::endl
                      << "-----hD_2---------------------------------------" << std::endl;
-        if(std::is_same<To, rocblas_half>{})
+        if constexpr(std::is_same<To, rocblas_half>{})
             for(int i = 0; i < size_d; i++)
                 cout << float(hD_2[i]) << "  ";
         else
@@ -668,7 +668,7 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
 
 #if DEBUG_PRINT
         rocblas_cout << std::endl << "---gold---gold---gold---------------------" << std::endl;
-        if(std::is_same<To, rocblas_half>{})
+        if constexpr(std::is_same<To, rocblas_half>{})
             for(int i = 0; i < size_d; i++)
                 rocblas_cout << float(hD_gold[i]) << "  ";
         else
@@ -685,7 +685,7 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
                     if(hD_gold[i1 + (i2 * ldd) + (i3 * stride_d)]
                        != hD_1[i1 + (i2 * ldd) + (i3 * stride_d)])
                     {
-                        if(std::is_same<To, rocblas_half>{})
+                        if constexpr(std::is_same<To, rocblas_half>{})
                         {
                             rocblas_cout
                                 << "batch, i, j, hd_gold, hd_1= " << i3 << ", " << i2 << ", " << i1

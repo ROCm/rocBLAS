@@ -396,7 +396,7 @@ void testing_gemm_batched_ex(const Arguments& arg)
     }
 
 #if 0 // Copied from testing_gemm_ex.hpp
-    if(std::is_same<To, rocblas_half>{} && std::is_same<Tc, float>{})
+    if constexpr(std::is_same<To, rocblas_half>{} && std::is_same<Tc, float>{})
     {
         // half precision IEEE has max and lowest values 65504 and -65504,
         // foat precision IEEE has max and lowest values 3.403e+38 and -3.403e+38

@@ -74,12 +74,8 @@ void Arguments::validate(std::istream& ifs)
         validation_error("trailer");
 
     auto check_func = [sig = 0u](const char* name, const auto& value) mutable {
-        if(sizeof(value) > 256)
-        {
-            rocblas_cerr << "Fatal error: Arguments field \"" << name
-                         << "\" is too large (greater than 256 bytes)." << std::endl;
-            rocblas_abort();
-        }
+        static_assert(sizeof(value) <= 256,
+                      "Fatal error: Arguments field is too large (greater than 256 bytes).");
         for(size_t i = 0; i < sizeof(value); ++i)
         {
             if(reinterpret_cast<const unsigned char*>(&value)[i] ^ sig ^ i)

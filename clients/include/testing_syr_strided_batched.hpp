@@ -179,7 +179,7 @@ void testing_syr_strided_batched(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            if(std::is_same<T, float>{} || std::is_same<T, double>{})
+            if constexpr(std::is_same<T, float>{} || std::is_same<T, double>{})
             {
                 unit_check_general<T>(N, N, batch_count, lda, strideA, hA_gold, hA_1);
                 unit_check_general<T>(N, N, batch_count, lda, strideA, hA_gold, hA_2);
