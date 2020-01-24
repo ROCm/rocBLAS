@@ -515,7 +515,7 @@ pushd .
     cmake_client_options="${cmake_client_options} -DBUILD_CLIENTS_SAMPLES=ON -DBUILD_CLIENTS_TESTS=ON -DBUILD_CLIENTS_BENCHMARKS=ON -DLINK_BLIS=${LINK_BLIS}"
   fi
 
-  if [["${build_hip_clang}" == true ]]; then
+  if [[ "${build_hip_clang}" == true ]]; then
       cmake_common_options="${cmake_common_options} -DRUN_HEADER_TESTING=OFF"
   fi
 
