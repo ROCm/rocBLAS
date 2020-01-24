@@ -6219,6 +6219,277 @@ ROCBLAS_EXPORT rocblas_status rocblas_zspr_strided_batched(rocblas_handle       
 /*! \brief BLAS Level 2 API
 
     \details
+    xSPR2 performs the matrix-vector operation
+
+        A := A + alpha*x*y**T + alpha*y*x**T
+
+    where alpha is a scalar, x and y are vectors, and A is an
+    n by n symmetric matrix, supplied in packed form.
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+    @param[in]
+    uplo      [rocblas_fill]
+              specifies whether the upper 'rocblas_fill_upper' or lower 'rocblas_fill_lower'
+              rocblas_fill_upper: The upper triangular part of A is supplied in AP.
+              rocblas_fill_lower: The lower triangular part of A is supplied in AP.
+    @param[in]
+    n         [rocblas_int]
+              the number of rows and columns of matrix A, must be at least 0.
+    @param[in]
+    alpha
+              device pointer or host pointer to scalar alpha.
+    @param[in]
+    x         device pointer storing vector x.
+    @param[in]
+    incx      [rocblas_int]
+              specifies the increment for the elements of x.
+    @param[in]
+    y         device pointer storing vector y.
+    @param[in]
+    incy      [rocblas_int]
+              specifies the increment for the elements of y.
+    @param[inout]
+    AP        device pointer storing the packed version of the specified triangular portion of
+              the symmetric matrix A. Of at least size ((n * (n + 1)) / 2).
+              if uplo == rocblas_fill_upper:
+                The upper triangular portion of the symmetric matrix A is supplied.
+                The matrix is compacted so that AP contains the triangular portion column-by-column
+                so that:
+                AP(0) = A(0,0)
+                AP(1) = A(0,1)
+                AP(2) = A(1,1), etc.
+                    Ex: (rocblas_fill_upper; n = 4)
+                        1 2 4 7
+                        2 3 5 8   -----> [1, 2, 3, 4, 5, 6, 7, 8, 9, 0]
+                        4 5 6 9
+                        7 8 9 0
+            if uplo == rocblas_fill_lower:
+                The lower triangular portion of the symmetric matrix A is supplied.
+                The matrix is compacted so that AP contains the triangular portion column-by-column
+                so that:
+                AP(0) = A(0,0)
+                AP(1) = A(1,0)
+                AP(n) = A(2,1), etc.
+                    Ex: (rocblas_fill_lower; n = 4)
+                        1 2 3 4
+                        2 5 6 7    -----> [1, 2, 3, 4, 5, 6, 7, 8, 9, 0]
+                        3 6 8 9
+                        4 7 9 0
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_sspr2(rocblas_handle handle,
+                                            rocblas_fill   uplo,
+                                            rocblas_int    n,
+                                            const float*   alpha,
+                                            const float*   x,
+                                            rocblas_int    incx,
+                                            const float*   y,
+                                            rocblas_int    incy,
+                                            float*         AP);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dspr2(rocblas_handle handle,
+                                            rocblas_fill   uplo,
+                                            rocblas_int    n,
+                                            const double*  alpha,
+                                            const double*  x,
+                                            rocblas_int    incx,
+                                            const double*  y,
+                                            rocblas_int    incy,
+                                            double*        AP);
+
+/*! \brief BLAS Level 2 API
+
+    \details
+    xSPR2_BATCHED performs the matrix-vector operation
+
+        A_i := A_i + alpha*x_i*y_i**T + alpha*y*x**T
+
+    where alpha is a scalar, x_i is a vector, and A_i is an
+    n by n symmetric matrix, supplied in packed form, for i = 1, ..., batch_count.
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+    @param[in]
+    uplo      [rocblas_fill]
+              specifies whether the upper 'rocblas_fill_upper' or lower 'rocblas_fill_lower'
+              rocblas_fill_upper: The upper triangular part of each A_i is supplied in AP.
+              rocblas_fill_lower: The lower triangular part of each A_i is supplied in AP.
+    @param[in]
+    n         [rocblas_int]
+              the number of rows and columns of each matrix A_i, must be at least 0.
+    @param[in]
+    alpha
+              device pointer or host pointer to scalar alpha.
+    @param[in]
+    x         device array of device pointers storing each vector x_i.
+    @param[in]
+    incx      [rocblas_int]
+              specifies the increment for the elements of each x_i.
+    @param[in]
+    y         device array of device pointers storing each vector y_i.
+    @param[in]
+    incy      [rocblas_int]
+              specifies the increment for the elements of each y_i.
+    @param[inout]
+    AP        device array of device pointers storing the packed version of the specified triangular portion of
+              each symmetric matrix A_i of at least size ((n * (n + 1)) / 2). Array is of at least size batch_count.
+              if uplo == rocblas_fill_upper:
+                The upper triangular portion of each symmetric matrix A_i is supplied.
+                The matrix is compacted so that AP contains the triangular portion column-by-column
+                so that:
+                AP(0) = A(0,0)
+                AP(1) = A(0,1)
+                AP(2) = A(1,1), etc.
+                    Ex: (rocblas_fill_upper; n = 4)
+                        1 2 4 7
+                        2 3 5 8   -----> [1, 2, 3, 4, 5, 6, 7, 8, 9, 0]
+                        4 5 6 9
+                        7 8 9 0
+            if uplo == rocblas_fill_lower:
+                The lower triangular portion of each symmetric matrix A_i is supplied.
+                The matrix is compacted so that AP contains the triangular portion column-by-column
+                so that:
+                AP(0) = A(0,0)
+                AP(1) = A(1,0)
+                AP(n) = A(2,1), etc.
+                    Ex: (rocblas_fill_lower; n = 4)
+                        1 2 3 4
+                        2 5 6 7    -----> [1, 2, 3, 4, 5, 6, 7, 8, 9, 0]
+                        3 6 8 9
+                        4 7 9 0
+    @param[in]
+    batch_count [rocblas_int]
+                number of instances in the batch.
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_sspr2_batched(rocblas_handle     handle,
+                                                    rocblas_fill       uplo,
+                                                    rocblas_int        n,
+                                                    const float*       alpha,
+                                                    const float* const x[],
+                                                    rocblas_int        incx,
+                                                    const float* const y[],
+                                                    rocblas_int        incy,
+                                                    float* const       AP[],
+                                                    rocblas_int        batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dspr2_batched(rocblas_handle      handle,
+                                                    rocblas_fill        uplo,
+                                                    rocblas_int         n,
+                                                    const double*       alpha,
+                                                    const double* const x[],
+                                                    rocblas_int         incx,
+                                                    const double* const y[],
+                                                    rocblas_int         incy,
+                                                    double* const       AP[],
+                                                    rocblas_int         batch_count);
+
+/*! \brief BLAS Level 2 API
+
+    \details
+    xSPR_STRIDED_BATCHED performs the matrix-vector operation
+
+        A_i := A_i + alpha*x_i*x_i**T
+
+    where alpha is a scalar, x_i is a vector, and A_i is an
+    n by n symmetric matrix, supplied in packed form, for i = 1, ..., batch_count.
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+    @param[in]
+    uplo      [rocblas_fill]
+              specifies whether the upper 'rocblas_fill_upper' or lower 'rocblas_fill_lower'
+              rocblas_fill_upper: The upper triangular part of each A_i is supplied in AP.
+              rocblas_fill_lower: The lower triangular part of each A_i is supplied in AP.
+    @param[in]
+    n         [rocblas_int]
+              the number of rows and columns of each matrix A_i, must be at least 0.
+    @param[in]
+    alpha
+              device pointer or host pointer to scalar alpha.
+    @param[in]
+    x         device pointer pointing to the first vector (x_1).
+    @param[in]
+    incx      [rocblas_int]
+              specifies the increment for the elements of each x_i.
+    @param[in]
+    stride_x  [rocblas_stride]
+              stride from the start of one vector (x_i) and the next one (x_i+1).
+    @param[in]
+    y         device pointer pointing to the first vector (y_1).
+    @param[in]
+    incy      [rocblas_int]
+              specifies the increment for the elements of each y_i.
+    @param[in]
+    stride_y  [rocblas_stride]
+              stride from the start of one vector (y_i) and the next one (y_i+1).
+    @param[inout]
+    AP        device pointer storing the packed version of the specified triangular portion of
+              each symmetric matrix A_i. Points to the first A_1.
+              if uplo == rocblas_fill_upper:
+                The upper triangular portion of each symmetric matrix A_i is supplied.
+                The matrix is compacted so that AP contains the triangular portion column-by-column
+                so that:
+                AP(0) = A(0,0)
+                AP(1) = A(0,1)
+                AP(2) = A(1,1), etc.
+                    Ex: (rocblas_fill_upper; n = 4)
+                        1 2 4 7
+                        2 3 5 8   -----> [1, 2, 3, 4, 5, 6, 7, 8, 9, 0]
+                        4 5 6 9
+                        7 8 9 0
+            if uplo == rocblas_fill_lower:
+                The lower triangular portion of each symmetric matrix A_i is supplied.
+                The matrix is compacted so that AP contains the triangular portion column-by-column
+                so that:
+                AP(0) = A(0,0)
+                AP(1) = A(1,0)
+                AP(n) = A(2,1), etc.
+                    Ex: (rocblas_fill_lower; n = 4)
+                        1 2 3 4
+                        2 5 6 7    -----> [1, 2, 3, 4, 5, 6, 7, 8, 9, 0]
+                        3 6 8 9
+                        4 7 9 0
+    @param[in]
+    stride_A    [rocblas_stride]
+                stride from the start of one (A_i) and the next (A_i+1)
+    @param[in]
+    batch_count [rocblas_int]
+                number of instances in the batch.
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_sspr2_strided_batched(rocblas_handle handle,
+                                                            rocblas_fill   uplo,
+                                                            rocblas_int    n,
+                                                            const float*   alpha,
+                                                            const float*   x,
+                                                            rocblas_int    incx,
+                                                            rocblas_stride stride_x,
+                                                            const float*   y,
+                                                            rocblas_int    incy,
+                                                            rocblas_stride stride_y,
+                                                            float*         AP,
+                                                            rocblas_stride stride_A,
+                                                            rocblas_int    batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dspr2_strided_batched(rocblas_handle handle,
+                                                            rocblas_fill   uplo,
+                                                            rocblas_int    n,
+                                                            const double*  alpha,
+                                                            const double*  x,
+                                                            rocblas_int    incx,
+                                                            rocblas_stride stride_x,
+                                                            const double*  y,
+                                                            rocblas_int    incy,
+                                                            rocblas_stride stride_y,
+                                                            double*        AP,
+                                                            rocblas_stride stride_A,
+                                                            rocblas_int    batch_count);
+
+/*! \brief BLAS Level 2 API
+
+    \details
     xSYR performs the matrix-vector operations
 
         A := A + alpha*x*x**T

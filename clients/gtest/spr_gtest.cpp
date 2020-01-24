@@ -64,8 +64,15 @@ namespace
             }
             else
             {
-                name << '_' << (char)std::toupper(arg.uplo) << '_' << arg.N << '_' << arg.alpha
-                     << '_' << arg.incx;
+                name << '_' << (char)std::toupper(arg.uplo) << '_' << arg.N << '_';
+
+                // T in get_alpha doesn't matter besides being real/complex.
+                if(arg.a_type == rocblas_datatype_f32_r || arg.a_type == rocblas_datatype_f64_r)
+                    name << arg.get_alpha<double>();
+                else
+                    name << arg.get_alpha<rocblas_double_complex>();
+
+                name << '_' << arg.incx;
 
                 if(SPR_TYPE == SPR_STRIDED_BATCHED)
                     name << '_' << arg.stride_x;
