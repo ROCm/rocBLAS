@@ -9,9 +9,8 @@
 
 // ArgumentModel template has a variadic list of argument enums
 template <rocblas_argument... Args>
-class ArgumentModel
+struct ArgumentModel
 {
-public:
     void log_perf(rocblas_ostream& name_line,
                   rocblas_ostream& val_line,
                   const Arguments& arg,
