@@ -196,14 +196,12 @@ static_assert(std::is_trivial<Arguments>{},
               "incompatible with C.");
 
 // Arguments enumerators
-#define CREATE_ENUM(NAME) e_##NAME
-#define COMMA_SEPARATOR ,
+#define CREATE_ENUM(NAME) e_##NAME,
 enum rocblas_argument : int
 {
-    FOR_EACH_ARGUMENT(CREATE_ENUM, COMMA_SEPARATOR)
+    FOR_EACH_ARGUMENT(CREATE_ENUM, )
 };
 #undef CREATE_ENUM
-#undef COMMA_SEPARATOR
 
 struct ArgumentsHelper
 {
