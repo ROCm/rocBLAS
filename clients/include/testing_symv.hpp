@@ -141,7 +141,7 @@ void testing_symv(const Arguments& arg)
 
     // Initial Data on CPU
     rocblas_seedrand();
-    rocblas_init_symmetric<T>(hA, N, lda);
+    rocblas_init<T>(hA);
     rocblas_init<T>(hx, 1, N, abs_incx);
     rocblas_init<T>(hy, 1, N, abs_incy);
 
@@ -159,9 +159,6 @@ void testing_symv(const Arguments& arg)
         cpu_time_used = get_time_us() - cpu_time_used;
         cblas_gflops  = symv_gflop_count<T>(N) / cpu_time_used * 1e6;
     }
-
-    // clear non-fill half
-    rocblas_clear_symmetric(uplo, hA.data(), N, lda);
 
     // copy data from CPU to device
     dx.transfer_from(hx);

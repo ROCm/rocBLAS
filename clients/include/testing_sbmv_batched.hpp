@@ -47,6 +47,11 @@ void testing_sbmv_batched_bad_arg()
         return;
     }
 
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_sbmv_batched<T>(
+            nullptr, uplo, N, K, &alpha, dA, lda, dx, incx, &beta, dy, incy, batch_count),
+        rocblas_status_invalid_handle);
+
     EXPECT_ROCBLAS_STATUS(rocblas_sbmv_batched<T>(handle,
                                                   rocblas_fill_full,
                                                   N,
@@ -61,11 +66,6 @@ void testing_sbmv_batched_bad_arg()
                                                   incy,
                                                   batch_count),
                           rocblas_status_invalid_value);
-
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_sbmv_batched<T>(
-            nullptr, uplo, N, K, &alpha, dA, lda, dx, incx, &beta, dy, incy, batch_count),
-        rocblas_status_invalid_handle);
 
     EXPECT_ROCBLAS_STATUS(
         rocblas_sbmv_batched<T>(
@@ -117,10 +117,8 @@ void testing_sbmv_batched(const Arguments& arg)
 
     rocblas_local_handle handle;
 
-    bool bad_uplo = (uplo != rocblas_fill_lower && uplo != rocblas_fill_upper);
-
     // argument sanity check before allocating invalid memory
-    if(N <= 0 || lda < 0 || K < 0 || !incx || !incy || batch_count <= 0 || bad_uplo)
+    if(N <= 0 || lda < 0 || K < 0 || !incx || !incy || batch_count <= 0)
     {
         static const size_t    safe_size = 100;
         device_batch_vector<T> dA(safe_size, 1, 1);
@@ -131,15 +129,12 @@ void testing_sbmv_batched(const Arguments& arg)
             CHECK_HIP_ERROR(hipErrorOutOfMemory);
             return;
         }
-        rocblas_status status = rocblas_sbmv_batched<T>(
-            handle, uplo, N, K, alpha, dA, lda, dx, incx, beta, dy, incy, batch_count);
-        if(bad_uplo)
-            EXPECT_ROCBLAS_STATUS(status, rocblas_status_invalid_value);
-        else
-            EXPECT_ROCBLAS_STATUS(status,
-                                  N < 0 || lda < 0 || K < 0 || !incx || !incy || batch_count < 0
-                                      ? rocblas_status_invalid_size
-                                      : rocblas_status_success);
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_sbmv_batched<T>(
+                handle, uplo, N, K, alpha, dA, lda, dx, incx, beta, dy, incy, batch_count),
+            N < 0 || lda < 0 || K < 0 || !incx || !incy || batch_count < 0
+                ? rocblas_status_invalid_size
+                : rocblas_status_success);
         return;
     }
 
@@ -175,10 +170,8 @@ void testing_sbmv_batched(const Arguments& arg)
 
     // Initial Data on CPU
     rocblas_seedrand();
-    for(int i = 0; i < batch_count; i++)
-    {
-        rocblas_init_symmetric<T>(hA[i], N, lda); // not banded but we match cblas
-    }
+    rocblas_init(hA);
+
     rocblas_init(hx);
     rocblas_init(hy);
 

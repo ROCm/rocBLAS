@@ -1,7 +1,8 @@
 /* ************************************************************************
- * Copyright 2018-2019 Advanced Micro Devices, Inc.
+ * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+#include "bytes.hpp"
 #include "cblas_interface.hpp"
 #include "flops.hpp"
 #include "near.hpp"
@@ -61,6 +62,22 @@ void testing_spmv_strided_batched_bad_arg()
                                                           stridey,
                                                           batch_count),
                           rocblas_status_invalid_handle);
+
+    EXPECT_ROCBLAS_STATUS(rocblas_spmv_strided_batched<T>(handle,
+                                                          rocblas_fill_full,
+                                                          N,
+                                                          &alpha,
+                                                          dA,
+                                                          strideA,
+                                                          dx,
+                                                          incx,
+                                                          stridex,
+                                                          &beta,
+                                                          dy,
+                                                          incy,
+                                                          stridey,
+                                                          batch_count),
+                          rocblas_status_invalid_value);
 
     EXPECT_ROCBLAS_STATUS(rocblas_spmv_strided_batched<T>(handle,
                                                           uplo,
@@ -161,7 +178,7 @@ void testing_spmv_strided_batched(const Arguments& arg)
     size_t abs_incx = incx >= 0 ? incx : -incx;
     size_t abs_incy = incy >= 0 ? incy : -incy;
 
-    rocblas_stride strideA = size_t(N) * N;
+    rocblas_stride strideA = tri_count(N);
     size_t         size_A  = strideA * batch_count;
     rocblas_stride stridex = size_t(N) * abs_incx;
     rocblas_stride stridey = size_t(N) * abs_incy;
@@ -170,10 +187,8 @@ void testing_spmv_strided_batched(const Arguments& arg)
 
     rocblas_local_handle handle;
 
-    bool bad_uplo = (uplo != rocblas_fill_lower && uplo != rocblas_fill_upper);
-
     // argument sanity check before allocating invalid memory
-    if(N < 0 || !incx || !incy || batch_count <= 0 || bad_uplo)
+    if(N <= 0 || !incx || !incy || batch_count <= 0)
     {
         static const size_t safe_size = 100;
         device_vector<T>    dA(safe_size);
@@ -199,7 +214,7 @@ void testing_spmv_strided_batched(const Arguments& arg)
                                                               incy,
                                                               stridey,
                                                               batch_count),
-                              N < 0 || !incx || !incy || batch_count < 0 || bad_uplo
+                              N < 0 || !incx || !incy || batch_count < 0
                                   ? rocblas_status_invalid_size
                                   : rocblas_status_success);
 
@@ -233,7 +248,7 @@ void testing_spmv_strided_batched(const Arguments& arg)
 
     // Initial Data on CPU
     rocblas_seedrand();
-    //rocblas_init_symmetric<T>(&hA[0], N, lda, strideA, batch_count);
+    rocblas_init<T>(hA);
 
     rocblas_init<T>(hx, 1, N, abs_incx);
     rocblas_init<T>(hy, 1, N, abs_incy);
@@ -263,9 +278,6 @@ void testing_spmv_strided_batched(const Arguments& arg)
         cpu_time_used = get_time_us() - cpu_time_used;
         cblas_gflops  = batch_count * spmv_gflop_count<T>(N) / cpu_time_used * 1e6;
     }
-
-    // clear non-fill half
-    //rocblas_clear_symmetric(uplo, hA.data(), N,  strideA, batch_count);
 
     // copy data from CPU to device
     dx.transfer_from(hx);

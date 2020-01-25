@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2019 Advanced Micro Devices, Inc.
+ * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "cblas_interface.hpp"
@@ -30,9 +30,9 @@ void testing_spmv_batched_bad_arg()
 
     size_t abs_incx = incx >= 0 ? incx : -incx;
     size_t abs_incy = incy >= 0 ? incy : -incy;
-    size_t size_A   = N * N;
-    size_t size_x   = N * abs_incx * batch_count;
-    size_t size_y   = N * abs_incy * batch_count;
+    size_t size_A   = size_t(N) * N;
+    size_t size_x   = size_t(N) * abs_incx * batch_count;
+    size_t size_y   = size_t(N) * abs_incy * batch_count;
 
     // allocate memory on device
     device_vector<T*, 0, T> dA(batch_count);
@@ -47,6 +47,11 @@ void testing_spmv_batched_bad_arg()
     EXPECT_ROCBLAS_STATUS(rocblas_spmv_batched<T>(
                               nullptr, uplo, N, &alpha, dA, dx, incx, &beta, dy, incy, batch_count),
                           rocblas_status_invalid_handle);
+
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_spmv_batched<T>(
+            handle, rocblas_fill_full, N, &alpha, dA, dx, incx, &beta, dy, incy, batch_count),
+        rocblas_status_invalid_value);
 
     EXPECT_ROCBLAS_STATUS(rocblas_spmv_batched<T>(
                               handle, uplo, N, nullptr, dA, dx, incx, &beta, dy, incy, batch_count),
@@ -95,10 +100,8 @@ void testing_spmv_batched(const Arguments& arg)
 
     rocblas_local_handle handle;
 
-    bool bad_uplo = (uplo != rocblas_fill_lower && uplo != rocblas_fill_upper);
-
     // argument sanity check before allocating invalid memory
-    if(N < 0 || !incx || !incy || batch_count <= 0 || bad_uplo)
+    if(N <= 0 || !incx || !incy || batch_count <= 0)
     {
         static const size_t    safe_size = 100;
         device_batch_vector<T> dA(safe_size, 1, 1);
@@ -113,8 +116,8 @@ void testing_spmv_batched(const Arguments& arg)
         EXPECT_ROCBLAS_STATUS(
             rocblas_spmv_batched<T>(
                 handle, uplo, N, alpha, dA, dx, incx, beta, dy, incy, batch_count),
-            N < 0 || !incx || !incy || batch_count < 0 || bad_uplo ? rocblas_status_invalid_size
-                                                                   : rocblas_status_success);
+            N < 0 || !incx || !incy || batch_count < 0 ? rocblas_status_invalid_size
+                                                       : rocblas_status_success);
         return;
     }
 
@@ -150,12 +153,9 @@ void testing_spmv_batched(const Arguments& arg)
 
     // Initial Data on CPU
     rocblas_seedrand();
-    for(int i = 0; i < batch_count; i++)
-    {
-        //rocblas_init_symmetric<T>(hA[i], N, lda);
-    }
-    rocblas_init(hx);
-    rocblas_init(hy);
+    rocblas_init<T>(hA);
+    rocblas_init<T>(hx);
+    rocblas_init<T>(hy);
 
     // save a copy in hg which will later get output of CPU BLAS
     hg.copy_from(hy);
@@ -174,12 +174,6 @@ void testing_spmv_batched(const Arguments& arg)
         cblas_gflops  = batch_count * spmv_gflop_count<T>(N) / cpu_time_used * 1e6;
     }
 
-    // clear non-fill half
-    for(int i = 0; i < batch_count; i++)
-    {
-        //rocblas_clear_symmetric(uplo, hA[i], N, lda);
-    }
-
     // copy data from CPU to device
     dx.transfer_from(hx);
     dy.transfer_from(hy);
@@ -187,7 +181,6 @@ void testing_spmv_batched(const Arguments& arg)
 
     if(arg.unit_check || arg.norm_check)
     {
-
         //
         // rocblas_pointer_mode_host test
         //

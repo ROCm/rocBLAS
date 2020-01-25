@@ -45,13 +45,13 @@ void testing_sbmv_bad_arg()
     }
 
     EXPECT_ROCBLAS_STATUS(
+        rocblas_sbmv<T>(nullptr, uplo, N, K, &alpha, dA, lda, dx, incx, &beta, dy, incy),
+        rocblas_status_invalid_handle);
+
+    EXPECT_ROCBLAS_STATUS(
         rocblas_sbmv<T>(
             handle, rocblas_fill_full, N, K, &alpha, dA, lda, dx, incx, &beta, dy, incy),
         rocblas_status_invalid_value);
-
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_sbmv<T>(nullptr, uplo, N, K, &alpha, dA, lda, dx, incx, &beta, dy, incy),
-        rocblas_status_invalid_handle);
 
     EXPECT_ROCBLAS_STATUS(
         rocblas_sbmv<T>(handle, uplo, N, K, nullptr, dA, lda, dx, incx, &beta, dy, incy),
@@ -77,8 +77,6 @@ void testing_sbmv_bad_arg()
 template <typename T>
 void testing_sbmv(const Arguments& arg)
 {
-    setenv("HCC_ENABLE_PRINTF", "1", 1);
-
     rocblas_int N    = arg.N;
     rocblas_int lda  = arg.lda;
     rocblas_int K    = arg.K;
@@ -101,10 +99,8 @@ void testing_sbmv(const Arguments& arg)
 
     rocblas_local_handle handle;
 
-    bool bad_uplo = (uplo != rocblas_fill_lower && uplo != rocblas_fill_upper);
-
     // argument sanity check before allocating invalid memory
-    if(N <= 0 || lda < 0 || K < 0 || !incx || !incy || bad_uplo)
+    if(N <= 0 || lda < 0 || K < 0 || !incx || !incy)
     {
         static const size_t safe_size = 100;
         device_vector<T>    dA(safe_size);
@@ -116,15 +112,10 @@ void testing_sbmv(const Arguments& arg)
             return;
         }
 
-        rocblas_status status
-            = rocblas_sbmv<T>(handle, uplo, N, K, alpha, dA, lda, dx, incx, beta, dy, incy);
-        if(bad_uplo)
-            EXPECT_ROCBLAS_STATUS(status, rocblas_status_invalid_value);
-        else
-            EXPECT_ROCBLAS_STATUS(status,
-                                  N < 0 || K < 0 || lda < 0 || !incx || !incy
-                                      ? rocblas_status_invalid_size
-                                      : rocblas_status_success);
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_sbmv<T>(handle, uplo, N, K, alpha, dA, lda, dx, incx, beta, dy, incy),
+            N < 0 || K < 0 || lda < 0 || !incx || !incy ? rocblas_status_invalid_size
+                                                        : rocblas_status_success);
         return;
     }
 
@@ -153,17 +144,11 @@ void testing_sbmv(const Arguments& arg)
 
     // Initial Data on CPU
     rocblas_seedrand();
-    rocblas_init_symmetric<T>(hA, N, lda);
+    rocblas_init<T>(hA);
 
     rocblas_init<T>(hx, 1, N, abs_incx);
     rocblas_init<T>(hy, 1, N, abs_incy);
 
-    // for (int i = 0; i < N; i++)
-    // {
-
-    //   hx[i*abs_incx] = 1.0;
-    //   hy[i*abs_incx] = 1.0;
-    // }
     // make copy in hg which will later be used with CPU BLAS
     hg  = hy;
     hy2 = hy; // device memory re-test
@@ -179,9 +164,6 @@ void testing_sbmv(const Arguments& arg)
         cpu_time_used = get_time_us() - cpu_time_used;
         cblas_gflops  = sbmv_gflop_count<T>(N, K) / cpu_time_used * 1e6;
     }
-
-    // clear non-fill half
-    //rocblas_clear_symmetric(uplo, hA.data(), N, N);
 
     // copy data from CPU to device
     dx.transfer_from(hx);

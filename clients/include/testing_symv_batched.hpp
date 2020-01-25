@@ -158,12 +158,9 @@ void testing_symv_batched(const Arguments& arg)
 
     // Initial Data on CPU
     rocblas_seedrand();
-    for(int i = 0; i < batch_count; i++)
-    {
-        rocblas_init_symmetric<T>(hA[i], N, lda);
-    }
-    rocblas_init(hx);
-    rocblas_init(hy);
+    rocblas_init<T>(hA);
+    rocblas_init<T>(hx);
+    rocblas_init<T>(hy);
 
     // save a copy in hg which will later get output of CPU BLAS
     hg.copy_from(hy);
@@ -180,12 +177,6 @@ void testing_symv_batched(const Arguments& arg)
         }
         cpu_time_used = get_time_us() - cpu_time_used;
         cblas_gflops  = batch_count * symv_gflop_count<T>(N) / cpu_time_used * 1e6;
-    }
-
-    // clear non-fill half
-    for(int i = 0; i < batch_count; i++)
-    {
-        rocblas_clear_symmetric(uplo, hA[i], N, lda);
     }
 
     // copy data from CPU to device

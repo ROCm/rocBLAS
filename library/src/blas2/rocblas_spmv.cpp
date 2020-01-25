@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2019 Advanced Micro Devices, Inc.
+ * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "rocblas_spmv.hpp"
@@ -91,7 +91,7 @@ namespace
         }
 
         if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
-            return rocblas_status_invalid_size;
+            return rocblas_status_invalid_value;
 
         if(n < 0 || !incx || !incy)
             return rocblas_status_invalid_size;
