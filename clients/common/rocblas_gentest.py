@@ -231,8 +231,10 @@ def setdefaults(test):
         setkey_product(test, 'stride_a', ['M', 'lda', 'stride_scale'])
 
     elif test['function'] in ('gemv_strided_batched', 'gbmv_strided_batched',
-                              'ger_strided_batched', 'trsv_strided_batched'):
-        if test['function'] in ('ger_strided_batched', 'trsv_strided_batched'
+                              'ger_strided_batched', 'geru_strided_batched',
+                              'gerc_strided_batched', 'trsv_strided_batched'):
+        if test['function'] in ('ger_strided_batched', 'geru_strided_batched',
+                                'gerc_strided_batched','trsv_strided_batched'
                                 ) or test['transA'] in ('T', 'C'):
             setkey_product(test, 'stride_x', ['M', 'incx', 'stride_scale'])
             setkey_product(test, 'stride_y', ['N', 'incy', 'stride_scale'])
@@ -254,6 +256,11 @@ def setdefaults(test):
             setkey_product(test, 'stride_y', ['N', 'incy', 'stride_scale'])
             ldN = int((test['N'] * (test['N'] + 1) * test['stride_scale']) / 2)
             test.setdefault('stride_a', ldN)
+
+    elif test['function'] in ('spr_strided_batched', 'spr2_strided_batched'):
+        setkey_product(test, 'stride_x', ['N', 'incx', 'stride_scale'])
+        setkey_product(test, 'stride_y', ['N', 'incy', 'stride_scale'])
+        setkey_product(test, 'stride_a', ['N', 'N', 'stride_scale'])
 
     # we are using stride_c for arg c and stride_d for arg s in rotg
     # these are are single values for each batch
