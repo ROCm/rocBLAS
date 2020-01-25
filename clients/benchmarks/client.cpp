@@ -65,6 +65,8 @@
 #include "testing_gemv_batched.hpp"
 #include "testing_gemv_strided_batched.hpp"
 #include "testing_ger.hpp"
+#include "testing_ger_batched.hpp"
+#include "testing_ger_strided_batched.hpp"
 #include "testing_hbmv.hpp"
 #include "testing_hbmv_batched.hpp"
 #include "testing_hbmv_strided_batched.hpp"
@@ -74,6 +76,12 @@
 #include "testing_hpmv.hpp"
 #include "testing_hpmv_batched.hpp"
 #include "testing_hpmv_strided_batched.hpp"
+#include "testing_spr.hpp"
+#include "testing_spr2.hpp"
+#include "testing_spr2_batched.hpp"
+#include "testing_spr2_strided_batched.hpp"
+#include "testing_spr_batched.hpp"
+#include "testing_spr_strided_batched.hpp"
 #include "testing_syr.hpp"
 #include "testing_syr_batched.hpp"
 #include "testing_syr_strided_batched.hpp"
@@ -235,7 +243,15 @@ struct perf_blas<T, U, std::enable_if_t<std::is_same<T, float>{} || std::is_same
                 {"trmv", testing_trmv<T>},
                 {"trmv_batched", testing_trmv_batched<T>},
                 {"trmv_strided_batched", testing_trmv_strided_batched<T>},
-                {"ger", testing_ger<T>},
+                {"spr", testing_spr<T>},
+                {"spr_batched", testing_spr_batched<T>},
+                {"spr_strided_batched", testing_spr_strided_batched<T>},
+                {"spr2", testing_spr2<T>},
+                {"spr2_batched", testing_spr2_batched<T>},
+                {"spr2_strided_batched", testing_spr2_strided_batched<T>},
+                {"ger", testing_ger<T, false>},
+                {"ger_batched", testing_ger_batched<T, false>},
+                {"ger_strided_batched", testing_ger_strided_batched<T, false>},
                 {"syr", testing_syr<T>},
                 {"syr_batched", testing_syr_batched<T>},
                 {"syr_strided_batched", testing_syr_strided_batched<T>},
@@ -336,6 +352,12 @@ struct perf_blas<T,
                 {"gemv", testing_gemv<T>},
                 {"gemv_batched", testing_gemv_batched<T>},
                 {"gemv_strided_batched", testing_gemv_strided_batched<T>},
+                {"geru", testing_ger<T, false>},
+                {"geru_batched", testing_ger_batched<T, false>},
+                {"geru_strided_batched", testing_ger_strided_batched<T, false>},
+                {"gerc", testing_ger<T, true>},
+                {"gerc_batched", testing_ger_batched<T, true>},
+                {"gerc_strided_batched", testing_ger_strided_batched<T, true>},
                 {"hbmv", testing_hbmv<T>},
                 {"hbmv_batched", testing_hbmv_batched<T>},
                 {"hbmv_strided_batched", testing_hbmv_strided_batched<T>},
@@ -345,6 +367,9 @@ struct perf_blas<T,
                 {"hpmv", testing_hpmv<T>},
                 {"hpmv_batched", testing_hpmv_batched<T>},
                 {"hpmv_strided_batched", testing_hpmv_strided_batched<T>},
+                {"spr", testing_spr<T>},
+                {"spr_batched", testing_spr_batched<T>},
+                {"spr_strided_batched", testing_spr_strided_batched<T>},
                 {"syr", testing_syr<T>},
                 {"syr_batched", testing_syr_batched<T>},
                 {"syr_strided_batched", testing_syr_strided_batched<T>},
