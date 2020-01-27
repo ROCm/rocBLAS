@@ -28,16 +28,13 @@ ROCBLAS_EXPORT extern "C" void rocblas_abort()
     // Obtain the map lock
     rocblas_ostream::map_mutex().lock();
 
-    // Clear the map, stopping workers
+    // Clear the map, stopping all workers
     rocblas_ostream::map().clear();
 
-    // TODO: Use synchronization with other threads instead of arbitrary time
-    sleep(1);
-
-    // Flush any remaining files
+    // Flush all
     fflush(NULL);
 
-    // std::abort() instead of of abort() since std::abort() is [[noreturn]]
+    // Exit
     std::abort();
 }
 
@@ -63,7 +60,7 @@ std::shared_ptr<rocblas_ostream::worker> rocblas_ostream::get_worker(int fd)
                       && std::is_same<decltype(file_id_t::st_ino), decltype(stat::st_ino)>{},
                   "struct stat and file_id_t are not layout-compatible");
 
-    // Get the device ID and inode, to detect files already open
+    // Get the device ID and inode, to detect common files
     if(fstat(fd, &statbuf))
     {
         perror("Error executing fstat()");
@@ -76,7 +73,7 @@ std::shared_ptr<rocblas_ostream::worker> rocblas_ostream::get_worker(int fd)
     // Insert a nullptr element if it doesn't already exist
     auto& worker_ptr = map().emplace(file_id, nullptr).first->second;
 
-    // If a new entry was inserted, or an old entry is empty, create worker
+    // If a new entry was inserted, or an old entry is empty, create new worker
     if(!worker_ptr)
         worker_ptr = std::make_shared<worker>(fd);
 
@@ -84,7 +81,7 @@ std::shared_ptr<rocblas_ostream::worker> rocblas_ostream::get_worker(int fd)
     return worker_ptr;
 }
 
-// Construct rocblas_ostream from a file descriptor, which is duped
+// Construct rocblas_ostream from a file descriptor which is duped
 ROCBLAS_EXPORT rocblas_ostream::rocblas_ostream(int fd)
     : worker_ptr(get_worker(fcntl(fd, F_DUPFD_CLOEXEC, 0)))
 {
@@ -95,7 +92,7 @@ ROCBLAS_EXPORT rocblas_ostream::rocblas_ostream(int fd)
     }
 }
 
-// Construct from a filename
+// Construct rocblas_ostream from a filename opened for writing with truncation
 ROCBLAS_EXPORT rocblas_ostream::rocblas_ostream(const char* filename)
     : worker_ptr(
         get_worker(open(filename, O_WRONLY | O_CREAT | O_TRUNC | O_APPEND | O_CLOEXEC, 0644)))
@@ -110,9 +107,17 @@ ROCBLAS_EXPORT rocblas_ostream::rocblas_ostream(const char* filename)
 // Flush the output
 ROCBLAS_EXPORT void rocblas_ostream::flush()
 {
+    // Flush only if this stream contains a worker (i.e., is not a string)
     if(worker_ptr)
     {
-        worker_ptr->enqueue(std::make_shared<std::string>(os.str()));
+        // The contents of the string buffer
+        auto str = os.str();
+
+        // Empty string buffers kill the worker thread, so they are not flushed here
+        if(str.size())
+            worker_ptr->send(std::move(str));
+
+        // Clear the string buffer
         clear();
     }
 }
@@ -232,22 +237,34 @@ ROCBLAS_EXPORT rocblas_ostream& operator<<(rocblas_ostream& os, std::ostream& (*
  * rocblas_ostream::worker functions handle logging in a single thread *
  ***********************************************************************/
 
-// enqueue a string to be written and freed by the worker
-void rocblas_ostream::worker::enqueue(std::shared_ptr<std::string> ptr)
+// Send a string to the worker thread for this stream's device/inode
+// Empty strings tell the worker thread to exit
+void rocblas_ostream::worker::send(std::string str)
 {
-    // Only nullptr or nonzero sized strings are sent
-    if(!ptr || ptr->size())
+    // Create a promise to wait for the operation to complete
+    std::promise<void> promise;
+
+    // The future signal that the operation has completed
+    auto future = promise.get_future();
+
+    // Task consists of string and promise
+    task worker_task(std::move(str), std::move(promise));
+
+    // Submit the task to the worker assigned to this device/inode
     {
         std::lock_guard<std::mutex> lock(mutex);
-        queue.push(ptr);
+        queue.push(std::move(worker_task));
         cond.notify_one();
     }
+
+    // Wait for the task to be completed, to ensure flushed IO
+    future.get();
 }
 
-// Worker thread which waits for strings to be logged
+// Worker thread which serializes data to be written to a device/inode
 void rocblas_ostream::worker::thread_function()
 {
-    // Clear any errors in the file
+    // Clear any errors in the FILE
     clearerr(file);
 
     // Lock the mutex in preparation for cond.wait
@@ -255,28 +272,32 @@ void rocblas_ostream::worker::thread_function()
 
     while(true)
     {
-        // Wait for any data
+        // Wait for any data, ignoring spurious wakeups
         cond.wait(lock, [&] { return !queue.empty(); });
 
         // With the mutex locked, pop data from the front of queue
-        std::shared_ptr<std::string> log = queue.front();
+        auto task = std::move(queue.front());
         queue.pop();
 
-        // A nullptr indicates closing of the file
-        if(!log)
+        // An empty message indicates the closing of the stream
+        if(!task.size())
+        {
+            // Tell future to wake up after thread exits
+            task.set_value_at_thread_exit();
             break;
+        }
 
         // Temporarily unlock mutex, unblocking other threads
         lock.unlock();
 
         // Write the data
-        fwrite(log->data(), 1, log->size(), file);
+        fwrite(task.data(), 1, task.size(), file);
 
-        // Unreference the data
-        log.reset();
+        // Promise that the data has been written
+        task.set_value();
 
-        // Detect error
-        if(ferror(file))
+        // Detect any error and flush the C FILE stream
+        if(ferror(file) | fflush(file))
         {
             perror("Error writing log file");
             break;
@@ -285,9 +306,6 @@ void rocblas_ostream::worker::thread_function()
         // Re-lock the mutex in preparation for cond.wait
         lock.lock();
     }
-
-    // Flush all files
-    fflush(NULL);
 }
 
 // Constructor creates a worker thread
@@ -300,20 +318,7 @@ rocblas_ostream::worker::worker(int fd)
         perror("fdopen() error");
         rocblas_abort();
     }
-}
 
-// Destroy a worker when all references to it are gone
-rocblas_ostream::worker::~worker()
-{
-    // Tell the worker thread to exit
-    enqueue(nullptr);
-
-    // Wait for the thread to exit
-    thread.join();
-
-    // Flush all files
-    fflush(NULL);
-
-    // Close the file
-    fclose(file);
+    // Detach from the worker thread
+    thread.detach();
 }
