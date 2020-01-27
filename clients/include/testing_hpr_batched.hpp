@@ -18,7 +18,7 @@
 template <typename T>
 void testing_hpr_batched_bad_arg()
 {
-    using U = decltype(std::real(T(0)));
+    using U = rocblas_real_t<T>;
 
     rocblas_fill         uplo        = rocblas_fill_upper;
     rocblas_int          N           = 100;
@@ -56,7 +56,7 @@ void testing_hpr_batched_bad_arg()
 template <typename T>
 void testing_hpr_batched(const Arguments& arg)
 {
-    using U = decltype(std::real(T(0)));
+    using U = rocblas_real_t<T>;
 
     rocblas_int  N           = arg.N;
     rocblas_int  incx        = arg.incx;
@@ -69,16 +69,11 @@ void testing_hpr_batched(const Arguments& arg)
     // argument check before allocating invalid memory
     if(N <= 0 || !incx || batch_count <= 0)
     {
-        EXPECT_ROCBLAS_STATUS((rocblas_hpr_batched<T, U>)(handle,
-                                                          uplo,
-                                                          N,
-                                                          &h_alpha,
-                                                          nullptr,
-                                                          incx,
-                                                          nullptr,
-                                                          batch_count),
-                              N < 0 || !incx || batch_count < 0 ? rocblas_status_invalid_size
-                                                                : rocblas_status_success);
+        EXPECT_ROCBLAS_STATUS(
+            (rocblas_hpr_batched<T,
+                                 U>)(handle, uplo, N, nullptr, nullptr, incx, nullptr, batch_count),
+            N < 0 || !incx || batch_count < 0 ? rocblas_status_invalid_size
+                                              : rocblas_status_success);
         return;
     }
 

@@ -18,7 +18,7 @@
 template <typename T>
 void testing_hpr_strided_batched_bad_arg()
 {
-    using U = decltype(std::real(T(0)));
+    using U = rocblas_real_t<T>;
 
     rocblas_fill   uplo        = rocblas_fill_upper;
     rocblas_int    N           = 10;
@@ -90,7 +90,7 @@ void testing_hpr_strided_batched_bad_arg()
 template <typename T>
 void testing_hpr_strided_batched(const Arguments& arg)
 {
-    using U = decltype(std::real(T(0)));
+    using U = rocblas_real_t<T>;
 
     rocblas_int    N           = arg.N;
     rocblas_int    incx        = arg.incx;
@@ -108,7 +108,7 @@ void testing_hpr_strided_batched(const Arguments& arg)
         EXPECT_ROCBLAS_STATUS((rocblas_hpr_strided_batched<T, U>)(handle,
                                                                   uplo,
                                                                   N,
-                                                                  &h_alpha,
+                                                                  nullptr,
                                                                   nullptr,
                                                                   incx,
                                                                   stride_x,

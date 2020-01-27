@@ -18,8 +18,8 @@ __device__ void
         AP[index] += alpha * x[tx * incx] * conj(x[ty * incx]);
     else if(tx == ty && tx < n)
     {
-        T x_real  = std::real(x[tx * incx]);
-        T x_imag  = std::imag(x[tx * incx]);
+        U x_real  = std::real(x[tx * incx]);
+        U x_imag  = std::imag(x[tx * incx]);
         AP[index] = std::real(AP[index]) + alpha * ((x_real * x_real) + (x_imag * x_imag));
     }
 }
