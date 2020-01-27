@@ -139,7 +139,8 @@ namespace
                             batch_count);
         }
 
-        rocblas_status arg_status = rocblas_symv_arg_check<T>(uplo,
+        rocblas_status arg_status = rocblas_symv_arg_check<T>(handle,
+                                                              uplo,
                                                               n,
                                                               alpha,
                                                               0,

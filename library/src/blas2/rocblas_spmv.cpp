@@ -90,17 +90,10 @@ namespace
                             incy);
         }
 
-        if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
-            return rocblas_status_invalid_value;
-
-        if(n < 0 || !incx || !incy)
-            return rocblas_status_invalid_size;
-
-        if(!n)
-            return rocblas_status_success;
-
-        if(!A || !x || !y || !alpha || !beta)
-            return rocblas_status_invalid_pointer;
+        rocblas_status arg_status = rocblas_spmv_arg_check<T>(
+            handle, uplo, n, alpha, 0, A, 0, 0, x, 0, incx, 0, beta, 0, y, 0, incy, 0, 1);
+        if(arg_status != rocblas_status_continue)
+            return arg_status;
 
         return rocblas_spmv_template<T>(
             handle, uplo, n, alpha, 0, A, 0, 0, x, 0, incx, 0, beta, 0, y, 0, incy, 0, 1);

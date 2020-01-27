@@ -112,18 +112,10 @@ namespace
                             incy);
         }
 
-        if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
-            return rocblas_status_invalid_value;
-
-        if(n < 0 || k < 0 || lda < n || lda < 1 || !incx || !incy)
-            return rocblas_status_invalid_size;
-
-        // quick return before pointer checks
-        if(!n)
-            return rocblas_status_success;
-
-        if(!A || !x || !y || !alpha || !beta)
-            return rocblas_status_invalid_pointer;
+        rocblas_status arg_status = rocblas_sbmv_arg_check<T>(
+            handle, uplo, n, k, alpha, 0, A, 0, lda, 0, x, 0, incx, 0, beta, 0, y, 0, incy, 0, 1);
+        if(arg_status != rocblas_status_continue)
+            return arg_status;
 
         return rocblas_sbmv_template<T>(
             handle, uplo, n, k, alpha, 0, A, 0, lda, 0, x, 0, incx, 0, beta, 0, y, 0, incy, 0, 1);
