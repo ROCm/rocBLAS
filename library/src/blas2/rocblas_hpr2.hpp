@@ -21,8 +21,10 @@ __device__ void hpr2_kernel_calc(bool        upper,
     int index = upper ? ((ty * (ty + 1)) / 2) + tx : ((ty * (2 * n - ty + 1)) / 2) + (tx - ty);
 
     if(upper ? ty < n && tx < ty : tx < n && ty < tx)
+    {
         AP[index] += alpha * x[tx * incx] * conj(y[ty * incy])
                      + conj(alpha) * y[tx * incy] * conj(x[ty * incx]);
+    }
     else if(tx == ty && tx < n)
     {
         AP[index] = std::real(AP[index]) + alpha * x[tx * incx] * conj(y[ty * incy])
