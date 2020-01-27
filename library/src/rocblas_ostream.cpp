@@ -3,13 +3,9 @@
  * ************************************************************************ */
 
 #include "rocblas_ostream.hpp"
-#include <atomic>
-#include <cerrno>
 #include <csignal>
 #include <cstddef>
-#include <cstdio>
 #include <fcntl.h>
-#include <map>
 #include <type_traits>
 
 /***********************************************************************
