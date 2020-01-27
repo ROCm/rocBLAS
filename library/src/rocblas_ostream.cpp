@@ -297,7 +297,7 @@ void rocblas_ostream::worker::thread_function()
         task.set_value();
 
         // Detect any error and flush the C FILE stream
-        if(ferror(file) | fflush(file))
+        if(ferror(file) || fflush(file))
         {
             perror("Error writing log file");
             break;
