@@ -409,13 +409,4 @@ inline void trsm_err_res_check(T max_error, rocblas_int M, T forward_tolerance, 
 #endif
 }
 
-template <typename T>
-double get_epsilon()
-{
-    if(std::is_same<T, rocblas_float_complex>{} || std::is_same<T, float>{})
-        return std::numeric_limits<float>::epsilon();
-    else if(std::is_same<T, rocblas_double_complex>{} || std::is_same<T, double>{})
-        return std::numeric_limits<double>::epsilon();
-}
-
 #endif
