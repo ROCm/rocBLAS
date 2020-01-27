@@ -9,8 +9,10 @@
 #include "rocblas_ostream.hpp"
 #include <cstddef>
 #include <cstring>
+#include <functional>
 #include <string>
 #include <tuple>
+#include <type_traits>
 #include <utility>
 
 /*****************************************************
@@ -45,19 +47,16 @@ public:
         static_assert(std::tuple_size<TUP>{} % 2 == 0, "Tuple size must be even");
 
         // delim starts as "{ " and becomes ", " afterwards
-        auto print_pair = [&os, delim = "{ "](const char* name, const auto& value) mutable {
-            os << delim << name << ": " << value;
+        auto print_pair = [&, delim = "{ "](const char* name, const auto& value) mutable {
+            os << delim << std::make_pair(name, value);
             delim = ", ";
         };
-
-        // Turn YAML formatting on
-        os << rocblas_ostream::yaml_on;
 
         // Call print_argument for each (name, value) tuple pair
         apply_pairs(print_pair, tuple);
 
-        // Closing brace and turn YAML formatting off
-        return os << " }\n" << rocblas_ostream::yaml_off;
+        // Closing brace
+        return os << " }\n";
     }
 
     /*********************************************************************

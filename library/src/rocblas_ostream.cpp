@@ -97,7 +97,8 @@ ROCBLAS_EXPORT rocblas_ostream::rocblas_ostream(int fd)
 
 // Construct from a filename
 ROCBLAS_EXPORT rocblas_ostream::rocblas_ostream(const char* filename)
-    : worker_ptr(get_worker(open(filename, O_WRONLY | O_CREAT | O_APPEND | O_CLOEXEC, 0644)))
+    : worker_ptr(
+        get_worker(open(filename, O_WRONLY | O_CREAT | O_TRUNC | O_APPEND | O_CLOEXEC, 0644)))
 {
     if(!worker_ptr)
     {
@@ -106,7 +107,7 @@ ROCBLAS_EXPORT rocblas_ostream::rocblas_ostream(const char* filename)
     }
 }
 
-// Flush the output atomically
+// Flush the output
 ROCBLAS_EXPORT void rocblas_ostream::flush()
 {
     if(worker_ptr)
@@ -193,9 +194,21 @@ ROCBLAS_EXPORT rocblas_ostream& operator<<(rocblas_ostream& os, const std::strin
     return os;
 }
 
+// YAML Manipulators (only used for their addresses now)
+ROCBLAS_EXPORT std::ostream& rocblas_ostream::yaml_on(std::ostream& os)
+{
+    return os;
+}
+
+ROCBLAS_EXPORT std::ostream& rocblas_ostream::yaml_off(std::ostream& os)
+{
+    return os;
+}
+
 // IO Manipulators
 ROCBLAS_EXPORT rocblas_ostream& operator<<(rocblas_ostream& os, std::ostream& (*pf)(std::ostream&))
 {
+    // Turn YAML formatting on or off
     if(pf == rocblas_ostream::yaml_on)
         os.yaml = true;
     else if(pf == rocblas_ostream::yaml_off)
@@ -203,8 +216,7 @@ ROCBLAS_EXPORT rocblas_ostream& operator<<(rocblas_ostream& os, std::ostream& (*
     else
     {
         // Output the manipulator to the buffer
-        if(pf)
-            os.os << pf;
+        os.os << pf;
 
         // If the manipulator is std::endl or std::flush, flush the output
         if(pf == static_cast<std::ostream& (*)(std::ostream&)>(std::endl)

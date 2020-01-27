@@ -77,12 +77,11 @@ rocblas_int query_device_property()
     for(rocblas_int i = 0;; i++)
     {
         rocblas_cout
-            << "-------------------------------------------------------------------------------\n";
+            << "-------------------------------------------------------------------------------"
+            << std::endl;
 
         if(i >= device_count)
-        {
             break;
-        }
 
         hipDeviceProp_t props;
         rocblas_status  status = (rocblas_status)hipGetDeviceProperties(&props, i);

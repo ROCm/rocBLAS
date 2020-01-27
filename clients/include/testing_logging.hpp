@@ -55,31 +55,29 @@ void testing_logging()
     setenv_status = setenv("ROCBLAS_LAYER", "3", true);
 
 #ifdef GOOGLE_TEST
-    EXPECT_EQ(setenv_status, 0);
+    ASSERT_EQ(setenv_status, 0);
 #endif
 
-    auto trace_name1 = "stream_trace_" + std::string(precision_letter<T>) + ".csv";
+    // open files
+    static std::string exe_dir = rocblas_exepath();
+
+    std::string trace_path1 = exe_dir + "trace_" + std::string(precision_letter<T>) + ".csv";
+    std::string trace_path2 = exe_dir + "trace_" + std::string(precision_letter<T>) + "_gold.csv";
+    std::string bench_path1 = exe_dir + "bench_" + std::string(precision_letter<T>) + ".txt";
+    std::string bench_path2 = exe_dir + "bench_" + std::string(precision_letter<T>) + "_gold.txt";
+
     // set environment variable to give pathname of for log_trace file
-    setenv_status = setenv("ROCBLAS_LOG_TRACE_PATH", trace_name1.c_str(), true);
+    setenv_status = setenv("ROCBLAS_LOG_TRACE_PATH", trace_path1.c_str(), true);
 
 #ifdef GOOGLE_TEST
-    EXPECT_EQ(setenv_status, 0);
+    ASSERT_EQ(setenv_status, 0);
 #endif
 
     // set environment variable to give pathname of for log_bench file
-    auto bench_name1 = "stream_bench_" + std::string(precision_letter<T>) + ".txt";
-    setenv_status    = setenv("ROCBLAS_LOG_BENCH_PATH", bench_name1.c_str(), true);
+    setenv_status = setenv("ROCBLAS_LOG_BENCH_PATH", bench_path1.c_str(), true);
 
 #ifdef GOOGLE_TEST
-    EXPECT_EQ(setenv_status, 0);
-#endif
-
-    // set environment variable to give pathname of for log_profile file
-    auto profile_name1 = "stream_profile_" + std::string(precision_letter<T>) + ".yaml";
-    setenv_status      = setenv("ROCBLAS_LOG_PROFILE_PATH", profile_name1.c_str(), true);
-
-#ifdef GOOGLE_TEST
-    EXPECT_EQ(setenv_status, 0);
+    ASSERT_EQ(setenv_status, 0);
 #endif
 
     rocblas::reinit_logs(); // reinitialize logging with newly set environment
@@ -322,7 +320,7 @@ void testing_logging()
     setenv_status = setenv("ROCBLAS_LAYER", "0", true);
 
 #ifdef GOOGLE_TEST
-    EXPECT_EQ(setenv_status, 0);
+    ASSERT_EQ(setenv_status, 0);
 #endif
 
     rocblas::reinit_logs(); // reinitialize logging, flushing old data to files
@@ -331,24 +329,14 @@ void testing_logging()
     // write "golden file"
     //
 
-    // find cwd string
-    char        temp[MAXPATHLEN];
-    std::string cwd_str = getcwd(temp, MAXPATHLEN) ? temp : "";
+    std::ofstream trace_ofs;
+    std::ofstream bench_ofs;
 
-    // open files
-    auto        trace_name2 = "rocblas_log_trace_gold_" + std::string(precision_letter<T>) + ".csv";
-    std::string trace_path1 = cwd_str + "/" + trace_name1;
-    std::string trace_path2 = cwd_str + "/" + trace_name2;
+    trace_ofs.open(trace_path2);
+    bench_ofs.open(bench_path2);
 
-    std::string bench_name2 = "rocblas_log_bench_gold_" + std::string(precision_letter<T>) + ".txt";
-    std::string bench_path1 = cwd_str + "/" + bench_name1;
-    std::string bench_path2 = cwd_str + "/" + bench_name2;
-
-    std::ofstream trace_ofs2;
-    std::ofstream bench_ofs2;
-
-    trace_ofs2.open(trace_path2);
-    bench_ofs2.open(bench_path2);
+    rocblas_ostream trace_ofs2;
+    rocblas_ostream bench_ofs2;
 
     // Auxiliary function
     trace_ofs2 << "rocblas_create_handle\n";
@@ -685,13 +673,18 @@ void testing_logging()
     // Auxiliary function
     trace_ofs2 << "rocblas_destroy_handle\n";
 
-    trace_ofs2.close();
-    bench_ofs2.close();
+    // Transfer the formatted output to the files
+    trace_ofs << trace_ofs2;
+    bench_ofs << bench_ofs2;
+
+    // Close the files
+    trace_ofs.close();
+    bench_ofs.close();
 
     //
     // check if rocBLAS output files same as "golden files"
     //
-    int trace_cmp = system(("cmp -s " + trace_path1 + " " + trace_path2).c_str());
+    int trace_cmp = system(("/usr/bin/diff " + trace_path1 + " " + trace_path2).c_str());
 
     if(!trace_cmp)
     {
@@ -700,15 +693,15 @@ void testing_logging()
     }
 
 #ifdef GOOGLE_TEST
-    EXPECT_EQ(trace_cmp, 0);
+    ASSERT_EQ(trace_cmp, 0);
 #endif
 
     if(test_pointer_mode == rocblas_pointer_mode_host)
     {
-        int bench_cmp = system(("cmp -s " + bench_path1 + " " + bench_path2).c_str());
+        int bench_cmp = system(("/usr/bin/diff " + bench_path1 + " " + bench_path2).c_str());
 
 #ifdef GOOGLE_TEST
-        EXPECT_EQ(bench_cmp, 0);
+        ASSERT_EQ(bench_cmp, 0);
 #endif
 
         if(!bench_cmp)
