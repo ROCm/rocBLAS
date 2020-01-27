@@ -146,7 +146,7 @@ public:
         os.str({});
     }
 
-    // Flush the output atomically
+    // Flush the output
     void flush();
 
     // Destroy the rocblas_ostream
@@ -183,6 +183,17 @@ public:
     friend rocblas_ostream& operator<<(rocblas_ostream& os, T&& x)
     {
         os.os << std::forward<T>(x);
+        return os;
+    }
+
+    // Pairs for YAML output
+    template <typename T1, typename T2>
+    friend rocblas_ostream& operator<<(rocblas_ostream& os, std::pair<T1, T2> p)
+    {
+        os << p.first << ": ";
+        os.yaml = true;
+        os << p.second;
+        os.yaml = false;
         return os;
     }
 
@@ -258,14 +269,8 @@ public:
     friend rocblas_ostream& operator<<(rocblas_ostream& os, std::ostream& (*pf)(std::ostream&));
 
     // YAML Manipulators (only used for their addresses now)
-    static std::ostream& yaml_on(std::ostream& os)
-    {
-        return os;
-    }
-    static std::ostream& yaml_off(std::ostream& os)
-    {
-        return os;
-    }
+    static std::ostream& yaml_on(std::ostream& os);
+    static std::ostream& yaml_off(std::ostream& os);
 };
 
 #endif

@@ -116,12 +116,12 @@ template <typename... Ts>
 inline void log_profile(rocblas_handle handle, const char* func, Ts&&... xs)
 {
     // Make a tuple with the arguments
-    auto tup = std::make_tuple("rocblas_function", func, std::forward<Ts>(xs)...);
+    auto tup = std::make_tuple("rocblas_function", func, xs...);
 
     // Set up profile
     static argument_profile<decltype(tup)> profile(*handle->log_profile_os);
 
-    // Add at_quick_exit handler is added in case the program terminates early
+    // Add at_quick_exit handler in case the program exits early
     static int aqe = at_quick_exit([] { profile.~argument_profile(); });
 
     // Profile the tuple
@@ -220,7 +220,6 @@ inline rocblas_status log_trace_alpha_beta_ex(rocblas_datatype compute_type,
                                               rocblas_ostream& alphass,
                                               rocblas_ostream& betass)
 {
-
     switch(compute_type)
     {
     case rocblas_datatype_f16_r:

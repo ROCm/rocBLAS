@@ -7,25 +7,25 @@
 #include <cstdlib>
 #include <cstring>
 #include <iomanip>
+#include <istream>
+#include <ostream>
+#include <utility>
 
 // Function to print Arguments out to stream in YAML format
 rocblas_ostream& operator<<(rocblas_ostream& os, const Arguments& arg)
 {
     // delim starts as "{ " and becomes ", " afterwards
-    auto print_pair = [&os, delim = "{ "](const char* name, const auto& value) mutable {
-        os << delim << name << ": " << value;
+    auto print_pair = [&, delim = "{ "](const char* name, const auto& value) mutable {
+        os << delim << std::make_pair(name, value);
         delim = ", ";
     };
 
-    // Turn YAML formatting on
-    os << rocblas_ostream::yaml_on;
-
-    // Call print_pair for each (name, value) tuple pair
+    // Print each (name, value) tuple pair
 #define NAME_VALUE_PAIR(NAME) print_pair(#NAME, arg.NAME)
     FOR_EACH_ARGUMENT(NAME_VALUE_PAIR, ;);
 
-    // Closing brace and turn YAML formatting off
-    return os << " }\n" << rocblas_ostream::yaml_off;
+    // Closing brace
+    return os << " }\n";
 }
 
 // Google Tests uses this automatically with std::ostream to dump parameters
