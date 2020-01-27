@@ -10,8 +10,11 @@
 #include <complex>
 #include <condition_variable>
 #include <cstdint>
+#include <cstdio>
 #include <cstdlib>
+#include <future>
 #include <iomanip>
+#include <map>
 #include <memory>
 #include <mutex>
 #include <queue>
@@ -44,6 +47,27 @@ class rocblas_ostream
      **************************************************************************/
     class worker
     {
+        // Task represents a payload of data and a promise to finish
+        class task : public std::string
+        {
+            std::promise<void>& promise;
+
+        public:
+            task(std::string&& str, std::promise<void>&& promise)
+                : std::string(std::move(str))
+                , promise(promise)
+            {
+            }
+            void set_value_at_thread_exit()
+            {
+                promise.set_value_at_thread_exit();
+            }
+            void set_value()
+            {
+                promise.set_value();
+            }
+        };
+
         // Log file
         FILE* file;
 
@@ -57,7 +81,7 @@ class rocblas_ostream
         std::mutex mutex;
 
         // Queue of strings to be logged
-        std::queue<std::shared_ptr<std::string>> queue;
+        std::queue<task> queue;
 
         // Worker thread which waits for strings to log
         void thread_function();
@@ -66,11 +90,18 @@ class rocblas_ostream
         // Constructor creates a worker thread
         explicit worker(int fd);
 
-        // Enqueue a string to be written
-        void enqueue(std::shared_ptr<std::string>);
+        // Send a string to be written
+        void send(std::string);
 
         // Destroy a worker when all references to it are gone
-        ~worker();
+        ~worker()
+        {
+            // Tell worker thread to exit, by sending it an empty string
+            send({});
+
+            // Close the file
+            fclose(file);
+        }
     };
 
     // Initial slice of struct stat which contains device ID and inode
