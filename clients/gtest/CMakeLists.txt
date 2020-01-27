@@ -72,6 +72,7 @@ set(rocblas_no_tensile_test_source
     hbmv_gtest.cpp
     hemv_gtest.cpp
     hpmv_gtest.cpp
+    hpr_gtest.cpp
     trmv_gtest.cpp
     tpmv_gtest.cpp
     tbmv_gtest.cpp

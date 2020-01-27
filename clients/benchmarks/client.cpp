@@ -61,6 +61,9 @@
 #include "testing_hpmv.hpp"
 #include "testing_hpmv_batched.hpp"
 #include "testing_hpmv_strided_batched.hpp"
+#include "testing_hpr.hpp"
+#include "testing_hpr_batched.hpp"
+#include "testing_hpr_strided_batched.hpp"
 #include "testing_spr.hpp"
 #include "testing_spr2.hpp"
 #include "testing_spr2_batched.hpp"
@@ -354,6 +357,9 @@ struct perf_blas<T,
                 {"hpmv", testing_hpmv<T>},
                 {"hpmv_batched", testing_hpmv_batched<T>},
                 {"hpmv_strided_batched", testing_hpmv_strided_batched<T>},
+                {"hpr", testing_hpr<T>},
+                {"hpr_batched", testing_hpr_batched<T>},
+                {"hpr_strided_batched", testing_hpr_strided_batched<T>},
                 {"spr", testing_spr<T>},
                 {"spr_batched", testing_spr_batched<T>},
                 {"spr_strided_batched", testing_spr_strided_batched<T>},
