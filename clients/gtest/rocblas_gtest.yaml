@@ -5,9 +5,12 @@ include: hbmv_gtest.yaml
 include: hemv_gtest.yaml
 include: her_gtest.yaml
 include: hpmv_gtest.yaml
+include: hpr_gtest.yaml
 include: gemm_gtest.yaml
 include: gemm_batched_gtest.yaml
 include: gemm_strided_batched_gtest.yaml
+include: sbmv_gtest.yaml
+include: spmv_gtest.yaml
 include: symv_gtest.yaml
 include: spr_gtest.yaml
 include: spr2_gtest.yaml

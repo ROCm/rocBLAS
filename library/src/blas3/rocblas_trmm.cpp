@@ -215,6 +215,48 @@ catch(...)
     return exception_to_rocblas_status();
 }
 
+rocblas_status rocblas_ctrmm(rocblas_handle               handle,
+                             rocblas_side                 side,
+                             rocblas_fill                 uplo,
+                             rocblas_operation            transa,
+                             rocblas_diagonal             diag,
+                             rocblas_int                  m,
+                             rocblas_int                  n,
+                             const rocblas_float_complex* alpha,
+                             const rocblas_float_complex* a,
+                             rocblas_int                  lda,
+                             rocblas_float_complex*       c,
+                             rocblas_int                  ldc)
+try
+{
+    return rocblas_trmm_impl(handle, side, uplo, transa, diag, m, n, alpha, a, lda, c, ldc);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
+}
+
+rocblas_status rocblas_ztrmm(rocblas_handle                handle,
+                             rocblas_side                  side,
+                             rocblas_fill                  uplo,
+                             rocblas_operation             transa,
+                             rocblas_diagonal              diag,
+                             rocblas_int                   m,
+                             rocblas_int                   n,
+                             const rocblas_double_complex* alpha,
+                             const rocblas_double_complex* a,
+                             rocblas_int                   lda,
+                             rocblas_double_complex*       c,
+                             rocblas_int                   ldc)
+try
+{
+    return rocblas_trmm_impl(handle, side, uplo, transa, diag, m, n, alpha, a, lda, c, ldc);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
+}
+
 } // extern "C"
 
 /* ============================================================================================ */

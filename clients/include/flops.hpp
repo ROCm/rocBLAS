@@ -225,6 +225,13 @@ constexpr double hpmv_gflop_count(rocblas_int n)
     return (8.0 * n * n + 8.0 * n) / 1e9;
 }
 
+/* \brief floating point counts of HPR */
+template <typename T>
+constexpr double hpr_gflop_count(rocblas_int n)
+{
+    return (4.0 * n * n + 6.0 * n) / 1e9;
+}
+
 /* \brief floating point counts of TRSV */
 template <typename T>
 constexpr double trsv_gflop_count(rocblas_int m)
@@ -259,6 +266,33 @@ template <typename T>
 constexpr double symv_gflop_count(rocblas_int n)
 {
     return (2.0 * n * n + 2.0 * n) / 1e9;
+}
+
+template <>
+constexpr double symv_gflop_count<rocblas_float_complex>(rocblas_int n)
+{
+    return 4.0 * symv_gflop_count<rocblas_float>(n);
+}
+
+template <>
+constexpr double symv_gflop_count<rocblas_double_complex>(rocblas_int n)
+{
+    return symv_gflop_count<rocblas_float_complex>(n);
+}
+
+/* \brief floating point counts of SPMV */
+template <typename T>
+constexpr double spmv_gflop_count(rocblas_int n)
+{
+    return (2.0 * n * n + 2.0 * n) / 1e9;
+}
+
+/* \brief floating point counts of SBMV */
+template <typename T>
+constexpr double sbmv_gflop_count(rocblas_int n, rocblas_int k)
+{
+    rocblas_int k1 = k < n ? k : n;
+    return (2.0 * ((2.0 * k1 + 1) * n - k1 * (k1 + 1)) + 2.0 * n) / 1e9;
 }
 
 /* \brief floating point counts of SPR */

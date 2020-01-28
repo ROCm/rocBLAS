@@ -25,7 +25,7 @@ rocBLAS build & installation helper script
            --hip-clang         Build library for amdgpu backend using hip-clang
            --build_dir         Specify name of output directory (default is ./build)
       -n | --no_tensile        Build subset of library that does not require Tensile
-      -s | --tensile-host      Build with Tensile host
+      -r | --no-tensile-host   Do not build with Tensile host
       -u | --use-tag-only      Ignore Tensile version and just use the Tensile tag
            --skipldconf        Skip ld.so.conf entry
 EOF
@@ -259,7 +259,7 @@ tensile_version=true
 build_clients=false
 build_cuda=false
 build_tensile=true
-build_tensile_host=false
+build_tensile_host=true
 cpu_ref_lib=blis
 build_release=true
 build_hip_clang=false
@@ -278,7 +278,7 @@ fi
 # check if we have a modern version of getopt that can handle whitespace and long parameters
 getopt -T
 if [[ $? -eq 4 ]]; then
-  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,no_tensile,tensile-host,use-tag-only,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,skipldconf --options nshicdgul:a:o:f:b:t: -- "$@")
+  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,no_tensile,no-tensile-host,use-tag-only,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,skipldconf --options nrhicdgul:a:o:f:b:t: -- "$@")
 else
   echo "Need a new version of getopt"
   exit 1
@@ -330,8 +330,8 @@ while true; do
     -n|--no_tensile)
         build_tensile=false
         shift ;;
-    -s|--tensile-host)
-        build_tensile_host=true
+    -r|--no-tensile-host)
+        build_tensile_host=false
         shift ;;
     --build_dir)
         build_dir=${2}
@@ -502,6 +502,10 @@ pushd .
   tensile_opt=""
   if [[ "${build_tensile}" == false ]]; then
     tensile_opt="${tensile_opt} -DBUILD_WITH_TENSILE=OFF"
+  fi
+
+  if [[ "${build_tensile_host}" == false ]]; then
+    tensile_opt="${tensile_opt} -DBUILD_WITH_TENSILE_HOST=OFF"
   fi
 
   if [[ "${build_tensile_host}" == true ]]; then

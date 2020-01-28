@@ -182,6 +182,9 @@ set( rocblas_blas2_source
   blas2/rocblas_hpmv.cpp
   blas2/rocblas_hpmv_batched.cpp
   blas2/rocblas_hpmv_strided_batched.cpp
+  blas2/rocblas_hpr.cpp
+  blas2/rocblas_hpr_batched.cpp
+  blas2/rocblas_hpr_strided_batched.cpp
   blas2/rocblas_spr.cpp
   blas2/rocblas_spr_batched.cpp
   blas2/rocblas_spr_strided_batched.cpp
@@ -194,6 +197,15 @@ set( rocblas_blas2_source
   blas2/rocblas_tbmv.cpp
   blas2/rocblas_tbmv_batched.cpp
   blas2/rocblas_tbmv_strided_batched.cpp
+  blas2/rocblas_sbmv.cpp
+  blas2/rocblas_sbmv_batched.cpp
+  blas2/rocblas_sbmv_strided_batched.cpp
+  blas2/rocblas_spmv.cpp
+  blas2/rocblas_spmv_batched.cpp
+  blas2/rocblas_spmv_strided_batched.cpp
+  blas2/rocblas_symv.cpp
+  blas2/rocblas_symv_batched.cpp
+  blas2/rocblas_symv_strided_batched.cpp
 )
 
 set( rocblas_auxiliary_source
@@ -332,7 +344,8 @@ rocm_install_targets(
 
 if( BUILD_WITH_TENSILE )
   if( BUILD_WITH_TENSILE_HOST )
-    install(DIRECTORY ${CMAKE_BINARY_DIR}/Tensile/library DESTINATION ${CMAKE_INSTALL_PREFIX}/rocblas/lib)
+    set( ROCBLAS_TENSILE_LIBRARY_DIR "\${CPACK_PACKAGING_INSTALL_PREFIX}rocblas/lib" CACHE PATH "path to tensile library" )
+    install(DIRECTORY ${CMAKE_BINARY_DIR}/Tensile/library DESTINATION ${ROCBLAS_TENSILE_LIBRARY_DIR})
   endif()
 endif()
 
