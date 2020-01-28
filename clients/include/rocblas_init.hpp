@@ -95,6 +95,42 @@ void rocblas_init_symmetric(std::vector<T>& A, size_t N, size_t lda)
         }
 }
 
+/*! \brief  symmetric matrix initialization: */
+template <typename T>
+void rocblas_init_symmetric(T* A, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
+{
+    for(size_t b = 0; b < batch_count; ++b)
+    {
+        for(size_t i = 0; i < N; ++i)
+            for(size_t j = 0; j <= i; ++j)
+            {
+                auto value = random_generator<T>();
+                // Warning: It's undefined behavior to assign to the
+                // same array element twice in same sequence point (i==j)
+                A[b * stride + j + i * lda] = value;
+                A[b * stride + i + j * lda] = value;
+            }
+    }
+}
+
+/*! \brief  symmetric matrix clear: */
+template <typename T>
+void rocblas_clear_symmetric(
+    rocblas_fill uplo, T* A, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
+{
+    for(size_t b = 0; b < batch_count; ++b)
+    {
+        for(size_t i = 0; i < N; ++i)
+            for(size_t j = i + 1; j < N; ++j)
+            {
+                if(uplo == rocblas_fill_upper)
+                    A[b * stride + j + i * lda] = 0; // clear lower
+                else
+                    A[b * stride + i + j * lda] = 0; // clear upper
+            }
+    }
+}
+
 /*! \brief  hermitian matrix initialization: */
 // for complex matrix only, the real/imag part would be initialized with the same value
 // except the diagonal elment must be real

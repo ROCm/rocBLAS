@@ -194,6 +194,15 @@ set( rocblas_blas2_source
   blas2/rocblas_tbmv.cpp
   blas2/rocblas_tbmv_batched.cpp
   blas2/rocblas_tbmv_strided_batched.cpp
+  blas2/rocblas_sbmv.cpp
+  blas2/rocblas_sbmv_batched.cpp
+  blas2/rocblas_sbmv_strided_batched.cpp
+  blas2/rocblas_spmv.cpp
+  blas2/rocblas_spmv_batched.cpp
+  blas2/rocblas_spmv_strided_batched.cpp
+  blas2/rocblas_symv.cpp
+  blas2/rocblas_symv_batched.cpp
+  blas2/rocblas_symv_strided_batched.cpp
 )
 
 set( rocblas_auxiliary_source
