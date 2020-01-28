@@ -759,7 +759,7 @@ rocblas_status gemm_ex_typecasting(rocblas_handle    handle,
     }
 
     // check alignment of pointers before casting
-    if constexpr(BATCHED)
+    if(BATCHED)
     {
         if(!isAligned(a, sizeof(Ti*)) || !isAligned(b, sizeof(Ti*)) || !isAligned(c, sizeof(To*))
            || !isAligned(d, sizeof(To*)))
@@ -864,7 +864,7 @@ rocblas_status rocblas_gemm_ex_template(rocblas_handle    handle,
     if(!m || !n || !batch_count)
         return rocblas_status_success;
 
-    if constexpr(BATCHED)
+    if(BATCHED)
     {
         stride_a = rocblas_stride(lda) * (trans_a == rocblas_operation_none ? k : m);
         stride_b = rocblas_stride(ldb) * (trans_b == rocblas_operation_none ? n : k);
@@ -932,7 +932,7 @@ rocblas_status rocblas_gemm_ex_template(rocblas_handle    handle,
             lda = (trans_a == rocblas_operation_none) ? lda : lda / 4;
             ldb = (trans_b == rocblas_operation_none) ? ldb / 4 : ldb;
             k   = k / 4;
-            if constexpr(!BATCHED)
+            if(!BATCHED)
             {
                 stride_a = stride_a / 4;
                 stride_b = stride_b / 4;

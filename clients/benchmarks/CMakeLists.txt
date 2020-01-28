@@ -10,7 +10,7 @@ set( Boost_USE_STATIC_LIBS OFF )
 
 if(EXISTS /etc/redhat-release)
     if(CXX_VERSION_STRING MATCHES "clang")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp=libgomp -pthread -stdlib=libstdc++ -std=c++17")
+        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp=libgomp -pthread -stdlib=libstdc++ -std=c++14")
     else()
         set(CMAKE_CXX_FLAGS "-isystem /opt/rocm/include ${CMAKE_CXX_FLAGS} -fopenmp=libgomp -pthread")
     endif()
@@ -53,7 +53,7 @@ set( rocblas_benchmark_common
     )
 
 add_executable( rocblas-bench client.cpp ${rocblas_benchmark_common} )
-target_compile_features( rocblas-bench PRIVATE cxx_static_assert cxx_nullptr cxx_auto_type)
+target_compile_features( rocblas-bench PRIVATE cxx_std_14 )
 
 if( BUILD_WITH_TENSILE )
     target_compile_definitions( rocblas-bench PRIVATE BUILD_WITH_TENSILE=1 )
@@ -74,7 +74,7 @@ set( BLIS_LIBRARY ${CMAKE_SOURCE_DIR}/build/deps/blis/lib/libblis.so )
 if( OS_ID_rhel OR OS_ID_sles OR OS_ID_centos)
     if( OS_ID_rhel OR OS_ID_centos)
         if( CXX_VERSION_STRING MATCHES "clang")
-	    set( OPENMP_INCLUDE_DIR /opt/rh/devtoolset-7/root/usr/lib/gcc/x86_64-redhat-linux/7/include )
+           set( OPENMP_INCLUDE_DIR /opt/rh/devtoolset-7/root/usr/lib/gcc/x86_64-redhat-linux/7/include )
         endif()
         # defer OpenMP include as search order must come after clang
         set( XXX_OPENMP_INCLUDE_DIR /opt/rh/devtoolset-7/root/usr/lib/gcc/x86_64-redhat-linux/7/include )

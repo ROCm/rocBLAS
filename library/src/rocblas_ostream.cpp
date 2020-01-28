@@ -247,6 +247,8 @@ void rocblas_ostream::worker::send(std::string str)
     task worker_task(std::move(str), std::move(promise));
 
     // Submit the task to the worker assigned to this device/inode
+    // Hold mutex for as short as possible, to reduce contention
+    // TODO: Consider whether notification should be done with lock held or released
     {
         std::lock_guard<std::mutex> lock(mutex);
         queue.push(std::move(worker_task));

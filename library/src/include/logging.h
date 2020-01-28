@@ -135,7 +135,9 @@ template <typename H, typename... Ts>
 static inline void log_arguments(rocblas_ostream& os, const char* sep, H head, Ts&&... xs)
 {
     os << head;
-    ((os << sep << std::forward<Ts>(xs)), ...);
+    // TODO: Replace with C++17 fold expression
+    // ((os << sep << std::forward<Ts>(xs)), ...);
+    (void)(int[]){(os << sep << std::forward<Ts>(xs), 0)...};
     os << std::endl;
 }
 

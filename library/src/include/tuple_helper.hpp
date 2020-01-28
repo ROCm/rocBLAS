@@ -26,7 +26,9 @@ class tuple_helper
     template <typename FUNC, typename TUP, size_t... I>
     static void apply_pairs_impl(FUNC&& func, const TUP& tuple, std::index_sequence<I...>)
     {
-        (func(std::get<I * 2>(tuple), std::get<I * 2 + 1>(tuple)), ...);
+        // TODO: Replace with C++17 fold expression
+        // (func(std::get<I * 2>(tuple), std::get<I * 2 + 1>(tuple)), ...);
+        (void)(int[]){(func(std::get<I * 2>(tuple), std::get<I * 2 + 1>(tuple)), 0)...};
     }
 
 public:
@@ -128,7 +130,11 @@ private:
     template <typename TUP, size_t... I>
     static bool equal(const TUP& t1, const TUP& t2, std::index_sequence<I...>)
     {
-        return (equal(std::get<I * 2 + 1>(t1), std::get<I * 2 + 1>(t2)) && ...);
+        // TODO: Replace with C++17 fold expression
+        // return (equal(std::get<I * 2 + 1>(t1), std::get<I * 2 + 1>(t2)) && ...);
+        bool ret = true;
+        (void)(bool[]){(ret = ret && equal(std::get<I * 2 + 1>(t1), std::get<I * 2 + 1>(t2)))...};
+        return ret;
     }
 
 public:
