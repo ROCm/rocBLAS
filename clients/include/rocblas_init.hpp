@@ -5,7 +5,6 @@
 #ifndef ROCBLAS_INIT_H_
 #define ROCBLAS_INIT_H_
 
-#include "../../library/src/include/rocblas_ostream.hpp"
 #include "rocblas.h"
 #include "rocblas_math.hpp"
 #include "rocblas_random.hpp"

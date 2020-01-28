@@ -26,8 +26,6 @@ if ( NOT DEFINED CMAKE_Fortran_COMPILER AND NOT DEFINED ENV{FC} )
 endif()
 
 
-# Suppress spurious HIP warnings
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-result")
 
 project( rocblas LANGUAGES CXX )
 
@@ -162,7 +160,7 @@ include( clients/cmake/build-options.cmake )
 # force library install path to lib (CentOS 7 defaults to lib64)
 set(CMAKE_INSTALL_LIBDIR "lib" CACHE INTERNAL "Installation directory for libraries" FORCE)
 
-option( BUILD_WITH_TENSILE_HOST "Use the new tensile client for gemm?" ON )
+option( BUILD_WITH_TENSILE_HOST "Use the new tensile client for gemm?" OFF )
 
 if( BUILD_WITH_TENSILE )
   set( Tensile_LOGIC "asm_full" CACHE STRING "Tensile to use which logic?")

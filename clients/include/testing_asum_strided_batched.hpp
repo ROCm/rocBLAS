@@ -130,7 +130,7 @@ void testing_asum_strided_batched_template(const Arguments& arg)
         if(arg.norm_check)
         {
             std::cout << "cpu=" << std::scientific << cpu_result[0] << ", gpu_host_ptr=" << hr1[0]
-                      << ", gpu_dev_ptr=" << hr[0] << std::endl;
+                      << ", gpu_dev_ptr=" << hr[0] << "\n";
 
             rocblas_error_1 = std::abs((cpu_result[0] - hr1[0]) / cpu_result[0]);
             rocblas_error_2 = std::abs((cpu_result[0] - hr[0]) / cpu_result[0]);

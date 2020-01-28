@@ -79,7 +79,7 @@ namespace
     };
 
     // By default, arbitrary type combinations are invalid.
-    // The unnamed second parameter is used for enable_if_t below.
+    // The unnamed second parameter is used for enable_if below.
     template <typename, typename = void>
     struct hbmv_testing : rocblas_test_invalid
     {

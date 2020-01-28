@@ -1,7 +1,3 @@
-/* ************************************************************************
- * Copyright 2019-2020 Advanced Micro Devices, Inc.
- * ************************************************************************ */
-
 #ifndef REDUCTION_STRIDED_BATCHED_H_
 #define REDUCTION_STRIDED_BATCHED_H_
 

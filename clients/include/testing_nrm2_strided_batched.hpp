@@ -137,8 +137,10 @@ void testing_nrm2_strided_batched_template(const Arguments& arg)
 
         if(arg.norm_check)
         {
-            std::cout << "cpu=" << cpu_result[0] << ", gpu_host_ptr=" << rocblas_result_1[0]
-                      << ", gpu_dev_ptr=" << rocblas_result_2[0] << "\n";
+            printf("cpu=%e, gpu_host_ptr=%e, gpu_dev_ptr=%e\n",
+                   cpu_result[0],
+                   rocblas_result_1[0],
+                   rocblas_result_2[0]);
             rocblas_error_1 = std::abs((cpu_result[0] - rocblas_result_1[0]) / cpu_result[0]);
             rocblas_error_2 = std::abs((cpu_result[0] - rocblas_result_2[0]) / cpu_result[0]);
         }
