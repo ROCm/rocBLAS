@@ -113,7 +113,7 @@ rocblas_status tpmv_template(rocblas_handle    handle,
     {
         static constexpr rocblas_int offsetw = 0;
         static constexpr rocblas_int incw    = 1;
-        return rocblas_copy_template<NB>(
+        return rocblas_copy_template<false, NB>(
             handle, m, w, offsetw, incw, stridew, x, offsetx, incx, stridex, batch_count);
     }
 }
