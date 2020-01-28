@@ -239,6 +239,8 @@ struct ArgumentsHelper
 
 // C++14. TODO: Remove when C++17 is used
 // clang-format off
+struct ArgumentsHelper
+{
 #define APPLY(NAME)                                             \
     template <>                                                 \
     struct apply<e_##NAME == e_alpha ? rocblas_argument(-1) :   \
@@ -290,6 +292,7 @@ struct ArgumentsHelper
                 };
         }
     };
+};
 // clang-format on
 #endif
 
