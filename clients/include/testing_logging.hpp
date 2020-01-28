@@ -163,6 +163,12 @@ void testing_logging()
         // BLAS2
         rocblas_ger<T, false>(handle, m, n, &alpha, dx, incx, dy, incy, da, lda);
 
+        rocblas_sbmv<T>(handle, uplo, n, k, &alpha, da, lda, dx, incx, &beta, dy, incy);
+
+        rocblas_spmv<T>(handle, uplo, n, &alpha, da, dx, incx, &beta, dy, incy);
+
+        rocblas_symv<T>(handle, uplo, n, &alpha, da, lda, dx, incx, &beta, dy, incy);
+
         rocblas_syr<T>(handle, uplo, n, &alpha, dx, incx, da, lda);
 
         rocblas_gemv<T>(handle, transA, m, n, &alpha, da, lda, dx, incx, &beta, dy, incy);
@@ -428,6 +434,54 @@ void testing_logging()
         trace_ofs2 << replaceX<T>("rocblas_Xger") << "," << m << "," << n << "," << (void*)&alpha
                    << "," << (void*)dx << "," << incx << "," << (void*)dy << "," << incy << ","
                    << (void*)da << "," << lda << '\n';
+    }
+
+    if(test_pointer_mode == rocblas_pointer_mode_host)
+    {
+        trace_ofs2 << replaceX<T>("rocblas_Xsbmv") << "," << uplo << "," << n << "," << k << ","
+                   << alpha << "," << (void*)da << "," << lda << "," << (void*)dx << "," << incx
+                   << "," << beta << "," << (void*)dy << "," << incy << '\n';
+        bench_ofs2 << "./rocblas-bench -f sbmv -r " << rocblas_precision_string<T> << " --uplo "
+                   << uplo_letter << " -n " << n << " -k " << k << " --alpha " << alpha << " --lda "
+                   << lda << " --incx " << incx << " --beta " << beta << " --incy " << incy << '\n';
+    }
+    else
+    {
+        trace_ofs2 << replaceX<T>("rocblas_Xsbmv") << "," << uplo << "," << n << "," << k << ","
+                   << (void*)&alpha << "," << (void*)da << "," << lda << "," << (void*)dx << ","
+                   << incx << "," << (void*)&beta << "," << (void*)dy << "," << incy << '\n';
+    }
+
+    if(test_pointer_mode == rocblas_pointer_mode_host)
+    {
+        trace_ofs2 << replaceX<T>("rocblas_Xspmv") << "," << uplo << "," << n << "," << alpha << ","
+                   << (void*)da << "," << (void*)dx << "," << incx << "," << beta << ","
+                   << (void*)dy << "," << incy << '\n';
+        bench_ofs2 << "./rocblas-bench -f spmv -r " << rocblas_precision_string<T> << " --uplo "
+                   << uplo_letter << " -n " << n << " --alpha " << alpha << " --incx " << incx
+                   << " --beta " << beta << " --incy " << incy << '\n';
+    }
+    else
+    {
+        trace_ofs2 << replaceX<T>("rocblas_Xspmv") << "," << uplo << "," << n << ","
+                   << (void*)&alpha << "," << (void*)da << "," << (void*)dx << "," << incx << ","
+                   << (void*)&beta << "," << (void*)dy << "," << incy << '\n';
+    }
+
+    if(test_pointer_mode == rocblas_pointer_mode_host)
+    {
+        trace_ofs2 << replaceX<T>("rocblas_Xsymv") << "," << uplo << "," << n << "," << alpha << ","
+                   << (void*)da << "," << lda << "," << (void*)dx << "," << incx << "," << beta
+                   << "," << (void*)dy << "," << incy << '\n';
+        bench_ofs2 << "./rocblas-bench -f symv -r " << rocblas_precision_string<T> << " --uplo "
+                   << uplo_letter << " -n " << n << " --alpha " << alpha << " --lda " << lda
+                   << " --incx " << incx << " --beta " << beta << " --incy " << incy << '\n';
+    }
+    else
+    {
+        trace_ofs2 << replaceX<T>("rocblas_Xsymv") << "," << uplo << "," << n << ","
+                   << (void*)&alpha << "," << (void*)da << "," << lda << "," << (void*)dx << ","
+                   << incx << "," << (void*)&beta << "," << (void*)dy << "," << incy << '\n';
     }
 
     if(test_pointer_mode == rocblas_pointer_mode_host)
