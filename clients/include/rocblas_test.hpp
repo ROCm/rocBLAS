@@ -247,12 +247,12 @@ struct rocblas_test_invalid
     // If this specialization is actually called, print fatal error message
     virtual void operator()(const Arguments&) final
     {
-        static constexpr char msg[] = "Internal error: Test called with invalid types\n";
+        static constexpr char msg[] = "Internal error: Test called with invalid types";
 
 #ifdef GOOGLE_TEST
         FAIL() << msg;
 #else
-        write(STDERR_FILENO, msg, sizeof(msg) - 1);
+        std::cerr << msg << std::endl;
         rocblas_abort();
 #endif
     }
