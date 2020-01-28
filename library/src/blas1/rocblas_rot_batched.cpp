@@ -16,7 +16,7 @@ namespace
     template <>
     constexpr char rocblas_rot_name<float>[] = "rocblas_srot_batched";
     template <>
-    constexpr char rocblas_rot_name<double>[] = "rocblas_drot";
+    constexpr char rocblas_rot_name<double>[] = "rocblas_drot_batched";
     template <>
     constexpr char rocblas_rot_name<rocblas_float_complex>[] = "rocblas_crot_batched";
     template <>

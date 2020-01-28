@@ -46,6 +46,7 @@ namespace
                       y1,
                       stride_y1,
                       param,
+                      stride_param,
                       batch_count);
         if(layer_mode & rocblas_layer_mode_log_bench)
             log_bench(handle,
@@ -57,12 +58,27 @@ namespace
                       stride_d1,
                       "--stride_b",
                       stride_d2,
+                      "--stride_c",
+                      stride_param,
                       "--stride_x",
                       stride_x1,
                       "--stride_y",
                       stride_y1);
         if(layer_mode & rocblas_layer_mode_log_profile)
-            log_profile(handle, rocblas_rotmg_name<T>, "batch_count", batch_count);
+            log_profile(handle,
+                        rocblas_rotmg_name<T>,
+                        "stride_a",
+                        stride_d1,
+                        "stride_b",
+                        stride_d2,
+                        "stride_c",
+                        stride_param,
+                        "stride_x",
+                        stride_x1,
+                        "stride_y",
+                        stride_y1,
+                        "batch_count",
+                        batch_count);
 
         if(!d1 || !d2 || !x1 || !y1 || !param)
             return rocblas_status_invalid_pointer;
