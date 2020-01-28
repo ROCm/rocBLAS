@@ -147,7 +147,7 @@ void rocblas_print_matrix(const char* name, T* A, rocblas_int m, rocblas_int n, 
     {
         for(int j = 0; j < n; j++)
         {
-            rocblas_print_helper::print_value(std::cout, A[i + j * lda]);
+            rocblas_print_helper::print_value(rocblas_cout, A[i + j * lda]);
             printf(" ");
         }
         printf("\n");

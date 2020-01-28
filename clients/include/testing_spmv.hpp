@@ -226,22 +226,22 @@ void testing_spmv(const Arguments& arg)
         rocblas_gflops = spmv_gflop_count<T>(N) / gpu_time_used * 1e6;
 
         // only norm_check return an norm error, unit check won't return anything
-        std::cout << "uplo, N, incx, incy, rocblas-Gflops (us) ";
+        rocblas_cout << "uplo, N, incx, incy, rocblas-Gflops (us) ";
         if(arg.norm_check)
         {
-            std::cout << "CPU-Gflops (us),norm_error_host_ptr,norm_error_dev_ptr";
+            rocblas_cout << "CPU-Gflops (us),norm_error_host_ptr,norm_error_dev_ptr";
         }
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
 
-        std::cout << arg.uplo << ',' << N << ',' << incx << "," << incy << "," << rocblas_gflops
-                  << "(" << gpu_time_used << "),";
+        rocblas_cout << arg.uplo << ',' << N << ',' << incx << "," << incy << "," << rocblas_gflops
+                     << "(" << gpu_time_used << "),";
 
         if(arg.norm_check)
         {
-            std::cout << cblas_gflops << "(" << cpu_time_used << "),";
-            std::cout << h_error << "," << d_error;
+            rocblas_cout << cblas_gflops << "(" << cpu_time_used << "),";
+            rocblas_cout << h_error << "," << d_error;
         }
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
     }
 }
