@@ -238,23 +238,23 @@ void testing_sbmv(const Arguments& arg)
         rocblas_bandwidth = sbmv_gbyte_count<T>(N, K) / gpu_time_used * 1e6;
 
         // only norm_check return an norm error, unit check won't return anything
-        std::cout << "uplo, N, K, lda, incx, incy, rocblas-Gflops, rocblas-GB/s, (us) ";
+        rocblas_cout << "uplo, N, K, lda, incx, incy, rocblas-Gflops, rocblas-GB/s, (us) ";
         if(arg.norm_check)
         {
-            std::cout << "CPU-Gflops (us),norm_error_host_ptr,norm_error_dev_ptr";
+            rocblas_cout << "CPU-Gflops (us),norm_error_host_ptr,norm_error_dev_ptr";
         }
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
 
-        std::cout << arg.uplo << ',' << N << ',' << K << ',' << lda << ',' << incx << "," << incy
-                  << "," << rocblas_gflops << "," << rocblas_bandwidth << ",(" << gpu_time_used
-                  << "),";
+        rocblas_cout << arg.uplo << ',' << N << ',' << K << ',' << lda << ',' << incx << "," << incy
+                     << "," << rocblas_gflops << "," << rocblas_bandwidth << ",(" << gpu_time_used
+                     << "),";
 
         if(arg.norm_check)
         {
-            std::cout << cblas_gflops << "(" << cpu_time_used << "),";
-            std::cout << h_error << "," << d_error;
+            rocblas_cout << cblas_gflops << "(" << cpu_time_used << "),";
+            rocblas_cout << h_error << "," << d_error;
         }
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
     }
 }
