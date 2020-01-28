@@ -262,5 +262,10 @@ int main(int argc, char** argv)
         listener->showTestNames = listener->showSuccesses = listener->showInlineFailures = false;
     listeners.Append(listener);
 
-    return RUN_ALL_TESTS();
+    int status = RUN_ALL_TESTS();
+
+    // failures at end copied for reporting so repeat this info
+    printf("rocBLAS version: %s\n\n", blas_version);
+
+    return status;
 }
