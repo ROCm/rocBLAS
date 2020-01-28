@@ -24,8 +24,13 @@ namespace
     // When the condition in the second argument is satisfied, the type combination
     // is valid. When the condition is false, this specialization does not apply.
     template <typename T>
-    struct trmm_testing<T, std::enable_if_t<std::is_same<T, float>{} || std::is_same<T, double>{}>>
+    struct trmm_testing<
+        T,
+        typename std::enable_if<std::is_same<T, float>{} || std::is_same<T, double>{}
+                                || std::is_same<T, rocblas_float_complex>{}
+                                || std::is_same<T, rocblas_double_complex>{}>::type>
         : rocblas_test_valid
+
     {
         void operator()(const Arguments& arg)
         {

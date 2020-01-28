@@ -2218,6 +2218,12 @@ static constexpr auto rocblas_trmm<float> = rocblas_strmm;
 template <>
 static constexpr auto rocblas_trmm<double> = rocblas_dtrmm;
 
+template <>
+static constexpr auto rocblas_trmm<rocblas_float_complex> = rocblas_ctrmm;
+
+template <>
+static constexpr auto rocblas_trmm<rocblas_double_complex> = rocblas_ztrmm;
+
 // trsm
 template <typename T>
 rocblas_status (*rocblas_trsm)(rocblas_handle    handle,
