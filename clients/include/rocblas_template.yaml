@@ -456,6 +456,15 @@ Functions:
   rocblas_sspmv_strided_batched: { function: spmv_strided_batched, <<: *single_precision }
   rocblas_dspmv_strided_batched: { function: spmv_strided_batched, <<: *double_precision }
 
+  #sbmv
+  rocblas_ssbmv: { function: sbmv, <<: *single_precision }
+  rocblas_dsbmv: { function: sbmv, <<: *double_precision }
+
+  rocblas_ssbmv_batched: { function: sbmv_batched, <<: *single_precision }
+  rocblas_dsbmv_batched: { function: sbmv_batched, <<: *double_precision }
+
+  rocblas_ssbmv_strided_batched: { function: sbmv_strided_batched, <<: *single_precision }
+  rocblas_dsbmv_strided_batched: { function: sbmv_strided_batched, <<: *double_precision }
 
   ######
   # L3 #
