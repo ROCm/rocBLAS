@@ -252,7 +252,7 @@ struct rocblas_test_invalid
 #ifdef GOOGLE_TEST
         FAIL() << msg;
 #else
-        std::cerr << msg << std::endl;
+        rocblas_cerr << msg << std::endl;
         rocblas_abort();
 #endif
     }
