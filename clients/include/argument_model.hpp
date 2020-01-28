@@ -9,8 +9,19 @@
 
 // ArgumentModel template has a variadic list of argument enums
 template <rocblas_argument... Args>
-struct ArgumentModel
+class ArgumentModel
 {
+    // Whether model has a particular parameter
+    // TODO: Replace with C++17 fold expression ((Args == param) || ...)
+    static constexpr bool has(rocblas_argument param)
+    {
+        for(auto x : {Args...})
+            if(x == param)
+                return true;
+        return false;
+    }
+
+public:
     void log_perf(rocblas_ostream& name_line,
                   rocblas_ostream& val_line,
                   const Arguments& arg,
@@ -21,7 +32,7 @@ struct ArgumentModel
                   double           norm1,
                   double           norm2)
     {
-        constexpr bool has_batch_count = ((Args == e_batch_count) || ...);
+        constexpr bool has_batch_count = has(e_batch_count);
         rocblas_int    batch_count     = has_batch_count ? arg.batch_count : 1;
         rocblas_int    hot_calls       = arg.iters < 1 ? 1 : arg.iters;
 
@@ -68,7 +79,13 @@ struct ArgumentModel
         };
 
         // Apply the arguments, calling print on each one
+#if __cplusplus >= 201703L
+        // C++17
         (ArgumentsHelper::apply<Args>(print, arg, T{}), ...);
+#else
+        // C++14. TODO: Remove when C++17 is used
+        (void)(int[]){(apply<Args>{}()(print, arg, T{}), 0)...};
+#endif
 
         if(arg.timing)
             log_perf(name_list, value_list, arg, gpu_us, gflops, gpu_bytes, cpu_us, norm1, norm2);

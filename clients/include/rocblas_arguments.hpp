@@ -203,6 +203,8 @@ enum rocblas_argument : int
 };
 #undef CREATE_ENUM
 
+#if __cplusplus >= 201703L
+// C++17
 struct ArgumentsHelper
 {
     template <rocblas_argument>
@@ -232,5 +234,65 @@ struct ArgumentsHelper
         func("beta", arg.get_beta<decltype(T)>());
     };
 };
+
+#else
+
+// C++14. TODO: Remove when C++17 is used
+// clang-format off
+#define APPLY(NAME)                                             \
+    template <>                                                 \
+    struct apply<e_##NAME == e_alpha ? rocblas_argument(-1) :   \
+                 e_##NAME == e_beta  ? rocblas_argument(-2) :   \
+                 e_##NAME>                                      \
+    {                                                           \
+        auto operator()()                                       \
+        {                                                       \
+            return                                              \
+                [](auto&& func, const Arguments& arg, auto)     \
+                {                                               \
+                    func(#NAME, arg.NAME);                      \
+                };                                              \
+        }                                                       \
+    };
+
+    template <rocblas_argument>
+    struct apply
+    {
+    };
+
+    // Go through every argument and define specializations
+    FOR_EACH_ARGUMENT(APPLY, ;);
+
+    // Specialization for e_alpha
+    template <>
+    struct apply<e_alpha>
+    {
+        auto operator()()
+        {
+            return
+                [](auto&& func, const Arguments& arg, auto T)
+                {
+                    func("alpha", arg.get_alpha<decltype(T)>());
+                };
+        }
+    };
+
+    // Specialization for e_beta
+    template <>
+    struct apply<e_beta>
+    {
+        auto operator()()
+        {
+            return
+                [](auto&& func, const Arguments& arg, auto T)
+                {
+                    func("beta", arg.get_beta<decltype(T)>());
+                };
+        }
+    };
+// clang-format on
+#endif
+
+#undef APPLY
 
 #endif

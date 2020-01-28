@@ -197,7 +197,7 @@ void testing_syr_batched(const Arguments& arg)
         {
             for(int i = 0; i < batch_count; i++)
             {
-                if constexpr(std::is_same<T, float>{} || std::is_same<T, double>{})
+                if(std::is_same<T, float>{} || std::is_same<T, double>{})
                 {
                     unit_check_general<T>(N, N, lda, hA_gold[i], hA_1[i]);
                     unit_check_general<T>(N, N, lda, hA_gold[i], hA_2[i]);
