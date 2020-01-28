@@ -190,7 +190,7 @@ static bool function_filter(const Arguments& arg)
 ```
  `static std::string name_suffix(const Arguments& arg)` returns a string which will be used as the Google Test name's suffix. It will provide an alphanumeric representation of the test's arguments.
 
-The `RocBLAS_TestName` helper class template should be used to create the name. It accepts ostream output, and can be automatically converted to `std::string` after all of the text of the name has been streamed to it.
+The `RocBLAS_TestName` helper class template should be used to create the name. It accepts ostream output (like `std::cout`), and can be automatically converted to `std::string` after all of the text of the name has been streamed to it.
 
 The `RocBLAS_TestName` helper class template should be passed the name of this test implementation class (including any implicit template arguments) as a template argument, so that every instantiation of this test implementation class creates a unique instantiation of `RocBLAS_TestName`. `RocBLAS_TestName` has some static data which needs to be kept local to each test.
 

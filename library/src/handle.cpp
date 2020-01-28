@@ -238,7 +238,7 @@ _rocblas_handle::init _rocblas_handle::handle_init;
  *  @details
  *  open_log_stream Open stream log_os for logging.
  *                  If the environment variable with name environment_variable_name
- *                  is not set, then stream log_os to standard error.
+ *                  is not set, then stream log_os to stderr.
  *                  Else open a file at the full logfile path contained in
  *                  the environment variable.
  *
@@ -250,13 +250,13 @@ _rocblas_handle::init _rocblas_handle::handle_init;
  *  @parm[out]
  *  log_os      rocblas_ostream*&
  *              Output stream. Stream to filename in environment_variable_name
- *              if set, else set to standard error
+ *              if set, else set to stderr
  */
 
 static void open_log_stream(const char* environment_variable_name, rocblas_ostream*& log_os)
 {
     // if environment variable is set, open file at logfile_pathname contained in the
-    // environment variable; else use standard error
+    // environment variable; else use stderr
     const char* logfile_pathname = getenv(environment_variable_name);
 
     log_os = logfile_pathname ? new rocblas_ostream(logfile_pathname)

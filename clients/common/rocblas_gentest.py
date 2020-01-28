@@ -258,7 +258,7 @@ def setdefaults(test):
             test.setdefault('stride_a', ldN)
 
     elif test['function'] in ('spr_strided_batched', 'spr2_strided_batched',
-                              'hpr_strided_batched', 'hpr2_strided_batched'):
+                              'hpr_strided_batched'):
         setkey_product(test, 'stride_x', ['N', 'incx', 'stride_scale'])
         setkey_product(test, 'stride_y', ['N', 'incy', 'stride_scale'])
         setkey_product(test, 'stride_a', ['N', 'N', 'stride_scale'])
