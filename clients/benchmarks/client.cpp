@@ -379,6 +379,7 @@ struct perf_blas<T,
                 {"gemm", testing_gemm<T>},
                 {"gemm_batched", testing_gemm_batched<T>},
                 {"gemm_strided_batched", testing_gemm_strided_batched<T>},
+                {"trmm", testing_trmm<T>},
 #endif
               };
         run_function(map, arg);
