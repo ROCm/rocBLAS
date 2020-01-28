@@ -332,7 +332,8 @@ rocm_install_targets(
 
 if( BUILD_WITH_TENSILE )
   if( BUILD_WITH_TENSILE_HOST )
-    install(DIRECTORY ${CMAKE_BINARY_DIR}/Tensile/library DESTINATION ${CMAKE_INSTALL_PREFIX}/rocblas/lib)
+    set( ROCBLAS_TENSILE_LIBRARY_DIR "\${CPACK_PACKAGING_INSTALL_PREFIX}rocblas/lib" CACHE PATH "path to tensile library" )
+    install(DIRECTORY ${CMAKE_BINARY_DIR}/Tensile/library DESTINATION ${ROCBLAS_TENSILE_LIBRARY_DIR})
   endif()
 endif()
 
