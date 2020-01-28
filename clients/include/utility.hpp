@@ -18,7 +18,7 @@
  * \brief provide common utilities
  */
 
-// We use rocblas_cout and rocblas_cerr instead of stdout, stderr, std::cout and std::cerr
+// We use rocblas_cout and rocblas_cerr
 // This must come after the header #includes above, to avoid poisoning system headers.
 // This is only enabled for rocblas-test and rocblas-bench.
 #if defined(GOOGLE_TEST) || defined(ROCBLAS_BENCH)

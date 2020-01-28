@@ -186,7 +186,6 @@ public:
         flush(); // Flush any pending IO
     }
 
-    // stdout
     // Implemented as singleton to avoid the static initialization order fiasco
     static rocblas_ostream& cout()
     {
@@ -194,7 +193,6 @@ public:
         return cout;
     }
 
-    // stderr
     // Implemented as singleton to avoid the static initialization order fiasco
     static rocblas_ostream& cerr()
     {
