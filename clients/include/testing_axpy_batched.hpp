@@ -253,14 +253,14 @@ void testing_axpy_batched(const Arguments& arg)
         //
         // Report.
         //
-        rocblas_cout << "N,alpha,incx,incy,batch,rocblas-Gflops,rocblas-GB/s,rocblas-us";
+        std::cout << "N,alpha,incx,incy,batch,rocblas-Gflops,rocblas-GB/s,rocblas-us";
         if(arg.norm_check)
-            rocblas_cout << "CPU-Gflops,norm_error_host_ptr,norm_error_dev_ptr";
-        rocblas_cout << std::endl;
-        rocblas_cout << N << "," << h_alpha << "," << incx << "," << incy << "," << batch_count
-                     << "," << rocblas_gflops << "," << rocblas_bandwidth << "," << gpu_time_used;
+            std::cout << "CPU-Gflops,norm_error_host_ptr,norm_error_dev_ptr";
+        std::cout << std::endl;
+        std::cout << N << "," << h_alpha << "," << incx << "," << incy << "," << batch_count << ","
+                  << rocblas_gflops << "," << rocblas_bandwidth << "," << gpu_time_used;
         if(arg.norm_check)
-            rocblas_cout << "," << cblas_gflops << ',' << rocblas_error_1 << ',' << rocblas_error_2;
-        rocblas_cout << std::endl;
+            std::cout << "," << cblas_gflops << ',' << rocblas_error_1 << ',' << rocblas_error_2;
+        std::cout << std::endl;
     }
 }

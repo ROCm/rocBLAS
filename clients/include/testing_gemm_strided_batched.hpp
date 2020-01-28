@@ -292,24 +292,24 @@ void testing_gemm_strided_batched(const Arguments& arg)
         gpu_time_used  = (get_time_us() - gpu_time_used) / number_hot_calls;
         rocblas_gflops = gemm_gflop_count<T>(M, N, K) * batch_count / gpu_time_used * 1e6;
 
-        rocblas_cout
+        std::cout
             << "transA,transB,M,N,K,alpha,lda,stride_a,ldb,stride_b,beta,ldc,stride_c,Batch_Count,"
                "rocblas-Gflops,"
                "us";
 
         if(arg.norm_check)
-            rocblas_cout << ",CPU-Gflops,us,norm-error";
+            std::cout << ",CPU-Gflops,us,norm-error";
 
-        rocblas_cout << std::endl;
+        std::cout << std::endl;
 
-        rocblas_cout << arg.transA << "," << arg.transB << "," << M << "," << N << "," << K << ","
-                     << arg.get_alpha<T>() << "," << lda << "," << stride_a << "," << ldb << ","
-                     << stride_b << "," << arg.get_beta<T>() << "," << ldc << "," << stride_c << ","
-                     << batch_count << "," << rocblas_gflops << "," << gpu_time_used;
+        std::cout << arg.transA << "," << arg.transB << "," << M << "," << N << "," << K << ","
+                  << arg.get_alpha<T>() << "," << lda << "," << stride_a << "," << ldb << ","
+                  << stride_b << "," << arg.get_beta<T>() << "," << ldc << "," << stride_c << ","
+                  << batch_count << "," << rocblas_gflops << "," << gpu_time_used;
 
         if(arg.norm_check)
-            rocblas_cout << "," << cblas_gflops << "," << cpu_time_used << "," << rocblas_error;
+            std::cout << "," << cblas_gflops << "," << cpu_time_used << "," << rocblas_error;
 
-        rocblas_cout << std::endl;
+        std::cout << std::endl;
     }
 }

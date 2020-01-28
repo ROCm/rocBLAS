@@ -177,22 +177,22 @@ void testing_tbmv(const Arguments& arg)
             = (M * k1 - ((k1 * (k1 + 1)) / 2.0) + 3 * M) * sizeof(T) / gpu_time_used / 1e3;
 
         // only norm_check return an norm error, unit check won't return anything
-        rocblas_cout << "M,K,lda,incx,rocblas-Gflops,rocblas-GB/s,us,";
+        std::cout << "M,K,lda,incx,rocblas-Gflops,rocblas-GB/s,us,";
         if(arg.norm_check)
         {
-            rocblas_cout << "CPU-Gflops,us,norm_error_device_ptr";
+            std::cout << "CPU-Gflops,us,norm_error_device_ptr";
         }
-        rocblas_cout << std::endl;
+        std::cout << std::endl;
 
-        rocblas_cout << M << "," << K << "," << lda << "," << incx << "," << rocblas_gflops << ","
-                     << rocblas_bandwidth << "," << gpu_time_used / number_hot_calls << ",";
+        std::cout << M << "," << K << "," << lda << "," << incx << "," << rocblas_gflops << ","
+                  << rocblas_bandwidth << "," << gpu_time_used / number_hot_calls << ",";
 
         if(arg.norm_check)
         {
-            rocblas_cout << cblas_gflops << ',' << cpu_time_used << ',';
-            rocblas_cout << rocblas_error_1;
+            std::cout << cblas_gflops << ',' << cpu_time_used << ',';
+            std::cout << rocblas_error_1;
         }
 
-        rocblas_cout << std::endl;
+        std::cout << std::endl;
     }
 }

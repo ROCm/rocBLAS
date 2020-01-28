@@ -272,18 +272,17 @@ void testing_rotm_strided_batched(const Arguments& arg)
             }
             gpu_time_used = (get_time_us() - gpu_time_used) / number_hot_calls;
 
-            rocblas_cout << "N,incx,incy,rocblas(us),cpu(us)";
+            std::cout << "N,incx,incy,rocblas(us),cpu(us)";
             if(arg.norm_check)
-                rocblas_cout
-                    << ",norm_error_host_x,norm_error_host_y,norm_error_device_x,norm_error_"
-                       "device_y";
-            rocblas_cout << std::endl;
-            rocblas_cout << N << "," << incx << "," << incy << "," << gpu_time_used << ","
-                         << cpu_time_used;
+                std::cout << ",norm_error_host_x,norm_error_host_y,norm_error_device_x,norm_error_"
+                             "device_y";
+            std::cout << std::endl;
+            std::cout << N << "," << incx << "," << incy << "," << gpu_time_used << ","
+                      << cpu_time_used;
             if(arg.norm_check)
-                rocblas_cout << ',' << norm_error_host_x << ',' << norm_error_host_y << ","
-                             << norm_error_device_x << "," << norm_error_device_y;
-            rocblas_cout << std::endl;
+                std::cout << ',' << norm_error_host_x << ',' << norm_error_host_y << ","
+                          << norm_error_device_x << "," << norm_error_device_y;
+            std::cout << std::endl;
         }
     }
 }

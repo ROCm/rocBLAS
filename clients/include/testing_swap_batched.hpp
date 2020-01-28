@@ -189,8 +189,8 @@ void testing_swap_batched(const Arguments& arg)
 
         gpu_time_used = (get_time_us() - gpu_time_used) / number_hot_calls;
 
-        rocblas_cout << "N,incx,incy,batch_count,rocblas-us" << std::endl;
-        rocblas_cout << N << "," << incx << "," << incy << "," << batch_count << ","
-                     << gpu_time_used << std::endl;
+        std::cout << "N,incx,incy,batch_count,rocblas-us" << std::endl;
+        std::cout << N << "," << incx << "," << incy << "," << batch_count << "," << gpu_time_used
+                  << std::endl;
     }
 }

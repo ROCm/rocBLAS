@@ -59,8 +59,7 @@ public:
             ifs = test_cleanup::allocate(&ifs, filename(), std::ifstream::binary);
             if(!ifs || ifs->fail())
             {
-                rocblas_cerr << "Cannot open " << filename() << ": " << strerror(errno)
-                             << std::endl;
+                std::cerr << "Cannot open " << filename() << ": " << strerror(errno) << std::endl;
                 exit(EXIT_FAILURE);
             }
         }

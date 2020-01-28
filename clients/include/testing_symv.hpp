@@ -148,21 +148,21 @@ void testing_symv(const Arguments& arg)
     if(arg.timing)
     {
         // only norm_check return an norm error, unit check won't return anything
-        rocblas_cout << "N, lda, rocblas-Gflops (us) ";
+        std::cout << "N, lda, rocblas-Gflops (us) ";
         if(arg.norm_check)
         {
-            rocblas_cout << "CPU-Gflops(us), norm-error";
+            std::cout << "CPU-Gflops(us), norm-error";
         }
-        rocblas_cout << std::endl;
+        std::cout << std::endl;
 
-        rocblas_cout << N << ',' << lda << ',' << rocblas_gflops << "(" << gpu_time_used << "),";
+        std::cout << N << ',' << lda << ',' << rocblas_gflops << "(" << gpu_time_used << "),";
 
         if(arg.norm_check)
         {
-            rocblas_cout << cblas_gflops << "(" << cpu_time_used << "),";
-            rocblas_cout << rocblas_error;
+            std::cout << cblas_gflops << "(" << cpu_time_used << "),";
+            std::cout << rocblas_error;
         }
 
-        rocblas_cout << std::endl;
+        std::cout << std::endl;
     }
 }

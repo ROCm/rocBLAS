@@ -180,19 +180,18 @@ void testing_copy_batched(const Arguments& arg)
 
         gpu_time_used = (get_time_us() - gpu_time_used) / number_hot_calls;
 
-        rocblas_cout << "N,incx,incy,batch_count,rocblas-us";
+        std::cout << "N,incx,incy,batch_count,rocblas-us";
 
         if(arg.norm_check)
-            rocblas_cout << ",CPU-us,error";
+            std::cout << ",CPU-us,error";
 
-        rocblas_cout << std::endl;
+        std::cout << std::endl;
 
-        rocblas_cout << N << "," << incx << "," << incy << "," << batch_count << ","
-                     << gpu_time_used;
+        std::cout << N << "," << incx << "," << incy << "," << batch_count << "," << gpu_time_used;
 
         if(arg.norm_check)
-            rocblas_cout << "," << cpu_time_used << "," << rocblas_error;
+            std::cout << "," << cpu_time_used << "," << rocblas_error;
 
-        rocblas_cout << std::endl;
+        std::cout << std::endl;
     }
 }

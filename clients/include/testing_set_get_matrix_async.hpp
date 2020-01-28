@@ -128,18 +128,18 @@ void testing_set_get_matrix_async(const Arguments& arg)
         rocblas_bandwidth
             = (rows * cols * sizeof(T)) / gpu_time_used / 1e3 / number_timing_iterations;
 
-        rocblas_cout << "rows,cols,lda,ldb,rocblas-GB/s";
+        std::cout << "rows,cols,lda,ldb,rocblas-GB/s";
 
         if(arg.norm_check)
-            rocblas_cout << ",CPU-GB/s,Frobenius_norm_error";
+            std::cout << ",CPU-GB/s,Frobenius_norm_error";
 
-        rocblas_cout << std::endl;
+        std::cout << std::endl;
 
-        rocblas_cout << rows << "," << cols << "," << lda << "," << ldb << "," << rocblas_bandwidth;
+        std::cout << rows << "," << cols << "," << lda << "," << ldb << "," << rocblas_bandwidth;
 
         if(arg.norm_check)
-            rocblas_cout << "," << cpu_bandwidth << "," << rocblas_error;
+            std::cout << "," << cpu_bandwidth << "," << rocblas_error;
 
-        rocblas_cout << std::endl;
+        std::cout << std::endl;
     }
 }

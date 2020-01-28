@@ -226,21 +226,21 @@ void testing_tpmv_strided_batched(const Arguments& arg)
         //
         // Display.
         //
-        rocblas_cout << "M,stride_a,incx,stride_x,batch_count, "
-                        "uplo,transA,diag,rocblas-Gflops,rocblas-GB/s,";
+        std::cout << "M,stride_a,incx,stride_x,batch_count, "
+                     "uplo,transA,diag,rocblas-Gflops,rocblas-GB/s,";
         if(arg.norm_check)
         {
-            rocblas_cout << "CPU-Gflops,norm_error";
+            std::cout << "CPU-Gflops,norm_error";
         }
-        rocblas_cout << std::endl;
-        rocblas_cout << M << "," << stride_a << "," << incx << "," << stride_x << "," << batch_count
-                     << "," << char_uplo << ',' << char_transA << ',' << char_diag << ','
-                     << rocblas_gflops << "," << rocblas_bandwidth << ",";
+        std::cout << std::endl;
+        std::cout << M << "," << stride_a << "," << incx << "," << stride_x << "," << batch_count
+                  << "," << char_uplo << ',' << char_transA << ',' << char_diag << ','
+                  << rocblas_gflops << "," << rocblas_bandwidth << ",";
         if(arg.norm_check)
         {
-            rocblas_cout << cblas_gflops << ',';
-            rocblas_cout << rocblas_error;
+            std::cout << cblas_gflops << ',';
+            std::cout << rocblas_error;
         }
-        rocblas_cout << std::endl;
+        std::cout << std::endl;
     }
 }

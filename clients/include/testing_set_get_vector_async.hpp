@@ -122,18 +122,18 @@ void testing_set_get_vector_async(const Arguments& arg)
         gpu_time_used     = get_time_us() - gpu_time_used;
         rocblas_bandwidth = (M * sizeof(T)) / gpu_time_used / 1e3 / number_timing_iterations;
 
-        rocblas_cout << "M,incx,incy,incb,rocblas-GB/s";
+        std::cout << "M,incx,incy,incb,rocblas-GB/s";
 
         if(arg.norm_check && cpu_bandwidth != std::numeric_limits<T>::infinity())
-            rocblas_cout << ",CPU-GB/s";
+            std::cout << ",CPU-GB/s";
 
-        rocblas_cout << std::endl;
+        std::cout << std::endl;
 
-        rocblas_cout << M << "," << incx << "," << incy << "," << incb << "," << rocblas_bandwidth;
+        std::cout << M << "," << incx << "," << incy << "," << incb << "," << rocblas_bandwidth;
 
         if(arg.norm_check && cpu_bandwidth != std::numeric_limits<T>::infinity())
-            rocblas_cout << "," << cpu_bandwidth;
+            std::cout << "," << cpu_bandwidth;
 
-        rocblas_cout << std::endl;
+        std::cout << std::endl;
     }
 }

@@ -243,8 +243,8 @@ void testing_dot_batched(const Arguments& arg)
 
         if(arg.norm_check)
         {
-            rocblas_cout << "cpu=" << cpu_result << ", gpu_host_ptr=" << rocblas_result_1
-                         << ", gpu_device_ptr=" << rocblas_result_2 << std::endl;
+            std::cout << "cpu=" << cpu_result << ", gpu_host_ptr=" << rocblas_result_1
+                      << ", gpu_device_ptr=" << rocblas_result_2 << std::endl;
 
             for(int b = 0; b < batch_count; ++b)
             {
@@ -290,7 +290,7 @@ void testing_dot_batched(const Arguments& arg)
 
         gpu_time_used = get_time_us() - gpu_time_used;
 
-        ArgumentModel<e_N, e_incx, e_incy, e_batch_count>{}.log_args<T>(rocblas_cout,
+        ArgumentModel<e_N, e_incx, e_incy, e_batch_count>{}.log_args<T>(std::cout,
                                                                         arg,
                                                                         gpu_time_used,
                                                                         dot_gflop_count<CONJ, T>(N),

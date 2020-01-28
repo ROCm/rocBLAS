@@ -28,7 +28,7 @@ static std::string rocblas_parse_yaml(const std::string& yaml)
     auto exepath = rocblas_exepath();
     auto cmd = exepath + "rocblas_gentest.py --template " + exepath + "rocblas_template.yaml -o "
                + tmp + " " + yaml;
-    rocblas_cerr << cmd << std::endl;
+    std::cerr << cmd << std::endl;
     int status = system(cmd.c_str());
     if(status == -1 || !WIFEXITED(status) || WEXITSTATUS(status))
         exit(EXIT_FAILURE);
@@ -49,14 +49,14 @@ bool rocblas_parse_data(int& argc, char** argv, const std::string& default_file)
         {
             if(filename != "")
             {
-                rocblas_cerr << "Only one of the --yaml and --data options may be specified"
-                             << std::endl;
+                std::cerr << "Only one of the --yaml and --data options may be specified"
+                          << std::endl;
                 exit(EXIT_FAILURE);
             }
 
             if(!argv[i + 1] || !argv[i + 1][0])
             {
-                rocblas_cerr << "The " << argv[i] << " option requires an argument" << std::endl;
+                std::cerr << "The " << argv[i] << " option requires an argument" << std::endl;
                 exit(EXIT_FAILURE);
             }
             filename = argv[++i];
@@ -67,9 +67,9 @@ bool rocblas_parse_data(int& argc, char** argv, const std::string& default_file)
             if(!help && (!strcmp(argv[i], "-h") || !strcmp(argv[i], "--help")))
             {
                 help = true;
-                rocblas_cout << "\n"
-                             << argv[0] << " [ --data <path> | --yaml <path> ] <options> ...\n"
-                             << std::endl;
+                std::cout << "\n"
+                          << argv[0] << " [ --data <path> | --yaml <path> ] <options> ...\n"
+                          << std::endl;
             }
         }
     }

@@ -157,20 +157,19 @@ void testing_iamax_iamin(const Arguments& arg, rocblas_iamax_iamin_t<T> func)
 
         gpu_time_used = (get_time_us() - gpu_time_used) / number_hot_calls;
 
-        rocblas_cout << "N,incx,rocblas-us";
+        std::cout << "N,incx,rocblas-us";
 
         if(arg.norm_check)
-            rocblas_cout << ",cpu_time_used,rocblas_error_host_ptr,rocblas_error_dev_ptr";
+            std::cout << ",cpu_time_used,rocblas_error_host_ptr,rocblas_error_dev_ptr";
 
-        rocblas_cout << std::endl;
+        std::cout << std::endl;
 
-        rocblas_cout << (int)N << "," << incx << "," << gpu_time_used;
+        std::cout << (int)N << "," << incx << "," << gpu_time_used;
 
         if(arg.norm_check)
-            rocblas_cout << "," << cpu_time_used << "," << rocblas_error_1 << ","
-                         << rocblas_error_2;
+            std::cout << "," << cpu_time_used << "," << rocblas_error_1 << "," << rocblas_error_2;
 
-        rocblas_cout << std::endl;
+        std::cout << std::endl;
     }
 }
 

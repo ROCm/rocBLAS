@@ -510,17 +510,17 @@ int run_bench_test(Arguments& arg)
 
         if(arg.lda < min_lda)
         {
-            rocblas_cout << "rocblas-bench INFO: lda < min_lda, set lda = " << min_lda << std::endl;
+            std::cout << "rocblas-bench INFO: lda < min_lda, set lda = " << min_lda << std::endl;
             arg.lda = min_lda;
         }
         if(arg.ldb < min_ldb)
         {
-            rocblas_cout << "rocblas-bench INFO: ldb < min_ldb, set ldb = " << min_ldb << std::endl;
+            std::cout << "rocblas-bench INFO: ldb < min_ldb, set ldb = " << min_ldb << std::endl;
             arg.ldb = min_ldb;
         }
         if(arg.ldc < min_ldc)
         {
-            rocblas_cout << "rocblas-bench INFO: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
+            std::cout << "rocblas-bench INFO: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
             arg.ldc = min_ldc;
         }
     }
@@ -532,17 +532,17 @@ int run_bench_test(Arguments& arg)
         rocblas_int min_ldc = arg.M;
         if(arg.lda < min_lda)
         {
-            rocblas_cout << "rocblas-bench INFO: lda < min_lda, set lda = " << min_lda << std::endl;
+            std::cout << "rocblas-bench INFO: lda < min_lda, set lda = " << min_lda << std::endl;
             arg.lda = min_lda;
         }
         if(arg.ldb < min_ldb)
         {
-            rocblas_cout << "rocblas-bench INFO: ldb < min_ldb, set ldb = " << min_ldb << std::endl;
+            std::cout << "rocblas-bench INFO: ldb < min_ldb, set ldb = " << min_ldb << std::endl;
             arg.ldb = min_ldb;
         }
         if(arg.ldc < min_ldc)
         {
-            rocblas_cout << "rocblas-bench INFO: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
+            std::cout << "rocblas-bench INFO: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
             arg.ldc = min_ldc;
         }
 
@@ -557,20 +557,20 @@ int run_bench_test(Arguments& arg)
         rocblas_int min_stride_c = arg.ldc * arg.N;
         //      if (arg.stride_a < min_stride_a)
         //      {
-        //          rocblas_cout << "rocblas-bench INFO: stride_a < min_stride_a, set stride_a = " <<
+        //          std::cout << "rocblas-bench INFO: stride_a < min_stride_a, set stride_a = " <<
         //          min_stride_a << std::endl;
         //          arg.stride_a = min_stride_a;
         //      }
         //      if (arg.stride_b < min_stride_b)
         //      {
-        //          rocblas_cout << "rocblas-bench INFO: stride_b < min_stride_b, set stride_b = " <<
+        //          std::cout << "rocblas-bench INFO: stride_b < min_stride_b, set stride_b = " <<
         //          min_stride_b << std::endl;
         //          arg.stride_b = min_stride_b;
         //      }
         if(arg.stride_c < min_stride_c)
         {
-            rocblas_cout << "rocblas-bench INFO: stride_c < min_stride_c, set stride_c = "
-                         << min_stride_c << std::endl;
+            std::cout << "rocblas-bench INFO: stride_c < min_stride_c, set stride_c = "
+                      << min_stride_c << std::endl;
             arg.stride_c = min_stride_c;
         }
     }
@@ -585,22 +585,22 @@ int run_bench_test(Arguments& arg)
 
         if(arg.lda < min_lda)
         {
-            rocblas_cout << "rocblas-bench INFO: lda < min_lda, set lda = " << min_lda << std::endl;
+            std::cout << "rocblas-bench INFO: lda < min_lda, set lda = " << min_lda << std::endl;
             arg.lda = min_lda;
         }
         if(arg.ldb < min_ldb)
         {
-            rocblas_cout << "rocblas-bench INFO: ldb < min_ldb, set ldb = " << min_ldb << std::endl;
+            std::cout << "rocblas-bench INFO: ldb < min_ldb, set ldb = " << min_ldb << std::endl;
             arg.ldb = min_ldb;
         }
         if(arg.ldc < min_ldc)
         {
-            rocblas_cout << "rocblas-bench INFO: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
+            std::cout << "rocblas-bench INFO: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
             arg.ldc = min_ldc;
         }
         if(arg.ldd < min_ldd)
         {
-            rocblas_cout << "rocblas-bench INFO: ldd < min_ldd, set ldd = " << min_ldc << std::endl;
+            std::cout << "rocblas-bench INFO: ldd < min_ldd, set ldd = " << min_ldc << std::endl;
             arg.ldd = min_ldd;
         }
         rocblas_gemm_dispatch<perf_gemm_ex>(arg);
@@ -614,29 +614,29 @@ int run_bench_test(Arguments& arg)
         rocblas_int min_ldd = arg.M;
         if(arg.lda < min_lda)
         {
-            rocblas_cout << "rocblas-bench INFO: lda < min_lda, set lda = " << min_lda << std::endl;
+            std::cout << "rocblas-bench INFO: lda < min_lda, set lda = " << min_lda << std::endl;
             arg.lda = min_lda;
         }
         if(arg.ldb < min_ldb)
         {
-            rocblas_cout << "rocblas-bench INFO: ldb < min_ldb, set ldb = " << min_ldb << std::endl;
+            std::cout << "rocblas-bench INFO: ldb < min_ldb, set ldb = " << min_ldb << std::endl;
             arg.ldb = min_ldb;
         }
         if(arg.ldc < min_ldc)
         {
-            rocblas_cout << "rocblas-bench INFO: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
+            std::cout << "rocblas-bench INFO: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
             arg.ldc = min_ldc;
         }
         if(arg.ldd < min_ldd)
         {
-            rocblas_cout << "rocblas-bench INFO: ldd < min_ldd, set ldd = " << min_ldc << std::endl;
+            std::cout << "rocblas-bench INFO: ldd < min_ldd, set ldd = " << min_ldc << std::endl;
             arg.ldd = min_ldd;
         }
         rocblas_int min_stride_c = arg.ldc * arg.N;
         if(arg.stride_c < min_stride_c)
         {
-            rocblas_cout << "rocblas-bench INFO: stride_c < min_stride_c, set stride_c = "
-                         << min_stride_c << std::endl;
+            std::cout << "rocblas-bench INFO: stride_c < min_stride_c, set stride_c = "
+                      << min_stride_c << std::endl;
             arg.stride_c = min_stride_c;
         }
 
@@ -676,10 +676,10 @@ void fix_batch(int argc, char* argv[])
     for(int i = 1; i < argc; ++i)
         if(!strcmp(argv[i], "--batch"))
         {
-            static int once = (rocblas_cerr << argv[0]
-                                            << " warning: --batch is deprecated, and --batch_count "
-                                               "should be used instead."
-                                            << std::endl,
+            static int once = (std::cerr << argv[0]
+                                         << " warning: --batch is deprecated, and --batch_count "
+                                            "should be used instead."
+                                         << std::endl,
                                0);
             argv[i]         = b_c;
         }
@@ -889,7 +889,7 @@ try
 
     if(vm.count("help"))
     {
-        rocblas_cout << desc << std::endl;
+        std::cout << desc << std::endl;
         return 0;
     }
 
@@ -897,13 +897,13 @@ try
     {
         char blas_version[100];
         rocblas_get_version_string(blas_version, sizeof(blas_version));
-        rocblas_cout << "rocBLAS version: " << blas_version << std::endl;
+        std::cout << "rocBLAS version: " << blas_version << std::endl;
         return 0;
     }
     // Device Query
     rocblas_int device_count = query_device_property();
 
-    rocblas_cout << std::endl;
+    std::cout << std::endl;
     if(device_count <= device_id)
         throw std::invalid_argument("Invalid Device ID");
     set_device(device_id);
@@ -955,6 +955,6 @@ try
 }
 catch(const std::invalid_argument& exp)
 {
-    rocblas_cerr << exp.what() << std::endl;
+    std::cerr << exp.what() << std::endl;
     return -1;
 }

@@ -424,51 +424,51 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
 #if DEBUG_PRINT
     if(std::is_same<To, rocblas_half>{})
     {
-        rocblas_cout << "----A-----------------" << std::endl;
+        std::cout << "----A-----------------" << std::endl;
         for(int i = 0; i < size_a; i++)
         {
             cout << float(hA[i]) << "  ";
         }
-        rocblas_cout << std::endl << "-----B-----------------" << std::endl;
+        std::cout << std::endl << "-----B-----------------" << std::endl;
         for(int i = 0; i < size_b; i++)
         {
             cout << float(hB[i]) << "  ";
         }
-        rocblas_cout << std::endl << "-----C-----------------" << std::endl;
+        std::cout << std::endl << "-----C-----------------" << std::endl;
         for(int i = 0; i < size_c; i++)
         {
             cout << float(hC[i]) << "  ";
         }
-        rocblas_cout << std::endl << "-----D-----------------" << std::endl;
+        std::cout << std::endl << "-----D-----------------" << std::endl;
         for(int i = 0; i < size_d; i++)
         {
             cout << float(hD_1[i]) << "  ";
         }
-        rocblas_cout << std::endl << "-----------------------" << std::endl;
+        std::cout << std::endl << "-----------------------" << std::endl;
     }
     else
     {
-        rocblas_cout << "----A-----------------" << std::endl;
+        std::cout << "----A-----------------" << std::endl;
         for(int i = 0; i < size_a; i++)
         {
             cout << hA[i] << "  ";
         }
-        rocblas_cout << std::endl << "-----B-----------------" << std::endl;
+        std::cout << std::endl << "-----B-----------------" << std::endl;
         for(int i = 0; i < size_b; i++)
         {
             cout << hB[i] << "  ";
         }
-        rocblas_cout << std::endl << "-----C-----------------" << std::endl;
+        std::cout << std::endl << "-----C-----------------" << std::endl;
         for(int i = 0; i < size_c; i++)
         {
             cout << hC[i] << "  ";
         }
-        rocblas_cout << std::endl << "-----D-----------------" << std::endl;
+        std::cout << std::endl << "-----D-----------------" << std::endl;
         for(int i = 0; i < size_d; i++)
         {
             cout << hD_1[i] << "  ";
         }
-        rocblas_cout << std::endl << "-----------------------" << std::endl;
+        std::cout << std::endl << "-----------------------" << std::endl;
     }
 #endif
 
@@ -574,15 +574,14 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
         CHECK_HIP_ERROR(hipMemcpy(hD_1, dD, sizeof(To) * size_d, hipMemcpyDeviceToHost));
 
 #if DEBUG_PRINT
-        rocblas_cout << std::endl
-                     << "-----hD_1---------------------------------------" << std::endl;
+        std::cout << std::endl << "-----hD_1---------------------------------------" << std::endl;
         if(std::is_same<To, rocblas_half>{})
             for(int i = 0; i < size_d; i++)
                 cout << float(hD_1[i]) << "  ";
         else
             for(int i = 0; i < size_d; i++)
                 cout << hD_1[i] << "  ";
-        rocblas_cout << std::endl;
+        std::cout << std::endl;
 #endif
 
         // ROCBLAS rocblas_pointer_mode_device
@@ -623,15 +622,14 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
         CHECK_HIP_ERROR(hipMemcpy(hD_2, dD, sizeof(To) * size_d, hipMemcpyDeviceToHost));
 
 #if DEBUG_PRINT
-        rocblas_cout << std::endl
-                     << "-----hD_2---------------------------------------" << std::endl;
+        std::cout << std::endl << "-----hD_2---------------------------------------" << std::endl;
         if(std::is_same<To, rocblas_half>{})
             for(int i = 0; i < size_d; i++)
                 cout << float(hD_2[i]) << "  ";
         else
             for(int i = 0; i < size_d; i++)
                 cout << hD_2[i] << "  ";
-        rocblas_cout << std::endl;
+        std::cout << std::endl;
 #endif
 
         // CPU BLAS
@@ -667,15 +665,15 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
         cblas_gflops  = gemm_gflop_count<To>(M, N, K) * batch_count / cpu_time_used * 1e6;
 
 #if DEBUG_PRINT
-        rocblas_cout << std::endl << "---gold---gold---gold---------------------" << std::endl;
+        std::cout << std::endl << "---gold---gold---gold---------------------" << std::endl;
         if(std::is_same<To, rocblas_half>{})
             for(int i = 0; i < size_d; i++)
-                rocblas_cout << float(hD_gold[i]) << "  ";
+                std::cout << float(hD_gold[i]) << "  ";
         else
             for(int i = 0; i < size_d; i++)
-                rocblas_cout << hD_gold[i] << "  ";
+                std::cout << hD_gold[i] << "  ";
 
-        rocblas_cout << std::endl << "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" << std::endl;
+        std::cout << std::endl << "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^" << std::endl;
         for(int i3 = 0; i3 < batch_count; i3++)
         {
             for(int i2 = 0; i2 < N; i2++)
@@ -687,18 +685,18 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
                     {
                         if(std::is_same<To, rocblas_half>{})
                         {
-                            rocblas_cout
-                                << "batch, i, j, hd_gold, hd_1= " << i3 << ", " << i2 << ", " << i1
-                                << ", " << float(hD_gold[i1 + (i2 * ldd) + (i3 * stride_d)]) << ", "
-                                << float(hD_1[i1 + (i2 * ldd) + (i3 * stride_d)]) << ", "
-                                << std::endl;
+                            std::cout << "batch, i, j, hd_gold, hd_1= " << i3 << ", " << i2 << ", "
+                                      << i1 << ", "
+                                      << float(hD_gold[i1 + (i2 * ldd) + (i3 * stride_d)]) << ", "
+                                      << float(hD_1[i1 + (i2 * ldd) + (i3 * stride_d)]) << ", "
+                                      << std::endl;
                         }
                         else
                         {
-                            rocblas_cout
-                                << "batch, i, j, hd_gold, hd_1= " << i3 << ", " << i2 << ", " << i1
-                                << ", " << hD_gold[i1 + (i2 * ldd) + (i3 * stride_d)] << ", "
-                                << hD_1[i1 + (i2 * ldd) + (i3 * stride_d)] << ", " << std::endl;
+                            std::cout << "batch, i, j, hd_gold, hd_1= " << i3 << ", " << i2 << ", "
+                                      << i1 << ", " << hD_gold[i1 + (i2 * ldd) + (i3 * stride_d)]
+                                      << ", " << hD_1[i1 + (i2 * ldd) + (i3 * stride_d)] << ", "
+                                      << std::endl;
                         }
                     }
                 }
@@ -810,26 +808,26 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
         rocblas_gflops
             = gemm_gflop_count<To>(M, N, K) * batch_count * number_hot_calls / gpu_time_used * 1e6;
 
-        rocblas_cout
+        std::cout
             << "transA,transB,M,N,K,alpha,lda,stride_a,ldb,stride_b,beta,ldc,stride_c,ldd,stride_"
                "d,batch_count,rocblas-Gflops,us";
 
         if(arg.unit_check || arg.norm_check)
-            rocblas_cout << ",CPU-Gflops(us),norm-error";
+            std::cout << ",CPU-Gflops(us),norm-error";
 
-        rocblas_cout << std::endl;
+        std::cout << std::endl;
 
-        rocblas_cout << rocblas2char_operation(transA) << "," << rocblas2char_operation(transB)
-                     << "," << M << "," << N << "," << K << "," << arg.alpha << "," << lda << ","
-                     << stride_a << "," << ldb << "," << stride_b << "," << arg.beta << "," << ldc
-                     << "," << stride_c << "," << ldd << "," << stride_d << "," << batch_count
-                     << "," << rocblas_gflops << "," << gpu_time_used / number_hot_calls;
+        std::cout << rocblas2char_operation(transA) << "," << rocblas2char_operation(transB) << ","
+                  << M << "," << N << "," << K << "," << arg.alpha << "," << lda << "," << stride_a
+                  << "," << ldb << "," << stride_b << "," << arg.beta << "," << ldc << ","
+                  << stride_c << "," << ldd << "," << stride_d << "," << batch_count << ","
+                  << rocblas_gflops << "," << gpu_time_used / number_hot_calls;
 
         if(arg.unit_check || arg.norm_check)
         {
-            rocblas_cout << "," << cblas_gflops << "," << cpu_time_used << "," << rocblas_error;
+            std::cout << "," << cblas_gflops << "," << cpu_time_used << "," << rocblas_error;
         }
 
-        rocblas_cout << std::endl;
+        std::cout << std::endl;
     }
 }

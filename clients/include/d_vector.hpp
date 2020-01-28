@@ -50,8 +50,8 @@ public:
         if((hipMalloc)(&d, bytes) != hipSuccess)
         {
             static char* lc = setlocale(LC_NUMERIC, "");
-            rocblas_cerr << "Error allocating " << bytes << " bytes (" << (bytes >> 30) << " GB)"
-                         << std::endl;
+            std::cerr << "Error allocating " << bytes << " bytes (" << (bytes >> 30) << " GB)"
+                      << std::endl;
 
             d = nullptr;
         }

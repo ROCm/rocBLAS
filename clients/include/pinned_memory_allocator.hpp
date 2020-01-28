@@ -27,8 +27,8 @@ struct pinned_memory_allocator
         if(status != hipSuccess)
         {
             ptr = nullptr;
-            rocblas_cerr << "rocBLAS pinned_memory_allocator failed to allocate memory: "
-                         << hipGetErrorString(status) << std::endl;
+            std::cerr << "rocBLAS pinned_memory_allocator failed to allocate memory: "
+                      << hipGetErrorString(status) << std::endl;
         }
         return ptr;
     }
@@ -38,8 +38,8 @@ struct pinned_memory_allocator
         hipError_t status = hipHostFree(ptr);
         if(status != hipSuccess)
         {
-            rocblas_cerr << "rocBLAS pinned_memory_allocator failed to free memory: "
-                         << hipGetErrorString(status) << std::endl;
+            std::cerr << "rocBLAS pinned_memory_allocator failed to free memory: "
+                      << hipGetErrorString(status) << std::endl;
         }
     }
 };

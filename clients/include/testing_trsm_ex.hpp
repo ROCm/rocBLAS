@@ -22,13 +22,13 @@
 template <typename T>
 void printMatrix(const char* name, T* A, rocblas_int m, rocblas_int n, rocblas_int lda)
 {
-    rocblas_cout << "---------- " << name << " ----------\n";
+    std::cout << "---------- " << name << " ----------\n";
     int max_size = 3;
     for(int i = 0; i < m; i++)
     {
         for(int j = 0; j < n; j++)
-            rocblas_cout << A[i + j * lda] << " ";
-        rocblas_cout << "\n";
+            std::cout << A[i + j * lda] << " ";
+        std::cout << "\n";
     }
 }
 
@@ -380,21 +380,21 @@ void testing_trsm_ex(const Arguments& arg)
         cblas_gflops  = trsm_gflop_count<T>(M, N, K) / cpu_time_used * 1e6;
 
         // only norm_check return an norm error, unit check won't return anything
-        rocblas_cout << "M,N,lda,ldb,side,uplo,transA,diag,rocblas-Gflops,us";
+        std::cout << "M,N,lda,ldb,side,uplo,transA,diag,rocblas-Gflops,us";
 
         if(arg.norm_check)
-            rocblas_cout << ",CPU-Gflops,us,norm_error_host_ptr,norm_error_dev_ptr";
+            std::cout << ",CPU-Gflops,us,norm_error_host_ptr,norm_error_dev_ptr";
 
-        rocblas_cout << std::endl;
+        std::cout << std::endl;
 
-        rocblas_cout << M << ',' << N << ',' << lda << ',' << ldb << ',' << char_side << ','
-                     << char_uplo << ',' << char_transA << ',' << char_diag << ',' << rocblas_gflops
-                     << "," << gpu_time_used;
+        std::cout << M << ',' << N << ',' << lda << ',' << ldb << ',' << char_side << ','
+                  << char_uplo << ',' << char_transA << ',' << char_diag << ',' << rocblas_gflops
+                  << "," << gpu_time_used;
 
         if(arg.norm_check)
-            rocblas_cout << "," << cblas_gflops << "," << cpu_time_used << "," << max_err_1 << ","
-                         << max_err_2;
+            std::cout << "," << cblas_gflops << "," << cpu_time_used << "," << max_err_1 << ","
+                      << max_err_2;
 
-        rocblas_cout << std::endl;
+        std::cout << std::endl;
     }
 }

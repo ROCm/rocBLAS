@@ -41,23 +41,23 @@ inline void rocblas_expect_status(rocblas_status status, rocblas_status expect)
 {
     if(status != expect)
     {
-        rocblas_cerr << "rocBLAS status error: Expected " << rocblas_status_to_string(expect)
-                     << ", received " << rocblas_status_to_string(status) << std::endl;
+        std::cerr << "rocBLAS status error: Expected " << rocblas_status_to_string(expect)
+                  << ", received " << rocblas_status_to_string(status) << std::endl;
         if(expect == rocblas_status_success)
             exit(EXIT_FAILURE);
     }
 }
 
-#define CHECK_HIP_ERROR(ERROR)                                                     \
-    do                                                                             \
-    {                                                                              \
-        auto error = ERROR;                                                        \
-        if(error != hipSuccess)                                                    \
-        {                                                                          \
-            rocblas_cerr << "error: " << hipGetErrorString(error) << " (" << error \
-                         << ") at " __FILE__ ":" << __LINE__ << std::endl;         \
-            rocblas_abort();                                                       \
-        }                                                                          \
+#define CHECK_HIP_ERROR(ERROR)                                                  \
+    do                                                                          \
+    {                                                                           \
+        auto error = ERROR;                                                     \
+        if(error != hipSuccess)                                                 \
+        {                                                                       \
+            std::cerr << "error: " << hipGetErrorString(error) << " (" << error \
+                      << ") at " __FILE__ ":" << __LINE__ << std::endl;         \
+            rocblas_abort();                                                    \
+        }                                                                       \
     } while(0)
 
 #define EXPECT_ROCBLAS_STATUS rocblas_expect_status
@@ -134,15 +134,15 @@ public:
 
         // Warn about unset letter parameters
         if(name.find('*') != name.npos)
-            rocblas_cerr << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-                            "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
-                            "Warning: Character * found in name."
-                            " This means a required letter parameter\n"
-                            "(e.g., transA, diag, etc.) has not been set in the YAML file."
-                            " Check the YAML file.\n"
-                            "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-                            "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-                         << std::endl;
+            std::cerr << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+                         "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+                         "Warning: Character * found in name."
+                         " This means a required letter parameter\n"
+                         "(e.g., transA, diag, etc.) has not been set in the YAML file."
+                         " Check the YAML file.\n"
+                         "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+                         "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+                      << std::endl;
 
         // Replace non-alphanumeric characters with letters
         std::replace(name.begin(), name.end(), '-', 'n'); // minus
@@ -252,7 +252,7 @@ struct rocblas_test_invalid
 #ifdef GOOGLE_TEST
         FAIL() << msg;
 #else
-        rocblas_cerr << msg << std::endl;
+        std::cerr << msg << std::endl;
         rocblas_abort();
 #endif
     }

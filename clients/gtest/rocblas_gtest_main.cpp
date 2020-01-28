@@ -220,9 +220,9 @@ int main(int argc, char** argv)
     rocblas_get_version_string(blas_version, sizeof(blas_version));
 
 #ifdef USE_TENSILE_HOST
-    rocblas_cout << "rocBLAS version: " << blas_version << " (new Tensile client)\n" << std::endl;
+    std::cout << "rocBLAS version: " << blas_version << " (new Tensile client)\n" << std::endl;
 #else
-    rocblas_cout << "rocBLAS version: " << blas_version << "\n" << std::endl;
+    std::cout << "rocBLAS version: " << blas_version << "\n" << std::endl;
 #endif
 
     // Device Query
@@ -230,7 +230,7 @@ int main(int argc, char** argv)
     int device_count = query_device_property();
     if(device_count <= device_id)
     {
-        rocblas_cerr << "Error: invalid device ID. There may not be such device ID." << std::endl;
+        std::cerr << "Error: invalid device ID. There may not be such device ID." << std::endl;
         return -1;
     }
     set_device(device_id);

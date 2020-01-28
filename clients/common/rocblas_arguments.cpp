@@ -46,13 +46,13 @@ std::istream& operator>>(std::istream& is, Arguments& arg)
 // Error message about incompatible binary file format
 static void validation_error [[noreturn]] (const char* name)
 {
-    rocblas_cerr << "Arguments field \"" << name
-                 << "\" does not match format.\n\n"
-                    "Fatal error: Binary test data does match input format.\n"
-                    "Ensure that rocblas_arguments.hpp and rocblas_common.yaml\n"
-                    "define exactly the same Arguments, that rocblas_gentest.py\n"
-                    "generates the data correctly, and that endianness is the same."
-                 << std::endl;
+    std::cerr << "Arguments field \"" << name
+              << "\" does not match format.\n\n"
+                 "Fatal error: Binary test data does match input format.\n"
+                 "Ensure that rocblas_arguments.hpp and rocblas_common.yaml\n"
+                 "define exactly the same Arguments, that rocblas_gentest.py\n"
+                 "generates the data correctly, and that endianness is the same."
+              << std::endl;
     rocblas_abort();
 }
 

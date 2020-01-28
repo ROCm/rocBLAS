@@ -258,14 +258,14 @@ void testing_rotg_batched(const Arguments& arg)
         }
         gpu_time_used = (get_time_us() - gpu_time_used) / number_hot_calls;
 
-        rocblas_cout << "rocblas-us,CPU-us";
+        std::cout << "rocblas-us,CPU-us";
         if(arg.norm_check)
-            rocblas_cout << ",norm_error_host_ptr,norm_error_device";
-        rocblas_cout << std::endl;
+            std::cout << ",norm_error_host_ptr,norm_error_device";
+        std::cout << std::endl;
 
-        rocblas_cout << gpu_time_used << "," << cpu_time_used;
+        std::cout << gpu_time_used << "," << cpu_time_used;
         if(arg.norm_check)
-            rocblas_cout << ',' << norm_error_host << ',' << norm_error_device;
-        rocblas_cout << std::endl;
+            std::cout << ',' << norm_error_host << ',' << norm_error_device;
+        std::cout << std::endl;
     }
 }

@@ -65,18 +65,17 @@ rocblas_int query_device_property()
     rocblas_status status = (rocblas_status)hipGetDeviceCount(&device_count);
     if(status != rocblas_status_success)
     {
-        rocblas_cerr << "Query device error: cannot get device count" << std::endl;
+        std::cerr << "Query device error: cannot get device count" << std::endl;
         return -1;
     }
     else
     {
-        rocblas_cout << "Query device success: there are " << device_count << " devices"
-                     << std::endl;
+        std::cout << "Query device success: there are " << device_count << " devices" << std::endl;
     }
 
     for(rocblas_int i = 0;; i++)
     {
-        rocblas_cout
+        std::cout
             << "-------------------------------------------------------------------------------"
             << std::endl;
 
@@ -87,8 +86,8 @@ rocblas_int query_device_property()
         rocblas_status  status = (rocblas_status)hipGetDeviceProperties(&props, i);
         if(status != rocblas_status_success)
         {
-            rocblas_cerr << "Query device error: cannot get device ID " << i << "'s property"
-                         << std::endl;
+            std::cerr << "Query device error: cannot get device ID " << i << "'s property"
+                      << std::endl;
         }
         else
         {
@@ -109,7 +108,7 @@ rocblas_int query_device_property()
                 props.sharedMemPerBlock / 1e3,
                 props.maxThreadsPerBlock,
                 props.warpSize);
-            rocblas_cout << buf;
+            std::cout << buf;
         }
     }
 
@@ -122,8 +121,8 @@ void set_device(rocblas_int device_id)
     rocblas_status status = (rocblas_status)hipSetDevice(device_id);
     if(status != rocblas_status_success)
     {
-        rocblas_cerr << "Set device error: cannot set device ID " << device_id
-                     << ", there may not be such device ID" << std::endl;
+        std::cerr << "Set device error: cannot set device ID " << device_id
+                  << ", there may not be such device ID" << std::endl;
     }
 }
 
