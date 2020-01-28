@@ -134,7 +134,7 @@ Tests:
   matrix_size: *large_matrix_size_range
   incx: [ 1 ]
   alpha_beta: *alpha_range_small
-  stride_scale: [ 1.0, 2.5 ]
+  stride_scale: [ 1.0 ]
   batch_count: [ 1, 3 ]
 
 ...
