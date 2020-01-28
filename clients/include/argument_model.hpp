@@ -84,7 +84,7 @@ public:
         (ArgumentsHelper::apply<Args>(print, arg, T{}), ...);
 #else
         // C++14. TODO: Remove when C++17 is used
-        (void)(int[]){(apply<Args>{}()(print, arg, T{}), 0)...};
+        (void)(int[]){(ArgumentsHelper::apply<Args>{}()(print, arg, T{}), 0)...};
 #endif
 
         if(arg.timing)
