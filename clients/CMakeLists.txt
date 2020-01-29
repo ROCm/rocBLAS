@@ -87,8 +87,7 @@ function(rocm_create_package_clients)
     set(multiValueArgs DEPENDS)
 
     cmake_parse_arguments(PARSE "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
-
-    string(CONCAT PACKAGE_NAME ${PARSE_LIB_NAME} "-clients-" ${PARSE_VERSION} "-Linux.deb")
+    string(CONCAT PACKAGE_NAME ${PARSE_LIB_NAME} "-clients-" ${PARSE_VERSION} "-" ${CPACK_SYSTEM_NAME} ".deb")
     string(CONCAT DEB_CONTROL_FILE_CONTENT "Package: " ${PARSE_LIB_NAME} "-clients"
                                            "\nVersion: " ${PARSE_VERSION}
                                            "\nSection: " ${PARSE_SECTION}
@@ -99,7 +98,6 @@ function(rocm_create_package_clients)
                                            "\nDepends: " ${PARSE_LIB_NAME} "(>=" ${PARSE_VERSION} ")\n\n")
     set(PACKAGE_DIR "${PROJECT_BINARY_DIR}/package")
     if(EXISTS "${PACKAGE_DIR}")
-        message("***************************************REMOVING")
         file(REMOVE_RECURSE "${PACKAGE_DIR}")
     endif()
     set(PACKAGE_INSTALL_DIR "${PACKAGE_DIR}/${CPACK_PACKAGING_INSTALL_PREFIX}/${PARSE_LIB_NAME}")
