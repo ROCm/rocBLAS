@@ -42,7 +42,7 @@ constexpr double hpr_gbyte_count(rocblas_int n)
 template <typename T>
 constexpr double hpr2_gbyte_count(rocblas_int n)
 {
-    return (sizeof(T) * (tri_count(n) + 2.0 * n) / 1e9;
+    return (sizeof(T) * (tri_count(n) + 2.0 * n)) / 1e9;
 }
 
 /* \brief byte counts of SYMV */
