@@ -148,9 +148,9 @@ install_packages( )
                                       "zlib-devel" "wget" )
   local library_dependencies_fedora=( "make" "cmake" "rpm-build"
                                       "python34" "PyYAML" "python3*-PyYAML" "python3*-distutils-extra"
-                                      "gcc-c++" "libcxx-devel" "zlib-devel" "wget" )
+                                      "gcc-c++" "libcxx-devel" "zlib-devel" "wget" "llvm7.0-devel" "llvm7.0-static" )
   local library_dependencies_sles=(   "make" "cmake" "python3-PyYAM" "python3-distutils-extra"
-                                      "gcc-c++" "libcxxtools9" "rpm-build" "wget" )
+                                      "gcc-c++" "libcxxtools9" "rpm-build" "wget" "llvm7-devel" )
 
   if [[ "${build_cuda}" == true ]]; then
     # Ideally, this could be cuda-cublas-dev, but the package name has a version number in it
