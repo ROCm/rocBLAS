@@ -37,17 +37,46 @@ namespace
 
         auto layer_mode = handle->layer_mode;
         if(layer_mode & rocblas_layer_mode_log_trace)
-            log_trace(handle, rocblas_rotg_name<T>, a, b, c, s, batch_count);
+            log_trace(handle,
+                      rocblas_rotg_name<T>,
+                      a,
+                      stride_a,
+                      b,
+                      stride_b,
+                      c,
+                      stride_c,
+                      s,
+                      stride_s,
+                      batch_count);
         if(layer_mode & rocblas_layer_mode_log_bench)
             log_bench(handle,
-                      "./rocblas-bench -f rotg_batched --a_type",
+                      "./rocblas-bench -f rotg_strided_batched --a_type",
                       rocblas_precision_string<T>,
                       "--b_type",
                       rocblas_precision_string<U>,
+                      "--stride_a",
+                      stride_a,
+                      "--stride_b",
+                      stride_b,
+                      "--stride_c",
+                      stride_c,
+                      "--stride_d",
+                      stride_s,
                       "--batch_count",
                       batch_count);
         if(layer_mode & rocblas_layer_mode_log_profile)
-            log_profile(handle, rocblas_rotg_name<T>, "batch_count", batch_count);
+            log_profile(handle,
+                        rocblas_rotg_name<T>,
+                        "stride_a",
+                        stride_a,
+                        "stride_b",
+                        stride_b,
+                        "stride_c",
+                        stride_c,
+                        "stride_d",
+                        stride_s,
+                        "batch_count",
+                        batch_count);
 
         if(!a || !b || !c || !s)
             return rocblas_status_invalid_pointer;
