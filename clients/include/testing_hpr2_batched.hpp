@@ -223,7 +223,7 @@ void testing_hpr2_batched(const Arguments& arg)
 
         gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;
         rocblas_gflops    = batch_count * hpr2_gflop_count<T>(N) / gpu_time_used * 1e6;
-        rocblas_bandwidth = batch_count * (2.0 * N * (N + 1)) / 2 * sizeof(T) / gpu_time_used / 1e3;
+        rocblas_bandwidth = batch_count * hpr2_gbyte_count<T>(N) / gpu_time_used * 1e6;
 
         // only norm_check return an norm error, unit check won't return anything
         std::cout << "N,alpha,incx,incy,batch_count,rocblas-Gflops,rocblas-GB/s";
