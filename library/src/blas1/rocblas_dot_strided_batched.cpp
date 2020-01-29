@@ -20,12 +20,18 @@ namespace
     template <bool CONJ>
     constexpr char rocblas_dot_strided_batched_name<CONJ, double>[]
         = "rocblas_ddot_strided_batched";
+    template <bool CONJ>
+    constexpr char rocblas_dot_strided_batched_name<CONJ, rocblas_half>[]
+        = "rocblas_hdot_strided_batched";
+    template <bool CONJ>
+    constexpr char rocblas_dot_strided_batched_name<CONJ, rocblas_bfloat16>[]
+        = "rocblas_bfdot_strided_batched";
     template <>
     constexpr char rocblas_dot_strided_batched_name<true, rocblas_float_complex>[]
         = "rocblas_cdotc_strided_batched";
     template <>
     constexpr char rocblas_dot_strided_batched_name<false, rocblas_float_complex>[]
-        = "rocblas_cdot_ustrided_batched";
+        = "rocblas_cdotu_strided_batched";
     template <>
     constexpr char rocblas_dot_strided_batched_name<true, rocblas_double_complex>[]
         = "rocblas_zdotc_strided_batched";
