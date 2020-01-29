@@ -232,6 +232,13 @@ constexpr double hpr_gflop_count(rocblas_int n)
     return (4.0 * n * n + 6.0 * n) / 1e9;
 }
 
+/* \brief floating point counts of HPR2 */
+template <typename T>
+constexpr double hpr2_gflop_count(rocblas_int n)
+{
+    return (8.0 * n * n + 20.0 * n) / 1e9;
+}
+
 /* \brief floating point counts of TRSV */
 template <typename T>
 constexpr double trsv_gflop_count(rocblas_int m)
