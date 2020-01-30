@@ -31,11 +31,25 @@ inline size_t tri_count(rocblas_int n)
     return size_t(n) * (1 + n) / 2;
 }
 
+/* \brief byte counts of HPR */
+template <typename T>
+constexpr double hpr_gbyte_count(rocblas_int n)
+{
+    return (sizeof(T) * (tri_count(n) + n)) / 1e9;
+}
+
+/* \brief byte counts of HPR2 */
+template <typename T>
+constexpr double hpr2_gbyte_count(rocblas_int n)
+{
+    return (sizeof(T) * (tri_count(n) + 2.0 * n)) / 1e9;
+}
+
 /* \brief byte counts of SYMV */
 template <typename T>
 constexpr double symv_gbyte_count(rocblas_int n)
 {
-    return (sizeof(T) * n * (n + 1)) / 1e9;
+    return (sizeof(T) * (tri_count(n) + n)) / 1e9;
 }
 
 /* \brief byte counts of SPMV */

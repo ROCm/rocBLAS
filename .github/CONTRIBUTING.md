@@ -441,7 +441,7 @@ If its argument is a pointer, it is dereferenced on the device. If the argument 
 ```
     os << key << ": " << rocblas_ostream::yaml_on << value << rocblas_ostream::yaml_off;
 ```
-    The `key` is outputted normally as a bare string, but the `value` uses YAML metacharacters and lexical syntax to output the value, so that when it's read in as YAML, it has the type and value of `value`.
+The `key` is outputted normally as a bare string, but the `value` uses YAML metacharacters and lexical syntax to output the value, so that when it's read in as YAML, it has the type and value of `value`.
 
 
 22. C++ templates, including variadic templates, are preferred to macros or runtime interpreting of values, although it is understood that sometimes macros are necessary.

@@ -265,7 +265,7 @@ int main(int argc, char** argv)
     int status = RUN_ALL_TESTS();
 
     // failures at end copied for reporting so repeat this info
-    printf("rocBLAS version: %s\n\n", blas_version);
+    rocblas_cout << "rocBLAS version: " << blas_version << std::endl;
 
     return status;
 }

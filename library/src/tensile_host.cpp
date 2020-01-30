@@ -9,7 +9,6 @@
 
 #include "tensile_host.hpp"
 #include "rocblas.h"
-#include "tuple_helper.hpp"
 //#include <Tensile/AMDGPU.hpp>
 #include <Tensile/Contractions.hpp>
 #include <Tensile/EmbeddedLibrary.hpp>
@@ -461,55 +460,6 @@ rocblas_status
     }
 
     return status;
-}
-
-/***************************************************
- * Print a RocblasContractionProblem for debugging *
- ***************************************************/
-template <typename Ti, typename To, typename Tc>
-rocblas_ostream& operator<<(rocblas_ostream& os, const RocblasContractionProblem<Ti, To, Tc>& prob)
-{
-    return tuple_helper::print_tuple_pairs(os,
-                                           std::make_tuple("a_type",
-                                                           rocblas_precision_string<Ti>,
-                                                           "b_type",
-                                                           rocblas_precision_string<Ti>,
-                                                           "c_type",
-                                                           rocblas_precision_string<To>,
-                                                           "d_type",
-                                                           rocblas_precision_string<To>,
-                                                           "compute_type",
-                                                           rocblas_precision_string<Tc>,
-                                                           "transA",
-                                                           rocblas_transpose_letter(prob.trans_a),
-                                                           "transB",
-                                                           rocblas_transpose_letter(prob.trans_b),
-                                                           "M",
-                                                           prob.m,
-                                                           "N",
-                                                           prob.n,
-                                                           "K",
-                                                           prob.k,
-                                                           "lda",
-                                                           prob.ld_a,
-                                                           "ldb",
-                                                           prob.ld_b,
-                                                           "ldc",
-                                                           prob.ld_c,
-                                                           "ldd",
-                                                           prob.ld_d,
-                                                           "beta",
-                                                           value_category(prob.beta),
-                                                           "batch_count",
-                                                           prob.batch_count,
-                                                           "stride_a",
-                                                           prob.stride_a,
-                                                           "stride_b",
-                                                           prob.stride_b,
-                                                           "stride_c",
-                                                           prob.stride_c,
-                                                           "stride_d",
-                                                           prob.stride_d));
 }
 
 /******************************************************************************

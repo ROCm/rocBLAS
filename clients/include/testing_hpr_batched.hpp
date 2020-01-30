@@ -2,6 +2,7 @@
  * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+#include "bytes.hpp"
 #include "cblas_interface.hpp"
 #include "flops.hpp"
 #include "near.hpp"
@@ -202,7 +203,7 @@ void testing_hpr_batched(const Arguments& arg)
 
         gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;
         rocblas_gflops    = batch_count * hpr_gflop_count<T>(N) / gpu_time_used * 1e6;
-        rocblas_bandwidth = batch_count * (2.0 * N * (N + 1)) / 2 * sizeof(T) / gpu_time_used / 1e3;
+        rocblas_bandwidth = batch_count * hpr_gbyte_count<T>(N) / gpu_time_used * 1e6;
 
         // only norm_check return an norm error, unit check won't return anything
         rocblas_cout << "N,alpha,incx,batch_count,rocblas-Gflops,rocblas-GB/s";

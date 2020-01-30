@@ -5,7 +5,6 @@
 /*********************************************************
  * Declaration of the rocBLAS<->Tensile interface layer. *
  *********************************************************/
-#pragma once
 #ifndef __TENSILE_HOST_HPP__
 #define __TENSILE_HOST_HPP__
 
@@ -14,14 +13,15 @@
 #endif
 
 #include "handle.h"
+#include "tuple_helper.hpp"
 #include <ostream>
 
 /**************************************************************************
-     * Return the value category for a value, as a double precision value,    *
-     * such as whether it's 0, 1, or some other value. Tensile uses a double  *
-     * precision value to express the category of beta. This function is to   *
-     * convert complex or other types to a double representing the category.  *
-     **************************************************************************/
+ * Return the value category for a value, as a double precision value,    *
+ * such as whether it's 0, 1, or some other value. Tensile uses a double  *
+ * precision value to express the category of beta. This function is to   *
+ * convert complex or other types to a double representing the category.  *
+ **************************************************************************/
 template <typename T>
 constexpr double value_category(const T& beta)
 {
@@ -33,7 +33,7 @@ constexpr double value_category(const T& beta)
  * contraction problem, to be passed to runContractionProblem.      *
  ********************************************************************/
 template <typename Ti, typename To = Ti, typename Tc = To>
-class RocblasContractionProblem
+struct RocblasContractionProblem
 {
     rocblas_handle    handle;
     rocblas_operation trans_a;
@@ -61,9 +61,8 @@ class RocblasContractionProblem
     size_t    batch_count;
 
     // Functions to print RocblasContractionProblem out to stream in YAML format
-    friend roblas_ostream& operator<<(rocblas_ostream& os, const RocblasContractionProblem& prob);
+    friend rocblas_ostream& operator<<(rocblas_ostream& os, const RocblasContractionProblem& prob);
 
-public:
     // gemm
     // gemm_strided_batched
     RocblasContractionProblem(rocblas_handle    handle,
@@ -150,6 +149,55 @@ public:
         , stride_d(stride_d)
         , batch_count(batch_count)
     {
+    }
+
+    /***************************************************
+     * Print a RocblasContractionProblem for debugging *
+     ***************************************************/
+    friend rocblas_ostream& operator<<(rocblas_ostream& os, const RocblasContractionProblem& prob)
+    {
+        return tuple_helper::print_tuple_pairs(
+            os,
+            std::make_tuple("a_type",
+                            rocblas_precision_string<Ti>,
+                            "b_type",
+                            rocblas_precision_string<Ti>,
+                            "c_type",
+                            rocblas_precision_string<To>,
+                            "d_type",
+                            rocblas_precision_string<To>,
+                            "compute_type",
+                            rocblas_precision_string<Tc>,
+                            "transA",
+                            rocblas_transpose_letter(prob.trans_a),
+                            "transB",
+                            rocblas_transpose_letter(prob.trans_b),
+                            "M",
+                            prob.m,
+                            "N",
+                            prob.n,
+                            "K",
+                            prob.k,
+                            "lda",
+                            prob.ld_a,
+                            "ldb",
+                            prob.ld_b,
+                            "ldc",
+                            prob.ld_c,
+                            "ldd",
+                            prob.ld_d,
+                            "beta",
+                            value_category(prob.beta),
+                            "batch_count",
+                            prob.batch_count,
+                            "stride_a",
+                            prob.stride_a,
+                            "stride_b",
+                            prob.stride_b,
+                            "stride_c",
+                            prob.stride_c,
+                            "stride_d",
+                            prob.stride_d));
     }
 };
 

@@ -5,10 +5,10 @@
 #include "handle.h"
 #include "rocblas.h"
 
-template <typename T, typename U>
+template <typename T>
 __device__ void hpr2_kernel_calc(bool        upper,
                                  rocblas_int n,
-                                 U           alpha,
+                                 T           alpha,
                                  const T*    x,
                                  rocblas_int incx,
                                  const T*    y,
