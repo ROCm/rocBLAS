@@ -8838,6 +8838,661 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyr2_strided_batched(rocblas_handle      
 
     \details
 
+    herk performs one of the matrix-matrix operations for a Hermitian rank-k update
+
+    C := alpha*op( A )*op( A )^H + beta*C
+
+    where  alpha and beta are scalars, op(A) is an n by k matrix, and
+    C is a n x n Hermitian matrix stored as either upper or lower.
+
+        op( A ) = A   or   op( A ) = A^H
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+
+    @param[in]
+    uplo    [rocblas_fill]
+            rocblas_fill_upper:  C is an upper triangular matrix
+            rocblas_fill_lower:  C is a  lower triangular matrix
+
+    @param[in]
+    transA  [rocblas_operation]
+            rocblas_operation_conjugate_transpose:  op(A) = A^H
+            rocblas_operation_none:                 op(A) = A
+
+    @param[in]
+    n       [rocblas_int]
+            n specifies the number of rows and columns of C. n >= 0.
+
+    @param[in]
+    k       [rocblas_int]
+            k specifies the number of columns of op(A). k >= 0.
+
+    @param[in]
+    alpha
+            alpha specifies the scalar alpha. When alpha is
+            zero then A is not referenced and A need not be set before
+            entry.
+
+    @param[in]
+    A       pointer storing matrix A on the GPU.
+            of dimension ( n, k )
+            only the upper/lower triangular part is accessed.
+
+    @param[in]
+    lda     [rocblas_int]
+            lda specifies the first dimension of A.
+            if transA = rocblas_operation_none,  lda >= max( 1, n ),
+            otherwise lda >= max( 1, k ).
+
+    @param[in]
+    beta
+            beta specifies the scalar beta. When beta is
+            zero then C need not be set before entry.
+
+    @param[in]
+    C       pointer storing matrix C on the GPU.
+
+    @param[in]
+    ldc    [rocblas_int]
+           ldc specifies the first dimension of C. ldc >= max( 1, n ).
+
+    ********************************************************************/
+
+ROCBLAS_EXPORT rocblas_status rocblas_cherk(rocblas_handle               handle,
+                                            rocblas_fill                 uplo,
+                                            rocblas_operation            transA,
+                                            rocblas_int                  n,
+                                            rocblas_int                  k,
+                                            const float*                 alpha,
+                                            const rocblas_float_complex* A,
+                                            rocblas_int                  lda,
+                                            const float*                 beta,
+                                            rocblas_float_complex*       C,
+                                            rocblas_int                  ldc);
+
+ROCBLAS_EXPORT rocblas_status rocblas_zherk(rocblas_handle                handle,
+                                            rocblas_fill                  uplo,
+                                            rocblas_operation             transA,
+                                            rocblas_int                   n,
+                                            rocblas_int                   k,
+                                            const double*                 alpha,
+                                            const rocblas_double_complex* A,
+                                            rocblas_int                   lda,
+                                            const double*                 beta,
+                                            rocblas_double_complex*       C,
+                                            rocblas_int                   ldc);
+
+/*! \brief BLAS Level 3 API
+
+    \details
+
+    herk_batched performs a batch of the matrix-matrix operations for a Hermitian rank-k update
+
+    C_i := alpha*op( A_i )*op( A_i )^H + beta*C_i
+
+    where  alpha and beta are scalars, op(A) is an n by k matrix, and
+    C_i is a n x n Hermitian matrix stored as either upper or lower.
+
+        op( A_i ) = A_i   or   op( A_i ) = A_i^H
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+
+    @param[in]
+    uplo    [rocblas_fill]
+            rocblas_fill_upper:  C_i is an upper triangular matrix
+            rocblas_fill_lower:  C_i is a  lower triangular matrix
+
+    @param[in]
+    transA  [rocblas_operation]
+            rocblas_operation_conjugate_transpose: op(A) = A^H
+            rocblas_operation_none:                op(A) = A
+
+    @param[in]
+    n       [rocblas_int]
+            n specifies the number of rows and columns of C_i. n >= 0.
+
+    @param[in]
+    k       [rocblas_int]
+            k specifies the number of columns of op(A). k >= 0.
+
+    @param[in]
+    alpha
+            alpha specifies the scalar alpha. When alpha is
+            zero then A is not referenced and A need not be set before
+            entry.
+
+    @param[in]
+    A       device array of device pointers storing each matrix_i A of dimension (lda, k)
+            when transA is rocblas_operation_none, otherwise of dimension (lda, n)
+
+    @param[in]
+    lda     [rocblas_int]
+            lda specifies the first dimension of A_i.
+            if transA = rocblas_operation_none,  lda >= max( 1, n ),
+            otherwise lda >= max( 1, k ).
+
+    @param[in]
+    beta
+            beta specifies the scalar beta. When beta is
+            zero then C need not be set before entry.
+
+    @param[in]
+    C       device array of device pointers storing each matrix C_i on the GPU.
+
+    @param[in]
+    ldc    [rocblas_int]
+           ldc specifies the first dimension of C. ldc >= max( 1, n ).
+    @param[in]
+    batch_count [rocblas_int]
+                number of instances in the batch.
+
+    ********************************************************************/
+
+ROCBLAS_EXPORT rocblas_status rocblas_cherk_batched(rocblas_handle                     handle,
+                                                    rocblas_fill                       uplo,
+                                                    rocblas_operation                  transA,
+                                                    rocblas_int                        n,
+                                                    rocblas_int                        k,
+                                                    const float*                       alpha,
+                                                    const rocblas_float_complex* const A[],
+                                                    rocblas_int                        lda,
+                                                    const float*                       beta,
+                                                    rocblas_float_complex* const       C[],
+                                                    rocblas_int                        ldc,
+                                                    rocblas_int                        batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_zherk_batched(rocblas_handle                      handle,
+                                                    rocblas_fill                        uplo,
+                                                    rocblas_operation                   transA,
+                                                    rocblas_int                         n,
+                                                    rocblas_int                         k,
+                                                    const double*                       alpha,
+                                                    const rocblas_double_complex* const A[],
+                                                    rocblas_int                         lda,
+                                                    const double*                       beta,
+                                                    rocblas_double_complex* const       C[],
+                                                    rocblas_int                         ldc,
+                                                    rocblas_int batch_count);
+
+/*! \brief BLAS Level 3 API
+
+    \details
+
+    herk_strided_batched performs a batch of the matrix-matrix operations for a Hermitian rank-k update
+
+    C_i := alpha*op( A_i )*op( A_i )^H + beta*C_i
+
+    where  alpha and beta are scalars, op(A) is an n by k matrix, and
+    C_i is a n x n Hermitian matrix stored as either upper or lower.
+
+        op( A_i ) = A_i   or   op( A_i ) = A_i^H
+
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+
+    @param[in]
+    uplo    [rocblas_fill]
+            rocblas_fill_upper:  C_i is an upper triangular matrix
+            rocblas_fill_lower:  C_i is a  lower triangular matrix
+
+    @param[in]
+    transA  [rocblas_operation]
+            rocblas_operation_conjugate_transpose: op(A) = A^H
+            rocblas_operation_none:                op(A) = A
+
+    @param[in]
+    n       [rocblas_int]
+            n specifies the number of rows and columns of C_i. n >= 0.
+
+    @param[in]
+    k       [rocblas_int]
+            k specifies the number of columns of op(A). k >= 0.
+
+    @param[in]
+    alpha
+            alpha specifies the scalar alpha. When alpha is
+            zero then A is not referenced and A need not be set before
+            entry.
+
+    @param[in]
+    A       device array of device pointers storing each matrix_i A of dimension (lda, k)
+            when transA is rocblas_operation_none, otherwise of dimension (lda, n)
+
+    @param[in]
+    lda     [rocblas_int]
+            lda specifies the first dimension of A_i.
+            if transA = rocblas_operation_none,  lda >= max( 1, n ),
+            otherwise lda >= max( 1, k ).
+    @param[in]
+    stride_A  [rocblas_stride]
+              stride from the start of one matrix (A_i) and the next one (A_i+1)
+    @param[in]
+    beta
+            beta specifies the scalar beta. When beta is
+            zero then C need not be set before entry.
+
+    @param[in]
+    C       device array of device pointers storing each matrix C_i on the GPU.
+
+    @param[in]
+    ldc    [rocblas_int]
+           ldc specifies the first dimension of C. ldc >= max( 1, n ).
+    @param[inout]
+    stride_C  [rocblas_stride]
+              stride from the start of one matrix (C_i) and the next one (C_i+1)
+    @param[in]
+    batch_count [rocblas_int]
+                number of instances in the batch.
+
+    ********************************************************************/
+
+ROCBLAS_EXPORT rocblas_status rocblas_cherk_strided_batched(rocblas_handle               handle,
+                                                            rocblas_fill                 uplo,
+                                                            rocblas_operation            transA,
+                                                            rocblas_int                  n,
+                                                            rocblas_int                  k,
+                                                            const float*                 alpha,
+                                                            const rocblas_float_complex* A,
+                                                            rocblas_int                  lda,
+                                                            rocblas_stride               stride_A,
+                                                            const float*                 beta,
+                                                            rocblas_float_complex*       C,
+                                                            rocblas_int                  ldc,
+                                                            rocblas_stride               stride_C,
+                                                            rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_zherk_strided_batched(rocblas_handle                handle,
+                                                            rocblas_fill                  uplo,
+                                                            rocblas_operation             transA,
+                                                            rocblas_int                   n,
+                                                            rocblas_int                   k,
+                                                            const double*                 alpha,
+                                                            const rocblas_double_complex* A,
+                                                            rocblas_int                   lda,
+                                                            rocblas_stride                stride_A,
+                                                            const double*                 beta,
+                                                            rocblas_double_complex*       C,
+                                                            rocblas_int                   ldc,
+                                                            rocblas_stride                stride_C,
+                                                            rocblas_int batch_count);
+
+/*! \brief BLAS Level 3 API
+
+    \details
+
+    syrk_batched performs a batch of the matrix-matrix operations for a symmetric rank-k update
+
+    C_i := alpha*op( A_i )*op( A_i )^T + beta*C_i
+
+    where  alpha and beta are scalars, op(A_i) is an n by k matrix, and
+    C_i is a symmetric n x n matrix stored as either upper or lower.
+
+        op( A_i ) = A_i   or   op( A_i ) = A_i^T
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+
+    @param[in]
+    uplo    [rocblas_fill]
+            rocblas_fill_upper:  C_i is an upper triangular matrix
+            rocblas_fill_lower:  C_i is a  lower triangular matrix
+
+    @param[in]
+    transA  [rocblas_operation]
+            rocblas_operation_transpose:      op(A) = A^T
+            rocblas_operation_none:           op(A) = A
+
+    @param[in]
+    n       [rocblas_int]
+            n specifies the number of rows and columns of C_i. n >= 0.
+
+    @param[in]
+    k       [rocblas_int]
+            k specifies the number of columns of op(A). k >= 0.
+
+    @param[in]
+    alpha
+            alpha specifies the scalar alpha. When alpha is
+            zero then A is not referenced and A need not be set before
+            entry.
+
+    @param[in]
+    A       device array of device pointers storing each matrix_i A of dimension (lda, k)
+            when transA is rocblas_operation_none, otherwise of dimension (lda, n)
+
+    @param[in]
+    lda     [rocblas_int]
+            lda specifies the first dimension of A_i.
+            if transA = rocblas_operation_none,  lda >= max( 1, n ),
+            otherwise lda >= max( 1, k ).
+
+    @param[in]
+    beta
+            beta specifies the scalar beta. When beta is
+            zero then C need not be set before entry.
+
+    @param[in]
+    C       device array of device pointers storing each matrix C_i on the GPU.
+
+    @param[in]
+    ldc    [rocblas_int]
+           ldc specifies the first dimension of C. ldc >= max( 1, n ).
+    @param[in]
+    batch_count [rocblas_int]
+                number of instances in the batch.
+
+    ********************************************************************/
+
+ROCBLAS_EXPORT rocblas_status rocblas_ssyrk_batched(rocblas_handle     handle,
+                                                    rocblas_fill       uplo,
+                                                    rocblas_operation  transA,
+                                                    rocblas_int        n,
+                                                    rocblas_int        k,
+                                                    const float*       alpha,
+                                                    const float* const A[],
+                                                    rocblas_int        lda,
+                                                    const float*       beta,
+                                                    float* const       C[],
+                                                    rocblas_int        ldc,
+                                                    rocblas_int        batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dsyrk_batched(rocblas_handle      handle,
+                                                    rocblas_fill        uplo,
+                                                    rocblas_operation   transA,
+                                                    rocblas_int         n,
+                                                    rocblas_int         k,
+                                                    const double*       alpha,
+                                                    const double* const A[],
+                                                    rocblas_int         lda,
+                                                    const double*       beta,
+                                                    double* const       C[],
+                                                    rocblas_int         ldc,
+                                                    rocblas_int         batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_csyrk_batched(rocblas_handle                     handle,
+                                                    rocblas_fill                       uplo,
+                                                    rocblas_operation                  transA,
+                                                    rocblas_int                        n,
+                                                    rocblas_int                        k,
+                                                    const rocblas_float_complex*       alpha,
+                                                    const rocblas_float_complex* const A[],
+                                                    rocblas_int                        lda,
+                                                    const rocblas_float_complex*       beta,
+                                                    rocblas_float_complex* const       C[],
+                                                    rocblas_int                        ldc,
+                                                    rocblas_int                        batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_zsyrk_batched(rocblas_handle                      handle,
+                                                    rocblas_fill                        uplo,
+                                                    rocblas_operation                   transA,
+                                                    rocblas_int                         n,
+                                                    rocblas_int                         k,
+                                                    const rocblas_double_complex*       alpha,
+                                                    const rocblas_double_complex* const A[],
+                                                    rocblas_int                         lda,
+                                                    const rocblas_double_complex*       beta,
+                                                    rocblas_double_complex* const       C[],
+                                                    rocblas_int                         ldc,
+                                                    rocblas_int batch_count);
+
+/*! \brief BLAS Level 3 API
+
+    \details
+
+    syrk_strided_batched performs a batch of the matrix-matrix operations for a symmetric rank-k update
+
+    C_i := alpha*op( A_i )*op( A_i )^T + beta*C_i
+
+    where  alpha and beta are scalars, op(A_i) is an n by k matrix, and
+    C_i is a symmetric n x n matrix stored as either upper or lower.
+
+        op( A_i ) = A_i   or   op( A_i ) = A_i^T
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+
+    @param[in]
+    uplo    [rocblas_fill]
+            rocblas_fill_upper:  C_i is an upper triangular matrix
+            rocblas_fill_lower:  C_i is a  lower triangular matrix
+
+    @param[in]
+    transA  [rocblas_operation]
+            rocblas_operation_transpose:      op(A) = A^T
+            rocblas_operation_none:           op(A) = A
+
+    @param[in]
+    n       [rocblas_int]
+            n specifies the number of rows and columns of C_i. n >= 0.
+
+    @param[in]
+    k       [rocblas_int]
+            k specifies the number of columns of op(A). k >= 0.
+
+    @param[in]
+    alpha
+            alpha specifies the scalar alpha. When alpha is
+            zero then A is not referenced and A need not be set before
+            entry.
+
+    @param[in]
+    A       device array of device pointers storing each matrix_i A of dimension (lda, k)
+            when transA is rocblas_operation_none, otherwise of dimension (lda, n)
+
+    @param[in]
+    lda     [rocblas_int]
+            lda specifies the first dimension of A_i.
+            if transA = rocblas_operation_none,  lda >= max( 1, n ),
+            otherwise lda >= max( 1, k ).
+    @param[in]
+    stride_A  [rocblas_stride]
+              stride from the start of one matrix (A_i) and the next one (A_i+1)
+    @param[in]
+    beta
+            beta specifies the scalar beta. When beta is
+            zero then C need not be set before entry.
+
+    @param[in]
+    C       device array of device pointers storing each matrix C_i on the GPU.
+
+    @param[in]
+    ldc    [rocblas_int]
+           ldc specifies the first dimension of C. ldc >= max( 1, n ).
+    @param[inout]
+    stride_C  [rocblas_stride]
+              stride from the start of one matrix (C_i) and the next one (C_i+1)
+    @param[in]
+    batch_count [rocblas_int]
+                number of instances in the batch.
+
+    ********************************************************************/
+
+ROCBLAS_EXPORT rocblas_status rocblas_ssyrk_strided_batched(rocblas_handle    handle,
+                                                            rocblas_fill      uplo,
+                                                            rocblas_operation transA,
+                                                            rocblas_int       n,
+                                                            rocblas_int       k,
+                                                            const float*      alpha,
+                                                            const float*      A,
+                                                            rocblas_int       lda,
+                                                            rocblas_stride    stride_A,
+                                                            const float*      beta,
+                                                            float*            C,
+                                                            rocblas_int       ldc,
+                                                            rocblas_stride    stride_C,
+                                                            rocblas_int       batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dsyrk_strided_batched(rocblas_handle    handle,
+                                                            rocblas_fill      uplo,
+                                                            rocblas_operation transA,
+                                                            rocblas_int       n,
+                                                            rocblas_int       k,
+                                                            const double*     alpha,
+                                                            const double*     A,
+                                                            rocblas_int       lda,
+                                                            rocblas_stride    stride_A,
+                                                            const double*     beta,
+                                                            double*           C,
+                                                            rocblas_int       ldc,
+                                                            rocblas_stride    stride_C,
+                                                            rocblas_int       batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_csyrk_strided_batched(rocblas_handle               handle,
+                                                            rocblas_fill                 uplo,
+                                                            rocblas_operation            transA,
+                                                            rocblas_int                  n,
+                                                            rocblas_int                  k,
+                                                            const rocblas_float_complex* alpha,
+                                                            const rocblas_float_complex* A,
+                                                            rocblas_int                  lda,
+                                                            rocblas_stride               stride_A,
+                                                            const rocblas_float_complex* beta,
+                                                            rocblas_float_complex*       C,
+                                                            rocblas_int                  ldc,
+                                                            rocblas_stride               stride_C,
+                                                            rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_zsyrk_strided_batched(rocblas_handle                handle,
+                                                            rocblas_fill                  uplo,
+                                                            rocblas_operation             transA,
+                                                            rocblas_int                   n,
+                                                            rocblas_int                   k,
+                                                            const rocblas_double_complex* alpha,
+                                                            const rocblas_double_complex* A,
+                                                            rocblas_int                   lda,
+                                                            rocblas_stride                stride_A,
+                                                            const rocblas_double_complex* beta,
+                                                            rocblas_double_complex*       C,
+                                                            rocblas_int                   ldc,
+                                                            rocblas_stride                stride_C,
+                                                            rocblas_int batch_count);
+
+/*! \brief BLAS Level 3 API
+
+    \details
+
+    syrk performs one of the matrix-matrix operations for a symmetric rank-k update
+
+    C := alpha*op( A )*op( A )^T + beta*C
+
+    where  alpha and beta are scalars, op(A) is an n by k matrix, and
+    C is a symmetric n x n matrix stored as either upper or lower.
+
+        op( A ) = A   or   op( A ) = A^T
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+
+    @param[in]
+    uplo    [rocblas_fill]
+            rocblas_fill_upper:  C is an upper triangular matrix
+            rocblas_fill_lower:  C is a  lower triangular matrix
+
+    @param[in]
+    transA  [rocblas_operation]
+            rocblas_operation_transpose:      op(A) = A^T
+            rocblas_operation_none:           op(A) = A
+
+    @param[in]
+    n       [rocblas_int]
+            n specifies the number of rows and columns of C. n >= 0.
+
+    @param[in]
+    k       [rocblas_int]
+            k specifies the number of columns of op(A). k >= 0.
+
+    @param[in]
+    alpha
+            alpha specifies the scalar alpha. When alpha is
+            zero then A is not referenced and A need not be set before
+            entry.
+
+    @param[in]
+    A       pointer storing matrix A on the GPU.
+            of dimension ( n, k )
+            only the upper/lower triangular part is accessed.
+
+    @param[in]
+    lda     [rocblas_int]
+            lda specifies the first dimension of A.
+            if transA = rocblas_operation_none,  lda >= max( 1, n ),
+            otherwise lda >= max( 1, k ).
+
+    @param[in]
+    beta
+            beta specifies the scalar beta. When beta is
+            zero then C need not be set before entry.
+
+    @param[in]
+    C       pointer storing matrix C on the GPU.
+
+    @param[in]
+    ldc    [rocblas_int]
+           ldc specifies the first dimension of C. ldc >= max( 1, n ).
+
+    ********************************************************************/
+
+ROCBLAS_EXPORT rocblas_status rocblas_ssyrk(rocblas_handle    handle,
+                                            rocblas_fill      uplo,
+                                            rocblas_operation transA,
+                                            rocblas_int       n,
+                                            rocblas_int       k,
+                                            const float*      alpha,
+                                            const float*      A,
+                                            rocblas_int       lda,
+                                            const float*      beta,
+                                            float*            C,
+                                            rocblas_int       ldc);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dsyrk(rocblas_handle    handle,
+                                            rocblas_fill      uplo,
+                                            rocblas_operation transA,
+                                            rocblas_int       n,
+                                            rocblas_int       k,
+                                            const double*     alpha,
+                                            const double*     A,
+                                            rocblas_int       lda,
+                                            const double*     beta,
+                                            double*           C,
+                                            rocblas_int       ldc);
+
+ROCBLAS_EXPORT rocblas_status rocblas_csyrk(rocblas_handle               handle,
+                                            rocblas_fill                 uplo,
+                                            rocblas_operation            transA,
+                                            rocblas_int                  n,
+                                            rocblas_int                  k,
+                                            const rocblas_float_complex* alpha,
+                                            const rocblas_float_complex* A,
+                                            rocblas_int                  lda,
+                                            const rocblas_float_complex* beta,
+                                            rocblas_float_complex*       C,
+                                            rocblas_int                  ldc);
+
+ROCBLAS_EXPORT rocblas_status rocblas_zsyrk(rocblas_handle                handle,
+                                            rocblas_fill                  uplo,
+                                            rocblas_operation             transA,
+                                            rocblas_int                   n,
+                                            rocblas_int                   k,
+                                            const rocblas_double_complex* alpha,
+                                            const rocblas_double_complex* A,
+                                            rocblas_int                   lda,
+                                            const rocblas_double_complex* beta,
+                                            rocblas_double_complex*       C,
+                                            rocblas_int                   ldc);
+
+/*! \brief BLAS Level 3 API
+
+    \details
+
     trmm performs one of the matrix-matrix operations
 
     B := alpha*op( A )*B,   or   B := alpha*B*op( A )

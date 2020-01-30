@@ -529,6 +529,16 @@ Functions:
   rocblas_cgemm_strided_batched: { function: gemm_strided_batched, <<: *single_precision_complex }
   rocblas_zgemm_strided_batched: { function: gemm_strided_batched, <<: *double_precision_complex }
 
+  # herk
+  rocblas_cherk: { function: herk, <<: *single_precision_complex }
+  rocblas_zherk: { function: herk, <<: *double_precision_complex }
+
+  # syrk
+  rocblas_ssyrk: { function: syrk, <<: *single_precision }
+  rocblas_dsyrk: { function: syrk, <<: *double_precision }
+  rocblas_csyrk: { function: syrk, <<: *single_precision_complex }
+  rocblas_zsyrk: { function: syrk, <<: *double_precision_complex }
+
   # trmm
   rocblas_strmm: { function: trmm, <<: *single_precision }
   rocblas_dtrmm: { function: trmm, <<: *double_precision }
