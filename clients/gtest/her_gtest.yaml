@@ -25,14 +25,14 @@ Definitions:
     - { N:  4011, lda: 4011 }
 
   - &alpha_range
-    - { alpha:  2.0, alphai:  1.5 }
-    - { alpha: -1.0, alphai:  0.5 }
-    - { alpha:  2.0, alphai: -1.5 }
-    - { alpha:  0.0, alphai: -0.5 }
-    - { alpha:  0.0, alphai:  0.0 }
+    - { alpha:  2.0 }
+    - { alpha: -1.0 }
+    - { alpha:  2.0 }
+    - { alpha:  0.0 }
+    - { alpha:  0.0 }
 
   - &alpha_range_small
-    - { alpha: 4.0, alphai: 2.0 }
+    - { alpha: 4.0 }
 
 Tests:
 

@@ -64,9 +64,8 @@ namespace
             }
             else
             {
-                // For alpha: T doesn't really matter here, just whether it's real or complex, in her's case it's always complex.
                 name << '_' << (char)std::toupper(arg.uplo) << '_' << arg.N << '_' << arg.lda << '_'
-                     << arg.get_alpha<rocblas_double_complex>() << '_' << arg.incx;
+                     << arg.alpha << '_' << arg.incx;
 
                 if(HER_TYPE == HER_STRIDED_BATCHED)
                     name << '_' << arg.stride_x;
