@@ -79,51 +79,6 @@ double get_time_us_sync(hipStream_t stream);
 // Return path of this executable
 std::string rocblas_exepath();
 
-class rocblas_print_helper
-{
-public:
-    /************************************************************************************
-     * Print values
-     ************************************************************************************/
-    // Default output
-    template <typename T>
-    static void print_value(std::ostream& os, const T& x)
-    {
-        os << x;
-    }
-
-    // Floating-point output
-    static void print_value(std::ostream& os, double x)
-    {
-        if(std::isnan(x))
-            os << ".nan";
-        else if(std::isinf(x))
-            os << (x < 0 ? "-.inf" : ".inf");
-        else
-        {
-            char s[32];
-            snprintf(s, sizeof(s) - 2, "%.17g", x);
-
-            // If no decimal point or exponent, append .0
-            char* end = s + strcspn(s, ".eE");
-            if(!*end)
-                strcpy(end, ".0");
-            os << s;
-        }
-    }
-
-    // Complex output
-    template <typename T>
-    static void print_value(std::ostream& os, const rocblas_complex_num<T>& x)
-    {
-        os << "'(";
-        print_value(os, std::real(x));
-        os << ",";
-        print_value(os, std::imag(x));
-        os << ")'";
-    }
-};
-
 /* ============================================================================================ */
 /*! \brief  Debugging purpose, print out CPU and GPU result matrix, not valid in complex number  */
 template <typename T>
@@ -140,17 +95,14 @@ inline void rocblas_print_matrix(
 }
 
 template <typename T>
-void rocblas_print_matrix(const char* name, T* A, rocblas_int m, rocblas_int n, rocblas_int lda)
+void rocblas_print_matrix(const char* name, T* A, size_t m, size_t n, size_t lda)
 {
-    printf("---------- %s ----------\n", name);
-    for(int i = 0; i < m; i++)
+    rocblas_cout << "---------- " << name << " ----------\n";
+    for(size_t i = 0; i < m; i++)
     {
-        for(int j = 0; j < n; j++)
-        {
-            rocblas_print_helper::print_value(rocblas_cout, A[i + j * lda]);
-            printf(" ");
-        }
-        printf("\n");
+        for(size_t j = 0; j < n; j++)
+            rocblas_cout << A[i + j * lda] << " ";
+        rocblas_cout << std::endl;
     }
 }
 
