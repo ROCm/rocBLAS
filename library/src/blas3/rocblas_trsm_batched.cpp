@@ -299,7 +299,7 @@ rocblas_status rocblas_ctrsm_batched(rocblas_handle                     handle,
                                      rocblas_float_complex*             B[],
                                      rocblas_int                        ldb,
                                      rocblas_int                        batch_count)
-
+try
 {
     return rocblas_trsm_batched_ex_impl<STRSM_BLOCK>(
         handle, side, uplo, transA, diag, m, n, alpha, A, lda, B, ldb, batch_count);

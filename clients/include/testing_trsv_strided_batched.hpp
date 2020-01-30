@@ -16,7 +16,7 @@
 #include "utility.hpp"
 
 #define ERROR_EPS_MULTIPLIER 40
-#define RESIDUAL_EPS_MULTIPLIER 20
+#define RESIDUAL_EPS_MULTIPLIER 40
 
 template <typename T>
 void testing_trsv_strided_batched(const Arguments& arg)
@@ -98,9 +98,9 @@ void testing_trsv_strided_batched(const Arguments& arg)
     double gpu_time_used, cpu_time_used;
     double rocblas_gflops, cblas_gflops;
     double rocblas_error;
-    T      error_eps_multiplier    = ERROR_EPS_MULTIPLIER;
-    T      residual_eps_multiplier = RESIDUAL_EPS_MULTIPLIER;
-    T      eps                     = std::numeric_limits<T>::epsilon();
+    double error_eps_multiplier    = ERROR_EPS_MULTIPLIER;
+    double residual_eps_multiplier = RESIDUAL_EPS_MULTIPLIER;
+    double eps                     = std::numeric_limits<rocblas_real_t<T>>::epsilon();
 
     // allocate memory on device
     device_vector<T> dA(size_A);
@@ -108,20 +108,20 @@ void testing_trsv_strided_batched(const Arguments& arg)
 
     rocblas_init<T>(hA, M, M, lda, stride_a, batch_count);
 
-    //  calculate AAT = hA * hA ^ T
+    //  calculate AAT = hA * hA ^ T or AAT = hA * hA ^ H if complex
     for(int b = 0; b < batch_count; b++)
     {
         cblas_gemm<T, T>(rocblas_operation_none,
-                         rocblas_operation_transpose,
+                         rocblas_operation_conjugate_transpose,
                          M,
                          M,
                          M,
-                         1.0,
+                         T(1.0),
                          hA + stride_a * b,
                          lda,
                          hA + stride_a * b,
                          lda,
-                         0.0,
+                         T(0.0),
                          AAT + stride_a * b,
                          lda);
 
@@ -133,12 +133,12 @@ void testing_trsv_strided_batched(const Arguments& arg)
             {
                 int idx = i + j * lda + b * stride_a;
                 hA[idx] = AAT[idx];
-                t += AAT[idx] > 0 ? AAT[idx] : -AAT[idx];
+                t += rocblas_abs(AAT[idx]);
             }
             hA[i + i * lda + b * stride_a] = t;
         }
 
-        //  calculate Cholesky factorization of SPD matrix hA
+        //  calculate Cholesky factorization of SPD (or hermitian if complex) matrix hA
         cblas_potrf<T>(char_uplo, M, hA + stride_a * b, lda);
 
         //  make hA unit diagonal if diag == rocblas_diagonal_unit
@@ -165,6 +165,7 @@ void testing_trsv_strided_batched(const Arguments& arg)
         }
     }
 
+    //initialize "exact" answer hx
     rocblas_init<T>(hx, 1, M, abs_incx, stride_x, batch_count);
     hb = hx;
 
@@ -180,10 +181,10 @@ void testing_trsv_strided_batched(const Arguments& arg)
     // copy data from CPU to device
     CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(T) * size_A, hipMemcpyHostToDevice));
     CHECK_HIP_ERROR(hipMemcpy(dx_or_b, hx_or_b_1, sizeof(T) * size_x, hipMemcpyHostToDevice));
-    T max_err_1 = 0.0;
-    T max_err_2 = 0.0;
-    T max_res_1 = 0.0;
-    T max_res_2 = 0.0;
+
+    double max_err_1 = 0.0;
+    double max_err_2 = 0.0;
+
     if(arg.unit_check || arg.norm_check)
     {
         // calculate dxorb <- A^(-1) b   rocblas_device_pointer_host
@@ -220,32 +221,21 @@ void testing_trsv_strided_batched(const Arguments& arg)
                                                             batch_count));
         CHECK_HIP_ERROR(hipMemcpy(hx_or_b_2, dx_or_b, sizeof(T) * size_x, hipMemcpyDeviceToHost));
 
+        //computed result is in hx_or_b, so forward error is E = hx - hx_or_b
+        // calculate norm 1 of vector E
         for(int b = 0; b < batch_count; b++)
         {
-            max_err_1 = max_err_2 = 0;
-            T err_1               = 0.0;
-            T err_2               = 0.0;
+            max_err_1 = std::abs(
+                vector_norm_1<T>(M, abs_incx, &hx[b * stride_x], &hx_or_b_1[b * stride_x]));
+            max_err_2 = std::abs(
+                vector_norm_1<T>(M, abs_incx, &hx[b * stride_x], &hx_or_b_2[b * stride_x]));
 
-            for(int i = 0; i < M; i++)
-            {
-                int idx = i * abs_incx + b * stride_x;
-                if(hx[idx] != 0)
-                {
-                    err_1 += std::abs((hx[idx] - hx_or_b_1[idx]) / hx[idx]);
-                    err_2 += std::abs((hx[idx] - hx_or_b_2[idx]) / hx[idx]);
-                }
-                else
-                {
-                    err_1 += std::abs(hx_or_b_1[idx]);
-                    err_2 += std::abs(hx_or_b_2[idx]);
-                }
-            }
-            max_err_1 = max_err_1 > err_1 ? max_err_1 : err_1;
-            max_err_2 = max_err_2 > err_2 ? max_err_2 : err_2;
+            //unit test
             trsm_err_res_check<T>(max_err_1, M, error_eps_multiplier, eps);
             trsm_err_res_check<T>(max_err_2, M, error_eps_multiplier, eps);
         }
 
+        // hx_or_b contains A * (calculated X), so res = A * (calculated x) - b = hx_or_b - hb
         for(int b = 0; b < batch_count; b++)
         {
             cblas_trmv<T>(
@@ -253,33 +243,18 @@ void testing_trsv_strided_batched(const Arguments& arg)
             cblas_trmv<T>(
                 uplo, transA, diag, M, hA + b * stride_a, lda, hx_or_b_2 + b * stride_x, incx);
         }
-        // hx_or_b contains A * (calculated X), so residual = A * (calculated x) - b
-        //                                                  = hx_or_b - hb
-        // res is the one norm of the scaled residual for each column
+
+        //calculate norm 1 of res
         for(int b = 0; b < batch_count; b++)
         {
-            max_res_1 = max_res_2 = 0;
-            T res_1               = 0.0;
-            T res_2               = 0.0;
-            for(int i = 0; i < M; i++)
-            {
-                int idx = i * abs_incx + b * stride_x;
-                if(hb[idx] != 0)
-                {
-                    res_1 += std::abs((hx_or_b_1[idx] - hb[idx]) / hb[idx]);
-                    res_2 += std::abs((hx_or_b_2[idx] - hb[idx]) / hb[idx]);
-                }
-                else
-                {
-                    res_1 += std::abs(hx_or_b_1[idx]);
-                    res_2 += std::abs(hx_or_b_2[idx]);
-                }
-            }
-            max_res_1 = max_res_1 > res_1 ? max_res_1 : res_1;
-            max_res_2 = max_res_2 > res_2 ? max_res_2 : res_2;
+            max_err_1 = std::abs(
+                vector_norm_1<T>(M, abs_incx, &hx_or_b_1[b * stride_x], &hb[b * stride_x]));
+            max_err_2 = std::abs(
+                vector_norm_1<T>(M, abs_incx, &hx_or_b_1[b * stride_x], &hb[b * stride_x]));
 
-            trsm_err_res_check<T>(max_res_1, M, residual_eps_multiplier, eps);
-            trsm_err_res_check<T>(max_res_2, M, residual_eps_multiplier, eps);
+            //unit test
+            trsm_err_res_check<T>(max_err_1, M, error_eps_multiplier, eps);
+            trsm_err_res_check<T>(max_err_2, M, error_eps_multiplier, eps);
         }
     }
 

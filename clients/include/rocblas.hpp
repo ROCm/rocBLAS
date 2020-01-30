@@ -1620,6 +1620,12 @@ static constexpr auto rocblas_trsv<float> = rocblas_strsv;
 template <>
 static constexpr auto rocblas_trsv<double> = rocblas_dtrsv;
 
+template <>
+static constexpr auto rocblas_trsv<rocblas_float_complex> = rocblas_ctrsv;
+
+template <>
+static constexpr auto rocblas_trsv<rocblas_double_complex> = rocblas_ztrsv;
+
 // trsv_batched
 template <typename T>
 rocblas_status (*rocblas_trsv_batched)(rocblas_handle    handle,
@@ -1638,6 +1644,12 @@ static constexpr auto rocblas_trsv_batched<float> = rocblas_strsv_batched;
 
 template <>
 static constexpr auto rocblas_trsv_batched<double> = rocblas_dtrsv_batched;
+
+template <>
+static constexpr auto rocblas_trsv_batched<rocblas_float_complex> = rocblas_ctrsv_batched;
+
+template <>
+static constexpr auto rocblas_trsv_batched<rocblas_double_complex> = rocblas_ztrsv_batched;
 
 // trsv_strided_batched
 template <typename T>
@@ -1659,6 +1671,14 @@ static constexpr auto rocblas_trsv_strided_batched<float> = rocblas_strsv_stride
 
 template <>
 static constexpr auto rocblas_trsv_strided_batched<double> = rocblas_dtrsv_strided_batched;
+
+template <>
+static constexpr auto
+    rocblas_trsv_strided_batched<rocblas_float_complex> = rocblas_ctrsv_strided_batched;
+
+template <>
+static constexpr auto
+    rocblas_trsv_strided_batched<rocblas_double_complex> = rocblas_ztrsv_strided_batched;
 
 // symv
 template <typename T>

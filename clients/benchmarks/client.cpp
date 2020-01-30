@@ -335,6 +335,9 @@ struct perf_blas<T,
                 {"trsm_batched_ex", testing_trsm_batched_ex<T>},
                 {"trsm_strided_batched", testing_trsm_strided_batched<T>},
                 {"trsm_strided_batched_ex", testing_trsm_strided_batched_ex<T>},
+                {"trsv", testing_trsv<T>},
+                {"trsv_batched", testing_trsv_batched<T>},
+                {"trsv_strided_batched", testing_trsv_strided_batched<T>},
 #endif
               };
         run_function(map, arg);
