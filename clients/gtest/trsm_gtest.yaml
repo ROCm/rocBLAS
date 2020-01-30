@@ -21,12 +21,9 @@ Definitions:
   - &alpha_range [ 1.0, -5.0 ]
 
   - &complex_alpha_range
-    # - { alpha_beta:  2, alphai:  0 }
     - { alpha: -5, alphai: -5 }
     - { alpha:  1, alphai:  3 }
     - { alpha:  5, alphai:  3 }
-    # - { alpha_beta:  0.0, alphai:  0.0 }
-    # - { alpha_beta:  0, alphai:  2 } #Will not work for non complex (need to fix zero alpha behaviour)
 
   - &testset1_small_matrix_size_range
     - { M:      256,  N:        256,    lda:    256,    ldb:    256     }

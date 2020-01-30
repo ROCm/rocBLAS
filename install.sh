@@ -25,7 +25,7 @@ rocBLAS build & installation helper script
            --hip-clang         Build library for amdgpu backend using hip-clang
            --build_dir         Specify name of output directory (default is ./build)
       -n | --no_tensile        Build subset of library that does not require Tensile
-      -s | --tensile-host      Build with Tensile host
+      -r | --no-tensile-host   Do not build with Tensile host
       -u | --use-tag-only      Ignore Tensile version and just use the Tensile tag
            --skipldconf        Skip ld.so.conf entry
 EOF
@@ -170,9 +170,9 @@ install_packages( )
 
   # dependencies to build the client
   local client_dependencies_ubuntu=( "gfortran" "libomp-dev" "libboost-program-options-dev")
-  local client_dependencies_centos=( "gcc-gfortran" "libgomp" "boost-devel")
-  local client_dependencies_fedora=( "gcc-gfortran" "libgomp" "boost-devel")
-  local client_dependencies_sles=( "gcc-fortran" "libgomp1" "libboost_program_options1_66_0-devel" "boost-devel")
+  local client_dependencies_centos=( "devtoolset-7-gcc-gfortran" "libgomp" "boost-devel" )
+  local client_dependencies_fedora=( "gcc-gfortran" "libgomp" "boost-devel" )
+  local client_dependencies_sles=( "gcc-fortran" "libgomp1" "libboost_program_options1_66_0-devel" )
 
   case "${ID}" in
     ubuntu)
@@ -259,7 +259,7 @@ tensile_version=true
 build_clients=false
 build_cuda=false
 build_tensile=true
-build_tensile_host=false
+build_tensile_host=true
 cpu_ref_lib=blis
 build_release=true
 build_hip_clang=false
@@ -278,7 +278,7 @@ fi
 # check if we have a modern version of getopt that can handle whitespace and long parameters
 getopt -T
 if [[ $? -eq 4 ]]; then
-  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,no_tensile,tensile-host,use-tag-only,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,skipldconf --options nshicdgul:a:o:f:b:t: -- "$@")
+  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,no_tensile,no-tensile-host,use-tag-only,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,skipldconf --options nrhicdgul:a:o:f:b:t: -- "$@")
 else
   echo "Need a new version of getopt"
   exit 1
@@ -330,8 +330,8 @@ while true; do
     -n|--no_tensile)
         build_tensile=false
         shift ;;
-    -s|--tensile-host)
-        build_tensile_host=true
+    -r|--no-tensile-host)
+        build_tensile_host=false
         shift ;;
     --build_dir)
         build_dir=${2}
@@ -414,14 +414,14 @@ if [[ "${install_dependencies}" == true ]]; then
     if [[ "${cpu_ref_lib}" == blis ]] && [[ ! -f "${build_dir}/deps/blis/lib/libblis.so" ]]; then
       case "${ID}" in
           centos|rhel|sles|opensuse-leap)
-              wget -O blis.tar.gz https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-centos-2.0.tar.gz
+              wget -nv -O blis.tar.gz https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-centos-2.0.tar.gz
               ;;
           ubuntu)
-              wget -O blis.tar.gz https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-ubuntu-2.0.tar.gz
+              wget -nv -O blis.tar.gz https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-ubuntu-2.0.tar.gz
               ;;
           *)
               echo "Unsupported OS for this script"
-              wget -O blis.tar.gz https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-ubuntu-2.0.tar.gz
+              wget -nv -O blis.tar.gz https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-ubuntu-2.0.tar.gz
               ;;
       esac
 
@@ -439,14 +439,14 @@ elif [[ "${cpu_ref_lib}" == blis ]] && [[ ! -f "${build_dir}/deps/blis/lib/libbl
   mkdir -p ${build_dir}/deps && cd ${build_dir}/deps
   case "${ID}" in
     centos|rhel|sles|opensuse-leap)
-      wget -O blis.tar.gz https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-centos-2.0.tar.gz
+      wget -nv -O blis.tar.gz https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-centos-2.0.tar.gz
       ;;
     ubuntu)
-      wget -O blis.tar.gz https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-ubuntu-2.0.tar.gz
+      wget -nv -O blis.tar.gz https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-ubuntu-2.0.tar.gz
       ;;
     *)
       echo "Unsupported OS for this script"
-      wget -O blis.tar.gz https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-ubuntu-2.0.tar.gz
+      wget -nv -O blis.tar.gz https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-ubuntu-2.0.tar.gz
       ;;
   esac
   tar -xvf blis.tar.gz
@@ -504,6 +504,10 @@ pushd .
     tensile_opt="${tensile_opt} -DBUILD_WITH_TENSILE=OFF"
   fi
 
+  if [[ "${build_tensile_host}" == false ]]; then
+    tensile_opt="${tensile_opt} -DBUILD_WITH_TENSILE_HOST=OFF"
+  fi
+
   if [[ "${build_tensile_host}" == true ]]; then
     tensile_opt="${tensile_opt} -DBUILD_WITH_TENSILE_HOST=ON"
   fi
@@ -515,7 +519,7 @@ pushd .
     cmake_client_options="${cmake_client_options} -DBUILD_CLIENTS_SAMPLES=ON -DBUILD_CLIENTS_TESTS=ON -DBUILD_CLIENTS_BENCHMARKS=ON -DLINK_BLIS=${LINK_BLIS}"
   fi
 
-  if [["${build_hip_clang}" == true ]]; then
+  if [[ "${build_hip_clang}" == true ]]; then
       cmake_common_options="${cmake_common_options} -DRUN_HEADER_TESTING=OFF"
   fi
 

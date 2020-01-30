@@ -50,16 +50,47 @@
 #include "testing_gemv_batched.hpp"
 #include "testing_gemv_strided_batched.hpp"
 #include "testing_ger.hpp"
+#include "testing_ger_batched.hpp"
+#include "testing_ger_strided_batched.hpp"
 #include "testing_hbmv.hpp"
 #include "testing_hbmv_batched.hpp"
 #include "testing_hbmv_strided_batched.hpp"
 #include "testing_hemv.hpp"
 #include "testing_hemv_batched.hpp"
 #include "testing_hemv_strided_batched.hpp"
+#include "testing_hpmv.hpp"
+#include "testing_hpmv_batched.hpp"
+#include "testing_hpmv_strided_batched.hpp"
+#include "testing_hpr.hpp"
+#include "testing_hpr2.hpp"
+#include "testing_hpr2_batched.hpp"
+#include "testing_hpr2_strided_batched.hpp"
+#include "testing_hpr_batched.hpp"
+#include "testing_hpr_strided_batched.hpp"
+#include "testing_sbmv.hpp"
+#include "testing_sbmv_batched.hpp"
+#include "testing_sbmv_strided_batched.hpp"
+#include "testing_spmv.hpp"
+#include "testing_spmv_batched.hpp"
+#include "testing_spmv_strided_batched.hpp"
+#include "testing_spr.hpp"
+#include "testing_spr2.hpp"
+#include "testing_spr2_batched.hpp"
+#include "testing_spr2_strided_batched.hpp"
+#include "testing_spr_batched.hpp"
+#include "testing_spr_strided_batched.hpp"
+#include "testing_symv.hpp"
+#include "testing_symv_batched.hpp"
+#include "testing_symv_strided_batched.hpp"
 #include "testing_syr.hpp"
+#include "testing_syr_batched.hpp"
+#include "testing_syr_strided_batched.hpp"
 #include "testing_tbmv.hpp"
 #include "testing_tbmv_batched.hpp"
 #include "testing_tbmv_strided_batched.hpp"
+#include "testing_tpmv.hpp"
+#include "testing_tpmv_batched.hpp"
+#include "testing_tpmv_strided_batched.hpp"
 #include "testing_trmv.hpp"
 #include "testing_trmv_batched.hpp"
 #include "testing_trmv_strided_batched.hpp"
@@ -216,14 +247,36 @@ struct perf_blas<T, U, std::enable_if_t<std::is_same<T, float>{} || std::is_same
                 {"gemv", testing_gemv<T>},
                 {"gemv_batched", testing_gemv_batched<T>},
                 {"gemv_strided_batched", testing_gemv_strided_batched<T>},
+                {"tpmv", testing_tpmv<T>},
+                {"tpmv_batched", testing_tpmv_batched<T>},
+                {"tpmv_strided_batched", testing_tpmv_strided_batched<T>},
                 {"trmv", testing_trmv<T>},
                 {"trmv_batched", testing_trmv_batched<T>},
                 {"trmv_strided_batched", testing_trmv_strided_batched<T>},
-                {"ger", testing_ger<T>},
+                {"spr", testing_spr<T>},
+                {"spr_batched", testing_spr_batched<T>},
+                {"spr_strided_batched", testing_spr_strided_batched<T>},
+                {"spr2", testing_spr2<T>},
+                {"spr2_batched", testing_spr2_batched<T>},
+                {"spr2_strided_batched", testing_spr2_strided_batched<T>},
+                {"ger", testing_ger<T, false>},
+                {"ger_batched", testing_ger_batched<T, false>},
+                {"ger_strided_batched", testing_ger_strided_batched<T, false>},
                 {"syr", testing_syr<T>},
+                {"syr_batched", testing_syr_batched<T>},
+                {"syr_strided_batched", testing_syr_strided_batched<T>},
                 {"tbmv", testing_tbmv<T>},
                 {"tbmv_batched", testing_tbmv_batched<T>},
                 {"tbmv_strided_batched", testing_tbmv_strided_batched<T>},
+                {"sbmv", testing_sbmv<T>},
+                {"sbmv_batched", testing_sbmv_batched<T>},
+                {"sbmv_strided_batched", testing_sbmv_strided_batched<T>},
+                {"spmv", testing_spmv<T>},
+                {"spmv_batched", testing_spmv_batched<T>},
+                {"spmv_strided_batched", testing_spmv_strided_batched<T>},
+                {"symv", testing_symv<T>},
+                {"symv_batched", testing_symv_batched<T>},
+                {"symv_strided_batched", testing_symv_strided_batched<T>},
 #if BUILD_WITH_TENSILE
                 {"geam", testing_geam<T>},
                 {"trmm", testing_trmm<T>},
@@ -310,12 +363,39 @@ struct perf_blas<T,
                 {"gemv", testing_gemv<T>},
                 {"gemv_batched", testing_gemv_batched<T>},
                 {"gemv_strided_batched", testing_gemv_strided_batched<T>},
+                {"geru", testing_ger<T, false>},
+                {"geru_batched", testing_ger_batched<T, false>},
+                {"geru_strided_batched", testing_ger_strided_batched<T, false>},
+                {"gerc", testing_ger<T, true>},
+                {"gerc_batched", testing_ger_batched<T, true>},
+                {"gerc_strided_batched", testing_ger_strided_batched<T, true>},
                 {"hbmv", testing_hbmv<T>},
                 {"hbmv_batched", testing_hbmv_batched<T>},
                 {"hbmv_strided_batched", testing_hbmv_strided_batched<T>},
                 {"hemv", testing_hemv<T>},
                 {"hemv_batched", testing_hemv_batched<T>},
                 {"hemv_strided_batched", testing_hemv_strided_batched<T>},
+                {"hpmv", testing_hpmv<T>},
+                {"hpmv_batched", testing_hpmv_batched<T>},
+                {"hpmv_strided_batched", testing_hpmv_strided_batched<T>},
+                {"hpr", testing_hpr<T>},
+                {"hpr_batched", testing_hpr_batched<T>},
+                {"hpr_strided_batched", testing_hpr_strided_batched<T>},
+                {"hpr2", testing_hpr2<T>},
+                {"hpr2_batched", testing_hpr2_batched<T>},
+                {"hpr2_strided_batched", testing_hpr2_strided_batched<T>},
+                {"spr", testing_spr<T>},
+                {"spr_batched", testing_spr_batched<T>},
+                {"spr_strided_batched", testing_spr_strided_batched<T>},
+                {"syr", testing_syr<T>},
+                {"syr_batched", testing_syr_batched<T>},
+                {"syr_strided_batched", testing_syr_strided_batched<T>},
+                {"tpmv", testing_tpmv<T>},
+                {"tpmv_batched", testing_tpmv_batched<T>},
+                {"tpmv_strided_batched", testing_tpmv_strided_batched<T>},
+                {"symv", testing_symv<T>},
+                {"symv_batched", testing_symv_batched<T>},
+                {"symv_strided_batched", testing_symv_strided_batched<T>},
                 {"trmv", testing_trmv<T>},
                 {"trmv_batched", testing_trmv_batched<T>},
                 {"trmv_strided_batched", testing_trmv_strided_batched<T>},
@@ -338,6 +418,7 @@ struct perf_blas<T,
                 {"trsv", testing_trsv<T>},
                 {"trsv_batched", testing_trsv_batched<T>},
                 {"trsv_strided_batched", testing_trsv_strided_batched<T>},
+                {"trmm", testing_trmm<T>},
 #endif
               };
         run_function(map, arg);
