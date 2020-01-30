@@ -162,8 +162,8 @@ void testing_trsv(const Arguments& arg)
 
         //computed result is in hx_or_b, so forward error is E = hx - hx_or_b
         // calculate norm 1 of vector E
-        max_err_1 = std::abs(vector_norm_1<T>(M, abs_incx, hx, hx_or_b_1));
-        max_err_2 = std::abs(vector_norm_1<T>(M, abs_incx, hx, hx_or_b_2));
+        max_err_1 = rocblas_abs(vector_norm_1<T>(M, abs_incx, hx, hx_or_b_1));
+        max_err_2 = rocblas_abs(vector_norm_1<T>(M, abs_incx, hx, hx_or_b_2));
 
         //unit test
         trsm_err_res_check<T>(max_err_1, M, error_eps_multiplier, eps);
@@ -174,8 +174,8 @@ void testing_trsv(const Arguments& arg)
         cblas_trmv<T>(uplo, transA, diag, M, hA, lda, hx_or_b_2, incx);
 
         // Calculate norm 1 of vector res
-        max_err_1 = std::abs(vector_norm_1<T>(M, abs_incx, hx_or_b_1, hb));
-        max_err_2 = std::abs(vector_norm_1<T>(M, abs_incx, hx_or_b_1, hb));
+        max_err_1 = rocblas_abs(vector_norm_1<T>(M, abs_incx, hx_or_b_1, hb));
+        max_err_2 = rocblas_abs(vector_norm_1<T>(M, abs_incx, hx_or_b_1, hb));
 
         //unit test
         trsm_err_res_check<T>(max_err_1, M, residual_eps_multiplier, eps);

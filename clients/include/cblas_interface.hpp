@@ -2149,6 +2149,28 @@ inline rocblas_int cblas_trtri(char uplo, char diag, rocblas_int n, double* A, r
     return info;
 }
 
+template <>
+inline rocblas_int
+    cblas_trtri(char uplo, char diag, rocblas_int n, rocblas_float_complex* A, rocblas_int lda)
+{
+    // just directly cast, since transA, transB are integers in the enum
+    // printf("transA: rocblas =%d, cblas=%d\n", transA, (CBLAS_TRANSPOSE)transA );
+    rocblas_int info;
+    ctrtri_(&uplo, &diag, &n, A, &lda, &info);
+    return info;
+}
+
+template <>
+inline rocblas_int
+    cblas_trtri(char uplo, char diag, rocblas_int n, rocblas_double_complex* A, rocblas_int lda)
+{
+    // just directly cast, since transA, transB are integers in the enum
+    // printf("transA: rocblas =%d, cblas=%d\n", transA, (CBLAS_TRANSPOSE)transA );
+    rocblas_int info;
+    ztrtri_(&uplo, &diag, &n, A, &lda, &info);
+    return info;
+}
+
 // trmm
 template <typename T>
 void cblas_trmm(rocblas_side      side,

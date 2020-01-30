@@ -276,10 +276,10 @@ void testing_trsm_strided_batched(const Arguments& arg)
         // calculate vector-induced-norm 1 of matrix E
         for(int b = 0; b < batch_count; b++)
         {
-            max_err_1
-                = std::abs(matrix_norm_1<T>(M, N, ldb, &hX[b * stride_b], &hXorB_1[b * stride_b]));
-            max_err_2
-                = std::abs(matrix_norm_1<T>(M, N, ldb, &hX[b * stride_b], &hXorB_2[b * stride_b]));
+            max_err_1 = rocblas_abs(
+                matrix_norm_1<T>(M, N, ldb, &hX[b * stride_b], &hXorB_1[b * stride_b]));
+            max_err_2 = rocblas_abs(
+                matrix_norm_1<T>(M, N, ldb, &hX[b * stride_b], &hXorB_2[b * stride_b]));
 
             //unit check
             trsm_err_res_check<T>(max_err_1, M, error_eps_multiplier, eps);
@@ -310,10 +310,10 @@ void testing_trsm_strided_batched(const Arguments& arg)
                           ldb);
 
             // calculate vector-induced-norm 1 of matrix res
-            max_err_1
-                = std::abs(matrix_norm_1<T>(M, N, ldb, &hXorB_1[b * stride_b], &hB[b * stride_b]));
-            max_err_2
-                = std::abs(matrix_norm_1<T>(M, N, ldb, &hXorB_2[b * stride_b], &hB[b * stride_b]));
+            max_err_1 = rocblas_abs(
+                matrix_norm_1<T>(M, N, ldb, &hXorB_1[b * stride_b], &hB[b * stride_b]));
+            max_err_2 = rocblas_abs(
+                matrix_norm_1<T>(M, N, ldb, &hXorB_2[b * stride_b], &hB[b * stride_b]));
 
             //unit test
             trsm_err_res_check<T>(max_err_1, M, residual_eps_multiplier, eps);

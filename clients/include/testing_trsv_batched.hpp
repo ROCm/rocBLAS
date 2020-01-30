@@ -225,8 +225,8 @@ void testing_trsv_batched(const Arguments& arg)
         // calculate norm 1 of vector E
         for(int b = 0; b < batch_count; b++)
         {
-            max_err_1 = std::abs(vector_norm_1<T>(M, abs_incx, hx[b], hx_or_b_1[b]));
-            max_err_2 = std::abs(vector_norm_1<T>(M, abs_incx, hx[b], hx_or_b_2[b]));
+            max_err_1 = rocblas_abs(vector_norm_1<T>(M, abs_incx, hx[b], hx_or_b_1[b]));
+            max_err_2 = rocblas_abs(vector_norm_1<T>(M, abs_incx, hx[b], hx_or_b_2[b]));
             //unit test
             trsm_err_res_check<T>(max_err_1, M, error_eps_multiplier, eps);
             trsm_err_res_check<T>(max_err_2, M, error_eps_multiplier, eps);
@@ -242,8 +242,8 @@ void testing_trsv_batched(const Arguments& arg)
         //calculate norm 1 of res
         for(int b = 0; b < batch_count; b++)
         {
-            max_err_1 = std::abs(vector_norm_1<T>(M, abs_incx, hx_or_b_1[b], hb[b]));
-            max_err_2 = std::abs(vector_norm_1<T>(M, abs_incx, hx_or_b_1[b], hb[b]));
+            max_err_1 = rocblas_abs(vector_norm_1<T>(M, abs_incx, hx_or_b_1[b], hb[b]));
+            max_err_2 = rocblas_abs(vector_norm_1<T>(M, abs_incx, hx_or_b_1[b], hb[b]));
             //unit test
             trsm_err_res_check<T>(max_err_1, M, residual_eps_multiplier, eps);
             trsm_err_res_check<T>(max_err_2, M, residual_eps_multiplier, eps);

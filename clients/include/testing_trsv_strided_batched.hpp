@@ -225,9 +225,9 @@ void testing_trsv_strided_batched(const Arguments& arg)
         // calculate norm 1 of vector E
         for(int b = 0; b < batch_count; b++)
         {
-            max_err_1 = std::abs(
+            max_err_1 = rocblas_abs(
                 vector_norm_1<T>(M, abs_incx, &hx[b * stride_x], &hx_or_b_1[b * stride_x]));
-            max_err_2 = std::abs(
+            max_err_2 = rocblas_abs(
                 vector_norm_1<T>(M, abs_incx, &hx[b * stride_x], &hx_or_b_2[b * stride_x]));
 
             //unit test
@@ -247,9 +247,9 @@ void testing_trsv_strided_batched(const Arguments& arg)
         //calculate norm 1 of res
         for(int b = 0; b < batch_count; b++)
         {
-            max_err_1 = std::abs(
+            max_err_1 = rocblas_abs(
                 vector_norm_1<T>(M, abs_incx, &hx_or_b_1[b * stride_x], &hb[b * stride_x]));
-            max_err_2 = std::abs(
+            max_err_2 = rocblas_abs(
                 vector_norm_1<T>(M, abs_incx, &hx_or_b_1[b * stride_x], &hb[b * stride_x]));
 
             //unit test

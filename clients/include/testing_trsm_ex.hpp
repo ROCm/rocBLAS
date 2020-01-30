@@ -299,8 +299,8 @@ void testing_trsm_ex(const Arguments& arg)
 
         //computed result is in hx_or_b, so forward error is E = hx - hx_or_b
         // calculate vector-induced-norm 1 of matrix E
-        max_err_1 = std::abs(matrix_norm_1<T>(M, N, ldb, hX, hXorB_1));
-        max_err_2 = std::abs(matrix_norm_1<T>(M, N, ldb, hX, hXorB_2));
+        max_err_1 = rocblas_abs(matrix_norm_1<T>(M, N, ldb, hX, hXorB_1));
+        max_err_2 = rocblas_abs(matrix_norm_1<T>(M, N, ldb, hX, hXorB_2));
 
         //unit test
         trsm_err_res_check<T>(max_err_1, M, error_eps_multiplier, eps);
@@ -310,8 +310,8 @@ void testing_trsm_ex(const Arguments& arg)
         cblas_trmm<T>(side, uplo, transA, diag, M, N, 1.0 / alpha_h, hA, lda, hXorB_1, ldb);
         cblas_trmm<T>(side, uplo, transA, diag, M, N, 1.0 / alpha_h, hA, lda, hXorB_2, ldb);
 
-        max_err_1 = std::abs(matrix_norm_1<T>(M, N, ldb, hXorB_1, hB));
-        max_err_2 = std::abs(matrix_norm_1<T>(M, N, ldb, hXorB_2, hB));
+        max_err_1 = rocblas_abs(matrix_norm_1<T>(M, N, ldb, hXorB_1, hB));
+        max_err_2 = rocblas_abs(matrix_norm_1<T>(M, N, ldb, hXorB_2, hB));
 
         //unit test
         trsm_err_res_check<T>(max_err_1, M, residual_eps_multiplier, eps);
