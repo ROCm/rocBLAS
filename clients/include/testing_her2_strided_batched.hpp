@@ -81,7 +81,7 @@ void testing_her2_strided_batched_bad_arg()
                                                             dx,
                                                             incx,
                                                             stride_x,
-                                                            dy,
+                                                            nullptr,
                                                             incy,
                                                             stride_y,
                                                             dA_1,

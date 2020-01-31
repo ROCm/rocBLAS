@@ -73,8 +73,8 @@ Tests:
   precision: *single_double_precisions_complex
   uplo: [ U, L ]
   matrix_size: *medium_matrix_size_range
-  incx_incy: *incx_incy_range
-  alpha_beta: *alpha_range
+  incx_incy: *incx_incy_range_small
+  alpha_beta: *alpha_range_small
 
 - name: her2_large
   category: nightly
@@ -103,8 +103,8 @@ Tests:
   precision: *single_double_precisions_complex
   uplo: [ U, L ]
   matrix_size: *medium_matrix_size_range
-  incx_incy: *incx_incy_range
-  alpha_beta: *alpha_range
+  incx_incy: *incx_incy_range_small
+  alpha_beta: *alpha_range_small
   batch_count: [ 1, 3 ]
 
 - name: her2_batched_large
@@ -136,8 +136,8 @@ Tests:
   precision: *single_double_precisions_complex
   uplo: [ U, L ]
   matrix_size: *medium_matrix_size_range
-  incx_incy: *incx_incy_range
-  alpha_beta: *alpha_range
+  incx_incy: *incx_incy_range_small
+  alpha_beta: *alpha_range_small
   stride_scale: [ 1.0 ]
   batch_count: [ 1, 3 ]
 
