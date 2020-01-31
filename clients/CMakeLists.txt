@@ -87,8 +87,7 @@ function(rocm_create_package_clients)
     set(multiValueArgs DEPENDS)
 
     cmake_parse_arguments(PARSE "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
-
-    string(CONCAT PACKAGE_NAME ${PARSE_LIB_NAME} "-clients-" ${PARSE_VERSION} "-Linux.deb")
+    string(CONCAT PACKAGE_NAME ${PARSE_LIB_NAME} "-clients-" ${PARSE_VERSION} "-" ${CPACK_SYSTEM_NAME} ".deb")
     string(CONCAT DEB_CONTROL_FILE_CONTENT "Package: " ${PARSE_LIB_NAME} "-clients"
                                            "\nVersion: " ${PARSE_VERSION}
                                            "\nSection: " ${PARSE_SECTION}
@@ -97,16 +96,21 @@ function(rocm_create_package_clients)
                                            "\nMaintainer: " ${PARSE_MAINTAINER}
                                            "\nDescription: " ${PARSE_DESCRIPTION}
                                            "\nDepends: " ${PARSE_LIB_NAME} "(>=" ${PARSE_VERSION} ")\n\n")
-
-    if(EXISTS "${PROJECT_BINARY_DIR}/package")
-        file(REMOVE_RECURSE "${PROJECT_BINARY_DIR}/package")
+    set(PACKAGE_DIR "${PROJECT_BINARY_DIR}/package")
+    if(EXISTS "${PACKAGE_DIR}")
+        file(REMOVE_RECURSE "${PACKAGE_DIR}")
     endif()
-    file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/package/${CMAKE_INSTALL_PREFIX}/${PARSE_LIB_NAME}/bin")
+    set(PACKAGE_INSTALL_DIR "${PACKAGE_DIR}/${CPACK_PACKAGING_INSTALL_PREFIX}/${PARSE_LIB_NAME}")
+    file(MAKE_DIRECTORY "${PACKAGE_INSTALL_DIR}/bin")
+    ### AMD BLIS is not packaged right now, so we have to put the so files into /opt/rocm/lib temporarily
+    ### BLIS will be packaged soon and this will not be needed
+    set(BLIS_LIB_DIR "${PACKAGE_DIR}/${CPACK_PACKAGING_INSTALL_PREFIX}/lib")
+    file(MAKE_DIRECTORY "${BLIS_LIB_DIR}")
     file(WRITE "${PROJECT_BINARY_DIR}/package/DEBIAN/control" ${DEB_CONTROL_FILE_CONTENT})
-
     add_custom_target(package_clients
-        COMMAND ${CMAKE_COMMAND} -E remove -f "${PROJECT_BINARY_DIR}/package/${CMAKE_INSTALL_PREFIX}/${PARSE_LIB_NAME}/bin/*"
-        COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_BINARY_DIR}/staging/*" "${PROJECT_BINARY_DIR}/package/${CMAKE_INSTALL_PREFIX}/${PARSE_LIB_NAME}/bin"
+        COMMAND ${CMAKE_COMMAND} -E remove -f "${PACKAGE_INSTALL_DIR}/*"
+        COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_BINARY_DIR}/../../deps/blis/lib/*" "${BLIS_LIB_DIR}"
+        COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_BINARY_DIR}/staging/*" "${PACKAGE_INSTALL_DIR}/bin"
         COMMAND dpkg -b "${PROJECT_BINARY_DIR}/package/"  ${PACKAGE_NAME})
 endfunction(rocm_create_package_clients)
 

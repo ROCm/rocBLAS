@@ -1756,7 +1756,6 @@ rocblas_status (*rocblas_her_strided_batched)(rocblas_handle handle,
                                               rocblas_int    lda,
                                               rocblas_stride stride_A,
                                               rocblas_int    batch_count);
-
 template <>
 static constexpr auto
     rocblas_her_strided_batched<rocblas_float_complex, float> = rocblas_cher_strided_batched;

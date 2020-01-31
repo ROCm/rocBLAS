@@ -19,8 +19,7 @@
 template <typename T>
 void testing_her_strided_batched_bad_arg()
 {
-    // using U = rocblas_real_t<T>;
-    using U = decltype(std::real(T(0)));
+    using U = rocblas_real_t<T>;
 
     rocblas_fill   uplo        = rocblas_fill_upper;
     rocblas_int    N           = 10;
@@ -97,8 +96,7 @@ void testing_her_strided_batched_bad_arg()
 template <typename T>
 void testing_her_strided_batched(const Arguments& arg)
 {
-    // using U = rocblas_real_t<T>;
-    using U = decltype(std::real(T(0)));
+    using U = rocblas_real_t<T>;
 
     rocblas_int    N           = arg.N;
     rocblas_int    lda         = arg.lda;
