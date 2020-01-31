@@ -211,6 +211,13 @@ constexpr double hemv_gflop_count(rocblas_int n)
     return (8.0 * n * n + 8.0 * n) / 1e9;
 }
 
+/* \brief floating point counts of HER */
+template <typename T>
+constexpr double her_gflop_count(rocblas_int n)
+{
+    return (4.0 * n * n + 6.0 * n) / 1e9;
+}
+
 /* \brief floating point counts of HPMV */
 template <typename T>
 constexpr double hpmv_gflop_count(rocblas_int n)
