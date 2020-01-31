@@ -170,7 +170,7 @@ void testing_trtri_strided_batched(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            T rel_error = std::numeric_limits<T>::epsilon() * 1000;
+            const double rel_error = get_epsilon<T>() * 1000;
             near_check_general<T>(N, N * batch_count, lda, hB, hA, rel_error);
             near_check_general<T>(N, N * batch_count, lda, hB, hA_2, rel_error);
         }

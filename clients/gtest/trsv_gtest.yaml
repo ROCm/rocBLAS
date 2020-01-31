@@ -24,7 +24,7 @@ Definitions:
     - { M:  2000, lda:  2000, stride_a: 4000000 }
 
   - &common_args
-    precision: *single_double_precisions
+    precision: *single_double_precisions_complex_real
     uplo: [L, U]
     transA: [N, C]
     diag: [N, U]
