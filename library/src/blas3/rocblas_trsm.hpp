@@ -19,11 +19,11 @@ namespace
     using std::min;
 
     template <typename T>
-    constexpr T negative_one = -1;
+    const T negative_one = T(-1);
     template <typename T>
-    constexpr T zero = 0;
+    const T zero = T(0);
     template <typename T>
-    constexpr T one = 1;
+    const T one = T(1);
 
     template <typename T, typename U, typename V>
     __global__ void copy_matrix_trsm(rocblas_int    rows,
@@ -84,6 +84,57 @@ namespace
                            dst_stride,
                            offset_src,
                            offset_dst);
+    }
+
+    template <typename T, typename U>
+    __global__ void set_matrix_trsm(rocblas_int    rows,
+                                    rocblas_int    cols,
+                                    rocblas_int    elem_size,
+                                    U              a,
+                                    rocblas_int    lda,
+                                    rocblas_stride stride_a,
+                                    T              val,
+                                    rocblas_int    offset_a)
+    {
+        T* xa = load_ptr_batch(a, hipBlockIdx_z, offset_a, stride_a);
+
+        size_t tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+        size_t ty = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
+
+        if(tx < rows && ty < cols)
+            xa[tx + lda * ty] = T(0.0);
+    }
+
+    /* ===============set helper============================================= */
+    template <typename T, typename U>
+    void set_block_unit(rocblas_handle handle,
+                        rocblas_int    m,
+                        rocblas_int    n,
+                        U              src,
+                        rocblas_int    src_ld,
+                        rocblas_stride src_stride,
+                        rocblas_int    batch_count,
+                        T              val        = 0.0,
+                        rocblas_int    offset_src = 0)
+    {
+        rocblas_int blocksX = (m - 1) / 128 + 1; // parameters for device kernel
+        rocblas_int blocksY = (n - 1) / 8 + 1;
+        dim3        grid(blocksX, blocksY, batch_count);
+        dim3        threads(128, 8);
+
+        hipLaunchKernelGGL(set_matrix_trsm<T>,
+                           grid,
+                           threads,
+                           0,
+                           handle->rocblas_stream,
+                           m,
+                           n,
+                           sizeof(T),
+                           src,
+                           src_ld,
+                           src_stride,
+                           val,
+                           offset_src);
     }
 
     /* ===============left==================================================== */
@@ -1437,6 +1488,22 @@ rocblas_status rocblas_trsm_template(rocblas_handle    handle,
     if(batch_count == 0)
         return rocblas_status_success;
 
+    // Temporarily switch to host pointer mode, saving current pointer mode, restored on return
+    auto saved_pointer_mode = handle->push_pointer_mode(rocblas_pointer_mode_host);
+
+    // Get alpha - Check if zero for quick return
+    T alpha_h;
+    if(saved_pointer_mode == rocblas_pointer_mode_host)
+        alpha_h = *alpha;
+    else
+        RETURN_IF_HIP_ERROR(hipMemcpy(&alpha_h, alpha, sizeof(T), hipMemcpyDeviceToHost));
+
+    if(alpha_h == T(0.0))
+    {
+        set_block_unit<T>(handle, m, n, B, ldb, stride_B, batch_count, offset_B);
+        return rocblas_status_success;
+    }
+
     if(!is_complex<T> && transA == rocblas_operation_conjugate_transpose)
         transA = rocblas_operation_transpose;
 
@@ -1452,16 +1519,6 @@ rocblas_status rocblas_trsm_template(rocblas_handle    handle,
         perf_status   = rocblas_status_perf_degraded;
         supplied_invA = nullptr;
     }
-
-    // Temporarily switch to host pointer mode, saving current pointer mode, restored on return
-    auto saved_pointer_mode = handle->push_pointer_mode(rocblas_pointer_mode_host);
-
-    // Get alpha
-    T alpha_h;
-    if(saved_pointer_mode == rocblas_pointer_mode_host)
-        alpha_h = *alpha;
-    else
-        RETURN_IF_HIP_ERROR(hipMemcpy(&alpha_h, alpha, sizeof(T), hipMemcpyDeviceToHost));
 
     rocblas_status status = rocblas_status_success;
 
