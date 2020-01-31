@@ -1672,6 +1672,35 @@ inline void cblas_hemv(rocblas_fill            uplo,
     cblas_zhemv(CblasColMajor, CBLAS_UPLO(uplo), n, &alpha, A, lda, x, incx, &beta, y, incy);
 }
 
+// her
+template <typename T, typename U>
+void cblas_her(
+    rocblas_fill uplo, rocblas_int n, U alpha, T* x, rocblas_int incx, T* A, rocblas_int lda);
+
+template <>
+inline void cblas_her(rocblas_fill           uplo,
+                      rocblas_int            n,
+                      float                  alpha,
+                      rocblas_float_complex* x,
+                      rocblas_int            incx,
+                      rocblas_float_complex* A,
+                      rocblas_int            lda)
+{
+    cblas_cher(CblasColMajor, CBLAS_UPLO(uplo), n, alpha, x, incx, A, lda);
+}
+
+template <>
+inline void cblas_her(rocblas_fill            uplo,
+                      rocblas_int             n,
+                      double                  alpha,
+                      rocblas_double_complex* x,
+                      rocblas_int             incx,
+                      rocblas_double_complex* A,
+                      rocblas_int             lda)
+{
+    cblas_zher(CblasColMajor, CBLAS_UPLO(uplo), n, alpha, x, incx, A, lda);
+}
+
 // hpmv
 template <typename T>
 void cblas_hpmv(rocblas_fill uplo,
