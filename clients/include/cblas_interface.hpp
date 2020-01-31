@@ -940,6 +940,48 @@ inline void cblas_trsv(rocblas_fill      uplo,
                 incx);
 }
 
+template <>
+inline void cblas_trsv(rocblas_fill                 uplo,
+                       rocblas_operation            transA,
+                       rocblas_diagonal             diag,
+                       rocblas_int                  m,
+                       const rocblas_float_complex* A,
+                       rocblas_int                  lda,
+                       rocblas_float_complex*       x,
+                       rocblas_int                  incx)
+{
+    cblas_ctrsv(CblasColMajor,
+                CBLAS_UPLO(uplo),
+                CBLAS_TRANSPOSE(transA),
+                CBLAS_DIAG(diag),
+                m,
+                A,
+                lda,
+                x,
+                incx);
+}
+
+template <>
+inline void cblas_trsv(rocblas_fill                  uplo,
+                       rocblas_operation             transA,
+                       rocblas_diagonal              diag,
+                       rocblas_int                   m,
+                       const rocblas_double_complex* A,
+                       rocblas_int                   lda,
+                       rocblas_double_complex*       x,
+                       rocblas_int                   incx)
+{
+    cblas_ztrsv(CblasColMajor,
+                CBLAS_UPLO(uplo),
+                CBLAS_TRANSPOSE(transA),
+                CBLAS_DIAG(diag),
+                m,
+                A,
+                lda,
+                x,
+                incx);
+}
+
 // tpmv
 template <typename T>
 void cblas_tpmv(rocblas_fill      uplo,
@@ -2133,6 +2175,28 @@ inline rocblas_int cblas_trtri(char uplo, char diag, rocblas_int n, double* A, r
     // printf("transA: rocblas =%d, cblas=%d\n", transA, (CBLAS_TRANSPOSE)transA );
     rocblas_int info;
     dtrtri_(&uplo, &diag, &n, A, &lda, &info);
+    return info;
+}
+
+template <>
+inline rocblas_int
+    cblas_trtri(char uplo, char diag, rocblas_int n, rocblas_float_complex* A, rocblas_int lda)
+{
+    // just directly cast, since transA, transB are integers in the enum
+    // printf("transA: rocblas =%d, cblas=%d\n", transA, (CBLAS_TRANSPOSE)transA );
+    rocblas_int info;
+    ctrtri_(&uplo, &diag, &n, A, &lda, &info);
+    return info;
+}
+
+template <>
+inline rocblas_int
+    cblas_trtri(char uplo, char diag, rocblas_int n, rocblas_double_complex* A, rocblas_int lda)
+{
+    // just directly cast, since transA, transB are integers in the enum
+    // printf("transA: rocblas =%d, cblas=%d\n", transA, (CBLAS_TRANSPOSE)transA );
+    rocblas_int info;
+    ztrtri_(&uplo, &diag, &n, A, &lda, &info);
     return info;
 }
 
