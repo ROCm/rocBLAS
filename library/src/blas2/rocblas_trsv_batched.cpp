@@ -22,6 +22,10 @@ namespace
     constexpr char rocblas_trsv_batched_name<float>[] = "rocblas_strsv_batched";
     template <>
     constexpr char rocblas_trsv_batched_name<double>[] = "rocblas_dtrsv_batched";
+    template <>
+    constexpr char rocblas_trsv_batched_name<rocblas_float_complex>[] = "rocblas_ctrsv_batched";
+    template <>
+    constexpr char rocblas_trsv_batched_name<rocblas_double_complex>[] = "rocblas_ztrsv_batched";
 
     template <rocblas_int BLOCK, typename T>
     rocblas_status rocblas_trsv_batched_ex_impl(rocblas_handle    handle,
@@ -206,6 +210,47 @@ catch(...)
     return exception_to_rocblas_status();
 }
 
+rocblas_status rocblas_ctrsv_batched(rocblas_handle                     handle,
+                                     rocblas_fill                       uplo,
+                                     rocblas_operation                  transA,
+                                     rocblas_diagonal                   diag,
+                                     rocblas_int                        m,
+                                     const rocblas_float_complex* const A[],
+                                     rocblas_int                        lda,
+                                     rocblas_float_complex* const       x[],
+                                     rocblas_int                        incx,
+
+                                     rocblas_int batch_count)
+try
+{
+    return rocblas_trsv_batched_ex_impl<STRSV_BLOCK>(
+        handle, uplo, transA, diag, m, A, lda, x, incx, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
+}
+
+rocblas_status rocblas_ztrsv_batched(rocblas_handle                      handle,
+                                     rocblas_fill                        uplo,
+                                     rocblas_operation                   transA,
+                                     rocblas_diagonal                    diag,
+                                     rocblas_int                         m,
+                                     const rocblas_double_complex* const A[],
+                                     rocblas_int                         lda,
+                                     rocblas_double_complex* const       x[],
+                                     rocblas_int                         incx,
+                                     rocblas_int                         batch_count)
+try
+{
+    return rocblas_trsv_batched_ex_impl<DTRSV_BLOCK>(
+        handle, uplo, transA, diag, m, A, lda, x, incx, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
+}
+
 rocblas_status rocblas_trsv_batched_ex(rocblas_handle    handle,
                                        rocblas_fill      uplo,
                                        rocblas_operation transA,
@@ -250,6 +295,36 @@ try
                                                          batch_count,
                                                          (const float* const*)(invA),
                                                          invA_size);
+
+    case rocblas_datatype_f64_c:
+        return rocblas_trsv_batched_ex_impl<DTRSV_BLOCK>(
+            handle,
+            uplo,
+            transA,
+            diag,
+            m,
+            (const rocblas_double_complex* const*)(A),
+            lda,
+            (rocblas_double_complex* const*)(x),
+            incx,
+            batch_count,
+            (const rocblas_double_complex* const*)(invA),
+            invA_size);
+
+    case rocblas_datatype_f32_c:
+        return rocblas_trsv_batched_ex_impl<STRSV_BLOCK>(
+            handle,
+            uplo,
+            transA,
+            diag,
+            m,
+            (const rocblas_float_complex* const*)(A),
+            lda,
+            (rocblas_float_complex* const*)(x),
+            incx,
+            batch_count,
+            (const rocblas_float_complex* const*)(invA),
+            invA_size);
 
     default:
         return rocblas_status_not_implemented;

@@ -409,4 +409,31 @@ inline void trsm_err_res_check(T max_error, rocblas_int M, T forward_tolerance, 
 #endif
 }
 
+template <>
+inline void trsm_err_res_check(rocblas_float_complex max_error,
+                               rocblas_int           M,
+                               rocblas_float_complex forward_tolerance,
+                               rocblas_float_complex eps)
+{
+    trsm_err_res_check<float>(std::abs(max_error), M, std::abs(forward_tolerance), std::abs(eps));
+}
+
+template <>
+inline void trsm_err_res_check(rocblas_double_complex max_error,
+                               rocblas_int            M,
+                               rocblas_double_complex forward_tolerance,
+                               rocblas_double_complex eps)
+{
+    trsm_err_res_check<double>(std::abs(max_error), M, std::abs(forward_tolerance), std::abs(eps));
+}
+
+template <typename T>
+double get_epsilon()
+{
+    if(std::is_same<T, rocblas_float_complex>{} || std::is_same<T, float>{})
+        return std::numeric_limits<float>::epsilon();
+    else if(std::is_same<T, rocblas_double_complex>{} || std::is_same<T, double>{})
+        return std::numeric_limits<double>::epsilon();
+}
+
 #endif

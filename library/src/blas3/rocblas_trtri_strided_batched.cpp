@@ -15,6 +15,10 @@ namespace
     constexpr char rocblas_trtri_name<float>[] = "rocblas_strtri_strided_batched";
     template <>
     constexpr char rocblas_trtri_name<double>[] = "rocblas_dtrtri_strided_batched";
+    template <>
+    constexpr char rocblas_trtri_name<rocblas_float_complex>[] = "rocblas_ctrtri_strided_batched";
+    template <>
+    constexpr char rocblas_trtri_name<rocblas_double_complex>[] = "rocblas_ztrtri_strided_batched";
 
     template <rocblas_int NB, typename T>
     rocblas_status rocblas_trtri_strided_batched_impl(rocblas_handle   handle,
@@ -188,6 +192,50 @@ rocblas_status rocblas_dtrtri_strided_batched(rocblas_handle   handle,
                                               rocblas_int      ldinvA,
                                               rocblas_stride   bsinvA,
                                               rocblas_int      batch_count)
+try
+{
+    constexpr rocblas_int NB = 16;
+    return rocblas_trtri_strided_batched_impl<NB>(
+        handle, uplo, diag, n, A, lda, bsa, invA, ldinvA, bsinvA, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
+}
+
+rocblas_status rocblas_ctrtri_strided_batched(rocblas_handle               handle,
+                                              rocblas_fill                 uplo,
+                                              rocblas_diagonal             diag,
+                                              rocblas_int                  n,
+                                              const rocblas_float_complex* A,
+                                              rocblas_int                  lda,
+                                              rocblas_stride               bsa,
+                                              rocblas_float_complex*       invA,
+                                              rocblas_int                  ldinvA,
+                                              rocblas_stride               bsinvA,
+                                              rocblas_int                  batch_count)
+try
+{
+    constexpr rocblas_int NB = 16;
+    return rocblas_trtri_strided_batched_impl<NB>(
+        handle, uplo, diag, n, A, lda, bsa, invA, ldinvA, bsinvA, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
+}
+
+rocblas_status rocblas_ztrtri_strided_batched(rocblas_handle                handle,
+                                              rocblas_fill                  uplo,
+                                              rocblas_diagonal              diag,
+                                              rocblas_int                   n,
+                                              const rocblas_double_complex* A,
+                                              rocblas_int                   lda,
+                                              rocblas_stride                bsa,
+                                              rocblas_double_complex*       invA,
+                                              rocblas_int                   ldinvA,
+                                              rocblas_stride                bsinvA,
+                                              rocblas_int                   batch_count)
 try
 {
     constexpr rocblas_int NB = 16;

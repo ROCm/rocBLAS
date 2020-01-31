@@ -15,6 +15,10 @@ namespace
     constexpr char rocblas_trtri_name<float>[] = "rocblas_strtri_batched";
     template <>
     constexpr char rocblas_trtri_name<double>[] = "rocblas_dtrtri_batched";
+    template <>
+    constexpr char rocblas_trtri_name<rocblas_float_complex>[] = "rocblas_ctrtri_batched";
+    template <>
+    constexpr char rocblas_trtri_name<rocblas_double_complex>[] = "rocblas_ztrtri_batched";
 
     template <rocblas_int NB, typename T>
     rocblas_status rocblas_trtri_batched_impl(rocblas_handle   handle,
@@ -160,6 +164,44 @@ rocblas_status rocblas_dtrtri_batched(rocblas_handle      handle,
                                       double*             invA[],
                                       rocblas_int         ldinvA,
                                       rocblas_int         batch_count)
+try
+{
+    constexpr rocblas_int NB = 16;
+    return rocblas_trtri_batched_impl<NB>(handle, uplo, diag, n, A, lda, invA, ldinvA, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
+}
+
+rocblas_status rocblas_ctrtri_batched(rocblas_handle                     handle,
+                                      rocblas_fill                       uplo,
+                                      rocblas_diagonal                   diag,
+                                      rocblas_int                        n,
+                                      const rocblas_float_complex* const A[],
+                                      rocblas_int                        lda,
+                                      rocblas_float_complex*             invA[],
+                                      rocblas_int                        ldinvA,
+                                      rocblas_int                        batch_count)
+try
+{
+    constexpr rocblas_int NB = 16;
+    return rocblas_trtri_batched_impl<NB>(handle, uplo, diag, n, A, lda, invA, ldinvA, batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
+}
+
+rocblas_status rocblas_ztrtri_batched(rocblas_handle                      handle,
+                                      rocblas_fill                        uplo,
+                                      rocblas_diagonal                    diag,
+                                      rocblas_int                         n,
+                                      const rocblas_double_complex* const A[],
+                                      rocblas_int                         lda,
+                                      rocblas_double_complex*             invA[],
+                                      rocblas_int                         ldinvA,
+                                      rocblas_int                         batch_count)
 try
 {
     constexpr rocblas_int NB = 16;

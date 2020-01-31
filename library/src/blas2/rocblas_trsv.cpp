@@ -22,6 +22,10 @@ namespace
     constexpr char rocblas_trsv_name<float>[] = "rocblas_strsv";
     template <>
     constexpr char rocblas_trsv_name<double>[] = "rocblas_dtrsv";
+    template <>
+    constexpr char rocblas_trsv_name<rocblas_float_complex>[] = "rocblas_ctrsv";
+    template <>
+    constexpr char rocblas_trsv_name<rocblas_double_complex>[] = "rocblas_ztrsv";
 
     template <rocblas_int BLOCK, typename T>
     rocblas_status rocblas_trsv_ex_impl(rocblas_handle    handle,
@@ -184,6 +188,42 @@ catch(...)
     return exception_to_rocblas_status();
 }
 
+rocblas_status rocblas_ctrsv(rocblas_handle               handle,
+                             rocblas_fill                 uplo,
+                             rocblas_operation            transA,
+                             rocblas_diagonal             diag,
+                             rocblas_int                  m,
+                             const rocblas_float_complex* A,
+                             rocblas_int                  lda,
+                             rocblas_float_complex*       x,
+                             rocblas_int                  incx)
+try
+{
+    return rocblas_trsv_ex_impl<STRSV_BLOCK>(handle, uplo, transA, diag, m, A, lda, x, incx);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
+}
+
+rocblas_status rocblas_ztrsv(rocblas_handle                handle,
+                             rocblas_fill                  uplo,
+                             rocblas_operation             transA,
+                             rocblas_diagonal              diag,
+                             rocblas_int                   m,
+                             const rocblas_double_complex* A,
+                             rocblas_int                   lda,
+                             rocblas_double_complex*       x,
+                             rocblas_int                   incx)
+try
+{
+    return rocblas_trsv_ex_impl<DTRSV_BLOCK>(handle, uplo, transA, diag, m, A, lda, x, incx);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
+}
+
 rocblas_status rocblas_trsv_ex(rocblas_handle    handle,
                                rocblas_fill      uplo,
                                rocblas_operation transA,
@@ -224,6 +264,32 @@ try
                                                  static_cast<float*>(x),
                                                  incx,
                                                  static_cast<const float*>(invA),
+                                                 invA_size);
+
+    case rocblas_datatype_f64_c:
+        return rocblas_trsv_ex_impl<DTRSV_BLOCK>(handle,
+                                                 uplo,
+                                                 transA,
+                                                 diag,
+                                                 m,
+                                                 static_cast<const rocblas_double_complex*>(A),
+                                                 lda,
+                                                 static_cast<rocblas_double_complex*>(x),
+                                                 incx,
+                                                 static_cast<const rocblas_double_complex*>(invA),
+                                                 invA_size);
+
+    case rocblas_datatype_f32_c:
+        return rocblas_trsv_ex_impl<STRSV_BLOCK>(handle,
+                                                 uplo,
+                                                 transA,
+                                                 diag,
+                                                 m,
+                                                 static_cast<const rocblas_float_complex*>(A),
+                                                 lda,
+                                                 static_cast<rocblas_float_complex*>(x),
+                                                 incx,
+                                                 static_cast<const rocblas_float_complex*>(invA),
                                                  invA_size);
 
     default:
