@@ -19,7 +19,6 @@
 template <typename T>
 void testing_her2_bad_arg()
 {
-    std::cout << "a\n";
     rocblas_fill         uplo  = rocblas_fill_upper;
     rocblas_int          N     = 100;
     rocblas_int          lda   = 100;
@@ -66,7 +65,6 @@ void testing_her2_bad_arg()
 template <typename T>
 void testing_her2(const Arguments& arg)
 {
-    std::cout << "b\n";
     rocblas_int          N       = arg.N;
     rocblas_int          incx    = arg.incx;
     rocblas_int          incy    = arg.incy;
@@ -78,7 +76,6 @@ void testing_her2(const Arguments& arg)
     // argument check before allocating invalid memory
     if(N < 0 || !incx || !incy || lda < 1 || lda < N)
     {
-        std::cout << "c\n";
         EXPECT_ROCBLAS_STATUS(
             (rocblas_her2<T>)(handle, uplo, N, nullptr, nullptr, incx, nullptr, incy, nullptr, lda),
             rocblas_status_invalid_size);
@@ -141,7 +138,7 @@ void testing_her2(const Arguments& arg)
     CHECK_HIP_ERROR(dx.transfer_from(hx));
     CHECK_HIP_ERROR(dy.transfer_from(hy));
     CHECK_HIP_ERROR(d_alpha.transfer_from(halpha));
-    std::cout << "alpha: " << h_alpha << "\n";
+
     if(arg.unit_check || arg.norm_check)
     {
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
