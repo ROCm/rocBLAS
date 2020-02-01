@@ -58,6 +58,9 @@
 #include "testing_hemv.hpp"
 #include "testing_hemv_batched.hpp"
 #include "testing_hemv_strided_batched.hpp"
+#include "testing_her.hpp"
+#include "testing_her_batched.hpp"
+#include "testing_her_strided_batched.hpp"
 #include "testing_hpmv.hpp"
 #include "testing_hpmv_batched.hpp"
 #include "testing_hpmv_strided_batched.hpp"
@@ -375,6 +378,9 @@ struct perf_blas<T,
                 {"hemv", testing_hemv<T>},
                 {"hemv_batched", testing_hemv_batched<T>},
                 {"hemv_strided_batched", testing_hemv_strided_batched<T>},
+                {"her", testing_her<T>},
+                {"her_batched", testing_her_batched<T>},
+                {"her_strided_batched", testing_her_strided_batched<T>},
                 {"hpmv", testing_hpmv<T>},
                 {"hpmv_batched", testing_hpmv_batched<T>},
                 {"hpmv_strided_batched", testing_hpmv_strided_batched<T>},
@@ -403,9 +409,21 @@ struct perf_blas<T,
                 {"tbmv_batched", testing_tbmv_batched<T>},
                 {"tbmv_strided_batched", testing_tbmv_strided_batched<T>},
 #if BUILD_WITH_TENSILE
+                {"trtri", testing_trtri<T>},
+                {"trtri_batched", testing_trtri_batched<T>},
+                {"trtri_strided_batched", testing_trtri_strided_batched<T>},
                 {"gemm", testing_gemm<T>},
                 {"gemm_batched", testing_gemm_batched<T>},
                 {"gemm_strided_batched", testing_gemm_strided_batched<T>},
+                {"trsm", testing_trsm<T>},
+                {"trsm_ex", testing_trsm_ex<T>},
+                {"trsm_batched", testing_trsm_batched<T>},
+                {"trsm_batched_ex", testing_trsm_batched_ex<T>},
+                {"trsm_strided_batched", testing_trsm_strided_batched<T>},
+                {"trsm_strided_batched_ex", testing_trsm_strided_batched_ex<T>},
+                {"trsv", testing_trsv<T>},
+                {"trsv_batched", testing_trsv_batched<T>},
+                {"trsv_strided_batched", testing_trsv_strided_batched<T>},
                 {"trmm", testing_trmm<T>},
 #endif
               };
