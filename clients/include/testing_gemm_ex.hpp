@@ -242,7 +242,7 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
                           rocblas_status_invalid_handle);
 }
 
-static inline bool is_truncated(
+inline bool is_truncated(
     rocblas_operation transA, rocblas_operation transB, rocblas_int m, rocblas_int n, rocblas_int k)
 {
     int arc = _rocblas_handle::device_arch_id();
@@ -253,37 +253,37 @@ static inline bool is_truncated(
 }
 
 template <typename Ti, typename To, typename Tc>
-static inline void reference_gemm(rocblas_operation transA,
-                                  rocblas_operation transB,
-                                  rocblas_int       m,
-                                  rocblas_int       n,
-                                  rocblas_int       k,
-                                  Tc                alpha,
-                                  Ti*               A,
-                                  rocblas_int       lda,
-                                  Ti*               B,
-                                  rocblas_int       ldb,
-                                  Tc                beta,
-                                  To*               C,
-                                  rocblas_int       ldc)
+inline void reference_gemm(rocblas_operation transA,
+                           rocblas_operation transB,
+                           rocblas_int       m,
+                           rocblas_int       n,
+                           rocblas_int       k,
+                           Tc                alpha,
+                           Ti*               A,
+                           rocblas_int       lda,
+                           Ti*               B,
+                           rocblas_int       ldb,
+                           Tc                beta,
+                           To*               C,
+                           rocblas_int       ldc)
 {
     cblas_gemm<Ti, To, Tc>(transA, transB, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc);
 }
 
 template <>
-static inline void reference_gemm(rocblas_operation transA,
-                                  rocblas_operation transB,
-                                  rocblas_int       m,
-                                  rocblas_int       n,
-                                  rocblas_int       k,
-                                  float             alpha,
-                                  rocblas_bfloat16* A,
-                                  rocblas_int       lda,
-                                  rocblas_bfloat16* B,
-                                  rocblas_int       ldb,
-                                  float             beta,
-                                  rocblas_bfloat16* C,
-                                  rocblas_int       ldc)
+inline void reference_gemm(rocblas_operation transA,
+                           rocblas_operation transB,
+                           rocblas_int       m,
+                           rocblas_int       n,
+                           rocblas_int       k,
+                           float             alpha,
+                           rocblas_bfloat16* A,
+                           rocblas_int       lda,
+                           rocblas_bfloat16* B,
+                           rocblas_int       ldb,
+                           float             beta,
+                           rocblas_bfloat16* C,
+                           rocblas_int       ldc)
 {
     const size_t       size_C = size_t(ldc) * size_t(n);
     host_vector<float> C_float(size_C);
