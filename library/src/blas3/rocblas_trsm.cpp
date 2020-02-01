@@ -26,6 +26,10 @@ namespace
     constexpr char rocblas_trsm_name<float>[] = "rocblas_strsm";
     template <>
     constexpr char rocblas_trsm_name<double>[] = "rocblas_dtrsm";
+    template <>
+    constexpr char rocblas_trsm_name<rocblas_float_complex>[] = "rocblas_ctrsm";
+    template <>
+    constexpr char rocblas_trsm_name<rocblas_double_complex>[] = "rocblas_ztrsm";
 
     /* ============================================================================================ */
 
@@ -279,6 +283,50 @@ catch(...)
     return exception_to_rocblas_status();
 }
 
+rocblas_status rocblas_ctrsm(rocblas_handle               handle,
+                             rocblas_side                 side,
+                             rocblas_fill                 uplo,
+                             rocblas_operation            transA,
+                             rocblas_diagonal             diag,
+                             rocblas_int                  m,
+                             rocblas_int                  n,
+                             const rocblas_float_complex* alpha,
+                             const rocblas_float_complex* A,
+                             rocblas_int                  lda,
+                             rocblas_float_complex*       B,
+                             rocblas_int                  ldb)
+try
+{
+    return rocblas_trsm_ex_impl<STRSM_BLOCK>(
+        handle, side, uplo, transA, diag, m, n, alpha, A, lda, B, ldb);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
+}
+
+rocblas_status rocblas_ztrsm(rocblas_handle                handle,
+                             rocblas_side                  side,
+                             rocblas_fill                  uplo,
+                             rocblas_operation             transA,
+                             rocblas_diagonal              diag,
+                             rocblas_int                   m,
+                             rocblas_int                   n,
+                             const rocblas_double_complex* alpha,
+                             const rocblas_double_complex* A,
+                             rocblas_int                   lda,
+                             rocblas_double_complex*       B,
+                             rocblas_int                   ldb)
+try
+{
+    return rocblas_trsm_ex_impl<DTRSM_BLOCK>(
+        handle, side, uplo, transA, diag, m, n, alpha, A, lda, B, ldb);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
+}
+
 rocblas_status rocblas_trsm_ex(rocblas_handle    handle,
                                rocblas_side      side,
                                rocblas_fill      uplo,
@@ -328,6 +376,38 @@ try
                                                  static_cast<float*>(B),
                                                  ldb,
                                                  static_cast<const float*>(invA),
+                                                 invA_size);
+
+    case rocblas_datatype_f32_c:
+        return rocblas_trsm_ex_impl<STRSM_BLOCK>(handle,
+                                                 side,
+                                                 uplo,
+                                                 transA,
+                                                 diag,
+                                                 m,
+                                                 n,
+                                                 static_cast<const rocblas_float_complex*>(alpha),
+                                                 static_cast<const rocblas_float_complex*>(A),
+                                                 lda,
+                                                 static_cast<rocblas_float_complex*>(B),
+                                                 ldb,
+                                                 static_cast<const rocblas_float_complex*>(invA),
+                                                 invA_size);
+
+    case rocblas_datatype_f64_c:
+        return rocblas_trsm_ex_impl<STRSM_BLOCK>(handle,
+                                                 side,
+                                                 uplo,
+                                                 transA,
+                                                 diag,
+                                                 m,
+                                                 n,
+                                                 static_cast<const rocblas_double_complex*>(alpha),
+                                                 static_cast<const rocblas_double_complex*>(A),
+                                                 lda,
+                                                 static_cast<rocblas_double_complex*>(B),
+                                                 ldb,
+                                                 static_cast<const rocblas_double_complex*>(invA),
                                                  invA_size);
 
     default:
