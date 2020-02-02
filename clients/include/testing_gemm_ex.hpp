@@ -242,66 +242,58 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
                           rocblas_status_invalid_handle);
 }
 
-namespace
+static inline bool is_truncated(
+    rocblas_operation transA, rocblas_operation transB, rocblas_int m, rocblas_int n, rocblas_int k)
 {
-    bool is_replacement_kernel(rocblas_operation transA,
-                               rocblas_operation transB,
-                               rocblas_int       m,
-                               rocblas_int       n,
-                               rocblas_int       k)
-    {
-        int arc = _rocblas_handle::device_arch_id();
-        if(arc == 908 && transA == rocblas_operation_transpose && transB == rocblas_operation_none
+    int arc = _rocblas_handle::device_arch_id();
+    return arc == 908 && transA == rocblas_operation_transpose && transB == rocblas_operation_none
            && ((m == 512 && n == 512 && k == 512) || (m == 1024 && n == 1024 && k == 1024)
                || (m == 2048 && n == 2048 && k == 2048) || (m == 4096 && n == 4096 && k == 4096)
-               || (m == 960 && n == 1024 && k == 1024) || (m == 3840 && n == 4096 && k == 4096)))
-            return true;
-        return false;
-    }
+               || (m == 960 && n == 1024 && k == 1024) || (m == 3840 && n == 4096 && k == 4096));
+}
 
-    template <typename Ti, typename To, typename Tc>
-    void reference_gemm(rocblas_operation transA,
-                        rocblas_operation transB,
-                        rocblas_int       m,
-                        rocblas_int       n,
-                        rocblas_int       k,
-                        Tc                alpha,
-                        Ti*               A,
-                        rocblas_int       lda,
-                        Ti*               B,
-                        rocblas_int       ldb,
-                        Tc                beta,
-                        To*               C,
-                        rocblas_int       ldc)
-    {
-        cblas_gemm<Ti, To, Tc>(transA, transB, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc);
-    }
+template <typename Ti, typename To, typename Tc>
+static inline void reference_gemm(rocblas_operation transA,
+                                  rocblas_operation transB,
+                                  rocblas_int       m,
+                                  rocblas_int       n,
+                                  rocblas_int       k,
+                                  Tc                alpha,
+                                  Ti*               A,
+                                  rocblas_int       lda,
+                                  Ti*               B,
+                                  rocblas_int       ldb,
+                                  Tc                beta,
+                                  To*               C,
+                                  rocblas_int       ldc)
+{
+    cblas_gemm<Ti, To, Tc>(transA, transB, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc);
+}
 
-    template <>
-    void reference_gemm(rocblas_operation transA,
-                        rocblas_operation transB,
-                        rocblas_int       m,
-                        rocblas_int       n,
-                        rocblas_int       k,
-                        float             alpha,
-                        rocblas_bfloat16* A,
-                        rocblas_int       lda,
-                        rocblas_bfloat16* B,
-                        rocblas_int       ldb,
-                        float             beta,
-                        rocblas_bfloat16* C,
-                        rocblas_int       ldc)
-    {
-        const size_t       size_C = size_t(ldc) * size_t(n);
-        host_vector<float> C_float(size_C);
-        for(int i = 0; i < size_C; ++i)
-            C_float[i] = C[i];
-        cblas_gemm<rocblas_bfloat16, float, float>(
-            transA, transB, m, n, k, alpha, A, lda, B, ldb, beta, C_float, ldc);
-        bool round = !is_replacement_kernel(transA, transB, m, n, k);
-        for(int i = 0; i < size_C; ++i)
-            C[i] = round ? rocblas_bfloat16(C_float[i]) : float_to_bfloat16_truncate(C_float[i]);
-    }
+template <>
+static inline void reference_gemm(rocblas_operation transA,
+                                  rocblas_operation transB,
+                                  rocblas_int       m,
+                                  rocblas_int       n,
+                                  rocblas_int       k,
+                                  float             alpha,
+                                  rocblas_bfloat16* A,
+                                  rocblas_int       lda,
+                                  rocblas_bfloat16* B,
+                                  rocblas_int       ldb,
+                                  float             beta,
+                                  rocblas_bfloat16* C,
+                                  rocblas_int       ldc)
+{
+    const size_t       size_C = size_t(ldc) * size_t(n);
+    host_vector<float> C_float(size_C);
+    for(int i = 0; i < size_C; ++i)
+        C_float[i] = C[i];
+    cblas_gemm<rocblas_bfloat16, float, float>(
+        transA, transB, m, n, k, alpha, A, lda, B, ldb, beta, C_float, ldc);
+    bool round = !is_truncated(transA, transB, m, n, k);
+    for(int i = 0; i < size_C; ++i)
+        C[i] = round ? rocblas_bfloat16(C_float[i]) : float_to_bfloat16_truncate(C_float[i]);
 }
 
 template <typename Ti, typename To, typename Tc>
@@ -577,12 +569,9 @@ void testing_gemm_ex(const Arguments& arg)
         // CPU BLAS
         // copy C matrix into D matrix
         for(int i2 = 0; i2 < N; i2++)
-        {
             for(int i1 = 0; i1 < M; i1++)
-            {
                 hD_gold[i1 + i2 * ldd] = hC[i1 + i2 * ldc];
-            }
-        }
+
         cpu_time_used = get_time_us();
 
         reference_gemm<Ti, To, Tc>(
@@ -600,15 +589,11 @@ void testing_gemm_ex(const Arguments& arg)
                 const double tol = K * sum_error_tolerance<Tc>;
                 near_check_general<To>(M, N, ldd, hD_gold, hD_1, tol);
                 near_check_general<To>(M, N, ldd, hD_gold, hD_2, tol);
-                unit_check_general<To>(M, N, ldc, hC_gold, hC_1);
-                unit_check_general<To>(M, N, ldc, hC_gold, hC_2);
             }
             else
             {
                 unit_check_general<To>(M, N, ldd, hD_gold, hD_1);
                 unit_check_general<To>(M, N, ldd, hD_gold, hD_2);
-                unit_check_general<To>(M, N, ldc, hC_gold, hC_1);
-                unit_check_general<To>(M, N, ldc, hC_gold, hC_2);
             }
         }
 
@@ -652,9 +637,9 @@ void testing_gemm_ex(const Arguments& arg)
                                                 dC,
                                                 arg.c_type,
                                                 ldc,
-                                                dC,
-                                                arg.c_type,
-                                                ldc,
+                                                arg.c_noalias_d ? dD : dC,
+                                                arg.c_noalias_d ? arg.d_type : arg.c_type,
+                                                arg.c_noalias_d ? ldd : ldc,
                                                 arg.compute_type,
                                                 algo,
                                                 solution_index,
@@ -681,9 +666,9 @@ void testing_gemm_ex(const Arguments& arg)
                             dC,
                             arg.c_type,
                             ldc,
-                            dC,
-                            arg.c_type,
-                            ldc,
+                            arg.c_noalias_d ? dD : dC,
+                            arg.c_noalias_d ? arg.d_type : arg.c_type,
+                            arg.c_noalias_d ? ldd : ldc,
                             arg.compute_type,
                             algo,
                             solution_index,
