@@ -45,6 +45,9 @@ void testing_syr2_bad_arg()
         rocblas_syr2<T>(handle, rocblas_fill_full, N, &alpha, dx, incx, dy, incy, dA_1, lda),
         rocblas_status_invalid_value);
 
+    EXPECT_ROCBLAS_STATUS(rocblas_syr2<T>(handle, uplo, N, nullptr, dx, incx, dy, incy, dA_1, lda),
+                          rocblas_status_invalid_pointer);
+
     EXPECT_ROCBLAS_STATUS(
         rocblas_syr2<T>(handle, uplo, N, &alpha, nullptr, incx, dy, incy, dA_1, lda),
         rocblas_status_invalid_pointer);
@@ -161,17 +164,8 @@ void testing_syr2(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            if(std::is_same<T, float>{} || std::is_same<T, double>{})
-            {
-                unit_check_general<T>(N, N, lda, hA_gold, hA_1);
-                unit_check_general<T>(N, N, lda, hA_gold, hA_2);
-            }
-            else
-            {
-                const double tol = N * sum_error_tolerance<T>;
-                near_check_general<T>(N, N, lda, hA_gold, hA_1, tol);
-                near_check_general<T>(N, N, lda, hA_gold, hA_2, tol);
-            }
+            unit_check_general<T>(N, N, lda, hA_gold, hA_1);
+            unit_check_general<T>(N, N, lda, hA_gold, hA_2);
         }
 
         if(arg.norm_check)

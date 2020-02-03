@@ -47,6 +47,10 @@ void testing_syr2_batched_bad_arg()
             handle, rocblas_fill_full, N, &alpha, dx, incx, dy, incy, dA_1, lda, batch_count),
         rocblas_status_invalid_value);
 
+    EXPECT_ROCBLAS_STATUS(rocblas_syr2_batched<T>(
+                              handle, uplo, N, nullptr, dx, incx, dy, incy, dA_1, lda, batch_count),
+                          rocblas_status_invalid_pointer);
+
     EXPECT_ROCBLAS_STATUS(
         rocblas_syr2_batched<T>(
             handle, uplo, N, &alpha, nullptr, incx, dy, incy, dA_1, lda, batch_count),

@@ -62,6 +62,22 @@ void testing_syr2_strided_batched_bad_arg()
     EXPECT_ROCBLAS_STATUS(rocblas_syr2_strided_batched<T>(handle,
                                                           uplo,
                                                           N,
+                                                          nullptr,
+                                                          dx,
+                                                          incx,
+                                                          stride_x,
+                                                          dy,
+                                                          incy,
+                                                          stride_y,
+                                                          dA_1,
+                                                          lda,
+                                                          stride_A,
+                                                          batch_count),
+                          rocblas_status_invalid_pointer);
+
+    EXPECT_ROCBLAS_STATUS(rocblas_syr2_strided_batched<T>(handle,
+                                                          uplo,
+                                                          N,
                                                           &alpha,
                                                           nullptr,
                                                           incx,
@@ -272,17 +288,8 @@ void testing_syr2_strided_batched(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            if(std::is_same<T, float>{} || std::is_same<T, double>{})
-            {
-                unit_check_general<T>(N, N, batch_count, lda, stride_A, hA_gold, hA_1);
-                unit_check_general<T>(N, N, batch_count, lda, stride_A, hA_gold, hA_2);
-            }
-            else
-            {
-                const double tol = N * sum_error_tolerance<T>;
-                near_check_general<T>(N, N, batch_count, lda, stride_A, hA_gold, hA_1, tol);
-                near_check_general<T>(N, N, batch_count, lda, stride_A, hA_gold, hA_2, tol);
-            }
+            unit_check_general<T>(N, N, batch_count, lda, stride_A, hA_gold, hA_1);
+            unit_check_general<T>(N, N, batch_count, lda, stride_A, hA_gold, hA_2);
         }
 
         if(arg.norm_check)
