@@ -1583,6 +1583,117 @@ void cblas_syr(
 }
 */
 
+// syr2
+template <typename T>
+inline void cblas_syr2(rocblas_fill uplo,
+                       rocblas_int  n,
+                       T            alpha,
+                       T*           x,
+                       rocblas_int  incx,
+                       T*           y,
+                       rocblas_int  incy,
+                       T*           A,
+                       rocblas_int  lda);
+
+template <>
+inline void cblas_syr2(rocblas_fill uplo,
+                       rocblas_int  n,
+                       float        alpha,
+                       float*       x,
+                       rocblas_int  incx,
+                       float*       y,
+                       rocblas_int  incy,
+                       float*       A,
+                       rocblas_int  lda)
+{
+    cblas_ssyr2(CblasColMajor, CBLAS_UPLO(uplo), n, alpha, x, incx, y, incy, A, lda);
+}
+
+template <>
+inline void cblas_syr2(rocblas_fill uplo,
+                       rocblas_int  n,
+                       double       alpha,
+                       double*      x,
+                       rocblas_int  incx,
+                       double*      y,
+                       rocblas_int  incy,
+                       double*      A,
+                       rocblas_int  lda)
+{
+    cblas_dsyr2(CblasColMajor, CBLAS_UPLO(uplo), n, alpha, x, incx, y, incy, A, lda);
+}
+
+template <typename T>
+inline void cblas_syr2_local(rocblas_fill uplo,
+                             rocblas_int  n,
+                             T            alpha,
+                             T*           xa,
+                             rocblas_int  incx,
+                             T*           ya,
+                             rocblas_int  incy,
+                             T*           A,
+                             rocblas_int  lda)
+{
+    if(n <= 0)
+        return;
+
+    T* x = (incx < 0) ? xa - ptrdiff_t(incx) * (n - 1) : xa;
+    T* y = (incy < 0) ? ya - ptrdiff_t(incy) * (n - 1) : ya;
+
+    if(uplo == rocblas_fill_upper)
+    {
+        for(int j = 0; j < n; ++j)
+        {
+            T tmpx = alpha * x[j * incx];
+            T tmpy = alpha * y[j * incy];
+            for(int i = 0; i <= j; ++i)
+            {
+                A[i + j * lda] = A[i + j * lda] + x[i * incx] * tmpy + y[i * incy] * tmpx;
+            }
+        }
+    }
+    else
+    {
+        for(int j = 0; j < n; ++j)
+        {
+            T tmpx = alpha * x[j * incx];
+            T tmpy = alpha * y[j * incy];
+            for(int i = j; i < n; ++i)
+            {
+                A[i + j * lda] = A[i + j * lda] + x[i * incx] * tmpy + y[i * incy] * tmpx;
+            }
+        }
+    }
+}
+
+template <>
+inline void cblas_syr2(rocblas_fill           uplo,
+                       rocblas_int            n,
+                       rocblas_float_complex  alpha,
+                       rocblas_float_complex* x,
+                       rocblas_int            incx,
+                       rocblas_float_complex* y,
+                       rocblas_int            incy,
+                       rocblas_float_complex* A,
+                       rocblas_int            lda)
+{
+    cblas_syr2_local(uplo, n, alpha, x, incx, y, incy, A, lda);
+}
+
+template <>
+inline void cblas_syr2(rocblas_fill            uplo,
+                       rocblas_int             n,
+                       rocblas_double_complex  alpha,
+                       rocblas_double_complex* x,
+                       rocblas_int             incx,
+                       rocblas_double_complex* y,
+                       rocblas_int             incy,
+                       rocblas_double_complex* A,
+                       rocblas_int             lda)
+{
+    cblas_syr2_local(uplo, n, alpha, x, incx, y, incy, A, lda);
+}
+
 // hbmv
 template <typename T>
 void cblas_hbmv(rocblas_fill uplo,
