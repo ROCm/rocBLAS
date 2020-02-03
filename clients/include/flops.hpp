@@ -398,14 +398,13 @@ constexpr double syr2_gflop_count(rocblas_int n)
 template <>
 constexpr double syr2_gflop_count<rocblas_float_complex>(rocblas_int n)
 {
-    // TODO:
-    return 0.0;
+    return (8 * (n + 1.0) * n + 12.0 * n) / 1e9;
 }
 
 template <>
 constexpr double syr2_gflop_count<rocblas_double_complex>(rocblas_int n)
 {
-    return 0.0;
+    return (8 * (n + 1.0) * n + 12.0 * n) / 1e9;
 }
 
 /*

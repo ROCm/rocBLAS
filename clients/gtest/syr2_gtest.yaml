@@ -43,6 +43,7 @@ Definitions:
   - &alpha_range
     - { alpha:  2.0, alphai: 1.5 }
     - { alpha:    0, alphai:   0 }
+    - { alpha:    0, alphai: 2.0 }
     - { alpha:  1.0, alphai:   0 }
     - { alpha: -1.5, alphai: 2.5 }
 

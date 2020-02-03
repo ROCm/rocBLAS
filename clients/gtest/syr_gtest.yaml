@@ -26,6 +26,17 @@ Definitions:
     - { N:  4011, lda:  4011 }
     - { N:  6000, lda:  6000 }
 
+  - &alpha_range
+    - { alpha: -0.5, alphai:  1.5 }
+    - { alpha:  0.0, alphai:  0.0 }
+    - { alpha:  0.0, alphai:  2.0 }
+    - { alpha:  2.0, alphai:  0.0 }
+    - { alpha:  1.0, alphai:  0.0 }
+    - { alpha:  1.5, alphai: -2.0 }
+
+  - &alpha_range_small
+    - { alpha: 2.0, alphai: 0.5 }
+
 Tests:
 
 - name: syr_bad_arg
@@ -42,7 +53,7 @@ Tests:
   uplo: [ U, L ]
   matrix_size: *small_matrix_size_range
   incx: [ -1, 1, 0, 2, -2, 10, 99 ]
-  alpha: [ -0.5, 2.0, 0.0 ]
+  alpha_beta: *alpha_range
 
 - name: syr_medium
   category: pre_checkin
@@ -51,7 +62,7 @@ Tests:
   uplo: [ U, L ]
   matrix_size: *medium_matrix_size_range
   incx: [ 0, 2, -2 ]
-  alpha: [ -0.5, 2.0 ]
+  alpha_beta: *alpha_range_small
 
 - name: syr_large
   category: nightly
@@ -60,7 +71,7 @@ Tests:
   uplo: [ U, L ]
   matrix_size: *large_matrix_size_range
   incx: [ 3 ]
-  alpha: [ 0.6 ]
+  alpha_beta: *alpha_range_small
 
 # batched
 
@@ -71,7 +82,7 @@ Tests:
   uplo: [ U, L ]
   matrix_size: *small_matrix_size_range
   incx: [ -1, 1, 0, 2, -2, 10, 99 ]
-  alpha: [ -0.5, 2.0, 0.0 ]
+  alpha_beta: *alpha_range
   batch_count: [ -1, 0, 1, 5 ]
 
 - name: syr_batched_medium
@@ -81,7 +92,7 @@ Tests:
   uplo: [ U, L ]
   matrix_size: *medium_matrix_size_range
   incx: [ 0, 2, -2 ]
-  alpha: [ -0.5, 2.0 ]
+  alpha_beta: *alpha_range_small
   batch_count: [ 1, 3 ]
 
 - name: syr_batched_large
@@ -91,7 +102,7 @@ Tests:
   uplo: [ U, L ]
   matrix_size: *large_matrix_size_range
   incx: [ 3 ]
-  alpha: [ 0.6 ]
+  alpha_beta: *alpha_range_small
   batch_count: [ 1, 3 ]
 
 # strided batched
@@ -103,7 +114,7 @@ Tests:
   uplo: [ U, L ]
   matrix_size: *small_matrix_size_range
   incx: [ -1, 1, 0, 2, -2, 10, 99 ]
-  alpha: [ -0.5, 2.0, 0.0 ]
+  alpha_beta: *alpha_range
   batch_count: [ -1, 0, 1, 5 ]
 
 - name: syr_strided_batched_medium
@@ -113,7 +124,7 @@ Tests:
   uplo: [ U, L ]
   matrix_size: *medium_matrix_size_range
   incx: [ 0, 2, -2 ]
-  alpha: [ -0.5, 2.0 ]
+  alpha_beta: *alpha_range_small
   batch_count: [ 1, 3 ]
 
 - name: syr_strided_large
@@ -123,7 +134,7 @@ Tests:
   uplo: [ U, L ]
   matrix_size: *large_matrix_size_range
   incx: [ 3 ]
-  alpha: [ 0.6 ]
+  alpha_beta: *alpha_range_small
   batch_count: [ 1, 3 ]
 
 ...

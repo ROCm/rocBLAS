@@ -1665,6 +1665,7 @@ inline void cblas_syr2(rocblas_fill uplo,
     cblas_dsyr2(CblasColMajor, CBLAS_UPLO(uplo), n, alpha, x, incx, y, incy, A, lda);
 }
 
+// No complex implementation of syr2, make a local version.
 template <typename T>
 inline void cblas_syr2_local(rocblas_fill uplo,
                              rocblas_int  n,
