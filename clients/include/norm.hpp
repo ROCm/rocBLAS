@@ -384,4 +384,39 @@ inline double norm_check_symmetric(char          norm_type,
     return norm_check_symmetric(norm_type, uplo, N, lda, hCPU_double.data(), hGPU_double.data());
 }
 
+template <typename T>
+double matrix_norm_1(rocblas_int M, rocblas_int N, rocblas_int lda, T* hA_gold, T* hA)
+{
+    double max_err_scal = 0.0;
+    double max_err      = 0.0;
+    double err          = 0.0;
+    double err_scal     = 0.0;
+    for(int i = 0; i < N; i++)
+    {
+        for(int j = 0; j < M; j++)
+        {
+            err += rocblas_abs((hA_gold[j + i * lda] - hA[j + i * lda]));
+            err_scal += rocblas_abs(hA_gold[j + i * lda]);
+        }
+        max_err_scal = max_err_scal > err_scal ? max_err_scal : err_scal;
+        max_err      = max_err > err ? max_err : err;
+    }
+
+    return max_err / max_err_scal;
+}
+
+template <typename T>
+double vector_norm_1(rocblas_int M, rocblas_int incx, T* hx_gold, T* hx)
+{
+    double max_err_scal = 0.0;
+    double max_err      = 0.0;
+    for(int i = 0; i < M; i++)
+    {
+        max_err += rocblas_abs((hx_gold[i * incx] - hx[i * incx]));
+        max_err_scal += rocblas_abs(hx_gold[i * incx]);
+    }
+
+    return max_err / max_err_scal;
+}
+
 #endif

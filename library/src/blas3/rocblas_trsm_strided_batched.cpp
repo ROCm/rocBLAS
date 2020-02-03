@@ -26,6 +26,10 @@ namespace
     constexpr char rocblas_trsm_name<float>[] = "rocblas_strided_batched_strsm";
     template <>
     constexpr char rocblas_trsm_name<double>[] = "rocblas_strided_batched_dtrsm";
+    template <>
+    constexpr char rocblas_trsm_name<rocblas_float_complex>[] = "rocblas_strided_batched_ctrsm";
+    template <>
+    constexpr char rocblas_trsm_name<rocblas_double_complex>[] = "rocblas_strided_batched_ztrsm";
 
     /* ============================================================================================ */
 
@@ -329,6 +333,82 @@ catch(...)
     return exception_to_rocblas_status();
 }
 
+rocblas_status rocblas_ctrsm_strided_batched(rocblas_handle               handle,
+                                             rocblas_side                 side,
+                                             rocblas_fill                 uplo,
+                                             rocblas_operation            transA,
+                                             rocblas_diagonal             diag,
+                                             rocblas_int                  m,
+                                             rocblas_int                  n,
+                                             const rocblas_float_complex* alpha,
+                                             const rocblas_float_complex* A,
+                                             rocblas_int                  lda,
+                                             rocblas_stride               stride_A,
+                                             rocblas_float_complex*       B,
+                                             rocblas_int                  ldb,
+                                             rocblas_stride               stride_B,
+                                             rocblas_int                  batch_count)
+try
+{
+    return rocblas_trsm_strided_batched_ex_impl<STRSM_BLOCK>(handle,
+                                                             side,
+                                                             uplo,
+                                                             transA,
+                                                             diag,
+                                                             m,
+                                                             n,
+                                                             alpha,
+                                                             A,
+                                                             lda,
+                                                             stride_A,
+                                                             B,
+                                                             ldb,
+                                                             stride_B,
+                                                             batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
+}
+
+rocblas_status rocblas_ztrsm_strided_batched(rocblas_handle                handle,
+                                             rocblas_side                  side,
+                                             rocblas_fill                  uplo,
+                                             rocblas_operation             transA,
+                                             rocblas_diagonal              diag,
+                                             rocblas_int                   m,
+                                             rocblas_int                   n,
+                                             const rocblas_double_complex* alpha,
+                                             const rocblas_double_complex* A,
+                                             rocblas_int                   lda,
+                                             rocblas_stride                stride_A,
+                                             rocblas_double_complex*       B,
+                                             rocblas_int                   ldb,
+                                             rocblas_stride                stride_B,
+                                             rocblas_int                   batch_count)
+try
+{
+    return rocblas_trsm_strided_batched_ex_impl<DTRSM_BLOCK>(handle,
+                                                             side,
+                                                             uplo,
+                                                             transA,
+                                                             diag,
+                                                             m,
+                                                             n,
+                                                             alpha,
+                                                             A,
+                                                             lda,
+                                                             stride_A,
+                                                             B,
+                                                             ldb,
+                                                             stride_B,
+                                                             batch_count);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
+}
+
 rocblas_status rocblas_trsm_strided_batched_ex(rocblas_handle    handle,
                                                rocblas_side      side,
                                                rocblas_fill      uplo,
@@ -391,6 +471,48 @@ try
                                                                  static_cast<const float*>(invA),
                                                                  invA_size,
                                                                  stride_invA);
+
+    case rocblas_datatype_f32_c:
+        return rocblas_trsm_strided_batched_ex_impl<STRSM_BLOCK>(
+            handle,
+            side,
+            uplo,
+            transA,
+            diag,
+            m,
+            n,
+            static_cast<const rocblas_float_complex*>(alpha),
+            static_cast<const rocblas_float_complex*>(A),
+            lda,
+            stride_A,
+            static_cast<rocblas_float_complex*>(B),
+            ldb,
+            stride_B,
+            batch_count,
+            static_cast<const rocblas_float_complex*>(invA),
+            invA_size,
+            stride_invA);
+
+    case rocblas_datatype_f64_c:
+        return rocblas_trsm_strided_batched_ex_impl<STRSM_BLOCK>(
+            handle,
+            side,
+            uplo,
+            transA,
+            diag,
+            m,
+            n,
+            static_cast<const rocblas_double_complex*>(alpha),
+            static_cast<const rocblas_double_complex*>(A),
+            lda,
+            stride_A,
+            static_cast<rocblas_double_complex*>(B),
+            ldb,
+            stride_B,
+            batch_count,
+            static_cast<const rocblas_double_complex*>(invA),
+            invA_size,
+            stride_invA);
 
     default:
         return rocblas_status_not_implemented;

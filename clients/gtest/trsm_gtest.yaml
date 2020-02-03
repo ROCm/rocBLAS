@@ -20,6 +20,11 @@ Definitions:
 
   - &alpha_range [ 1.0, -5.0 ]
 
+  - &complex_alpha_range
+    - { alpha: -5, alphai: -5 }
+    - { alpha:  1, alphai:  3 }
+    - { alpha:  5, alphai:  3 }
+
   - &testset1_small_matrix_size_range
     - { M:      256,  N:        256,    lda:    256,    ldb:    256     }
     - { M:      512,  N:        256,    lda:    256,    ldb:    512     }
@@ -107,6 +112,17 @@ Tests:
   matrix_size: *small_matrix_size_range
   alpha: *alpha_range
 
+- name: trsm_small_complex
+  category: quick
+  function: trsm
+  precision: *single_double_precisions_complex_real
+  side: [L, R]
+  uplo: [L, U]
+  transA: [N, C]
+  diag: [N, U]
+  matrix_size: *small_matrix_size_range
+  alpha_beta: *complex_alpha_range
+
 - name: trsm_batched_small
   category: quick
   function: trsm_batched
@@ -117,6 +133,18 @@ Tests:
   diag: [N, U]
   matrix_size: *small_matrix_size_range
   alpha: *alpha_range
+  batch_count: [-1, 0, 1, 5]
+
+- name: trsm_batched_small_complex
+  category: quick
+  function: trsm_batched
+  precision: *single_double_precisions_complex_real
+  side: [L, R]
+  uplo: [L, U]
+  transA: [N, C]
+  diag: [N, U]
+  matrix_size: *small_matrix_size_range
+  alpha_beta: *complex_alpha_range
   batch_count: [-1, 0, 1, 5]
 
 - name: trsm_strided_batched_small
@@ -132,6 +160,19 @@ Tests:
   stride_scale: [ 1, 1.5, 5 ]
   batch_count: [ -1, 0, 1, 5 ]
 
+- name: trsm_strided_batched_small_complex
+  category: quick
+  function: trsm_strided_batched
+  precision: *single_double_precisions_complex_real
+  side: [L, R]
+  uplo: [L, U]
+  transA: [N, C]
+  diag: [N, U]
+  matrix_size: *small_matrix_size_range
+  alpha_beta: *complex_alpha_range
+  stride_scale: [ 1, 1.5, 5 ]
+  batch_count: [ -1, 0, 1, 5 ]
+
 # Medium - pre_checkin
 - name: trsm_medium
   category: pre_checkin
@@ -143,6 +184,17 @@ Tests:
   diag: [N, U]
   matrix_size: *medium_matrix_size_range
   alpha: *alpha_range
+
+- name: trsm_medium_complex
+  category: pre_checkin
+  function: trsm
+  precision: *single_double_precisions_complex_real
+  side: [L, R]
+  uplo: [L, U]
+  transA: [N, C]
+  diag: [N, U]
+  matrix_size: *medium_matrix_size_range
+  alpha_beta: *complex_alpha_range
 
 - name: trsm_batched_medium
   category: pre_checkin
@@ -156,6 +208,18 @@ Tests:
   alpha: *alpha_range
   batch_count: [1, 5]
 
+- name: trsm_batched_medium_complex
+  category: pre_checkin
+  function: trsm_batched
+  precision: *single_double_precisions_complex_real
+  side: [L, R]
+  uplo: [L, U]
+  transA: [N, C]
+  diag: [N, U]
+  matrix_size: *medium_matrix_size_range
+  alpha_beta: *complex_alpha_range
+  batch_count: [1, 5]
+
 - name: trsm_strided_batched_medium
   category: pre_checkin
   function: trsm_strided_batched
@@ -166,6 +230,19 @@ Tests:
   diag: [N, U]
   matrix_size: *medium_matrix_size_range
   alpha: *alpha_range
+  stride_scale: [ 1, 1.5, 5 ]
+  batch_count: [ 1, 5 ]
+
+- name: trsm_strided_batched_medium_complex
+  category: pre_checkin
+  function: trsm_strided_batched
+  precision: *single_double_precisions_complex_real
+  side: [L, R]
+  uplo: [L, U]
+  transA: [N, C]
+  diag: [N, U]
+  matrix_size: *medium_matrix_size_range
+  alpha_beta: *complex_alpha_range
   stride_scale: [ 1, 1.5, 5 ]
   batch_count: [ 1, 5 ]
 
@@ -203,6 +280,17 @@ Tests:
   matrix_size: *large_matrix_size_range
   alpha: *alpha_range
 
+- name: trsm_large_complex
+  category: nightly
+  function: trsm
+  precision: *single_double_precisions_complex_real
+  arguments:
+    - { side: L, uplo: L, transA: N, diag: N }
+    - { side: R, uplo: L, transA: N, diag: N }
+    - { side: L, uplo: U, transA: C, diag: N }
+  matrix_size: *large_matrix_size_range
+  alpha_beta: *complex_alpha_range
+
 - name: trsm_batched_testset1
   category: nightly
   function: trsm_batched
@@ -237,6 +325,18 @@ Tests:
     - { side: L, uplo: U, transA: C, diag: N }
   matrix_size: *large_matrix_size_range
   alpha: *alpha_range
+  batch_count: [ 2 ]
+
+- name: trsm_batched_large_complex
+  category: nightly
+  function: trsm_batched
+  precision: *single_double_precisions_complex_real
+  arguments:
+    - { side: L, uplo: L, transA: N, diag: N }
+    - { side: R, uplo: L, transA: N, diag: N }
+    - { side: L, uplo: U, transA: C, diag: N }
+  matrix_size: *large_matrix_size_range
+  alpha_beta: *complex_alpha_range
   batch_count: [ 2 ]
 
 - name: trsm_strided_batched_testset1
@@ -275,6 +375,19 @@ Tests:
     - { side: L, uplo: U, transA: C, diag: N }
   matrix_size: *large_matrix_size_range
   alpha: *alpha_range
+  stride_scale: [ 2 ]
+  batch_count: [ 2 ]
+
+- name: trsm_strided_batched_large_complex
+  category: nightly
+  function: trsm_strided_batched
+  precision: *single_double_precisions_complex_real
+  arguments:
+    - { side: L, uplo: L, transA: N, diag: N }
+    - { side: R, uplo: L, transA: N, diag: N }
+    - { side: L, uplo: U, transA: C, diag: N }
+  matrix_size: *large_matrix_size_range
+  alpha_beta: *complex_alpha_range
   stride_scale: [ 2 ]
   batch_count: [ 2 ]
 
@@ -312,7 +425,7 @@ Tests:
 #############
 
 # Small - quick
-- name: trsm_small
+- name: trsm_ex_small
   category: quick
   function: trsm_ex
   precision: *single_double_precisions
@@ -323,7 +436,18 @@ Tests:
   matrix_size: *small_matrix_size_range
   alpha: *alpha_range
 
-- name: trsm_batched_small
+- name: trsm_ex_small_complex
+  category: quick
+  function: trsm_ex
+  precision: *single_double_precisions_complex_real
+  side: [L, R]
+  uplo: [L, U]
+  transA: [N, C]
+  diag: [N, U]
+  matrix_size: *small_matrix_size_range
+  alpha_beta: *complex_alpha_range
+
+- name: trsm_batched_ex_small
   category: quick
   function: trsm_batched_ex
   precision: *single_double_precisions
@@ -335,7 +459,19 @@ Tests:
   alpha: *alpha_range
   batch_count: [-1, 0, 1, 5]
 
-- name: trsm_strided_batched_small
+- name: trsm_batched_ex_small_complex
+  category: quick
+  function: trsm_batched_ex
+  precision: *single_double_precisions_complex_real
+  side: [L, R]
+  uplo: [L, U]
+  transA: [N, C]
+  diag: [N, U]
+  matrix_size: *small_matrix_size_range
+  alpha_beta: *complex_alpha_range
+  batch_count: [-1, 0, 1, 5]
+
+- name: trsm_strided_batched_ex_small
   category: quick
   function: trsm_strided_batched_ex
   precision: *single_double_precisions
@@ -348,8 +484,21 @@ Tests:
   stride_scale: [ 1, 1.5, 5 ]
   batch_count: [-1, 0, 1, 5]
 
+- name: trsm_strided_batched_ex_small_complex
+  category: quick
+  function: trsm_strided_batched_ex
+  precision: *single_double_precisions_complex_real
+  side: [L, R]
+  uplo: [L, U]
+  transA: [N, C]
+  diag: [N, U]
+  matrix_size: *small_matrix_size_range
+  alpha_beta: *complex_alpha_range
+  stride_scale: [ 1, 1.5, 5 ]
+  batch_count: [-1, 0, 1, 5]
+
 # Medium - pre_checkin
-- name: trsm_medium
+- name: trsm_ex_medium
   category: pre_checkin
   function: trsm_ex
   precision: *single_double_precisions
@@ -360,7 +509,7 @@ Tests:
   matrix_size: *medium_matrix_size_range
   alpha: *alpha_range
 
-- name: trsm_batched_medium
+- name: trsm_batched_ex_medium
   category: pre_checkin
   function: trsm_batched_ex
   precision: *single_double_precisions
@@ -372,7 +521,7 @@ Tests:
   alpha: *alpha_range
   batch_count: [1, 5]
 
-- name: trsm_strided_batched_medium
+- name: trsm_strided_batched_ex_medium
   category: pre_checkin
   function: trsm_strided_batched_ex
   precision: *single_double_precisions
@@ -385,7 +534,7 @@ Tests:
   stride_scale: [ 1, 1.5, 5 ]
   batch_count: [ 1, 5 ]
 
-- name: trsm_testset1_small
+- name: trsm_ex_testset1_small
   category: pre_checkin
   function: trsm_ex
   precision: *single_double_precisions
@@ -396,7 +545,7 @@ Tests:
   matrix_size: *testset1_small_matrix_size_range
   alpha: *alpha_range
 
-- name: trsm_testset2_small
+- name: trsm_ex_testset2_small
   category: pre_checkin
   function: trsm_ex
   precision: *single_double_precisions
@@ -408,7 +557,7 @@ Tests:
   alpha: *alpha_range
 
 # nightly
-- name: trsm_testset1
+- name: trsm_ex_testset1
   category: nightly
   function: trsm_ex
   precision: *single_double_precisions
@@ -419,7 +568,7 @@ Tests:
   matrix_size: *testset1_matrix_size_range
   alpha: [ 1 ]
 
-- name: trsm_batched_testset1
+- name: trsm_batched_ex_testset1
   category: nightly
   function: trsm_batched_ex
   precision: *single_double_precisions
@@ -431,7 +580,7 @@ Tests:
   alpha: [ 1 ]
   batch_count: [ 2 ]
 
-- name: trsm_strided_batched_testset1
+- name: trsm_strided_batched_ex_testset1
   category: nightly
   function: trsm_strided_batched_ex
   precision: *single_double_precisions
@@ -444,7 +593,7 @@ Tests:
   stride_scale: [ 2 ]
   batch_count: [ 2 ]
 
-- name: trsm_testset2
+- name: trsm_ex_testset2
   category: nightly
   function: trsm_ex
   precision: *single_double_precisions
@@ -455,7 +604,7 @@ Tests:
   matrix_size: *testset2_matrix_size_range
   alpha: [ 1 ]
 
-- name: trsm_batched_testset2
+- name: trsm_batched_ex_testset2
   category: nightly
   function: trsm_batched_ex
   precision: *single_double_precisions
@@ -467,7 +616,7 @@ Tests:
   alpha: [ 1 ]
   batch_count: [ 2 ]
 
-- name: trsm_strided_batched_testset2
+- name: trsm_strided_batched_ex_testset2
   category: nightly
   function: trsm_strided_batched_ex
   precision: *single_double_precisions
@@ -480,7 +629,7 @@ Tests:
   stride_scale: [ 2 ]
   batch_count: [ 2 ]
 
-- name: trsm_large
+- name: trsm_ex_large
   category: nightly
   function: trsm_ex
   precision: *single_double_precisions
@@ -491,7 +640,7 @@ Tests:
   matrix_size: *large_matrix_size_range
   alpha: *alpha_range
 
-- name: trsm_batched_large
+- name: trsm_batched_ex_large
   category: nightly
   function: trsm_batched_ex
   precision: *single_double_precisions
@@ -503,7 +652,7 @@ Tests:
   alpha: *alpha_range
   batch_count: [ 2 ]
 
-- name: trsm_strided_batched_large
+- name: trsm_strided_batched_ex_large
   category: nightly
   function: trsm_strided_batched_ex
   precision: *single_double_precisions
@@ -517,7 +666,7 @@ Tests:
   batch_count: [ 2 ]
 
 # nightly - many batches
-- name: trsm_batched_manybatch
+- name: trsm_batched_ex_manybatch
   category: nightly
   function: trsm_batched_ex
   precision: *single_double_precisions
@@ -529,7 +678,7 @@ Tests:
   alpha: *alpha_range
   batch_count: [8192]
 
-- name: trsm_strided_batched_manybatch
+- name: trsm_strided_batched_ex_manybatch
   category: nightly
   function: trsm_strided_batched_ex
   precision: *single_double_precisions

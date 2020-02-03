@@ -262,7 +262,8 @@ def setdefaults(test):
         setkey_product(test, 'stride_y', ['N', 'incy', 'stride_scale'])
         setkey_product(test, 'stride_a', ['N', 'N', 'stride_scale'])
 
-    elif test['function'] in ('her_strided_batched', 'syr2_strided_batched'):
+    elif test['function'] in ('her_strided_batched', 'her2_strided_batched',
+                              'syr2_strided_batched'):
         setkey_product(test, 'stride_x', ['N', 'incx', 'stride_scale'])
         setkey_product(test, 'stride_y', ['N', 'incy', 'stride_scale'])
         setkey_product(test, 'stride_a', ['N', 'lda', 'stride_scale'])
