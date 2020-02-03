@@ -127,8 +127,12 @@ add_subdirectory( src )
 
 # Package specific CPACK vars
 if( NOT CXX_VERSION_STRING MATCHES "clang" )
+    set( RPM_REQUIREMENTS "rocm-dev >= 2.5.27" )
+    if( OS_ID_sles )
+      LIST(APPEND RPM_REQUIREMENTS "llvm7-devel")
+    endif()
+    set( CPACK_RPM_PACKAGE_REQUIRES ${RPM_REQUIREMENTS} )
     set( CPACK_DEBIAN_PACKAGE_DEPENDS "rocm-dev (>= 2.5.27)" )
-    set( CPACK_RPM_PACKAGE_REQUIRES "rocm-dev >= 2.5.27" )
 endif()
 
 set( CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/../LICENSE.md" )
