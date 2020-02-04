@@ -68,7 +68,7 @@ rocBLASCI:
                         echo ${gpuLabel}
                         export PATH=/opt/asy/bin:\${PATH}
                         pushd scripts/performance/blas/
-                        python alltime.py -A \$workingdir/build/release/clients/staging -o \$workingdir/perfoutput -i perf.yaml -S 0 -g 0 -d \$devicenum
+                        ./alltime.py -A \$workingdir/build/release/clients/staging -o \$workingdir/perfoutput -i perf.yaml -S 0 -g 0 -d \$devicenum
                         if [ \$? = 0 ]
                         then
                             echo "Uploading Data..."
@@ -91,13 +91,13 @@ rocBLASCI:
                         then
                             echo "Previous run found"
                             pushd scripts/performance/blas/
-                            python alltime.py -T -o \$workingdir/perfoutput -b \$workingdir/perfoutput_${gpuLabel} -g 1 -d \$devicenum -i perf.yaml
+                            ./alltime.py -T -o \$workingdir/perfoutput -b \$workingdir/perfoutput_${gpuLabel} -g 1 -d \$devicenum -i perf.yaml
                             popd
                             mv perfoutput_${gpuLabel} perfoutput_${gpuLabel}_old
                         else
                             echo "Previous run NOT found"
                             pushd scripts/performance/blas/
-                            python alltime.py -T -o \$workingdir/perfoutput -S 0 -g 1 -i perf.yaml -d \$devicenum
+                            ./alltime.py -T -o \$workingdir/perfoutput -S 0 -g 1 -i perf.yaml -d \$devicenum
                             popd
                         fi
                         

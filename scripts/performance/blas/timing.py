@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python3
 
 # a timing script for FFTs and convolutions using OpenMP
 
