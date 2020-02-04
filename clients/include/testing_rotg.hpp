@@ -83,10 +83,10 @@ void testing_rotg(const Arguments& arg)
 
             if(arg.unit_check)
             {
-                near_check_general<T>(1, 1, 1, ca, ha, rel_error);
-                near_check_general<T>(1, 1, 1, cb, hb, rel_error);
-                near_check_general<U>(1, 1, 1, cc, hc, rel_error);
-                near_check_general<T>(1, 1, 1, cs, hs, rel_error);
+                near_check_general<T, T>(1, 1, 1, ca, ha, rel_error);
+                near_check_general<T, T>(1, 1, 1, cb, hb, rel_error);
+                near_check_general<U, U>(1, 1, 1, cc, hc, rel_error);
+                near_check_general<T, T>(1, 1, 1, cs, hs, rel_error);
             }
 
             if(arg.norm_check)
@@ -121,10 +121,10 @@ void testing_rotg(const Arguments& arg)
 
             if(arg.unit_check)
             {
-                near_check_general<T>(1, 1, 1, ca, ha, rel_error);
-                near_check_general<T>(1, 1, 1, cb, hb, rel_error);
-                near_check_general<U>(1, 1, 1, cc, hc, rel_error);
-                near_check_general<T>(1, 1, 1, cs, hs, rel_error);
+                near_check_general<T, T>(1, 1, 1, ca, ha, rel_error);
+                near_check_general<T, T>(1, 1, 1, cb, hb, rel_error);
+                near_check_general<U, U>(1, 1, 1, cc, hc, rel_error);
+                near_check_general<T, T>(1, 1, 1, cs, hs, rel_error);
             }
 
             if(arg.norm_check)
