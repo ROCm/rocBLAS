@@ -356,15 +356,16 @@ void testing_gemm_batched_ex(const Arguments& arg)
     host_vector<To> hC[batch_count];
     host_vector<To> hD_1[batch_count];
     host_vector<To> hD_2[batch_count];
-    host_vector<To> hD_gold[batch_count];
-    for(int b = 0; b < batch_count; b++)
+    using To_hpa = std::conditional_t<std::is_same<To, rocblas_bfloat16>{}, float, To>;
+    host_vector<To_hpa> hD_gold[batch_count];
+    for(rocblas_int b = 0; b < batch_count; b++)
     {
         hA[b]      = host_vector<Ti>(size_a);
         hB[b]      = host_vector<Ti>(size_b);
         hC[b]      = host_vector<To>(size_c);
         hD_1[b]    = host_vector<To>(size_d);
         hD_2[b]    = host_vector<To>(size_d);
-        hD_gold[b] = host_vector<To>(size_d);
+        hD_gold[b] = host_vector<To_hpa>(size_d);
     }
 
     device_batch_vector<Ti> bA(batch_count, size_a);
@@ -431,7 +432,7 @@ void testing_gemm_batched_ex(const Arguments& arg)
     for(int b = 0; b < batch_count; b++)
     {
         // Packing stuff
-        if(std::is_same<Ti, int8_t>::value && transA == rocblas_operation_none)
+        if(std::is_same<Ti, int8_t>{} && transA == rocblas_operation_none)
         {
             host_vector<Ti> hA_packed(hA[b]);
             rocblas_packInt8(hA_packed, M, K, lda);
@@ -443,7 +444,7 @@ void testing_gemm_batched_ex(const Arguments& arg)
             CHECK_HIP_ERROR(hipMemcpy(bA[b], hA[b], sizeof(Ti) * size_a, hipMemcpyHostToDevice));
         }
 
-        if(std::is_same<Ti, int8_t>::value && transB != rocblas_operation_none)
+        if(std::is_same<Ti, int8_t>{} && transB != rocblas_operation_none)
         {
             host_vector<Ti> hB_packed(hB[b]);
 
@@ -565,19 +566,19 @@ void testing_gemm_batched_ex(const Arguments& arg)
 
         for(rocblas_int b = 0; b < batch_count; b++)
         {
-            cblas_gemm<Ti, To>(transA,
-                               transB,
-                               M,
-                               N,
-                               K,
-                               h_alpha_Tc,
-                               hA[b],
-                               lda,
-                               hB[b],
-                               ldb,
-                               h_beta_Tc,
-                               hD_gold[b],
-                               ldd);
+            cblas_gemm<Ti, To_hpa>(transA,
+                                   transB,
+                                   M,
+                                   N,
+                                   K,
+                                   h_alpha_Tc,
+                                   hA[b],
+                                   lda,
+                                   hB[b],
+                                   ldb,
+                                   h_beta_Tc,
+                                   hD_gold[b],
+                                   ldd);
         }
 
         cpu_time_used = get_time_us() - cpu_time_used;
@@ -590,13 +591,13 @@ void testing_gemm_batched_ex(const Arguments& arg)
                 // For large K, rocblas_half tends to diverge proportional to K
                 // Tolerance is slightly greater than 1 / 1024.0
                 const double tol = K * sum_error_tolerance<Tc>;
-                near_check_general<To>(M, N, batch_count, ldd, hD_gold, hD_1, tol);
-                near_check_general<To>(M, N, batch_count, ldd, hD_gold, hD_2, tol);
+                near_check_general<To, To_hpa>(M, N, batch_count, ldd, hD_gold, hD_1, tol);
+                near_check_general<To, To_hpa>(M, N, batch_count, ldd, hD_gold, hD_2, tol);
             }
             else
             {
-                unit_check_general<To>(M, N, batch_count, ldd, hD_gold, hD_1);
-                unit_check_general<To>(M, N, batch_count, ldd, hD_gold, hD_2);
+                unit_check_general<To, To_hpa>(M, N, batch_count, ldd, hD_gold, hD_1);
+                unit_check_general<To, To_hpa>(M, N, batch_count, ldd, hD_gold, hD_2);
             }
         }
 

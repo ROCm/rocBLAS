@@ -229,8 +229,8 @@ void testing_spmv_batched(const Arguments& arg)
         {
             for(int i = 0; i < batch_count; i++)
             {
-                unit_check_general<T>(1, N, abs_incy, hg[i], hy[i]);
-                unit_check_general<T>(1, N, abs_incy, hg[i], hy2[i]);
+                unit_check_general<T, T>(1, N, abs_incy, hg[i], hy[i]);
+                unit_check_general<T, T>(1, N, abs_incy, hg[i], hy2[i]);
             }
         }
 

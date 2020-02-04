@@ -364,8 +364,8 @@ void testing_sbmv_strided_batched(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, N, batch_count, abs_incy, stridey, hg, hy);
-            unit_check_general<T>(1, N, batch_count, abs_incy, stridey, hg, hy2);
+            unit_check_general<T, T>(1, N, batch_count, abs_incy, stridey, hg, hy);
+            unit_check_general<T, T>(1, N, batch_count, abs_incy, stridey, hg, hy2);
         }
 
         if(arg.norm_check)
