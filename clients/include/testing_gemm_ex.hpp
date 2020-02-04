@@ -513,12 +513,9 @@ void testing_gemm_ex(const Arguments& arg)
         // CPU BLAS
         // copy C matrix into D matrix
         for(int i2 = 0; i2 < N; i2++)
-        {
             for(int i1 = 0; i1 < M; i1++)
-            {
                 hD_gold[i1 + i2 * ldd] = hC[i1 + i2 * ldc];
-            }
-        }
+
         cpu_time_used = get_time_us();
 
         cblas_gemm<Ti, To_hpa, Tc>(
@@ -578,9 +575,9 @@ void testing_gemm_ex(const Arguments& arg)
                                                 dC,
                                                 arg.c_type,
                                                 ldc,
-                                                dC,
-                                                arg.c_type,
-                                                ldc,
+                                                arg.c_noalias_d ? dD : dC,
+                                                arg.c_noalias_d ? arg.d_type : arg.c_type,
+                                                arg.c_noalias_d ? ldd : ldc,
                                                 arg.compute_type,
                                                 algo,
                                                 solution_index,
@@ -607,9 +604,9 @@ void testing_gemm_ex(const Arguments& arg)
                             dC,
                             arg.c_type,
                             ldc,
-                            dC,
-                            arg.c_type,
-                            ldc,
+                            arg.c_noalias_d ? dD : dC,
+                            arg.c_noalias_d ? arg.d_type : arg.c_type,
+                            arg.c_noalias_d ? ldd : ldc,
                             arg.compute_type,
                             algo,
                             solution_index,
