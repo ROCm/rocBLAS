@@ -131,8 +131,8 @@ void testing_nrm2_strided_batched_template(const Arguments& arg)
         abs_error *= tolerance;
         if(arg.unit_check)
         {
-            near_check_general<T2>(batch_count, 1, 1, cpu_result, rocblas_result_1, abs_error);
-            near_check_general<T2>(batch_count, 1, 1, cpu_result, rocblas_result_2, abs_error);
+            near_check_general<T2, T2>(batch_count, 1, 1, cpu_result, rocblas_result_1, abs_error);
+            near_check_general<T2, T2>(batch_count, 1, 1, cpu_result, rocblas_result_2, abs_error);
         }
 
         if(arg.norm_check)

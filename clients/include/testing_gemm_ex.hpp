@@ -242,60 +242,6 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
                           rocblas_status_invalid_handle);
 }
 
-static inline bool is_truncated(
-    rocblas_operation transA, rocblas_operation transB, rocblas_int m, rocblas_int n, rocblas_int k)
-{
-    int arc = _rocblas_handle::device_arch_id();
-    return arc == 908 && transA == rocblas_operation_transpose && transB == rocblas_operation_none
-           && ((m == 512 && n == 512 && k == 512) || (m == 1024 && n == 1024 && k == 1024)
-               || (m == 2048 && n == 2048 && k == 2048) || (m == 4096 && n == 4096 && k == 4096)
-               || (m == 960 && n == 1024 && k == 1024) || (m == 3840 && n == 4096 && k == 4096));
-}
-
-template <typename Ti, typename To, typename Tc>
-static inline void reference_gemm(rocblas_operation transA,
-                                  rocblas_operation transB,
-                                  rocblas_int       m,
-                                  rocblas_int       n,
-                                  rocblas_int       k,
-                                  Tc                alpha,
-                                  Ti*               A,
-                                  rocblas_int       lda,
-                                  Ti*               B,
-                                  rocblas_int       ldb,
-                                  Tc                beta,
-                                  To*               C,
-                                  rocblas_int       ldc)
-{
-    cblas_gemm<Ti, To, Tc>(transA, transB, m, n, k, alpha, A, lda, B, ldb, beta, C, ldc);
-}
-
-template <>
-static inline void reference_gemm(rocblas_operation transA,
-                                  rocblas_operation transB,
-                                  rocblas_int       m,
-                                  rocblas_int       n,
-                                  rocblas_int       k,
-                                  float             alpha,
-                                  rocblas_bfloat16* A,
-                                  rocblas_int       lda,
-                                  rocblas_bfloat16* B,
-                                  rocblas_int       ldb,
-                                  float             beta,
-                                  rocblas_bfloat16* C,
-                                  rocblas_int       ldc)
-{
-    const size_t       size_C = size_t(ldc) * size_t(n);
-    host_vector<float> C_float(size_C);
-    for(int i = 0; i < size_C; ++i)
-        C_float[i] = C[i];
-    cblas_gemm<rocblas_bfloat16, float, float>(
-        transA, transB, m, n, k, alpha, A, lda, B, ldb, beta, C_float, ldc);
-    bool round = !is_truncated(transA, transB, m, n, k);
-    for(int i = 0; i < size_C; ++i)
-        C[i] = round ? rocblas_bfloat16(C_float[i]) : float_to_bfloat16_truncate(C_float[i]);
-}
-
 template <typename Ti, typename To, typename Tc>
 void testing_gemm_ex(const Arguments& arg)
 {
@@ -394,10 +340,10 @@ void testing_gemm_ex(const Arguments& arg)
     host_vector<To> hC(size_C);
     host_vector<To> hC_1(size_C);
     host_vector<To> hC_2(size_C);
-    host_vector<To> hC_gold(size_C);
     host_vector<To> hD_1(size_D);
     host_vector<To> hD_2(size_D);
-    host_vector<To> hD_gold(size_D);
+    using To_hpa = std::conditional_t<std::is_same<To, rocblas_bfloat16>{}, float, To>;
+    host_vector<To_hpa> hD_gold(size_D);
 
     // Initial Data on CPU
     rocblas_seedrand();
@@ -466,9 +412,7 @@ void testing_gemm_ex(const Arguments& arg)
         }
     }
 
-    hD_2    = hD_1;
-    hD_gold = hD_1;
-    hC_gold = hC;
+    hD_2 = hD_1;
 
     // copy data from CPU to device
     // if int8 and A not transposed and valid case, pack A
@@ -574,7 +518,7 @@ void testing_gemm_ex(const Arguments& arg)
 
         cpu_time_used = get_time_us();
 
-        reference_gemm<Ti, To, Tc>(
+        cblas_gemm<Ti, To_hpa, Tc>(
             transA, transB, M, N, K, h_alpha_Tc, hA, lda, hB, ldb, h_beta_Tc, hD_gold, ldd);
 
         cpu_time_used = get_time_us() - cpu_time_used;
@@ -587,27 +531,21 @@ void testing_gemm_ex(const Arguments& arg)
                 // For large K, rocblas_half tends to diverge proportional to K
                 // Tolerance is slightly greater than 1 / 1024.0
                 const double tol = K * sum_error_tolerance<Tc>;
-                near_check_general<To>(M, N, ldd, hD_gold, hD_1, tol);
-                near_check_general<To>(M, N, ldd, hD_gold, hD_2, tol);
+                near_check_general<To, To_hpa>(M, N, ldd, hD_gold, hD_1, tol);
+                near_check_general<To, To_hpa>(M, N, ldd, hD_gold, hD_2, tol);
             }
             else
             {
-                unit_check_general<To>(M, N, ldd, hD_gold, hD_1);
-                unit_check_general<To>(M, N, ldd, hD_gold, hD_2);
+                unit_check_general<To, To_hpa>(M, N, ldd, hD_gold, hD_1);
+                unit_check_general<To, To_hpa>(M, N, ldd, hD_gold, hD_2);
             }
         }
 
         if(arg.norm_check)
         {
-            auto err1 = std::abs(norm_check_general<To>('F', M, N, ldd, hD_gold, hD_1));
-            auto err2 = std::abs(norm_check_general<To>('F', M, N, ldd, hD_gold, hD_2));
-            auto errD = err1 > err2 ? err1 : err2;
-
-            auto err3 = std::abs(norm_check_general<To>('F', M, N, ldc, hC_gold, hC_1));
-            auto err4 = std::abs(norm_check_general<To>('F', M, N, ldc, hC_gold, hC_2));
-            auto errC = err3 > err4 ? err3 : err4;
-
-            rocblas_error = errD > errC ? errD : errC;
+            auto err1     = std::abs(norm_check_general<To>('F', M, N, ldd, hD_gold, hD_1));
+            auto err2     = std::abs(norm_check_general<To>('F', M, N, ldd, hD_gold, hD_2));
+            rocblas_error = err1 > err2 ? err1 : err2;
         }
     }
 
