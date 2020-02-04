@@ -219,8 +219,8 @@ void testing_dot_strided_batched(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, 1, batch_count, 1, 1, cpu_result, rocblas_result_1);
-            unit_check_general<T>(1, 1, batch_count, 1, 1, cpu_result, rocblas_result_2);
+            unit_check_general<T, T>(1, 1, batch_count, 1, 1, cpu_result, rocblas_result_1);
+            unit_check_general<T, T>(1, 1, batch_count, 1, 1, cpu_result, rocblas_result_2);
         }
 
         if(arg.norm_check)
