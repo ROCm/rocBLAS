@@ -62,11 +62,11 @@ namespace
                       n,
                       "--incx",
                       incx,
-                      "--stridex",
+                      "--stride_x",
                       stridex,
                       "--incy",
                       incy,
-                      "--stridey",
+                      "--stride_y",
                       stridey,
                       "--batch_count",
                       batch_count);
@@ -78,16 +78,16 @@ namespace
                         n,
                         "incx",
                         incx,
-                        "stridex",
+                        "stride_x",
                         stridex,
                         "incy",
                         incy,
-                        "stridey",
+                        "stride_y",
                         stridey,
                         "batch_count",
                         batch_count);
 
-        return rocblas_copy_template<NB>(
+        return rocblas_copy_template<false, NB>(
             handle, n, x, 0, incx, stridex, y, 0, incy, stridey, batch_count);
     }
 

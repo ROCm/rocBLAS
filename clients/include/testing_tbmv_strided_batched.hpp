@@ -196,7 +196,7 @@ void testing_tbmv_strided_batched(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, M, batch_count, abs_incx, stride_x, hx_gold, hx_1);
+            unit_check_general<T, T>(1, M, batch_count, abs_incx, stride_x, hx_gold, hx_1);
         }
 
         if(arg.norm_check)

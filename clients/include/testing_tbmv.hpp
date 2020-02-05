@@ -144,7 +144,7 @@ void testing_tbmv(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, M, abs_incx, hx_gold, hx_1);
+            unit_check_general<T, T>(1, M, abs_incx, hx_gold, hx_1);
         }
 
         if(arg.norm_check)

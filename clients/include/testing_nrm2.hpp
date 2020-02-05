@@ -122,8 +122,8 @@ void testing_nrm2_template(const Arguments& arg)
         abs_error *= tolerance;
         if(arg.unit_check)
         {
-            near_check_general<T2>(1, 1, 1, &cpu_result, &rocblas_result_1, abs_error);
-            near_check_general<T2>(1, 1, 1, &cpu_result, &rocblas_result_2, abs_error);
+            near_check_general<T2, T2>(1, 1, 1, &cpu_result, &rocblas_result_1, abs_error);
+            near_check_general<T2, T2>(1, 1, 1, &cpu_result, &rocblas_result_2, abs_error);
         }
 
         if(arg.norm_check)

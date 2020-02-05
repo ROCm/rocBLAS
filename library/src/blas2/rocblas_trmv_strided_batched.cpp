@@ -89,7 +89,7 @@ namespace
                           m,
                           "--lda",
                           lda,
-                          "--stride_A",
+                          "--stride_a",
                           stridea,
                           "--incx",
                           incx,
@@ -113,7 +113,7 @@ namespace
                             m,
                             "lda",
                             lda,
-                            "stride_A",
+                            "stride_a",
                             stridea,
                             "incx",
                             incx,
@@ -126,7 +126,7 @@ namespace
 
         if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
         {
-            return rocblas_status_not_implemented;
+            return rocblas_status_invalid_value;
         }
 
         if(m < 0 || lda < m || lda < 1 || !incx || batch_count < 0)

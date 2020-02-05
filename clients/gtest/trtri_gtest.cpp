@@ -17,7 +17,7 @@
 namespace
 {
     // By default, this test does not apply to any types.
-    // The unnamed second parameter is used for enable_if below.
+    // The unnamed second parameter is used for enable_if_t below.
     template <typename, typename = void>
     struct trtri_testing : rocblas_test_invalid
     {
@@ -26,9 +26,10 @@ namespace
     // When the condition in the second argument is satisfied, the type combination
     // is valid. When the condition is false, this specialization does not apply.
     template <typename T>
-    struct trtri_testing<
-        T,
-        typename std::enable_if<std::is_same<T, float>{} || std::is_same<T, double>{}>::type>
+    struct trtri_testing<T,
+                         std::enable_if_t<std::is_same<T, float>{} || std::is_same<T, double>{}
+                                          || std::is_same<T, rocblas_float_complex>{}
+                                          || std::is_same<T, rocblas_double_complex>{}>>
         : rocblas_test_valid
     {
         void operator()(const Arguments& arg)

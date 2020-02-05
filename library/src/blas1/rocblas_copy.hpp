@@ -6,7 +6,7 @@
 #include "rocblas.h"
 #include "utility.h"
 
-template <typename U, typename V>
+template <bool CONJ, typename U, typename V>
 __global__ void copy_kernel(rocblas_int    n,
                             const U        xa,
                             ptrdiff_t      shiftx,
@@ -24,11 +24,11 @@ __global__ void copy_kernel(rocblas_int    n,
         const auto* x = load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex);
         auto*       y = load_ptr_batch(ya, hipBlockIdx_y, shifty, stridey);
 
-        y[tid * incy] = x[tid * incx];
+        y[tid * incy] = CONJ ? conj(x[tid * incx]) : x[tid * incx];
     }
 }
 
-template <rocblas_int NB, typename U, typename V>
+template <bool CONJ, rocblas_int NB, typename U, typename V>
 rocblas_status rocblas_copy_template(rocblas_handle handle,
                                      rocblas_int    n,
                                      U              x,
@@ -59,7 +59,7 @@ rocblas_status rocblas_copy_template(rocblas_handle handle,
     dim3 grid(blocks, batch_count);
     dim3 threads(NB);
 
-    hipLaunchKernelGGL(copy_kernel,
+    hipLaunchKernelGGL(copy_kernel<CONJ>,
                        grid,
                        threads,
                        0,

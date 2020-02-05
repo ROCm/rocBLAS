@@ -129,7 +129,7 @@ void testing_copy_strided_batched(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, N, batch_count, abs_incy, stride_y, hy_gold, hy);
+            unit_check_general<T, T>(1, N, batch_count, abs_incy, stride_y, hy_gold, hy);
         }
 
         if(arg.norm_check)

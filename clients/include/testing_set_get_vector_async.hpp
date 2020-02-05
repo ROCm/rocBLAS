@@ -98,7 +98,7 @@ void testing_set_get_vector_async(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, M, incy, hy, hy_gold);
+            unit_check_general<T, T>(1, M, incy, hy, hy_gold);
         }
 
         if(arg.norm_check)

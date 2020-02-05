@@ -75,7 +75,7 @@ void testing_rotmg(const Arguments& arg)
                 handle, &hparams[0], &hparams[1], &hparams[2], &hparams[3], &hparams[4]));
 
             if(arg.unit_check)
-                near_check_general<T>(1, 9, 1, cparams, hparams, rel_error);
+                near_check_general<T, T>(1, 9, 1, cparams, hparams, rel_error);
 
             if(arg.norm_check)
                 error_host = norm_check_general<T>('F', 1, 9, 1, cparams, hparams);
@@ -92,7 +92,7 @@ void testing_rotmg(const Arguments& arg)
             CHECK_HIP_ERROR(hipMemcpy(hparams, dparams, 9 * sizeof(T), hipMemcpyDeviceToHost));
 
             if(arg.unit_check)
-                near_check_general<T>(1, 9, 1, cparams, hparams, rel_error);
+                near_check_general<T, T>(1, 9, 1, cparams, hparams, rel_error);
 
             if(arg.norm_check)
                 error_device = norm_check_general<T>('F', 1, 9, 1, cparams, hparams);
