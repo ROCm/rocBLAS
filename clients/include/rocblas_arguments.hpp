@@ -84,6 +84,8 @@ struct Arguments
     rocblas_initialization initialization;
     char                   known_bug_platforms[64];
 
+    bool c_noalias_d;
+
     // Validate input format.
     // rocblas_gentest.py is expected to conform to this format.
     // rocblas_gentest.py uses rocblas_common.yaml to generate this format.
@@ -167,6 +169,7 @@ struct Arguments
         ROCBLAS_FORMAT_CHECK(category);
         ROCBLAS_FORMAT_CHECK(initialization);
         ROCBLAS_FORMAT_CHECK(known_bug_platforms);
+        ROCBLAS_FORMAT_CHECK(c_noalias_d);
     }
 
     template <typename T>
@@ -184,13 +187,13 @@ struct Arguments
     }
 
 private:
-    template <typename T, typename U, typename std::enable_if<!is_complex<T>, int>::type = 0>
+    template <typename T, typename U, std::enable_if_t<!is_complex<T>, int> = 0>
     static T convert_alpha_beta(U r, U i)
     {
         return T(r);
     }
 
-    template <typename T, typename U, typename std::enable_if<+is_complex<T>, int>::type = 0>
+    template <typename T, typename U, std::enable_if_t<+is_complex<T>, int> = 0>
     static T convert_alpha_beta(U r, U i)
     {
         return T(r, i);
@@ -310,6 +313,7 @@ private:
         PRINT(iters);
         PRINT(initialization);
         PRINT(known_bug_platforms);
+        PRINT(c_noalias_d);
 
 #undef PRINT
         return str << " }\n";

@@ -31,13 +31,13 @@ __device__ inline rocblas_half2
 
 // Conjugate a value. For most types, simply return argument; for
 // rocblas_float_complex and rocblas_double_complex, return std::conj(z)
-template <typename T, typename std::enable_if<!is_complex<T>, int>::type = 0>
+template <typename T, std::enable_if_t<!is_complex<T>, int> = 0>
 __device__ __host__ inline T conj(const T& z)
 {
     return z;
 }
 
-template <typename T, typename std::enable_if<is_complex<T>, int>::type = 0>
+template <typename T, std::enable_if_t<is_complex<T>, int> = 0>
 __device__ __host__ inline T conj(const T& z)
 {
     return std::conj(z);
@@ -311,14 +311,14 @@ constexpr rocblas_status get_rocblas_status_for_hip_status(hipError_t status)
 }
 
 // Absolute value
-template <typename T, typename std::enable_if<!is_complex<T>, int>::type = 0>
+template <typename T, std::enable_if_t<!is_complex<T>, int> = 0>
 __device__ __host__ inline T rocblas_abs(T x)
 {
     return x < 0 ? -x : x;
 }
 
 // For complex, we have defined a __device__ __host__ compatible std::abs
-template <typename T, typename std::enable_if<is_complex<T>, int>::type = 0>
+template <typename T, std::enable_if_t<is_complex<T>, int> = 0>
 __device__ __host__ inline auto rocblas_abs(T x)
 {
     return std::abs(x);
@@ -342,6 +342,39 @@ __device__ __host__ inline rocblas_half rocblas_abs(rocblas_half x)
     t.data &= 0x7fff;
     return t.x;
 }
+
+// Get base types from complex types.
+template <typename>
+struct rocblas_real_type
+{
+};
+
+template <>
+struct rocblas_real_type<float>
+{
+    using type = float;
+};
+
+template <>
+struct rocblas_real_type<double>
+{
+    using type = double;
+};
+
+template <>
+struct rocblas_real_type<rocblas_float_complex>
+{
+    using type = float;
+};
+
+template <>
+struct rocblas_real_type<rocblas_double_complex>
+{
+    using type = double;
+};
+
+template <typename T>
+using rocblas_real_t = typename rocblas_real_type<T>::type;
 
 // Output rocblas_half value
 inline std::ostream& operator<<(std::ostream& os, rocblas_half x)

@@ -14,6 +14,10 @@ namespace
     constexpr char rocblas_trtri_name<float>[] = "rocblas_strtri";
     template <>
     constexpr char rocblas_trtri_name<double>[] = "rocblas_dtrtri";
+    template <>
+    constexpr char rocblas_trtri_name<rocblas_float_complex>[] = "rocblas_ctrtri";
+    template <>
+    constexpr char rocblas_trtri_name<rocblas_double_complex>[] = "rocblas_ztrtri";
 
     template <rocblas_int NB, typename T>
     rocblas_status rocblas_trtri_impl(rocblas_handle   handle,
@@ -119,6 +123,42 @@ rocblas_status rocblas_dtrtri(rocblas_handle   handle,
                               rocblas_int      lda,
                               double*          invA,
                               rocblas_int      ldinvA)
+try
+{
+    constexpr rocblas_int NB = 16;
+    return rocblas_trtri_impl<NB>(handle, uplo, diag, n, A, lda, invA, ldinvA);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
+}
+
+rocblas_status rocblas_ctrtri(rocblas_handle               handle,
+                              rocblas_fill                 uplo,
+                              rocblas_diagonal             diag,
+                              rocblas_int                  n,
+                              const rocblas_float_complex* A,
+                              rocblas_int                  lda,
+                              rocblas_float_complex*       invA,
+                              rocblas_int                  ldinvA)
+try
+{
+    constexpr rocblas_int NB = 16;
+    return rocblas_trtri_impl<NB>(handle, uplo, diag, n, A, lda, invA, ldinvA);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
+}
+
+rocblas_status rocblas_ztrtri(rocblas_handle                handle,
+                              rocblas_fill                  uplo,
+                              rocblas_diagonal              diag,
+                              rocblas_int                   n,
+                              const rocblas_double_complex* A,
+                              rocblas_int                   lda,
+                              rocblas_double_complex*       invA,
+                              rocblas_int                   ldinvA)
 try
 {
     constexpr rocblas_int NB = 16;

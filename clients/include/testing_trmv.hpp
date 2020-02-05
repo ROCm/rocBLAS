@@ -42,18 +42,6 @@ void testing_trmv_bad_arg(const Arguments& arg)
     CHECK_HIP_ERROR(dx.memcheck());
 
     //
-    // Initialize.
-    //
-    rocblas_init(hA, true);
-    rocblas_init(hx);
-
-    //
-    // Transfer.
-    //
-    CHECK_HIP_ERROR(dA.transfer_from(hA));
-    CHECK_HIP_ERROR(dx.transfer_from(hx));
-
-    //
     // Checks.
     //
     EXPECT_ROCBLAS_STATUS(rocblas_trmv<T>(handle, uplo, transA, diag, M, nullptr, lda, dx, incx),
@@ -161,7 +149,7 @@ void testing_trmv(const Arguments& arg)
         //
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, dim_x, abs_incx, hx, hres);
+            unit_check_general<T, T>(1, dim_x, abs_incx, hx, hres);
         }
 
         //
@@ -191,7 +179,7 @@ void testing_trmv(const Arguments& arg)
         //
         {
             gpu_time_used        = get_time_us(); // in microseconds
-            int number_hot_calls = 100;
+            int number_hot_calls = arg.iters;
             for(int iter = 0; iter < number_hot_calls; iter++)
             {
                 rocblas_trmv<T>(handle, uplo, transA, diag, M, dA, lda, dx, incx);

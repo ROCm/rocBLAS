@@ -153,13 +153,13 @@ void testing_trmm(const Arguments& arg)
                 // For large K, rocblas_half tends to diverge proportional to K
                 // Tolerance is slightly greater than 1 / 1024.0
                 const double tol = K * sum_error_tolerance<T>;
-                near_check_general<T>(M, N, ldb, cpuB, hB_1, tol);
-                near_check_general<T>(M, N, ldb, cpuB, hB_2, tol);
+                near_check_general<T, T>(M, N, ldb, cpuB, hB_1, tol);
+                near_check_general<T, T>(M, N, ldb, cpuB, hB_2, tol);
             }
             else
             {
-                unit_check_general<T>(M, N, ldb, cpuB, hB_1);
-                unit_check_general<T>(M, N, ldb, cpuB, hB_2);
+                unit_check_general<T, T>(M, N, ldb, cpuB, hB_1);
+                unit_check_general<T, T>(M, N, ldb, cpuB, hB_2);
             }
         }
 
@@ -168,7 +168,6 @@ void testing_trmm(const Arguments& arg)
             auto err1     = std::abs(norm_check_general<T>('F', M, N, ldb, cpuB, hB_1));
             auto err2     = std::abs(norm_check_general<T>('F', M, N, ldb, cpuB, hB_2));
             rocblas_error = err1 > err2 ? err1 : err2;
-            rocblas_error = err1;
         }
     }
 

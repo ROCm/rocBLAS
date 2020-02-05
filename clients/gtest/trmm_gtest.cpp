@@ -15,7 +15,7 @@
 namespace
 {
     // By default, this test does not apply to any types.
-    // The unnamed second parameter is used for enable_if below.
+    // The unnamed second parameter is used for enable_if_t below.
     template <typename, typename = void>
     struct trmm_testing : rocblas_test_invalid
     {
@@ -26,8 +26,11 @@ namespace
     template <typename T>
     struct trmm_testing<
         T,
-        typename std::enable_if<std::is_same<T, float>{} || std::is_same<T, double>{}>::type>
+        typename std::enable_if<std::is_same<T, float>{} || std::is_same<T, double>{}
+                                || std::is_same<T, rocblas_float_complex>{}
+                                || std::is_same<T, rocblas_double_complex>{}>::type>
         : rocblas_test_valid
+
     {
         void operator()(const Arguments& arg)
         {

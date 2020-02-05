@@ -87,7 +87,7 @@ namespace
     };
 
     // By default, this test does not apply to any types.
-    // The unnamed second parameter is used for enable_if below.
+    // The unnamed second parameter is used for enable_if_t below.
     template <typename, typename = void>
     struct ger_testing : rocblas_test_invalid
     {
@@ -96,25 +96,23 @@ namespace
     // When the condition in the second argument is satisfied, the type combination
     // is valid. When the condition is false, this specialization does not apply.
     template <typename T>
-    struct ger_testing<
-        T,
-        typename std::enable_if<std::is_same<T, float>{} || std::is_same<T, double>{}>::type>
+    struct ger_testing<T, std::enable_if_t<std::is_same<T, float>{} || std::is_same<T, double>{}>>
         : rocblas_test_valid
     {
         void operator()(const Arguments& arg)
         {
             if(!strcmp(arg.function, "ger"))
-                testing_ger<T>(arg);
+                testing_ger<T, false>(arg);
             else if(!strcmp(arg.function, "ger_bad_arg"))
-                testing_ger_bad_arg<T>(arg);
+                testing_ger_bad_arg<T, false>(arg);
             else if(!strcmp(arg.function, "ger_batched"))
-                testing_ger_batched<T>(arg);
+                testing_ger_batched<T, false>(arg);
             else if(!strcmp(arg.function, "ger_batched_bad_arg"))
-                testing_ger_batched_bad_arg<T>(arg);
+                testing_ger_batched_bad_arg<T, false>(arg);
             else if(!strcmp(arg.function, "ger_strided_batched"))
-                testing_ger_strided_batched<T>(arg);
+                testing_ger_strided_batched<T, false>(arg);
             else if(!strcmp(arg.function, "ger_strided_batched_bad_arg"))
-                testing_ger_strided_batched_bad_arg<T>(arg);
+                testing_ger_strided_batched_bad_arg<T, false>(arg);
             else
                 FAIL() << "Internal error: Test called with unknown function: " << arg.function;
         }

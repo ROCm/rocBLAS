@@ -140,8 +140,8 @@ void testing_trtri(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            T rel_error = std::numeric_limits<T>::epsilon() * 1000;
-            near_check_general<T>(N, N, lda, hB, hA, rel_error);
+            const double rel_error = get_epsilon<T>() * 1000;
+            near_check_general<T, T>(N, N, lda, hB, hA, rel_error);
         }
 
         if(arg.norm_check)
