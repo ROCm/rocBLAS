@@ -74,6 +74,9 @@
 #include "testing_hemv_batched.hpp"
 #include "testing_hemv_strided_batched.hpp"
 #include "testing_her.hpp"
+#include "testing_her2.hpp"
+#include "testing_her2_batched.hpp"
+#include "testing_her2_strided_batched.hpp"
 #include "testing_her_batched.hpp"
 #include "testing_her_strided_batched.hpp"
 #include "testing_hpmv.hpp"
@@ -394,6 +397,9 @@ struct perf_blas<T,
                 {"her", testing_her<T>},
                 {"her_batched", testing_her_batched<T>},
                 {"her_strided_batched", testing_her_strided_batched<T>},
+                {"her2", testing_her2<T>},
+                {"her2_batched", testing_her2_batched<T>},
+                {"her2_strided_batched", testing_her2_strided_batched<T>},
                 {"hpmv", testing_hpmv<T>},
                 {"hpmv_batched", testing_hpmv_batched<T>},
                 {"hpmv_strided_batched", testing_hpmv_strided_batched<T>},
@@ -923,6 +929,10 @@ try
          value<rocblas_int>(&device_id)->default_value(0),
          "Set default device to be used for subsequent program runs")
 
+        ("c_noalias_d",
+         bool_switch(&arg.c_noalias_d)->default_value(false),
+         "C and D are stored in separate memory")
+
         ("help,h", "produces this help message")
 
         ("version", "Prints the version number");
@@ -945,6 +955,7 @@ try
         rocblas_cout << "rocBLAS version: " << blas_version << std::endl;
         return 0;
     }
+
     // Device Query
     rocblas_int device_count = query_device_property();
 

@@ -125,8 +125,8 @@ void testing_asum_batched_template(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T2>(1, batch_count, 1, cpu_result, hr1);
-            unit_check_general<T2>(1, batch_count, 1, cpu_result, hr);
+            unit_check_general<T2, T2>(1, batch_count, 1, cpu_result, hr1);
+            unit_check_general<T2, T2>(1, batch_count, 1, cpu_result, hr);
         }
 
         if(arg.norm_check)

@@ -3,6 +3,10 @@
 //
 #pragma once
 
+#include <cmath>
+#include <type_traits>
+#include <vector>
+
 //!
 //! @brief  Pseudo-vector subclass which uses host memory.
 //!
@@ -15,11 +19,24 @@ struct host_vector : std::vector<T>
     //!
     //! @brief Constructor.
     //!
-    host_vector(rocblas_int n, rocblas_int inc)
+    host_vector(size_t n, ptrdiff_t inc)
         : std::vector<T>(n * std::abs(inc))
         , m_n(n)
         , m_inc(inc)
     {
+    }
+
+    //!
+    //! @brief Copy constructor from host_vector of other types convertible to T
+    //!
+    template <typename U, std::enable_if_t<std::is_convertible<U, T>{}, int> = 0>
+    host_vector(const host_vector<U>& x)
+        : std::vector<T>(x.size())
+        , m_n(x.size())
+        , m_inc(1)
+    {
+        for(size_t i = 0; i < m_n; ++i)
+            (*this)[i] = x[i];
     }
 
     //!
@@ -45,30 +62,29 @@ struct host_vector : std::vector<T>
     //!
     hipError_t transfer_from(const device_vector<T>& that)
     {
-        return hipMemcpy(
-            this->data(), (const T*)that, sizeof(T) * this->size(), hipMemcpyDeviceToHost);
+        return hipMemcpy(*this, that, sizeof(T) * this->size(), hipMemcpyDeviceToHost);
     }
 
     //!
     //! @brief Returns the length of the vector.
     //!
-    rocblas_int n() const
+    size_t n() const
     {
-        return this->m_n;
+        return m_n;
     }
 
     //!
     //! @brief Returns the increment of the vector.
     //!
-    rocblas_int inc() const
+    ptrdiff_t inc() const
     {
-        return this->m_inc;
+        return m_inc;
     }
 
     //!
     //! @brief Returns the batch count (always 1).
     //!
-    rocblas_int batch_count() const
+    static constexpr rocblas_int batch_count()
     {
         return 1;
     }
@@ -76,21 +92,20 @@ struct host_vector : std::vector<T>
     //!
     //! @brief Returns the stride (out of context, always 0)
     //!
-    rocblas_stride stride() const
+    static constexpr rocblas_stride stride()
     {
         return 0;
     }
 
     //!
-    //! @brief Check if memory exists.
-    //! @return hipSuccess if memory exists, hipErrorOutOfMemory otherwise.
+    //! @brief Check if memory exists (out of context, always hipSuccess)
     //!
-    hipError_t memcheck() const
+    static constexpr hipError_t memcheck()
     {
-        return (nullptr != (const T*)this) ? hipSuccess : hipErrorOutOfMemory;
+        return hipSuccess;
     }
 
 private:
-    rocblas_int m_n{};
-    rocblas_int m_inc{};
+    size_t    m_n;
+    ptrdiff_t m_inc;
 };

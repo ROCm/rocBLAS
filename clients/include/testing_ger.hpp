@@ -168,14 +168,14 @@ void testing_ger(const Arguments& arg)
         {
             if(std::is_same<T, float>{} || std::is_same<T, double>{})
             {
-                unit_check_general<T>(M, N, lda, hA_gold, hA_1);
-                unit_check_general<T>(M, N, lda, hA_gold, hA_2);
+                unit_check_general<T, T>(M, N, lda, hA_gold, hA_1);
+                unit_check_general<T, T>(M, N, lda, hA_gold, hA_2);
             }
             else
             {
                 const double tol = N * sum_error_tolerance<T>;
-                near_check_general<T>(M, N, lda, hA_gold, hA_1, tol);
-                near_check_general<T>(M, N, lda, hA_gold, hA_2, tol);
+                near_check_general<T, T>(M, N, lda, hA_gold, hA_1, tol);
+                near_check_general<T, T>(M, N, lda, hA_gold, hA_2, tol);
             }
         }
 

@@ -333,8 +333,8 @@ void testing_gbmv_batched(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, dim_y, batch_count, abs_incy, hy_goldA, hy_1A);
-            unit_check_general<T>(1, dim_y, batch_count, abs_incy, hy_goldA, hy_2A);
+            unit_check_general<T, T>(1, dim_y, batch_count, abs_incy, hy_goldA, hy_1A);
+            unit_check_general<T, T>(1, dim_y, batch_count, abs_incy, hy_goldA, hy_2A);
         }
 
         if(arg.norm_check)
