@@ -164,8 +164,8 @@ void testing_syr2(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(N, N, lda, hA_gold, hA_1);
-            unit_check_general<T>(N, N, lda, hA_gold, hA_2);
+            unit_check_general<T, T>(N, N, lda, hA_gold, hA_1);
+            unit_check_general<T, T>(N, N, lda, hA_gold, hA_2);
         }
 
         if(arg.norm_check)
