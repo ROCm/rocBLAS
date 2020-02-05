@@ -73,7 +73,7 @@ void testing_trsv(const Arguments& arg)
     double rocblas_error;
     double error_eps_multiplier    = ERROR_EPS_MULTIPLIER;
     double residual_eps_multiplier = RESIDUAL_EPS_MULTIPLIER;
-    double eps                     = std::numeric_limits<rocblas_real_t<T>>::epsilon();
+    double eps                     = std::numeric_limits<real_t<T>>::epsilon();
 
     // allocate memory on device
     device_vector<T> dA(size_A);
@@ -82,19 +82,19 @@ void testing_trsv(const Arguments& arg)
     rocblas_init<T>(hA, M, M, lda);
 
     //  calculate AAT = hA * hA ^ T or AAT = hA * hA ^ H if complex
-    cblas_gemm<T, T>(rocblas_operation_none,
-                     rocblas_operation_conjugate_transpose,
-                     M,
-                     M,
-                     M,
-                     T(1.0),
-                     hA,
-                     lda,
-                     hA,
-                     lda,
-                     T(0.0),
-                     AAT,
-                     lda);
+    cblas_gemm<T>(rocblas_operation_none,
+                  rocblas_operation_conjugate_transpose,
+                  M,
+                  M,
+                  M,
+                  T(1.0),
+                  hA,
+                  lda,
+                  hA,
+                  lda,
+                  T(0.0),
+                  AAT,
+                  lda);
 
     //  copy AAT into hA, make hA strictly diagonal dominant, and therefore SPD
     for(int i = 0; i < M; i++)
