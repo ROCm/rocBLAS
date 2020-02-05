@@ -247,6 +247,14 @@ constexpr __host__ __device__ rocblas_bfloat16 operator--(rocblas_bfloat16& a, i
 
 namespace std
 {
+    constexpr __host__ __device__ rocblas_bfloat16 real(rocblas_bfloat16 a)
+    {
+        return a;
+    }
+    constexpr __host__ __device__ rocblas_bfloat16 imag(rocblas_bfloat16 a)
+    {
+        return rocblas_bfloat16{0};
+    }
     constexpr __host__ __device__ bool isinf(rocblas_bfloat16 a)
     {
         return !(~a.data & 0x7f80) && !(a.data & 0x7f);
