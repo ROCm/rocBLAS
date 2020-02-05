@@ -137,10 +137,10 @@ void testing_rotg_strided_batched(const Arguments& arg)
 
             if(arg.unit_check)
             {
-                near_check_general<T>(1, 1, batch_count, 1, stride_a, ca, ra, rel_error);
-                near_check_general<T>(1, 1, batch_count, 1, stride_b, cb, rb, rel_error);
-                near_check_general<U>(1, 1, batch_count, 1, stride_c, cc, rc, rel_error);
-                near_check_general<T>(1, 1, batch_count, 1, stride_s, cs, rs, rel_error);
+                near_check_general<T, T>(1, 1, batch_count, 1, stride_a, ca, ra, rel_error);
+                near_check_general<T, T>(1, 1, batch_count, 1, stride_b, cb, rb, rel_error);
+                near_check_general<U, U>(1, 1, batch_count, 1, stride_c, cc, rc, rel_error);
+                near_check_general<T, T>(1, 1, batch_count, 1, stride_s, cs, rs, rel_error);
             }
 
             if(arg.norm_check)
@@ -180,10 +180,10 @@ void testing_rotg_strided_batched(const Arguments& arg)
 
             if(arg.unit_check)
             {
-                near_check_general<T>(1, 1, batch_count, 1, stride_a, ca, ra, rel_error);
-                near_check_general<T>(1, 1, batch_count, 1, stride_b, cb, rb, rel_error);
-                near_check_general<U>(1, 1, batch_count, 1, stride_c, cc, rc, rel_error);
-                near_check_general<T>(1, 1, batch_count, 1, stride_s, cs, rs, rel_error);
+                near_check_general<T, T>(1, 1, batch_count, 1, stride_a, ca, ra, rel_error);
+                near_check_general<T, T>(1, 1, batch_count, 1, stride_b, cb, rb, rel_error);
+                near_check_general<U, U>(1, 1, batch_count, 1, stride_c, cc, rc, rel_error);
+                near_check_general<T, T>(1, 1, batch_count, 1, stride_s, cs, rs, rel_error);
             }
 
             if(arg.norm_check)

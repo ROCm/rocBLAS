@@ -232,8 +232,8 @@ void testing_gbmv(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, dim_y, abs_incy, hy_gold, hy_1);
-            unit_check_general<T>(1, dim_y, abs_incy, hy_gold, hy_2);
+            unit_check_general<T, T>(1, dim_y, abs_incy, hy_gold, hy_1);
+            unit_check_general<T, T>(1, dim_y, abs_incy, hy_gold, hy_2);
         }
 
         if(arg.norm_check)

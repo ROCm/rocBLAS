@@ -924,6 +924,10 @@ try
          value<rocblas_int>(&device_id)->default_value(0),
          "Set default device to be used for subsequent program runs")
 
+        ("c_noalias_d",
+         bool_switch(&arg.c_noalias_d)->default_value(false),
+         "C and D are stored in separate memory")
+
         ("help,h", "produces this help message")
 
         ("version", "Prints the version number");
@@ -946,6 +950,7 @@ try
         std::cout << "rocBLAS version: " << blas_version << std::endl;
         return 0;
     }
+
     // Device Query
     rocblas_int device_count = query_device_property();
 
