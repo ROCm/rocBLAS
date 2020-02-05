@@ -93,7 +93,7 @@ void testing_set_get_matrix(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(rows, cols, ldb, hb, hb_gold);
+            unit_check_general<T, T>(rows, cols, ldb, hb, hb_gold);
         }
 
         if(arg.norm_check)

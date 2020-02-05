@@ -199,14 +199,14 @@ void testing_syr_batched(const Arguments& arg)
             {
                 if(std::is_same<T, float>{} || std::is_same<T, double>{})
                 {
-                    unit_check_general<T>(N, N, lda, hA_gold[i], hA_1[i]);
-                    unit_check_general<T>(N, N, lda, hA_gold[i], hA_2[i]);
+                    unit_check_general<T, T>(N, N, lda, hA_gold[i], hA_1[i]);
+                    unit_check_general<T, T>(N, N, lda, hA_gold[i], hA_2[i]);
                 }
                 else
                 {
                     const double tol = N * sum_error_tolerance<T>;
-                    near_check_general<T>(N, N, lda, hA_gold[i], hA_1[i], tol);
-                    near_check_general<T>(N, N, lda, hA_gold[i], hA_2[i], tol);
+                    near_check_general<T, T>(N, N, lda, hA_gold[i], hA_1[i], tol);
+                    near_check_general<T, T>(N, N, lda, hA_gold[i], hA_2[i], tol);
                 }
             }
         }

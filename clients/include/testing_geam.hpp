@@ -250,8 +250,8 @@ void testing_geam(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(M, N, ldc, hC_gold, hC_1);
-            unit_check_general<T>(M, N, ldc, hC_gold, hC_2);
+            unit_check_general<T, T>(M, N, ldc, hC_gold, hC_1);
+            unit_check_general<T, T>(M, N, ldc, hC_gold, hC_2);
         }
 
         if(arg.norm_check)
@@ -302,7 +302,7 @@ void testing_geam(const Arguments& arg)
 
                 if(arg.unit_check)
                 {
-                    unit_check_general<T>(M, N, ldc, hC_gold, hC_1);
+                    unit_check_general<T, T>(M, N, ldc, hC_gold, hC_1);
                 }
 
                 if(arg.norm_check)
@@ -354,7 +354,7 @@ void testing_geam(const Arguments& arg)
 
                 if(arg.unit_check)
                 {
-                    unit_check_general<T>(M, N, ldc, hC_gold, hC_1);
+                    unit_check_general<T, T>(M, N, ldc, hC_gold, hC_1);
                 }
 
                 if(arg.norm_check)

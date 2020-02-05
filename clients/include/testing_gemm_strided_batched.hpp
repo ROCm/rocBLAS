@@ -216,13 +216,13 @@ void testing_gemm_strided_batched(const Arguments& arg)
                 // For large K, rocblas_half tends to diverge proportional to K
                 // Tolerance is slightly greater than 1 / 1024.0
                 const double tol = K * sum_error_tolerance<T>;
-                near_check_general<T>(M, N, batch_count, ldc, stride_c, hC_gold, hC_1, tol);
-                near_check_general<T>(M, N, batch_count, ldc, stride_c, hC_gold, hC_2, tol);
+                near_check_general<T, T>(M, N, batch_count, ldc, stride_c, hC_gold, hC_1, tol);
+                near_check_general<T, T>(M, N, batch_count, ldc, stride_c, hC_gold, hC_2, tol);
             }
             else
             {
-                unit_check_general<T>(M, N, batch_count, ldc, stride_c, hC_gold, hC_1);
-                unit_check_general<T>(M, N, batch_count, ldc, stride_c, hC_gold, hC_2);
+                unit_check_general<T, T>(M, N, batch_count, ldc, stride_c, hC_gold, hC_1);
+                unit_check_general<T, T>(M, N, batch_count, ldc, stride_c, hC_gold, hC_2);
             }
         }
 

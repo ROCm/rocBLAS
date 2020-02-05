@@ -126,8 +126,8 @@ void testing_iamax_iamin(const Arguments& arg, rocblas_iamax_iamin_t<T> func)
 
         if(arg.unit_check)
         {
-            unit_check_general<rocblas_int>(1, 1, 1, &cpu_result, &h_rocblas_result_1);
-            unit_check_general<rocblas_int>(1, 1, 1, &cpu_result, &h_rocblas_result_2);
+            unit_check_general<rocblas_int, rocblas_int>(1, 1, 1, &cpu_result, &h_rocblas_result_1);
+            unit_check_general<rocblas_int, rocblas_int>(1, 1, 1, &cpu_result, &h_rocblas_result_2);
         }
 
         if(arg.norm_check)
