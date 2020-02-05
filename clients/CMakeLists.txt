@@ -87,6 +87,19 @@ function(rocm_create_package_clients)
     set(multiValueArgs DEPENDS)
 
     cmake_parse_arguments(PARSE "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+
+    set( PACKAGE_REQUIREMENTS "${PARSE_LIB_NAME} (>=${PARSE_VERSION})")
+    if(CPACK_SYSTEM_NAME MATCHES "ubuntu-18.04")
+      set(PACKAGE_REQUIREMENTS "${PACKAGE_REQUIREMENTS}, libboost-program-options-dev (>=1.65.1)")
+      set(PACKAGE_REQUIREMENTS "${PACKAGE_REQUIREMENTS}, libomp-dev (>=5.0.1)")
+      set(PACKAGE_REQUIREMENTS "${PACKAGE_REQUIREMENTS}, gfortran (>=7.4.0)")
+    elseif(CPACK_SYSTEM_NAME MATCHES "ubuntu-16.04")
+      set(PACKAGE_REQUIREMENTS "${PACKAGE_REQUIREMENTS}, libboost-program-options-dev (>=1.58.0)")
+      set(PACKAGE_REQUIREMENTS "${PACKAGE_REQUIREMENTS}, libomp-dev (>=3.7.0)")
+      set(PACKAGE_REQUIREMENTS "${PACKAGE_REQUIREMENTS}, gfortran (>=4.8.5)")
+    endif()
+    message(${PACKAGE_REQUIREMENTS})
+
     string(CONCAT PACKAGE_NAME ${PARSE_LIB_NAME} "-clients-" ${PARSE_VERSION} "-" ${CPACK_SYSTEM_NAME} ".deb")
     string(CONCAT DEB_CONTROL_FILE_CONTENT "Package: " ${PARSE_LIB_NAME} "-clients"
                                            "\nVersion: " ${PARSE_VERSION}
@@ -95,7 +108,7 @@ function(rocm_create_package_clients)
                                            "\nArchitecture: amd64"
                                            "\nMaintainer: " ${PARSE_MAINTAINER}
                                            "\nDescription: " ${PARSE_DESCRIPTION}
-                                           "\nDepends: " ${PARSE_LIB_NAME} "(>=" ${PARSE_VERSION} ")\n\n")
+                                           "\nDepends: " ${PACKAGE_REQUIREMENTS} "\n\n")
     set(PACKAGE_DIR "${PROJECT_BINARY_DIR}/package")
     if(EXISTS "${PACKAGE_DIR}")
         file(REMOVE_RECURSE "${PACKAGE_DIR}")
