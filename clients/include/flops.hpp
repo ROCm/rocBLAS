@@ -388,6 +388,25 @@ constexpr double syr_gflop_count<rocblas_double_complex>(rocblas_int n)
     return syr_gflop_count<rocblas_float_complex>(n);
 }
 
+/* \brief floating point counts of SYR2 */
+template <typename T>
+constexpr double syr2_gflop_count(rocblas_int n)
+{
+    return (2.0 * (n + 1.0) * n + 2.0 * n) / 1e9;
+}
+
+template <>
+constexpr double syr2_gflop_count<rocblas_float_complex>(rocblas_int n)
+{
+    return (8 * (n + 1.0) * n + 12.0 * n) / 1e9;
+}
+
+template <>
+constexpr double syr2_gflop_count<rocblas_double_complex>(rocblas_int n)
+{
+    return (8 * (n + 1.0) * n + 12.0 * n) / 1e9;
+}
+
 /*
  * ===========================================================================
  *    level 3 BLAS
