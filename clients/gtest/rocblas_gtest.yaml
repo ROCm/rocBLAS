@@ -17,6 +17,7 @@ include: symv_gtest.yaml
 include: spr_gtest.yaml
 include: spr2_gtest.yaml
 include: syr_gtest.yaml
+include: syr2_gtest.yaml
 include: ger_gtest.yaml
 include: geruc_gtest.yaml
 include: tbmv_gtest.yaml

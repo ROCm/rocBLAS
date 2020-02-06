@@ -81,6 +81,13 @@ constexpr double her2_gbyte_count(rocblas_int n)
     return (sizeof(T) * (tri_count(n) + 2 * n)) / 1e9;
 }
 
+/* \brief byte  counts of SYR2 */
+template <typename T>
+constexpr double syr2_gbyte_count(rocblas_int n)
+{
+    return (sizeof(T) * (tri_count(n) + 2 * n)) / 1e9;
+}
+
 /*
  * ===========================================================================
  *    level 3 BLAS
