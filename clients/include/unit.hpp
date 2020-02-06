@@ -87,12 +87,14 @@
 
 #endif // GOOGLE_TEST
 
+// TODO: Replace std::remove_cv_t with std::type_identity_t in C++20
+// It is only used to make T_hpa non-deduced
 template <typename T, typename T_hpa = T>
-void unit_check_general(rocblas_int                      M,
-                        rocblas_int                      N,
-                        rocblas_int                      lda,
-                        const std::common_type_t<T_hpa>* hCPU,
-                        const T*                         hGPU);
+void unit_check_general(rocblas_int                    M,
+                        rocblas_int                    N,
+                        rocblas_int                    lda,
+                        const std::remove_cv_t<T_hpa>* hCPU,
+                        const T*                       hGPU);
 
 template <>
 inline void unit_check_general(rocblas_int             M,
@@ -163,13 +165,13 @@ inline void unit_check_general(
 }
 
 template <typename T, typename T_hpa = T>
-void unit_check_general(rocblas_int                      M,
-                        rocblas_int                      N,
-                        rocblas_int                      batch_count,
-                        rocblas_int                      lda,
-                        rocblas_stride                   strideA,
-                        const std::common_type_t<T_hpa>* hCPU,
-                        const T*                         hGPU);
+void unit_check_general(rocblas_int                    M,
+                        rocblas_int                    N,
+                        rocblas_int                    batch_count,
+                        rocblas_int                    lda,
+                        rocblas_stride                 strideA,
+                        const std::remove_cv_t<T_hpa>* hCPU,
+                        const T*                       hGPU);
 
 template <>
 inline void unit_check_general(rocblas_int             M,
@@ -268,12 +270,12 @@ inline void unit_check_general(rocblas_int        M,
 }
 
 template <typename T, typename T_hpa = T>
-void unit_check_general(rocblas_int                                  M,
-                        rocblas_int                                  N,
-                        rocblas_int                                  batch_count,
-                        rocblas_int                                  lda,
-                        const host_vector<std::common_type_t<T_hpa>> hCPU[],
-                        const host_vector<T>                         hGPU[]);
+void unit_check_general(rocblas_int                                M,
+                        rocblas_int                                N,
+                        rocblas_int                                batch_count,
+                        rocblas_int                                lda,
+                        const host_vector<std::remove_cv_t<T_hpa>> hCPU[],
+                        const host_vector<T>                       hGPU[]);
 
 template <>
 inline void unit_check_general(rocblas_int                         M,
@@ -364,12 +366,12 @@ inline void unit_check_general(rocblas_int                               M,
 }
 
 template <typename T, typename T_hpa = T>
-void unit_check_general(rocblas_int                            M,
-                        rocblas_int                            N,
-                        rocblas_int                            batch_count,
-                        rocblas_int                            lda,
-                        const std::common_type_t<T_hpa>* const hCPU[],
-                        const T* const                         hGPU[]);
+void unit_check_general(rocblas_int                          M,
+                        rocblas_int                          N,
+                        rocblas_int                          batch_count,
+                        rocblas_int                          lda,
+                        const std::remove_cv_t<T_hpa>* const hCPU[],
+                        const T* const                       hGPU[]);
 
 template <>
 inline void unit_check_general(rocblas_int                   M,

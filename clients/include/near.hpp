@@ -85,13 +85,15 @@ static constexpr double sum_error_tolerance<rocblas_double_complex> = 1 / 100000
         ASSERT_NEAR(std::imag(ta), std::imag(tb), err); \
     } while(0)
 
+// TODO: Replace std::remove_cv_t with std::type_identity_t in C++20
+// It is only used to make T_hpa non-deduced
 template <typename T, typename T_hpa = T>
-inline void near_check_general(rocblas_int                      M,
-                               rocblas_int                      N,
-                               rocblas_int                      lda,
-                               const std::common_type_t<T_hpa>* hCPU,
-                               const T*                         hGPU,
-                               double                           abs_error)
+inline void near_check_general(rocblas_int                    M,
+                               rocblas_int                    N,
+                               rocblas_int                    lda,
+                               const std::remove_cv_t<T_hpa>* hCPU,
+                               const T*                       hGPU,
+                               double                         abs_error)
 {
     NEAR_CHECK(M, N, 1, lda, 0, hCPU, hGPU, abs_error, ASSERT_NEAR);
 }
@@ -143,14 +145,14 @@ inline void near_check_general(rocblas_int                   M,
 }
 
 template <typename T, typename T_hpa = T>
-inline void near_check_general(rocblas_int                      M,
-                               rocblas_int                      N,
-                               rocblas_int                      batch_count,
-                               rocblas_int                      lda,
-                               rocblas_stride                   strideA,
-                               const std::common_type_t<T_hpa>* hCPU,
-                               const T*                         hGPU,
-                               double                           abs_error)
+inline void near_check_general(rocblas_int                    M,
+                               rocblas_int                    N,
+                               rocblas_int                    batch_count,
+                               rocblas_int                    lda,
+                               rocblas_stride                 strideA,
+                               const std::remove_cv_t<T_hpa>* hCPU,
+                               const T*                       hGPU,
+                               double                         abs_error)
 {
     NEAR_CHECK(M, N, batch_count, lda, strideA, hCPU, hGPU, abs_error, ASSERT_NEAR);
 }
@@ -210,13 +212,13 @@ inline void near_check_general(rocblas_int                   M,
 }
 
 template <typename T, typename T_hpa = T>
-void near_check_general(rocblas_int                                  M,
-                        rocblas_int                                  N,
-                        rocblas_int                                  batch_count,
-                        rocblas_int                                  lda,
-                        const host_vector<std::common_type_t<T_hpa>> hCPU[],
-                        const host_vector<T>                         hGPU[],
-                        double                                       abs_error)
+void near_check_general(rocblas_int                                M,
+                        rocblas_int                                N,
+                        rocblas_int                                batch_count,
+                        rocblas_int                                lda,
+                        const host_vector<std::remove_cv_t<T_hpa>> hCPU[],
+                        const host_vector<T>                       hGPU[],
+                        double                                     abs_error)
 {
     NEAR_CHECK_B(M, N, batch_count, lda, hCPU, hGPU, abs_error, ASSERT_NEAR);
 }
@@ -271,13 +273,13 @@ inline void near_check_general(rocblas_int                               M,
 }
 
 template <typename T, typename T_hpa = T>
-inline void near_check_general(rocblas_int                            M,
-                               rocblas_int                            N,
-                               rocblas_int                            batch_count,
-                               rocblas_int                            lda,
-                               const std::common_type_t<T_hpa>* const hCPU[],
-                               const T* const                         hGPU[],
-                               double                                 abs_error)
+inline void near_check_general(rocblas_int                          M,
+                               rocblas_int                          N,
+                               rocblas_int                          batch_count,
+                               rocblas_int                          lda,
+                               const std::remove_cv_t<T_hpa>* const hCPU[],
+                               const T* const                       hGPU[],
+                               double                               abs_error)
 {
     NEAR_CHECK_B(M, N, batch_count, lda, hCPU, hGPU, abs_error, ASSERT_NEAR);
 }
