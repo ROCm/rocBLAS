@@ -344,8 +344,26 @@ __device__ __host__ inline rocblas_half rocblas_abs(rocblas_half x)
 }
 
 // Get base types from complex types.
+template <typename T, typename = void>
+struct rocblas_real_t_impl
+{
+    using type = T;
+};
+
 template <typename T>
-using real_t = decltype(std::real(T{}));
+struct rocblas_real_t_impl<T, std::enable_if_t<is_complex<T>>>
+{
+    using type = decltype(std::real(T{}));
+};
+
+template <typename T>
+struct rocblas_real_t_impl<std::complex<T>>
+{
+    using type = T;
+};
+
+template <typename T>
+using real_t = typename rocblas_real_t_impl<T>::type;
 
 // Output rocblas_half value
 inline std::ostream& operator<<(std::ostream& os, rocblas_half x)
