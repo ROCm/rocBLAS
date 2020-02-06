@@ -144,8 +144,8 @@ void template_testing_reduction_strided_batched(
         //
         if(arg.unit_check)
         {
-            unit_check_general<R, R>(batch_count, 1, 1, cpu_result, hr1);
-            unit_check_general<R, R>(batch_count, 1, 1, cpu_result, hr2);
+            unit_check_general<R>(batch_count, 1, 1, cpu_result, hr1);
+            unit_check_general<R>(batch_count, 1, 1, cpu_result, hr2);
         }
 
         //

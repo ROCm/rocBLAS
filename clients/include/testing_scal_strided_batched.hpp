@@ -112,8 +112,8 @@ void testing_scal_strided_batched(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T, T>(1, N, batch_count, incx, stridex, hx_gold, hx_1);
-            unit_check_general<T, T>(1, N, batch_count, incx, stridex, hx_gold, hx_2);
+            unit_check_general<T>(1, N, batch_count, incx, stridex, hx_gold, hx_1);
+            unit_check_general<T>(1, N, batch_count, incx, stridex, hx_gold, hx_2);
         }
 
         if(arg.norm_check)

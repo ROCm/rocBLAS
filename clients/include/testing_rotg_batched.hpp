@@ -145,10 +145,10 @@ void testing_rotg_batched(const Arguments& arg)
 
             if(arg.unit_check)
             {
-                near_check_general<T, T>(1, 1, batch_count, 1, ra, ca, rel_error);
-                near_check_general<T, T>(1, 1, batch_count, 1, rb, cb, rel_error);
-                near_check_general<U, U>(1, 1, batch_count, 1, rc, cc, rel_error);
-                near_check_general<T, T>(1, 1, batch_count, 1, rs, cs, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, ra, ca, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, rb, cb, rel_error);
+                near_check_general<U>(1, 1, batch_count, 1, rc, cc, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, rs, cs, rel_error);
             }
 
             if(arg.norm_check)
@@ -203,10 +203,10 @@ void testing_rotg_batched(const Arguments& arg)
 
             if(arg.unit_check)
             {
-                near_check_general<T, T>(1, 1, batch_count, 1, ra, ca, rel_error);
-                near_check_general<T, T>(1, 1, batch_count, 1, rb, cb, rel_error);
-                near_check_general<U, U>(1, 1, batch_count, 1, rc, cc, rel_error);
-                near_check_general<T, T>(1, 1, batch_count, 1, rs, cs, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, ra, ca, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, rb, cb, rel_error);
+                near_check_general<U>(1, 1, batch_count, 1, rc, cc, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, rs, cs, rel_error);
             }
 
             if(arg.norm_check)
