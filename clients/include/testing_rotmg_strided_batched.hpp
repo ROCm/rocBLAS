@@ -166,11 +166,11 @@ void testing_rotmg_strided_batched(const Arguments& arg)
 
             if(arg.unit_check)
             {
-                near_check_general<T, T>(1, 1, batch_count, 1, stride_d1, rd1, cd1, rel_error);
-                near_check_general<T, T>(1, 1, batch_count, 1, stride_d2, rd2, cd2, rel_error);
-                near_check_general<T, T>(1, 1, batch_count, 1, stride_x1, rx1, cx1, rel_error);
-                near_check_general<T, T>(1, 1, batch_count, 1, stride_y1, ry1, cy1, rel_error);
-                near_check_general<T, T>(
+                near_check_general<T>(1, 1, batch_count, 1, stride_d1, rd1, cd1, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, stride_d2, rd2, cd2, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, stride_x1, rx1, cx1, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, stride_y1, ry1, cy1, rel_error);
+                near_check_general<T>(
                     1, 5, batch_count, 1, stride_param, rparams, cparams, rel_error);
             }
 
@@ -233,11 +233,11 @@ void testing_rotmg_strided_batched(const Arguments& arg)
 
             if(arg.unit_check)
             {
-                near_check_general<T, T>(1, 1, batch_count, 1, stride_d1, rd1, cd1, rel_error);
-                near_check_general<T, T>(1, 1, batch_count, 1, stride_d2, rd2, cd2, rel_error);
-                near_check_general<T, T>(1, 1, batch_count, 1, stride_x1, rx1, cx1, rel_error);
-                near_check_general<T, T>(1, 1, batch_count, 1, stride_y1, ry1, cy1, rel_error);
-                near_check_general<T, T>(
+                near_check_general<T>(1, 1, batch_count, 1, stride_d1, rd1, cd1, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, stride_d2, rd2, cd2, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, stride_x1, rx1, cx1, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, stride_y1, ry1, cy1, rel_error);
+                near_check_general<T>(
                     1, 5, batch_count, 1, stride_param, rparams, cparams, rel_error);
             }
 

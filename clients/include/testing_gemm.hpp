@@ -216,7 +216,7 @@ void testing_gemm(const Arguments& arg)
             cpu_time_used = get_time_us();
         }
 
-        cblas_gemm<T, T>(transA, transB, M, N, K, h_alpha, hA, lda, hB, ldb, h_beta, hC_gold, ldc);
+        cblas_gemm<T>(transA, transB, M, N, K, h_alpha, hA, lda, hB, ldb, h_beta, hC_gold, ldc);
 
         if(arg.timing)
         {
@@ -231,13 +231,13 @@ void testing_gemm(const Arguments& arg)
                 // For large K, rocblas_half tends to diverge proportional to K
                 // Tolerance is slightly greater than 1 / 1024.0
                 const double tol = K * sum_error_tolerance<T>;
-                near_check_general<T, T>(M, N, ldc, hC_gold, hC_1, tol);
-                near_check_general<T, T>(M, N, ldc, hC_gold, hC_2, tol);
+                near_check_general<T>(M, N, ldc, hC_gold, hC_1, tol);
+                near_check_general<T>(M, N, ldc, hC_gold, hC_2, tol);
             }
             else
             {
-                unit_check_general<T, T>(M, N, ldc, hC_gold, hC_1);
-                unit_check_general<T, T>(M, N, ldc, hC_gold, hC_2);
+                unit_check_general<T>(M, N, ldc, hC_gold, hC_1);
+                unit_check_general<T>(M, N, ldc, hC_gold, hC_2);
             }
         }
 

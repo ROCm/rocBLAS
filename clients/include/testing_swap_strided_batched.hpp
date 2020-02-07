@@ -141,8 +141,8 @@ void testing_swap_strided_batched(const Arguments& arg)
         {
             for(int i = 0; i < batch_count; i++)
             {
-                unit_check_general<T, T>(1, N, abs_incx, hx_gold + i * stridex, hx + i * stridex);
-                unit_check_general<T, T>(1, N, abs_incy, hy_gold + i * stridey, hy + i * stridey);
+                unit_check_general<T>(1, N, abs_incx, hx_gold + i * stridex, hx + i * stridex);
+                unit_check_general<T>(1, N, abs_incy, hy_gold + i * stridey, hy + i * stridey);
             }
         }
 

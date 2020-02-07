@@ -190,9 +190,9 @@ void testing_axpy_strided_batched(const Arguments& arg)
             if(arg.unit_check)
             {
 
-                unit_check_general<T, T>(1, N, batch_count, abs_incy, stridey, hy, hy1);
+                unit_check_general<T>(1, N, batch_count, abs_incy, stridey, hy, hy1);
 
-                unit_check_general<T, T>(1, N, batch_count, abs_incy, stridey, hy, hy2);
+                unit_check_general<T>(1, N, batch_count, abs_incy, stridey, hy, hy2);
             }
 
             if(arg.norm_check)

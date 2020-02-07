@@ -13,38 +13,37 @@
 #include "unit.hpp"
 #include "utility.hpp"
 
-template <typename T1, typename T2 = T1>
-void testing_asum_bad_arg_template(const Arguments& arg)
+template <typename T>
+void testing_asum_bad_arg(const Arguments& arg)
 {
-
     rocblas_int         N                = 100;
     rocblas_int         incx             = 1;
     static const size_t safe_size        = 100;
-    T2                  rocblas_result   = 10;
-    T2*                 h_rocblas_result = &rocblas_result;
+    real_t<T>           rocblas_result   = 10;
+    real_t<T>*          h_rocblas_result = &rocblas_result;
 
     rocblas_local_handle handle;
-    device_vector<T1>    dx(safe_size);
+    device_vector<T>     dx(safe_size);
     CHECK_HIP_ERROR(dx.memcheck());
 
-    EXPECT_ROCBLAS_STATUS((rocblas_asum<T1, T2>(handle, N, nullptr, incx, h_rocblas_result)),
+    EXPECT_ROCBLAS_STATUS(rocblas_asum<T>(handle, N, nullptr, incx, h_rocblas_result),
                           rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS((rocblas_asum<T1, T2>(handle, N, dx, incx, nullptr)),
+    EXPECT_ROCBLAS_STATUS(rocblas_asum<T>(handle, N, dx, incx, nullptr),
                           rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS((rocblas_asum<T1, T2>(nullptr, N, dx, incx, h_rocblas_result)),
+    EXPECT_ROCBLAS_STATUS(rocblas_asum<T>(nullptr, N, dx, incx, h_rocblas_result),
                           rocblas_status_invalid_handle);
 }
 
-template <typename T1, typename T2 = T1>
-void testing_asum_template(const Arguments& arg)
+template <typename T>
+void testing_asum(const Arguments& arg)
 {
 
     rocblas_int N    = arg.N;
     rocblas_int incx = arg.incx;
 
-    T2                   rocblas_result_1;
-    T2                   rocblas_result_2;
-    T2                   cpu_result;
+    real_t<T>            rocblas_result_1;
+    real_t<T>            rocblas_result_2;
+    real_t<T>            cpu_result;
     double               rocblas_error_1;
     double               rocblas_error_2;
     rocblas_local_handle handle;
@@ -53,28 +52,28 @@ void testing_asum_template(const Arguments& arg)
     if(N <= 0 || incx <= 0)
     {
         static const size_t safe_size = 100; // arbitrarily set to 100
-        device_vector<T1>   dx(safe_size);
+        device_vector<T>    dx(safe_size);
         CHECK_HIP_ERROR(dx.memcheck());
 
-        device_vector<T2> dr(1);
+        device_vector<real_t<T>> dr(1);
         CHECK_HIP_ERROR(dr.memcheck());
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR((rocblas_asum<T1, T2>(handle, N, dx, incx, dr)));
+        CHECK_ROCBLAS_ERROR(rocblas_asum<T>(handle, N, dx, incx, dr));
         return;
     }
 
     size_t size_x = N * size_t(incx);
 
     // allocate memory on device
-    device_vector<T1> dx(size_x);
+    device_vector<T> dx(size_x);
     CHECK_HIP_ERROR(dx.memcheck());
 
-    device_vector<T2> dr(1);
+    device_vector<real_t<T>> dr(1);
     CHECK_HIP_ERROR(dr.memcheck());
 
     // Naming: dx is in GPU (device) memory. hx is in CPU (host) memory, plz follow this practice
-    host_vector<T1> hx(size_x);
+    host_vector<T> hx(size_x);
     CHECK_HIP_ERROR(hx.memcheck());
 
     // Initial Data on CPU
@@ -89,24 +88,24 @@ void testing_asum_template(const Arguments& arg)
     {
         // GPU BLAS rocblas_pointer_mode_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR((rocblas_asum<T1, T2>(handle, N, dx, incx, &rocblas_result_1)));
+        CHECK_ROCBLAS_ERROR(rocblas_asum<T>(handle, N, dx, incx, &rocblas_result_1));
 
         // GPU BLAS rocblas_pointer_mode_device
         CHECK_HIP_ERROR(dx.transfer_from(hx));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR((rocblas_asum<T1, T2>(handle, N, dx, incx, dr)));
-        CHECK_HIP_ERROR(hipMemcpy(&rocblas_result_2, dr, sizeof(T2), hipMemcpyDeviceToHost));
+        CHECK_ROCBLAS_ERROR(rocblas_asum<T>(handle, N, dx, incx, dr));
+        CHECK_HIP_ERROR(hipMemcpy(&rocblas_result_2, dr, sizeof(real_t<T>), hipMemcpyDeviceToHost));
 
         // CPU BLAS
         cpu_time_used = get_time_us();
-        cblas_asum<T1, T2>(N, hx, incx, &cpu_result);
+        cblas_asum<T>(N, hx, incx, &cpu_result);
         cpu_time_used = get_time_us() - cpu_time_used;
 
         if(arg.unit_check)
         {
-            unit_check_general<T2, T2>(1, 1, 1, &cpu_result, &rocblas_result_1);
-            unit_check_general<T2, T2>(1, 1, 1, &cpu_result, &rocblas_result_2);
+            unit_check_general<real_t<T>, real_t<T>>(1, 1, 1, &cpu_result, &rocblas_result_1);
+            unit_check_general<real_t<T>, real_t<T>>(1, 1, 1, &cpu_result, &rocblas_result_2);
         }
 
         if(arg.norm_check)
@@ -128,14 +127,14 @@ void testing_asum_template(const Arguments& arg)
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            rocblas_asum<T1, T2>(handle, N, dx, incx, &rocblas_result_1);
+            rocblas_asum<T>(handle, N, dx, incx, &rocblas_result_1);
         }
 
         gpu_time_used = get_time_us(); // in microseconds
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            rocblas_asum<T1, T2>(handle, N, dx, incx, &rocblas_result_1);
+            rocblas_asum<T>(handle, N, dx, incx, &rocblas_result_1);
         }
 
         gpu_time_used = (get_time_us() - gpu_time_used) / number_hot_calls;
@@ -154,40 +153,4 @@ void testing_asum_template(const Arguments& arg)
 
         rocblas_cout << std::endl;
     }
-}
-
-template <typename T>
-void testing_asum_bad_arg(const Arguments& arg)
-{
-    testing_asum_bad_arg_template<T>(arg);
-}
-
-template <>
-void testing_asum_bad_arg<rocblas_float_complex>(const Arguments& arg)
-{
-    testing_asum_bad_arg_template<rocblas_float_complex, float>(arg);
-}
-
-template <>
-void testing_asum_bad_arg<rocblas_double_complex>(const Arguments& arg)
-{
-    testing_asum_bad_arg_template<rocblas_double_complex, double>(arg);
-}
-
-template <typename T>
-void testing_asum(const Arguments& arg)
-{
-    return testing_asum_template<T>(arg);
-}
-
-template <>
-void testing_asum<rocblas_float_complex>(const Arguments& arg)
-{
-    return testing_asum_template<rocblas_float_complex, float>(arg);
-}
-
-template <>
-void testing_asum<rocblas_double_complex>(const Arguments& arg)
-{
-    return testing_asum_template<rocblas_double_complex, double>(arg);
 }

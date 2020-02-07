@@ -352,14 +352,14 @@ void testing_symv_strided_batched(const Arguments& arg)
         {
             if(std::is_same<T, float>{} || std::is_same<T, double>{})
             {
-                unit_check_general<T, T>(1, N, batch_count, abs_incy, stridey, hg, hy);
-                unit_check_general<T, T>(1, N, batch_count, abs_incy, stridey, hg, hy2);
+                unit_check_general<T>(1, N, batch_count, abs_incy, stridey, hg, hy);
+                unit_check_general<T>(1, N, batch_count, abs_incy, stridey, hg, hy2);
             }
             else
             {
                 const double tol = N * sum_error_tolerance<T>;
-                near_check_general<T, T>(1, N, batch_count, abs_incy, stridey, hg, hy, tol);
-                near_check_general<T, T>(1, N, batch_count, abs_incy, stridey, hg, hy2, tol);
+                near_check_general<T>(1, N, batch_count, abs_incy, stridey, hg, hy, tol);
+                near_check_general<T>(1, N, batch_count, abs_incy, stridey, hg, hy2, tol);
             }
         }
 

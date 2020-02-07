@@ -146,7 +146,7 @@ void testing_logging()
 
         rocblas_iamin<T>(handle, n, dx, incx, &i_result);
 
-        rocblas_asum<T, T>(handle, n, dx, incx, &result);
+        rocblas_asum<T>(handle, n, dx, incx, &result);
 
         rocblas_axpy<T>(handle, n, &alpha, dx, incx, dy, incy);
 
@@ -154,7 +154,7 @@ void testing_logging()
 
         rocblas_dot<T>(handle, n, dx, incx, dy, incy, &result);
 
-        rocblas_nrm2<T, T>(handle, n, dx, incx, &result);
+        rocblas_nrm2<T>(handle, n, dx, incx, &result);
 
         rocblas_scal<T>(handle, n, &alpha, dx, incx);
 

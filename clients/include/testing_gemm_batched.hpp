@@ -224,7 +224,7 @@ void testing_gemm_batched(const Arguments& arg)
         cpu_time_used = get_time_us();
         for(rocblas_int i = 0; i < batch_count; i++)
         {
-            cblas_gemm<T, T>(
+            cblas_gemm<T>(
                 transA, transB, M, N, K, h_alpha, hA[i], lda, hB[i], ldb, h_beta, hC_gold[i], ldc);
         }
         cpu_time_used = get_time_us() - cpu_time_used;
@@ -237,13 +237,13 @@ void testing_gemm_batched(const Arguments& arg)
                 // For large K, rocblas_half tends to diverge proportional to K
                 // Tolerance is slightly greater than 1 / 1024.0
                 const double tol = K * sum_error_tolerance<T>;
-                near_check_general<T, T>(M, N, batch_count, ldc, hC_gold, hC_1, tol);
-                near_check_general<T, T>(M, N, batch_count, ldc, hC_gold, hC_2, tol);
+                near_check_general<T>(M, N, batch_count, ldc, hC_gold, hC_1, tol);
+                near_check_general<T>(M, N, batch_count, ldc, hC_gold, hC_2, tol);
             }
             else
             {
-                unit_check_general<T, T>(M, N, batch_count, ldc, hC_gold, hC_1);
-                unit_check_general<T, T>(M, N, batch_count, ldc, hC_gold, hC_2);
+                unit_check_general<T>(M, N, batch_count, ldc, hC_gold, hC_1);
+                unit_check_general<T>(M, N, batch_count, ldc, hC_gold, hC_2);
             }
         }
 
