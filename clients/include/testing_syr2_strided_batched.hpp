@@ -288,8 +288,8 @@ void testing_syr2_strided_batched(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T, T>(N, N, batch_count, lda, stride_A, hA_gold, hA_1);
-            unit_check_general<T, T>(N, N, batch_count, lda, stride_A, hA_gold, hA_2);
+            unit_check_general<T>(N, N, batch_count, lda, stride_A, hA_gold, hA_1);
+            unit_check_general<T>(N, N, batch_count, lda, stride_A, hA_gold, hA_2);
         }
 
         if(arg.norm_check)

@@ -95,7 +95,7 @@ void testing_trsm_strided_batched(const Arguments& arg)
     double rocblas_gflops, cblas_gflops;
     double error_eps_multiplier    = ERROR_EPS_MULTIPLIER;
     double residual_eps_multiplier = RESIDUAL_EPS_MULTIPLIER;
-    double eps                     = std::numeric_limits<rocblas_real_t<T>>::epsilon();
+    double eps                     = std::numeric_limits<real_t<T>>::epsilon();
 
     // allocate memory on device
     device_vector<T> dA(size_A);
@@ -131,19 +131,19 @@ void testing_trsm_strided_batched(const Arguments& arg)
                 hA[i + j * lda + b * stride_a] = 0.0;
 
         //  calculate AAT = hA * hA ^ T or AAT = hA * hA ^ H if complex
-        cblas_gemm<T, T>(rocblas_operation_none,
-                         rocblas_operation_conjugate_transpose,
-                         K,
-                         K,
-                         K,
-                         T(1.0),
-                         hA + stride_a * b,
-                         lda,
-                         hA + stride_a * b,
-                         lda,
-                         T(0.0),
-                         AAT + stride_a * b,
-                         lda);
+        cblas_gemm<T>(rocblas_operation_none,
+                      rocblas_operation_conjugate_transpose,
+                      K,
+                      K,
+                      K,
+                      T(1.0),
+                      hA + stride_a * b,
+                      lda,
+                      hA + stride_a * b,
+                      lda,
+                      T(0.0),
+                      AAT + stride_a * b,
+                      lda);
 
         //  copy AAT into hA, make hA strictly diagonal dominant, and therefore SPD
         for(int i = 0; i < K; i++)

@@ -154,8 +154,8 @@ void testing_swap_batched(const Arguments& arg)
         {
             for(int i = 0; i < batch_count; i++)
             {
-                unit_check_general<T, T>(1, N, abs_incx, hx_gold[i], hx[i]);
-                unit_check_general<T, T>(1, N, abs_incy, hy_gold[i], hy[i]);
+                unit_check_general<T>(1, N, abs_incx, hx_gold[i], hx[i]);
+                unit_check_general<T>(1, N, abs_incy, hy_gold[i], hy[i]);
             }
         }
 

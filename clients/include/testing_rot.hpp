@@ -130,8 +130,8 @@ void testing_rot(const Arguments& arg)
             CHECK_HIP_ERROR(hipMemcpy(ry, dy, sizeof(T) * size_y, hipMemcpyDeviceToHost));
             if(arg.unit_check)
             {
-                near_check_general<T, T>(1, N, incx, cx, rx, rel_error);
-                near_check_general<T, T>(1, N, incy, cy, ry, rel_error);
+                near_check_general<T>(1, N, incx, cx, rx, rel_error);
+                near_check_general<T>(1, N, incy, cy, ry, rel_error);
             }
             if(arg.norm_check)
             {
@@ -154,8 +154,8 @@ void testing_rot(const Arguments& arg)
             CHECK_HIP_ERROR(hipMemcpy(ry, dy, sizeof(T) * size_y, hipMemcpyDeviceToHost));
             if(arg.unit_check)
             {
-                near_check_general<T, T>(1, N, incx, cx, rx, rel_error);
-                near_check_general<T, T>(1, N, incy, cy, ry, rel_error);
+                near_check_general<T>(1, N, incx, cx, rx, rel_error);
+                near_check_general<T>(1, N, incy, cy, ry, rel_error);
             }
             if(arg.norm_check)
             {

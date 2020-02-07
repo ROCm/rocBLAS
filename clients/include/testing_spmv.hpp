@@ -189,8 +189,8 @@ void testing_spmv(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T, T>(1, N, abs_incy, hg, hy);
-            unit_check_general<T, T>(1, N, abs_incy, hg, hy2);
+            unit_check_general<T>(1, N, abs_incy, hg, hy);
+            unit_check_general<T>(1, N, abs_incy, hg, hy2);
         }
 
         if(arg.norm_check)

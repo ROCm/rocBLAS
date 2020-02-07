@@ -252,8 +252,8 @@ void testing_spr2_strided_batched(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T, T>(1, size_A, batch_count, 1, stride_A, hA_gold, hA_1);
-            unit_check_general<T, T>(1, size_A, batch_count, 1, stride_A, hA_gold, hA_2);
+            unit_check_general<T>(1, size_A, batch_count, 1, stride_A, hA_gold, hA_1);
+            unit_check_general<T>(1, size_A, batch_count, 1, stride_A, hA_gold, hA_2);
         }
 
         if(arg.norm_check)

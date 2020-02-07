@@ -162,8 +162,8 @@ void testing_rot_strided_batched(const Arguments& arg)
             CHECK_HIP_ERROR(hipMemcpy(ry, dy, sizeof(T) * size_y, hipMemcpyDeviceToHost));
             if(arg.unit_check)
             {
-                near_check_general<T, T>(1, N, batch_count, incx, stride_x, cx, rx, rel_error);
-                near_check_general<T, T>(1, N, batch_count, incy, stride_y, cy, ry, rel_error);
+                near_check_general<T>(1, N, batch_count, incx, stride_x, cx, rx, rel_error);
+                near_check_general<T>(1, N, batch_count, incy, stride_y, cy, ry, rel_error);
             }
             if(arg.norm_check)
             {
@@ -189,8 +189,8 @@ void testing_rot_strided_batched(const Arguments& arg)
             CHECK_HIP_ERROR(hipMemcpy(ry, dy, sizeof(T) * size_y, hipMemcpyDeviceToHost));
             if(arg.unit_check)
             {
-                near_check_general<T, T>(1, N, batch_count, incx, stride_x, cx, rx, rel_error);
-                near_check_general<T, T>(1, N, batch_count, incy, stride_y, cy, ry, rel_error);
+                near_check_general<T>(1, N, batch_count, incx, stride_x, cx, rx, rel_error);
+                near_check_general<T>(1, N, batch_count, incy, stride_y, cy, ry, rel_error);
             }
             if(arg.norm_check)
             {

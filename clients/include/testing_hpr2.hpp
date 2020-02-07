@@ -154,8 +154,8 @@ void testing_hpr2(const Arguments& arg)
         if(arg.unit_check)
         {
             const double tol = N * sum_error_tolerance<T>;
-            near_check_general<T, T>(1, size_A, 1, hA_gold, hA_1, tol);
-            near_check_general<T, T>(1, size_A, 1, hA_gold, hA_2, tol);
+            near_check_general<T>(1, size_A, 1, hA_gold, hA_1, tol);
+            near_check_general<T>(1, size_A, 1, hA_gold, hA_2, tol);
         }
 
         if(arg.norm_check)
