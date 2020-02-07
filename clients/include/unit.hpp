@@ -87,9 +87,14 @@
 
 #endif // GOOGLE_TEST
 
-template <typename T, typename T_hpa>
-void unit_check_general(
-    rocblas_int M, rocblas_int N, rocblas_int lda, const T_hpa* hCPU, const T* hGPU);
+// TODO: Replace std::remove_cv_t with std::type_identity_t in C++20
+// It is only used to make T_hpa non-deduced
+template <typename T, typename T_hpa = T>
+void unit_check_general(rocblas_int                    M,
+                        rocblas_int                    N,
+                        rocblas_int                    lda,
+                        const std::remove_cv_t<T_hpa>* hCPU,
+                        const T*                       hGPU);
 
 template <>
 inline void unit_check_general(rocblas_int             M,
@@ -102,7 +107,7 @@ inline void unit_check_general(rocblas_int             M,
 }
 
 template <>
-inline void unit_check_general(
+inline void unit_check_general<rocblas_bfloat16, float>(
     rocblas_int M, rocblas_int N, rocblas_int lda, const float* hCPU, const rocblas_bfloat16* hGPU)
 {
     UNIT_CHECK(M, N, 1, lda, 0, hCPU, hGPU, ASSERT_FLOAT_BF16_EQ);
@@ -159,14 +164,14 @@ inline void unit_check_general(
     UNIT_CHECK(M, N, 1, lda, 0, hCPU, hGPU, ASSERT_EQ);
 }
 
-template <typename T, typename T_hpa>
-void unit_check_general(rocblas_int    M,
-                        rocblas_int    N,
-                        rocblas_int    batch_count,
-                        rocblas_int    lda,
-                        rocblas_stride strideA,
-                        const T_hpa*   hCPU,
-                        const T*       hGPU);
+template <typename T, typename T_hpa = T>
+void unit_check_general(rocblas_int                    M,
+                        rocblas_int                    N,
+                        rocblas_int                    batch_count,
+                        rocblas_int                    lda,
+                        rocblas_stride                 strideA,
+                        const std::remove_cv_t<T_hpa>* hCPU,
+                        const T*                       hGPU);
 
 template <>
 inline void unit_check_general(rocblas_int             M,
@@ -181,13 +186,13 @@ inline void unit_check_general(rocblas_int             M,
 }
 
 template <>
-inline void unit_check_general(rocblas_int             M,
-                               rocblas_int             N,
-                               rocblas_int             batch_count,
-                               rocblas_int             lda,
-                               rocblas_stride          strideA,
-                               const float*            hCPU,
-                               const rocblas_bfloat16* hGPU)
+inline void unit_check_general<rocblas_bfloat16, float>(rocblas_int             M,
+                                                        rocblas_int             N,
+                                                        rocblas_int             batch_count,
+                                                        rocblas_int             lda,
+                                                        rocblas_stride          strideA,
+                                                        const float*            hCPU,
+                                                        const rocblas_bfloat16* hGPU)
 {
     UNIT_CHECK(M, N, batch_count, lda, strideA, hCPU, hGPU, ASSERT_FLOAT_BF16_EQ);
 }
@@ -264,13 +269,13 @@ inline void unit_check_general(rocblas_int        M,
     UNIT_CHECK(M, N, batch_count, lda, strideA, hCPU, hGPU, ASSERT_EQ);
 }
 
-template <typename T, typename T_hpa>
-void unit_check_general(rocblas_int              M,
-                        rocblas_int              N,
-                        rocblas_int              batch_count,
-                        rocblas_int              lda,
-                        const host_vector<T_hpa> hCPU[],
-                        const host_vector<T>     hGPU[]);
+template <typename T, typename T_hpa = T>
+void unit_check_general(rocblas_int                                M,
+                        rocblas_int                                N,
+                        rocblas_int                                batch_count,
+                        rocblas_int                                lda,
+                        const host_vector<std::remove_cv_t<T_hpa>> hCPU[],
+                        const host_vector<T>                       hGPU[]);
 
 template <>
 inline void unit_check_general(rocblas_int                         M,
@@ -284,12 +289,12 @@ inline void unit_check_general(rocblas_int                         M,
 }
 
 template <>
-inline void unit_check_general(rocblas_int                         M,
-                               rocblas_int                         N,
-                               rocblas_int                         batch_count,
-                               rocblas_int                         lda,
-                               const host_vector<float>            hCPU[],
-                               const host_vector<rocblas_bfloat16> hGPU[])
+inline void unit_check_general<rocblas_bfloat16, float>(rocblas_int              M,
+                                                        rocblas_int              N,
+                                                        rocblas_int              batch_count,
+                                                        rocblas_int              lda,
+                                                        const host_vector<float> hCPU[],
+                                                        const host_vector<rocblas_bfloat16> hGPU[])
 {
     UNIT_CHECK_B(M, N, batch_count, lda, hCPU, hGPU, ASSERT_FLOAT_BF16_EQ);
 }
@@ -360,13 +365,13 @@ inline void unit_check_general(rocblas_int                               M,
     UNIT_CHECK_B(M, N, batch_count, lda, hCPU, hGPU, ASSERT_DOUBLE_COMPLEX_EQ);
 }
 
-template <typename T, typename T_hpa>
-void unit_check_general(rocblas_int        M,
-                        rocblas_int        N,
-                        rocblas_int        batch_count,
-                        rocblas_int        lda,
-                        const T_hpa* const hCPU[],
-                        const T* const     hGPU[]);
+template <typename T, typename T_hpa = T>
+void unit_check_general(rocblas_int                          M,
+                        rocblas_int                          N,
+                        rocblas_int                          batch_count,
+                        rocblas_int                          lda,
+                        const std::remove_cv_t<T_hpa>* const hCPU[],
+                        const T* const                       hGPU[]);
 
 template <>
 inline void unit_check_general(rocblas_int                   M,
@@ -380,12 +385,12 @@ inline void unit_check_general(rocblas_int                   M,
 }
 
 template <>
-inline void unit_check_general(rocblas_int                   M,
-                               rocblas_int                   N,
-                               rocblas_int                   batch_count,
-                               rocblas_int                   lda,
-                               const float* const            hCPU[],
-                               const rocblas_bfloat16* const hGPU[])
+inline void unit_check_general<rocblas_bfloat16, float>(rocblas_int                   M,
+                                                        rocblas_int                   N,
+                                                        rocblas_int                   batch_count,
+                                                        rocblas_int                   lda,
+                                                        const float* const            hCPU[],
+                                                        const rocblas_bfloat16* const hGPU[])
 {
     UNIT_CHECK_B(M, N, batch_count, lda, hCPU, hGPU, ASSERT_FLOAT_BF16_EQ);
 }

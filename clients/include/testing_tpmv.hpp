@@ -147,7 +147,7 @@ void testing_tpmv(const Arguments& arg)
         //
         if(arg.unit_check)
         {
-            unit_check_general<T, T>(1, dim_x, abs_incx, hx, hres);
+            unit_check_general<T>(1, dim_x, abs_incx, hx, hres);
         }
 
         //

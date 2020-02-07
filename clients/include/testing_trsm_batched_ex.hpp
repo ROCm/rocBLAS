@@ -129,7 +129,7 @@ void testing_trsm_batched_ex(const Arguments& arg)
     double rocblas_gflops, cblas_gflops;
     double error_eps_multiplier    = ERROR_EPS_MULTIPLIER;
     double residual_eps_multiplier = RESIDUAL_EPS_MULTIPLIER;
-    double eps                     = std::numeric_limits<rocblas_real_t<T>>::epsilon();
+    double eps                     = std::numeric_limits<real_t<T>>::epsilon();
 
     //  Random lower triangular matrices have condition number
     //  that grows exponentially with matrix size. Random full
@@ -155,19 +155,19 @@ void testing_trsm_batched_ex(const Arguments& arg)
                 hA[b][i + j * lda] = 0.0;
 
         //  calculate AAT = hA * hA ^ T or AAT = hA * hA ^ H if complex
-        cblas_gemm<T, T>(rocblas_operation_none,
-                         rocblas_operation_conjugate_transpose,
-                         K,
-                         K,
-                         K,
-                         T(1.0),
-                         hA[b],
-                         lda,
-                         hA[b],
-                         lda,
-                         T(0.0),
-                         AAT[b],
-                         lda);
+        cblas_gemm<T>(rocblas_operation_none,
+                      rocblas_operation_conjugate_transpose,
+                      K,
+                      K,
+                      K,
+                      T(1.0),
+                      hA[b],
+                      lda,
+                      hA[b],
+                      lda,
+                      T(0.0),
+                      AAT[b],
+                      lda);
 
         //  copy AAT into hA, make hA strictly diagonal dominant, and therefore SPD
         for(int i = 0; i < K; i++)

@@ -162,8 +162,8 @@ void testing_her2(const Arguments& arg)
         if(arg.unit_check)
         {
             const double tol = N * sum_error_tolerance<T>;
-            near_check_general<T, T>(N, N, lda, hA_gold, hA_1, tol);
-            near_check_general<T, T>(N, N, lda, hA_gold, hA_2, tol);
+            near_check_general<T>(N, N, lda, hA_gold, hA_1, tol);
+            near_check_general<T>(N, N, lda, hA_gold, hA_2, tol);
         }
 
         if(arg.norm_check)

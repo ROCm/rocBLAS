@@ -450,6 +450,22 @@ Functions:
   rocblas_csyr_strided_batched:  { function: syr_strided_batched, <<: *single_precision_complex }
   rocblas_zsyr_strided_batched:  { function: syr_strided_batched, <<: *double_precision_complex }
 
+  # syr2
+  rocblas_ssyr2:  { function: syr2, <<: *single_precision  }
+  rocblas_dsyr2:  { function: syr2, <<: *double_precision  }
+  rocblas_csyr2:  { function: syr2, <<: *single_precision_complex }
+  rocblas_zsyr2:  { function: syr2, <<: *double_precision_complex }
+
+  rocblas_ssyr2_batched:  { function: syr2_batched, <<: *single_precision }
+  rocblas_dsyr2_batched:  { function: syr2_batched, <<: *double_precision }
+  rocblas_csyr2_batched:  { function: syr2_batched, <<: *single_precision_complex }
+  rocblas_zsyr2_batched:  { function: syr2_batched, <<: *double_precision_complex }
+
+  rocblas_ssyr2_strided_batched:  { function: syr2_strided_batched, <<: *single_precision  }
+  rocblas_dsyr2_strided_batched:  { function: syr2_strided_batched, <<: *double_precision  }
+  rocblas_csyr2_strided_batched:  { function: syr2_strided_batched, <<: *single_precision_complex }
+  rocblas_zsyr2_strided_batched:  { function: syr2_strided_batched, <<: *double_precision_complex }
+
   # symv
   rocblas_ssymv: { function: symv, <<: *single_precision }
   rocblas_dsymv: { function: symv, <<: *double_precision }
