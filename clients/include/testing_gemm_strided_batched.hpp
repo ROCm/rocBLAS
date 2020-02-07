@@ -192,19 +192,19 @@ void testing_gemm_strided_batched(const Arguments& arg)
         cpu_time_used = get_time_us();
         for(rocblas_int i = 0; i < batch_count; i++)
         {
-            cblas_gemm<T, T>(transA,
-                             transB,
-                             M,
-                             N,
-                             K,
-                             h_alpha,
-                             hA + stride_a * i,
-                             lda,
-                             hB + stride_b * i,
-                             ldb,
-                             h_beta,
-                             hC_gold + stride_c * i,
-                             ldc);
+            cblas_gemm<T>(transA,
+                          transB,
+                          M,
+                          N,
+                          K,
+                          h_alpha,
+                          hA + stride_a * i,
+                          lda,
+                          hB + stride_b * i,
+                          ldb,
+                          h_beta,
+                          hC_gold + stride_c * i,
+                          ldc);
         }
         cpu_time_used = get_time_us() - cpu_time_used;
         cblas_gflops  = gemm_gflop_count<T>(M, N, K) * batch_count / cpu_time_used * 1e6;
@@ -216,13 +216,13 @@ void testing_gemm_strided_batched(const Arguments& arg)
                 // For large K, rocblas_half tends to diverge proportional to K
                 // Tolerance is slightly greater than 1 / 1024.0
                 const double tol = K * sum_error_tolerance<T>;
-                near_check_general<T, T>(M, N, batch_count, ldc, stride_c, hC_gold, hC_1, tol);
-                near_check_general<T, T>(M, N, batch_count, ldc, stride_c, hC_gold, hC_2, tol);
+                near_check_general<T>(M, N, batch_count, ldc, stride_c, hC_gold, hC_1, tol);
+                near_check_general<T>(M, N, batch_count, ldc, stride_c, hC_gold, hC_2, tol);
             }
             else
             {
-                unit_check_general<T, T>(M, N, batch_count, ldc, stride_c, hC_gold, hC_1);
-                unit_check_general<T, T>(M, N, batch_count, ldc, stride_c, hC_gold, hC_2);
+                unit_check_general<T>(M, N, batch_count, ldc, stride_c, hC_gold, hC_1);
+                unit_check_general<T>(M, N, batch_count, ldc, stride_c, hC_gold, hC_2);
             }
         }
 

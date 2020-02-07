@@ -19,12 +19,10 @@
 template <typename T>
 void testing_hpr_batched_bad_arg()
 {
-    using U = rocblas_real_t<T>;
-
     rocblas_fill         uplo        = rocblas_fill_upper;
     rocblas_int          N           = 100;
     rocblas_int          incx        = 1;
-    U                    alpha       = 0.6;
+    real_t<T>            alpha       = 0.6;
     rocblas_int          batch_count = 2;
     rocblas_local_handle handle;
 
@@ -37,31 +35,28 @@ void testing_hpr_batched_bad_arg()
     CHECK_HIP_ERROR(dA_1.memcheck());
 
     EXPECT_ROCBLAS_STATUS(
-        (rocblas_hpr_batched<T,
-                             U>)(handle, rocblas_fill_full, N, &alpha, dx, incx, dA_1, batch_count),
+        rocblas_hpr_batched<T>(handle, rocblas_fill_full, N, &alpha, dx, incx, dA_1, batch_count),
         rocblas_status_invalid_value);
 
     EXPECT_ROCBLAS_STATUS(
-        (rocblas_hpr_batched<T, U>)(handle, uplo, N, &alpha, nullptr, incx, dA_1, batch_count),
+        rocblas_hpr_batched<T>(handle, uplo, N, &alpha, nullptr, incx, dA_1, batch_count),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        (rocblas_hpr_batched<T, U>)(handle, uplo, N, &alpha, dx, incx, nullptr, batch_count),
+        rocblas_hpr_batched<T>(handle, uplo, N, &alpha, dx, incx, nullptr, batch_count),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        (rocblas_hpr_batched<T, U>)(nullptr, uplo, N, &alpha, dx, incx, dA_1, batch_count),
+        rocblas_hpr_batched<T>(nullptr, uplo, N, &alpha, dx, incx, dA_1, batch_count),
         rocblas_status_invalid_handle);
 }
 
 template <typename T>
 void testing_hpr_batched(const Arguments& arg)
 {
-    using U = rocblas_real_t<T>;
-
     rocblas_int  N           = arg.N;
     rocblas_int  incx        = arg.incx;
-    U            h_alpha     = arg.get_alpha<U>();
+    real_t<T>    h_alpha     = arg.get_alpha<real_t<T>>();
     rocblas_fill uplo        = char2rocblas_fill(arg.uplo);
     rocblas_int  batch_count = arg.batch_count;
 
@@ -71,8 +66,7 @@ void testing_hpr_batched(const Arguments& arg)
     if(N <= 0 || !incx || batch_count <= 0)
     {
         EXPECT_ROCBLAS_STATUS(
-            (rocblas_hpr_batched<T,
-                                 U>)(handle, uplo, N, nullptr, nullptr, incx, nullptr, batch_count),
+            rocblas_hpr_batched<T>(handle, uplo, N, nullptr, nullptr, incx, nullptr, batch_count),
             N < 0 || !incx || batch_count < 0 ? rocblas_status_invalid_size
                                               : rocblas_status_success);
         return;
@@ -81,11 +75,11 @@ void testing_hpr_batched(const Arguments& arg)
     size_t size_A = size_t(N) * (N + 1) / 2;
 
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
-    host_batch_vector<T> hA_1(size_A, 1, batch_count);
-    host_batch_vector<T> hA_2(size_A, 1, batch_count);
-    host_batch_vector<T> hA_gold(size_A, 1, batch_count);
-    host_batch_vector<T> hx(N, incx, batch_count);
-    host_vector<U>       halpha(1);
+    host_batch_vector<T>   hA_1(size_A, 1, batch_count);
+    host_batch_vector<T>   hA_2(size_A, 1, batch_count);
+    host_batch_vector<T>   hA_gold(size_A, 1, batch_count);
+    host_batch_vector<T>   hx(N, incx, batch_count);
+    host_vector<real_t<T>> halpha(1);
     CHECK_HIP_ERROR(hA_1.memcheck());
     CHECK_HIP_ERROR(hA_2.memcheck());
     CHECK_HIP_ERROR(hA_gold.memcheck());
@@ -95,10 +89,10 @@ void testing_hpr_batched(const Arguments& arg)
     halpha[0] = h_alpha;
 
     // allocate memory on device
-    device_batch_vector<T> dA_1(size_A, 1, batch_count);
-    device_batch_vector<T> dA_2(size_A, 1, batch_count);
-    device_batch_vector<T> dx(N, incx, batch_count);
-    device_vector<U>       d_alpha(1);
+    device_batch_vector<T>   dA_1(size_A, 1, batch_count);
+    device_batch_vector<T>   dA_2(size_A, 1, batch_count);
+    device_batch_vector<T>   dx(N, incx, batch_count);
+    device_vector<real_t<T>> d_alpha(1);
     CHECK_HIP_ERROR(dA_1.memcheck());
     CHECK_HIP_ERROR(dA_2.memcheck());
     CHECK_HIP_ERROR(dx.memcheck());
@@ -123,24 +117,18 @@ void testing_hpr_batched(const Arguments& arg)
     if(arg.unit_check || arg.norm_check)
     {
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR((rocblas_hpr_batched<T, U>)(handle,
-                                                        uplo,
-                                                        N,
-                                                        &h_alpha,
-                                                        dx.ptr_on_device(),
-                                                        incx,
-                                                        dA_1.ptr_on_device(),
-                                                        batch_count));
+        CHECK_ROCBLAS_ERROR(rocblas_hpr_batched<T>(handle,
+                                                   uplo,
+                                                   N,
+                                                   &h_alpha,
+                                                   dx.ptr_on_device(),
+                                                   incx,
+                                                   dA_1.ptr_on_device(),
+                                                   batch_count));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR((rocblas_hpr_batched<T, U>)(handle,
-                                                        uplo,
-                                                        N,
-                                                        d_alpha,
-                                                        dx.ptr_on_device(),
-                                                        incx,
-                                                        dA_2.ptr_on_device(),
-                                                        batch_count));
+        CHECK_ROCBLAS_ERROR(rocblas_hpr_batched<T>(
+            handle, uplo, N, d_alpha, dx.ptr_on_device(), incx, dA_2.ptr_on_device(), batch_count));
 
         // copy output from device to CPU
         CHECK_HIP_ERROR(hA_1.transfer_from(dA_1));
@@ -150,7 +138,7 @@ void testing_hpr_batched(const Arguments& arg)
         cpu_time_used = get_time_us();
         for(int i = 0; i < batch_count; i++)
         {
-            cblas_hpr<T, U>(uplo, N, h_alpha, hx[i], incx, hA_gold[i]);
+            cblas_hpr<T>(uplo, N, h_alpha, hx[i], incx, hA_gold[i]);
         }
         cpu_time_used = get_time_us() - cpu_time_used;
         cblas_gflops  = batch_count * hpr_gflop_count<T>(N) / cpu_time_used * 1e6;
@@ -158,8 +146,8 @@ void testing_hpr_batched(const Arguments& arg)
         if(arg.unit_check)
         {
             const double tol = N * sum_error_tolerance<T>;
-            near_check_general<T, T>(1, size_A, batch_count, 1, hA_gold, hA_1, tol);
-            near_check_general<T, T>(1, size_A, batch_count, 1, hA_gold, hA_2, tol);
+            near_check_general<T>(1, size_A, batch_count, 1, hA_gold, hA_1, tol);
+            near_check_general<T>(1, size_A, batch_count, 1, hA_gold, hA_2, tol);
         }
 
         if(arg.norm_check)
@@ -177,28 +165,28 @@ void testing_hpr_batched(const Arguments& arg)
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            rocblas_hpr_batched<T, U>(handle,
-                                      uplo,
-                                      N,
-                                      &h_alpha,
-                                      dx.ptr_on_device(),
-                                      incx,
-                                      dA_1.ptr_on_device(),
-                                      batch_count);
+            rocblas_hpr_batched<T>(handle,
+                                   uplo,
+                                   N,
+                                   &h_alpha,
+                                   dx.ptr_on_device(),
+                                   incx,
+                                   dA_1.ptr_on_device(),
+                                   batch_count);
         }
 
         gpu_time_used = get_time_us(); // in microseconds
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            rocblas_hpr_batched<T, U>(handle,
-                                      uplo,
-                                      N,
-                                      &h_alpha,
-                                      dx.ptr_on_device(),
-                                      incx,
-                                      dA_1.ptr_on_device(),
-                                      batch_count);
+            rocblas_hpr_batched<T>(handle,
+                                   uplo,
+                                   N,
+                                   &h_alpha,
+                                   dx.ptr_on_device(),
+                                   incx,
+                                   dA_1.ptr_on_device(),
+                                   batch_count);
         }
 
         gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;

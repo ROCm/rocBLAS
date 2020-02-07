@@ -8,6 +8,8 @@
 
 #include "cblas.h"
 #include "rocblas.h"
+#include "rocblas.hpp"
+#include <type_traits>
 
 /*!\file
  * \brief provide template functions interfaces to CBLAS C89 interfaces, it is only used for testing
@@ -72,8 +74,8 @@ inline void cblas_iamax(rocblas_int                   n,
 }
 
 // asum
-template <typename T1, typename T2>
-void cblas_asum(rocblas_int n, const T1* x, rocblas_int incx, T2* result);
+template <typename T>
+void cblas_asum(rocblas_int n, const T* x, rocblas_int incx, real_t<T>* result);
 
 template <>
 inline void cblas_asum(rocblas_int n, const float* x, rocblas_int incx, float* result)
@@ -254,8 +256,8 @@ inline void cblas_dotc(rocblas_int                   n,
 }
 
 // nrm2
-template <typename T1, typename T2>
-void cblas_nrm2(rocblas_int n, const T1* x, rocblas_int incx, T2* result);
+template <typename T>
+void cblas_nrm2(rocblas_int n, const T* x, rocblas_int incx, real_t<T>* result);
 
 template <>
 inline void cblas_nrm2(rocblas_int n, const float* x, rocblas_int incx, float* result)
@@ -1827,9 +1829,14 @@ inline void cblas_hemv(rocblas_fill            uplo,
 }
 
 // her
-template <typename T, typename U>
-void cblas_her(
-    rocblas_fill uplo, rocblas_int n, U alpha, T* x, rocblas_int incx, T* A, rocblas_int lda);
+template <typename T>
+void cblas_her(rocblas_fill uplo,
+               rocblas_int  n,
+               real_t<T>    alpha,
+               T*           x,
+               rocblas_int  incx,
+               T*           A,
+               rocblas_int  lda);
 
 template <>
 inline void cblas_her(rocblas_fill           uplo,
@@ -1936,8 +1943,8 @@ inline void cblas_hpmv(rocblas_fill            uplo,
 }
 
 // hpr
-template <typename T, typename U>
-void cblas_hpr(rocblas_fill uplo, rocblas_int n, U alpha, T* x, rocblas_int incx, T* A);
+template <typename T>
+void cblas_hpr(rocblas_fill uplo, rocblas_int n, real_t<T> alpha, T* x, rocblas_int incx, T* A);
 
 template <>
 inline void cblas_hpr(rocblas_fill           uplo,
@@ -2005,20 +2012,20 @@ inline void cblas_hpr2(rocblas_fill            uplo,
  */
 
 // gemm
-template <typename Ti, typename To, typename Tc>
-void cblas_gemm(rocblas_operation transA,
-                rocblas_operation transB,
-                rocblas_int       m,
-                rocblas_int       n,
-                rocblas_int       k,
-                Tc                alpha,
-                Ti*               A,
-                rocblas_int       lda,
-                Ti*               B,
-                rocblas_int       ldb,
-                Tc                beta,
-                To*               C,
-                rocblas_int       ldc);
+template <typename Ti, typename To = Ti, typename Tc>
+void cblas_gemm(rocblas_operation      transA,
+                rocblas_operation      transB,
+                rocblas_int            m,
+                rocblas_int            n,
+                rocblas_int            k,
+                Tc                     alpha,
+                Ti*                    A,
+                rocblas_int            lda,
+                Ti*                    B,
+                rocblas_int            ldb,
+                Tc                     beta,
+                std::add_pointer_t<To> C,
+                rocblas_int            ldc);
 
 template <>
 inline void cblas_gemm(rocblas_operation transA,
