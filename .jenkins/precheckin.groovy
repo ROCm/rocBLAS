@@ -18,7 +18,11 @@ def runCI =
     prj.paths.build_command = './install.sh -c'
 
     prj.timeout.compile = 180
-
+    if (jobName.contains('hipclang'))
+    {
+        prj.timeout.compile = 300
+    }
+    
     // Define test architectures, optional rocm version argument is available
     def nodes = new dockerNodes(nodeDetails, jobName, prj)
 
@@ -86,7 +90,7 @@ ci: {
     {
         properties(auxiliary.addCommonProperties([pipelineTriggers([cron('0 1 * * *')])]))
         stage(urlJobName) {
-            runCI([ubuntu16:['gfx906']], urlJobName)
+            runCI([ubuntu16:['gfx900', 'gfx906']], urlJobName)
         }
     }
 }
