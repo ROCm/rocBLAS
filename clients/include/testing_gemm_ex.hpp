@@ -82,9 +82,7 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
                                           compute_type,
                                           algo,
                                           solution_index,
-                                          flags,
-                                          nullptr,
-                                          nullptr),
+                                          flags),
                           rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(rocblas_gemm_ex(handle,
@@ -110,9 +108,7 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
                                           compute_type,
                                           algo,
                                           solution_index,
-                                          flags,
-                                          nullptr,
-                                          nullptr),
+                                          flags),
                           rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(rocblas_gemm_ex(handle,
@@ -138,9 +134,7 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
                                           compute_type,
                                           algo,
                                           solution_index,
-                                          flags,
-                                          nullptr,
-                                          nullptr),
+                                          flags),
                           rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(rocblas_gemm_ex(handle,
@@ -166,9 +160,7 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
                                           compute_type,
                                           algo,
                                           solution_index,
-                                          flags,
-                                          nullptr,
-                                          nullptr),
+                                          flags),
                           rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(rocblas_gemm_ex(handle,
@@ -194,9 +186,7 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
                                           compute_type,
                                           algo,
                                           solution_index,
-                                          flags,
-                                          nullptr,
-                                          nullptr),
+                                          flags),
                           rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(rocblas_gemm_ex(handle,
@@ -222,9 +212,7 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
                                           compute_type,
                                           algo,
                                           solution_index,
-                                          flags,
-                                          nullptr,
-                                          nullptr),
+                                          flags),
                           rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(rocblas_gemm_ex(nullptr,
@@ -250,9 +238,7 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
                                           compute_type,
                                           algo,
                                           solution_index,
-                                          flags,
-                                          nullptr,
-                                          nullptr),
+                                          flags),
                           rocblas_status_invalid_handle);
 }
 
@@ -387,9 +373,7 @@ void testing_gemm_ex(const Arguments& arg)
                                               arg.compute_type,
                                               algo,
                                               solution_index,
-                                              flags,
-                                              nullptr,
-                                              nullptr),
+                                              flags),
                               rocblas_status_invalid_size);
         return;
     }
@@ -552,9 +536,7 @@ void testing_gemm_ex(const Arguments& arg)
                                             arg.compute_type,
                                             algo,
                                             solution_index,
-                                            flags,
-                                            nullptr,
-                                            nullptr));
+                                            flags));
 
         CHECK_HIP_ERROR(hipMemcpy(hD_1, dD, sizeof(To) * size_D, hipMemcpyDeviceToHost));
         CHECK_HIP_ERROR(hipMemcpy(hC_1, dC, sizeof(To) * size_C, hipMemcpyDeviceToHost));
@@ -587,9 +569,7 @@ void testing_gemm_ex(const Arguments& arg)
                                             arg.compute_type,
                                             algo,
                                             solution_index,
-                                            flags,
-                                            nullptr,
-                                            nullptr));
+                                            flags));
 
         CHECK_HIP_ERROR(hipMemcpy(hD_2, dD, sizeof(To) * size_D, hipMemcpyDeviceToHost));
         CHECK_HIP_ERROR(hipMemcpy(hC_2, dC, sizeof(To) * size_C, hipMemcpyDeviceToHost));
@@ -678,9 +658,7 @@ void testing_gemm_ex(const Arguments& arg)
                                                 arg.compute_type,
                                                 algo,
                                                 solution_index,
-                                                flags,
-                                                nullptr,
-                                                nullptr));
+                                                flags));
         }
 
         gpu_time_used = get_time_us(); // in microseconds
@@ -709,9 +687,7 @@ void testing_gemm_ex(const Arguments& arg)
                             arg.compute_type,
                             algo,
                             solution_index,
-                            flags,
-                            nullptr,
-                            nullptr);
+                            flags);
         }
         gpu_time_used  = get_time_us() - gpu_time_used;
         rocblas_gflops = gemm_gflop_count<Ti>(M, N, K) * number_hot_calls / gpu_time_used * 1e6;

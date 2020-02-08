@@ -285,9 +285,7 @@ void testing_logging()
                             compute_type,
                             algo,
                             solution_index,
-                            flags,
-                            nullptr,
-                            nullptr);
+                            flags);
 
             rocblas_gemm_strided_batched_ex(handle,
                                             transA,
