@@ -66,13 +66,13 @@ static rocblas_status device_strided_batched_matrix_copy(const To*      src,
     To *dataD, const To *dataC, const Ti *dataA, const Ti *dataB, Tc alpha, Tc beta,              \
         size_t strideD1J, size_t strideD2K, size_t strideC1J, size_t strideC2K, size_t strideA1L, \
         size_t strideA2K, size_t strideB1J, size_t strideB2K, size_t sizeI, size_t sizeJ,         \
-        size_t sizeK, size_t sizeL, hipStream_t stream, size_t numInputEvents, void *dummy1,      \
-        void *dummy2
+        size_t sizeK, size_t sizeL, hipStream_t stream, size_t numInputEvents,                    \
+        hipEvent_t *startEvent, hipEvent_t *stopEvent
 
 #define TENSILE_OUT_ARGS                                                                   \
     dataD, dataC, dataA, dataB, alpha, beta, strideD1J, strideD2K, strideC1J, strideC2K,   \
         strideA1L, strideA2K, strideB1J, strideB2K, sizeI, sizeJ, sizeK, sizeL, stream, 0, \
-        nullptr, nullptr
+        startEvent, stopEvent
 
 // Ti is typename for input data, To is typename for output data, Tc is typename for compute
 template <typename Ti, typename To, typename Tc>
@@ -307,7 +307,7 @@ inline TensileStatus tensile_Cijk_Alik_Bjlk_B<TensileInt8x4, TensileInt32, Tensi
 #define TENSILE_COMPLEX_OUT_ARGS(Ti, To, Tc)                                             \
     (To*)dataD, (const To*)dataC, (const Ti*)dataA, (const Ti*)dataB, *((Tc*)&alpha),    \
         *((Tc*)&beta), strideD1J, strideD2K, strideC1J, strideC2K, strideA1L, strideA2K, \
-        strideB1J, strideB2K, sizeI, sizeJ, sizeK, sizeL, stream, 0, nullptr, nullptr
+        strideB1J, strideB2K, sizeI, sizeJ, sizeK, sizeL, stream, 0, startEvent, stopEvent
 
 static_assert(std::is_standard_layout<TensileComplexFloat>{},
               "TensileComplexFloat is not a standard layout type, and thus is "
@@ -507,7 +507,9 @@ inline TensileStatus call_tensile_ex(To*            dataD,
                                      size_t         sizeK,
                                      size_t         sizeL,
                                      hipStream_t    stream,
-                                     transpose_mode transposeMode)
+                                     transpose_mode transposeMode,
+                                     hipEvent_t*    startEvent = nullptr,
+                                     hipEvent_t*    stopEvent  = nullptr)
 {
     switch(transposeMode)
     {
@@ -570,7 +572,9 @@ rocblas_status gemm_ex_batched_template(rocblas_handle    handle,
                                         size_t            offset_d,
                                         rocblas_int       ldd,
                                         rocblas_stride    stride_d,
-                                        rocblas_int       batch_count)
+                                        rocblas_int       batch_count,
+                                        hipEvent_t*       startEvent = nullptr,
+                                        hipEvent_t*       stopEvent  = nullptr)
 {
     // BATCHED VERSION
     // Host arrays of device pointers.
@@ -617,7 +621,9 @@ rocblas_status gemm_ex_batched_template(rocblas_handle    handle,
                                           offset_d,
                                           ldd,
                                           stride_d,
-                                          1);
+                                          1,
+                                          startEvent,
+                                          stopEvent);
         if(status != rocblas_status_success)
             break;
     }
@@ -649,7 +655,9 @@ rocblas_status gemm_ex_batched_template(rocblas_handle    handle,
                                         size_t            offset_d,
                                         rocblas_int       ldd,
                                         rocblas_stride    stride_d,
-                                        rocblas_int       batch_count)
+                                        rocblas_int       batch_count,
+                                        hipEvent_t*       startEvent = nullptr,
+                                        hipEvent_t*       stopEvent  = nullptr)
 {
     a += offset_a;
     b += offset_b;
@@ -709,7 +717,9 @@ rocblas_status gemm_ex_batched_template(rocblas_handle    handle,
                                            batch_count,
                                            k,
                                            handle->rocblas_stream,
-                                           GetTransposeMode(trans_a, trans_b));
+                                           GetTransposeMode(trans_a, trans_b),
+                                           startEvent,
+                                           stopEvent);
 
     rb_status = (t_status == tensileStatusSuccess) ? rocblas_status_success
                                                    : rocblas_status_internal_error;
@@ -743,7 +753,9 @@ rocblas_status gemm_ex_typecasting(rocblas_handle    handle,
                                    rocblas_int       offsetDin,
                                    rocblas_int       ldd,
                                    rocblas_stride    stride_d,
-                                   rocblas_int       batch_count)
+                                   rocblas_int       batch_count,
+                                   void*             startEvent = nullptr,
+                                   void*             stopEvent  = nullptr)
 {
     Tc alpha_h, beta_h;
 
@@ -792,7 +804,9 @@ rocblas_status gemm_ex_typecasting(rocblas_handle    handle,
                                         offsetDin,
                                         ldd,
                                         stride_d,
-                                        batch_count);
+                                        batch_count,
+                                        (hipEvent_t*)startEvent,
+                                        (hipEvent_t*)stopEvent);
     }
     else
     {
@@ -824,7 +838,9 @@ rocblas_status gemm_ex_typecasting(rocblas_handle    handle,
                                         offsetDin,
                                         ldd,
                                         stride_d,
-                                        batch_count);
+                                        batch_count,
+                                        (hipEvent_t*)startEvent,
+                                        (hipEvent_t*)stopEvent);
     }
 }
 
@@ -858,7 +874,9 @@ rocblas_status rocblas_gemm_ex_template(rocblas_handle    handle,
                                         rocblas_int       ldd,
                                         rocblas_stride    stride_d,
                                         rocblas_int       batch_count,
-                                        rocblas_datatype  compute_type)
+                                        rocblas_datatype  compute_type,
+                                        void*             startEvent = nullptr,
+                                        void*             stopEvent  = nullptr)
 {
     // Note: k==0 is not an early exit, since C still needs to be multiplied by beta
     if(!m || !n || !batch_count)
@@ -874,9 +892,10 @@ rocblas_status rocblas_gemm_ex_template(rocblas_handle    handle,
 
     rocblas_status rb_status = rocblas_status_not_implemented;
 
-#define EX_TYPECASTING_PARM                                                                   \
-    handle, trans_a, trans_b, m, n, k, alpha, a, offsetAin, lda, stride_a, b, offsetBin, ldb, \
-        stride_b, beta, c, offsetCin, ldc, stride_c, d, offsetDin, ldd, stride_d, batch_count
+#define EX_TYPECASTING_PARM                                                                    \
+    handle, trans_a, trans_b, m, n, k, alpha, a, offsetAin, lda, stride_a, b, offsetBin, ldb,  \
+        stride_b, beta, c, offsetCin, ldc, stride_c, d, offsetDin, ldd, stride_d, batch_count, \
+        startEvent, stopEvent
 
     if(a_type == rocblas_datatype_f64_r && b_type == rocblas_datatype_f64_r
        && c_type == rocblas_datatype_f64_r && d_type == rocblas_datatype_f64_r
