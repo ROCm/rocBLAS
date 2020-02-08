@@ -1,10 +1,10 @@
 /* ************************************************************************
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include "rocblas_trmm.hpp"
 #include "handle.h"
 #include "logging.h"
 #include "rocblas.h"
+#include "rocblas_trmm.hpp"
 #include "utility.h"
 
 namespace
@@ -12,9 +12,13 @@ namespace
     template <typename>
     constexpr char rocblas_trmm_name[] = "unknown";
     template <>
-    constexpr char rocblas_trmm_name<float>[] = "rocblas_strmm";
+    constexpr char rocblas_trmm_name<float>[] = "rocblas_strided_batched_strmm";
     template <>
-    constexpr char rocblas_trmm_name<double>[] = "rocblas_dtrmm";
+    constexpr char rocblas_trmm_name<double>[] = "rocblas_strided_batched_dtrmm";
+    template <>
+    constexpr char rocblas_trmm_name<rocblas_float_complex>[] = "rocblas_strided_batched_ctrmm";
+    template <>
+    constexpr char rocblas_trmm_name<rocblas_double_complex>[] = "rocblas_strided_batched_ztrmm";
 
     template <typename T>
     rocblas_status rocblas_trmm_impl(rocblas_handle    handle,
@@ -25,10 +29,11 @@ namespace
                                      rocblas_int       m,
                                      rocblas_int       n,
                                      const T*          alpha,
-                                     const T*          a,
+                                     const T* const    a[],
                                      rocblas_int       lda,
-                                     T*                c,
-                                     rocblas_int       ldc)
+                                     T* const          c[],
+                                     rocblas_int       ldc,
+                                     rocblas_int       batch_count)
     {
         if(!handle)
             return rocblas_status_invalid_handle;
@@ -59,7 +64,8 @@ namespace
                               a,
                               lda,
                               c,
-                              ldc);
+                              ldc,
+                              batch_count);
 
                 if(layer_mode & rocblas_layer_mode_log_bench)
                 {
@@ -83,7 +89,9 @@ namespace
                               "--lda",
                               lda,
                               "--ldb",
-                              ldc);
+                              ldc,
+                              "--batch_count",
+                              batch_count);
                 }
             }
             else
@@ -101,7 +109,8 @@ namespace
                               a,
                               lda,
                               c,
-                              ldc);
+                              ldc,
+                              batch_count);
             }
 
             if(layer_mode & rocblas_layer_mode_log_profile)
@@ -123,16 +132,18 @@ namespace
                             "lda",
                             lda,
                             "ldb",
-                            ldc);
+                            ldc,
+                            "batch_count",
+                            batch_count);
             }
         }
 
         rocblas_int nrowa = rocblas_side_left == side ? m : n;
 
-        if(m < 0 || n < 0 || lda < nrowa || ldc < m)
+        if(m < 0 || n < 0 || lda < nrowa || ldc < m || batch_count < 0)
             return rocblas_status_invalid_size;
 
-        if(m == 0 || n == 0)
+        if(m == 0 || n == 0 || batch_count == 0)
         {
             if(handle->is_device_memory_size_query())
                 return rocblas_status_size_unchanged;
@@ -148,21 +159,26 @@ namespace
         constexpr rocblas_int CB = 128;
 
         // work arrays dt1 and dt2 are used in trmm
+        rocblas_stride stride_a = 0;
+        rocblas_stride stride_c = 0;
+        rocblas_stride stride_w = 0;
+
         rocblas_int size_dt1 = RB * CB;
         rocblas_int size_dt2 = CB * CB;
 
-        size_t dev_bytes = (size_dt1 + size_dt2) * sizeof(T);
+        size_t dev_bytes = (size_dt1 + size_dt2) * batch_count * sizeof(T);
         if(handle->is_device_memory_size_query())
             return handle->set_optimal_device_memory_size(dev_bytes);
 
-        auto mem = handle->device_malloc(dev_bytes);
+        T* mem = (T*)handle->device_malloc(dev_bytes);
         if(!mem)
             return rocblas_status_memory_error;
 
-        rocblas_stride stride_a    = 0;
-        rocblas_stride stride_c    = 0;
-        rocblas_stride stride_mem  = 0;
-        rocblas_int    batch_count = 1;
+        T* work_space[batch_count];
+        for(int i = 0; i < batch_count; i++)
+        {
+            work_space[i] = mem + i * (size_dt1 + size_dt2);
+        }
 
         return rocblas_trmm_template<RB, CB, T>(handle,
                                                 side,
@@ -179,8 +195,8 @@ namespace
                                                 ldc,
                                                 stride_c,
                                                 batch_count,
-                                                (T*)mem,
-                                                stride_mem);
+                                                (T* const*)work_space,
+                                                stride_w);
     }
 
 } // namespace
@@ -193,84 +209,92 @@ namespace
 
 extern "C" {
 
-rocblas_status rocblas_strmm(rocblas_handle    handle,
-                             rocblas_side      side,
-                             rocblas_fill      uplo,
-                             rocblas_operation transa,
-                             rocblas_diagonal  diag,
-                             rocblas_int       m,
-                             rocblas_int       n,
-                             const float*      alpha,
-                             const float*      a,
-                             rocblas_int       lda,
-                             float*            c,
-                             rocblas_int       ldc)
+rocblas_status rocblas_strmm_strided_batched(rocblas_handle     handle,
+                                             rocblas_side       side,
+                                             rocblas_fill       uplo,
+                                             rocblas_operation  transa,
+                                             rocblas_diagonal   diag,
+                                             rocblas_int        m,
+                                             rocblas_int        n,
+                                             const float*       alpha,
+                                             const float* const a[],
+                                             rocblas_int        lda,
+                                             float* const       c[],
+                                             rocblas_int        ldc,
+                                             rocblas_int        batch_count)
 try
 {
-    return rocblas_trmm_impl(handle, side, uplo, transa, diag, m, n, alpha, a, lda, c, ldc);
+    return rocblas_trmm_impl(
+        handle, side, uplo, transa, diag, m, n, alpha, a, lda, c, ldc, batch_count);
 }
 catch(...)
 {
     return exception_to_rocblas_status();
 }
 
-rocblas_status rocblas_dtrmm(rocblas_handle    handle,
-                             rocblas_side      side,
-                             rocblas_fill      uplo,
-                             rocblas_operation transa,
-                             rocblas_diagonal  diag,
-                             rocblas_int       m,
-                             rocblas_int       n,
-                             const double*     alpha,
-                             const double*     a,
-                             rocblas_int       lda,
-                             double*           c,
-                             rocblas_int       ldc)
+rocblas_status rocblas_dtrmm_strided_batched(rocblas_handle      handle,
+                                             rocblas_side        side,
+                                             rocblas_fill        uplo,
+                                             rocblas_operation   transa,
+                                             rocblas_diagonal    diag,
+                                             rocblas_int         m,
+                                             rocblas_int         n,
+                                             const double*       alpha,
+                                             const double* const a[],
+                                             rocblas_int         lda,
+                                             double* const       c[],
+                                             rocblas_int         ldc,
+                                             rocblas_int         batch_count)
 try
 {
-    return rocblas_trmm_impl(handle, side, uplo, transa, diag, m, n, alpha, a, lda, c, ldc);
+    return rocblas_trmm_impl(
+        handle, side, uplo, transa, diag, m, n, alpha, a, lda, c, ldc, batch_count);
 }
 catch(...)
 {
     return exception_to_rocblas_status();
 }
 
-rocblas_status rocblas_ctrmm(rocblas_handle               handle,
-                             rocblas_side                 side,
-                             rocblas_fill                 uplo,
-                             rocblas_operation            transa,
-                             rocblas_diagonal             diag,
-                             rocblas_int                  m,
-                             rocblas_int                  n,
-                             const rocblas_float_complex* alpha,
-                             const rocblas_float_complex* a,
-                             rocblas_int                  lda,
-                             rocblas_float_complex*       c,
-                             rocblas_int                  ldc)
+rocblas_status rocblas_ctrmm_strided_batched(rocblas_handle                     handle,
+                                             rocblas_side                       side,
+                                             rocblas_fill                       uplo,
+                                             rocblas_operation                  transa,
+                                             rocblas_diagonal                   diag,
+                                             rocblas_int                        m,
+                                             rocblas_int                        n,
+                                             const rocblas_float_complex*       alpha,
+                                             const rocblas_float_complex* const a[],
+                                             rocblas_int                        lda,
+                                             rocblas_float_complex* const       c[],
+                                             rocblas_int                        ldc,
+                                             rocblas_int                        batch_count)
 try
 {
-    return rocblas_trmm_impl(handle, side, uplo, transa, diag, m, n, alpha, a, lda, c, ldc);
+    return rocblas_trmm_impl(
+        handle, side, uplo, transa, diag, m, n, alpha, a, lda, c, ldc, batch_count);
 }
 catch(...)
 {
     return exception_to_rocblas_status();
 }
 
-rocblas_status rocblas_ztrmm(rocblas_handle                handle,
-                             rocblas_side                  side,
-                             rocblas_fill                  uplo,
-                             rocblas_operation             transa,
-                             rocblas_diagonal              diag,
-                             rocblas_int                   m,
-                             rocblas_int                   n,
-                             const rocblas_double_complex* alpha,
-                             const rocblas_double_complex* a,
-                             rocblas_int                   lda,
-                             rocblas_double_complex*       c,
-                             rocblas_int                   ldc)
+rocblas_status rocblas_ztrmm_strided_batched(rocblas_handle                      handle,
+                                             rocblas_side                        side,
+                                             rocblas_fill                        uplo,
+                                             rocblas_operation                   transa,
+                                             rocblas_diagonal                    diag,
+                                             rocblas_int                         m,
+                                             rocblas_int                         n,
+                                             const rocblas_double_complex*       alpha,
+                                             const rocblas_double_complex* const a[],
+                                             rocblas_int                         lda,
+                                             rocblas_double_complex* const       c[],
+                                             rocblas_int                         ldc,
+                                             rocblas_int                         batch_count)
 try
 {
-    return rocblas_trmm_impl(handle, side, uplo, transa, diag, m, n, alpha, a, lda, c, ldc);
+    return rocblas_trmm_impl(
+        handle, side, uplo, transa, diag, m, n, alpha, a, lda, c, ldc, batch_count);
 }
 catch(...)
 {
