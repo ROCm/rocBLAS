@@ -16,7 +16,7 @@ def runCI =
 
     def rocblas = new rocProject('rocBLAS', 'Extended')
     // customize for project
-    rocblas.paths.build_command = './install.sh -lasm_ci -c'
+    prj.paths.build_command = './install.sh -lasm_ci -c'
     prj.timeout.compile = 180
     prj.timeout.test = 600
     if (jobName.contains('hipclang'))
