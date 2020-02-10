@@ -9,10 +9,6 @@
 #ifndef __TENSILE_HOST_HPP__
 #define __TENSILE_HOST_HPP__
 
-#ifndef USE_TENSILE_HOST
-#error "tensile_host.hpp #include'd when USE_TENSILE_HOST is undefined."
-#endif
-
 #include "handle.h"
 #include <cmath>
 #include <cstdio>

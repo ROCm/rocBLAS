@@ -25,7 +25,6 @@ rocBLAS build & installation helper script
            --hip-clang         Build library for amdgpu backend using hip-clang
            --build_dir         Specify name of output directory (default is ./build)
       -n | --no_tensile        Build subset of library that does not require Tensile
-      -r | --no-tensile-host   Do not build with Tensile host
       -u | --use-tag-only      Ignore Tensile version and just use the Tensile tag
            --skipldconf        Skip ld.so.conf entry
 EOF
@@ -259,7 +258,6 @@ tensile_version=true
 build_clients=false
 build_cuda=false
 build_tensile=true
-build_tensile_host=true
 cpu_ref_lib=blis
 build_release=true
 build_hip_clang=false
@@ -329,9 +327,6 @@ while true; do
         shift 2 ;;
     -n|--no_tensile)
         build_tensile=false
-        shift ;;
-    -r|--no-tensile-host)
-        build_tensile_host=false
         shift ;;
     --build_dir)
         build_dir=${2}
@@ -502,14 +497,6 @@ pushd .
   tensile_opt=""
   if [[ "${build_tensile}" == false ]]; then
     tensile_opt="${tensile_opt} -DBUILD_WITH_TENSILE=OFF"
-  fi
-
-  if [[ "${build_tensile_host}" == false ]]; then
-    tensile_opt="${tensile_opt} -DBUILD_WITH_TENSILE_HOST=OFF"
-  fi
-
-  if [[ "${build_tensile_host}" == true ]]; then
-    tensile_opt="${tensile_opt} -DBUILD_WITH_TENSILE_HOST=ON"
   fi
 
   cmake_common_options="${cmake_common_options} ${tensile_opt}"

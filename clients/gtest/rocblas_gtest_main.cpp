@@ -219,11 +219,7 @@ int main(int argc, char** argv)
     char blas_version[100];
     rocblas_get_version_string(blas_version, sizeof(blas_version));
 
-#ifdef USE_TENSILE_HOST
-    printf("rocBLAS version: %s (new Tensile client)\n\n", blas_version);
-#else
     printf("rocBLAS version: %s\n\n", blas_version);
-#endif
 
     // Device Query
     int device_id    = 0;

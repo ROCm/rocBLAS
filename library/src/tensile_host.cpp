@@ -4,8 +4,6 @@
 
 // The implementation of the rocBLAS<->Tensile interface layer.
 
-#ifdef USE_TENSILE_HOST
-
 #include "tensile_host.hpp"
 #include "rocblas.h"
 //#include <Tensile/AMDGPU.hpp>
@@ -484,5 +482,3 @@ template rocblas_status TensileHost::runContractionProblem(
 
 template rocblas_status
     TensileHost::runContractionProblem(const RocblasContractionProblem<int8_t, int32_t, int32_t>&);
-
-#endif
