@@ -85,9 +85,8 @@ ci: {
             }
     }
 
-    // For url job names that are outside of the standardJobNameSet i.e. compute-rocm-dkms-no-npi-1901
-    Set standardJobNameSet = ["compute-rocm-dkms-no-npi", "compute-rocm-dkms-no-npi-hipclang", "rocm-docker"]
-    if(!standardJobNameSet.contains(urlJobName))
+    // For url job names that are not listed by the jobNameList i.e. compute-rocm-dkms-no-npi-1901
+    if(!jobNameList.keySet().contains(urlJobName))
     {
         properties(auxiliary.addCommonProperties([pipelineTriggers([cron('0 1 * * *')])]))
         stage(urlJobName) {
