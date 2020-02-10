@@ -14,7 +14,7 @@ def runCI =
 {
     nodeDetails, jobName->
 
-    def rocblas = new rocProject('rocBLAS', 'Extended')
+    def prj = new rocProject('rocBLAS', 'Extended')
     // customize for project
     prj.paths.build_command = './install.sh -lasm_ci -c'
     prj.timeout.compile = 180
