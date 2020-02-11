@@ -2,7 +2,7 @@
 ARG base_image
 
 FROM ${base_image}
-LABEL maintainer="rocblas-maintainer@amd"
+LABEL maintainer="rocblas-maintainer@amd.com"
 
 # Copy the debian package of rocblas into the container from host
 COPY *.deb /tmp/
