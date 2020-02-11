@@ -41,7 +41,7 @@ foreach( exe ${sample_list} )
       $<BUILD_INTERFACE:${HCC_INCLUDE_DIRS}>
       )
 
-  if( CUDA_FOUND )
+  if( CUDA_BUILD )
     target_include_directories( ${exe}
       PRIVATE
         $<BUILD_INTERFACE:${CUDA_INCLUDE_DIRS}>
