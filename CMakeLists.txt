@@ -191,7 +191,11 @@ if( BUILD_WITH_TENSILE )
     message (STATUS "using GIT Tensile fork=${tensile_fork} from branch=${tensile_tag}")
   endif()
   list(APPEND CMAKE_PREFIX_PATH ${VIRTUALENV_HOME_DIR})
-  find_package(Tensile 4.15.0 EXACT REQUIRED HIP LLVM OpenMP PATHS "${INSTALLED_TENSILE_PATH}")
+  if (TENSILE_VERSION)
+    find_package(Tensile ${TENSILE_VERSION} EXACT REQUIRED HIP LLVM OpenMP PATHS "${INSTALLED_TENSILE_PATH}")
+  else()
+    find_package(Tensile 4.16.0 EXACT REQUIRED HIP LLVM OpenMP PATHS "${INSTALLED_TENSILE_PATH}")
+  endif()
 endif()
 
 # Find HCC/HIP dependencies
