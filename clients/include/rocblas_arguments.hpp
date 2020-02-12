@@ -86,6 +86,7 @@ struct Arguments
 
     rocblas_initialization initialization;
     char                   known_bug_platforms[64];
+    bool                   c_noalias_d;
 
     /*************************************************************************
      *                     End Of Arguments                                  *
