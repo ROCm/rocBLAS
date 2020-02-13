@@ -10,32 +10,34 @@
 namespace
 {
     template <typename>
-    constexpr char rocblas_trmm_name[] = "unknown";
+    constexpr char rocblas_trmm_strided_batched_name[] = "unknown";
     template <>
-    constexpr char rocblas_trmm_name<float>[] = "rocblas_strided_batched_strmm";
+    constexpr char rocblas_trmm_strided_batched_name<float>[] = "rocblas_strided_batched_strmm";
     template <>
-    constexpr char rocblas_trmm_name<double>[] = "rocblas_strided_batched_dtrmm";
+    constexpr char rocblas_trmm_strided_batched_name<double>[] = "rocblas_strided_batched_dtrmm";
     template <>
-    constexpr char rocblas_trmm_name<rocblas_float_complex>[] = "rocblas_strided_batched_ctrmm";
+    constexpr char rocblas_trmm_strided_batched_name<rocblas_float_complex>[]
+        = "rocblas_strided_batched_ctrmm";
     template <>
-    constexpr char rocblas_trmm_name<rocblas_double_complex>[] = "rocblas_strided_batched_ztrmm";
+    constexpr char rocblas_trmm_strided_batched_name<rocblas_double_complex>[]
+        = "rocblas_strided_batched_ztrmm";
 
     template <typename T>
-    rocblas_status rocblas_trmm_impl(rocblas_handle    handle,
-                                     rocblas_side      side,
-                                     rocblas_fill      uplo,
-                                     rocblas_operation transa,
-                                     rocblas_diagonal  diag,
-                                     rocblas_int       m,
-                                     rocblas_int       n,
-                                     const T*          alpha,
-                                     const T*          a,
-                                     rocblas_int       lda,
-                                     rocblas_stride    stride_a,
-                                     T*                c,
-                                     rocblas_int       ldc,
-                                     rocblas_stride    stride_c,
-                                     rocblas_int       batch_count)
+    rocblas_status rocblas_trmm_strided_batched_impl(rocblas_handle    handle,
+                                                     rocblas_side      side,
+                                                     rocblas_fill      uplo,
+                                                     rocblas_operation transa,
+                                                     rocblas_diagonal  diag,
+                                                     rocblas_int       m,
+                                                     rocblas_int       n,
+                                                     const T*          alpha,
+                                                     const T*          a,
+                                                     rocblas_int       lda,
+                                                     rocblas_stride    stride_a,
+                                                     T*                c,
+                                                     rocblas_int       ldc,
+                                                     rocblas_stride    stride_c,
+                                                     rocblas_int       batch_count)
     {
         if(!handle)
             return rocblas_status_invalid_handle;
@@ -55,7 +57,7 @@ namespace
             {
                 if(layer_mode & rocblas_layer_mode_log_trace)
                     log_trace(handle,
-                              rocblas_trmm_name<T>,
+                              rocblas_trmm_strided_batched_name<T>,
                               side,
                               uplo,
                               transa,
@@ -74,7 +76,7 @@ namespace
                 if(layer_mode & rocblas_layer_mode_log_bench)
                 {
                     log_bench(handle,
-                              "./rocblas-bench -f trmm -r",
+                              "./rocblas-bench -f trmm_strided_batched -r",
                               rocblas_precision_string<T>,
                               "--side",
                               side_letter,
@@ -88,15 +90,14 @@ namespace
                               m,
                               "-n",
                               n,
-                              "--alpha",
                               LOG_BENCH_SCALAR_VALUE(alpha),
                               "--lda",
                               lda,
-                              "--stride_A",
+                              "--stride_a",
                               stride_a,
                               "--ldb",
                               ldc,
-                              "--stride_B",
+                              "--stride_b",
                               stride_c,
                               "--batch_count",
                               batch_count);
@@ -106,14 +107,14 @@ namespace
             {
                 if(layer_mode & rocblas_layer_mode_log_trace)
                     log_trace(handle,
-                              rocblas_trmm_name<T>,
+                              rocblas_trmm_strided_batched_name<T>,
                               side,
                               uplo,
                               transa,
                               diag,
                               m,
                               n,
-                              alpha,
+                              log_trace_scalar_value(alpha),
                               a,
                               lda,
                               stride_a,
@@ -126,7 +127,7 @@ namespace
             if(layer_mode & rocblas_layer_mode_log_profile)
             {
                 log_profile(handle,
-                            rocblas_trmm_name<T>,
+                            rocblas_trmm_strided_batched_name<T>,
                             "side",
                             side_letter,
                             "uplo",
@@ -141,11 +142,11 @@ namespace
                             n,
                             "lda",
                             lda,
-                            "stride_A",
+                            "stride_a",
                             stride_a,
                             "ldb",
                             ldc,
-                            "stride_B",
+                            "stride_b",
                             stride_c,
                             "batch_count",
                             batch_count);
@@ -186,23 +187,23 @@ namespace
 
         rocblas_stride stride_mem = size_dt1 + size_dt2;
 
-        return rocblas_trmm_template<RB, CB, T>(handle,
-                                                side,
-                                                uplo,
-                                                transa,
-                                                diag,
-                                                m,
-                                                n,
-                                                alpha,
-                                                a,
-                                                lda,
-                                                stride_a,
-                                                c,
-                                                ldc,
-                                                stride_c,
-                                                batch_count,
-                                                (T*)mem,
-                                                stride_mem);
+        return rocblas_trmm_template<false, true, RB, CB, T>(handle,
+                                                             side,
+                                                             uplo,
+                                                             transa,
+                                                             diag,
+                                                             m,
+                                                             n,
+                                                             alpha,
+                                                             a,
+                                                             lda,
+                                                             stride_a,
+                                                             c,
+                                                             ldc,
+                                                             stride_c,
+                                                             batch_count,
+                                                             (T*)mem,
+                                                             stride_mem);
     }
 
 } // namespace
@@ -232,21 +233,21 @@ rocblas_status rocblas_strmm_strided_batched(rocblas_handle    handle,
                                              rocblas_int       batch_count)
 try
 {
-    return rocblas_trmm_impl(handle,
-                             side,
-                             uplo,
-                             transa,
-                             diag,
-                             m,
-                             n,
-                             alpha,
-                             a,
-                             stride_a,
-                             lda,
-                             c,
-                             ldc,
-                             stride_c,
-                             batch_count);
+    return rocblas_trmm_strided_batched_impl(handle,
+                                             side,
+                                             uplo,
+                                             transa,
+                                             diag,
+                                             m,
+                                             n,
+                                             alpha,
+                                             a,
+                                             lda,
+                                             stride_a,
+                                             c,
+                                             ldc,
+                                             stride_c,
+                                             batch_count);
 }
 catch(...)
 {
@@ -270,21 +271,21 @@ rocblas_status rocblas_dtrmm_strided_batched(rocblas_handle    handle,
                                              rocblas_int       batch_count)
 try
 {
-    return rocblas_trmm_impl(handle,
-                             side,
-                             uplo,
-                             transa,
-                             diag,
-                             m,
-                             n,
-                             alpha,
-                             a,
-                             stride_a,
-                             lda,
-                             c,
-                             ldc,
-                             stride_c,
-                             batch_count);
+    return rocblas_trmm_strided_batched_impl(handle,
+                                             side,
+                                             uplo,
+                                             transa,
+                                             diag,
+                                             m,
+                                             n,
+                                             alpha,
+                                             a,
+                                             lda,
+                                             stride_a,
+                                             c,
+                                             ldc,
+                                             stride_c,
+                                             batch_count);
 }
 catch(...)
 {
@@ -308,21 +309,21 @@ rocblas_status rocblas_ctrmm_strided_batched(rocblas_handle               handle
                                              rocblas_int                  batch_count)
 try
 {
-    return rocblas_trmm_impl(handle,
-                             side,
-                             uplo,
-                             transa,
-                             diag,
-                             m,
-                             n,
-                             alpha,
-                             a,
-                             stride_a,
-                             lda,
-                             c,
-                             ldc,
-                             stride_c,
-                             batch_count);
+    return rocblas_trmm_strided_batched_impl(handle,
+                                             side,
+                                             uplo,
+                                             transa,
+                                             diag,
+                                             m,
+                                             n,
+                                             alpha,
+                                             a,
+                                             lda,
+                                             stride_a,
+                                             c,
+                                             ldc,
+                                             stride_c,
+                                             batch_count);
 }
 catch(...)
 {
@@ -346,21 +347,21 @@ rocblas_status rocblas_ztrmm_strided_batched(rocblas_handle                handl
                                              rocblas_int                   batch_count)
 try
 {
-    return rocblas_trmm_impl(handle,
-                             side,
-                             uplo,
-                             transa,
-                             diag,
-                             m,
-                             n,
-                             alpha,
-                             a,
-                             stride_a,
-                             lda,
-                             c,
-                             ldc,
-                             stride_c,
-                             batch_count);
+    return rocblas_trmm_strided_batched_impl(handle,
+                                             side,
+                                             uplo,
+                                             transa,
+                                             diag,
+                                             m,
+                                             n,
+                                             alpha,
+                                             a,
+                                             lda,
+                                             stride_a,
+                                             c,
+                                             ldc,
+                                             stride_c,
+                                             batch_count);
 }
 catch(...)
 {
