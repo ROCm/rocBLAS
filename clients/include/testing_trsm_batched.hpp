@@ -16,7 +16,7 @@
 #include "utility.hpp"
 
 #define ERROR_EPS_MULTIPLIER 40
-#define RESIDUAL_EPS_MULTIPLIER 20
+#define RESIDUAL_EPS_MULTIPLIER 40
 
 template <typename T>
 void testing_trsm_batched(const Arguments& arg)
@@ -88,6 +88,13 @@ void testing_trsm_batched(const Arguments& arg)
         hXorB_2[b] = host_vector<T>(size_B);
         cpuXorB[b] = host_vector<T>(size_B);
     }
+
+    double gpu_time_used, cpu_time_used;
+    double rocblas_gflops, cblas_gflops;
+    double error_eps_multiplier    = ERROR_EPS_MULTIPLIER;
+    double residual_eps_multiplier = RESIDUAL_EPS_MULTIPLIER;
+    double eps                     = std::numeric_limits<real_t<T>>::epsilon();
+
     // allocate memory on device
     device_vector<T*, 0, T> dA(batch_count); //(size_A);
     device_vector<T*, 0, T> dXorB(batch_count); //(size_B);
@@ -124,20 +131,20 @@ void testing_trsm_batched(const Arguments& arg)
             for(int j = 0; j < K; j++)
                 hA[b][i + j * lda] = 0.0;
 
-        //  calculate AAT = hA * hA ^ T
-        cblas_gemm<T, T>(rocblas_operation_none,
-                         rocblas_operation_transpose,
-                         K,
-                         K,
-                         K,
-                         1.0,
-                         hA[b],
-                         lda,
-                         hA[b],
-                         lda,
-                         0.0,
-                         AAT[b],
-                         lda);
+        //  calculate AAT = hA * hA ^ T or AAT = hA * hA ^ H if complex
+        cblas_gemm<T>(rocblas_operation_none,
+                      rocblas_operation_conjugate_transpose,
+                      K,
+                      K,
+                      K,
+                      T(1.0),
+                      hA[b],
+                      lda,
+                      hA[b],
+                      lda,
+                      T(0.0),
+                      AAT[b],
+                      lda);
 
         //  copy AAT into hA, make hA strictly diagonal dominant, and therefore SPD
         for(int i = 0; i < K; i++)
@@ -147,12 +154,12 @@ void testing_trsm_batched(const Arguments& arg)
             {
                 int idx    = i + j * lda;
                 hA[b][idx] = AAT[b][idx];
-                t += AAT[b][idx] > 0 ? AAT[b][idx] : -AAT[b][idx];
+                t += rocblas_abs(AAT[b][idx]);
             }
             hA[b][i + i * lda] = t;
         }
 
-        //  calculate Cholesky factorization of SPD matrix hA
+        //  calculate Cholesky factorization of SPD (or hermitian if complex) matrix hA
         cblas_potrf<T>(char_uplo, K, hA[b], lda);
     }
 
@@ -185,7 +192,7 @@ void testing_trsm_batched(const Arguments& arg)
         }
     }
 
-    // Initial hX
+    // Initialize "exact" answer hx
     for(int b = 0; b < batch_count; b++)
     {
         rocblas_init<T>(hX[b], M, N, ldb);
@@ -196,7 +203,6 @@ void testing_trsm_batched(const Arguments& arg)
 
         // Calculate hB = hA*hX;
         cblas_trmm<T>(side, uplo, transA, diag, M, N, 1.0 / alpha_h, hA[b], lda, hB[b], ldb);
-
         hXorB_1[b] = hB[b]; // hXorB <- B
         hXorB_2[b] = hB[b]; // hXorB <- B
         cpuXorB[b] = hB[b]; // cpuXorB <- B
@@ -209,16 +215,11 @@ void testing_trsm_batched(const Arguments& arg)
     CHECK_HIP_ERROR(hipMemcpy(dA, Av, sizeof(T*) * batch_count, hipMemcpyHostToDevice));
     CHECK_HIP_ERROR(hipMemcpy(dXorB, XorBv, sizeof(T*) * batch_count, hipMemcpyHostToDevice));
 
-    T max_err_1 = 0.0;
-    T max_err_2 = 0.0;
-    T max_res_1 = 0.0;
-    T max_res_2 = 0.0;
+    double max_err_1 = 0.0;
+    double max_err_2 = 0.0;
+
     if(arg.unit_check || arg.norm_check)
     {
-        T error_eps_multiplier    = ERROR_EPS_MULTIPLIER;
-        T residual_eps_multiplier = RESIDUAL_EPS_MULTIPLIER;
-        T eps                     = std::numeric_limits<T>::epsilon();
-
         // calculate dXorB <- A^(-1) B   rocblas_device_pointer_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         for(int b = 0; b < batch_count; b++)
@@ -256,82 +257,35 @@ void testing_trsm_batched(const Arguments& arg)
                 hipMemcpy(hXorB_2[b], XorBv[b], sizeof(T) * size_B, hipMemcpyDeviceToHost));
         }
 
-        // Error Check
-        // hXorB contains calculated X, so error is hX - hXorB
-
-        // err is the one norm of the scaled error for a single column
-        // max_err is the maximum of err for all columns
-
+        //computed result is in hx_or_b, so forward error is E = hx - hx_or_b
+        // calculate vector-induced-norm 1 of matrix E
         for(int b = 0; b < batch_count; b++)
         {
-            max_err_1 = max_err_2 = 0;
-            for(int i = 0; i < N; i++)
-            {
-                T err_1 = 0.0;
-                T err_2 = 0.0;
-                for(int j = 0; j < M; j++)
-                {
-                    int idx = j + i * ldb;
-                    if(hX[b][idx] != 0)
-                    {
-                        err_1 += std::abs((hX[b][idx] - hXorB_1[b][idx]) / hX[b][idx]);
-                        err_2 += std::abs((hX[b][idx] - hXorB_2[b][idx]) / hX[b][idx]);
-                    }
-                    else
-                    {
-                        err_1 += std::abs(hXorB_1[b][idx]);
-                        err_2 += std::abs(hXorB_2[b][idx]);
-                    }
-                }
-                max_err_1 = max_err_1 > err_1 ? max_err_1 : err_1;
-                max_err_2 = max_err_2 > err_2 ? max_err_2 : err_2;
-            }
+            max_err_1 = rocblas_abs(matrix_norm_1<T>(M, N, ldb, hX[b], hXorB_1[b]));
+            max_err_2 = rocblas_abs(matrix_norm_1<T>(M, N, ldb, hX[b], hXorB_2[b]));
 
+            //unit test
             trsm_err_res_check<T>(max_err_1, M, error_eps_multiplier, eps);
             trsm_err_res_check<T>(max_err_2, M, error_eps_multiplier, eps);
 
-            // Residual Check
-            // hXorB <- hA * (A^(-1) B) ;
+            // hx_or_b contains A * (calculated X), so res = A * (calculated x) - b = hx_or_b - hb
             cblas_trmm<T>(
                 side, uplo, transA, diag, M, N, 1.0 / alpha_h, hA[b], lda, hXorB_1[b], ldb);
             cblas_trmm<T>(
                 side, uplo, transA, diag, M, N, 1.0 / alpha_h, hA[b], lda, hXorB_2[b], ldb);
 
-            // hXorB contains A * (calculated X), so residual = A * (calculated X) - B
-            //                                                = hXorB - hB
-            // res is the one norm of the scaled residual for each column
-            max_res_1 = max_res_2 = 0;
-            for(int i = 0; i < N; i++)
-            {
-                T res_1 = 0.0;
-                T res_2 = 0.0;
-                for(int j = 0; j < M; j++)
-                {
-                    int idx = j + i * ldb;
-                    if(hB[b][j + i * ldb] != 0)
-                    {
-                        res_1 += std::abs((hXorB_1[b][idx] - hB[b][idx]) / hB[b][idx]);
-                        res_2 += std::abs((hXorB_2[b][idx] - hB[b][idx]) / hB[b][idx]);
-                    }
-                    else
-                    {
-                        res_1 += std::abs(hXorB_1[b][idx]);
-                        res_2 += std::abs(hXorB_2[b][idx]);
-                    }
-                }
-                max_res_1 = max_res_1 > res_1 ? max_res_1 : res_1;
-                max_res_2 = max_res_2 > res_2 ? max_res_2 : res_2;
-            }
-            trsm_err_res_check<T>(max_res_1, M, residual_eps_multiplier, eps);
-            trsm_err_res_check<T>(max_res_2, M, residual_eps_multiplier, eps);
+            // calculate vector-induced-norm 1 of matrix res
+            max_err_1 = rocblas_abs(matrix_norm_1<T>(M, N, ldb, hXorB_1[b], hB[b]));
+            max_err_2 = rocblas_abs(matrix_norm_1<T>(M, N, ldb, hXorB_2[b], hB[b]));
+
+            //unit test
+            trsm_err_res_check<T>(max_err_1, M, residual_eps_multiplier, eps);
+            trsm_err_res_check<T>(max_err_2, M, residual_eps_multiplier, eps);
         }
     }
 
     if(arg.timing)
     {
-        double gpu_time_used, cpu_time_used;
-        double rocblas_gflops, cblas_gflops;
-
         // GPU rocBLAS
         for(int b = 0; b < batch_count; b++)
         {

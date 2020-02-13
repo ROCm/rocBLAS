@@ -124,6 +124,8 @@ inline void xaxpy(int*                    n,
 
 /* ============== Norm Check for General Matrix ============= */
 /*! \brief compare the norm error of two matrices hCPU & hGPU */
+
+// Real
 template <typename T, std::enable_if_t<!is_complex<T>, int> = 0>
 double norm_check_general(
     char norm_type, rocblas_int M, rocblas_int N, rocblas_int lda, T* hCPU, T* hGPU)
@@ -154,6 +156,7 @@ double norm_check_general(
     return error;
 }
 
+// Complex
 template <typename T, std::enable_if_t<is_complex<T>, int> = 0>
 double norm_check_general(
     char norm_type, rocblas_int M, rocblas_int N, rocblas_int lda, T* hCPU, T* hGPU)
@@ -175,40 +178,35 @@ double norm_check_general(
     return error;
 }
 
-template <>
-inline double norm_check_general(char          norm_type,
-                                 rocblas_int   M,
-                                 rocblas_int   N,
-                                 rocblas_int   lda,
-                                 rocblas_half* hCPU,
-                                 rocblas_half* hGPU)
+// For BF16 and half, we convert the results to double first
+template <typename T,
+          typename VEC,
+          std::enable_if_t<std::is_same<T, rocblas_half>{} || std::is_same<T, rocblas_bfloat16>{},
+                           int> = 0>
+double norm_check_general(
+    char norm_type, rocblas_int M, rocblas_int N, rocblas_int lda, VEC&& hCPU, T* hGPU)
 {
-    // norm type can be 'O', 'I', 'F', 'o', 'i', 'f' for one, infinity or Frobenius norm
-    // one norm is max column sum
-    // infinity norm is max row sum
-    // Frobenius is l2 norm of matrix entries
-
     host_vector<double> hCPU_double(N * lda);
     host_vector<double> hGPU_double(N * lda);
 
-    for(rocblas_int i = 0; i < N * lda; i++)
+    for(size_t i = 0; i < size_t(N) * lda; i++)
     {
         hCPU_double[i] = hCPU[i];
         hGPU_double[i] = hGPU[i];
     }
 
-    return norm_check_general(norm_type, M, N, lda, hCPU_double.data(), hGPU_double.data());
+    return norm_check_general<double>(norm_type, M, N, lda, hCPU_double, hGPU_double);
 }
 
 /* ============== Norm Check for strided_batched case ============= */
-template <typename T>
+template <typename T, template <typename> class VEC, typename T_hpa>
 double norm_check_general(char           norm_type,
                           rocblas_int    M,
                           rocblas_int    N,
                           rocblas_int    lda,
                           rocblas_stride stride_a,
                           rocblas_int    batch_count,
-                          T*             hCPU,
+                          VEC<T_hpa>&    hCPU,
                           T*             hGPU)
 {
     // norm type can be O', 'I', 'F', 'o', 'i', 'f' for one, infinity or Frobenius norm
@@ -221,11 +219,11 @@ double norm_check_general(char           norm_type,
 
     double cumulative_error = 0.0;
 
-    for(rocblas_int i = 0; i < batch_count; i++)
+    for(size_t i = 0; i < batch_count; i++)
     {
         auto index = i * stride_a;
 
-        auto error = norm_check_general(norm_type, M, N, lda, hCPU + index, hGPU + index);
+        auto error = norm_check_general(norm_type, M, N, lda, (T_hpa*)hCPU + index, hGPU + index);
 
         if(norm_type == 'F' || norm_type == 'f')
         {
@@ -241,14 +239,14 @@ double norm_check_general(char           norm_type,
 }
 
 /* ============== Norm Check for batched case ============= */
-template <typename T>
-double norm_check_general(char           norm_type,
-                          rocblas_int    M,
-                          rocblas_int    N,
-                          rocblas_int    lda,
-                          rocblas_int    batch_count,
-                          host_vector<T> hCPU[],
-                          host_vector<T> hGPU[])
+template <typename T, typename T_hpa>
+double norm_check_general(char               norm_type,
+                          rocblas_int        M,
+                          rocblas_int        N,
+                          rocblas_int        lda,
+                          rocblas_int        batch_count,
+                          host_vector<T_hpa> hCPU[],
+                          host_vector<T>     hGPU[])
 {
     // norm type can be O', 'I', 'F', 'o', 'i', 'f' for one, infinity or Frobenius norm
     // one norm is max column sum
@@ -385,14 +383,33 @@ inline double norm_check_symmetric(char          norm_type,
 }
 
 template <typename T>
+double matrix_norm_1(rocblas_int M, rocblas_int N, rocblas_int lda, T* hA_gold, T* hA)
+{
+    double max_err_scal = 0.0;
+    double max_err      = 0.0;
+    double err          = 0.0;
+    double err_scal     = 0.0;
+    for(int i = 0; i < N; i++)
+    {
+        for(int j = 0; j < M; j++)
+        {
+            err += rocblas_abs((hA_gold[j + i * lda] - hA[j + i * lda]));
+            err_scal += rocblas_abs(hA_gold[j + i * lda]);
+        }
+        max_err_scal = max_err_scal > err_scal ? max_err_scal : err_scal;
+        max_err      = max_err > err ? max_err : err;
+    }
+
+    return max_err / max_err_scal;
+}
+
+template <typename T>
 double vector_norm_1(rocblas_int M, rocblas_int incx, T* hx_gold, T* hx)
 {
     double max_err_scal = 0.0;
     double max_err      = 0.0;
-    double err_scal     = 0.0;
     for(int i = 0; i < M; i++)
     {
-        max_err += rocblas_abs((hx_gold[i * incx] - hx[i * incx]));
         max_err += rocblas_abs((hx_gold[i * incx] - hx[i * incx]));
         max_err_scal += rocblas_abs(hx_gold[i * incx]);
     }

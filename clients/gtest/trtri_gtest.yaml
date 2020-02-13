@@ -26,7 +26,7 @@ Tests:
 - name: trtri
   category: quick
   function: trtri
-  precision: *single_double_precisions
+  precision: *single_double_precisions_complex_real
   uplo: [ U, L ]
   diag: [ N, U ]
   matrix_size: *small_matrix_size_range
@@ -34,7 +34,7 @@ Tests:
 - name: trtri_batched
   category: quick
   function: trtri_batched
-  precision: *single_double_precisions
+  precision: *single_double_precisions_complex_real
   uplo: [ U, L ]
   diag: [ N, U ]
   matrix_size: *small_matrix_size_range
@@ -43,7 +43,7 @@ Tests:
 - name: trtri_strided_batched
   category: quick
   function: trtri_strided_batched
-  precision: *single_double_precisions
+  precision: *single_double_precisions_complex_real
   uplo: [ U, L ]
   diag: [ N, U ]
   matrix_size: *small_matrix_size_range
@@ -52,7 +52,7 @@ Tests:
 - name: trtri_batched
   category: pre_checkin
   function: trtri_batched
-  precision: *single_double_precisions
+  precision: *single_double_precisions_complex_real
   uplo: [ U, L ]
   diag: [ N, U ]
   matrix_size: *medium_matrix_size_range
@@ -61,7 +61,7 @@ Tests:
 - name: trtri_strided_batched
   category: pre_checkin
   function: trtri_strided_batched
-  precision: *single_double_precisions
+  precision: *single_double_precisions_complex_real
   uplo: [ U, L ]
   diag: [ N, U ]
   matrix_size: *medium_matrix_size_range

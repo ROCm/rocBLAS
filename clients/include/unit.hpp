@@ -36,6 +36,7 @@
                                        hGPU[i + j * lda + k * strideA]);             \
                     }                                                                \
     } while(0)
+
 #define UNIT_CHECK_B(M, N, batch_count, lda, hCPU, hGPU, UNIT_ASSERT_EQ)            \
     do                                                                              \
     {                                                                               \
@@ -51,11 +52,22 @@
                         UNIT_ASSERT_EQ(hCPU[k][i + j * lda], hGPU[k][i + j * lda]); \
                     }                                                               \
     } while(0)
-#endif
 
 #define ASSERT_HALF_EQ(a, b) ASSERT_FLOAT_EQ(float(a), float(b))
+#define ASSERT_BF16_EQ(a, b) ASSERT_FLOAT_EQ(float(a), float(b))
 
-#define ASSERT_BFLOAT16_EQ(a, b) ASSERT_FLOAT_EQ(float(a), float(b))
+// Compare float to rocblas_bfloat16
+// Allow the rocblas_bfloat16 to match the rounded or truncated value of float
+// Only call ASSERT_FLOAT_EQ with the rounded value if the truncated value does not match
+#include <gtest/internal/gtest-internal.h>
+#define ASSERT_FLOAT_BF16_EQ(a, b)                                                     \
+    do                                                                                 \
+    {                                                                                  \
+        using testing::internal::FloatingPoint;                                        \
+        if(!FloatingPoint<float>(b).AlmostEquals(                                      \
+               FloatingPoint<float>(rocblas_bfloat16(a, rocblas_bfloat16::truncate)))) \
+            ASSERT_FLOAT_EQ(b, rocblas_bfloat16(a));                                   \
+    } while(0)
 
 #define ASSERT_FLOAT_COMPLEX_EQ(a, b)                  \
     do                                                 \
@@ -73,9 +85,16 @@
         ASSERT_DOUBLE_EQ(std::imag(ta), std::imag(tb)); \
     } while(0)
 
-template <typename T>
-void unit_check_general(
-    rocblas_int M, rocblas_int N, rocblas_int lda, const T* hCPU, const T* hGPU);
+#endif // GOOGLE_TEST
+
+// TODO: Replace std::remove_cv_t with std::type_identity_t in C++20
+// It is only used to make T_hpa non-deduced
+template <typename T, typename T_hpa = T>
+void unit_check_general(rocblas_int                    M,
+                        rocblas_int                    N,
+                        rocblas_int                    lda,
+                        const std::remove_cv_t<T_hpa>* hCPU,
+                        const T*                       hGPU);
 
 template <>
 inline void unit_check_general(rocblas_int             M,
@@ -84,7 +103,14 @@ inline void unit_check_general(rocblas_int             M,
                                const rocblas_bfloat16* hCPU,
                                const rocblas_bfloat16* hGPU)
 {
-    UNIT_CHECK(M, N, 1, lda, 0, hCPU, hGPU, ASSERT_BFLOAT16_EQ);
+    UNIT_CHECK(M, N, 1, lda, 0, hCPU, hGPU, ASSERT_BF16_EQ);
+}
+
+template <>
+inline void unit_check_general<rocblas_bfloat16, float>(
+    rocblas_int M, rocblas_int N, rocblas_int lda, const float* hCPU, const rocblas_bfloat16* hGPU)
+{
+    UNIT_CHECK(M, N, 1, lda, 0, hCPU, hGPU, ASSERT_FLOAT_BF16_EQ);
 }
 
 template <>
@@ -138,14 +164,14 @@ inline void unit_check_general(
     UNIT_CHECK(M, N, 1, lda, 0, hCPU, hGPU, ASSERT_EQ);
 }
 
-template <typename T>
-void unit_check_general(rocblas_int    M,
-                        rocblas_int    N,
-                        rocblas_int    batch_count,
-                        rocblas_int    lda,
-                        rocblas_stride strideA,
-                        const T*       hCPU,
-                        const T*       hGPU);
+template <typename T, typename T_hpa = T>
+void unit_check_general(rocblas_int                    M,
+                        rocblas_int                    N,
+                        rocblas_int                    batch_count,
+                        rocblas_int                    lda,
+                        rocblas_stride                 strideA,
+                        const std::remove_cv_t<T_hpa>* hCPU,
+                        const T*                       hGPU);
 
 template <>
 inline void unit_check_general(rocblas_int             M,
@@ -156,7 +182,19 @@ inline void unit_check_general(rocblas_int             M,
                                const rocblas_bfloat16* hCPU,
                                const rocblas_bfloat16* hGPU)
 {
-    UNIT_CHECK(M, N, batch_count, lda, strideA, hCPU, hGPU, ASSERT_BFLOAT16_EQ);
+    UNIT_CHECK(M, N, batch_count, lda, strideA, hCPU, hGPU, ASSERT_BF16_EQ);
+}
+
+template <>
+inline void unit_check_general<rocblas_bfloat16, float>(rocblas_int             M,
+                                                        rocblas_int             N,
+                                                        rocblas_int             batch_count,
+                                                        rocblas_int             lda,
+                                                        rocblas_stride          strideA,
+                                                        const float*            hCPU,
+                                                        const rocblas_bfloat16* hGPU)
+{
+    UNIT_CHECK(M, N, batch_count, lda, strideA, hCPU, hGPU, ASSERT_FLOAT_BF16_EQ);
 }
 
 template <>
@@ -231,13 +269,13 @@ inline void unit_check_general(rocblas_int        M,
     UNIT_CHECK(M, N, batch_count, lda, strideA, hCPU, hGPU, ASSERT_EQ);
 }
 
-template <typename T>
-void unit_check_general(rocblas_int          M,
-                        rocblas_int          N,
-                        rocblas_int          batch_count,
-                        rocblas_int          lda,
-                        const host_vector<T> hCPU[],
-                        const host_vector<T> hGPU[]);
+template <typename T, typename T_hpa = T>
+void unit_check_general(rocblas_int                                M,
+                        rocblas_int                                N,
+                        rocblas_int                                batch_count,
+                        rocblas_int                                lda,
+                        const host_vector<std::remove_cv_t<T_hpa>> hCPU[],
+                        const host_vector<T>                       hGPU[]);
 
 template <>
 inline void unit_check_general(rocblas_int                         M,
@@ -247,7 +285,18 @@ inline void unit_check_general(rocblas_int                         M,
                                const host_vector<rocblas_bfloat16> hCPU[],
                                const host_vector<rocblas_bfloat16> hGPU[])
 {
-    UNIT_CHECK_B(M, N, batch_count, lda, hCPU, hGPU, ASSERT_BFLOAT16_EQ);
+    UNIT_CHECK_B(M, N, batch_count, lda, hCPU, hGPU, ASSERT_BF16_EQ);
+}
+
+template <>
+inline void unit_check_general<rocblas_bfloat16, float>(rocblas_int              M,
+                                                        rocblas_int              N,
+                                                        rocblas_int              batch_count,
+                                                        rocblas_int              lda,
+                                                        const host_vector<float> hCPU[],
+                                                        const host_vector<rocblas_bfloat16> hGPU[])
+{
+    UNIT_CHECK_B(M, N, batch_count, lda, hCPU, hGPU, ASSERT_FLOAT_BF16_EQ);
 }
 
 template <>
@@ -316,13 +365,13 @@ inline void unit_check_general(rocblas_int                               M,
     UNIT_CHECK_B(M, N, batch_count, lda, hCPU, hGPU, ASSERT_DOUBLE_COMPLEX_EQ);
 }
 
-template <typename T>
-void unit_check_general(rocblas_int    M,
-                        rocblas_int    N,
-                        rocblas_int    batch_count,
-                        rocblas_int    lda,
-                        const T* const hCPU[],
-                        const T* const hGPU[]);
+template <typename T, typename T_hpa = T>
+void unit_check_general(rocblas_int                          M,
+                        rocblas_int                          N,
+                        rocblas_int                          batch_count,
+                        rocblas_int                          lda,
+                        const std::remove_cv_t<T_hpa>* const hCPU[],
+                        const T* const                       hGPU[]);
 
 template <>
 inline void unit_check_general(rocblas_int                   M,
@@ -332,7 +381,18 @@ inline void unit_check_general(rocblas_int                   M,
                                const rocblas_bfloat16* const hCPU[],
                                const rocblas_bfloat16* const hGPU[])
 {
-    UNIT_CHECK_B(M, N, batch_count, lda, hCPU, hGPU, ASSERT_BFLOAT16_EQ);
+    UNIT_CHECK_B(M, N, batch_count, lda, hCPU, hGPU, ASSERT_BF16_EQ);
+}
+
+template <>
+inline void unit_check_general<rocblas_bfloat16, float>(rocblas_int                   M,
+                                                        rocblas_int                   N,
+                                                        rocblas_int                   batch_count,
+                                                        rocblas_int                   lda,
+                                                        const float* const            hCPU[],
+                                                        const rocblas_bfloat16* const hGPU[])
+{
+    UNIT_CHECK_B(M, N, batch_count, lda, hCPU, hGPU, ASSERT_FLOAT_BF16_EQ);
 }
 
 template <>
@@ -401,7 +461,7 @@ inline void unit_check_general(rocblas_int                         M,
     UNIT_CHECK_B(M, N, batch_count, lda, hCPU, hGPU, ASSERT_DOUBLE_COMPLEX_EQ);
 }
 
-template <typename T>
+template <typename T, std::enable_if_t<!is_complex<T>, int> = 0>
 inline void trsm_err_res_check(T max_error, rocblas_int M, T forward_tolerance, T eps)
 {
 #ifdef GOOGLE_TEST
@@ -409,22 +469,22 @@ inline void trsm_err_res_check(T max_error, rocblas_int M, T forward_tolerance, 
 #endif
 }
 
-template <>
-inline void trsm_err_res_check(rocblas_float_complex max_error,
-                               rocblas_int           M,
-                               rocblas_float_complex forward_tolerance,
-                               rocblas_float_complex eps)
+template <typename T, std::enable_if_t<+is_complex<T>, int> = 0>
+inline void trsm_err_res_check(T max_error, rocblas_int M, T forward_tolerance, T eps)
 {
-    trsm_err_res_check<float>(std::abs(max_error), M, std::abs(forward_tolerance), std::abs(eps));
+    trsm_err_res_check(std::abs(max_error), M, std::abs(forward_tolerance), std::abs(eps));
 }
 
-template <>
-inline void trsm_err_res_check(rocblas_double_complex max_error,
-                               rocblas_int            M,
-                               rocblas_double_complex forward_tolerance,
-                               rocblas_double_complex eps)
+template <typename T, std::enable_if_t<!is_complex<T>, int> = 0>
+constexpr double get_epsilon()
 {
-    trsm_err_res_check<double>(std::abs(max_error), M, std::abs(forward_tolerance), std::abs(eps));
+    return std::numeric_limits<T>::epsilon();
+}
+
+template <typename T, std::enable_if_t<+is_complex<T>, int> = 0>
+constexpr auto get_epsilon()
+{
+    return get_epsilon<decltype(std::real(T{}))>();
 }
 
 #endif

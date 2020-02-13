@@ -19,12 +19,10 @@
 template <typename T>
 void testing_hpr_bad_arg()
 {
-    using U = rocblas_real_t<T>;
-
     rocblas_fill         uplo  = rocblas_fill_upper;
     rocblas_int          N     = 100;
     rocblas_int          incx  = 1;
-    U                    alpha = 0.6;
+    real_t<T>            alpha = 0.6;
     rocblas_local_handle handle;
 
     size_t abs_incx = incx >= 0 ? incx : -incx;
@@ -37,34 +35,32 @@ void testing_hpr_bad_arg()
     CHECK_HIP_ERROR(dA_1.memcheck());
     CHECK_HIP_ERROR(dx.memcheck());
 
-    EXPECT_ROCBLAS_STATUS((rocblas_hpr<T, U>)(handle, rocblas_fill_full, N, &alpha, dx, incx, dA_1),
+    EXPECT_ROCBLAS_STATUS(rocblas_hpr<T>(handle, rocblas_fill_full, N, &alpha, dx, incx, dA_1),
                           rocblas_status_invalid_value);
 
-    EXPECT_ROCBLAS_STATUS((rocblas_hpr<T, U>)(handle, uplo, N, &alpha, nullptr, incx, dA_1),
+    EXPECT_ROCBLAS_STATUS(rocblas_hpr<T>(handle, uplo, N, &alpha, nullptr, incx, dA_1),
                           rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS((rocblas_hpr<T, U>)(handle, uplo, N, &alpha, dx, incx, nullptr),
+    EXPECT_ROCBLAS_STATUS(rocblas_hpr<T>(handle, uplo, N, &alpha, dx, incx, nullptr),
                           rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS((rocblas_hpr<T, U>)(nullptr, uplo, N, &alpha, dx, incx, dA_1),
+    EXPECT_ROCBLAS_STATUS(rocblas_hpr<T>(nullptr, uplo, N, &alpha, dx, incx, dA_1),
                           rocblas_status_invalid_handle);
 }
 
 template <typename T>
 void testing_hpr(const Arguments& arg)
 {
-    using U = rocblas_real_t<T>;
-
     rocblas_int          N       = arg.N;
     rocblas_int          incx    = arg.incx;
-    U                    h_alpha = arg.get_alpha<U>();
+    real_t<T>            h_alpha = arg.get_alpha<real_t<T>>();
     rocblas_fill         uplo    = char2rocblas_fill(arg.uplo);
     rocblas_local_handle handle;
 
     // argument check before allocating invalid memory
     if(N < 0 || !incx)
     {
-        EXPECT_ROCBLAS_STATUS((rocblas_hpr<T, U>)(handle, uplo, N, nullptr, nullptr, incx, nullptr),
+        EXPECT_ROCBLAS_STATUS(rocblas_hpr<T>(handle, uplo, N, nullptr, nullptr, incx, nullptr),
                               rocblas_status_invalid_size);
 
         return;
@@ -75,11 +71,11 @@ void testing_hpr(const Arguments& arg)
     size_t size_x   = size_t(N) * abs_incx;
 
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
-    host_vector<T> hA_1(size_A);
-    host_vector<T> hA_2(size_A);
-    host_vector<T> hA_gold(size_A);
-    host_vector<T> hx(size_x);
-    host_vector<U> halpha(1);
+    host_vector<T>         hA_1(size_A);
+    host_vector<T>         hA_2(size_A);
+    host_vector<T>         hA_gold(size_A);
+    host_vector<T>         hx(size_x);
+    host_vector<real_t<T>> halpha(1);
     CHECK_HIP_ERROR(hA_1.memcheck());
     CHECK_HIP_ERROR(hA_2.memcheck());
     CHECK_HIP_ERROR(hA_gold.memcheck());
@@ -89,10 +85,10 @@ void testing_hpr(const Arguments& arg)
     halpha[0] = h_alpha;
 
     // allocate memory on device
-    device_vector<T> dA_1(size_A);
-    device_vector<T> dA_2(size_A);
-    device_vector<T> dx(size_x);
-    device_vector<U> d_alpha(1);
+    device_vector<T>         dA_1(size_A);
+    device_vector<T>         dA_2(size_A);
+    device_vector<T>         dx(size_x);
+    device_vector<real_t<T>> d_alpha(1);
     CHECK_HIP_ERROR(dA_1.memcheck());
     CHECK_HIP_ERROR(dA_2.memcheck());
     CHECK_HIP_ERROR(dx.memcheck());
@@ -121,10 +117,10 @@ void testing_hpr(const Arguments& arg)
     if(arg.unit_check || arg.norm_check)
     {
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR((rocblas_hpr<T, U>)(handle, uplo, N, &h_alpha, dx, incx, dA_1));
+        CHECK_ROCBLAS_ERROR(rocblas_hpr<T>(handle, uplo, N, &h_alpha, dx, incx, dA_1));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR((rocblas_hpr<T, U>)(handle, uplo, N, d_alpha, dx, incx, dA_2));
+        CHECK_ROCBLAS_ERROR(rocblas_hpr<T>(handle, uplo, N, d_alpha, dx, incx, dA_2));
 
         // copy output from device to CPU
         CHECK_HIP_ERROR(hA_1.transfer_from(dA_1));
@@ -132,7 +128,7 @@ void testing_hpr(const Arguments& arg)
 
         // CPU BLAS
         cpu_time_used = get_time_us();
-        cblas_hpr<T, U>(uplo, N, h_alpha, hx, incx, hA_gold);
+        cblas_hpr<T>(uplo, N, h_alpha, hx, incx, hA_gold);
         cpu_time_used = get_time_us() - cpu_time_used;
         cblas_gflops  = hpr_gflop_count<T>(N) / cpu_time_used * 1e6;
 
@@ -158,14 +154,14 @@ void testing_hpr(const Arguments& arg)
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            rocblas_hpr<T, U>(handle, uplo, N, &h_alpha, dx, incx, dA_1);
+            rocblas_hpr<T>(handle, uplo, N, &h_alpha, dx, incx, dA_1);
         }
 
         gpu_time_used = get_time_us(); // in microseconds
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            rocblas_hpr<T, U>(handle, uplo, N, &h_alpha, dx, incx, dA_1);
+            rocblas_hpr<T>(handle, uplo, N, &h_alpha, dx, incx, dA_1);
         }
 
         gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;

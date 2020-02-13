@@ -67,6 +67,27 @@ constexpr double sbmv_gbyte_count(rocblas_int n, rocblas_int k)
     return (sizeof(T) * (tri_count(n) - tri_count(n - (k1 + 1)) + n)) / 1e9;
 }
 
+/* \brief byte counts of HER */
+template <typename T>
+constexpr double her_gbyte_count(rocblas_int n)
+{
+    return (sizeof(T) * (tri_count(n) + n)) / 1e9;
+}
+
+/* \brief byte counts of HER2 */
+template <typename T>
+constexpr double her2_gbyte_count(rocblas_int n)
+{
+    return (sizeof(T) * (tri_count(n) + 2 * n)) / 1e9;
+}
+
+/* \brief byte  counts of SYR2 */
+template <typename T>
+constexpr double syr2_gbyte_count(rocblas_int n)
+{
+    return (sizeof(T) * (tri_count(n) + 2 * n)) / 1e9;
+}
+
 /*
  * ===========================================================================
  *    level 3 BLAS

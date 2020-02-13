@@ -176,6 +176,12 @@ set( rocblas_blas2_source
   blas2/rocblas_hemv.cpp
   blas2/rocblas_hemv_batched.cpp
   blas2/rocblas_hemv_strided_batched.cpp
+  blas2/rocblas_her.cpp
+  blas2/rocblas_her_batched.cpp
+  blas2/rocblas_her_strided_batched.cpp
+  blas2/rocblas_her2.cpp
+  blas2/rocblas_her2_batched.cpp
+  blas2/rocblas_her2_strided_batched.cpp
   blas2/rocblas_hpmv.cpp
   blas2/rocblas_hpmv_batched.cpp
   blas2/rocblas_hpmv_strided_batched.cpp
@@ -194,6 +200,9 @@ set( rocblas_blas2_source
   blas2/rocblas_syr.cpp
   blas2/rocblas_syr_batched.cpp
   blas2/rocblas_syr_strided_batched.cpp
+  blas2/rocblas_syr2.cpp
+  blas2/rocblas_syr2_batched.cpp
+  blas2/rocblas_syr2_strided_batched.cpp
   blas2/rocblas_tbmv.cpp
   blas2/rocblas_tbmv_batched.cpp
   blas2/rocblas_tbmv_strided_batched.cpp
@@ -283,6 +292,8 @@ target_link_libraries( rocblas PRIVATE hip::hip_hcc hip::hip_device hcc::hccshar
 endif()
 
 set_target_properties( rocblas PROPERTIES CXX_STANDARD 14 CXX_STANDARD_REQUIRED ON )
+
+target_compile_definitions( rocblas PRIVATE ROCBLAS_LIBRARY_CHECKS )
 
 if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
   # Remove following when hcc is fixed; hcc emits following spurious warning ROCm v1.6.1
