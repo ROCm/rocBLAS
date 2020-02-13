@@ -78,7 +78,6 @@ namespace
                               m,
                               "-n",
                               n,
-                              "--alpha",
                               LOG_BENCH_SCALAR_VALUE(alpha),
                               "--lda",
                               lda,
@@ -97,7 +96,7 @@ namespace
                               diag,
                               m,
                               n,
-                              alpha,
+                              log_trace_scalar_value(alpha),
                               a,
                               lda,
                               c,
@@ -164,23 +163,23 @@ namespace
         rocblas_stride stride_mem  = 0;
         rocblas_int    batch_count = 1;
 
-        return rocblas_trmm_template<RB, CB, T>(handle,
-                                                side,
-                                                uplo,
-                                                transa,
-                                                diag,
-                                                m,
-                                                n,
-                                                alpha,
-                                                a,
-                                                lda,
-                                                stride_a,
-                                                c,
-                                                ldc,
-                                                stride_c,
-                                                batch_count,
-                                                (T*)mem,
-                                                stride_mem);
+        return rocblas_trmm_template<false, false, RB, CB, T>(handle,
+                                                              side,
+                                                              uplo,
+                                                              transa,
+                                                              diag,
+                                                              m,
+                                                              n,
+                                                              alpha,
+                                                              a,
+                                                              lda,
+                                                              stride_a,
+                                                              c,
+                                                              ldc,
+                                                              stride_c,
+                                                              batch_count,
+                                                              (T*)mem,
+                                                              stride_mem);
     }
 
 } // namespace
