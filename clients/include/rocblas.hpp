@@ -2061,6 +2061,12 @@ static constexpr auto rocblas_tpsv<float> = rocblas_stpsv;
 template <>
 static constexpr auto rocblas_tpsv<double> = rocblas_dtpsv;
 
+template <>
+static constexpr auto rocblas_tpsv<rocblas_float_complex> = rocblas_ctpsv;
+
+template <>
+static constexpr auto rocblas_tpsv<rocblas_double_complex> = rocblas_ztpsv;
+
 // trsv
 template <typename T>
 rocblas_status (*rocblas_trsv)(rocblas_handle    handle,

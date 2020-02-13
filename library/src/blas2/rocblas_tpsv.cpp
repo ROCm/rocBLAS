@@ -22,6 +22,10 @@ namespace
     constexpr char rocblas_tpsv_name<float>[] = "rocblas_stpsv";
     template <>
     constexpr char rocblas_tpsv_name<double>[] = "rocblas_dtpsv";
+    template <>
+    constexpr char rocblas_tpsv_name<rocblas_float_complex>[] = "rocblas_ctpsv";
+    template <>
+    constexpr char rocblas_tpsv_name<rocblas_double_complex>[] = "rocblas_ztpsv";
 
     template <rocblas_int BLOCK, typename T>
     rocblas_status rocblas_tpsv_impl(rocblas_handle    handle,
@@ -141,6 +145,41 @@ rocblas_status rocblas_dtpsv(rocblas_handle    handle,
                              rocblas_int       incx)
 try
 {
+    return rocblas_tpsv_impl<DTPSV_BLOCK>(handle, uplo, transA, diag, n, AP, x, incx);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
+}
+
+rocblas_status rocblas_ctpsv(rocblas_handle               handle,
+                             rocblas_fill                 uplo,
+                             rocblas_operation            transA,
+                             rocblas_diagonal             diag,
+                             rocblas_int                  n,
+                             const rocblas_float_complex* AP,
+                             rocblas_float_complex*       x,
+                             rocblas_int                  incx)
+try
+{
+    return rocblas_tpsv_impl<STPSV_BLOCK>(handle, uplo, transA, diag, n, AP, x, incx);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
+}
+
+rocblas_status rocblas_ztpsv(rocblas_handle                handle,
+                             rocblas_fill                  uplo,
+                             rocblas_operation             transA,
+                             rocblas_diagonal              diag,
+                             rocblas_int                   n,
+                             const rocblas_double_complex* AP,
+                             rocblas_double_complex*       x,
+                             rocblas_int                   incx)
+try
+{
+    // return rocblas_status_success;
     return rocblas_tpsv_impl<DTPSV_BLOCK>(handle, uplo, transA, diag, n, AP, x, incx);
 }
 catch(...)

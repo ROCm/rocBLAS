@@ -6019,6 +6019,24 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtpsv(rocblas_handle    handle,
                                             double*           x,
                                             rocblas_int       incx);
 
+ROCBLAS_EXPORT rocblas_status rocblas_ctpsv(rocblas_handle               handle,
+                                            rocblas_fill                 uplo,
+                                            rocblas_operation            transA,
+                                            rocblas_diagonal             diag,
+                                            rocblas_int                  n,
+                                            const rocblas_float_complex* AP,
+                                            rocblas_float_complex*       x,
+                                            rocblas_int                  incx);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ztpsv(rocblas_handle                handle,
+                                            rocblas_fill                  uplo,
+                                            rocblas_operation             transA,
+                                            rocblas_diagonal              diag,
+                                            rocblas_int                   n,
+                                            const rocblas_double_complex* AP,
+                                            rocblas_double_complex*       x,
+                                            rocblas_int                   incx);
+
 /*! \brief BLAS Level 2 API
 
     \details

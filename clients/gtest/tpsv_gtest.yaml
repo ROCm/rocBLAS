@@ -28,10 +28,10 @@ Definitions:
     - { N:  2000, stride_a: 4000000 }
 
   - &common_args
-    precision: *single_double_precisions
+    precision: *single_double_precisions_complex_real
     uplo: [L, U]
-    transA: [N] #, C]
-    diag: [N] #, U]
+    transA: [N, T, C]
+    diag: [N, U]
 
 Tests:
 - name: tpsv_small
