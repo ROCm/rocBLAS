@@ -8893,6 +8893,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyr2_strided_batched(rocblas_handle      
 
     @param[in]
     C       pointer storing matrix C on the GPU.
+            The imaginary component of the diagonal elements are not used but are set to zero unless quick return.
 
     @param[in]
     ldc    [rocblas_int]
@@ -8982,6 +8983,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zherk(rocblas_handle                handle
 
     @param[in]
     C       device array of device pointers storing each matrix C_i on the GPU.
+            The imaginary component of the diagonal elements are not used but are set to zero unless quick return.
 
     @param[in]
     ldc    [rocblas_int]
@@ -9079,6 +9081,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zherk_batched(rocblas_handle              
 
     @param[in]
     C       device array of device pointers storing each matrix C_i on the GPU.
+            The imaginary component of the diagonal elements are not used but are set to zero unless quick return.
 
     @param[in]
     ldc    [rocblas_int]
