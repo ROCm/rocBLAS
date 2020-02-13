@@ -26,6 +26,7 @@ include: trtri_gtest.yaml
 include: geam_gtest.yaml
 include: set_get_matrix_gtest.yaml
 include: set_get_vector_gtest.yaml
+include: tpsv_gtest.yaml
 include: trsv_gtest.yaml
 include: logging_mode_gtest.yaml
 include: set_get_pointer_mode_gtest.yaml

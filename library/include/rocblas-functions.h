@@ -5994,47 +5994,30 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrsv_strided_batched(rocblas_handle    ha
                                                             rocblas_int       incx,
                                                             rocblas_stride    stride_x,
                                                             rocblas_int       batch_count);
-// TODO: Add ! for doc.
+
 /* \brief BLAS Level 2 API
 
     \details
-    xHE(SY)MV performs the matrix-vector operation:
+    xTPSV performs...
 
-        y := alpha*A*x + beta*y,
+    **************/
+ROCBLAS_EXPORT rocblas_status rocblas_stpsv(rocblas_handle    handle,
+                                            rocblas_fill      uplo,
+                                            rocblas_operation transA,
+                                            rocblas_diagonal  diag,
+                                            rocblas_int       n,
+                                            const float*      AP,
+                                            float*            x,
+                                            rocblas_int       incx);
 
-    where alpha and beta are scalars, x and y are n element vectors and
-    A is an n by n Hermitian(Symmetric) matrix.
-
-    @param[in]
-    handle    [rocblas_handle]
-              handle to the rocblas library context queue.
-    @param[in]
-    uplo      [rocblas_fill]
-              specifies whether the upper or lower
-    @param[in]
-    n         [rocblas_int]
-    @param[in]
-    alpha
-              specifies the scalar alpha.
-    @param[in]
-    A         pointer storing matrix A on the GPU.
-    @param[in]
-    lda       [rocblas_int]
-              specifies the leading dimension of A.
-    @param[in]
-    x         pointer storing vector x on the GPU.
-    @param[in]
-    incx      [rocblas_int]
-              specifies the increment for the elements of x.
-    @param[in]
-    beta      specifies the scalar beta.
-    @param[out]
-    y         pointer storing vector y on the GPU.
-    @param[in]
-    incy      [rocblas_int]
-              specifies the increment for the elements of y.
-
-    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_dtpsv(rocblas_handle    handle,
+                                            rocblas_fill      uplo,
+                                            rocblas_operation transA,
+                                            rocblas_diagonal  diag,
+                                            rocblas_int       n,
+                                            const double*     AP,
+                                            double*           x,
+                                            rocblas_int       incx);
 
 /*! \brief BLAS Level 2 API
 
