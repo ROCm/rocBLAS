@@ -203,13 +203,13 @@ void testing_syrk(const Arguments& arg)
                || std::is_same<T, rocblas_double_complex>{})
             {
                 const double tol = K * sum_error_tolerance<T>;
-                near_check_general<T, T>(N, N, ldc, hC_gold, hC_1, tol);
-                near_check_general<T, T>(N, N, ldc, hC_gold, hC_2, tol);
+                near_check_general<T>(N, N, ldc, hC_gold, hC_1, tol);
+                near_check_general<T>(N, N, ldc, hC_gold, hC_2, tol);
             }
             else
             {
-                unit_check_general<T, T>(N, N, ldc, hC_gold, hC_1);
-                unit_check_general<T, T>(N, N, ldc, hC_gold, hC_2);
+                unit_check_general<T>(N, N, ldc, hC_gold, hC_1);
+                unit_check_general<T>(N, N, ldc, hC_gold, hC_2);
             }
         }
 

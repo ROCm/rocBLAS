@@ -343,13 +343,13 @@ void testing_syrk_strided_batched(const Arguments& arg)
                || std::is_same<T, rocblas_double_complex>{})
             {
                 const double tol = K * sum_error_tolerance<T>;
-                near_check_general<T, T>(N, N, batch_count, ldc, strideC, hC_gold, hC_1, tol);
-                near_check_general<T, T>(N, N, batch_count, ldc, strideC, hC_gold, hC_2, tol);
+                near_check_general<T>(N, N, batch_count, ldc, strideC, hC_gold, hC_1, tol);
+                near_check_general<T>(N, N, batch_count, ldc, strideC, hC_gold, hC_2, tol);
             }
             else
             {
-                unit_check_general<T, T>(N, N, batch_count, ldc, strideC, hC_gold, hC_1);
-                unit_check_general<T, T>(N, N, batch_count, ldc, strideC, hC_gold, hC_2);
+                unit_check_general<T>(N, N, batch_count, ldc, strideC, hC_gold, hC_1);
+                unit_check_general<T>(N, N, batch_count, ldc, strideC, hC_gold, hC_2);
             }
         }
 
@@ -406,8 +406,9 @@ void testing_syrk_strided_batched(const Arguments& arg)
                                             strideC,
                                             batch_count);
         }
-        gpu_time_used  = get_time_us() - gpu_time_used;
-        rocblas_gflops = syrk_gflop_count<T>(N, K) * number_hot_calls / gpu_time_used * 1e6;
+        gpu_time_used = get_time_us() - gpu_time_used;
+        rocblas_gflops
+            = batch_count * syrk_gflop_count<T>(N, K) * number_hot_calls / gpu_time_used * 1e6;
 
         std::cout << "uplo,transA,N,K,alpha,lda,strideA,beta,ldc,strideC,rocblas-Gflops,us";
 
