@@ -28,9 +28,9 @@ rocBLAS build & installation helper script
       -r | --no-tensile-host    Do not build with Tensile host
       -u | --use-custom-version Use user-specified Tensile version
            --skipldconf         Skip ld.so.conf entry
+           --ignore-cuda        Ignores installed cuda version and builds with rocm stack instead
 EOF
 #          --prefix             Specify an alternate CMAKE_INSTALL_PREFIX for cmake
-#          --cuda               Build library for cuda backend
 }
 
 # This function is helpful for dockerfiles that do not have sudo installed, but the default user is root
@@ -152,14 +152,6 @@ install_packages( )
   local library_dependencies_sles=(   "make" "cmake" "python3-PyYAM" "python3-distutils-extra"
                                       "gcc-c++" "libcxxtools9" "rpm-build" "wget" "llvm7-devel" )
 
-  if [[ "${build_cuda}" == true ]]; then
-    # Ideally, this could be cuda-cublas-dev, but the package name has a version number in it
-    library_dependencies_ubuntu+=( "cuda" )
-    library_dependencies_centos+=( "" ) # how to install cuda on centos?
-    library_dependencies_fedora+=( "" ) # how to install cuda on fedora?
-    library_dependencies_sles+=( "" )
-  fi
-
   if [[ "${build_hip_clang}" == false ]]; then
     # Installing rocm-dev installs hip-hcc, which overwrites the hip-vdi runtime
     library_dependencies_ubuntu+=( "rocm-dev" )
@@ -257,7 +249,7 @@ tensile_tag=
 tensile_test_local_path=
 tensile_version=
 build_clients=false
-build_cuda=false
+ignore_cuda=false
 build_tensile=true
 build_tensile_host=true
 cpu_ref_lib=blis
@@ -278,7 +270,7 @@ fi
 # check if we have a modern version of getopt that can handle whitespace and long parameters
 getopt -T
 if [[ $? -eq 4 ]]; then
-  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,no_tensile,no-tensile-host,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf --options nrhicdgl:a:o:f:b:t:u: -- "$@")
+  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,no_tensile,no-tensile-host,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,ignore-cuda --options nrhicdgl:a:o:f:b:t:u: -- "$@")
 else
   echo "Need a new version of getopt"
   exit 1
@@ -336,8 +328,8 @@ while true; do
     --build_dir)
         build_dir=${2}
         shift 2;;
-    --cuda)
-        build_cuda=true
+    --ignore-cuda)
+        ignore_cuda=true
         shift ;;
     --cpu_ref_lib)
         cpu_ref_lib=${2}
@@ -524,11 +516,14 @@ pushd .
   fi
 
   compiler="hcc"
-  if [[ "${build_cuda}" == true || "${build_hip_clang}" == true ]]; then
+  if [[ "${build_hip_clang}" == true ]]; then
     compiler="hipcc"
     cmake_common_options="${cmake_common_options} -DTensile_COMPILER=hipcc"
   fi
 
+  if [[ "${ignore_cuda}" == true ]]; then
+    cmake_common_options="${cmake_common_options} -DIGNORE_CUDA=ON"
+  fi
 
   case "${ID}" in
     centos|rhel)
