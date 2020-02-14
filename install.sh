@@ -28,7 +28,7 @@ rocBLAS build & installation helper script
       -r | --no-tensile-host    Do not build with Tensile host
       -u | --use-custom-version Use user-specified Tensile version
            --skipldconf         Skip ld.so.conf entry
-           --cuda
+           --ignore-cuda        Ignores installed cuda version and builds with rocm stack instead
 EOF
 #          --prefix             Specify an alternate CMAKE_INSTALL_PREFIX for cmake
 }
@@ -249,7 +249,7 @@ tensile_tag=
 tensile_test_local_path=
 tensile_version=
 build_clients=false
-build_cuda=false
+ignore_cuda=false
 build_tensile=true
 build_tensile_host=true
 cpu_ref_lib=blis
@@ -270,7 +270,7 @@ fi
 # check if we have a modern version of getopt that can handle whitespace and long parameters
 getopt -T
 if [[ $? -eq 4 ]]; then
-  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,no_tensile,no-tensile-host,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,cuda --options nrhicdgl:a:o:f:b:t:u: -- "$@")
+  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,no_tensile,no-tensile-host,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,ignore-cuda --options nrhicdgl:a:o:f:b:t:u: -- "$@")
 else
   echo "Need a new version of getopt"
   exit 1
@@ -329,7 +329,7 @@ while true; do
         build_dir=${2}
         shift 2;;
     --cuda)
-        build_cuda=true
+        ignore_cuda=true
         shift ;;
     --cpu_ref_lib)
         cpu_ref_lib=${2}
@@ -521,7 +521,7 @@ pushd .
     cmake_common_options="${cmake_common_options} -DTensile_COMPILER=hipcc"
   fi
 
-  if [[ "${build_cuda}" == true ]]; then
+  if [[ "${ignore_cuda}" == true ]]; then
     compiler="nvcc"
     cmake_common_options="${cmake_common_options} -DCUDA_BUILD=ON"
   fi
