@@ -8845,7 +8845,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyr2_strided_batched(rocblas_handle      
     where  alpha and beta are scalars, op(A) is an n by k matrix, and
     C is a n x n Hermitian matrix stored as either upper or lower.
 
-        op( A ) = A   or   op( A ) = A^H
+        op( A ) = A, and A is n by k if transA == rocblas_operation_none
+        op( A ) = A^H and A is k by n if transA == rocblas_operation_conjugate_transpose
 
     @param[in]
     handle    [rocblas_handle]
@@ -8877,7 +8878,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyr2_strided_batched(rocblas_handle      
 
     @param[in]
     A       pointer storing matrix A on the GPU.
-            of dimension ( n, k )
+            Martrix dimension is ( lda, k ) when if transA = rocblas_operation_none, otherwise (lda, n)
             only the upper/lower triangular part is accessed.
 
     @param[in]
@@ -8936,7 +8937,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_zherk(rocblas_handle                handle
     where  alpha and beta are scalars, op(A) is an n by k matrix, and
     C_i is a n x n Hermitian matrix stored as either upper or lower.
 
-        op( A_i ) = A_i   or   op( A_i ) = A_i^H
+        op( A_i ) = A_i, and A_i is n by k if transA == rocblas_operation_none
+        op( A_i ) = A_i^H and A_i is k by n if transA == rocblas_operation_conjugate_transpose
 
     @param[in]
     handle    [rocblas_handle]
@@ -9031,7 +9033,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_zherk_batched(rocblas_handle              
     where  alpha and beta are scalars, op(A) is an n by k matrix, and
     C_i is a n x n Hermitian matrix stored as either upper or lower.
 
-        op( A_i ) = A_i   or   op( A_i ) = A_i^H
+        op( A_i ) = A_i, and A_i is n by k if transA == rocblas_operation_none
+        op( A_i ) = A_i^H and A_i is k by n if transA == rocblas_operation_conjugate_transpose
 
 
     @param[in]
@@ -9129,6 +9132,121 @@ ROCBLAS_EXPORT rocblas_status rocblas_zherk_strided_batched(rocblas_handle      
 
     \details
 
+    syrk performs one of the matrix-matrix operations for a symmetric rank-k update
+
+    C := alpha*op( A )*op( A )^T + beta*C
+
+    where  alpha and beta are scalars, op(A) is an n by k matrix, and
+    C is a symmetric n x n matrix stored as either upper or lower.
+
+        op( A ) = A, and A is n by k if transA == rocblas_operation_none
+        op( A ) = A^T and A is k by n if transA == rocblas_operation_transpose
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+
+    @param[in]
+    uplo    [rocblas_fill]
+            rocblas_fill_upper:  C is an upper triangular matrix
+            rocblas_fill_lower:  C is a  lower triangular matrix
+
+    @param[in]
+    transA  [rocblas_operation]
+            rocblas_operation_transpose:      op(A) = A^T
+            rocblas_operation_none:           op(A) = A
+
+    @param[in]
+    n       [rocblas_int]
+            n specifies the number of rows and columns of C. n >= 0.
+
+    @param[in]
+    k       [rocblas_int]
+            k specifies the number of columns of op(A). k >= 0.
+
+    @param[in]
+    alpha
+            alpha specifies the scalar alpha. When alpha is
+            zero then A is not referenced and A need not be set before
+            entry.
+
+    @param[in]
+    A       pointer storing matrix A on the GPU.
+            Martrix dimension is ( lda, k ) when if transA = rocblas_operation_none, otherwise (lda, n)
+            only the upper/lower triangular part is accessed.
+
+    @param[in]
+    lda     [rocblas_int]
+            lda specifies the first dimension of A.
+            if transA = rocblas_operation_none,  lda >= max( 1, n ),
+            otherwise lda >= max( 1, k ).
+
+    @param[in]
+    beta
+            beta specifies the scalar beta. When beta is
+            zero then C need not be set before entry.
+
+    @param[in]
+    C       pointer storing matrix C on the GPU.
+
+    @param[in]
+    ldc    [rocblas_int]
+           ldc specifies the first dimension of C. ldc >= max( 1, n ).
+
+    ********************************************************************/
+
+ROCBLAS_EXPORT rocblas_status rocblas_ssyrk(rocblas_handle    handle,
+                                            rocblas_fill      uplo,
+                                            rocblas_operation transA,
+                                            rocblas_int       n,
+                                            rocblas_int       k,
+                                            const float*      alpha,
+                                            const float*      A,
+                                            rocblas_int       lda,
+                                            const float*      beta,
+                                            float*            C,
+                                            rocblas_int       ldc);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dsyrk(rocblas_handle    handle,
+                                            rocblas_fill      uplo,
+                                            rocblas_operation transA,
+                                            rocblas_int       n,
+                                            rocblas_int       k,
+                                            const double*     alpha,
+                                            const double*     A,
+                                            rocblas_int       lda,
+                                            const double*     beta,
+                                            double*           C,
+                                            rocblas_int       ldc);
+
+ROCBLAS_EXPORT rocblas_status rocblas_csyrk(rocblas_handle               handle,
+                                            rocblas_fill                 uplo,
+                                            rocblas_operation            transA,
+                                            rocblas_int                  n,
+                                            rocblas_int                  k,
+                                            const rocblas_float_complex* alpha,
+                                            const rocblas_float_complex* A,
+                                            rocblas_int                  lda,
+                                            const rocblas_float_complex* beta,
+                                            rocblas_float_complex*       C,
+                                            rocblas_int                  ldc);
+
+ROCBLAS_EXPORT rocblas_status rocblas_zsyrk(rocblas_handle                handle,
+                                            rocblas_fill                  uplo,
+                                            rocblas_operation             transA,
+                                            rocblas_int                   n,
+                                            rocblas_int                   k,
+                                            const rocblas_double_complex* alpha,
+                                            const rocblas_double_complex* A,
+                                            rocblas_int                   lda,
+                                            const rocblas_double_complex* beta,
+                                            rocblas_double_complex*       C,
+                                            rocblas_int                   ldc);
+
+/*! \brief BLAS Level 3 API
+
+    \details
+
     syrk_batched performs a batch of the matrix-matrix operations for a symmetric rank-k update
 
     C_i := alpha*op( A_i )*op( A_i )^T + beta*C_i
@@ -9136,7 +9254,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_zherk_strided_batched(rocblas_handle      
     where  alpha and beta are scalars, op(A_i) is an n by k matrix, and
     C_i is a symmetric n x n matrix stored as either upper or lower.
 
-        op( A_i ) = A_i   or   op( A_i ) = A_i^T
+        op( A_i ) = A_i, and A_i is n by k if transA == rocblas_operation_none
+        op( A_i ) = A^T and A_i is k by n if transA == rocblas_operation_transpose
 
     @param[in]
     handle    [rocblas_handle]
@@ -9256,7 +9375,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyrk_batched(rocblas_handle              
     where  alpha and beta are scalars, op(A_i) is an n by k matrix, and
     C_i is a symmetric n x n matrix stored as either upper or lower.
 
-        op( A_i ) = A_i   or   op( A_i ) = A_i^T
+        op( A_i ) = A_i, and A_i is n by k if transA == rocblas_operation_none
+        op( A_i ) = A^T and A_i is k by n if transA == rocblas_operation_transpose
 
     @param[in]
     handle    [rocblas_handle]
@@ -9377,120 +9497,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyrk_strided_batched(rocblas_handle      
                                                             rocblas_int                   ldc,
                                                             rocblas_stride                stride_C,
                                                             rocblas_int batch_count);
-
-/*! \brief BLAS Level 3 API
-
-    \details
-
-    syrk performs one of the matrix-matrix operations for a symmetric rank-k update
-
-    C := alpha*op( A )*op( A )^T + beta*C
-
-    where  alpha and beta are scalars, op(A) is an n by k matrix, and
-    C is a symmetric n x n matrix stored as either upper or lower.
-
-        op( A ) = A   or   op( A ) = A^T
-
-    @param[in]
-    handle    [rocblas_handle]
-              handle to the rocblas library context queue.
-
-    @param[in]
-    uplo    [rocblas_fill]
-            rocblas_fill_upper:  C is an upper triangular matrix
-            rocblas_fill_lower:  C is a  lower triangular matrix
-
-    @param[in]
-    transA  [rocblas_operation]
-            rocblas_operation_transpose:      op(A) = A^T
-            rocblas_operation_none:           op(A) = A
-
-    @param[in]
-    n       [rocblas_int]
-            n specifies the number of rows and columns of C. n >= 0.
-
-    @param[in]
-    k       [rocblas_int]
-            k specifies the number of columns of op(A). k >= 0.
-
-    @param[in]
-    alpha
-            alpha specifies the scalar alpha. When alpha is
-            zero then A is not referenced and A need not be set before
-            entry.
-
-    @param[in]
-    A       pointer storing matrix A on the GPU.
-            of dimension ( n, k )
-            only the upper/lower triangular part is accessed.
-
-    @param[in]
-    lda     [rocblas_int]
-            lda specifies the first dimension of A.
-            if transA = rocblas_operation_none,  lda >= max( 1, n ),
-            otherwise lda >= max( 1, k ).
-
-    @param[in]
-    beta
-            beta specifies the scalar beta. When beta is
-            zero then C need not be set before entry.
-
-    @param[in]
-    C       pointer storing matrix C on the GPU.
-
-    @param[in]
-    ldc    [rocblas_int]
-           ldc specifies the first dimension of C. ldc >= max( 1, n ).
-
-    ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_ssyrk(rocblas_handle    handle,
-                                            rocblas_fill      uplo,
-                                            rocblas_operation transA,
-                                            rocblas_int       n,
-                                            rocblas_int       k,
-                                            const float*      alpha,
-                                            const float*      A,
-                                            rocblas_int       lda,
-                                            const float*      beta,
-                                            float*            C,
-                                            rocblas_int       ldc);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dsyrk(rocblas_handle    handle,
-                                            rocblas_fill      uplo,
-                                            rocblas_operation transA,
-                                            rocblas_int       n,
-                                            rocblas_int       k,
-                                            const double*     alpha,
-                                            const double*     A,
-                                            rocblas_int       lda,
-                                            const double*     beta,
-                                            double*           C,
-                                            rocblas_int       ldc);
-
-ROCBLAS_EXPORT rocblas_status rocblas_csyrk(rocblas_handle               handle,
-                                            rocblas_fill                 uplo,
-                                            rocblas_operation            transA,
-                                            rocblas_int                  n,
-                                            rocblas_int                  k,
-                                            const rocblas_float_complex* alpha,
-                                            const rocblas_float_complex* A,
-                                            rocblas_int                  lda,
-                                            const rocblas_float_complex* beta,
-                                            rocblas_float_complex*       C,
-                                            rocblas_int                  ldc);
-
-ROCBLAS_EXPORT rocblas_status rocblas_zsyrk(rocblas_handle                handle,
-                                            rocblas_fill                  uplo,
-                                            rocblas_operation             transA,
-                                            rocblas_int                   n,
-                                            rocblas_int                   k,
-                                            const rocblas_double_complex* alpha,
-                                            const rocblas_double_complex* A,
-                                            rocblas_int                   lda,
-                                            const rocblas_double_complex* beta,
-                                            rocblas_double_complex*       C,
-                                            rocblas_int                   ldc);
 
 /*! \brief BLAS Level 3 API
 

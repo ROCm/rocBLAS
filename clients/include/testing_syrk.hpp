@@ -88,15 +88,13 @@ void testing_syrk_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_syrk(const Arguments& arg)
 {
-
-    rocblas_fill      uplo   = char2rocblas_fill(arg.uplo);
-    rocblas_operation transA = char2rocblas_operation(arg.transA);
-
-    rocblas_int N = arg.N;
-    rocblas_int K = arg.K;
-
-    rocblas_int lda = arg.lda;
-    rocblas_int ldc = arg.ldc;
+    rocblas_local_handle handle;
+    rocblas_fill         uplo   = char2rocblas_fill(arg.uplo);
+    rocblas_operation    transA = char2rocblas_operation(arg.transA);
+    rocblas_int          N      = arg.N;
+    rocblas_int          K      = arg.K;
+    rocblas_int          lda    = arg.lda;
+    rocblas_int          ldc    = arg.ldc;
 
     T alpha = arg.get_alpha<T>();
     T beta  = arg.get_beta<T>();
@@ -105,25 +103,15 @@ void testing_syrk(const Arguments& arg)
     double rocblas_gflops, cblas_gflops;
     double rocblas_error = 0.0;
 
-    rocblas_local_handle handle;
-
     // Note: K==0 is not an early exit, since C still needs to be multiplied by beta
     bool invalidSize = N < 0 || K < 0 || ldc < N || (transA == rocblas_operation_none && lda < N)
                        || (transA != rocblas_operation_none && lda < K);
     if(N == 0 || invalidSize)
     {
-        static const size_t safe_size = 100;
-
-        device_vector<T> dA(safe_size);
-        device_vector<T> dC(safe_size);
-        if(!dA || !dC)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
-
+        // ensure invalid sizes checked before pointer check
         EXPECT_ROCBLAS_STATUS(
-            rocblas_syrk<T>(handle, uplo, transA, N, K, nullptr, dA, lda, nullptr, dC, ldc),
+            rocblas_syrk<T>(
+                handle, uplo, transA, N, K, nullptr, nullptr, lda, nullptr, nullptr, ldc),
             invalidSize ? rocblas_status_invalid_size : rocblas_status_success);
 
         return;
@@ -255,7 +243,7 @@ void testing_syrk(const Arguments& arg)
 
         std::cout << "uplo,transA,N,K,alpha,lda,beta,ldc,rocblas-Gflops,us";
 
-        if(arg.unit_check || arg.norm_check)
+        if(arg.norm_check)
             std::cout << ",CPU-Gflops,us,norm-error";
 
         std::cout << std::endl;
@@ -264,7 +252,7 @@ void testing_syrk(const Arguments& arg)
                   << arg.get_alpha<T>() << "," << lda << "," << arg.get_beta<T>() << "," << ldc
                   << "," << rocblas_gflops << "," << gpu_time_used / number_hot_calls;
 
-        if(arg.unit_check || arg.norm_check)
+        if(arg.norm_check)
             std::cout << "," << cblas_gflops << "," << cpu_time_used << "," << rocblas_error;
 
         std::cout << std::endl;

@@ -195,7 +195,7 @@ rocblas_status rocblas_syrk_arg_check(rocblas_handle    handle,
         return rocblas_status_invalid_size;
     if(!n || !batch_count)
         return rocblas_status_success;
-    if(!AP || !CP || !alpha || !beta)
+    if((k > 0 && (!AP || !alpha)) || !CP || !beta)
         return rocblas_status_invalid_pointer;
 
     return rocblas_status_continue;

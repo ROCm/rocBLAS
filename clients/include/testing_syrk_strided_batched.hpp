@@ -194,27 +194,18 @@ void testing_syrk_strided_batched(const Arguments& arg)
     // Note: K==0 is not an early exit, since C still needs to be multiplied by beta
     if(N <= 0 || K < 0 || lda < N || ldc < N || batch_count <= 0)
     {
-        static const size_t safe_size = 100;
-
-        device_vector<T> dA(safe_size);
-        device_vector<T> dC(safe_size);
-        if(!dA || !dC)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
-
+        // ensure invalid sizes checked before pointer check
         EXPECT_ROCBLAS_STATUS(rocblas_syrk_strided_batched<T>(handle,
                                                               uplo,
                                                               transA,
                                                               N,
                                                               K,
                                                               nullptr,
-                                                              dA,
+                                                              nullptr,
                                                               lda,
                                                               strideA,
                                                               nullptr,
-                                                              dC,
+                                                              nullptr,
                                                               ldc,
                                                               strideC,
                                                               batch_count),
@@ -420,7 +411,7 @@ void testing_syrk_strided_batched(const Arguments& arg)
 
         std::cout << "uplo,transA,N,K,alpha,lda,strideA,beta,ldc,strideC,rocblas-Gflops,us";
 
-        if(arg.unit_check || arg.norm_check)
+        if(arg.norm_check)
             std::cout << ",CPU-Gflops,us,norm-error";
 
         std::cout << std::endl;
@@ -430,7 +421,7 @@ void testing_syrk_strided_batched(const Arguments& arg)
                   << "," << ldc << "," << strideC << "," << rocblas_gflops << ","
                   << gpu_time_used / number_hot_calls;
 
-        if(arg.unit_check || arg.norm_check)
+        if(arg.norm_check)
             std::cout << "," << cblas_gflops << "," << cpu_time_used << "," << rocblas_error;
 
         std::cout << std::endl;

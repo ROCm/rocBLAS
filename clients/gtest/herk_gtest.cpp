@@ -66,12 +66,25 @@ namespace
                 // alpha & beta only real
 
                 name << '_' << (char)std::toupper(arg.uplo) << (char)std::toupper(arg.transA) << '_'
-                     << arg.N << '_' << arg.K << '_' << arg.alpha << '_' << arg.lda;
+                     << arg.N << '_' << arg.K;
+
+                // use arg.get_alpha() to get real/complex alpha depending on datatype
+                if(arg.a_type == rocblas_datatype_f32_c || arg.a_type == rocblas_datatype_f64_c)
+                    name << '_' << arg.get_alpha<rocblas_float_complex>();
+                else
+                    name << '_' << arg.get_alpha<float>();
+
+                name << '_' << arg.lda;
 
                 if(HERK_TYPE == HERK_STRIDED_BATCHED)
                     name << '_' << arg.stride_a;
 
-                name << '_' << arg.beta << '_' << arg.ldc;
+                if(arg.b_type == rocblas_datatype_f32_c || arg.b_type == rocblas_datatype_f64_c)
+                    name << '_' << arg.get_beta<rocblas_float_complex>();
+                else
+                    name << '_' << arg.get_beta<float>();
+
+                name << '_' << arg.ldc;
 
                 if(HERK_TYPE == HERK_STRIDED_BATCHED)
                     name << '_' << arg.stride_c;

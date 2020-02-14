@@ -63,6 +63,7 @@ namespace
                               log_trace_scalar_value(beta),
                               C,
                               ldc,
+                              stride_c,
                               batch_count);
 
                 if(layer_mode & rocblas_layer_mode_log_bench)

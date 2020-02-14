@@ -4,17 +4,17 @@ include: known_bugs.yaml
 
 Definitions:
   - &quick_matrix_size_range
-    - { N:  -1,  lda:  -1,  K:  1,  ldc:  1 } # bad n
-    - { N:   0,  lda:   2,  K: -1,  ldc: -1 } # bad k
+    - { N:  -1,  lda:   1,  K:  1,  ldc:  1 } # bad n
+    - { N:   2,  lda:   2,  K: -1,  ldc:  1 } # bad k
     - { N:   0,  lda:   3,  K:  3,  ldc:  3 } # n==0
     - { N:   3,  lda:   3,  K:  0,  ldc:  3 } # k==0
-    - { N:   3,  lda:   1,  K:  3,  ldc:  3 } # bad lda
+    - { N:   3,  lda:   1,  K:  1,  ldc:  3 } # bad lda if not transpose
+    - { N:   1,  lda:   1,  K:  3,  ldc:  3 } # bad lda if transpose
     - { N:   3,  lda:   3,  K:  3,  ldc:  1 } # bad ldc
 
   - &medium_matrix_size_range
-    - { N:    24, lda:   24, K:  3,  ldc: 24 }
-    - { N:    65, lda:   65, K:  65, ldc: 65 }
-    - { N:   300, lda:  300, K:  211, ldc: 300 }
+    - { N:   199, lda:  199, K:  32,   ldc: 199 }
+    - { N:    88, lda:  200, K:  200,  ldc: 88 }
 
   - &large_matrix_size_range
     - { N:  2011, lda:  2011, K:  253, ldc: 2048 }
@@ -37,10 +37,10 @@ Tests:
   function: herk
   precision: *single_double_precisions_complex
   uplo: [ U ]
-  transA: [ N ]
+  transA: [ N, C ]
   matrix_size: *quick_matrix_size_range
-  alpha: [ 0 ]
-  beta: [ 1 ]
+  alpha: [ 0, 1 ]
+  beta: [ 0, 1 ]
 
 - name: herk_medium
   category: pre_checkin

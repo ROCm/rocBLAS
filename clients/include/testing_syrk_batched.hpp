@@ -32,8 +32,8 @@ void testing_syrk_batched_bad_arg(const Arguments& arg)
 
     const size_t safe_size = 100;
     // allocate memory on device
-    device_vector<T*, 0, T> dA(batch_count);
-    device_vector<T*, 0, T> dC(batch_count);
+    device_batch_vector<T> dA(safe_size, 1, batch_count);
+    device_batch_vector<T> dC(safe_size, 1, batch_count);
     if(!dA || !dC)
     {
         CHECK_HIP_ERROR(hipErrorOutOfMemory);
@@ -111,21 +111,23 @@ void testing_syrk_batched(const Arguments& arg)
     // Note: K==0 is not an early exit, since C still needs to be multiplied by beta
     if(N <= 0 || K < 0 || lda < N || ldc < N || batch_count <= 0)
     {
-        static const size_t safe_size = 100;
+        // ensure invalid sizes checked before pointer check
 
-        device_batch_vector<T> dA(safe_size, 1, 1);
-        device_batch_vector<T> dC(safe_size, 1, 1);
-        if(!dA || !dC)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
-
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_syrk_batched<T>(
-                handle, uplo, transA, N, K, nullptr, dA, lda, nullptr, dC, ldc, batch_count),
-            N < 0 || K < 0 || lda < N || ldc < N || batch_count < 0 ? rocblas_status_invalid_size
-                                                                    : rocblas_status_success);
+        EXPECT_ROCBLAS_STATUS(rocblas_syrk_batched<T>(handle,
+                                                      uplo,
+                                                      transA,
+                                                      N,
+                                                      K,
+                                                      nullptr,
+                                                      nullptr,
+                                                      lda,
+                                                      nullptr,
+                                                      nullptr,
+                                                      ldc,
+                                                      batch_count),
+                              N < 0 || K < 0 || lda < N || ldc < N || batch_count < 0
+                                  ? rocblas_status_invalid_size
+                                  : rocblas_status_success);
 
         return;
     }
@@ -302,7 +304,7 @@ void testing_syrk_batched(const Arguments& arg)
 
         std::cout << "uplo,transA,N,K,alpha,lda,beta,ldc,rocblas-Gflops,us";
 
-        if(arg.unit_check || arg.norm_check)
+        if(arg.norm_check)
             std::cout << ",CPU-Gflops,us,norm-error";
 
         std::cout << std::endl;
@@ -311,7 +313,7 @@ void testing_syrk_batched(const Arguments& arg)
                   << arg.get_alpha<T>() << "," << lda << "," << arg.get_beta<T>() << "," << ldc
                   << "," << rocblas_gflops << "," << gpu_time_used / number_hot_calls;
 
-        if(arg.unit_check || arg.norm_check)
+        if(arg.norm_check)
             std::cout << "," << cblas_gflops << "," << cpu_time_used << "," << rocblas_error;
 
         std::cout << std::endl;
