@@ -39,6 +39,7 @@ static __device__ void herk_scale_device(bool upper, rocblas_int n, T beta, U* C
 template <typename U, typename V>
 __global__ void herk_scale_kernel(bool           upper,
                                   rocblas_int    n,
+                                  rocblas_int    k,
                                   U              alpha_host_device,
                                   U              beta_host_device,
                                   V              CP_array,
@@ -51,7 +52,7 @@ __global__ void herk_scale_kernel(bool           upper,
     auto alpha = load_scalar(alpha_host_device);
     auto beta  = load_scalar(beta_host_device);
 
-    if(beta == 1 && alpha == 0) // if alpha not zero we need imaginary clear on diagonal
+    if(beta == 1 && (k == 0 || alpha == 0)) // if alpha not zero we need imaginary clear on diagonal
         return;
 
     herk_scale_device(upper, n, beta, C, ldc);
@@ -142,6 +143,7 @@ rocblas_status rocblas_herk_template(rocblas_handle    handle,
                            handle->rocblas_stream,
                            uplo == rocblas_fill_upper,
                            n,
+                           k,
                            alpha,
                            beta,
                            CP,
@@ -205,6 +207,7 @@ rocblas_status rocblas_herk_template(rocblas_handle    handle,
                            handle->rocblas_stream,
                            uplo == rocblas_fill_upper,
                            n,
+                           k,
                            *alpha,
                            *beta,
                            CP,

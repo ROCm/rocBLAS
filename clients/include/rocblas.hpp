@@ -2669,7 +2669,7 @@ static constexpr auto
     rocblas_gemm_strided_batched<rocblas_double_complex> = rocblas_zgemm_strided_batched;
 
 // herk
-template <typename T, typename U>
+template <typename T, typename U = real_t<T>>
 rocblas_status (*rocblas_herk)(rocblas_handle    handle,
                                rocblas_fill      uplo,
                                rocblas_operation transA,
@@ -2689,7 +2689,7 @@ template <>
 static constexpr auto rocblas_herk<rocblas_double_complex, double> = rocblas_zherk;
 
 // herk batched
-template <typename T, typename U>
+template <typename T, typename U = real_t<T>>
 rocblas_status (*rocblas_herk_batched)(rocblas_handle    handle,
                                        rocblas_fill      uplo,
                                        rocblas_operation transA,
@@ -2710,7 +2710,7 @@ template <>
 static constexpr auto rocblas_herk_batched<rocblas_double_complex, double> = rocblas_zherk_batched;
 
 // herk strided batched
-template <typename T, typename U>
+template <typename T, typename U = real_t<T>>
 rocblas_status (*rocblas_herk_strided_batched)(rocblas_handle    handle,
                                                rocblas_fill      uplo,
                                                rocblas_operation transA,

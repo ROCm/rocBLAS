@@ -40,117 +40,72 @@ void testing_herk_batched_bad_arg(const Arguments& arg)
         CHECK_HIP_ERROR(hipErrorOutOfMemory);
         return;
     }
-    EXPECT_ROCBLAS_STATUS((rocblas_herk_batched<T, U>)(nullptr,
-                                                       uplo,
-                                                       transA,
-                                                       N,
-                                                       K,
-                                                       &alpha,
-                                                       dA,
-                                                       lda,
-                                                       &beta,
-                                                       dC,
-                                                       ldc,
-                                                       batch_count),
-                          rocblas_status_invalid_handle);
+    EXPECT_ROCBLAS_STATUS(
+        (rocblas_herk_batched<
+            T>)(nullptr, uplo, transA, N, K, &alpha, dA, lda, &beta, dC, ldc, batch_count),
+        rocblas_status_invalid_handle);
 
-    EXPECT_ROCBLAS_STATUS((rocblas_herk_batched<T, U>)(handle,
-                                                       rocblas_fill_full,
-                                                       transA,
-                                                       N,
-                                                       K,
-                                                       &alpha,
-                                                       dA,
-                                                       lda,
-                                                       &beta,
-                                                       dC,
-                                                       ldc,
-                                                       batch_count),
+    EXPECT_ROCBLAS_STATUS((rocblas_herk_batched<T>)(handle,
+                                                    rocblas_fill_full,
+                                                    transA,
+                                                    N,
+                                                    K,
+                                                    &alpha,
+                                                    dA,
+                                                    lda,
+                                                    &beta,
+                                                    dC,
+                                                    ldc,
+                                                    batch_count),
                           rocblas_status_invalid_value);
 
-    EXPECT_ROCBLAS_STATUS((rocblas_herk_batched<T, U>)(handle,
-                                                       uplo,
-                                                       rocblas_operation_transpose,
-                                                       N,
-                                                       K,
-                                                       &alpha,
-                                                       dA,
-                                                       lda,
-                                                       &beta,
-                                                       dC,
-                                                       ldc,
-                                                       batch_count),
+    EXPECT_ROCBLAS_STATUS((rocblas_herk_batched<T>)(handle,
+                                                    uplo,
+                                                    rocblas_operation_transpose,
+                                                    N,
+                                                    K,
+                                                    &alpha,
+                                                    dA,
+                                                    lda,
+                                                    &beta,
+                                                    dC,
+                                                    ldc,
+                                                    batch_count),
                           rocblas_status_invalid_value);
 
-    EXPECT_ROCBLAS_STATUS((rocblas_herk_batched<T, U>)(handle,
-                                                       uplo,
-                                                       transA,
-                                                       N,
-                                                       K,
-                                                       nullptr,
-                                                       dA,
-                                                       lda,
-                                                       &beta,
-                                                       dC,
-                                                       ldc,
-                                                       batch_count),
-                          rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS(
+        (rocblas_herk_batched<
+            T>)(handle, uplo, transA, N, K, nullptr, dA, lda, &beta, dC, ldc, batch_count),
+        rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS((rocblas_herk_batched<T, U>)(handle,
-                                                       uplo,
-                                                       transA,
-                                                       N,
-                                                       K,
-                                                       &alpha,
-                                                       nullptr,
-                                                       lda,
-                                                       &beta,
-                                                       dC,
-                                                       ldc,
-                                                       batch_count),
-                          rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS(
+        (rocblas_herk_batched<
+            T>)(handle, uplo, transA, N, K, &alpha, nullptr, lda, &beta, dC, ldc, batch_count),
+        rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS((rocblas_herk_batched<T, U>)(handle,
-                                                       uplo,
-                                                       transA,
-                                                       N,
-                                                       K,
-                                                       &alpha,
-                                                       dA,
-                                                       lda,
-                                                       nullptr,
-                                                       dC,
-                                                       ldc,
-                                                       batch_count),
-                          rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS(
+        (rocblas_herk_batched<
+            T>)(handle, uplo, transA, N, K, &alpha, dA, lda, nullptr, dC, ldc, batch_count),
+        rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS((rocblas_herk_batched<T, U>)(handle,
-                                                       uplo,
-                                                       transA,
-                                                       N,
-                                                       K,
-                                                       &alpha,
-                                                       dA,
-                                                       lda,
-                                                       &beta,
-                                                       nullptr,
-                                                       ldc,
-                                                       batch_count),
-                          rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS(
+        (rocblas_herk_batched<
+            T>)(handle, uplo, transA, N, K, &alpha, dA, lda, &beta, nullptr, ldc, batch_count),
+        rocblas_status_invalid_pointer);
 
     // quick return with invalid pointers
-    EXPECT_ROCBLAS_STATUS((rocblas_herk_batched<T, U>)(handle,
-                                                       uplo,
-                                                       transA,
-                                                       0,
-                                                       K,
-                                                       nullptr,
-                                                       nullptr,
-                                                       lda,
-                                                       nullptr,
-                                                       nullptr,
-                                                       ldc,
-                                                       batch_count),
+    EXPECT_ROCBLAS_STATUS((rocblas_herk_batched<T>)(handle,
+                                                    uplo,
+                                                    transA,
+                                                    0,
+                                                    K,
+                                                    nullptr,
+                                                    nullptr,
+                                                    lda,
+                                                    nullptr,
+                                                    nullptr,
+                                                    ldc,
+                                                    batch_count),
                           rocblas_status_success);
 }
 
@@ -177,18 +132,18 @@ void testing_herk_batched(const Arguments& arg)
     if(N <= 0 || K < 0 || lda < N || ldc < N || batch_count <= 0)
     {
         // ensure invalid sizes checked before pointer check
-        EXPECT_ROCBLAS_STATUS((rocblas_herk_batched<T, U>)(handle,
-                                                           uplo,
-                                                           transA,
-                                                           N,
-                                                           K,
-                                                           nullptr,
-                                                           nullptr,
-                                                           lda,
-                                                           nullptr,
-                                                           nullptr,
-                                                           ldc,
-                                                           batch_count),
+        EXPECT_ROCBLAS_STATUS((rocblas_herk_batched<T>)(handle,
+                                                        uplo,
+                                                        transA,
+                                                        N,
+                                                        K,
+                                                        nullptr,
+                                                        nullptr,
+                                                        lda,
+                                                        nullptr,
+                                                        nullptr,
+                                                        ldc,
+                                                        batch_count),
                               N < 0 || K < 0 || lda < N || ldc < N || batch_count < 0
                                   ? rocblas_status_invalid_size
                                   : rocblas_status_success);
@@ -244,18 +199,18 @@ void testing_herk_batched(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         CHECK_HIP_ERROR(dC.transfer_from(hC_1));
 
-        CHECK_ROCBLAS_ERROR((rocblas_herk_batched<T, U>)(handle,
-                                                         uplo,
-                                                         transA,
-                                                         N,
-                                                         K,
-                                                         &h_alpha[0],
-                                                         dA.ptr_on_device(),
-                                                         lda,
-                                                         &h_beta[0],
-                                                         dC.ptr_on_device(),
-                                                         ldc,
-                                                         batch_count));
+        CHECK_ROCBLAS_ERROR((rocblas_herk_batched<T>)(handle,
+                                                      uplo,
+                                                      transA,
+                                                      N,
+                                                      K,
+                                                      &h_alpha[0],
+                                                      dA.ptr_on_device(),
+                                                      lda,
+                                                      &h_beta[0],
+                                                      dC.ptr_on_device(),
+                                                      ldc,
+                                                      batch_count));
 
         // copy output from device to CPU
         CHECK_HIP_ERROR(hC_1.transfer_from(dC));
@@ -266,18 +221,18 @@ void testing_herk_batched(const Arguments& arg)
         CHECK_HIP_ERROR(d_alpha.transfer_from(h_alpha));
         CHECK_HIP_ERROR(d_beta.transfer_from(h_beta));
 
-        CHECK_ROCBLAS_ERROR((rocblas_herk_batched<T, U>)(handle,
-                                                         uplo,
-                                                         transA,
-                                                         N,
-                                                         K,
-                                                         d_alpha,
-                                                         dA.ptr_on_device(),
-                                                         lda,
-                                                         d_beta,
-                                                         dC.ptr_on_device(),
-                                                         ldc,
-                                                         batch_count));
+        CHECK_ROCBLAS_ERROR((rocblas_herk_batched<T>)(handle,
+                                                      uplo,
+                                                      transA,
+                                                      N,
+                                                      K,
+                                                      d_alpha,
+                                                      dA.ptr_on_device(),
+                                                      lda,
+                                                      d_beta,
+                                                      dC.ptr_on_device(),
+                                                      ldc,
+                                                      batch_count));
 
         // copy output from device to CPU
         CHECK_HIP_ERROR(hC_2.transfer_from(dC));
@@ -333,35 +288,35 @@ void testing_herk_batched(const Arguments& arg)
 
         for(int i = 0; i < number_cold_calls; i++)
         {
-            rocblas_herk_batched<T, U>(handle,
-                                       uplo,
-                                       transA,
-                                       N,
-                                       K,
-                                       h_alpha,
-                                       dA.ptr_on_device(),
-                                       lda,
-                                       h_beta,
-                                       dC.ptr_on_device(),
-                                       ldc,
-                                       batch_count);
+            rocblas_herk_batched<T>(handle,
+                                    uplo,
+                                    transA,
+                                    N,
+                                    K,
+                                    h_alpha,
+                                    dA.ptr_on_device(),
+                                    lda,
+                                    h_beta,
+                                    dC.ptr_on_device(),
+                                    ldc,
+                                    batch_count);
         }
 
         gpu_time_used = get_time_us(); // in microseconds
         for(int i = 0; i < number_hot_calls; i++)
         {
-            rocblas_herk_batched<T, U>(handle,
-                                       uplo,
-                                       transA,
-                                       N,
-                                       K,
-                                       h_alpha,
-                                       dA.ptr_on_device(),
-                                       lda,
-                                       h_beta,
-                                       dC.ptr_on_device(),
-                                       ldc,
-                                       batch_count);
+            rocblas_herk_batched<T>(handle,
+                                    uplo,
+                                    transA,
+                                    N,
+                                    K,
+                                    h_alpha,
+                                    dA.ptr_on_device(),
+                                    lda,
+                                    h_beta,
+                                    dC.ptr_on_device(),
+                                    ldc,
+                                    batch_count);
         }
         gpu_time_used  = get_time_us() - gpu_time_used;
         rocblas_gflops = herk_gflop_count<T>(N, K) * number_hot_calls / gpu_time_used * 1e6;
