@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2019 Advanced Micro Devices, Inc.
+ * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 /*! \file
@@ -48,7 +48,7 @@ typedef double rocblas_double;
 // Clang supports _Float16 on C11 and C++11
 // GCC does not currently support _Float16 on amd64
 /*! \brief Represents a 16 bit floating point number. */
-#if __clang__ && (__STDC_VERSION__ >= 201112L || __cplusplus >= 201103L)
+#if __clang__ && !__llvm__ && (__STDC_VERSION__ >= 201112L || __cplusplus >= 201103L)
 typedef _Float16 rocblas_half;
 #else
 typedef struct
