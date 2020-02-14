@@ -43,7 +43,7 @@ find_package( hip REQUIRED CONFIG PATHS ${ROCM_PATH} )
 
 # Quietly look for CUDA, but if not found it's not an error
 # The presense of hip is not sufficient to determine if we want a rocm or cuda backend
-if( CUDA_BUILD )
+if( NOT IGNORE_CUDA )
   find_package( CUDA QUIET )
 endif( )
 

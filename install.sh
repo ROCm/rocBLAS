@@ -328,7 +328,7 @@ while true; do
     --build_dir)
         build_dir=${2}
         shift 2;;
-    --cuda)
+    --ignore-cuda)
         ignore_cuda=true
         shift ;;
     --cpu_ref_lib)
@@ -522,8 +522,7 @@ pushd .
   fi
 
   if [[ "${ignore_cuda}" == true ]]; then
-    compiler="nvcc"
-    cmake_common_options="${cmake_common_options} -DCUDA_BUILD=ON"
+    cmake_common_options="${cmake_common_options} -DIGNORE_CUDA=ON"
   fi
 
   case "${ID}" in
