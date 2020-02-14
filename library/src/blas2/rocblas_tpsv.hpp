@@ -14,85 +14,85 @@
 
 namespace
 {
-    using std::max;
-    using std::min;
+    // using std::max;
+    // using std::min;
 
-    constexpr rocblas_int NB_X = 1024;
+    // constexpr rocblas_int NB_X = 1024;
 
-    template <typename T>
-    constexpr T negative_one = -1;
-    template <typename T>
-    constexpr T zero = 0;
-    template <typename T>
-    constexpr T one = 1;
+    // template <typename T>
+    // constexpr T negative_one = -1;
+    // template <typename T>
+    // constexpr T zero = 0;
+    // template <typename T>
+    // constexpr T one = 1;
 
-    template <typename T>
-    __device__ void cachet(bool     upper,
-                           const T* A,
-                           int      offset_A_row,
-                           int      offset_A_col,
-                           T*       cache,
-                           int      nrows,
-                           int      ncols,
-                           int      na,
-                           int      nc)
-    {
-        if(nrows < 0 || ncols < 0)
-            return;
+    // template <typename T>
+    // __device__ void cachet(bool     upper,
+    //                        const T* A,
+    //                        int      offset_A_row,
+    //                        int      offset_A_col,
+    //                        T*       cache,
+    //                        int      nrows,
+    //                        int      ncols,
+    //                        int      na,
+    //                        int      nc)
+    // {
+    //     if(nrows < 0 || ncols < 0)
+    //         return;
 
-        int index = threadIdx.x;
-        while(index < nrows * ncols)
-        {
-            int row = index / ncols;
-            int col = index % ncols;
+    //     int index = threadIdx.x;
+    //     while(index < nrows * ncols)
+    //     {
+    //         int row = index / ncols;
+    //         int col = index % ncols;
 
-            int rowA   = row + offset_A_row;
-            int colA   = col + offset_A_col;
-            int index1 = upper ? ((rowA * (rowA + 1)) / 2 + colA)
-                               : ((rowA * (2 * na - rowA + 1)) / 2) + (colA - rowA);
-            if(index1 >= (na * (na + 1)) / 2 || row < 0 || col < 0 || index1 < 0)
-            {
-                // break;
-                index += blockDim.x;
-                continue;
-            }
+    //         int rowA   = row + offset_A_row;
+    //         int colA   = col + offset_A_col;
+    //         int index1 = upper ? ((rowA * (rowA + 1)) / 2 + colA)
+    //                            : ((rowA * (2 * na - rowA + 1)) / 2) + (colA - rowA);
+    //         if(index1 >= (na * (na + 1)) / 2 || row < 0 || col < 0 || index1 < 0)
+    //         {
+    //             // break;
+    //             index += blockDim.x;
+    //             continue;
+    //         }
 
-            cache[col * nc + row] = A[index1];
-            index += blockDim.x;
-        }
-    }
+    //         cache[col * nc + row] = A[index1];
+    //         index += blockDim.x;
+    //     }
+    // }
 
-    template <typename T>
-    __device__ void cachen(bool     upper,
-                           const T* A,
-                           int      offset_A_row,
-                           int      offset_A_col,
-                           T*       cache,
-                           int      nrows,
-                           int      ncols,
-                           int      na,
-                           int      nc)
-    {
-        if(nrows < 0 || ncols < 0)
-            return;
+    // template <typename T>
+    // __device__ void cachen(bool     upper,
+    //                        const T* A,
+    //                        int      offset_A_row,
+    //                        int      offset_A_col,
+    //                        T*       cache,
+    //                        int      nrows,
+    //                        int      ncols,
+    //                        int      na,
+    //                        int      nc)
+    // {
+    //     if(nrows < 0 || ncols < 0)
+    //         return;
 
-        int index = threadIdx.x;
-        while(index < nrows * ncols)
-        {
-            int row = index / ncols;
-            int col = index % ncols;
+    //     int index = threadIdx.x;
+    //     while(index < nrows * ncols)
+    //     {
+    //         int row = index / ncols;
+    //         int col = index % ncols;
 
-            int rowA   = row + offset_A_row;
-            int colA   = col + offset_A_col;
-            int index1 = upper ? ((colA * (colA + 1)) / 2 + rowA)
-                               : ((colA * (2 * na - colA + 1)) / 2) + (rowA - colA);
-            if(index1 >= (na * (na + 1)) / 2 || row < 0 || col < 0)
-                break;
+    //         int rowA   = row + offset_A_row;
+    //         int colA   = col + offset_A_col;
+    //         int index1 = upper ? ((colA * (colA + 1)) / 2 + rowA)
+    //                            : ((colA * (2 * na - colA + 1)) / 2) + (rowA - colA);
+    //         if(index1 >= (na * (na + 1)) / 2 || row < 0 || col < 0)
+    //             break;
 
-            cache[col * nc + row] = A[index1];
-            index += blockDim.x;
-        }
-    }
+    //         cache[col * nc + row] = A[index1];
+    //         index += blockDim.x;
+    //     }
+    // }
 
     template <bool CONJ, rocblas_int BLK_SIZE, typename T>
     __device__ void tpsvt_upper_kernel_calc(bool diag, int n, const T* A, T* x, rocblas_int incx)
@@ -193,7 +193,9 @@ namespace
                     int rowA   = j + i;
                     int indexA = ((rowA * (2 * n - rowA + 1)) / 2) + (colA - rowA);
                     if(rowA >= 0 && colA >= 0 && indexA >= 0 && indexA < (n * (n + 1) / 2))
-                        xshared[tx] = xshared[tx] / A[indexA]; //cache_even[j * BLK_SIZE + j];
+                        xshared[tx] = xshared[tx]
+                                      / (CONJ ? conj(A[indexA])
+                                              : A[indexA]); //cache_even[j * BLK_SIZE + j];
                 }
 
                 __syncthreads();
@@ -205,8 +207,8 @@ namespace
                     int rowA   = tx + i;
                     int indexA = ((rowA * (2 * n - rowA + 1)) / 2) + (colA - rowA);
                     if(rowA >= 0 && colA >= 0 && indexA >= 0 && indexA < (n * (n + 1) / 2))
-                        xshared[tx]
-                            -= A[indexA] * xshared[j]; //cache_even[j * BLK_SIZE + tx] * xshared[j];
+                        xshared[tx] -= (CONJ ? conj(A[indexA]) : A[indexA])
+                                       * xshared[j]; //cache_even[j * BLK_SIZE + tx] * xshared[j];
                 }
             }
 
@@ -431,9 +433,6 @@ namespace
         // Temporarily switch to host pointer mode, restoring on return
         auto saved_pointer_mode = handle->push_pointer_mode(rocblas_pointer_mode_host);
 
-        if(transA == rocblas_operation_conjugate_transpose)
-            transA = rocblas_operation_transpose;
-
         ptrdiff_t shift_x = incx < 0 ? offset_x - ptrdiff_t(incx) * (n - 1) : offset_x;
         ptrdiff_t shift_A = offset_A;
 
@@ -445,6 +444,7 @@ namespace
         dim3 threads(32);
 
         if(rocblas_operation_conjugate_transpose == transA)
+        {
             hipLaunchKernelGGL((rocblas_tpsv_kernel<true, 32>),
                                grid,
                                threads,
@@ -461,7 +461,9 @@ namespace
                                shift_x,
                                incx,
                                stride_x);
+        }
         else
+        {
             hipLaunchKernelGGL((rocblas_tpsv_kernel<false, 32>),
                                grid,
                                threads,
@@ -478,6 +480,7 @@ namespace
                                shift_x,
                                incx,
                                stride_x);
+        }
 
         return rocblas_status_success;
     }
