@@ -293,8 +293,6 @@ endif()
 
 set_target_properties( rocblas PROPERTIES CXX_STANDARD 14 CXX_STANDARD_REQUIRED ON )
 
-target_compile_definitions( rocblas PRIVATE ROCBLAS_LIBRARY_CHECKS )
-
 if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
   # Remove following when hcc is fixed; hcc emits following spurious warning ROCm v1.6.1
   # "clang-5.0: warning: argument unused during compilation: '-isystem /opt/rocm/include'"

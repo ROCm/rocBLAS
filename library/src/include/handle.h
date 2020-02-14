@@ -314,7 +314,6 @@ private:
             return rocblas_status_size_unchanged;    \
     } while(0)
 
-#if defined(ROCBLAS_LIBRARY_CHECKS)
 // Warn about potentially unsafe and synchronizing uses of hipMalloc and hipFree
 #define hipMalloc(ptr, size)                                                                     \
     _Pragma(                                                                                     \
@@ -323,7 +322,6 @@ private:
 #define hipFree(ptr)                                                                               \
     _Pragma("GCC warning \"Direct use of hipFree in rocBLAS is deprecated; see CONTRIBUTING.md\"") \
         hipFree(ptr)
-#endif
 
 namespace rocblas
 {
