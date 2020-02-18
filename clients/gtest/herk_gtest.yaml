@@ -66,6 +66,17 @@ Tests:
   function: herk_batched_bad_arg
   precision: *single_precision
 
+- name: herk_batched_quick
+  category: quick
+  function: herk_batched
+  precision: *single_double_precisions_complex
+  uplo: [ U ]
+  transA: [ N, C ]
+  matrix_size: *quick_matrix_size_range
+  alpha: [ 0, 1 ]
+  beta: [ 0, 1 ]
+  batch_count: [ 0, 1 ]
+
 - name: herk_batched_medium
   category: pre_checkin
   function: herk_batched
@@ -91,6 +102,17 @@ Tests:
   category: pre_checkin
   function: herk_strided_batched_bad_arg
   precision: *single_precision
+
+- name: herk_strided_batched_quick
+  category: quick
+  function: herk_strided_batched
+  precision: *single_double_precisions_complex
+  uplo: [ U ]
+  transA: [ N, C ]
+  matrix_size: *quick_matrix_size_range
+  alpha: [ 0, 1 ]
+  beta: [ 0, 1 ]
+  batch_count: [ 0, 1 ]
 
 - name: herk_strided_batched_medium
   category: pre_checkin

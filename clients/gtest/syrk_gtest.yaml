@@ -66,6 +66,17 @@ Tests:
   function: syrk_batched_bad_arg
   precision: *single_precision
 
+- name: syrk_batched_quick
+  category: quick
+  function: syrk_batched
+  precision: *single_double_precisions_complex
+  uplo: [ U ]
+  transA: [ N, T ]
+  matrix_size: *quick_matrix_size_range
+  alpha: [ 0 ]
+  beta: [ 1 ]
+  batch_count: [ 0, 1 ]
+
 - name: syrk_batched_medium
   category: pre_checkin
   function: syrk_batched
@@ -91,6 +102,17 @@ Tests:
   category: pre_checkin
   function: syrk_strided_batched_bad_arg
   precision: *single_precision
+
+- name: syrk_strided_batched_quick
+  category: quick
+  function: syrk_strided_batched
+  precision: *single_double_precisions_complex
+  uplo: [ U ]
+  transA: [ N, T ]
+  matrix_size: *quick_matrix_size_range
+  alpha: [ 0 ]
+  beta: [ 1 ]
+  batch_count: [ 0, 1 ]
 
 - name: syrk_strided_batched_medium
   category: pre_checkin

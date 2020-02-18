@@ -35,11 +35,9 @@ void testing_herk_batched_bad_arg(const Arguments& arg)
     // allocate memory on device
     device_batch_vector<T> dA(safe_size, 1, batch_count);
     device_batch_vector<T> dC(safe_size, 1, batch_count);
-    if(!dA || !dC)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_HIP_ERROR(dA.memcheck());
+    CHECK_HIP_ERROR(dC.memcheck());
+
     EXPECT_ROCBLAS_STATUS(
         (rocblas_herk_batched<
             T>)(nullptr, uplo, transA, N, K, &alpha, dA, lda, &beta, dC, ldc, batch_count),
@@ -129,7 +127,9 @@ void testing_herk_batched(const Arguments& arg)
     double rocblas_error = 0.0;
 
     // Note: K==0 is not an early exit, since C still needs to be multiplied by beta
-    if(N <= 0 || K < 0 || lda < N || ldc < N || batch_count <= 0)
+    bool invalidSize = N < 0 || K < 0 || ldc < N || (transA == rocblas_operation_none && lda < N)
+                       || (transA != rocblas_operation_none && lda < K) || batch_count < 0;
+    if(N == 0 || batch_count == 0 || invalidSize)
     {
         // ensure invalid sizes checked before pointer check
         EXPECT_ROCBLAS_STATUS((rocblas_herk_batched<T>)(handle,
@@ -144,9 +144,7 @@ void testing_herk_batched(const Arguments& arg)
                                                         nullptr,
                                                         ldc,
                                                         batch_count),
-                              N < 0 || K < 0 || lda < N || ldc < N || batch_count < 0
-                                  ? rocblas_status_invalid_size
-                                  : rocblas_status_success);
+                              invalidSize ? rocblas_status_invalid_size : rocblas_status_success);
 
         return;
     }
@@ -159,11 +157,10 @@ void testing_herk_batched(const Arguments& arg)
     device_batch_vector<T> dC(size_C, 1, batch_count);
     device_vector<U>       d_alpha(1);
     device_vector<U>       d_beta(1);
-    if(!dA || !dC || !d_alpha || !d_beta)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_HIP_ERROR(dA.memcheck());
+    CHECK_HIP_ERROR(dC.memcheck());
+    CHECK_HIP_ERROR(d_alpha.memcheck());
+    CHECK_HIP_ERROR(d_beta.memcheck());
 
     // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory
     host_vector<U>       h_alpha(1);

@@ -19,29 +19,24 @@
 template <typename T>
 void testing_syrk_bad_arg(const Arguments& arg)
 {
-    const rocblas_int N = 100;
-    const rocblas_int K = 100;
+    rocblas_local_handle    handle;
+    const rocblas_fill      uplo   = rocblas_fill_upper;
+    const rocblas_operation transA = rocblas_operation_none;
+    const rocblas_int       N      = 100;
+    const rocblas_int       K      = 100;
+    const rocblas_int       lda    = 100;
+    const rocblas_int       ldc    = 100;
+    const T                 alpha  = 1.0;
+    const T                 beta   = 1.0;
 
-    const rocblas_int lda = 100;
-    const rocblas_int ldc = 100;
-
-    const T alpha = 1.0;
-    const T beta  = 1.0;
-
-    const size_t            safe_size = 100;
-    const rocblas_fill      uplo      = rocblas_fill_upper;
-    const rocblas_operation transA    = rocblas_operation_none;
-
-    rocblas_local_handle handle;
+    const size_t safe_size = 100;
 
     // allocate memory on device
     device_vector<T> dA(safe_size);
     device_vector<T> dC(safe_size);
-    if(!dA || !dC)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_HIP_ERROR(dA.memcheck());
+    CHECK_HIP_ERROR(dC.memcheck());
+
     EXPECT_ROCBLAS_STATUS(
         rocblas_syrk<T>(nullptr, uplo, transA, N, K, &alpha, dA, lda, &beta, dC, ldc),
         rocblas_status_invalid_handle);
@@ -125,11 +120,10 @@ void testing_syrk(const Arguments& arg)
     device_vector<T> dC(size_C);
     device_vector<T> d_alpha(1);
     device_vector<T> d_beta(1);
-    if(!dA || !dC || !d_alpha || !d_beta)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_HIP_ERROR(dA.memcheck());
+    CHECK_HIP_ERROR(dC.memcheck());
+    CHECK_HIP_ERROR(d_alpha.memcheck());
+    CHECK_HIP_ERROR(d_beta.memcheck());
 
     // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory
     host_vector<T> h_alpha(1);
