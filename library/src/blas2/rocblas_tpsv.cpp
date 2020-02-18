@@ -40,6 +40,8 @@ namespace
         if(!handle)
             return rocblas_status_invalid_handle;
 
+        RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
+
         auto layer_mode = handle->layer_mode;
         if(layer_mode & rocblas_layer_mode_log_trace)
             log_trace(handle, rocblas_tpsv_name<T>, uplo, transA, diag, n, AP, x, incx);
@@ -84,26 +86,16 @@ namespace
         }
 
         if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
-            return rocblas_status_not_implemented;
-        if(!AP || !x)
-            return rocblas_status_invalid_pointer;
+            return rocblas_status_invalid_value;
         if(n < 0 || !incx)
             return rocblas_status_invalid_size;
-
-        // quick return if possible.
-        // return rocblas_status_size_unchanged if device memory size query
         if(!n)
-            return handle->is_device_memory_size_query() ? rocblas_status_size_unchanged
-                                                         : rocblas_status_success;
-
-        if(handle->is_device_memory_size_query())
-            return handle->set_optimal_device_memory_size(sizeof(T) * n);
-
-        auto mem = handle->device_malloc(sizeof(T) * n);
-        // todo set mem to all 0s
+            return rocblas_status_success;
+        if(!AP || !x)
+            return rocblas_status_invalid_pointer;
 
         rocblas_status status = rocblas_tpsv_template<BLOCK, false, T>(
-            handle, uplo, transA, diag, n, AP, 0, 0, x, 0, incx, 0, 1, (T*)mem);
+            handle, uplo, transA, diag, n, AP, 0, 0, x, 0, incx, 0, 1);
 
         return status;
     }

@@ -399,14 +399,24 @@ namespace
         bool is_diag = diag == rocblas_diagonal_unit;
 
         if(transA == rocblas_operation_none)
+        {
             if(uplo == rocblas_fill_upper)
+            {
                 tpsvn_upper_kernel_calc<BLK_SIZE>(is_diag, n, AP, x, incx);
+            }
             else
+            {
                 tpsvn_lower_kernel_calc<BLK_SIZE>(is_diag, n, AP, x, incx);
+            }
+        }
         else if(uplo == rocblas_fill_upper)
+        {
             tpsvt_upper_kernel_calc<CONJ, BLK_SIZE>(is_diag, n, AP, x, incx);
+        }
         else
+        {
             tpsvt_lower_kernel_calc<CONJ, BLK_SIZE>(is_diag, n, AP, x, incx);
+        }
     }
 
     template <rocblas_int BLOCK, bool BATCHED, typename T, typename U, typename V>
@@ -422,10 +432,9 @@ namespace
                                          rocblas_int       offset_x,
                                          rocblas_int       incx,
                                          rocblas_stride    stride_x,
-                                         rocblas_int       batch_count,
-                                         V                 x_temp)
+                                         rocblas_int       batch_count)
     {
-        if(batch_count == 0)
+        if(batch_count == 0 || n == 0)
             return rocblas_status_success;
 
         rocblas_status status = rocblas_status_success;

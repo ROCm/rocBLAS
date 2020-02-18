@@ -7,8 +7,8 @@
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_test.hpp"
 #include "testing_tpsv.hpp"
-// #include "testing_tpsv_batched.hpp"
-// #include "testing_tpsv_strided_batched.hpp"
+#include "testing_tpsv_batched.hpp"
+#include "testing_tpsv_strided_batched.hpp"
 #include "type_dispatch.hpp"
 #include <cctype>
 #include <cstring>
@@ -44,10 +44,16 @@ namespace
         {
             if(!strcmp(arg.function, "tpsv"))
                 testing_tpsv<T>(arg);
-            // else if(!strcmp(arg.function, "tpsv_batched"))
-            //     testing_tpsv_batched<T>(arg);
-            // else if(!strcmp(arg.function, "tpsv_strided_batched"))
-            //     testing_tpsv_strided_batched<T>(arg);
+            else if(!strcmp(arg.function, "tpsv_bad_arg"))
+                testing_tpsv_bad_arg<T>(arg);
+            else if(!strcmp(arg.function, "tpsv_batched"))
+                testing_tpsv_batched<T>(arg);
+            else if(!strcmp(arg.function, "tpsv_batched_bad_arg"))
+                testing_tpsv_batched_bad_arg<T>(arg);
+            else if(!strcmp(arg.function, "tpsv_strided_batched"))
+                testing_tpsv_strided_batched<T>(arg);
+            else if(!strcmp(arg.function, "tpsv_strided_batched_bad_arg"))
+                testing_tpsv_strided_batched_bad_arg<T>(arg);
             else
                 FAIL() << "Internal error: Test called with unknown function: " << arg.function;
         }
@@ -68,12 +74,15 @@ namespace
             switch(TPSV_TYPE)
             {
             case TPSV:
-                return !strcmp(arg.function, "tpsv");
-                // case TPSV_BATCHED:
-                //     return !strcmp(arg.function, "tpsv_batched");
-                // case TPSV_STRIDED_BATCHED:
-                //     return !strcmp(arg.function, "tpsv_strided_batched");
+                return !strcmp(arg.function, "tpsv") || !strcmp(arg.function, "tpsv_bad_arg");
+            case TPSV_BATCHED:
+                return !strcmp(arg.function, "tpsv_batched")
+                       || !strcmp(arg.function, "tpsv_batched_bad_arg");
+            case TPSV_STRIDED_BATCHED:
+                return !strcmp(arg.function, "tpsv_strided_batched")
+                       || !strcmp(arg.function, "tpsv_strided_batched_bad_arg");
             }
+
             return false;
         }
 
@@ -81,8 +90,14 @@ namespace
         static std::string name_suffix(const Arguments& arg)
         {
             RocBLAS_TestName<tpsv_template> name;
-            name << rocblas_datatype2string(arg.a_type) << '_' << (char)std::toupper(arg.uplo)
-                 << (char)std::toupper(arg.transA) << (char)std::toupper(arg.diag) << '_' << arg.N;
+
+            name << rocblas_datatype2string(arg.a_type);
+
+            if(strstr(arg.function, "_bad_arg") != nullptr)
+                name << "_bad_arg";
+
+            name << '_' << (char)std::toupper(arg.uplo) << (char)std::toupper(arg.transA)
+                 << (char)std::toupper(arg.diag) << '_' << arg.N;
 
             if(TPSV_TYPE == TPSV_STRIDED_BATCHED)
                 name << '_' << arg.stride_a;
@@ -106,18 +121,18 @@ namespace
     }
     INSTANTIATE_TEST_CATEGORIES(tpsv);
 
-    // using tpsv_batched = tpsv_template<tpsv_testing, TPSV_BATCHED>;
-    // TEST_P(tpsv_batched, blas2)
-    // {
-    //     CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<tpsv_testing>(GetParam()));
-    // }
-    // INSTANTIATE_TEST_CATEGORIES(tpsv_batched);
+    using tpsv_batched = tpsv_template<tpsv_testing, TPSV_BATCHED>;
+    TEST_P(tpsv_batched, blas2)
+    {
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<tpsv_testing>(GetParam()));
+    }
+    INSTANTIATE_TEST_CATEGORIES(tpsv_batched);
 
-    // using tpsv_strided_batched = tpsv_template<tpsv_testing, TPSV_STRIDED_BATCHED>;
-    // TEST_P(tpsv_strided_batched, blas2)
-    // {
-    //     CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<tpsv_testing>(GetParam()));
-    // }
-    // INSTANTIATE_TEST_CATEGORIES(tpsv_strided_batched);
+    using tpsv_strided_batched = tpsv_template<tpsv_testing, TPSV_STRIDED_BATCHED>;
+    TEST_P(tpsv_strided_batched, blas2)
+    {
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<tpsv_testing>(GetParam()));
+    }
+    INSTANTIATE_TEST_CATEGORIES(tpsv_strided_batched);
 
 } // namespace

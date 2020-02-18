@@ -8,6 +8,7 @@
 #include "logging.h"
 #include "rocblas.h"
 #include "rocblas_test.hpp"
+#include "rocblas_vector.hpp"
 #include "utility.h"
 #include <cstdio>
 #include <iostream>
@@ -141,6 +142,111 @@ void rocblas_print_matrix(const char* name, T* A, rocblas_int m, rocblas_int n, 
             printf(" ");
         }
         printf("\n");
+    }
+}
+
+/* ============================================================================================= */
+/*! \brief For testing purposes, to conver a regular matrix to a packed matrix.                  */
+template <typename T>
+inline host_vector<T> regular_to_packed(bool upper, host_vector<T> A, rocblas_int n)
+{
+    size_t         size_AP = size_t(n) * (n + 1) / 2;
+    host_vector<T> AP(size_AP);
+
+    int index = 0;
+    if(upper)
+    {
+        for(int i = 0; i < n; i++)
+        {
+            for(int j = 0; j <= i; j++)
+            {
+                AP[index++] = A[j + i * n];
+            }
+        }
+    }
+    else
+    {
+        for(int i = 0; i < n; i++)
+        {
+            for(int j = i; j < n; j++)
+            {
+                AP[index++] = A[j + i * n];
+            }
+        }
+    }
+
+    return AP;
+}
+
+template <typename T>
+inline void regular_to_packed(bool                  upper,
+                              host_batch_vector<T>& A,
+                              host_batch_vector<T>& AP,
+                              rocblas_int           n,
+                              rocblas_int           batch_count)
+{
+    size_t size_AP = size_t(n) * (n + 1) / 2;
+    // host_batch_vector<T> AP(size_AP, 1, batch_count);
+
+    for(int b = 0; b < batch_count; b++)
+    {
+        int index = 0;
+        if(upper)
+        {
+            for(int i = 0; i < n; i++)
+            {
+                for(int j = 0; j <= i; j++)
+                {
+                    AP[b][index++] = A[b][j + i * n];
+                }
+            }
+        }
+        else
+        {
+            for(int i = 0; i < n; i++)
+            {
+                for(int j = i; j < n; j++)
+                {
+                    AP[b][index++] = A[b][j + i * n];
+                }
+            }
+        }
+    }
+}
+
+template <typename T>
+inline void regular_to_packed(bool                          upper,
+                              host_strided_batch_vector<T>& A,
+                              host_strided_batch_vector<T>& AP,
+                              rocblas_int                   n,
+                              rocblas_int                   batch_count)
+{
+    size_t size_AP = size_t(n) * (n + 1) / 2;
+    // host_batch_vector<T> AP(size_AP, 1, batch_count);
+
+    for(int b = 0; b < batch_count; b++)
+    {
+        int index = 0;
+        if(upper)
+        {
+            for(int i = 0; i < n; i++)
+            {
+                for(int j = 0; j <= i; j++)
+                {
+                    AP[b][index++] = A[b][j + i * n];
+                }
+            }
+        }
+        else
+        {
+            for(int i = 0; i < n; i++)
+            {
+                for(int j = i; j < n; j++)
+                {
+                    AP[b][index++] = A[b][j + i * n];
+                }
+            }
+        }
     }
 }
 
