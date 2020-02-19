@@ -13,8 +13,8 @@
 
 namespace
 {
-    constexpr rocblas_int STPSV_BLOCK = 128;
-    constexpr rocblas_int DTPSV_BLOCK = 128;
+    constexpr rocblas_int STPSV_BLOCK = 512; //256;//128;//64;//32;
+    constexpr rocblas_int DTPSV_BLOCK = 512; //256;//128;//64;//32;
 
     template <typename>
     constexpr char rocblas_tpsv_name[] = "unknown";

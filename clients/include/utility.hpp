@@ -148,7 +148,7 @@ void rocblas_print_matrix(const char* name, T* A, rocblas_int m, rocblas_int n, 
 /* ============================================================================================= */
 /*! \brief For testing purposes, to convert a regular matrix to a packed matrix.                  */
 template <typename T>
-inline void regular_to_packed(bool upper, const T* A, T* AP, rocblas_int n)
+inline void pack_matrix(bool upper, const T* A, T* AP, rocblas_int n)
 {
     int index = 0;
     if(upper)
@@ -171,35 +171,12 @@ inline void regular_to_packed(bool upper, const T* A, T* AP, rocblas_int n)
             }
         }
     }
-
-    return AP;
 }
 
 template <typename T>
 inline void regular_to_packed(bool upper, host_vector<T>& A, host_vector<T>& AP, rocblas_int n)
 {
-
-    int index = 0;
-    if(upper)
-    {
-        for(int i = 0; i < n; i++)
-        {
-            for(int j = 0; j <= i; j++)
-            {
-                AP[index++] = A[j + i * n];
-            }
-        }
-    }
-    else
-    {
-        for(int i = 0; i < n; i++)
-        {
-            for(int j = i; j < n; j++)
-            {
-                AP[index++] = A[j + i * n];
-            }
-        }
-    }
+    pack_matrix(upper, (T*)A, (T*)AP, n);
 }
 
 template <typename T>
@@ -211,27 +188,7 @@ inline void regular_to_packed(bool                  upper,
 {
     for(int b = 0; b < batch_count; b++)
     {
-        int index = 0;
-        if(upper)
-        {
-            for(int i = 0; i < n; i++)
-            {
-                for(int j = 0; j <= i; j++)
-                {
-                    AP[b][index++] = A[b][j + i * n];
-                }
-            }
-        }
-        else
-        {
-            for(int i = 0; i < n; i++)
-            {
-                for(int j = i; j < n; j++)
-                {
-                    AP[b][index++] = A[b][j + i * n];
-                }
-            }
-        }
+        pack_matrix(upper, (T*)(A[b]), (T*)(AP[b]), n);
     }
 }
 
@@ -244,27 +201,7 @@ inline void regular_to_packed(bool                          upper,
 {
     for(int b = 0; b < batch_count; b++)
     {
-        int index = 0;
-        if(upper)
-        {
-            for(int i = 0; i < n; i++)
-            {
-                for(int j = 0; j <= i; j++)
-                {
-                    AP[b][index++] = A[b][j + i * n];
-                }
-            }
-        }
-        else
-        {
-            for(int i = 0; i < n; i++)
-            {
-                for(int j = i; j < n; j++)
-                {
-                    AP[b][index++] = A[b][j + i * n];
-                }
-            }
-        }
+        pack_matrix(upper, (T*)(A[b]), (T*)(AP[b]), n);
     }
 }
 

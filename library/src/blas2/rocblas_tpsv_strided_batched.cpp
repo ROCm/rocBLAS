@@ -13,8 +13,8 @@
 
 namespace
 {
-    constexpr rocblas_int STPSV_BLOCK = 128;
-    constexpr rocblas_int DTPSV_BLOCK = 128;
+    constexpr rocblas_int STPSV_BLOCK = 32;
+    constexpr rocblas_int DTPSV_BLOCK = 32;
 
     template <typename>
     constexpr char rocblas_tpsv_strided_batched_name[] = "unknown";

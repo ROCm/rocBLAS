@@ -2,6 +2,7 @@
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+#include "../blas1/rocblas_copy.hpp"
 #include "handle.h"
 #include "logging.h"
 #include "rocblas.h"
@@ -12,18 +13,7 @@
 
 namespace
 {
-    // using std::max;
-    // using std::min;
-
-    // constexpr rocblas_int NB_X = 1024;
-
-    // template <typename T>
-    // constexpr T negative_one = -1;
-    // template <typename T>
-    // constexpr T zero = 0;
-    // template <typename T>
-    // constexpr T one = 1;
-
+    constexpr rocblas_int NB = 256;
     // template <typename T>
     // __device__ void cachet(bool     upper,
     //                        const T* A,
@@ -311,11 +301,13 @@ namespace
         }
     }
 
+    // TODO: Change this to use shared memory.
     template <rocblas_int BLK_SIZE, typename T>
     __device__ void tpsvn_lower_kernel_calc(bool diag, int n, const T* A, T* x, rocblas_int incx)
     {
+        // constexpr int blk_arr_size = BLK_SIZE * (BLK_SIZE + 1) / 2;
         __shared__ T xshared[BLK_SIZE];
-        // __shared__ T cache_even[BLK_SIZE * BLK_SIZE];
+        // __shared__ T cache_even[blk_arr_size];
         int tx = threadIdx.x;
 
         // main loop
@@ -324,6 +316,8 @@ namespace
             // cache A and x into shared memory
             if(tx + i < n)
                 xshared[tx] = x[(tx + i) * incx];
+            // TODO: custom kernel to copy part of the packed matrix?
+            // copy_kernel<false>((blk_arr_size), A, 0, 1, 0, cache_even, 0, 1, 0);
             // cachen<T>(false, A, i, i, cache_even, BLK_SIZE, BLK_SIZE, n, BLK_SIZE);
             __syncthreads();
 
@@ -332,10 +326,12 @@ namespace
             {
                 if(tx == j && !diag)
                 {
-                    int colA    = j + i;
-                    int rowA    = j + i;
-                    int indexA  = ((colA * (2 * n - colA + 1)) / 2) + (rowA - colA);
-                    xshared[tx] = xshared[tx] / A[indexA]; //cache_even[j * BLK_SIZE + j];
+                    int colA   = j + i;
+                    int rowA   = j + i;
+                    int indexA = ((colA * (2 * n - colA + 1)) / 2) + (rowA - colA);
+                    xshared[tx]
+                        = xshared[tx]
+                          / A[indexA]; //cache_even[indexA];//A[indexA]; //cache_even[j * BLK_SIZE + j];
                 }
 
                 __syncthreads();
@@ -347,7 +343,9 @@ namespace
                     int rowA   = tx + i;
                     int indexA = ((colA * (2 * n - colA + 1)) / 2) + (rowA - colA);
                     xshared[tx]
-                        -= A[indexA] * xshared[j]; //cache_even[j * BLK_SIZE + tx] * xshared[j];
+                        -= A[indexA]
+                           * xshared
+                               [j]; //A[indexA] * xshared[j]; //cache_even[j * BLK_SIZE + tx] * xshared[j];
                 }
             }
 
@@ -399,22 +397,14 @@ namespace
         if(transA == rocblas_operation_none)
         {
             if(uplo == rocblas_fill_upper)
-            {
                 tpsvn_upper_kernel_calc<BLK_SIZE>(is_diag, n, AP, x, incx);
-            }
             else
-            {
                 tpsvn_lower_kernel_calc<BLK_SIZE>(is_diag, n, AP, x, incx);
-            }
         }
         else if(uplo == rocblas_fill_upper)
-        {
             tpsvt_upper_kernel_calc<CONJ, BLK_SIZE>(is_diag, n, AP, x, incx);
-        }
         else
-        {
             tpsvt_lower_kernel_calc<CONJ, BLK_SIZE>(is_diag, n, AP, x, incx);
-        }
     }
 
     template <rocblas_int BLOCK, typename TConstPtr, typename TPtr>
@@ -448,11 +438,11 @@ namespace
         rocblas_int          blocks = 1; //(n - 1) / DIM_X + 1;
 
         dim3 grid(blocks, batch_count);
-        dim3 threads(32);
+        dim3 threads(BLOCK);
 
         if(rocblas_operation_conjugate_transpose == transA)
         {
-            hipLaunchKernelGGL((rocblas_tpsv_kernel<true, 32>),
+            hipLaunchKernelGGL((rocblas_tpsv_kernel<true, BLOCK>),
                                grid,
                                threads,
                                0,
@@ -471,7 +461,7 @@ namespace
         }
         else
         {
-            hipLaunchKernelGGL((rocblas_tpsv_kernel<false, 32>),
+            hipLaunchKernelGGL((rocblas_tpsv_kernel<false, BLOCK>),
                                grid,
                                threads,
                                0,
