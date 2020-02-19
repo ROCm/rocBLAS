@@ -187,7 +187,7 @@ Tests:
   matrix_size: *medium_matrix_size_range
   alpha: *alpha_range
 
-- name: trsm_medium
+- name: trsm_medium_extra
   category: pre_checkin
   function: trsm
   precision: *single_double_precisions
