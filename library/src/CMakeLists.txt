@@ -153,6 +153,15 @@ if( BUILD_WITH_TENSILE )
 
 endif( ) # BUILD_WITH_TENSILE
 
+set( rocblas_blas3_source_no_tensile
+    blas3/rocblas_herk.cpp
+    blas3/rocblas_herk_batched.cpp
+    blas3/rocblas_herk_strided_batched.cpp
+    blas3/rocblas_syrk.cpp
+    blas3/rocblas_syrk_batched.cpp
+    blas3/rocblas_syrk_strided_batched.cpp
+)
+
 set( rocblas_blas2_source
   ${rocblas_blas2_tensile_source}
   blas2/rocblas_gemv.cpp
@@ -270,6 +279,7 @@ prepend_path( ".." rocblas_headers_public relative_rocblas_headers_public )
 add_library( rocblas
   ${rocblas_ex_source}
   ${rocblas_blas3_source}
+  ${rocblas_blas3_source_no_tensile}
   ${rocblas_blas2_source}
   ${rocblas_blas1_source}
   ${relative_rocblas_headers_public}

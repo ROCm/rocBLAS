@@ -2187,6 +2187,182 @@ inline void cblas_gemm(rocblas_operation       transA,
                 ldc);
 }
 
+// syrk
+template <typename T>
+void cblas_syrk(rocblas_fill      uplo,
+                rocblas_operation transA,
+                rocblas_int       n,
+                rocblas_int       k,
+                T                 alpha,
+                const T*          A,
+                rocblas_int       lda,
+                T                 beta,
+                T*                C,
+                rocblas_int       ldc);
+
+template <>
+inline void cblas_syrk(rocblas_fill      uplo,
+                       rocblas_operation transA,
+                       rocblas_int       n,
+                       rocblas_int       k,
+                       float             alpha,
+                       const float*      A,
+                       rocblas_int       lda,
+                       float             beta,
+                       float*            C,
+                       rocblas_int       ldc)
+{
+    cblas_ssyrk(CblasColMajor,
+                CBLAS_UPLO(uplo),
+                CBLAS_TRANSPOSE(transA),
+                n,
+                k,
+                alpha,
+                A,
+                lda,
+                beta,
+                C,
+                ldc);
+}
+
+template <>
+inline void cblas_syrk(rocblas_fill      uplo,
+                       rocblas_operation transA,
+                       rocblas_int       n,
+                       rocblas_int       k,
+                       double            alpha,
+                       const double*     A,
+                       rocblas_int       lda,
+                       double            beta,
+                       double*           C,
+                       rocblas_int       ldc)
+{
+    cblas_dsyrk(CblasColMajor,
+                CBLAS_UPLO(uplo),
+                CBLAS_TRANSPOSE(transA),
+                n,
+                k,
+                alpha,
+                A,
+                lda,
+                beta,
+                C,
+                ldc);
+}
+
+template <>
+inline void cblas_syrk(rocblas_fill                 uplo,
+                       rocblas_operation            transA,
+                       rocblas_int                  n,
+                       rocblas_int                  k,
+                       rocblas_float_complex        alpha,
+                       const rocblas_float_complex* A,
+                       rocblas_int                  lda,
+                       rocblas_float_complex        beta,
+                       rocblas_float_complex*       C,
+                       rocblas_int                  ldc)
+{
+    cblas_csyrk(CblasColMajor,
+                CBLAS_UPLO(uplo),
+                CBLAS_TRANSPOSE(transA),
+                n,
+                k,
+                &alpha,
+                A,
+                lda,
+                &beta,
+                C,
+                ldc);
+}
+
+template <>
+inline void cblas_syrk(rocblas_fill                  uplo,
+                       rocblas_operation             transA,
+                       rocblas_int                   n,
+                       rocblas_int                   k,
+                       rocblas_double_complex        alpha,
+                       const rocblas_double_complex* A,
+                       rocblas_int                   lda,
+                       rocblas_double_complex        beta,
+                       rocblas_double_complex*       C,
+                       rocblas_int                   ldc)
+{
+    cblas_zsyrk(CblasColMajor,
+                CBLAS_UPLO(uplo),
+                CBLAS_TRANSPOSE(transA),
+                n,
+                k,
+                &alpha,
+                A,
+                lda,
+                &beta,
+                C,
+                ldc);
+}
+
+// herk
+template <typename T, typename U>
+void cblas_herk(rocblas_fill      uplo,
+                rocblas_operation transA,
+                rocblas_int       n,
+                rocblas_int       k,
+                U                 alpha,
+                const T*          A,
+                rocblas_int       lda,
+                U                 beta,
+                T*                C,
+                rocblas_int       ldc);
+
+template <>
+inline void cblas_herk(rocblas_fill                 uplo,
+                       rocblas_operation            transA,
+                       rocblas_int                  n,
+                       rocblas_int                  k,
+                       float                        alpha,
+                       const rocblas_float_complex* A,
+                       rocblas_int                  lda,
+                       float                        beta,
+                       rocblas_float_complex*       C,
+                       rocblas_int                  ldc)
+{
+    cblas_cherk(CblasColMajor,
+                CBLAS_UPLO(uplo),
+                CBLAS_TRANSPOSE(transA),
+                n,
+                k,
+                alpha,
+                A,
+                lda,
+                beta,
+                C,
+                ldc);
+}
+
+template <>
+inline void cblas_herk(rocblas_fill                  uplo,
+                       rocblas_operation             transA,
+                       rocblas_int                   n,
+                       rocblas_int                   k,
+                       double                        alpha,
+                       const rocblas_double_complex* A,
+                       rocblas_int                   lda,
+                       double                        beta,
+                       rocblas_double_complex*       C,
+                       rocblas_int                   ldc)
+{
+    cblas_zherk(CblasColMajor,
+                CBLAS_UPLO(uplo),
+                CBLAS_TRANSPOSE(transA),
+                n,
+                k,
+                alpha,
+                A,
+                lda,
+                beta,
+                C,
+                ldc);
+}
+
 // trsm
 template <typename T>
 void cblas_trsm(rocblas_side      side,
