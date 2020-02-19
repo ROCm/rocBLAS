@@ -80,7 +80,7 @@ namespace
                               diag_letter,
                               "-n",
                               n,
-                              "--stride_A",
+                              "--stride_a",
                               stride_A,
                               "--incx",
                               incx,
@@ -101,7 +101,7 @@ namespace
                             diag_letter,
                             "N",
                             n,
-                            "stride_A",
+                            "stride_a",
                             stride_A,
                             "incx",
                             incx,
@@ -120,7 +120,7 @@ namespace
         if(!AP || !x)
             return rocblas_status_invalid_pointer;
 
-        rocblas_status status = rocblas_tpsv_template<BLOCK, false, T>(
+        rocblas_status status = rocblas_tpsv_template<BLOCK>(
             handle, uplo, transA, diag, n, AP, 0, stride_A, x, 0, incx, stride_x, batch_count);
 
         return status;

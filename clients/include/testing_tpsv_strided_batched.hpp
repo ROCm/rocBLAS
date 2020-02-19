@@ -89,8 +89,6 @@ void testing_tpsv_strided_batched(const Arguments& arg)
     // check here to prevent undefined memory allocation error
     if(N < 0 || !incx || batch_count <= 0)
     {
-        static const size_t safe_size = 100; // arbitrarily set to 100
-
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         if(batch_count == 0)
             CHECK_ROCBLAS_ERROR(rocblas_tpsv_strided_batched<T>(handle,
@@ -339,16 +337,17 @@ void testing_tpsv_strided_batched(const Arguments& arg)
         cblas_gflops  = batch_count * tpsv_gflop_count<T>(N) / cpu_time_used * 1e6;
 
         // only norm_check return an norm error, unit check won't return anything
-        std::cout << "N,incx,uplo,transA,diag,batch_count,rocblas-Gflops,rocblas-GB/s,us";
+        std::cout << "N,stride_a,incx,stride_x,uplo,transA,diag,batch_count,rocblas-Gflops,rocblas-"
+                     "GB/s,us";
 
         if(arg.norm_check)
             std::cout << ",CPU-Gflops,us,norm_error_host_ptr,norm_error_dev_ptr";
 
         std::cout << std::endl;
 
-        std::cout << N << ',' << incx << ',' << char_uplo << ',' << char_transA << ',' << char_diag
-                  << ',' << batch_count << ',' << rocblas_gflops << "," << rocblas_bandwidth << ","
-                  << gpu_time_used / number_hot_calls;
+        std::cout << N << ',' << stride_ap << ',' << incx << ',' << stride_x << ',' << char_uplo
+                  << ',' << char_transA << ',' << char_diag << ',' << batch_count << ','
+                  << rocblas_gflops << "," << rocblas_bandwidth << "," << gpu_time_used;
 
         if(arg.norm_check)
             std::cout << "," << cblas_gflops << "," << cpu_time_used << "," << max_err_1 << ","

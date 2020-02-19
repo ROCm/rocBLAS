@@ -1,12 +1,10 @@
 /* ************************************************************************
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-// #include "../blas3/trtri_trsm.hpp"
-#include "../blas1/rocblas_copy.hpp"
+
 #include "handle.h"
 #include "logging.h"
 #include "rocblas.h"
-// #include "rocblas_tpmv.hpp"
 #include "utility.h"
 #include <algorithm>
 #include <cstdio>
@@ -419,16 +417,16 @@ namespace
         }
     }
 
-    template <rocblas_int BLOCK, bool BATCHED, typename T, typename U, typename V>
+    template <rocblas_int BLOCK, typename TConstPtr, typename TPtr>
     rocblas_status rocblas_tpsv_template(rocblas_handle    handle,
                                          rocblas_fill      uplo,
                                          rocblas_operation transA,
                                          rocblas_diagonal  diag,
                                          rocblas_int       n,
-                                         U                 A,
+                                         TConstPtr         A,
                                          rocblas_int       offset_A,
                                          rocblas_stride    stride_A,
-                                         V                 x,
+                                         TPtr              x,
                                          rocblas_int       offset_x,
                                          rocblas_int       incx,
                                          rocblas_stride    stride_x,

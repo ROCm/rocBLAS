@@ -6540,12 +6540,12 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrsv_strided_batched(rocblas_handle      
             rocblas_diagonal_non_unit: A is not assumed to be unit triangular.
 
     @param[in]
-    m         [rocblas_int]
-              m specifies the number of rows of b. m >= 0.
+    n         [rocblas_int]
+              n specifies the number of rows of b. n >= 0.
 
     @param[in]
     AP        device pointer storing the packed version of matrix A,
-              of dimension ( lda, m )
+              of dimension >= (n * (n + 1) / 2)
 
     @param[inout]
     x         device pointer storing vector x.
@@ -6625,12 +6625,12 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztpsv(rocblas_handle                handle
             rocblas_diagonal_non_unit: each A_i is not assumed to be unit triangular.
 
     @param[in]
-    m         [rocblas_int]
-              m specifies the number of rows of each b_i. m >= 0.
+    n         [rocblas_int]
+              n specifies the number of rows of each b_i. n >= 0.
 
     @param[in]
     AP        device array of device pointers storing the packed versions of each matrix A_i,
-              of dimension ( lda, m )
+              of dimension >= (n * (n + 1) / 2)
 
     @param[inout]
     x         device array of device pointers storing each vector x_i.
@@ -6717,12 +6717,12 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztpsv_batched(rocblas_handle              
             rocblas_diagonal_non_unit: each A_i is not assumed to be unit triangular.
 
     @param[in]
-    m         [rocblas_int]
-              m specifies the number of rows of each b_i. m >= 0.
+    n         [rocblas_int]
+              n specifies the number of rows of each b_i. n >= 0.
 
     @param[in]
     AP        device pointer pointing to the first packed matrix A_1,
-              of dimension ( lda, m )
+              of dimension >= (n * (n + 1) / 2)
 
     @param[in]
     stride_A  [rocblas_stride]

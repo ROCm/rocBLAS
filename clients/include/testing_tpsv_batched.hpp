@@ -187,7 +187,6 @@ void testing_tpsv_batched(const Arguments& arg)
     }
 
     regular_to_packed(uplo == rocblas_fill_upper, hA, hAP, N, batch_count);
-    // hAP.copy_from(regular_to_packed(uplo == rocblas_fill_upper, hA, N, batch_count));
 
     cpu_x_or_b.copy_from(hb);
     hx_or_b_1.copy_from(hb);
@@ -320,7 +319,7 @@ void testing_tpsv_batched(const Arguments& arg)
 
         std::cout << N << ',' << incx << ',' << char_uplo << ',' << char_transA << ',' << char_diag
                   << ',' << batch_count << ',' << rocblas_gflops << "," << rocblas_bandwidth << ","
-                  << gpu_time_used / number_hot_calls;
+                  << gpu_time_used;
 
         if(arg.norm_check)
             std::cout << "," << cblas_gflops << "," << cpu_time_used << "," << max_err_1 << ","

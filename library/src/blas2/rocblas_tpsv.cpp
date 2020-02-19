@@ -94,7 +94,7 @@ namespace
         if(!AP || !x)
             return rocblas_status_invalid_pointer;
 
-        rocblas_status status = rocblas_tpsv_template<BLOCK, false, T>(
+        rocblas_status status = rocblas_tpsv_template<BLOCK>(
             handle, uplo, transA, diag, n, AP, 0, 0, x, 0, incx, 0, 1);
 
         return status;

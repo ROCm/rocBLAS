@@ -68,14 +68,6 @@ void testing_tpsv(const Arguments& arg)
     if(N < 0 || !incx)
     {
         static const size_t safe_size = 100; // arbitrarily set to 100
-        device_vector<T>    dx_or_b(safe_size);
-        device_vector<T>    dA(safe_size);
-
-        if(!dA || !dx_or_b)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         EXPECT_ROCBLAS_STATUS(
@@ -180,7 +172,7 @@ void testing_tpsv(const Arguments& arg)
     hx_or_b_2     = hb;
     my_cpu_x_or_b = hb;
 
-    hAP = regular_to_packed(uplo == rocblas_fill_upper, hA, N);
+    regular_to_packed(uplo == rocblas_fill_upper, hA, hAP, N);
 
     // copy data from CPU to device
     CHECK_HIP_ERROR(dAP.transfer_from(hAP));
@@ -265,8 +257,7 @@ void testing_tpsv(const Arguments& arg)
         std::cout << std::endl;
 
         std::cout << N << ',' << incx << ',' << char_uplo << ',' << char_transA << ',' << char_diag
-                  << ',' << rocblas_gflops << "," << rocblas_bandwidth << ","
-                  << gpu_time_used / number_hot_calls;
+                  << ',' << rocblas_gflops << "," << rocblas_bandwidth << "," << gpu_time_used;
 
         if(arg.norm_check)
             std::cout << "," << cblas_gflops << "," << cpu_time_used << "," << max_err_1 << ","
