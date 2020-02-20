@@ -16,12 +16,15 @@ Definitions:
 
   - &medium_matrix_size_range
     - { N:   192 }
+    - { N:   255 }
     - { N:   256 }
+    - { N:   257 }
     - { N:   800 }
 
   - &large_matrix_size_range
     - { N:  1024 }
     - { N:  2000 }
+    - { N:  3423 }
 
   - &common_args
     precision: *single_double_precisions_complex_real

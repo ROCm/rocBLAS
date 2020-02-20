@@ -14,130 +14,73 @@
 namespace
 {
     constexpr rocblas_int NB = 256;
-    // template <typename T>
-    // __device__ void cachet(bool     upper,
-    //                        const T* A,
-    //                        int      offset_A_row,
-    //                        int      offset_A_col,
-    //                        T*       cache,
-    //                        int      nrows,
-    //                        int      ncols,
-    //                        int      na,
-    //                        int      nc)
-    // {
-    //     if(nrows < 0 || ncols < 0)
-    //         return;
 
-    //     int index = threadIdx.x;
-    //     while(index < nrows * ncols)
-    //     {
-    //         int row = index / ncols;
-    //         int col = index % ncols;
-
-    //         int rowA   = row + offset_A_row;
-    //         int colA   = col + offset_A_col;
-    //         int index1 = upper ? ((rowA * (rowA + 1)) / 2 + colA)
-    //                            : ((rowA * (2 * na - rowA + 1)) / 2) + (colA - rowA);
-    //         if(index1 >= (na * (na + 1)) / 2 || row < 0 || col < 0 || index1 < 0)
-    //         {
-    //             // break;
-    //             index += blockDim.x;
-    //             continue;
-    //         }
-
-    //         cache[col * nc + row] = A[index1];
-    //         index += blockDim.x;
-    //     }
-    // }
-
-    // template <typename T>
-    // __device__ void cachen(bool     upper,
-    //                        const T* A,
-    //                        int      offset_A_row,
-    //                        int      offset_A_col,
-    //                        T*       cache,
-    //                        int      nrows,
-    //                        int      ncols,
-    //                        int      na,
-    //                        int      nc)
-    // {
-    //     if(nrows < 0 || ncols < 0)
-    //         return;
-
-    //     int index = threadIdx.x;
-    //     while(index < nrows * ncols)
-    //     {
-    //         int row = index / ncols;
-    //         int col = index % ncols;
-
-    //         int rowA   = row + offset_A_row;
-    //         int colA   = col + offset_A_col;
-    //         int index1 = upper ? ((colA * (colA + 1)) / 2 + rowA)
-    //                            : ((colA * (2 * na - colA + 1)) / 2) + (rowA - colA);
-    //         if(index1 >= (na * (na + 1)) / 2 || row < 0 || col < 0)
-    //             break;
-
-    //         cache[col * nc + row] = A[index1];
-    //         index += blockDim.x;
-    //     }
-    // }
-
+    // Uses fowards elimination to solve Ax = b for a upper-triangular matrix which has been
+    // transposed - therefore is a lower-triangular matrix.
     template <bool CONJ, rocblas_int BLK_SIZE, typename T>
     __device__ void tpsvt_upper_kernel_calc(bool diag, int n, const T* A, T* x, rocblas_int incx)
     {
         __shared__ T xshared[BLK_SIZE];
-        // __shared__ T cache_even[BLK_SIZE * BLK_SIZE];
-        int tx = threadIdx.x;
+        int          tx = threadIdx.x;
 
-        // main loop
+        // main loop - iterate forward in BLK_SIZE chunks
         for(int i = 0; i < n; i += BLK_SIZE)
         {
-            // cache A and x into shared memory
+            // cache x into shared memory
             if(tx + i < n)
                 xshared[tx] = x[(tx + i) * incx];
-            // cachet<T>(true, A, i, i, cache_even, BLK_SIZE, BLK_SIZE, n, BLK_SIZE);
+
             __syncthreads();
 
-            // solve diagonal block
+            // iterate through the current block and solve elements
             for(int j = 0; j < BLK_SIZE; j++)
             {
+                if(j + i >= n)
+                    break;
+
+                // solve element that can be solved
                 if(tx == j && !diag)
                 {
-                    int colA   = j + i;
-                    int rowA   = j + i;
+                    int colA = j + i;
+                    int rowA = j + i;
+                    // Use upper-triangular matrix indexing
                     int indexA = (rowA * (rowA + 1) / 2) + colA;
-                    if(colA >= 0 && rowA >= 0 && indexA >= 0 && indexA < (n * (n + 1) / 2))
-                        xshared[tx] = xshared[tx]
-                                      / (CONJ ? conj(A[indexA])
-                                              : A[indexA]); //cache_even[j * BLK_SIZE + j];
+                    // if(colA < n && rowA < n && indexA < (n * (n + 1) / 2))
+                    xshared[tx] = xshared[tx] / (CONJ ? conj(A[indexA]) : A[indexA]);
                 }
 
                 __syncthreads();
-
+                // for rest of block, subtract previous solved part
                 if(tx >= j + 1)
                 {
-                    // for rest of block, subtract previous solved part
                     int colA   = j + i;
                     int rowA   = tx + i;
                     int indexA = (rowA * (rowA + 1) / 2) + colA;
-                    if(colA >= 0 && rowA >= 0 && indexA >= 0 && indexA < (n * (n + 1) / 2))
-                        xshared[tx] -= (CONJ ? conj(A[indexA]) : A[indexA])
-                                       * xshared[j]; //cache_even[j * BLK_SIZE + tx] * xshared[j];
+                    // if(colA < n && rowA < n && indexA < (n * (n + 1) / 2))
+                    if(rowA < n)
+                        xshared[tx] -= (CONJ ? conj(A[indexA]) : A[indexA]) * xshared[j];
                 }
             }
 
             __syncthreads();
 
-            // apply diagonal block
+            // apply solved diagonal block to the rest of the array
+            // 1. Iterate down rows
             for(int j = BLK_SIZE; j < n - i; j += BLK_SIZE)
             {
+                if(tx + i + j >= n)
+                    continue;
+
+                // 2. Sum result (across columns) to be subtracted from original value
                 T val = 0;
                 for(int p = 0; p < BLK_SIZE; p++)
                 {
                     int colA   = i + p;
                     int rowA   = i + tx + j;
                     int indexA = (rowA * (rowA + 1) / 2) + colA;
-                    if(colA >= 0 && rowA >= 0 && indexA >= 0 && indexA < (n * (n + 1) / 2))
+                    if(colA < 0 || rowA < 0 || colA >= n || rowA >= n)
+                        continue;
+                    if(indexA >= 0 && indexA < (n * (n + 1) / 2))
                     {
                         if(diag && colA == rowA)
                             val += xshared[p];
@@ -150,66 +93,72 @@ namespace
                     x[(tx + i + j) * incx] -= val;
             }
 
-            // store back to global memory
+            // store solved part back to global memory
             if(tx + i < n)
                 x[(tx + i) * incx] = xshared[tx];
+
+            __syncthreads();
         }
     }
 
+    // Uses backwards elimination to solve Ax = b for a lower-triangular matrix which has been
+    // transposed - therefore is an upper-triangular matrix.
     template <bool CONJ, rocblas_int BLK_SIZE, typename T>
     __device__ void tpsvt_lower_kernel_calc(bool diag, int n, const T* A, T* x, rocblas_int incx)
     {
         __shared__ T xshared[BLK_SIZE];
-        // __shared__ T cache_even[BLK_SIZE * BLK_SIZE];
-        int tx = threadIdx.x;
+        int          tx = threadIdx.x;
 
-        // main loop
+        // main loop - Start at end of array and iterate backwards in BLK_SIZE chunks
         for(int i = n - BLK_SIZE; i > -BLK_SIZE; i -= BLK_SIZE)
         {
-            // cache A and x into shared memory
-            if(tx + i < n && tx >= 0)
+            // cache x into shared memory
+            if(tx + i < n && tx + i >= 0)
                 xshared[tx] = x[(tx + i) * incx];
-            // cachet<T>(false, A, i, i, cache_even, BLK_SIZE, BLK_SIZE, n, BLK_SIZE);
+
             __syncthreads();
 
-            // solve diagonal block
+            // Iterate backwards through the current block to solve elements.
             for(int j = BLK_SIZE - 1; j >= 0; j--)
             {
+                // Solve the new element that can be solved
                 if(tx == j && !diag)
                 {
-                    int colA   = j + i;
-                    int rowA   = j + i;
+                    int colA = j + i;
+                    int rowA = j + i;
+                    // Use lower-triangular matrix indexing
                     int indexA = ((rowA * (2 * n - rowA + 1)) / 2) + (colA - rowA);
                     if(rowA >= 0 && colA >= 0 && indexA >= 0 && indexA < (n * (n + 1) / 2))
-                        xshared[tx] = xshared[tx]
-                                      / (CONJ ? conj(A[indexA])
-                                              : A[indexA]); //cache_even[j * BLK_SIZE + j];
+                        xshared[tx] = xshared[tx] / (CONJ ? conj(A[indexA]) : A[indexA]);
                 }
 
                 __syncthreads();
 
+                // for rest of block, subtract previous solved part
                 if(tx < j)
                 {
-                    // for rest of block, subtract previous solved part
                     int colA   = j + i;
                     int rowA   = tx + i;
                     int indexA = ((rowA * (2 * n - rowA + 1)) / 2) + (colA - rowA);
                     if(rowA >= 0 && colA >= 0 && indexA >= 0 && indexA < (n * (n + 1) / 2))
-                        xshared[tx] -= (CONJ ? conj(A[indexA]) : A[indexA])
-                                       * xshared[j]; //cache_even[j * BLK_SIZE + tx] * xshared[j];
+                        xshared[tx] -= (CONJ ? conj(A[indexA]) : A[indexA]) * xshared[j];
                 }
             }
 
             __syncthreads();
 
-            // apply diagonal block
+            // apply solved diagonal block to the rest of the array
+            // 1. Iterate up rows, starting at the block above the current block
             for(int j = i - BLK_SIZE; j > -BLK_SIZE; j -= BLK_SIZE)
             {
+                // 2. Sum result (across columns) to be subtracted from the original value
                 T val = 0;
                 for(int p = 0; p < BLK_SIZE; p++)
                 {
-                    int colA   = i + p;
-                    int rowA   = tx + j;
+                    int colA = i + p;
+                    int rowA = tx + j;
+                    if(colA < 0 || rowA < 0 || colA >= n || rowA >= n)
+                        continue;
                     int indexA = ((rowA * (2 * n - rowA + 1)) / 2) + (colA - rowA);
 
                     if(rowA >= 0 && colA >= 0 && indexA >= 0 && indexA < (n * (n + 1) / 2))
@@ -225,68 +174,76 @@ namespace
                     x[(tx + j) * incx] -= val;
             }
 
-            // store back to global memory
+            // store solved part back to global memory
             if(tx + i < n && tx + i >= 0)
                 x[(tx + i) * incx] = xshared[tx];
+
+            __syncthreads();
         }
     }
 
+    // Uses backwards elimination to solve Ax = b for a upper-triangular matrix.
     template <rocblas_int BLK_SIZE, typename T>
     __device__ void tpsvn_upper_kernel_calc(bool diag, int n, const T* A, T* x, rocblas_int incx)
     {
         __shared__ T xshared[BLK_SIZE];
-        // __shared__ T cache_even[BLK_SIZE * BLK_SIZE];
-        int tx = threadIdx.x;
+        int          tx = threadIdx.x;
 
-        // main loop
+        // main loop - Start at end of array and iterate backwards in BLK_SIZE chunks
         for(int i = n - BLK_SIZE; i > -BLK_SIZE; i -= BLK_SIZE)
         {
-            // cache A and x into shared memory
-            if(tx + i < n && tx >= 0)
+            // cache x into shared memory
+            if(tx + i < n && tx + i >= 0)
                 xshared[tx] = x[(tx + i) * incx];
-            // cachen<T>(true, A, i, i, cache_even, BLK_SIZE, BLK_SIZE, n, BLK_SIZE);
+
             __syncthreads();
 
-            // solve diagonal block
+            // Iterate backwards through the current block to solve elements.
             for(int j = BLK_SIZE - 1; j >= 0; j--)
             {
+                // Solve the new element that can be solved
                 if(tx == j && !diag)
                 {
-                    int colA    = j + i;
-                    int rowA    = j + i;
-                    int indexA  = ((colA * (colA + 1) / 2) + rowA);
-                    xshared[tx] = xshared[tx] / A[indexA]; //cache_even[j * BLK_SIZE + j];
+                    int colA   = j + i;
+                    int rowA   = j + i;
+                    int indexA = ((colA * (colA + 1) / 2) + rowA);
+                    if(indexA >= 0 && indexA < ((n * (n + 1) / 2)))
+                        xshared[tx] = xshared[tx] / A[indexA];
                 }
 
                 __syncthreads();
 
+                // for rest of block, subtract previous solved part
                 if(tx < j)
                 {
-                    // for rest of block, subtract previous solved part
                     int colA   = j + i;
                     int rowA   = tx + i;
                     int indexA = ((colA * (colA + 1) / 2) + rowA);
-                    xshared[tx]
-                        -= A[indexA] * xshared[j]; //cache_even[j * BLK_SIZE + tx] * xshared[j];
+                    if(indexA >= 0 && indexA < ((n * (n + 1) / 2)))
+                        xshared[tx] -= A[indexA] * xshared[j];
                 }
             }
 
             __syncthreads();
 
-            // apply diagonal block
+            // apply solved diagonal block to the rest of the array
+            // 1. Iterate up rows, starting at the block above the current block
             for(int j = i - BLK_SIZE; j > -BLK_SIZE; j -= BLK_SIZE)
             {
+                // 2. Sum result (across columns) to be subtracted from the original value
                 T val = 0;
                 for(int p = 0; p < BLK_SIZE; p++)
                 {
-                    int colA   = i + p;
-                    int rowA   = tx + j;
+                    int colA = i + p;
+                    int rowA = tx + j;
+                    if(colA < 0 || rowA < 0 || colA >= n || rowA >= n)
+                        continue;
                     int indexA = ((colA * (colA + 1) / 2) + rowA);
                     if(rowA >= 0 && colA >= 0)
                     {
                         if(diag && colA == rowA)
                             val += xshared[p];
-                        else
+                        else if(indexA >= 0)
                             val += A[indexA] * xshared[p];
                     }
                 }
@@ -295,74 +252,79 @@ namespace
                     x[(tx + j) * incx] -= val;
             }
 
-            // store back to global memory
+            // store solved part back to global memory
             if(tx + i < n && tx + i >= 0)
                 x[(tx + i) * incx] = xshared[tx];
+
+            __syncthreads();
         }
     }
 
-    // TODO: Change this to use shared memory.
+    // Uses forward elimination to solve Ax = b for a lower-triangular matrix.
     template <rocblas_int BLK_SIZE, typename T>
     __device__ void tpsvn_lower_kernel_calc(bool diag, int n, const T* A, T* x, rocblas_int incx)
     {
-        // constexpr int blk_arr_size = BLK_SIZE * (BLK_SIZE + 1) / 2;
         __shared__ T xshared[BLK_SIZE];
-        // __shared__ T cache_even[blk_arr_size];
-        int tx = threadIdx.x;
+        int          tx = threadIdx.x;
 
-        // main loop
+        // main loop - iterate forward in BLK_SIZE chunks.
         for(int i = 0; i < n; i += BLK_SIZE)
         {
-            // cache A and x into shared memory
+            // cache x into shared memory
             if(tx + i < n)
                 xshared[tx] = x[(tx + i) * incx];
-            // TODO: custom kernel to copy part of the packed matrix?
-            // copy_kernel<false>((blk_arr_size), A, 0, 1, 0, cache_even, 0, 1, 0);
-            // cachen<T>(false, A, i, i, cache_even, BLK_SIZE, BLK_SIZE, n, BLK_SIZE);
+
             __syncthreads();
 
-            // solve diagonal block
+            // iterate through the current block and solve elements
             for(int j = 0; j < BLK_SIZE; j++)
             {
+                if(j + i >= n)
+                    break;
+
+                // solve element that can be solved
                 if(tx == j && !diag)
                 {
-                    int colA   = j + i;
-                    int rowA   = j + i;
-                    int indexA = ((colA * (2 * n - colA + 1)) / 2) + (rowA - colA);
-                    xshared[tx]
-                        = xshared[tx]
-                          / A[indexA]; //cache_even[indexA];//A[indexA]; //cache_even[j * BLK_SIZE + j];
+                    int colA    = j + i;
+                    int rowA    = j + i;
+                    int indexA  = ((colA * (2 * n - colA + 1)) / 2) + (rowA - colA);
+                    xshared[tx] = xshared[tx] / A[indexA];
                 }
 
                 __syncthreads();
 
+                // for rest of block, subtract previous solved part
                 if(tx >= j + 1)
                 {
-                    // for rest of block, subtract previous solved part
                     int colA   = j + i;
                     int rowA   = tx + i;
                     int indexA = ((colA * (2 * n - colA + 1)) / 2) + (rowA - colA);
-                    xshared[tx]
-                        -= A[indexA]
-                           * xshared
-                               [j]; //A[indexA] * xshared[j]; //cache_even[j * BLK_SIZE + tx] * xshared[j];
+                    // TODO: check here
+                    xshared[tx] -= A[indexA] * xshared[j];
                 }
             }
 
             __syncthreads();
 
-            // apply diagonal block
+            // apply solved diagonal block to the rest of the array
+            // 1. Iterate down rows
             for(int j = BLK_SIZE; j < n - i; j += BLK_SIZE)
             {
+                if(tx + i + j >= n)
+                    continue;
+
+                // 2. Sum result (across columns) to be subtracted from original value
                 T val = 0;
                 for(int p = 0; p < BLK_SIZE; p++)
                 {
-                    int colA   = i + p;
-                    int rowA   = i + tx + j;
+                    int colA = i + p;
+                    int rowA = i + tx + j;
+                    if(colA < 0 || rowA < 0 || colA >= n || rowA >= n)
+                        continue;
                     int indexA = ((colA * (2 * n - colA + 1)) / 2) + (rowA - colA);
                     if(diag && colA == rowA)
                         val += xshared[p];
-                    else
+                    else if(indexA >= 0 && indexA < (n * (n + 1) / 2))
                         val += A[indexA] * xshared[p];
                 }
 
@@ -370,9 +332,11 @@ namespace
                     x[(tx + i + j) * incx] -= val;
             }
 
-            // store back to global memory
+            // store solved part back to global memory
             if(tx + i < n)
                 x[(tx + i) * incx] = xshared[tx];
+
+            __syncthreads();
         }
     }
 
@@ -433,9 +397,7 @@ namespace
         ptrdiff_t shift_x = incx < 0 ? offset_x - ptrdiff_t(incx) * (n - 1) : offset_x;
         ptrdiff_t shift_A = offset_A;
 
-        static constexpr int DIM_X  = 1; //128;
-        static constexpr int DIM_Y  = 1;
-        rocblas_int          blocks = 1; //(n - 1) / DIM_X + 1;
+        rocblas_int blocks = 1;
 
         dim3 grid(blocks, batch_count);
         dim3 threads(BLOCK);

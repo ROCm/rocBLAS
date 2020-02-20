@@ -200,8 +200,8 @@ void testing_trsv(const Arguments& arg)
         for(int i = 0; i < number_hot_calls; i++)
             rocblas_trsv<T>(handle, uplo, transA, diag, M, dA, lda, dx_or_b, incx);
 
-        gpu_time_used  = get_time_us() - gpu_time_used;
-        rocblas_gflops = trsv_gflop_count<T>(M) * number_hot_calls / gpu_time_used * 1e6;
+        gpu_time_used  = (get_time_us() - gpu_time_used) / number_hot_calls;
+        rocblas_gflops = trsv_gflop_count<T>(M) / gpu_time_used * 1e6;
 
         // CPU cblas
         cpu_time_used = get_time_us();
@@ -221,7 +221,7 @@ void testing_trsv(const Arguments& arg)
         std::cout << std::endl;
 
         std::cout << M << ',' << lda << ',' << incx << ',' << char_uplo << ',' << char_transA << ','
-                  << char_diag << ',' << rocblas_gflops << "," << gpu_time_used / number_hot_calls;
+                  << char_diag << ',' << rocblas_gflops << "," << gpu_time_used;
 
         if(arg.norm_check)
             std::cout << "," << cblas_gflops << "," << cpu_time_used << "," << max_err_1 << ","
