@@ -328,7 +328,7 @@ Tests:
   transB: N
   batch_count: 1
 
-- name: gemm_zerok
+- name: gemm_batched_zerok
   category: quick
   function:
     gemm_batched: { <<: *half_single_double_precisions, <<: *complex_precisions }
