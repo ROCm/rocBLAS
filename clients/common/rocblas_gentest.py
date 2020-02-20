@@ -314,10 +314,10 @@ def setdefaults(test):
         test.setdefault('ldc', 0)
         test.setdefault('ldd', 0)
     else:
-        test.setdefault('lda', test['M'] if test['transA'].upper() == 'N' else
-                        test['K'])
-        test.setdefault('ldb', test['K'] if test['transB'].upper() == 'N' else
-                        test['N'])
+        test.setdefault('lda', test['M'] if test['transA'].upper() == 'N'
+                        else test['K'] if test['K'] != 0 else 1)
+        test.setdefault('ldb', test['K'] if test['K'] != 0 else 1
+                        if test['transB'].upper() == 'N' else test['N'])
         test.setdefault('ldc', test['M'])
         test.setdefault('ldd', test['M'])
         if test['batch_count'] > 0:
