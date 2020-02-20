@@ -72,6 +72,7 @@ struct Arguments
     rocblas_int unit_check;
     rocblas_int timing;
     rocblas_int iters;
+    rocblas_int cold_iters;
 
     uint32_t algo;
     int32_t  solution_index;
@@ -161,6 +162,7 @@ struct Arguments
         ROCBLAS_FORMAT_CHECK(unit_check);
         ROCBLAS_FORMAT_CHECK(timing);
         ROCBLAS_FORMAT_CHECK(iters);
+        ROCBLAS_FORMAT_CHECK(cold_iters);
         ROCBLAS_FORMAT_CHECK(algo);
         ROCBLAS_FORMAT_CHECK(solution_index);
         ROCBLAS_FORMAT_CHECK(flags);
@@ -311,6 +313,7 @@ private:
         PRINT(unit_check);
         PRINT(timing);
         PRINT(iters);
+        PRINT(cold_iters);
         PRINT(initialization);
         PRINT(known_bug_platforms);
         PRINT(c_noalias_d);
