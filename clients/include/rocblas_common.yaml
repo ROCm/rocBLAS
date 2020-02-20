@@ -258,7 +258,7 @@ Arguments:
   - unit_check: rocblas_int
   - timing: rocblas_int
   - iters: rocblas_int
-  - colde_iters: rocblas_int
+  - cold_iters: rocblas_int
   - algo: c_uint
   - solution_index: c_int
   - flags: c_uint
