@@ -119,6 +119,15 @@ if( BUILD_WITH_TENSILE )
 
 endif( ) # BUILD_WITH_TENSILE
 
+set( rocblas_blas3_source_no_tensile
+    blas3/rocblas_herk.cpp
+    blas3/rocblas_herk_batched.cpp
+    blas3/rocblas_herk_strided_batched.cpp
+    blas3/rocblas_syrk.cpp
+    blas3/rocblas_syrk_batched.cpp
+    blas3/rocblas_syrk_strided_batched.cpp
+)
+
 set( rocblas_blas2_source
   ${rocblas_blas2_tensile_source}
   blas2/rocblas_gemv.cpp
@@ -236,6 +245,7 @@ prepend_path( ".." rocblas_headers_public relative_rocblas_headers_public )
 add_library( rocblas
   ${rocblas_ex_source}
   ${rocblas_blas3_source}
+  ${rocblas_blas3_source_no_tensile}
   ${rocblas_blas2_source}
   ${rocblas_blas1_source}
   ${relative_rocblas_headers_public}
@@ -257,6 +267,8 @@ target_link_libraries( rocblas PRIVATE hip::hip_hcc hip::hip_device hcc::hccshar
 endif()
 
 set_target_properties( rocblas PROPERTIES CXX_STANDARD 14 CXX_STANDARD_REQUIRED ON )
+
+target_compile_definitions( rocblas PRIVATE ROCBLAS_LIBRARY_CHECKS )
 
 if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
   # Remove following when hcc is fixed; hcc emits following spurious warning ROCm v1.6.1

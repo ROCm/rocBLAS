@@ -31,7 +31,7 @@ RUN zypper refresh && zypper -n --no-gpg-checks install\
     python3-pip \
     wget
 
-RUN pip3 install wheel && pip3 install tox pyyaml
+RUN pip3 install wheel && pip3 install pyyaml
 
 # docker pipeline runs containers with particular uid
 # create a jenkins user with this specific uid so it can use sudo priviledges

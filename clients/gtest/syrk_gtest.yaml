@@ -1,0 +1,138 @@
+---
+include: rocblas_common.yaml
+include: known_bugs.yaml
+
+Definitions:
+  - &quick_matrix_size_range
+    - { N:  -1,  lda:   1,  K:  1,  ldc:  1 } # bad n
+    - { N:   2,  lda:   2,  K: -1,  ldc:  1 } # bad k
+    - { N:   0,  lda:   3,  K:  3,  ldc:  3 } # n==0
+    - { N:   3,  lda:   3,  K:  0,  ldc:  3 } # k==0
+    - { N:   3,  lda:   1,  K:  1,  ldc:  3 } # bad lda if not transpose
+    - { N:   1,  lda:   1,  K:  3,  ldc:  3 } # bad lda if transpose
+    - { N:   3,  lda:   3,  K:  3,  ldc:  1 } # bad ldc
+
+  - &medium_matrix_size_range
+    - { N:   199, lda:  199, K:  32,   ldc: 199 }
+    - { N:    88, lda:  200, K:  200,  ldc: 88 }
+
+  - &large_matrix_size_range
+    - { N:  2011, lda:  2011, K:  253, ldc: 2048 }
+    - { N:  5000, lda:  5008, K:  164, ldc: 5000 }
+
+  - &alpha_beta_range
+    - { alpha:  1.5, alphai:  1.5, beta:  0.0, betai: 0.0 }
+    - { alpha: -2.0, alphai:  1.0, beta: -1.0, betai: 0.5 }
+    - { alpha:  0.0, alphai:  0.0, beta:  1.0, betai: 0.0 } # quick success
+    - { alpha:  0.0, alphai:  0.0, beta:  2.0, betai: 0.5 } # scale step only
+
+Tests:
+- name: syrk_bad
+  category: pre_checkin
+  function: syrk_bad_arg
+  precision: *single_precision
+
+- name: syrk_quick
+  category: quick
+  function: syrk
+  precision: *single_double_precisions_complex
+  uplo: [ U ]
+  transA: [ N, T ]
+  matrix_size: *quick_matrix_size_range
+  alpha: [ 0 ]
+  beta: [ 1 ]
+
+- name: syrk_medium
+  category: pre_checkin
+  function: syrk
+  precision: *single_double_precisions
+  uplo: [ U, L ]
+  transA: [N, T]
+  matrix_size: *medium_matrix_size_range
+  alpha_beta: *alpha_beta_range
+
+- name: syrk_large
+  category: nightly
+  function: syrk
+  precision: *single_double_precisions_complex_real
+  uplo: [ U, L ]
+  transA: [N, T]
+  matrix_size: *large_matrix_size_range
+  alpha_beta: *alpha_beta_range
+
+  # batched
+- name: syrk_batched_bad
+  category: pre_checkin
+  function: syrk_batched_bad_arg
+  precision: *single_precision
+
+- name: syrk_batched_quick
+  category: quick
+  function: syrk_batched
+  precision: *single_double_precisions_complex
+  uplo: [ U ]
+  transA: [ N, T ]
+  matrix_size: *quick_matrix_size_range
+  alpha: [ 0 ]
+  beta: [ 1 ]
+  batch_count: [ 0, 1 ]
+
+- name: syrk_batched_medium
+  category: pre_checkin
+  function: syrk_batched
+  precision: *single_double_precisions
+  uplo: [ U, L ]
+  transA: [N, T]
+  matrix_size: *medium_matrix_size_range
+  alpha_beta: *alpha_beta_range
+  batch_count: [ 1, 7 ]
+
+- name: syrk_batched_large
+  category: nightly
+  function: syrk_batched
+  precision: *single_double_precisions_complex_real
+  uplo: [ U, L ]
+  transA: [N]
+  matrix_size: *large_matrix_size_range
+  alpha_beta: *alpha_beta_range
+  batch_count: [ 2 ]
+
+  # strided batched
+- name: syrk_strided_batched_bad
+  category: pre_checkin
+  function: syrk_strided_batched_bad_arg
+  precision: *single_precision
+
+- name: syrk_strided_batched_quick
+  category: quick
+  function: syrk_strided_batched
+  precision: *single_double_precisions_complex
+  uplo: [ U ]
+  transA: [ N, T ]
+  matrix_size: *quick_matrix_size_range
+  alpha: [ 0 ]
+  beta: [ 1 ]
+  batch_count: [ 0, 1 ]
+
+- name: syrk_strided_batched_medium
+  category: pre_checkin
+  function: syrk_strided_batched
+  precision: *single_double_precisions
+  uplo: [ U, L ]
+  transA: [N, T]
+  matrix_size: *medium_matrix_size_range
+  alpha_beta: *alpha_beta_range
+  batch_count: [ 1, 7 ]
+
+- name: syrk_strided_batched_large
+  category: nightly
+  function: syrk_strided_batched
+  precision: *single_double_precisions_complex_real
+  uplo: [ U, L ]
+  transA: [N]
+  matrix_size: *large_matrix_size_range
+  alpha_beta: *alpha_beta_range
+  batch_count: [ 2 ]
+
+
+...

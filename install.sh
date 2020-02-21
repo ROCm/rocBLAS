@@ -10,26 +10,26 @@ function display_help()
 cat <<EOF
 rocBLAS build & installation helper script
   $0 <options>
-      -h | --help              Print this help message
-      -i | --install           Install after build
-      -d | --dependencies      Install build dependencies
-      -c | --clients           Build library clients too (combines with -i & -d)
-      -g | --debug             Set -DCMAKE_BUILD_TYPE=Debug (default is =Release)
-      -f | --fork              GitHub fork to use, e.g., ROCmSoftwarePlatform or MyUserName
-      -b | --branch            GitHub branch or tag to use, e.g., develop, mybranch or <commit hash>
-      -l | --logic             Set Tensile logic target, e.g., asm_full, asm_lite, etc.
-      -a | --architecture      Set Tensile GPU architecture target, e.g. all, gfx000, gfx803, gfx900, gfx906, gfx908
-      -o | --cov               Set Tensile code_object_version (V2 or V3)
-      -t | --test_local_path   Use a local path for Tensile instead of remote GIT repo
-           --cpu_ref_lib       Specify library to use for CPU reference code in testing (blis or lapack)
-           --hip-clang         Build library for amdgpu backend using hip-clang
-           --build_dir         Specify name of output directory (default is ./build)
-      -n | --no_tensile        Build subset of library that does not require Tensile
-      -u | --use-tag-only      Ignore Tensile version and just use the Tensile tag
-           --skipldconf        Skip ld.so.conf entry
+      -h | --help               Print this help message
+      -i | --install            Install after build
+      -d | --dependencies       Install build dependencies
+      -c | --clients            Build library clients too (combines with -i & -d)
+      -g | --debug              Set -DCMAKE_BUILD_TYPE=Debug (default is =Release)
+      -f | --fork               GitHub fork to use, e.g., ROCmSoftwarePlatform or MyUserName
+      -b | --branch             GitHub branch or tag to use, e.g., develop, mybranch or <commit hash>
+      -l | --logic              Set Tensile logic target, e.g., asm_full, asm_lite, etc.
+      -a | --architecture       Set Tensile GPU architecture target, e.g. all, gfx000, gfx803, gfx900, gfx906, gfx908
+      -o | --cov                Set Tensile code_object_version (V2 or V3)
+      -t | --test_local_path    Use a local path for Tensile instead of remote GIT repo
+           --cpu_ref_lib        Specify library to use for CPU reference code in testing (blis or lapack)
+           --hip-clang          Build library for amdgpu backend using hip-clang
+           --build_dir          Specify name of output directory (default is ./build)
+      -n | --no_tensile         Build subset of library that does not require Tensile
+      -u | --use-custom-version Use user-specified Tensile version
+           --skipldconf         Skip ld.so.conf entry
+           --ignore-cuda        Ignores installed cuda version and builds with rocm stack instead
 EOF
-#          --prefix            Specify an alternate CMAKE_INSTALL_PREFIX for cmake
-#          --cuda              Build library for cuda backend
+#          --prefix             Specify an alternate CMAKE_INSTALL_PREFIX for cmake
 }
 
 # This function is helpful for dockerfiles that do not have sudo installed, but the default user is root
@@ -151,14 +151,6 @@ install_packages( )
   local library_dependencies_sles=(   "make" "cmake" "python3-PyYAM" "python3-distutils-extra"
                                       "gcc-c++" "libcxxtools9" "rpm-build" "wget" "llvm7-devel" )
 
-  if [[ "${build_cuda}" == true ]]; then
-    # Ideally, this could be cuda-cublas-dev, but the package name has a version number in it
-    library_dependencies_ubuntu+=( "cuda" )
-    library_dependencies_centos+=( "" ) # how to install cuda on centos?
-    library_dependencies_fedora+=( "" ) # how to install cuda on fedora?
-    library_dependencies_sles+=( "" )
-  fi
-
   if [[ "${build_hip_clang}" == false ]]; then
     # Installing rocm-dev installs hip-hcc, which overwrites the hip-vdi runtime
     library_dependencies_ubuntu+=( "rocm-dev" )
@@ -254,9 +246,9 @@ tensile_cov=V2
 tensile_fork=
 tensile_tag=
 tensile_test_local_path=
-tensile_version=true
+tensile_version=
 build_clients=false
-build_cuda=false
+ignore_cuda=false
 build_tensile=true
 cpu_ref_lib=blis
 build_release=true
@@ -276,7 +268,7 @@ fi
 # check if we have a modern version of getopt that can handle whitespace and long parameters
 getopt -T
 if [[ $? -eq 4 ]]; then
-  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,no_tensile,no-tensile-host,use-tag-only,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,skipldconf --options nrhicdgul:a:o:f:b:t: -- "$@")
+  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,no_tensile,no-tensile-host,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,ignore-cuda --options nrhicdgl:a:o:f:b:t:u: -- "$@")
 else
   echo "Need a new version of getopt"
   exit 1
@@ -331,8 +323,8 @@ while true; do
     --build_dir)
         build_dir=${2}
         shift 2;;
-    --cuda)
-        build_cuda=true
+    --ignore-cuda)
+        ignore_cuda=true
         shift ;;
     --cpu_ref_lib)
         cpu_ref_lib=${2}
@@ -344,9 +336,9 @@ while true; do
     --skipldconf)
         skip_ld_conf_entry=true
         shift ;;
-    -u|--use-tag-only)
-        tensile_version=false
-        shift ;;
+    -u|--use-custom-version)
+        tensile_version=${2}
+        shift 2;;
     --prefix)
         install_prefix=${2}
         shift 2 ;;
@@ -490,8 +482,8 @@ pushd .
     cmake_common_options="${cmake_common_options} -DROCM_DISABLE_LDCONFIG=ON"
   fi
 
-  if [[ "${tensile_version}" == false ]]; then
-    cmake_common_options="${cmake_common_options} -DSUPPRESS_TENSILE_VERSION=ON"
+  if [[ -n "${tensile_version}" ]]; then
+    cmake_common_options="${cmake_common_options} -DTENSILE_VERSION=${tensile_version}"
   fi
 
   tensile_opt=""
@@ -511,11 +503,14 @@ pushd .
   fi
 
   compiler="hcc"
-  if [[ "${build_cuda}" == true || "${build_hip_clang}" == true ]]; then
+  if [[ "${build_hip_clang}" == true ]]; then
     compiler="hipcc"
     cmake_common_options="${cmake_common_options} -DTensile_COMPILER=hipcc"
   fi
 
+  if [[ "${ignore_cuda}" == true ]]; then
+    cmake_common_options="${cmake_common_options} -DIGNORE_CUDA=ON"
+  fi
 
   case "${ID}" in
     centos|rhel)
