@@ -12,6 +12,9 @@ Definitions:
     - { M:   600, N:   500, lda:   600, ldb:   600 }
     - { M:   800, N:   700, lda:   801, ldb:   701 }
 
+  - &medium_matrix_size_extra
+    - { M:   256, N:   14848, lda:   256, ldb:   256 }
+
   - &large_matrix_size_range
     - { M:   640, N:   640, lda:   960, ldb:   960 }
     - { M:  1000, N:  1000, lda:  1000, ldb:  1000 }
@@ -70,7 +73,6 @@ Definitions:
     - { M:   128, N:   44544, lda:   128, ldb:   128 }
     - { M:   128, N:   53632, lda:   128, ldb:   128 }
     - { M:   256, N:    2048, lda:   256, ldb:   256 }
-    - { M:   256, N:   14848, lda:   256, ldb:   256 }
     - { M:   256, N:   29696, lda:   256, ldb:   256 }
     - { M:   256, N:   44544, lda:   256, ldb:   256 }
     - { M:   256, N:   53504, lda:   256, ldb:   256 }
@@ -184,6 +186,17 @@ Tests:
   diag: [N, U]
   matrix_size: *medium_matrix_size_range
   alpha: *alpha_range
+
+- name: trsm_medium_extra
+  category: pre_checkin
+  function: trsm
+  precision: *single_double_precisions
+  side: [L]
+  uplo: [L]
+  transA: [N]
+  diag: [U]
+  matrix_size: *medium_matrix_size_extra
+  alpha: [ 1 ]
 
 - name: trsm_medium_complex
   category: pre_checkin
