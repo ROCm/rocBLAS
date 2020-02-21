@@ -1,0 +1,139 @@
+---
+include: rocblas_common.yaml
+include: known_bugs.yaml
+
+Definitions:
+  - &quick_matrix_size_range
+    - { N:  -1,  K:  1,  lda:  1,  ldb: 1,  ldc:  1 } # bad n
+    - { N:   2,  K: -1,  lda:  2,  ldb: 2,  ldc:  1 } # bad k
+    - { N:   0,  K:  3,  lda:  3,  ldb: 3,  ldc:  3 } # n==0
+    - { N:   3,  K:  0,  lda:  3,  ldb: 3,  ldc:  3 } # k==0
+    - { N:   3,  K:  1,  lda:  1,  ldb: 3,  ldc:  3 } # bad lda if not transpose
+    - { N:   1,  K:  3,  lda:  1,  ldb: 3,  ldc:  3 } # bad lda if transpose
+    - { N:   3,  K:  1,  lda:  3,  ldb: 1,  ldc:  3 } # bad ldb if not transpose
+    - { N:   1,  K:  3,  lda:  3,  ldb: 1,  ldc:  3 } # bad ldb if transpose
+    - { N:   3,  K:  3,  lda:  3,  ldb: 3,  ldc:  1 } # bad ldc
+
+  - &medium_matrix_size_range
+    - { N:   199, K:  33,   lda:  199,  ldb: 199,  ldc: 199 }
+    - { N:    88, K:  200,  lda:  200,  ldb: 200,  ldc: 88 }
+
+  - &large_matrix_size_range
+    - { N:  2011, K:  253,  lda:  2011, ldb: 2011, ldc: 2048 }
+    - { N:  1024, K:  1200, lda:  1200, ldb: 1200, ldc: 1024 }
+
+  - &alpha_beta_range
+    - { alpha:  1.5, alphai:  1.5, beta:  0.0 }
+    - { alpha: -2.0, alphai:  1.0, beta: -1.0 }
+    - { alpha:  0.0, alphai:  0.0, beta:  1.0 } # quick success
+    - { alpha:  0.0, alphai:  0.0, beta:  2.0 } # scale step only
+
+Tests:
+- name: her2k_bad
+  category: pre_checkin
+  function: her2k_bad_arg
+  precision: *single_double_precisions_complex
+
+- name: her2k_quick
+  category: quick
+  function: her2k
+  precision: *single_double_precisions_complex
+  uplo: [ U ]
+  transA: [ N, C ]
+  matrix_size: *quick_matrix_size_range
+  alpha: [ 0, 1 ]
+  beta: [ 0, 1 ]
+
+- name: her2k_medium
+  category: pre_checkin
+  function: her2k
+  precision: *single_double_precisions_complex
+  uplo: [ U, L ]
+  transA: [ N, C ]
+  matrix_size: *medium_matrix_size_range
+  alpha_beta: *alpha_beta_range
+
+- name: her2k_large
+  category: nightly
+  function: her2k
+  precision: *single_double_precisions_complex
+  uplo: [ U, L ]
+  transA: [ N, C ]
+  matrix_size: *large_matrix_size_range
+  alpha_beta: *alpha_beta_range
+
+  # batched
+- name: her2k_batched_bad
+  category: pre_checkin
+  function: her2k_batched_bad_arg
+  precision: *single_double_precisions_complex
+
+- name: her2k_batched_quick
+  category: quick
+  function: her2k_batched
+  precision: *single_double_precisions_complex
+  uplo: [ U ]
+  transA: [ N, C ]
+  matrix_size: *quick_matrix_size_range
+  alpha: [ 0, 1 ]
+  beta: [ 0, 1 ]
+  batch_count: [ 0, 1 ]
+
+- name: her2k_batched_medium
+  category: pre_checkin
+  function: her2k_batched
+  precision: *single_double_precisions_complex
+  uplo: [ U, L ]
+  transA: [ N, C ]
+  matrix_size: *medium_matrix_size_range
+  alpha_beta: *alpha_beta_range
+  batch_count: [ 1, 7 ]
+
+- name: her2k_batched_large
+  category: nightly
+  function: her2k_batched
+  precision: *single_double_precisions_complex
+  uplo: [ U, L ]
+  transA: [ N ]
+  matrix_size: *large_matrix_size_range
+  alpha_beta: *alpha_beta_range
+  batch_count: [ 2 ]
+
+  # strided batched
+- name: her2k_strided_batched_bad
+  category: pre_checkin
+  function: her2k_strided_batched_bad_arg
+  precision: *single_double_precisions_complex
+
+- name: her2k_strided_batched_quick
+  category: quick
+  function: her2k_strided_batched
+  precision: *single_double_precisions_complex
+  uplo: [ U ]
+  transA: [ N, C ]
+  matrix_size: *quick_matrix_size_range
+  alpha: [ 0, 1 ]
+  beta: [ 0, 1 ]
+  batch_count: [ 0, 1 ]
+
+- name: her2k_strided_batched_medium
+  category: pre_checkin
+  function: her2k_strided_batched
+  precision: *single_double_precisions_complex
+  uplo: [ U, L ]
+  transA: [ N, C ]
+  matrix_size: *medium_matrix_size_range
+  alpha_beta: *alpha_beta_range
+  batch_count: [ 1, 7 ]
+
+- name: her2k_strided_batched_large
+  category: nightly
+  function: her2k_strided_batched
+  precision: *single_double_precisions_complex
+  uplo: [ U, L ]
+  transA: [ N, C ]
+  matrix_size: *large_matrix_size_range
+  alpha_beta: *alpha_beta_range
+  batch_count: [ 2 ]
+
+...
