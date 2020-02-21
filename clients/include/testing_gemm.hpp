@@ -135,6 +135,16 @@ void testing_gemm(const Arguments& arg)
     const auto size_B = size_t(ldb) * size_t(B_col);
     const auto size_C = size_t(ldc) * size_t(N);
 
+    // check memory info before allocation
+    size_t needed_mem = (size_A + size_B + size_C + 2) * sizeof(T);
+    if(is_limited_memory(needed_mem))
+    {
+#ifdef GOOGLE_TEST
+        SUCCEED() << LIMITED_MEMORY_STRING;
+#endif
+        return;
+    }
+
     // allocate memory on device
     device_vector<T> dA(size_A);
     device_vector<T> dB(size_B);

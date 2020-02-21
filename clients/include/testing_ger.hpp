@@ -102,6 +102,16 @@ void testing_ger(const Arguments& arg)
     host_vector<T> hx(M * abs_incx);
     host_vector<T> hy(N * abs_incy);
 
+    // check memory info before allocation
+    size_t needed_mem = (size_A + size_A + size_x + size_y + 1) * sizeof(T);
+    if(is_limited_memory(needed_mem))
+    {
+#ifdef GOOGLE_TEST
+        SUCCEED() << LIMITED_MEMORY_STRING;
+#endif
+        return;
+    }
+
     // allocate memory on device
     device_vector<T> dA_1(size_A);
     device_vector<T> dA_2(size_A);

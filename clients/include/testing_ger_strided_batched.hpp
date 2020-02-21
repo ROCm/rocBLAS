@@ -176,6 +176,16 @@ void testing_ger_strided_batched(const Arguments& arg)
     host_vector<T> hx(size_x);
     host_vector<T> hy(size_y);
 
+    // check memory info before allocation
+    size_t needed_mem = (size_A + size_A + size_x + 1) * sizeof(T);
+    if(is_limited_memory(needed_mem))
+    {
+#ifdef GOOGLE_TEST
+        SUCCEED() << LIMITED_MEMORY_STRING;
+#endif
+        return;
+    }
+
     // allocate memory on device
     device_vector<T> dA_1(size_A);
     device_vector<T> dA_2(size_A);
