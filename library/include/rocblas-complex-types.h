@@ -43,9 +43,6 @@ typedef struct
 template <typename T>
 class rocblas_complex_num
 {
-    T x; // The real part of the number.
-    T y; // The imaginary part of the number.
-
     // Internal real absolute function, to be sure we're on both device and host
     static __forceinline__ __device__ __host__ T abs(T x)
     {
@@ -63,6 +60,9 @@ class rocblas_complex_num
     }
 
 public:
+    T x; // The real part of the number.
+    T y; // The imaginary part of the number.
+
     // We do not initialize the members x or y by default, to ensure that it can
     // be used in __shared__ and that it is a trivial class compatible with C.
     __device__ __host__ rocblas_complex_num()                           = default;
@@ -112,6 +112,17 @@ public:
     __device__ __host__ explicit operator bool() const
     {
         return x || y;
+    }
+
+    // setters like c++20
+    __device__ __host__ inline void real(const T& r)
+    {
+        x = r;
+    }
+
+    __device__ __host__ inline void imag(const T& i)
+    {
+        y = i;
     }
 
     // Accessors

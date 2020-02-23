@@ -118,6 +118,17 @@
 #include "testing_trmv.hpp"
 #include "testing_trmv_batched.hpp"
 #include "testing_trmv_strided_batched.hpp"
+// blas3 with no tensile
+#include "testing_herk.hpp"
+#include "testing_herk_batched.hpp"
+#include "testing_herk_strided_batched.hpp"
+#include "testing_syrk.hpp"
+#include "testing_syrk_batched.hpp"
+#include "testing_syrk_strided_batched.hpp"
+//
+#include "type_dispatch.hpp"
+#include "utility.hpp"
+#include <algorithm>
 #undef I
 
 using namespace std::literals; // For std::string literals of form "str"s
@@ -294,6 +305,10 @@ struct perf_blas<T, U, std::enable_if_t<std::is_same<T, float>{} || std::is_same
                 {"symv", testing_symv<T>},
                 {"symv_batched", testing_symv_batched<T>},
                 {"symv_strided_batched", testing_symv_strided_batched<T>},
+                // L3
+                {"syrk", testing_syrk<T>},
+                {"syrk_batched", testing_syrk_batched<T>},
+                {"syrk_strided_batched", testing_syrk_strided_batched<T>},
 #if BUILD_WITH_TENSILE
                 {"geam", testing_geam<T>},
                 {"trmm", testing_trmm<T>},
@@ -436,6 +451,12 @@ struct perf_blas<T,
                 {"tbmv", testing_tbmv<T>},
                 {"tbmv_batched", testing_tbmv_batched<T>},
                 {"tbmv_strided_batched", testing_tbmv_strided_batched<T>},
+                {"syrk", testing_syrk<T>},
+                {"syrk_batched", testing_syrk_batched<T>},
+                {"syrk_strided_batched", testing_syrk_strided_batched<T>},
+                {"herk", testing_herk<T>},
+                {"herk_batched", testing_herk_batched<T>},
+                {"herk_strided_batched", testing_herk_strided_batched<T>},
 #if BUILD_WITH_TENSILE
                 {"trtri", testing_trtri<T>},
                 {"trtri_batched", testing_trtri_batched<T>},
