@@ -16,7 +16,7 @@
 #include "utility.hpp"
 
 #define ERROR_EPS_MULTIPLIER 40
-#define RESIDUAL_EPS_MULTIPLIER 20
+#define RESIDUAL_EPS_MULTIPLIER 40
 
 template <typename T>
 void testing_trsv(const Arguments& arg)
@@ -67,14 +67,13 @@ void testing_trsv(const Arguments& arg)
     host_vector<T> hx_or_b_1(size_x);
     host_vector<T> hx_or_b_2(size_x);
     host_vector<T> cpu_x_or_b(size_x);
-    host_vector<T> my_cpu_x_or_b(size_x);
 
     double gpu_time_used, cpu_time_used;
     double rocblas_gflops, cblas_gflops;
     double rocblas_error;
-    T      error_eps_multiplier    = ERROR_EPS_MULTIPLIER;
-    T      residual_eps_multiplier = RESIDUAL_EPS_MULTIPLIER;
-    T      eps                     = std::numeric_limits<T>::epsilon();
+    double error_eps_multiplier    = ERROR_EPS_MULTIPLIER;
+    double residual_eps_multiplier = RESIDUAL_EPS_MULTIPLIER;
+    double eps                     = std::numeric_limits<real_t<T>>::epsilon();
 
     // allocate memory on device
     device_vector<T> dA(size_A);
@@ -82,20 +81,20 @@ void testing_trsv(const Arguments& arg)
 
     rocblas_init<T>(hA, M, M, lda);
 
-    //  calculate AAT = hA * hA ^ T
-    cblas_gemm<T, T>(rocblas_operation_none,
-                     rocblas_operation_transpose,
-                     M,
-                     M,
-                     M,
-                     1.0,
-                     hA,
-                     lda,
-                     hA,
-                     lda,
-                     0.0,
-                     AAT,
-                     lda);
+    //  calculate AAT = hA * hA ^ T or AAT = hA * hA ^ H if complex
+    cblas_gemm<T>(rocblas_operation_none,
+                  rocblas_operation_conjugate_transpose,
+                  M,
+                  M,
+                  M,
+                  T(1.0),
+                  hA,
+                  lda,
+                  hA,
+                  lda,
+                  T(0.0),
+                  AAT,
+                  lda);
 
     //  copy AAT into hA, make hA strictly diagonal dominant, and therefore SPD
     for(int i = 0; i < M; i++)
@@ -104,11 +103,12 @@ void testing_trsv(const Arguments& arg)
         for(int j = 0; j < M; j++)
         {
             hA[i + j * lda] = AAT[i + j * lda];
-            t += AAT[i + j * lda] > 0 ? AAT[i + j * lda] : -AAT[i + j * lda];
+            t += rocblas_abs(AAT[i + j * lda]);
         }
         hA[i + i * lda] = t;
     }
-    //  calculate Cholesky factorization of SPD matrix hA
+
+    //  calculate Cholesky factorization of SPD (or hermitian if complex) matrix hA
     cblas_potrf<T>(char_uplo, M, hA, lda);
 
     //  make hA unit diagonal if diag == rocblas_diagonal_unit
@@ -130,28 +130,27 @@ void testing_trsv(const Arguments& arg)
             }
     }
 
+    //initialize "exact" answer hx
     rocblas_init<T>(hx, 1, M, abs_incx);
     hb = hx;
 
     // Calculate hb = hA*hx;
     cblas_trmv<T>(uplo, transA, diag, M, hA, lda, hb, incx);
-    cpu_x_or_b    = hb; // cpuXorB <- B
-    hx_or_b_1     = hb;
-    hx_or_b_2     = hb;
-    my_cpu_x_or_b = hb;
+    cpu_x_or_b = hb; // cpuXorB <- B
+    hx_or_b_1  = hb;
+    hx_or_b_2  = hb;
 
     // copy data from CPU to device
     CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(T) * size_A, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dx_or_b, hx_or_b_1, sizeof(T) * size_x, hipMemcpyHostToDevice));
-    T max_err_1 = 0.0;
-    T max_err_2 = 0.0;
-    T max_res_1 = 0.0;
-    T max_res_2 = 0.0;
+
+    double max_err_1 = 0.0;
+    double max_err_2 = 0.0;
+
     if(arg.unit_check || arg.norm_check)
     {
         // calculate dxorb <- A^(-1) b   rocblas_device_pointer_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-
+        CHECK_HIP_ERROR(hipMemcpy(dx_or_b, hx_or_b_1, sizeof(T) * size_x, hipMemcpyHostToDevice));
         CHECK_ROCBLAS_ERROR(rocblas_trsv<T>(handle, uplo, transA, diag, M, dA, lda, dx_or_b, incx));
         CHECK_HIP_ERROR(hipMemcpy(hx_or_b_1, dx_or_b, sizeof(T) * size_x, hipMemcpyDeviceToHost));
 
@@ -161,48 +160,26 @@ void testing_trsv(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(rocblas_trsv<T>(handle, uplo, transA, diag, M, dA, lda, dx_or_b, incx));
         CHECK_HIP_ERROR(hipMemcpy(hx_or_b_2, dx_or_b, sizeof(T) * size_x, hipMemcpyDeviceToHost));
 
-        T err_1 = 0.0;
-        T err_2 = 0.0;
-        for(int i = 0; i < M; i++)
-            if(hx[i * abs_incx] != 0)
-            {
-                err_1 += std::abs((hx[i * abs_incx] - hx_or_b_1[i * abs_incx]) / hx[i * abs_incx]);
-                err_2 += std::abs((hx[i * abs_incx] - hx_or_b_2[i * abs_incx]) / hx[i * abs_incx]);
-            }
-            else
-            {
-                err_1 += std::abs(hx_or_b_1[i * abs_incx]);
-                err_2 += std::abs(hx_or_b_2[i * abs_incx]);
-            }
-        max_err_1 = max_err_1 > err_1 ? max_err_1 : err_1;
-        max_err_2 = max_err_2 > err_2 ? max_err_2 : err_2;
+        //computed result is in hx_or_b, so forward error is E = hx - hx_or_b
+        // calculate norm 1 of vector E
+        max_err_1 = rocblas_abs(vector_norm_1<T>(M, abs_incx, hx, hx_or_b_1));
+        max_err_2 = rocblas_abs(vector_norm_1<T>(M, abs_incx, hx, hx_or_b_2));
+
+        //unit test
         trsm_err_res_check<T>(max_err_1, M, error_eps_multiplier, eps);
         trsm_err_res_check<T>(max_err_2, M, error_eps_multiplier, eps);
 
+        // hx_or_b contains A * (calculated X), so res = A * (calculated x) - b = hx_or_b - hb
         cblas_trmv<T>(uplo, transA, diag, M, hA, lda, hx_or_b_1, incx);
         cblas_trmv<T>(uplo, transA, diag, M, hA, lda, hx_or_b_2, incx);
-        // hx_or_b contains A * (calculated X), so residual = A * (calculated x) - b
-        //                                                  = hx_or_b - hb
-        // res is the one norm of the scaled residual for each column
 
-        T res_1 = 0.0;
-        T res_2 = 0.0;
-        for(int i = 0; i < M; i++)
-            if(hb[i * abs_incx] != 0)
-            {
-                res_1 += std::abs((hx_or_b_1[i * abs_incx] - hb[i * abs_incx]) / hb[i * abs_incx]);
-                res_2 += std::abs((hx_or_b_2[i * abs_incx] - hb[i * abs_incx]) / hb[i * abs_incx]);
-            }
-            else
-            {
-                res_1 += std::abs(hx_or_b_1[i * abs_incx]);
-                res_2 += std::abs(hx_or_b_2[i * abs_incx]);
-            }
-        max_res_1 = max_res_1 > res_1 ? max_res_1 : res_1;
-        max_res_2 = max_res_2 > res_2 ? max_res_2 : res_2;
+        // Calculate norm 1 of vector res
+        max_err_1 = rocblas_abs(vector_norm_1<T>(M, abs_incx, hx_or_b_1, hb));
+        max_err_2 = rocblas_abs(vector_norm_1<T>(M, abs_incx, hx_or_b_1, hb));
 
-        trsm_err_res_check<T>(max_res_1, M, residual_eps_multiplier, eps);
-        trsm_err_res_check<T>(max_res_2, M, residual_eps_multiplier, eps);
+        //unit test
+        trsm_err_res_check<T>(max_err_1, M, residual_eps_multiplier, eps);
+        trsm_err_res_check<T>(max_err_2, M, residual_eps_multiplier, eps);
     }
 
     if(arg.timing)

@@ -58,19 +58,40 @@
 #include "testing_hemv.hpp"
 #include "testing_hemv_batched.hpp"
 #include "testing_hemv_strided_batched.hpp"
+#include "testing_her.hpp"
+#include "testing_her2.hpp"
+#include "testing_her2_batched.hpp"
+#include "testing_her2_strided_batched.hpp"
+#include "testing_her_batched.hpp"
+#include "testing_her_strided_batched.hpp"
 #include "testing_hpmv.hpp"
 #include "testing_hpmv_batched.hpp"
 #include "testing_hpmv_strided_batched.hpp"
 #include "testing_hpr.hpp"
+#include "testing_hpr2.hpp"
+#include "testing_hpr2_batched.hpp"
+#include "testing_hpr2_strided_batched.hpp"
 #include "testing_hpr_batched.hpp"
 #include "testing_hpr_strided_batched.hpp"
+#include "testing_sbmv.hpp"
+#include "testing_sbmv_batched.hpp"
+#include "testing_sbmv_strided_batched.hpp"
+#include "testing_spmv.hpp"
+#include "testing_spmv_batched.hpp"
+#include "testing_spmv_strided_batched.hpp"
 #include "testing_spr.hpp"
 #include "testing_spr2.hpp"
 #include "testing_spr2_batched.hpp"
 #include "testing_spr2_strided_batched.hpp"
 #include "testing_spr_batched.hpp"
 #include "testing_spr_strided_batched.hpp"
+#include "testing_symv.hpp"
+#include "testing_symv_batched.hpp"
+#include "testing_symv_strided_batched.hpp"
 #include "testing_syr.hpp"
+#include "testing_syr2.hpp"
+#include "testing_syr2_batched.hpp"
+#include "testing_syr2_strided_batched.hpp"
 #include "testing_syr_batched.hpp"
 #include "testing_syr_strided_batched.hpp"
 #include "testing_tbmv.hpp"
@@ -82,6 +103,14 @@
 #include "testing_trmv.hpp"
 #include "testing_trmv_batched.hpp"
 #include "testing_trmv_strided_batched.hpp"
+// blas3 with no tensile
+#include "testing_herk.hpp"
+#include "testing_herk_batched.hpp"
+#include "testing_herk_strided_batched.hpp"
+#include "testing_syrk.hpp"
+#include "testing_syrk_batched.hpp"
+#include "testing_syrk_strided_batched.hpp"
+//
 #include "type_dispatch.hpp"
 #include "utility.hpp"
 #include <algorithm>
@@ -253,9 +282,25 @@ struct perf_blas<T, U, std::enable_if_t<std::is_same<T, float>{} || std::is_same
                 {"syr", testing_syr<T>},
                 {"syr_batched", testing_syr_batched<T>},
                 {"syr_strided_batched", testing_syr_strided_batched<T>},
+                {"syr2", testing_syr2<T>},
+                {"syr2_batched", testing_syr2_batched<T>},
+                {"syr2_strided_batched", testing_syr2_strided_batched<T>},
                 {"tbmv", testing_tbmv<T>},
                 {"tbmv_batched", testing_tbmv_batched<T>},
                 {"tbmv_strided_batched", testing_tbmv_strided_batched<T>},
+                {"sbmv", testing_sbmv<T>},
+                {"sbmv_batched", testing_sbmv_batched<T>},
+                {"sbmv_strided_batched", testing_sbmv_strided_batched<T>},
+                {"spmv", testing_spmv<T>},
+                {"spmv_batched", testing_spmv_batched<T>},
+                {"spmv_strided_batched", testing_spmv_strided_batched<T>},
+                {"symv", testing_symv<T>},
+                {"symv_batched", testing_symv_batched<T>},
+                {"symv_strided_batched", testing_symv_strided_batched<T>},
+                // L3
+                {"syrk", testing_syrk<T>},
+                {"syrk_batched", testing_syrk_batched<T>},
+                {"syrk_strided_batched", testing_syrk_strided_batched<T>},
 #if BUILD_WITH_TENSILE
                 {"geam", testing_geam<T>},
                 {"trmm", testing_trmm<T>},
@@ -354,31 +399,65 @@ struct perf_blas<T,
                 {"hemv", testing_hemv<T>},
                 {"hemv_batched", testing_hemv_batched<T>},
                 {"hemv_strided_batched", testing_hemv_strided_batched<T>},
+                {"her", testing_her<T>},
+                {"her_batched", testing_her_batched<T>},
+                {"her_strided_batched", testing_her_strided_batched<T>},
+                {"her2", testing_her2<T>},
+                {"her2_batched", testing_her2_batched<T>},
+                {"her2_strided_batched", testing_her2_strided_batched<T>},
                 {"hpmv", testing_hpmv<T>},
                 {"hpmv_batched", testing_hpmv_batched<T>},
                 {"hpmv_strided_batched", testing_hpmv_strided_batched<T>},
                 {"hpr", testing_hpr<T>},
                 {"hpr_batched", testing_hpr_batched<T>},
                 {"hpr_strided_batched", testing_hpr_strided_batched<T>},
+                {"hpr2", testing_hpr2<T>},
+                {"hpr2_batched", testing_hpr2_batched<T>},
+                {"hpr2_strided_batched", testing_hpr2_strided_batched<T>},
                 {"spr", testing_spr<T>},
                 {"spr_batched", testing_spr_batched<T>},
                 {"spr_strided_batched", testing_spr_strided_batched<T>},
                 {"syr", testing_syr<T>},
                 {"syr_batched", testing_syr_batched<T>},
                 {"syr_strided_batched", testing_syr_strided_batched<T>},
+                {"syr2", testing_syr2<T>},
+                {"syr2_batched", testing_syr2_batched<T>},
+                {"syr2_strided_batched", testing_syr2_strided_batched<T>},
                 {"tpmv", testing_tpmv<T>},
                 {"tpmv_batched", testing_tpmv_batched<T>},
                 {"tpmv_strided_batched", testing_tpmv_strided_batched<T>},
+                {"symv", testing_symv<T>},
+                {"symv_batched", testing_symv_batched<T>},
+                {"symv_strided_batched", testing_symv_strided_batched<T>},
                 {"trmv", testing_trmv<T>},
                 {"trmv_batched", testing_trmv_batched<T>},
                 {"trmv_strided_batched", testing_trmv_strided_batched<T>},
                 {"tbmv", testing_tbmv<T>},
                 {"tbmv_batched", testing_tbmv_batched<T>},
                 {"tbmv_strided_batched", testing_tbmv_strided_batched<T>},
+                {"syrk", testing_syrk<T>},
+                {"syrk_batched", testing_syrk_batched<T>},
+                {"syrk_strided_batched", testing_syrk_strided_batched<T>},
+                {"herk", testing_herk<T>},
+                {"herk_batched", testing_herk_batched<T>},
+                {"herk_strided_batched", testing_herk_strided_batched<T>},
 #if BUILD_WITH_TENSILE
+                {"trtri", testing_trtri<T>},
+                {"trtri_batched", testing_trtri_batched<T>},
+                {"trtri_strided_batched", testing_trtri_strided_batched<T>},
                 {"gemm", testing_gemm<T>},
                 {"gemm_batched", testing_gemm_batched<T>},
                 {"gemm_strided_batched", testing_gemm_strided_batched<T>},
+                {"trsm", testing_trsm<T>},
+                {"trsm_ex", testing_trsm_ex<T>},
+                {"trsm_batched", testing_trsm_batched<T>},
+                {"trsm_batched_ex", testing_trsm_batched_ex<T>},
+                {"trsm_strided_batched", testing_trsm_strided_batched<T>},
+                {"trsm_strided_batched_ex", testing_trsm_strided_batched_ex<T>},
+                {"trsv", testing_trsv<T>},
+                {"trsv_batched", testing_trsv_batched<T>},
+                {"trsv_strided_batched", testing_trsv_strided_batched<T>},
+                {"trmm", testing_trmm<T>},
 #endif
               };
         run_function(map, arg);
@@ -863,6 +942,10 @@ try
          value<rocblas_int>(&device_id)->default_value(0),
          "Set default device to be used for subsequent program runs")
 
+        ("c_noalias_d",
+         bool_switch(&arg.c_noalias_d)->default_value(false),
+         "C and D are stored in separate memory")
+
         ("help,h", "produces this help message")
 
         ("version", "Prints the version number");
@@ -885,6 +968,7 @@ try
         std::cout << "rocBLAS version: " << blas_version << std::endl;
         return 0;
     }
+
     // Device Query
     rocblas_int device_count = query_device_property();
 

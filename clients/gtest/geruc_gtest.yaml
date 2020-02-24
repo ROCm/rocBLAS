@@ -18,12 +18,12 @@ Definitions:
 
   - &medium_matrix_size_range
     - { M:   10, N:   10, lda:    2, stride_a:    1000 }
-    - { M:  600, N:  500, lda:  500, stride_a:  250000 }
-    - { M:  800, N: 1000, lda: 1000, stride_a: 1000100 }
+    - { M:  600, N:  500, lda:  600, stride_a:  300000 }
+    - { M:  800, N: 1000, lda:  800, stride_a: 1000100 }
 
   - &large_matrix_size_range
-    - { M: 4011, N: 4011, lda: 4011, stride_a:   16088200 }
-    - { M: 5000, N: 8000, lda: 8000, stride_a:   64000000 }
+    - { M: 1025, N: 4011, lda: 1025, stride_a:   16088200 }
+    - { M: 7000, N: 2000, lda: 7000, stride_a:   14000000 }
 
   - &incx_incy_range
     - { incx:   1, incy:   1}
@@ -36,9 +36,8 @@ Definitions:
     - { incx:  10, incy:  99}
 
   - &nightly_incx_incy_range
-    - { incx:   1, incy:  -1, stride_scale: 2}
-    - { incx:   1, incy:   2, stride_scale: 1}
-    - { incx:  10, incy:  99, stride_scale: 1}
+    - { incx:   1, incy:  -1 }
+    - { incx:   1, incy:   2 }
 
 Tests:
 - name: geruc_bad_arg
@@ -107,7 +106,7 @@ Tests:
   incx_incy: *incx_incy_range
   alpha: [ -0.5, 2.0, 0.0 ]
   alphai: [ -0.5, 0.0 ]
-  batch_count: [ 1, 5, 10 ]
+  batch_count: [ 1, 5 ]
 
 - name: geruc_batched_large
   category: nightly
@@ -131,7 +130,7 @@ Tests:
   incx_incy: *incx_incy_range
   alpha: [ -0.5, 2.0, 0.0 ]
   alphai: [ -0.5, 2.0 ]
-  stride_scale: [ 1, 2 ]
+  stride_scale: [ 1 ]
   batch_count: [ -5, 0, 1, 5, 10 ]
 
 - name: geruc_strided_batched_medium
@@ -143,9 +142,9 @@ Tests:
   matrix_size: *medium_matrix_size_range
   incx_incy: *incx_incy_range
   alpha: [ -0.5, 2.0, 0.0 ]
-  alphai: [ -0.5, 0.0 ]
-  stride_scale: [ 1, 2 ]
-  batch_count: [ 1, 5, 10 ]
+  alphai: [ -0.5, 1.0 ]
+  stride_scale: [ 1 ]
+  batch_count: [ 1, 5 ]
 
 - name: geruc_strided_batched_large
   category: nightly

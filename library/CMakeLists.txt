@@ -14,7 +14,7 @@
 function( target_compile_features target_name )
   # With Cmake v3.5, hipcc (with nvcc backend) does not work with target_compile_features
   # Turn on -std=c++14 manually
-  if( CMAKE_CXX_COMPILER MATCHES ".*/hipcc$" )
+  if( CMAKE_CXX_COMPILER MATCHES ".*/hipcc$|.*/nvcc$" )
     set_target_properties( ${target_name} PROPERTIES CXX_STANDARD 14 CXX_STANDARD_REQUIRED ON )
   else( )
     _target_compile_features( ${target_name} ${ARGN} )
@@ -127,8 +127,12 @@ add_subdirectory( src )
 
 # Package specific CPACK vars
 if( NOT CXX_VERSION_STRING MATCHES "clang" )
+    set( RPM_REQUIREMENTS "rocm-dev >= 2.5.27" )
+    if( OS_ID_sles )
+      set( RPM_REQUIREMENTS "${RPM_REQUIREMENTS}, libLLVM7 >= 7.0.1")
+    endif()
+    set( CPACK_RPM_PACKAGE_REQUIRES ${RPM_REQUIREMENTS} )
     set( CPACK_DEBIAN_PACKAGE_DEPENDS "rocm-dev (>= 2.5.27)" )
-    set( CPACK_RPM_PACKAGE_REQUIRES "rocm-dev >= 2.5.27" )
 endif()
 
 set( CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/../LICENSE.md" )
@@ -151,7 +155,7 @@ set( ROCBLAS_CONFIG_DIR "\${CPACK_PACKAGING_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBD
 rocm_create_package(
     NAME ${package_name}
     DESCRIPTION "Radeon Open Compute BLAS library"
-    MAINTAINER "Kent Knox <kent.knox@amd.com>"
+    MAINTAINER "rocblas-maintainer@amd.com"
     LDCONFIG
     LDCONFIG_DIR ${ROCBLAS_CONFIG_DIR}
 )
