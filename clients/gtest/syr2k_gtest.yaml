@@ -15,8 +15,10 @@ Definitions:
     - { N:   3,  K:  3,  lda:  3,  ldb: 3,  ldc:  1 } # bad ldc
 
   - &medium_matrix_size_range
-    - { N:   199, K:  33,   lda:  199,  ldb: 199,  ldc: 199 }
+    - { N:   199, K:   33,  lda:  199,  ldb: 199,  ldc: 199 }
     - { N:    88, K:  200,  lda:  200,  ldb: 200,  ldc: 88 }
+    - { N:    64, K:   70,  lda:  128,  ldb: 128,  ldc: 64 }
+    - { N:   199, K:  290,  lda:  290,  ldb: 290,  ldc: 200 }
 
   - &large_matrix_size_range
     - { N:  2011, K:  253,  lda:  2011, ldb: 2011, ldc: 2048 }
