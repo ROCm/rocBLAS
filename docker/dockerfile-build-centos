@@ -7,7 +7,7 @@ LABEL maintainer="andrew.chapman@amd.com"
 ARG user_uid
 
 # Install dependent packages
-RUN yum install -y \
+RUN yum install -y --nogpgcheck\
     sudo \
     rock-dkms \
     centos-release-scl \
