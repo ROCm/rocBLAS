@@ -167,7 +167,7 @@ rocblas_status rocblas_herkx_template(rocblas_handle    handle,
 
         if(trans == rocblas_operation_none)
         {
-            hipLaunchKernelGGL((syr2k_herkx_kernel<hermetian, false, SYRK_DIM_XY>),
+            hipLaunchKernelGGL((syr2k_her2k_kernel<hermetian, false, SYRK_DIM_XY>),
                                syrk_grid,
                                syrk_threads,
                                0,
@@ -192,7 +192,7 @@ rocblas_status rocblas_herkx_template(rocblas_handle    handle,
         }
         else
         {
-            hipLaunchKernelGGL((syr2k_herkx_kernel<hermetian, true, SYRK_DIM_XY>),
+            hipLaunchKernelGGL((syr2k_her2k_kernel<hermetian, true, SYRK_DIM_XY>),
                                syrk_grid,
                                syrk_threads,
                                0,
@@ -242,7 +242,7 @@ rocblas_status rocblas_herkx_template(rocblas_handle    handle,
 
         if(trans == rocblas_operation_none)
         {
-            hipLaunchKernelGGL((syr2k_herkx_kernel<hermetian, false, SYRK_DIM_XY>),
+            hipLaunchKernelGGL((syr2k_her2k_kernel<hermetian, false, SYRK_DIM_XY>),
                                syrk_grid,
                                syrk_threads,
                                0,
@@ -267,7 +267,7 @@ rocblas_status rocblas_herkx_template(rocblas_handle    handle,
         }
         else
         {
-            hipLaunchKernelGGL((syr2k_herkx_kernel<hermetian, true, SYRK_DIM_XY>),
+            hipLaunchKernelGGL((syr2k_her2k_kernel<hermetian, true, SYRK_DIM_XY>),
                                syrk_grid,
                                syrk_threads,
                                0,

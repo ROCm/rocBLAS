@@ -6,9 +6,9 @@
 #include "rocblas_data.hpp"
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_test.hpp"
-#include "testing_herkx.hpp"
-#include "testing_herkx_batched.hpp"
-#include "testing_herkx_strided_batched.hpp"
+#include "testing_her2k.hpp"
+#include "testing_her2k_batched.hpp"
+#include "testing_her2k_strided_batched.hpp"
 #include "type_dispatch.hpp"
 #include <cstring>
 #include <type_traits>
@@ -120,17 +120,17 @@ namespace
         void operator()(const Arguments& arg)
         {
             if(!strcmp(arg.function, "herkx"))
-                testing_herkx<T>(arg);
+                testing_her2k<T, false>(arg);
             else if(!strcmp(arg.function, "herkx_bad_arg"))
-                testing_herkx_bad_arg<T>(arg);
+                testing_her2k_bad_arg<T, false>(arg);
             else if(!strcmp(arg.function, "herkx_batched"))
-                testing_herkx_batched<T>(arg);
+                testing_her2k_batched<T, false>(arg);
             else if(!strcmp(arg.function, "herkx_batched_bad_arg"))
-                testing_herkx_batched_bad_arg<T>(arg);
+                testing_her2k_batched_bad_arg<T, false>(arg);
             else if(!strcmp(arg.function, "herkx_strided_batched"))
-                testing_herkx_strided_batched<T>(arg);
+                testing_her2k_strided_batched<T, false>(arg);
             else if(!strcmp(arg.function, "herkx_strided_batched_bad_arg"))
-                testing_herkx_strided_batched_bad_arg<T>(arg);
+                testing_her2k_strided_batched_bad_arg<T, false>(arg);
             else
                 FAIL() << "Internal error: Test called with unknown function: " << arg.function;
         }

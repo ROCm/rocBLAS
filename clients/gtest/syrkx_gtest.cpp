@@ -6,9 +6,9 @@
 #include "rocblas_data.hpp"
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_test.hpp"
-#include "testing_syrkx.hpp"
-#include "testing_syrkx_batched.hpp"
-#include "testing_syrkx_strided_batched.hpp"
+#include "testing_syr2k.hpp"
+#include "testing_syr2k_batched.hpp"
+#include "testing_syr2k_strided_batched.hpp"
 #include "type_dispatch.hpp"
 #include <cstring>
 #include <type_traits>
@@ -119,17 +119,17 @@ namespace
         void operator()(const Arguments& arg)
         {
             if(!strcmp(arg.function, "syrkx"))
-                testing_syrkx<T>(arg);
+                testing_syr2k<T, true>(arg);
             else if(!strcmp(arg.function, "syrkx_bad_arg"))
-                testing_syrkx_bad_arg<T>(arg);
+                testing_syr2k_bad_arg<T, true>(arg);
             else if(!strcmp(arg.function, "syrkx_batched"))
-                testing_syrkx_batched<T>(arg);
+                testing_syr2k_batched<T, true>(arg);
             else if(!strcmp(arg.function, "syrkx_batched_bad_arg"))
-                testing_syrkx_batched_bad_arg<T>(arg);
+                testing_syr2k_batched_bad_arg<T, true>(arg);
             else if(!strcmp(arg.function, "syrkx_strided_batched"))
-                testing_syrkx_strided_batched<T>(arg);
+                testing_syr2k_strided_batched<T, true>(arg);
             else if(!strcmp(arg.function, "syrkx_strided_batched_bad_arg"))
-                testing_syrkx_strided_batched_bad_arg<T>(arg);
+                testing_syr2k_strided_batched_bad_arg<T, true>(arg);
             else
                 FAIL() << "Internal error: Test called with unknown function: " << arg.function;
         }

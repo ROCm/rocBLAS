@@ -126,7 +126,7 @@ namespace
         static constexpr rocblas_int    offset_C = 0, offset_A = 0, offset_B = 0, batch_count = 1;
         static constexpr rocblas_stride stride_C = 0, stride_A = 0, stride_B = 0;
 
-        rocblas_status arg_status = rocblas_syrkx_arg_check(handle,
+        rocblas_status arg_status = rocblas_syr2k_arg_check(handle,
                                                             uplo,
                                                             transA,
                                                             n,

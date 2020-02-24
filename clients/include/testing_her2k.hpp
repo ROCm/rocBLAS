@@ -16,9 +16,11 @@
 #include "unit.hpp"
 #include "utility.hpp"
 
-template <typename T>
+template <typename T, bool X = false>
 void testing_her2k_bad_arg(const Arguments& arg)
 {
+    auto rocblas_herk_fn = !X ? rocblas_her2k<T> : rocblas_herkx<T>;
+
     rocblas_local_handle    handle;
     const rocblas_fill      uplo   = rocblas_fill_upper;
     const rocblas_operation transA = rocblas_operation_none;
@@ -42,7 +44,7 @@ void testing_her2k_bad_arg(const Arguments& arg)
     CHECK_HIP_ERROR(dC.memcheck());
 
     EXPECT_ROCBLAS_STATUS(
-        (rocblas_her2k<T>)(nullptr, uplo, transA, N, K, &alpha, dA, lda, dB, ldb, &beta, dC, ldc),
+        (rocblas_herk_fn)(nullptr, uplo, transA, N, K, &alpha, dA, lda, dB, ldb, &beta, dC, ldc),
         rocblas_status_invalid_handle);
 
     EXPECT_ROCBLAS_STATUS(
@@ -50,23 +52,23 @@ void testing_her2k_bad_arg(const Arguments& arg)
             T>)(handle, rocblas_fill_full, transA, N, K, &alpha, dA, lda, dB, ldb, &beta, dC, ldc),
         rocblas_status_invalid_value);
 
-    EXPECT_ROCBLAS_STATUS((rocblas_her2k<T>)(handle,
-                                             uplo,
-                                             rocblas_operation_transpose,
-                                             N,
-                                             K,
-                                             &alpha,
-                                             dA,
-                                             lda,
-                                             dB,
-                                             ldb,
-                                             &beta,
-                                             dC,
-                                             ldc),
+    EXPECT_ROCBLAS_STATUS((rocblas_herk_fn)(handle,
+                                            uplo,
+                                            rocblas_operation_transpose,
+                                            N,
+                                            K,
+                                            &alpha,
+                                            dA,
+                                            lda,
+                                            dB,
+                                            ldb,
+                                            &beta,
+                                            dC,
+                                            ldc),
                           rocblas_status_invalid_value);
 
     EXPECT_ROCBLAS_STATUS(
-        (rocblas_her2k<T>)(handle, uplo, transA, N, K, nullptr, dA, lda, dB, ldb, &beta, dC, ldc),
+        (rocblas_herk_fn)(handle, uplo, transA, N, K, nullptr, dA, lda, dB, ldb, &beta, dC, ldc),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
@@ -80,7 +82,7 @@ void testing_her2k_bad_arg(const Arguments& arg)
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        (rocblas_her2k<T>)(handle, uplo, transA, N, K, &alpha, dA, lda, dB, ldb, nullptr, dC, ldc),
+        (rocblas_herk_fn)(handle, uplo, transA, N, K, &alpha, dA, lda, dB, ldb, nullptr, dC, ldc),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
@@ -89,25 +91,17 @@ void testing_her2k_bad_arg(const Arguments& arg)
         rocblas_status_invalid_pointer);
 
     // quick return with invalid pointers
-    EXPECT_ROCBLAS_STATUS((rocblas_her2k<T>)(handle,
-                                             uplo,
-                                             transA,
-                                             0,
-                                             K,
-                                             nullptr,
-                                             nullptr,
-                                             lda,
-                                             nullptr,
-                                             ldb,
-                                             nullptr,
-                                             nullptr,
-                                             ldc),
-                          rocblas_status_success);
+    EXPECT_ROCBLAS_STATUS(
+        (rocblas_herk_fn)(
+            handle, uplo, transA, 0, K, nullptr, nullptr, lda, nullptr, ldb, nullptr, nullptr, ldc),
+        rocblas_status_success);
 }
 
-template <typename T>
+template <typename T, bool X = false>
 void testing_her2k(const Arguments& arg)
 {
+    auto rocblas_herk_fn = !X ? rocblas_her2k<T> : rocblas_herkx<T>;
+
     rocblas_local_handle handle;
     rocblas_fill         uplo   = char2rocblas_fill(arg.uplo);
     rocblas_operation    transA = char2rocblas_operation(arg.transA);
@@ -131,19 +125,19 @@ void testing_her2k(const Arguments& arg)
     if(N == 0 || invalidSize)
     {
         // ensure invalid sizes checked before pointer check
-        EXPECT_ROCBLAS_STATUS((rocblas_her2k<T>)(handle,
-                                                 uplo,
-                                                 transA,
-                                                 N,
-                                                 K,
-                                                 nullptr,
-                                                 nullptr,
-                                                 lda,
-                                                 nullptr,
-                                                 ldb,
-                                                 nullptr,
-                                                 nullptr,
-                                                 ldc),
+        EXPECT_ROCBLAS_STATUS((rocblas_herk_fn)(handle,
+                                                uplo,
+                                                transA,
+                                                N,
+                                                K,
+                                                nullptr,
+                                                nullptr,
+                                                lda,
+                                                nullptr,
+                                                ldb,
+                                                nullptr,
+                                                nullptr,
+                                                ldc),
                               invalidSize ? rocblas_status_invalid_size : rocblas_status_success);
 
         return;
@@ -202,19 +196,8 @@ void testing_her2k(const Arguments& arg)
         // host alpha/beta
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
-        CHECK_ROCBLAS_ERROR((rocblas_her2k<T>)(handle,
-                                               uplo,
-                                               transA,
-                                               N,
-                                               K,
-                                               &h_alpha[0],
-                                               dA,
-                                               lda,
-                                               dB,
-                                               ldb,
-                                               &h_beta[0],
-                                               dC,
-                                               ldc));
+        CHECK_ROCBLAS_ERROR(rocblas_herk_fn(
+            handle, uplo, transA, N, K, &h_alpha[0], dA, lda, dB, ldb, &h_beta[0], dC, ldc));
 
         // copy output from device to CPU
         CHECK_HIP_ERROR(hC_1.transfer_from(dC));
@@ -270,15 +253,13 @@ void testing_her2k(const Arguments& arg)
 
         for(int i = 0; i < number_cold_calls; i++)
         {
-            rocblas_her2k<T>(
-                handle, uplo, transA, N, K, h_alpha, dA, lda, dB, ldb, h_beta, dC, ldc);
+            rocblas_herk_fn(handle, uplo, transA, N, K, h_alpha, dA, lda, dB, ldb, h_beta, dC, ldc);
         }
 
         gpu_time_used = get_time_us(); // in microseconds
         for(int i = 0; i < number_hot_calls; i++)
         {
-            rocblas_her2k<T>(
-                handle, uplo, transA, N, K, h_alpha, dA, lda, dB, ldb, h_beta, dC, ldc);
+            rocblas_herk_fn(handle, uplo, transA, N, K, h_alpha, dA, lda, dB, ldb, h_beta, dC, ldc);
         }
         gpu_time_used  = get_time_us() - gpu_time_used;
         rocblas_gflops = her2k_gflop_count<T>(N, K) * number_hot_calls / gpu_time_used * 1e6;
