@@ -390,11 +390,12 @@ void testing_gemm_ex(const Arguments& arg)
     device_vector<To> dD(size_D);
     device_vector<Tc> d_alpha_Tc(1);
     device_vector<Tc> d_beta_Tc(1);
-    if(!dA || !dB || !dC || !dD || !d_alpha_Tc || !d_beta_Tc)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dB.memcheck());
+    CHECK_DEVICE_ALLOCATION(dC.memcheck());
+    CHECK_DEVICE_ALLOCATION(dD.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_alpha_Tc.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_beta_Tc.memcheck());
 
     // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory
     host_vector<Ti> hA(size_A);
