@@ -85,7 +85,7 @@ public:
         {
             skipped_tests++;
             if(showInlineSkips)
-                printf("Skipped test due to limited memory environment.\n");
+                rocblas_cout << "Skipped test due to limited memory environment." << std::endl;
         }
         eventListener->OnTestPartResult(result);
     }
@@ -122,9 +122,7 @@ public:
     void OnTestProgramEnd(const UnitTest& unit_test) override
     {
         if(skipped_tests)
-        {
-            printf("[ SKIPPED  ] %d tests.\n", skipped_tests);
-        }
+            rocblas_cout << "[ SKIPPED  ] " << skipped_tests << " tests." << std::endl;
         eventListener->OnTestProgramEnd(unit_test);
     }
 };
