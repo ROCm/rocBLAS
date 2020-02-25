@@ -31,6 +31,9 @@
     vprintf vsprintf
 #endif
 
+static constexpr char LIMITED_MEMORY_STRING[]
+    = "Error: Attempting to allocate more memory than available.";
+
 /* ============================================================================================ */
 /*! \brief  local handle which is automatically created and destroyed  */
 class rocblas_local_handle
