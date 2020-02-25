@@ -66,11 +66,7 @@ void testing_set_get_matrix_async(const Arguments& arg)
 
     // allocate memory on device
     device_vector<T> dc(cols * size_t(ldc));
-    if(!dc)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dc.memcheck());
 
     // Initial Data on CPU
     rocblas_seedrand();
