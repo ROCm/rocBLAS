@@ -2858,4 +2858,18 @@ Tests:
     - { M:  960, N: 1024, K: 1024 }
     - { M: 3840, N: 4096, K: 4096 }
 
+- name: gemm_zerok
+  category: quick
+  function:
+    gemm: { <<: *half_single_double_precisions, <<: *complex_precisions }
+    gemm_ex: { <<: *real_precisions, <<: *complex_precisions }
+  transA_transB: *transA_transB_range
+  alpha_beta: *alpha_beta_range
+  K: 0
+  matrix_size:
+    - { M:  1,   N:  2 }
+    - { M:  3,   N:  5 }
+    - { M:  512, N:  100 }
+    - { M:  63,  N:  512 }
+
 ...
