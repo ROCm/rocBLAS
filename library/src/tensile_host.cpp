@@ -368,7 +368,8 @@ namespace
                     path += "/" + processor;
             }
 
-            auto dir = path + "/*co";
+            // only load modules for the current architecture
+            auto dir = path + "/*" + processor + "*co";
 
             glob_t glob_result;
             int    g = glob(dir.c_str(), GLOB_TILDE_CHECK | GLOB_NOSORT, nullptr, &glob_result);
