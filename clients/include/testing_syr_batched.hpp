@@ -87,25 +87,15 @@ void testing_syr_batched(const Arguments& arg)
     host_batch_vector<T> hA_gold(size_A, 1, batch_count);
     host_batch_vector<T> hx(N, incx, batch_count);
 
-    // check memory info before allocation
-    size_t needed_mem = ((N * abs_incx) + size_A + size_A) * batch_count * sizeof(T) + sizeof(T);
-    if(is_limited_memory(needed_mem))
-    {
-#ifdef GOOGLE_TEST
-        SUCCEED() << LIMITED_MEMORY_STRING;
-#endif
-        return;
-    }
-
     // allocate memory on device
     device_batch_vector<T> dA_1(size_A, 1, batch_count);
     device_batch_vector<T> dA_2(size_A, 1, batch_count);
     device_batch_vector<T> dx(N, incx, batch_count);
     device_vector<T>       d_alpha(1);
-    CHECK_HIP_ERROR(dA_1.memcheck());
-    CHECK_HIP_ERROR(dA_2.memcheck());
-    CHECK_HIP_ERROR(dx.memcheck());
-    CHECK_HIP_ERROR(d_alpha.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA_1.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA_2.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
 
     double gpu_time_used, cpu_time_used;
     double rocblas_gflops, cblas_gflops, rocblas_bandwidth;

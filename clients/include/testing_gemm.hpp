@@ -135,27 +135,17 @@ void testing_gemm(const Arguments& arg)
     const auto size_B = size_t(ldb) * size_t(B_col);
     const auto size_C = size_t(ldc) * size_t(N);
 
-    // check memory info before allocation
-    size_t needed_mem = (size_A + size_B + size_C + 2) * sizeof(T);
-    if(is_limited_memory(needed_mem))
-    {
-#ifdef GOOGLE_TEST
-        SUCCEED() << LIMITED_MEMORY_STRING;
-#endif
-        return;
-    }
-
     // allocate memory on device
     device_vector<T> dA(size_A);
     device_vector<T> dB(size_B);
     device_vector<T> dC(size_C);
     device_vector<T> d_alpha(1);
     device_vector<T> d_beta(1);
-    if(!dA || !dB || !dC || !d_alpha || !d_beta)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dB.memcheck());
+    CHECK_DEVICE_ALLOCATION(dC.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
 
     // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory
     host_vector<T> hA(size_A);

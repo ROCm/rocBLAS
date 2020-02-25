@@ -176,27 +176,17 @@ void testing_ger_strided_batched(const Arguments& arg)
     host_vector<T> hx(size_x);
     host_vector<T> hy(size_y);
 
-    // check memory info before allocation
-    size_t needed_mem = (size_A + size_A + size_x + 1) * sizeof(T);
-    if(is_limited_memory(needed_mem))
-    {
-#ifdef GOOGLE_TEST
-        SUCCEED() << LIMITED_MEMORY_STRING;
-#endif
-        return;
-    }
-
     // allocate memory on device
     device_vector<T> dA_1(size_A);
     device_vector<T> dA_2(size_A);
     device_vector<T> dx(size_x);
     device_vector<T> dy(size_y);
     device_vector<T> d_alpha(1);
-    if(((!dA_1 || !dA_2) && size_A) || (!dx && size_x) || (!dy && size_y) || !d_alpha)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dA_1.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA_2.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
 
     double gpu_time_used, cpu_time_used;
     double rocblas_gflops, cblas_gflops, rocblas_bandwidth;

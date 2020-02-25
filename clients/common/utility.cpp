@@ -58,16 +58,6 @@ double get_time_us_sync(hipStream_t stream)
 };
 
 /* ============================================================================================ */
-bool is_limited_memory(size_t needed_mem)
-{
-    size_t     free_mem  = 0;
-    size_t     total_mem = 0;
-    hipError_t err       = hipMemGetInfo(&free_mem, &total_mem);
-
-    return (err != hipSuccess || free_mem < needed_mem);
-}
-
-/* ============================================================================================ */
 /*  device query and print out their ID and name; return number of compute-capable devices. */
 rocblas_int query_device_property()
 {

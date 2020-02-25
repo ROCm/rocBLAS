@@ -85,25 +85,16 @@ void testing_ger_batched(const Arguments& arg)
     size_t size_x   = M * abs_incx;
     size_t size_y   = N * abs_incy;
 
-    // check memory info before allocation
-    size_t needed_mem = (size_x + size_y + size_A + size_A) * batch_count * sizeof(T) + sizeof(T);
-    if(is_limited_memory(needed_mem))
-    {
-#ifdef GOOGLE_TEST
-        SUCCEED() << LIMITED_MEMORY_STRING;
-#endif
-        return;
-    }
-
     device_batch_vector<T> dy(N, incy, batch_count);
     device_batch_vector<T> dx(M, incx, batch_count);
     device_batch_vector<T> dA_1(size_A, 1, batch_count);
     device_batch_vector<T> dA_2(size_A, 1, batch_count);
     device_vector<T>       d_alpha(1);
-    CHECK_HIP_ERROR(dy.memcheck());
-    CHECK_HIP_ERROR(dx.memcheck());
-    CHECK_HIP_ERROR(dA_1.memcheck());
-    CHECK_HIP_ERROR(dA_2.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA_1.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA_2.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
 
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
     // Host-arrays of pointers to host memory

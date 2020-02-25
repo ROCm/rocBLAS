@@ -64,23 +64,9 @@ void testing_set_get_matrix_async(const Arguments& arg)
     double rocblas_bandwidth, cpu_bandwidth;
     double rocblas_error = 0.0;
 
-    // check memory info before allocation
-    size_t needed_mem = (cols * size_t(ldc)) * sizeof(T);
-    if(is_limited_memory(needed_mem))
-    {
-#ifdef GOOGLE_TEST
-        SUCCEED() << LIMITED_MEMORY_STRING;
-#endif
-        return;
-    }
-
     // allocate memory on device
     device_vector<T> dc(cols * size_t(ldc));
-    if(!dc)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dc.memcheck());
 
     // Initial Data on CPU
     rocblas_seedrand();

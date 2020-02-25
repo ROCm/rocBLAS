@@ -56,9 +56,6 @@ rocblas_int query_device_property();
 /*  set current device to device_id */
 void set_device(rocblas_int device_id);
 
-/* checks available memory on GPU and returns true if needed_mem is greater */
-bool is_limited_memory(size_t needed_mem);
-
 /* ============================================================================================ */
 /*  timing: HIP only provides very limited timers function clock() and not general;
             rocblas sync CPU and device and use more accurate CPU timer*/
