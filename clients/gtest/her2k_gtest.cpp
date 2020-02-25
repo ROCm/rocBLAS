@@ -15,7 +15,7 @@
 
 namespace
 {
-    // possible gemv test cases
+    // possible test cases
     enum her2k_test_type
     {
         HER2K,
@@ -23,7 +23,7 @@ namespace
         HER2K_STRIDED_BATCHED,
     };
 
-    //ger test template
+    // test template
     template <template <typename...> class FILTER, her2k_test_type HER2K_TYPE>
     struct her2k_template : RocBLAS_Test<her2k_template<FILTER, HER2K_TYPE>, FILTER>
     {
@@ -63,7 +63,7 @@ namespace
             }
             else
             {
-                // alpha & beta only real
+                // beta only real
 
                 name << '_' << (char)std::toupper(arg.uplo) << (char)std::toupper(arg.transA) << '_'
                      << arg.N << '_' << arg.K;
@@ -84,10 +84,7 @@ namespace
                 if(HER2K_TYPE == HER2K_STRIDED_BATCHED)
                     name << '_' << arg.stride_b;
 
-                if(arg.b_type == rocblas_datatype_f32_c || arg.b_type == rocblas_datatype_f64_c)
-                    name << '_' << arg.get_beta<rocblas_float_complex>();
-                else
-                    name << '_' << arg.get_beta<float>();
+                name << '_' << arg.get_beta<float>();
 
                 name << '_' << arg.ldc;
 

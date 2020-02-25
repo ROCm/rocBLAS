@@ -66,7 +66,7 @@ static __device__ void syr2k_her2k_mult_add_device(bool        upper,
 
     int tilefrom = upper ? row_pos : col_pos;
     int tileto   = upper ? col_pos : row_pos;
-    if(!alpha || tilefrom > tileto)
+    if(tilefrom > tileto)
     {
         // any overlap of tile and output
         return;
