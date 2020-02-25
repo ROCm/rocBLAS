@@ -130,16 +130,21 @@ namespace
         freeIndex[0].c = freeIndex[0].d = 0;
         freeIndex[1].c = freeIndex[1].d = 1;
 
+        // Tensile does not support 0-sized dimensions. For when k == 0, we still need to
+        // multiply C by beta, but not add any of the rank-0 dot products. As a workaround,
+        // we pass k = 1 and set alpha == 0, since alpha == 0 has the same effect as k == 0.
+        auto k = prob.k == 0 ? 1 : prob.k;
+
         // If A is transposed, swap the free and bound dimensions and their ranks
         if(prob.trans_a != rocblas_operation_none)
         {
-            a = {Tensile_Ti, {prob.k, prob.m, prob.batch_count}, {1, prob.ld_a, prob.stride_a}};
+            a = {Tensile_Ti, {k, prob.m, prob.batch_count}, {1, prob.ld_a, prob.stride_a}};
             freeIndex[0].i  = 1;
             boundIndex[0].a = 0;
         }
         else
         {
-            a = {Tensile_Ti, {prob.m, prob.k, prob.batch_count}, {1, prob.ld_a, prob.stride_a}};
+            a = {Tensile_Ti, {prob.m, k, prob.batch_count}, {1, prob.ld_a, prob.stride_a}};
             freeIndex[0].i  = 0;
             boundIndex[0].a = 1;
         }
@@ -151,13 +156,13 @@ namespace
         // If B is transposed, swap the free and bound dimensions and their ranks
         if(prob.trans_b != rocblas_operation_none)
         {
-            b = {Tensile_Ti, {prob.n, prob.k, prob.batch_count}, {1, prob.ld_b, prob.stride_b}};
+            b = {Tensile_Ti, {prob.n, k, prob.batch_count}, {1, prob.ld_b, prob.stride_b}};
             freeIndex[1].i  = 0;
             boundIndex[0].b = 1;
         }
         else
         {
-            b = {Tensile_Ti, {prob.k, prob.n, prob.batch_count}, {1, prob.ld_b, prob.stride_b}};
+            b = {Tensile_Ti, {k, prob.n, prob.batch_count}, {1, prob.ld_b, prob.stride_b}};
             freeIndex[1].i  = 1;
             boundIndex[0].b = 0;
         }
@@ -266,7 +271,11 @@ namespace
 
         // alpha and beta are stored by value in Tensile::TypedContractionInputs
         // alpha and beta are copied from host to Tensile::TypedContractionInputs
-        AlphaBeta<Ti, To, Tc>::copy(&inputs.alpha, problem.alpha);
+        // We set alpha = 0 if k == 0 (see above)
+        if(problem.k == 0)
+            memset(&inputs.alpha, 0, sizeof(inputs.alpha));
+        else
+            AlphaBeta<Ti, To, Tc>::copy(&inputs.alpha, problem.alpha);
         AlphaBeta<Ti, To, Tc>::copy(&inputs.beta, problem.beta);
 
         return inputs;
@@ -361,7 +370,8 @@ namespace
                     path += "/" + processor;
             }
 
-            auto dir = path + "/*co";
+            // only load modules for the current architecture
+            auto dir = path + "/*" + processor + "*co";
 
             glob_t glob_result;
             int    g = glob(dir.c_str(), GLOB_TILDE_CHECK | GLOB_NOSORT, nullptr, &glob_result);
