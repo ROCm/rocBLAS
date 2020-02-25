@@ -221,4 +221,24 @@ void rocblas_packInt8(std::vector<T>& A, size_t M, size_t N, size_t lda)
     //  call general code with batch_count = 1 and stride_a = 0
     rocblas_packInt8(A, M, N, 1, lda, 0);
 }
+
+/* ============================================================================================ */
+/*! \brief  matrix matrix initialization: copies from A into same position in B */
+template <typename T>
+void rocblas_copy_matrix(const T* A,
+                         T*       B,
+                         size_t   M,
+                         size_t   N,
+                         size_t   lda,
+                         size_t   ldb,
+                         size_t   stridea     = 0,
+                         size_t   strideb     = 0,
+                         size_t   batch_count = 1)
+{
+    for(size_t i_batch = 0; i_batch < batch_count; i_batch++)
+        for(size_t i = 0; i < M; ++i)
+            for(size_t j = 0; j < N; ++j)
+                B[i + j * ldb + i_batch * strideb] = A[i + j * lda + i_batch * stridea];
+}
+
 #endif

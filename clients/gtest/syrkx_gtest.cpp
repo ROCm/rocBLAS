@@ -15,7 +15,7 @@
 
 namespace
 {
-    // possible gemv test cases
+    // possible test cases
     enum syrkx_test_type
     {
         SYRKX,
@@ -23,7 +23,7 @@ namespace
         SYRKX_STRIDED_BATCHED,
     };
 
-    //ger test template
+    // test template
     template <template <typename...> class FILTER, syrkx_test_type SYRKX_TYPE>
     struct syrkx_template : RocBLAS_Test<syrkx_template<FILTER, SYRKX_TYPE>, FILTER>
     {
@@ -118,18 +118,19 @@ namespace
     {
         void operator()(const Arguments& arg)
         {
+            // testing_syr2k second template false for syrkx
             if(!strcmp(arg.function, "syrkx"))
-                testing_syr2k<T, true>(arg);
+                testing_syr2k<T, false>(arg);
             else if(!strcmp(arg.function, "syrkx_bad_arg"))
-                testing_syr2k_bad_arg<T, true>(arg);
+                testing_syr2k_bad_arg<T, false>(arg);
             else if(!strcmp(arg.function, "syrkx_batched"))
-                testing_syr2k_batched<T, true>(arg);
+                testing_syr2k_batched<T, false>(arg);
             else if(!strcmp(arg.function, "syrkx_batched_bad_arg"))
-                testing_syr2k_batched_bad_arg<T, true>(arg);
+                testing_syr2k_batched_bad_arg<T, false>(arg);
             else if(!strcmp(arg.function, "syrkx_strided_batched"))
-                testing_syr2k_strided_batched<T, true>(arg);
+                testing_syr2k_strided_batched<T, false>(arg);
             else if(!strcmp(arg.function, "syrkx_strided_batched_bad_arg"))
-                testing_syr2k_strided_batched_bad_arg<T, true>(arg);
+                testing_syr2k_strided_batched_bad_arg<T, false>(arg);
             else
                 FAIL() << "Internal error: Test called with unknown function: " << arg.function;
         }

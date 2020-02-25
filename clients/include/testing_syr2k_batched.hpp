@@ -16,10 +16,10 @@
 #include "unit.hpp"
 #include "utility.hpp"
 
-template <typename T, bool X = false>
+template <typename T, bool TWOK = true>
 void testing_syr2k_batched_bad_arg(const Arguments& arg)
 {
-    auto rocblas_syrk_batched_fn = !X ? rocblas_syr2k_batched<T> : rocblas_syrkx_batched<T>;
+    auto rocblas_syrk_batched_fn = TWOK ? rocblas_syr2k_batched<T> : rocblas_syrkx_batched<T>;
 
     rocblas_local_handle    handle;
     const rocblas_fill      uplo        = rocblas_fill_upper;
@@ -122,10 +122,11 @@ void testing_syr2k_batched_bad_arg(const Arguments& arg)
                           rocblas_status_success);
 }
 
-template <typename T, bool X = false>
+template <typename T, bool TWOK = true>
 void testing_syr2k_batched(const Arguments& arg)
 {
-    auto rocblas_syrk_batched_fn = !X ? rocblas_syr2k_batched<T> : rocblas_syrkx_batched<T>;
+    auto rocblas_syrk_batched_fn = TWOK ? rocblas_syr2k_batched<T> : rocblas_syrkx_batched<T>;
+    auto syrXX_gflop_count_fn    = TWOK ? syr2k_gflop_count<T> : syrkx_gflop_count<T>;
 
     rocblas_local_handle handle;
     rocblas_fill         uplo        = char2rocblas_fill(arg.uplo);
@@ -170,8 +171,10 @@ void testing_syr2k_batched(const Arguments& arg)
         return;
     }
 
-    const auto size_A = size_t(lda) * (transA == rocblas_operation_none ? std::max(K, 1) : N);
-    const auto size_B = size_t(ldb) * (transA == rocblas_operation_none ? std::max(K, 1) : N);
+    size_t     cols   = (transA == rocblas_operation_none ? std::max(K, 1) : N);
+    size_t     rows   = (transA != rocblas_operation_none ? std::max(K, 1) : N);
+    const auto size_A = lda * cols;
+    const auto size_B = ldb * cols;
     const auto size_C = size_t(ldc) * N;
 
     // allocate memory on device
@@ -207,7 +210,15 @@ void testing_syr2k_batched(const Arguments& arg)
     h_beta[0]  = beta;
     rocblas_seedrand();
     rocblas_init<T>(hA);
-    rocblas_init<T>(hB);
+    if(TWOK)
+    {
+        rocblas_init<T>(hB);
+    }
+    else
+    { // using syrk as reference so testing with B = A
+        for(int i = 0; i < batch_count; i++)
+            rocblas_copy_matrix(hA[i], hB[i], rows, cols, lda, ldb);
+    }
     rocblas_init<T>(hC_1);
 
     hC_2.copy_from(hC_1);
@@ -274,14 +285,32 @@ void testing_syr2k_batched(const Arguments& arg)
         // cpu reference
         for(int i = 0; i < batch_count; i++)
         {
-            cblas_syr2k<T>(
-                uplo, transA, N, K, h_alpha[0], hA[i], lda, hB[i], ldb, h_beta[0], hC_gold[i], ldc);
+            if(TWOK)
+            {
+                cblas_syr2k<T>(uplo,
+                               transA,
+                               N,
+                               K,
+                               h_alpha[0],
+                               hA[i],
+                               lda,
+                               hB[i],
+                               ldb,
+                               h_beta[0],
+                               hC_gold[i],
+                               ldc);
+            }
+            else
+            { // syrkx: B must equal A to use syrk as reference
+                cblas_syrk<T>(
+                    uplo, transA, N, K, h_alpha[0], hA[i], lda, h_beta[0], hC_gold[i], ldc);
+            }
         }
 
         if(arg.timing)
         {
             cpu_time_used = get_time_us() - cpu_time_used;
-            cblas_gflops  = batch_count * syr2k_gflop_count<T>(N, K) / cpu_time_used * 1e6;
+            cblas_gflops  = batch_count * syrXX_gflop_count_fn(N, K) / cpu_time_used * 1e6;
         }
 
         if(arg.unit_check)
@@ -353,7 +382,7 @@ void testing_syr2k_batched(const Arguments& arg)
         }
         gpu_time_used = get_time_us() - gpu_time_used;
         rocblas_gflops
-            = batch_count * syr2k_gflop_count<T>(N, K) * number_hot_calls / gpu_time_used * 1e6;
+            = batch_count * syrXX_gflop_count_fn(N, K) * number_hot_calls / gpu_time_used * 1e6;
 
         std::cout << "uplo,transA,N,K,alpha,lda,ldb,beta,ldc,batch_count,rocblas-Gflops,us";
 

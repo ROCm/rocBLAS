@@ -15,7 +15,7 @@
 
 namespace
 {
-    // possible gemv test cases
+    // possible test cases
     enum herkx_test_type
     {
         HERKX,
@@ -23,7 +23,7 @@ namespace
         HERKX_STRIDED_BATCHED,
     };
 
-    //ger test template
+    // test template
     template <template <typename...> class FILTER, herkx_test_type HERKX_TYPE>
     struct herkx_template : RocBLAS_Test<herkx_template<FILTER, HERKX_TYPE>, FILTER>
     {
@@ -63,7 +63,7 @@ namespace
             }
             else
             {
-                // alpha & beta only real
+                // beta only real
 
                 name << '_' << (char)std::toupper(arg.uplo) << (char)std::toupper(arg.transA) << '_'
                      << arg.N << '_' << arg.K;
@@ -84,10 +84,7 @@ namespace
                 if(HERKX_TYPE == HERKX_STRIDED_BATCHED)
                     name << '_' << arg.stride_b;
 
-                if(arg.b_type == rocblas_datatype_f32_c || arg.b_type == rocblas_datatype_f64_c)
-                    name << '_' << arg.get_beta<rocblas_float_complex>();
-                else
-                    name << '_' << arg.get_beta<float>();
+                name << '_' << arg.get_beta<float>();
 
                 name << '_' << arg.ldc;
 
@@ -119,6 +116,7 @@ namespace
     {
         void operator()(const Arguments& arg)
         {
+            // testing_her2k second template false for herkx
             if(!strcmp(arg.function, "herkx"))
                 testing_her2k<T, false>(arg);
             else if(!strcmp(arg.function, "herkx_bad_arg"))

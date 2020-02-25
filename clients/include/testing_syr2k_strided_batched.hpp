@@ -16,11 +16,11 @@
 #include "unit.hpp"
 #include "utility.hpp"
 
-template <typename T, bool X = false>
+template <typename T, bool TWOK = true>
 void testing_syr2k_strided_batched_bad_arg(const Arguments& arg)
 {
     auto rocblas_syrk_strided_batched_fn
-        = !X ? rocblas_syr2k_strided_batched<T> : rocblas_syrkx_strided_batched<T>;
+        = TWOK ? rocblas_syr2k_strided_batched<T> : rocblas_syrkx_strided_batched<T>;
 
     rocblas_local_handle    handle;
     const rocblas_fill      uplo        = rocblas_fill_upper;
@@ -219,11 +219,12 @@ void testing_syr2k_strided_batched_bad_arg(const Arguments& arg)
                           rocblas_status_success);
 }
 
-template <typename T, bool X = false>
+template <typename T, bool TWOK = true>
 void testing_syr2k_strided_batched(const Arguments& arg)
 {
     auto rocblas_syrk_strided_batched_fn
-        = !X ? rocblas_syr2k_strided_batched<T> : rocblas_syrkx_strided_batched<T>;
+        = TWOK ? rocblas_syr2k_strided_batched<T> : rocblas_syrkx_strided_batched<T>;
+    auto syrXX_gflop_count_fn = TWOK ? syr2k_gflop_count<T> : syrkx_gflop_count<T>;
 
     rocblas_local_handle handle;
     rocblas_fill         uplo        = char2rocblas_fill(arg.uplo);
@@ -273,13 +274,11 @@ void testing_syr2k_strided_batched(const Arguments& arg)
         return;
     }
 
-    strideA = std::max(
-        strideA,
-        rocblas_stride(size_t(lda) * (transA == rocblas_operation_none ? std::max(K, 1) : N)));
-    strideB = std::max(
-        strideB,
-        rocblas_stride(size_t(ldb) * (transA == rocblas_operation_none ? std::max(K, 1) : N)));
-    strideC = std::max(strideC, rocblas_stride(size_t(ldc) * N));
+    size_t cols = (transA == rocblas_operation_none ? std::max(K, 1) : N);
+    size_t rows = (transA != rocblas_operation_none ? std::max(K, 1) : N);
+    strideA     = std::max(strideA, rocblas_stride(lda * cols));
+    strideB     = std::max(strideB, rocblas_stride(ldb * cols));
+    strideC     = std::max(strideC, rocblas_stride(size_t(ldc) * N));
 
     size_t size_A = strideA * batch_count;
     size_t size_B = strideB * batch_count;
@@ -318,7 +317,14 @@ void testing_syr2k_strided_batched(const Arguments& arg)
     h_beta[0]  = beta;
     rocblas_seedrand();
     rocblas_init<T>(hA);
-    rocblas_init<T>(hB);
+    if(TWOK)
+    {
+        rocblas_init<T>(hB);
+    }
+    else
+    { // using syrk as reference so testing with B = A
+        rocblas_copy_matrix((T*)hA, (T*)hB, rows, cols, lda, ldb, strideA, strideB, batch_count);
+    }
     rocblas_init<T>(hC_1);
 
     hC_2    = hC_1;
@@ -391,24 +397,40 @@ void testing_syr2k_strided_batched(const Arguments& arg)
         // cpu reference
         for(int i = 0; i < batch_count; i++)
         {
-            cblas_syr2k<T>(uplo,
-                           transA,
-                           N,
-                           K,
-                           h_alpha[0],
-                           hA + i * strideA,
-                           lda,
-                           hB + i * strideB,
-                           ldb,
-                           h_beta[0],
-                           hC_gold + i * strideC,
-                           ldc);
+            if(TWOK)
+            {
+                cblas_syr2k<T>(uplo,
+                               transA,
+                               N,
+                               K,
+                               h_alpha[0],
+                               hA + i * strideA,
+                               lda,
+                               hB + i * strideB,
+                               ldb,
+                               h_beta[0],
+                               hC_gold + i * strideC,
+                               ldc);
+            }
+            else // syrkx
+            {
+                cblas_syrk<T>(uplo,
+                              transA,
+                              N,
+                              K,
+                              h_alpha[0],
+                              hA + i * strideA,
+                              lda,
+                              h_beta[0],
+                              hC_gold + i * strideC,
+                              ldc); // B must == A to use syrk as reference
+            }
         }
 
         if(arg.timing)
         {
             cpu_time_used = get_time_us() - cpu_time_used;
-            cblas_gflops  = batch_count * syr2k_gflop_count<T>(N, K) / cpu_time_used * 1e6;
+            cblas_gflops  = batch_count * syrXX_gflop_count_fn(N, K) / cpu_time_used * 1e6;
         }
 
         if(arg.unit_check)
@@ -488,7 +510,7 @@ void testing_syr2k_strided_batched(const Arguments& arg)
         }
         gpu_time_used = get_time_us() - gpu_time_used;
         rocblas_gflops
-            = batch_count * syr2k_gflop_count<T>(N, K) * number_hot_calls / gpu_time_used * 1e6;
+            = batch_count * syrXX_gflop_count_fn(N, K) * number_hot_calls / gpu_time_used * 1e6;
 
         std::cout << "uplo,transA,N,K,alpha,lda,strideA,ldb,strideB,beta,ldc,strideC,batch_count,"
                      "rocblas-Gflops,us";

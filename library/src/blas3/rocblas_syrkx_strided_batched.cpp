@@ -153,6 +153,7 @@ namespace
 
         static constexpr rocblas_int offset_C = 0, offset_A = 0, offset_B = 0;
 
+        // syr2k arg check is equivalent
         rocblas_status arg_status = rocblas_syr2k_arg_check(handle,
                                                             uplo,
                                                             transA,
@@ -176,26 +177,27 @@ namespace
         if(arg_status != rocblas_status_continue)
             return arg_status;
 
-        return rocblas_syrkx_template(handle,
-                                      uplo,
-                                      transA,
-                                      n,
-                                      k,
-                                      alpha,
-                                      A,
-                                      offset_A,
-                                      lda,
-                                      stride_a,
-                                      B,
-                                      offset_B,
-                                      ldb,
-                                      stride_b,
-                                      beta,
-                                      C,
-                                      offset_C,
-                                      ldc,
-                                      stride_c,
-                                      batch_count);
+        static constexpr bool is2K = false; // syrkx
+        return rocblas_syr2k_template<is2K>(handle,
+                                            uplo,
+                                            transA,
+                                            n,
+                                            k,
+                                            alpha,
+                                            A,
+                                            offset_A,
+                                            lda,
+                                            stride_a,
+                                            B,
+                                            offset_B,
+                                            ldb,
+                                            stride_b,
+                                            beta,
+                                            C,
+                                            offset_C,
+                                            ldc,
+                                            stride_c,
+                                            batch_count);
     }
 
 }

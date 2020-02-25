@@ -16,10 +16,10 @@
 #include "unit.hpp"
 #include "utility.hpp"
 
-template <typename T, bool X = false>
+template <typename T, bool TWOK = true>
 void testing_syr2k_bad_arg(const Arguments& arg)
 {
-    auto rocblas_syrk_fn = !X ? rocblas_syr2k<T> : rocblas_syrkx<T>;
+    auto rocblas_syrXX_fn = TWOK ? rocblas_syr2k<T> : rocblas_syrkx<T>;
 
     rocblas_local_handle    handle;
     const rocblas_fill      uplo   = rocblas_fill_upper;
@@ -43,60 +43,61 @@ void testing_syr2k_bad_arg(const Arguments& arg)
     CHECK_HIP_ERROR(dC.memcheck());
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_syrk_fn(nullptr, uplo, transA, N, K, &alpha, dA, lda, dB, ldb, &beta, dC, ldc),
+        rocblas_syrXX_fn(nullptr, uplo, transA, N, K, &alpha, dA, lda, dB, ldb, &beta, dC, ldc),
         rocblas_status_invalid_handle);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_syrk_fn(
+        rocblas_syrXX_fn(
             handle, rocblas_fill_full, transA, N, K, &alpha, dA, lda, dB, ldb, &beta, dC, ldc),
         rocblas_status_invalid_value);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_syrk_fn(handle,
-                                          uplo,
-                                          rocblas_operation_conjugate_transpose,
-                                          N,
-                                          K,
-                                          &alpha,
-                                          dA,
-                                          lda,
-                                          dB,
-                                          ldb,
-                                          &beta,
-                                          dC,
-                                          ldc),
+    EXPECT_ROCBLAS_STATUS(rocblas_syrXX_fn(handle,
+                                           uplo,
+                                           rocblas_operation_conjugate_transpose,
+                                           N,
+                                           K,
+                                           &alpha,
+                                           dA,
+                                           lda,
+                                           dB,
+                                           ldb,
+                                           &beta,
+                                           dC,
+                                           ldc),
                           rocblas_status_invalid_value);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_syrk_fn(handle, uplo, transA, N, K, nullptr, dA, lda, dB, ldb, &beta, dC, ldc),
+        rocblas_syrXX_fn(handle, uplo, transA, N, K, nullptr, dA, lda, dB, ldb, &beta, dC, ldc),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_syrk_fn(handle, uplo, transA, N, K, &alpha, nullptr, lda, dB, ldb, &beta, dC, ldc),
+        rocblas_syrXX_fn(handle, uplo, transA, N, K, &alpha, nullptr, lda, dB, ldb, &beta, dC, ldc),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_syrk_fn(handle, uplo, transA, N, K, &alpha, dA, lda, nullptr, ldb, &beta, dC, ldc),
+        rocblas_syrXX_fn(handle, uplo, transA, N, K, &alpha, dA, lda, nullptr, ldb, &beta, dC, ldc),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_syrk_fn(handle, uplo, transA, N, K, &alpha, dA, lda, dB, ldb, nullptr, dC, ldc),
+        rocblas_syrXX_fn(handle, uplo, transA, N, K, &alpha, dA, lda, dB, ldb, nullptr, dC, ldc),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_syrk_fn(handle, uplo, transA, N, K, &alpha, dA, lda, dB, ldb, &beta, nullptr, ldc),
+        rocblas_syrXX_fn(handle, uplo, transA, N, K, &alpha, dA, lda, dB, ldb, &beta, nullptr, ldc),
         rocblas_status_invalid_pointer);
 
     // quick return with invalid pointers
     EXPECT_ROCBLAS_STATUS(
-        rocblas_syrk_fn(
+        rocblas_syrXX_fn(
             handle, uplo, transA, 0, K, nullptr, nullptr, lda, dB, ldb, nullptr, nullptr, ldc),
         rocblas_status_success);
 }
 
-template <typename T, bool X = false>
+template <typename T, bool TWOK = true>
 void testing_syr2k(const Arguments& arg)
 {
-    auto rocblas_syrk_fn = !X ? rocblas_syr2k<T> : rocblas_syrkx<T>;
+    auto rocblas_syrXX_fn     = TWOK ? rocblas_syr2k<T> : rocblas_syrkx<T>;
+    auto syrXX_gflop_count_fn = TWOK ? syr2k_gflop_count<T> : syrkx_gflop_count<T>;
 
     rocblas_local_handle handle;
     rocblas_fill         uplo   = char2rocblas_fill(arg.uplo);
@@ -120,26 +121,28 @@ void testing_syr2k(const Arguments& arg)
     if(N == 0 || invalidSize)
     {
         // ensure invalid sizes checked before pointer check
-        EXPECT_ROCBLAS_STATUS(rocblas_syrk_fn(handle,
-                                              uplo,
-                                              transA,
-                                              N,
-                                              K,
-                                              nullptr,
-                                              nullptr,
-                                              lda,
-                                              nullptr,
-                                              ldb,
-                                              nullptr,
-                                              nullptr,
-                                              ldc),
+        EXPECT_ROCBLAS_STATUS(rocblas_syrXX_fn(handle,
+                                               uplo,
+                                               transA,
+                                               N,
+                                               K,
+                                               nullptr,
+                                               nullptr,
+                                               lda,
+                                               nullptr,
+                                               ldb,
+                                               nullptr,
+                                               nullptr,
+                                               ldc),
                               invalidSize ? rocblas_status_invalid_size : rocblas_status_success);
 
         return;
     }
 
-    const auto size_A = size_t(lda) * (transA == rocblas_operation_none ? std::max(K, 1) : N);
-    const auto size_B = size_t(ldb) * (transA == rocblas_operation_none ? std::max(K, 1) : N);
+    size_t     cols   = (transA == rocblas_operation_none ? std::max(K, 1) : N);
+    size_t     rows   = (transA != rocblas_operation_none ? std::max(K, 1) : N);
+    const auto size_A = size_t(lda) * cols;
+    const auto size_B = size_t(ldb) * cols;
     const auto size_C = size_t(ldc) * N;
 
     // allocate memory on device
@@ -175,9 +178,15 @@ void testing_syr2k(const Arguments& arg)
     h_beta[0]  = beta;
     rocblas_seedrand();
     rocblas_init<T>(hA);
-    rocblas_init<T>(hB);
+    if(TWOK)
+    {
+        rocblas_init<T>(hB);
+    }
+    else
+    { // using syrk as syrkx reference so testing with B = A
+        rocblas_copy_matrix((T*)hA, (T*)hB, rows, cols, lda, ldb);
+    }
     rocblas_init<T>(hC_1);
-
     hC_2    = hC_1;
     hC_gold = hC_1;
 
@@ -191,7 +200,7 @@ void testing_syr2k(const Arguments& arg)
         // host alpha/beta
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
-        CHECK_ROCBLAS_ERROR(rocblas_syrk_fn(
+        CHECK_ROCBLAS_ERROR(rocblas_syrXX_fn(
             handle, uplo, transA, N, K, &h_alpha[0], dA, lda, dB, ldb, &h_beta[0], dC, ldc));
 
         // copy output from device to CPU
@@ -203,7 +212,7 @@ void testing_syr2k(const Arguments& arg)
         CHECK_HIP_ERROR(d_alpha.transfer_from(h_alpha));
         CHECK_HIP_ERROR(d_beta.transfer_from(h_beta));
 
-        CHECK_ROCBLAS_ERROR(rocblas_syrk_fn(
+        CHECK_ROCBLAS_ERROR(rocblas_syrXX_fn(
             handle, uplo, transA, N, K, d_alpha, dA, lda, dB, ldb, d_beta, dC, ldc));
 
         // copy output from device to CPU
@@ -215,12 +224,29 @@ void testing_syr2k(const Arguments& arg)
             cpu_time_used = get_time_us();
         }
 
-        cblas_syr2k<T>(uplo, transA, N, K, h_alpha[0], hA, lda, hB, ldb, h_beta[0], hC_gold, ldc);
+        if(TWOK)
+        {
+            cblas_syr2k<T>(
+                uplo, transA, N, K, h_alpha[0], hA, lda, hB, ldb, h_beta[0], hC_gold, ldc);
+        }
+        else
+        { // syrkx
+            cblas_syrk<T>(uplo,
+                          transA,
+                          N,
+                          K,
+                          h_alpha[0],
+                          hA,
+                          lda,
+                          h_beta[0],
+                          hC_gold,
+                          ldc); // B must == A to use syrk as reference
+        }
 
         if(arg.timing)
         {
             cpu_time_used = get_time_us() - cpu_time_used;
-            cblas_gflops  = syr2k_gflop_count<T>(N, K) / cpu_time_used * 1e6;
+            cblas_gflops  = syrXX_gflop_count_fn(N, K) / cpu_time_used * 1e6;
         }
 
         if(arg.unit_check)
@@ -256,16 +282,18 @@ void testing_syr2k(const Arguments& arg)
 
         for(int i = 0; i < number_cold_calls; i++)
         {
-            rocblas_syrk_fn(handle, uplo, transA, N, K, h_alpha, dA, lda, dB, ldb, h_beta, dC, ldc);
+            rocblas_syrXX_fn(
+                handle, uplo, transA, N, K, h_alpha, dA, lda, dB, ldb, h_beta, dC, ldc);
         }
 
         gpu_time_used = get_time_us(); // in microseconds
         for(int i = 0; i < number_hot_calls; i++)
         {
-            rocblas_syrk_fn(handle, uplo, transA, N, K, h_alpha, dA, lda, dB, ldb, h_beta, dC, ldc);
+            rocblas_syrXX_fn(
+                handle, uplo, transA, N, K, h_alpha, dA, lda, dB, ldb, h_beta, dC, ldc);
         }
         gpu_time_used  = get_time_us() - gpu_time_used;
-        rocblas_gflops = syr2k_gflop_count<T>(N, K) * number_hot_calls / gpu_time_used * 1e6;
+        rocblas_gflops = syrXX_gflop_count_fn(N, K) * number_hot_calls / gpu_time_used * 1e6;
 
         std::cout << "uplo,transA,N,K,alpha,lda,ldb,beta,ldc,rocblas-Gflops,us";
 
