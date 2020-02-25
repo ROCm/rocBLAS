@@ -10,7 +10,7 @@ import com.amd.docker.*
 import java.nio.file.Path
 
 
-def runCI = 
+def runCI =
 {
     nodeDetails, jobName->
 
@@ -56,30 +56,27 @@ def runCI =
 
 }
 
-ci: { 
+ci: {
     String urlJobName = auxiliary.getTopJobName(env.BUILD_URL)
 
-    def propertyList = ["compute-rocm-dkms-no-npi":[pipelineTriggers([cron('0 1 * * 0')])], 
+    def propertyList = ["compute-rocm-dkms-no-npi":[pipelineTriggers([cron('0 1 * * 0')])],
                         "compute-rocm-dkms-no-npi-hipclang":[pipelineTriggers([cron('0 1 * * 0')])],
                         "rocm-docker":[]]
-
     propertyList = auxiliary.appendPropertyList(propertyList)
 
-    def jobNameList = ["compute-rocm-dkms-no-npi":([ubuntu16:['gfx900h'],centos7:['gfx906'],sles15sp1:['gfx906']]), 
-                       "compute-rocm-dkms-no-npi-hipclang":([ubuntu16:['gfx900h'],centos7:['gfx906'],sles15sp1:['gfx906']]), 
-                       "rocm-docker":([ubuntu16:['gfx900h'],ubuntu18:['gfx900h'],centos7:['gfx906'],sles15sp1:['gfx906']]),
-                       "compute-rocm-dkms-no-npi-hipclang-int-bkc-2":([ubuntu16:['gfx900h'],centos7:['gfx906'],sles15sp1:['gfx906']])] 
-    
+    def jobNameList = ["compute-rocm-dkms-no-npi":([ubuntu16:['gfx900'],centos7:['gfx906'],sles15sp1:['gfx906']]),
+                       "compute-rocm-dkms-no-npi-hipclang":([ubuntu16:['gfx900'],centos7:['gfx906'],sles15sp1:['gfx906']]),
+                       "rocm-docker":([ubuntu16:['gfx900'],ubuntu18:['gfx900'],centos7:['gfx906'],sles15sp1:['gfx906']])]
     jobNameList = auxiliary.appendJobNameList(jobNameList)
 
-    propertyList.each 
+    propertyList.each
     {
         jobName, property->
         if (urlJobName == jobName)
             properties(auxiliary.addCommonProperties(property))
     }
 
-    jobNameList.each 
+    jobNameList.each
     {
         jobName, nodeDetails->
         if (urlJobName == jobName)
