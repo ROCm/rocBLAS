@@ -79,7 +79,9 @@ public:
 
         if(valid_parameters)
         {
-            this->m_data = this->device_vector_setup();
+            m_enough_memory = this->check_available_memory();
+            if(m_enough_memory)
+                this->m_data = this->device_vector_setup();
         }
     }
 
@@ -210,7 +212,12 @@ public:
     //!
     hipError_t memcheck() const
     {
-        return ((bool)*this) ? hipSuccess : hipErrorOutOfMemory;
+        if(!m_enough_memory)
+            return hipErrorMemoryAllocation;
+        else if((bool)*this)
+            return hipSuccess;
+        else
+            return hipErrorOutOfMemory;
     }
 
 private:
@@ -220,6 +227,7 @@ private:
     rocblas_stride m_stride{};
     rocblas_int    m_batch_count{};
     T*             m_data{};
+    bool           m_enough_memory{};
 
     static size_t calculate_nmemb(
         rocblas_int n, rocblas_int inc, rocblas_stride stride, rocblas_int batch_count, storage st)
