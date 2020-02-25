@@ -73,6 +73,15 @@ public:
         return d;
     }
 
+    bool check_available_memory(size_t batches = 1)
+    {
+        size_t     free_mem  = 0;
+        size_t     total_mem = 0;
+        hipError_t err       = hipMemGetInfo(&free_mem, &total_mem);
+
+        return (err == hipSuccess && free_mem >= (bytes * batches));
+    }
+
     void device_vector_check(T* d)
     {
 #ifdef GOOGLE_TEST

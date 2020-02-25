@@ -208,7 +208,12 @@ public:
     //!
     hipError_t memcheck() const
     {
-        return ((bool)*this) ? hipSuccess : hipErrorOutOfMemory;
+        if(!m_enough_memory)
+            return hipErrorMemoryAllocation;
+        else if((bool)*this)
+            return hipSuccess;
+        else
+            return hipErrorOutOfMemory;
     }
 
 private:
@@ -217,6 +222,7 @@ private:
     rocblas_int m_batch_count{};
     T**         m_data{};
     T**         m_device_data{};
+    bool        m_enough_memory{};
 
     //!
     //! @brief Try to allocate the ressources.
@@ -225,6 +231,7 @@ private:
     bool try_initialize_memory()
     {
         bool success = false;
+
         success
             = (hipSuccess == (hipMalloc)(&this->m_device_data, this->m_batch_count * sizeof(T*)));
         if(success)
@@ -232,23 +239,29 @@ private:
             success = (nullptr != (this->m_data = (T**)calloc(this->m_batch_count, sizeof(T*))));
             if(success)
             {
-                for(rocblas_int batch_index = 0; batch_index < this->m_batch_count; ++batch_index)
-                {
-                    success
-                        = (nullptr != (this->m_data[batch_index] = this->device_vector_setup()));
-                    if(!success)
-                    {
-                        break;
-                    }
-                }
-
+                m_enough_memory = this->check_available_memory(this->m_batch_count);
+                success         = m_enough_memory;
                 if(success)
                 {
-                    success = (hipSuccess
-                               == hipMemcpy(this->m_device_data,
-                                            this->m_data,
-                                            sizeof(T*) * this->m_batch_count,
-                                            hipMemcpyHostToDevice));
+                    for(rocblas_int batch_index = 0; batch_index < this->m_batch_count;
+                        ++batch_index)
+                    {
+                        success = (nullptr
+                                   != (this->m_data[batch_index] = this->device_vector_setup()));
+                        if(!success)
+                        {
+                            break;
+                        }
+                    }
+
+                    if(success)
+                    {
+                        success = (hipSuccess
+                                   == hipMemcpy(this->m_device_data,
+                                                this->m_data,
+                                                sizeof(T*) * this->m_batch_count,
+                                                hipMemcpyHostToDevice));
+                    }
                 }
             }
         }
