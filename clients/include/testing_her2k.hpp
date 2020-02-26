@@ -17,7 +17,7 @@
 #include "utility.hpp"
 
 //
-// herkx_batched when TWOK = false
+// herkx when TWOK = false
 //
 
 template <typename T, bool TWOK = true>
@@ -103,6 +103,7 @@ void testing_her2k(const Arguments& arg)
 {
     auto rocblas_herXX_fn     = TWOK ? rocblas_her2k<T> : rocblas_herkx<T>;
     auto herXX_gflop_count_fn = TWOK ? her2k_gflop_count<T> : herkx_gflop_count<T>;
+    auto herXX_ref_fn         = TWOK ? cblas_her2k<T> : cblas_herkx<T>;
 
     rocblas_local_handle handle;
     rocblas_fill         uplo   = char2rocblas_fill(arg.uplo);
@@ -189,7 +190,7 @@ void testing_her2k(const Arguments& arg)
         rocblas_init<T>(hB);
     }
     else
-    { // using herk as herkx reference so testing with B = A
+    { // require symmetric A*B^H so testing with B = A
         rocblas_copy_matrix((T*)hA, (T*)hB, rows, cols, lda, ldb);
     }
     rocblas_init<T>(hC_1);
@@ -231,16 +232,8 @@ void testing_her2k(const Arguments& arg)
             cpu_time_used = get_time_us();
         }
 
-        if(TWOK)
-        {
-            cblas_her2k<T>(
-                uplo, transA, N, K, &h_alpha[0], hA, lda, hB, ldb, &h_beta[0], hC_gold, ldc);
-        }
-        else
-        { // herkx: B must equal A to use herk as reference and alpha imaginary zero
-            cblas_herk<T>(
-                uplo, transA, N, K, std::real(h_alpha[0]), hA, lda, h_beta[0], hC_gold, ldc);
-        }
+        // herkx: B equals A to ensure a symmetric result
+        herXX_ref_fn(uplo, transA, N, K, &h_alpha[0], hA, lda, hB, ldb, &h_beta[0], hC_gold, ldc);
 
         if(arg.timing)
         {

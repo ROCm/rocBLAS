@@ -132,6 +132,7 @@ void testing_her2k_batched(const Arguments& arg)
 {
     auto rocblas_herXX_batched_fn = TWOK ? rocblas_her2k_batched<T> : rocblas_herkx_batched<T>;
     auto herXX_gflop_count_fn     = TWOK ? her2k_gflop_count<T> : herkx_gflop_count<T>;
+    auto herXX_ref_fn             = TWOK ? cblas_her2k<T> : cblas_herkx<T>;
 
     rocblas_local_handle handle;
     rocblas_fill         uplo   = char2rocblas_fill(arg.uplo);
@@ -220,7 +221,7 @@ void testing_her2k_batched(const Arguments& arg)
         rocblas_init<T>(hB);
     }
     else
-    { // using herk as reference for herkx so testing with B = A
+    { // require symmetric A*B^H so testing with B = A
         for(int i = 0; i < batch_count; i++)
             rocblas_copy_matrix(hA[i], hB[i], rows, cols, lda, ldb);
     }
@@ -290,34 +291,19 @@ void testing_her2k_batched(const Arguments& arg)
         // cpu reference
         for(int i = 0; i < batch_count; i++)
         {
-            if(TWOK)
-            {
-                cblas_her2k<T>(uplo,
-                               transA,
-                               N,
-                               K,
-                               &h_alpha[0],
-                               hA[i],
-                               lda,
-                               hB[i],
-                               ldb,
-                               &h_beta[0],
-                               hC_gold[i],
-                               ldc);
-            }
-            else
-            { // herkx: B must equal A to use herk as reference
-                cblas_herk<T>(uplo,
-                              transA,
-                              N,
-                              K,
-                              std::real(h_alpha[0]),
-                              hA[i],
-                              lda,
-                              h_beta[0],
-                              hC_gold[i],
-                              ldc);
-            }
+            // herkx: B equals A to ensure a symmetric result
+            herXX_ref_fn(uplo,
+                         transA,
+                         N,
+                         K,
+                         &h_alpha[0],
+                         hA[i],
+                         lda,
+                         hB[i],
+                         ldb,
+                         &h_beta[0],
+                         hC_gold[i],
+                         ldc);
         }
 
         if(arg.timing)
@@ -328,18 +314,9 @@ void testing_her2k_batched(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            if(std::is_same<T, rocblas_float_complex>{}
-               || std::is_same<T, rocblas_double_complex>{})
-            {
-                const double tol = K * sum_error_tolerance<T>;
-                near_check_general<T>(N, N, batch_count, ldc, hC_gold, hC_1, tol);
-                near_check_general<T>(N, N, batch_count, ldc, hC_gold, hC_2, tol);
-            }
-            else
-            {
-                unit_check_general<T>(N, N, batch_count, ldc, hC_gold, hC_1);
-                unit_check_general<T>(N, N, batch_count, ldc, hC_gold, hC_2);
-            }
+            const double tol = K * sum_error_tolerance<T>;
+            near_check_general<T>(N, N, batch_count, ldc, hC_gold, hC_1, tol);
+            near_check_general<T>(N, N, batch_count, ldc, hC_gold, hC_2, tol);
         }
 
         if(arg.norm_check)
