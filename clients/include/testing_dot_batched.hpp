@@ -24,15 +24,13 @@ void testing_dot_batched_bad_arg(const Arguments& arg)
     rocblas_int stride_y    = incy * N;
     rocblas_int batch_count = 5;
 
-    rocblas_local_handle    handle;
-    device_vector<T*, 0, T> dx(1);
-    device_vector<T*, 0, T> dy(1);
-    device_vector<T>        d_rocblas_result(batch_count);
-    if(!dx || !dy || !d_rocblas_result)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    rocblas_local_handle   handle;
+    device_batch_vector<T> dx(N, incx, batch_count);
+    device_batch_vector<T> dy(N, incy, batch_count);
+    device_vector<T>       d_rocblas_result(batch_count);
+    CHECK_HIP_ERROR(dx.memcheck());
+    CHECK_HIP_ERROR(dy.memcheck());
+    CHECK_HIP_ERROR(d_rocblas_result.memcheck());
 
     CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
@@ -41,7 +39,7 @@ void testing_dot_batched_bad_arg(const Arguments& arg)
                                                                   N,
                                                                   nullptr,
                                                                   incx,
-                                                                  dy,
+                                                                  dy.ptr_on_device(),
                                                                   incy,
                                                                   batch_count,
                                                                   d_rocblas_result),
@@ -49,7 +47,7 @@ void testing_dot_batched_bad_arg(const Arguments& arg)
     EXPECT_ROCBLAS_STATUS(
         (CONJ ? rocblas_dotc_batched<T> : rocblas_dot_batched<T>)(handle,
                                                                   N,
-                                                                  dx,
+                                                                  dx.ptr_on_device(),
                                                                   incx,
                                                                   nullptr,
                                                                   incy,
@@ -63,9 +61,9 @@ void testing_dot_batched_bad_arg(const Arguments& arg)
     EXPECT_ROCBLAS_STATUS(
         (CONJ ? rocblas_dotc_batched<T> : rocblas_dot_batched<T>)(nullptr,
                                                                   N,
-                                                                  dx,
+                                                                  dx.ptr_on_device(),
                                                                   incx,
-                                                                  dy,
+                                                                  dy.ptr_on_device(),
                                                                   incy,
                                                                   batch_count,
                                                                   d_rocblas_result),
@@ -93,15 +91,14 @@ void testing_dot_batched(const Arguments& arg)
     // check to prevent undefined memmory allocation error
     if(N <= 0 || batch_count <= 0)
     {
-        static const size_t     safe_size = 100; // arbitrarily set to 100
-        device_vector<T*, 0, T> dx(safe_size);
-        device_vector<T*, 0, T> dy(safe_size);
-        device_vector<T>        d_rocblas_result(std::max(batch_count, 1));
-        if(!dx || !dy || !d_rocblas_result)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
+        static const size_t    safe_size = 100; // arbitrarily set to 100
+        int                    b_c       = batch_count > 0 ? batch_count : 1;
+        device_batch_vector<T> dx(safe_size, 1, b_c);
+        device_batch_vector<T> dy(safe_size, 1, b_c);
+        device_vector<T>       d_rocblas_result(b_c);
+        CHECK_HIP_ERROR(dx.memcheck());
+        CHECK_HIP_ERROR(dy.memcheck());
+        CHECK_HIP_ERROR(d_rocblas_result.memcheck());
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
@@ -110,9 +107,9 @@ void testing_dot_batched(const Arguments& arg)
             EXPECT_ROCBLAS_STATUS(
                 (CONJ ? rocblas_dotc_batched<T> : rocblas_dot_batched<T>)(handle,
                                                                           N,
-                                                                          dx,
+                                                                          dx.ptr_on_device(),
                                                                           incx,
-                                                                          dy,
+                                                                          dy.ptr_on_device(),
                                                                           incy,
                                                                           batch_count,
                                                                           d_rocblas_result),
@@ -123,9 +120,9 @@ void testing_dot_batched(const Arguments& arg)
             CHECK_ROCBLAS_ERROR(
                 (CONJ ? rocblas_dotc_batched<T> : rocblas_dot_batched<T>)(handle,
                                                                           N,
-                                                                          dx,
+                                                                          dx.ptr_on_device(),
                                                                           incx,
-                                                                          dy,
+                                                                          dy.ptr_on_device(),
                                                                           incy,
                                                                           batch_count,
                                                                           d_rocblas_result));
@@ -142,57 +139,23 @@ void testing_dot_batched(const Arguments& arg)
     size_t         size_y   = N * size_t(abs_incy);
 
     //Device-arrays of pointers to device memory
-    device_vector<T*, 0, T> dx(batch_count);
-    device_vector<T*, 0, T> dy(batch_count);
-    device_vector<T>        d_rocblas_result_2(batch_count);
-    if(!dx || !dy || !d_rocblas_result_2)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    device_batch_vector<T> dx(N, incx, batch_count);
+    device_batch_vector<T> dy(N, incy, batch_count);
+    device_vector<T>       d_rocblas_result_2(batch_count);
+    CHECK_HIP_ERROR(dx.memcheck());
+    CHECK_HIP_ERROR(dy.memcheck());
+    CHECK_HIP_ERROR(d_rocblas_result_2.memcheck());
 
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
-    host_vector<T> hy[batch_count];
-    host_vector<T> hx[batch_count];
-
-    // Host-arrays of pointers to device memory
-    // (intermediate arrays used for the transfers)
-    device_batch_vector<T> x(batch_count, size_x);
-    device_batch_vector<T> y(batch_count, size_y);
-
-    for(int b = 0; b < batch_count; ++b)
-    {
-        hx[b] = host_vector<T>(size_x);
-        hy[b] = host_vector<T>(size_y);
-    }
-
-    int last = batch_count - 1;
-    if(batch_count && ((!y[last] && size_y) || (!x[last] && size_x)))
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    host_batch_vector<T> hx(N, incx, batch_count);
+    host_batch_vector<T> hy(N, incy, batch_count);
 
     // Initial Data on CPU
-    rocblas_seedrand();
+    rocblas_init(hx, true);
+    rocblas_init(hy, false);
 
-    for(int b = 0; b < batch_count; ++b)
-    {
-        rocblas_init<T>(hx[b], 1, N, abs_incx);
-        rocblas_init<T>(hy[b], 1, N, abs_incy);
-    }
-
-    // copy data from CPU to device
-    // 1. Use intermediate arrays to access device memory from host
-    for(int b = 0; b < batch_count; ++b)
-    {
-        CHECK_HIP_ERROR(hipMemcpy(x[b], hx[b], sizeof(T) * size_x, hipMemcpyHostToDevice));
-        CHECK_HIP_ERROR(hipMemcpy(y[b], hy[b], sizeof(T) * size_y, hipMemcpyHostToDevice));
-    }
-
-    // 2. Copy intermediate arrays into device arrays
-    CHECK_HIP_ERROR(hipMemcpy(dx, x, sizeof(T*) * batch_count, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dy, y, sizeof(T*) * batch_count, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(dx.transfer_from(hx));
+    CHECK_HIP_ERROR(dy.transfer_from(hy));
 
     double gpu_time_used, cpu_time_used;
     double rocblas_gflops, cblas_gflops, rocblas_bandwidth;
@@ -204,9 +167,9 @@ void testing_dot_batched(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(
             (CONJ ? rocblas_dotc_batched<T> : rocblas_dot_batched<T>)(handle,
                                                                       N,
-                                                                      dx,
+                                                                      dx.ptr_on_device(),
                                                                       incx,
-                                                                      dy,
+                                                                      dy.ptr_on_device(),
                                                                       incy,
                                                                       batch_count,
                                                                       rocblas_result_1));
@@ -216,15 +179,14 @@ void testing_dot_batched(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(
             (CONJ ? rocblas_dotc_batched<T> : rocblas_dot_batched<T>)(handle,
                                                                       N,
-                                                                      dx,
+                                                                      dx.ptr_on_device(),
                                                                       incx,
-                                                                      dy,
+                                                                      dy.ptr_on_device(),
                                                                       incy,
                                                                       batch_count,
                                                                       d_rocblas_result_2));
 
-        CHECK_HIP_ERROR(hipMemcpy(
-            rocblas_result_2, d_rocblas_result_2, sizeof(T) * batch_count, hipMemcpyDeviceToHost));
+        CHECK_HIP_ERROR(rocblas_result_2.transfer_from(d_rocblas_result_2));
 
         // CPU BLAS
         cpu_time_used = get_time_us();
@@ -266,9 +228,9 @@ void testing_dot_batched(const Arguments& arg)
         {
             (CONJ ? rocblas_dotc_batched<T> : rocblas_dot_batched<T>)(handle,
                                                                       N,
-                                                                      dx,
+                                                                      dx.ptr_on_device(),
                                                                       incx,
-                                                                      dy,
+                                                                      dy.ptr_on_device(),
                                                                       incy,
                                                                       batch_count,
                                                                       rocblas_result_1);
@@ -280,9 +242,9 @@ void testing_dot_batched(const Arguments& arg)
         {
             (CONJ ? rocblas_dotc_batched<T> : rocblas_dot_batched<T>)(handle,
                                                                       N,
-                                                                      dx,
+                                                                      dx.ptr_on_device(),
                                                                       incx,
-                                                                      dy,
+                                                                      dy.ptr_on_device(),
                                                                       incy,
                                                                       batch_count,
                                                                       rocblas_result_1);

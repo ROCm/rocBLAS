@@ -33,45 +33,102 @@ void testing_gemv_batched_bad_arg(const Arguments& arg)
     rocblas_local_handle handle;
 
     // allocate memory on device
-    device_vector<T*, 0, T> dA(batch_count);
-    device_vector<T*, 0, T> dx(batch_count);
-    device_vector<T*, 0, T> dy(batch_count);
+    device_batch_vector<T> dA(N * lda, 1, batch_count);
+    device_batch_vector<T> dx(N, incx, batch_count);
+    device_batch_vector<T> dy(N, incx, batch_count);
+    CHECK_HIP_ERROR(dA.memcheck());
+    CHECK_HIP_ERROR(dx.memcheck());
+    CHECK_HIP_ERROR(dy.memcheck());
 
-    if(!dA || !dx || !dy)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched<T>(handle,
+                                                  transA,
+                                                  M,
+                                                  N,
+                                                  &alpha,
+                                                  nullptr,
+                                                  lda,
+                                                  dx.ptr_on_device(),
+                                                  incx,
+                                                  &beta,
+                                                  dy.ptr_on_device(),
+                                                  incy,
+                                                  batch_count),
+                          rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_gemv_batched<T>(
-            handle, transA, M, N, &alpha, nullptr, lda, dx, incx, &beta, dy, incy, batch_count),
-        rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched<T>(handle,
+                                                  transA,
+                                                  M,
+                                                  N,
+                                                  &alpha,
+                                                  dA.ptr_on_device(),
+                                                  lda,
+                                                  nullptr,
+                                                  incx,
+                                                  &beta,
+                                                  dy.ptr_on_device(),
+                                                  incy,
+                                                  batch_count),
+                          rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_gemv_batched<T>(
-            handle, transA, M, N, &alpha, dA, lda, nullptr, incx, &beta, dy, incy, batch_count),
-        rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched<T>(handle,
+                                                  transA,
+                                                  M,
+                                                  N,
+                                                  &alpha,
+                                                  dA.ptr_on_device(),
+                                                  lda,
+                                                  dx.ptr_on_device(),
+                                                  incx,
+                                                  &beta,
+                                                  nullptr,
+                                                  incy,
+                                                  batch_count),
+                          rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_gemv_batched<T>(
-            handle, transA, M, N, &alpha, dA, lda, dx, incx, &beta, nullptr, incy, batch_count),
-        rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched<T>(handle,
+                                                  transA,
+                                                  M,
+                                                  N,
+                                                  nullptr,
+                                                  dA.ptr_on_device(),
+                                                  lda,
+                                                  dx.ptr_on_device(),
+                                                  incx,
+                                                  &beta,
+                                                  dy.ptr_on_device(),
+                                                  incy,
+                                                  batch_count),
+                          rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_gemv_batched<T>(
-            handle, transA, M, N, nullptr, dA, lda, dx, incx, &beta, dy, incy, batch_count),
-        rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched<T>(handle,
+                                                  transA,
+                                                  M,
+                                                  N,
+                                                  &alpha,
+                                                  dA.ptr_on_device(),
+                                                  lda,
+                                                  dx.ptr_on_device(),
+                                                  incx,
+                                                  nullptr,
+                                                  dy.ptr_on_device(),
+                                                  incy,
+                                                  batch_count),
+                          rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_gemv_batched<T>(
-            handle, transA, M, N, &alpha, dA, lda, dx, incx, nullptr, dy, incy, batch_count),
-        rocblas_status_invalid_pointer);
-
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_gemv_batched<T>(
-            nullptr, transA, M, N, &alpha, dA, lda, dx, incx, &beta, dy, incy, batch_count),
-        rocblas_status_invalid_handle);
+    EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched<T>(nullptr,
+                                                  transA,
+                                                  M,
+                                                  N,
+                                                  &alpha,
+                                                  dA.ptr_on_device(),
+                                                  lda,
+                                                  dx.ptr_on_device(),
+                                                  incx,
+                                                  &beta,
+                                                  dy.ptr_on_device(),
+                                                  incy,
+                                                  batch_count),
+                          rocblas_status_invalid_handle);
 }
 
 template <typename T>
@@ -92,46 +149,23 @@ void testing_gemv_batched(const Arguments& arg)
     // argument sanity check before allocating invalid memory
     if(M <= 0 || N <= 0 || lda < M || lda < 1 || !incx || !incy || batch_count <= 0)
     {
-        static constexpr size_t safe_size = 100; // arbitrarily set to 100
-        device_vector<T*, 0, T> dAA1(safe_size);
-        device_vector<T*, 0, T> dxA1(safe_size);
-        device_vector<T*, 0, T> dy_1A1(safe_size);
-
-        if(!dAA1 || !dxA1 || !dy_1A1)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
-
         EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched<T>(handle,
                                                       transA,
                                                       M,
                                                       N,
                                                       &h_alpha,
-                                                      dAA1,
+                                                      nullptr,
                                                       lda,
-                                                      dxA1,
+                                                      nullptr,
                                                       incx,
                                                       &h_beta,
-                                                      dy_1A1,
+                                                      nullptr,
                                                       incy,
                                                       batch_count),
                               M < 0 || N < 0 || lda < M || lda < 1 || !incx || !incy
                                       || batch_count < 0
                                   ? rocblas_status_invalid_size
                                   : rocblas_status_success);
-        return;
-    }
-
-    //Device-arrays of pointers to device memory
-    device_vector<T*, 0, T> dAA(batch_count);
-    device_vector<T*, 0, T> dxA(batch_count);
-    device_vector<T*, 0, T> dy_1A(batch_count);
-    device_vector<T*, 0, T> dy_2A(batch_count);
-
-    if(!dAA || !dxA || !dy_1A || !dy_2A)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
         return;
     }
 
@@ -157,64 +191,45 @@ void testing_gemv_batched(const Arguments& arg)
     size_y = dim_y * abs_incy;
 
     // Host-arrays of pointers to host memory
-    host_vector<T> hAA[batch_count];
-    host_vector<T> hxA[batch_count];
-    host_vector<T> hy_1A[batch_count];
-    host_vector<T> hy_2A[batch_count];
-    host_vector<T> hy_goldA[batch_count];
-    for(int b = 0; b < batch_count; ++b)
-    {
-        hAA[b]      = host_vector<T>(size_A);
-        hxA[b]      = host_vector<T>(size_x);
-        hy_1A[b]    = host_vector<T>(size_y);
-        hy_2A[b]    = host_vector<T>(size_y);
-        hy_goldA[b] = host_vector<T>(size_y);
-    }
+    host_batch_vector<T> hA(size_A, 1, batch_count);
+    host_batch_vector<T> hx(dim_x, incx, batch_count);
+    host_batch_vector<T> hy_1(dim_y, incy, batch_count);
+    host_batch_vector<T> hy_2(dim_y, incy, batch_count);
+    host_batch_vector<T> hy_gold(dim_y, incy, batch_count);
+    host_vector<T>       halpha(1);
+    host_vector<T>       hbeta(1);
+    halpha[0] = h_alpha;
+    hbeta[0]  = h_beta;
 
     // Host-arrays of pointers to device memory
     // (intermediate arrays used for the transfers)
-    device_batch_vector<T> AA(batch_count, size_A);
-    device_batch_vector<T> xA(batch_count, size_x);
-    device_batch_vector<T> y_1A(batch_count, size_y);
-    device_batch_vector<T> y_2A(batch_count, size_y);
-
-    device_vector<T> d_alpha(1);
-    device_vector<T> d_beta(1);
-
-    int last = batch_count - 1;
-    if((!AA[last] && size_A) || (!xA[last] && size_x) || ((!y_1A[last] || !y_2A[last]) && size_y)
-       || !d_alpha || !d_beta)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    device_batch_vector<T> dA(size_A, 1, batch_count);
+    device_batch_vector<T> dx(dim_x, incx, batch_count);
+    device_batch_vector<T> dy_1(dim_y, incy, batch_count);
+    device_batch_vector<T> dy_2(dim_y, incy, batch_count);
+    device_vector<T>       d_alpha(1);
+    device_vector<T>       d_beta(1);
+    CHECK_HIP_ERROR(dA.memcheck());
+    CHECK_HIP_ERROR(dx.memcheck());
+    CHECK_HIP_ERROR(dy_1.memcheck());
+    CHECK_HIP_ERROR(dy_2.memcheck());
+    CHECK_HIP_ERROR(d_alpha.memcheck());
+    CHECK_HIP_ERROR(d_beta.memcheck());
 
     // Initial Data on CPU
-    rocblas_seedrand();
-    for(int b = 0; b < batch_count; ++b)
-    {
-        rocblas_init<T>(hAA[b], M, N, lda);
-        rocblas_init<T>(hxA[b], 1, dim_x, abs_incx);
-        if(rocblas_isnan(arg.beta))
-            rocblas_init_nan<T>(hy_1A[b], 1, dim_y, abs_incy);
-        else
-            rocblas_init<T>(hy_1A[b], 1, dim_y, abs_incy);
-        hy_goldA[b] = hy_1A[b];
-        hy_2A[b]    = hy_1A[b];
-    }
+    rocblas_init(hA, true);
+    rocblas_init(hx, false);
+    rocblas_init(hy_1, false);
+    if(rocblas_isnan(arg.beta))
+        rocblas_init_nan(hy_1, false);
+    else
+        rocblas_init(hy_1, false);
+    hy_2.copy_from(hy_1);
+    hy_gold.copy_from(hy_1);
 
-    // copy data from CPU to device
-    // 1. Use intermediate arrays to access device memory from host
-    for(int b = 0; b < batch_count; ++b)
-    {
-        CHECK_HIP_ERROR(hipMemcpy(AA[b], hAA[b], sizeof(T) * size_A, hipMemcpyHostToDevice));
-        CHECK_HIP_ERROR(hipMemcpy(xA[b], hxA[b], sizeof(T) * size_x, hipMemcpyHostToDevice));
-        CHECK_HIP_ERROR(hipMemcpy(y_1A[b], hy_1A[b], sizeof(T) * size_y, hipMemcpyHostToDevice));
-    }
-    // 2. Copy intermediate arrays into device arrays
-    CHECK_HIP_ERROR(hipMemcpy(dAA, AA, sizeof(T*) * batch_count, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dxA, xA, sizeof(T*) * batch_count, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dy_1A, y_1A, sizeof(T*) * batch_count, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(dA.transfer_from(hA));
+    CHECK_HIP_ERROR(dx.transfer_from(hx));
+    CHECK_HIP_ERROR(dy_1.transfer_from(hy_1));
 
     double gpu_time_used, cpu_time_used;
     double rocblas_gflops, cblas_gflops, rocblas_bandwidth;
@@ -226,14 +241,9 @@ void testing_gemv_batched(const Arguments& arg)
     =================================================================== */
     if(arg.unit_check || arg.norm_check)
     {
-        for(int b = 0; b < batch_count; ++b)
-        {
-            CHECK_HIP_ERROR(
-                hipMemcpy(y_2A[b], hy_2A[b], sizeof(T) * size_y, hipMemcpyHostToDevice));
-        }
-        CHECK_HIP_ERROR(hipMemcpy(dy_2A, y_2A, sizeof(T*) * batch_count, hipMemcpyHostToDevice));
-        CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(T), hipMemcpyHostToDevice));
-        CHECK_HIP_ERROR(hipMemcpy(d_beta, &h_beta, sizeof(T), hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(dy_2.transfer_from(hy_2));
+        CHECK_HIP_ERROR(d_alpha.transfer_from(halpha));
+        CHECK_HIP_ERROR(d_beta.transfer_from(hbeta));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         CHECK_ROCBLAS_ERROR(rocblas_gemv_batched<T>(handle,
@@ -241,51 +251,54 @@ void testing_gemv_batched(const Arguments& arg)
                                                     M,
                                                     N,
                                                     &h_alpha,
-                                                    dAA,
+                                                    dA.ptr_on_device(),
                                                     lda,
-                                                    dxA,
+                                                    dx.ptr_on_device(),
                                                     incx,
                                                     &h_beta,
-                                                    dy_1A,
+                                                    dy_1.ptr_on_device(),
                                                     incy,
                                                     batch_count));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR(rocblas_gemv_batched<T>(
-            handle, transA, M, N, d_alpha, dAA, lda, dxA, incx, d_beta, dy_2A, incy, batch_count));
+        CHECK_ROCBLAS_ERROR(rocblas_gemv_batched<T>(handle,
+                                                    transA,
+                                                    M,
+                                                    N,
+                                                    d_alpha,
+                                                    dA.ptr_on_device(),
+                                                    lda,
+                                                    dx.ptr_on_device(),
+                                                    incx,
+                                                    d_beta,
+                                                    dy_2.ptr_on_device(),
+                                                    incy,
+                                                    batch_count));
 
-        // copy output from device to CPU
-        // Use intermediate arrays to access device memory from host
-        for(int b = 0; b < batch_count; ++b)
-        {
-            CHECK_HIP_ERROR(
-                hipMemcpy(hy_1A[b], y_1A[b], sizeof(T) * size_y, hipMemcpyDeviceToHost));
-            CHECK_HIP_ERROR(
-                hipMemcpy(hy_2A[b], y_2A[b], sizeof(T) * size_y, hipMemcpyDeviceToHost));
-        }
+        CHECK_HIP_ERROR(hy_1.transfer_from(dy_1));
+        CHECK_HIP_ERROR(hy_2.transfer_from(dy_2));
 
         // CPU BLAS
         cpu_time_used = get_time_us();
         for(int b = 0; b < batch_count; ++b)
         {
-            cblas_gemv<T>(
-                transA, M, N, h_alpha, hAA[b], lda, hxA[b], incx, h_beta, hy_goldA[b], incy);
+            cblas_gemv<T>(transA, M, N, h_alpha, hA[b], lda, hx[b], incx, h_beta, hy_gold[b], incy);
         }
         cpu_time_used = get_time_us() - cpu_time_used;
         cblas_gflops  = batch_count * gemv_gflop_count<T>(transA, M, N) / cpu_time_used * 1e6;
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, dim_y, batch_count, abs_incy, hy_goldA, hy_1A);
-            unit_check_general<T>(1, dim_y, batch_count, abs_incy, hy_goldA, hy_2A);
+            unit_check_general<T>(1, dim_y, batch_count, abs_incy, hy_gold, hy_1);
+            unit_check_general<T>(1, dim_y, batch_count, abs_incy, hy_gold, hy_2);
         }
 
         if(arg.norm_check)
         {
             rocblas_error_1
-                = norm_check_general<T>('F', 1, dim_y, abs_incy, batch_count, hy_goldA, hy_1A);
+                = norm_check_general<T>('F', 1, dim_y, abs_incy, batch_count, hy_gold, hy_1);
             rocblas_error_2
-                = norm_check_general<T>('F', 1, dim_y, abs_incy, batch_count, hy_goldA, hy_2A);
+                = norm_check_general<T>('F', 1, dim_y, abs_incy, batch_count, hy_gold, hy_2);
         }
     }
 
@@ -302,12 +315,12 @@ void testing_gemv_batched(const Arguments& arg)
                                     M,
                                     N,
                                     &h_alpha,
-                                    dAA,
+                                    dA.ptr_on_device(),
                                     lda,
-                                    dxA,
+                                    dx.ptr_on_device(),
                                     incx,
                                     &h_beta,
-                                    dy_1A,
+                                    dy_1.ptr_on_device(),
                                     incy,
                                     batch_count);
         }
@@ -321,12 +334,12 @@ void testing_gemv_batched(const Arguments& arg)
                                     M,
                                     N,
                                     &h_alpha,
-                                    dAA,
+                                    dA.ptr_on_device(),
                                     lda,
-                                    dxA,
+                                    dx.ptr_on_device(),
                                     incx,
                                     &h_beta,
-                                    dy_1A,
+                                    dy_1.ptr_on_device(),
                                     incy,
                                     batch_count);
         }

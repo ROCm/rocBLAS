@@ -24,20 +24,21 @@ void testing_swap_batched_bad_arg(const Arguments& arg)
 
     rocblas_local_handle handle;
 
-    device_vector<T*, 0, T> dxt(1);
-    device_vector<T*, 0, T> dyt(1);
-    if(!dxt || !dyt)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    device_batch_vector<T> dxt(N, incx, batch_count);
+    device_batch_vector<T> dyt(N, incy, batch_count);
+    CHECK_HIP_ERROR(dxt.memcheck());
+    CHECK_HIP_ERROR(dyt.memcheck());
 
-    EXPECT_ROCBLAS_STATUS(rocblas_swap_batched<T>(handle, N, nullptr, incx, dyt, incy, batch_count),
-                          rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(rocblas_swap_batched<T>(handle, N, dxt, incx, nullptr, incy, batch_count),
-                          rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(rocblas_swap_batched<T>(nullptr, N, dxt, incx, dyt, incy, batch_count),
-                          rocblas_status_invalid_handle);
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_swap_batched<T>(handle, N, nullptr, incx, dyt.ptr_on_device(), incy, batch_count),
+        rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_swap_batched<T>(handle, N, dxt.ptr_on_device(), incx, nullptr, incy, batch_count),
+        rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_swap_batched<T>(
+            nullptr, N, dxt.ptr_on_device(), incx, dyt.ptr_on_device(), incy, batch_count),
+        rocblas_status_invalid_handle);
 }
 
 template <typename T>
@@ -53,19 +54,10 @@ void testing_swap_batched(const Arguments& arg)
     // argument sanity check before allocating invalid memory
     if(N <= 0 || batch_count <= 0)
     {
-        static const size_t     safe_size = 100; //  arbitrarily set to 100
-        device_vector<T*, 0, T> dxt(safe_size);
-        device_vector<T*, 0, T> dyt(safe_size);
-        if(!dxt || !dyt)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
-
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        EXPECT_ROCBLAS_STATUS(rocblas_swap_batched<T>(handle, N, dxt, incx, dyt, incy, batch_count),
-                              N > 0 && batch_count < 0 ? rocblas_status_invalid_size
-                                                       : rocblas_status_success);
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_swap_batched<T>(handle, N, nullptr, incx, nullptr, incy, batch_count),
+            N > 0 && batch_count < 0 ? rocblas_status_invalid_size : rocblas_status_success);
         return;
     }
 
@@ -76,55 +68,36 @@ void testing_swap_batched(const Arguments& arg)
     size_t size_y = N * abs_incy;
 
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
-    host_vector<T> hx[batch_count];
-    host_vector<T> hy[batch_count];
-    host_vector<T> hx_gold[batch_count];
-    host_vector<T> hy_gold[batch_count];
-
-    for(int i = 0; i < batch_count; i++)
-    {
-        hx[i]      = host_vector<T>(size_x);
-        hy[i]      = host_vector<T>(size_y);
-        hx_gold[i] = host_vector<T>(size_x);
-        hy_gold[i] = host_vector<T>(size_y);
-    }
+    host_batch_vector<T> hx(N, incx, batch_count);
+    host_batch_vector<T> hy(N, incy, batch_count);
+    host_batch_vector<T> hx_gold(N, incx, batch_count);
+    host_batch_vector<T> hy_gold(N, incy, batch_count);
+    CHECK_HIP_ERROR(hx.memcheck());
+    CHECK_HIP_ERROR(hy.memcheck());
+    CHECK_HIP_ERROR(hx_gold.memcheck());
+    CHECK_HIP_ERROR(hy_gold.memcheck());
 
     // Initial Data on CPU
-    rocblas_seedrand();
+    rocblas_init(hx, true);
     for(int i = 0; i < batch_count; i++)
     {
-        rocblas_init<T>(hx[i], 1, N, abs_incx);
         // make hy different to hx
         for(size_t j = 0; j < N; j++)
         {
             hy[i][j * abs_incy] = hx[i][j * abs_incx] + 1.0;
         }
-        hx_gold[i] = hx[i]; // swapped later by cblas_swap
-        hy_gold[i] = hy[i];
     }
 
-    device_batch_vector<T> dxvec(batch_count, size_x);
-    device_batch_vector<T> dyvec(batch_count, size_y);
+    hx_gold.copy_from(hx); // swapped later by cblas_swap
+    hy_gold.copy_from(hy);
 
-    // copy data from host to device
-    for(int i = 0; i < batch_count; i++)
-    {
-        CHECK_HIP_ERROR(hipMemcpy(dxvec[i], hx[i], sizeof(T) * size_x, hipMemcpyHostToDevice));
-        CHECK_HIP_ERROR(hipMemcpy(dyvec[i], hy[i], sizeof(T) * size_y, hipMemcpyHostToDevice));
-    }
+    device_batch_vector<T> dx(N, incx, batch_count);
+    device_batch_vector<T> dy(N, incy, batch_count);
+    CHECK_HIP_ERROR(dx.memcheck());
+    CHECK_HIP_ERROR(dy.memcheck());
 
-    // vector pointers on gpu
-    device_vector<T*, 0, T> dx_pvec(batch_count);
-    device_vector<T*, 0, T> dy_pvec(batch_count);
-    if(!dx_pvec || !dy_pvec)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
-
-    // copy gpu vector pointers from host to device pointer array
-    CHECK_HIP_ERROR(hipMemcpy(dx_pvec, dxvec, sizeof(T*) * batch_count, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dy_pvec, dyvec, sizeof(T*) * batch_count, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(dx.transfer_from(hx));
+    CHECK_HIP_ERROR(dy.transfer_from(hy));
 
     double gpu_time_used, cpu_time_used;
     double rocblas_error = 0.0;
@@ -132,15 +105,12 @@ void testing_swap_batched(const Arguments& arg)
     if(arg.unit_check || arg.norm_check)
     {
         // GPU BLAS
-        CHECK_ROCBLAS_ERROR(
-            rocblas_swap_batched<T>(handle, N, dx_pvec, incx, dy_pvec, incy, batch_count));
+        CHECK_ROCBLAS_ERROR(rocblas_swap_batched<T>(
+            handle, N, dx.ptr_on_device(), incx, dy.ptr_on_device(), incy, batch_count));
 
         // copy data from device to CPU
-        for(int i = 0; i < batch_count; i++)
-        {
-            CHECK_HIP_ERROR(hipMemcpy(hx[i], dxvec[i], sizeof(T) * size_x, hipMemcpyDeviceToHost));
-            CHECK_HIP_ERROR(hipMemcpy(hy[i], dyvec[i], sizeof(T) * size_y, hipMemcpyDeviceToHost));
-        }
+        CHECK_HIP_ERROR(hx.transfer_from(dx));
+        CHECK_HIP_ERROR(hy.transfer_from(dy));
 
         // CPU BLAS
         cpu_time_used = get_time_us();
@@ -177,14 +147,16 @@ void testing_swap_batched(const Arguments& arg)
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            rocblas_swap_batched<T>(handle, N, dx_pvec, incx, dy_pvec, incy, batch_count);
+            rocblas_swap_batched<T>(
+                handle, N, dx.ptr_on_device(), incx, dy.ptr_on_device(), incy, batch_count);
         }
 
         gpu_time_used = get_time_us(); // in microseconds
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            rocblas_swap_batched<T>(handle, N, dx_pvec, incx, dy_pvec, incy, batch_count);
+            rocblas_swap_batched<T>(
+                handle, N, dx.ptr_on_device(), incx, dy.ptr_on_device(), incy, batch_count);
         }
 
         gpu_time_used = (get_time_us() - gpu_time_used) / number_hot_calls;
