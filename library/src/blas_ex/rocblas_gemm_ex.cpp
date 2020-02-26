@@ -5,6 +5,7 @@
 #include "rocblas_gemm_ex.hpp"
 #include "handle.h"
 #include "logging.h"
+#include "rocblas-profile.h"
 #include "rocblas.h"
 #include "utility.h"
 

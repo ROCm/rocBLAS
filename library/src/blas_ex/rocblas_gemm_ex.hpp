@@ -691,7 +691,14 @@ rocblas_status gemm_ex_batched_template(rocblas_handle    handle,
         handle, trans_a,  trans_b, m,    n,   k,        alpha, a,   lda,      stride_a,   b,
         ldb,    stride_b, beta,    c_in, ldi, stride_i, d,     ldd, stride_d, batch_count};
 
-    return handle->host->runContractionProblem(problem);
+    if(startEvent && stopEvent)
+    {
+        hipStream_t stream;
+        rocblas_get_stream(handle, &stream);
+        return handle->host->runContractionProblem(problem, &stream, startEvent, stopEvent);
+    }
+    else
+        return handle->host->runContractionProblem(problem);
 
 #else // USE_TENSILE_HOST
 
