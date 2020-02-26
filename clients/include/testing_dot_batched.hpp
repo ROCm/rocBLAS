@@ -94,7 +94,7 @@ void testing_dot_batched(const Arguments& arg)
         static const size_t    safe_size = 100; // arbitrarily set to 100
         device_batch_vector<T> dx(safe_size, 1, 1);
         device_batch_vector<T> dy(safe_size, 1, 1);
-        device_vector<T>       d_rocblas_result(1);
+        device_vector<T>       d_rocblas_result(std::max(batch_count, 1));
         CHECK_DEVICE_ALLOCATION(dx.memcheck());
         CHECK_DEVICE_ALLOCATION(dy.memcheck());
         CHECK_DEVICE_ALLOCATION(d_rocblas_result.memcheck());

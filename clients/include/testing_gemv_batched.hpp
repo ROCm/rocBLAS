@@ -219,7 +219,6 @@ void testing_gemv_batched(const Arguments& arg)
     // Initial Data on CPU
     rocblas_init(hA, true);
     rocblas_init(hx, false);
-    rocblas_init(hy_1, false);
     if(rocblas_isnan(arg.beta))
         rocblas_init_nan(hy_1, false);
     else

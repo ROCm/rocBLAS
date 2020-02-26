@@ -72,10 +72,6 @@ void testing_swap_batched(const Arguments& arg)
     host_batch_vector<T> hy(N, incy, batch_count);
     host_batch_vector<T> hx_gold(N, incx, batch_count);
     host_batch_vector<T> hy_gold(N, incy, batch_count);
-    CHECK_HIP_ERROR(hx.memcheck());
-    CHECK_HIP_ERROR(hy.memcheck());
-    CHECK_HIP_ERROR(hx_gold.memcheck());
-    CHECK_HIP_ERROR(hy_gold.memcheck());
 
     // Initial Data on CPU
     rocblas_init(hx, true);

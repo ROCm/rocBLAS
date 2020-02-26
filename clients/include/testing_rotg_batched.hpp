@@ -107,9 +107,6 @@ void testing_rotg_batched(const Arguments& arg)
     host_batch_vector<U> hc(1, 1, batch_count);
     host_batch_vector<T> hs(1, 1, batch_count);
 
-    device_batch_vector<T> ba(1, 1, batch_count);
-    device_batch_vector<T> bb(1, 1, batch_count);
-
     for(int i = 0; i < TEST_COUNT; i++)
     {
         host_batch_vector<T> ca(1, 1, batch_count);
