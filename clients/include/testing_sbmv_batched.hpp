@@ -41,9 +41,9 @@ void testing_sbmv_batched_bad_arg()
     device_batch_vector<T> dA(size_A, 1, batch_count);
     device_batch_vector<T> dx(N, incx, batch_count);
     device_batch_vector<T> dy(N, incy, batch_count);
-    CHECK_HIP_ERROR(dA.memcheck());
-    CHECK_HIP_ERROR(dx.memcheck());
-    CHECK_HIP_ERROR(dy.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     EXPECT_ROCBLAS_STATUS(rocblas_sbmv_batched<T>(nullptr,
                                                   uplo,
@@ -178,21 +178,22 @@ void testing_sbmv_batched(const Arguments& arg)
     // argument sanity check before allocating invalid memory
     if(N <= 0 || lda < 0 || K < 0 || !incx || !incy || batch_count <= 0)
     {
-        static const size_t    safe_size = 100;
-        device_batch_vector<T> dA(safe_size, 1, 1);
-        device_batch_vector<T> dx(safe_size, 1, 1);
-        device_batch_vector<T> dy(safe_size, 1, 1);
-        if(!dA || !dx || !dy)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_sbmv_batched<T>(
-                handle, uplo, N, K, alpha, dA, lda, dx, incx, beta, dy, incy, batch_count),
-            N < 0 || lda < 0 || K < 0 || !incx || !incy || batch_count < 0
-                ? rocblas_status_invalid_size
-                : rocblas_status_success);
+        EXPECT_ROCBLAS_STATUS(rocblas_sbmv_batched<T>(handle,
+                                                      uplo,
+                                                      N,
+                                                      K,
+                                                      nullptr,
+                                                      nullptr,
+                                                      lda,
+                                                      nullptr,
+                                                      incx,
+                                                      nullptr,
+                                                      nullptr,
+                                                      incy,
+                                                      batch_count),
+                              N < 0 || lda < 0 || K < 0 || !incx || !incy || batch_count < 0
+                                  ? rocblas_status_invalid_size
+                                  : rocblas_status_success);
         return;
     }
 
@@ -206,12 +207,6 @@ void testing_sbmv_batched(const Arguments& arg)
     host_batch_vector<T> hy2(N, incy, batch_count);
     host_batch_vector<T> hg(N, incy, batch_count);
 
-    CHECK_HIP_ERROR(hA.memcheck());
-    CHECK_HIP_ERROR(hx.memcheck());
-    CHECK_HIP_ERROR(hy.memcheck());
-    CHECK_HIP_ERROR(hy2.memcheck());
-    CHECK_HIP_ERROR(hg.memcheck());
-
     double gpu_time_used, cpu_time_used;
     double rocblas_gflops, cblas_gflops, rocblas_bandwidth;
     double h_error, d_error;
@@ -221,10 +216,9 @@ void testing_sbmv_batched(const Arguments& arg)
     device_batch_vector<T> dA(size_A, 1, batch_count);
     device_batch_vector<T> dx(N, incx, batch_count);
     device_batch_vector<T> dy(N, incy, batch_count);
-
-    CHECK_HIP_ERROR(dA.memcheck());
-    CHECK_HIP_ERROR(dx.memcheck());
-    CHECK_HIP_ERROR(dy.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     // Initial Data on CPU
     rocblas_seedrand();

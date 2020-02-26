@@ -53,9 +53,9 @@ void testing_trsm_batched_ex(const Arguments& arg)
         device_batch_vector<T> dA(safe_size, 1, num_batch);
         device_batch_vector<T> dXorB(safe_size, 1, num_batch);
         device_batch_vector<T> dinvA(safe_size, 1, num_batch);
-        CHECK_HIP_ERROR(dA.memcheck());
-        CHECK_HIP_ERROR(dXorB.memcheck());
-        CHECK_HIP_ERROR(dinvA.memcheck());
+        CHECK_DEVICE_ALLOCATION(dA.memcheck());
+        CHECK_DEVICE_ALLOCATION(dXorB.memcheck());
+        CHECK_DEVICE_ALLOCATION(dinvA.memcheck());
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         rocblas_status status = rocblas_trsm_batched_ex(handle,
@@ -88,10 +88,10 @@ void testing_trsm_batched_ex(const Arguments& arg)
     device_batch_vector<T> dXorB(size_B, 1, batch_count);
     device_batch_vector<T> dinvA(TRSM_BLOCK * K, 1, batch_count);
     device_vector<T>       alpha_d(1);
-    CHECK_HIP_ERROR(dA.memcheck());
-    CHECK_HIP_ERROR(dXorB.memcheck());
-    CHECK_HIP_ERROR(dinvA.memcheck());
-    CHECK_HIP_ERROR(alpha_d.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dXorB.memcheck());
+    CHECK_DEVICE_ALLOCATION(dinvA.memcheck());
+    CHECK_DEVICE_ALLOCATION(alpha_d.memcheck());
 
     // Host-arrays of pointers to host memory
     host_batch_vector<T> hA(size_A, 1, batch_count);
@@ -102,14 +102,6 @@ void testing_trsm_batched_ex(const Arguments& arg)
     host_batch_vector<T> hXorB_2(size_B, 1, batch_count);
     host_batch_vector<T> cpuXorB(size_B, 1, batch_count);
     host_vector<T>       halpha(1);
-    CHECK_HIP_ERROR(hA.memcheck());
-    CHECK_HIP_ERROR(AAT.memcheck());
-    CHECK_HIP_ERROR(hB.memcheck());
-    CHECK_HIP_ERROR(hX.memcheck());
-    CHECK_HIP_ERROR(hXorB_1.memcheck());
-    CHECK_HIP_ERROR(hXorB_2.memcheck());
-    CHECK_HIP_ERROR(cpuXorB.memcheck());
-    CHECK_HIP_ERROR(halpha.memcheck());
     halpha[0] = alpha_h;
 
     double gpu_time_used, cpu_time_used;

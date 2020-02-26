@@ -26,8 +26,8 @@ void testing_swap_batched_bad_arg(const Arguments& arg)
 
     device_batch_vector<T> dxt(N, incx, batch_count);
     device_batch_vector<T> dyt(N, incy, batch_count);
-    CHECK_HIP_ERROR(dxt.memcheck());
-    CHECK_HIP_ERROR(dyt.memcheck());
+    CHECK_DEVICE_ALLOCATION(dxt.memcheck());
+    CHECK_DEVICE_ALLOCATION(dyt.memcheck());
 
     EXPECT_ROCBLAS_STATUS(
         rocblas_swap_batched<T>(handle, N, nullptr, incx, dyt.ptr_on_device(), incy, batch_count),
@@ -93,8 +93,8 @@ void testing_swap_batched(const Arguments& arg)
 
     device_batch_vector<T> dx(N, incx, batch_count);
     device_batch_vector<T> dy(N, incy, batch_count);
-    CHECK_HIP_ERROR(dx.memcheck());
-    CHECK_HIP_ERROR(dy.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     CHECK_HIP_ERROR(dx.transfer_from(hx));
     CHECK_HIP_ERROR(dy.transfer_from(hy));

@@ -45,10 +45,9 @@ void testing_gemm_batched(const Arguments& arg)
         device_batch_vector<T> dA(safe_size, 1, num_batch);
         device_batch_vector<T> dB(safe_size, 1, num_batch);
         device_batch_vector<T> dC(safe_size, 1, num_batch);
-        CHECK_HIP_ERROR(dA.memcheck());
-        CHECK_HIP_ERROR(dB.memcheck());
-        CHECK_HIP_ERROR(dC.memcheck());
-        ;
+        CHECK_DEVICE_ALLOCATION(dA.memcheck());
+        CHECK_DEVICE_ALLOCATION(dB.memcheck());
+        CHECK_DEVICE_ALLOCATION(dC.memcheck());
 
         EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched<T>(handle,
                                                       transA,
@@ -92,9 +91,9 @@ void testing_gemm_batched(const Arguments& arg)
     device_batch_vector<T> dC(size_c, 1, batch_count);
     device_vector<T>       d_alpha(1);
     device_vector<T>       d_beta(1);
-    CHECK_HIP_ERROR(dA.memcheck());
-    CHECK_HIP_ERROR(dB.memcheck());
-    CHECK_HIP_ERROR(dC.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dB.memcheck());
+    CHECK_DEVICE_ALLOCATION(dC.memcheck());
 
     // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
     host_batch_vector<T> hA(size_a, 1, batch_count);
@@ -104,13 +103,6 @@ void testing_gemm_batched(const Arguments& arg)
     host_batch_vector<T> hC_gold(size_c, 1, batch_count);
     host_vector<T>       halpha(1);
     host_vector<T>       hbeta(1);
-    CHECK_HIP_ERROR(hA.memcheck());
-    CHECK_HIP_ERROR(hB.memcheck());
-    CHECK_HIP_ERROR(hC_1.memcheck());
-    CHECK_HIP_ERROR(hC_2.memcheck());
-    CHECK_HIP_ERROR(hC_gold.memcheck());
-    CHECK_HIP_ERROR(halpha.memcheck());
-    CHECK_HIP_ERROR(hbeta.memcheck());
     halpha[0] = h_alpha;
     hbeta[0]  = h_beta;
 

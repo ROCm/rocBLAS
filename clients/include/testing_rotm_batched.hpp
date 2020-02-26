@@ -16,19 +16,18 @@
 template <typename T>
 void testing_rotm_batched_bad_arg(const Arguments& arg)
 {
-    rocblas_int         N           = 100;
-    rocblas_int         incx        = 1;
-    rocblas_int         incy        = 1;
-    rocblas_int         batch_count = 5;
-    static const size_t safe_size   = 100;
+    rocblas_int N           = 100;
+    rocblas_int incx        = 1;
+    rocblas_int incy        = 1;
+    rocblas_int batch_count = 5;
 
     rocblas_local_handle   handle;
     device_batch_vector<T> dx(N, incx, batch_count);
     device_batch_vector<T> dy(N, incy, batch_count);
     device_batch_vector<T> dparam(1, 1, batch_count);
-    CHECK_HIP_ERROR(dx.memcheck());
-    CHECK_HIP_ERROR(dy.memcheck());
-    CHECK_HIP_ERROR(dparam.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
+    CHECK_DEVICE_ALLOCATION(dparam.memcheck());
 
     EXPECT_ROCBLAS_STATUS((rocblas_rotm_batched<T>(nullptr,
                                                    N,
@@ -84,9 +83,9 @@ void testing_rotm_batched(const Arguments& arg)
         device_batch_vector<T> dx(safe_size, 1, 1);
         device_batch_vector<T> dy(safe_size, 1, 1);
         device_batch_vector<T> dparam(1, 1, 1);
-        CHECK_HIP_ERROR(dx.memcheck());
-        CHECK_HIP_ERROR(dy.memcheck());
-        CHECK_HIP_ERROR(dparam.memcheck());
+        CHECK_DEVICE_ALLOCATION(dx.memcheck());
+        CHECK_DEVICE_ALLOCATION(dy.memcheck());
+        CHECK_DEVICE_ALLOCATION(dparam.memcheck());
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         if(batch_count < 0)
@@ -117,9 +116,9 @@ void testing_rotm_batched(const Arguments& arg)
     device_batch_vector<T> dx(N, incx, batch_count);
     device_batch_vector<T> dy(N, incy, batch_count);
     device_batch_vector<T> dparam(5, 1, batch_count);
-    CHECK_HIP_ERROR(dx.memcheck());
-    CHECK_HIP_ERROR(dy.memcheck());
-    CHECK_HIP_ERROR(dparam.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
+    CHECK_DEVICE_ALLOCATION(dparam.memcheck());
 
     // Initial Data on CPU
     host_batch_vector<T> hx(N, incx, batch_count);

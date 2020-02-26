@@ -28,7 +28,7 @@ void testing_scal_batched(const Arguments& arg)
     if(N < 0 || incx <= 0 || batch_count <= 0)
     {
         device_batch_vector<T> dx(1, 1, 1);
-        CHECK_HIP_ERROR(dx.memcheck());
+        CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         EXPECT_ROCBLAS_STATUS((rocblas_scal_batched<T, U>)(handle,
@@ -50,19 +50,15 @@ void testing_scal_batched(const Arguments& arg)
     device_batch_vector<T> dx_1(N, incx, batch_count);
     device_batch_vector<T> dx_2(N, incx, batch_count);
     device_vector<U>       d_alpha(1);
-    CHECK_HIP_ERROR(dx_1.memcheck());
-    CHECK_HIP_ERROR(dx_2.memcheck());
-    CHECK_HIP_ERROR(d_alpha.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx_1.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx_2.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
 
     // Host-arrays of pointers to host memory
     host_batch_vector<T> hx_1(N, incx, batch_count);
     host_batch_vector<T> hx_2(N, incx, batch_count);
     host_batch_vector<T> hx_gold(N, incx, batch_count);
     host_vector<U>       halpha(1);
-    CHECK_HIP_ERROR(hx_1.memcheck());
-    CHECK_HIP_ERROR(hx_2.memcheck());
-    CHECK_HIP_ERROR(hx_gold.memcheck());
-    CHECK_HIP_ERROR(halpha.memcheck());
     halpha[0] = h_alpha;
 
     // Initial Data on CPU
@@ -176,7 +172,7 @@ void testing_scal_batched_bad_arg(const Arguments& arg)
 
     // allocate memory on device
     device_batch_vector<T> dx(N, incx, batch_count);
-    CHECK_HIP_ERROR(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
     EXPECT_ROCBLAS_STATUS(
         (rocblas_scal_batched<T, U>)(handle, N, nullptr, dx.ptr_on_device(), incx, batch_count),

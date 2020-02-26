@@ -33,8 +33,8 @@ void testing_syr_batched_bad_arg()
     // allocate memory on device
     device_batch_vector<T> dx(N, incx, batch_count);
     device_batch_vector<T> dA_1(size_A, 1, batch_count);
-    CHECK_HIP_ERROR(dx.memcheck());
-    CHECK_HIP_ERROR(dA_1.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA_1.memcheck());
 
     EXPECT_ROCBLAS_STATUS(
         rocblas_syr_batched<T>(
@@ -94,11 +94,6 @@ void testing_syr_batched(const Arguments& arg)
     host_batch_vector<T> hA_gold(size_A, 1, batch_count);
     host_batch_vector<T> hx(N, incx, batch_count);
     host_vector<T>       halpha(1);
-    CHECK_HIP_ERROR(hA_1.memcheck());
-    CHECK_HIP_ERROR(hA_2.memcheck());
-    CHECK_HIP_ERROR(hA_gold.memcheck());
-    CHECK_HIP_ERROR(hx.memcheck());
-    CHECK_HIP_ERROR(halpha.memcheck());
     halpha[0] = h_alpha;
 
     // allocate memory on device

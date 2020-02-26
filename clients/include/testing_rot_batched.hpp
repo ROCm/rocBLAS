@@ -16,21 +16,20 @@
 template <typename T, typename U = T, typename V = T>
 void testing_rot_batched_bad_arg(const Arguments& arg)
 {
-    rocblas_int         N           = 100;
-    rocblas_int         incx        = 1;
-    rocblas_int         incy        = 1;
-    rocblas_int         batch_count = 5;
-    static const size_t safe_size   = 100;
+    rocblas_int N           = 100;
+    rocblas_int incx        = 1;
+    rocblas_int incy        = 1;
+    rocblas_int batch_count = 5;
 
     rocblas_local_handle   handle;
     device_batch_vector<T> dx(N, incx, batch_count);
     device_batch_vector<T> dy(N, incy, batch_count);
     device_vector<U>       dc(1);
     device_vector<V>       ds(1);
-    CHECK_HIP_ERROR(dx.memcheck());
-    CHECK_HIP_ERROR(dy.memcheck());
-    CHECK_HIP_ERROR(dc.memcheck());
-    CHECK_HIP_ERROR(ds.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
+    CHECK_DEVICE_ALLOCATION(dc.memcheck());
+    CHECK_DEVICE_ALLOCATION(ds.memcheck());
 
     EXPECT_ROCBLAS_STATUS(
         (rocblas_rot_batched<T, U, V>(
@@ -88,10 +87,10 @@ void testing_rot_batched(const Arguments& arg)
         device_batch_vector<T> dy(safe_size, 1, 1);
         device_vector<U>       dc(1);
         device_vector<V>       ds(1);
-        CHECK_HIP_ERROR(dx.memcheck());
-        CHECK_HIP_ERROR(dy.memcheck());
-        CHECK_HIP_ERROR(dc.memcheck());
-        CHECK_HIP_ERROR(ds.memcheck());
+        CHECK_DEVICE_ALLOCATION(dx.memcheck());
+        CHECK_DEVICE_ALLOCATION(dy.memcheck());
+        CHECK_DEVICE_ALLOCATION(dc.memcheck());
+        CHECK_DEVICE_ALLOCATION(ds.memcheck());
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         if(batch_count < 0)
@@ -125,10 +124,10 @@ void testing_rot_batched(const Arguments& arg)
     device_batch_vector<T> dy(N, incy, batch_count);
     device_vector<U>       dc(1);
     device_vector<V>       ds(1);
-    CHECK_HIP_ERROR(dx.memcheck());
-    CHECK_HIP_ERROR(dy.memcheck());
-    CHECK_HIP_ERROR(dc.memcheck());
-    CHECK_HIP_ERROR(ds.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
+    CHECK_DEVICE_ALLOCATION(dc.memcheck());
+    CHECK_DEVICE_ALLOCATION(ds.memcheck());
 
     // Initial Data on CPU
     host_batch_vector<T> hx(N, incx, batch_count);
@@ -239,7 +238,7 @@ void testing_rot_batched(const Arguments& arg)
     if(arg.timing)
     {
         int number_cold_calls = 2;
-        int number_hot_calls  = 100;
+        int number_hot_calls  = arg.iters;
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         CHECK_HIP_ERROR(dx.transfer_from(hx));
         CHECK_HIP_ERROR(dy.transfer_from(hy));

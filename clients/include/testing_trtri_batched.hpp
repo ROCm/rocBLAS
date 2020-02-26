@@ -39,8 +39,8 @@ void testing_trtri_batched(const Arguments& arg)
         static constexpr size_t safe_size = 100;
         device_batch_vector<T>  dA(safe_size, 1, 1);
         device_batch_vector<T>  dInv(safe_size, 1, 1);
-        CHECK_HIP_ERROR(dA.memcheck());
-        CHECK_HIP_ERROR(dInv.memcheck());
+        CHECK_DEVICE_ALLOCATION(dA.memcheck());
+        CHECK_DEVICE_ALLOCATION(dInv.memcheck());
 
         EXPECT_ROCBLAS_STATUS(rocblas_trtri_batched<T>(handle,
                                                        uplo,
@@ -61,9 +61,6 @@ void testing_trtri_batched(const Arguments& arg)
     host_batch_vector<T> hA(size_A, 1, batch_count);
     host_batch_vector<T> hB(size_A, 1, batch_count);
     host_batch_vector<T> hA_2(size_A, 1, batch_count);
-    CHECK_HIP_ERROR(hA.memcheck());
-    CHECK_HIP_ERROR(hB.memcheck());
-    CHECK_HIP_ERROR(hA_2.memcheck());
 
     // Initial Data on CPU
     rocblas_seedrand();
@@ -102,8 +99,8 @@ void testing_trtri_batched(const Arguments& arg)
 
     device_batch_vector<T> dA(size_A, 1, batch_count);
     device_batch_vector<T> dinvA(size_A, 1, batch_count);
-    CHECK_HIP_ERROR(dA.memcheck());
-    CHECK_HIP_ERROR(dinvA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dinvA.memcheck());
 
     // copy data from CPU to device
     CHECK_HIP_ERROR(dA.transfer_from(hA));

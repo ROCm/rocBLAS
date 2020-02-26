@@ -28,9 +28,9 @@ void testing_dot_batched_bad_arg(const Arguments& arg)
     device_batch_vector<T> dx(N, incx, batch_count);
     device_batch_vector<T> dy(N, incy, batch_count);
     device_vector<T>       d_rocblas_result(batch_count);
-    CHECK_HIP_ERROR(dx.memcheck());
-    CHECK_HIP_ERROR(dy.memcheck());
-    CHECK_HIP_ERROR(d_rocblas_result.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_rocblas_result.memcheck());
 
     CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
@@ -92,13 +92,12 @@ void testing_dot_batched(const Arguments& arg)
     if(N <= 0 || batch_count <= 0)
     {
         static const size_t    safe_size = 100; // arbitrarily set to 100
-        int                    b_c       = batch_count > 0 ? batch_count : 1;
-        device_batch_vector<T> dx(safe_size, 1, b_c);
-        device_batch_vector<T> dy(safe_size, 1, b_c);
-        device_vector<T>       d_rocblas_result(b_c);
-        CHECK_HIP_ERROR(dx.memcheck());
-        CHECK_HIP_ERROR(dy.memcheck());
-        CHECK_HIP_ERROR(d_rocblas_result.memcheck());
+        device_batch_vector<T> dx(safe_size, 1, 1);
+        device_batch_vector<T> dy(safe_size, 1, 1);
+        device_vector<T>       d_rocblas_result(1);
+        CHECK_DEVICE_ALLOCATION(dx.memcheck());
+        CHECK_DEVICE_ALLOCATION(dy.memcheck());
+        CHECK_DEVICE_ALLOCATION(d_rocblas_result.memcheck());
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
@@ -142,9 +141,9 @@ void testing_dot_batched(const Arguments& arg)
     device_batch_vector<T> dx(N, incx, batch_count);
     device_batch_vector<T> dy(N, incy, batch_count);
     device_vector<T>       d_rocblas_result_2(batch_count);
-    CHECK_HIP_ERROR(dx.memcheck());
-    CHECK_HIP_ERROR(dy.memcheck());
-    CHECK_HIP_ERROR(d_rocblas_result_2.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_rocblas_result_2.memcheck());
 
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
     host_batch_vector<T> hx(N, incx, batch_count);

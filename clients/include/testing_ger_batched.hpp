@@ -33,9 +33,9 @@ void testing_ger_batched_bad_arg(const Arguments& arg)
     device_batch_vector<T> dA(size_A, 1, batch_count);
     device_batch_vector<T> dx(M, incx, batch_count);
     device_batch_vector<T> dy(N, incy, batch_count);
-    CHECK_HIP_ERROR(dA.memcheck());
-    CHECK_HIP_ERROR(dx.memcheck());
-    CHECK_HIP_ERROR(dy.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     EXPECT_ROCBLAS_STATUS((rocblas_ger_batched<T, CONJ>(handle,
                                                         M,

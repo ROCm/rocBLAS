@@ -41,8 +41,8 @@ void testing_trsv_batched(const Arguments& arg)
     {
         device_batch_vector<T> dA(1, 1, 1);
         device_batch_vector<T> dx_or_b(1, 1, 1);
-        CHECK_HIP_ERROR(dA.memcheck());
-        CHECK_HIP_ERROR(dx_or_b.memcheck());
+        CHECK_DEVICE_ALLOCATION(dA.memcheck());
+        CHECK_DEVICE_ALLOCATION(dx_or_b.memcheck());
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         if(batch_count == 0)
@@ -83,13 +83,6 @@ void testing_trsv_batched(const Arguments& arg)
     host_batch_vector<T> hx_or_b_1(size_x, 1, batch_count);
     host_batch_vector<T> hx_or_b_2(size_x, 1, batch_count);
     host_batch_vector<T> cpu_x_or_b(size_x, 1, batch_count);
-    CHECK_HIP_ERROR(hA.memcheck());
-    CHECK_HIP_ERROR(AAT.memcheck());
-    CHECK_HIP_ERROR(hb.memcheck());
-    CHECK_HIP_ERROR(hx.memcheck());
-    CHECK_HIP_ERROR(hx_or_b_1.memcheck());
-    CHECK_HIP_ERROR(hx_or_b_2.memcheck());
-    CHECK_HIP_ERROR(cpu_x_or_b.memcheck());
 
     double gpu_time_used, cpu_time_used;
     double rocblas_gflops, cblas_gflops;
@@ -101,8 +94,8 @@ void testing_trsv_batched(const Arguments& arg)
     // allocate memory on device
     device_batch_vector<T> dA(size_A, 1, batch_count);
     device_batch_vector<T> dx_or_b(M, incx, batch_count);
-    CHECK_HIP_ERROR(dA.memcheck());
-    CHECK_HIP_ERROR(dx_or_b.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx_or_b.memcheck());
 
     for(int b = 0; b < batch_count; b++)
     {

@@ -26,8 +26,8 @@ void testing_nrm2_batched_bad_arg(const Arguments& arg)
 
     device_batch_vector<T>   dx(N, incx, batch_count);
     device_vector<real_t<T>> d_rocblas_result(1);
-    CHECK_HIP_ERROR(dx.memcheck());
-    CHECK_HIP_ERROR(d_rocblas_result.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_rocblas_result.memcheck());
 
     CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
@@ -58,11 +58,10 @@ void testing_nrm2_batched(const Arguments& arg)
     if(N <= 0 || incx <= 0 || batch_count <= 0)
     {
         size_t                   safe_size = 100;
-        int                      b_c       = batch_count > 0 ? batch_count : 1;
-        device_batch_vector<T>   dx(safe_size, 1, b_c);
-        device_vector<real_t<T>> d_rocblas_result(b_c);
-        CHECK_HIP_ERROR(dx.memcheck());
-        CHECK_HIP_ERROR(d_rocblas_result.memcheck());
+        device_batch_vector<T>   dx(safe_size, 1, 1);
+        device_vector<real_t<T>> d_rocblas_result(std::max(2, std::abs(batch_count)));
+        CHECK_DEVICE_ALLOCATION(dx.memcheck());
+        CHECK_DEVICE_ALLOCATION(d_rocblas_result.memcheck());
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         EXPECT_ROCBLAS_STATUS(
@@ -83,8 +82,8 @@ void testing_nrm2_batched(const Arguments& arg)
     // allocate memory on device
     device_vector<real_t<T>> d_rocblas_result_2(batch_count);
     device_batch_vector<T>   dx(N, incx, batch_count);
-    CHECK_HIP_ERROR(d_rocblas_result_2.memcheck());
-    CHECK_HIP_ERROR(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_rocblas_result_2.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
     // Initial Data on CPU
     rocblas_init(hx, true);
@@ -125,10 +124,10 @@ void testing_nrm2_batched(const Arguments& arg)
         abs_error *= tolerance;
         if(arg.unit_check)
         {
-            // near_check_general<real_t<T>, real_t<T>>(
-            //     batch_count, 1, 1, cpu_result, rocblas_result_1, abs_error);
-            // near_check_general<real_t<T>, real_t<T>>(
-            //     batch_count, 1, 1, cpu_result, rocblas_result_2, abs_error);
+            near_check_general<real_t<T>, real_t<T>>(
+                batch_count, 1, 1, cpu_result, rocblas_result_1, abs_error);
+            near_check_general<real_t<T>, real_t<T>>(
+                batch_count, 1, 1, cpu_result, rocblas_result_2, abs_error);
         }
 
         if(arg.norm_check)
@@ -145,7 +144,7 @@ void testing_nrm2_batched(const Arguments& arg)
     if(arg.timing)
     {
         int number_cold_calls = 2;
-        int number_hot_calls  = 100;
+        int number_hot_calls  = arg.iters;
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
         for(int iter = 0; iter < number_cold_calls; iter++)

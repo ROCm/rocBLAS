@@ -24,10 +24,10 @@ void testing_rotg_batched_bad_arg(const Arguments& arg)
     device_batch_vector<T> db(1, 1, batch_count);
     device_batch_vector<U> dc(1, 1, batch_count);
     device_batch_vector<T> ds(1, 1, batch_count);
-    CHECK_HIP_ERROR(da.memcheck());
-    CHECK_HIP_ERROR(db.memcheck());
-    CHECK_HIP_ERROR(dc.memcheck());
-    CHECK_HIP_ERROR(ds.memcheck());
+    CHECK_DEVICE_ALLOCATION(da.memcheck());
+    CHECK_DEVICE_ALLOCATION(db.memcheck());
+    CHECK_DEVICE_ALLOCATION(dc.memcheck());
+    CHECK_DEVICE_ALLOCATION(ds.memcheck());
 
     EXPECT_ROCBLAS_STATUS((rocblas_rotg_batched<T, U>(nullptr,
                                                       da.ptr_on_device(),
@@ -69,7 +69,7 @@ void testing_rotg_batched_bad_arg(const Arguments& arg)
 template <typename T, typename U = T>
 void testing_rotg_batched(const Arguments& arg)
 {
-    const int            TEST_COUNT  = 1; //100;
+    const int            TEST_COUNT  = 100;
     rocblas_int          batch_count = arg.batch_count;
     rocblas_local_handle handle;
 
@@ -84,10 +84,10 @@ void testing_rotg_batched(const Arguments& arg)
         device_batch_vector<T> db(1, 1, 1);
         device_batch_vector<U> dc(1, 1, 1);
         device_batch_vector<T> ds(1, 1, 1);
-        CHECK_HIP_ERROR(da.memcheck());
-        CHECK_HIP_ERROR(db.memcheck());
-        CHECK_HIP_ERROR(dc.memcheck());
-        CHECK_HIP_ERROR(ds.memcheck());
+        CHECK_DEVICE_ALLOCATION(da.memcheck());
+        CHECK_DEVICE_ALLOCATION(db.memcheck());
+        CHECK_DEVICE_ALLOCATION(dc.memcheck());
+        CHECK_DEVICE_ALLOCATION(ds.memcheck());
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         EXPECT_ROCBLAS_STATUS((rocblas_rotg_batched<T, U>)(handle,
@@ -139,18 +139,10 @@ void testing_rotg_batched(const Arguments& arg)
             host_batch_vector<T> rb(1, 1, batch_count);
             host_batch_vector<U> rc(1, 1, batch_count);
             host_batch_vector<T> rs(1, 1, batch_count);
-            host_batch_vector<T> ra_in(1, 1, batch_count);
-            host_batch_vector<T> rb_in(1, 1, batch_count);
-            host_batch_vector<U> rc_in(1, 1, batch_count);
-            host_batch_vector<T> rs_in(1, 1, batch_count);
             ra.copy_from(ha);
-            ra_in.copy_from(ha);
             rb.copy_from(hb);
-            rb_in.copy_from(hb);
             rc.copy_from(hc);
-            rc_in.copy_from(hc);
             rs.copy_from(hs);
-            rs_in.copy_from(hs);
 
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 

@@ -50,8 +50,8 @@ void testing_trsm_batched(const Arguments& arg)
 
         device_batch_vector<T> dA(safe_size, 1, 1);
         device_batch_vector<T> dXorB(safe_size, 1, 1);
-        CHECK_HIP_ERROR(dA.memcheck());
-        CHECK_HIP_ERROR(dXorB.memcheck());
+        CHECK_DEVICE_ALLOCATION(dA.memcheck());
+        CHECK_DEVICE_ALLOCATION(dXorB.memcheck());
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         rocblas_status status = rocblas_trsm_batched<T>(handle,
@@ -85,14 +85,6 @@ void testing_trsm_batched(const Arguments& arg)
     host_batch_vector<T> hXorB_2(size_B, 1, batch_count);
     host_batch_vector<T> cpuXorB(size_B, 1, batch_count);
     host_vector<T>       halpha(1);
-    CHECK_HIP_ERROR(hA.memcheck());
-    CHECK_HIP_ERROR(AAT.memcheck());
-    CHECK_HIP_ERROR(hB.memcheck());
-    CHECK_HIP_ERROR(hX.memcheck());
-    CHECK_HIP_ERROR(hXorB_1.memcheck());
-    CHECK_HIP_ERROR(hXorB_2.memcheck());
-    CHECK_HIP_ERROR(cpuXorB.memcheck());
-    CHECK_HIP_ERROR(halpha.memcheck());
     halpha[0] = alpha_h;
 
     double gpu_time_used, cpu_time_used;
@@ -105,9 +97,9 @@ void testing_trsm_batched(const Arguments& arg)
     device_batch_vector<T> dA(size_A, 1, batch_count);
     device_batch_vector<T> dXorB(size_B, 1, batch_count);
     device_vector<T>       alpha_d(1);
-    CHECK_HIP_ERROR(dA.memcheck());
-    CHECK_HIP_ERROR(dXorB.memcheck());
-    CHECK_HIP_ERROR(alpha_d.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dXorB.memcheck());
+    CHECK_DEVICE_ALLOCATION(alpha_d.memcheck());
 
     //  Random lower triangular matrices have condition number
     //  that grows exponentially with matrix size. Random full

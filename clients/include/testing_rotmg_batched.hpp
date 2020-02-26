@@ -25,11 +25,11 @@ void testing_rotmg_batched_bad_arg(const Arguments& arg)
     device_batch_vector<T> x1(safe_size, 1, batch_count);
     device_batch_vector<T> y1(safe_size, 1, batch_count);
     device_batch_vector<T> param(safe_size, 1, batch_count);
-    CHECK_HIP_ERROR(d1.memcheck());
-    CHECK_HIP_ERROR(d2.memcheck());
-    CHECK_HIP_ERROR(x1.memcheck());
-    CHECK_HIP_ERROR(y1.memcheck());
-    CHECK_HIP_ERROR(param.memcheck());
+    CHECK_DEVICE_ALLOCATION(d1.memcheck());
+    CHECK_DEVICE_ALLOCATION(d2.memcheck());
+    CHECK_DEVICE_ALLOCATION(x1.memcheck());
+    CHECK_DEVICE_ALLOCATION(y1.memcheck());
+    CHECK_DEVICE_ALLOCATION(param.memcheck());
 
     EXPECT_ROCBLAS_STATUS(rocblas_rotmg_batched<T>(nullptr,
                                                    d1.ptr_on_device(),
@@ -84,7 +84,7 @@ void testing_rotmg_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_rotmg_batched(const Arguments& arg)
 {
-    const int            TEST_COUNT  = 1; //100;
+    const int            TEST_COUNT  = 100;
     rocblas_int          batch_count = arg.batch_count;
     rocblas_local_handle handle;
 
@@ -101,11 +101,11 @@ void testing_rotmg_batched(const Arguments& arg)
         device_batch_vector<T> x1(safe_size, 1, 1);
         device_batch_vector<T> y1(safe_size, 1, 1);
         device_batch_vector<T> param(safe_size, 1, 1);
-        CHECK_HIP_ERROR(d1.memcheck());
-        CHECK_HIP_ERROR(d2.memcheck());
-        CHECK_HIP_ERROR(x1.memcheck());
-        CHECK_HIP_ERROR(y1.memcheck());
-        CHECK_HIP_ERROR(param.memcheck());
+        CHECK_DEVICE_ALLOCATION(d1.memcheck());
+        CHECK_DEVICE_ALLOCATION(d2.memcheck());
+        CHECK_DEVICE_ALLOCATION(x1.memcheck());
+        CHECK_DEVICE_ALLOCATION(y1.memcheck());
+        CHECK_DEVICE_ALLOCATION(param.memcheck());
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         EXPECT_ROCBLAS_STATUS(rocblas_rotmg_batched<T>(handle,
@@ -126,16 +126,6 @@ void testing_rotmg_batched(const Arguments& arg)
     host_batch_vector<T> hx1(1, 1, batch_count);
     host_batch_vector<T> hy1(1, 1, batch_count);
     host_batch_vector<T> hparams(5, 1, batch_count);
-
-    device_batch_vector<T> bd1(1, 1, batch_count);
-    device_batch_vector<T> bd2(1, 1, batch_count);
-    device_batch_vector<T> bx1(1, 1, batch_count);
-    device_batch_vector<T> by1(1, 1, batch_count);
-    device_batch_vector<T> bparams(5, 1, batch_count);
-    CHECK_HIP_ERROR(bd1.memcheck());
-    CHECK_HIP_ERROR(bd2.memcheck());
-    CHECK_HIP_ERROR(bx1.memcheck());
-    CHECK_HIP_ERROR(by1.memcheck());
 
     for(int i = 0; i < TEST_COUNT; i++)
     {
@@ -171,21 +161,11 @@ void testing_rotmg_batched(const Arguments& arg)
             host_batch_vector<T> ry1(1, 1, batch_count);
             host_batch_vector<T> rparams(5, 1, batch_count);
 
-            host_batch_vector<T> rd1_in(1, 1, batch_count);
-            host_batch_vector<T> rd2_in(1, 1, batch_count);
-            host_batch_vector<T> rx1_in(1, 1, batch_count);
-            host_batch_vector<T> ry1_in(1, 1, batch_count);
-            host_batch_vector<T> rparams_in(5, 1, batch_count);
             rd1.copy_from(hd1);
-            rd1_in.copy_from(hd1);
             rd2.copy_from(hd2);
-            rd2_in.copy_from(hd2);
             rx1.copy_from(hx1);
-            rx1_in.copy_from(hx1);
             ry1.copy_from(hy1);
-            ry1_in.copy_from(hy1);
             rparams.copy_from(hparams);
-            rparams_in.copy_from(hparams);
 
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
@@ -219,11 +199,11 @@ void testing_rotmg_batched(const Arguments& arg)
             device_batch_vector<T> dx1(1, 1, batch_count);
             device_batch_vector<T> dy1(1, 1, batch_count);
             device_batch_vector<T> dparams(5, 1, batch_count);
-            CHECK_HIP_ERROR(dd1.memcheck());
-            CHECK_HIP_ERROR(dd2.memcheck());
-            CHECK_HIP_ERROR(dx1.memcheck());
-            CHECK_HIP_ERROR(dy1.memcheck());
-            CHECK_HIP_ERROR(dparams.memcheck());
+            CHECK_DEVICE_ALLOCATION(dd1.memcheck());
+            CHECK_DEVICE_ALLOCATION(dd2.memcheck());
+            CHECK_DEVICE_ALLOCATION(dx1.memcheck());
+            CHECK_DEVICE_ALLOCATION(dy1.memcheck());
+            CHECK_DEVICE_ALLOCATION(dparams.memcheck());
 
             CHECK_HIP_ERROR(dd1.transfer_from(hd1));
             CHECK_HIP_ERROR(dd2.transfer_from(hd2));
