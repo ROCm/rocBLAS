@@ -48,17 +48,14 @@ void testing_trsm_batched_ex(const Arguments& arg)
     // check here to prevent undefined memory allocation error
     if(M < 0 || N < 0 || lda < K || ldb < M || batch_count <= 0)
     {
-        static const size_t     safe_size = 100; // arbitrarily set to 100
-        rocblas_int             num_batch = batch_count < 0 ? 1 : batch_count;
-        device_vector<T*, 0, T> dA(1);
-        device_vector<T*, 0, T> dXorB(1);
-        device_vector<T*, 0, T> dinvA(1);
-
-        if(!dA || !dXorB)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
+        static const size_t    safe_size = 100; // arbitrarily set to 100
+        rocblas_int            num_batch = batch_count < 0 ? 1 : batch_count;
+        device_batch_vector<T> dA(safe_size, 1, num_batch);
+        device_batch_vector<T> dXorB(safe_size, 1, num_batch);
+        device_batch_vector<T> dinvA(safe_size, 1, num_batch);
+        CHECK_HIP_ERROR(dA.memcheck());
+        CHECK_HIP_ERROR(dXorB.memcheck());
+        CHECK_HIP_ERROR(dinvA.memcheck());
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         rocblas_status status = rocblas_trsm_batched_ex(handle,
@@ -69,12 +66,12 @@ void testing_trsm_batched_ex(const Arguments& arg)
                                                         M,
                                                         N,
                                                         &alpha_h,
-                                                        dA,
+                                                        dA.ptr_on_device(),
                                                         lda,
-                                                        dXorB,
+                                                        dXorB.ptr_on_device(),
                                                         ldb,
                                                         batch_count,
-                                                        dinvA,
+                                                        dinvA.ptr_on_device(),
                                                         TRSM_BLOCK * K,
                                                         arg.compute_type);
 
@@ -87,43 +84,33 @@ void testing_trsm_batched_ex(const Arguments& arg)
     }
 
     // Device-arrays of pointers to device memory
-    device_vector<T*, 0, T> dA(batch_count);
-    device_vector<T*, 0, T> dXorB(batch_count);
-    device_vector<T*, 0, T> dinvA(batch_count);
-    device_vector<T*, 0, T> dX_tmp(batch_count);
-    device_vector<T>        alpha_d(1);
+    device_batch_vector<T> dA(size_A, 1, batch_count);
+    device_batch_vector<T> dXorB(size_B, 1, batch_count);
+    device_batch_vector<T> dinvA(TRSM_BLOCK * K, 1, batch_count);
+    device_vector<T>       alpha_d(1);
+    CHECK_HIP_ERROR(dA.memcheck());
+    CHECK_HIP_ERROR(dXorB.memcheck());
+    CHECK_HIP_ERROR(dinvA.memcheck());
+    CHECK_HIP_ERROR(alpha_d.memcheck());
 
     // Host-arrays of pointers to host memory
-    host_vector<T> hA[batch_count];
-    host_vector<T> AAT[batch_count];
-    host_vector<T> hB[batch_count];
-    host_vector<T> hX[batch_count];
-    host_vector<T> hXorB_1[batch_count];
-    host_vector<T> hXorB_2[batch_count];
-    host_vector<T> cpuXorB[batch_count];
-
-    for(int b = 0; b < batch_count; b++)
-    {
-        hA[b]      = host_vector<T>(size_A);
-        AAT[b]     = host_vector<T>(size_A);
-        hB[b]      = host_vector<T>(size_B);
-        hX[b]      = host_vector<T>(size_B);
-        hXorB_1[b] = host_vector<T>(size_B);
-        hXorB_2[b] = host_vector<T>(size_B);
-        cpuXorB[b] = host_vector<T>(size_B);
-    }
-
-    // Host-arrays of pointers to device memory
-    device_batch_vector<T> bA(batch_count, size_A);
-    device_batch_vector<T> bXorB(batch_count, size_B);
-    device_batch_vector<T> binvA(batch_count, TRSM_BLOCK * K);
-
-    int last = batch_count - 1;
-    if((!bA[last] && size_A) || (!bXorB[last] && size_B) || (!binvA[last] && TRSM_BLOCK * K))
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    host_batch_vector<T> hA(size_A, 1, batch_count);
+    host_batch_vector<T> AAT(size_A, 1, batch_count);
+    host_batch_vector<T> hB(size_B, 1, batch_count);
+    host_batch_vector<T> hX(size_B, 1, batch_count);
+    host_batch_vector<T> hXorB_1(size_B, 1, batch_count);
+    host_batch_vector<T> hXorB_2(size_B, 1, batch_count);
+    host_batch_vector<T> cpuXorB(size_B, 1, batch_count);
+    host_vector<T>       halpha(1);
+    CHECK_HIP_ERROR(hA.memcheck());
+    CHECK_HIP_ERROR(AAT.memcheck());
+    CHECK_HIP_ERROR(hB.memcheck());
+    CHECK_HIP_ERROR(hX.memcheck());
+    CHECK_HIP_ERROR(hXorB_1.memcheck());
+    CHECK_HIP_ERROR(hXorB_2.memcheck());
+    CHECK_HIP_ERROR(cpuXorB.memcheck());
+    CHECK_HIP_ERROR(halpha.memcheck());
+    halpha[0] = alpha_h;
 
     double gpu_time_used, cpu_time_used;
     double rocblas_gflops, cblas_gflops;
@@ -145,10 +132,9 @@ void testing_trsm_batched_ex(const Arguments& arg)
     //  the condition number of the original matrix A.
 
     //  initialize full random matrix hA with all entries in [1, 10]
+    rocblas_init(hA, true);
     for(int b = 0; b < batch_count; b++)
     {
-        rocblas_init<T>(hA[b], K, K, lda);
-
         //  pad untouched area into zero
         for(int i = K; i < lda; i++)
             for(int j = 0; j < K; j++)
@@ -206,28 +192,26 @@ void testing_trsm_batched_ex(const Arguments& arg)
         // Initialize "exact" answer hx
         rocblas_init<T>(hX[b], M, N, ldb);
         // pad untouched area into zero
+
         for(int i = M; i < ldb; i++)
             for(int j = 0; j < N; j++)
                 hX[b][i + j * ldb] = 0.0;
-        hB[b] = hX[b];
-
-        // Calculate hB = hA*hX;
-        cblas_trmm<T>(side, uplo, transA, diag, M, N, 1.0 / alpha_h, hA[b], lda, hB[b], ldb);
-
-        hXorB_1[b] = hB[b]; // hXorB <- B
-        hXorB_2[b] = hB[b]; // hXorB <- B
-        cpuXorB[b] = hB[b]; // cpuXorB <- B
-
-        // copy data from CPU to device
-        // 1. Use intermediate arrays to access device memory from host
-        CHECK_HIP_ERROR(hipMemcpy(bA[b], hA[b], sizeof(T) * size_A, hipMemcpyHostToDevice));
-        CHECK_HIP_ERROR(hipMemcpy(bXorB[b], hXorB_1[b], sizeof(T) * size_B, hipMemcpyHostToDevice));
     }
 
-    // 2. Copy intermediate arrays into device arrays
-    CHECK_HIP_ERROR(hipMemcpy(dA, bA, sizeof(T*) * batch_count, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dXorB, bXorB, sizeof(T*) * batch_count, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dinvA, binvA, sizeof(T*) * batch_count, hipMemcpyHostToDevice));
+    hB.copy_from(hX);
+
+    for(int b = 0; b < batch_count; b++)
+    {
+        // Calculate hB = hA*hX;
+        cblas_trmm<T>(side, uplo, transA, diag, M, N, 1.0 / alpha_h, hA[b], lda, hB[b], ldb);
+    }
+
+    hXorB_1.copy_from(hB);
+    hXorB_2.copy_from(hB);
+    cpuXorB.copy_from(hB);
+
+    CHECK_HIP_ERROR(dA.transfer_from(hA));
+    CHECK_HIP_ERROR(dXorB.transfer_from(hXorB_1));
 
     rocblas_int stride_A    = TRSM_BLOCK * lda + TRSM_BLOCK;
     rocblas_int stride_invA = TRSM_BLOCK * TRSM_BLOCK;
@@ -241,12 +225,7 @@ void testing_trsm_batched_ex(const Arguments& arg)
     {
         // calculate dXorB <- A^(-1) B   rocblas_device_pointer_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        for(int b = 0; b < batch_count; b++)
-        {
-            CHECK_HIP_ERROR(
-                hipMemcpy(bXorB[b], hXorB_1[b], sizeof(T) * size_B, hipMemcpyHostToDevice));
-        }
-        CHECK_HIP_ERROR(hipMemcpy(dXorB, bXorB, sizeof(T*) * batch_count, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(dXorB.transfer_from(hXorB_1));
 
         hipStream_t rocblas_stream;
         rocblas_get_stream(handle, &rocblas_stream);
@@ -259,10 +238,10 @@ void testing_trsm_batched_ex(const Arguments& arg)
                                                                      uplo,
                                                                      diag,
                                                                      TRSM_BLOCK,
-                                                                     bA[b],
+                                                                     dA[b],
                                                                      lda,
                                                                      stride_A,
-                                                                     binvA[b],
+                                                                     dinvA[b],
                                                                      TRSM_BLOCK,
                                                                      stride_invA,
                                                                      blocks));
@@ -275,10 +254,10 @@ void testing_trsm_batched_ex(const Arguments& arg)
                                                      uplo,
                                                      diag,
                                                      K - TRSM_BLOCK * blocks,
-                                                     bA[b] + stride_A * blocks,
+                                                     dA[b] + stride_A * blocks,
                                                      lda,
                                                      stride_A,
-                                                     binvA[b] + stride_invA * blocks,
+                                                     dinvA[b] + stride_invA * blocks,
                                                      TRSM_BLOCK,
                                                      stride_invA,
                                                      1));
@@ -294,32 +273,22 @@ void testing_trsm_batched_ex(const Arguments& arg)
                                                     M,
                                                     N,
                                                     &alpha_h,
-                                                    dA,
+                                                    dA.ptr_on_device(),
                                                     lda,
-                                                    dXorB,
+                                                    dXorB.ptr_on_device(),
                                                     ldb,
                                                     batch_count,
-                                                    dinvA,
+                                                    dinvA.ptr_on_device(),
                                                     TRSM_BLOCK * K,
                                                     arg.compute_type));
 
-        for(int b = 0; b < batch_count; b++)
-        {
-            CHECK_HIP_ERROR(
-                hipMemcpy(hXorB_1[b], bXorB[b], sizeof(T) * size_B, hipMemcpyDeviceToHost));
-        }
+        CHECK_HIP_ERROR(hXorB_1.transfer_from(dXorB));
 
         // calculate dXorB <- A^(-1) B   rocblas_device_pointer_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
-        for(int b = 0; b < batch_count; b++)
-        {
-            CHECK_HIP_ERROR(
-                hipMemcpy(bXorB[b], hXorB_2[b], sizeof(T) * size_B, hipMemcpyHostToDevice));
-        }
-
-        CHECK_HIP_ERROR(hipMemcpy(dXorB, bXorB, sizeof(T*) * batch_count, hipMemcpyHostToDevice));
-        CHECK_HIP_ERROR(hipMemcpy(alpha_d, &alpha_h, sizeof(T), hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(dXorB.transfer_from(hXorB_2));
+        CHECK_HIP_ERROR(alpha_d.transfer_from(halpha));
 
         CHECK_ROCBLAS_ERROR(rocblas_trsm_batched_ex(handle,
                                                     side,
@@ -329,20 +298,16 @@ void testing_trsm_batched_ex(const Arguments& arg)
                                                     M,
                                                     N,
                                                     alpha_d,
-                                                    dA,
+                                                    dA.ptr_on_device(),
                                                     lda,
-                                                    dXorB,
+                                                    dXorB.ptr_on_device(),
                                                     ldb,
                                                     batch_count,
-                                                    dinvA,
+                                                    dinvA.ptr_on_device(),
                                                     TRSM_BLOCK * K,
                                                     arg.compute_type));
 
-        for(int b = 0; b < batch_count; b++)
-        {
-            CHECK_HIP_ERROR(
-                hipMemcpy(hXorB_2[b], bXorB[b], sizeof(T) * size_B, hipMemcpyDeviceToHost));
-        }
+        CHECK_HIP_ERROR(hXorB_2.transfer_from(dXorB));
 
         //computed result is in hx_or_b, so forward error is E = hx - hx_or_b
         // calculate vector-induced-norm 1 of matrix E
@@ -374,12 +339,7 @@ void testing_trsm_batched_ex(const Arguments& arg)
     if(arg.timing)
     {
         // GPU rocBLAS
-        for(int b = 0; b < batch_count; b++)
-        {
-            CHECK_HIP_ERROR(
-                hipMemcpy(bXorB[b], hXorB_1[b], sizeof(T) * size_B, hipMemcpyHostToDevice));
-        }
-        CHECK_HIP_ERROR(hipMemcpy(dXorB, bXorB, sizeof(T*) * batch_count, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(dXorB.transfer_from(hXorB_1));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
@@ -393,12 +353,12 @@ void testing_trsm_batched_ex(const Arguments& arg)
                                                     M,
                                                     N,
                                                     &alpha_h,
-                                                    dA,
+                                                    dA.ptr_on_device(),
                                                     lda,
-                                                    dXorB,
+                                                    dXorB.ptr_on_device(),
                                                     ldb,
                                                     batch_count,
-                                                    dinvA,
+                                                    dinvA.ptr_on_device(),
                                                     TRSM_BLOCK * K,
                                                     arg.compute_type));
 
