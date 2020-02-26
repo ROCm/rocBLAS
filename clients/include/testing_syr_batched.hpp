@@ -106,10 +106,10 @@ void testing_syr_batched(const Arguments& arg)
     device_batch_vector<T> dA_2(size_A, 1, batch_count);
     device_batch_vector<T> dx(N, incx, batch_count);
     device_vector<T>       d_alpha(1);
-    CHECK_HIP_ERROR(dA_1.memcheck());
-    CHECK_HIP_ERROR(dA_2.memcheck());
-    CHECK_HIP_ERROR(dx.memcheck());
-    CHECK_HIP_ERROR(d_alpha.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA_1.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA_2.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
 
     double gpu_time_used, cpu_time_used;
     double rocblas_gflops, cblas_gflops, rocblas_bandwidth;
@@ -117,12 +117,13 @@ void testing_syr_batched(const Arguments& arg)
     double rocblas_error_2;
 
     // Initial Data on CPU
-    rocblas_init(hA_1, true); // doesn't need to be symmetric when initialized
+    rocblas_init(hA_1, true);
     rocblas_init(hx, false);
 
     hA_gold.copy_from(hA_1);
     hA_2.copy_from(hA_1);
 
+    // copy data from CPU to device
     CHECK_HIP_ERROR(dA_1.transfer_from(hA_1));
     CHECK_HIP_ERROR(dA_2.transfer_from(hA_2));
     CHECK_HIP_ERROR(dx.transfer_from(hx));

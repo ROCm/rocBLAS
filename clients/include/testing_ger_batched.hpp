@@ -25,11 +25,13 @@ void testing_ger_batched_bad_arg(const Arguments& arg)
     T                 alpha       = 0.6;
     const rocblas_int batch_count = 5;
 
+    size_t size_A = lda * size_t(N);
+
     rocblas_local_handle handle;
 
     // allocate memory on device
-    device_batch_vector<T> dA(N * lda, 1, batch_count);
-    device_batch_vector<T> dx(N, incx, batch_count);
+    device_batch_vector<T> dA(size_A, 1, batch_count);
+    device_batch_vector<T> dx(M, incx, batch_count);
     device_batch_vector<T> dy(N, incy, batch_count);
     CHECK_HIP_ERROR(dA.memcheck());
     CHECK_HIP_ERROR(dx.memcheck());
@@ -117,22 +119,21 @@ void testing_ger_batched(const Arguments& arg)
     size_t size_x   = M * abs_incx;
     size_t size_y   = N * abs_incy;
 
-    //Device-arrays of pointers to device memory
-    device_batch_vector<T> dx(M, incx, batch_count);
     device_batch_vector<T> dy(N, incy, batch_count);
+    device_batch_vector<T> dx(M, incx, batch_count);
     device_batch_vector<T> dA_1(size_A, 1, batch_count);
     device_batch_vector<T> dA_2(size_A, 1, batch_count);
     device_vector<T>       d_alpha(1);
-    CHECK_HIP_ERROR(dx.memcheck());
-    CHECK_HIP_ERROR(dy.memcheck());
-    CHECK_HIP_ERROR(dA_1.memcheck());
-    CHECK_HIP_ERROR(dA_2.memcheck());
-    CHECK_HIP_ERROR(d_alpha.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA_1.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA_2.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
 
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
     // Host-arrays of pointers to host memory
-    host_batch_vector<T> hx(M, incx, batch_count);
     host_batch_vector<T> hy(N, incy, batch_count);
+    host_batch_vector<T> hx(M, incx, batch_count);
     host_batch_vector<T> hA_1(size_A, 1, batch_count);
     host_batch_vector<T> hA_2(size_A, 1, batch_count);
     host_batch_vector<T> hA_gold(size_A, 1, batch_count);
@@ -148,8 +149,8 @@ void testing_ger_batched(const Arguments& arg)
     rocblas_init(hA_1, true);
     rocblas_init(hx, false);
     rocblas_init(hy, false);
-    hA_gold.copy_from(hA_1);
     hA_2.copy_from(hA_1);
+    hA_gold.copy_from(hA_1);
 
     CHECK_HIP_ERROR(dA_1.transfer_from(hA_1));
     CHECK_HIP_ERROR(dx.transfer_from(hx));
@@ -157,6 +158,7 @@ void testing_ger_batched(const Arguments& arg)
 
     if(arg.unit_check || arg.norm_check)
     {
+        // copy data from CPU to device
         CHECK_HIP_ERROR(dA_2.transfer_from(hA_2));
         CHECK_HIP_ERROR(d_alpha.transfer_from(halpha));
 
@@ -186,6 +188,7 @@ void testing_ger_batched(const Arguments& arg)
                                                           lda,
                                                           batch_count)));
 
+        // copy output from device to CPU
         CHECK_HIP_ERROR(hA_1.transfer_from(dA_1));
         CHECK_HIP_ERROR(hA_2.transfer_from(dA_2));
 
