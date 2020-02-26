@@ -81,7 +81,7 @@ public:
 
     void OnTestPartResult(const TestPartResult& result) override
     {
-        if(strcmp(result.message(), LIMITED_MEMORY_STRING))
+        if(strcmp(result.message(), LIMITED_MEMORY_STRING_GTEST) == 0)
         {
             skipped_tests++;
             if(showInlineSkips)
