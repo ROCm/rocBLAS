@@ -248,9 +248,8 @@ struct TensileHost
     // runContractionProblem() is the how a RocblasContractionProblem is run
     template <typename Ti, typename To, typename Tc>
     rocblas_status runContractionProblem(RocblasContractionProblem<Ti, To, Tc> const& problem,
-                                         hipStream_t* stream     = nullptr,
-                                         hipEvent_t*  startEvent = nullptr,
-                                         hipEvent_t*  stopEvent  = nullptr);
+                                         hipEvent_t* startEvent = nullptr,
+                                         hipEvent_t* stopEvent  = nullptr);
 
     // Allow the polymorphic deletion of TensileHost
     virtual ~TensileHost() = default;

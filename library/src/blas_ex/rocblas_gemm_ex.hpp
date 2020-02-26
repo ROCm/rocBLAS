@@ -692,11 +692,7 @@ rocblas_status gemm_ex_batched_template(rocblas_handle    handle,
         ldb,    stride_b, beta,    c_in, ldi, stride_i, d,     ldd, stride_d, batch_count};
 
     if(startEvent && stopEvent)
-    {
-        hipStream_t stream;
-        rocblas_get_stream(handle, &stream);
-        return handle->host->runContractionProblem(problem, &stream, startEvent, stopEvent);
-    }
+        return handle->host->runContractionProblem(problem, startEvent, stopEvent);
     else
         return handle->host->runContractionProblem(problem);
 
