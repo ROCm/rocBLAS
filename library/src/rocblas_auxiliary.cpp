@@ -13,6 +13,16 @@
 /* ============================================================================================ */
 
 /*******************************************************************************
+ * ! \brief  Initialize rocBLAS, to avoid costly startup time at the first call.
+ ******************************************************************************/
+
+extern "C" void rocblas_init()
+{
+    static rocblas_handle handle;
+    static int            dummy = (rocblas_create_handle(&handle), 0);
+}
+
+/*******************************************************************************
  * ! \brief  indicates whether the pointer is on the host or device.
  * currently HIP API can only recoginize the input ptr on deive or not
  *  can not recoginize it is on host or not
