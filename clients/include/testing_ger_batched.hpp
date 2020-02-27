@@ -73,10 +73,9 @@ void testing_ger_batched(const Arguments& arg)
             (rocblas_ger_batched<T, CONJ>(
                 handle, M, N, &h_alpha, nullptr, incx, nullptr, incy, nullptr, lda, batch_count)),
 
-                              M < 0 || N < 0 || lda < M || lda < 1 || !incx || !incy
-                                      || batch_count < 0
-                                  ? rocblas_status_invalid_size
-                                  : rocblas_status_success);
+            M < 0 || N < 0 || lda < M || lda < 1 || !incx || !incy || batch_count < 0
+                ? rocblas_status_invalid_size
+                : rocblas_status_success);
         return;
     }
 
