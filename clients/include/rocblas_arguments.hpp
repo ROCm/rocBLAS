@@ -75,6 +75,7 @@ struct Arguments
     rocblas_int unit_check;
     rocblas_int timing;
     rocblas_int iters;
+    rocblas_int cold_iters;
 
     uint32_t algo;
     int32_t  solution_index;
