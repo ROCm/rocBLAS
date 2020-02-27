@@ -80,7 +80,7 @@ void testing_rotmg_strided_batched(const Arguments& arg)
         CHECK_DEVICE_ALLOCATION(d2.memcheck());
         CHECK_DEVICE_ALLOCATION(x1.memcheck());
         CHECK_DEVICE_ALLOCATION(y1.memcheck());
-        CHECK_DEVICE_ALLOCATION(param.memcheck());
+        CHECK_DEVICE_ALLOCATION(params.memcheck());
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         EXPECT_ROCBLAS_STATUS((rocblas_rotmg_strided_batched<T>(handle,
@@ -194,11 +194,11 @@ void testing_rotmg_strided_batched(const Arguments& arg)
             device_vector<T> dx1(size_x1);
             device_vector<T> dy1(size_y1);
             device_vector<T> dparams(size_param);
-            CHECK_DEVICE_ALLOCATION(d1.memcheck());
-            CHECK_DEVICE_ALLOCATION(d2.memcheck());
-            CHECK_DEVICE_ALLOCATION(x1.memcheck());
-            CHECK_DEVICE_ALLOCATION(y1.memcheck());
-            CHECK_DEVICE_ALLOCATION(param.memcheck());
+            CHECK_DEVICE_ALLOCATION(dd1.memcheck());
+            CHECK_DEVICE_ALLOCATION(dd2.memcheck());
+            CHECK_DEVICE_ALLOCATION(dx1.memcheck());
+            CHECK_DEVICE_ALLOCATION(dy1.memcheck());
+            CHECK_DEVICE_ALLOCATION(dparams.memcheck());
 
             CHECK_HIP_ERROR(hipMemcpy(dd1, hd1, sizeof(T) * size_d1, hipMemcpyHostToDevice));
             CHECK_HIP_ERROR(hipMemcpy(dd2, hd2, sizeof(T) * size_d2, hipMemcpyHostToDevice));
@@ -272,11 +272,11 @@ void testing_rotmg_strided_batched(const Arguments& arg)
         device_vector<T> dx1(size_x1);
         device_vector<T> dy1(size_y1);
         device_vector<T> dparams(size_param);
-        CHECK_DEVICE_ALLOCATION(d1.memcheck());
-        CHECK_DEVICE_ALLOCATION(d2.memcheck());
-        CHECK_DEVICE_ALLOCATION(x1.memcheck());
-        CHECK_DEVICE_ALLOCATION(y1.memcheck());
-        CHECK_DEVICE_ALLOCATION(param.memcheck());
+        CHECK_DEVICE_ALLOCATION(dd1.memcheck());
+        CHECK_DEVICE_ALLOCATION(dd2.memcheck());
+        CHECK_DEVICE_ALLOCATION(dx1.memcheck());
+        CHECK_DEVICE_ALLOCATION(dy1.memcheck());
+        CHECK_DEVICE_ALLOCATION(dparams.memcheck());
 
         CHECK_HIP_ERROR(hipMemcpy(dd1, hd1, sizeof(T) * size_d1, hipMemcpyHostToDevice));
         CHECK_HIP_ERROR(hipMemcpy(dd2, hd2, sizeof(T) * size_d2, hipMemcpyHostToDevice));

@@ -38,9 +38,15 @@ void testing_trtri_strided_batched(const Arguments& arg)
     // memory
     if(N <= 0 || lda < 0 || lda < N || batch_count <= 0)
     {
+        static constexpr size_t safe_size = 100;
+        device_vector<T>        dA(safe_size);
+        device_vector<T>        dinvA(safe_size);
+        CHECK_DEVICE_ALLOCATION(dA.memcheck());
+        CHECK_DEVICE_ALLOCATION(dinvA.memcheck());
+
         EXPECT_ROCBLAS_STATUS(
             rocblas_trtri_strided_batched<T>(
-                handle, uplo, diag, N, nullptr, lda, stride_a, nullptr, lda, stride_a, batch_count),
+                handle, uplo, diag, N, dA, lda, stride_a, dinvA, lda, stride_a, batch_count),
             N < 0 || lda < 0 || lda < N || batch_count < 0 ? rocblas_status_invalid_size
                                                            : rocblas_status_success);
         return;

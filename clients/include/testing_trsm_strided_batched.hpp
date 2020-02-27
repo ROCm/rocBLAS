@@ -49,6 +49,12 @@ void testing_trsm_strided_batched(const Arguments& arg)
     // check here to prevent undefined memory allocation error
     if(M < 0 || N < 0 || lda < K || ldb < M || batch_count <= 0)
     {
+        static const size_t safe_size = 100; // arbitrarily set to 100
+        device_vector<T>    dA(safe_size);
+        device_vector<T>    dXorB(safe_size);
+        CHECK_DEVICE_ALLOCATION(dA.memcheck());
+        CHECK_DEVICE_ALLOCATION(dXorB.memcheck());
+
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         rocblas_status status = rocblas_trsm_strided_batched<T>(handle,
                                                                 side,
@@ -58,10 +64,10 @@ void testing_trsm_strided_batched(const Arguments& arg)
                                                                 M,
                                                                 N,
                                                                 &alpha_h,
-                                                                nullptr,
+                                                                dA,
                                                                 lda,
                                                                 stride_a,
-                                                                nullptr,
+                                                                dXorB,
                                                                 ldb,
                                                                 stride_b,
                                                                 batch_count);
