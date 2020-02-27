@@ -49,15 +49,6 @@ void testing_trsm_strided_batched(const Arguments& arg)
     // check here to prevent undefined memory allocation error
     if(M < 0 || N < 0 || lda < K || ldb < M || batch_count <= 0)
     {
-        static const size_t safe_size = 100; // arbitrarily set to 100
-        device_vector<T>    dA(safe_size);
-        device_vector<T>    dXorB(safe_size);
-        if(!dA || !dXorB)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
-
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         rocblas_status status = rocblas_trsm_strided_batched<T>(handle,
                                                                 side,
@@ -67,10 +58,10 @@ void testing_trsm_strided_batched(const Arguments& arg)
                                                                 M,
                                                                 N,
                                                                 &alpha_h,
-                                                                dA,
+                                                                nullptr,
                                                                 lda,
                                                                 stride_a,
-                                                                dXorB,
+                                                                nullptr,
                                                                 ldb,
                                                                 stride_b,
                                                                 batch_count);
@@ -101,11 +92,9 @@ void testing_trsm_strided_batched(const Arguments& arg)
     device_vector<T> dA(size_A);
     device_vector<T> dXorB(size_B);
     device_vector<T> alpha_d(1);
-    if(!dA || !dXorB || !alpha_d)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dXorB.memcheck());
+    CHECK_DEVICE_ALLOCATION(alpha_d.memcheck());
 
     //  Random lower triangular matrices have condition number
     //  that grows exponentially with matrix size. Random full

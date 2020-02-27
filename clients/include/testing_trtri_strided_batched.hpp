@@ -38,18 +38,9 @@ void testing_trtri_strided_batched(const Arguments& arg)
     // memory
     if(N <= 0 || lda < 0 || lda < N || batch_count <= 0)
     {
-        static constexpr size_t safe_size = 100;
-        device_vector<T>        dA(safe_size);
-        device_vector<T>        dinvA(safe_size);
-        if(!dA || !dinvA)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
-
         EXPECT_ROCBLAS_STATUS(
             rocblas_trtri_strided_batched<T>(
-                handle, uplo, diag, N, dA, lda, stride_a, dinvA, lda, stride_a, batch_count),
+                handle, uplo, diag, N, nullptr, lda, stride_a, nullptr, lda, stride_a, batch_count),
             N < 0 || lda < 0 || lda < N || batch_count < 0 ? rocblas_status_invalid_size
                                                            : rocblas_status_success);
         return;
@@ -101,11 +92,8 @@ void testing_trtri_strided_batched(const Arguments& arg)
 
     device_vector<T> dA(size_A);
     device_vector<T> dinvA(size_A);
-    if(!dA || !dinvA)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dinvA.memcheck());
 
     // copy data from CPU to device
     CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(T) * size_A, hipMemcpyHostToDevice));
