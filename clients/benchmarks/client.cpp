@@ -946,6 +946,10 @@ try
          value<rocblas_int>(&arg.cold_iters)->default_value(2),
          "Cold Iterations to run before entering the timing loop")
 
+        ("averiters,ai",
+         value<rocblas_int>(&arg.aver_iters)->default_value(500),
+         "Averege Iterations to run inside timing loop")
+
         ("algo",
          value<uint32_t>(&arg.algo)->default_value(0),
          "extended precision gemm algorithm")

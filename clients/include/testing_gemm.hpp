@@ -98,7 +98,9 @@ void testing_gemm(const Arguments& arg)
     T h_alpha = arg.get_alpha<T>();
     T h_beta  = arg.get_beta<T>();
 
-    double               gpu_time_used, cpu_time_used;
+    time_t               t;
+    struct tm*           tm;
+    double               gpu_time_used, cpu_time_used, gpu_time_start;
     double               rocblas_gflops, cblas_gflops;
     double               rocblas_error = 0.0;
     rocblas_local_handle handle;
@@ -253,6 +255,7 @@ void testing_gemm(const Arguments& arg)
     {
         int number_cold_calls = arg.cold_iters;
         int number_hot_calls  = arg.iters;
+        int number_aver_calls = arg.aver_iters;
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
@@ -262,13 +265,33 @@ void testing_gemm(const Arguments& arg)
                 handle, transA, transB, M, N, K, &h_alpha, dA, lda, dB, ldb, &h_beta, dC, ldc));
         }
 
-        gpu_time_used = get_time_us(); // in microseconds
-        for(int i = 0; i < number_hot_calls; i++)
+        gpu_time_used  = get_time_us(); // in microseconds
+        gpu_time_start = gpu_time_used;
+        for(int i = 1; i <= number_hot_calls; i++)
         {
             rocblas_gemm<T>(
                 handle, transA, transB, M, N, K, &h_alpha, dA, lda, dB, ldb, &h_beta, dC, ldc);
+
+            if(i % number_aver_calls == 0)
+            {
+                gpu_time_used = get_time_us() - gpu_time_used;
+                rocblas_gflops
+                    = gemm_gflop_count<T>(M, N, K) * number_aver_calls / gpu_time_used * 1e6;
+                t  = time(NULL);
+                tm = localtime(&t);
+                printf("[%d-%d]:average= %0.2f %02d%02d_%02d:%02d:%02d\n",
+                       i - number_aver_calls,
+                       i,
+                       rocblas_gflops,
+                       tm->tm_mon + 1,
+                       tm->tm_mday,
+                       tm->tm_hour,
+                       tm->tm_min,
+                       tm->tm_sec);
+                gpu_time_used = get_time_us();
+            }
         }
-        gpu_time_used  = get_time_us() - gpu_time_used;
+        gpu_time_used  = get_time_us() - gpu_time_start;
         rocblas_gflops = gemm_gflop_count<T>(M, N, K) * number_hot_calls / gpu_time_used * 1e6;
 
         std::cout << "transA,transB,M,N,K,alpha,lda,ldb,beta,ldc,rocblas-Gflops,us";

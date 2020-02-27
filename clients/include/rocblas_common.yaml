@@ -259,6 +259,7 @@ Arguments:
   - timing: rocblas_int
   - iters: rocblas_int
   - cold_iters: rocblas_int
+  - aver_iters: rocblas_int
   - algo: c_uint
   - solution_index: c_int
   - flags: c_uint
@@ -329,6 +330,7 @@ Defaults:
   timing: 0
   iters: 10
   cold_iters: 2
+  aver_iters: 500
   algo: 0
   solution_index: 0
   flags: 0

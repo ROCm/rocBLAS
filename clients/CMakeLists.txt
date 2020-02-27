@@ -77,7 +77,19 @@ add_custom_command( OUTPUT "${ROCBLAS_GENTEST}"
                     DEPENDS common/rocblas_gentest.py
                     WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" )
 
-add_custom_target( rocblas-common DEPENDS "${ROCBLAS_COMMON}" "${ROCBLAS_TEMPLATE}" "${ROCBLAS_GENTEST}" )
+set( ROCBLAS_AVFLOPTEST "${PROJECT_BINARY_DIR}/staging/rocblas_executor.sh")
+add_custom_command( OUTPUT "${ROCBLAS_AVFLOPTEST}"
+                    COMMAND ${CMAKE_COMMAND} -E copy include/rocblas_executor.sh "${ROCBLAS_AVFLOPTEST}"
+                    DEPENDS include/rocblas_executor.sh
+                    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" )
+
+set( ROCBLAS_README "${PROJECT_BINARY_DIR}/staging/readme_rocblas_executor.txt")
+add_custom_command( OUTPUT "${ROCBLAS_README}"
+                    COMMAND ${CMAKE_COMMAND} -E copy include/readme_rocblas_executor.txt "${ROCBLAS_README}"
+                    DEPENDS include/readme_rocblas_executor.txt
+                    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}" )
+
+add_custom_target( rocblas-common DEPENDS "${ROCBLAS_COMMON}" "${ROCBLAS_TEMPLATE}" "${ROCBLAS_GENTEST}" "${ROCBLAS_AVFLOPTEST}" "${ROCBLAS_README}" )
 
 
 # TODO: move to rocm-cmake
