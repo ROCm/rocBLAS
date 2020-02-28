@@ -62,11 +62,10 @@ void testing_gemm_strided_batched_ex_bad_arg(const Arguments& arg)
     device_vector<float> dB(safe_size);
     device_vector<float> dC(safe_size);
     device_vector<float> dD(safe_size);
-    if(!dA || !dB || !dC || !dD)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dB.memcheck());
+    CHECK_DEVICE_ALLOCATION(dC.memcheck());
+    CHECK_DEVICE_ALLOCATION(dD.memcheck());
 
     EXPECT_ROCBLAS_STATUS(rocblas_gemm_strided_batched_ex(handle,
                                                           transA,
@@ -330,11 +329,10 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
         device_vector<Ti>   dB(safe_size);
         device_vector<To>   dC(safe_size);
         device_vector<To>   dD(safe_size);
-        if(!dA || !dB || !dC || !dD)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
+        CHECK_DEVICE_ALLOCATION(dA.memcheck());
+        CHECK_DEVICE_ALLOCATION(dB.memcheck());
+        CHECK_DEVICE_ALLOCATION(dC.memcheck());
+        CHECK_DEVICE_ALLOCATION(dD.memcheck());
 
         EXPECT_ROCBLAS_STATUS(rocblas_gemm_strided_batched_ex(handle,
                                                               transA,
@@ -395,12 +393,12 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
     device_vector<To> dD(size_d);
     device_vector<Tc> d_alpha_Tc(1);
     device_vector<Tc> d_beta_Tc(1);
-    if((!dA && size_a) || (!dB && size_b) || (!dC && size_c) || (!dD && size_d) || !d_alpha_Tc
-       || !d_beta_Tc)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dB.memcheck());
+    CHECK_DEVICE_ALLOCATION(dC.memcheck());
+    CHECK_DEVICE_ALLOCATION(dD.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_alpha_Tc.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_beta_Tc.memcheck());
 
     // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
     host_vector<Ti> hA(size_a);

@@ -52,11 +52,9 @@ void testing_gemm_strided_batched(const Arguments& arg)
         device_vector<T>    dA(safe_size);
         device_vector<T>    dB(safe_size);
         device_vector<T>    dC(safe_size);
-        if(!dA || !dB || !dC)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
+        CHECK_DEVICE_ALLOCATION(dA.memcheck());
+        CHECK_DEVICE_ALLOCATION(dB.memcheck());
+        CHECK_DEVICE_ALLOCATION(dC.memcheck());
 
         EXPECT_ROCBLAS_STATUS(rocblas_gemm_strided_batched<T>(handle,
                                                               transA,
@@ -102,11 +100,11 @@ void testing_gemm_strided_batched(const Arguments& arg)
     device_vector<T> dC(size_c);
     device_vector<T> d_alpha(1);
     device_vector<T> d_beta(1);
-    if((!dA && size_a) || (!dB && size_b) || (!dC && size_c) || !d_alpha || !d_beta)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dB.memcheck());
+    CHECK_DEVICE_ALLOCATION(dC.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
 
     // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
     host_vector<T> hA(size_a);

@@ -31,11 +31,9 @@ void testing_dot_strided_batched_bad_arg(const Arguments& arg)
     device_vector<T>     dx(size_x);
     device_vector<T>     dy(size_y);
     device_vector<T>     d_rocblas_result(1);
-    if(!dx || !dy || !d_rocblas_result)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_rocblas_result.memcheck());
 
     CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
@@ -113,12 +111,9 @@ void testing_dot_strided_batched(const Arguments& arg)
         device_vector<T>    dx(safe_size);
         device_vector<T>    dy(safe_size);
         device_vector<T>    d_rocblas_result(std::max(batch_count, 1));
-
-        if(!dx || !dy || !d_rocblas_result)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
+        CHECK_DEVICE_ALLOCATION(dx.memcheck());
+        CHECK_DEVICE_ALLOCATION(dy.memcheck());
+        CHECK_DEVICE_ALLOCATION(d_rocblas_result.memcheck());
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
@@ -149,11 +144,9 @@ void testing_dot_strided_batched(const Arguments& arg)
     device_vector<T> dx(size_x);
     device_vector<T> dy(size_y);
     device_vector<T> d_rocblas_result_2(batch_count);
-    if(!dx || !dy || !d_rocblas_result_2)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_rocblas_result_2.memcheck());
 
     // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
     host_vector<T> hx(size_x);
