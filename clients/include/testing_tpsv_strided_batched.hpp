@@ -34,8 +34,8 @@ void testing_tpsv_strided_batched_bad_arg(const Arguments& arg)
 
     device_strided_batch_vector<T> dA(size_A, 1, stride_a, batch_count);
     device_strided_batch_vector<T> dx(N, incx, stride_x, batch_count);
-    CHECK_HIP_ERROR(dA.memcheck());
-    CHECK_HIP_ERROR(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
     //
     // Checks.
@@ -142,8 +142,8 @@ void testing_tpsv_strided_batched(const Arguments& arg)
     // allocate memory on device
     device_strided_batch_vector<T> dAP(size_AP, 1, stride_ap, batch_count);
     device_strided_batch_vector<T> dx_or_b(N, incx, stride_x, batch_count);
-    CHECK_HIP_ERROR(dAP.memcheck());
-    CHECK_HIP_ERROR(dx_or_b.memcheck());
+    CHECK_DEVICE_ALLOCATION(dAP.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx_or_b.memcheck());
 
     rocblas_init<T>(hA, true);
 
