@@ -36,49 +36,110 @@ void testing_symv_batched_bad_arg()
     size_t size_y   = N * abs_incy * batch_count;
 
     // allocate memory on device
-    device_vector<T*, 0, T> dA(batch_count);
-    device_vector<T*, 0, T> dx(batch_count);
-    device_vector<T*, 0, T> dy(batch_count);
-    if(!dA || !dx || !dy)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    device_batch_vector<T> dA(size_A, 1, batch_count);
+    device_batch_vector<T> dx(N, incx, batch_count);
+    device_batch_vector<T> dy(N, incy, batch_count);
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_symv_batched<T>(
-            nullptr, uplo, N, &alpha, dA, lda, dx, incx, &beta, dy, incy, batch_count),
-        rocblas_status_invalid_handle);
+    EXPECT_ROCBLAS_STATUS(rocblas_symv_batched<T>(nullptr,
+                                                  uplo,
+                                                  N,
+                                                  &alpha,
+                                                  dA.ptr_on_device(),
+                                                  lda,
+                                                  dx.ptr_on_device(),
+                                                  incx,
+                                                  &beta,
+                                                  dy.ptr_on_device(),
+                                                  incy,
+                                                  batch_count),
+                          rocblas_status_invalid_handle);
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_symv_batched<T>(
-            handle, rocblas_fill_full, N, &alpha, dA, lda, dx, incx, &beta, dy, incy, batch_count),
-        rocblas_status_invalid_value);
+    EXPECT_ROCBLAS_STATUS(rocblas_symv_batched<T>(handle,
+                                                  rocblas_fill_full,
+                                                  N,
+                                                  &alpha,
+                                                  dA.ptr_on_device(),
+                                                  lda,
+                                                  dx.ptr_on_device(),
+                                                  incx,
+                                                  &beta,
+                                                  dy.ptr_on_device(),
+                                                  incy,
+                                                  batch_count),
+                          rocblas_status_invalid_value);
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_symv_batched<T>(
-            handle, uplo, N, nullptr, dA, lda, dx, incx, &beta, dy, incy, batch_count),
-        rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS(rocblas_symv_batched<T>(handle,
+                                                  uplo,
+                                                  N,
+                                                  nullptr,
+                                                  dA.ptr_on_device(),
+                                                  lda,
+                                                  dx.ptr_on_device(),
+                                                  incx,
+                                                  &beta,
+                                                  dy.ptr_on_device(),
+                                                  incy,
+                                                  batch_count),
+                          rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_symv_batched<T>(
-            handle, uplo, N, &alpha, nullptr, lda, dx, incx, &beta, dy, incy, batch_count),
-        rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS(rocblas_symv_batched<T>(handle,
+                                                  uplo,
+                                                  N,
+                                                  &alpha,
+                                                  nullptr,
+                                                  lda,
+                                                  dx.ptr_on_device(),
+                                                  incx,
+                                                  &beta,
+                                                  dy.ptr_on_device(),
+                                                  incy,
+                                                  batch_count),
+                          rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_symv_batched<T>(
-            handle, uplo, N, &alpha, dA, lda, nullptr, incx, &beta, dy, incy, batch_count),
-        rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS(rocblas_symv_batched<T>(handle,
+                                                  uplo,
+                                                  N,
+                                                  &alpha,
+                                                  dA.ptr_on_device(),
+                                                  lda,
+                                                  nullptr,
+                                                  incx,
+                                                  &beta,
+                                                  dy.ptr_on_device(),
+                                                  incy,
+                                                  batch_count),
+                          rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_symv_batched<T>(
-            handle, uplo, N, &alpha, dA, lda, dx, incx, nullptr, dy, incy, batch_count),
-        rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS(rocblas_symv_batched<T>(handle,
+                                                  uplo,
+                                                  N,
+                                                  &alpha,
+                                                  dA.ptr_on_device(),
+                                                  lda,
+                                                  dx.ptr_on_device(),
+                                                  incx,
+                                                  nullptr,
+                                                  dy.ptr_on_device(),
+                                                  incy,
+                                                  batch_count),
+                          rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_symv_batched<T>(
-            handle, uplo, N, &alpha, dA, lda, dx, incx, &beta, nullptr, incy, batch_count),
-        rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS(rocblas_symv_batched<T>(handle,
+                                                  uplo,
+                                                  N,
+                                                  &alpha,
+                                                  dA.ptr_on_device(),
+                                                  lda,
+                                                  dx.ptr_on_device(),
+                                                  incx,
+                                                  &beta,
+                                                  nullptr,
+                                                  incy,
+                                                  batch_count),
+                          rocblas_status_invalid_pointer);
 }
 
 template <typename T>
@@ -152,9 +213,9 @@ void testing_symv_batched(const Arguments& arg)
     device_batch_vector<T> dx(N, incx, batch_count);
     device_batch_vector<T> dy(N, incy, batch_count);
 
-    CHECK_HIP_ERROR(dA.memcheck());
-    CHECK_HIP_ERROR(dx.memcheck());
-    CHECK_HIP_ERROR(dy.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     // Initial Data on CPU
     rocblas_seedrand();
