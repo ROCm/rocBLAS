@@ -37,8 +37,8 @@ void testing_her_strided_batched_bad_arg()
     // allocate memory on device
     device_strided_batch_vector<T> dA_1(size_A, 1, stride_A, batch_count);
     device_strided_batch_vector<T> dx(N, incx, stride_x, batch_count);
-    CHECK_HIP_ERROR(dA_1.memcheck());
-    CHECK_HIP_ERROR(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA_1.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
     EXPECT_ROCBLAS_STATUS((rocblas_her_strided_batched<T, U>)(handle,
                                                               rocblas_fill_full,
@@ -151,10 +151,10 @@ void testing_her_strided_batched(const Arguments& arg)
     device_strided_batch_vector<T> dA_2(size_A, 1, stride_A, batch_count);
     device_strided_batch_vector<T> dx(N, incx, stride_x, batch_count);
     device_vector<U>               d_alpha(1);
-    CHECK_HIP_ERROR(dA_1.memcheck());
-    CHECK_HIP_ERROR(dA_2.memcheck());
-    CHECK_HIP_ERROR(dx.memcheck());
-    CHECK_HIP_ERROR(d_alpha.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA_1.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA_2.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
 
     double gpu_time_used, cpu_time_used;
     double rocblas_gflops, cblas_gflops, rocblas_bandwidth;

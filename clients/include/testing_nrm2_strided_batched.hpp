@@ -27,11 +27,8 @@ void testing_nrm2_strided_batched_bad_arg_template(const Arguments& arg)
 
     device_vector<T1> dx(safe_size);
     device_vector<T2> d_rocblas_result(batch_count);
-    if(!dx || !d_rocblas_result)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_rocblas_result.memcheck());
 
     CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
@@ -63,9 +60,9 @@ void testing_nrm2_strided_batched_template(const Arguments& arg)
     if(N <= 0 || incx <= 0 || batch_count <= 0)
     {
         device_strided_batch_vector<T1> dx(3, 1, 3, 3);
-        CHECK_HIP_ERROR(dx.memcheck());
+        CHECK_DEVICE_ALLOCATION(dx.memcheck());
         device_vector<T2> dr(std::max(3, std::abs(batch_count)));
-        CHECK_HIP_ERROR(dr.memcheck());
+        CHECK_DEVICE_ALLOCATION(dr.memcheck());
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         EXPECT_ROCBLAS_STATUS(
@@ -84,11 +81,8 @@ void testing_nrm2_strided_batched_template(const Arguments& arg)
     // allocate memory on device
     device_vector<T1> dx(batch_count * size_x);
     device_vector<T2> d_rocblas_result_2(batch_count);
-    if(!dx || !d_rocblas_result_2)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_rocblas_result_2.memcheck());
 
     // Naming: dx is in GPU (device) memory. hx is in CPU (host) memory, plz follow this practice
     host_vector<T1> hx(batch_count * size_x);
