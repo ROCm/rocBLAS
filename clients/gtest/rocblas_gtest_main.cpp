@@ -25,6 +25,8 @@ public:
     bool showSuccesses; // Show each success.
     bool showInlineFailures; // Show each failure as it occurs.
     bool showEnvironment; // Show the setup of the global environment.
+    bool showInlineSkips; // Show when we skip a test.
+    int  skipped_tests; // Number of skipped tests.
 
     explicit ConfigurableEventListener(TestEventListener* theEventListener)
         : eventListener(theEventListener)
@@ -33,6 +35,8 @@ public:
         , showSuccesses(true)
         , showInlineFailures(true)
         , showEnvironment(true)
+        , showInlineSkips(true)
+        , skipped_tests(0)
     {
     }
 
@@ -77,6 +81,12 @@ public:
 
     void OnTestPartResult(const TestPartResult& result) override
     {
+        if(strcmp(result.message(), LIMITED_MEMORY_STRING_GTEST) == 0)
+        {
+            skipped_tests++;
+            if(showInlineSkips)
+                printf("Skipped test due to limited memory environment.\n");
+        }
         eventListener->OnTestPartResult(result);
     }
 
@@ -111,6 +121,10 @@ public:
 
     void OnTestProgramEnd(const UnitTest& unit_test) override
     {
+        if(skipped_tests)
+        {
+            printf("[ SKIPPED  ] %d tests.\n", skipped_tests);
+        }
         eventListener->OnTestProgramEnd(unit_test);
     }
 };
@@ -255,7 +269,8 @@ int main(int argc, char** argv)
     auto listener       = new ConfigurableEventListener(default_printer);
     auto gtest_listener = getenv("GTEST_LISTENER");
     if(gtest_listener && !strcmp(gtest_listener, "NO_PASS_LINE_IN_LOG"))
-        listener->showTestNames = listener->showSuccesses = listener->showInlineFailures = false;
+        listener->showTestNames = listener->showSuccesses = listener->showInlineFailures
+            = listener->showInlineSkips                   = false;
     listeners.Append(listener);
 
     int status = RUN_ALL_TESTS();
