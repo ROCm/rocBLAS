@@ -12,8 +12,8 @@
 
 namespace
 {
-    constexpr rocblas_int STPSV_BLOCK = 32;
-    constexpr rocblas_int DTPSV_BLOCK = 32;
+    constexpr rocblas_int STPSV_BLOCK = 512;
+    constexpr rocblas_int DTPSV_BLOCK = 512;
 
     template <typename>
     constexpr char rocblas_tpsv_batched_name[] = "unknown";

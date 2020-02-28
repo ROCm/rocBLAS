@@ -57,6 +57,7 @@ namespace
                 }
 
                 __syncthreads();
+
                 // for rest of block, subtract previous solved part
                 if(tx > j)
                 {
@@ -74,9 +75,9 @@ namespace
 
             // apply solved diagonal block to the rest of the array
             // 1. Iterate down rows
-            for(rocblas_int j = BLK_SIZE; j < n - i; j += BLK_SIZE)
+            for(rocblas_int j = BLK_SIZE + i; j < n; j += BLK_SIZE)
             {
-                if(tx + i + j >= n)
+                if(tx + j >= n)
                     break;
 
                 // 2. Sum result (across columns) to be subtracted from original value
@@ -84,16 +85,16 @@ namespace
                 for(rocblas_int p = 0; p < BLK_SIZE; p++)
                 {
                     rocblas_int colA   = i + p;
-                    rocblas_int rowA   = i + tx + j;
+                    rocblas_int rowA   = tx + j;
                     rocblas_int indexA = packed_matrix_index(trans, trans, n, rowA, colA);
 
                     if(diag && colA == rowA)
                         val += xshared[p];
-                    else
+                    else if(colA < n)
                         val += (CONJ ? conj(A[indexA]) : A[indexA]) * xshared[p];
                 }
 
-                x[(tx + i + j) * incx] -= val;
+                x[(tx + j) * incx] -= val;
             }
 
             // store solved part back to global memory
@@ -189,17 +190,18 @@ namespace
     }
 
     template <bool CONJ, rocblas_int BLK_SIZE, typename TConstPtr, typename TPtr>
-    __global__ void rocblas_tpsv_kernel(rocblas_fill      uplo,
-                                        rocblas_operation transA,
-                                        rocblas_diagonal  diag,
-                                        rocblas_int       n,
-                                        TConstPtr         APa,
-                                        ptrdiff_t         shift_A,
-                                        rocblas_stride    stride_A,
-                                        TPtr              xa,
-                                        ptrdiff_t         shift_x,
-                                        rocblas_int       incx,
-                                        rocblas_stride    stride_x)
+    __attribute__((amdgpu_flat_work_group_size(64, 1024))) __global__ void
+        rocblas_tpsv_kernel(rocblas_fill      uplo,
+                            rocblas_operation transA,
+                            rocblas_diagonal  diag,
+                            rocblas_int       n,
+                            TConstPtr         APa,
+                            ptrdiff_t         shift_A,
+                            rocblas_stride    stride_A,
+                            TPtr              xa,
+                            ptrdiff_t         shift_x,
+                            rocblas_int       incx,
+                            rocblas_stride    stride_x)
     {
         const auto* AP = load_ptr_batch(APa, hipBlockIdx_y, shift_A, stride_A);
         auto*       x  = load_ptr_batch(xa, hipBlockIdx_y, shift_x, stride_x);

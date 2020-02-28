@@ -67,8 +67,6 @@ void testing_tpsv(const Arguments& arg)
     // check here to prevent undefined memory allocation error
     if(N < 0 || !incx)
     {
-        static const size_t safe_size = 100; // arbitrarily set to 100
-
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         EXPECT_ROCBLAS_STATUS(
             rocblas_tpsv<T>(handle, uplo, transA, diag, N, nullptr, nullptr, incx),
