@@ -38,9 +38,9 @@ void testing_syr2k_batched_bad_arg(const Arguments& arg)
     device_batch_vector<T> dA(safe_size, 1, batch_count);
     device_batch_vector<T> dB(safe_size, 1, batch_count);
     device_batch_vector<T> dC(safe_size, 1, batch_count);
-    CHECK_HIP_ERROR(dA.memcheck());
-    CHECK_HIP_ERROR(dB.memcheck());
-    CHECK_HIP_ERROR(dC.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dB.memcheck());
+    CHECK_DEVICE_ALLOCATION(dC.memcheck());
 
     EXPECT_ROCBLAS_STATUS(
         rocblas_syrk_batched_fn(
@@ -183,11 +183,11 @@ void testing_syr2k_batched(const Arguments& arg)
     device_batch_vector<T> dC(size_C, 1, batch_count);
     device_vector<T>       d_alpha(1);
     device_vector<T>       d_beta(1);
-    CHECK_HIP_ERROR(dA.memcheck());
-    CHECK_HIP_ERROR(dB.memcheck());
-    CHECK_HIP_ERROR(dC.memcheck());
-    CHECK_HIP_ERROR(d_alpha.memcheck());
-    CHECK_HIP_ERROR(d_beta.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dB.memcheck());
+    CHECK_DEVICE_ALLOCATION(dC.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
 
     // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory
     host_vector<T>       h_alpha(1);
