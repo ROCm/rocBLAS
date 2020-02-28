@@ -41,9 +41,9 @@ void testing_hbmv_strided_batched_bad_arg(const Arguments& arg)
     device_strided_batch_vector<T> dA(size_A, 1, stride_A, batch_count);
     device_strided_batch_vector<T> dx(N, incx, stride_x, batch_count);
     device_strided_batch_vector<T> dy(N, incy, stride_y, batch_count);
-    CHECK_HIP_ERROR(dA.memcheck());
-    CHECK_HIP_ERROR(dy.memcheck());
-    CHECK_HIP_ERROR(dy.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     EXPECT_ROCBLAS_STATUS(rocblas_hbmv_strided_batched<T>(handle,
                                                           uplo,
@@ -193,27 +193,19 @@ void testing_hbmv_strided_batched(const Arguments& arg)
     // argument sanity check before allocating invalid memory
     if(N <= 0 || K < 0 || lda <= K || !incx || !incy || batch_count <= 0)
     {
-        static const size_t            safe_size = 100; // arbitrarily set to 100
-        device_strided_batch_vector<T> dA1(safe_size, 1, safe_size, 2);
-        device_strided_batch_vector<T> dx1(safe_size, 1, safe_size, 2);
-        device_strided_batch_vector<T> dy1(safe_size, 1, safe_size, 2);
-        CHECK_HIP_ERROR(dA1.memcheck());
-        CHECK_HIP_ERROR(dx1.memcheck());
-        CHECK_HIP_ERROR(dy1.memcheck());
-
         EXPECT_ROCBLAS_STATUS(rocblas_hbmv_strided_batched<T>(handle,
                                                               uplo,
                                                               N,
                                                               K,
                                                               &h_alpha,
-                                                              dA1,
+                                                              nullptr,
                                                               lda,
                                                               stride_A,
-                                                              dx1,
+                                                              nullptr,
                                                               incx,
                                                               stride_x,
                                                               &h_beta,
-                                                              dy1,
+                                                              nullptr,
                                                               incy,
                                                               stride_y,
                                                               batch_count),
@@ -252,12 +244,12 @@ void testing_hbmv_strided_batched(const Arguments& arg)
     device_strided_batch_vector<T> dy_2(N, incy, stride_y, batch_count);
     device_vector<T>               d_alpha(1);
     device_vector<T>               d_beta(1);
-    CHECK_HIP_ERROR(dA.memcheck());
-    CHECK_HIP_ERROR(dx.memcheck());
-    CHECK_HIP_ERROR(dy_1.memcheck());
-    CHECK_HIP_ERROR(dy_2.memcheck());
-    CHECK_HIP_ERROR(d_alpha.memcheck());
-    CHECK_HIP_ERROR(d_beta.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy_1.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy_2.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
 
     // Initial Data on CPU
     rocblas_init<T>(hA, true);
