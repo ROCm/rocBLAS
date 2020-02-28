@@ -5570,29 +5570,29 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrmv_strided_batched(rocblas_handle      
             rocblas_diagonal_non_unit:  A is not assumed to be unit triangular.
 
     @param[in]
-    m         [rocblas_int]
-              m specifies the number of rows of A. m >= 0.
+    m       [rocblas_int]
+            m specifies the number of rows of A. m >= 0.
 
     @param[in]
-    A         device pointer storing matrix A,
-              of dimension at leat ( m * ( m + 1 ) / 2 ).
-	      Before entry with uplo = rocblas_fill_upper, the array A
-	      must contain the upper triangular matrix packed sequentially,
-	      column by column, so that A[0] contains a_{0,0}, A[1] and A[2] contain
-	      a_{0,1} and a_{1, 1} respectively, and so on.
-	      Before entry with uplo = rocblas_fill_lower, the array A
-	      must contain the lower triangular matrix packed sequentially,
-	      column by column, so that A[0] contains a_{0,0}, A[1] and A[2] contain
-	      a_{1,0} and a_{2,0} respectively, and so on.
-	      Note that when DIAG = rocblas_diagonal_unit, the diagonal elements of A are
-	      not referenced, but are assumed to be unity.
+    A       device pointer storing matrix A,
+            of dimension at leat ( m * ( m + 1 ) / 2 ).
+          Before entry with uplo = rocblas_fill_upper, the array A
+          must contain the upper triangular matrix packed sequentially,
+          column by column, so that A[0] contains a_{0,0}, A[1] and A[2] contain
+          a_{0,1} and a_{1, 1} respectively, and so on.
+          Before entry with uplo = rocblas_fill_lower, the array A
+          must contain the lower triangular matrix packed sequentially,
+          column by column, so that A[0] contains a_{0,0}, A[1] and A[2] contain
+          a_{1,0} and a_{2,0} respectively, and so on.
+          Note that when DIAG = rocblas_diagonal_unit, the diagonal elements of A are
+          not referenced, but are assumed to be unity.
 
     @param[in]
-    x         device pointer storing vector x.
+    x       device pointer storing vector x.
 
     @param[in]
-    incx      [rocblas_int]
-              specifies the increment for the elements of x. incx must not be zero.
+    incx    [rocblas_int]
+            specifies the increment for the elements of x. incx must not be zero.
 
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_stpmv(rocblas_handle    handle,
@@ -12824,6 +12824,11 @@ ROCBLAS_EXPORT rocblas_status rocblas_trsm_strided_batched_ex(rocblas_handle    
 */
 
 ROCBLAS_EXPORT const char* rocblas_status_to_string(rocblas_status status);
+
+/* \brief Initialize rocBLAS, to avoid costly startup time at the first call.
+*/
+
+ROCBLAS_EXPORT void rocblas_init();
 
 /*
  * ===========================================================================
