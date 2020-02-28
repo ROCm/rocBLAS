@@ -256,6 +256,12 @@ private:
         str << std::quoted(s);
     }
 
+    // rocblas_datatype output
+    static void print_value(std::ostream& os, const rocblas_datatype& d)
+    {
+        os << rocblas_datatype2string(d);
+    }
+
     // Function to print Arguments out to stream in YAML format
     // Google Tests uses this automatically to dump parameters
     friend std::ostream& operator<<(std::ostream& str, const Arguments& arg)
