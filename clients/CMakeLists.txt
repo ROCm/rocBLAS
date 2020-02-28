@@ -43,7 +43,9 @@ find_package( hip REQUIRED CONFIG PATHS ${ROCM_PATH} )
 
 # Quietly look for CUDA, but if not found it's not an error
 # The presense of hip is not sufficient to determine if we want a rocm or cuda backend
-find_package( CUDA QUIET )
+if( NOT IGNORE_CUDA )
+  find_package( CUDA QUIET )
+endif( )
 
 if( BUILD_CLIENTS_SAMPLES )
   add_subdirectory( samples )
@@ -88,7 +90,19 @@ function(rocm_create_package_clients)
 
     cmake_parse_arguments(PARSE "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
-    string(CONCAT PACKAGE_NAME ${PARSE_LIB_NAME} "-clients-" ${PARSE_VERSION} "-Linux.deb")
+    set( PACKAGE_REQUIREMENTS "${PARSE_LIB_NAME} (>=${PARSE_VERSION})")
+    if(CPACK_SYSTEM_NAME MATCHES "ubuntu-18.04")
+      set(PACKAGE_REQUIREMENTS "${PACKAGE_REQUIREMENTS}, libboost-program-options-dev (>=1.65.1)")
+      set(PACKAGE_REQUIREMENTS "${PACKAGE_REQUIREMENTS}, libomp-dev (>=5.0.1)")
+      set(PACKAGE_REQUIREMENTS "${PACKAGE_REQUIREMENTS}, gfortran (>=7.4.0)")
+    elseif(CPACK_SYSTEM_NAME MATCHES "ubuntu-16.04")
+      set(PACKAGE_REQUIREMENTS "${PACKAGE_REQUIREMENTS}, libboost-program-options-dev (>=1.58.0)")
+      set(PACKAGE_REQUIREMENTS "${PACKAGE_REQUIREMENTS}, libomp-dev (>=3.7.0)")
+      set(PACKAGE_REQUIREMENTS "${PACKAGE_REQUIREMENTS}, gfortran (>=4.8.5)")
+    endif()
+    message(${PACKAGE_REQUIREMENTS})
+
+    string(CONCAT PACKAGE_NAME ${PARSE_LIB_NAME} "-clients-" ${PARSE_VERSION} "-" ${CPACK_SYSTEM_NAME} ".deb")
     string(CONCAT DEB_CONTROL_FILE_CONTENT "Package: " ${PARSE_LIB_NAME} "-clients"
                                            "\nVersion: " ${PARSE_VERSION}
                                            "\nSection: " ${PARSE_SECTION}
@@ -96,17 +110,22 @@ function(rocm_create_package_clients)
                                            "\nArchitecture: amd64"
                                            "\nMaintainer: " ${PARSE_MAINTAINER}
                                            "\nDescription: " ${PARSE_DESCRIPTION}
-                                           "\nDepends: " ${PARSE_LIB_NAME} "(>=" ${PARSE_VERSION} ")\n\n")
-
-    if(EXISTS "${PROJECT_BINARY_DIR}/package")
-        file(REMOVE_RECURSE "${PROJECT_BINARY_DIR}/package")
+                                           "\nDepends: " ${PACKAGE_REQUIREMENTS} "\n\n")
+    set(PACKAGE_DIR "${PROJECT_BINARY_DIR}/package")
+    if(EXISTS "${PACKAGE_DIR}")
+        file(REMOVE_RECURSE "${PACKAGE_DIR}")
     endif()
-    file(MAKE_DIRECTORY "${PROJECT_BINARY_DIR}/package/${CMAKE_INSTALL_PREFIX}/${PARSE_LIB_NAME}/bin")
+    set(PACKAGE_INSTALL_DIR "${PACKAGE_DIR}/${CPACK_PACKAGING_INSTALL_PREFIX}/${PARSE_LIB_NAME}")
+    file(MAKE_DIRECTORY "${PACKAGE_INSTALL_DIR}/bin")
+    ### AMD BLIS is not packaged right now, so we have to put the so files into /opt/rocm/lib temporarily
+    ### BLIS will be packaged soon and this will not be needed
+    set(BLIS_LIB_DIR "${PACKAGE_DIR}/${CPACK_PACKAGING_INSTALL_PREFIX}/lib")
+    file(MAKE_DIRECTORY "${BLIS_LIB_DIR}")
     file(WRITE "${PROJECT_BINARY_DIR}/package/DEBIAN/control" ${DEB_CONTROL_FILE_CONTENT})
-
     add_custom_target(package_clients
-        COMMAND ${CMAKE_COMMAND} -E remove -f "${PROJECT_BINARY_DIR}/package/${CMAKE_INSTALL_PREFIX}/${PARSE_LIB_NAME}/bin/*"
-        COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_BINARY_DIR}/staging/*" "${PROJECT_BINARY_DIR}/package/${CMAKE_INSTALL_PREFIX}/${PARSE_LIB_NAME}/bin"
+        COMMAND ${CMAKE_COMMAND} -E remove -f "${PACKAGE_INSTALL_DIR}/*"
+        COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_BINARY_DIR}/../../deps/blis/lib/*" "${BLIS_LIB_DIR}"
+        COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_BINARY_DIR}/staging/*" "${PACKAGE_INSTALL_DIR}/bin"
         COMMAND dpkg -b "${PROJECT_BINARY_DIR}/package/"  ${PACKAGE_NAME})
 endfunction(rocm_create_package_clients)
 

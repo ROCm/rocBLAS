@@ -6,6 +6,7 @@
 #define _ROCBLAS_OSTREAM_HPP_
 
 #include "rocblas.h"
+#include "utility.h"
 #include <cmath>
 #include <complex>
 #include <condition_variable>
@@ -281,6 +282,52 @@ public:
     // String output
     friend rocblas_ostream& operator<<(rocblas_ostream& os, const char* s);
     friend rocblas_ostream& operator<<(rocblas_ostream& os, const std::string& s);
+
+    // rocblas_datatype output
+    friend rocblas_ostream& operator<<(rocblas_ostream& os, rocblas_datatype d)
+    {
+        os.os << rocblas_datatype_string(d);
+        return os;
+    }
+
+    // rocblas_operation output
+    friend rocblas_ostream& operator<<(rocblas_ostream& os, rocblas_operation trans)
+
+    {
+        return os << rocblas_transpose_letter(trans);
+    }
+
+    // rocblas_fill output
+    friend rocblas_ostream& operator<<(rocblas_ostream& os, rocblas_fill fill)
+
+    {
+        return os << rocblas_fill_letter(fill);
+    }
+
+    // rocblas_diagonal output
+    friend rocblas_ostream& operator<<(rocblas_ostream& os, rocblas_diagonal diag)
+
+    {
+        return os << rocblas_diag_letter(diag);
+    }
+
+    // rocblas_side output
+    friend rocblas_ostream& operator<<(rocblas_ostream& os, rocblas_side side)
+
+    {
+        return os << rocblas_side_letter(side);
+    }
+
+    // rocblas_status output
+    friend rocblas_ostream& operator<<(rocblas_ostream& os, rocblas_status status)
+
+    {
+        os.os << rocblas_status_to_string(status);
+        return os;
+    }
+
+    enum rocblas_initialization : int;
+    friend rocblas_ostream& operator<<(rocblas_ostream& os, rocblas_initialization init);
 
     // Transfer rocblas_ostream to std::ostream
     friend std::ostream& operator<<(std::ostream& os, const rocblas_ostream& str)

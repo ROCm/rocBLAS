@@ -5,6 +5,7 @@
 #ifndef _TESTING_UTILITY_H_
 #define _TESTING_UTILITY_H_
 
+#include "logging.h"
 #include "rocblas.h"
 #include "rocblas_test.hpp"
 #include "utility.h"
@@ -29,6 +30,15 @@
 #pragma GCC poison cout cerr clog stdout stderr gets puts putchar fprintf printf sprintf vfprintf \
     vprintf vsprintf
 #endif
+
+static constexpr char LIMITED_MEMORY_STRING[]
+    = "Error: Attempting to allocate more memory than available.";
+
+// TODO: This is dependent on internal gtest behaviour.
+// Compared with result.message() when a test ended. Note that "Succeeded\n" is
+// added to the beginning of the message automatically by gtest, so this must be compared.
+static constexpr char LIMITED_MEMORY_STRING_GTEST[]
+    = "Succeeded\nError: Attempting to allocate more memory than available.";
 
 /* ============================================================================================ */
 /*! \brief  local handle which is automatically created and destroyed  */
@@ -91,6 +101,18 @@ inline void rocblas_print_matrix(
                       << ", CPU result=" << CPU_result[j + i * lda]
                       << ", GPU result=" << GPU_result[j + i * lda] << "\n";
         }
+}
+
+template <typename T>
+void rocblas_print_matrix(const char* name, T* A, size_t m, size_t n, size_t lda)
+{
+    rocblas_cout << "---------- " << name << " ----------\n";
+    for(size_t i = 0; i < m; i++)
+    {
+        for(size_t j = 0; j < n; j++)
+            rocblas_cout << A[i + j * lda] << " ";
+        rocblas_cout << std::endl;
+    }
 }
 
 #endif

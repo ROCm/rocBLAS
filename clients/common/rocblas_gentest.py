@@ -262,6 +262,12 @@ def setdefaults(test):
         setkey_product(test, 'stride_y', ['N', 'incy', 'stride_scale'])
         setkey_product(test, 'stride_a', ['N', 'N', 'stride_scale'])
 
+    elif test['function'] in ('her_strided_batched', 'her2_strided_batched',
+                              'syr2_strided_batched'):
+        setkey_product(test, 'stride_x', ['N', 'incx', 'stride_scale'])
+        setkey_product(test, 'stride_y', ['N', 'incy', 'stride_scale'])
+        setkey_product(test, 'stride_a', ['N', 'lda', 'stride_scale'])
+
     # we are using stride_c for arg c and stride_d for arg s in rotg
     # these are are single values for each batch
     elif test['function'] in ('rotg_strided_batched'):
@@ -308,10 +314,10 @@ def setdefaults(test):
         test.setdefault('ldc', 0)
         test.setdefault('ldd', 0)
     else:
-        test.setdefault('lda', test['M'] if test['transA'].upper() == 'N' else
-                        test['K'])
-        test.setdefault('ldb', test['K'] if test['transB'].upper() == 'N' else
-                        test['N'])
+        test.setdefault('lda', test['M'] if test['transA'].upper() == 'N'
+                        else test['K'] if test['K'] != 0 else 1)
+        test.setdefault('ldb', test['K'] if test['K'] != 0 else 1
+                        if test['transB'].upper() == 'N' else test['N'])
         test.setdefault('ldc', test['M'])
         test.setdefault('ldd', test['M'])
         if test['batch_count'] > 0:

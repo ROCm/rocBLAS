@@ -23,6 +23,17 @@ Definitions:
     - { N:  2000 }
     - { N:  4011 }
 
+  - &alpha_range
+    - { alpha: -0.5, alphai:  1.5 }
+    - { alpha:  0.0, alphai:  0.0 }
+    - { alpha:  0.0, alphai:  2.0 }
+    - { alpha:  2.0, alphai:  0.0 }
+    - { alpha:  1.0, alphai:  0.0 }
+    - { alpha:  1.5, alphai: -2.0 }
+
+  - &alpha_range_small
+    - { alpha: 2.0, alphai: 0.5 }
+
 Tests:
 
 - name: spr_bad_arg
@@ -39,7 +50,7 @@ Tests:
   uplo: [ U, L ]
   matrix_size: *small_matrix_size_range
   incx: [ -1, 1, 0, 2, -2, 10, 99 ]
-  alpha: [ -0.5, 1.0, 2.0, 0.0 ]
+  alpha_beta: *alpha_range
 
 - name: spr_medium
   category: pre_checkin
@@ -48,7 +59,7 @@ Tests:
   uplo: [ U, L ]
   matrix_size: *medium_matrix_size_range
   incx: [ 0, 2, -2 ]
-  alpha: [ -0.5, 2.0 ]
+  alpha_beta: *alpha_range_small
 
 - name: spr_large
   category: nightly
@@ -57,7 +68,7 @@ Tests:
   uplo: [ U, L ]
   matrix_size: *large_matrix_size_range
   incx: [ 1 ]
-  alpha: [ 1000.6 ]
+  alpha_beta: *alpha_range_small
 
 # batched
 
@@ -68,7 +79,7 @@ Tests:
   uplo: [ U, L ]
   matrix_size: *small_matrix_size_range
   incx: [ -1, 1, 0, 2, -2, 10, 99 ]
-  alpha: [ -0.5, 2.0, 0.0 ]
+  alpha_beta: *alpha_range
   batch_count: [ -1, 0, 1, 5 ]
 
 - name: spr_batched_medium
@@ -78,7 +89,7 @@ Tests:
   uplo: [ U, L ]
   matrix_size: *medium_matrix_size_range
   incx: [ 2, -2 ]
-  alpha: [ -0.5, 2.0 ]
+  alpha_beta: *alpha_range_small
   batch_count: [ 1, 3 ]
 
 - name: spr_batched_large
@@ -88,7 +99,7 @@ Tests:
   uplo: [ U, L ]
   matrix_size: *large_matrix_size_range
   incx: [ 1 ]
-  alpha: [ 1000.6 ]
+  alpha_beta: *alpha_range_small
   batch_count: [ 1, 3 ]
 
 # strided batched
@@ -100,7 +111,7 @@ Tests:
   uplo: [ U, L ]
   matrix_size: *small_matrix_size_range
   incx: [ -1, 1, 0, 2, -2, 10, 99 ]
-  alpha: [ -0.5, 2.0, 0.0 ]
+  alpha_beta: *alpha_range
   stride_scale: [ 1.0, 2.5 ]
   batch_count: [ -1, 0, 1, 5 ]
 
@@ -111,8 +122,8 @@ Tests:
   uplo: [ U, L ]
   matrix_size: *medium_matrix_size_range
   incx: [ 2, -2 ]
-  alpha: [ -0.5, 2.0 ]
-  stride_scale: [ 1.0, 2.5 ]
+  alpha_beta: *alpha_range_small
+  stride_scale: [ 1.0 ]
   batch_count: [ 1, 3 ]
 
 - name: spr_strided_large
@@ -122,8 +133,8 @@ Tests:
   uplo: [ U, L ]
   matrix_size: *large_matrix_size_range
   incx: [ 1 ]
-  alpha: [ 1000.6 ]
-  stride_scale: [ 1.0, 2.5 ]
+  alpha_beta: *alpha_range_small
+  stride_scale: [ 1.0 ]
   batch_count: [ 1, 3 ]
 
 ...

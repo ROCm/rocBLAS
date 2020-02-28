@@ -9,7 +9,6 @@
 
 #include "tensile_host.hpp"
 #include "rocblas.h"
-#include "tuple_helper.hpp"
 //#include <Tensile/AMDGPU.hpp>
 #include <Tensile/Contractions.hpp>
 #include <Tensile/EmbeddedLibrary.hpp>
@@ -131,16 +130,21 @@ namespace
         freeIndex[0].c = freeIndex[0].d = 0;
         freeIndex[1].c = freeIndex[1].d = 1;
 
+        // Tensile does not support 0-sized dimensions. For when k == 0, we still need to
+        // multiply C by beta, but not add any of the rank-0 dot products. As a workaround,
+        // we pass k = 1 and set alpha == 0, since alpha == 0 has the same effect as k == 0.
+        auto k = prob.k == 0 ? 1 : prob.k;
+
         // If A is transposed, swap the free and bound dimensions and their ranks
         if(prob.trans_a != rocblas_operation_none)
         {
-            a = {Tensile_Ti, {prob.k, prob.m, prob.batch_count}, {1, prob.ld_a, prob.stride_a}};
+            a = {Tensile_Ti, {k, prob.m, prob.batch_count}, {1, prob.ld_a, prob.stride_a}};
             freeIndex[0].i  = 1;
             boundIndex[0].a = 0;
         }
         else
         {
-            a = {Tensile_Ti, {prob.m, prob.k, prob.batch_count}, {1, prob.ld_a, prob.stride_a}};
+            a = {Tensile_Ti, {prob.m, k, prob.batch_count}, {1, prob.ld_a, prob.stride_a}};
             freeIndex[0].i  = 0;
             boundIndex[0].a = 1;
         }
@@ -152,13 +156,13 @@ namespace
         // If B is transposed, swap the free and bound dimensions and their ranks
         if(prob.trans_b != rocblas_operation_none)
         {
-            b = {Tensile_Ti, {prob.n, prob.k, prob.batch_count}, {1, prob.ld_b, prob.stride_b}};
+            b = {Tensile_Ti, {prob.n, k, prob.batch_count}, {1, prob.ld_b, prob.stride_b}};
             freeIndex[1].i  = 0;
             boundIndex[0].b = 1;
         }
         else
         {
-            b = {Tensile_Ti, {prob.k, prob.n, prob.batch_count}, {1, prob.ld_b, prob.stride_b}};
+            b = {Tensile_Ti, {k, prob.n, prob.batch_count}, {1, prob.ld_b, prob.stride_b}};
             freeIndex[1].i  = 1;
             boundIndex[0].b = 0;
         }
@@ -267,7 +271,11 @@ namespace
 
         // alpha and beta are stored by value in Tensile::TypedContractionInputs
         // alpha and beta are copied from host to Tensile::TypedContractionInputs
-        AlphaBeta<Ti, To, Tc>::copy(&inputs.alpha, problem.alpha);
+        // We set alpha = 0 if k == 0 (see above)
+        if(problem.k == 0)
+            memset(&inputs.alpha, 0, sizeof(inputs.alpha));
+        else
+            AlphaBeta<Ti, To, Tc>::copy(&inputs.alpha, problem.alpha);
         AlphaBeta<Ti, To, Tc>::copy(&inputs.beta, problem.beta);
 
         return inputs;
@@ -362,7 +370,8 @@ namespace
                     path += "/" + processor;
             }
 
-            auto dir = path + "/*co";
+            // only load modules for the current architecture
+            auto dir = path + "/*" + processor + "*co";
 
             glob_t glob_result;
             int    g = glob(dir.c_str(), GLOB_TILDE_CHECK | GLOB_NOSORT, nullptr, &glob_result);
@@ -417,7 +426,9 @@ TensileHost* createTensileHost()
  ******************************************************************************/
 template <typename Ti, typename To, typename Tc>
 rocblas_status
-    TensileHost::runContractionProblem(const RocblasContractionProblem<Ti, To, Tc>& problem)
+    TensileHost::runContractionProblem(const RocblasContractionProblem<Ti, To, Tc>& problem,
+                                       hipEvent_t*                                  startEvent,
+                                       hipEvent_t*                                  stopEvent)
 {
     rocblas_status                                status = rocblas_status_internal_error;
     std::shared_ptr<Tensile::ContractionSolution> solution;
@@ -440,7 +451,15 @@ rocblas_status
         {
             auto inputs = GetTensileInputs(problem);
             auto result = solution->solve(tensile_problem, inputs, *host->hardware);
-            host->adapter.launchKernels(result);
+            if(startEvent && stopEvent)
+            {
+                hipStream_t stream;
+                rocblas_get_stream(problem.handle, &stream);
+                host->adapter.launchKernels(result, stream, *startEvent, *stopEvent);
+            }
+            else
+                host->adapter.launchKernels(result);
+
             status = rocblas_status_success;
         }
     }
@@ -463,55 +482,6 @@ rocblas_status
     return status;
 }
 
-/***************************************************
- * Print a RocblasContractionProblem for debugging *
- ***************************************************/
-template <typename Ti, typename To, typename Tc>
-rocblas_ostream& operator<<(rocblas_ostream& os, const RocblasContractionProblem<Ti, To, Tc>& prob)
-{
-    return tuple_helper::print_tuple_pairs(os,
-                                           std::make_tuple("a_type",
-                                                           rocblas_precision_string<Ti>,
-                                                           "b_type",
-                                                           rocblas_precision_string<Ti>,
-                                                           "c_type",
-                                                           rocblas_precision_string<To>,
-                                                           "d_type",
-                                                           rocblas_precision_string<To>,
-                                                           "compute_type",
-                                                           rocblas_precision_string<Tc>,
-                                                           "transA",
-                                                           rocblas_transpose_letter(prob.trans_a),
-                                                           "transB",
-                                                           rocblas_transpose_letter(prob.trans_b),
-                                                           "M",
-                                                           prob.m,
-                                                           "N",
-                                                           prob.n,
-                                                           "K",
-                                                           prob.k,
-                                                           "lda",
-                                                           prob.ld_a,
-                                                           "ldb",
-                                                           prob.ld_b,
-                                                           "ldc",
-                                                           prob.ld_c,
-                                                           "ldd",
-                                                           prob.ld_d,
-                                                           "beta",
-                                                           value_category(prob.beta),
-                                                           "batch_count",
-                                                           prob.batch_count,
-                                                           "stride_a",
-                                                           prob.stride_a,
-                                                           "stride_b",
-                                                           prob.stride_b,
-                                                           "stride_c",
-                                                           prob.stride_c,
-                                                           "stride_d",
-                                                           prob.stride_d));
-}
-
 /******************************************************************************
  * Intantiate the cases of runContractionProblem which are needed to satisfy  *
  * rocBLAS dependencies. This file's template functions are not defined in a  *
@@ -519,28 +489,40 @@ rocblas_ostream& operator<<(rocblas_ostream& os, const RocblasContractionProblem
  ******************************************************************************/
 
 // Non-EX types
-template rocblas_status
-    TensileHost::runContractionProblem(const RocblasContractionProblem<rocblas_half>&);
+template rocblas_status TensileHost::runContractionProblem(
+    const RocblasContractionProblem<rocblas_half>&, hipEvent_t* startEvent, hipEvent_t* stopEvent);
 
-template rocblas_status TensileHost::runContractionProblem(const RocblasContractionProblem<float>&);
+template rocblas_status TensileHost::runContractionProblem(const RocblasContractionProblem<float>&,
+                                                           hipEvent_t* startEvent,
+                                                           hipEvent_t* stopEvent);
+
+template rocblas_status TensileHost::runContractionProblem(const RocblasContractionProblem<double>&,
+                                                           hipEvent_t* startEvent,
+                                                           hipEvent_t* stopEvent);
 
 template rocblas_status
-    TensileHost::runContractionProblem(const RocblasContractionProblem<double>&);
+    TensileHost::runContractionProblem(const RocblasContractionProblem<rocblas_float_complex>&,
+                                       hipEvent_t* startEvent,
+                                       hipEvent_t* stopEvent);
 
 template rocblas_status
-    TensileHost::runContractionProblem(const RocblasContractionProblem<rocblas_float_complex>&);
-
-template rocblas_status
-    TensileHost::runContractionProblem(const RocblasContractionProblem<rocblas_double_complex>&);
+    TensileHost::runContractionProblem(const RocblasContractionProblem<rocblas_double_complex>&,
+                                       hipEvent_t* startEvent,
+                                       hipEvent_t* stopEvent);
 
 // EX types
 template rocblas_status TensileHost::runContractionProblem(
-    const RocblasContractionProblem<rocblas_half, rocblas_half, float>&);
+    const RocblasContractionProblem<rocblas_half, rocblas_half, float>&,
+    hipEvent_t* startEvent,
+    hipEvent_t* stopEvent);
 
 template rocblas_status TensileHost::runContractionProblem(
-    const RocblasContractionProblem<rocblas_bfloat16, rocblas_bfloat16, float>&);
+    const RocblasContractionProblem<rocblas_bfloat16, rocblas_bfloat16, float>&,
+    hipEvent_t* startEvent,
+    hipEvent_t* stopEvent);
 
 template rocblas_status
-    TensileHost::runContractionProblem(const RocblasContractionProblem<int8_t, int32_t, int32_t>&);
-
+    TensileHost::runContractionProblem(const RocblasContractionProblem<int8_t, int32_t, int32_t>&,
+                                       hipEvent_t* startEvent,
+                                       hipEvent_t* stopEvent);
 #endif

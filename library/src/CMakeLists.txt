@@ -153,6 +153,21 @@ if( BUILD_WITH_TENSILE )
 
 endif( ) # BUILD_WITH_TENSILE
 
+set( rocblas_blas3_source_no_tensile
+    blas3/rocblas_herk.cpp
+    blas3/rocblas_herk_batched.cpp
+    blas3/rocblas_herk_strided_batched.cpp
+    blas3/rocblas_her2k.cpp
+    blas3/rocblas_her2k_batched.cpp
+    blas3/rocblas_her2k_strided_batched.cpp
+    blas3/rocblas_syrk.cpp
+    blas3/rocblas_syrk_batched.cpp
+    blas3/rocblas_syrk_strided_batched.cpp
+    blas3/rocblas_syr2k.cpp
+    blas3/rocblas_syr2k_batched.cpp
+    blas3/rocblas_syr2k_strided_batched.cpp
+)
+
 set( rocblas_blas2_source
   ${rocblas_blas2_tensile_source}
   blas2/rocblas_gemv.cpp
@@ -176,6 +191,12 @@ set( rocblas_blas2_source
   blas2/rocblas_hemv.cpp
   blas2/rocblas_hemv_batched.cpp
   blas2/rocblas_hemv_strided_batched.cpp
+  blas2/rocblas_her.cpp
+  blas2/rocblas_her_batched.cpp
+  blas2/rocblas_her_strided_batched.cpp
+  blas2/rocblas_her2.cpp
+  blas2/rocblas_her2_batched.cpp
+  blas2/rocblas_her2_strided_batched.cpp
   blas2/rocblas_hpmv.cpp
   blas2/rocblas_hpmv_batched.cpp
   blas2/rocblas_hpmv_strided_batched.cpp
@@ -191,9 +212,21 @@ set( rocblas_blas2_source
   blas2/rocblas_syr.cpp
   blas2/rocblas_syr_batched.cpp
   blas2/rocblas_syr_strided_batched.cpp
+  blas2/rocblas_syr2.cpp
+  blas2/rocblas_syr2_batched.cpp
+  blas2/rocblas_syr2_strided_batched.cpp
   blas2/rocblas_tbmv.cpp
   blas2/rocblas_tbmv_batched.cpp
   blas2/rocblas_tbmv_strided_batched.cpp
+  blas2/rocblas_sbmv.cpp
+  blas2/rocblas_sbmv_batched.cpp
+  blas2/rocblas_sbmv_strided_batched.cpp
+  blas2/rocblas_spmv.cpp
+  blas2/rocblas_spmv_batched.cpp
+  blas2/rocblas_spmv_strided_batched.cpp
+  blas2/rocblas_symv.cpp
+  blas2/rocblas_symv_batched.cpp
+  blas2/rocblas_symv_strided_batched.cpp
 )
 
 set( rocblas_auxiliary_source
@@ -249,6 +282,7 @@ prepend_path( ".." rocblas_headers_public relative_rocblas_headers_public )
 add_library( rocblas
   ${rocblas_ex_source}
   ${rocblas_blas3_source}
+  ${rocblas_blas3_source_no_tensile}
   ${rocblas_blas2_source}
   ${rocblas_blas1_source}
   ${relative_rocblas_headers_public}

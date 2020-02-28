@@ -224,7 +224,7 @@ void testing_gemm_batched(const Arguments& arg)
         cpu_time_used = get_time_us();
         for(rocblas_int i = 0; i < batch_count; i++)
         {
-            cblas_gemm<T, T>(
+            cblas_gemm<T>(
                 transA, transB, M, N, K, h_alpha, hA[i], lda, hB[i], ldb, h_beta, hC_gold[i], ldc);
         }
         cpu_time_used = get_time_us() - cpu_time_used;
@@ -259,7 +259,7 @@ void testing_gemm_batched(const Arguments& arg)
 
     if(arg.timing)
     {
-        int number_cold_calls = 2;
+        int number_cold_calls = arg.cold_iters;
         int number_hot_calls  = arg.iters;
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));

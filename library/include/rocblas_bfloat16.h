@@ -54,11 +54,21 @@ struct rocblas_bfloat16
 {
     uint16_t data;
 
+    enum truncate_t
+    {
+        truncate
+    };
+
     __host__ __device__ rocblas_bfloat16() = default;
 
     // round upper 16 bits of IEEE float to convert to bfloat16
     explicit constexpr __host__ __device__ rocblas_bfloat16(float f)
         : data(float_to_bfloat16(f))
+    {
+    }
+
+    explicit constexpr __host__ __device__ rocblas_bfloat16(float f, truncate_t)
+        : data(truncate_float_to_bfloat16(f))
     {
     }
 
@@ -114,6 +124,17 @@ private:
             u.int32 |= 0x10000; // Preserve signaling NaN
         }
         return uint16_t(u.int32 >> 16);
+    }
+
+    // Truncate instead of rounding, preserving SNaN
+    static constexpr __host__ __device__ uint16_t truncate_float_to_bfloat16(float f)
+    {
+        union
+        {
+            float    fp32;
+            uint32_t int32;
+        } u = {f};
+        return uint16_t(u.int32 >> 16) | (!(~u.int32 & 0x7f800000) && (u.int32 & 0xffff));
     }
 };
 

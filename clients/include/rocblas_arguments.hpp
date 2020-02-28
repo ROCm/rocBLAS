@@ -75,6 +75,7 @@ struct Arguments
     rocblas_int unit_check;
     rocblas_int timing;
     rocblas_int iters;
+    rocblas_int cold_iters;
 
     uint32_t algo;
     int32_t  solution_index;
@@ -86,6 +87,7 @@ struct Arguments
 
     rocblas_initialization initialization;
     char                   known_bug_platforms[64];
+    bool                   c_noalias_d;
 
     /*************************************************************************
      *                     End Of Arguments                                  *
@@ -133,6 +135,7 @@ struct Arguments
     OPER(unit_check) SEP             \
     OPER(timing) SEP                 \
     OPER(iters) SEP                  \
+    OPER(cold_iters) SEP             \
     OPER(algo) SEP                   \
     OPER(solution_index) SEP         \
     OPER(flags) SEP                  \
@@ -140,7 +143,8 @@ struct Arguments
     OPER(name) SEP                   \
     OPER(category) SEP               \
     OPER(initialization) SEP         \
-    OPER(known_bug_platforms)
+    OPER(known_bug_platforms) SEP    \
+    OPER(c_noalias_d)
 
     // clang-format on
 

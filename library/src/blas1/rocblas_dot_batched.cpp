@@ -20,6 +20,10 @@ namespace
     constexpr char rocblas_dot_batched_name<CONJ, float>[] = "rocblas_sdot_batched";
     template <bool CONJ>
     constexpr char rocblas_dot_batched_name<CONJ, double>[] = "rocblas_ddot_batched";
+    template <bool CONJ>
+    constexpr char rocblas_dot_batched_name<CONJ, rocblas_half>[] = "rocblas_hdot_batched";
+    template <bool CONJ>
+    constexpr char rocblas_dot_batched_name<CONJ, rocblas_bfloat16>[] = "rocblas_bfdot_batched";
     template <>
     constexpr char rocblas_dot_batched_name<true, rocblas_float_complex>[]
         = "rocblas_cdotc_batched";
