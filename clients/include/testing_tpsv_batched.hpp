@@ -106,7 +106,7 @@ void testing_tpsv_batched(const Arguments& arg)
     host_batch_vector<T> hx_or_b_2(N, incx, batch_count);
     host_batch_vector<T> cpu_x_or_b(N, incx, batch_count);
 
-    device_batch_vector<T> dAP(size_A, 1, batch_count);
+    device_batch_vector<T> dAP(size_AP, 1, batch_count);
     device_batch_vector<T> dx_or_b(N, incx, batch_count);
     CHECK_HIP_ERROR(dAP.memcheck());
     CHECK_HIP_ERROR(dx_or_b.memcheck());

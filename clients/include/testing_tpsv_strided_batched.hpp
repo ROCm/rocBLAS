@@ -140,7 +140,7 @@ void testing_tpsv_strided_batched(const Arguments& arg)
     double eps                     = std::numeric_limits<real_t<T>>::epsilon();
 
     // allocate memory on device
-    device_strided_batch_vector<T> dAP(size_A, 1, stride_ap, batch_count);
+    device_strided_batch_vector<T> dAP(size_AP, 1, stride_ap, batch_count);
     device_strided_batch_vector<T> dx_or_b(N, incx, stride_x, batch_count);
     CHECK_HIP_ERROR(dAP.memcheck());
     CHECK_HIP_ERROR(dx_or_b.memcheck());

@@ -189,6 +189,15 @@ namespace
         }
     }
 
+    /**
+     *  Calls forwards/backwards substitution kernels with appropriate arguments.
+     *  Note the attribute here - apparently this is needed for group sizes > 256.
+     *  Currently BLK_SIZE is set to 512, so this is required or else we get
+     *  incorrect behaviour.
+     *
+     *  To optimize we can probably use multiple kernels (a substitution kernel and a
+     *  multiplication kernel) so we can use multiple blocks instead of a single one.
+     */
     template <bool CONJ, rocblas_int BLK_SIZE, typename TConstPtr, typename TPtr>
     __attribute__((amdgpu_flat_work_group_size(64, 1024))) __global__ void
         rocblas_tpsv_kernel(rocblas_fill      uplo,
@@ -203,8 +212,8 @@ namespace
                             rocblas_int       incx,
                             rocblas_stride    stride_x)
     {
-        const auto* AP = load_ptr_batch(APa, hipBlockIdx_y, shift_A, stride_A);
-        auto*       x  = load_ptr_batch(xa, hipBlockIdx_y, shift_x, stride_x);
+        const auto* AP = load_ptr_batch(APa, hipBlockIdx_x, shift_A, stride_A);
+        auto*       x  = load_ptr_batch(xa, hipBlockIdx_x, shift_x, stride_x);
 
         bool is_diag = diag == rocblas_diagonal_unit;
 
@@ -247,9 +256,7 @@ namespace
         ptrdiff_t shift_x = incx < 0 ? offset_x - ptrdiff_t(incx) * (n - 1) : offset_x;
         ptrdiff_t shift_A = offset_A;
 
-        rocblas_int blocks = 1;
-
-        dim3 grid(blocks, batch_count);
+        dim3 grid(batch_count);
         dim3 threads(BLOCK);
 
         if(rocblas_operation_conjugate_transpose == transA)
