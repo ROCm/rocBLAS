@@ -224,6 +224,9 @@ void catch_signals_and_exceptions_as_failures(const std::function<void()>& test)
  *****************/
 int main(int argc, char** argv)
 {
+    // Initialize rocBLAS (not explicitly needed; just included for testing)
+    rocblas_init();
+
     // Set signal handler
     rocblas_test_sigaction();
 

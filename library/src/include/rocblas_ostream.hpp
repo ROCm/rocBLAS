@@ -6,6 +6,7 @@
 #define _ROCBLAS_OSTREAM_HPP_
 
 #include "rocblas.h"
+#include "utility.h"
 #include <cmath>
 #include <complex>
 #include <condition_variable>
@@ -291,7 +292,7 @@ public:
     friend rocblas_ostream& operator<<(rocblas_ostream& os, rocblas_operation trans)
 
     {
-        return os << rocblas_transpose_letter(rocblas_operation trans)
+        return os << rocblas_transpose_letter(trans);
     }
 
     // rocblas_fill output
@@ -305,14 +306,14 @@ public:
     friend rocblas_ostream& operator<<(rocblas_ostream& os, rocblas_diagonal diag)
 
     {
-        return os << rocblas_diag_letter(fill);
+        return os << rocblas_diag_letter(diag);
     }
 
     // rocblas_side output
     friend rocblas_ostream& operator<<(rocblas_ostream& os, rocblas_side side)
 
     {
-        return os << rocblas_side_letter(fill);
+        return os << rocblas_side_letter(side);
     }
 
     // rocblas_status output
@@ -322,6 +323,9 @@ public:
         os.os << rocblas_status_to_string(status);
         return os;
     }
+
+    enum rocblas_initialization : int;
+    friend rocblas_ostream& operator<<(rocblas_ostream& os, rocblas_initialization init);
 
     // Transfer rocblas_ostream to std::ostream
     friend std::ostream& operator<<(std::ostream& os, const rocblas_ostream& str)
