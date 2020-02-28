@@ -28,6 +28,7 @@ Datatypes:
       attr:
         rocblas_initialization_random_int: 111
         rocblas_initialization_trig_float: 222
+        rocblas_initialization_hpl: 333
 
 Real precisions: &real_precisions
   - &half_precision

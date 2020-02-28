@@ -426,7 +426,9 @@ TensileHost* createTensileHost()
  ******************************************************************************/
 template <typename Ti, typename To, typename Tc>
 rocblas_status
-    TensileHost::runContractionProblem(const RocblasContractionProblem<Ti, To, Tc>& problem)
+    TensileHost::runContractionProblem(const RocblasContractionProblem<Ti, To, Tc>& problem,
+                                       hipEvent_t*                                  startEvent,
+                                       hipEvent_t*                                  stopEvent)
 {
     rocblas_status                                status = rocblas_status_internal_error;
     std::shared_ptr<Tensile::ContractionSolution> solution;
@@ -449,7 +451,15 @@ rocblas_status
         {
             auto inputs = GetTensileInputs(problem);
             auto result = solution->solve(tensile_problem, inputs, *host->hardware);
-            host->adapter.launchKernels(result);
+            if(startEvent && stopEvent)
+            {
+                hipStream_t stream;
+                rocblas_get_stream(problem.handle, &stream);
+                host->adapter.launchKernels(result, stream, *startEvent, *stopEvent);
+            }
+            else
+                host->adapter.launchKernels(result);
+
             status = rocblas_status_success;
         }
     }
@@ -479,28 +489,40 @@ rocblas_status
  ******************************************************************************/
 
 // Non-EX types
-template rocblas_status
-    TensileHost::runContractionProblem(const RocblasContractionProblem<rocblas_half>&);
+template rocblas_status TensileHost::runContractionProblem(
+    const RocblasContractionProblem<rocblas_half>&, hipEvent_t* startEvent, hipEvent_t* stopEvent);
 
-template rocblas_status TensileHost::runContractionProblem(const RocblasContractionProblem<float>&);
+template rocblas_status TensileHost::runContractionProblem(const RocblasContractionProblem<float>&,
+                                                           hipEvent_t* startEvent,
+                                                           hipEvent_t* stopEvent);
+
+template rocblas_status TensileHost::runContractionProblem(const RocblasContractionProblem<double>&,
+                                                           hipEvent_t* startEvent,
+                                                           hipEvent_t* stopEvent);
 
 template rocblas_status
-    TensileHost::runContractionProblem(const RocblasContractionProblem<double>&);
+    TensileHost::runContractionProblem(const RocblasContractionProblem<rocblas_float_complex>&,
+                                       hipEvent_t* startEvent,
+                                       hipEvent_t* stopEvent);
 
 template rocblas_status
-    TensileHost::runContractionProblem(const RocblasContractionProblem<rocblas_float_complex>&);
-
-template rocblas_status
-    TensileHost::runContractionProblem(const RocblasContractionProblem<rocblas_double_complex>&);
+    TensileHost::runContractionProblem(const RocblasContractionProblem<rocblas_double_complex>&,
+                                       hipEvent_t* startEvent,
+                                       hipEvent_t* stopEvent);
 
 // EX types
 template rocblas_status TensileHost::runContractionProblem(
-    const RocblasContractionProblem<rocblas_half, rocblas_half, float>&);
+    const RocblasContractionProblem<rocblas_half, rocblas_half, float>&,
+    hipEvent_t* startEvent,
+    hipEvent_t* stopEvent);
 
 template rocblas_status TensileHost::runContractionProblem(
-    const RocblasContractionProblem<rocblas_bfloat16, rocblas_bfloat16, float>&);
+    const RocblasContractionProblem<rocblas_bfloat16, rocblas_bfloat16, float>&,
+    hipEvent_t* startEvent,
+    hipEvent_t* stopEvent);
 
 template rocblas_status
-    TensileHost::runContractionProblem(const RocblasContractionProblem<int8_t, int32_t, int32_t>&);
-
+    TensileHost::runContractionProblem(const RocblasContractionProblem<int8_t, int32_t, int32_t>&,
+                                       hipEvent_t* startEvent,
+                                       hipEvent_t* stopEvent);
 #endif

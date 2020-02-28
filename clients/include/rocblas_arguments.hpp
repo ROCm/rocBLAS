@@ -135,6 +135,7 @@ struct Arguments
     OPER(unit_check) SEP             \
     OPER(timing) SEP                 \
     OPER(iters) SEP                  \
+    OPER(cold_iters) SEP             \
     OPER(algo) SEP                   \
     OPER(solution_index) SEP         \
     OPER(flags) SEP                  \
@@ -142,7 +143,8 @@ struct Arguments
     OPER(name) SEP                   \
     OPER(category) SEP               \
     OPER(initialization) SEP         \
-    OPER(known_bug_platforms)
+    OPER(known_bug_platforms) SEP    \
+    OPER(c_noalias_d)
 
     // clang-format on
 
