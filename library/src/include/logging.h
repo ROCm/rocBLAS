@@ -92,6 +92,12 @@ protected:
         print_value(os, s.c_str());
     }
 
+    // rocblas_datatype
+    static void print_value(std::ostream& os, const rocblas_datatype& d)
+    {
+        os << rocblas_datatype_string(d);
+    }
+
     /************************************************************************************
      * Print tuples
      ************************************************************************************/
