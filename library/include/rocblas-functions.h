@@ -9187,7 +9187,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zherk_strided_batched(rocblas_handle      
 
     @param[in]
     ldb     [rocblas_int]
-            lda specifies the first dimension of B.
+            ldb specifies the first dimension of B.
             if trans = rocblas_operation_none,  ldb >= max( 1, n ),
             otherwise ldb >= max( 1, k ).
     @param[in]
@@ -9525,7 +9525,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zher2k_strided_batched(rocblas_handle     
 
     @param[in]
     ldb     [rocblas_int]
-            lda specifies the first dimension of B.
+            ldb specifies the first dimension of B.
             if trans = rocblas_operation_none,  ldb >= max( 1, n ),
             otherwise ldb >= max( 1, k ).
     @param[in]
@@ -10502,7 +10502,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyr2k_batched(rocblas_handle             
 
     @param[in]
     ldb     [rocblas_int]
-            lda specifies the first dimension of B_i.
+            ldb specifies the first dimension of B_i.
             if trans = rocblas_operation_none,  ldb >= max( 1, n ),
             otherwise ldb >= max( 1, k ).
     @param[in]
@@ -10931,7 +10931,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyrkx_batched(rocblas_handle             
 
     @param[in]
     ldb     [rocblas_int]
-            lda specifies the first dimension of B_i.
+            ldb specifies the first dimension of B_i.
             if trans = rocblas_operation_none,  ldb >= max( 1, n ),
             otherwise ldb >= max( 1, k ).
     @param[in]
