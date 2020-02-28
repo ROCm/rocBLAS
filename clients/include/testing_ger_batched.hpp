@@ -33,21 +33,57 @@ void testing_ger_batched_bad_arg(const Arguments& arg)
     device_batch_vector<T> dA(size_A, 1, batch_count);
     device_batch_vector<T> dx(M, incx, batch_count);
     device_batch_vector<T> dy(N, incy, batch_count);
-    CHECK_HIP_ERROR(dA.memcheck());
-    CHECK_HIP_ERROR(dx.memcheck());
-    CHECK_HIP_ERROR(dy.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
-    EXPECT_ROCBLAS_STATUS((rocblas_ger_batched<T, CONJ>(
-                              handle, M, N, &alpha, nullptr, incx, dy, incy, dA, lda, batch_count)),
+    EXPECT_ROCBLAS_STATUS((rocblas_ger_batched<T, CONJ>(handle,
+                                                        M,
+                                                        N,
+                                                        &alpha,
+                                                        nullptr,
+                                                        incx,
+                                                        dy.ptr_on_device(),
+                                                        incy,
+                                                        dA.ptr_on_device(),
+                                                        lda,
+                                                        batch_count)),
                           rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS((rocblas_ger_batched<T, CONJ>(
-                              handle, M, N, &alpha, dx, incx, nullptr, incy, dA, lda, batch_count)),
+    EXPECT_ROCBLAS_STATUS((rocblas_ger_batched<T, CONJ>(handle,
+                                                        M,
+                                                        N,
+                                                        &alpha,
+                                                        dx.ptr_on_device(),
+                                                        incx,
+                                                        nullptr,
+                                                        incy,
+                                                        dA.ptr_on_device(),
+                                                        lda,
+                                                        batch_count)),
                           rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS((rocblas_ger_batched<T, CONJ>(
-                              handle, M, N, &alpha, dx, incx, dy, incy, nullptr, lda, batch_count)),
+    EXPECT_ROCBLAS_STATUS((rocblas_ger_batched<T, CONJ>(handle,
+                                                        M,
+                                                        N,
+                                                        &alpha,
+                                                        dx.ptr_on_device(),
+                                                        incx,
+                                                        dy.ptr_on_device(),
+                                                        incy,
+                                                        nullptr,
+                                                        lda,
+                                                        batch_count)),
                           rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS((rocblas_ger_batched<T, CONJ>(
-                              nullptr, M, N, &alpha, dx, incx, dy, incy, dA, lda, batch_count)),
+    EXPECT_ROCBLAS_STATUS((rocblas_ger_batched<T, CONJ>(nullptr,
+                                                        M,
+                                                        N,
+                                                        &alpha,
+                                                        dx.ptr_on_device(),
+                                                        incx,
+                                                        dy.ptr_on_device(),
+                                                        incy,
+                                                        dA.ptr_on_device(),
+                                                        lda,
+                                                        batch_count)),
                           rocblas_status_invalid_handle);
 }
 
@@ -67,8 +103,6 @@ void testing_ger_batched(const Arguments& arg)
     // argument check before allocating invalid memory
     if(M <= 0 || N <= 0 || lda < M || lda < 1 || !incx || !incy || batch_count <= 0)
     {
-        static constexpr size_t safe_size = 100;
-
         EXPECT_ROCBLAS_STATUS(
             (rocblas_ger_batched<T, CONJ>(
                 handle, M, N, &h_alpha, nullptr, incx, nullptr, incy, nullptr, lda, batch_count)),
@@ -103,6 +137,8 @@ void testing_ger_batched(const Arguments& arg)
     host_batch_vector<T> hA_1(size_A, 1, batch_count);
     host_batch_vector<T> hA_2(size_A, 1, batch_count);
     host_batch_vector<T> hA_gold(size_A, 1, batch_count);
+    host_vector<T>       halpha(1);
+    halpha[0] = h_alpha;
 
     double gpu_time_used, cpu_time_used;
     double rocblas_gflops, cblas_gflops, rocblas_bandwidth;
@@ -124,7 +160,7 @@ void testing_ger_batched(const Arguments& arg)
     {
         // copy data from CPU to device
         CHECK_HIP_ERROR(dA_2.transfer_from(hA_2));
-        CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(T), hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(d_alpha.transfer_from(halpha));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         CHECK_ROCBLAS_ERROR((rocblas_ger_batched<T, CONJ>(handle,
