@@ -101,4 +101,19 @@ constexpr double tpsv_gbyte_count(rocblas_int n)
  * ===========================================================================
  */
 
+/* \brief byte counts of SYRK */
+template <typename T>
+constexpr double syrk_gbyte_count(rocblas_int n, rocblas_int k)
+{
+    rocblas_int k1 = k < n ? k : n - 1;
+    return (sizeof(T) * (tri_count(n) + n * k)) / 1e9;
+}
+
+/* \brief byte counts of HERK */
+template <typename T>
+constexpr double herk_gbyte_count(rocblas_int n, rocblas_int k)
+{
+    return syrk_gbyte_count<T>(n, k);
+}
+
 #endif /* _ROCBLAS_BYTES_H_ */

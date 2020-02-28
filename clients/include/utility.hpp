@@ -20,6 +20,16 @@
  * \brief provide common utilities
  */
 
+// Passed into gtest's SUCCEED macro when skipping a test.
+static constexpr char LIMITED_MEMORY_STRING[]
+    = "Error: Attempting to allocate more memory than available.";
+
+// TODO: This is dependent on internal gtest behaviour.
+// Compared with result.message() when a test ended. Note that "Succeeded\n" is
+// added to the beginning of the message automatically by gtest, so this must be compared.
+static constexpr char LIMITED_MEMORY_STRING_GTEST[]
+    = "Succeeded\nError: Attempting to allocate more memory than available.";
+
 /* ============================================================================================ */
 /*! \brief  local handle which is automatically created and destroyed  */
 class rocblas_local_handle

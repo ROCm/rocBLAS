@@ -29,11 +29,9 @@ void testing_rotm_strided_batched_bad_arg(const Arguments& arg)
     device_vector<T>     dx(safe_size);
     device_vector<T>     dy(safe_size);
     device_vector<T>     dparam(safe_size);
-    if(!dx || !dy || !dparam)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
+    CHECK_DEVICE_ALLOCATION(dparam.memcheck());
 
     EXPECT_ROCBLAS_STATUS(
         (rocblas_rotm_strided_batched<T>(
@@ -93,11 +91,9 @@ void testing_rotm_strided_batched(const Arguments& arg)
         device_vector<T>    dx(safe_size);
         device_vector<T>    dy(safe_size);
         device_vector<T>    dparam(safe_size);
-        if(!dx || !dy || !dparam)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
+        CHECK_DEVICE_ALLOCATION(dx.memcheck());
+        CHECK_DEVICE_ALLOCATION(dy.memcheck());
+        CHECK_DEVICE_ALLOCATION(dparam.memcheck());
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         EXPECT_ROCBLAS_STATUS((rocblas_rotm_strided_batched<T>(handle,
@@ -123,11 +119,9 @@ void testing_rotm_strided_batched(const Arguments& arg)
     device_vector<T> dx(size_x);
     device_vector<T> dy(size_y);
     device_vector<T> dparam(size_param);
-    if(!dx || !dy || !dparam)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
+    CHECK_DEVICE_ALLOCATION(dparam.memcheck());
 
     // Initial Data on CPU
     host_vector<T> hx(size_x);
@@ -234,7 +228,7 @@ void testing_rotm_strided_batched(const Arguments& arg)
         if(arg.timing)
         {
             int number_cold_calls = 2;
-            int number_hot_calls  = 100;
+            int number_hot_calls  = arg.iters;
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
             CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T) * size_x, hipMemcpyHostToDevice));
             CHECK_HIP_ERROR(hipMemcpy(dy, hy, sizeof(T) * size_y, hipMemcpyHostToDevice));
