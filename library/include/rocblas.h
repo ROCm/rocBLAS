@@ -13,6 +13,7 @@
 #include "rocblas-auxiliary.h"
 #include "rocblas-export.h"
 #include "rocblas-functions.h"
+#include "rocblas-profile.h"
 #include "rocblas-types.h"
 #include "rocblas-version.h"
 
