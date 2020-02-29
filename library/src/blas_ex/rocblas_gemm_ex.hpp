@@ -691,10 +691,7 @@ rocblas_status gemm_ex_batched_template(rocblas_handle    handle,
         handle, trans_a,  trans_b, m,    n,   k,        alpha, a,   lda,      stride_a,   b,
         ldb,    stride_b, beta,    c_in, ldi, stride_i, d,     ldd, stride_d, batch_count};
 
-    if(startEvent && stopEvent)
-        return handle->host->runContractionProblem(problem, startEvent, stopEvent);
-    else
-        return handle->host->runContractionProblem(problem);
+    return handle->host->runContractionProblem(problem, startEvent, stopEvent);
 
 #else // USE_TENSILE_HOST
 
@@ -757,8 +754,8 @@ rocblas_status gemm_ex_typecasting(rocblas_handle    handle,
                                    rocblas_int       ldd,
                                    rocblas_stride    stride_d,
                                    rocblas_int       batch_count,
-                                   void*             startEvent = nullptr,
-                                   void*             stopEvent  = nullptr)
+                                   hipEvent_t*       startEvent = nullptr,
+                                   hipEvent_t*       stopEvent  = nullptr)
 {
     Tc alpha_h, beta_h;
 
@@ -808,8 +805,8 @@ rocblas_status gemm_ex_typecasting(rocblas_handle    handle,
                                         ldd,
                                         stride_d,
                                         batch_count,
-                                        (hipEvent_t*)startEvent,
-                                        (hipEvent_t*)stopEvent);
+                                        startEvent,
+                                        stopEvent);
     }
     else
     {
@@ -842,8 +839,8 @@ rocblas_status gemm_ex_typecasting(rocblas_handle    handle,
                                         ldd,
                                         stride_d,
                                         batch_count,
-                                        (hipEvent_t*)startEvent,
-                                        (hipEvent_t*)stopEvent);
+                                        startEvent,
+                                        stopEvent);
     }
 }
 
@@ -878,8 +875,8 @@ rocblas_status rocblas_gemm_ex_template(rocblas_handle    handle,
                                         rocblas_stride    stride_d,
                                         rocblas_int       batch_count,
                                         rocblas_datatype  compute_type,
-                                        void*             startEvent = nullptr,
-                                        void*             stopEvent  = nullptr)
+                                        hipEvent_t*       startEvent = nullptr,
+                                        hipEvent_t*       stopEvent  = nullptr)
 {
     // Note: k==0 is not an early exit, since C still needs to be multiplied by beta
     if(!m || !n || !batch_count)

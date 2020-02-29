@@ -33,8 +33,8 @@ rocblas_status rocblas_gemm_ex_impl(rocblas_handle    handle,
                                     rocblas_gemm_algo algo,
                                     int32_t           solution_index,
                                     uint32_t          flags,
-                                    void*             startEvent = nullptr,
-                                    void*             stopEvent  = nullptr)
+                                    hipEvent_t*       startEvent = nullptr,
+                                    hipEvent_t*       stopEvent  = nullptr)
 {
     if(!handle)
         return rocblas_status_invalid_handle;
@@ -354,8 +354,8 @@ extern "C" rocblas_status rocblas_gemm_ex_profile(rocblas_handle    handle,
                                                   rocblas_gemm_algo algo,
                                                   int32_t           solution_index,
                                                   uint32_t          flags,
-                                                  void*             startEvent,
-                                                  void*             stopEvent)
+                                                  hipEvent_t*       startEvent,
+                                                  hipEvent_t*       stopEvent)
 try
 {
     return rocblas_gemm_ex_impl(handle,
