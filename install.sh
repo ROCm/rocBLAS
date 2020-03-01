@@ -29,6 +29,7 @@ rocBLAS build & installation helper script
       -r | --no-tensile-host   Do not build with Tensile host
       -u | --use-tag-only      Ignore Tensile version and just use the Tensile tag
            --skipldconf        Skip ld.so.conf entry
+           --skip_rocm_install Skip rocm component install
 EOF
 #          --prefix            Specify an alternate CMAKE_INSTALL_PREFIX for cmake
 #          --cuda              Build library for cuda backend
@@ -163,10 +164,12 @@ install_packages( )
 
   if [[ "${build_hip_clang}" == false ]]; then
     # Installing rocm-dev installs hip-hcc, which overwrites the hip-vdi runtime
-    library_dependencies_ubuntu+=( "rocm-dev" )
-    library_dependencies_centos+=( "rocm-dev" )
-    library_dependencies_fedora+=( "rocm-dev" )
-    library_dependencies_sles+=( "rocm-dev" )
+    if [[ "${skip_rocm_dependency}" == false ]]; then
+      library_dependencies_ubuntu+=( "rocm-dev" )
+      library_dependencies_centos+=( "rocm-dev" )
+      library_dependencies_fedora+=( "rocm-dev" )
+      library_dependencies_sles+=( "rocm-dev" )
+    fi
   fi
 
   # dependencies to build the client
@@ -266,6 +269,7 @@ build_release=true
 build_hip_clang=false
 build_dir=./build
 skip_ld_conf_entry=false
+skip_rocm_dependency=false
 
 rocm_path=/opt/rocm
 if ! [ -z ${ROCM_PATH+x} ]; then
@@ -279,7 +283,7 @@ fi
 # check if we have a modern version of getopt that can handle whitespace and long parameters
 getopt -T
 if [[ $? -eq 4 ]]; then
-  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,no_tensile,tensile-host,no-tensile-host,use-tag-only,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,skipldconf --options nsrhicdgul:a:o:f:b:t: -- "$@")
+  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,no_tensile,tensile-host,no-tensile-host,use-tag-only,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,skipldconf,skip_rocm_install --options nsrhicdgul:a:o:f:b:t: -- "$@")
 else
   echo "Need a new version of getopt"
   exit 1
@@ -353,6 +357,9 @@ while true; do
     --skipldconf)
         skip_ld_conf_entry=true
         shift ;;
+    --skip_rocm_install)
+	skip_rocm_dependency=true
+	shift ;;
     -u|--use-tag-only)
         tensile_version=false
         shift ;;
