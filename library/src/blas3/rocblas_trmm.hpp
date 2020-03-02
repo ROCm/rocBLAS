@@ -139,10 +139,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
     //
     // -- Rewritten for gemm based trmm for rocBLAS
     //
-    T  zero   = 0.0;
-    T  one    = 1.0;
-    T* zero_p = &zero;
-    T* one_p  = &one;
+    T one = 1.0;
     //
     //    And when alpha.eq.zero.
     //
@@ -349,31 +346,28 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                     if(ii + isec <= m)
                     {
 
-                        PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                            (rocblas_gemm_template<
-                                BATCHED,
-                                STRIDED>)(handle,
-                                          rocblas_operation_none,
-                                          rocblas_operation_none,
-                                          isec,
-                                          n,
-                                          m - ii - isec + 1,
-                                          alpha,
-                                          a,
-                                          ii - 1 + (ii + isec - 1) * lda,
-                                          lda,
-                                          stride_a,
-                                          (TConstPtr)c,
-                                          ii + isec - 1,
-                                          ldc,
-                                          stride_c,
-                                          //                                                                &one,
-                                          one_p,
-                                          c,
-                                          ii - 1,
-                                          ldc,
-                                          stride_c,
-                                          batch_count));
+                        PRINT_AND_RETURN_IF_ROCBLAS_ERROR((
+                            rocblas_gemm_template<BATCHED, STRIDED>)(handle,
+                                                                     rocblas_operation_none,
+                                                                     rocblas_operation_none,
+                                                                     isec,
+                                                                     n,
+                                                                     m - ii - isec + 1,
+                                                                     alpha,
+                                                                     a,
+                                                                     ii - 1 + (ii + isec - 1) * lda,
+                                                                     lda,
+                                                                     stride_a,
+                                                                     (TConstPtr)c,
+                                                                     ii + isec - 1,
+                                                                     ldc,
+                                                                     stride_c,
+                                                                     &one,
+                                                                     c,
+                                                                     ii - 1,
+                                                                     ldc,
+                                                                     stride_c,
+                                                                     batch_count));
                     }
                 }
             }
@@ -1604,14 +1598,11 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                                                                       0,
                                                                       ldc,
                                                                       stride_c,
-
                                                                       a,
                                                                       jj - 1,
                                                                       lda,
                                                                       stride_a,
-
                                                                       &one,
-
                                                                       c,
                                                                       (jj - 1) * ldc,
                                                                       ldc,

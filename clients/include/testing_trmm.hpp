@@ -123,6 +123,7 @@ void testing_trmm(const Arguments& arg)
     CHECK_HIP_ERROR(alpha_d.memcheck());
 
     //  initialize full random matrix hA with all entries in [1, 10]
+    rocblas_seedrand();
     rocblas_init<T>(hA, K, K, lda);
 
     //  pad untouched area into zero

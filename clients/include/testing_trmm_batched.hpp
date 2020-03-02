@@ -64,11 +64,10 @@ void testing_trmm_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_trmm_batched(const Arguments& arg)
 {
-    //  bool nantest = rocblas_isnan(arg.alpha) || rocblas_isnan(arg.alphai);
-    //  if(!std::is_same<T, float>{} && !std::is_same<T, double>{} && !std::is_same<T, rocblas_half>{}
-    //     && !is_complex<T> && nantest)
-    //      return; // Exclude integers or other types which don't support NaN
-    //
+    bool nantest = rocblas_isnan(arg.alpha) || rocblas_isnan(arg.alphai);
+    if(!std::is_same<T, float>{} && !std::is_same<T, double>{} && !std::is_same<T, rocblas_half>{}
+       && !is_complex<T> && nantest)
+        return; // Exclude integers or other types which don't support NaN
 
     rocblas_local_handle handle;
     rocblas_int          M           = arg.M;
@@ -280,7 +279,8 @@ void testing_trmm_batched(const Arguments& arg)
                                     batch_count);
         }
         gpu_time_used  = get_time_us() - gpu_time_used;
-        rocblas_gflops = trmm_gflop_count<T>(M, N, side) * number_hot_calls / gpu_time_used * 1e6;
+        rocblas_gflops = trmm_gflop_count<T>(M, N, side) * batch_count * number_hot_calls
+                         / gpu_time_used * 1e6;
 
         std::cout << "M,N,alpha,lda,ldb,side,uplo,transA,diag,rocblas-Gflops,us";
 
