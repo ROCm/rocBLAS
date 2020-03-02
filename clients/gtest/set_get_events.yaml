@@ -1,0 +1,10 @@
+---
+include: rocblas_common.yaml
+include: known_bugs.yaml
+
+Tests:
+- name: set_get_events
+  category: quick
+  function: set_get_events
+  precision: *single_precision
+...
