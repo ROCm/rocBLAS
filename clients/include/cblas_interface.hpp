@@ -2505,7 +2505,7 @@ void cblas_her2k(rocblas_fill      uplo,
                  rocblas_int       lda,
                  const T*          B,
                  rocblas_int       ldb,
-                 real_t<T>*        beta,
+                 const real_t<T>*  beta,
                  T*                C,
                  rocblas_int       ldc);
 
@@ -2519,7 +2519,7 @@ inline void cblas_her2k(rocblas_fill                 uplo,
                         rocblas_int                  lda,
                         const rocblas_float_complex* B,
                         rocblas_int                  ldb,
-                        float*                       beta,
+                        const float*                 beta,
                         rocblas_float_complex*       C,
                         rocblas_int                  ldc)
 {
@@ -2548,7 +2548,7 @@ inline void cblas_her2k(rocblas_fill                  uplo,
                         rocblas_int                   lda,
                         const rocblas_double_complex* B,
                         rocblas_int                   ldb,
-                        double*                       beta,
+                        const double*                 beta,
                         rocblas_double_complex*       C,
                         rocblas_int                   ldc)
 {
@@ -2566,6 +2566,21 @@ inline void cblas_her2k(rocblas_fill                  uplo,
                  C,
                  ldc);
 }
+
+// cblas_herkx doesn't exist. implementation in cpp
+template <typename T, typename U = real_t<T>>
+void cblas_herkx(rocblas_fill      uplo,
+                 rocblas_operation transA,
+                 rocblas_int       n,
+                 rocblas_int       k,
+                 const T*          alpha,
+                 const T*          A,
+                 rocblas_int       lda,
+                 const T*          B,
+                 rocblas_int       ldb,
+                 const U*          beta,
+                 T*                C,
+                 rocblas_int       ldc);
 
 // trsm
 template <typename T>
