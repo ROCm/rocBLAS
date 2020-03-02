@@ -146,9 +146,10 @@ void testing_trmm_strided_batched(const Arguments& arg)
     rocblas_diagonal  diag   = char2rocblas_diagonal(char_diag);
 
     rocblas_int K = side == rocblas_side_left ? M : N;
-    if(stride_a < lda * K)
+
+    if((stride_a > 0) && (stride_a < lda * K))
         std::cout << "WARNING: stride_a < lda * (side == rocblas_side_left ? M : N)" << std::endl;
-    if(stride_b < ldb * N)
+    if((stride_b > 0) && (stride_b < ldb * N))
         std::cout << "WARNING: stride_b < ldb * N" << std::endl;
     size_t size_A = batch_count * stride_a;
     size_t size_B = batch_count * stride_b;
