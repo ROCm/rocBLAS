@@ -1,23 +1,27 @@
 /* ************************************************************************
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include "rocblas_her2k.hpp"
+#include "rocblas_syrkx.hpp"
 #include "logging.h"
 #include "utility.h"
 
 namespace
 {
     template <typename>
-    constexpr char rocblas_her2k_name[] = "unknown";
+    constexpr char rocblas_syrkx_name[] = "unknown";
     template <>
-    constexpr char rocblas_her2k_name<rocblas_float_complex>[] = "rocblas_cher2k";
+    constexpr char rocblas_syrkx_name<float>[] = "rocblas_ssyrkx";
     template <>
-    constexpr char rocblas_her2k_name<rocblas_double_complex>[] = "rocblas_zher2k";
+    constexpr char rocblas_syrkx_name<double>[] = "rocblas_dsyrkx";
+    template <>
+    constexpr char rocblas_syrkx_name<rocblas_float_complex>[] = "rocblas_csyrkx";
+    template <>
+    constexpr char rocblas_syrkx_name<rocblas_double_complex>[] = "rocblas_zsyrkx";
 
     template <typename T>
-    rocblas_status rocblas_her2k_impl(rocblas_handle    handle,
+    rocblas_status rocblas_syrkx_impl(rocblas_handle    handle,
                                       rocblas_fill      uplo,
-                                      rocblas_operation trans,
+                                      rocblas_operation transA,
                                       rocblas_int       n,
                                       rocblas_int       k,
                                       const T*          alpha,
@@ -25,7 +29,7 @@ namespace
                                       rocblas_int       lda,
                                       const T*          B,
                                       rocblas_int       ldb,
-                                      const real_t<T>*  beta,
+                                      const T*          beta,
                                       T*                C,
                                       rocblas_int       ldc)
     {
@@ -40,15 +44,15 @@ namespace
               | rocblas_layer_mode_log_profile))
         {
             auto uplo_letter   = rocblas_fill_letter(uplo);
-            auto transA_letter = rocblas_transpose_letter(trans);
+            auto transA_letter = rocblas_transpose_letter(transA);
 
             if(handle->pointer_mode == rocblas_pointer_mode_host)
             {
                 if(layer_mode & rocblas_layer_mode_log_trace)
                     log_trace(handle,
-                              rocblas_her2k_name<T>,
+                              rocblas_syrkx_name<T>,
                               uplo,
-                              trans,
+                              transA,
                               n,
                               k,
                               log_trace_scalar_value(alpha),
@@ -62,7 +66,7 @@ namespace
 
                 if(layer_mode & rocblas_layer_mode_log_bench)
                     log_bench(handle,
-                              "./rocblas-bench -f her2k -r",
+                              "./rocblas-bench -f syrkx -r",
                               rocblas_precision_string<T>,
                               "--uplo",
                               uplo_letter,
@@ -85,9 +89,9 @@ namespace
             {
                 if(layer_mode & rocblas_layer_mode_log_trace)
                     log_trace(handle,
-                              rocblas_her2k_name<T>,
+                              rocblas_syrkx_name<T>,
                               uplo,
-                              trans,
+                              transA,
                               n,
                               k,
                               log_trace_scalar_value(alpha),
@@ -102,10 +106,10 @@ namespace
 
             if(layer_mode & rocblas_layer_mode_log_profile)
                 log_profile(handle,
-                            rocblas_her2k_name<T>,
+                            rocblas_syrkx_name<T>,
                             "uplo",
                             uplo_letter,
-                            "trans",
+                            "transA",
                             transA_letter,
                             "N",
                             n,
@@ -122,9 +126,10 @@ namespace
         static constexpr rocblas_int    offset_C = 0, offset_A = 0, offset_B = 0, batch_count = 1;
         static constexpr rocblas_stride stride_C = 0, stride_A = 0, stride_B = 0;
 
-        rocblas_status arg_status = rocblas_her2k_arg_check(handle,
+        // syr2k arg check is equivalent
+        rocblas_status arg_status = rocblas_syr2k_arg_check(handle,
                                                             uplo,
-                                                            trans,
+                                                            transA,
                                                             n,
                                                             k,
                                                             alpha,
@@ -145,10 +150,10 @@ namespace
         if(arg_status != rocblas_status_continue)
             return arg_status;
 
-        static constexpr bool is2K = true;
-        return rocblas_her2k_template<is2K>(handle,
+        static constexpr bool is2K = false; // syrkx
+        return rocblas_syr2k_template<is2K>(handle,
                                             uplo,
-                                            trans,
+                                            transA,
                                             n,
                                             k,
                                             alpha,
@@ -181,31 +186,34 @@ extern "C" {
 #error IMPL ALREADY DEFINED
 #endif
 
-#define IMPL(routine_name_, S_, T_)                                                                \
-    rocblas_status routine_name_(rocblas_handle    handle,                                         \
-                                 rocblas_fill      uplo,                                           \
-                                 rocblas_operation trans,                                          \
-                                 rocblas_int       n,                                              \
-                                 rocblas_int       k,                                              \
-                                 const T_*         alpha,                                          \
-                                 const T_*         A,                                              \
-                                 rocblas_int       lda,                                            \
-                                 const T_*         B,                                              \
-                                 rocblas_int       ldb,                                            \
-                                 const S_*         beta,                                           \
-                                 T_*               C,                                              \
-                                 rocblas_int       ldc)                                            \
-    try                                                                                            \
-    {                                                                                              \
-        return rocblas_her2k_impl(handle, uplo, trans, n, k, alpha, A, lda, B, ldb, beta, C, ldc); \
-    }                                                                                              \
-    catch(...)                                                                                     \
-    {                                                                                              \
-        return exception_to_rocblas_status();                                                      \
+#define IMPL(routine_name_, T_)                                               \
+    rocblas_status routine_name_(rocblas_handle    handle,                    \
+                                 rocblas_fill      uplo,                      \
+                                 rocblas_operation transA,                    \
+                                 rocblas_int       n,                         \
+                                 rocblas_int       k,                         \
+                                 const T_*         alpha,                     \
+                                 const T_*         A,                         \
+                                 rocblas_int       lda,                       \
+                                 const T_*         B,                         \
+                                 rocblas_int       ldb,                       \
+                                 const T_*         beta,                      \
+                                 T_*               C,                         \
+                                 rocblas_int       ldc)                       \
+    try                                                                       \
+    {                                                                         \
+        return rocblas_syrkx_impl(                                            \
+            handle, uplo, transA, n, k, alpha, A, lda, B, ldb, beta, C, ldc); \
+    }                                                                         \
+    catch(...)                                                                \
+    {                                                                         \
+        return exception_to_rocblas_status();                                 \
     }
 
-IMPL(rocblas_cher2k, float, rocblas_float_complex);
-IMPL(rocblas_zher2k, double, rocblas_double_complex);
+IMPL(rocblas_ssyrkx, float);
+IMPL(rocblas_dsyrkx, double);
+IMPL(rocblas_csyrkx, rocblas_float_complex);
+IMPL(rocblas_zsyrkx, rocblas_double_complex);
 
 #undef IMPL
 
