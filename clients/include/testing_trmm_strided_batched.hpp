@@ -135,7 +135,7 @@ void testing_trmm_strided_batched(const Arguments& arg)
     char char_uplo   = arg.uplo;
     char char_transA = arg.transA;
     char char_diag   = arg.diag;
-    T    h_alpha_T   = arg.get_alpha<T>();
+    T    alpha       = arg.get_alpha<T>();
 
     rocblas_side      side   = char2rocblas_side(char_side);
     rocblas_fill      uplo   = char2rocblas_fill(char_uplo);
@@ -177,12 +177,14 @@ void testing_trmm_strided_batched(const Arguments& arg)
     }
 
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
+    host_vector<T> h_alpha(1);
     host_vector<T> hA(size_A);
     host_vector<T> hB(size_B);
     host_vector<T> hB_1(size_B);
     host_vector<T> hB_2(size_B);
     host_vector<T> cpuB(size_B);
 
+    CHECK_HIP_ERROR(h_alpha.memcheck());
     CHECK_HIP_ERROR(hA.memcheck());
     CHECK_HIP_ERROR(hB.memcheck());
     CHECK_HIP_ERROR(hB_1.memcheck());
@@ -196,13 +198,14 @@ void testing_trmm_strided_batched(const Arguments& arg)
     // allocate memory on device
     device_vector<T> dA(size_A);
     device_vector<T> dB(size_B);
-    device_vector<T> alpha_d(1);
+    device_vector<T> d_alpha(1);
 
     CHECK_HIP_ERROR(dA.memcheck());
     CHECK_HIP_ERROR(dB.memcheck());
-    CHECK_HIP_ERROR(alpha_d.memcheck());
+    CHECK_HIP_ERROR(d_alpha.memcheck());
 
     //  initialize full random matrix hA and hB
+    h_alpha[0] = alpha;
     rocblas_seedrand();
     rocblas_init<T>(hA);
     rocblas_init<T>(hB);
@@ -212,13 +215,13 @@ void testing_trmm_strided_batched(const Arguments& arg)
     cpuB = hB; // cpuB <- B
 
     // copy data from CPU to device
-    CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(T) * size_A, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(dA.transfer_from(hA));
 
     if(arg.unit_check || arg.norm_check)
     {
         // calculate dB <- A^(-1) B   rocblas_device_pointer_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_HIP_ERROR(hipMemcpy(dB, hB_1, sizeof(T) * size_B, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(dB.transfer_from(hB_1));
 
         CHECK_ROCBLAS_ERROR(rocblas_trmm_strided_batched<T>(handle,
                                                             side,
@@ -227,7 +230,7 @@ void testing_trmm_strided_batched(const Arguments& arg)
                                                             diag,
                                                             M,
                                                             N,
-                                                            &h_alpha_T,
+                                                            &h_alpha[0],
                                                             dA,
                                                             lda,
                                                             stride_a,
@@ -236,12 +239,11 @@ void testing_trmm_strided_batched(const Arguments& arg)
                                                             stride_b,
                                                             batch_count));
 
-        CHECK_HIP_ERROR(hipMemcpy(hB_1, dB, sizeof(T) * size_B, hipMemcpyDeviceToHost));
+        CHECK_HIP_ERROR(hB_1.transfer_from(dB));
 
-        // calculate dB <- A^(-1) B   rocblas_device_pointer_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_HIP_ERROR(hipMemcpy(dB, hB_2, sizeof(T) * size_B, hipMemcpyHostToDevice));
-        CHECK_HIP_ERROR(hipMemcpy(alpha_d, &h_alpha_T, sizeof(T), hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(dB.transfer_from(hB_2));
+        CHECK_HIP_ERROR(d_alpha.transfer_from(h_alpha));
 
         CHECK_ROCBLAS_ERROR(rocblas_trmm_strided_batched<T>(handle,
                                                             side,
@@ -250,7 +252,7 @@ void testing_trmm_strided_batched(const Arguments& arg)
                                                             diag,
                                                             M,
                                                             N,
-                                                            alpha_d,
+                                                            d_alpha,
                                                             dA,
                                                             lda,
                                                             stride_a,
@@ -259,7 +261,7 @@ void testing_trmm_strided_batched(const Arguments& arg)
                                                             stride_b,
                                                             batch_count));
 
-        CHECK_HIP_ERROR(hipMemcpy(hB_2, dB, sizeof(T) * size_B, hipMemcpyDeviceToHost));
+        CHECK_HIP_ERROR(hB_2.transfer_from(dB));
 
         // CPU BLAS
         if(arg.timing)
@@ -275,7 +277,7 @@ void testing_trmm_strided_batched(const Arguments& arg)
                           diag,
                           M,
                           N,
-                          h_alpha_T,
+                          alpha,
                           hA + i * stride_a,
                           lda,
                           cpuB + i * stride_b,
@@ -331,7 +333,7 @@ void testing_trmm_strided_batched(const Arguments& arg)
                                                                 diag,
                                                                 M,
                                                                 N,
-                                                                &h_alpha_T,
+                                                                &h_alpha[0],
                                                                 dA,
                                                                 lda,
                                                                 stride_a,
@@ -351,7 +353,7 @@ void testing_trmm_strided_batched(const Arguments& arg)
                                             diag,
                                             M,
                                             N,
-                                            &h_alpha_T,
+                                            &h_alpha[0],
                                             dA,
                                             lda,
                                             stride_a,
@@ -372,8 +374,8 @@ void testing_trmm_strided_batched(const Arguments& arg)
 
         std::cout << std::endl;
 
-        std::cout << M << ',' << N << ',' << batch_count << ',' << arg.get_alpha<T>() << ',' << lda
-                  << ',' << stride_a << ',' << ldb << ',' << stride_b << ',' << char_side << ','
+        std::cout << M << ',' << N << ',' << batch_count << ',' << alpha << ',' << lda << ','
+                  << stride_a << ',' << ldb << ',' << stride_b << ',' << char_side << ','
                   << char_uplo << ',' << char_transA << ',' << char_diag << ',' << rocblas_gflops
                   << "," << gpu_time_used / number_hot_calls;
 

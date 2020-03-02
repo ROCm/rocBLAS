@@ -34,9 +34,9 @@ namespace
                                                      const T*          a,
                                                      rocblas_int       lda,
                                                      rocblas_stride    stride_a,
-                                                     T*                c,
-                                                     rocblas_int       ldc,
-                                                     rocblas_stride    stride_c,
+                                                     T*                b,
+                                                     rocblas_int       ldb,
+                                                     rocblas_stride    stride_b,
                                                      rocblas_int       batch_count)
     {
         if(!handle)
@@ -68,9 +68,9 @@ namespace
                               a,
                               lda,
                               stride_a,
-                              c,
-                              ldc,
-                              stride_c,
+                              b,
+                              ldb,
+                              stride_b,
                               batch_count);
 
                 if(layer_mode & rocblas_layer_mode_log_bench)
@@ -96,9 +96,9 @@ namespace
                               "--stride_a",
                               stride_a,
                               "--ldb",
-                              ldc,
+                              ldb,
                               "--stride_b",
-                              stride_c,
+                              stride_b,
                               "--batch_count",
                               batch_count);
                 }
@@ -118,9 +118,9 @@ namespace
                               a,
                               lda,
                               stride_a,
-                              c,
-                              ldc,
-                              stride_c,
+                              b,
+                              ldb,
+                              stride_b,
                               batch_count);
             }
 
@@ -145,9 +145,9 @@ namespace
                             "stride_a",
                             stride_a,
                             "ldb",
-                            ldc,
+                            ldb,
                             "stride_b",
-                            stride_c,
+                            stride_b,
                             "batch_count",
                             batch_count);
             }
@@ -155,7 +155,7 @@ namespace
 
         rocblas_int nrowa = rocblas_side_left == side ? m : n;
 
-        if(m < 0 || n < 0 || lda < nrowa || ldc < m || batch_count < 0)
+        if(m < 0 || n < 0 || lda < nrowa || ldb < m || batch_count < 0)
             return rocblas_status_invalid_size;
 
         if(m == 0 || n == 0 || batch_count == 0)
@@ -166,7 +166,7 @@ namespace
                 return rocblas_status_success;
         }
 
-        if(!a || !c || !alpha)
+        if(!a || !b || !alpha)
             return rocblas_status_invalid_pointer;
 
         // gemm based trmm block sizes
@@ -198,9 +198,9 @@ namespace
                                                              a,
                                                              lda,
                                                              stride_a,
-                                                             c,
-                                                             ldc,
-                                                             stride_c,
+                                                             b,
+                                                             ldb,
+                                                             stride_b,
                                                              batch_count,
                                                              (T*)mem,
                                                              stride_mem);
@@ -227,9 +227,9 @@ rocblas_status rocblas_strmm_strided_batched(rocblas_handle    handle,
                                              const float*      a,
                                              rocblas_int       lda,
                                              rocblas_stride    stride_a,
-                                             float*            c,
-                                             rocblas_int       ldc,
-                                             rocblas_stride    stride_c,
+                                             float*            b,
+                                             rocblas_int       ldb,
+                                             rocblas_stride    stride_b,
                                              rocblas_int       batch_count)
 try
 {
@@ -244,9 +244,9 @@ try
                                              a,
                                              lda,
                                              stride_a,
-                                             c,
-                                             ldc,
-                                             stride_c,
+                                             b,
+                                             ldb,
+                                             stride_b,
                                              batch_count);
 }
 catch(...)
@@ -265,9 +265,9 @@ rocblas_status rocblas_dtrmm_strided_batched(rocblas_handle    handle,
                                              const double*     a,
                                              rocblas_int       lda,
                                              rocblas_stride    stride_a,
-                                             double*           c,
-                                             rocblas_int       ldc,
-                                             rocblas_stride    stride_c,
+                                             double*           b,
+                                             rocblas_int       ldb,
+                                             rocblas_stride    stride_b,
                                              rocblas_int       batch_count)
 try
 {
@@ -282,9 +282,9 @@ try
                                              a,
                                              lda,
                                              stride_a,
-                                             c,
-                                             ldc,
-                                             stride_c,
+                                             b,
+                                             ldb,
+                                             stride_b,
                                              batch_count);
 }
 catch(...)
@@ -303,9 +303,9 @@ rocblas_status rocblas_ctrmm_strided_batched(rocblas_handle               handle
                                              const rocblas_float_complex* a,
                                              rocblas_int                  lda,
                                              rocblas_stride               stride_a,
-                                             rocblas_float_complex*       c,
-                                             rocblas_int                  ldc,
-                                             rocblas_stride               stride_c,
+                                             rocblas_float_complex*       b,
+                                             rocblas_int                  ldb,
+                                             rocblas_stride               stride_b,
                                              rocblas_int                  batch_count)
 try
 {
@@ -320,9 +320,9 @@ try
                                              a,
                                              lda,
                                              stride_a,
-                                             c,
-                                             ldc,
-                                             stride_c,
+                                             b,
+                                             ldb,
+                                             stride_b,
                                              batch_count);
 }
 catch(...)
@@ -341,9 +341,9 @@ rocblas_status rocblas_ztrmm_strided_batched(rocblas_handle                handl
                                              const rocblas_double_complex* a,
                                              rocblas_int                   lda,
                                              rocblas_stride                stride_a,
-                                             rocblas_double_complex*       c,
-                                             rocblas_int                   ldc,
-                                             rocblas_stride                stride_c,
+                                             rocblas_double_complex*       b,
+                                             rocblas_int                   ldb,
+                                             rocblas_stride                stride_b,
                                              rocblas_int                   batch_count)
 try
 {
@@ -358,9 +358,9 @@ try
                                              a,
                                              lda,
                                              stride_a,
-                                             c,
-                                             ldc,
-                                             stride_c,
+                                             b,
+                                             ldb,
+                                             stride_b,
                                              batch_count);
 }
 catch(...)
