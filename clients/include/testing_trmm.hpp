@@ -52,11 +52,8 @@ void testing_trmm(const Arguments& arg)
         static const size_t safe_size = 100; // arbitrarily set to 100
         device_vector<T>    dA(safe_size);
         device_vector<T>    dB(safe_size);
-        if(!dA || !dB)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
+        CHECK_DEVICE_ALLOCATION(dA.memcheck());
+        CHECK_DEVICE_ALLOCATION(dB.memcheck());
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         EXPECT_ROCBLAS_STATUS(
@@ -80,11 +77,9 @@ void testing_trmm(const Arguments& arg)
     device_vector<T> dA(size_A);
     device_vector<T> dB(size_B);
     device_vector<T> alpha_d(1);
-    if(!dA || !dB || !alpha_d)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dB.memcheck());
+    CHECK_DEVICE_ALLOCATION(alpha_d.memcheck());
 
     //  initialize full random matrix hA with all entries in [1, 10]
     rocblas_init<T>(hA, K, K, lda);
