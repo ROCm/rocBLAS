@@ -75,7 +75,7 @@ void testing_tpsv(const Arguments& arg)
     }
 
     size_t size_A   = size_t(N) * N;
-    size_t size_AP  = size_t(N) * (N + 1) / 2.0;
+    size_t size_AP  = tri_count(N);
     size_t abs_incx = size_t(incx >= 0 ? incx : -incx);
     size_t size_x   = N * abs_incx;
 
@@ -105,59 +105,10 @@ void testing_tpsv(const Arguments& arg)
 
     rocblas_init<T>(hA, true);
 
-    //  calculate AAT = hA * hA ^ T
-    cblas_gemm<T, T>(rocblas_operation_none,
-                     rocblas_operation_conjugate_transpose,
-                     N,
-                     N,
-                     N,
-                     T(1.0),
-                     hA,
-                     N,
-                     hA,
-                     N,
-                     T(0.0),
-                     AAT,
-                     N);
-
-    //  copy AAT into hA, make hA strictly diagonal dominant, and therefore SPD
-    for(int i = 0; i < N; i++)
+    prepare_triangular_solve((T*)hA, N, (T*)AAT, N, char_uplo);
+    if(diag == rocblas_diagonal_unit)
     {
-        T t = 0.0;
-        for(int j = 0; j < N; j++)
-        {
-            hA[i + j * N] = AAT[i + j * N];
-            t += rocblas_abs(AAT[i + j * N]);
-        }
-        hA[i + i * N] = t;
-    }
-    //  calculate Cholesky factorization of SPD matrix hA
-    cblas_potrf<T>(char_uplo, N, hA, N);
-
-    //  make hA unit diagonal if diag == rocblas_diagonal_unit
-    if(char_diag == 'U' || char_diag == 'u')
-    {
-        if('L' == char_uplo || 'l' == char_uplo)
-            for(int i = 0; i < N; i++)
-            {
-                T diag = hA[i + i * N];
-                for(int j = 0; j <= i; j++)
-                    hA[i + j * N] = hA[i + j * N] / diag;
-            }
-        else
-            for(int j = 0; j < N; j++)
-            {
-                T diag = hA[j + j * N];
-                for(int i = 0; i <= j; i++)
-                    hA[i + j * N] = hA[i + j * N] / diag;
-            }
-
-        // randomly init the diagonal to ensure we don't use
-        // the values.
-        for(int i = 0; i < N; i++)
-        {
-            rocblas_init<T>(hA + i * N + i, 1, 1, 1);
-        }
+        make_unit_diagonal(uplo, (T*)hA, N, N);
     }
 
     rocblas_init<T>(hx, 1, N, abs_incx);

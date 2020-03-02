@@ -119,7 +119,7 @@ void testing_tpsv_strided_batched(const Arguments& arg)
     }
 
     size_t size_A   = N * size_t(N);
-    size_t size_AP  = size_t(N) * (N + 1) / 2.0;
+    size_t size_AP  = tri_count(N);
     size_t abs_incx = size_t(incx >= 0 ? incx : -incx);
 
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
@@ -150,63 +150,10 @@ void testing_tpsv_strided_batched(const Arguments& arg)
     //  calculate AAT = hA * hA ^ T or AAT = hA * hA ^ H if complex
     for(int b = 0; b < batch_count; b++)
     {
-        cblas_gemm<T>(rocblas_operation_none,
-                      rocblas_operation_conjugate_transpose,
-                      N,
-                      N,
-                      N,
-                      T(1.0),
-                      hA[b],
-                      N,
-                      hA[b],
-                      N,
-                      T(0.0),
-                      AAT[b],
-                      N);
-
-        //  copy AAT into hA, make hA strictly diagonal dominant, and therefore SPD
-        for(int i = 0; i < N; i++)
+        prepare_triangular_solve((T*)hA[b], N, (T*)AAT[b], N, char_uplo);
+        if(diag == rocblas_diagonal_unit)
         {
-            T t = 0.0;
-            for(int j = 0; j < N; j++)
-            {
-                hA[b][i + j * N] = AAT[b][i + j * N];
-                t += rocblas_abs(AAT[b][i + j * N]);
-            }
-            hA[b][i + i * N] = t;
-        }
-
-        //  calculate Cholesky factorization of SPD (or hermitian if complex) matrix hA
-        cblas_potrf<T>(char_uplo, N, hA[b], N);
-
-        //  make hA unit diagonal if diag == rocblas_diagonal_unit
-        if(char_diag == 'U' || char_diag == 'u')
-        {
-            if('L' == char_uplo || 'l' == char_uplo)
-            {
-                for(int i = 0; i < N; i++)
-                {
-                    T diag = hA[b][i + i * N];
-                    for(int j = 0; j <= i; j++)
-                        hA[b][i + j * N] = hA[b][i + j * N] / diag;
-                }
-            }
-            else
-            {
-                for(int j = 0; j < N; j++)
-                {
-                    T diag = hA[b][j + j * N];
-                    for(int i = 0; i <= j; i++)
-                        hA[b][i + j * N] = hA[b][i + j * N] / diag;
-                }
-            }
-
-            // randomly init the diagonal to ensure we don't use
-            // the values.
-            for(int i = 0; i < N; i++)
-            {
-                rocblas_init<T>(hA[b] + i * N + i, 1, 1, 1);
-            }
+            make_unit_diagonal(uplo, (T*)hA[b], N, N);
         }
 
         //initialize "exact" answer hx

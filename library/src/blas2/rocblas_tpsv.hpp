@@ -13,7 +13,7 @@
 
 namespace
 {
-    rocblas_int
+    inline rocblas_int
         packed_matrix_index(bool upper, bool trans, rocblas_int n, rocblas_int row, rocblas_int col)
     {
         return upper ? (trans ? ((row * (row + 1) / 2) + col) : ((col * (col + 1) / 2) + row))
@@ -25,7 +25,7 @@ namespace
     // or a transposed upper-triangular matrix.
     template <bool CONJ, rocblas_int BLK_SIZE, typename T>
     __device__ void tpsv_forward_substitution_calc(
-        bool diag, bool trans, int n, const T* A, T* x, rocblas_int incx)
+        bool diag, bool trans, int n, const T* __restrict__ A, T* __restrict__ x, rocblas_int incx)
     {
         __shared__ T xshared[BLK_SIZE];
         int          tx = threadIdx.x;
@@ -42,13 +42,8 @@ namespace
             // iterate through the current block and solve elements
             for(rocblas_int j = 0; j < BLK_SIZE; j++)
             {
-                // If the current block covers more than what's left,
-                // we break early.
-                if(j + i >= n)
-                    break;
-
                 // solve element that can be solved
-                if(tx == j && !diag)
+                if(tx == j && !diag && j + i < n)
                 {
                     rocblas_int colA   = j + i;
                     rocblas_int rowA   = j + i;
@@ -59,7 +54,7 @@ namespace
                 __syncthreads();
 
                 // for rest of block, subtract previous solved part
-                if(tx > j)
+                if(tx > j && j + i < n)
                 {
                     rocblas_int colA   = j + i;
                     rocblas_int rowA   = tx + i;
@@ -109,7 +104,7 @@ namespace
     // or a transposed lower-triangular matrix.
     template <bool CONJ, rocblas_int BLK_SIZE, typename T>
     __device__ void tpsv_backward_substitution_calc(
-        bool diag, bool trans, int n, const T* A, T* x, rocblas_int incx)
+        bool diag, bool trans, int n, const T* __restrict__ A, T* __restrict__ x, rocblas_int incx)
     {
         __shared__ T xshared[BLK_SIZE];
         int          tx = threadIdx.x;
@@ -126,13 +121,8 @@ namespace
             // Iterate backwards through the current block to solve elements.
             for(rocblas_int j = BLK_SIZE - 1; j >= 0; j--)
             {
-                // If the current block covers more than what's left,
-                // we break; early
-                if(j + i < 0)
-                    break;
-
                 // Solve the new element that can be solved
-                if(tx == j && !diag)
+                if(tx == j && !diag && j + i >= 0)
                 {
                     rocblas_int colA   = j + i;
                     rocblas_int rowA   = j + i;
@@ -143,7 +133,7 @@ namespace
                 __syncthreads();
 
                 // for rest of block, subtract previous solved part
-                if(tx < j)
+                if(tx < j && j + i >= 0)
                 {
                     rocblas_int colA   = j + i;
                     rocblas_int rowA   = tx + i;
@@ -204,13 +194,13 @@ namespace
                             rocblas_operation transA,
                             rocblas_diagonal  diag,
                             rocblas_int       n,
-                            TConstPtr         APa,
-                            ptrdiff_t         shift_A,
-                            rocblas_stride    stride_A,
-                            TPtr              xa,
-                            ptrdiff_t         shift_x,
-                            rocblas_int       incx,
-                            rocblas_stride    stride_x)
+                            TConstPtr __restrict__ APa,
+                            ptrdiff_t      shift_A,
+                            rocblas_stride stride_A,
+                            TPtr __restrict__ xa,
+                            ptrdiff_t      shift_x,
+                            rocblas_int    incx,
+                            rocblas_stride stride_x)
     {
         const auto* AP = load_ptr_batch(APa, hipBlockIdx_x, shift_A, stride_A);
         auto*       x  = load_ptr_batch(xa, hipBlockIdx_x, shift_x, stride_x);

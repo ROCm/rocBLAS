@@ -6516,7 +6516,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrsv_strided_batched(rocblas_handle      
 
     where x and b are vectors and A is a triangular matrix stored in the packed format.
 
-    The vector x is overwritten on b.
+    The input vector b is overwritten by the output vector x.
 
     @param[in]
     handle    [rocblas_handle]
@@ -6548,7 +6548,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrsv_strided_batched(rocblas_handle      
               of dimension >= (n * (n + 1) / 2)
 
     @param[inout]
-    x         device pointer storing vector x.
+    x         device pointer storing vector b on input, overwritten by x on output.
 
     @param[in]
     incx      [rocblas_int]
@@ -6601,7 +6601,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztpsv(rocblas_handle                handle
     where x_i and b_i are vectors and A_i is a triangular matrix stored in the packed format,
     for i in [1, batch_count].
 
-    The vectors x_i are overwritten on b_i.
+    The input vectors b_i are overwritten by the output vectors x_i.
 
     @param[in]
     handle    [rocblas_handle]
@@ -6633,7 +6633,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztpsv(rocblas_handle                handle
               of dimension >= (n * (n + 1) / 2)
 
     @param[inout]
-    x         device array of device pointers storing each vector x_i.
+    x         device array of device pointers storing each input vector b_i, overwritten by x_i on output.
 
     @param[in]
     incx      [rocblas_int]
@@ -6693,7 +6693,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztpsv_batched(rocblas_handle              
     where x_i and b_i are vectors and A_i is a triangular matrix stored in the packed format,
     for i in [1, batch_count].
 
-    The vectors x_i are overwritten on b_i.
+    The input vectors b_i are overwritten by the output vectors x_i.
 
     @param[in]
     handle    [rocblas_handle]
@@ -6729,7 +6729,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztpsv_batched(rocblas_handle              
               stride from the beginning of one packed matrix (AP_i) and the next (AP_i+1).
 
     @param[inout]
-    x         device pointer pointing to the first vector x_1.
+    x         device pointer pointing to the first input vector b_1. Overwritten by each x_i on output.
 
     @param[in]
     incx      [rocblas_int]
