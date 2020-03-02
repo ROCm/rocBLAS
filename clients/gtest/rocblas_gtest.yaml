@@ -28,7 +28,11 @@ include: trsm_gtest.yaml
 include: trtri_gtest.yaml
 include: geam_gtest.yaml
 include: syrk_gtest.yaml
+include: syr2k_gtest.yaml
+include: syrkx_gtest.yaml
 include: herk_gtest.yaml
+include: her2k_gtest.yaml
+include: herkx_gtest.yaml
 include: set_get_matrix_gtest.yaml
 include: set_get_vector_gtest.yaml
 include: tpsv_gtest.yaml

@@ -2883,6 +2883,80 @@ template <>
 static constexpr auto
     rocblas_her2k_strided_batched<rocblas_double_complex, double> = rocblas_zher2k_strided_batched;
 
+// herkx
+template <typename T, typename U = real_t<T>>
+rocblas_status (*rocblas_herkx)(rocblas_handle    handle,
+                                rocblas_fill      uplo,
+                                rocblas_operation transA,
+                                rocblas_int       n,
+                                rocblas_int       k,
+                                const T*          alpha,
+                                const T*          A,
+                                rocblas_int       lda,
+                                const T*          B,
+                                rocblas_int       ldb,
+                                const U*          beta,
+                                T*                C,
+                                rocblas_int       ldc);
+
+template <>
+static constexpr auto rocblas_herkx<rocblas_float_complex, float> = rocblas_cherkx;
+
+template <>
+static constexpr auto rocblas_herkx<rocblas_double_complex, double> = rocblas_zherkx;
+
+// herkx batched
+template <typename T, typename U = real_t<T>>
+rocblas_status (*rocblas_herkx_batched)(rocblas_handle    handle,
+                                        rocblas_fill      uplo,
+                                        rocblas_operation transA,
+                                        rocblas_int       n,
+                                        rocblas_int       k,
+                                        const T* const    alpha,
+                                        const T*          A[],
+                                        rocblas_int       lda,
+                                        const T*          B[],
+                                        rocblas_int       ldb,
+                                        const U*          beta,
+                                        T*                C[],
+                                        rocblas_int       ldc,
+                                        rocblas_int       batch_count);
+
+template <>
+static constexpr auto rocblas_herkx_batched<rocblas_float_complex, float> = rocblas_cherkx_batched;
+
+template <>
+static constexpr auto
+    rocblas_herkx_batched<rocblas_double_complex, double> = rocblas_zherkx_batched;
+
+// herkx strided batched
+template <typename T, typename U = real_t<T>>
+rocblas_status (*rocblas_herkx_strided_batched)(rocblas_handle    handle,
+                                                rocblas_fill      uplo,
+                                                rocblas_operation transA,
+                                                rocblas_int       n,
+                                                rocblas_int       k,
+                                                const T* const    alpha,
+                                                const T*          A,
+                                                rocblas_int       lda,
+                                                rocblas_stride    stride_a,
+                                                const T*          B,
+                                                rocblas_int       ldb,
+                                                rocblas_stride    stride_b,
+                                                const U*          beta,
+                                                T*                C,
+                                                rocblas_int       ldc,
+                                                rocblas_stride    stride_c,
+                                                rocblas_int       batch_count);
+
+template <>
+static constexpr auto
+    rocblas_herkx_strided_batched<rocblas_float_complex, float> = rocblas_cherkx_strided_batched;
+
+template <>
+static constexpr auto
+    rocblas_herkx_strided_batched<rocblas_double_complex, double> = rocblas_zherkx_strided_batched;
+
 // syrk
 template <typename T>
 rocblas_status (*rocblas_syrk)(rocblas_handle    handle,
@@ -3057,6 +3131,97 @@ static constexpr auto
 template <>
 static constexpr auto
     rocblas_syr2k_strided_batched<rocblas_double_complex> = rocblas_zsyr2k_strided_batched;
+
+// syrkx
+template <typename T>
+rocblas_status (*rocblas_syrkx)(rocblas_handle    handle,
+                                rocblas_fill      uplo,
+                                rocblas_operation transA,
+                                rocblas_int       n,
+                                rocblas_int       k,
+                                const T*          alpha,
+                                const T*          A,
+                                rocblas_int       lda,
+                                const T*          B,
+                                rocblas_int       ldb,
+                                const T*          beta,
+                                T*                C,
+                                rocblas_int       ldc);
+
+template <>
+static constexpr auto rocblas_syrkx<float> = rocblas_ssyrkx;
+
+template <>
+static constexpr auto rocblas_syrkx<double> = rocblas_dsyrkx;
+
+template <>
+static constexpr auto rocblas_syrkx<rocblas_float_complex> = rocblas_csyrkx;
+
+template <>
+static constexpr auto rocblas_syrkx<rocblas_double_complex> = rocblas_zsyrkx;
+
+// syrkx batched
+template <typename T>
+rocblas_status (*rocblas_syrkx_batched)(rocblas_handle    handle,
+                                        rocblas_fill      uplo,
+                                        rocblas_operation transA,
+                                        rocblas_int       n,
+                                        rocblas_int       k,
+                                        const T* const    alpha,
+                                        const T*          A[],
+                                        rocblas_int       lda,
+                                        const T*          B[],
+                                        rocblas_int       ldb,
+                                        const T*          beta,
+                                        T*                C[],
+                                        rocblas_int       ldc,
+                                        rocblas_int       batch_count);
+
+template <>
+static constexpr auto rocblas_syrkx_batched<float> = rocblas_ssyrkx_batched;
+
+template <>
+static constexpr auto rocblas_syrkx_batched<double> = rocblas_dsyrkx_batched;
+
+template <>
+static constexpr auto rocblas_syrkx_batched<rocblas_float_complex> = rocblas_csyrkx_batched;
+
+template <>
+static constexpr auto rocblas_syrkx_batched<rocblas_double_complex> = rocblas_zsyrkx_batched;
+
+// syrkx strided batched
+template <typename T>
+rocblas_status (*rocblas_syrkx_strided_batched)(rocblas_handle    handle,
+                                                rocblas_fill      uplo,
+                                                rocblas_operation transA,
+                                                rocblas_int       n,
+                                                rocblas_int       k,
+                                                const T* const    alpha,
+                                                const T*          A,
+                                                rocblas_int       lda,
+                                                rocblas_stride    stride_a,
+                                                const T*          B,
+                                                rocblas_int       ldb,
+                                                rocblas_stride    stride_b,
+                                                const T*          beta,
+                                                T*                C,
+                                                rocblas_int       ldc,
+                                                rocblas_stride    stride_c,
+                                                rocblas_int       batch_count);
+
+template <>
+static constexpr auto rocblas_syrkx_strided_batched<float> = rocblas_ssyrkx_strided_batched;
+
+template <>
+static constexpr auto rocblas_syrkx_strided_batched<double> = rocblas_dsyrkx_strided_batched;
+
+template <>
+static constexpr auto
+    rocblas_syrkx_strided_batched<rocblas_float_complex> = rocblas_csyrkx_strided_batched;
+
+template <>
+static constexpr auto
+    rocblas_syrkx_strided_batched<rocblas_double_complex> = rocblas_zsyrkx_strided_batched;
 
 // trmm
 template <typename T>

@@ -103,7 +103,7 @@ rocblas_status rocblas_her2k_arg_check(rocblas_handle    handle,
   *  TConstPtr is either: const T* OR const T* const*
   *  TPtr      is either:       T* OR       T* const*
   */
-template <typename TScal, typename TConstPtr, typename UScal, typename TPtr>
+template <bool TWOK, typename TScal, typename TConstPtr, typename UScal, typename TPtr>
 rocblas_status rocblas_her2k_template(rocblas_handle    handle,
                                       rocblas_fill      uplo,
                                       rocblas_operation trans,
@@ -167,7 +167,7 @@ rocblas_status rocblas_her2k_template(rocblas_handle    handle,
 
         if(trans == rocblas_operation_none)
         {
-            hipLaunchKernelGGL((syr2k_her2k_kernel<hermetian, false, SYRK_DIM_XY>),
+            hipLaunchKernelGGL((syr2k_her2k_kernel<TWOK, hermetian, false, SYRK_DIM_XY>),
                                syrk_grid,
                                syrk_threads,
                                0,
@@ -192,7 +192,7 @@ rocblas_status rocblas_her2k_template(rocblas_handle    handle,
         }
         else
         {
-            hipLaunchKernelGGL((syr2k_her2k_kernel<hermetian, true, SYRK_DIM_XY>),
+            hipLaunchKernelGGL((syr2k_her2k_kernel<TWOK, hermetian, true, SYRK_DIM_XY>),
                                syrk_grid,
                                syrk_threads,
                                0,
@@ -242,7 +242,7 @@ rocblas_status rocblas_her2k_template(rocblas_handle    handle,
 
         if(trans == rocblas_operation_none)
         {
-            hipLaunchKernelGGL((syr2k_her2k_kernel<hermetian, false, SYRK_DIM_XY>),
+            hipLaunchKernelGGL((syr2k_her2k_kernel<TWOK, hermetian, false, SYRK_DIM_XY>),
                                syrk_grid,
                                syrk_threads,
                                0,
@@ -267,7 +267,7 @@ rocblas_status rocblas_her2k_template(rocblas_handle    handle,
         }
         else
         {
-            hipLaunchKernelGGL((syr2k_her2k_kernel<hermetian, true, SYRK_DIM_XY>),
+            hipLaunchKernelGGL((syr2k_her2k_kernel<TWOK, hermetian, true, SYRK_DIM_XY>),
                                syrk_grid,
                                syrk_threads,
                                0,
