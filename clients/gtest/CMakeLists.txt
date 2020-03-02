@@ -62,7 +62,6 @@ endif( )
 set(rocblas_no_tensile_test_source
     rocblas_gtest_main.cpp
     set_get_pointer_mode_gtest.cpp
-    set_get_events.cpp
     logging_mode_gtest.cpp
     set_get_vector_gtest.cpp
     set_get_matrix_gtest.cpp
