@@ -289,8 +289,8 @@ void testing_trmm_batched(const Arguments& arg)
 
         std::cout << std::endl;
 
-        std::cout << M << ',' << N << ',' << arg.get_alpha<T>() << ',' << lda << ',' << ldb << ','
-                  << char_side << ',' << char_uplo << ',' << char_transA << ',' << char_diag << ','
+        std::cout << M << ',' << N << ',' << alpha << ',' << lda << ',' << ldb << ',' << char_side
+                  << ',' << char_uplo << ',' << char_transA << ',' << char_diag << ','
                   << rocblas_gflops << "," << gpu_time_used / number_hot_calls;
 
         if(arg.unit_check || arg.norm_check)

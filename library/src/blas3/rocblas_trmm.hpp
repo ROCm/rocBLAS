@@ -116,9 +116,9 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                                      TConstPtr         a,
                                      rocblas_int       lda,
                                      rocblas_stride    stride_a,
-                                     TPtr              c,
-                                     rocblas_int       ldc,
-                                     rocblas_stride    stride_c,
+                                     TPtr              b,
+                                     rocblas_int       ldb,
+                                     rocblas_stride    stride_b,
                                      rocblas_int       batch_count,
                                      TPtr              workspace,
                                      rocblas_stride    stride_w)
@@ -146,7 +146,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
     if(rocblas_pointer_mode_host == handle->pointer_mode && 0 == *alpha)
     {
         PRINT_AND_RETURN_IF_ROCBLAS_ERROR(set_matrix_zero_if_alpha_zero_template(
-            handle, m, n, alpha, 0, c, 0, ldc, 0, batch_count));
+            handle, m, n, alpha, 0, b, 0, ldb, 0, batch_count));
         return rocblas_status_success;
     }
     else if(rocblas_pointer_mode_device == handle->pointer_mode)
@@ -156,7 +156,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
         // it should not be copied from device to host because this is
         // an asynchronous function and the copy would make it synchronous.
         PRINT_AND_RETURN_IF_ROCBLAS_ERROR(set_matrix_zero_if_alpha_zero_template(
-            handle, m, n, alpha, 0, c, 0, ldc, 0, batch_count));
+            handle, m, n, alpha, 0, b, 0, ldb, 0, batch_count));
     }
 
     // grid size for rocblas_copy_template
@@ -182,7 +182,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                 //
                 //              Form  C := alpha*A*C. Left, Upper, No transpose.
                 //
-                bool cldc = dcld(ldc);
+                bool cldb = dcld(ldb);
                 for(int ii = 1; ii <= m; ii += cb)
                 {
                     isec = cb < m - ii + 1 ? cb : m - ii + 1;
@@ -213,17 +213,17 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                         //                      T1 := C', the transpose of a rectangular block
                         //                      of C is copied to T1.
                         //
-                        if(cldc)
+                        if(cldb)
                         {
                             for(int j = jj; j <= jj + jsec - 1; j++)
                             {
                                 PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                                     (rocblas_copy_template<false, NB>)(handle,
                                                                        isec,
-                                                                       c,
-                                                                       ii - 1 + (j - 1) * ldc,
+                                                                       b,
+                                                                       ii - 1 + (j - 1) * ldb,
                                                                        1,
-                                                                       stride_c,
+                                                                       stride_b,
                                                                        workspace, // dt1
                                                                        j - jj,
                                                                        rb,
@@ -238,10 +238,10 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                                 PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                                     (rocblas_copy_template<false, NB>)(handle,
                                                                        jsec,
-                                                                       c,
-                                                                       i - 1 + (jj - 1) * ldc,
-                                                                       ldc,
-                                                                       stride_c,
+                                                                       b,
+                                                                       i - 1 + (jj - 1) * ldb,
+                                                                       ldb,
+                                                                       stride_b,
                                                                        workspace, // dt1
                                                                        (i - ii) * ldt1,
                                                                        1,
@@ -331,10 +331,10 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                                                                    j - jj,
                                                                    rb,
                                                                    stride_w,
-                                                                   c,
-                                                                   ii - 1 + (j - 1) * ldc,
+                                                                   b,
+                                                                   ii - 1 + (j - 1) * ldb,
                                                                    1,
-                                                                   stride_c,
+                                                                   stride_b,
                                                                    batch_count));
                         }
                     }
@@ -358,15 +358,15 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                                                                      ii - 1 + (ii + isec - 1) * lda,
                                                                      lda,
                                                                      stride_a,
-                                                                     (TConstPtr)c,
+                                                                     (TConstPtr)b,
                                                                      ii + isec - 1,
-                                                                     ldc,
-                                                                     stride_c,
+                                                                     ldb,
+                                                                     stride_b,
                                                                      &one,
-                                                                     c,
+                                                                     b,
                                                                      ii - 1,
-                                                                     ldc,
-                                                                     stride_c,
+                                                                     ldb,
+                                                                     stride_b,
                                                                      batch_count));
                     }
                 }
@@ -377,7 +377,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                 //
                 //             Form  C := alpha*A'*C. Left, Upper, Transpose.
                 //
-                bool cldc = dcld(ldc);
+                bool cldb = dcld(ldb);
                 for(int ii = m - ((m - 1) % cb); ii >= 1; ii -= cb)
                 {
                     isec = cb < m - ii + 1 ? cb : m - ii + 1;
@@ -427,17 +427,17 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                         //                      T1 := C', the transpose of a rectangular block
                         //                      of C is copied to T1.
                         //
-                        if(cldc)
+                        if(cldb)
                         {
                             for(int j = jj; j <= jj + jsec - 1; j++)
                             {
                                 PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                                     (rocblas_copy_template<false, NB>)(handle,
                                                                        isec,
-                                                                       c,
-                                                                       ii - 1 + (j - 1) * ldc,
+                                                                       b,
+                                                                       ii - 1 + (j - 1) * ldb,
                                                                        1,
-                                                                       stride_c,
+                                                                       stride_b,
                                                                        workspace, // dt1
                                                                        j - jj,
                                                                        rb,
@@ -452,10 +452,10 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                                 PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                                     (rocblas_copy_template<false, NB>)(handle,
                                                                        jsec,
-                                                                       c,
-                                                                       i - 1 + (jj - 1) * ldc,
-                                                                       ldc,
-                                                                       stride_c,
+                                                                       b,
+                                                                       i - 1 + (jj - 1) * ldb,
+                                                                       ldb,
+                                                                       stride_b,
                                                                        workspace, // dt1
                                                                        (i - ii) * ldt1,
                                                                        1,
@@ -545,10 +545,10 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                                                                    j - jj,
                                                                    rb,
                                                                    stride_w,
-                                                                   c,
-                                                                   ii - 1 + (j - 1) * ldc,
+                                                                   b,
+                                                                   ii - 1 + (j - 1) * ldb,
                                                                    1,
-                                                                   stride_c,
+                                                                   stride_b,
                                                                    batch_count));
                         }
                     }
@@ -571,15 +571,15 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                                                                       (ii - 1) * lda,
                                                                       lda,
                                                                       stride_a,
-                                                                      (TConstPtr)c,
+                                                                      (TConstPtr)b,
                                                                       0,
-                                                                      ldc,
-                                                                      stride_c,
+                                                                      ldb,
+                                                                      stride_b,
                                                                       &one,
-                                                                      c,
+                                                                      b,
                                                                       ii - 1,
-                                                                      ldc,
-                                                                      stride_c,
+                                                                      ldb,
+                                                                      stride_b,
                                                                       batch_count));
                     }
                 }
@@ -592,7 +592,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                 //
                 //             Form  C := alpha*A*C. Left, Lower, No transpose.
                 //
-                bool cldc = dcld(ldc);
+                bool cldb = dcld(ldb);
                 for(int ix = m; ix >= 1; ix -= cb)
                 {
                     rocblas_int ii = 1 > ix - cb + 1 ? 1 : ix - cb + 1;
@@ -625,17 +625,17 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                         //                      T1 := C', the transpose of a rectangular block
                         //                      of C is copied to T1.
                         //
-                        if(cldc)
+                        if(cldb)
                         {
                             for(int j = jj; j <= jj + jsec - 1; j++)
                             {
                                 PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                                     (rocblas_copy_template<false, NB>)(handle,
                                                                        isec,
-                                                                       c,
-                                                                       ii - 1 + (j - 1) * ldc,
+                                                                       b,
+                                                                       ii - 1 + (j - 1) * ldb,
                                                                        1,
-                                                                       stride_c,
+                                                                       stride_b,
                                                                        workspace, // dt1
                                                                        j - jj,
                                                                        rb,
@@ -650,10 +650,10 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                                 PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                                     (rocblas_copy_template<false, NB>)(handle,
                                                                        jsec,
-                                                                       c,
-                                                                       i - 1 + (jj - 1) * ldc,
-                                                                       ldc,
-                                                                       stride_c,
+                                                                       b,
+                                                                       i - 1 + (jj - 1) * ldb,
+                                                                       ldb,
+                                                                       stride_b,
                                                                        workspace, // dt1
                                                                        (i - ii) * ldt1,
                                                                        1,
@@ -746,10 +746,10 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                                          j - jj,
                                          rb,
                                          stride_w,
-                                         c,
-                                         ii - 1 + (j - 1) * ldc,
+                                         b,
+                                         ii - 1 + (j - 1) * ldb,
                                          1,
-                                         stride_c,
+                                         stride_b,
                                          batch_count));
                         }
                     }
@@ -771,15 +771,15 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                                                                       ii - 1,
                                                                       lda,
                                                                       stride_a,
-                                                                      (TConstPtr)c,
+                                                                      (TConstPtr)b,
                                                                       0,
-                                                                      ldc,
-                                                                      stride_c,
+                                                                      ldb,
+                                                                      stride_b,
                                                                       &one,
-                                                                      c,
+                                                                      b,
                                                                       ii - 1,
-                                                                      ldc,
-                                                                      stride_c,
+                                                                      ldb,
+                                                                      stride_b,
                                                                       batch_count));
                     }
                 }
@@ -789,7 +789,7 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                 //
                 //              Form  C := alpha*A'*C. Left, Lower, Transpose.
                 //
-                bool cldc = dcld(ldc);
+                bool cldb = dcld(ldb);
                 for(int ix = ((m - 1) % cb) + 1; ix <= m; ix += cb)
                 {
                     rocblas_int ii = 1 > ix - cb + 1 ? 1 : ix - cb + 1;
@@ -842,17 +842,17 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                         //                      T1 := C', the transpose of a rectangular block
                         //                      of C is copied to T1.
                         //
-                        if(cldc)
+                        if(cldb)
                         {
                             for(int j = jj; j <= jj + jsec - 1; j++)
                             {
                                 PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                                     (rocblas_copy_template<false, NB>)(handle,
                                                                        isec,
-                                                                       c,
-                                                                       ii - 1 + (j - 1) * ldc,
+                                                                       b,
+                                                                       ii - 1 + (j - 1) * ldb,
                                                                        1,
-                                                                       stride_c,
+                                                                       stride_b,
                                                                        workspace, // dt1
                                                                        j - jj,
                                                                        rb,
@@ -867,10 +867,10 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                                 PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                                     (rocblas_copy_template<false, NB>)(handle,
                                                                        jsec,
-                                                                       c,
-                                                                       i - 1 + (jj - 1) * ldc,
-                                                                       ldc,
-                                                                       stride_c,
+                                                                       b,
+                                                                       i - 1 + (jj - 1) * ldb,
+                                                                       ldb,
+                                                                       stride_b,
                                                                        workspace, // dt1
                                                                        (i - ii) * ldt1,
                                                                        1,
@@ -962,10 +962,10 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                                                                    j - jj,
                                                                    rb,
                                                                    stride_w,
-                                                                   c,
-                                                                   ii - 1 + (j - 1) * ldc,
+                                                                   b,
+                                                                   ii - 1 + (j - 1) * ldb,
                                                                    1,
-                                                                   stride_c,
+                                                                   stride_b,
                                                                    batch_count));
                         }
                     }
@@ -988,15 +988,15 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                                                                      ii + isec - 1 + (ii - 1) * lda,
                                                                      lda,
                                                                      stride_a,
-                                                                     (TConstPtr)c,
+                                                                     (TConstPtr)b,
                                                                      ii + isec - 1,
-                                                                     ldc,
-                                                                     stride_c,
+                                                                     ldb,
+                                                                     stride_b,
                                                                      &one,
-                                                                     c,
+                                                                     b,
                                                                      ii - 1,
-                                                                     ldc,
-                                                                     stride_c,
+                                                                     ldb,
+                                                                     stride_b,
                                                                      batch_count));
                     }
                 }
@@ -1027,10 +1027,10 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                             PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                                 (rocblas_copy_template<false, NB>)(handle,
                                                                    isec,
-                                                                   c,
-                                                                   ii - 1 + (j - 1) * ldc,
+                                                                   b,
+                                                                   ii - 1 + (j - 1) * ldb,
                                                                    1,
-                                                                   stride_c,
+                                                                   stride_b,
                                                                    workspace, // dt1
                                                                    (j - jj) * ldt1,
                                                                    1,
@@ -1058,10 +1058,10 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                                                                    j - 1 + (j - 1) * lda,
                                                                    1,
                                                                    stride_a,
-                                                                   c,
-                                                                   ii - 1 + (j - 1) * ldc,
+                                                                   b,
+                                                                   ii - 1 + (j - 1) * ldb,
                                                                    1,
-                                                                   stride_c,
+                                                                   stride_b,
                                                                    batch_count));
                             }
                             tsec = j - jj;
@@ -1072,10 +1072,10 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                                                                    isec,
                                                                    alpha,
                                                                    0,
-                                                                   c,
-                                                                   ii - 1 + (j - 1) * ldc,
+                                                                   b,
+                                                                   ii - 1 + (j - 1) * ldb,
                                                                    1,
-                                                                   stride_c,
+                                                                   stride_b,
                                                                    batch_count));
                             }
                             else
@@ -1097,10 +1097,10 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                                                                stride_a,
                                                                alpha,
                                                                0,
-                                                               c,
-                                                               ii - 1 + (j - 1) * ldc,
+                                                               b,
+                                                               ii - 1 + (j - 1) * ldb,
                                                                1,
-                                                               stride_c,
+                                                               stride_b,
                                                                batch_count));
                             }
                         }
@@ -1119,19 +1119,19 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                                                                       jsec,
                                                                       jj - 1,
                                                                       alpha,
-                                                                      (TConstPtr)c,
+                                                                      (TConstPtr)b,
                                                                       0,
-                                                                      ldc,
-                                                                      stride_c,
+                                                                      ldb,
+                                                                      stride_b,
                                                                       a,
                                                                       (jj - 1) * lda,
                                                                       lda,
                                                                       stride_a,
                                                                       &one,
-                                                                      c,
-                                                                      (jj - 1) * ldc,
-                                                                      ldc,
-                                                                      stride_c,
+                                                                      b,
+                                                                      (jj - 1) * ldb,
+                                                                      ldb,
+                                                                      stride_b,
                                                                       batch_count));
                     }
                 }
@@ -1194,10 +1194,10 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                             PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                                 (rocblas_copy_template<false, NB>)(handle,
                                                                    isec,
-                                                                   c,
-                                                                   ii - 1 + (j - 1) * ldc,
+                                                                   b,
+                                                                   ii - 1 + (j - 1) * ldb,
                                                                    1,
-                                                                   stride_c,
+                                                                   stride_b,
                                                                    workspace, // dt1
                                                                    (j - jj) * ldt1,
                                                                    1,
@@ -1226,10 +1226,10 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                                                                        + dt2_offset,
                                                                    1,
                                                                    stride_w,
-                                                                   c,
-                                                                   ii - 1 + (j - 1) * ldc,
+                                                                   b,
+                                                                   ii - 1 + (j - 1) * ldb,
                                                                    1,
-                                                                   stride_c,
+                                                                   stride_b,
                                                                    batch_count));
                             }
                             tsec = jj + jsec - 1 - j;
@@ -1240,10 +1240,10 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                                                                    isec,
                                                                    alpha,
                                                                    0,
-                                                                   c,
-                                                                   ii - 1 + (j - 1) * ldc,
+                                                                   b,
+                                                                   ii - 1 + (j - 1) * ldb,
                                                                    1,
-                                                                   stride_c,
+                                                                   stride_b,
                                                                    batch_count));
                             }
                             else
@@ -1266,10 +1266,10 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                                                                stride_w,
                                                                alpha,
                                                                0,
-                                                               c,
-                                                               ii - 1 + (j - 1) * ldc,
+                                                               b,
+                                                               ii - 1 + (j - 1) * ldb,
                                                                1,
-                                                               stride_c,
+                                                               stride_b,
                                                                batch_count));
                             }
                         }
@@ -1289,19 +1289,19 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                                                                      jsec,
                                                                      n - jj - jsec + 1,
                                                                      alpha,
-                                                                     (TConstPtr)c,
-                                                                     (jj + jsec - 1) * ldc,
-                                                                     ldc,
-                                                                     stride_c,
+                                                                     (TConstPtr)b,
+                                                                     (jj + jsec - 1) * ldb,
+                                                                     ldb,
+                                                                     stride_b,
                                                                      a,
                                                                      jj - 1 + (jj + jsec - 1) * lda,
                                                                      lda,
                                                                      stride_a,
                                                                      &one,
-                                                                     c,
-                                                                     (jj - 1) * ldc,
-                                                                     ldc,
-                                                                     stride_c,
+                                                                     b,
+                                                                     (jj - 1) * ldb,
+                                                                     ldb,
+                                                                     stride_b,
                                                                      batch_count));
                     }
                 }
@@ -1330,10 +1330,10 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                             PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                                 (rocblas_copy_template<false, NB>)(handle,
                                                                    isec,
-                                                                   c,
-                                                                   ii - 1 + (j - 1) * ldc,
+                                                                   b,
+                                                                   ii - 1 + (j - 1) * ldb,
                                                                    1,
-                                                                   stride_c,
+                                                                   stride_b,
                                                                    workspace, // dt1
                                                                    (j - jj) * ldt1,
                                                                    1,
@@ -1361,10 +1361,10 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                                                                    j - 1 + (j - 1) * lda,
                                                                    1,
                                                                    stride_a,
-                                                                   c,
-                                                                   ii - 1 + (j - 1) * ldc,
+                                                                   b,
+                                                                   ii - 1 + (j - 1) * ldb,
                                                                    1,
-                                                                   stride_c,
+                                                                   stride_b,
                                                                    batch_count));
                             }
                             tsec = jj + jsec - 1 - j;
@@ -1375,10 +1375,10 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                                                                    isec,
                                                                    alpha,
                                                                    0,
-                                                                   c,
-                                                                   ii - 1 + (j - 1) * ldc,
+                                                                   b,
+                                                                   ii - 1 + (j - 1) * ldb,
                                                                    1,
-                                                                   stride_c,
+                                                                   stride_b,
                                                                    batch_count));
                             }
                             else
@@ -1400,10 +1400,10 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                                                                stride_a,
                                                                alpha,
                                                                0,
-                                                               c,
-                                                               ii - 1 + (j - 1) * ldc,
+                                                               b,
+                                                               ii - 1 + (j - 1) * ldb,
                                                                1,
-                                                               stride_c,
+                                                               stride_b,
                                                                batch_count));
                             }
                         }
@@ -1422,19 +1422,19 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                                                                      jsec,
                                                                      n - jj - jsec + 1,
                                                                      alpha,
-                                                                     (TConstPtr)c,
-                                                                     (jj + jsec - 1) * ldc,
-                                                                     ldc,
-                                                                     stride_c,
+                                                                     (TConstPtr)b,
+                                                                     (jj + jsec - 1) * ldb,
+                                                                     ldb,
+                                                                     stride_b,
                                                                      a,
                                                                      jj + jsec - 1 + (jj - 1) * lda,
                                                                      lda,
                                                                      stride_a,
                                                                      &one,
-                                                                     c,
-                                                                     (jj - 1) * ldc,
-                                                                     ldc,
-                                                                     stride_c,
+                                                                     b,
+                                                                     (jj - 1) * ldb,
+                                                                     ldb,
+                                                                     stride_b,
                                                                      batch_count));
                     }
                 }
@@ -1501,10 +1501,10 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                             PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
                                 (rocblas_copy_template<false, NB>)(handle,
                                                                    isec,
-                                                                   c,
-                                                                   ii - 1 + (j - 1) * ldc,
+                                                                   b,
+                                                                   ii - 1 + (j - 1) * ldb,
                                                                    1,
-                                                                   stride_c,
+                                                                   stride_b,
                                                                    workspace, // dt1
                                                                    (j - jj) * ldt1,
                                                                    1,
@@ -1533,10 +1533,10 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                                                                        + dt2_offset,
                                                                    1,
                                                                    stride_w,
-                                                                   c,
-                                                                   ii - 1 + (j - 1) * ldc,
+                                                                   b,
+                                                                   ii - 1 + (j - 1) * ldb,
                                                                    1,
-                                                                   stride_c,
+                                                                   stride_b,
                                                                    batch_count));
                             }
                             tsec = j - jj;
@@ -1547,10 +1547,10 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                                                                    isec,
                                                                    alpha,
                                                                    0,
-                                                                   c,
-                                                                   ii - 1 + (j - 1) * ldc,
+                                                                   b,
+                                                                   ii - 1 + (j - 1) * ldb,
                                                                    1,
-                                                                   stride_c,
+                                                                   stride_b,
                                                                    batch_count));
                             }
                             else
@@ -1572,10 +1572,10 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                                                                stride_w,
                                                                alpha,
                                                                0,
-                                                               c,
-                                                               ii - 1 + (j - 1) * ldc,
+                                                               b,
+                                                               ii - 1 + (j - 1) * ldb,
                                                                1,
-                                                               stride_c,
+                                                               stride_b,
                                                                batch_count));
                             }
                         }
@@ -1593,21 +1593,19 @@ rocblas_status rocblas_trmm_template(rocblas_handle    handle,
                                                                       jsec,
                                                                       jj - 1,
                                                                       alpha,
-
-                                                                      (TConstPtr)c,
+                                                                      (TConstPtr)b,
                                                                       0,
-                                                                      ldc,
-                                                                      stride_c,
+                                                                      ldb,
+                                                                      stride_b,
                                                                       a,
                                                                       jj - 1,
                                                                       lda,
                                                                       stride_a,
                                                                       &one,
-                                                                      c,
-                                                                      (jj - 1) * ldc,
-                                                                      ldc,
-                                                                      stride_c,
-
+                                                                      b,
+                                                                      (jj - 1) * ldb,
+                                                                      ldb,
+                                                                      stride_b,
                                                                       batch_count));
                     }
                 }
