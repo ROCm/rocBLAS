@@ -12,15 +12,15 @@ namespace
     template <typename>
     constexpr char rocblas_trmm_strided_batched_name[] = "unknown";
     template <>
-    constexpr char rocblas_trmm_strided_batched_name<float>[] = "rocblas_strided_batched_strmm";
+    constexpr char rocblas_trmm_strided_batched_name<float>[] = "rocblas_strmm_strided_batched";
     template <>
-    constexpr char rocblas_trmm_strided_batched_name<double>[] = "rocblas_strided_batched_dtrmm";
+    constexpr char rocblas_trmm_strided_batched_name<double>[] = "rocblas_dtrmm_strided_batched";
     template <>
     constexpr char rocblas_trmm_strided_batched_name<rocblas_float_complex>[]
-        = "rocblas_strided_batched_ctrmm";
+        = "rocblas_ctrmm_strided_batched";
     template <>
     constexpr char rocblas_trmm_strided_batched_name<rocblas_double_complex>[]
-        = "rocblas_strided_batched_ztrmm";
+        = "rocblas_ztrmm_strided_batched";
 
     template <typename T>
     rocblas_status rocblas_trmm_strided_batched_impl(rocblas_handle    handle,
