@@ -92,8 +92,10 @@ set(rocblas_no_tensile_test_source
     # blas3
     herk_gtest.cpp
     her2k_gtest.cpp
+    herkx_gtest.cpp
     syrk_gtest.cpp
     syr2k_gtest.cpp
+    syrkx_gtest.cpp
     )
 
 if(LINK_BLIS)

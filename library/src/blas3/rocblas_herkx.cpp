@@ -1,21 +1,21 @@
 /* ************************************************************************
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include "rocblas_her2k.hpp"
+#include "rocblas_herkx.hpp"
 #include "logging.h"
 #include "utility.h"
 
 namespace
 {
     template <typename>
-    constexpr char rocblas_her2k_name[] = "unknown";
+    constexpr char rocblas_herkx_name[] = "unknown";
     template <>
-    constexpr char rocblas_her2k_name<rocblas_float_complex>[] = "rocblas_cher2k";
+    constexpr char rocblas_herkx_name<rocblas_float_complex>[] = "rocblas_cherkx";
     template <>
-    constexpr char rocblas_her2k_name<rocblas_double_complex>[] = "rocblas_zher2k";
+    constexpr char rocblas_herkx_name<rocblas_double_complex>[] = "rocblas_zherkx";
 
     template <typename T>
-    rocblas_status rocblas_her2k_impl(rocblas_handle    handle,
+    rocblas_status rocblas_herkx_impl(rocblas_handle    handle,
                                       rocblas_fill      uplo,
                                       rocblas_operation trans,
                                       rocblas_int       n,
@@ -46,7 +46,7 @@ namespace
             {
                 if(layer_mode & rocblas_layer_mode_log_trace)
                     log_trace(handle,
-                              rocblas_her2k_name<T>,
+                              rocblas_herkx_name<T>,
                               uplo,
                               trans,
                               n,
@@ -62,7 +62,7 @@ namespace
 
                 if(layer_mode & rocblas_layer_mode_log_bench)
                     log_bench(handle,
-                              "./rocblas-bench -f her2k -r",
+                              "./rocblas-bench -f herkx -r",
                               rocblas_precision_string<T>,
                               "--uplo",
                               uplo_letter,
@@ -85,7 +85,7 @@ namespace
             {
                 if(layer_mode & rocblas_layer_mode_log_trace)
                     log_trace(handle,
-                              rocblas_her2k_name<T>,
+                              rocblas_herkx_name<T>,
                               uplo,
                               trans,
                               n,
@@ -102,7 +102,7 @@ namespace
 
             if(layer_mode & rocblas_layer_mode_log_profile)
                 log_profile(handle,
-                            rocblas_her2k_name<T>,
+                            rocblas_herkx_name<T>,
                             "uplo",
                             uplo_letter,
                             "trans",
@@ -145,7 +145,7 @@ namespace
         if(arg_status != rocblas_status_continue)
             return arg_status;
 
-        static constexpr bool is2K = true;
+        static constexpr bool is2K = false; // herkx
         return rocblas_her2k_template<is2K>(handle,
                                             uplo,
                                             trans,
@@ -197,15 +197,15 @@ extern "C" {
                                  rocblas_int       ldc)                                            \
     try                                                                                            \
     {                                                                                              \
-        return rocblas_her2k_impl(handle, uplo, trans, n, k, alpha, A, lda, B, ldb, beta, C, ldc); \
+        return rocblas_herkx_impl(handle, uplo, trans, n, k, alpha, A, lda, B, ldb, beta, C, ldc); \
     }                                                                                              \
     catch(...)                                                                                     \
     {                                                                                              \
         return exception_to_rocblas_status();                                                      \
     }
 
-IMPL(rocblas_cher2k, float, rocblas_float_complex);
-IMPL(rocblas_zher2k, double, rocblas_double_complex);
+IMPL(rocblas_cherkx, float, rocblas_float_complex);
+IMPL(rocblas_zherkx, double, rocblas_double_complex);
 
 #undef IMPL
 
