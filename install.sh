@@ -10,24 +10,23 @@ function display_help()
 cat <<EOF
 rocBLAS build & installation helper script
   $0 <options>
-      -h | --help               Print this help message
-      -i | --install            Install after build
-      -d | --dependencies       Install build dependencies
-      -c | --clients            Build library clients too (combines with -i & -d)
-      -g | --debug              Set -DCMAKE_BUILD_TYPE=Debug (default is =Release)
-      -f | --fork               GitHub fork to use, e.g., ROCmSoftwarePlatform or MyUserName
-      -b | --branch             GitHub branch or tag to use, e.g., develop, mybranch or <commit hash>
-      -l | --logic              Set Tensile logic target, e.g., asm_full, asm_lite, etc.
-      -a | --architecture       Set Tensile GPU architecture target, e.g. all, gfx000, gfx803, gfx900, gfx906, gfx908
-      -o | --cov                Set Tensile code_object_version (V2 or V3)
-      -t | --test_local_path    Use a local path for Tensile instead of remote GIT repo
-           --cpu_ref_lib        Specify library to use for CPU reference code in testing (blis or lapack)
-           --hip-clang          Build library for amdgpu backend using hip-clang
-           --build_dir          Specify name of output directory (default is ./build)
-      -n | --no_tensile         Build subset of library that does not require Tensile
-      -u | --use-custom-version Use user-specified Tensile version
-           --skipldconf         Skip ld.so.conf entry
-           --ignore-cuda        Ignores installed cuda version and builds with rocm stack instead
+      -h | --help              Print this help message
+      -i | --install           Install after build
+      -d | --dependencies      Install build dependencies
+      -c | --clients           Build library clients too (combines with -i & -d)
+      -g | --debug             Set -DCMAKE_BUILD_TYPE=Debug (default is =Release)
+      -f | --fork              GitHub fork to use, e.g., ROCmSoftwarePlatform or MyUserName
+      -b | --branch            GitHub branch or tag to use, e.g., develop, mybranch or <commit hash>
+      -l | --logic             Set Tensile logic target, e.g., asm_full, asm_lite, etc.
+      -a | --architecture      Set Tensile GPU architecture target, e.g. all, gfx000, gfx803, gfx900, gfx906, gfx908
+      -o | --cov               Set Tensile code_object_version (V2 or V3)
+      -t | --test_local_path   Use a local path for Tensile instead of remote GIT repo
+           --cpu_ref_lib       Specify library to use for CPU reference code in testing (blis or lapack)
+           --hip-clang         Build library for amdgpu backend using hip-clang
+           --build_dir         Specify name of output directory (default is ./build)
+      -n | --no_tensile        Build subset of library that does not require Tensile
+      -u | --use-tag-only      Ignore Tensile version and just use the Tensile tag
+           --skipldconf        Skip ld.so.conf entry
 EOF
 #          --prefix             Specify an alternate CMAKE_INSTALL_PREFIX for cmake
 }
@@ -268,7 +267,7 @@ fi
 # check if we have a modern version of getopt that can handle whitespace and long parameters
 getopt -T
 if [[ $? -eq 4 ]]; then
-  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,no_tensile,no-tensile-host,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,ignore-cuda --options nrhicdgl:a:o:f:b:t:u: -- "$@")
+  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,no_tensile,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,ignore-cuda --options nhicdgl:a:o:f:b:t:u: -- "$@")
 else
   echo "Need a new version of getopt"
   exit 1
