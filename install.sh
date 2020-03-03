@@ -166,10 +166,10 @@ install_packages( )
 
     else
     # Install rocm-specific rocm-dev package
-      library_dependencies_ubuntu+=( "rocm-dev-${custom_rocm_dev}" )
-      library_dependencies_centos+=( "rocm-dev-${custom_rocm_dev}" )
-      library_dependencies_fedora+=( "rocm-dev-${custom_rocm_dev}" )
-      library_dependencies_sles+=( "rocm-dev-${custom_rocm_dev}" )
+      library_dependencies_ubuntu+=( "${custom_rocm_dev}" )
+      library_dependencies_centos+=( "${custom_rocm_dev}" )
+      library_dependencies_fedora+=( "${custom_rocm_dev}" )
+      library_dependencies_sles+=( "${custom_rocm_dev}" )
     fi
   fi
 
