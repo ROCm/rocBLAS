@@ -216,8 +216,9 @@ ROCBLAS_EXPORT rocblas_status rocblas_get_matrix_async(rocblas_int rows,
 /*******************************************************************************
  * Function to set start/stop event handlers (for internal use only)
  ******************************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_set_start_stop_events(
-    rocblas_handle handle, hipEvent_t startEvent.hipEvent_t stopEvent);
+ROCBLAS_EXPORT rocblas_status rocblas_set_start_stop_events(rocblas_handle handle,
+                                                            hipEvent_t     startEvent,
+                                                            hipEvent_t     stopEvent);
 
 #define ROCBLAS_INVOKE_START_STOP_EVENTS(handle, startEvent, stopEvent, call) \
     do                                                                        \
