@@ -154,4 +154,35 @@ void rocblas_print_matrix(const char* name, T* A, rocblas_int m, rocblas_int n, 
     }
 }
 
+template <typename T>
+void print_strided_batched(const char* name,
+                           T*          A,
+                           rocblas_int n1,
+                           rocblas_int n2,
+                           rocblas_int n3,
+                           rocblas_int s1,
+                           rocblas_int s2,
+                           rocblas_int s3)
+{
+    // n1, n2, n3 are matrix dimensions, sometimes called m, n, batch_count
+    // s1, s1, s3 are matrix strides, sometimes called 1, lda, stride_a
+    printf("---------- %s ----------\n", name);
+    int max_size = 8;
+
+    for(int i3 = 0; i3 < n3 && i3 < max_size; i3++)
+    {
+        for(int i1 = 0; i1 < n1 && i1 < max_size; i1++)
+        {
+            for(int i2 = 0; i2 < n2 && i2 < max_size; i2++)
+            {
+                rocblas_print_helper::print_value(std::cout, A[(i1 * s1) + (i2 * s2) + (i3 * s3)]);
+                printf("|");
+            }
+            printf("\n");
+        }
+        if(i3 < (n3 - 1) && i3 < (max_size - 1))
+            printf("\n");
+    }
+}
+
 #endif

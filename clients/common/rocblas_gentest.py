@@ -288,6 +288,15 @@ def setdefaults(test):
             test.setdefault('stride_x', int(test['stride_scale']))
             test.setdefault('stride_y', int(test['stride_scale']))
 
+    elif test['function'] in ('trmm_strided_batched'):
+        setkey_product(test, 'stride_b', ['N', 'ldb', 'stride_scale'])
+
+        if test['side'].upper() == 'L':
+            setkey_product(test, 'stride_a', ['M', 'lda', 'stride_scale'])
+        else:
+            setkey_product(test, 'stride_a', ['N', 'lda', 'stride_scale'])
+
+
     elif test['function'] in ('trsm_strided_batched',
                               'trsm_strided_batched_ex'):
         setkey_product(test, 'stride_b', ['N', 'ldb', 'stride_scale'])
