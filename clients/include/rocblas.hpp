@@ -3250,6 +3250,66 @@ static constexpr auto rocblas_trmm<rocblas_float_complex> = rocblas_ctrmm;
 template <>
 static constexpr auto rocblas_trmm<rocblas_double_complex> = rocblas_ztrmm;
 
+// trmm_batched
+template <typename T>
+rocblas_status (*rocblas_trmm_batched)(rocblas_handle    handle,
+                                       rocblas_side      side,
+                                       rocblas_fill      uplo,
+                                       rocblas_operation transa,
+                                       rocblas_diagonal  diag,
+                                       rocblas_int       m,
+                                       rocblas_int       n,
+                                       const T*          alpha,
+                                       const T* const    a[],
+                                       rocblas_int       lda,
+                                       T* const          c[],
+                                       rocblas_int       ldc,
+                                       rocblas_int       batch_count);
+
+template <>
+static constexpr auto rocblas_trmm_batched<float> = rocblas_strmm_batched;
+
+template <>
+static constexpr auto rocblas_trmm_batched<double> = rocblas_dtrmm_batched;
+
+template <>
+static constexpr auto rocblas_trmm_batched<rocblas_float_complex> = rocblas_ctrmm_batched;
+
+template <>
+static constexpr auto rocblas_trmm_batched<rocblas_double_complex> = rocblas_ztrmm_batched;
+
+// trmm_strided_batched
+template <typename T>
+rocblas_status (*rocblas_trmm_strided_batched)(rocblas_handle    handle,
+                                               rocblas_side      side,
+                                               rocblas_fill      uplo,
+                                               rocblas_operation transa,
+                                               rocblas_diagonal  diag,
+                                               rocblas_int       m,
+                                               rocblas_int       n,
+                                               const T*          alpha,
+                                               const T*          a,
+                                               rocblas_int       lda,
+                                               rocblas_stride    stride_a,
+                                               T*                c,
+                                               rocblas_int       ldc,
+                                               rocblas_stride    stride_c,
+                                               rocblas_int       batch_count);
+
+template <>
+static constexpr auto rocblas_trmm_strided_batched<float> = rocblas_strmm_strided_batched;
+
+template <>
+static constexpr auto rocblas_trmm_strided_batched<double> = rocblas_dtrmm_strided_batched;
+
+template <>
+static constexpr auto
+    rocblas_trmm_strided_batched<rocblas_float_complex> = rocblas_ctrmm_strided_batched;
+
+template <>
+static constexpr auto
+    rocblas_trmm_strided_batched<rocblas_double_complex> = rocblas_ztrmm_strided_batched;
+
 // trsm
 template <typename T>
 rocblas_status (*rocblas_trsm)(rocblas_handle    handle,
