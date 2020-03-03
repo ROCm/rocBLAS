@@ -67,7 +67,7 @@ static rocblas_status device_strided_batched_matrix_copy(const To*      src,
         size_t strideD1J, size_t strideD2K, size_t strideC1J, size_t strideC2K, size_t strideA1L, \
         size_t strideA2K, size_t strideB1J, size_t strideB2K, size_t sizeI, size_t sizeJ,         \
         size_t sizeK, size_t sizeL, hipStream_t stream, size_t numInputEvents,                    \
-        hipEvent_t startEvent, hipEvent_t stopEvent
+        hipEvent_t *startEvent, hipEvent_t *stopEvent
 
 #define TENSILE_OUT_ARGS                                                                   \
     dataD, dataC, dataA, dataB, alpha, beta, strideD1J, strideD2K, strideC1J, strideC2K,   \
@@ -159,7 +159,7 @@ inline TensileStatus tensile_Cijk_Alik_Bjlk_B<tensile_bfloat16, tensile_bfloat16
 #define TENSILE_OUT_ARGS_HALF                                                                      \
     dataD, dataC, dataA, dataB, alpha_half, beta_half, strideD1J, strideD2K, strideC1J, strideC2K, \
         strideA1L, strideA2K, strideB1J, strideB2K, sizeI, sizeJ, sizeK, sizeL, stream, 0,         \
-        nullptr, nullptr
+        startEvent, stopEvent
 
 template <>
 inline TensileStatus tensile_Cijk_Ailk_Bljk_B<TensileHalf, TensileHalf, float>(
@@ -508,8 +508,8 @@ inline TensileStatus call_tensile_ex(To*            dataD,
                                      size_t         sizeL,
                                      hipStream_t    stream,
                                      transpose_mode transposeMode,
-                                     hipEvent_t     startEvent = nullptr,
-                                     hipEvent_t     stopEvent  = nullptr)
+                                     hipEvent_t*    startEvent,
+                                     hipEvent_t*    stopEvent)
 {
     switch(transposeMode)
     {
@@ -712,8 +712,8 @@ rocblas_status gemm_ex_batched_template(rocblas_handle    handle,
                                            k,
                                            handle->rocblas_stream,
                                            GetTransposeMode(trans_a, trans_b),
-                                           handle->startEvent,
-                                           handle->stopEvent);
+                                           &handle->startEvent,
+                                           &handle->stopEvent);
 
     rb_status = (t_status == tensileStatusSuccess) ? rocblas_status_success
                                                    : rocblas_status_internal_error;
