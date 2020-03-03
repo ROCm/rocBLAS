@@ -29,6 +29,7 @@ rocBLAS build & installation helper script
       -r | --no-tensile-host   Do not build with Tensile host
       -u | --use-tag-only      Ignore Tensile version and just use the Tensile tag
            --skipldconf        Skip ld.so.conf entry
+      -v | --rocm-dev           Set specific rocm-dev version
 EOF
 #          --prefix            Specify an alternate CMAKE_INSTALL_PREFIX for cmake
 #          --cuda              Build library for cuda backend
@@ -163,10 +164,21 @@ install_packages( )
 
   if [[ "${build_hip_clang}" == false ]]; then
     # Installing rocm-dev installs hip-hcc, which overwrites the hip-vdi runtime
-    library_dependencies_ubuntu+=( "rocm-dev" )
-    library_dependencies_centos+=( "rocm-dev" )
-    library_dependencies_fedora+=( "rocm-dev" )
-    library_dependencies_sles+=( "rocm-dev" )
+
+    if [[ -z ${custom_rocm_dev+foo} ]]; then
+    # Install base rocm-dev package unless -v/--rocm-dev flag is passed
+      library_dependencies_ubuntu+=( "rocm-dev" )
+      library_dependencies_centos+=( "rocm-dev" )
+      library_dependencies_fedora+=( "rocm-dev" )
+      library_dependencies_sles+=( "rocm-dev" )
+
+    else
+    # Install rocm-specific rocm-dev package
+      library_dependencies_ubuntu+=( "${custom_rocm_dev}" )
+      library_dependencies_centos+=( "${custom_rocm_dev}" )
+      library_dependencies_fedora+=( "${custom_rocm_dev}" )
+      library_dependencies_sles+=( "${custom_rocm_dev}" )
+    fi
   fi
 
   # dependencies to build the client
@@ -279,7 +291,7 @@ fi
 # check if we have a modern version of getopt that can handle whitespace and long parameters
 getopt -T
 if [[ $? -eq 4 ]]; then
-  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,no_tensile,tensile-host,no-tensile-host,use-tag-only,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,skipldconf --options nsrhicdgul:a:o:f:b:t: -- "$@")
+  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,no_tensile,tensile-host,no-tensile-host,use-tag-only,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,skipldconf,rocm-dev: --options nsrhicdgul:a:o:f:b:t:v: -- "$@")
 else
   echo "Need a new version of getopt"
   exit 1
@@ -356,6 +368,9 @@ while true; do
     -u|--use-tag-only)
         tensile_version=false
         shift ;;
+    -v|--rocm-dev)
+        custom_rocm_dev=${2}
+        shift 2;;
     --prefix)
         install_prefix=${2}
         shift 2 ;;
