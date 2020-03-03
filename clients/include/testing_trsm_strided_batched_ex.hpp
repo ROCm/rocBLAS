@@ -56,11 +56,9 @@ void testing_trsm_strided_batched_ex(const Arguments& arg)
         device_vector<T>    dA(safe_size);
         device_vector<T>    dXorB(safe_size);
         device_vector<T>    dinvA(safe_size);
-        if(!dA || !dXorB)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
+        CHECK_DEVICE_ALLOCATION(dA.memcheck());
+        CHECK_DEVICE_ALLOCATION(dXorB.memcheck());
+        CHECK_DEVICE_ALLOCATION(dinvA.memcheck());
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         rocblas_status status = rocblas_trsm_strided_batched_ex(handle,
@@ -111,12 +109,10 @@ void testing_trsm_strided_batched_ex(const Arguments& arg)
     device_vector<T> dXorB(size_B);
     device_vector<T> alpha_d(1);
     device_vector<T> dinvA(size_invA);
-
-    if(!dA || !dXorB || !alpha_d || !dinvA)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dXorB.memcheck());
+    CHECK_DEVICE_ALLOCATION(alpha_d.memcheck());
+    CHECK_DEVICE_ALLOCATION(dinvA.memcheck());
 
     //  Random lower triangular matrices have condition number
     //  that grows exponentially with matrix size. Random full

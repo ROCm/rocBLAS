@@ -17,6 +17,51 @@
 #include "utility.hpp"
 
 template <typename T>
+void testing_trmm_bad_arg(const Arguments& arg)
+{
+    const rocblas_int M   = 100;
+    const rocblas_int N   = 100;
+    const rocblas_int lda = 100;
+    const rocblas_int ldb = 100;
+
+    const T alpha = 1.0;
+
+    const rocblas_side      side   = rocblas_side_left;
+    const rocblas_fill      uplo   = rocblas_fill_upper;
+    const rocblas_operation transA = rocblas_operation_none;
+    const rocblas_diagonal  diag   = rocblas_diagonal_non_unit;
+
+    rocblas_local_handle handle;
+
+    rocblas_int K      = side == rocblas_side_left ? M : N;
+    size_t      size_A = lda * size_t(K);
+    size_t      size_B = ldb * size_t(N);
+
+    // allocate memory on device
+    device_vector<T> dA(size_A);
+    device_vector<T> dB(size_B);
+
+    CHECK_HIP_ERROR(dA.memcheck());
+    CHECK_HIP_ERROR(dB.memcheck());
+
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_trmm<T>(handle, side, uplo, transA, diag, M, N, &alpha, nullptr, lda, dB, ldb),
+        rocblas_status_invalid_pointer);
+
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_trmm<T>(handle, side, uplo, transA, diag, M, N, &alpha, dA, lda, nullptr, ldb),
+        rocblas_status_invalid_pointer);
+
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_trmm<T>(handle, side, uplo, transA, diag, M, N, nullptr, dA, lda, dB, ldb),
+        rocblas_status_invalid_pointer);
+
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_trmm<T>(nullptr, side, uplo, transA, diag, M, N, &alpha, dA, lda, dB, ldb),
+        rocblas_status_invalid_handle);
+}
+
+template <typename T>
 void testing_trmm(const Arguments& arg)
 {
     bool nantest = rocblas_isnan(arg.alpha) || rocblas_isnan(arg.alphai);
@@ -46,22 +91,14 @@ void testing_trmm(const Arguments& arg)
 
     rocblas_local_handle handle;
 
-    // check here to prevent undefined memory allocation error
-    if(M < 0 || N < 0 || lda < K || ldb < M)
+    // ensure invalid sizes and quick return checked before pointer check
+    bool invalidSize = M < 0 || N < 0 || lda < K || ldb < M;
+    if(M == 0 || N == 0 || invalidSize)
     {
-        static const size_t safe_size = 100; // arbitrarily set to 100
-        device_vector<T>    dA(safe_size);
-        device_vector<T>    dB(safe_size);
-        if(!dA || !dB)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
-
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         EXPECT_ROCBLAS_STATUS(
-            rocblas_trmm<T>(handle, side, uplo, transA, diag, M, N, &h_alpha_T, dA, lda, dB, ldb),
-            rocblas_status_invalid_size);
+            rocblas_trmm<T>(
+                handle, side, uplo, transA, diag, M, N, nullptr, nullptr, lda, nullptr, ldb),
+            invalidSize ? rocblas_status_invalid_size : rocblas_status_success);
         return;
     }
 
@@ -80,13 +117,13 @@ void testing_trmm(const Arguments& arg)
     device_vector<T> dA(size_A);
     device_vector<T> dB(size_B);
     device_vector<T> alpha_d(1);
-    if(!dA || !dB || !alpha_d)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+
+    CHECK_HIP_ERROR(dA.memcheck());
+    CHECK_HIP_ERROR(dB.memcheck());
+    CHECK_HIP_ERROR(alpha_d.memcheck());
 
     //  initialize full random matrix hA with all entries in [1, 10]
+    rocblas_seedrand();
     rocblas_init<T>(hA, K, K, lda);
 
     //  pad untouched area into zero
@@ -173,7 +210,7 @@ void testing_trmm(const Arguments& arg)
 
     if(arg.timing)
     {
-        int number_cold_calls = 2;
+        int number_cold_calls = arg.cold_iters;
         int number_hot_calls  = arg.iters;
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));

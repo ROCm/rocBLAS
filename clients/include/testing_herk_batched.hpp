@@ -270,8 +270,8 @@ void testing_herk_batched(const Arguments& arg)
 
         if(arg.norm_check)
         {
-            auto err1 = std::abs(norm_check_general<T>('F', N, N, batch_count, ldc, hC_gold, hC_1));
-            auto err2 = std::abs(norm_check_general<T>('F', N, N, batch_count, ldc, hC_gold, hC_2));
+            auto err1 = std::abs(norm_check_general<T>('F', N, N, ldc, batch_count, hC_gold, hC_1));
+            auto err2 = std::abs(norm_check_general<T>('F', N, N, ldc, batch_count, hC_gold, hC_2));
             rocblas_error = err1 > err2 ? err1 : err2;
         }
     }
