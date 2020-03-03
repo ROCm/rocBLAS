@@ -889,6 +889,68 @@ inline void cblas_tbmv(rocblas_fill            uplo,
                 incx);
 }
 
+// tpsv
+template <typename T>
+void cblas_tpsv(rocblas_fill      uplo,
+                rocblas_operation transA,
+                rocblas_diagonal  diag,
+                rocblas_int       n,
+                const T*          AP,
+                T*                x,
+                rocblas_int       incx);
+
+template <>
+inline void cblas_tpsv(rocblas_fill      uplo,
+                       rocblas_operation transA,
+                       rocblas_diagonal  diag,
+                       rocblas_int       n,
+                       const float*      AP,
+                       float*            x,
+                       rocblas_int       incx)
+{
+    cblas_stpsv(
+        CblasColMajor, CBLAS_UPLO(uplo), CBLAS_TRANSPOSE(transA), CBLAS_DIAG(diag), n, AP, x, incx);
+}
+
+template <>
+inline void cblas_tpsv(rocblas_fill      uplo,
+                       rocblas_operation transA,
+                       rocblas_diagonal  diag,
+                       rocblas_int       n,
+                       const double*     AP,
+                       double*           x,
+                       rocblas_int       incx)
+{
+    cblas_dtpsv(
+        CblasColMajor, CBLAS_UPLO(uplo), CBLAS_TRANSPOSE(transA), CBLAS_DIAG(diag), n, AP, x, incx);
+}
+
+template <>
+inline void cblas_tpsv(rocblas_fill                 uplo,
+                       rocblas_operation            transA,
+                       rocblas_diagonal             diag,
+                       rocblas_int                  n,
+                       const rocblas_float_complex* AP,
+                       rocblas_float_complex*       x,
+                       rocblas_int                  incx)
+{
+    cblas_ctpsv(
+        CblasColMajor, CBLAS_UPLO(uplo), CBLAS_TRANSPOSE(transA), CBLAS_DIAG(diag), n, AP, x, incx);
+}
+
+template <>
+inline void cblas_tpsv(rocblas_fill                  uplo,
+                       rocblas_operation             transA,
+                       rocblas_diagonal              diag,
+                       rocblas_int                   n,
+                       const rocblas_double_complex* AP,
+                       rocblas_double_complex*       x,
+                       rocblas_int                   incx)
+{
+    cblas_ztpsv(
+        CblasColMajor, CBLAS_UPLO(uplo), CBLAS_TRANSPOSE(transA), CBLAS_DIAG(diag), n, AP, x, incx);
+}
+
 // trsv
 template <typename T>
 void cblas_trsv(rocblas_fill      uplo,
@@ -2505,7 +2567,7 @@ void cblas_her2k(rocblas_fill      uplo,
                  rocblas_int       lda,
                  const T*          B,
                  rocblas_int       ldb,
-                 real_t<T>*        beta,
+                 const real_t<T>*  beta,
                  T*                C,
                  rocblas_int       ldc);
 
@@ -2519,7 +2581,7 @@ inline void cblas_her2k(rocblas_fill                 uplo,
                         rocblas_int                  lda,
                         const rocblas_float_complex* B,
                         rocblas_int                  ldb,
-                        float*                       beta,
+                        const float*                 beta,
                         rocblas_float_complex*       C,
                         rocblas_int                  ldc)
 {
@@ -2548,7 +2610,7 @@ inline void cblas_her2k(rocblas_fill                  uplo,
                         rocblas_int                   lda,
                         const rocblas_double_complex* B,
                         rocblas_int                   ldb,
-                        double*                       beta,
+                        const double*                 beta,
                         rocblas_double_complex*       C,
                         rocblas_int                   ldc)
 {
@@ -2566,6 +2628,21 @@ inline void cblas_her2k(rocblas_fill                  uplo,
                  C,
                  ldc);
 }
+
+// cblas_herkx doesn't exist. implementation in cpp
+template <typename T, typename U = real_t<T>>
+void cblas_herkx(rocblas_fill      uplo,
+                 rocblas_operation transA,
+                 rocblas_int       n,
+                 rocblas_int       k,
+                 const T*          alpha,
+                 const T*          A,
+                 rocblas_int       lda,
+                 const T*          B,
+                 rocblas_int       ldb,
+                 const U*          beta,
+                 T*                C,
+                 rocblas_int       ldc);
 
 // trsm
 template <typename T>

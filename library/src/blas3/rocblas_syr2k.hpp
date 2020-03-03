@@ -46,7 +46,7 @@ __global__ void syr2k_scale_kernel(bool           upper,
 /**
   * kernel
   */
-template <bool HERM, bool trans, rocblas_int TILE_NK, typename T, typename U>
+template <bool TWOK, bool HERM, bool trans, rocblas_int TILE_NK, typename T, typename U>
 static __device__ void syr2k_her2k_mult_add_device(bool        upper,
                                                    rocblas_int n,
                                                    rocblas_int k,
@@ -128,42 +128,45 @@ static __device__ void syr2k_her2k_mult_add_device(bool        upper,
         __syncthreads();
 
         // second matrix mult: alpha*op(B)*op(A)^T, if HERM conj(alpha) and ^H
-
-        // fetch tile of matrix B  into tileA
-        row_loc = row_pos + threadIdx.x;
-        col_loc = k_pos + threadIdx.y;
-        r       = trans ? col_loc : row_loc; // trans B = B^T, else B = B
-        c       = trans ? row_loc : col_loc;
-
-        atile[threadIdx.x][threadIdx.y]
-            = (r < ab_rows && c < ab_cols) ? (HERM && trans ? conj(B[c * ldb + r]) : B[c * ldb + r])
-                                           : 0;
-
-        // fetch tile of matrix A into tileB
-        row_loc = k_pos + threadIdx.x;
-        col_loc = col_pos + threadIdx.y;
-        r       = trans ? row_loc : col_loc; // trans A = A, else A = A^T
-        c       = trans ? col_loc : row_loc;
-
-        btile[threadIdx.x][threadIdx.y]
-            = (c < ab_cols && r < ab_rows)
-                  ? (HERM && !trans ? conj(A[c * lda + r]) : A[c * lda + r])
-                  : 0;
-
-        __syncthreads();
-
-        // n x n symmetric/hermitian output, tile zero where invalid
-        if(row < n && col < n && from <= to)
+        if(TWOK)
         {
-            T sum = T(0);
-            for(int ki = 0; ki < TILE_NK; ++ki)
-            {
-                sum += atile[threadIdx.x][ki] * btile[ki][threadIdx.y];
-            }
-            C[col * ldc + row] += (HERM ? conj(alpha) : alpha) * sum;
-        }
+            // fetch tile of matrix B  into tileA
+            row_loc = row_pos + threadIdx.x;
+            col_loc = k_pos + threadIdx.y;
+            r       = trans ? col_loc : row_loc; // trans B = B^T, else B = B
+            c       = trans ? row_loc : col_loc;
 
-        __syncthreads();
+            atile[threadIdx.x][threadIdx.y]
+                = (r < ab_rows && c < ab_cols)
+                      ? (HERM && trans ? conj(B[c * ldb + r]) : B[c * ldb + r])
+                      : 0;
+
+            // fetch tile of matrix A into tileB
+            row_loc = k_pos + threadIdx.x;
+            col_loc = col_pos + threadIdx.y;
+            r       = trans ? row_loc : col_loc; // trans A = A, else A = A^T
+            c       = trans ? col_loc : row_loc;
+
+            btile[threadIdx.x][threadIdx.y]
+                = (c < ab_cols && r < ab_rows)
+                      ? (HERM && !trans ? conj(A[c * lda + r]) : A[c * lda + r])
+                      : 0;
+
+            __syncthreads();
+
+            // n x n symmetric/hermitian output, tile zero where invalid
+            if(row < n && col < n && from <= to)
+            {
+                T sum = T(0);
+                for(int ki = 0; ki < TILE_NK; ++ki)
+                {
+                    sum += atile[threadIdx.x][ki] * btile[ki][threadIdx.y];
+                }
+                C[col * ldc + row] += (HERM ? conj(alpha) : alpha) * sum;
+            }
+
+            __syncthreads();
+        }
 
     } // k_pos
 
@@ -177,7 +180,8 @@ static __device__ void syr2k_her2k_mult_add_device(bool        upper,
 /**
   *  Loads pointers and launches the actual calculation kernel.
   */
-template <bool        HERM,
+template <bool        TWOK,
+          bool        HERM,
           bool        TRANS,
           rocblas_int DIM_XYT,
           typename TScal,
@@ -211,7 +215,8 @@ __global__ void syr2k_her2k_kernel(bool              upper,
 
     // compute matrix multiplies and accumulate on the fly into C
     // when HERM does ^H in place of ^T
-    syr2k_her2k_mult_add_device<HERM, TRANS, DIM_XYT>(upper, n, k, alpha, A, lda, B, ldb, C, ldc);
+    syr2k_her2k_mult_add_device<TWOK, HERM, TRANS, DIM_XYT>(
+        upper, n, k, alpha, A, lda, B, ldb, C, ldc);
 }
 
 template <typename TScal, typename TConstPtr, typename TPtr>
@@ -260,7 +265,7 @@ rocblas_status rocblas_syr2k_arg_check(rocblas_handle    handle,
   *  TConstPtr is either: const T* OR const T* const*
   *  TPtr      is either:       T* OR       T* const*
   */
-template <typename TScal, typename TConstPtr, typename TPtr>
+template <bool TWOK, typename TScal, typename TConstPtr, typename TPtr>
 rocblas_status rocblas_syr2k_template(rocblas_handle    handle,
                                       rocblas_fill      uplo,
                                       rocblas_operation trans,
@@ -321,7 +326,7 @@ rocblas_status rocblas_syr2k_template(rocblas_handle    handle,
 
         if(trans == rocblas_operation_none)
         {
-            hipLaunchKernelGGL((syr2k_her2k_kernel<false, false, syr2k_DIM_XY>),
+            hipLaunchKernelGGL((syr2k_her2k_kernel<TWOK, false, false, syr2k_DIM_XY>),
                                syr2k_grid,
                                syr2k_threads,
                                0,
@@ -346,7 +351,7 @@ rocblas_status rocblas_syr2k_template(rocblas_handle    handle,
         }
         else
         {
-            hipLaunchKernelGGL((syr2k_her2k_kernel<false, true, syr2k_DIM_XY>),
+            hipLaunchKernelGGL((syr2k_her2k_kernel<TWOK, false, true, syr2k_DIM_XY>),
                                syr2k_grid,
                                syr2k_threads,
                                0,
@@ -394,7 +399,7 @@ rocblas_status rocblas_syr2k_template(rocblas_handle    handle,
 
         if(trans == rocblas_operation_none)
         {
-            hipLaunchKernelGGL((syr2k_her2k_kernel<false, false, syr2k_DIM_XY>),
+            hipLaunchKernelGGL((syr2k_her2k_kernel<TWOK, false, false, syr2k_DIM_XY>),
                                syr2k_grid,
                                syr2k_threads,
                                0,
@@ -419,7 +424,7 @@ rocblas_status rocblas_syr2k_template(rocblas_handle    handle,
         }
         else
         {
-            hipLaunchKernelGGL((syr2k_her2k_kernel<false, true, syr2k_DIM_XY>),
+            hipLaunchKernelGGL((syr2k_her2k_kernel<TWOK, false, true, syr2k_DIM_XY>),
                                syr2k_grid,
                                syr2k_threads,
                                0,

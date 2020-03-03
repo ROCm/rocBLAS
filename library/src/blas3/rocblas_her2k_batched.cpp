@@ -152,26 +152,27 @@ namespace
         if(arg_status != rocblas_status_continue)
             return arg_status;
 
-        return rocblas_her2k_template(handle,
-                                      uplo,
-                                      trans,
-                                      n,
-                                      k,
-                                      alpha,
-                                      A,
-                                      offset_A,
-                                      lda,
-                                      stride_A,
-                                      B,
-                                      offset_B,
-                                      ldb,
-                                      stride_B,
-                                      beta,
-                                      C,
-                                      offset_C,
-                                      ldc,
-                                      stride_C,
-                                      batch_count);
+        static constexpr bool is2K = true;
+        return rocblas_her2k_template<is2K>(handle,
+                                            uplo,
+                                            trans,
+                                            n,
+                                            k,
+                                            alpha,
+                                            A,
+                                            offset_A,
+                                            lda,
+                                            stride_A,
+                                            B,
+                                            offset_B,
+                                            ldb,
+                                            stride_B,
+                                            beta,
+                                            C,
+                                            offset_C,
+                                            ldc,
+                                            stride_C,
+                                            batch_count);
     }
 
 }
