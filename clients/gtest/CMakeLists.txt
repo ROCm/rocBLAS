@@ -79,6 +79,7 @@ set(rocblas_no_tensile_test_source
     trmv_gtest.cpp
     tpmv_gtest.cpp
     tbmv_gtest.cpp
+    tpsv_gtest.cpp
     ger_gtest.cpp
     geru_gtest.cpp
     gerc_gtest.cpp

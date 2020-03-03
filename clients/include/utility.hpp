@@ -5,9 +5,11 @@
 #ifndef _TESTING_UTILITY_H_
 #define _TESTING_UTILITY_H_
 
+#include "cblas_interface.hpp"
 #include "logging.h"
 #include "rocblas.h"
 #include "rocblas_test.hpp"
+#include "rocblas_vector.hpp"
 #include "utility.h"
 #include <cstdio>
 #include <iostream>
@@ -151,6 +153,167 @@ void rocblas_print_matrix(const char* name, T* A, rocblas_int m, rocblas_int n, 
             printf(" ");
         }
         printf("\n");
+    }
+}
+
+/* ============================================================================================= */
+/*! \brief For testing purposes, to convert a regular matrix to a packed matrix.                  */
+template <typename T>
+inline void pack_matrix(bool upper, const T* A, T* AP, rocblas_int n)
+{
+    int index = 0;
+    if(upper)
+    {
+        for(int i = 0; i < n; i++)
+        {
+            for(int j = 0; j <= i; j++)
+            {
+                AP[index++] = A[j + i * n];
+            }
+        }
+    }
+    else
+    {
+        for(int i = 0; i < n; i++)
+        {
+            for(int j = i; j < n; j++)
+            {
+                AP[index++] = A[j + i * n];
+            }
+        }
+    }
+}
+
+template <typename T>
+inline void
+    regular_to_packed(bool upper, const host_vector<T>& A, host_vector<T>& AP, rocblas_int n)
+{
+    pack_matrix(upper, (const T*)A, (T*)AP, n);
+}
+
+template <typename T>
+inline void regular_to_packed(bool                        upper,
+                              const host_batch_vector<T>& A,
+                              host_batch_vector<T>&       AP,
+                              rocblas_int                 n,
+                              rocblas_int                 batch_count)
+{
+    for(int b = 0; b < batch_count; b++)
+    {
+        pack_matrix(upper, (const T*)(A[b]), (T*)(AP[b]), n);
+    }
+}
+
+template <typename T>
+inline void regular_to_packed(bool                                upper,
+                              const host_strided_batch_vector<T>& A,
+                              host_strided_batch_vector<T>&       AP,
+                              rocblas_int                         n,
+                              rocblas_int                         batch_count)
+{
+    for(int b = 0; b < batch_count; b++)
+    {
+        pack_matrix(upper, (const T*)(A[b]), (T*)(AP[b]), n);
+    }
+}
+
+/* ============================================================================================= */
+/*! \brief For testing purposes, makes a matrix hA into a unit_diagonal matrix and               *
+ *         randomly initialize the diagonal.                                                     */
+template <typename T>
+void make_unit_diagonal(rocblas_fill uplo, T* hA, rocblas_int lda, rocblas_int N)
+{
+    if(uplo == rocblas_fill_lower)
+    {
+        for(int i = 0; i < N; i++)
+        {
+            T diag = hA[i + i * N];
+            for(int j = 0; j <= i; j++)
+                hA[i + j * lda] = hA[i + j * lda] / diag;
+        }
+    }
+    else // rocblas_fill_upper
+    {
+        for(int j = 0; j < N; j++)
+        {
+            T diag = hA[j + j * lda];
+            for(int i = 0; i <= j; i++)
+                hA[i + j * lda] = hA[i + j * lda] / diag;
+        }
+    }
+
+    // randomly initalize diagonal to ensure we aren't using it's values for tests.
+    for(int i = 0; i < N; i++)
+    {
+        rocblas_init<T>(hA + i * lda + i, 1, 1, 1);
+    }
+}
+
+/* ============================================================================================= */
+/*! \brief For testing purposes, prepares matrix hA for a triangular solve.                      *
+ *         Makes hA strictly diagonal dominant (SPD), then calculates Cholesky factorization     *
+ *         of hA.                                                                                */
+template <typename T>
+void prepare_triangular_solve(T* hA, rocblas_int lda, T* AAT, rocblas_int N, char char_uplo)
+{
+    //  calculate AAT = hA * hA ^ T
+    cblas_gemm<T, T>(rocblas_operation_none,
+                     rocblas_operation_conjugate_transpose,
+                     N,
+                     N,
+                     N,
+                     T(1.0),
+                     hA,
+                     lda,
+                     hA,
+                     lda,
+                     T(0.0),
+                     AAT,
+                     lda);
+
+    //  copy AAT into hA, make hA strictly diagonal dominant, and therefore SPD
+    for(int i = 0; i < N; i++)
+    {
+        T t = 0.0;
+        for(int j = 0; j < N; j++)
+        {
+            hA[i + j * lda] = AAT[i + j * lda];
+            t += rocblas_abs(AAT[i + j * lda]);
+        }
+        hA[i + i * lda] = t;
+    }
+    //  calculate Cholesky factorization of SPD matrix hA
+    cblas_potrf<T>(char_uplo, N, hA, lda);
+}
+
+template <typename T>
+void print_strided_batched(const char* name,
+                           T*          A,
+                           rocblas_int n1,
+                           rocblas_int n2,
+                           rocblas_int n3,
+                           rocblas_int s1,
+                           rocblas_int s2,
+                           rocblas_int s3)
+{
+    // n1, n2, n3 are matrix dimensions, sometimes called m, n, batch_count
+    // s1, s1, s3 are matrix strides, sometimes called 1, lda, stride_a
+    printf("---------- %s ----------\n", name);
+    int max_size = 8;
+
+    for(int i3 = 0; i3 < n3 && i3 < max_size; i3++)
+    {
+        for(int i1 = 0; i1 < n1 && i1 < max_size; i1++)
+        {
+            for(int i2 = 0; i2 < n2 && i2 < max_size; i2++)
+            {
+                rocblas_print_helper::print_value(std::cout, A[(i1 * s1) + (i2 * s2) + (i3 * s3)]);
+                printf("|");
+            }
+            printf("\n");
+        }
+        if(i3 < (n3 - 1) && i3 < (max_size - 1))
+            printf("\n");
     }
 }
 
