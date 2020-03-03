@@ -7011,7 +7011,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsymv_batched(rocblas_handle              
     alpha
               device pointer or host pointer to scalar alpha
     @param[in]
-    A         device array of device pointers storing each matrix A_i
+    A         Device pointer to the first matrix A_1 on the GPU
     @param[in]
     lda       [rocblas_int]
               specifies the leading dimension of each matrix A_i
@@ -7019,7 +7019,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsymv_batched(rocblas_handle              
     strideA     [rocblas_stride]
                 stride from the start of one matrix (A_i) and the next one (A_i+1)
     @param[in]
-    x         device array of device pointers storing each vector x_i
+    x         Device pointer to the first vector x_1 on the GPU
     @param[in]
     incx      [rocblas_int]
               specifies the increment for the elements of each vector x_i
@@ -7032,7 +7032,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsymv_batched(rocblas_handle              
     @param[in]
     beta      device pointer or host pointer to scalar beta
     @param[out]
-    y         device array of device pointers storing each vector y_i
+    y         Device pointer to the first vector y_1 on the GPU
     @param[in]
     incy      [rocblas_int]
               specifies the increment for the elements of each vector y_i
@@ -7271,12 +7271,12 @@ ROCBLAS_EXPORT rocblas_status rocblas_dspmv_batched(rocblas_handle      handle,
     alpha
               device pointer or host pointer to scalar alpha
     @param[in]
-    A         device array of device pointers storing each matrix A_i
+    A         Device pointer to the first matrix A_1 on the GPU
     @param[in]
     strideA     [rocblas_stride]
                 stride from the start of one matrix (A_i) and the next one (A_i+1)
     @param[in]
-    x         device array of device pointers storing each vector x_i
+    x         Device pointer to the first vector x_1 on the GPU
     @param[in]
     incx      [rocblas_int]
               specifies the increment for the elements of each vector x_i
@@ -7289,7 +7289,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dspmv_batched(rocblas_handle      handle,
     @param[in]
     beta      device pointer or host pointer to scalar beta
     @param[out]
-    y         device array of device pointers storing each vector y_i
+    y         Device pointer to the first vector y_1 on the GPU
     @param[in]
     incy      [rocblas_int]
               specifies the increment for the elements of each vector y_i
@@ -7517,7 +7517,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dsbmv_batched(rocblas_handle      handle,
     alpha
               device pointer or host pointer to scalar alpha
     @param[in]
-    A         device array of device pointers storing each matrix A_i
+    A         Device pointer to the first matrix A_1 on the GPU
     @param[in]
     lda       [rocblas_int]
               specifies the leading dimension of each matrix A_i
@@ -7525,7 +7525,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dsbmv_batched(rocblas_handle      handle,
     strideA     [rocblas_stride]
                 stride from the start of one matrix (A_i) and the next one (A_i+1)
     @param[in]
-    x         device array of device pointers storing each vector x_i
+    x         Device pointer to the first vector x_1 on the GPU
     @param[in]
     incx      [rocblas_int]
               specifies the increment for the elements of each vector x_i
@@ -7538,7 +7538,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dsbmv_batched(rocblas_handle      handle,
     @param[in]
     beta      device pointer or host pointer to scalar beta
     @param[out]
-    y         device array of device pointers storing each vector y_i
+    y         Device pointer to the first vector y_1 on the GPU
     @param[in]
     incy      [rocblas_int]
               specifies the increment for the elements of each vector y_i
@@ -9307,7 +9307,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zherk_batched(rocblas_handle              
             entry.
 
     @param[in]
-    A       device array of device pointers storing each matrix_i A of dimension (lda, k)
+    A       Device pointer to the first matrix A_1 on the GPU of dimension (lda, k)
             when transA is rocblas_operation_none, otherwise of dimension (lda, n)
 
     @param[in]
@@ -9315,24 +9315,28 @@ ROCBLAS_EXPORT rocblas_status rocblas_zherk_batched(rocblas_handle              
             lda specifies the first dimension of A_i.
             if transA = rocblas_operation_none,  lda >= max( 1, n ),
             otherwise lda >= max( 1, k ).
+
     @param[in]
     stride_A  [rocblas_stride]
               stride from the start of one matrix (A_i) and the next one (A_i+1)
+
     @param[in]
     beta
             beta specifies the scalar beta. When beta is
             zero then C need not be set before entry.
 
     @param[in]
-    C       device array of device pointers storing each matrix C_i on the GPU.
+    C       Device pointer to the first matrix C_1 on the GPU.
             The imaginary component of the diagonal elements are not used but are set to zero unless quick return.
 
     @param[in]
     ldc    [rocblas_int]
            ldc specifies the first dimension of C. ldc >= max( 1, n ).
+
     @param[inout]
     stride_C  [rocblas_stride]
               stride from the start of one matrix (C_i) and the next one (C_i+1)
+
     @param[in]
     batch_count [rocblas_int]
                 number of instances in the batch.
@@ -9625,7 +9629,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zher2k_batched(rocblas_handle             
             entry.
 
     @param[in]
-    A       device array of device pointers storing each matrix_i A of dimension (lda, k)
+    A       Device pointer to the first matrix A_1 on the GPU of dimension (lda, k)
             when trans is rocblas_operation_none, otherwise of dimension (lda, n)
 
     @param[in]
@@ -9633,11 +9637,13 @@ ROCBLAS_EXPORT rocblas_status rocblas_zher2k_batched(rocblas_handle             
             lda specifies the first dimension of A_i.
             if trans = rocblas_operation_none,  lda >= max( 1, n ),
             otherwise lda >= max( 1, k ).
+
     @param[in]
     stride_A  [rocblas_stride]
               stride from the start of one matrix (A_i) and the next one (A_i+1)
+
     @param[in]
-    B       device array of device pointers storing each matrix_i B of dimension (ldb, k)
+    B       Device pointer to the first matrix B_1 on the GPU of dimension (ldb, k)
             when trans is rocblas_operation_none, otherwise of dimension (ldb, n)
 
     @param[in]
@@ -9645,24 +9651,28 @@ ROCBLAS_EXPORT rocblas_status rocblas_zher2k_batched(rocblas_handle             
             ldb specifies the first dimension of B_i.
             if trans = rocblas_operation_none,  ldb >= max( 1, n ),
             otherwise ldb >= max( 1, k ).
+
     @param[in]
     stride_B  [rocblas_stride]
               stride from the start of one matrix (B_i) and the next one (B_i+1)
+
     @param[in]
     beta
             beta specifies the scalar beta. When beta is
             zero then C need not be set before entry.
 
     @param[in]
-    C       device array of device pointers storing each matrix C_i on the GPU.
+    C       Device pointer to the first matrix C_1 on the GPU.
             The imaginary component of the diagonal elements are not used but are set to zero unless quick return.
 
     @param[in]
     ldc    [rocblas_int]
            ldc specifies the first dimension of C. ldc >= max( 1, n ).
+
     @param[inout]
     stride_C  [rocblas_stride]
               stride from the start of one matrix (C_i) and the next one (C_i+1)
+
     @param[in]
     batch_count [rocblas_int]
                 number of instances in the batch.
@@ -9864,6 +9874,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zherkx(rocblas_handle                handl
             lda specifies the first dimension of A_i.
             if trans = rocblas_operation_none,  lda >= max( 1, n ),
             otherwise lda >= max( 1, k ).
+
     @param[in]
     B       device array of device pointers storing each matrix_i B of dimension (ldb, k)
             when trans is rocblas_operation_none, otherwise of dimension (ldb, n)
@@ -9873,6 +9884,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zherkx(rocblas_handle                handl
             ldb specifies the first dimension of B_i.
             if trans = rocblas_operation_none,  ldb >= max( 1, n ),
             otherwise ldb >= max( 1, k ).
+
     @param[in]
     beta
             beta specifies the scalar beta. When beta is
@@ -9885,6 +9897,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zherkx(rocblas_handle                handl
     @param[in]
     ldc    [rocblas_int]
            ldc specifies the first dimension of C. ldc >= max( 1, n ).
+
     @param[in]
     batch_count [rocblas_int]
                 number of instances in the batch.
@@ -9965,7 +9978,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zherkx_batched(rocblas_handle             
             entry.
 
     @param[in]
-    A       device array of device pointers storing each matrix_i A of dimension (lda, k)
+    A       Device pointer to the first matrix A_1 on the GPU of dimension (lda, k)
             when trans is rocblas_operation_none, otherwise of dimension (lda, n)
 
     @param[in]
@@ -9973,11 +9986,13 @@ ROCBLAS_EXPORT rocblas_status rocblas_zherkx_batched(rocblas_handle             
             lda specifies the first dimension of A_i.
             if trans = rocblas_operation_none,  lda >= max( 1, n ),
             otherwise lda >= max( 1, k ).
+
     @param[in]
     stride_A  [rocblas_stride]
               stride from the start of one matrix (A_i) and the next one (A_i+1)
+
     @param[in]
-    B       device array of device pointers storing each matrix_i B of dimension (ldb, k)
+    B       Device pointer to the first matrix B_1 on the GPU of dimension (ldb, k)
             when trans is rocblas_operation_none, otherwise of dimension (ldb, n)
 
     @param[in]
@@ -9985,24 +10000,28 @@ ROCBLAS_EXPORT rocblas_status rocblas_zherkx_batched(rocblas_handle             
             ldb specifies the first dimension of B_i.
             if trans = rocblas_operation_none,  ldb >= max( 1, n ),
             otherwise ldb >= max( 1, k ).
+
     @param[in]
     stride_B  [rocblas_stride]
               stride from the start of one matrix (B_i) and the next one (B_i+1)
+
     @param[in]
     beta
             beta specifies the scalar beta. When beta is
             zero then C need not be set before entry.
 
     @param[in]
-    C       device array of device pointers storing each matrix C_i on the GPU.
+    C       Device pointer to the first matrix C_1 on the GPU.
             The imaginary component of the diagonal elements are not used but are set to zero unless quick return.
 
     @param[in]
     ldc    [rocblas_int]
            ldc specifies the first dimension of C. ldc >= max( 1, n ).
+
     @param[inout]
     stride_C  [rocblas_stride]
               stride from the start of one matrix (C_i) and the next one (C_i+1)
+
     @param[in]
     batch_count [rocblas_int]
                 number of instances in the batch.
@@ -10324,7 +10343,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyrk_batched(rocblas_handle              
             entry.
 
     @param[in]
-    A       device array of device pointers storing each matrix_i A of dimension (lda, k)
+    A       Device pointer to the first matrix A_1 on the GPU of dimension (lda, k)
             when transA is rocblas_operation_none, otherwise of dimension (lda, n)
 
     @param[in]
@@ -10332,23 +10351,27 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyrk_batched(rocblas_handle              
             lda specifies the first dimension of A_i.
             if transA = rocblas_operation_none,  lda >= max( 1, n ),
             otherwise lda >= max( 1, k ).
+
     @param[in]
     stride_A  [rocblas_stride]
               stride from the start of one matrix (A_i) and the next one (A_i+1)
+
     @param[in]
     beta
             beta specifies the scalar beta. When beta is
             zero then C need not be set before entry.
 
     @param[in]
-    C       device array of device pointers storing each matrix C_i on the GPU.
+    C       Device pointer to the first matrix C_1 on the GPU. on the GPU.
 
     @param[in]
     ldc    [rocblas_int]
            ldc specifies the first dimension of C. ldc >= max( 1, n ).
+
     @param[inout]
     stride_C  [rocblas_stride]
               stride from the start of one matrix (C_i) and the next one (C_i+1)
+
     @param[in]
     batch_count [rocblas_int]
                 number of instances in the batch.
@@ -10726,7 +10749,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyr2k_batched(rocblas_handle             
             entry.
 
     @param[in]
-    A       device array of device pointers storing each matrix_i A of dimension (lda, k)
+    A       Device pointer to the first matrix A_1 on the GPU of dimension (lda, k)
             when trans is rocblas_operation_none, otherwise of dimension (lda, n)
 
     @param[in]
@@ -10734,11 +10757,13 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyr2k_batched(rocblas_handle             
             lda specifies the first dimension of A_i.
             if trans = rocblas_operation_none,  lda >= max( 1, n ),
             otherwise lda >= max( 1, k ).
+
     @param[in]
     stride_A  [rocblas_stride]
               stride from the start of one matrix (A_i) and the next one (A_i+1)
+
     @param[in]
-    B       device array of device pointers storing each matrix_i B of dimension (ldb, k)
+    B       Device pointer to the first matrix B_1 on the GPU of dimension (ldb, k)
             when trans is rocblas_operation_none, otherwise of dimension (ldb, n)
 
     @param[in]
@@ -10746,23 +10771,27 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyr2k_batched(rocblas_handle             
             ldb specifies the first dimension of B_i.
             if trans = rocblas_operation_none,  ldb >= max( 1, n ),
             otherwise ldb >= max( 1, k ).
+
     @param[in]
     stride_B  [rocblas_stride]
               stride from the start of one matrix (B_i) and the next one (B_i+1)
+
     @param[in]
     beta
             beta specifies the scalar beta. When beta is
             zero then C need not be set before entry.
 
     @param[in]
-    C       device array of device pointers storing each matrix C_i on the GPU.
+    C       Device pointer to the first matrix C_1 on the GPU.
 
     @param[in]
     ldc    [rocblas_int]
            ldc specifies the first dimension of C. ldc >= max( 1, n ).
+
     @param[inout]
     stride_C  [rocblas_stride]
               stride from the start of one matrix (C_i) and the next one (C_i+1)
+
     @param[in]
     batch_count [rocblas_int]
                 number of instances in the batch.
@@ -10894,6 +10923,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyr2k_strided_batched(rocblas_handle     
             lda specifies the first dimension of A.
             if trans = rocblas_operation_none,  lda >= max( 1, n ),
             otherwise lda >= max( 1, k ).
+
     @param[in]
     B       pointer storing matrix B on the GPU.
             Martrix dimension is ( ldb, k ) when if trans = rocblas_operation_none, otherwise (ldb, n)
@@ -10904,6 +10934,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyr2k_strided_batched(rocblas_handle     
             ldb specifies the first dimension of B.
             if trans = rocblas_operation_none,  ldb >= max( 1, n ),
             otherwise ldb >= max( 1, k ).
+
     @param[in]
     beta
             beta specifies the scalar beta. When beta is
@@ -11026,14 +11057,17 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyrkx(rocblas_handle                handl
             lda specifies the first dimension of A_i.
             if trans = rocblas_operation_none,  lda >= max( 1, n ),
             otherwise lda >= max( 1, k ).
+
     @param[in]
     B       device array of device pointers storing each matrix_i B of dimension (ldb, k)
             when trans is rocblas_operation_none, otherwise of dimension (ldb, n)
+
     @param[in]
     ldb     [rocblas_int]
             ldb specifies the first dimension of B.
             if trans = rocblas_operation_none,  ldb >= max( 1, n ),
             otherwise ldb >= max( 1, k ).
+
     @param[in]
     beta
             beta specifies the scalar beta. When beta is
@@ -11045,9 +11079,10 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyrkx(rocblas_handle                handl
     @param[in]
     ldc    [rocblas_int]
            ldc specifies the first dimension of C. ldc >= max( 1, n ).
+
     @param[in]
     batch_count [rocblas_int]
-                number of instances in the batch.
+            number of instances in the batch.
 
     ********************************************************************/
 
@@ -11155,7 +11190,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyrkx_batched(rocblas_handle             
             entry.
 
     @param[in]
-    A       device array of device pointers storing each matrix_i A of dimension (lda, k)
+    A       Device pointer to the first matrix A_1 on the GPU of dimension (lda, k)
             when trans is rocblas_operation_none, otherwise of dimension (lda, n)
 
     @param[in]
@@ -11163,11 +11198,13 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyrkx_batched(rocblas_handle             
             lda specifies the first dimension of A_i.
             if trans = rocblas_operation_none,  lda >= max( 1, n ),
             otherwise lda >= max( 1, k ).
+
     @param[in]
     stride_A  [rocblas_stride]
               stride from the start of one matrix (A_i) and the next one (A_i+1)
+
     @param[in]
-    B       device array of device pointers storing each matrix_i B of dimension (ldb, k)
+    B       Device pointer to the first matrix B_1 on the GPU of dimension (ldb, k)
             when trans is rocblas_operation_none, otherwise of dimension (ldb, n)
 
     @param[in]
@@ -11175,23 +11212,27 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyrkx_batched(rocblas_handle             
             ldb specifies the first dimension of B_i.
             if trans = rocblas_operation_none,  ldb >= max( 1, n ),
             otherwise ldb >= max( 1, k ).
+
     @param[in]
     stride_B  [rocblas_stride]
               stride from the start of one matrix (B_i) and the next one (B_i+1)
+
     @param[in]
     beta
             beta specifies the scalar beta. When beta is
             zero then C need not be set before entry.
 
     @param[in]
-    C       device array of device pointers storing each matrix C_i on the GPU.
+    C       Device pointer to the first matrix C_1 on the GPU.
 
     @param[in]
     ldc    [rocblas_int]
            ldc specifies the first dimension of C. ldc >= max( 1, n ).
+
     @param[inout]
     stride_C  [rocblas_stride]
               stride from the start of one matrix (C_i) and the next one (C_i+1)
+
     @param[in]
     batch_count [rocblas_int]
                 number of instances in the batch.
