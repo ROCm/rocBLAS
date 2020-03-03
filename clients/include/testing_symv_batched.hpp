@@ -314,8 +314,8 @@ void testing_symv_batched(const Arguments& arg)
 
         if(arg.norm_check)
         {
-            h_error = norm_check_general<T>('F', 1, N, batch_count, abs_incy, hg, hy);
-            d_error = norm_check_general<T>('F', 1, N, batch_count, abs_incy, hg, hy2);
+            h_error = norm_check_general<T>('F', 1, N, abs_incy, batch_count, hg, hy);
+            d_error = norm_check_general<T>('F', 1, N, abs_incy, batch_count, hg, hy2);
         }
     }
 

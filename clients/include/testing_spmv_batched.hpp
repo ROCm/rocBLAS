@@ -282,11 +282,8 @@ void testing_spmv_batched(const Arguments& arg)
 
         if(arg.norm_check)
         {
-            for(int i = 0; i < batch_count; i++)
-            {
-                h_error = norm_check_general<T>('F', 1, N, batch_count, abs_incy, hg, hy);
-                d_error = norm_check_general<T>('F', 1, N, batch_count, abs_incy, hg, hy2);
-            }
+            h_error = norm_check_general<T>('F', 1, N, abs_incy, batch_count, hg, hy);
+            d_error = norm_check_general<T>('F', 1, N, abs_incy, batch_count, hg, hy2);
         }
     }
 

@@ -125,6 +125,8 @@ if( BUILD_WITH_TENSILE )
     blas3/rocblas_trsm_batched.cpp
     blas3/rocblas_trsm_strided_batched.cpp
     blas3/rocblas_trmm.cpp
+    blas3/rocblas_trmm_batched.cpp
+    blas3/rocblas_trmm_strided_batched.cpp
   )
 
   set( Tensile_INC
@@ -227,6 +229,9 @@ set( rocblas_blas2_source
   blas2/rocblas_tbmv.cpp
   blas2/rocblas_tbmv_batched.cpp
   blas2/rocblas_tbmv_strided_batched.cpp
+  blas2/rocblas_tpsv.cpp
+  blas2/rocblas_tpsv_batched.cpp
+  blas2/rocblas_tpsv_strided_batched.cpp
   blas2/rocblas_sbmv.cpp
   blas2/rocblas_sbmv_batched.cpp
   blas2/rocblas_sbmv_strided_batched.cpp

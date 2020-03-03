@@ -17,12 +17,11 @@ __global__ void copy_kernel(rocblas_int    n,
                             rocblas_int    incy,
                             rocblas_stride stridey)
 {
-    ptrdiff_t tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
-    // bound
+    ptrdiff_t   tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+    const auto* x   = load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex);
+    auto*       y   = load_ptr_batch(ya, hipBlockIdx_y, shifty, stridey);
     if(tid < n)
     {
-        const auto* x = load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex);
-        auto*       y = load_ptr_batch(ya, hipBlockIdx_y, shifty, stridey);
 
         y[tid * incy] = CONJ ? conj(x[tid * incx]) : x[tid * incx];
     }
@@ -55,15 +54,16 @@ rocblas_status rocblas_copy_template(rocblas_handle handle,
     ptrdiff_t shiftx = offsetx - ((incx < 0) ? ptrdiff_t(incx) * (n - 1) : 0);
     ptrdiff_t shifty = offsety - ((incy < 0) ? ptrdiff_t(incy) * (n - 1) : 0);
 
-    int  blocks = (n - 1) / NB + 1;
-    dim3 grid(blocks, batch_count);
-    dim3 threads(NB);
+    int         blocks = (n - 1) / NB + 1;
+    dim3        grid(blocks, batch_count);
+    dim3        threads(NB);
+    hipStream_t my_stream = handle->rocblas_stream;
 
     hipLaunchKernelGGL(copy_kernel<CONJ>,
                        grid,
                        threads,
                        0,
-                       handle->rocblas_stream,
+                       my_stream,
                        n,
                        x,
                        shiftx,
