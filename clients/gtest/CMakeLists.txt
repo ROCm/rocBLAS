@@ -91,9 +91,11 @@ set(rocblas_no_tensile_test_source
     spmv_gtest.cpp
     symv_gtest.cpp
     # blas3
+    hemm_gtest.cpp
     herk_gtest.cpp
     her2k_gtest.cpp
     herkx_gtest.cpp
+    symm_gtest.cpp
     syrk_gtest.cpp
     syr2k_gtest.cpp
     syrkx_gtest.cpp

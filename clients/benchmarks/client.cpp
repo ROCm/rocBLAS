@@ -113,6 +113,9 @@
 #include "testing_herk.hpp"
 #include "testing_herk_batched.hpp"
 #include "testing_herk_strided_batched.hpp"
+#include "testing_symm_hemm.hpp"
+#include "testing_symm_hemm_batched.hpp"
+#include "testing_symm_hemm_strided_batched.hpp"
 #include "testing_syr2k.hpp"
 #include "testing_syr2k_batched.hpp"
 #include "testing_syr2k_strided_batched.hpp"
@@ -312,6 +315,9 @@ struct perf_blas<T, U, std::enable_if_t<std::is_same<T, float>{} || std::is_same
                 {"symv_batched", testing_symv_batched<T>},
                 {"symv_strided_batched", testing_symv_strided_batched<T>},
                 // L3
+                {"symm", testing_symm_hemm<T, false>},
+                {"symm_batched", testing_symm_hemm_batched<T, false>},
+                {"symm_strided_batched", testing_symm_hemm_strided_batched<T, false>},
                 {"syrk", testing_syrk<T>},
                 {"syrk_batched", testing_syrk_batched<T>},
                 {"syrk_strided_batched", testing_syrk_strided_batched<T>},
@@ -470,6 +476,12 @@ struct perf_blas<T,
                 {"syrkx", testing_syr2k<T, false>},
                 {"syrkx_batched", testing_syr2k_batched<T, false>},
                 {"syrkx_strided_batched", testing_syr2k_strided_batched<T, false>},
+                {"symm", testing_symm_hemm<T, false>},
+                {"symm_batched", testing_symm_hemm_batched<T, false>},
+                {"symm_strided_batched", testing_symm_hemm_strided_batched<T, false>},
+                {"hemm", testing_symm_hemm<T, true>},
+                {"hemm_batched", testing_symm_hemm_batched<T, true>},
+                {"hemm_strided_batched", testing_symm_hemm_strided_batched<T, true>},
                 {"herk", testing_herk<T>},
                 {"herk_batched", testing_herk_batched<T>},
                 {"herk_strided_batched", testing_herk_strided_batched<T>},
