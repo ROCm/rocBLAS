@@ -10,27 +10,26 @@ function display_help()
 cat <<EOF
 rocBLAS build & installation helper script
   $0 <options>
-      -h | --help              Print this help message
-      -i | --install           Install after build
-      -d | --dependencies      Install build dependencies
-      -c | --clients           Build library clients too (combines with -i & -d)
-      -g | --debug             Set -DCMAKE_BUILD_TYPE=Debug (default is =Release)
-      -f | --fork              GitHub fork to use, e.g., ROCmSoftwarePlatform or MyUserName
-      -b | --branch            GitHub branch or tag to use, e.g., develop, mybranch or <commit hash>
-      -l | --logic             Set Tensile logic target, e.g., asm_full, asm_lite, etc.
-      -a | --architecture      Set Tensile GPU architecture target, e.g. all, gfx000, gfx803, gfx900, gfx906, gfx908
-      -o | --cov               Set Tensile code_object_version (V2 or V3)
-      -t | --test_local_path   Use a local path for Tensile instead of remote GIT repo
-           --cpu_ref_lib       Specify library to use for CPU reference code in testing (blis or lapack)
-           --hip-clang         Build library for amdgpu backend using hip-clang
-           --build_dir         Specify name of output directory (default is ./build)
-      -n | --no_tensile        Build subset of library that does not require Tensile
-      -s | --tensile-host      Build with Tensile host
-      -r | --no-tensile-host   Do not build with Tensile host
-      -u | --use-tag-only      Ignore Tensile version and just use the Tensile tag
-           --skipldconf        Skip ld.so.conf entry
+      -h | --help                Print this help message
+      -i | --install             Install after build
+      -d | --dependencies        Install build dependencies
+      -c | --clients             Build library clients too (combines with -i & -d)
+      -g | --debug               Set -DCMAKE_BUILD_TYPE=Debug (default is =Release)
+      -f | --fork                GitHub fork to use, e.g., ROCmSoftwarePlatform or MyUserName
+      -b | --branch              GitHub branch or tag to use, e.g., develop, mybranch or <commit hash>
+      -l | --logic               Set Tensile logic target, e.g., asm_full, asm_lite, etc.
+      -a | --architecture        Set Tensile GPU architecture target, e.g. all, gfx000, gfx803, gfx900, gfx906, gfx908
+      -o | --cov                 Set Tensile code_object_version (V2 or V3)
+      -t | --test_local_path     Use a local path for Tensile instead of remote GIT repo
+           --cpu_ref_lib         Specify library to use for CPU reference code in testing (blis or lapack)
+           --hip-clang           Build library for amdgpu backend using hip-clang
+           --build_dir           Specify name of output directory (default is ./build)
+      -n | --no_tensile          Build subset of library that does not require Tensile
+      -u | --use-custom-version  Ignore Tensile version and just use the Tensile tag
+           --ignore-cuda         Ignores installed cuda version and builds with rocm stack instead
+           --skipldconf          Skip ld.so.conf entry
 EOF
-#          --prefix             Specify an alternate CMAKE_INSTALL_PREFIX for cmake
+#           --prefix              Specify an alternate CMAKE_INSTALL_PREFIX for cmake
 }
 
 # This function is helpful for dockerfiles that do not have sudo installed, but the default user is root
