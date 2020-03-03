@@ -91,6 +91,8 @@ if( BUILD_WITH_TENSILE )
     blas3/rocblas_trsm_batched.cpp
     blas3/rocblas_trsm_strided_batched.cpp
     blas3/rocblas_trmm.cpp
+    blas3/rocblas_trmm_batched.cpp
+    blas3/rocblas_trmm_strided_batched.cpp
   )
 
   set( Tensile_INC
@@ -126,12 +128,18 @@ set( rocblas_blas3_source_no_tensile
     blas3/rocblas_her2k.cpp
     blas3/rocblas_her2k_batched.cpp
     blas3/rocblas_her2k_strided_batched.cpp
+    blas3/rocblas_herkx.cpp
+    blas3/rocblas_herkx_batched.cpp
+    blas3/rocblas_herkx_strided_batched.cpp
     blas3/rocblas_syrk.cpp
     blas3/rocblas_syrk_batched.cpp
     blas3/rocblas_syrk_strided_batched.cpp
     blas3/rocblas_syr2k.cpp
     blas3/rocblas_syr2k_batched.cpp
     blas3/rocblas_syr2k_strided_batched.cpp
+    blas3/rocblas_syrkx.cpp
+    blas3/rocblas_syrkx_batched.cpp
+    blas3/rocblas_syrkx_strided_batched.cpp
 )
 
 set( rocblas_blas2_source
@@ -187,6 +195,9 @@ set( rocblas_blas2_source
   blas2/rocblas_tbmv.cpp
   blas2/rocblas_tbmv_batched.cpp
   blas2/rocblas_tbmv_strided_batched.cpp
+  blas2/rocblas_tpsv.cpp
+  blas2/rocblas_tpsv_batched.cpp
+  blas2/rocblas_tpsv_strided_batched.cpp
   blas2/rocblas_sbmv.cpp
   blas2/rocblas_sbmv_batched.cpp
   blas2/rocblas_sbmv_strided_batched.cpp

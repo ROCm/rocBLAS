@@ -200,9 +200,8 @@ void testing_tpmv(const Arguments& arg)
             std::cout << "CPU-Gflops,norm_error";
         }
         std::cout << std::endl;
-        std::cout << M << "," << incx << "," << incx << "," << incx << "," << incx << ","
-                  << char_uplo << ',' << char_transA << ',' << char_diag << ',' << rocblas_gflops
-                  << "," << rocblas_bandwidth << ",";
+        std::cout << M << "," << incx << "," << char_uplo << ',' << char_transA << ',' << char_diag
+                  << ',' << rocblas_gflops << "," << rocblas_bandwidth << ",";
 
         if(arg.norm_check)
         {

@@ -24,20 +24,21 @@ void testing_copy_batched_bad_arg(const Arguments& arg)
     rocblas_local_handle handle;
 
     // allocate memory on device
-    device_vector<T*, 0, T> dx(batch_count);
-    device_vector<T*, 0, T> dy(batch_count);
-    if(!dx || !dy)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    device_batch_vector<T> dx(N, incx, batch_count);
+    device_batch_vector<T> dy(N, incy, batch_count);
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
-    EXPECT_ROCBLAS_STATUS(rocblas_copy_batched<T>(handle, N, nullptr, incx, dy, incy, batch_count),
-                          rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(rocblas_copy_batched<T>(handle, N, dx, incx, nullptr, incy, batch_count),
-                          rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(rocblas_copy_batched<T>(nullptr, N, dx, incx, dy, incy, batch_count),
-                          rocblas_status_invalid_handle);
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_copy_batched<T>(handle, N, nullptr, incx, dy.ptr_on_device(), incy, batch_count),
+        rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_copy_batched<T>(handle, N, dx.ptr_on_device(), incx, nullptr, incy, batch_count),
+        rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_copy_batched<T>(
+            nullptr, N, dx.ptr_on_device(), incx, dy.ptr_on_device(), incy, batch_count),
+        rocblas_status_invalid_handle);
 }
 
 template <typename T>
@@ -52,16 +53,16 @@ void testing_copy_batched(const Arguments& arg)
     // argument sanity check before allocating invalid memory
     if(N <= 0 || batch_count <= 0)
     {
-        device_vector<T*, 0, T> dx(1);
-        device_vector<T*, 0, T> dy(1);
-        if(!dx || !dy)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
-        EXPECT_ROCBLAS_STATUS(rocblas_copy_batched<T>(handle, N, dx, incx, dy, incy, batch_count),
-                              N > 0 && batch_count < 0 ? rocblas_status_invalid_size
-                                                       : rocblas_status_success);
+        size_t                 safe_size = 100;
+        device_batch_vector<T> dx(safe_size, 1, 1);
+        device_batch_vector<T> dy(safe_size, 1, 1);
+        CHECK_DEVICE_ALLOCATION(dx.memcheck());
+        CHECK_DEVICE_ALLOCATION(dy.memcheck());
+
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_copy_batched<T>(
+                handle, N, dx.ptr_on_device(), incx, dy.ptr_on_device(), incy, batch_count),
+            N > 0 && batch_count < 0 ? rocblas_status_invalid_size : rocblas_status_success);
         return;
     }
 
@@ -71,63 +72,23 @@ void testing_copy_batched(const Arguments& arg)
     size_t      size_y   = N * size_t(abs_incy);
 
     //Device-arrays of pointers to device memory
-    device_vector<T*, 0, T> dx(batch_count);
-    device_vector<T*, 0, T> dy(batch_count);
-
-    if(!dx || !dy)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    device_batch_vector<T> dx(N, incx, batch_count);
+    device_batch_vector<T> dy(N, incy, batch_count);
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
-    host_vector<T> hy[batch_count];
-    host_vector<T> hy_gold[batch_count];
-    host_vector<T> hx[batch_count];
-
-    // Host-arrays of pointers to device memory
-    // (intermediate arrays used for the transfers)
-    device_batch_vector<T> x(batch_count, size_x);
-    device_batch_vector<T> y(batch_count, size_y);
-
-    for(int b = 0; b < batch_count; ++b)
-    {
-        hx[b]      = host_vector<T>(size_x);
-        hy[b]      = host_vector<T>(size_y);
-        hy_gold[b] = host_vector<T>(size_y);
-    }
-
-    int last = batch_count - 1;
-    if(batch_count && ((!y[last] && size_y) || (!x[last] && size_x)))
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    host_batch_vector<T> hy(N, incy, batch_count);
+    host_batch_vector<T> hy_gold(N, incy, batch_count);
+    host_batch_vector<T> hx(N, incx, batch_count);
 
     // Initial Data on CPU
-    rocblas_seedrand();
+    rocblas_init(hx, true);
+    rocblas_init(hy, false);
+    hy_gold.copy_from(hy);
 
-    for(int b = 0; b < batch_count; ++b)
-    {
-        rocblas_init<T>(hx[b], 1, N, abs_incx);
-        rocblas_init<T>(hy[b], 1, N, abs_incy);
-
-        // copy_batched vector is easy in STL; hy_gold = hx: save a copy_batched in hy_gold which will be output of CPU
-        // BLAS
-        hy_gold[b] = hy[b];
-    }
-
-    // copy data from CPU to device
-    // 1. Use intermediate arrays to access device memory from host
-    for(int b = 0; b < batch_count; ++b)
-    {
-        CHECK_HIP_ERROR(hipMemcpy(x[b], hx[b], sizeof(T) * size_x, hipMemcpyHostToDevice));
-        CHECK_HIP_ERROR(hipMemcpy(y[b], hy[b], sizeof(T) * size_y, hipMemcpyHostToDevice));
-    }
-
-    // 2. Copy intermediate arrays into device arrays
-    CHECK_HIP_ERROR(hipMemcpy(dx, x, sizeof(T*) * batch_count, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dy, y, sizeof(T*) * batch_count, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(dx.transfer_from(hx));
+    CHECK_HIP_ERROR(dy.transfer_from(hy));
 
     double gpu_time_used, cpu_time_used;
     double rocblas_error = 0.0;
@@ -135,12 +96,10 @@ void testing_copy_batched(const Arguments& arg)
     if(arg.unit_check || arg.norm_check)
     {
         // GPU BLAS
-        CHECK_ROCBLAS_ERROR(rocblas_copy_batched<T>(handle, N, dx, incx, dy, incy, batch_count));
+        CHECK_ROCBLAS_ERROR(rocblas_copy_batched<T>(
+            handle, N, dx.ptr_on_device(), incx, dy.ptr_on_device(), incy, batch_count));
 
-        for(int b = 0; b < batch_count; ++b)
-        {
-            hipMemcpy(hy[b], y[b], sizeof(T) * size_y, hipMemcpyDeviceToHost);
-        }
+        CHECK_HIP_ERROR(hy.transfer_from(dy));
 
         // CPU BLAS
         cpu_time_used = get_time_us();
@@ -168,14 +127,16 @@ void testing_copy_batched(const Arguments& arg)
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            rocblas_copy_batched<T>(handle, N, dx, incx, dy, incy, batch_count);
+            rocblas_copy_batched<T>(
+                handle, N, dx.ptr_on_device(), incx, dy.ptr_on_device(), incy, batch_count);
         }
 
         gpu_time_used = get_time_us(); // in microseconds
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            rocblas_copy_batched<T>(handle, N, dx, incx, dy, incy, batch_count);
+            rocblas_copy_batched<T>(
+                handle, N, dx.ptr_on_device(), incx, dy.ptr_on_device(), incy, batch_count);
         }
 
         gpu_time_used = (get_time_us() - gpu_time_used) / number_hot_calls;

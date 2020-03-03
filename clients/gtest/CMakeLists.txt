@@ -79,6 +79,7 @@ set(rocblas_no_tensile_test_source
     trmv_gtest.cpp
     tpmv_gtest.cpp
     tbmv_gtest.cpp
+    tpsv_gtest.cpp
     ger_gtest.cpp
     geru_gtest.cpp
     gerc_gtest.cpp
@@ -92,8 +93,10 @@ set(rocblas_no_tensile_test_source
     # blas3
     herk_gtest.cpp
     her2k_gtest.cpp
+    herkx_gtest.cpp
     syrk_gtest.cpp
     syr2k_gtest.cpp
+    syrkx_gtest.cpp
     )
 
 if(LINK_BLIS)
