@@ -80,11 +80,10 @@ void testing_trmm(const Arguments& arg)
     device_vector<T> dA(size_A);
     device_vector<T> dB(size_B);
     device_vector<T> alpha_d(1);
-    if(!dA || !dB || !alpha_d)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dB.memcheck());
+    CHECK_DEVICE_ALLOCATION(alpha_d.memcheck());
 
     //  initialize full random matrix hA with all entries in [1, 10]
     rocblas_init<T>(hA, K, K, lda);

@@ -37,11 +37,8 @@ void testing_tbmv_bad_arg(const Arguments& arg)
     // allocate memory on device
     device_vector<T> dA(size_A);
     device_vector<T> dx(size_x);
-    if(!dA || !dx)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
     EXPECT_ROCBLAS_STATUS(rocblas_tbmv<T>(handle, uplo, transA, diag, M, K, nullptr, lda, dx, incx),
                           rocblas_status_invalid_pointer);
@@ -71,17 +68,8 @@ void testing_tbmv(const Arguments& arg)
     // argument sanity check before allocating invalid memory
     if(M < 0 || K < 0 || lda < M || lda < 1 || !incx || K >= lda)
     {
-        static const size_t safe_size = 100; // arbitrarily set to 100
-        device_vector<T>    dA1(safe_size);
-        device_vector<T>    dx1(safe_size);
-        if(!dA1 || !dx1)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
-
         EXPECT_ROCBLAS_STATUS(
-            rocblas_tbmv<T>(handle, uplo, transA, diag, M, K, dA1, lda, dx1, incx),
+            rocblas_tbmv<T>(handle, uplo, transA, diag, M, K, nullptr, lda, nullptr, incx),
             rocblas_status_invalid_size);
 
         return;
@@ -101,11 +89,8 @@ void testing_tbmv(const Arguments& arg)
 
     device_vector<T> dA(size_A);
     device_vector<T> dx(size_x);
-    if((!dA && size_A) || (!dx && size_x))
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
     // Initial Data on CPU
     rocblas_seedrand();
