@@ -158,10 +158,10 @@ install_packages( )
 
     if [[ -z ${custom_rocm_dev+foo} ]]; then
     # Install base rocm-dev package unless -v/--rocm-dev flag is passed
-    library_dependencies_ubuntu+=( "rocm-dev" )
-    library_dependencies_centos+=( "rocm-dev" )
-    library_dependencies_fedora+=( "rocm-dev" )
-    library_dependencies_sles+=( "rocm-dev" )
+      library_dependencies_ubuntu+=( "rocm-dev" )
+      library_dependencies_centos+=( "rocm-dev" )
+      library_dependencies_fedora+=( "rocm-dev" )
+      library_dependencies_sles+=( "rocm-dev" )
 
     else
     # Install rocm-specific rocm-dev package
@@ -282,7 +282,7 @@ fi
 # check if we have a modern version of getopt that can handle whitespace and long parameters
 getopt -T
 if [[ $? -eq 4 ]]; then
-  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,no_tensile,no-tensile-host,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,ignore-cuda,rocm-dev --options nrhicdgl:a:o:f:b:t:u:v: -- "$@")
+  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,no_tensile,no-tensile-host,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,ignore-cuda,rocm-dev: --options nrhicdgl:a:o:f:b:t:u:v: -- "$@")
 else
   echo "Need a new version of getopt"
   exit 1
