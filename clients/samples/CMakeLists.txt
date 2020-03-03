@@ -2,8 +2,6 @@
 # Copyright 2016-2020 Advanced Micro Devices, Inc.
 # ########################################################################
 
-get_target_property( HIPHCC_LOCATION hip::hip_hcc IMPORTED_LOCATION_RELEASE )
-
 set( rocblas_samples_common ../common/utility.cpp )
 
 set( THREADS_PREFER_PTHREAD_FLAG ON )
@@ -54,7 +52,7 @@ foreach( exe ${sample_list} )
 
     # auto set in hip_common.h
     #target_compile_definitions( ${exe} PRIVATE __HIP_PLATFORM_HCC__ )
-    target_link_libraries( ${exe} PRIVATE ${HIPHCC_LOCATION} )
+    target_link_libraries( ${exe} PRIVATE hip::device )
   endif( )
 
   if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
