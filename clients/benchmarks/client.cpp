@@ -164,6 +164,8 @@ void run_function(const func_map& map, const Arguments& arg, const std::string& 
 #include "testing_gemm_strided_batched.hpp"
 #include "testing_gemm_strided_batched_ex.hpp"
 #include "testing_trmm.hpp"
+#include "testing_trmm_batched.hpp"
+#include "testing_trmm_strided_batched.hpp"
 #include "testing_trsm.hpp"
 #include "testing_trsm_batched.hpp"
 #include "testing_trsm_batched_ex.hpp"
@@ -316,6 +318,8 @@ struct perf_blas<T, U, std::enable_if_t<std::is_same<T, float>{} || std::is_same
 #if BUILD_WITH_TENSILE
                 {"geam", testing_geam<T>},
                 {"trmm", testing_trmm<T>},
+                {"trmm_batched", testing_trmm_batched<T>},
+                {"trmm_strided_batched", testing_trmm_strided_batched<T>},
                 {"trtri", testing_trtri<T>},
                 {"trtri_batched", testing_trtri_batched<T>},
                 {"trtri_strided_batched", testing_trtri_strided_batched<T>},
@@ -483,6 +487,8 @@ struct perf_blas<T,
                 {"trsv_batched", testing_trsv_batched<T>},
                 {"trsv_strided_batched", testing_trsv_strided_batched<T>},
                 {"trmm", testing_trmm<T>},
+                {"trmm_batched", testing_trmm_batched<T>},
+                {"trmm_strided_batched", testing_trmm_strided_batched<T>},
 #endif
               };
         run_function(map, arg);
@@ -937,11 +943,11 @@ try
                                                                      // xtrmm xtrsv
         ("diag",
          value<char>(&arg.diag)->default_value('N'),
-         "U = unit diagonal, N = non unit diagonal. Only applicable to certain routines") // xtrsm xtrsm_ex xtrsv
+         "U = unit diagonal, N = non unit diagonal. Only applicable to certain routines") // xtrsm xtrsm_ex xtrsv xtrmm
 
         ("batch_count",
          value<rocblas_int>(&arg.batch_count)->default_value(1),
-         "Number of matrices. Only applicable to batched routines")
+         "Number of matrices. Only applicable to batched and strided_batched routines")
 
         ("verify,v",
          value<rocblas_int>(&arg.norm_check)->default_value(0),
