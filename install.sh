@@ -29,7 +29,7 @@ rocBLAS build & installation helper script
       -r | --no-tensile-host   Do not build with Tensile host
       -u | --use-tag-only      Ignore Tensile version and just use the Tensile tag
            --skipldconf        Skip ld.so.conf entry
-      -v | --rocm-dev           Set specific rocm-dev version
+      -v | --rocm-dev          Set specific rocm-dev version
 EOF
 #          --prefix            Specify an alternate CMAKE_INSTALL_PREFIX for cmake
 #          --cuda              Build library for cuda backend
