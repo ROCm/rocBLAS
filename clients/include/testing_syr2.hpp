@@ -37,9 +37,9 @@ void testing_syr2_bad_arg()
     device_vector<T> dA_1(size_A);
     device_vector<T> dx(size_x);
     device_vector<T> dy(size_x);
-    CHECK_HIP_ERROR(dA_1.memcheck());
-    CHECK_HIP_ERROR(dx.memcheck());
-    CHECK_HIP_ERROR(dy.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA_1.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     EXPECT_ROCBLAS_STATUS(
         rocblas_syr2<T>(handle, rocblas_fill_full, N, &alpha, dx, incx, dy, incy, dA_1, lda),
@@ -78,17 +78,8 @@ void testing_syr2(const Arguments& arg)
     // argument check before allocating invalid memory
     if(N <= 0 || lda < N || lda < 1 || !incx || !incy)
     {
-        static const size_t safe_size = 100; // arbitrarily set to 100
-
-        device_vector<T> dA_1(safe_size);
-        device_vector<T> dx(safe_size);
-        device_vector<T> dy(safe_size);
-        CHECK_HIP_ERROR(dA_1.memcheck());
-        CHECK_HIP_ERROR(dx.memcheck());
-        CHECK_HIP_ERROR(dy.memcheck());
-
         EXPECT_ROCBLAS_STATUS(
-            rocblas_syr2<T>(handle, uplo, N, &h_alpha, dx, incx, dy, incy, dA_1, lda),
+            rocblas_syr2<T>(handle, uplo, N, &h_alpha, nullptr, incx, nullptr, incy, nullptr, lda),
             (N < 0 || lda < N || lda < 1 || !incx || !incy) ? rocblas_status_invalid_size
                                                             : rocblas_status_success);
 
@@ -116,10 +107,11 @@ void testing_syr2(const Arguments& arg)
     device_vector<T> dx(size_x);
     device_vector<T> dy(size_y);
     device_vector<T> d_alpha(1);
-    CHECK_HIP_ERROR(dA_1.memcheck());
-    CHECK_HIP_ERROR(dA_2.memcheck());
-    CHECK_HIP_ERROR(dx.memcheck());
-    CHECK_HIP_ERROR(dy.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA_1.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA_2.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
 
     double gpu_time_used, cpu_time_used;
     double rocblas_gflops, cblas_gflops, rocblas_bandwidth;
