@@ -280,6 +280,25 @@ constexpr double tbmv_gflop_count<rocblas_double_complex>(rocblas_int m, rocblas
     return (4 * (2 * m * k1 - k1 * (k1 + 1)) + 4 * m) / 1e9;
 }
 
+/* \brief floating point counts of TPSV */
+template <typename T>
+constexpr double tpsv_gflop_count(rocblas_int n)
+{
+    return (n * n) / 1e9;
+}
+
+template <>
+constexpr double tpsv_gflop_count<rocblas_float_complex>(rocblas_int n)
+{
+    return (4.0 * n * n) / 1e9;
+}
+
+template <>
+constexpr double tpsv_gflop_count<rocblas_double_complex>(rocblas_int n)
+{
+    return (4.0 * n * n) / 1e9;
+}
+
 /* \brief floating point counts of SY(HE)MV */
 template <typename T>
 constexpr double symv_gflop_count(rocblas_int n)
