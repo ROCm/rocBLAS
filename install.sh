@@ -173,7 +173,7 @@ install_packages( )
   fi
 
   if [[ "${ID}" == "centos" ]]; then
-    if [[ "${VERSION_ID}" >= "7" ]]; then
+    if [[ "${VERSION_ID}" -ge 7 ]]; then
       # On CentOS-7 and greater, RPM packages for LLVM-7.0 are available. For earlier CentOS versions,
       # we must build modern LLVM versions from src.
       library_dependencies_centos+=( "llvm7.0-devel" "llvm7.0-static" )
