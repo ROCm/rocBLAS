@@ -992,3 +992,17 @@ extern "C" const char* rocblas_status_to_string(rocblas_status status)
     // from our switch. If the value is not a valid rocblas_status, we return this string.
     return "<undefined rocblas_status value>";
 }
+
+/*******************************************************************************
+ * Function to set start/stop event handlers (for internal use only)
+ ******************************************************************************/
+extern "C" rocblas_status rocblas_set_start_stop_events(rocblas_handle handle,
+                                                        hipEvent_t     startEvent,
+                                                        hipEvent_t     stopEvent)
+{
+    if(!handle)
+        return rocblas_status_invalid_handle;
+    handle->startEvent = startEvent;
+    handle->stopEvent  = stopEvent;
+    return rocblas_status_success;
+}
