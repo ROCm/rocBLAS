@@ -27,11 +27,7 @@ void testing_scal_bad_arg(const Arguments& arg)
 
     // allocate memory on device
     device_vector<T> dx(size_x);
-    if(!dx)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
     EXPECT_ROCBLAS_STATUS((rocblas_scal<T, U>(handle, N, &alpha, nullptr, incx)),
                           rocblas_status_invalid_pointer);
@@ -55,11 +51,7 @@ void testing_scal(const Arguments& arg)
     {
         static const size_t safe_size = 100; // arbitrarily set to 100
         device_vector<T>    dx(safe_size);
-        if(!dx)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
+        CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         CHECK_ROCBLAS_ERROR((rocblas_scal<T, U>(handle, N, &h_alpha, dx, incx)));
@@ -86,11 +78,9 @@ void testing_scal(const Arguments& arg)
     device_vector<T> dx_1(size_x);
     device_vector<T> dx_2(size_x);
     device_vector<U> d_alpha(1);
-    if(!dx_1 || !dx_2 || !d_alpha)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dx_1.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx_2.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
 
     // copy data from CPU to device
     CHECK_HIP_ERROR(hipMemcpy(dx_1, hx_1, sizeof(T) * size_x, hipMemcpyHostToDevice));
@@ -142,7 +132,7 @@ void testing_scal(const Arguments& arg)
     if(arg.timing)
     {
         int number_cold_calls = 2;
-        int number_hot_calls  = 100;
+        int number_hot_calls  = arg.iters;
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
         for(int iter = 0; iter < number_cold_calls; iter++)
