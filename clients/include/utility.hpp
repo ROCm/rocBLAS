@@ -154,4 +154,36 @@ void rocblas_print_matrix(const char* name, T* A, rocblas_int m, rocblas_int n, 
     }
 }
 
+/* ============================================================================= */
+/*! \brief For testing purposes, to convert a regular matrix to a banded matrix. */
+template <typename T>
+inline void banded_matrix(bool upper, const T* A, T* AB, rocblas_int n, rocblas_int k)
+{
+    // TODO
+}
+
+// template <typename T>
+// inline void regular_to_banded(bool upper, host_vector<T>& A, host_vector<T>& AB, rocblas_int n, rocblas_int k)
+// {
+//     banded_matrix(upper, (T*)A, (T*)AP, n, k);
+// }
+
+// template <typename T>
+// inline void regular_to_banded(bool upper, host_batch_vector<T>& A, host_batch_vector<T>& AP, rocblas_int n, rocblas_int k, rocblas_int batch_count)
+// {
+//     for(int b = 0; b < batch_count; b++)
+//     {
+//         banded_matrix(upper, (T*)(A[b]), (T*)(AB[b]), n, k);
+//     }
+// }
+
+// template <typename T>
+// inline void regular_to_banded(bool upper, host_strided_batch_vector<T>& A, host_strided_batch_vector<T>& AP, rocblas_int n, rocblas_int k, rocblas_int batch_count)
+// {
+//     for(int b = 0; b < batch_count; b++)
+//     {
+//         banded_matrix(upper, (T*)(A[b]), (T*)(AB[b]), n, k);
+//     }
+// }
+
 #endif

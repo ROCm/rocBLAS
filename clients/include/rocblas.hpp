@@ -2244,6 +2244,31 @@ template <>
 static constexpr auto
     rocblas_tbmv_strided_batched<rocblas_double_complex> = rocblas_ztbmv_strided_batched;
 
+// tbsv
+template <typename T>
+rocblas_status (*rocblas_tbsv)(rocblas_handle    handle,
+                               rocblas_fill      uplo,
+                               rocblas_operation transA,
+                               rocblas_diagonal  diag,
+                               rocblas_int       n,
+                               rocblas_int       k,
+                               const T*          A,
+                               rocblas_int       lda,
+                               T*                x,
+                               rocblas_int       incx);
+
+template <>
+static constexpr auto rocblas_tbsv<float> = rocblas_stbsv;
+
+template <>
+static constexpr auto rocblas_tbsv<double> = rocblas_dtbsv;
+
+template <>
+static constexpr auto rocblas_tbsv<rocblas_float_complex> = rocblas_ctbsv;
+
+template <>
+static constexpr auto rocblas_tbsv<rocblas_double_complex> = rocblas_ztbsv;
+
 // trsv
 template <typename T>
 rocblas_status (*rocblas_trsv)(rocblas_handle    handle,

@@ -6210,6 +6210,345 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztbmv_strided_batched(rocblas_handle      
 /*! \brief BLAS Level 2 API
 
     \details
+    tbsv solves
+
+         A*x = b or A**T*x = b or A**H*x = b,
+
+    where x and b are vectors and A is a banded triangular matrix.
+
+    The vector x is overwritten on b.
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+
+    @param[in]
+    uplo    [rocblas_fill]
+            rocblas_fill_upper:  A is an upper triangular matrix.
+            rocblas_fill_lower:  A is a  lower triangular matrix.
+
+    @param[in]
+    transA     [rocblas_operation]
+               rocblas_operation_none: Solves A*x = b
+               rocblas_operation_transpose: Solves A**T*x = b
+               rocblas_operation_conjugate_transpose: Solves A**H*x = b
+
+    @param[in]
+    diag    [rocblas_diagonal]
+            rocblas_diagonal_unit:     A is assumed to be unit triangular (i.e. the diagonal elements
+                                       of A are not used in computations).
+            rocblas_diagonal_non_unit: A is not assumed to be unit triangular.
+
+    @param[in]
+    n         [rocblas_int]
+              n specifies the number of rows of b. n >= 0.
+    @param[in]
+    k         [rocblas_int]
+              if(uplo == rocblas_fill_upper)
+                k specifies the number of super-diagonals of A.
+              if(uplo == rocblas_fill_lower)
+                k specifies the number of sub-diagonals of A.
+              k >= 0.
+
+    @param[in]
+    A         device pointer storing the matrix A in banded format.
+
+    @param[in]
+    lda       [rocblas_int]
+              specifies the leading dimension of A.
+              lda >= (k + 1).
+
+    @param[inout]
+    x         device pointer storing vector x.
+
+    @param[in]
+    incx      [rocblas_int]
+              specifies the increment for the elements of x.
+
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_stbsv(rocblas_handle    handle,
+                                            rocblas_fill      uplo,
+                                            rocblas_operation transA,
+                                            rocblas_diagonal  diag,
+                                            rocblas_int       n,
+                                            rocblas_int       k,
+                                            const float*      A,
+                                            rocblas_int       lda,
+                                            float*            x,
+                                            rocblas_int       incx);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dtbsv(rocblas_handle    handle,
+                                            rocblas_fill      uplo,
+                                            rocblas_operation transA,
+                                            rocblas_diagonal  diag,
+                                            rocblas_int       n,
+                                            rocblas_int       k,
+                                            const double*     A,
+                                            rocblas_int       lda,
+                                            double*           x,
+                                            rocblas_int       incx);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ctbsv(rocblas_handle               handle,
+                                            rocblas_fill                 uplo,
+                                            rocblas_operation            transA,
+                                            rocblas_diagonal             diag,
+                                            rocblas_int                  n,
+                                            rocblas_int                  k,
+                                            const rocblas_float_complex* A,
+                                            rocblas_int                  lda,
+                                            rocblas_float_complex*       x,
+                                            rocblas_int                  incx);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ztbsv(rocblas_handle                handle,
+                                            rocblas_fill                  uplo,
+                                            rocblas_operation             transA,
+                                            rocblas_diagonal              diag,
+                                            rocblas_int                   n,
+                                            rocblas_int                   k,
+                                            const rocblas_double_complex* A,
+                                            rocblas_int                   lda,
+                                            rocblas_double_complex*       x,
+                                            rocblas_int                   incx);
+
+/*! \brief BLAS Level 2 API
+
+    \details
+    tbsv_batched solves
+
+         A_i*x_i = b_i or A_i**T*x_i = b_i or A_i**H*x_i = b_i,
+
+    where x_i and b_i are vectors and A_i is a banded triangular matrix,
+    for i = [1, batch_count].
+
+    Each vector x_i is overwritten on b_i.
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+
+    @param[in]
+    uplo    [rocblas_fill]
+            rocblas_fill_upper:  A_i is an upper triangular matrix.
+            rocblas_fill_lower:  A_i is a  lower triangular matrix.
+
+    @param[in]
+    transA     [rocblas_operation]
+               rocblas_operation_none: Solves A_i*x_i = b_i
+               rocblas_operation_transpose: Solves A_i**T*x_i = b_i
+               rocblas_operation_conjugate_transpose: Solves A_i**H*x_i = b_i
+
+    @param[in]
+    diag    [rocblas_diagonal]
+            rocblas_diagonal_unit:     each A_i is assumed to be unit triangular (i.e. the diagonal elements
+                                       of each A_i are not used in computations).
+            rocblas_diagonal_non_unit: each A_i is not assumed to be unit triangular.
+
+    @param[in]
+    n         [rocblas_int]
+              n specifies the number of rows of each b_i. n >= 0.
+    @param[in]
+    k         [rocblas_int]
+              if(uplo == rocblas_fill_upper)
+                k specifies the number of super-diagonals of each A_i.
+              if(uplo == rocblas_fill_lower)
+                k specifies the number of sub-diagonals of each A_i.
+              k >= 0.
+
+    @param[in]
+    A         device vector of device pointers storing each matrix A_i in banded format.
+
+    @param[in]
+    lda       [rocblas_int]
+              specifies the leading dimension of each A_i.
+              lda >= (k + 1).
+
+    @param[inout]
+    x         device vector of device pointers storing each vector x_i.
+
+    @param[in]
+    incx      [rocblas_int]
+              specifies the increment for the elements of each x_i.
+    @param[in]
+    batch_count [rocblas_int]
+                number of instances in the batch.
+
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_stbsv_batched(rocblas_handle     handle,
+                                                    rocblas_fill       uplo,
+                                                    rocblas_operation  transA,
+                                                    rocblas_diagonal   diag,
+                                                    rocblas_int        n,
+                                                    rocblas_int        k,
+                                                    const float* const A[],
+                                                    rocblas_int        lda,
+                                                    float* const       x[],
+                                                    rocblas_int        incx,
+                                                    rocblas_int        batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dtbsv_batched(rocblas_handle      handle,
+                                                    rocblas_fill        uplo,
+                                                    rocblas_operation   transA,
+                                                    rocblas_diagonal    diag,
+                                                    rocblas_int         n,
+                                                    rocblas_int         k,
+                                                    const double* const A[],
+                                                    rocblas_int         lda,
+                                                    double* const       x[],
+                                                    rocblas_int         incx,
+                                                    rocblas_int         batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ctbsv_batched(rocblas_handle                     handle,
+                                                    rocblas_fill                       uplo,
+                                                    rocblas_operation                  transA,
+                                                    rocblas_diagonal                   diag,
+                                                    rocblas_int                        n,
+                                                    rocblas_int                        k,
+                                                    const rocblas_float_complex* const A[],
+                                                    rocblas_int                        lda,
+                                                    rocblas_float_complex* const       x[],
+                                                    rocblas_int                        incx,
+                                                    rocblas_int                        batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ztbsv_batched(rocblas_handle                      handle,
+                                                    rocblas_fill                        uplo,
+                                                    rocblas_operation                   transA,
+                                                    rocblas_diagonal                    diag,
+                                                    rocblas_int                         n,
+                                                    rocblas_int                         k,
+                                                    const rocblas_double_complex* const A[],
+                                                    rocblas_int                         lda,
+                                                    rocblas_double_complex* const       x[],
+                                                    rocblas_int                         incx,
+                                                    rocblas_int batch_count);
+
+/*! \brief BLAS Level 2 API
+
+    \details
+    tbsv_strided_batched solves
+
+         A_i*x_i = b_i or A_i**T*x_i = b_i or A_i**H*x_i = b_i,
+
+    where x_i and b_i are vectors and A_i is a banded triangular matrix,
+    for i = [1, batch_count].
+
+    Each vector x_i is overwritten on b_i.
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+
+    @param[in]
+    uplo    [rocblas_fill]
+            rocblas_fill_upper:  A_i is an upper triangular matrix.
+            rocblas_fill_lower:  A_i is a  lower triangular matrix.
+
+    @param[in]
+    transA     [rocblas_operation]
+               rocblas_operation_none: Solves A_i*x_i = b_i
+               rocblas_operation_transpose: Solves A_i**T*x_i = b_i
+               rocblas_operation_conjugate_transpose: Solves A_i**H*x_i = b_i
+
+    @param[in]
+    diag    [rocblas_diagonal]
+            rocblas_diagonal_unit:     each A_i is assumed to be unit triangular (i.e. the diagonal elements
+                                       of each A_i are not used in computations).
+            rocblas_diagonal_non_unit: each A_i is not assumed to be unit triangular.
+
+    @param[in]
+    n         [rocblas_int]
+              n specifies the number of rows of each b_i. n >= 0.
+    @param[in]
+    k         [rocblas_int]
+              if(uplo == rocblas_fill_upper)
+                k specifies the number of super-diagonals of each A_i.
+              if(uplo == rocblas_fill_lower)
+                k specifies the number of sub-diagonals of each A_i.
+              k >= 0.
+
+    @param[in]
+    A         device pointer pointing to the first banded matrix A_1.
+
+    @param[in]
+    lda       [rocblas_int]
+              specifies the leading dimension of each A_i.
+              lda >= (k + 1).
+    @param[in]
+    stride_A  [rocblas_stride]
+              specifies the distance between the start of one matrix (A_i) and the next (A_i+1).
+
+    @param[inout]
+    x         device pointer pointing to the first vector x_1.
+
+    @param[in]
+    incx      [rocblas_int]
+              specifies the increment for the elements of each x_i.
+    @param[in]
+    stride_x  [rocblas_int]
+              specifie sthe distance between the start of one vector (x_i) and the next (x_i+1).
+    @param[in]
+    batch_count [rocblas_int]
+                number of instances in the batch.
+
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_stbsv_strided_batched(rocblas_handle    handle,
+                                                            rocblas_fill      uplo,
+                                                            rocblas_operation transA,
+                                                            rocblas_diagonal  diag,
+                                                            rocblas_int       n,
+                                                            rocblas_int       k,
+                                                            const float*      A,
+                                                            rocblas_int       lda,
+                                                            rocblas_stride    stride_A,
+                                                            float*            x,
+                                                            rocblas_int       incx,
+                                                            rocblas_stride    stride_x,
+                                                            rocblas_int       batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dtbsv_strided_batched(rocblas_handle    handle,
+                                                            rocblas_fill      uplo,
+                                                            rocblas_operation transA,
+                                                            rocblas_diagonal  diag,
+                                                            rocblas_int       n,
+                                                            rocblas_int       k,
+                                                            const double*     A,
+                                                            rocblas_int       lda,
+                                                            rocblas_stride    stride_A,
+                                                            double*           x,
+                                                            rocblas_int       incx,
+                                                            rocblas_stride    stride_x,
+                                                            rocblas_int       batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ctbsv_strided_batched(rocblas_handle               handle,
+                                                            rocblas_fill                 uplo,
+                                                            rocblas_operation            transA,
+                                                            rocblas_diagonal             diag,
+                                                            rocblas_int                  n,
+                                                            rocblas_int                  k,
+                                                            const rocblas_float_complex* A,
+                                                            rocblas_int                  lda,
+                                                            rocblas_stride               stride_A,
+                                                            rocblas_float_complex*       x,
+                                                            rocblas_int                  incx,
+                                                            rocblas_stride               stride_x,
+                                                            rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ztbsv_strided_batched(rocblas_handle                handle,
+                                                            rocblas_fill                  uplo,
+                                                            rocblas_operation             transA,
+                                                            rocblas_diagonal              diag,
+                                                            rocblas_int                   n,
+                                                            rocblas_int                   k,
+                                                            const rocblas_double_complex* A,
+                                                            rocblas_int                   lda,
+                                                            rocblas_stride                stride_A,
+                                                            rocblas_double_complex*       x,
+                                                            rocblas_int                   incx,
+                                                            rocblas_stride                stride_x,
+                                                            rocblas_int batch_count);
+
+/*! \brief BLAS Level 2 API
+
+    \details
     trsv solves
 
          A*x = b or A**T*x = b,

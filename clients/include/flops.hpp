@@ -251,6 +251,28 @@ constexpr double hpr2_gflop_count(rocblas_int n)
     return (8.0 * n * n + 20.0 * n) / 1e9;
 }
 
+/* \brief floating point counts or TBSV */
+template <typename T>
+constexpr double tbsv_gflop_count(rocblas_int n)
+{
+    // TODO: This.
+    return 0.0;
+}
+
+template <>
+constexpr double tbsv_gflop_count<rocblas_float_complex>(rocblas_int n)
+{
+    // TODO: This.
+    return 0.0;
+}
+
+template <>
+constexpr double tbsv_gflop_count<rocblas_double_complex>(rocblas_int n)
+{
+    // TODO: This.
+    return 0.0;
+}
+
 /* \brief floating point counts of TRSV */
 template <typename T>
 constexpr double trsv_gflop_count(rocblas_int m)
