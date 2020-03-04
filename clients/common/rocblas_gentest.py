@@ -257,12 +257,14 @@ def setdefaults(test):
             test.setdefault('stride_a', ldN)
 
     elif test['function'] in ('spr_strided_batched', 'spr2_strided_batched',
-                              'hpr_strided_batched', 'hpr2_strided_batched'):
+                              'hpr_strided_batched', 'hpr2_strided_batched',
+                              'tpsv_strided_batched'):
         setkey_product(test, 'stride_x', ['N', 'incx', 'stride_scale'])
         setkey_product(test, 'stride_y', ['N', 'incy', 'stride_scale'])
         setkey_product(test, 'stride_a', ['N', 'N', 'stride_scale'])
 
-    elif test['function'] in ('her_strided_batched', 'her2_strided_batched'):
+    elif test['function'] in ('her_strided_batched', 'her2_strided_batched',
+                              'syr2_strided_batched'):
         setkey_product(test, 'stride_x', ['N', 'incx', 'stride_scale'])
         setkey_product(test, 'stride_y', ['N', 'incy', 'stride_scale'])
         setkey_product(test, 'stride_a', ['N', 'lda', 'stride_scale'])
@@ -286,6 +288,15 @@ def setdefaults(test):
             test.setdefault('stride_c', int(test['stride_scale']) * 5)
             test.setdefault('stride_x', int(test['stride_scale']))
             test.setdefault('stride_y', int(test['stride_scale']))
+
+    elif test['function'] in ('trmm_strided_batched'):
+        setkey_product(test, 'stride_b', ['N', 'ldb', 'stride_scale'])
+
+        if test['side'].upper() == 'L':
+            setkey_product(test, 'stride_a', ['M', 'lda', 'stride_scale'])
+        else:
+            setkey_product(test, 'stride_a', ['N', 'lda', 'stride_scale'])
+
 
     elif test['function'] in ('trsm_strided_batched',
                               'trsm_strided_batched_ex'):

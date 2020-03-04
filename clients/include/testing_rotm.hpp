@@ -26,11 +26,9 @@ void testing_rotm_bad_arg(const Arguments& arg)
     device_vector<T>     dx(safe_size);
     device_vector<T>     dy(safe_size);
     device_vector<T>     dparam(5);
-    if(!dx || !dy || !dparam)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
+    CHECK_DEVICE_ALLOCATION(dparam.memcheck());
 
     EXPECT_ROCBLAS_STATUS(rocblas_rotm<T>(nullptr, N, dx, incx, dy, incy, dparam),
                           rocblas_status_invalid_handle);
@@ -62,11 +60,9 @@ void testing_rotm(const Arguments& arg)
         device_vector<T>    dx(safe_size);
         device_vector<T>    dy(safe_size);
         device_vector<T>    dparam(5);
-        if(!dx || !dy || !dparam)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
+        CHECK_DEVICE_ALLOCATION(dx.memcheck());
+        CHECK_DEVICE_ALLOCATION(dy.memcheck());
+        CHECK_DEVICE_ALLOCATION(dparam.memcheck());
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         CHECK_ROCBLAS_ERROR(rocblas_rotm<T>(handle, N, dx, incx, dy, incy, dparam));
@@ -79,11 +75,9 @@ void testing_rotm(const Arguments& arg)
     device_vector<T> dx(size_x);
     device_vector<T> dy(size_y);
     device_vector<T> dparam(5);
-    if(!dx || !dy || !dparam)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
+    CHECK_DEVICE_ALLOCATION(dparam.memcheck());
 
     // Initial Data on CPU
     host_vector<T> hx(size_x);
@@ -122,8 +116,8 @@ void testing_rotm(const Arguments& arg)
                 CHECK_HIP_ERROR(hipMemcpy(ry, dy, sizeof(T) * size_y, hipMemcpyDeviceToHost));
                 if(arg.unit_check)
                 {
-                    near_check_general<T, T>(1, N, incx, cx, rx, rel_error);
-                    near_check_general<T, T>(1, N, incy, cy, ry, rel_error);
+                    near_check_general<T>(1, N, incx, cx, rx, rel_error);
+                    near_check_general<T>(1, N, incy, cy, ry, rel_error);
                 }
                 if(arg.norm_check)
                 {
@@ -145,8 +139,8 @@ void testing_rotm(const Arguments& arg)
                 CHECK_HIP_ERROR(hipMemcpy(ry, dy, sizeof(T) * size_y, hipMemcpyDeviceToHost));
                 if(arg.unit_check)
                 {
-                    near_check_general<T, T>(1, N, incx, cx, rx, rel_error);
-                    near_check_general<T, T>(1, N, incy, cy, ry, rel_error);
+                    near_check_general<T>(1, N, incx, cx, rx, rel_error);
+                    near_check_general<T>(1, N, incy, cy, ry, rel_error);
                 }
                 if(arg.norm_check)
                 {

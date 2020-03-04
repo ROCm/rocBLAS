@@ -25,12 +25,11 @@ void testing_rotmg_strided_batched_bad_arg(const Arguments& arg)
     device_vector<T>     x1(safe_size);
     device_vector<T>     y1(safe_size);
     device_vector<T>     param(safe_size);
-
-    if(!d1 || !d2 || !x1 || !y1 || !param)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(d1.memcheck());
+    CHECK_DEVICE_ALLOCATION(d2.memcheck());
+    CHECK_DEVICE_ALLOCATION(x1.memcheck());
+    CHECK_DEVICE_ALLOCATION(y1.memcheck());
+    CHECK_DEVICE_ALLOCATION(param.memcheck());
 
     EXPECT_ROCBLAS_STATUS((rocblas_rotmg_strided_batched<T>(
                               nullptr, d1, 0, d2, 0, x1, 0, y1, 0, param, 0, batch_count)),
@@ -77,12 +76,11 @@ void testing_rotmg_strided_batched(const Arguments& arg)
         device_vector<T> x1(safe_size);
         device_vector<T> y1(safe_size);
         device_vector<T> params(safe_size);
-
-        if(!d1 || !d2 || !x1 || !y1 || !params)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
+        CHECK_DEVICE_ALLOCATION(d1.memcheck());
+        CHECK_DEVICE_ALLOCATION(d2.memcheck());
+        CHECK_DEVICE_ALLOCATION(x1.memcheck());
+        CHECK_DEVICE_ALLOCATION(y1.memcheck());
+        CHECK_DEVICE_ALLOCATION(params.memcheck());
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         EXPECT_ROCBLAS_STATUS((rocblas_rotmg_strided_batched<T>(handle,
@@ -166,11 +164,11 @@ void testing_rotmg_strided_batched(const Arguments& arg)
 
             if(arg.unit_check)
             {
-                near_check_general<T, T>(1, 1, batch_count, 1, stride_d1, rd1, cd1, rel_error);
-                near_check_general<T, T>(1, 1, batch_count, 1, stride_d2, rd2, cd2, rel_error);
-                near_check_general<T, T>(1, 1, batch_count, 1, stride_x1, rx1, cx1, rel_error);
-                near_check_general<T, T>(1, 1, batch_count, 1, stride_y1, ry1, cy1, rel_error);
-                near_check_general<T, T>(
+                near_check_general<T>(1, 1, batch_count, 1, stride_d1, rd1, cd1, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, stride_d2, rd2, cd2, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, stride_x1, rx1, cx1, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, stride_y1, ry1, cy1, rel_error);
+                near_check_general<T>(
                     1, 5, batch_count, 1, stride_param, rparams, cparams, rel_error);
             }
 
@@ -196,6 +194,11 @@ void testing_rotmg_strided_batched(const Arguments& arg)
             device_vector<T> dx1(size_x1);
             device_vector<T> dy1(size_y1);
             device_vector<T> dparams(size_param);
+            CHECK_DEVICE_ALLOCATION(dd1.memcheck());
+            CHECK_DEVICE_ALLOCATION(dd2.memcheck());
+            CHECK_DEVICE_ALLOCATION(dx1.memcheck());
+            CHECK_DEVICE_ALLOCATION(dy1.memcheck());
+            CHECK_DEVICE_ALLOCATION(dparams.memcheck());
 
             CHECK_HIP_ERROR(hipMemcpy(dd1, hd1, sizeof(T) * size_d1, hipMemcpyHostToDevice));
             CHECK_HIP_ERROR(hipMemcpy(dd2, hd2, sizeof(T) * size_d2, hipMemcpyHostToDevice));
@@ -233,11 +236,11 @@ void testing_rotmg_strided_batched(const Arguments& arg)
 
             if(arg.unit_check)
             {
-                near_check_general<T, T>(1, 1, batch_count, 1, stride_d1, rd1, cd1, rel_error);
-                near_check_general<T, T>(1, 1, batch_count, 1, stride_d2, rd2, cd2, rel_error);
-                near_check_general<T, T>(1, 1, batch_count, 1, stride_x1, rx1, cx1, rel_error);
-                near_check_general<T, T>(1, 1, batch_count, 1, stride_y1, ry1, cy1, rel_error);
-                near_check_general<T, T>(
+                near_check_general<T>(1, 1, batch_count, 1, stride_d1, rd1, cd1, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, stride_d2, rd2, cd2, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, stride_x1, rx1, cx1, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, stride_y1, ry1, cy1, rel_error);
+                near_check_general<T>(
                     1, 5, batch_count, 1, stride_param, rparams, cparams, rel_error);
             }
 
@@ -260,7 +263,7 @@ void testing_rotmg_strided_batched(const Arguments& arg)
     if(arg.timing)
     {
         int number_cold_calls = 2;
-        int number_hot_calls  = 100;
+        int number_hot_calls  = arg.iters;
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
@@ -269,6 +272,11 @@ void testing_rotmg_strided_batched(const Arguments& arg)
         device_vector<T> dx1(size_x1);
         device_vector<T> dy1(size_y1);
         device_vector<T> dparams(size_param);
+        CHECK_DEVICE_ALLOCATION(dd1.memcheck());
+        CHECK_DEVICE_ALLOCATION(dd2.memcheck());
+        CHECK_DEVICE_ALLOCATION(dx1.memcheck());
+        CHECK_DEVICE_ALLOCATION(dy1.memcheck());
+        CHECK_DEVICE_ALLOCATION(dparams.memcheck());
 
         CHECK_HIP_ERROR(hipMemcpy(dd1, hd1, sizeof(T) * size_d1, hipMemcpyHostToDevice));
         CHECK_HIP_ERROR(hipMemcpy(dd2, hd2, sizeof(T) * size_d2, hipMemcpyHostToDevice));

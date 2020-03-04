@@ -28,11 +28,10 @@ void testing_rotg_strided_batched_bad_arg(const Arguments& arg)
     device_vector<T>     db(batch_count * stride_b);
     device_vector<U>     dc(batch_count * stride_c);
     device_vector<T>     ds(batch_count * stride_s);
-    if(!da || !db || !dc || !ds)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(da.memcheck());
+    CHECK_DEVICE_ALLOCATION(db.memcheck());
+    CHECK_DEVICE_ALLOCATION(dc.memcheck());
+    CHECK_DEVICE_ALLOCATION(ds.memcheck());
 
     EXPECT_ROCBLAS_STATUS(
         (rocblas_rotg_strided_batched<T, U>(
@@ -79,11 +78,10 @@ void testing_rotg_strided_batched(const Arguments& arg)
         device_vector<T>    db(safe_size);
         device_vector<U>    dc(safe_size);
         device_vector<T>    ds(safe_size);
-        if(!da || !db || !dc || !ds)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
+        CHECK_DEVICE_ALLOCATION(da.memcheck());
+        CHECK_DEVICE_ALLOCATION(db.memcheck());
+        CHECK_DEVICE_ALLOCATION(dc.memcheck());
+        CHECK_DEVICE_ALLOCATION(ds.memcheck());
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         EXPECT_ROCBLAS_STATUS(
@@ -137,10 +135,10 @@ void testing_rotg_strided_batched(const Arguments& arg)
 
             if(arg.unit_check)
             {
-                near_check_general<T, T>(1, 1, batch_count, 1, stride_a, ca, ra, rel_error);
-                near_check_general<T, T>(1, 1, batch_count, 1, stride_b, cb, rb, rel_error);
-                near_check_general<U, U>(1, 1, batch_count, 1, stride_c, cc, rc, rel_error);
-                near_check_general<T, T>(1, 1, batch_count, 1, stride_s, cs, rs, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, stride_a, ca, ra, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, stride_b, cb, rb, rel_error);
+                near_check_general<U>(1, 1, batch_count, 1, stride_c, cc, rc, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, stride_s, cs, rs, rel_error);
             }
 
             if(arg.norm_check)
@@ -162,6 +160,10 @@ void testing_rotg_strided_batched(const Arguments& arg)
             device_vector<T> db(size_b);
             device_vector<U> dc(size_c);
             device_vector<T> ds(size_s);
+            CHECK_DEVICE_ALLOCATION(da.memcheck());
+            CHECK_DEVICE_ALLOCATION(db.memcheck());
+            CHECK_DEVICE_ALLOCATION(dc.memcheck());
+            CHECK_DEVICE_ALLOCATION(ds.memcheck());
             CHECK_HIP_ERROR(hipMemcpy(da, ha, sizeof(T) * size_a, hipMemcpyHostToDevice));
             CHECK_HIP_ERROR(hipMemcpy(db, hb, sizeof(T) * size_b, hipMemcpyHostToDevice));
             CHECK_HIP_ERROR(hipMemcpy(dc, hc, sizeof(U) * size_c, hipMemcpyHostToDevice));
@@ -180,10 +182,10 @@ void testing_rotg_strided_batched(const Arguments& arg)
 
             if(arg.unit_check)
             {
-                near_check_general<T, T>(1, 1, batch_count, 1, stride_a, ca, ra, rel_error);
-                near_check_general<T, T>(1, 1, batch_count, 1, stride_b, cb, rb, rel_error);
-                near_check_general<U, U>(1, 1, batch_count, 1, stride_c, cc, rc, rel_error);
-                near_check_general<T, T>(1, 1, batch_count, 1, stride_s, cs, rs, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, stride_a, ca, ra, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, stride_b, cb, rb, rel_error);
+                near_check_general<U>(1, 1, batch_count, 1, stride_c, cc, rc, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, stride_s, cs, rs, rel_error);
             }
 
             if(arg.norm_check)
@@ -203,7 +205,7 @@ void testing_rotg_strided_batched(const Arguments& arg)
     if(arg.timing)
     {
         int number_cold_calls = 2;
-        int number_hot_calls  = 100;
+        int number_hot_calls  = arg.iters;
         // Device mode will be quicker
         // (TODO: or is there another reason we are typically using host_mode for timing?)
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
@@ -212,6 +214,10 @@ void testing_rotg_strided_batched(const Arguments& arg)
         device_vector<T> db(size_b);
         device_vector<U> dc(size_c);
         device_vector<T> ds(size_s);
+        CHECK_DEVICE_ALLOCATION(da.memcheck());
+        CHECK_DEVICE_ALLOCATION(db.memcheck());
+        CHECK_DEVICE_ALLOCATION(dc.memcheck());
+        CHECK_DEVICE_ALLOCATION(ds.memcheck());
         CHECK_HIP_ERROR(hipMemcpy(da, ha, sizeof(T) * size_a, hipMemcpyHostToDevice));
         CHECK_HIP_ERROR(hipMemcpy(db, hb, sizeof(T) * size_b, hipMemcpyHostToDevice));
         CHECK_HIP_ERROR(hipMemcpy(dc, hc, sizeof(U) * size_c, hipMemcpyHostToDevice));

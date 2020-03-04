@@ -52,11 +52,9 @@ void testing_gemm_strided_batched(const Arguments& arg)
         device_vector<T>    dA(safe_size);
         device_vector<T>    dB(safe_size);
         device_vector<T>    dC(safe_size);
-        if(!dA || !dB || !dC)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
+        CHECK_DEVICE_ALLOCATION(dA.memcheck());
+        CHECK_DEVICE_ALLOCATION(dB.memcheck());
+        CHECK_DEVICE_ALLOCATION(dC.memcheck());
 
         EXPECT_ROCBLAS_STATUS(rocblas_gemm_strided_batched<T>(handle,
                                                               transA,
@@ -102,11 +100,11 @@ void testing_gemm_strided_batched(const Arguments& arg)
     device_vector<T> dC(size_c);
     device_vector<T> d_alpha(1);
     device_vector<T> d_beta(1);
-    if((!dA && size_a) || (!dB && size_b) || (!dC && size_c) || !d_alpha || !d_beta)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dB.memcheck());
+    CHECK_DEVICE_ALLOCATION(dC.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
 
     // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
     host_vector<T> hA(size_a);
@@ -192,19 +190,19 @@ void testing_gemm_strided_batched(const Arguments& arg)
         cpu_time_used = get_time_us();
         for(rocblas_int i = 0; i < batch_count; i++)
         {
-            cblas_gemm<T, T>(transA,
-                             transB,
-                             M,
-                             N,
-                             K,
-                             h_alpha,
-                             hA + stride_a * i,
-                             lda,
-                             hB + stride_b * i,
-                             ldb,
-                             h_beta,
-                             hC_gold + stride_c * i,
-                             ldc);
+            cblas_gemm<T>(transA,
+                          transB,
+                          M,
+                          N,
+                          K,
+                          h_alpha,
+                          hA + stride_a * i,
+                          lda,
+                          hB + stride_b * i,
+                          ldb,
+                          h_beta,
+                          hC_gold + stride_c * i,
+                          ldc);
         }
         cpu_time_used = get_time_us() - cpu_time_used;
         cblas_gflops  = gemm_gflop_count<T>(M, N, K) * batch_count / cpu_time_used * 1e6;
@@ -216,13 +214,13 @@ void testing_gemm_strided_batched(const Arguments& arg)
                 // For large K, rocblas_half tends to diverge proportional to K
                 // Tolerance is slightly greater than 1 / 1024.0
                 const double tol = K * sum_error_tolerance<T>;
-                near_check_general<T, T>(M, N, batch_count, ldc, stride_c, hC_gold, hC_1, tol);
-                near_check_general<T, T>(M, N, batch_count, ldc, stride_c, hC_gold, hC_2, tol);
+                near_check_general<T>(M, N, batch_count, ldc, stride_c, hC_gold, hC_1, tol);
+                near_check_general<T>(M, N, batch_count, ldc, stride_c, hC_gold, hC_2, tol);
             }
             else
             {
-                unit_check_general<T, T>(M, N, batch_count, ldc, stride_c, hC_gold, hC_1);
-                unit_check_general<T, T>(M, N, batch_count, ldc, stride_c, hC_gold, hC_2);
+                unit_check_general<T>(M, N, batch_count, ldc, stride_c, hC_gold, hC_1);
+                unit_check_general<T>(M, N, batch_count, ldc, stride_c, hC_gold, hC_2);
             }
         }
 
@@ -238,7 +236,7 @@ void testing_gemm_strided_batched(const Arguments& arg)
 
     if(arg.timing)
     {
-        int number_cold_calls = 2;
+        int number_cold_calls = arg.cold_iters;
         int number_hot_calls  = arg.iters;
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));

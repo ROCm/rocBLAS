@@ -23,11 +23,10 @@ void testing_rotg_bad_arg(const Arguments& arg)
     device_vector<T>     b(safe_size);
     device_vector<U>     c(safe_size);
     device_vector<T>     s(safe_size);
-    if(!a || !b || !c || !s)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(a.memcheck());
+    CHECK_DEVICE_ALLOCATION(b.memcheck());
+    CHECK_DEVICE_ALLOCATION(c.memcheck());
+    CHECK_DEVICE_ALLOCATION(s.memcheck());
 
     EXPECT_ROCBLAS_STATUS((rocblas_rotg<T, U>(nullptr, a, b, c, s)), rocblas_status_invalid_handle);
     EXPECT_ROCBLAS_STATUS((rocblas_rotg<T, U>(handle, nullptr, b, c, s)),
@@ -83,10 +82,10 @@ void testing_rotg(const Arguments& arg)
 
             if(arg.unit_check)
             {
-                near_check_general<T, T>(1, 1, 1, ca, ha, rel_error);
-                near_check_general<T, T>(1, 1, 1, cb, hb, rel_error);
-                near_check_general<U, U>(1, 1, 1, cc, hc, rel_error);
-                near_check_general<T, T>(1, 1, 1, cs, hs, rel_error);
+                near_check_general<T>(1, 1, 1, ca, ha, rel_error);
+                near_check_general<T>(1, 1, 1, cb, hb, rel_error);
+                near_check_general<U>(1, 1, 1, cc, hc, rel_error);
+                near_check_general<T>(1, 1, 1, cs, hs, rel_error);
             }
 
             if(arg.norm_check)
@@ -104,6 +103,10 @@ void testing_rotg(const Arguments& arg)
             device_vector<T> db(1);
             device_vector<U> dc(1);
             device_vector<T> ds(1);
+            CHECK_DEVICE_ALLOCATION(da.memcheck());
+            CHECK_DEVICE_ALLOCATION(db.memcheck());
+            CHECK_DEVICE_ALLOCATION(dc.memcheck());
+            CHECK_DEVICE_ALLOCATION(ds.memcheck());
             CHECK_HIP_ERROR(hipMemcpy(da, a, sizeof(T), hipMemcpyHostToDevice));
             CHECK_HIP_ERROR(hipMemcpy(db, b, sizeof(T), hipMemcpyHostToDevice));
             CHECK_HIP_ERROR(hipMemcpy(dc, c, sizeof(U), hipMemcpyHostToDevice));
@@ -121,10 +124,10 @@ void testing_rotg(const Arguments& arg)
 
             if(arg.unit_check)
             {
-                near_check_general<T, T>(1, 1, 1, ca, ha, rel_error);
-                near_check_general<T, T>(1, 1, 1, cb, hb, rel_error);
-                near_check_general<U, U>(1, 1, 1, cc, hc, rel_error);
-                near_check_general<T, T>(1, 1, 1, cs, hs, rel_error);
+                near_check_general<T>(1, 1, 1, ca, ha, rel_error);
+                near_check_general<T>(1, 1, 1, cb, hb, rel_error);
+                near_check_general<U>(1, 1, 1, cc, hc, rel_error);
+                near_check_general<T>(1, 1, 1, cs, hs, rel_error);
             }
 
             if(arg.norm_check)
@@ -140,7 +143,7 @@ void testing_rotg(const Arguments& arg)
     if(arg.timing)
     {
         int number_cold_calls = 2;
-        int number_hot_calls  = 100;
+        int number_hot_calls  = arg.iters;
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
         host_vector<T> ha = a;

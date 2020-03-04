@@ -36,7 +36,7 @@ void template_testing_reduction_strided_batched_bad_arg(
     // allocate memory on device
     //
     device_vector<T> dx(batch_count);
-    CHECK_HIP_ERROR(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
     R h_rocblas_result;
 
@@ -67,9 +67,9 @@ void template_testing_reduction_strided_batched(
     if(N <= 0 || incx <= 0 || batch_count <= 0)
     {
         device_strided_batch_vector<T> dx(3, 1, 3, 3);
-        CHECK_HIP_ERROR(dx.memcheck());
+        CHECK_DEVICE_ALLOCATION(dx.memcheck());
         device_vector<R> dr(std::max(3, std::abs(batch_count)));
-        CHECK_HIP_ERROR(dr.memcheck());
+        CHECK_DEVICE_ALLOCATION(dr.memcheck());
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         EXPECT_ROCBLAS_STATUS(func(handle, N, dx, incx, stridex, batch_count, dr),
                               (N > 0 && incx > 0 && batch_count < 0) ? rocblas_status_invalid_size
@@ -85,11 +85,11 @@ void template_testing_reduction_strided_batched(
     host_vector<R> cpu_result(batch_count);
     CHECK_HIP_ERROR(cpu_result.memcheck());
     device_strided_batch_vector<T> dx(N, incx, stridex, batch_count);
-    CHECK_HIP_ERROR(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
     host_strided_batch_vector<T> hx(N, incx, stridex, batch_count);
     CHECK_HIP_ERROR(hx.memcheck());
     device_vector<R> dr(batch_count);
-    CHECK_HIP_ERROR(dr.memcheck());
+    CHECK_DEVICE_ALLOCATION(dr.memcheck());
     double gpu_time_used, cpu_time_used;
 
     //
@@ -144,8 +144,8 @@ void template_testing_reduction_strided_batched(
         //
         if(arg.unit_check)
         {
-            unit_check_general<R, R>(batch_count, 1, 1, cpu_result, hr1);
-            unit_check_general<R, R>(batch_count, 1, 1, cpu_result, hr2);
+            unit_check_general<R>(batch_count, 1, 1, cpu_result, hr1);
+            unit_check_general<R>(batch_count, 1, 1, cpu_result, hr2);
         }
 
         //

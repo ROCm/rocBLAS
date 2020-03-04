@@ -30,11 +30,8 @@ void testing_swap_strided_batched_bad_arg(const Arguments& arg)
     // allocate memory on device
     device_vector<T> dx(safe_size);
     device_vector<T> dy(safe_size);
-    if(!dx || !dy)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     EXPECT_ROCBLAS_STATUS(rocblas_swap_strided_batched<T>(
                               handle, N, nullptr, incx, stridex, dy, incy, stridey, batch_count),
@@ -65,11 +62,8 @@ void testing_swap_strided_batched(const Arguments& arg)
         static const size_t safe_size = 100; //  arbitrarily set to 100
         device_vector<T>    dx(safe_size);
         device_vector<T>    dy(safe_size);
-        if(!dx || !dy)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
+        CHECK_DEVICE_ALLOCATION(dx.memcheck());
+        CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
         EXPECT_ROCBLAS_STATUS(rocblas_swap_strided_batched<T>(
                                   handle, N, dx, incx, stridex, dy, incy, stridey, batch_count),
@@ -105,11 +99,8 @@ void testing_swap_strided_batched(const Arguments& arg)
     // allocate memory on device
     device_vector<T> dx(size_x * batch_count);
     device_vector<T> dy(size_y * batch_count);
-    if(!dx || !dy)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     size_t dataSizeX = sizeof(T) * size_x * batch_count;
     size_t dataSizeY = sizeof(T) * size_y * batch_count;
@@ -141,8 +132,8 @@ void testing_swap_strided_batched(const Arguments& arg)
         {
             for(int i = 0; i < batch_count; i++)
             {
-                unit_check_general<T, T>(1, N, abs_incx, hx_gold + i * stridex, hx + i * stridex);
-                unit_check_general<T, T>(1, N, abs_incy, hy_gold + i * stridey, hy + i * stridey);
+                unit_check_general<T>(1, N, abs_incx, hx_gold + i * stridex, hx + i * stridex);
+                unit_check_general<T>(1, N, abs_incy, hy_gold + i * stridey, hy + i * stridey);
             }
         }
 
@@ -161,7 +152,7 @@ void testing_swap_strided_batched(const Arguments& arg)
     if(arg.timing)
     {
         int number_cold_calls = 2;
-        int number_hot_calls  = 100;
+        int number_hot_calls  = arg.iters;
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
         for(int iter = 0; iter < number_cold_calls; iter++)

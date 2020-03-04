@@ -30,6 +30,9 @@ typedef struct _rocblas_handle* rocblas_handle;
 // Forward declaration of hipStream_t
 typedef struct ihipStream_t* hipStream_t;
 
+// Forward declaration of hipEvent_t
+typedef struct ihipEvent_t* hipEvent_t;
+
 // integer types
 // /*! \brief To specify whether int32 or int64 is used
 //  */

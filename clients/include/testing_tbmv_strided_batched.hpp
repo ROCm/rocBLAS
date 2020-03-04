@@ -40,11 +40,8 @@ void testing_tbmv_strided_batched_bad_arg(const Arguments& arg)
     // allocate memory on device
     device_vector<T> dA(size_A);
     device_vector<T> dx(size_x);
-    if(!dA || !dx)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
     EXPECT_ROCBLAS_STATUS(rocblas_tbmv_strided_batched<T>(handle,
                                                           uplo,
@@ -108,15 +105,6 @@ void testing_tbmv_strided_batched(const Arguments& arg)
     // argument sanity check before allocating invalid memory
     if(M < 0 || K < 0 || lda < M || lda < 1 || !incx || K >= lda || batch_count <= 0)
     {
-        static const size_t safe_size = 100; // arbitrarily set to 100
-        device_vector<T>    dA1(safe_size);
-        device_vector<T>    dx1(safe_size);
-        if(!dA1 || !dx1)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
-
         EXPECT_ROCBLAS_STATUS(
             rocblas_tbmv_strided_batched<T>(handle,
                                             uplo,
@@ -124,10 +112,10 @@ void testing_tbmv_strided_batched(const Arguments& arg)
                                             diag,
                                             M,
                                             K,
-                                            dA1,
+                                            nullptr,
                                             lda,
                                             stride_A,
-                                            dx1,
+                                            nullptr,
                                             incx,
                                             stride_x,
                                             batch_count),
@@ -150,11 +138,8 @@ void testing_tbmv_strided_batched(const Arguments& arg)
 
     device_vector<T> dA(size_A);
     device_vector<T> dx(size_x);
-    if((!dA && size_A) || (!dx && size_x))
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
     // Initial Data on CPU
     rocblas_seedrand();
@@ -196,7 +181,7 @@ void testing_tbmv_strided_batched(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T, T>(1, M, batch_count, abs_incx, stride_x, hx_gold, hx_1);
+            unit_check_general<T>(1, M, batch_count, abs_incx, stride_x, hx_gold, hx_1);
         }
 
         if(arg.norm_check)

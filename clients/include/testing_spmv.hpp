@@ -36,11 +36,9 @@ void testing_spmv_bad_arg()
     device_vector<T> dA(size_A);
     device_vector<T> dx(size_x);
     device_vector<T> dy(size_y);
-    if(!dA || !dx || !dy)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     EXPECT_ROCBLAS_STATUS(rocblas_spmv<T>(nullptr, uplo, N, &alpha, dA, dx, incx, &beta, dy, incy),
                           rocblas_status_invalid_handle);
@@ -98,11 +96,9 @@ void testing_spmv(const Arguments& arg)
         device_vector<T>    dA(safe_size);
         device_vector<T>    dx(safe_size);
         device_vector<T>    dy(safe_size);
-        if(!dA || !dx || !dy)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
+        CHECK_DEVICE_ALLOCATION(dA.memcheck());
+        CHECK_DEVICE_ALLOCATION(dx.memcheck());
+        CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
         EXPECT_ROCBLAS_STATUS(rocblas_spmv<T>(handle, uplo, N, alpha, dA, dx, incx, beta, dy, incy),
                               N < 0 || !incx || !incy ? rocblas_status_invalid_size
@@ -127,11 +123,9 @@ void testing_spmv(const Arguments& arg)
     device_vector<T> dA(size_A);
     device_vector<T> dx(size_X);
     device_vector<T> dy(size_Y);
-    if(!dA || !dx || !dy)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     // Initial Data on CPU
     rocblas_seedrand();
@@ -189,8 +183,8 @@ void testing_spmv(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T, T>(1, N, abs_incy, hg, hy);
-            unit_check_general<T, T>(1, N, abs_incy, hg, hy2);
+            unit_check_general<T>(1, N, abs_incy, hg, hy);
+            unit_check_general<T>(1, N, abs_incy, hg, hy2);
         }
 
         if(arg.norm_check)

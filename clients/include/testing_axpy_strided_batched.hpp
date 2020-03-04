@@ -27,8 +27,8 @@ void testing_axpy_strided_batched_bad_arg(const Arguments& arg)
 
     device_strided_batch_vector<T> dx(10, 1, 10, 2), dy(10, 1, 10, 2);
 
-    CHECK_HIP_ERROR(dx.memcheck());
-    CHECK_HIP_ERROR(dy.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     EXPECT_ROCBLAS_STATUS(
         rocblas_axpy_strided_batched<T>(
@@ -64,8 +64,8 @@ void testing_axpy_strided_batched(const Arguments& arg)
     {
         device_strided_batch_vector<T> dx(10, 1, 10, 2), dy(10, 1, 10, 2);
 
-        CHECK_HIP_ERROR(dx.memcheck());
-        CHECK_HIP_ERROR(dy.memcheck());
+        CHECK_DEVICE_ALLOCATION(dx.memcheck());
+        CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         EXPECT_ROCBLAS_STATUS(
@@ -94,9 +94,9 @@ void testing_axpy_strided_batched(const Arguments& arg)
     device_strided_batch_vector<T> dx(N, incx, stridex, batch_count),
         dy(N, incy, stridey, batch_count);
     device_vector<T> dalpha(1);
-    CHECK_HIP_ERROR(dx.memcheck());
-    CHECK_HIP_ERROR(dy.memcheck());
-    CHECK_HIP_ERROR(dalpha.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
+    CHECK_DEVICE_ALLOCATION(dalpha.memcheck());
 
     halpha[0] = h_alpha;
 
@@ -190,9 +190,9 @@ void testing_axpy_strided_batched(const Arguments& arg)
             if(arg.unit_check)
             {
 
-                unit_check_general<T, T>(1, N, batch_count, abs_incy, stridey, hy, hy1);
+                unit_check_general<T>(1, N, batch_count, abs_incy, stridey, hy, hy1);
 
-                unit_check_general<T, T>(1, N, batch_count, abs_incy, stridey, hy, hy2);
+                unit_check_general<T>(1, N, batch_count, abs_incy, stridey, hy, hy2);
             }
 
             if(arg.norm_check)

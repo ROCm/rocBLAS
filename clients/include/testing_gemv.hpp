@@ -52,11 +52,9 @@ void testing_gemv_bad_arg(const Arguments& arg)
     device_vector<T> dA(size_A);
     device_vector<T> dx(size_x);
     device_vector<T> dy(size_y);
-    if(!dA || !dx || !dy)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     // copy data from CPU to device
     CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(T) * size_A, hipMemcpyHostToDevice));
@@ -105,20 +103,19 @@ void testing_gemv(const Arguments& arg)
     // argument sanity check before allocating invalid memory
     if(M < 0 || N < 0 || lda < M || lda < 1 || !incx || !incy)
     {
-        static const size_t safe_size = 100; // arbitrarily set to 100
-        device_vector<T>    dA1(safe_size);
-        device_vector<T>    dx1(safe_size);
-        device_vector<T>    dy1(safe_size);
-        if(!dA1 || !dx1 || !dy1)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
-
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_gemv<T>(
-                handle, transA, M, N, &h_alpha, dA1, lda, dx1, incx, &h_beta, dy1, incy),
-            rocblas_status_invalid_size);
+        EXPECT_ROCBLAS_STATUS(rocblas_gemv<T>(handle,
+                                              transA,
+                                              M,
+                                              N,
+                                              &h_alpha,
+                                              nullptr,
+                                              lda,
+                                              nullptr,
+                                              incx,
+                                              &h_beta,
+                                              nullptr,
+                                              incy),
+                              rocblas_status_invalid_size);
 
         return;
     }
@@ -157,11 +154,12 @@ void testing_gemv(const Arguments& arg)
     device_vector<T> dy_2(size_y);
     device_vector<T> d_alpha(1);
     device_vector<T> d_beta(1);
-    if((!dA && size_A) || (!dx && size_x) || ((!dy_1 || !dy_2) && size_y) || !d_alpha || !d_beta)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy_1.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy_2.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
 
     // Initial Data on CPU
     rocblas_seedrand();
@@ -220,8 +218,8 @@ void testing_gemv(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T, T>(1, dim_y, abs_incy, hy_gold, hy_1);
-            unit_check_general<T, T>(1, dim_y, abs_incy, hy_gold, hy_2);
+            unit_check_general<T>(1, dim_y, abs_incy, hy_gold, hy_1);
+            unit_check_general<T>(1, dim_y, abs_incy, hy_gold, hy_2);
         }
 
         if(arg.norm_check)

@@ -440,9 +440,20 @@ rocblas_status
         }
         else
         {
-            auto inputs = GetTensileInputs(problem);
-            auto result = solution->solve(tensile_problem, inputs, *host->hardware);
-            host->adapter.launchKernels(result);
+            auto           inputs = GetTensileInputs(problem);
+            auto           result = solution->solve(tensile_problem, inputs, *host->hardware);
+            rocblas_handle handle = problem.handle;
+            if(handle->startEvent && handle->stopEvent)
+            {
+                hipStream_t stream;
+                rocblas_get_stream(handle, &stream);
+                host->adapter.launchKernels(result, stream, handle->startEvent, handle->stopEvent);
+            }
+            else
+            {
+                host->adapter.launchKernels(result);
+            }
+
             status = rocblas_status_success;
         }
     }

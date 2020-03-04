@@ -14,7 +14,7 @@
 function( target_compile_features target_name )
   # With Cmake v3.5, hipcc (with nvcc backend) does not work with target_compile_features
   # Turn on -std=c++14 manually
-  if( CMAKE_CXX_COMPILER MATCHES ".*/hipcc$" )
+  if( CMAKE_CXX_COMPILER MATCHES ".*/hipcc$|.*/nvcc$" )
     set_target_properties( ${target_name} PROPERTIES CXX_STANDARD 14 CXX_STANDARD_REQUIRED ON )
   else( )
     _target_compile_features( ${target_name} ${ARGN} )
@@ -96,7 +96,6 @@ configure_file( "${CMAKE_CURRENT_SOURCE_DIR}/include/rocblas-version.h.in" "${PR
 
 set( rocblas_headers_public
   include/rocblas.h
-  #  include/rocblas.hpp
   include/rocblas-types.h
   include/rocblas_bfloat16.h
   include/rocblas-auxiliary.h

@@ -13,6 +13,16 @@
 /* ============================================================================================ */
 
 /*******************************************************************************
+ * ! \brief  Initialize rocBLAS, to avoid costly startup time at the first call.
+ ******************************************************************************/
+
+extern "C" void rocblas_init()
+{
+    static rocblas_handle handle;
+    static int            dummy = (rocblas_create_handle(&handle), 0);
+}
+
+/*******************************************************************************
  * ! \brief  indicates whether the pointer is on the host or device.
  * currently HIP API can only recoginize the input ptr on deive or not
  *  can not recoginize it is on host or not
@@ -981,4 +991,18 @@ extern "C" const char* rocblas_status_to_string(rocblas_status status)
     // We don't use default: so that the compiler warns us if any valid enums are missing
     // from our switch. If the value is not a valid rocblas_status, we return this string.
     return "<undefined rocblas_status value>";
+}
+
+/*******************************************************************************
+ * Function to set start/stop event handlers (for internal use only)
+ ******************************************************************************/
+extern "C" rocblas_status rocblas_set_start_stop_events(rocblas_handle handle,
+                                                        hipEvent_t     startEvent,
+                                                        hipEvent_t     stopEvent)
+{
+    if(!handle)
+        return rocblas_status_invalid_handle;
+    handle->startEvent = startEvent;
+    handle->stopEvent  = stopEvent;
+    return rocblas_status_success;
 }

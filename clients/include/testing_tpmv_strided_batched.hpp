@@ -33,16 +33,16 @@ void testing_tpmv_strided_batched_bad_arg(const Arguments& arg)
     size_t size_A = (M * (M + 1)) / 2;
 
     host_strided_batch_vector<T> hA(size_A, 1, stride_a, batch_count);
-    CHECK_HIP_ERROR(hA.memcheck());
+    CHECK_DEVICE_ALLOCATION(hA.memcheck());
 
     host_strided_batch_vector<T> hx(M, incx, stride_x, batch_count);
-    CHECK_HIP_ERROR(hx.memcheck());
+    CHECK_DEVICE_ALLOCATION(hx.memcheck());
 
     device_strided_batch_vector<T> dA(size_A, 1, stride_a, batch_count);
-    CHECK_HIP_ERROR(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
 
     device_strided_batch_vector<T> dx(M, incx, stride_x, batch_count);
-    CHECK_HIP_ERROR(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
     //
     // Checks.
@@ -80,15 +80,18 @@ void testing_tpmv_strided_batched(const Arguments& arg)
     // argument sanity check before allocating invalid memory
     if(M < 0 || !incx || batch_count < 0)
     {
-        device_strided_batch_vector<T> dA1(10, 1, 10, 2);
-        CHECK_HIP_ERROR(dA1.memcheck());
-        device_strided_batch_vector<T> dx1(10, 1, 10, 2);
-        CHECK_HIP_ERROR(dx1.memcheck());
-
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_tpmv_strided_batched<T>(
-                handle, uplo, transA, diag, M, dA1, stride_a, dx1, incx, stride_x, batch_count),
-            rocblas_status_invalid_size);
+        EXPECT_ROCBLAS_STATUS(rocblas_tpmv_strided_batched<T>(handle,
+                                                              uplo,
+                                                              transA,
+                                                              diag,
+                                                              M,
+                                                              nullptr,
+                                                              stride_a,
+                                                              nullptr,
+                                                              incx,
+                                                              stride_x,
+                                                              batch_count),
+                              rocblas_status_invalid_size);
 
         return;
     }
@@ -123,10 +126,10 @@ void testing_tpmv_strided_batched(const Arguments& arg)
     CHECK_HIP_ERROR(hres.memcheck());
 
     device_strided_batch_vector<T> dA(size_A, 1, stride_a, batch_count);
-    CHECK_HIP_ERROR(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
 
     device_strided_batch_vector<T> dx(M, incx, stride_x, batch_count);
-    CHECK_HIP_ERROR(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
     //
     // Initialize.
@@ -174,7 +177,7 @@ void testing_tpmv_strided_batched(const Arguments& arg)
         //
         if(arg.unit_check)
         {
-            unit_check_general<T, T>(1, M, batch_count, abs_incx, stride_x, hx, hres);
+            unit_check_general<T>(1, M, batch_count, abs_incx, stride_x, hx, hres);
         }
 
         //

@@ -44,12 +44,8 @@ void testing_trsv_strided_batched(const Arguments& arg)
         static const size_t safe_size = 100; // arbitrarily set to 100
         device_vector<T>    dx_or_b(safe_size);
         device_vector<T>    dA(safe_size);
-
-        if(!dA || !dx_or_b)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
+        CHECK_DEVICE_ALLOCATION(dx_or_b.memcheck());
+        CHECK_DEVICE_ALLOCATION(dA.memcheck());
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         if(batch_count == 0)
@@ -100,30 +96,32 @@ void testing_trsv_strided_batched(const Arguments& arg)
     double rocblas_error;
     double error_eps_multiplier    = ERROR_EPS_MULTIPLIER;
     double residual_eps_multiplier = RESIDUAL_EPS_MULTIPLIER;
-    double eps                     = std::numeric_limits<rocblas_real_t<T>>::epsilon();
+    double eps                     = std::numeric_limits<real_t<T>>::epsilon();
 
     // allocate memory on device
     device_vector<T> dA(size_A);
     device_vector<T> dx_or_b(size_x);
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx_or_b.memcheck());
 
     rocblas_init<T>(hA, M, M, lda, stride_a, batch_count);
 
     //  calculate AAT = hA * hA ^ T or AAT = hA * hA ^ H if complex
     for(int b = 0; b < batch_count; b++)
     {
-        cblas_gemm<T, T>(rocblas_operation_none,
-                         rocblas_operation_conjugate_transpose,
-                         M,
-                         M,
-                         M,
-                         T(1.0),
-                         hA + stride_a * b,
-                         lda,
-                         hA + stride_a * b,
-                         lda,
-                         T(0.0),
-                         AAT + stride_a * b,
-                         lda);
+        cblas_gemm<T>(rocblas_operation_none,
+                      rocblas_operation_conjugate_transpose,
+                      M,
+                      M,
+                      M,
+                      T(1.0),
+                      hA + stride_a * b,
+                      lda,
+                      hA + stride_a * b,
+                      lda,
+                      T(0.0),
+                      AAT + stride_a * b,
+                      lda);
 
         //  copy AAT into hA, make hA strictly diagonal dominant, and therefore SPD
         for(int i = 0; i < M; i++)

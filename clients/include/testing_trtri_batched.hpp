@@ -37,90 +37,74 @@ void testing_trtri_batched(const Arguments& arg)
     if(N < 0 || lda < 0 || lda < N || batch_count <= 0)
     {
         static constexpr size_t safe_size = 100;
-        device_vector<T*, 0, T> dA(1);
-        device_vector<T*, 0, T> dInv(1);
+        device_batch_vector<T>  dA(safe_size, 1, 1);
+        device_batch_vector<T>  dInv(safe_size, 1, 1);
+        CHECK_DEVICE_ALLOCATION(dA.memcheck());
+        CHECK_DEVICE_ALLOCATION(dInv.memcheck());
 
-        if(!dA || !dInv)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
-
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_trtri_batched<T>(handle, uplo, diag, N, dA, lda, dInv, lda, batch_count),
-            N < 0 || lda < 0 || lda < N || batch_count < 0 ? rocblas_status_invalid_size
-                                                           : rocblas_status_success);
+        EXPECT_ROCBLAS_STATUS(rocblas_trtri_batched<T>(handle,
+                                                       uplo,
+                                                       diag,
+                                                       N,
+                                                       dA.ptr_on_device(),
+                                                       lda,
+                                                       dInv.ptr_on_device(),
+                                                       lda,
+                                                       batch_count),
+                              N < 0 || lda < 0 || lda < N || batch_count < 0
+                                  ? rocblas_status_invalid_size
+                                  : rocblas_status_success);
         return;
     }
 
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
-    host_vector<T> hB[batch_count];
-    host_vector<T> hA[batch_count];
-    host_vector<T> hA_2[batch_count];
-    for(int b = 0; b < batch_count; b++)
-    {
-        hB[b]   = host_vector<T>(size_A);
-        hA[b]   = host_vector<T>(size_A);
-        hA_2[b] = host_vector<T>(size_A);
-    }
+    host_batch_vector<T> hA(size_A, 1, batch_count);
+    host_batch_vector<T> hB(size_A, 1, batch_count);
+    host_batch_vector<T> hA_2(size_A, 1, batch_count);
 
     // Initial Data on CPU
     rocblas_seedrand();
-    host_vector<T> hA_sub(size_A);
-
     for(size_t b = 0; b < batch_count; b++)
     {
-        rocblas_init_symmetric<T>(hA_sub, N, lda);
+        rocblas_init_symmetric<T>(hA[b], N, lda);
         for(size_t i = 0; i < N; i++)
         {
             for(size_t j = 0; j < N; j++)
             {
-                hA_sub[i + j * lda] *= 0.01;
+                hA[b][i + j * lda] *= 0.01;
 
                 if(j % 2)
-                    hA_sub[i + j * lda] *= -1;
+                    hA[b][i + j * lda] *= -1;
                 if(uplo == rocblas_fill_lower
                    && j > i) // need to explicitly set unsused side to 0 if using it for temp storage
-                    hA_sub[i + j * lda] = 0.0f;
+                    hA[b][i + j * lda] = 0.0f;
                 else if(uplo == rocblas_fill_upper && j < i)
-                    hA_sub[i + j * lda] = 0.0f;
+                    hA[b][i + j * lda] = 0.0f;
                 if(i == j)
                 {
                     if(diag == rocblas_diagonal_unit)
-                        hA_sub[i + j * lda] = 1.0; // need to preprocess matrix for clbas_trtri
+                        hA[b][i + j * lda] = 1.0; // need to preprocess matrix for clbas_trtri
                     else
-                        hA_sub[i + j * lda] *= 100.0;
+                        hA[b][i + j * lda] *= 100.0;
                 }
             }
         }
-        // hA[b].insert(std::end(hA[b]), std::begin(hA_sub), std::end(hA_sub));
-        hA[b] = hA_sub;
-        hB[b] = hA[b];
     }
+
+    hB.copy_from(hA);
 
     double gpu_time_used, cpu_time_used;
     double rocblas_gflops, cblas_gflops;
     double rocblas_error = 0.0;
 
-    device_batch_vector<T>  Av(batch_count, size_A);
-    device_batch_vector<T>  invAv(batch_count, size_A);
-    device_vector<T*, 0, T> dA(batch_count);
-    device_vector<T*, 0, T> dinvA(batch_count);
-    int                     last = batch_count - 1;
-    if((!Av[last] && size_A) || (!invAv[last] && size_A) || !dA || !dinvA)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    device_batch_vector<T> dA(size_A, 1, batch_count);
+    device_batch_vector<T> dinvA(size_A, 1, batch_count);
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dinvA.memcheck());
 
     // copy data from CPU to device
-    for(int b = 0; b < batch_count; b++)
-    {
-        CHECK_HIP_ERROR(hipMemcpy(Av[b], hA[b], sizeof(T) * size_A, hipMemcpyHostToDevice));
-        CHECK_HIP_ERROR(hipMemcpy(invAv[b], hA[b], sizeof(T) * size_A, hipMemcpyHostToDevice));
-    }
-    CHECK_HIP_ERROR(hipMemcpy(dA, Av, sizeof(T*) * batch_count, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dinvA, invAv, sizeof(T*) * batch_count, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(dA.transfer_from(hA));
+    CHECK_HIP_ERROR(dinvA.transfer_from(hA));
 
     /* =====================================================================
            ROCBLAS
@@ -130,12 +114,12 @@ void testing_trtri_batched(const Arguments& arg)
         gpu_time_used = get_time_us(); // in microseconds
     }
 
-    CHECK_ROCBLAS_ERROR(
-        rocblas_trtri_batched<T>(handle, uplo, diag, N, dA, lda, dinvA, lda, batch_count));
+    CHECK_ROCBLAS_ERROR(rocblas_trtri_batched<T>(
+        handle, uplo, diag, N, dA.ptr_on_device(), lda, dinvA.ptr_on_device(), lda, batch_count));
 
     // Test in place
-    CHECK_ROCBLAS_ERROR(
-        rocblas_trtri_batched<T>(handle, uplo, diag, N, dA, lda, dA, lda, batch_count));
+    CHECK_ROCBLAS_ERROR(rocblas_trtri_batched<T>(
+        handle, uplo, diag, N, dA.ptr_on_device(), lda, dA.ptr_on_device(), lda, batch_count));
 
     if(arg.timing)
     {
@@ -144,11 +128,8 @@ void testing_trtri_batched(const Arguments& arg)
     }
 
     // copy output from device to CPU
-    for(int b = 0; b < batch_count; b++)
-    {
-        CHECK_HIP_ERROR(hipMemcpy(hA[b], invAv[b], sizeof(T) * size_A, hipMemcpyDeviceToHost));
-        CHECK_HIP_ERROR(hipMemcpy(hA_2[b], Av[b], sizeof(T) * size_A, hipMemcpyDeviceToHost));
-    }
+    CHECK_HIP_ERROR(hA.transfer_from(dinvA));
+    CHECK_HIP_ERROR(hA_2.transfer_from(dA));
 
     if(arg.unit_check || arg.norm_check)
     {
@@ -179,8 +160,8 @@ void testing_trtri_batched(const Arguments& arg)
         if(arg.unit_check)
         {
             const double rel_error = get_epsilon<T>() * 1000;
-            near_check_general<T, T>(N, N, batch_count, lda, hB, hA, rel_error);
-            near_check_general<T, T>(N, N, batch_count, lda, hB, hA_2, rel_error);
+            near_check_general<T>(N, N, batch_count, lda, hB, hA, rel_error);
+            near_check_general<T>(N, N, batch_count, lda, hB, hA_2, rel_error);
         }
 
         if(arg.norm_check)

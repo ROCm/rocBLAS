@@ -36,9 +36,9 @@ void testing_hpr2_bad_arg()
     device_vector<T> dA_1(size_A);
     device_vector<T> dx(size_x);
     device_vector<T> dy(size_y);
-    CHECK_HIP_ERROR(dA_1.memcheck());
-    CHECK_HIP_ERROR(dx.memcheck());
-    CHECK_HIP_ERROR(dy.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA_1.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     EXPECT_ROCBLAS_STATUS(
         (rocblas_hpr2<T>)(handle, rocblas_fill_full, N, &alpha, dx, incx, dy, incy, dA_1),
@@ -105,11 +105,11 @@ void testing_hpr2(const Arguments& arg)
     device_vector<T> dx(size_x);
     device_vector<T> dy(size_y);
     device_vector<T> d_alpha(1);
-    CHECK_HIP_ERROR(dA_1.memcheck());
-    CHECK_HIP_ERROR(dA_2.memcheck());
-    CHECK_HIP_ERROR(dx.memcheck());
-    CHECK_HIP_ERROR(dy.memcheck());
-    CHECK_HIP_ERROR(d_alpha.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA_1.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA_2.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
 
     double gpu_time_used, cpu_time_used;
     double rocblas_gflops, cblas_gflops, rocblas_bandwidth;
@@ -154,8 +154,8 @@ void testing_hpr2(const Arguments& arg)
         if(arg.unit_check)
         {
             const double tol = N * sum_error_tolerance<T>;
-            near_check_general<T, T>(1, size_A, 1, hA_gold, hA_1, tol);
-            near_check_general<T, T>(1, size_A, 1, hA_gold, hA_2, tol);
+            near_check_general<T>(1, size_A, 1, hA_gold, hA_1, tol);
+            near_check_general<T>(1, size_A, 1, hA_gold, hA_2, tol);
         }
 
         if(arg.norm_check)

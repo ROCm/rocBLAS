@@ -27,11 +27,9 @@ void testing_dot_bad_arg(const Arguments& arg)
     device_vector<T>     dx(safe_size);
     device_vector<T>     dy(safe_size);
     device_vector<T>     d_rocblas_result(1);
-    if(!dx || !dy || !d_rocblas_result)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_rocblas_result.memcheck());
 
     CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
@@ -79,11 +77,9 @@ void testing_dot(const Arguments& arg)
         device_vector<T>    dx(safe_size);
         device_vector<T>    dy(safe_size);
         device_vector<T>    d_rocblas_result(1);
-        if(!dx || !dy || !d_rocblas_result)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
+        CHECK_DEVICE_ALLOCATION(dx.memcheck());
+        CHECK_DEVICE_ALLOCATION(dy.memcheck());
+        CHECK_DEVICE_ALLOCATION(d_rocblas_result.memcheck());
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         CHECK_ROCBLAS_ERROR(
@@ -101,11 +97,9 @@ void testing_dot(const Arguments& arg)
     device_vector<T> dx(size_x);
     device_vector<T> dy(size_y);
     device_vector<T> d_rocblas_result_2(1);
-    if(!dx || !dy || !d_rocblas_result_2)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_rocblas_result_2.memcheck());
 
     // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
     host_vector<T> hx(size_x);
@@ -147,8 +141,8 @@ void testing_dot(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T, T>(1, 1, 1, &cpu_result, &rocblas_result_1);
-            unit_check_general<T, T>(1, 1, 1, &cpu_result, &rocblas_result_2);
+            unit_check_general<T>(1, 1, 1, &cpu_result, &rocblas_result_1);
+            unit_check_general<T>(1, 1, 1, &cpu_result, &rocblas_result_2);
         }
 
         if(arg.norm_check)
@@ -164,7 +158,7 @@ void testing_dot(const Arguments& arg)
     if(arg.timing)
     {
         int number_cold_calls = 2;
-        int number_hot_calls  = 100;
+        int number_hot_calls  = arg.iters;
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
         for(int iter = 0; iter < number_cold_calls; iter++)
