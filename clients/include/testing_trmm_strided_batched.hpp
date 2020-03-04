@@ -43,8 +43,8 @@ void testing_trmm_strided_batched_bad_arg(const Arguments& arg)
     // allocate memory on device
     device_vector<T> dA(size_A);
     device_vector<T> dB(size_B);
-    CHECK_HIP_ERROR(dA.memcheck());
-    CHECK_HIP_ERROR(dB.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dB.memcheck());
 
     EXPECT_ROCBLAS_STATUS(rocblas_trmm_strided_batched<T>(handle,
                                                           side,
@@ -200,9 +200,9 @@ void testing_trmm_strided_batched(const Arguments& arg)
     device_vector<T> dB(size_B);
     device_vector<T> d_alpha(1);
 
-    CHECK_HIP_ERROR(dA.memcheck());
-    CHECK_HIP_ERROR(dB.memcheck());
-    CHECK_HIP_ERROR(d_alpha.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dB.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
 
     //  initialize full random matrix hA and hB
     h_alpha[0] = alpha;

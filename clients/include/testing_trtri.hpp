@@ -38,11 +38,8 @@ void testing_trtri(const Arguments& arg)
         static const size_t safe_size = 100;
         device_vector<T>    dA(safe_size);
         device_vector<T>    dinvA(safe_size);
-        if(!dA || !dinvA)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
+        CHECK_DEVICE_ALLOCATION(dA.memcheck());
+        CHECK_DEVICE_ALLOCATION(dinvA.memcheck());
 
         EXPECT_ROCBLAS_STATUS(rocblas_trtri<T>(handle, uplo, diag, N, dA, lda, dinvA, ldinvA),
                               rocblas_status_invalid_size);
@@ -59,11 +56,8 @@ void testing_trtri(const Arguments& arg)
 
     device_vector<T> dA(size_A);
     device_vector<T> dinvA(size_A);
-    if(!dA || !dinvA)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dinvA.memcheck());
 
     // Initial Data on CPU
     rocblas_seedrand();

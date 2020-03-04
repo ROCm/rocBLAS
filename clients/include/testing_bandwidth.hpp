@@ -35,11 +35,9 @@ void testing_bandwidth(const Arguments& arg)
     device_vector<T> dx(size_X);
     device_vector<T> dy(size_X);
     device_vector<T> d_rocblas_result(1);
-    if(!dx || !dy || !d_rocblas_result)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_rocblas_result.memcheck());
 
     // Initial Data on CPU
     rocblas_seedrand();
