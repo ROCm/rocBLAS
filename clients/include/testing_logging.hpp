@@ -125,11 +125,12 @@ void testing_logging()
     device_vector<T> db(size_b);
     device_vector<T> dc(size_c);
     device_vector<T> dd(size_d);
-    if(!dx || !dy || !da || !db || !dc || !dd)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
+    CHECK_DEVICE_ALLOCATION(da.memcheck());
+    CHECK_DEVICE_ALLOCATION(db.memcheck());
+    CHECK_DEVICE_ALLOCATION(dc.memcheck());
+    CHECK_DEVICE_ALLOCATION(dd.memcheck());
 
     // enclose in {} so rocblas_local_handle destructor called as it goes out of scope
     {
@@ -148,7 +149,7 @@ void testing_logging()
 
         rocblas_iamin<T>(handle, n, dx, incx, &i_result);
 
-        rocblas_asum<T, T>(handle, n, dx, incx, &result);
+        rocblas_asum<T>(handle, n, dx, incx, &result);
 
         rocblas_axpy<T>(handle, n, &alpha, dx, incx, dy, incy);
 
@@ -156,7 +157,7 @@ void testing_logging()
 
         rocblas_dot<T>(handle, n, dx, incx, dy, incy, &result);
 
-        rocblas_nrm2<T, T>(handle, n, dx, incx, &result);
+        rocblas_nrm2<T>(handle, n, dx, incx, &result);
 
         rocblas_scal<T>(handle, n, &alpha, dx, incx);
 

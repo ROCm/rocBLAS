@@ -19,27 +19,50 @@ void testing_rotg_batched_bad_arg(const Arguments& arg)
     rocblas_int         batch_count = 5;
     static const size_t safe_size   = 1;
 
-    rocblas_local_handle    handle;
-    device_vector<T*, 0, T> da(batch_count);
-    device_vector<T*, 0, T> db(batch_count);
-    device_vector<U*, 0, U> dc(batch_count);
-    device_vector<T*, 0, T> ds(batch_count);
+    rocblas_local_handle   handle;
+    device_batch_vector<T> da(1, 1, batch_count);
+    device_batch_vector<T> db(1, 1, batch_count);
+    device_batch_vector<U> dc(1, 1, batch_count);
+    device_batch_vector<T> ds(1, 1, batch_count);
+    CHECK_DEVICE_ALLOCATION(da.memcheck());
+    CHECK_DEVICE_ALLOCATION(db.memcheck());
+    CHECK_DEVICE_ALLOCATION(dc.memcheck());
+    CHECK_DEVICE_ALLOCATION(ds.memcheck());
 
-    if(!da || !db || !dc || !ds)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
-
-    EXPECT_ROCBLAS_STATUS((rocblas_rotg_batched<T, U>(nullptr, da, db, dc, ds, batch_count)),
+    EXPECT_ROCBLAS_STATUS((rocblas_rotg_batched<T, U>(nullptr,
+                                                      da.ptr_on_device(),
+                                                      db.ptr_on_device(),
+                                                      dc.ptr_on_device(),
+                                                      ds.ptr_on_device(),
+                                                      batch_count)),
                           rocblas_status_invalid_handle);
-    EXPECT_ROCBLAS_STATUS((rocblas_rotg_batched<T, U>(handle, nullptr, db, dc, ds, batch_count)),
+    EXPECT_ROCBLAS_STATUS((rocblas_rotg_batched<T, U>(handle,
+                                                      nullptr,
+                                                      db.ptr_on_device(),
+                                                      dc.ptr_on_device(),
+                                                      ds.ptr_on_device(),
+                                                      batch_count)),
                           rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS((rocblas_rotg_batched<T, U>(handle, da, nullptr, dc, ds, batch_count)),
+    EXPECT_ROCBLAS_STATUS((rocblas_rotg_batched<T, U>(handle,
+                                                      da.ptr_on_device(),
+                                                      nullptr,
+                                                      dc.ptr_on_device(),
+                                                      ds.ptr_on_device(),
+                                                      batch_count)),
                           rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS((rocblas_rotg_batched<T, U>(handle, da, db, nullptr, ds, batch_count)),
+    EXPECT_ROCBLAS_STATUS((rocblas_rotg_batched<T, U>(handle,
+                                                      da.ptr_on_device(),
+                                                      db.ptr_on_device(),
+                                                      nullptr,
+                                                      ds.ptr_on_device(),
+                                                      batch_count)),
                           rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS((rocblas_rotg_batched<T, U>(handle, da, db, dc, nullptr, batch_count)),
+    EXPECT_ROCBLAS_STATUS((rocblas_rotg_batched<T, U>(handle,
+                                                      da.ptr_on_device(),
+                                                      db.ptr_on_device(),
+                                                      dc.ptr_on_device(),
+                                                      nullptr,
+                                                      batch_count)),
                           rocblas_status_invalid_pointer);
 }
 
@@ -57,61 +80,48 @@ void testing_rotg_batched(const Arguments& arg)
     // check to prevent undefined memory allocation error
     if(batch_count <= 0)
     {
-        size_t                  safe_size = 1;
-        device_vector<T*, 0, T> da(safe_size);
-        device_vector<T*, 0, T> db(safe_size);
-        device_vector<U*, 0, U> dc(safe_size);
-        device_vector<T*, 0, T> ds(safe_size);
-
-        if(!da || !db || !dc || !ds)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
+        device_batch_vector<T> da(1, 1, 1);
+        device_batch_vector<T> db(1, 1, 1);
+        device_batch_vector<U> dc(1, 1, 1);
+        device_batch_vector<T> ds(1, 1, 1);
+        CHECK_DEVICE_ALLOCATION(da.memcheck());
+        CHECK_DEVICE_ALLOCATION(db.memcheck());
+        CHECK_DEVICE_ALLOCATION(dc.memcheck());
+        CHECK_DEVICE_ALLOCATION(ds.memcheck());
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        EXPECT_ROCBLAS_STATUS((rocblas_rotg_batched<T, U>)(handle, da, db, dc, ds, batch_count),
+        EXPECT_ROCBLAS_STATUS((rocblas_rotg_batched<T, U>)(handle,
+                                                           da.ptr_on_device(),
+                                                           db.ptr_on_device(),
+                                                           dc.ptr_on_device(),
+                                                           ds.ptr_on_device(),
+                                                           batch_count),
                               batch_count < 0 ? rocblas_status_invalid_size
                                               : rocblas_status_success);
         return;
     }
 
     // Initial Data on CPU
-    host_vector<T> ha[batch_count];
-    host_vector<T> hb[batch_count];
-    host_vector<U> hc[batch_count];
-    host_vector<T> hs[batch_count];
-
-    device_batch_vector<T> ba(batch_count, 1);
-    device_batch_vector<T> bb(batch_count, 1);
-
-    for(int b = 0; b < batch_count; b++)
-    {
-        ha[b] = host_vector<T>(1);
-        hb[b] = host_vector<T>(1);
-        hc[b] = host_vector<U>(1);
-        hs[b] = host_vector<T>(1);
-    }
+    host_batch_vector<T> ha(1, 1, batch_count);
+    host_batch_vector<T> hb(1, 1, batch_count);
+    host_batch_vector<U> hc(1, 1, batch_count);
+    host_batch_vector<T> hs(1, 1, batch_count);
 
     for(int i = 0; i < TEST_COUNT; i++)
     {
-        host_vector<T> ca[batch_count];
-        host_vector<T> cb[batch_count];
-        host_vector<U> cc[batch_count];
-        host_vector<T> cs[batch_count];
+        host_batch_vector<T> ca(1, 1, batch_count);
+        host_batch_vector<T> cb(1, 1, batch_count);
+        host_batch_vector<U> cc(1, 1, batch_count);
+        host_batch_vector<T> cs(1, 1, batch_count);
 
-        rocblas_seedrand();
-        for(int b = 0; b < batch_count; b++)
-        {
-            rocblas_init<T>(ha[b], 1, 1, 1);
-            rocblas_init<T>(hb[b], 1, 1, 1);
-            rocblas_init<U>(hc[b], 1, 1, 1);
-            rocblas_init<T>(hs[b], 1, 1, 1);
-            ca[b] = ha[b];
-            cb[b] = hb[b];
-            cc[b] = hc[b];
-            cs[b] = hs[b];
-        }
+        rocblas_init(ha, true);
+        rocblas_init(hb, false);
+        rocblas_init(hc, false);
+        rocblas_init(hs, false);
+        ca.copy_from(ha);
+        cb.copy_from(hb);
+        cc.copy_from(hc);
+        cs.copy_from(hs);
 
         cpu_time_used = get_time_us();
         for(int b = 0; b < batch_count; b++)
@@ -122,33 +132,25 @@ void testing_rotg_batched(const Arguments& arg)
 
         // Test rocblas_pointer_mode_host
         {
-            host_vector<T> ra[batch_count];
-            host_vector<T> rb[batch_count];
-            host_vector<U> rc[batch_count];
-            host_vector<T> rs[batch_count];
-            T*             ra_in[batch_count];
-            T*             rb_in[batch_count];
-            U*             rc_in[batch_count];
-            T*             rs_in[batch_count];
-            for(int b = 0; b < batch_count; b++)
-            {
-                ra_in[b] = ra[b] = ha[b];
-                rb_in[b] = rb[b] = hb[b];
-                rc_in[b] = rc[b] = hc[b];
-                rs_in[b] = rs[b] = hs[b];
-            }
+            host_batch_vector<T> ra(1, 1, batch_count);
+            host_batch_vector<T> rb(1, 1, batch_count);
+            host_batch_vector<U> rc(1, 1, batch_count);
+            host_batch_vector<T> rs(1, 1, batch_count);
+            ra.copy_from(ha);
+            rb.copy_from(hb);
+            rc.copy_from(hc);
+            rs.copy_from(hs);
 
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
-            CHECK_ROCBLAS_ERROR(
-                (rocblas_rotg_batched<T, U>(handle, ra_in, rb_in, rc_in, rs_in, batch_count)));
+            CHECK_ROCBLAS_ERROR((rocblas_rotg_batched<T, U>(handle, ra, rb, rc, rs, batch_count)));
 
             if(arg.unit_check)
             {
-                near_check_general<T, T>(1, 1, batch_count, 1, ra, ca, rel_error);
-                near_check_general<T, T>(1, 1, batch_count, 1, rb, cb, rel_error);
-                near_check_general<U, U>(1, 1, batch_count, 1, rc, cc, rel_error);
-                near_check_general<T, T>(1, 1, batch_count, 1, rs, cs, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, ra, ca, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, rb, cb, rel_error);
+                near_check_general<U>(1, 1, batch_count, 1, rc, cc, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, rs, cs, rel_error);
             }
 
             if(arg.norm_check)
@@ -162,51 +164,39 @@ void testing_rotg_batched(const Arguments& arg)
 
         // Test rocblas_pointer_mode_device
         {
-            device_vector<T*, 0, T> da(batch_count);
-            device_vector<T*, 0, T> db(batch_count);
-            device_vector<U*, 0, U> dc(batch_count);
-            device_vector<T*, 0, T> ds(batch_count);
-            device_batch_vector<T>  ba(batch_count, 1);
-            device_batch_vector<T>  bb(batch_count, 1);
-            device_batch_vector<U>  bc(batch_count, 1);
-            device_batch_vector<T>  bs(batch_count, 1);
-            for(int b = 0; b < batch_count; b++)
-            {
-                CHECK_HIP_ERROR(hipMemcpy(ba[b], ha[b], sizeof(T), hipMemcpyHostToDevice));
-                CHECK_HIP_ERROR(hipMemcpy(bb[b], hb[b], sizeof(T), hipMemcpyHostToDevice));
-                CHECK_HIP_ERROR(hipMemcpy(bc[b], hc[b], sizeof(U), hipMemcpyHostToDevice));
-                CHECK_HIP_ERROR(hipMemcpy(bs[b], hs[b], sizeof(T), hipMemcpyHostToDevice));
-            }
-            CHECK_HIP_ERROR(hipMemcpy(da, ba, sizeof(T*) * batch_count, hipMemcpyHostToDevice));
-            CHECK_HIP_ERROR(hipMemcpy(db, bb, sizeof(T*) * batch_count, hipMemcpyHostToDevice));
-            CHECK_HIP_ERROR(hipMemcpy(dc, bc, sizeof(U*) * batch_count, hipMemcpyHostToDevice));
-            CHECK_HIP_ERROR(hipMemcpy(ds, bs, sizeof(T*) * batch_count, hipMemcpyHostToDevice));
+            device_batch_vector<T> da(1, 1, batch_count);
+            device_batch_vector<T> db(1, 1, batch_count);
+            device_batch_vector<U> dc(1, 1, batch_count);
+            device_batch_vector<T> ds(1, 1, batch_count);
+
+            CHECK_HIP_ERROR(da.transfer_from(ha));
+            CHECK_HIP_ERROR(db.transfer_from(hb));
+            CHECK_HIP_ERROR(dc.transfer_from(hc));
+            CHECK_HIP_ERROR(ds.transfer_from(hs));
 
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-            CHECK_ROCBLAS_ERROR((rocblas_rotg_batched<T, U>(handle, da, db, dc, ds, batch_count)));
+            CHECK_ROCBLAS_ERROR((rocblas_rotg_batched<T, U>(handle,
+                                                            da.ptr_on_device(),
+                                                            db.ptr_on_device(),
+                                                            dc.ptr_on_device(),
+                                                            ds.ptr_on_device(),
+                                                            batch_count)));
 
-            host_vector<T> ra[batch_count];
-            host_vector<T> rb[batch_count];
-            host_vector<U> rc[batch_count];
-            host_vector<T> rs[batch_count];
-            for(int b = 0; b < batch_count; b++)
-            {
-                ra[b] = host_vector<T>(1);
-                rb[b] = host_vector<T>(1);
-                rc[b] = host_vector<U>(1);
-                rs[b] = host_vector<T>(1);
-                CHECK_HIP_ERROR(hipMemcpy(ra[b], ba[b], sizeof(T), hipMemcpyDeviceToHost));
-                CHECK_HIP_ERROR(hipMemcpy(rb[b], bb[b], sizeof(T), hipMemcpyDeviceToHost));
-                CHECK_HIP_ERROR(hipMemcpy(rc[b], bc[b], sizeof(U), hipMemcpyDeviceToHost));
-                CHECK_HIP_ERROR(hipMemcpy(rs[b], bs[b], sizeof(T), hipMemcpyDeviceToHost));
-            }
+            host_batch_vector<T> ra(1, 1, batch_count);
+            host_batch_vector<T> rb(1, 1, batch_count);
+            host_batch_vector<U> rc(1, 1, batch_count);
+            host_batch_vector<T> rs(1, 1, batch_count);
+            CHECK_HIP_ERROR(ra.transfer_from(da));
+            CHECK_HIP_ERROR(rb.transfer_from(db));
+            CHECK_HIP_ERROR(rc.transfer_from(dc));
+            CHECK_HIP_ERROR(rs.transfer_from(ds));
 
             if(arg.unit_check)
             {
-                near_check_general<T, T>(1, 1, batch_count, 1, ra, ca, rel_error);
-                near_check_general<T, T>(1, 1, batch_count, 1, rb, cb, rel_error);
-                near_check_general<U, U>(1, 1, batch_count, 1, rc, cc, rel_error);
-                near_check_general<T, T>(1, 1, batch_count, 1, rs, cs, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, ra, ca, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, rb, cb, rel_error);
+                near_check_general<U>(1, 1, batch_count, 1, rc, cc, rel_error);
+                near_check_general<T>(1, 1, batch_count, 1, rs, cs, rel_error);
             }
 
             if(arg.norm_check)
@@ -222,39 +212,38 @@ void testing_rotg_batched(const Arguments& arg)
     if(arg.timing)
     {
         int number_cold_calls = 2;
-        int number_hot_calls  = 100;
+        int number_hot_calls  = arg.iters;
         // Device mode will be much quicker
         // (TODO: or is there another reason we are typically using host_mode for timing?)
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
-        device_vector<T*, 0, T> da(batch_count);
-        device_vector<T*, 0, T> db(batch_count);
-        device_vector<U*, 0, U> dc(batch_count);
-        device_vector<T*, 0, T> ds(batch_count);
-        device_batch_vector<T>  ba(batch_count, 1);
-        device_batch_vector<T>  bb(batch_count, 1);
-        device_batch_vector<U>  bc(batch_count, 1);
-        device_batch_vector<T>  bs(batch_count, 1);
-        for(int b = 0; b < batch_count; b++)
-        {
-            CHECK_HIP_ERROR(hipMemcpy(ba[b], ha[b], sizeof(T), hipMemcpyHostToDevice));
-            CHECK_HIP_ERROR(hipMemcpy(bb[b], hb[b], sizeof(T), hipMemcpyHostToDevice));
-            CHECK_HIP_ERROR(hipMemcpy(bc[b], hc[b], sizeof(U), hipMemcpyHostToDevice));
-            CHECK_HIP_ERROR(hipMemcpy(bs[b], hs[b], sizeof(T), hipMemcpyHostToDevice));
-        }
-        CHECK_HIP_ERROR(hipMemcpy(da, ba, sizeof(T*) * batch_count, hipMemcpyHostToDevice));
-        CHECK_HIP_ERROR(hipMemcpy(db, bb, sizeof(T*) * batch_count, hipMemcpyHostToDevice));
-        CHECK_HIP_ERROR(hipMemcpy(dc, bc, sizeof(U*) * batch_count, hipMemcpyHostToDevice));
-        CHECK_HIP_ERROR(hipMemcpy(ds, bs, sizeof(T*) * batch_count, hipMemcpyHostToDevice));
+        device_batch_vector<T> da(1, 1, batch_count);
+        device_batch_vector<T> db(1, 1, batch_count);
+        device_batch_vector<U> dc(1, 1, batch_count);
+        device_batch_vector<T> ds(1, 1, batch_count);
+        CHECK_HIP_ERROR(da.transfer_from(ha));
+        CHECK_HIP_ERROR(db.transfer_from(hb));
+        CHECK_HIP_ERROR(dc.transfer_from(hc));
+        CHECK_HIP_ERROR(ds.transfer_from(hs));
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            rocblas_rotg_batched<T, U>(handle, da, db, dc, ds, batch_count);
+            rocblas_rotg_batched<T, U>(handle,
+                                       da.ptr_on_device(),
+                                       db.ptr_on_device(),
+                                       dc.ptr_on_device(),
+                                       ds.ptr_on_device(),
+                                       batch_count);
         }
         gpu_time_used = get_time_us(); // in microseconds
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            rocblas_rotg_batched<T, U>(handle, da, db, dc, ds, batch_count);
+            rocblas_rotg_batched<T, U>(handle,
+                                       da.ptr_on_device(),
+                                       db.ptr_on_device(),
+                                       dc.ptr_on_device(),
+                                       ds.ptr_on_device(),
+                                       batch_count);
         }
         gpu_time_used = (get_time_us() - gpu_time_used) / number_hot_calls;
 

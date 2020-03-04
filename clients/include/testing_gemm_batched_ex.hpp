@@ -57,11 +57,10 @@ void testing_gemm_batched_ex_bad_arg(const Arguments& arg)
     device_vector<float> dB(safe_size);
     device_vector<float> dC(safe_size);
     device_vector<float> dD(safe_size);
-    if(!dA || !dB || !dC || !dD)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dB.memcheck());
+    CHECK_DEVICE_ALLOCATION(dC.memcheck());
+    CHECK_DEVICE_ALLOCATION(dD.memcheck());
 
     EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex(handle,
                                                   transA,
@@ -613,7 +612,7 @@ void testing_gemm_batched_ex(const Arguments& arg)
 
     if(arg.timing)
     {
-        int number_cold_calls = 2;
+        int number_cold_calls = arg.cold_iters;
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         for(int b = 0; b < batch_count; b++)

@@ -30,12 +30,8 @@ void testing_copy_strided_batched_bad_arg(const Arguments& arg)
 
     device_vector<T> dx(size_x);
     device_vector<T> dy(size_y);
-
-    if(!dx || !dy)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     EXPECT_ROCBLAS_STATUS(rocblas_copy_strided_batched<T>(
                               handle, N, nullptr, incx, stride_x, dy, incy, stride_y, batch_count),
@@ -69,11 +65,8 @@ void testing_copy_strided_batched(const Arguments& arg)
         static const size_t safe_size = 100; //  arbitrarily set to 100
         device_vector<T>    dx(safe_size);
         device_vector<T>    dy(safe_size);
-        if(!dx || !dy)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
+        CHECK_DEVICE_ALLOCATION(dx.memcheck());
+        CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
         EXPECT_ROCBLAS_STATUS(rocblas_copy_strided_batched<T>(
                                   handle, N, dx, incx, stride_x, dy, incy, stride_y, batch_count),
@@ -85,11 +78,8 @@ void testing_copy_strided_batched(const Arguments& arg)
     // allocate memory on device
     device_vector<T> dx(size_x);
     device_vector<T> dy(size_y);
-    if(!dx || !dy)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
     host_vector<T> hx(size_x);
@@ -129,7 +119,7 @@ void testing_copy_strided_batched(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T, T>(1, N, batch_count, abs_incy, stride_y, hy_gold, hy);
+            unit_check_general<T>(1, N, batch_count, abs_incy, stride_y, hy_gold, hy);
         }
 
         if(arg.norm_check)

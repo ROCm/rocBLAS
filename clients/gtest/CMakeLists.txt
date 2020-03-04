@@ -79,15 +79,24 @@ set(rocblas_no_tensile_test_source
     trmv_gtest.cpp
     tpmv_gtest.cpp
     tbmv_gtest.cpp
+    tpsv_gtest.cpp
     ger_gtest.cpp
     geru_gtest.cpp
     gerc_gtest.cpp
     spr_gtest.cpp
     spr2_gtest.cpp
     syr_gtest.cpp
+    syr2_gtest.cpp
     sbmv_gtest.cpp
     spmv_gtest.cpp
     symv_gtest.cpp
+    # blas3
+    herk_gtest.cpp
+    her2k_gtest.cpp
+    herkx_gtest.cpp
+    syrk_gtest.cpp
+    syr2k_gtest.cpp
+    syrkx_gtest.cpp
     )
 
 if(LINK_BLIS)
@@ -133,7 +142,7 @@ set( BLIS_LIBRARY ${CMAKE_SOURCE_DIR}/build/deps/blis/lib/libblis.so )
 if( OS_ID_rhel OR OS_ID_sles OR OS_ID_centos)
     if( OS_ID_rhel OR OS_ID_centos)
         if( CXX_VERSION_STRING MATCHES "clang")
-	    set( OPENMP_INCLUDE_DIR /opt/rh/devtoolset-7/root/usr/lib/gcc/x86_64-redhat-linux/7/include )
+           set( OPENMP_INCLUDE_DIR /opt/rh/devtoolset-7/root/usr/lib/gcc/x86_64-redhat-linux/7/include )
         endif()
         # defer OpenMP include as search order must come after clang
         set( XXX_OPENMP_INCLUDE_DIR /opt/rh/devtoolset-7/root/usr/lib/gcc/x86_64-redhat-linux/7/include )

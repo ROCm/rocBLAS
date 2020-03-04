@@ -26,11 +26,8 @@ void testing_swap_bad_arg(const Arguments& arg)
     // allocate memory on device
     device_vector<T> dx(safe_size);
     device_vector<T> dy(safe_size);
-    if(!dx || !dy)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     EXPECT_ROCBLAS_STATUS(rocblas_swap<T>(handle, N, nullptr, incx, dy, incy),
                           rocblas_status_invalid_pointer);
@@ -54,11 +51,8 @@ void testing_swap(const Arguments& arg)
         static const size_t safe_size = 100; //  arbitrarily set to 100
         device_vector<T>    dx(safe_size);
         device_vector<T>    dy(safe_size);
-        if(!dx || !dy)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
+        CHECK_DEVICE_ALLOCATION(dx.memcheck());
+        CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
         CHECK_ROCBLAS_ERROR(rocblas_swap<T>(handle, N, dx, incx, dy, incy));
         return;
@@ -92,11 +86,8 @@ void testing_swap(const Arguments& arg)
     // allocate memory on device
     device_vector<T> dx(size_x);
     device_vector<T> dy(size_y);
-    if(!dx || !dy)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     // copy data from CPU to device
     CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T) * size_x, hipMemcpyHostToDevice));
@@ -121,8 +112,8 @@ void testing_swap(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T, T>(1, N, abs_incx, hx_gold, hx);
-            unit_check_general<T, T>(1, N, abs_incy, hy_gold, hy);
+            unit_check_general<T>(1, N, abs_incx, hx_gold, hx);
+            unit_check_general<T>(1, N, abs_incy, hy_gold, hy);
         }
 
         if(arg.norm_check)

@@ -38,11 +38,9 @@ void testing_sbmv_bad_arg()
     device_vector<T> dA(size_A);
     device_vector<T> dx(size_x);
     device_vector<T> dy(size_y);
-    if(!dA || !dx || !dy)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     EXPECT_ROCBLAS_STATUS(
         rocblas_sbmv<T>(nullptr, uplo, N, K, &alpha, dA, lda, dx, incx, &beta, dy, incy),
@@ -102,18 +100,9 @@ void testing_sbmv(const Arguments& arg)
     // argument sanity check before allocating invalid memory
     if(N <= 0 || lda < 0 || K < 0 || !incx || !incy)
     {
-        static const size_t safe_size = 100;
-        device_vector<T>    dA(safe_size);
-        device_vector<T>    dx(safe_size);
-        device_vector<T>    dy(safe_size);
-        if(!dA || !dx || !dy)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
-
         EXPECT_ROCBLAS_STATUS(
-            rocblas_sbmv<T>(handle, uplo, N, K, alpha, dA, lda, dx, incx, beta, dy, incy),
+            rocblas_sbmv<T>(
+                handle, uplo, N, K, alpha, nullptr, lda, nullptr, incx, beta, nullptr, incy),
             N < 0 || K < 0 || lda < 0 || !incx || !incy ? rocblas_status_invalid_size
                                                         : rocblas_status_success);
         return;
@@ -136,11 +125,9 @@ void testing_sbmv(const Arguments& arg)
     device_vector<T> dA(size_A);
     device_vector<T> dx(size_X);
     device_vector<T> dy(size_Y);
-    if(!dA || !dx || !dy)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     // Initial Data on CPU
     rocblas_seedrand();
@@ -200,8 +187,8 @@ void testing_sbmv(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T, T>(1, N, abs_incy, hg, hy);
-            unit_check_general<T, T>(1, N, abs_incy, hg, hy2);
+            unit_check_general<T>(1, N, abs_incy, hg, hy);
+            unit_check_general<T>(1, N, abs_incy, hg, hy2);
         }
 
         if(arg.norm_check)

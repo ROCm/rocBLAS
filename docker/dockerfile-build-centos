@@ -2,7 +2,7 @@
 ARG base_image
 
 FROM ${base_image}
-LABEL maintainer="andrew.chapman@amd.com"
+LABEL maintainer="rocblas-maintainer@amd.com"
 
 ARG user_uid
 
@@ -42,7 +42,7 @@ RUN yum install -y --nogpgcheck\
 RUN echo '#!/bin/bash' | tee /etc/profile.d/devtoolset7.sh && echo \
     'source scl_source enable devtoolset-7' >>/etc/profile.d/devtoolset7.sh
 
-RUN pip3 install wheel && pip3 install tox pyyaml
+RUN pip3 install wheel && pip3 install pyyaml
 
 # Create a jenkins user with this specific uid so it can use sudo priviledges
 # Grant any member of sudo group password-less sudo privileges

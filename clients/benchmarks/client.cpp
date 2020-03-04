@@ -89,6 +89,9 @@
 #include "testing_symv_batched.hpp"
 #include "testing_symv_strided_batched.hpp"
 #include "testing_syr.hpp"
+#include "testing_syr2.hpp"
+#include "testing_syr2_batched.hpp"
+#include "testing_syr2_strided_batched.hpp"
 #include "testing_syr_batched.hpp"
 #include "testing_syr_strided_batched.hpp"
 #include "testing_tbmv.hpp"
@@ -97,9 +100,26 @@
 #include "testing_tpmv.hpp"
 #include "testing_tpmv_batched.hpp"
 #include "testing_tpmv_strided_batched.hpp"
+#include "testing_tpsv.hpp"
+#include "testing_tpsv_batched.hpp"
+#include "testing_tpsv_strided_batched.hpp"
 #include "testing_trmv.hpp"
 #include "testing_trmv_batched.hpp"
 #include "testing_trmv_strided_batched.hpp"
+// blas3 with no tensile
+#include "testing_her2k.hpp"
+#include "testing_her2k_batched.hpp"
+#include "testing_her2k_strided_batched.hpp"
+#include "testing_herk.hpp"
+#include "testing_herk_batched.hpp"
+#include "testing_herk_strided_batched.hpp"
+#include "testing_syr2k.hpp"
+#include "testing_syr2k_batched.hpp"
+#include "testing_syr2k_strided_batched.hpp"
+#include "testing_syrk.hpp"
+#include "testing_syrk_batched.hpp"
+#include "testing_syrk_strided_batched.hpp"
+//
 #include "type_dispatch.hpp"
 #include "utility.hpp"
 #include <algorithm>
@@ -147,6 +167,8 @@ void run_function(const func_map& map, const Arguments& arg, const std::string& 
 #include "testing_gemm_strided_batched.hpp"
 #include "testing_gemm_strided_batched_ex.hpp"
 #include "testing_trmm.hpp"
+#include "testing_trmm_batched.hpp"
+#include "testing_trmm_strided_batched.hpp"
 #include "testing_trsm.hpp"
 #include "testing_trsm_batched.hpp"
 #include "testing_trsm_batched_ex.hpp"
@@ -256,6 +278,9 @@ struct perf_blas<T, U, std::enable_if_t<std::is_same<T, float>{} || std::is_same
                 {"tpmv", testing_tpmv<T>},
                 {"tpmv_batched", testing_tpmv_batched<T>},
                 {"tpmv_strided_batched", testing_tpmv_strided_batched<T>},
+                {"tpsv", testing_tpsv<T>},
+                {"tpsv_batched", testing_tpsv_batched<T>},
+                {"tpsv_strided_batched", testing_tpsv_strided_batched<T>},
                 {"trmv", testing_trmv<T>},
                 {"trmv_batched", testing_trmv_batched<T>},
                 {"trmv_strided_batched", testing_trmv_strided_batched<T>},
@@ -271,6 +296,9 @@ struct perf_blas<T, U, std::enable_if_t<std::is_same<T, float>{} || std::is_same
                 {"syr", testing_syr<T>},
                 {"syr_batched", testing_syr_batched<T>},
                 {"syr_strided_batched", testing_syr_strided_batched<T>},
+                {"syr2", testing_syr2<T>},
+                {"syr2_batched", testing_syr2_batched<T>},
+                {"syr2_strided_batched", testing_syr2_strided_batched<T>},
                 {"tbmv", testing_tbmv<T>},
                 {"tbmv_batched", testing_tbmv_batched<T>},
                 {"tbmv_strided_batched", testing_tbmv_strided_batched<T>},
@@ -283,9 +311,21 @@ struct perf_blas<T, U, std::enable_if_t<std::is_same<T, float>{} || std::is_same
                 {"symv", testing_symv<T>},
                 {"symv_batched", testing_symv_batched<T>},
                 {"symv_strided_batched", testing_symv_strided_batched<T>},
+                // L3
+                {"syrk", testing_syrk<T>},
+                {"syrk_batched", testing_syrk_batched<T>},
+                {"syrk_strided_batched", testing_syrk_strided_batched<T>},
+                {"syr2k", testing_syr2k<T>},
+                {"syr2k_batched", testing_syr2k_batched<T>},
+                {"syr2k_strided_batched", testing_syr2k_strided_batched<T>},
+                {"syrkx", testing_syr2k<T, false>},
+                {"syrkx_batched", testing_syr2k_batched<T, false>},
+                {"syrkx_strided_batched", testing_syr2k_strided_batched<T, false>},
 #if BUILD_WITH_TENSILE
                 {"geam", testing_geam<T>},
                 {"trmm", testing_trmm<T>},
+                {"trmm_batched", testing_trmm_batched<T>},
+                {"trmm_strided_batched", testing_trmm_strided_batched<T>},
                 {"trtri", testing_trtri<T>},
                 {"trtri_batched", testing_trtri_batched<T>},
                 {"trtri_strided_batched", testing_trtri_strided_batched<T>},
@@ -402,9 +442,15 @@ struct perf_blas<T,
                 {"syr", testing_syr<T>},
                 {"syr_batched", testing_syr_batched<T>},
                 {"syr_strided_batched", testing_syr_strided_batched<T>},
+                {"syr2", testing_syr2<T>},
+                {"syr2_batched", testing_syr2_batched<T>},
+                {"syr2_strided_batched", testing_syr2_strided_batched<T>},
                 {"tpmv", testing_tpmv<T>},
                 {"tpmv_batched", testing_tpmv_batched<T>},
                 {"tpmv_strided_batched", testing_tpmv_strided_batched<T>},
+                {"tpsv", testing_tpsv<T>},
+                {"tpsv_batched", testing_tpsv_batched<T>},
+                {"tpsv_strided_batched", testing_tpsv_strided_batched<T>},
                 {"symv", testing_symv<T>},
                 {"symv_batched", testing_symv_batched<T>},
                 {"symv_strided_batched", testing_symv_strided_batched<T>},
@@ -414,6 +460,25 @@ struct perf_blas<T,
                 {"tbmv", testing_tbmv<T>},
                 {"tbmv_batched", testing_tbmv_batched<T>},
                 {"tbmv_strided_batched", testing_tbmv_strided_batched<T>},
+                // L3
+                {"syrk", testing_syrk<T>},
+                {"syrk_batched", testing_syrk_batched<T>},
+                {"syrk_strided_batched", testing_syrk_strided_batched<T>},
+                {"syr2k", testing_syr2k<T>},
+                {"syr2k_batched", testing_syr2k_batched<T>},
+                {"syr2k_strided_batched", testing_syr2k_strided_batched<T>},
+                {"syrkx", testing_syr2k<T, false>},
+                {"syrkx_batched", testing_syr2k_batched<T, false>},
+                {"syrkx_strided_batched", testing_syr2k_strided_batched<T, false>},
+                {"herk", testing_herk<T>},
+                {"herk_batched", testing_herk_batched<T>},
+                {"herk_strided_batched", testing_herk_strided_batched<T>},
+                {"her2k", testing_her2k<T>},
+                {"her2k_batched", testing_her2k_batched<T>},
+                {"her2k_strided_batched", testing_her2k_strided_batched<T>},
+                {"herkx", testing_her2k<T, false>},
+                {"herkx_batched", testing_her2k_batched<T, false>},
+                {"herkx_strided_batched", testing_her2k_strided_batched<T, false>},
 #if BUILD_WITH_TENSILE
                 {"trtri", testing_trtri<T>},
                 {"trtri_batched", testing_trtri_batched<T>},
@@ -431,6 +496,8 @@ struct perf_blas<T,
                 {"trsv_batched", testing_trsv_batched<T>},
                 {"trsv_strided_batched", testing_trsv_strided_batched<T>},
                 {"trmm", testing_trmm<T>},
+                {"trmm_batched", testing_trmm_batched<T>},
+                {"trmm_strided_batched", testing_trmm_strided_batched<T>},
 #endif
               };
         run_function(map, arg);
@@ -885,11 +952,11 @@ try
                                                                      // xtrmm xtrsv
         ("diag",
          value<char>(&arg.diag)->default_value('N'),
-         "U = unit diagonal, N = non unit diagonal. Only applicable to certain routines") // xtrsm xtrsm_ex xtrsv
+         "U = unit diagonal, N = non unit diagonal. Only applicable to certain routines") // xtrsm xtrsm_ex xtrsv xtrmm
 
         ("batch_count",
          value<rocblas_int>(&arg.batch_count)->default_value(1),
-         "Number of matrices. Only applicable to batched routines")
+         "Number of matrices. Only applicable to batched and strided_batched routines")
 
         ("verify,v",
          value<rocblas_int>(&arg.norm_check)->default_value(0),
@@ -898,6 +965,10 @@ try
         ("iters,i",
          value<rocblas_int>(&arg.iters)->default_value(10),
          "Iterations to run inside timing loop")
+
+        ("cold_iters,j",
+         value<rocblas_int>(&arg.cold_iters)->default_value(2),
+         "Cold Iterations to run before entering the timing loop")
 
         ("algo",
          value<uint32_t>(&arg.algo)->default_value(0),

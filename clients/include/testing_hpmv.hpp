@@ -38,9 +38,9 @@ void testing_hpmv_bad_arg(const Arguments& arg)
     device_vector<T> dA(size_A);
     device_vector<T> dx(size_x);
     device_vector<T> dy(size_y);
-    CHECK_HIP_ERROR(dA.memcheck());
-    CHECK_HIP_ERROR(dx.memcheck());
-    CHECK_HIP_ERROR(dy.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     EXPECT_ROCBLAS_STATUS(
         rocblas_hpmv<T>(handle, uplo, N, &alpha, nullptr, dx, incx, &beta, dy, incy),
@@ -110,12 +110,12 @@ void testing_hpmv(const Arguments& arg)
     device_vector<T> dy_2(size_y);
     device_vector<T> d_alpha(1);
     device_vector<T> d_beta(1);
-    CHECK_HIP_ERROR(dA.memcheck());
-    CHECK_HIP_ERROR(dx.memcheck());
-    CHECK_HIP_ERROR(dy_1.memcheck());
-    CHECK_HIP_ERROR(dy_2.memcheck());
-    CHECK_HIP_ERROR(d_alpha.memcheck());
-    CHECK_HIP_ERROR(d_beta.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy_1.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy_2.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
 
     // Initial Data on CPU
     rocblas_init(hA, true);
@@ -173,8 +173,8 @@ void testing_hpmv(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T, T>(1, N, abs_incy, hy_gold, hy_1);
-            unit_check_general<T, T>(1, N, abs_incy, hy_gold, hy_2);
+            unit_check_general<T>(1, N, abs_incy, hy_gold, hy_1);
+            unit_check_general<T>(1, N, abs_incy, hy_gold, hy_2);
         }
 
         if(arg.norm_check)

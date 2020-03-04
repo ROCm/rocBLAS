@@ -37,11 +37,9 @@ void testing_symv_bad_arg()
     device_vector<T> dA(size_A);
     device_vector<T> dx(size_x);
     device_vector<T> dy(size_y);
-    if(!dA || !dx || !dy)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     EXPECT_ROCBLAS_STATUS(
         rocblas_symv<T>(nullptr, uplo, N, &alpha, dA, lda, dx, incx, &beta, dy, incy),
@@ -99,18 +97,9 @@ void testing_symv(const Arguments& arg)
     // argument sanity check before allocating invalid memory
     if(N <= 0 || lda < 0 || lda < N || !incx || !incy)
     {
-        static const size_t safe_size = 100;
-        device_vector<T>    dA(safe_size);
-        device_vector<T>    dx(safe_size);
-        device_vector<T>    dy(safe_size);
-        if(!dA || !dx || !dy)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
-
         EXPECT_ROCBLAS_STATUS(
-            rocblas_symv<T>(handle, uplo, N, alpha, dA, lda, dx, incx, beta, dy, incy),
+            rocblas_symv<T>(
+                handle, uplo, N, alpha, nullptr, lda, nullptr, incx, beta, nullptr, incy),
             N < 0 || lda < 0 || lda < N || !incx || !incy ? rocblas_status_invalid_size
                                                           : rocblas_status_success);
         return;
@@ -119,6 +108,8 @@ void testing_symv(const Arguments& arg)
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
     device_vector<T> d_alpha(1);
     device_vector<T> d_beta(1);
+    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
 
     host_vector<T> hA(size_A);
     host_vector<T> hx(size_X);
@@ -133,11 +124,9 @@ void testing_symv(const Arguments& arg)
     device_vector<T> dA(size_A);
     device_vector<T> dx(size_X);
     device_vector<T> dy(size_Y);
-    if(!dA || !dx || !dy)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     // Initial Data on CPU
     rocblas_seedrand();
@@ -197,14 +186,14 @@ void testing_symv(const Arguments& arg)
         {
             if(std::is_same<T, float>{} || std::is_same<T, double>{})
             {
-                unit_check_general<T, T>(1, N, abs_incy, hg, hy);
-                unit_check_general<T, T>(1, N, abs_incy, hg, hy2);
+                unit_check_general<T>(1, N, abs_incy, hg, hy);
+                unit_check_general<T>(1, N, abs_incy, hg, hy2);
             }
             else
             {
                 const double tol = N * sum_error_tolerance<T>;
-                near_check_general<T, T>(1, N, abs_incy, hg, hy, tol);
-                near_check_general<T, T>(1, N, abs_incy, hg, hy2, tol);
+                near_check_general<T>(1, N, abs_incy, hg, hy, tol);
+                near_check_general<T>(1, N, abs_incy, hg, hy2, tol);
             }
         }
 

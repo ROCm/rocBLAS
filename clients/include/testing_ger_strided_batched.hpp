@@ -40,11 +40,9 @@ void testing_ger_strided_batched_bad_arg(const Arguments& arg)
     device_vector<T> dA_1(size_A);
     device_vector<T> dx(size_x);
     device_vector<T> dy(size_y);
-    if(!dA_1 || !dx || !dy)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dA_1.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     EXPECT_ROCBLAS_STATUS((rocblas_ger_strided_batched<T, CONJ>(handle,
                                                                 M,
@@ -133,27 +131,17 @@ void testing_ger_strided_batched(const Arguments& arg)
     // argument check before allocating invalid memory
     if(M <= 0 || N <= 0 || lda < M || lda < 1 || !incx || !incy || batch_count <= 0)
     {
-        static const size_t safe_size = 100; // arbitrarily set to 100
-        device_vector<T>    dA_1(safe_size);
-        device_vector<T>    dx(safe_size);
-        device_vector<T>    dy(safe_size);
-        if(!dA_1 || !dx || !dy)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
-
         EXPECT_ROCBLAS_STATUS((rocblas_ger_strided_batched<T, CONJ>(handle,
                                                                     M,
                                                                     N,
                                                                     &h_alpha,
-                                                                    dx,
+                                                                    nullptr,
                                                                     incx,
                                                                     stride_x,
-                                                                    dy,
+                                                                    nullptr,
                                                                     incy,
                                                                     stride_y,
-                                                                    dA_1,
+                                                                    nullptr,
                                                                     lda,
                                                                     stride_a,
                                                                     batch_count)),
@@ -182,11 +170,11 @@ void testing_ger_strided_batched(const Arguments& arg)
     device_vector<T> dx(size_x);
     device_vector<T> dy(size_y);
     device_vector<T> d_alpha(1);
-    if(((!dA_1 || !dA_2) && size_A) || (!dx && size_x) || (!dy && size_y) || !d_alpha)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dA_1.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA_2.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
 
     double gpu_time_used, cpu_time_used;
     double rocblas_gflops, cblas_gflops, rocblas_bandwidth;
@@ -275,14 +263,14 @@ void testing_ger_strided_batched(const Arguments& arg)
         {
             if(std::is_same<T, float>{} || std::is_same<T, double>{})
             {
-                unit_check_general<T, T>(M, N, batch_count, lda, stride_a, hA_gold, hA_1);
-                unit_check_general<T, T>(M, N, batch_count, lda, stride_a, hA_gold, hA_2);
+                unit_check_general<T>(M, N, batch_count, lda, stride_a, hA_gold, hA_1);
+                unit_check_general<T>(M, N, batch_count, lda, stride_a, hA_gold, hA_2);
             }
             else
             {
                 const double tol = N * sum_error_tolerance<T>;
-                near_check_general<T, T>(M, N, batch_count, lda, stride_a, hA_gold, hA_1, tol);
-                near_check_general<T, T>(M, N, batch_count, lda, stride_a, hA_gold, hA_2, tol);
+                near_check_general<T>(M, N, batch_count, lda, stride_a, hA_gold, hA_1, tol);
+                near_check_general<T>(M, N, batch_count, lda, stride_a, hA_gold, hA_2, tol);
             }
         }
 

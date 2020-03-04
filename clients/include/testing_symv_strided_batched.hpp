@@ -41,11 +41,9 @@ void testing_symv_strided_batched_bad_arg()
     device_vector<T>    dA(safe_size);
     device_vector<T>    dx(safe_size);
     device_vector<T>    dy(safe_size);
-    if(!dA || !dx || !dy)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     EXPECT_ROCBLAS_STATUS(rocblas_symv_strided_batched<T>(nullptr,
                                                           uplo,
@@ -202,11 +200,9 @@ void testing_symv_strided_batched(const Arguments& arg)
         device_vector<T>    dA(safe_size);
         device_vector<T>    dx(safe_size);
         device_vector<T>    dy(safe_size);
-        if(!dA || !dx || !dy)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
+        CHECK_DEVICE_ALLOCATION(dA.memcheck());
+        CHECK_DEVICE_ALLOCATION(dx.memcheck());
+        CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
         EXPECT_ROCBLAS_STATUS(rocblas_symv_strided_batched<T>(handle,
                                                               uplo,
@@ -233,6 +229,8 @@ void testing_symv_strided_batched(const Arguments& arg)
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
     device_vector<T> d_alpha(1);
     device_vector<T> d_beta(1);
+    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
 
     host_vector<T> hA(size_A);
     host_vector<T> hx(size_X);
@@ -249,11 +247,9 @@ void testing_symv_strided_batched(const Arguments& arg)
     device_vector<T> dA(size_A);
     device_vector<T> dx(size_X);
     device_vector<T> dy(size_Y);
-    if(!dA || !dx || !dy)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     // Initial Data on CPU
     rocblas_seedrand();
@@ -352,14 +348,14 @@ void testing_symv_strided_batched(const Arguments& arg)
         {
             if(std::is_same<T, float>{} || std::is_same<T, double>{})
             {
-                unit_check_general<T, T>(1, N, batch_count, abs_incy, stridey, hg, hy);
-                unit_check_general<T, T>(1, N, batch_count, abs_incy, stridey, hg, hy2);
+                unit_check_general<T>(1, N, batch_count, abs_incy, stridey, hg, hy);
+                unit_check_general<T>(1, N, batch_count, abs_incy, stridey, hg, hy2);
             }
             else
             {
                 const double tol = N * sum_error_tolerance<T>;
-                near_check_general<T, T>(1, N, batch_count, abs_incy, stridey, hg, hy, tol);
-                near_check_general<T, T>(1, N, batch_count, abs_incy, stridey, hg, hy2, tol);
+                near_check_general<T>(1, N, batch_count, abs_incy, stridey, hg, hy, tol);
+                near_check_general<T>(1, N, batch_count, abs_incy, stridey, hg, hy2, tol);
             }
         }
 

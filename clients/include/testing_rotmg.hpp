@@ -24,11 +24,11 @@ void testing_rotmg_bad_arg(const Arguments& arg)
     device_vector<T>     x1(safe_size);
     device_vector<T>     y1(safe_size);
     device_vector<T>     param(safe_size);
-    if(!d1 || !d2 || !x1 || !y1 || !param)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(d1.memcheck());
+    CHECK_DEVICE_ALLOCATION(d2.memcheck());
+    CHECK_DEVICE_ALLOCATION(x1.memcheck());
+    CHECK_DEVICE_ALLOCATION(y1.memcheck());
+    CHECK_DEVICE_ALLOCATION(param.memcheck());
 
     EXPECT_ROCBLAS_STATUS(rocblas_rotmg<T>(nullptr, d1, d2, x1, y1, param),
                           rocblas_status_invalid_handle);
@@ -75,7 +75,7 @@ void testing_rotmg(const Arguments& arg)
                 handle, &hparams[0], &hparams[1], &hparams[2], &hparams[3], &hparams[4]));
 
             if(arg.unit_check)
-                near_check_general<T, T>(1, 9, 1, cparams, hparams, rel_error);
+                near_check_general<T>(1, 9, 1, cparams, hparams, rel_error);
 
             if(arg.norm_check)
                 error_host = norm_check_general<T>('F', 1, 9, 1, cparams, hparams);
@@ -84,6 +84,7 @@ void testing_rotmg(const Arguments& arg)
         // Test rocblas_pointer_mode_device
         {
             device_vector<T> dparams(9);
+            CHECK_DEVICE_ALLOCATION(dparams.memcheck());
             CHECK_HIP_ERROR(hipMemcpy(dparams, params, 9 * sizeof(T), hipMemcpyHostToDevice));
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
             CHECK_ROCBLAS_ERROR(rocblas_rotmg<T>(
@@ -92,7 +93,7 @@ void testing_rotmg(const Arguments& arg)
             CHECK_HIP_ERROR(hipMemcpy(hparams, dparams, 9 * sizeof(T), hipMemcpyDeviceToHost));
 
             if(arg.unit_check)
-                near_check_general<T, T>(1, 9, 1, cparams, hparams, rel_error);
+                near_check_general<T>(1, 9, 1, cparams, hparams, rel_error);
 
             if(arg.norm_check)
                 error_device = norm_check_general<T>('F', 1, 9, 1, cparams, hparams);
@@ -102,7 +103,7 @@ void testing_rotmg(const Arguments& arg)
     if(arg.timing)
     {
         int number_cold_calls = 2;
-        int number_hot_calls  = 100;
+        int number_hot_calls  = arg.iters;
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
         host_vector<T> hparams = params;
