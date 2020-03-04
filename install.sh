@@ -146,8 +146,7 @@ install_packages( )
   local library_dependencies_centos=( "epel-release"
                                       "make" "cmake3" "rpm-build"
                                       "python34" "PyYAML" "python3*-PyYAML" "python3*-distutils-extra"
-                                      "gcc-c++" "llvm7.0-devel" "llvm7.0-static"
-                                      "zlib-devel" "wget" )
+                                      "gcc-c++" "zlib-devel" "wget" )
   local library_dependencies_fedora=( "make" "cmake" "rpm-build"
                                       "python34" "PyYAML" "python3*-PyYAML" "python3*-distutils-extra"
                                       "gcc-c++" "libcxx-devel" "zlib-devel" "wget" "llvm7.0-devel" "llvm7.0-static" )
@@ -170,6 +169,14 @@ install_packages( )
       library_dependencies_centos+=( "${custom_rocm_dev}" )
       library_dependencies_fedora+=( "${custom_rocm_dev}" )
       library_dependencies_sles+=( "${custom_rocm_dev}" )
+    fi
+  fi
+
+  if [[ "${ID}" == "centos" ]]; then
+    if [[ "${VERSION_ID}" >= "7" ]]; then
+      # On CentOS-7 and greater, RPM packages for LLVM-7.0 are available. For earlier CentOS versions,
+      # we must build modern LLVM versions from src.
+      library_dependencies_centos+=( "llvm7.0-devel" "llvm7.0-static" )
     fi
   fi
 
@@ -237,11 +244,14 @@ if [[ $? -ne 0 ]]; then
   exit 1
 fi
 
-# os-release file describes the system
+# /etc/*-release files describe the system
 if [[ -e "/etc/os-release" ]]; then
   source /etc/os-release
+elif [[ -e "/etc/centos-release" ]]; then
+  ID=$(cat /etc/centos-release | awk '{print tolower($1)}')
+  VERSION_ID=$(cat /etc/centos-release | grep -oP '(?<=release )[^ ]*' | cut -d "." -f1)
 else
-  echo "This script depends on the /etc/os-release file"
+  echo "This script depends on the /etc/*-release files"
   exit 2
 fi
 
