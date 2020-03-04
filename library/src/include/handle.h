@@ -68,6 +68,10 @@ public:
     // rocblas by default take the system default stream 0 users cannot create
     hipStream_t rocblas_stream = 0;
 
+    // hipEvent_t pointers (for internal use only)
+    hipEvent_t startEvent = nullptr;
+    hipEvent_t stopEvent  = nullptr;
+
     // default pointer_mode is on host
     rocblas_pointer_mode pointer_mode = rocblas_pointer_mode_host;
 

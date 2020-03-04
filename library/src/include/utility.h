@@ -132,6 +132,35 @@ void setup_batched_array(
         setup_batched_array_kernel<T>, grid, threads, 0, stream, src, src_stride, dst);
 }
 
+template <typename T>
+__global__ void setup_device_pointer_array_kernel(T*             src,
+                                                  rocblas_stride src_stride,
+                                                  T*             dst[],
+                                                  rocblas_int    batch_count)
+{
+    ptrdiff_t tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+    if(tid < batch_count)
+        dst[tid] = src + tid * src_stride;
+}
+
+template <typename T>
+void setup_device_pointer_array(
+    hipStream_t stream, T* src, rocblas_stride src_stride, T* dst[], rocblas_int batch_count)
+{
+    int  NB = 256;
+    dim3 grid((batch_count - 1) / NB + 1);
+    dim3 threads(NB);
+    hipLaunchKernelGGL(setup_device_pointer_array_kernel<T>,
+                       grid,
+                       threads,
+                       0,
+                       stream,
+                       src,
+                       src_stride,
+                       dst,
+                       batch_count);
+}
+
 #endif // GOOGLE_TEST
 
 inline bool isAligned(const void* pointer, size_t byte_count)

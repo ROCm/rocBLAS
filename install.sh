@@ -10,27 +10,29 @@ function display_help()
 cat <<EOF
 rocBLAS build & installation helper script
   $0 <options>
-      -h | --help               Print this help message
-      -i | --install            Install after build
-      -d | --dependencies       Install build dependencies
-      -c | --clients            Build library clients too (combines with -i & -d)
-      -g | --debug              Set -DCMAKE_BUILD_TYPE=Debug (default is =Release)
-      -f | --fork               GitHub fork to use, e.g., ROCmSoftwarePlatform or MyUserName
-      -b | --branch             GitHub branch or tag to use, e.g., develop, mybranch or <commit hash>
-      -l | --logic              Set Tensile logic target, e.g., asm_full, asm_lite, etc.
-      -a | --architecture       Set Tensile GPU architecture target, e.g. all, gfx000, gfx803, gfx900, gfx906, gfx908
-      -o | --cov                Set Tensile code_object_version (V2 or V3)
-      -t | --test_local_path    Use a local path for Tensile instead of remote GIT repo
-           --cpu_ref_lib        Specify library to use for CPU reference code in testing (blis or lapack)
-           --hip-clang          Build library for amdgpu backend using hip-clang
-           --build_dir          Specify name of output directory (default is ./build)
-      -n | --no_tensile         Build subset of library that does not require Tensile
-      -r | --no-tensile-host    Do not build with Tensile host
-      -u | --use-custom-version Use user-specified Tensile version
-           --skipldconf         Skip ld.so.conf entry
-           --ignore-cuda        Ignores installed cuda version and builds with rocm stack instead
+      -h | --help                Print this help message
+      -i | --install             Install after build
+      -d | --dependencies        Install build dependencies
+      -c | --clients             Build library clients too (combines with -i & -d)
+      -g | --debug               Set -DCMAKE_BUILD_TYPE=Debug (default is =Release)
+      -f | --fork                GitHub fork to use, e.g., ROCmSoftwarePlatform or MyUserName
+      -b | --branch              GitHub branch or tag to use, e.g., develop, mybranch or <commit hash>
+      -l | --logic               Set Tensile logic target, e.g., asm_full, asm_lite, etc.
+      -a | --architecture        Set Tensile GPU architecture target, e.g. all, gfx000, gfx803, gfx900, gfx906, gfx908
+      -o | --cov                 Set Tensile code_object_version (V2 or V3)
+      -t | --test_local_path     Use a local path for Tensile instead of remote GIT repo
+           --cpu_ref_lib         Specify library to use for CPU reference code in testing (blis or lapack)
+           --hip-clang           Build library for amdgpu backend using hip-clang
+           --build_dir           Specify name of output directory (default is ./build)
+      -n | --no_tensile          Build subset of library that does not require Tensile
+      -s | --tensile-host        Build with Tensile host
+      -r | --no-tensile-host     Do not build with Tensile host
+      -u | --use-custom-version  Ignore Tensile version and just use the Tensile tag
+           --ignore-cuda         Ignores installed cuda version and builds with rocm stack instead
+           --skipldconf          Skip ld.so.conf entry
+      -v | --rocm-dev            Set specific rocm-dev version
 EOF
-#          --prefix             Specify an alternate CMAKE_INSTALL_PREFIX for cmake
+#           --prefix              Specify an alternate CMAKE_INSTALL_PREFIX for cmake
 }
 
 # This function is helpful for dockerfiles that do not have sudo installed, but the default user is root
@@ -154,10 +156,21 @@ install_packages( )
 
   if [[ "${build_hip_clang}" == false ]]; then
     # Installing rocm-dev installs hip-hcc, which overwrites the hip-vdi runtime
-    library_dependencies_ubuntu+=( "rocm-dev" )
-    library_dependencies_centos+=( "rocm-dev" )
-    library_dependencies_fedora+=( "rocm-dev" )
-    library_dependencies_sles+=( "rocm-dev" )
+
+    if [[ -z ${custom_rocm_dev+foo} ]]; then
+    # Install base rocm-dev package unless -v/--rocm-dev flag is passed
+      library_dependencies_ubuntu+=( "rocm-dev" )
+      library_dependencies_centos+=( "rocm-dev" )
+      library_dependencies_fedora+=( "rocm-dev" )
+      library_dependencies_sles+=( "rocm-dev" )
+
+    else
+    # Install rocm-specific rocm-dev package
+      library_dependencies_ubuntu+=( "${custom_rocm_dev}" )
+      library_dependencies_centos+=( "${custom_rocm_dev}" )
+      library_dependencies_fedora+=( "${custom_rocm_dev}" )
+      library_dependencies_sles+=( "${custom_rocm_dev}" )
+    fi
   fi
 
   # dependencies to build the client
@@ -251,7 +264,7 @@ tensile_version=
 build_clients=false
 ignore_cuda=false
 build_tensile=true
-build_tensile_host=true
+build_tensile_host=false
 cpu_ref_lib=blis
 build_release=true
 build_hip_clang=false
@@ -270,7 +283,7 @@ fi
 # check if we have a modern version of getopt that can handle whitespace and long parameters
 getopt -T
 if [[ $? -eq 4 ]]; then
-  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,no_tensile,no-tensile-host,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,ignore-cuda --options nrhicdgl:a:o:f:b:t:u: -- "$@")
+  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,no_tensile,tensile-host,no-tensile-host,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,ignore-cuda,rocm-dev: --options nsrhicdgl:a:o:f:b:t:u:v: -- "$@")
 else
   echo "Need a new version of getopt"
   exit 1
@@ -322,6 +335,9 @@ while true; do
     -n|--no_tensile)
         build_tensile=false
         shift ;;
+    -s|--tensile-host)
+        build_tensile_host=true
+        shift ;;
     -r|--no-tensile-host)
         build_tensile_host=false
         shift ;;
@@ -343,6 +359,9 @@ while true; do
         shift ;;
     -u|--use-custom-version)
         tensile_version=${2}
+        shift 2;;
+    -v|--rocm-dev)
+        custom_rocm_dev=${2}
         shift 2;;
     --prefix)
         install_prefix=${2}

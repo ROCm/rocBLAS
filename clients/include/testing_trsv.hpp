@@ -41,12 +41,8 @@ void testing_trsv(const Arguments& arg)
         static const size_t safe_size = 100; // arbitrarily set to 100
         device_vector<T>    dx_or_b(safe_size);
         device_vector<T>    dA(safe_size);
-
-        if(!dA || !dx_or_b)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
+        CHECK_DEVICE_ALLOCATION(dx_or_b.memcheck());
+        CHECK_DEVICE_ALLOCATION(dA.memcheck());
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         EXPECT_ROCBLAS_STATUS(
@@ -78,6 +74,8 @@ void testing_trsv(const Arguments& arg)
     // allocate memory on device
     device_vector<T> dA(size_A);
     device_vector<T> dx_or_b(size_x);
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx_or_b.memcheck());
 
     rocblas_init<T>(hA, M, M, lda);
 
@@ -200,8 +198,8 @@ void testing_trsv(const Arguments& arg)
         for(int i = 0; i < number_hot_calls; i++)
             rocblas_trsv<T>(handle, uplo, transA, diag, M, dA, lda, dx_or_b, incx);
 
-        gpu_time_used  = get_time_us() - gpu_time_used;
-        rocblas_gflops = trsv_gflop_count<T>(M) * number_hot_calls / gpu_time_used * 1e6;
+        gpu_time_used  = (get_time_us() - gpu_time_used) / number_hot_calls;
+        rocblas_gflops = trsv_gflop_count<T>(M) / gpu_time_used * 1e6;
 
         // CPU cblas
         cpu_time_used = get_time_us();
@@ -221,7 +219,7 @@ void testing_trsv(const Arguments& arg)
         std::cout << std::endl;
 
         std::cout << M << ',' << lda << ',' << incx << ',' << char_uplo << ',' << char_transA << ','
-                  << char_diag << ',' << rocblas_gflops << "," << gpu_time_used / number_hot_calls;
+                  << char_diag << ',' << rocblas_gflops << "," << gpu_time_used;
 
         if(arg.norm_check)
             std::cout << "," << cblas_gflops << "," << cpu_time_used << "," << max_err_1 << ","
