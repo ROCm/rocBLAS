@@ -27,11 +27,8 @@ void testing_axpy_bad_arg(const Arguments& arg)
     rocblas_local_handle handle;
     device_vector<T>     dx(safe_size);
     device_vector<T>     dy(safe_size);
-    if(!dx || !dy)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     EXPECT_ROCBLAS_STATUS(rocblas_axpy<T>(handle, N, &alpha, nullptr, incx, dy, incy),
                           rocblas_status_invalid_pointer);
@@ -58,11 +55,8 @@ void testing_axpy(const Arguments& arg)
         static const size_t safe_size = 100; // arbitrarily set to 100
         device_vector<T>    dx(safe_size);
         device_vector<T>    dy(safe_size);
-        if(!dx || !dy)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
+        CHECK_DEVICE_ALLOCATION(dx.memcheck());
+        CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         CHECK_ROCBLAS_ERROR(rocblas_axpy<T>(handle, N, &h_alpha, dx, incx, dy, incy));
@@ -96,11 +90,10 @@ void testing_axpy(const Arguments& arg)
     device_vector<T> dy_1(size_y);
     device_vector<T> dy_2(size_y);
     device_vector<T> d_alpha(1);
-    if(!dx || !dy_1 || !dy_2 || !d_alpha)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy_1.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy_2.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
 
     // copy data from CPU to device
     CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T) * size_x, hipMemcpyHostToDevice));
