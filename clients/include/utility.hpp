@@ -259,7 +259,7 @@ void print_strided_batched(const char* name,
 {
     // n1, n2, n3 are matrix dimensions, sometimes called m, n, batch_count
     // s1, s1, s3 are matrix strides, sometimes called 1, lda, stride_a
-    printf("---------- %s ----------\n", name);
+    rocblas_cout << "---------- " << name << " ----------\n";
     int max_size = 8;
 
     for(int i3 = 0; i3 < n3 && i3 < max_size; i3++)
@@ -268,14 +268,14 @@ void print_strided_batched(const char* name,
         {
             for(int i2 = 0; i2 < n2 && i2 < max_size; i2++)
             {
-                rocblas_print_helper::print_value(std::cout, A[(i1 * s1) + (i2 * s2) + (i3 * s3)]);
-                printf("|");
+                rocblas_cout << A[(i1 * s1) + (i2 * s2) + (i3 * s3)] << "|";
             }
-            printf("\n");
+            rocblas_cout << "\n";
         }
         if(i3 < (n3 - 1) && i3 < (max_size - 1))
-            printf("\n");
+            rocblas_cout << "\n";
     }
+    rocblas_cout << std::flush;
 }
 
 #endif

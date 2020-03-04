@@ -37,11 +37,9 @@ void testing_ger_bad_arg(const Arguments& arg)
     device_vector<T> dA_1(size_A);
     device_vector<T> dx(size_x);
     device_vector<T> dy(size_y);
-    if(!dA_1 || !dx || !dy)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dA_1.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     EXPECT_ROCBLAS_STATUS(
         (rocblas_ger<T, CONJ>(handle, M, N, &alpha, nullptr, incx, dy, incy, dA_1, lda)),
@@ -72,18 +70,9 @@ void testing_ger(const Arguments& arg)
     // argument check before allocating invalid memory
     if(M < 0 || N < 0 || lda < M || lda < 1 || !incx || !incy)
     {
-        static const size_t safe_size = 100; // arbitrarily set to 100
-        device_vector<T>    dA_1(safe_size);
-        device_vector<T>    dx(safe_size);
-        device_vector<T>    dy(safe_size);
-        if(!dA_1 || !dx || !dy)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
-
         EXPECT_ROCBLAS_STATUS(
-            (rocblas_ger<T, CONJ>(handle, M, N, &h_alpha, dx, incx, dy, incy, dA_1, lda)),
+            (rocblas_ger<T, CONJ>(
+                handle, M, N, &h_alpha, nullptr, incx, nullptr, incy, nullptr, lda)),
             rocblas_status_invalid_size);
 
         return;

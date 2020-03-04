@@ -40,11 +40,9 @@ void testing_gemm_bad_arg(const Arguments& arg)
     device_vector<T> dA(safe_size);
     device_vector<T> dB(safe_size);
     device_vector<T> dC(safe_size);
-    if(!dA || !dB || !dC)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dB.memcheck());
+    CHECK_DEVICE_ALLOCATION(dC.memcheck());
 
     EXPECT_ROCBLAS_STATUS(
         rocblas_gemm<T>(
@@ -117,11 +115,9 @@ void testing_gemm(const Arguments& arg)
         device_vector<T> dA(safe_size);
         device_vector<T> dB(safe_size);
         device_vector<T> dC(safe_size);
-        if(!dA || !dB || !dC)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
+        CHECK_DEVICE_ALLOCATION(dA.memcheck());
+        CHECK_DEVICE_ALLOCATION(dB.memcheck());
+        CHECK_DEVICE_ALLOCATION(dC.memcheck());
 
         EXPECT_ROCBLAS_STATUS(
             rocblas_gemm<T>(

@@ -32,11 +32,8 @@ void testing_syr_bad_arg()
     // allocate memory on device
     device_vector<T> dA_1(size_A);
     device_vector<T> dx(size_x);
-    if(!dA_1 || !dx)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dA_1.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
     EXPECT_ROCBLAS_STATUS(rocblas_syr<T>(handle, uplo, N, &alpha, nullptr, incx, dA_1, lda),
                           rocblas_status_invalid_pointer);
@@ -61,19 +58,10 @@ void testing_syr(const Arguments& arg)
     // argument check before allocating invalid memory
     if(N <= 0 || lda < N || lda < 1 || !incx)
     {
-        static const size_t safe_size = 100; // arbitrarily set to 100
-
-        device_vector<T> dA_1(safe_size);
-        device_vector<T> dx(safe_size);
-        if(!dA_1 || !dx)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
-
-        EXPECT_ROCBLAS_STATUS(rocblas_syr<T>(handle, uplo, N, &h_alpha, dx, incx, dA_1, lda),
-                              (N < 0 || lda < N || lda < 1 || !incx) ? rocblas_status_invalid_size
-                                                                     : rocblas_status_success);
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_syr<T>(handle, uplo, N, &h_alpha, nullptr, incx, nullptr, lda),
+            (N < 0 || lda < N || lda < 1 || !incx) ? rocblas_status_invalid_size
+                                                   : rocblas_status_success);
 
         return;
     }
@@ -93,11 +81,10 @@ void testing_syr(const Arguments& arg)
     device_vector<T> dA_2(size_A);
     device_vector<T> dx(size_x);
     device_vector<T> d_alpha(1);
-    if(!dA_1 || !dA_2 || !dx || !d_alpha)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dA_1.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA_2.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
 
     double gpu_time_used, cpu_time_used;
     double rocblas_gflops, cblas_gflops, rocblas_bandwidth;

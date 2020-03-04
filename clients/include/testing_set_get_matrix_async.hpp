@@ -39,11 +39,7 @@ void testing_set_get_matrix_async(const Arguments& arg)
         host_vector<T> hc(safe_size);
 
         device_vector<T> dc(safe_size);
-        if(!dc)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
+        CHECK_DEVICE_ALLOCATION(dc.memcheck());
 
         EXPECT_ROCBLAS_STATUS(
             rocblas_set_matrix_async(rows, cols, sizeof(T), ha, lda, dc, ldc, stream),

@@ -37,8 +37,8 @@ void testing_trmm_batched_bad_arg(const Arguments& arg)
     const size_t           safe_size = 100;
     device_batch_vector<T> dA(safe_size, 1, batch_count);
     device_batch_vector<T> dB(safe_size, 1, batch_count);
-    CHECK_HIP_ERROR(dA.memcheck());
-    CHECK_HIP_ERROR(dB.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dB.memcheck());
 
     EXPECT_ROCBLAS_STATUS(
         rocblas_trmm_batched<T>(
@@ -135,9 +135,9 @@ void testing_trmm_batched(const Arguments& arg)
     device_batch_vector<T> dA(size_A, 1, batch_count);
     device_batch_vector<T> dB(size_B, 1, batch_count);
     device_vector<T>       d_alpha(1);
-    CHECK_HIP_ERROR(dA.memcheck());
-    CHECK_HIP_ERROR(dB.memcheck());
-    CHECK_HIP_ERROR(d_alpha.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dB.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
 
     //  initialize data on CPU
     h_alpha[0] = alpha;
@@ -282,20 +282,20 @@ void testing_trmm_batched(const Arguments& arg)
         rocblas_gflops = trmm_gflop_count<T>(M, N, side) * batch_count * number_hot_calls
                          / gpu_time_used * 1e6;
 
-        std::cout << "M,N,alpha,lda,ldb,side,uplo,transA,diag,rocblas-Gflops,us";
+        rocblas_cout << "M,N,alpha,lda,ldb,side,uplo,transA,diag,rocblas-Gflops,us";
 
         if(arg.unit_check || arg.norm_check)
-            std::cout << ",CPU-Gflops,us,norm-error";
+            rocblas_cout << ",CPU-Gflops,us,norm-error";
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
 
-        std::cout << M << ',' << N << ',' << alpha << ',' << lda << ',' << ldb << ',' << char_side
-                  << ',' << char_uplo << ',' << char_transA << ',' << char_diag << ','
-                  << rocblas_gflops << "," << gpu_time_used / number_hot_calls;
+        rocblas_cout << M << ',' << N << ',' << alpha << ',' << lda << ',' << ldb << ','
+                     << char_side << ',' << char_uplo << ',' << char_transA << ',' << char_diag
+                     << ',' << rocblas_gflops << "," << gpu_time_used / number_hot_calls;
 
         if(arg.unit_check || arg.norm_check)
-            std::cout << ", " << cblas_gflops << ", " << cpu_time_used << ", " << rocblas_error;
+            rocblas_cout << ", " << cblas_gflops << ", " << cpu_time_used << ", " << rocblas_error;
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
     }
 }
