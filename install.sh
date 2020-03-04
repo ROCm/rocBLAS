@@ -25,12 +25,12 @@ rocBLAS build & installation helper script
            --hip-clang           Build library for amdgpu backend using hip-clang
            --build_dir           Specify name of output directory (default is ./build)
       -n | --no_tensile          Build subset of library that does not require Tensile
-      -r | --no-tensile-host     Do not build with Tensile host
       -s | --tensile-host        Build with Tensile host
+      -r | --no-tensile-host     Do not build with Tensile host
       -u | --use-custom-version  Ignore Tensile version and just use the Tensile tag
            --ignore-cuda         Ignores installed cuda version and builds with rocm stack instead
            --skipldconf          Skip ld.so.conf entry
-      -v | --rocm-dev           Set specific rocm-dev version
+      -v | --rocm-dev            Set specific rocm-dev version
 EOF
 #           --prefix              Specify an alternate CMAKE_INSTALL_PREFIX for cmake
 }
