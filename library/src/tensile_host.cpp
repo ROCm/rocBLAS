@@ -421,9 +421,7 @@ TensileHost* createTensileHost()
  ******************************************************************************/
 template <typename Ti, typename To, typename Tc>
 rocblas_status
-    TensileHost::runContractionProblem(const RocblasContractionProblem<Ti, To, Tc>& problem,
-                                       hipEvent_t*                                  startEvent,
-                                       hipEvent_t*                                  stopEvent)
+    TensileHost::runContractionProblem(const RocblasContractionProblem<Ti, To, Tc>& problem)
 {
     rocblas_status                                status = rocblas_status_internal_error;
     std::shared_ptr<Tensile::ContractionSolution> solution;
@@ -442,16 +440,19 @@ rocblas_status
         }
         else
         {
-            auto inputs = GetTensileInputs(problem);
-            auto result = solution->solve(tensile_problem, inputs, *host->hardware);
-            if(startEvent && stopEvent)
+            auto           inputs = GetTensileInputs(problem);
+            auto           result = solution->solve(tensile_problem, inputs, *host->hardware);
+            rocblas_handle handle = problem.handle;
+            if(handle->startEvent && handle->stopEvent)
             {
                 hipStream_t stream;
-                rocblas_get_stream(problem.handle, &stream);
-                host->adapter.launchKernels(result, stream, *startEvent, *stopEvent);
+                rocblas_get_stream(handle, &stream);
+                host->adapter.launchKernels(result, stream, handle->startEvent, handle->stopEvent);
             }
             else
+            {
                 host->adapter.launchKernels(result);
+            }
 
             status = rocblas_status_success;
         }
@@ -481,40 +482,28 @@ rocblas_status
  ******************************************************************************/
 
 // Non-EX types
-template rocblas_status TensileHost::runContractionProblem(
-    const RocblasContractionProblem<rocblas_half>&, hipEvent_t* startEvent, hipEvent_t* stopEvent);
+template rocblas_status
+    TensileHost::runContractionProblem(const RocblasContractionProblem<rocblas_half>&);
 
-template rocblas_status TensileHost::runContractionProblem(const RocblasContractionProblem<float>&,
-                                                           hipEvent_t* startEvent,
-                                                           hipEvent_t* stopEvent);
-
-template rocblas_status TensileHost::runContractionProblem(const RocblasContractionProblem<double>&,
-                                                           hipEvent_t* startEvent,
-                                                           hipEvent_t* stopEvent);
+template rocblas_status TensileHost::runContractionProblem(const RocblasContractionProblem<float>&);
 
 template rocblas_status
-    TensileHost::runContractionProblem(const RocblasContractionProblem<rocblas_float_complex>&,
-                                       hipEvent_t* startEvent,
-                                       hipEvent_t* stopEvent);
+    TensileHost::runContractionProblem(const RocblasContractionProblem<double>&);
 
 template rocblas_status
-    TensileHost::runContractionProblem(const RocblasContractionProblem<rocblas_double_complex>&,
-                                       hipEvent_t* startEvent,
-                                       hipEvent_t* stopEvent);
+    TensileHost::runContractionProblem(const RocblasContractionProblem<rocblas_float_complex>&);
+
+template rocblas_status
+    TensileHost::runContractionProblem(const RocblasContractionProblem<rocblas_double_complex>&);
 
 // EX types
 template rocblas_status TensileHost::runContractionProblem(
-    const RocblasContractionProblem<rocblas_half, rocblas_half, float>&,
-    hipEvent_t* startEvent,
-    hipEvent_t* stopEvent);
+    const RocblasContractionProblem<rocblas_half, rocblas_half, float>&);
 
 template rocblas_status TensileHost::runContractionProblem(
-    const RocblasContractionProblem<rocblas_bfloat16, rocblas_bfloat16, float>&,
-    hipEvent_t* startEvent,
-    hipEvent_t* stopEvent);
+    const RocblasContractionProblem<rocblas_bfloat16, rocblas_bfloat16, float>&);
 
 template rocblas_status
-    TensileHost::runContractionProblem(const RocblasContractionProblem<int8_t, int32_t, int32_t>&,
-                                       hipEvent_t* startEvent,
-                                       hipEvent_t* stopEvent);
+    TensileHost::runContractionProblem(const RocblasContractionProblem<int8_t, int32_t, int32_t>&);
+
 #endif
