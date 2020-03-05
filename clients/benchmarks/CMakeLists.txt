@@ -129,8 +129,6 @@ else()
     endif()
 endif()
 
-get_target_property( HIPHCC_LOCATION hip::hip_hcc IMPORTED_LOCATION_RELEASE )
-
 if( CUDA_FOUND )
   target_include_directories( rocblas-bench
     PRIVATE
@@ -142,7 +140,7 @@ if( CUDA_FOUND )
 else( )
   # auto set in hip_common.h
   #target_compile_definitions( rocblas-bench PRIVATE __HIP_PLATFORM_HCC__ )
-  target_link_libraries( rocblas-bench PRIVATE ${HIPHCC_LOCATION} )
+  target_link_libraries( rocblas-bench PRIVATE hip::device )
 endif( )
 
 if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
