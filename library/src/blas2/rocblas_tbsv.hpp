@@ -23,19 +23,6 @@ namespace
     {
         return upper ? (trans ? ((row * lda + col + (k - row))) : (col * lda + row + (k - col)))
                      : (trans ? ((row * lda + (col - row))) : (col * lda + (row - col)));
-        // if(trans)
-        // {
-        //     rocblas_int tmp = row;
-        //     row = col;
-        //     col = tmp;
-        // }
-        // if(upper)
-        //     return col * lda + row + (k - col);
-        // else
-        //     return col * lda + (row - col);
-        // return upper ? (trans ? ((row * (row + 1) / 2) + col) : ((col * (col + 1) / 2) + row))
-        //              : (trans ? (((row * (2 * n - row + 1)) / 2) + (col - row))
-        //                       : (((col * (2 * n - col + 1)) / 2) + (row - col)));
     }
 
     // Uses forward substitution to solve Ax = b. Used for a non-transposed lower-triangular matrix

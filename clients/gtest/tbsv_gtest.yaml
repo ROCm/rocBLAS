@@ -4,25 +4,37 @@ include: known_bugs.yaml
 
 Definitions:
   - &small_matrix_size_range
-    - { N:    -1, K: 1, lda:     1, stride_a: 1 }
-    - { N:     4, K: 1, lda:     4, stride_a: 16 }
-    - { N:     4, K: 2, lda:     4, stride_a: 16 }
-    - { N:    10, K: 1, lda:    20, stride_a: 300 }
-    - { N:    10, K: 3, lda:   10, stride_a: 100 }
-    - { N:   128, K: 1, lda:   128, stride_a: 32768 }
+      # invalid size
+    - { N:    -1, K:  1, lda:    1 }
+    - { N:     1, K: -1, lda:    1 }
+    - { N:     5, K: 10, lda:    7 }
+
+      # K >= N
+    - { N:     5, K:  5, lda:    5 }
+    - { N:     5, K: 10, lda:   10 }
+
+      # N > lda > K
+    - { N:    10, K:  5, lda:    7 }
+
+      # Others
+    - { N:     4, K:   2, lda:   4 }
+    - { N:    10, K:   1, lda:  20 }
+    - { N:    10, K:   9, lda:  10 }
+    - { N:   128, K:   1, lda: 128 }
+    - { N:   128, K: 100, lda: 100 }
 
   - &medium_matrix_size_range
-    - { N:   192, K: 1, lda:   192, stride_a: 36864 }
-    - { N:   256, K: 1, lda:   256, stride_a: 65536 }
-    - { N:   384, K: 1, lda:   384, stride_a: 147456 }
-    - { N:   600, K: 1, lda:   600, stride_a: 400000 }
-    - { N:   800, K: 1, lda:   801, stride_a: 640800 }
+    - { N:   192, K:  32, lda: 192 }
+    - { N:   256, K:  64, lda:  64 }
+    - { N:   384, K:   5, lda: 384 }
+    - { N:   600, K: 500, lda: 600 }
+    - { N:   800, K: 500, lda: 801 }
 
   - &large_matrix_size_range
-    - { N:   640, K: 1, lda:   960, stride_a: 614400 }
-    - { N:  1000, K: 1, lda:  1000, stride_a: 1000000 }
-    - { N:  1024, K: 1, lda:  1024, stride_a: 1048576 }
-    - { N:  2000, K: 1, lda:  2000, stride_a: 4000000 }
+    - { N:   640, K:  512, lda:  960 }
+    - { N:  1000, K:  512, lda:  512 }
+    - { N:  1024, K: 1024, lda: 1024 }
+    - { N:  2000, K:  256, lda: 1000 }
 
   - &common_args
     precision: *single_double_precisions_complex_real
