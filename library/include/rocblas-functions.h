@@ -6216,7 +6216,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztbmv_strided_batched(rocblas_handle      
 
     where x and b are vectors and A is a banded triangular matrix.
 
-    The vector x is overwritten on b.
+    The input vector b is overwritten by the output vector x.
 
     @param[in]
     handle    [rocblas_handle]
@@ -6320,7 +6320,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztbsv(rocblas_handle                handle
     where x_i and b_i are vectors and A_i is a banded triangular matrix,
     for i = [1, batch_count].
 
-    Each vector x_i is overwritten on b_i.
+    The input vectors b_i are overwritten by the output vectors x_i.
 
     @param[in]
     handle    [rocblas_handle]
@@ -6431,7 +6431,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztbsv_batched(rocblas_handle              
     where x_i and b_i are vectors and A_i is a banded triangular matrix,
     for i = [1, batch_count].
 
-    Each vector x_i is overwritten on b_i.
+    The input vectors b_i are overwritten by the output vectors x_i.
 
     @param[in]
     handle    [rocblas_handle]
@@ -6483,8 +6483,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztbsv_batched(rocblas_handle              
     incx      [rocblas_int]
               specifies the increment for the elements of each x_i.
     @param[in]
-    stride_x  [rocblas_int]
-              specifie sthe distance between the start of one vector (x_i) and the next (x_i+1).
+    stride_x  [rocblas_stride]
+              specifies the distance between the start of one vector (x_i) and the next (x_i+1).
     @param[in]
     batch_count [rocblas_int]
                 number of instances in the batch.

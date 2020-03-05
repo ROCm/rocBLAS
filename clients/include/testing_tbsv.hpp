@@ -16,6 +16,41 @@
 #include "utility.hpp"
 
 template <typename T>
+void testing_tbsv_bad_arg(const Arguments& arg)
+{
+    const rocblas_int       N      = 100;
+    const rocblas_int       K      = 5;
+    const rocblas_int       lda    = 100;
+    const rocblas_int       incx   = 1;
+    const rocblas_operation transA = rocblas_operation_none;
+    const rocblas_fill      uplo   = rocblas_fill_lower;
+    const rocblas_diagonal  diag   = rocblas_diagonal_non_unit;
+
+    rocblas_local_handle handle;
+
+    size_t size_A = lda * size_t(N);
+    size_t size_x = N * size_t(incx);
+
+    device_vector<T> dA(size_A);
+    device_vector<T> dx(size_x);
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+
+    //
+    // Checks.
+    //
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_tbsv<T>(handle, rocblas_fill_full, transA, diag, N, K, dA, lda, dx, incx),
+        rocblas_status_invalid_value);
+    EXPECT_ROCBLAS_STATUS(rocblas_tbsv<T>(handle, uplo, transA, diag, N, K, nullptr, lda, dx, incx),
+                          rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS(rocblas_tbsv<T>(handle, uplo, transA, diag, N, K, dA, lda, nullptr, incx),
+                          rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS(rocblas_tbsv<T>(nullptr, uplo, transA, diag, N, K, dA, lda, dx, incx),
+                          rocblas_status_invalid_handle);
+}
+
+template <typename T>
 void testing_tbsv(const Arguments& arg)
 {
     rocblas_int N           = arg.N;

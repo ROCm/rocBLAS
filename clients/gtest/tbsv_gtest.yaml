@@ -43,6 +43,14 @@ Definitions:
     diag: [N, U]
 
 Tests:
+- name: tbsv_bad_arg
+  category: pre_checkin
+  function: tbsv_bad_arg
+  precision: *single_double_precisions_complex_real
+  uplo: [ L ]
+  transA: [ N ]
+  diag: [ N ]
+
 - name: tbsv_small
   category: quick
   function: tbsv
@@ -63,6 +71,14 @@ Tests:
   arguments: *common_args
   matrix_size: *large_matrix_size_range
   incx: [ -1, 0, 1, 2, 3 ]
+
+- name: tbsv_batched_bad_arg
+  category: pre_checkin
+  function: tbsv_batched_bad_arg
+  precision: *single_double_precisions_complex_real
+  uplo: [ L ]
+  transA: [ N ]
+  diag: [ N ]
 
 - name: tbsv_batched_small
   category: quick
@@ -88,6 +104,14 @@ Tests:
   matrix_size: *large_matrix_size_range
   incx: [ -1, 0, 1, 2, 3 ]
   batch_count: [ 1, 3 ]
+
+- name: tbsv_strided_batched_bad_arg
+  category: pre_checkin
+  function: tbsv_strided_batched_bad_arg
+  precision: *single_double_precisions_complex_real
+  uplo: [ L ]
+  transA: [ N ]
+  diag: [ N ]
 
 - name: tbsv_strided_batched_small
   category: quick

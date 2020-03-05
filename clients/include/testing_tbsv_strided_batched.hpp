@@ -16,6 +16,81 @@
 #include "utility.hpp"
 
 template <typename T>
+void testing_tbsv_strided_batched_bad_arg(const Arguments& arg)
+{
+    const rocblas_int       N           = 100;
+    const rocblas_int       K           = 5;
+    const rocblas_int       lda         = 100;
+    const rocblas_stride    stride_a    = size_t(N) * lda;
+    const rocblas_int       incx        = 1;
+    const rocblas_stride    stride_x    = size_t(N) * incx;
+    const rocblas_int       batch_count = 5;
+    const rocblas_operation transA      = rocblas_operation_none;
+    const rocblas_fill      uplo        = rocblas_fill_lower;
+    const rocblas_diagonal  diag        = rocblas_diagonal_non_unit;
+
+    rocblas_local_handle handle;
+
+    size_t size_A = lda * size_t(N);
+    size_t size_x = N * size_t(incx);
+
+    device_strided_batch_vector<T> dA(size_A, 1, stride_a, batch_count);
+    device_strided_batch_vector<T> dx(N, incx, stride_x, batch_count);
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+
+    //
+    // Checks.
+    //
+    EXPECT_ROCBLAS_STATUS(rocblas_tbsv_strided_batched<T>(handle,
+                                                          rocblas_fill_full,
+                                                          transA,
+                                                          diag,
+                                                          N,
+                                                          K,
+                                                          dA,
+                                                          lda,
+                                                          stride_a,
+                                                          dx,
+                                                          incx,
+                                                          stride_x,
+                                                          batch_count),
+                          rocblas_status_invalid_value);
+    EXPECT_ROCBLAS_STATUS(rocblas_tbsv_strided_batched<T>(handle,
+                                                          uplo,
+                                                          transA,
+                                                          diag,
+                                                          N,
+                                                          K,
+                                                          nullptr,
+                                                          lda,
+                                                          stride_a,
+                                                          dx,
+                                                          incx,
+                                                          stride_x,
+                                                          batch_count),
+                          rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS(rocblas_tbsv_strided_batched<T>(handle,
+                                                          uplo,
+                                                          transA,
+                                                          diag,
+                                                          N,
+                                                          K,
+                                                          dA,
+                                                          lda,
+                                                          stride_a,
+                                                          nullptr,
+                                                          incx,
+                                                          stride_x,
+                                                          batch_count),
+                          rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_tbsv_strided_batched<T>(
+            nullptr, uplo, transA, diag, N, K, dA, lda, stride_a, dx, incx, stride_x, batch_count),
+        rocblas_status_invalid_handle);
+}
+
+template <typename T>
 void testing_tbsv_strided_batched(const Arguments& arg)
 {
     rocblas_int N           = arg.N;

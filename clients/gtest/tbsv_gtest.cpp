@@ -44,10 +44,16 @@ namespace
         {
             if(!strcmp(arg.function, "tbsv"))
                 testing_tbsv<T>(arg);
+            else if(!strcmp(arg.function, "tbsv_bad_arg"))
+                testing_tbsv_bad_arg<T>(arg);
             else if(!strcmp(arg.function, "tbsv_batched"))
                 testing_tbsv_batched<T>(arg);
+            else if(!strcmp(arg.function, "tbsv_batched_bad_arg"))
+                testing_tbsv_batched_bad_arg<T>(arg);
             else if(!strcmp(arg.function, "tbsv_strided_batched"))
                 testing_tbsv_strided_batched<T>(arg);
+            else if(!strcmp(arg.function, "tbsv_strided_bathced_bad_arg"))
+                testing_tbsv_strided_batched_bad_arg<T>(arg);
             else
                 FAIL() << "Internal error: Test called with unknown function: " << arg.function;
         }
@@ -68,11 +74,13 @@ namespace
             switch(TBSV_TYPE)
             {
             case TBSV:
-                return !strcmp(arg.function, "tbsv");
+                return !strcmp(arg.function, "tbsv") || !strcmp(arg.function, "tbsv_bad_arg");
             case TBSV_BATCHED:
-                return !strcmp(arg.function, "tbsv_batched");
+                return !strcmp(arg.function, "tbsv_batched")
+                       || !strcmp(arg.function, "tbsv_batched_bad_arg");
             case TBSV_STRIDED_BATCHED:
-                return !strcmp(arg.function, "tbsv_strided_batched");
+                return !strcmp(arg.function, "tbsv_strided_batched")
+                       || !strcmp(arg.function, "tbsv_strided_batched_bad_arg");
             }
             return false;
         }
@@ -81,9 +89,13 @@ namespace
         static std::string name_suffix(const Arguments& arg)
         {
             RocBLAS_TestName<tbsv_template> name;
-            name << rocblas_datatype2string(arg.a_type) << '_' << (char)std::toupper(arg.uplo)
-                 << (char)std::toupper(arg.transA) << (char)std::toupper(arg.diag) << '_' << arg.N
-                 << '_' << arg.K << '_' << arg.lda;
+            name << rocblas_datatype2string(arg.a_type);
+
+            if(strstr(arg.function, "_bad_arg") != nullptr)
+                name << "_bad_arg";
+
+            name << (char)std::toupper(arg.uplo) << (char)std::toupper(arg.transA)
+                 << (char)std::toupper(arg.diag) << '_' << arg.N << '_' << arg.K << '_' << arg.lda;
 
             if(TBSV_TYPE == TBSV_STRIDED_BATCHED)
                 name << '_' << arg.stride_a;

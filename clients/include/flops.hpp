@@ -255,22 +255,21 @@ constexpr double hpr2_gflop_count(rocblas_int n)
 template <typename T>
 constexpr double tbsv_gflop_count(rocblas_int n, rocblas_int k)
 {
-    // TODO: This.
-    return 0.0;
+    rocblas_int k1 = std::min(k, n);
+    return ((2.0 * n * k1 - k1 * (k1 + 1)) + n) / 1e9;
 }
 
 template <>
 constexpr double tbsv_gflop_count<rocblas_float_complex>(rocblas_int n, rocblas_int k)
 {
-    // TODO: This.
-    return 0.0;
+    rocblas_int k1 = std::min(k, n);
+    return (4.0 * (2.0 * n * k1 - k1 * (k1 + 1)) + 4.0 * n) / 1e9;
 }
 
 template <>
 constexpr double tbsv_gflop_count<rocblas_double_complex>(rocblas_int n, rocblas_int k)
 {
-    // TODO: This.
-    return 0.0;
+    return tbsv_gflop_count<rocblas_float_complex>(n, k);
 }
 
 /* \brief floating point counts of TRSV */

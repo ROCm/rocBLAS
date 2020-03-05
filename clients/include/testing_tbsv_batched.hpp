@@ -16,6 +16,65 @@
 #include "utility.hpp"
 
 template <typename T>
+void testing_tbsv_batched_bad_arg(const Arguments& arg)
+{
+    const rocblas_int       N           = 100;
+    const rocblas_int       K           = 5;
+    const rocblas_int       lda         = 100;
+    const rocblas_int       incx        = 1;
+    const rocblas_int       batch_count = 5;
+    const rocblas_operation transA      = rocblas_operation_none;
+    const rocblas_fill      uplo        = rocblas_fill_lower;
+    const rocblas_diagonal  diag        = rocblas_diagonal_non_unit;
+
+    rocblas_local_handle handle;
+
+    size_t size_A = lda * size_t(N);
+    size_t size_x = N * size_t(incx);
+
+    device_batch_vector<T> dA(size_A, 1, batch_count);
+    device_batch_vector<T> dx(N, incx, batch_count);
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+
+    //
+    // Checks.
+    //
+    EXPECT_ROCBLAS_STATUS(rocblas_tbsv_batched<T>(handle,
+                                                  rocblas_fill_full,
+                                                  transA,
+                                                  diag,
+                                                  N,
+                                                  K,
+                                                  dA.ptr_on_device(),
+                                                  lda,
+                                                  dx.ptr_on_device(),
+                                                  incx,
+                                                  batch_count),
+                          rocblas_status_invalid_value);
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_tbsv_batched<T>(
+            handle, uplo, transA, diag, N, K, nullptr, lda, dx.ptr_on_device(), incx, batch_count),
+        rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_tbsv_batched<T>(
+            handle, uplo, transA, diag, N, K, dA.ptr_on_device(), lda, nullptr, incx, batch_count),
+        rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS(rocblas_tbsv_batched<T>(nullptr,
+                                                  uplo,
+                                                  transA,
+                                                  diag,
+                                                  N,
+                                                  K,
+                                                  dA.ptr_on_device(),
+                                                  lda,
+                                                  dx.ptr_on_device(),
+                                                  incx,
+                                                  batch_count),
+                          rocblas_status_invalid_handle);
+}
+
+template <typename T>
 void testing_tbsv_batched(const Arguments& arg)
 {
     rocblas_int N           = arg.N;
