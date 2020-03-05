@@ -52,7 +52,7 @@ namespace
                 testing_tbsv_batched_bad_arg<T>(arg);
             else if(!strcmp(arg.function, "tbsv_strided_batched"))
                 testing_tbsv_strided_batched<T>(arg);
-            else if(!strcmp(arg.function, "tbsv_strided_bathced_bad_arg"))
+            else if(!strcmp(arg.function, "tbsv_strided_batched_bad_arg"))
                 testing_tbsv_strided_batched_bad_arg<T>(arg);
             else
                 FAIL() << "Internal error: Test called with unknown function: " << arg.function;
@@ -94,7 +94,7 @@ namespace
             if(strstr(arg.function, "_bad_arg") != nullptr)
                 name << "_bad_arg";
 
-            name << (char)std::toupper(arg.uplo) << (char)std::toupper(arg.transA)
+            name << '_' << (char)std::toupper(arg.uplo) << (char)std::toupper(arg.transA)
                  << (char)std::toupper(arg.diag) << '_' << arg.N << '_' << arg.K << '_' << arg.lda;
 
             if(TBSV_TYPE == TBSV_STRIDED_BATCHED)

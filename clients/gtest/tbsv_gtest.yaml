@@ -27,7 +27,6 @@ Definitions:
     - { N:   192, K:  32, lda: 192 }
     - { N:   256, K:  64, lda:  64 }
     - { N:   384, K:   5, lda: 384 }
-    - { N:   600, K: 500, lda: 600 }
     - { N:   800, K: 500, lda: 801 }
 
   - &large_matrix_size_range
@@ -63,14 +62,14 @@ Tests:
   function: tbsv
   arguments: *common_args
   matrix_size: *medium_matrix_size_range
-  incx: [ -2, -1, 0, 1, 2, 3, 10 ]
+  incx: [ 1 ]
 
 - name: tbsv_large
   category: nightly
   function: tbsv
   arguments: *common_args
   matrix_size: *large_matrix_size_range
-  incx: [ -1, 0, 1, 2, 3 ]
+  incx: [ 1 ]
 
 - name: tbsv_batched_bad_arg
   category: pre_checkin
@@ -86,24 +85,23 @@ Tests:
   arguments: *common_args
   matrix_size: *small_matrix_size_range
   incx: [ -3, -2, -1, 0, 1, 2, 3, 10, 100 ]
-  stride_scale: [ 1, 10, 100 ]
-  batch_count: [ -5, 0, 1, 3, 5 ]
+  batch_count: [ -5, 0, 1, 3 ]
 
 - name: tbsv_batched_medium
   category: pre_checkin
   function: tbsv_batched
   arguments: *common_args
   matrix_size: *medium_matrix_size_range
-  incx: [ -2, -1, 0, 1, 2, 3, 10 ]
-  batch_count: [ 1, 3 ]
+  incx: [ 1 ]
+  batch_count: [ 3 ]
 
 - name: tbsv_batched_large
   category: nightly
   function: tbsv_batched
   arguments: *common_args
   matrix_size: *large_matrix_size_range
-  incx: [ -1, 0, 1, 2, 3 ]
-  batch_count: [ 1, 3 ]
+  incx: [ 1 ]
+  batch_count: [ 3 ]
 
 - name: tbsv_strided_batched_bad_arg
   category: pre_checkin
@@ -118,26 +116,25 @@ Tests:
   function: tbsv_strided_batched
   arguments: *common_args
   matrix_size: *small_matrix_size_range
-  incx: [ -3, -2, -1, 0, 1, 2, 3, 10, 100 ]
+  incx: [ -3, 0, 1, 100 ]
   stride_scale: [ 1, 10, 100 ]
-  batch_count: [ -5, 0, 1, 3, 5 ]
+  batch_count: [ -5, 0, 1, 3 ]
 
 - name: tbsv_strided_batched_medium
   category: pre_checkin
   function: tbsv_strided_batched
   arguments: *common_args
   matrix_size: *medium_matrix_size_range
-  incx: [ -2, -1, 0, 1, 2, 3, 10 ]
   incx: [ 1 ]
   stride_scale: [ 1 ]
-  batch_count: [ 1, 3 ]
+  batch_count: [ 3 ]
 
 - name: tbsv_strided_batched_large
   category: nightly
   function: tbsv_strided_batched
   arguments: *common_args
   matrix_size: *large_matrix_size_range
-  incx: [ -1, 0, 1, 2, 3 ]
+  incx: [ 1 ]
   stride_scale: [ 1 ]
-  batch_count: [ 1, 3 ]
+  batch_count: [ 3 ]
 ...
