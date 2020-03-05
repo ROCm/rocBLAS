@@ -13,7 +13,7 @@
 
 namespace
 {
-    inline rocblas_int
+    __device__ inline rocblas_int
         packed_matrix_index(bool upper, bool trans, rocblas_int n, rocblas_int row, rocblas_int col)
     {
         return upper ? (trans ? ((row * (row + 1) / 2) + col) : ((col * (col + 1) / 2) + row))
