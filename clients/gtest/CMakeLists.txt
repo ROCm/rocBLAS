@@ -142,7 +142,7 @@ set( BLIS_LIBRARY ${CMAKE_SOURCE_DIR}/build/deps/blis/lib/libblis.so )
 if( OS_ID_rhel OR OS_ID_sles OR OS_ID_centos)
     if( OS_ID_rhel OR OS_ID_centos)
         if( CXX_VERSION_STRING MATCHES "clang")
-	    set( OPENMP_INCLUDE_DIR /opt/rh/devtoolset-7/root/usr/lib/gcc/x86_64-redhat-linux/7/include )
+           set( OPENMP_INCLUDE_DIR /opt/rh/devtoolset-7/root/usr/lib/gcc/x86_64-redhat-linux/7/include )
         endif()
         # defer OpenMP include as search order must come after clang
         set( XXX_OPENMP_INCLUDE_DIR /opt/rh/devtoolset-7/root/usr/lib/gcc/x86_64-redhat-linux/7/include )
@@ -198,8 +198,6 @@ else()
     endif()
 endif()
 
-get_target_property( HIPHCC_LOCATION hip::hip_hcc IMPORTED_LOCATION_RELEASE )
-
 if( CUDA_FOUND )
   target_include_directories( rocblas-test
     PRIVATE
@@ -211,7 +209,7 @@ if( CUDA_FOUND )
 else( )
   # auto set in hip_common.h
   #target_compile_definitions( rocblas-test PRIVATE __HIP_PLATFORM_HCC__ )
-  target_link_libraries( rocblas-test PRIVATE ${HIPHCC_LOCATION})
+  target_link_libraries( rocblas-test PRIVATE hip::device )
 endif( )
 
 set( ROCBLAS_TEST_DATA "${PROJECT_BINARY_DIR}/staging/rocblas_gtest.data")
