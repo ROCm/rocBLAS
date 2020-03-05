@@ -13,13 +13,13 @@
 
 namespace
 {
-    rocblas_int banded_matrix_index(bool        upper,
-                                    bool        trans,
-                                    rocblas_int n,
-                                    rocblas_int lda,
-                                    rocblas_int k,
-                                    rocblas_int row,
-                                    rocblas_int col)
+    __device__ inline rocblas_int banded_matrix_index(bool        upper,
+                                                      bool        trans,
+                                                      rocblas_int n,
+                                                      rocblas_int lda,
+                                                      rocblas_int k,
+                                                      rocblas_int row,
+                                                      rocblas_int col)
     {
         return upper ? (trans ? ((row * lda + col + (k - row))) : (col * lda + row + (k - col)))
                      : (trans ? ((row * lda + (col - row))) : (col * lda + (row - col)));
