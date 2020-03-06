@@ -9342,7 +9342,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zhemm_batched(rocblas_handle              
               stride from the start of one matrix (A_i) and the next one (A_i+1)
 
     @param[in]
-    B       device pointer to first matrix B_1 of dimension (ldb, n) on the GPU.
+    B       device pointer to first matrix B_1 of dimension (ldb, n) on the GPU
 
     @param[in]
     ldb     [rocblas_int]
@@ -9353,6 +9353,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zhemm_batched(rocblas_handle              
     @param[in]
     stride_B  [rocblas_stride]
               stride from the start of one matrix (B_i) and the next one (B_i+1)
+
     @param[in]
     beta
             beta specifies the scalar beta. When beta is
@@ -9363,13 +9364,15 @@ ROCBLAS_EXPORT rocblas_status rocblas_zhemm_batched(rocblas_handle              
 
     @param[in]
     ldc    [rocblas_int]
-           ldc specifies the first dimension of C. ldc >= max( 1, m ).
+           ldc specifies the first dimension of C. ldc >= max( 1, m )
+
     @param[inout]
     stride_C  [rocblas_stride]
               stride from the start of one matrix (C_i) and the next one (C_i+1)
+
     @param[in]
     batch_count [rocblas_int]
-                number of instances in the batch.
+                number of instances in the batch
 
     ********************************************************************/
 
@@ -10726,9 +10729,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsymm_batched(rocblas_handle              
 
     @param[in]
     ldb     [rocblas_int]
-            ldb specifies the first dimension of B_i.
-            if side = rocblas_operation_none,  ldb >= max( 1, m ),
-            otherwise ldb >= max( 1, n ).
+            ldb specifies the first dimension of B_i. ldb >= max( 1, m )
 
     @param[in]
     stride_B  [rocblas_stride]
@@ -10744,9 +10745,11 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsymm_batched(rocblas_handle              
     @param[in]
     ldc    [rocblas_int]
            ldc specifies the first dimension of C. ldc >= max( 1, m ).
+
     @param[inout]
     stride_C  [rocblas_stride]
               stride from the start of one matrix (C_i) and the next one (C_i+1)
+
     @param[in]
     batch_count [rocblas_int]
                 number of instances in the batch.
