@@ -77,10 +77,17 @@ void testing_tbsv(const Arguments& arg)
             rocblas_status_invalid_size);
         return;
     }
+    if(N == 0)
+    {
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+        CHECK_ROCBLAS_ERROR(
+            rocblas_tbsv<T>(handle, uplo, transA, diag, N, K, nullptr, lda, nullptr, incx));
+        return;
+    }
 
     // size_A is N*N since lda might be < N.
-    size_t size_A   = size_t(N) * size_t(N);
-    size_t size_AB  = size_t(lda) * size_t(N);
+    size_t size_A   = size_t(N) * N;
+    size_t size_AB  = size_t(lda) * N;
     size_t abs_incx = size_t(incx >= 0 ? incx : -incx);
     size_t size_x   = N * abs_incx;
 

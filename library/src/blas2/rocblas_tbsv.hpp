@@ -13,23 +13,19 @@
 
 namespace
 {
-    __device__ inline rocblas_int banded_matrix_index(bool        upper,
-                                                      bool        trans,
-                                                      rocblas_int n,
-                                                      rocblas_int lda,
-                                                      rocblas_int k,
-                                                      rocblas_int row,
-                                                      rocblas_int col)
+    template <bool UPPER, bool TRANS>
+    __device__ inline rocblas_int banded_matrix_index(
+        rocblas_int n, rocblas_int lda, rocblas_int k, rocblas_int row, rocblas_int col)
     {
-        return upper ? (trans ? ((row * lda + col + (k - row))) : (col * lda + row + (k - col)))
-                     : (trans ? ((row * lda + (col - row))) : (col * lda + (row - col)));
+        return UPPER ? (TRANS ? ((row * lda + col + (k - row))) : (col * lda + row + (k - col)))
+                     : (TRANS ? ((row * lda + (col - row))) : (col * lda + (row - col)));
     }
 
     // Uses forward substitution to solve Ax = b. Used for a non-transposed lower-triangular matrix
     // or a transposed upper-triangular matrix.
-    template <bool CONJ, rocblas_int BLK_SIZE, typename T>
+    template <bool CONJ, bool TRANS, rocblas_int BLK_SIZE, typename T>
     __device__ void tbsv_forward_substitution_calc(
-        bool diag, bool trans, int n, int k, const T* A, rocblas_int lda, T* x, rocblas_int incx)
+        bool diag, int n, int k, const T* A, rocblas_int lda, T* x, rocblas_int incx)
     {
         __shared__ T xshared[BLK_SIZE];
         int          tx = threadIdx.x;
@@ -56,7 +52,7 @@ namespace
                 {
                     rocblas_int colA   = j + i;
                     rocblas_int rowA   = j + i;
-                    rocblas_int indexA = banded_matrix_index(trans, trans, n, lda, k, rowA, colA);
+                    rocblas_int indexA = banded_matrix_index<TRANS, TRANS>(n, lda, k, rowA, colA);
                     xshared[tx]        = xshared[tx] / (CONJ ? conj(A[indexA]) : A[indexA]);
                 }
 
@@ -67,7 +63,7 @@ namespace
                 {
                     rocblas_int colA   = j + i;
                     rocblas_int rowA   = tx + i;
-                    rocblas_int indexA = banded_matrix_index(trans, trans, n, lda, k, rowA, colA);
+                    rocblas_int indexA = banded_matrix_index<TRANS, TRANS>(n, lda, k, rowA, colA);
 
                     // Ensure row is in range, and subtract
                     if(rowA < n && colA >= rowA - k)
@@ -90,7 +86,7 @@ namespace
                 {
                     rocblas_int colA   = i + p;
                     rocblas_int rowA   = tx + j;
-                    rocblas_int indexA = banded_matrix_index(trans, trans, n, lda, k, rowA, colA);
+                    rocblas_int indexA = banded_matrix_index<TRANS, TRANS>(n, lda, k, rowA, colA);
 
                     if(diag && colA == rowA)
                         val += xshared[p];
@@ -111,9 +107,9 @@ namespace
 
     // Uses backward substitution to solve Ax = b. Used for a non-transposed upper-triangular matrix
     // or a transposed lower-triangular matrix.
-    template <bool CONJ, rocblas_int BLK_SIZE, typename T>
+    template <bool CONJ, bool TRANS, rocblas_int BLK_SIZE, typename T>
     __device__ void tbsv_backward_substitution_calc(
-        bool diag, bool trans, int n, int k, const T* A, rocblas_int lda, T* x, rocblas_int incx)
+        bool diag, int n, int k, const T* A, rocblas_int lda, T* x, rocblas_int incx)
     {
         __shared__ T xshared[BLK_SIZE];
         int          tx = threadIdx.x;
@@ -140,7 +136,7 @@ namespace
                 {
                     rocblas_int colA   = j + i;
                     rocblas_int rowA   = j + i;
-                    rocblas_int indexA = banded_matrix_index(!trans, trans, n, lda, k, rowA, colA);
+                    rocblas_int indexA = banded_matrix_index<!TRANS, TRANS>(n, lda, k, rowA, colA);
                     xshared[tx]        = xshared[tx] / (CONJ ? conj(A[indexA]) : A[indexA]);
                 }
 
@@ -151,7 +147,7 @@ namespace
                 {
                     rocblas_int colA   = j + i;
                     rocblas_int rowA   = tx + i;
-                    rocblas_int indexA = banded_matrix_index(!trans, trans, n, lda, k, rowA, colA);
+                    rocblas_int indexA = banded_matrix_index<!TRANS, TRANS>(n, lda, k, rowA, colA);
 
                     // Ensure row is in range, and subtract
                     if(rowA >= 0 && colA <= rowA + k)
@@ -174,7 +170,7 @@ namespace
                 {
                     rocblas_int colA   = i + p;
                     rocblas_int rowA   = tx + j;
-                    rocblas_int indexA = banded_matrix_index(!trans, trans, n, lda, k, rowA, colA);
+                    rocblas_int indexA = banded_matrix_index<!TRANS, TRANS>(n, lda, k, rowA, colA);
 
                     if(diag && colA == rowA)
                         val += xshared[p];
@@ -226,16 +222,16 @@ namespace
         if(transA == rocblas_operation_none)
         {
             if(uplo == rocblas_fill_upper)
-                tbsv_backward_substitution_calc<false, BLK_SIZE>(
-                    is_diag, false, n, k, A, lda, x, incx);
+                tbsv_backward_substitution_calc<false, false, BLK_SIZE>(
+                    is_diag, n, k, A, lda, x, incx);
             else
-                tbsv_forward_substitution_calc<false, BLK_SIZE>(
-                    is_diag, false, n, k, A, lda, x, incx);
+                tbsv_forward_substitution_calc<false, false, BLK_SIZE>(
+                    is_diag, n, k, A, lda, x, incx);
         }
         else if(uplo == rocblas_fill_upper)
-            tbsv_forward_substitution_calc<CONJ, BLK_SIZE>(is_diag, true, n, k, A, lda, x, incx);
+            tbsv_forward_substitution_calc<CONJ, true, BLK_SIZE>(is_diag, n, k, A, lda, x, incx);
         else
-            tbsv_backward_substitution_calc<CONJ, BLK_SIZE>(is_diag, true, n, k, A, lda, x, incx);
+            tbsv_backward_substitution_calc<CONJ, true, BLK_SIZE>(is_diag, n, k, A, lda, x, incx);
     }
 
     template <rocblas_int BLOCK, typename TConstPtr, typename TPtr>

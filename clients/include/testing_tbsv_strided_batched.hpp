@@ -146,6 +146,24 @@ void testing_tbsv_strided_batched(const Arguments& arg)
                                   rocblas_status_invalid_size);
         return;
     }
+    if(N == 0)
+    {
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+        CHECK_ROCBLAS_ERROR(rocblas_tbsv_strided_batched<T>(handle,
+                                                            uplo,
+                                                            transA,
+                                                            diag,
+                                                            N,
+                                                            K,
+                                                            nullptr,
+                                                            lda,
+                                                            stride_a,
+                                                            nullptr,
+                                                            incx,
+                                                            stride_x,
+                                                            batch_count));
+        return;
+    }
 
     size_t size_A   = N * size_t(N);
     size_t size_AB  = lda * size_t(N);

@@ -6216,8 +6216,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztbmv_strided_batched(rocblas_handle      
 
     where x and b are vectors and A is a banded triangular matrix.
 
-    The input vector b is overwritten by the output vector x.
-
     @param[in]
     handle    [rocblas_handle]
               handle to the rocblas library context queue.
@@ -6259,7 +6257,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztbmv_strided_batched(rocblas_handle      
               lda >= (k + 1).
 
     @param[inout]
-    x         device pointer storing vector x.
+    x         device pointer storing input vector b. Overwritten by the output vector x.
 
     @param[in]
     incx      [rocblas_int]
@@ -6363,8 +6361,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztbsv(rocblas_handle                handle
               lda >= (k + 1).
 
     @param[inout]
-    x         device vector of device pointers storing each vector x_i.
-
+    x         device vector of device pointers storing each input vector b_i. Overwritten by each output
+              vector x_i.
     @param[in]
     incx      [rocblas_int]
               specifies the increment for the elements of each x_i.
@@ -6477,8 +6475,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztbsv_batched(rocblas_handle              
               specifies the distance between the start of one matrix (A_i) and the next (A_i+1).
 
     @param[inout]
-    x         device pointer pointing to the first vector x_1.
-
+    x         device pointer pointing to the first input vector b_1. Overwritten by output vectors x.
     @param[in]
     incx      [rocblas_int]
               specifies the increment for the elements of each x_i.

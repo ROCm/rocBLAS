@@ -6,6 +6,8 @@ Definitions:
   - &small_matrix_size_range
       # invalid size
     - { N:    -1, K:  1, lda:    1 }
+    - { N:     0, K:  1, lda:    1 }
+    - { N:     0, K: -1, lda:    1 }
     - { N:     1, K: -1, lda:    1 }
     - { N:     5, K: 10, lda:    7 }
 
@@ -17,6 +19,7 @@ Definitions:
     - { N:    10, K:  5, lda:    7 }
 
       # Others
+    - { N:     0, K:   5, lda:  10 }
     - { N:     4, K:   2, lda:   4 }
     - { N:    10, K:   1, lda:  20 }
     - { N:    10, K:   9, lda:  10 }
@@ -25,14 +28,14 @@ Definitions:
 
   - &medium_matrix_size_range
     - { N:   192, K:  32, lda: 192 }
-    - { N:   256, K:  64, lda:  64 }
+    - { N:   256, K:  64, lda:  65 }
     - { N:   384, K:   5, lda: 384 }
     - { N:   800, K: 500, lda: 801 }
 
   - &large_matrix_size_range
     - { N:   640, K:  512, lda:  960 }
-    - { N:  1000, K:  512, lda:  512 }
-    - { N:  1024, K: 1024, lda: 1024 }
+    - { N:  1000, K:  511, lda:  512 }
+    - { N:  1024, K: 1024, lda: 1025 }
     - { N:  2000, K:  256, lda: 1000 }
 
   - &common_args
