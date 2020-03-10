@@ -48,24 +48,37 @@ class rocblas_ostream
      **************************************************************************/
     class worker
     {
-        // Task represents a payload of data and a promise to finish
-        class task : public std::string
+        // task_t represents a payload of data and a promise to finish
+        class task_t
         {
-            std::promise<void>& promise;
+            std::string        str;
+            std::promise<void> promise;
 
         public:
-            task(std::string&& str, std::promise<void>&& promise)
-                : std::string(std::move(str))
-                , promise(promise)
+            task_t(std::string&& str, std::promise<void>&& promise)
+                : str(std::move(str))
+                , promise(std::move(promise))
             {
             }
+
             void set_value_at_thread_exit()
             {
                 promise.set_value_at_thread_exit();
             }
+
             void set_value()
             {
                 promise.set_value();
+            }
+
+            size_t size() const
+            {
+                return str.size();
+            }
+
+            const char* data() const
+            {
+                return str.data();
             }
         };
 
@@ -82,7 +95,7 @@ class rocblas_ostream
         std::mutex mutex;
 
         // Queue of strings to be logged
-        std::queue<task> queue;
+        std::queue<task_t> queue;
 
         // Worker thread which waits for strings to log
         void thread_function();
@@ -240,13 +253,15 @@ public:
 
     // Floating-point output
     friend rocblas_ostream& operator<<(rocblas_ostream& os, double x);
+
     friend rocblas_ostream& operator<<(rocblas_ostream& os, rocblas_half half)
     {
-        return os << double(half);
+        return os << float(half);
     }
+
     friend rocblas_ostream& operator<<(rocblas_ostream& os, rocblas_bfloat16 bf16)
     {
-        return os << double(bf16);
+        return os << float(bf16);
     }
 
     // Integer output
