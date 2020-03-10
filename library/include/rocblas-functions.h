@@ -9119,7 +9119,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyr2_strided_batched(rocblas_handle      
     A       pointer storing matrix A on the GPU.
             A is m by m if side == rocblas_side_left
             A is n by n if side == rocblas_side_right
-            only the upper/lower triangular part is accessed.
+            Only the upper/lower triangular part is accessed.
+            The imaginary component of the diagonal elements is not used.
 
     @param[in]
     lda     [rocblas_int]
@@ -9221,7 +9222,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_zhemm(rocblas_handle                handle
     A       device array of device pointers storing each matrix A_i on the GPU.
             A_i is m by m if side == rocblas_side_left
             A_i is n by n if side == rocblas_side_right
-            only the upper/lower triangular part is accessed.
+            Only the upper/lower triangular part is accessed.
+            The imaginary component of the diagonal elements is not used.
 
     @param[in]
     lda     [rocblas_int]
@@ -9329,7 +9331,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_zhemm_batched(rocblas_handle              
     A       device pointer to first matrix A_1
             A_i is m by m if side == rocblas_side_left
             A_i is n by n if side == rocblas_side_right
-            only the upper/lower triangular part is accessed.
+            Only the upper/lower triangular part is accessed.
+            The imaginary component of the diagonal elements is not used.
 
     @param[in]
     lda     [rocblas_int]
