@@ -240,11 +240,12 @@ void rocblas_ostream::worker::send(std::string str)
     // Create a promise to wait for the operation to complete
     std::promise<void> promise;
 
-    // The future signal that the operation has completed
+    // The future indicating when the operation has completed
     auto future = promise.get_future();
 
-    // Task consists of string and promise
-    task worker_task(std::move(str), std::move(promise));
+    // task_t consists of string and promise
+    // std::move transfers ownership of str and promise to task
+    task_t worker_task(std::move(str), std::move(promise));
 
     // Submit the task to the worker assigned to this device/inode
     // Hold mutex for as short as possible, to reduce contention
@@ -273,9 +274,12 @@ void rocblas_ostream::worker::thread_function()
         // Wait for any data, ignoring spurious wakeups
         cond.wait(lock, [&] { return !queue.empty(); });
 
-        // With the mutex locked, pop data from the front of queue
-        auto task = std::move(queue.front());
+        // With the mutex locked, get and pop data from the front of queue
+        task_t task = std::move(queue.front());
         queue.pop();
+
+        // Temporarily unlock queue mutex, unblocking other threads
+        lock.unlock();
 
         // An empty message indicates the closing of the stream
         if(!task.size())
@@ -285,21 +289,21 @@ void rocblas_ostream::worker::thread_function()
             break;
         }
 
-        // Temporarily unlock mutex, unblocking other threads
-        lock.unlock();
-
         // Write the data
         fwrite(task.data(), 1, task.size(), file);
-
-        // Promise that the data has been written
-        task.set_value();
 
         // Detect any error and flush the C FILE stream
         if(ferror(file) || fflush(file))
         {
             perror("Error writing log file");
+
+            // Tell future to wake up after thread exits
+            task.set_value_at_thread_exit();
             break;
         }
+
+        // Promise that the data has been written
+        task.set_value();
 
         // Re-lock the mutex in preparation for cond.wait
         lock.lock();
