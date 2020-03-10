@@ -96,7 +96,7 @@ void testing_set_get_matrix(const Arguments& arg)
 
     if(arg.timing)
     {
-        int number_timing_iterations = 1;
+        int number_timing_iterations = arg.iters;
         gpu_time_used                = get_time_us(); // in microseconds
 
         for(int iter = 0; iter < number_timing_iterations; iter++)

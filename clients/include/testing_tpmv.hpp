@@ -160,7 +160,7 @@ void testing_tpmv(const Arguments& arg)
         // Warmup
         //
         {
-            int number_cold_calls = 2;
+            int number_cold_calls = arg.cold_iters;
             for(int iter = 0; iter < number_cold_calls; iter++)
             {
                 rocblas_tpmv<T>(handle, uplo, transA, diag, M, dA, dx, incx);

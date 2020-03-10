@@ -201,7 +201,7 @@ void testing_trmv_batched(const Arguments& arg)
         // Warmup
         //
         {
-            int number_cold_calls = 2;
+            int number_cold_calls = arg.cold_iters;
             for(int iter = 0; iter < number_cold_calls; iter++)
             {
                 rocblas_trmv_batched<T>(handle,
