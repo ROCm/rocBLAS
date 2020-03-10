@@ -889,6 +889,110 @@ inline void cblas_tbmv(rocblas_fill            uplo,
                 incx);
 }
 
+// tbsv
+template <typename T>
+void cblas_tbsv(rocblas_fill      uplo,
+                rocblas_operation transA,
+                rocblas_diagonal  diag,
+                rocblas_int       n,
+                rocblas_int       k,
+                const T*          A,
+                rocblas_int       lda,
+                T*                x,
+                rocblas_int       incx);
+
+template <>
+inline void cblas_tbsv(rocblas_fill      uplo,
+                       rocblas_operation transA,
+                       rocblas_diagonal  diag,
+                       rocblas_int       n,
+                       rocblas_int       k,
+                       const float*      A,
+                       rocblas_int       lda,
+                       float*            x,
+                       rocblas_int       incx)
+{
+    cblas_stbsv(CblasColMajor,
+                CBLAS_UPLO(uplo),
+                CBLAS_TRANSPOSE(transA),
+                CBLAS_DIAG(diag),
+                n,
+                k,
+                A,
+                lda,
+                x,
+                incx);
+}
+
+template <>
+inline void cblas_tbsv(rocblas_fill      uplo,
+                       rocblas_operation transA,
+                       rocblas_diagonal  diag,
+                       rocblas_int       n,
+                       rocblas_int       k,
+                       const double*     A,
+                       rocblas_int       lda,
+                       double*           x,
+                       rocblas_int       incx)
+{
+    cblas_dtbsv(CblasColMajor,
+                CBLAS_UPLO(uplo),
+                CBLAS_TRANSPOSE(transA),
+                CBLAS_DIAG(diag),
+                n,
+                k,
+                A,
+                lda,
+                x,
+                incx);
+}
+
+template <>
+inline void cblas_tbsv(rocblas_fill                 uplo,
+                       rocblas_operation            transA,
+                       rocblas_diagonal             diag,
+                       rocblas_int                  n,
+                       rocblas_int                  k,
+                       const rocblas_float_complex* A,
+                       rocblas_int                  lda,
+                       rocblas_float_complex*       x,
+                       rocblas_int                  incx)
+{
+    cblas_ctbsv(CblasColMajor,
+                CBLAS_UPLO(uplo),
+                CBLAS_TRANSPOSE(transA),
+                CBLAS_DIAG(diag),
+                n,
+                k,
+                A,
+                lda,
+                x,
+                incx);
+}
+
+template <>
+inline void cblas_tbsv(rocblas_fill                  uplo,
+                       rocblas_operation             transA,
+                       rocblas_diagonal              diag,
+                       rocblas_int                   n,
+                       rocblas_int                   k,
+                       const rocblas_double_complex* A,
+                       rocblas_int                   lda,
+                       rocblas_double_complex*       x,
+                       rocblas_int                   incx)
+{
+    cblas_ztbsv(CblasColMajor,
+                CBLAS_UPLO(uplo),
+                CBLAS_TRANSPOSE(transA),
+                CBLAS_DIAG(diag),
+                n,
+                k,
+                A,
+                lda,
+                x,
+                incx);
+}
+
 // tpsv
 template <typename T>
 void cblas_tpsv(rocblas_fill      uplo,
