@@ -45,19 +45,19 @@ __global__ void dot_kernel_part1(rocblas_int    n,
 // assume workspace has already been allocated, recommened for repeated calling of dot_strided_batched product
 // routine
 template <rocblas_int NB, bool CONJ, typename T, typename U, typename V = T>
-rocblas_status rocblas_dot_template(rocblas_handle __restrict__ handle,
-                                    rocblas_int    n,
-                                    const U        x,
-                                    rocblas_int    offsetx,
-                                    rocblas_int    incx,
-                                    rocblas_stride stridex,
-                                    const U        y,
-                                    rocblas_int    offsety,
-                                    rocblas_int    incy,
-                                    rocblas_stride stridey,
-                                    rocblas_int    batch_count,
-                                    T*             results,
-                                    V*             workspace)
+ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_dot_template(rocblas_handle __restrict__ handle,
+                                                            rocblas_int    n,
+                                                            const U        x,
+                                                            rocblas_int    offsetx,
+                                                            rocblas_int    incx,
+                                                            rocblas_stride stridex,
+                                                            const U        y,
+                                                            rocblas_int    offsety,
+                                                            rocblas_int    incy,
+                                                            rocblas_stride stridey,
+                                                            rocblas_int    batch_count,
+                                                            T*             results,
+                                                            V*             workspace)
 {
     // At least two kernels are needed to finish the reduction
     // kennel 1 write partial results per thread block in workspace, number of partial results is
