@@ -122,10 +122,10 @@ void set_device(rocblas_int device_id)
 /******************************************************************************************
  * Function which matches category with test_category, accounting for known_bug_platforms *
  ******************************************************************************************/
-bool match_test_category(const char* category,
-                         const char* test_category,
-                         const char* known_bug_platforms)
+bool match_test_category(const char* category, const Arguments& arg)
 {
+    const char* test_category = arg.category;
+
     // Prefix for tests matching known bugs, but only on certain platforms
     static constexpr char prefix[] = "known_bug_platforms_";
 
@@ -143,8 +143,10 @@ bool match_test_category(const char* category,
             = "gfx" + std::to_string(_rocblas_handle::device_arch_id());
 
         // Token iterator
-        std::cregex_token_iterator iter(
-            known_bug_platforms, known_bug_platforms + strlen(known_bug_platforms), regex, -1);
+        std::cregex_token_iterator iter(arg.known_bug_platforms,
+                                        arg.known_bug_platforms + strlen(arg.known_bug_platforms),
+                                        regex,
+                                        -1);
 
         // Iterate across tokens
         for(; iter != std::cregex_token_iterator(); ++iter)
@@ -156,6 +158,8 @@ bool match_test_category(const char* category,
                 break;
             }
         }
+
+        strcpy(arg.category, test_category);
     }
 
     // Return whether test_category matches the requested category
