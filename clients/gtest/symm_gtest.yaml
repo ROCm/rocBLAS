@@ -1,0 +1,141 @@
+---
+include: rocblas_common.yaml
+include: known_bugs.yaml
+
+Definitions:
+  - &quick_matrix_size_range
+    - { M:  -1,  N:  1,  lda:  1,  ldb: 1,  ldc:  1 } # bad n
+    - { M:   2,  N: -1,  lda:  2,  ldb: 2,  ldc:  1 } # bad k
+    - { M:   0,  N:  3,  lda:  3,  ldb: 3,  ldc:  3 } # n==0
+    - { M:   3,  N:  0,  lda:  3,  ldb: 3,  ldc:  3 } # k==0
+    - { M:   3,  N:  3,  lda:  1,  ldb: 3,  ldc:  3 } # bad lda
+    - { M:   1,  N:  3,  lda:  1,  ldb: 3,  ldc:  3 } # bad lda if right
+    - { M:   3,  N:  3,  lda:  3,  ldb: 1,  ldc:  3 } # bad ldb
+    - { M:   3,  N:  3,  lda:  3,  ldb: 3,  ldc:  1 } # bad ldc
+
+  - &alpha_beta_quick_range
+    - { alpha:  0.0, alphai:  0.0, beta:  1.0, betai: 0.0 } # quick success
+    - { alpha:  0.0, alphai:  0.0, beta:  2.0, betai: 0.5 } # scale step only
+
+  - &medium_matrix_size_range
+    - { M:    12, N:   33,  lda:   33,  ldb: 33,   ldc: 33 }
+    - { M:    88, N:  100,  lda:  200,  ldb:  88,  ldc: 88 }
+    - { M:   199, N:  290,  lda:  290,  ldb: 290,  ldc: 200 }
+
+  - &large_matrix_size_range
+    - { M:  2011, N:  253,  lda:  2011, ldb: 2011, ldc: 2048 }
+    - { M:  1024, N:  1200, lda:  1200, ldb: 1200, ldc: 1024 }
+
+  - &alpha_beta_range
+    - { alpha:  1.5, alphai:  1.5, beta:  2.0, betai: 0.0 }
+    - { alpha: -2.0, alphai:  1.0, beta: -1.0, betai: 0.5 }
+
+Tests:
+- name: symm_bad
+  category: pre_checkin
+  function: symm_bad_arg
+  precision: *single_precision
+
+- name: symm_quick
+  category: quick
+  function: symm
+  precision: *single_precision
+  uplo: [ U ]
+  side: [ L, R ]
+  matrix_size: *quick_matrix_size_range
+  alpha: [ 0, 1 ]
+  beta: [ 0, 1 ]
+
+- name: symm_medium
+  category: pre_checkin
+  function: symm
+  precision: *single_double_precisions_complex_real
+  uplo: [ U, L ]
+  side: [ L, R ]
+  matrix_size: *medium_matrix_size_range
+  alpha_beta: *alpha_beta_range
+
+- name: symm_large
+  category: nightly
+  function: symm
+  precision: *single_double_precisions_complex_real
+  uplo: [ U, L ]
+  side: [ L, R ]
+  matrix_size: *large_matrix_size_range
+  alpha_beta: *alpha_beta_range
+
+# batched
+- name: symm_batched_bad
+  category: pre_checkin
+  function: symm_batched_bad_arg
+  precision: *single_precision
+
+- name: symm_batched_quick
+  category: quick
+  function: symm_batched
+  precision: *single_precision
+  uplo: [ U ]
+  side: [ L, R ]
+  matrix_size: *quick_matrix_size_range
+  alpha: [ 0, 1 ]
+  beta: [ 0, 1 ]
+  batch_count: [ 0, 1 ]
+
+- name: symm_batched_medium
+  category: pre_checkin
+  function: symm_batched
+  precision: *single_double_precisions_complex_real
+  uplo: [ U, L ]
+  side: [ L, R ]
+  matrix_size: *medium_matrix_size_range
+  alpha_beta: *alpha_beta_range
+  batch_count: [ 1, 7 ]
+
+- name: symm_batched_large
+  category: nightly
+  function: symm_batched
+  precision: *single_double_precisions_complex_real
+  uplo: [ U, L ]
+  side: [ L, R ]
+  matrix_size: *large_matrix_size_range
+  alpha_beta: *alpha_beta_range
+  batch_count: [ 2 ]
+
+# strided batched
+- name: symm_strided_batched_bad
+  category: pre_checkin
+  function: symm_strided_batched_bad_arg
+  precision: *single_precision
+
+- name: symm_strided_batched_quick
+  category: quick
+  function: symm_strided_batched
+  precision: *single_precision
+  uplo: [ U ]
+  side: [ L, R ]
+  matrix_size: *quick_matrix_size_range
+  alpha: [ 0, 1 ]
+  beta: [ 0, 1 ]
+  batch_count: [ 0, 1 ]
+
+- name: symm_strided_batched_medium
+  category: pre_checkin
+  function: symm_strided_batched
+  precision: *single_double_precisions_complex_real
+  uplo: [ U, L ]
+  side: [ L, R ]
+  matrix_size: *medium_matrix_size_range
+  alpha_beta: *alpha_beta_range
+  batch_count: [ 1, 7 ]
+
+- name: symm_strided_batched_large
+  category: nightly
+  function: symm_strided_batched
+  precision: *single_double_precisions_complex_real
+  uplo: [ U, L ]
+  side: [ L, R ]
+  matrix_size: *large_matrix_size_range
+  alpha_beta: *alpha_beta_range
+  batch_count: [ 2 ]
+
+...
