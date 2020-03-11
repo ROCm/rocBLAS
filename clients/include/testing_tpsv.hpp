@@ -121,7 +121,7 @@ void testing_tpsv(const Arguments& arg)
     hx_or_b_2     = hb;
     my_cpu_x_or_b = hb;
 
-    regular_to_packed(uplo == rocblas_fill_upper, hA, hAP, N);
+    regular_to_packed(uplo == rocblas_fill_upper, (T*)hA, (T*)hAP, N);
 
     // copy data from CPU to device
     CHECK_HIP_ERROR(dAP.transfer_from(hAP));
