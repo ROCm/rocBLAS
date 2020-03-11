@@ -40,9 +40,7 @@ public:
         , m_n(n)
         , m_inc(inc)
     {
-        m_enough_memory = this->check_available_memory();
-        if(m_enough_memory)
-            this->m_data = this->device_vector_setup();
+        this->m_data = this->device_vector_setup();
     }
 
     //!
@@ -55,9 +53,7 @@ public:
         , m_n(s)
         , m_inc(1)
     {
-        m_enough_memory = this->check_available_memory();
-        if(m_enough_memory)
-            this->m_data = this->device_vector_setup();
+        this->m_data = this->device_vector_setup();
     }
 
     //!
@@ -138,9 +134,7 @@ public:
 
     hipError_t memcheck() const
     {
-        if(!m_enough_memory)
-            return hipErrorMemoryAllocation;
-        else if((bool)*this)
+        if((bool)*this)
             return hipSuccess;
         else
             return hipErrorOutOfMemory;
@@ -151,5 +145,4 @@ private:
     rocblas_int m_n{};
     rocblas_int m_inc{};
     T*          m_data{};
-    bool        m_enough_memory{};
 };

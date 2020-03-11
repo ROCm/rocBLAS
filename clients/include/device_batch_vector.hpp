@@ -208,9 +208,7 @@ public:
     //!
     hipError_t memcheck() const
     {
-        if(!m_enough_memory)
-            return hipErrorMemoryAllocation;
-        else if((bool)*this)
+        if((bool)*this)
             return hipSuccess;
         else
             return hipErrorOutOfMemory;
@@ -222,7 +220,6 @@ private:
     rocblas_int m_batch_count{};
     T**         m_data{};
     T**         m_device_data{};
-    bool        m_enough_memory{};
 
     //!
     //! @brief Try to allocate the ressources.
@@ -239,29 +236,23 @@ private:
             success = (nullptr != (this->m_data = (T**)calloc(this->m_batch_count, sizeof(T*))));
             if(success)
             {
-                m_enough_memory = this->check_available_memory(this->m_batch_count);
-                success         = m_enough_memory;
+                for(rocblas_int batch_index = 0; batch_index < this->m_batch_count; ++batch_index)
+                {
+                    success
+                        = (nullptr != (this->m_data[batch_index] = this->device_vector_setup()));
+                    if(!success)
+                    {
+                        break;
+                    }
+                }
+
                 if(success)
                 {
-                    for(rocblas_int batch_index = 0; batch_index < this->m_batch_count;
-                        ++batch_index)
-                    {
-                        success = (nullptr
-                                   != (this->m_data[batch_index] = this->device_vector_setup()));
-                        if(!success)
-                        {
-                            break;
-                        }
-                    }
-
-                    if(success)
-                    {
-                        success = (hipSuccess
-                                   == hipMemcpy(this->m_device_data,
-                                                this->m_data,
-                                                sizeof(T*) * this->m_batch_count,
-                                                hipMemcpyHostToDevice));
-                    }
+                    success = (hipSuccess
+                               == hipMemcpy(this->m_device_data,
+                                            this->m_data,
+                                            sizeof(T*) * this->m_batch_count,
+                                            hipMemcpyHostToDevice));
                 }
             }
         }
