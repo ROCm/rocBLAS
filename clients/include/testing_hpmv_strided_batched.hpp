@@ -322,16 +322,16 @@ void testing_hpmv_strided_batched(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, N, batch_count, abs_incy, stride_y, hy_gold, hy_1);
-            unit_check_general<T>(1, N, batch_count, abs_incy, stride_y, hy_gold, hy_2);
+            unit_check_general<T>(1, N, abs_incy, stride_y, hy_gold, hy_1, batch_count);
+            unit_check_general<T>(1, N, abs_incy, stride_y, hy_gold, hy_2, batch_count);
         }
 
         if(arg.norm_check)
         {
             rocblas_error_1
-                = norm_check_general<T>('F', 1, N, abs_incy, stride_y, batch_count, hy_gold, hy_1);
+                = norm_check_general<T>('F', 1, N, abs_incy, stride_y, hy_gold, hy_1, batch_count);
             rocblas_error_2
-                = norm_check_general<T>('F', 1, N, abs_incy, stride_y, batch_count, hy_gold, hy_2);
+                = norm_check_general<T>('F', 1, N, abs_incy, stride_y, hy_gold, hy_2, batch_count);
         }
     }
 

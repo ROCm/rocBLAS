@@ -176,26 +176,23 @@ void testing_syr_strided_batched(const Arguments& arg)
         {
             if(std::is_same<T, float>{} || std::is_same<T, double>{})
             {
-                unit_check_general<T>(N, N, batch_count, lda, strideA, hA_gold, hA_1);
-                unit_check_general<T>(N, N, batch_count, lda, strideA, hA_gold, hA_2);
+                unit_check_general<T>(N, N, lda, strideA, hA_gold, hA_1, batch_count);
+                unit_check_general<T>(N, N, lda, strideA, hA_gold, hA_2, batch_count);
             }
             else
             {
                 const double tol = N * sum_error_tolerance<T>;
-                near_check_general<T>(N, N, batch_count, lda, strideA, hA_gold, hA_1, tol);
-                near_check_general<T>(N, N, batch_count, lda, strideA, hA_gold, hA_2, tol);
+                near_check_general<T>(N, N, lda, strideA, hA_gold, hA_1, batch_count, tol);
+                near_check_general<T>(N, N, lda, strideA, hA_gold, hA_2, batch_count, tol);
             }
         }
 
         if(arg.norm_check)
         {
-            for(int i = 0; i < batch_count; i++)
-            {
-                rocblas_error_1 = norm_check_general<T>(
-                    'F', N, N, lda, hA_gold + i * strideA, hA_1 + i * strideA);
-                rocblas_error_2 = norm_check_general<T>(
-                    'F', N, N, lda, hA_gold + i * strideA, hA_2 + i * strideA);
-            }
+            rocblas_error_1
+                = norm_check_general<T>('F', N, N, lda, strideA, hA_gold, hA_1, batch_count);
+            rocblas_error_2
+                = norm_check_general<T>('F', N, N, lda, strideA, hA_gold, hA_2, batch_count);
         }
     }
 

@@ -310,20 +310,20 @@ void testing_symm_hemm_batched(const Arguments& arg)
                || std::is_same<T, rocblas_double_complex>{})
             {
                 const double tol = N * sum_error_tolerance<T>;
-                near_check_general<T>(M, N, batch_count, ldc, hC_gold, hC_1, tol);
-                near_check_general<T>(M, N, batch_count, ldc, hC_gold, hC_2, tol);
+                near_check_general<T>(M, N, ldc, hC_gold, hC_1, batch_count, tol);
+                near_check_general<T>(M, N, ldc, hC_gold, hC_2, batch_count, tol);
             }
             else
             {
-                unit_check_general<T>(M, N, batch_count, ldc, hC_gold, hC_1);
-                unit_check_general<T>(M, N, batch_count, ldc, hC_gold, hC_2);
+                unit_check_general<T>(M, N, ldc, hC_gold, hC_1, batch_count);
+                unit_check_general<T>(M, N, ldc, hC_gold, hC_2, batch_count);
             }
         }
 
         if(arg.norm_check)
         {
-            auto err1 = std::abs(norm_check_general<T>('F', M, N, ldc, batch_count, hC_gold, hC_1));
-            auto err2 = std::abs(norm_check_general<T>('F', M, N, ldc, batch_count, hC_gold, hC_2));
+            auto err1 = std::abs(norm_check_general<T>('F', M, N, ldc, hC_gold, hC_1, batch_count));
+            auto err2 = std::abs(norm_check_general<T>('F', M, N, ldc, hC_gold, hC_2, batch_count));
             rocblas_error = err1 > err2 ? err1 : err2;
         }
     }

@@ -278,19 +278,16 @@ void testing_syr2_strided_batched(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(N, N, batch_count, lda, stride_A, hA_gold, hA_1);
-            unit_check_general<T>(N, N, batch_count, lda, stride_A, hA_gold, hA_2);
+            unit_check_general<T>(N, N, lda, stride_A, hA_gold, hA_1, batch_count);
+            unit_check_general<T>(N, N, lda, stride_A, hA_gold, hA_2, batch_count);
         }
 
         if(arg.norm_check)
         {
-            for(int i = 0; i < batch_count; i++)
-            {
-                rocblas_error_1 = norm_check_general<T>(
-                    'F', N, N, lda, hA_gold + i * stride_A, hA_1 + i * stride_A);
-                rocblas_error_2 = norm_check_general<T>(
-                    'F', N, N, lda, hA_gold + i * stride_A, hA_2 + i * stride_A);
-            }
+            rocblas_error_1
+                = norm_check_general<T>('F', N, N, lda, stride_A, hA_gold, hA_1, batch_count);
+            rocblas_error_2
+                = norm_check_general<T>('F', N, N, lda, stride_A, hA_gold, hA_2, batch_count);
         }
     }
 

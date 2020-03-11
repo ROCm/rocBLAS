@@ -183,14 +183,14 @@ void testing_syr2_batched(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, size_A, batch_count, 1, hA_gold, hA_1);
-            unit_check_general<T>(1, size_A, batch_count, 1, hA_gold, hA_2);
+            unit_check_general<T>(1, size_A, 1, hA_gold, hA_1, batch_count);
+            unit_check_general<T>(1, size_A, 1, hA_gold, hA_2, batch_count);
         }
 
         if(arg.norm_check)
         {
-            rocblas_error_1 = norm_check_general<T>('F', 1, size_A, 1, batch_count, hA_gold, hA_1);
-            rocblas_error_2 = norm_check_general<T>('F', 1, size_A, 1, batch_count, hA_gold, hA_2);
+            rocblas_error_1 = norm_check_general<T>('F', 1, size_A, 1, hA_gold, hA_1, batch_count);
+            rocblas_error_2 = norm_check_general<T>('F', 1, size_A, 1, hA_gold, hA_2, batch_count);
         }
     }
 

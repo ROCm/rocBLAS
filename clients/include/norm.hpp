@@ -205,9 +205,9 @@ double norm_check_general(char           norm_type,
                           rocblas_int    N,
                           rocblas_int    lda,
                           rocblas_stride stride_a,
-                          rocblas_int    batch_count,
                           VEC<T_hpa>&    hCPU,
-                          T*             hGPU)
+                          T*             hGPU,
+                          rocblas_int    batch_count)
 {
     // norm type can be O', 'I', 'F', 'o', 'i', 'f' for one, infinity or Frobenius norm
     // one norm is max column sum
@@ -244,9 +244,9 @@ double norm_check_general(char               norm_type,
                           rocblas_int        M,
                           rocblas_int        N,
                           rocblas_int        lda,
-                          rocblas_int        batch_count,
                           host_vector<T_hpa> hCPU[],
-                          host_vector<T>     hGPU[])
+                          host_vector<T>     hGPU[],
+                          rocblas_int        batch_count)
 {
     // norm type can be O', 'I', 'F', 'o', 'i', 'f' for one, infinity or Frobenius norm
     // one norm is max column sum
@@ -282,9 +282,9 @@ double norm_check_general(char        norm_type,
                           rocblas_int M,
                           rocblas_int N,
                           rocblas_int lda,
-                          rocblas_int batch_count,
                           T*          hCPU[],
-                          T*          hGPU[])
+                          T*          hGPU[],
+                          rocblas_int batch_count)
 {
     // norm type can be O', 'I', 'F', 'o', 'i', 'f' for one, infinity or Frobenius norm
     // one norm is max column sum

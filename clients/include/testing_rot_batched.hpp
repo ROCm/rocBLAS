@@ -188,13 +188,13 @@ void testing_rot_batched(const Arguments& arg)
 
             if(arg.unit_check)
             {
-                near_check_general<T>(1, N, batch_count, incx, cx, rx, rel_error);
-                near_check_general<T>(1, N, batch_count, incy, cy, ry, rel_error);
+                near_check_general<T>(1, N, incx, cx, rx, batch_count, rel_error);
+                near_check_general<T>(1, N, incy, cy, ry, batch_count, rel_error);
             }
             if(arg.norm_check)
             {
-                norm_error_host_x = norm_check_general<T>('F', 1, N, batch_count, incx, cx, rx);
-                norm_error_host_y = norm_check_general<T>('F', 1, N, batch_count, incy, cy, ry);
+                norm_error_host_x = norm_check_general<T>('F', 1, N, incx, cx, rx, batch_count);
+                norm_error_host_y = norm_check_general<T>('F', 1, N, incy, cy, ry, batch_count);
             }
         }
 
@@ -224,13 +224,13 @@ void testing_rot_batched(const Arguments& arg)
 
             if(arg.unit_check)
             {
-                near_check_general<T>(1, N, batch_count, incx, cx, rx, rel_error);
-                near_check_general<T>(1, N, batch_count, incy, cy, ry, rel_error);
+                near_check_general<T>(1, N, incx, cx, rx, batch_count, rel_error);
+                near_check_general<T>(1, N, incy, cy, ry, batch_count, rel_error);
             }
             if(arg.norm_check)
             {
-                norm_error_device_x = norm_check_general<T>('F', 1, N, batch_count, incx, cx, rx);
-                norm_error_device_y = norm_check_general<T>('F', 1, N, batch_count, incy, cy, ry);
+                norm_error_device_x = norm_check_general<T>('F', 1, N, incx, cx, rx, batch_count);
+                norm_error_device_y = norm_check_general<T>('F', 1, N, incy, cy, ry, batch_count);
             }
         }
     }

@@ -333,16 +333,16 @@ void testing_gbmv_batched(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, dim_y, batch_count, abs_incy, hy_goldA, hy_1A);
-            unit_check_general<T>(1, dim_y, batch_count, abs_incy, hy_goldA, hy_2A);
+            unit_check_general<T>(1, dim_y, abs_incy, hy_goldA, hy_1A, batch_count);
+            unit_check_general<T>(1, dim_y, abs_incy, hy_goldA, hy_2A, batch_count);
         }
 
         if(arg.norm_check)
         {
             rocblas_error_1
-                = norm_check_general<T>('F', 1, dim_y, abs_incy, batch_count, hy_goldA, hy_1A);
+                = norm_check_general<T>('F', 1, dim_y, abs_incy, hy_goldA, hy_1A, batch_count);
             rocblas_error_2
-                = norm_check_general<T>('F', 1, dim_y, abs_incy, batch_count, hy_goldA, hy_2A);
+                = norm_check_general<T>('F', 1, dim_y, abs_incy, hy_goldA, hy_2A, batch_count);
         }
     }
 

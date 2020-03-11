@@ -429,16 +429,16 @@ void testing_her2k_strided_batched(const Arguments& arg)
         if(arg.unit_check)
         {
             const double tol = K * sum_error_tolerance<T>;
-            near_check_general<T>(N, N, batch_count, ldc, strideC, hC_gold, hC_1, tol);
-            near_check_general<T>(N, N, batch_count, ldc, strideC, hC_gold, hC_2, tol);
+            near_check_general<T>(N, N, ldc, strideC, hC_gold, hC_1, batch_count, tol);
+            near_check_general<T>(N, N, ldc, strideC, hC_gold, hC_2, batch_count, tol);
         }
 
         if(arg.norm_check)
         {
             auto err1 = std::abs(
-                norm_check_general<T>('F', N, N, ldc, strideC, batch_count, hC_gold, hC_1));
+                norm_check_general<T>('F', N, N, ldc, strideC, hC_gold, hC_1, batch_count));
             auto err2 = std::abs(
-                norm_check_general<T>('F', N, N, ldc, strideC, batch_count, hC_gold, hC_2));
+                norm_check_general<T>('F', N, N, ldc, strideC, hC_gold, hC_2, batch_count));
             rocblas_error = err1 > err2 ? err1 : err2;
         }
     }
