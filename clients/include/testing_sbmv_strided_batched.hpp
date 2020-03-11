@@ -360,14 +360,14 @@ void testing_sbmv_strided_batched(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, N, batch_count, abs_incy, stridey, hg, hy);
-            unit_check_general<T>(1, N, batch_count, abs_incy, stridey, hg, hy2);
+            unit_check_general<T>(1, N, abs_incy, stridey, hg, hy, batch_count);
+            unit_check_general<T>(1, N, abs_incy, stridey, hg, hy2, batch_count);
         }
 
         if(arg.norm_check)
         {
-            h_error = norm_check_general<T>('F', 1, N, abs_incy, stridey, batch_count, hg, hy);
-            d_error = norm_check_general<T>('F', 1, N, abs_incy, stridey, batch_count, hg, hy2);
+            h_error = norm_check_general<T>('F', 1, N, abs_incy, stridey, hg, hy, batch_count);
+            d_error = norm_check_general<T>('F', 1, N, abs_incy, stridey, hg, hy2, batch_count);
         }
     }
 
