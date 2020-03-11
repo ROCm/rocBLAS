@@ -147,18 +147,18 @@ void testing_rotg_batched(const Arguments& arg)
 
             if(arg.unit_check)
             {
-                near_check_general<T>(1, 1, batch_count, 1, ra, ca, rel_error);
-                near_check_general<T>(1, 1, batch_count, 1, rb, cb, rel_error);
-                near_check_general<U>(1, 1, batch_count, 1, rc, cc, rel_error);
-                near_check_general<T>(1, 1, batch_count, 1, rs, cs, rel_error);
+                near_check_general<T>(1, 1, 1, ra, ca, rel_error, batch_count);
+                near_check_general<T>(1, 1, 1, rb, cb, rel_error, batch_count);
+                near_check_general<U>(1, 1, 1, rc, cc, rel_error, batch_count);
+                near_check_general<T>(1, 1, 1, rs, cs, rel_error, batch_count);
             }
 
             if(arg.norm_check)
             {
-                norm_error_host = norm_check_general<T>('F', 1, 1, batch_count, 1, ra, ca);
-                norm_error_host += norm_check_general<T>('F', 1, 1, batch_count, 1, rb, cb);
-                norm_error_host += norm_check_general<U>('F', 1, 1, batch_count, 1, rc, cc);
-                norm_error_host += norm_check_general<T>('F', 1, 1, batch_count, 1, rs, cs);
+                norm_error_host = norm_check_general<T>('F', 1, 1, 1, ra, ca, batch_count);
+                norm_error_host += norm_check_general<T>('F', 1, 1, 1, rb, cb, batch_count);
+                norm_error_host += norm_check_general<U>('F', 1, 1, 1, rc, cc, batch_count);
+                norm_error_host += norm_check_general<T>('F', 1, 1, 1, rs, cs, batch_count);
             }
         }
 
@@ -193,18 +193,18 @@ void testing_rotg_batched(const Arguments& arg)
 
             if(arg.unit_check)
             {
-                near_check_general<T>(1, 1, batch_count, 1, ra, ca, rel_error);
-                near_check_general<T>(1, 1, batch_count, 1, rb, cb, rel_error);
-                near_check_general<U>(1, 1, batch_count, 1, rc, cc, rel_error);
-                near_check_general<T>(1, 1, batch_count, 1, rs, cs, rel_error);
+                near_check_general<T>(1, 1, 1, ra, ca, batch_count, rel_error);
+                near_check_general<T>(1, 1, 1, rb, cb, batch_count, rel_error);
+                near_check_general<U>(1, 1, 1, rc, cc, batch_count, rel_error);
+                near_check_general<T>(1, 1, 1, rs, cs, batch_count, rel_error);
             }
 
             if(arg.norm_check)
             {
-                norm_error_device = norm_check_general<T>('F', 1, 1, batch_count, 1, ra, ca);
-                norm_error_device += norm_check_general<T>('F', 1, 1, batch_count, 1, rb, cb);
-                norm_error_device += norm_check_general<U>('F', 1, 1, batch_count, 1, rc, cc);
-                norm_error_device += norm_check_general<T>('F', 1, 1, batch_count, 1, rs, cs);
+                norm_error_device = norm_check_general<T>('F', 1, 1, 1, ra, ca, batch_count);
+                norm_error_device += norm_check_general<T>('F', 1, 1, 1, rb, cb, batch_count);
+                norm_error_device += norm_check_general<U>('F', 1, 1, 1, rc, cc, batch_count);
+                norm_error_device += norm_check_general<T>('F', 1, 1, 1, rs, cs, batch_count);
             }
         }
     }

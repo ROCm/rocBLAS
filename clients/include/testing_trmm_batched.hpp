@@ -219,20 +219,20 @@ void testing_trmm_batched(const Arguments& arg)
                 // For large K, rocblas_half tends to diverge proportional to K
                 // Tolerance is slightly greater than 1 / 1024.0
                 const double tol = K * sum_error_tolerance<T>;
-                near_check_general<T>(M, N, batch_count, ldb, hB_gold, hB_1, tol);
-                near_check_general<T>(M, N, batch_count, ldb, hB_gold, hB_2, tol);
+                near_check_general<T>(M, N, ldb, hB_gold, hB_1, batch_count, tol);
+                near_check_general<T>(M, N, ldb, hB_gold, hB_2, batch_count, tol);
             }
             else
             {
-                unit_check_general<T>(M, N, batch_count, ldb, hB_gold, hB_1);
-                unit_check_general<T>(M, N, batch_count, ldb, hB_gold, hB_2);
+                unit_check_general<T>(M, N, ldb, hB_gold, hB_1, batch_count);
+                unit_check_general<T>(M, N, ldb, hB_gold, hB_2, batch_count);
             }
         }
 
         if(arg.norm_check)
         {
-            auto err1 = std::abs(norm_check_general<T>('F', M, N, ldb, batch_count, hB_gold, hB_1));
-            auto err2 = std::abs(norm_check_general<T>('F', M, N, ldb, batch_count, hB_gold, hB_2));
+            auto err1 = std::abs(norm_check_general<T>('F', M, N, ldb, hB_gold, hB_1, batch_count));
+            auto err2 = std::abs(norm_check_general<T>('F', M, N, ldb, hB_gold, hB_2, batch_count));
             rocblas_error = err1 > err2 ? err1 : err2;
         }
     }
