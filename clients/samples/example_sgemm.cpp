@@ -48,14 +48,14 @@ int main()
     rocblas_int m = DIM1, n = DIM2, k = DIM3;
     rocblas_int lda, ldb, ldc, size_a, size_b, size_c;
     int         a_stride_1, a_stride_2, b_stride_1, b_stride_2;
-    std::cout << "sgemm example" << std::endl;
+    rocblas_cout << "sgemm example" << std::endl;
     if(transa == rocblas_operation_none)
     {
         lda        = m;
         size_a     = k * lda;
         a_stride_1 = 1;
         a_stride_2 = lda;
-        std::cout << "N";
+        rocblas_cout << "N";
     }
     else
     {
@@ -63,7 +63,7 @@ int main()
         size_a     = m * lda;
         a_stride_1 = lda;
         a_stride_2 = 1;
-        std::cout << "T";
+        rocblas_cout << "T";
     }
     if(transb == rocblas_operation_none)
     {
@@ -71,7 +71,7 @@ int main()
         size_b     = n * ldb;
         b_stride_1 = 1;
         b_stride_2 = ldb;
-        std::cout << "N: ";
+        rocblas_cout << "N: ";
     }
     else
     {
@@ -79,7 +79,7 @@ int main()
         size_b     = k * ldb;
         b_stride_1 = ldb;
         b_stride_2 = 1;
-        std::cout << "T: ";
+        rocblas_cout << "T: ";
     }
     ldc    = m;
     size_c = n * ldc;
@@ -126,8 +126,8 @@ int main()
     // copy output from device to CPU
     CHECK_HIP_ERROR(hipMemcpy(hc.data(), dc, sizeof(float) * size_c, hipMemcpyDeviceToHost));
 
-    std::cout << "m, n, k, lda, ldb, ldc = " << m << ", " << n << ", " << k << ", " << lda << ", "
-              << ldb << ", " << ldc << std::endl;
+    rocblas_cout << "m, n, k, lda, ldb, ldc = " << m << ", " << n << ", " << k << ", " << lda
+                 << ", " << ldb << ", " << ldc << std::endl;
 
     float max_relative_error = std::numeric_limits<float>::min();
 
@@ -158,11 +158,11 @@ int main()
     float tolerance = 10;
     if(max_relative_error != max_relative_error || max_relative_error > eps * tolerance)
     {
-        std::cout << "FAIL: max_relative_error = " << max_relative_error << std::endl;
+        rocblas_cout << "FAIL: max_relative_error = " << max_relative_error << std::endl;
     }
     else
     {
-        std::cout << "PASS: max_relative_error = " << max_relative_error << std::endl;
+        rocblas_cout << "PASS: max_relative_error = " << max_relative_error << std::endl;
     }
 
     CHECK_HIP_ERROR(hipFree(da));

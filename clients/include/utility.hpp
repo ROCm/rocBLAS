@@ -117,10 +117,63 @@ void rocblas_print_matrix(const char* name, T* A, size_t m, size_t n, size_t lda
     }
 }
 
+/* ============================================================================= */
+/*! \brief For testing purposes, to convert a regular matrix to a banded matrix. */
+template <typename T>
+inline void regular_to_banded(
+    bool upper, const T* A, rocblas_int lda, T* AB, rocblas_int ldab, rocblas_int n, rocblas_int k)
+{
+    // convert regular hA matrix to banded hAB matrix
+    for(int j = 0; j < n; j++)
+    {
+        rocblas_int min1 = upper ? std::max(0, j - k) : j;
+        rocblas_int max1 = upper ? j : std::min(n - 1, j + k);
+        rocblas_int m    = upper ? k - j : -j;
+
+        // Move bands of hA into new banded hAB format.
+        for(int i = min1; i <= max1; i++)
+            AB[j * ldab + (m + i)] = A[j * lda + i];
+
+        min1 = upper ? k + 1 : std::min(k + 1, n - j);
+        max1 = ldab - 1;
+
+        // fill in bottom with random data to ensure we aren't using it.
+        // for !upper, fill in bottom right triangle as well.
+        for(int i = min1; i <= max1; i++)
+            rocblas_init<T>(AB + j * ldab + i, 1, 1, 1);
+
+        // for upper, fill in top left triangle with random data to ensure
+        // we aren't using it.
+        if(upper)
+        {
+            for(int i = 0; i < m; i++)
+                rocblas_init<T>(AB + j * ldab + i, 1, 1, 1);
+        }
+    }
+}
+
+/* =============================================================================== */
+/*! \brief For testing purposes, zeros out elements not needed in a banded matrix. */
+template <typename T>
+inline void banded_matrix_setup(bool upper, T* A, rocblas_int lda, rocblas_int n, rocblas_int k)
+{
+    // Made A a banded matrix with k sub/super-diagonals
+    for(int i = 0; i < n; i++)
+    {
+        for(int j = 0; j < n; j++)
+        {
+            if(upper && (j > k + i || i > j))
+                A[j * n + i] = T(0);
+            else if(!upper && (i > k + j || j > i))
+                A[j * n + i] = T(0);
+        }
+    }
+}
+
 /* ============================================================================================= */
 /*! \brief For testing purposes, to convert a regular matrix to a packed matrix.                  */
 template <typename T>
-inline void pack_matrix(bool upper, const T* A, T* AP, rocblas_int n)
+inline void regular_to_packed(bool upper, const T* A, T* AP, rocblas_int n)
 {
     int index = 0;
     if(upper)
@@ -142,39 +195,6 @@ inline void pack_matrix(bool upper, const T* A, T* AP, rocblas_int n)
                 AP[index++] = A[j + i * n];
             }
         }
-    }
-}
-
-template <typename T>
-inline void
-    regular_to_packed(bool upper, const host_vector<T>& A, host_vector<T>& AP, rocblas_int n)
-{
-    pack_matrix(upper, (const T*)A, (T*)AP, n);
-}
-
-template <typename T>
-inline void regular_to_packed(bool                        upper,
-                              const host_batch_vector<T>& A,
-                              host_batch_vector<T>&       AP,
-                              rocblas_int                 n,
-                              rocblas_int                 batch_count)
-{
-    for(int b = 0; b < batch_count; b++)
-    {
-        pack_matrix(upper, (const T*)(A[b]), (T*)(AP[b]), n);
-    }
-}
-
-template <typename T>
-inline void regular_to_packed(bool                                upper,
-                              const host_strided_batch_vector<T>& A,
-                              host_strided_batch_vector<T>&       AP,
-                              rocblas_int                         n,
-                              rocblas_int                         batch_count)
-{
-    for(int b = 0; b < batch_count; b++)
-    {
-        pack_matrix(upper, (const T*)(A[b]), (T*)(AP[b]), n);
     }
 }
 

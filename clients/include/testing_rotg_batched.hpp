@@ -211,7 +211,7 @@ void testing_rotg_batched(const Arguments& arg)
 
     if(arg.timing)
     {
-        int number_cold_calls = 2;
+        int number_cold_calls = arg.cold_iters;
         int number_hot_calls  = arg.iters;
         // Device mode will be much quicker
         // (TODO: or is there another reason we are typically using host_mode for timing?)
