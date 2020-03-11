@@ -177,7 +177,7 @@ void testing_tpmv_strided_batched(const Arguments& arg)
         //
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, M, batch_count, abs_incx, stride_x, hx, hres);
+            unit_check_general<T>(1, M, abs_incx, stride_x, hx, hres, batch_count);
         }
 
         //
@@ -186,7 +186,7 @@ void testing_tpmv_strided_batched(const Arguments& arg)
         if(arg.norm_check)
         {
             rocblas_error
-                = norm_check_general<T>('F', 1, M, batch_count, abs_incx, stride_x, hx, hres);
+                = norm_check_general<T>('F', 1, M, abs_incx, stride_x, hx, hres, batch_count);
         }
     }
 

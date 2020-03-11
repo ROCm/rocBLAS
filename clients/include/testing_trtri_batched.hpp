@@ -166,8 +166,8 @@ void testing_trtri_batched(const Arguments& arg)
         if(arg.unit_check)
         {
             const double rel_error = get_epsilon<T>() * 1000;
-            near_check_general<T>(N, N, batch_count, lda, hB, hA, rel_error);
-            near_check_general<T>(N, N, batch_count, lda, hB, hA_2, rel_error);
+            near_check_general<T>(N, N, lda, hB, hA, batch_count, rel_error);
+            near_check_general<T>(N, N, lda, hB, hA_2, batch_count, rel_error);
         }
 
         if(arg.norm_check)
