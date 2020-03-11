@@ -176,7 +176,7 @@ void testing_tpmv_batched(const Arguments& arg)
         //
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, M, batch_count, abs_incx, hx, hres);
+            unit_check_general<T>(1, M, abs_incx, hx, hres, batch_count);
         }
 
         //
@@ -184,7 +184,7 @@ void testing_tpmv_batched(const Arguments& arg)
         //
         if(arg.norm_check)
         {
-            rocblas_error = norm_check_general<T>('F', 1, M, batch_count, abs_incx, hx, hres);
+            rocblas_error = norm_check_general<T>('F', 1, M, abs_incx, hx, hres, batch_count);
         }
     }
 
@@ -195,7 +195,7 @@ void testing_tpmv_batched(const Arguments& arg)
         // Warmup
         //
         {
-            int number_cold_calls = 2;
+            int number_cold_calls = arg.cold_iters;
             for(int iter = 0; iter < number_cold_calls; iter++)
             {
                 rocblas_tpmv_batched<T>(

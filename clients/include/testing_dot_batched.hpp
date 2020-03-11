@@ -198,8 +198,8 @@ void testing_dot_batched(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, 1, batch_count, 1, 1, cpu_result, rocblas_result_1);
-            unit_check_general<T>(1, 1, batch_count, 1, 1, cpu_result, rocblas_result_2);
+            unit_check_general<T>(1, 1, 1, 1, cpu_result, rocblas_result_1, batch_count);
+            unit_check_general<T>(1, 1, 1, 1, cpu_result, rocblas_result_2, batch_count);
         }
 
         if(arg.norm_check)
@@ -219,7 +219,7 @@ void testing_dot_batched(const Arguments& arg)
 
     if(arg.timing)
     {
-        int number_cold_calls = 2;
+        int number_cold_calls = arg.cold_iters;
         int number_hot_calls  = arg.iters;
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 

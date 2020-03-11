@@ -189,26 +189,24 @@ void testing_axpy_strided_batched(const Arguments& arg)
             //
             if(arg.unit_check)
             {
-
-                unit_check_general<T>(1, N, batch_count, abs_incy, stridey, hy, hy1);
-
-                unit_check_general<T>(1, N, batch_count, abs_incy, stridey, hy, hy2);
+                unit_check_general<T>(1, N, abs_incy, stridey, hy, hy1, batch_count);
+                unit_check_general<T>(1, N, abs_incy, stridey, hy, hy2, batch_count);
             }
 
             if(arg.norm_check)
             {
                 rocblas_error_1
-                    = norm_check_general<T>('I', 1, N, abs_incy, stridey, batch_count, hy, hy1);
+                    = norm_check_general<T>('I', 1, N, abs_incy, stridey, hy, hy1, batch_count);
                 rocblas_error_2
-                    = norm_check_general<T>('I', 1, N, abs_incy, stridey, batch_count, hy, hy2);
+                    = norm_check_general<T>('I', 1, N, abs_incy, stridey, hy, hy2, batch_count);
             }
         }
     }
 
     if(arg.timing)
     {
-        int number_cold_calls = 2;
-        int number_hot_calls  = 100;
+        int number_cold_calls = arg.cold_iters;
+        int number_hot_calls  = arg.iters;
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
         //

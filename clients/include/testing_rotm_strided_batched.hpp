@@ -212,22 +212,22 @@ void testing_rotm_strided_batched(const Arguments& arg)
                 CHECK_HIP_ERROR(hipMemcpy(ry, dy, sizeof(T) * size_y, hipMemcpyDeviceToHost));
                 if(arg.unit_check)
                 {
-                    near_check_general<T>(1, N, batch_count, incx, stride_x, cx, rx, rel_error);
-                    near_check_general<T>(1, N, batch_count, incy, stride_y, cy, ry, rel_error);
+                    near_check_general<T>(1, N, incx, stride_x, cx, rx, batch_count, rel_error);
+                    near_check_general<T>(1, N, incy, stride_y, cy, ry, batch_count, rel_error);
                 }
                 if(arg.norm_check)
                 {
                     norm_error_device_x
-                        = norm_check_general<T>('F', 1, N, incx, stride_x, batch_count, cx, rx);
+                        = norm_check_general<T>('F', 1, N, incx, stride_x, cx, rx, batch_count);
                     norm_error_device_y
-                        = norm_check_general<T>('F', 1, N, incy, stride_y, batch_count, cy, ry);
+                        = norm_check_general<T>('F', 1, N, incy, stride_y, cy, ry, batch_count);
                 }
             }
         }
 
         if(arg.timing)
         {
-            int number_cold_calls = 2;
+            int number_cold_calls = arg.cold_iters;
             int number_hot_calls  = arg.iters;
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
             CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T) * size_x, hipMemcpyHostToDevice));

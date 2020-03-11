@@ -119,20 +119,20 @@ void testing_copy_strided_batched(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, N, batch_count, abs_incy, stride_y, hy_gold, hy);
+            unit_check_general<T>(1, N, abs_incy, stride_y, hy_gold, hy, batch_count);
         }
 
         if(arg.norm_check)
         {
             rocblas_error
-                = norm_check_general<T>('F', 1, N, abs_incy, stride_y, batch_count, hy_gold, hy);
+                = norm_check_general<T>('F', 1, N, abs_incy, stride_y, hy_gold, hy, batch_count);
         }
     }
 
     if(arg.timing)
     {
-        int number_cold_calls = 2;
-        int number_hot_calls  = 100;
+        int number_cold_calls = arg.cold_iters;
+        int number_hot_calls  = arg.iters;
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {

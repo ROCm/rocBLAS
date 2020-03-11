@@ -172,22 +172,22 @@ void testing_her_strided_batched(const Arguments& arg)
         if(arg.unit_check)
         {
             const double tol = N * sum_error_tolerance<T>;
-            near_check_general<T>(N, N, batch_count, lda, stride_A, hA_gold, hA_1, tol);
-            near_check_general<T>(N, N, batch_count, lda, stride_A, hA_gold, hA_2, tol);
+            near_check_general<T>(N, N, lda, stride_A, hA_gold, hA_1, batch_count, tol);
+            near_check_general<T>(N, N, lda, stride_A, hA_gold, hA_2, batch_count, tol);
         }
 
         if(arg.norm_check)
         {
             rocblas_error_1
-                = norm_check_general<T>('F', N, N, lda, stride_A, batch_count, hA_gold, hA_1);
+                = norm_check_general<T>('F', N, N, lda, stride_A, hA_gold, hA_1, batch_count);
             rocblas_error_2
-                = norm_check_general<T>('F', N, N, lda, stride_A, batch_count, hA_gold, hA_2);
+                = norm_check_general<T>('F', N, N, lda, stride_A, hA_gold, hA_2, batch_count);
         }
     }
 
     if(arg.timing)
     {
-        int number_cold_calls = 2;
+        int number_cold_calls = arg.cold_iters;
         int number_hot_calls  = arg.iters;
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 

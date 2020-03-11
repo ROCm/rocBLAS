@@ -181,19 +181,19 @@ void testing_tbmv_strided_batched(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, M, batch_count, abs_incx, stride_x, hx_gold, hx_1);
+            unit_check_general<T>(1, M, abs_incx, stride_x, hx_gold, hx_1, batch_count);
         }
 
         if(arg.norm_check)
         {
             rocblas_error_1
-                = norm_check_general<T>('F', 1, M, abs_incx, stride_x, batch_count, hx_gold, hx_1);
+                = norm_check_general<T>('F', 1, M, abs_incx, stride_x, hx_gold, hx_1, batch_count);
         }
     }
 
     if(arg.timing)
     {
-        int number_cold_calls = 2;
+        int number_cold_calls = arg.cold_iters;
         int number_hot_calls  = arg.iters;
 
         for(int iter = 0; iter < number_cold_calls; iter++)

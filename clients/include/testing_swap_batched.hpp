@@ -118,27 +118,21 @@ void testing_swap_batched(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            for(int i = 0; i < batch_count; i++)
-            {
-                unit_check_general<T>(1, N, abs_incx, hx_gold[i], hx[i]);
-                unit_check_general<T>(1, N, abs_incy, hy_gold[i], hy[i]);
-            }
+            unit_check_general<T>(1, N, abs_incx, hx_gold, hx, batch_count);
+            unit_check_general<T>(1, N, abs_incy, hy_gold, hy, batch_count);
         }
 
         if(arg.norm_check)
         {
-            for(int i = 0; i < batch_count; i++)
-            {
-                rocblas_error = norm_check_general<T>('F', 1, N, abs_incx, hx_gold[i], hx[i]);
-                rocblas_error = norm_check_general<T>('F', 1, N, abs_incy, hy_gold[i], hy[i]);
-            }
+            rocblas_error = norm_check_general<T>('F', 1, N, abs_incx, hx_gold, hx, batch_count);
+            rocblas_error = norm_check_general<T>('F', 1, N, abs_incy, hy_gold, hy, batch_count);
         }
     }
 
     if(arg.timing)
     {
-        int number_cold_calls = 2;
-        int number_hot_calls  = 100;
+        int number_cold_calls = arg.cold_iters;
+        int number_hot_calls  = arg.iters;
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
         for(int iter = 0; iter < number_cold_calls; iter++)
