@@ -97,6 +97,9 @@
 #include "testing_tbmv.hpp"
 #include "testing_tbmv_batched.hpp"
 #include "testing_tbmv_strided_batched.hpp"
+#include "testing_tbsv.hpp"
+#include "testing_tbsv_batched.hpp"
+#include "testing_tbsv_strided_batched.hpp"
 #include "testing_tpmv.hpp"
 #include "testing_tpmv_batched.hpp"
 #include "testing_tpmv_strided_batched.hpp"
@@ -113,6 +116,9 @@
 #include "testing_herk.hpp"
 #include "testing_herk_batched.hpp"
 #include "testing_herk_strided_batched.hpp"
+#include "testing_symm_hemm.hpp"
+#include "testing_symm_hemm_batched.hpp"
+#include "testing_symm_hemm_strided_batched.hpp"
 #include "testing_syr2k.hpp"
 #include "testing_syr2k_batched.hpp"
 #include "testing_syr2k_strided_batched.hpp"
@@ -275,6 +281,12 @@ struct perf_blas<T, U, std::enable_if_t<std::is_same<T, float>{} || std::is_same
                 {"gemv", testing_gemv<T>},
                 {"gemv_batched", testing_gemv_batched<T>},
                 {"gemv_strided_batched", testing_gemv_strided_batched<T>},
+                {"tbmv", testing_tbmv<T>},
+                {"tbmv_batched", testing_tbmv_batched<T>},
+                {"tbmv_strided_batched", testing_tbmv_strided_batched<T>},
+                {"tbsv", testing_tbsv<T>},
+                {"tbsv_batched", testing_tbsv_batched<T>},
+                {"tbsv_strided_batched", testing_tbsv_strided_batched<T>},
                 {"tpmv", testing_tpmv<T>},
                 {"tpmv_batched", testing_tpmv_batched<T>},
                 {"tpmv_strided_batched", testing_tpmv_strided_batched<T>},
@@ -299,9 +311,6 @@ struct perf_blas<T, U, std::enable_if_t<std::is_same<T, float>{} || std::is_same
                 {"syr2", testing_syr2<T>},
                 {"syr2_batched", testing_syr2_batched<T>},
                 {"syr2_strided_batched", testing_syr2_strided_batched<T>},
-                {"tbmv", testing_tbmv<T>},
-                {"tbmv_batched", testing_tbmv_batched<T>},
-                {"tbmv_strided_batched", testing_tbmv_strided_batched<T>},
                 {"sbmv", testing_sbmv<T>},
                 {"sbmv_batched", testing_sbmv_batched<T>},
                 {"sbmv_strided_batched", testing_sbmv_strided_batched<T>},
@@ -312,6 +321,9 @@ struct perf_blas<T, U, std::enable_if_t<std::is_same<T, float>{} || std::is_same
                 {"symv_batched", testing_symv_batched<T>},
                 {"symv_strided_batched", testing_symv_strided_batched<T>},
                 // L3
+                {"symm", testing_symm_hemm<T, false>},
+                {"symm_batched", testing_symm_hemm_batched<T, false>},
+                {"symm_strided_batched", testing_symm_hemm_strided_batched<T, false>},
                 {"syrk", testing_syrk<T>},
                 {"syrk_batched", testing_syrk_batched<T>},
                 {"syrk_strided_batched", testing_syrk_strided_batched<T>},
@@ -445,6 +457,12 @@ struct perf_blas<T,
                 {"syr2", testing_syr2<T>},
                 {"syr2_batched", testing_syr2_batched<T>},
                 {"syr2_strided_batched", testing_syr2_strided_batched<T>},
+                {"tbmv", testing_tbmv<T>},
+                {"tbmv_batched", testing_tbmv_batched<T>},
+                {"tbmv_strided_batched", testing_tbmv_strided_batched<T>},
+                {"tbsv", testing_tbsv<T>},
+                {"tbsv_batched", testing_tbsv_batched<T>},
+                {"tbsv_strided_batched", testing_tbsv_strided_batched<T>},
                 {"tpmv", testing_tpmv<T>},
                 {"tpmv_batched", testing_tpmv_batched<T>},
                 {"tpmv_strided_batched", testing_tpmv_strided_batched<T>},
@@ -457,9 +475,6 @@ struct perf_blas<T,
                 {"trmv", testing_trmv<T>},
                 {"trmv_batched", testing_trmv_batched<T>},
                 {"trmv_strided_batched", testing_trmv_strided_batched<T>},
-                {"tbmv", testing_tbmv<T>},
-                {"tbmv_batched", testing_tbmv_batched<T>},
-                {"tbmv_strided_batched", testing_tbmv_strided_batched<T>},
                 // L3
                 {"syrk", testing_syrk<T>},
                 {"syrk_batched", testing_syrk_batched<T>},
@@ -470,6 +485,12 @@ struct perf_blas<T,
                 {"syrkx", testing_syr2k<T, false>},
                 {"syrkx_batched", testing_syr2k_batched<T, false>},
                 {"syrkx_strided_batched", testing_syr2k_strided_batched<T, false>},
+                {"symm", testing_symm_hemm<T, false>},
+                {"symm_batched", testing_symm_hemm_batched<T, false>},
+                {"symm_strided_batched", testing_symm_hemm_strided_batched<T, false>},
+                {"hemm", testing_symm_hemm<T, true>},
+                {"hemm_batched", testing_symm_hemm_batched<T, true>},
+                {"hemm_strided_batched", testing_symm_hemm_strided_batched<T, true>},
                 {"herk", testing_herk<T>},
                 {"herk_batched", testing_herk_batched<T>},
                 {"herk_strided_batched", testing_herk_strided_batched<T>},

@@ -130,9 +130,8 @@ void testing_tpsv_batched(const Arguments& arg)
     {
         // Calculate hb = hA*hx;
         cblas_trmv<T>(uplo, transA, diag, N, hA[b], N, hb[b], incx);
+        regular_to_packed(uplo == rocblas_fill_upper, (T*)(hA[b]), (T*)(hAP[b]), N);
     }
-
-    regular_to_packed(uplo == rocblas_fill_upper, hA, hAP, N, batch_count);
 
     cpu_x_or_b.copy_from(hb);
     hx_or_b_1.copy_from(hb);
