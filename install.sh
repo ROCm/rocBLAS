@@ -143,7 +143,7 @@ install_packages( )
   local library_dependencies_ubuntu=( "make" "cmake-curses-gui" "pkg-config"
                                       "python2.7" "python3" "python-yaml" "python3-yaml" "python3*-distutils"
                                       "llvm-6.0-dev" "zlib1g-dev" "wget")
-  local library_dependencies_centos=( "epel-release"
+  local library_dependencies_centos_rhel=( "epel-release"
                                       "make" "cmake3" "rpm-build"
                                       "python34" "PyYAML" "python3*-PyYAML" "python3*-distutils-extra"
                                       "gcc-c++" "zlib-devel" "wget" )
@@ -152,6 +152,12 @@ install_packages( )
                                       "gcc-c++" "libcxx-devel" "zlib-devel" "wget" "llvm7.0-devel" "llvm7.0-static" )
   local library_dependencies_sles=(   "make" "cmake" "python3-PyYAM" "python3-distutils-extra"
                                       "gcc-c++" "libcxxtools9" "rpm-build" "wget" "llvm7-devel" )
+
+  if [[ ( "${ID}" != "centos" ) || ( "${VERSION_ID}" -ge 7 ) ]]; then
+    # On CentOS-7 and greater, RPM packages for LLVM-7.0 are available. For earlier CentOS versions,
+    # we must build modern LLVM versions from src.
+    library_dependencies_centos_rhel+=( "llvm7.0-devel" "llvm7.0-static" )
+  fi
 
   if [[ "${build_hip_clang}" == false ]]; then
     # Installing rocm-dev installs hip-hcc, which overwrites the hip-vdi runtime
@@ -172,17 +178,9 @@ install_packages( )
     fi
   fi
 
-  if [[ "${ID}" == "centos" ]]; then
-    if [[ "${VERSION_ID}" -ge 7 ]]; then
-      # On CentOS-7 and greater, RPM packages for LLVM-7.0 are available. For earlier CentOS versions,
-      # we must build modern LLVM versions from src.
-      library_dependencies_centos+=( "llvm7.0-devel" "llvm7.0-static" )
-    fi
-  fi
-
   # dependencies to build the client
   local client_dependencies_ubuntu=( "gfortran" "libomp-dev" "libboost-program-options-dev")
-  local client_dependencies_centos=( "devtoolset-7-gcc-gfortran" "libgomp" "boost-devel" )
+  local client_dependencies_centos_rhel=( "devtoolset-7-gcc-gfortran" "libgomp" "boost-devel" )
   local client_dependencies_fedora=( "gcc-gfortran" "libgomp" "boost-devel" )
   local client_dependencies_sles=( "gcc-fortran" "libgomp1" "libboost_program_options1_66_0-devel" )
 
@@ -200,10 +198,10 @@ install_packages( )
 #     yum -y update brings *all* installed packages up to date
 #     without seeking user approval
 #     elevate_if_not_root yum -y update
-      install_yum_packages "${library_dependencies_centos[@]}"
+      install_yum_packages "${library_dependencies_centos_rhel[@]}"
 
       if [[ "${build_clients}" == true ]]; then
-        install_yum_packages "${client_dependencies_centos[@]}"
+        install_yum_packages "${client_dependencies_centos_rhel[@]}"
       fi
       ;;
 
