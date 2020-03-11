@@ -24,7 +24,7 @@ void testing_asum_bad_arg(const Arguments& arg)
 
     rocblas_local_handle handle;
     device_vector<T>     dx(safe_size);
-    CHECK_HIP_ERROR(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
     EXPECT_ROCBLAS_STATUS(rocblas_asum<T>(handle, N, nullptr, incx, h_rocblas_result),
                           rocblas_status_invalid_pointer);
@@ -53,10 +53,10 @@ void testing_asum(const Arguments& arg)
     {
         static const size_t safe_size = 100; // arbitrarily set to 100
         device_vector<T>    dx(safe_size);
-        CHECK_HIP_ERROR(dx.memcheck());
+        CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
         device_vector<real_t<T>> dr(1);
-        CHECK_HIP_ERROR(dr.memcheck());
+        CHECK_DEVICE_ALLOCATION(dr.memcheck());
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         CHECK_ROCBLAS_ERROR(rocblas_asum<T>(handle, N, dx, incx, dr));
@@ -67,10 +67,10 @@ void testing_asum(const Arguments& arg)
 
     // allocate memory on device
     device_vector<T> dx(size_x);
-    CHECK_HIP_ERROR(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
     device_vector<real_t<T>> dr(1);
-    CHECK_HIP_ERROR(dr.memcheck());
+    CHECK_DEVICE_ALLOCATION(dr.memcheck());
 
     // Naming: dx is in GPU (device) memory. hx is in CPU (host) memory, plz follow this practice
     host_vector<T> hx(size_x);
@@ -121,8 +121,8 @@ void testing_asum(const Arguments& arg)
 
     if(arg.timing)
     {
-        int number_cold_calls = 2;
-        int number_hot_calls  = 100;
+        int number_cold_calls = arg.cold_iters;
+        int number_hot_calls  = arg.iters;
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
         for(int iter = 0; iter < number_cold_calls; iter++)

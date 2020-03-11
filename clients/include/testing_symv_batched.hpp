@@ -172,11 +172,9 @@ void testing_symv_batched(const Arguments& arg)
         device_batch_vector<T> dA(safe_size, 1, 1);
         device_batch_vector<T> dx(safe_size, 1, 1);
         device_batch_vector<T> dy(safe_size, 1, 1);
-        if(!dA || !dx || !dy)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
+        CHECK_DEVICE_ALLOCATION(dA.memcheck());
+        CHECK_DEVICE_ALLOCATION(dx.memcheck());
+        CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
         EXPECT_ROCBLAS_STATUS(
             rocblas_symv_batched<T>(
@@ -190,6 +188,8 @@ void testing_symv_batched(const Arguments& arg)
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
     device_vector<T> d_alpha(1);
     device_vector<T> d_beta(1);
+    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
 
     host_batch_vector<T> hA(size_A, 1, batch_count);
     host_batch_vector<T> hx(N, incx, batch_count);
@@ -324,7 +324,7 @@ void testing_symv_batched(const Arguments& arg)
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
-        int number_cold_calls = 2;
+        int number_cold_calls = arg.cold_iters;
         int number_hot_calls  = arg.iters;
 
         for(int iter = 0; iter < number_cold_calls; iter++)

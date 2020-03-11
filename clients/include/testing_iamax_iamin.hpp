@@ -23,11 +23,7 @@ void testing_iamax_iamin_bad_arg(const Arguments& arg, rocblas_iamax_iamin_t<T> 
 
     rocblas_local_handle handle;
     device_vector<T>     dx(safe_size);
-    if(!dx)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
     rocblas_int h_rocblas_result;
 
@@ -69,11 +65,8 @@ void testing_iamax_iamin(const Arguments& arg, rocblas_iamax_iamin_t<T> func)
     {
         static const size_t safe_size = 100; // arbritrarily set to 100
         device_vector<T>    dx(safe_size);
-        if(!dx)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
+        CHECK_DEVICE_ALLOCATION(dx.memcheck());
+
         CHECK_ROCBLAS_ERROR(func(handle, N, dx, incx, &h_rocblas_result_1));
 
 #ifdef GOOGLE_TEST
@@ -87,11 +80,8 @@ void testing_iamax_iamin(const Arguments& arg, rocblas_iamax_iamin_t<T> func)
     // allocate memory on device
     device_vector<T>           dx(size_x);
     device_vector<rocblas_int> d_rocblas_result(1);
-    if(!dx || !d_rocblas_result)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_rocblas_result.memcheck());
 
     // Naming: dx is in GPU (device) memory. hx is in CPU (host) memory, plz
     // follow this practice
@@ -139,8 +129,8 @@ void testing_iamax_iamin(const Arguments& arg, rocblas_iamax_iamin_t<T> func)
 
     if(arg.timing)
     {
-        int number_cold_calls = 2;
-        int number_hot_calls  = 100;
+        int number_cold_calls = arg.cold_iters;
+        int number_hot_calls  = arg.iters;
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
         for(int iter = 0; iter < number_cold_calls; iter++)

@@ -39,11 +39,7 @@ void testing_set_get_matrix_async(const Arguments& arg)
         host_vector<T> hc(safe_size);
 
         device_vector<T> dc(safe_size);
-        if(!dc)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
+        CHECK_DEVICE_ALLOCATION(dc.memcheck());
 
         EXPECT_ROCBLAS_STATUS(
             rocblas_set_matrix_async(rows, cols, sizeof(T), ha, lda, dc, ldc, stream),
@@ -110,7 +106,7 @@ void testing_set_get_matrix_async(const Arguments& arg)
 
     if(arg.timing)
     {
-        int number_timing_iterations = 10;
+        int number_timing_iterations = arg.iters;
         gpu_time_used                = get_time_us(); // in microseconds
 
         for(int iter = 0; iter < number_timing_iterations; iter++)

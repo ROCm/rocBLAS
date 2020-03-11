@@ -41,8 +41,8 @@ void testing_trmm_bad_arg(const Arguments& arg)
     device_vector<T> dA(size_A);
     device_vector<T> dB(size_B);
 
-    CHECK_HIP_ERROR(dA.memcheck());
-    CHECK_HIP_ERROR(dB.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dB.memcheck());
 
     EXPECT_ROCBLAS_STATUS(
         rocblas_trmm<T>(handle, side, uplo, transA, diag, M, N, &alpha, nullptr, lda, dB, ldb),
@@ -118,9 +118,9 @@ void testing_trmm(const Arguments& arg)
     device_vector<T> dB(size_B);
     device_vector<T> alpha_d(1);
 
-    CHECK_HIP_ERROR(dA.memcheck());
-    CHECK_HIP_ERROR(dB.memcheck());
-    CHECK_HIP_ERROR(alpha_d.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dB.memcheck());
+    CHECK_DEVICE_ALLOCATION(alpha_d.memcheck());
 
     //  initialize full random matrix hA with all entries in [1, 10]
     rocblas_seedrand();

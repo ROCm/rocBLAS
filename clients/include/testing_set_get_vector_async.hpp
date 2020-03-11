@@ -35,11 +35,8 @@ void testing_set_get_vector_async(const Arguments& arg)
         host_vector<T>   hx(safe_size);
         host_vector<T>   hy(safe_size);
         device_vector<T> db(safe_size);
-        if(!db)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
+        CHECK_DEVICE_ALLOCATION(db.memcheck());
+
         EXPECT_ROCBLAS_STATUS(rocblas_set_vector_async(M, sizeof(T), hx, incx, db, incb, stream),
                               rocblas_status_invalid_size);
         EXPECT_ROCBLAS_STATUS(rocblas_get_vector_async(M, sizeof(T), db, incb, hy, incy, stream),
@@ -61,11 +58,7 @@ void testing_set_get_vector_async(const Arguments& arg)
 
     // allocate memory on device
     device_vector<T> db(M * size_t(incb));
-    if(!db)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(db.memcheck());
 
     // Initial Data on CPU
     rocblas_seedrand();
@@ -109,7 +102,7 @@ void testing_set_get_vector_async(const Arguments& arg)
 
     if(arg.timing)
     {
-        int number_timing_iterations = 10;
+        int number_timing_iterations = arg.iters;
         gpu_time_used                = get_time_us(); // in microseconds
 
         for(int iter = 0; iter < number_timing_iterations; iter++)

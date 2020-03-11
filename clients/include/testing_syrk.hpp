@@ -34,8 +34,8 @@ void testing_syrk_bad_arg(const Arguments& arg)
     // allocate memory on device
     device_vector<T> dA(safe_size);
     device_vector<T> dC(safe_size);
-    CHECK_HIP_ERROR(dA.memcheck());
-    CHECK_HIP_ERROR(dC.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dC.memcheck());
 
     EXPECT_ROCBLAS_STATUS(
         rocblas_syrk<T>(nullptr, uplo, transA, N, K, &alpha, dA, lda, &beta, dC, ldc),
@@ -120,10 +120,10 @@ void testing_syrk(const Arguments& arg)
     device_vector<T> dC(size_C);
     device_vector<T> d_alpha(1);
     device_vector<T> d_beta(1);
-    CHECK_HIP_ERROR(dA.memcheck());
-    CHECK_HIP_ERROR(dC.memcheck());
-    CHECK_HIP_ERROR(d_alpha.memcheck());
-    CHECK_HIP_ERROR(d_beta.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dC.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
 
     // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory
     host_vector<T> h_alpha(1);
@@ -217,7 +217,7 @@ void testing_syrk(const Arguments& arg)
 
     if(arg.timing)
     {
-        int number_cold_calls = 2;
+        int number_cold_calls = arg.cold_iters;
         int number_hot_calls  = arg.iters;
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));

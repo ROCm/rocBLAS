@@ -5,7 +5,6 @@
 #include "rocblas_gemm_ex.hpp"
 #include "handle.h"
 #include "logging.h"
-#include "rocblas-profile.h"
 #include "rocblas.h"
 #include "utility.h"
 
@@ -32,9 +31,7 @@ rocblas_status rocblas_gemm_ex_impl(rocblas_handle    handle,
                                     rocblas_datatype  compute_type,
                                     rocblas_gemm_algo algo,
                                     int32_t           solution_index,
-                                    uint32_t          flags,
-                                    void*             startEvent = nullptr,
-                                    void*             stopEvent  = nullptr)
+                                    uint32_t          flags)
 {
     if(!handle)
         return rocblas_status_invalid_handle;
@@ -269,9 +266,7 @@ rocblas_status rocblas_gemm_ex_impl(rocblas_handle    handle,
                                            ldd,
                                            stride_d,
                                            batch_count,
-                                           compute_type,
-                                           startEvent,
-                                           stopEvent);
+                                           compute_type);
 }
 
 extern "C" rocblas_status rocblas_gemm_ex(rocblas_handle    handle,

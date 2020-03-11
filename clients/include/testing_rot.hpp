@@ -26,11 +26,10 @@ void testing_rot_bad_arg(const Arguments& arg)
     device_vector<T>     dy(safe_size);
     device_vector<U>     dc(1);
     device_vector<V>     ds(1);
-    if(!dx || !dy || !dc || !ds)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
+    CHECK_DEVICE_ALLOCATION(dc.memcheck());
+    CHECK_DEVICE_ALLOCATION(ds.memcheck());
 
     EXPECT_ROCBLAS_STATUS((rocblas_rot<T, U, V>(nullptr, N, dx, incx, dy, incy, dc, ds)),
                           rocblas_status_invalid_handle);
@@ -65,11 +64,10 @@ void testing_rot(const Arguments& arg)
         device_vector<T>    dy(safe_size);
         device_vector<U>    dc(1);
         device_vector<V>    ds(1);
-        if(!dx || !dy || !dc || !ds)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
+        CHECK_DEVICE_ALLOCATION(dx.memcheck());
+        CHECK_DEVICE_ALLOCATION(dy.memcheck());
+        CHECK_DEVICE_ALLOCATION(dc.memcheck());
+        CHECK_DEVICE_ALLOCATION(ds.memcheck());
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         CHECK_ROCBLAS_ERROR((rocblas_rot<T, U, V>(handle, N, dx, incx, dy, incy, dc, ds)));
@@ -83,11 +81,10 @@ void testing_rot(const Arguments& arg)
     device_vector<T> dy(size_y);
     device_vector<U> dc(1);
     device_vector<V> ds(1);
-    if(!dx || !dy || !dc || !ds)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
+    CHECK_DEVICE_ALLOCATION(dc.memcheck());
+    CHECK_DEVICE_ALLOCATION(ds.memcheck());
 
     // Initial Data on CPU
     host_vector<T> hx(size_x);
@@ -167,8 +164,8 @@ void testing_rot(const Arguments& arg)
 
     if(arg.timing)
     {
-        int number_cold_calls = 2;
-        int number_hot_calls  = 100;
+        int number_cold_calls = arg.cold_iters;
+        int number_hot_calls  = arg.iters;
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T) * size_x, hipMemcpyHostToDevice));
         CHECK_HIP_ERROR(hipMemcpy(dy, hy, sizeof(T) * size_y, hipMemcpyHostToDevice));
