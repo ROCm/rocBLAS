@@ -39,8 +39,7 @@ namespace
             switch(GBMV_TYPE)
             {
             case GBMV:
-                return !strcmp(arg.function, "gbmv") || !strcmp(arg.function, "gbmv_bad_arg")
-                       || !strcmp(arg.function, "gbmv_arg_check");
+                return !strcmp(arg.function, "gbmv") || !strcmp(arg.function, "gbmv_bad_arg");
             case GBMV_BATCHED:
                 return !strcmp(arg.function, "gbmv_batched")
                        || !strcmp(arg.function, "gbmv_batched_bad_arg");
@@ -55,18 +54,10 @@ namespace
         static std::string name_suffix(const Arguments& arg)
         {
             RocBLAS_TestName<gbmv_template> name;
-            name << rocblas_datatype2string(arg.a_type);
-            if(strstr(arg.function, "_bad_arg") != nullptr)
-            {
-                name << "_bad_arg";
-            }
-            if(strstr(arg.function, "_arg_check") != nullptr)
-            {
-                name << "_arg_check";
-            }
 
-            name << '_' << (char)std::toupper(arg.transA) << '_' << arg.M << '_' << arg.N << '_'
-                 << arg.KL << '_' << arg.KU << '_' << arg.alpha << '_' << arg.lda;
+            name << rocblas_datatype2string(arg.a_type) << '_' << (char)std::toupper(arg.transA)
+                 << '_' << arg.M << '_' << arg.N << '_' << arg.KL << '_' << arg.KU << '_'
+                 << arg.alpha << '_' << arg.lda;
 
             if(GBMV_TYPE == GBMV_STRIDED_BATCHED)
                 name << '_' << arg.stride_a;
@@ -110,8 +101,6 @@ namespace
                 testing_gbmv<T>(arg);
             else if(!strcmp(arg.function, "gbmv_bad_arg"))
                 testing_gbmv_bad_arg<T>(arg);
-            else if(!strcmp(arg.function, "gbmv_arg_check"))
-                testing_gbmv_arg_check<T>(arg);
             else if(!strcmp(arg.function, "gbmv_batched"))
                 testing_gbmv_batched<T>(arg);
             else if(!strcmp(arg.function, "gbmv_batched_bad_arg"))

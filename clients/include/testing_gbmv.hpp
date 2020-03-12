@@ -89,60 +89,6 @@ void testing_gbmv_bad_arg(const Arguments& arg)
     EXPECT_ROCBLAS_STATUS(
         rocblas_gbmv<T>(nullptr, transA, M, N, KL, KU, &alpha, dA, lda, dx, incx, &beta, dy, incy),
         rocblas_status_invalid_handle);
-}
-
-template <typename T>
-void testing_gbmv_arg_check(const Arguments& arg)
-{
-    rocblas_local_handle handle;
-    rocblas_operation    transA = rocblas_operation_none;
-    T                    alpha;
-    T                    beta;
-    alpha = 0.0;
-    beta  = 1.0;
-
-    // quick returns
-    CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-    CHECK_ROCBLAS_ERROR(rocblas_gbmv<T>(
-        handle, transA, 0, 1, 2, 2, nullptr, nullptr, 10, nullptr, 1, nullptr, nullptr, 1));
-    CHECK_ROCBLAS_ERROR(rocblas_gbmv<T>(
-        handle, transA, 1, 0, 2, 2, nullptr, nullptr, 10, nullptr, 1, nullptr, nullptr, 1));
-    CHECK_ROCBLAS_ERROR(rocblas_gbmv<T>(
-        handle, transA, 0, 1, 5, 5, nullptr, nullptr, 11, nullptr, 1, nullptr, nullptr, 1));
-
-    // invalid_arg checks
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_gbmv<T>(
-            handle, transA, -1, 0, 1, 1, nullptr, nullptr, 10, nullptr, 1, nullptr, nullptr, 1),
-        rocblas_status_invalid_size);
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_gbmv<T>(
-            handle, transA, 0, -1, 1, 1, nullptr, nullptr, 10, nullptr, 1, nullptr, nullptr, 1),
-        rocblas_status_invalid_size);
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_gbmv<T>(
-            handle, transA, 0, 0, -1, 1, nullptr, nullptr, 10, nullptr, 1, nullptr, nullptr, 1),
-        rocblas_status_invalid_size);
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_gbmv<T>(
-            handle, transA, 0, 0, 1, -1, nullptr, nullptr, 10, nullptr, 1, nullptr, nullptr, 1),
-        rocblas_status_invalid_size);
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_gbmv<T>(
-            handle, transA, 0, 0, 5, 5, nullptr, nullptr, 10, nullptr, 1, nullptr, nullptr, 1),
-        rocblas_status_invalid_size);
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_gbmv<T>(
-            handle, transA, 0, 0, 0, 0, nullptr, nullptr, 0, nullptr, 1, nullptr, nullptr, 1),
-        rocblas_status_invalid_size);
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_gbmv<T>(
-            handle, transA, 0, 0, 1, 1, nullptr, nullptr, 10, nullptr, 0, nullptr, nullptr, 1),
-        rocblas_status_invalid_size);
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_gbmv<T>(
-            handle, transA, 0, 0, 1, 1, nullptr, nullptr, 10, nullptr, 1, nullptr, nullptr, 0),
-        rocblas_status_invalid_size);
 
     // TODO: See rocblas_gbmv.cpp comment on alpha==0 && beta==1 case.
     // CHECK_ROCBLAS_ERROR(rocblas_gbmv<T>(handle, transA, 1, 1, 1, 1, &alpha, nullptr, 10, nullptr, 1, &beta, nullptr, 1));
@@ -167,20 +113,43 @@ void testing_gbmv(const Arguments& arg)
     // argument sanity check before allocating invalid memory
     if(M < 0 || N < 0 || lda < KL + KU + 1 || !incx || !incy || KL < 0 || KU < 0)
     {
-        static const size_t safe_size = 100; // arbitrarily set to 100
-        device_vector<T>    dA1(safe_size);
-        device_vector<T>    dx1(safe_size);
-        device_vector<T>    dy1(safe_size);
-        CHECK_DEVICE_ALLOCATION(dA1.memcheck());
-        CHECK_DEVICE_ALLOCATION(dx1.memcheck());
-        CHECK_DEVICE_ALLOCATION(dy1.memcheck());
-
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_gbmv<T>(
-                handle, transA, M, N, KL, KU, &h_alpha, dA1, lda, dx1, incx, &h_beta, dy1, incy),
-            rocblas_status_invalid_size);
+        EXPECT_ROCBLAS_STATUS(rocblas_gbmv<T>(handle,
+                                              transA,
+                                              M,
+                                              N,
+                                              KL,
+                                              KU,
+                                              nullptr,
+                                              nullptr,
+                                              lda,
+                                              nullptr,
+                                              incx,
+                                              nullptr,
+                                              nullptr,
+                                              incy),
+                              rocblas_status_invalid_size);
 
         return;
+    }
+
+    if(!M || !N)
+    {
+        CHECK_ROCBLAS_ERROR(rocblas_gbmv<T>(handle,
+                                            transA,
+                                            M,
+                                            N,
+                                            KL,
+                                            KU,
+                                            nullptr,
+                                            nullptr,
+                                            lda,
+                                            nullptr,
+                                            incx,
+                                            nullptr,
+                                            nullptr,
+                                            incy));
+        // We don't have to return here since *_vectors can handle size 0, so we can
+        // still do unit_checks and whatnot.
     }
 
     size_t size_A = lda * size_t(N);
