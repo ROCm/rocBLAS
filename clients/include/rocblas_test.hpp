@@ -90,8 +90,8 @@ inline void rocblas_expect_status(rocblas_status status, rocblas_status expect)
 #ifdef GOOGLE_TEST
 
 /* ============================================================================================ */
-// Function which matches category with test_category, accounting for known_bug_platforms
-bool match_test_category(const char* category, const Arguments& arg);
+// Function which matches Arguments with a category, accounting for arg.known_bug_platforms
+bool match_test_category(const Arguments& arg, const char* category);
 
 // The tests are instantiated by filtering through the RocBLAS_Data stream
 // The filter is by category and by the type_filter() and function_filter()
@@ -102,7 +102,7 @@ bool match_test_category(const char* category, const Arguments& arg);
                             testing::ValuesIn(RocBLAS_TestData::begin([](const Arguments& arg) { \
                                                   return testclass::type_filter(arg)             \
                                                          && testclass::function_filter(arg)      \
-                                                         && match_test_category(#categ0ry, arg); \
+                                                         && match_test_category(arg, #categ0ry); \
                                               }),                                                \
                                               RocBLAS_TestData::end()),                          \
                             testclass::PrintToStringParamName());

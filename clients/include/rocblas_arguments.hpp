@@ -78,9 +78,9 @@ struct Arguments
     int32_t  solution_index;
     uint32_t flags;
 
-    char         function[64];
-    char         name[64];
-    mutable char category[64];
+    char function[64];
+    char name[64];
+    char category[64];
 
     rocblas_initialization initialization;
     char                   known_bug_platforms[64];
