@@ -210,7 +210,7 @@ public:
     //!
     hipError_t memcheck() const
     {
-        if((bool)*this)
+        if(*this)
             return hipSuccess;
         else
             return hipErrorOutOfMemory;
