@@ -590,22 +590,22 @@ void testing_gemm_batched_ex(const Arguments& arg)
                 // For large K, rocblas_half tends to diverge proportional to K
                 // Tolerance is slightly greater than 1 / 1024.0
                 const double tol = K * sum_error_tolerance<Tc>;
-                near_check_general<To, To_hpa>(M, N, batch_count, ldd, hD_gold, hD_1, tol);
-                near_check_general<To, To_hpa>(M, N, batch_count, ldd, hD_gold, hD_2, tol);
+                near_check_general<To, To_hpa>(M, N, ldd, hD_gold, hD_1, batch_count, tol);
+                near_check_general<To, To_hpa>(M, N, ldd, hD_gold, hD_2, batch_count, tol);
             }
             else
             {
-                unit_check_general<To, To_hpa>(M, N, batch_count, ldd, hD_gold, hD_1);
-                unit_check_general<To, To_hpa>(M, N, batch_count, ldd, hD_gold, hD_2);
+                unit_check_general<To, To_hpa>(M, N, ldd, hD_gold, hD_1, batch_count);
+                unit_check_general<To, To_hpa>(M, N, ldd, hD_gold, hD_2, batch_count);
             }
         }
 
         if(arg.norm_check)
         {
             auto err1
-                = std::abs(norm_check_general<To>('F', M, N, ldd, batch_count, hD_gold, hD_1));
+                = std::abs(norm_check_general<To>('F', M, N, ldd, hD_gold, hD_1, batch_count));
             auto err2
-                = std::abs(norm_check_general<To>('F', M, N, ldd, batch_count, hD_gold, hD_2));
+                = std::abs(norm_check_general<To>('F', M, N, ldd, hD_gold, hD_2, batch_count));
             rocblas_error = err1 > err2 ? err1 : err2;
         }
     }
