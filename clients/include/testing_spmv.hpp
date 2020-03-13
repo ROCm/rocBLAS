@@ -117,7 +117,7 @@ void testing_spmv(const Arguments& arg)
     host_vector<T> hg(size_Y); // gold standard
 
     double gpu_time_used, cpu_time_used;
-    double rocblas_gflops, cblas_gflops;
+    double rocblas_gflops, cblas_gflops, rocblas_bandwidth;
     double h_error, d_error;
 
     device_vector<T> dA(size_A);
@@ -216,11 +216,12 @@ void testing_spmv(const Arguments& arg)
                 rocblas_spmv<T>(handle, uplo, N, alpha, dA, dx, incx, beta, dy, incy));
         }
 
-        gpu_time_used  = (get_time_us() - gpu_time_used) / number_hot_calls;
-        rocblas_gflops = spmv_gflop_count<T>(N) / gpu_time_used * 1e6;
+        gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;
+        rocblas_gflops    = spmv_gflop_count<T>(N) / gpu_time_used * 1e6;
+        rocblas_bandwidth = spmv_gbyte_count<T>(N) / gpu_time_used * 1e6;
 
         // only norm_check return an norm error, unit check won't return anything
-        std::cout << "uplo, N, incx, incy, rocblas-Gflops (us) ";
+        std::cout << "uplo, N, incx, incy, rocblas-Gflops, rocblas-GB/s, (us) ";
         if(arg.norm_check)
         {
             std::cout << "CPU-Gflops (us),norm_error_host_ptr,norm_error_dev_ptr";
@@ -228,7 +229,7 @@ void testing_spmv(const Arguments& arg)
         std::cout << std::endl;
 
         std::cout << arg.uplo << ',' << N << ',' << incx << "," << incy << "," << rocblas_gflops
-                  << "(" << gpu_time_used << "),";
+                  << "," << rocblas_bandwidth << ",(" << gpu_time_used << "),";
 
         if(arg.norm_check)
         {
