@@ -33,25 +33,25 @@
 #define CHECK_HIP_ERROR2(ERROR) ASSERT_EQ(ERROR, hipSuccess)
 #define CHECK_HIP_ERROR(ERROR) CHECK_HIP_ERROR2(ERROR)
 
-#define CHECK_DEVICE_ALLOCATION(ERROR)                                        \
-    do                                                                        \
-    {                                                                         \
-        auto error = ERROR;                                                   \
-        if(error == hipErrorMemoryAllocation || error == hipErrorOutOfMemory) \
-        {                                                                     \
-            SUCCEED() << LIMITED_MEMORY_STRING;                               \
-            return;                                                           \
-        }                                                                     \
-        else if(error != hipSuccess)                                          \
-        {                                                                     \
-            fprintf(stderr,                                                   \
-                    "error: '%s'(%d) at %s:%d\n",                             \
-                    hipGetErrorString(error),                                 \
-                    error,                                                    \
-                    __FILE__,                                                 \
-                    __LINE__);                                                \
-            return;                                                           \
-        }                                                                     \
+#define CHECK_DEVICE_ALLOCATION(ERROR)            \
+    do                                            \
+    {                                             \
+        auto error = ERROR;                       \
+        if(error == hipErrorOutOfMemory)          \
+        {                                         \
+            SUCCEED() << LIMITED_MEMORY_STRING;   \
+            return;                               \
+        }                                         \
+        else if(error != hipSuccess)              \
+        {                                         \
+            fprintf(stderr,                       \
+                    "error: '%s'(%d) at %s:%d\n", \
+                    hipGetErrorString(error),     \
+                    error,                        \
+                    __FILE__,                     \
+                    __LINE__);                    \
+            return;                               \
+        }                                         \
     } while(0)
 
 #define EXPECT_ROCBLAS_STATUS ASSERT_EQ
