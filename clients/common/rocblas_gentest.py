@@ -430,6 +430,8 @@ def instantiate(test):
             if test[typename] in datatypes:
                 test[typename] = datatypes[test[typename]]
 
+        known_bug_platforms = set()
+
         # Match known bugs
         if test['category'] not in ('known_bug', 'disabled'):
             for bug in param['known_bugs']:
@@ -445,13 +447,23 @@ def instantiate(test):
                     elif test[key] != (datatypes.get(value, value)
                                        if key in enum_args else value):
                         break
-                else:  # All values specified in known bug match test case
-                    known_bug_platforms = bug.get('known_bug_platforms', '')
-                    if known_bug_platforms.strip(' :,\f\n\r\t\v'):
-                        test['known_bug_platforms'] = known_bug_platforms
+                else:
+                    # All values specified in known bug match the test case
+                    platforms = bug.get('known_bug_platforms', '')
+
+                    # If at least one known_bug_platforms is specified, add
+                    # each platform in platforms to known_bug_platforms set
+                    if platforms.strip(' :,\f\n\r\t\v'):
+                        known_bug_platforms |= set(re.split('[ :,\f\n\r\t\v]+',
+                                                   platforms))
                     else:
                         test['category'] = 'known_bug'
                     break
+
+        # Unless category is already set to known_bug or disabled, set
+        # known_bug_platforms to a space-separated list of platforms
+        test['known_bug_platforms'] = ' ' . join(known_bug_platforms) if test[
+            'category'] not in ('known_bug', 'disabled') else ''
 
         write_test(test)
 
