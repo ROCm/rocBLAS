@@ -129,6 +129,35 @@ public:
     }
 };
 
+// Set the listener for Google Tests
+static void rocblas_set_listener()
+{
+    // remove the default listener
+    auto& listeners       = testing::UnitTest::GetInstance()->listeners();
+    auto  default_printer = listeners.Release(listeners.default_result_printer());
+
+    // add our listener, by default everything is on (the same as using the default listener)
+    // here I am turning everything off so I only see the 3 lines for the result
+    // (plus any failures at the end), like:
+
+    // [==========] Running 149 tests from 53 test cases.
+    // [==========] 149 tests from 53 test cases ran. (1 ms total)
+    // [  PASSED  ] 149 tests.
+    //
+    auto* listener       = new ConfigurableEventListener(default_printer);
+    auto* gtest_listener = getenv("GTEST_LISTENER");
+
+    if(gtest_listener && !strcmp(gtest_listener, "NO_PASS_LINE_IN_LOG"))
+    {
+        listener->showTestNames      = false;
+        listener->showSuccesses      = false;
+        listener->showInlineFailures = false;
+        listener->showInlineSkips    = false;
+    }
+
+    listeners.Append(listener);
+}
+
 /*********************************************
  * Signal-handling for detecting test faults *
  *********************************************/
@@ -221,65 +250,62 @@ void catch_signals_and_exceptions_as_failures(const std::function<void()>& test)
     }
 }
 
-/*****************
- * Main function *
- *****************/
-int main(int argc, char** argv)
+// Print Version
+static void rocblas_print_version()
 {
-    // Initialize rocBLAS (not explicitly needed; just included for testing)
-    rocblas_init();
-
-    // Set signal handler
-    rocblas_test_sigaction();
-
-    // Print Version
-    char blas_version[100];
-    rocblas_get_version_string(blas_version, sizeof(blas_version));
+    static char blas_version[100];
+    static int  once = (rocblas_get_version_string(blas_version, sizeof(blas_version)), 0);
 
     printf("rocBLAS version: %s\n\n", blas_version);
+}
 
-    // Device Query
+// Device Query
+static void rocblas_set_test_device()
+{
     int device_id    = 0;
     int device_count = query_device_property();
     if(device_count <= device_id)
     {
         std::cerr << "Error: invalid device ID. There may not be such device ID.\n";
-        return -1;
+        exit(-1);
     }
     set_device(device_id);
+}
+
+/*****************
+ * Main function *
+ *****************/
+int main(int argc, char** argv)
+{
+    // Set signal handler
+    rocblas_test_sigaction();
+
+    // Print rocBLAS version
+    rocblas_print_version();
+
+    // Set test device
+    rocblas_set_test_device();
 
     // Set data file path
     rocblas_parse_data(argc, argv, rocblas_exepath() + "rocblas_gtest.data");
 
-    // initialize
+    // Initialize Google Tests
     testing::InitGoogleTest(&argc, argv);
 
     // Free up all temporary data generated during test creation
     test_cleanup::cleanup();
 
-    // remove the default listener
-    auto& listeners       = testing::UnitTest::GetInstance()->listeners();
-    auto  default_printer = listeners.Release(listeners.default_result_printer());
+    // Set Google Test listener
+    rocblas_set_listener();
 
-    // add our listener, by default everything is on (the same as using the default listener)
-    // here I am turning everything off so I only see the 3 lines for the result
-    // (plus any failures at the end), like:
+    // Initialize rocBLAS (not explicitly needed; just included for testing)
+    rocblas_init();
 
-    // [==========] Running 149 tests from 53 test cases.
-    // [==========] 149 tests from 53 test cases ran. (1 ms total)
-    // [  PASSED  ] 149 tests.
-    //
-    auto listener       = new ConfigurableEventListener(default_printer);
-    auto gtest_listener = getenv("GTEST_LISTENER");
-    if(gtest_listener && !strcmp(gtest_listener, "NO_PASS_LINE_IN_LOG"))
-        listener->showTestNames = listener->showSuccesses = listener->showInlineFailures
-            = listener->showInlineSkips                   = false;
-    listeners.Append(listener);
-
+    // Run the tests
     int status = RUN_ALL_TESTS();
 
-    // failures at end copied for reporting so repeat this info
-    printf("rocBLAS version: %s\n\n", blas_version);
+    // Failures printed at end for reporting so repeat version info
+    rocblas_print_version();
 
     return status;
 }
