@@ -190,6 +190,7 @@ def get_arguments(doc):
             for var in decl
             if TYPE_RE.match(decl[var])]
 
+
 def setkey_product(test, key, vals):
     """Helper for setdefaults. Tests that all values in vals is present
     in test, if so then sets test[key] to product of all test[vals]."""
@@ -201,6 +202,7 @@ def setkey_product(test, key, vals):
             else:
                 result *= test[x]
         test[key] = int(result)
+
 
 def setdefaults(test):
     """Set default values for parameters"""
@@ -222,7 +224,7 @@ def setdefaults(test):
 
     elif test['function'] in ('tpmv_strided_batched'):
         setkey_product(test, 'stride_x', ['M', 'incx', 'stride_scale'])
-## Let's use M * M (> (M * (M+1)) / 2) as a 'stride' size for the packed format.
+# Let's use M * M (> (M * (M+1)) / 2) as a 'stride' size for the packed format.
         setkey_product(test, 'stride_a', ['M', 'M', 'stride_scale'])
 
     elif test['function'] in ('trmv_strided_batched'):
@@ -233,7 +235,7 @@ def setdefaults(test):
                               'ger_strided_batched', 'geru_strided_batched',
                               'gerc_strided_batched', 'trsv_strided_batched'):
         if test['function'] in ('ger_strided_batched', 'geru_strided_batched',
-                                'gerc_strided_batched','trsv_strided_batched'
+                                'gerc_strided_batched', 'trsv_strided_batched'
                                 ) or test['transA'] in ('T', 'C'):
             setkey_product(test, 'stride_x', ['M', 'incx', 'stride_scale'])
             setkey_product(test, 'stride_y', ['N', 'incy', 'stride_scale'])
@@ -296,7 +298,6 @@ def setdefaults(test):
             setkey_product(test, 'stride_a', ['M', 'lda', 'stride_scale'])
         else:
             setkey_product(test, 'stride_a', ['N', 'lda', 'stride_scale'])
-
 
     elif test['function'] in ('trsm_strided_batched',
                               'trsm_strided_batched_ex'):
@@ -429,11 +430,13 @@ def instantiate(test):
             if test[typename] in datatypes:
                 test[typename] = datatypes[test[typename]]
 
+        known_bug_platforms = set()
+
         # Match known bugs
         if test['category'] not in ('known_bug', 'disabled'):
             for bug in param['known_bugs']:
                 for key, value in bug.items():
-                    if key == 'known_bug_platforms':
+                    if key == 'known_bug_platforms' or key == 'category':
                         continue
                     if key not in test:
                         break
@@ -444,14 +447,23 @@ def instantiate(test):
                     elif test[key] != (datatypes.get(value, value)
                                        if key in enum_args else value):
                         break
-                else:  # All values specified in known bug match test case
-                    if (bug.get('known_bug_platforms', '').
-                            strip(' :,\f\n\r\t\v')):
-                        test['category'] = ('known_bug_platforms_' +
-                                            test['category'])
+                else:
+                    # All values specified in known bug match the test case
+                    platforms = bug.get('known_bug_platforms', '')
+
+                    # If at least one known_bug_platforms is specified, add
+                    # each platform in platforms to known_bug_platforms set
+                    if platforms.strip(' :,\f\n\r\t\v'):
+                        known_bug_platforms |= set(re.split('[ :,\f\n\r\t\v]+',
+                                                   platforms))
                     else:
                         test['category'] = 'known_bug'
                     break
+
+        # Unless category is already set to known_bug or disabled, set
+        # known_bug_platforms to a space-separated list of platforms
+        test['known_bug_platforms'] = ' ' . join(known_bug_platforms) if test[
+            'category'] not in ('known_bug', 'disabled') else ''
 
         write_test(test)
 
