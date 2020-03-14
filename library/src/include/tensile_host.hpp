@@ -21,11 +21,11 @@
 #include <ostream>
 
 /**************************************************************************
-     * Return the value category for a value, as a double precision value,    *
-     * such as whether it's 0, 1, or some other value. Tensile uses a double  *
-     * precision value to express the category of beta. This function is to   *
-     * convert complex or other types to a double representing the category.  *
-     **************************************************************************/
+ * Return the value category for a value, as a double precision value,    *
+ * such as whether it's 0, 1, or some other value. Tensile uses a double  *
+ * precision value to express the category of beta. This function is to   *
+ * convert complex or other types to a double representing the category.  *
+ **************************************************************************/
 template <typename T>
 constexpr double value_category(const T& beta)
 {
@@ -40,29 +40,40 @@ template <typename Ti, typename To = Ti, typename Tc = To>
 struct RocblasContractionProblem
 {
     rocblas_handle    handle;
-    rocblas_operation trans_a;
-    rocblas_operation trans_b;
+    rocblas_operation trans_a = rocblas_operation_none;
+    rocblas_operation trans_b = rocblas_operation_none;
 
     // The size data members should exactly match Tensile's size parameters
     // even if rocBLAS uses smaller or differently-signed types
-    size_t    m;
-    size_t    n;
-    size_t    k;
+    size_t m;
+    size_t n;
+    size_t k;
+
     const Tc* alpha;
+
     const Ti* A;
-    size_t    ld_a;
-    size_t    stride_a;
+    size_t    row_stride_a = 1;
+    size_t    col_stride_a;
+    size_t    batch_stride_a;
+
     const Ti* B;
-    size_t    ld_b;
-    size_t    stride_b;
+    size_t    row_stride_b = 1;
+    size_t    col_stride_b;
+    size_t    batch_stride_b;
+
     const Tc* beta;
+
     const To* C;
-    size_t    ld_c;
-    size_t    stride_c;
-    To*       D        = const_cast<To*>(C); // Default D = C
-    size_t    ld_d     = ld_c;
-    size_t    stride_d = stride_c;
-    size_t    batch_count;
+    size_t    row_stride_c = 1;
+    size_t    col_stride_c;
+    size_t    batch_stride_c;
+
+    To*    D              = const_cast<To*>(C); // Default D = C
+    size_t row_stride_d   = row_stride_c;
+    size_t col_stride_d   = col_stride_c;
+    size_t batch_stride_d = batch_stride_c;
+
+    size_t batch_count;
 
     // gemm
     // gemm_strided_batched
@@ -92,15 +103,15 @@ struct RocblasContractionProblem
         , k(k)
         , alpha(alpha)
         , A(A)
-        , ld_a(ld_a)
-        , stride_a(stride_a)
+        , col_stride_a(ld_a)
+        , batch_stride_a(stride_a)
         , B(B)
-        , ld_b(ld_b)
-        , stride_b(stride_b)
+        , col_stride_b(ld_b)
+        , batch_stride_b(stride_b)
         , beta(beta)
         , C(C)
-        , ld_c(ld_c)
-        , stride_c(stride_c)
+        , col_stride_c(ld_c)
+        , batch_stride_c(stride_c)
         , batch_count(batch_count)
     {
     }
@@ -136,18 +147,18 @@ struct RocblasContractionProblem
         , k(k)
         , alpha(alpha)
         , A(A)
-        , ld_a(ld_a)
-        , stride_a(stride_a)
+        , col_stride_a(ld_a)
+        , batch_stride_a(stride_a)
         , B(B)
-        , ld_b(ld_b)
-        , stride_b(stride_b)
+        , col_stride_b(ld_b)
+        , batch_stride_b(stride_b)
         , beta(beta)
         , C(C)
-        , ld_c(ld_c)
-        , stride_c(stride_c)
+        , col_stride_c(ld_c)
+        , batch_stride_c(stride_c)
         , D(D)
-        , ld_d(ld_d)
-        , stride_d(stride_d)
+        , col_stride_d(ld_d)
+        , batch_stride_d(stride_d)
         , batch_count(batch_count)
     {
     }
@@ -222,16 +233,20 @@ struct RocblasContractionProblem
         PRINT(M, prob.m);
         PRINT(N, prob.n);
         PRINT(K, prob.k);
-        PRINT(lda, prob.ld_a);
-        PRINT(ldb, prob.ld_b);
-        PRINT(ldc, prob.ld_c);
-        PRINT(ldd, prob.ld_d);
+        PRINT(row_stride_a, prob.col_stride_a);
+        PRINT(col_stride_a, prob.col_stride_a);
+        PRINT(row_stride_b, prob.row_stride_b);
+        PRINT(col_stride_b, prob.col_stride_b);
+        PRINT(row_stride_c, prob.row_stride_c);
+        PRINT(col_stride_c, prob.col_stride_c);
+        PRINT(row_stride_d, prob.row_stride_d);
+        PRINT(col_stride_d, prob.col_stride_d);
         PRINT(beta, value_category(prob.beta));
         PRINT(batch_count, prob.batch_count);
-        PRINT(stride_a, prob.stride_a);
-        PRINT(stride_b, prob.stride_b);
-        PRINT(stride_c, prob.stride_c);
-        PRINT(stride_d, prob.stride_d);
+        PRINT(batch_stride_a, prob.batch_stride_a);
+        PRINT(batch_stride_b, prob.batch_stride_b);
+        PRINT(batch_stride_c, prob.batch_stride_c);
+        PRINT(batch_stride_d, prob.batch_stride_d);
 
 #undef PRINT
         str << " }\n";
