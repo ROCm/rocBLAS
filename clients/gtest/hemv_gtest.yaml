@@ -11,14 +11,23 @@ Definitions:
     - { N: 65, lda: 65 }
     - { N: 128, lda: 128 }
     - { N:     1, lda:    1 }
-    - { N:    -1, lda:    1 }
-    - { N:     1, lda:    0 }
     - { N:    10, lda:    9 }
     - { N:     1, lda:    1 }
-    - { N:     0, lda:    1 }
-    - { N:    -1, lda:   -1 }
     - { N:    10, lda:    2 }
     - { N:   200, lda:  200 }
+
+  - &special_case_range
+    # Quick return
+    - { N: 0, lda: 1, incx: 1, incy: 1, batch_count: 1 }
+    - { N: 1, lda: 1, incx: 1, incy: 1, batch_count: 0 }
+
+    # invalid_arg checks
+    - { N: -1, lda: 1, incx: 1, incy: 1, batch_count:  0 }
+    - { N:  0, lda: 0, incx: 1, incy: 1, batch_count:  0 }
+    - { N:  1, lda: 0, incx: 1, incy: 1, batch_count:  0 }
+    - { N:  0, lda: 1, incx: 0, incy: 1, batch_count:  0 }
+    - { N:  0, lda: 1, incx: 1, incy: 0, batch_count:  0 }
+    - { N:  0, lda: 1, incx: 1, incy: 1, batch_count: -1 }
 
   - &medium_matrix_size_range
     - { N:   400, lda:  400 }
@@ -35,10 +44,10 @@ Definitions:
     - { incx:   1, incy:   1 }
     - { incx:  -1, incy:   3 }
     - { incx:   3, incy:  -1 }
-    - { incx:   0, incy:   1 }
-    - { incx:   1, incy:   0 }
-    - { incx:   0, incy:  -1 }
     - { incx:  10, incy: 100 }
+
+  - &incx_incy_range_small
+    - { incx: 2, incy: 2 }
 
   - &alpha_beta_range
     - { alpha:  2.0, beta:  0.0, alphai: 1.5, betai: 0.5 }
@@ -46,12 +55,27 @@ Definitions:
     - { alpha:  2.0, beta:  1.0, alphai: -1.5, betai: 0.5 }
     - { alpha:  0.0, beta:  1.0, alphai: -0.5, betai: 0 }
 
+  - &alpha_beta_range_small
+    - { alpha: 2.0, beta: 1.5, alphai: -0.5, betai: 2.5 }
+
 Tests:
 - name: hemv_bad_arg
   category: pre_checkin
-  function: hemv_bad_arg
+  function:
+  - hemv_bad_arg
+  - hemv_batched_bad_arg
+  - hemv_strided_batched_bad_arg
   precision: *single_double_precisions_complex
-  uplo: [ U, L ]
+  uplo: N
+
+- name: gbmv_bad_arg
+  category: pre_checkin
+  function:
+  - hemv_bad_arg
+  - hemv_batched_bad_arg
+  - hemv_strided_batched_bad_arg
+  precision: *single_double_precisions_complex
+  uplo: N
 
 - name: hemv_NaN
   category: pre_checkin
@@ -87,15 +111,10 @@ Tests:
   precision: *single_double_precisions_complex
   uplo: [ U, L ]
   matrix_size: *large_matrix_size_range
-  incx_incy: *incx_incy_range
-  alpha_beta: *alpha_beta_range
+  incx_incy: *incx_incy_range_small
+  alpha_beta: *alpha_beta_range_small
 
-- name: hemv_batched_bad_arg
-  category: pre_checkin
-  function: hemv_batched_bad_arg
-  precision: *single_double_precisions_complex
-  uplo: N
-
+# gemv_batched
 - name: hemv_batched_NaN
   category: pre_checkin
   function: hemv_batched
@@ -133,16 +152,11 @@ Tests:
   precision: *single_double_precisions_complex
   uplo: [ U, L ]
   matrix_size: *large_matrix_size_range
-  incx_incy: *incx_incy_range
-  alpha_beta: *alpha_beta_range
+  incx_incy: *incx_incy_range_small
+  alpha_beta: *alpha_beta_range_small
   batch_count: [ 3 ]
 
-- name: hemv_strided_batched_bad_arg
-  category: pre_checkin
-  function: hemv_strided_batched_bad_arg
-  precision: *single_double_precisions_complex
-  uplo: N
-
+# hemv_strided_batched
 - name: hemv_strided_batched_NaN
   category: pre_checkin
   function: hemv_strided_batched
@@ -183,8 +197,8 @@ Tests:
   precision: *single_double_precisions_complex
   uplo: [ U, L ]
   matrix_size: *large_matrix_size_range
-  incx_incy: *incx_incy_range
-  alpha_beta: *alpha_beta_range
+  incx_incy: *incx_incy_range_small
+  alpha_beta: *alpha_beta_range_small
   batch_count: [ 3 ]
   stride_scale: [ 1 ]
 ...
