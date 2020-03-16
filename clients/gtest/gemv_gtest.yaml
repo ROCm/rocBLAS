@@ -9,16 +9,18 @@ Definitions:
 
   - &special_case_range
     # Quick return
-    - { M:    0, N:    1, lda:    1, incx: 1, incy: 1 }
-    - { M:    1, N:    0, lda:    1, incx: 1, incy: 1 }
+    - { M:    0, N:    1, lda:    1, incx: 1, incy: 1, batch_count: 1 }
+    - { M:    1, N:    0, lda:    1, incx: 1, incy: 1, batch_count: 1 }
+    - { M:    1, N:    1, lda:    1, incx: 1, incy: 1, batch_count: 0 }
 
     # invalid_arg checks
-    - { M:   -1, N:    0, lda:    1, incx: 1, incy: 1 }
-    - { M:    0, N:   -1, lda:    1, incx: 1, incy: 1 }
-    - { M:    5, N:    5, lda:    4, incx: 1, incy: 1 }
-    - { M:    0, N:    0, lda:    0, incx: 1, incy: 1 }
-    - { M:    0, N:    0, lda:    1, incx: 0, incy: 1 }
-    - { M:    0, N:    0, lda:    1, incx: 1, incy: 0 }
+    - { M:   -1, N:    0, lda:    1, incx: 1, incy: 1, batch_count:  0 }
+    - { M:    0, N:   -1, lda:    1, incx: 1, incy: 1, batch_count:  0 }
+    - { M:    5, N:    5, lda:    4, incx: 1, incy: 1, batch_count:  0 }
+    - { M:    0, N:    0, lda:    0, incx: 1, incy: 1, batch_count:  0 }
+    - { M:    0, N:    0, lda:    1, incx: 0, incy: 1, batch_count:  0 }
+    - { M:    0, N:    0, lda:    1, incx: 1, incy: 0, batch_count:  0 }
+    - { M:    0, N:    0, lda:    1, incx: 1, incy: 1, batch_count: -1 }
 
   - &medium_matrix_size_range
     - { M:   300, N:   400, lda:  400, stride_a:   160000 }
@@ -51,16 +53,16 @@ Definitions:
     - { alpha: 2.0, beta: 2.0, alphai: 1.5, betai: -1.5 }
 
 Tests:
-- name: gemv_arg_check
-  category: quick
-  function: gemv
-  precision: *single_double_precisions
-  transA: N
-
 # Regular gemv
 - name: gemv_bad_arg
   category: pre_checkin
   function: gemv_bad_arg
+  precision: *single_double_precisions
+  transA: N
+
+- name: gemv_arg_check
+  category: quick
+  function: gemv
   precision: *single_double_precisions
   transA: N
 
@@ -105,6 +107,12 @@ Tests:
 - name: gemv_batched_bad_arg
   category: pre_checkin
   function: gemv_batched_bad_arg
+  precision: *single_double_precisions
+  transA: N
+
+- name: gemv_batched_arg_check
+  category: quick
+  function: gemv_batched
   precision: *single_double_precisions
   transA: N
 
@@ -153,6 +161,12 @@ Tests:
 - name: gemv_strided_batched_bad_arg
   category: pre_checkin
   function: gemv_strided_batched_bad_arg
+  precision: *single_double_precisions
+  transA: N
+
+- name: gemv_strided_batched_arg_check
+  category: quick
+  function: gemv_strided_batched
   precision: *single_double_precisions
   transA: N
 

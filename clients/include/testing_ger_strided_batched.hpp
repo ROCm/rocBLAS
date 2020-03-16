@@ -129,12 +129,13 @@ void testing_ger_strided_batched(const Arguments& arg)
     size_t size_y   = N * abs_incy;
 
     // argument check before allocating invalid memory
-    if(M <= 0 || N <= 0 || lda < M || lda < 1 || !incx || !incy || batch_count <= 0)
+    bool invalidSize = M < 0 || N < 0 || lda < M || lda < 1 || !incx || !incy || batch_count < 0;
+    if(invalidSize || !M || !N || !batch_count)
     {
         EXPECT_ROCBLAS_STATUS((rocblas_ger_strided_batched<T, CONJ>(handle,
                                                                     M,
                                                                     N,
-                                                                    &h_alpha,
+                                                                    nullptr,
                                                                     nullptr,
                                                                     incx,
                                                                     stride_x,
@@ -145,10 +146,8 @@ void testing_ger_strided_batched(const Arguments& arg)
                                                                     lda,
                                                                     stride_a,
                                                                     batch_count)),
-                              M < 0 || N < 0 || lda < M || lda < 1 || !incx || !incy
-                                      || batch_count < 0
-                                  ? rocblas_status_invalid_size
-                                  : rocblas_status_success);
+                              invalidSize || batch_count < 0 ? rocblas_status_invalid_size
+                                                             : rocblas_status_success);
 
         return;
     }
