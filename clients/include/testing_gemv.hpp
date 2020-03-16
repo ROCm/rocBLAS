@@ -101,21 +101,13 @@ void testing_gemv(const Arguments& arg)
     rocblas_local_handle handle;
 
     // argument sanity check before allocating invalid memory
-    if(M < 0 || N < 0 || lda < M || lda < 1 || !incx || !incy)
+    bool invalidSize = M < 0 || N < 0 || lda < M || lda < 1 || !incx || !incy;
+    if(invalidSize || !M || !N)
     {
-        EXPECT_ROCBLAS_STATUS(rocblas_gemv<T>(handle,
-                                              transA,
-                                              M,
-                                              N,
-                                              &h_alpha,
-                                              nullptr,
-                                              lda,
-                                              nullptr,
-                                              incx,
-                                              &h_beta,
-                                              nullptr,
-                                              incy),
-                              rocblas_status_invalid_size);
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_gemv<T>(
+                handle, transA, M, N, nullptr, nullptr, lda, nullptr, incx, nullptr, nullptr, incy),
+            invalidSize ? rocblas_status_invalid_size : rocblas_status_success);
 
         return;
     }

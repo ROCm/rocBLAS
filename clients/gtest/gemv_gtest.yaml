@@ -4,15 +4,21 @@ include: known_bugs.yaml
 
 Definitions:
   - &small_matrix_size_range
-    - { M:    -1, N:     1, lda:    1, stride_a:        1 }
-    - { M:     1, N:    -1, lda:    1, stride_a:        1 }
-    - { M:     1, N:     1, lda:    0, stride_a:        1 }
-    - { M:    10, N:    10, lda:    9, stride_a:        1 }
-    - { M:     0, N:     1, lda:    1, stride_a:        1 }
-    - { M:     1, N:     0, lda:    1, stride_a:        1 }
-    - { M:    -1, N:    -1, lda:   -1, stride_a:        1 }
     - { M:    10, N:    10, lda:    2, stride_a:        1 }
     - { M:   100, N:   200, lda:  200, stride_a:    40000 }
+
+  - &special_case_range
+    # Quick return
+    - { M:    0, N:    1, lda:    1, incx: 1, incy: 1 }
+    - { M:    1, N:    0, lda:    1, incx: 1, incy: 1 }
+
+    # invalid_arg checks
+    - { M:   -1, N:    0, lda:    1, incx: 1, incy: 1 }
+    - { M:    0, N:   -1, lda:    1, incx: 1, incy: 1 }
+    - { M:    5, N:    5, lda:    4, incx: 1, incy: 1 }
+    - { M:    0, N:    0, lda:    0, incx: 1, incy: 1 }
+    - { M:    0, N:    0, lda:    1, incx: 0, incy: 1 }
+    - { M:    0, N:    0, lda:    1, incx: 1, incy: 0 }
 
   - &medium_matrix_size_range
     - { M:   300, N:   400, lda:  400, stride_a:   160000 }
@@ -29,11 +35,11 @@ Definitions:
     - { incx:  -1, incy:   2, stride_scale: 1   }
     - { incx:   1, incy:   1, stride_scale: 1   }
     - { incx:  -1, incy:   3, stride_scale: 1.5 }
-    - { incx:   3, incy:  -1, stride_scale: 1   }
-    - { incx:   0, incy:   1, stride_scale: 1   }
-    - { incx:   1, incy:   0, stride_scale: 1   }
-    - { incx:   0, incy:  -1, stride_scale: 2   }
+    - { incx:   3, incy:  -1, stride_scale: 2   }
     - { incx:  10, incy: 100, stride_scale: 1   }
+
+  - &incx_incy_range_small
+    - { incx: 2, incy: 2, stride_scale: 1 }
 
   - &alpha_beta_range
     - { alpha:  2.0, beta:  0.0, alphai: 1.5, betai: 0.5 }
@@ -41,7 +47,17 @@ Definitions:
     - { alpha:  2.0, beta:  1.0, alphai: -1.5, betai: 0.5 }
     - { alpha:  0.0, beta:  1.0, alphai: -0.5, betai: 0 }
 
+  - &alpha_beta_range_small
+    - { alpha: 2.0, beta: 2.0, alphai: 1.5, betai: -1.5 }
+
 Tests:
+- name: gemv_arg_check
+  category: quick
+  function: gemv
+  precision: *single_double_precisions
+  transA: N
+
+# Regular gemv
 - name: gemv_bad_arg
   category: pre_checkin
   function: gemv_bad_arg
@@ -82,9 +98,10 @@ Tests:
   precision: *single_double_precisions_complex_real
   transA: [  N, T, C ]
   matrix_size: *large_matrix_size_range
-  incx_incy: *incx_incy_range
-  alpha_beta: *alpha_beta_range
+  incx_incy: *incx_incy_range_small
+  alpha_beta: *alpha_beta_range_small
 
+# gemv_batched
 - name: gemv_batched_bad_arg
   category: pre_checkin
   function: gemv_batched_bad_arg
@@ -128,10 +145,11 @@ Tests:
   precision: *single_double_precisions
   transA: [ N, T, C ]
   matrix_size: *large_matrix_size_range
-  incx_incy: *incx_incy_range
-  alpha_beta: *alpha_beta_range
+  incx_incy: *incx_incy_range_small
+  alpha_beta: *alpha_beta_range_small
   batch_count: [ 3 ]
 
+# gemv_strided_batched
 - name: gemv_strided_batched_bad_arg
   category: pre_checkin
   function: gemv_strided_batched_bad_arg
@@ -175,7 +193,7 @@ Tests:
   precision: *single_double_precisions
   transA: [ N, T, C ]
   matrix_size: *large_matrix_size_range
-  incx_incy: *incx_incy_range
-  alpha_beta: *alpha_beta_range
+  incx_incy: *incx_incy_range_small
+  alpha_beta: *alpha_beta_range_small
   batch_count: [ 3 ]
 ...
