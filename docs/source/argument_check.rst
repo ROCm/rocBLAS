@@ -14,7 +14,7 @@ Level 1 BLAS subprograms have only quick-return-success. Level 2 and Level 3 BLA
 
 rocBLAS
 =======
-rocBLAS has 4 types of argument checking:
+rocBLAS has 5 types of argument checking:
 
 1. ``rocblas_status_invalid_handle`` if the handle is a NULL pointer
 
@@ -22,21 +22,23 @@ rocBLAS has 4 types of argument checking:
 
 3. ``rocblas_status_invalid_size`` for invalid size, increment or leading dimension argument
 
-4. ``rocblas_status_success`` for quick-return-success
+4. ``rocblas_status_invalid_value`` for unsupported enum value
+
+5. ``rocblas_status_success`` for quick-return-success
 
 
 rocBLAS has the following differences when compared to Legacy BLAS
 ==================================================================
 
-- It is a C API, returning a ``rocblas_status`` type indicating the success of the call. For functions dot, nrm2, asum, amax and amin pointers to scalar return values passed as the last argument. These correspond to the Fortran functions (not subroutines) in BLAS.
+- It is a C API, returning a ``rocblas_status`` type indicating the success of the call. In legacy BLAS the following functions return a scalar result: dot, nrm2, asum, amax and amin. In rocBLAS a pointers to scalar return value  is passed as the last argument.
 
 - The first argument is a ``rocblas_handle`` argument, an opaque pointer to rocBLAS resources, corresponding to a single HIP stream.
-
-- The ``ROCBLAS_LAYER`` environment variable controls the option to log argument values.
 
 - Scalar arguments like alpha and beta are pointers on either the host or device, controlled by the rocBLAS handle’s pointer mode.
 
 - Vector and matrix arguments are always pointers to device memory.
+
+- The ``ROCBLAS_LAYER`` environment variable controls the option to log argument values.
 
 - There is added functionality like 
 
@@ -70,7 +72,10 @@ Device Memory Size Queries
 Logging
 -------
 
-- There is logging before a quick-return-success or error-return, except when ``handle == nullptr``, when ``rocblas_status_invalid_handle`` is returned, or when ``handle->is_device_memory_size_query()`` returns ``true``.
+- There is logging before a quick-return-success or error-return, except:
+
+  - when ``handle == nullptr``, return ``rocblas_status_invalid_handle`` 
+  - when ``handle->is_device_memory_size_query()`` returns ``true``
 
 - Vectors and matrices are logged with their addresses, and are always on device memory.
 
@@ -87,37 +92,29 @@ rocBLAS control flow:
 
 4. Perform logging if enabled, taking care not to dereference ``nullptr`` arguments.
 
-5. Return rocblas_status_invalid_pointer if any pointers used to determine quick return conditions are NULL.
+5. Check for invalid sizes. Return rocblas_status_invalid_size if size arguments are invalid.
 
-6. If a scalar argument passed by address is used to determine quick return conditions, and the current handle pointer mode is device, copy the scalar from the device to host, using RETURN_IF_HIP_ERROR() around hipMemcpy(). Otherwise, load the scalar from the host.
+6. Return rocblas_status_invalid_pointer if any pointers used to determine quick return conditions are NULL.
 
-5. If quick return conditions are met:
+7. If a scalar argument passed by address is used to determine quick return conditions, and the current handle pointer mode is device, copy the scalar from the device to host, using RETURN_IF_HIP_ERROR() around hipMemcpy(). Otherwise, load the scalar from the host.
+
+8. If quick return conditions are met:
+
+   - if there is no return value
+
+     - Return rocblas_status_success
 
    - If there is a return value
 
-     - For batched or strided_batched, if batch_count < 0, return rocblas_status_invalid_size
-
-     - For batched or strided_batched, if batch_count == 0, return rocblas_status_success
-
      - If the return value pointer argument is nullptr, return rocblas_status_invalid_pointer
 
-     - Set return value, taking the handle’s pointer mode into account for scalar return values.
+     - Else, return rocblas_status_success.
 
-     - Return rocblas_status_success.
+9. Check for NULL pointer arguments not already covered by #3. Return rocblas_status_invalid_pointer if argument pointers are NULL.
 
-   - Else,
+10. (Optional.) Allocate device memory, returning rocblas_status_memory_error if the allocation fails.
 
-     -Return rocblas_status_success
-
-6. Check for invalid sizes. Return rocblas_status_invalid_size if size arguments are invalid.
-
-7. Check for NULL pointer arguments not already covered by #3. Return rocblas_status_invalid_pointer if argument pointers are NULL.
-
-8. (Optional.) Allocate device memory, returning rocblas_status_memory_error if the allocation fails.
-
-9. Return rocblas_status_success, assuming no errors in HIP calls or other errors in the calculation.
-
-10. Use RETURN_IF_HIP_ERROR() around HIP library calls.
+11. After completing the calculation, return rocblas_status_success, assuming no errors in HIP calls or other errors in the calculation.
 
 
 Legacy L1 BLAS “single vector”
@@ -189,6 +186,9 @@ We need to change this to
     {
         if(!handle)
             return rocblas_status_invalid_handle;
+
+        RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
+
   //      if(!alpha)
   //          return rocblas_status_invalid_pointer;
 
@@ -280,7 +280,9 @@ We need to change this to
     {
         if(!handle)
             return rocblas_status_invalid_handle;
+
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
+
   //      if(!alpha)
   //          return rocblas_status_invalid_pointer;
 
@@ -291,7 +293,21 @@ We need to change this to
 
         if(n <= 0) // Quick return if possible. Not Argument error
             return rocblas_status_success;
-        if(!alpha || !x || !y)
+
+        if(!alpha)
+            return rocblas_status_invalid_pointer;
+        if(handle->pointer_mode == rocblas_pointer_mode_device)
+        {
+            T alpha_h;
+            RETURN_IF_HIP_ERROR(hipMemcpy(&alpha_h, alpha, sizeof(T), hipMemcpyDeviceToHost);
+            if (alpha_h == 0) return rocblas_status_success;
+        }
+        else
+        {
+            if (* alpha == 0) return rocblas_status_success;
+        }
+
+        if(!x || !y)
             return rocblas_status_invalid_pointer;
 
 
@@ -470,15 +486,29 @@ This needs to change to
 
   //    if(m < 0 || n < 0 || !incx || !incy || lda < m || lda < 1 || stridex < m * std::abs(incx)
   //       || stridey < n * abs(incy) || strideA < lda * n || batch_count < 0)
-        if(m < 0 || n < 0 || !incx || !incy || lda < m || lda < 1)
+        if(m < 0 || n < 0 || !incx || !incy || lda < m || lda < 1 || batch_count < 0)
             return rocblas_status_invalid_size;
 
         // Quick return if possible. Not Argument error
   //    if(!m || !n || !batch_count)
-        if(!m || !n || !batch_count || (!alpha && * alpha == 0))
+        if(!m || !n || !batch_count)
             return rocblas_status_success;
 
-        if(!x || !y || !A || !alpha)
+        if(!alpha)
+            return rocblas_status_invalid_pointer;
+
+        if(handle->pointer_mode == rocblas_pointer_mode_host)
+        {
+            if(* alpha == 0)) return rocblas_status_success;
+        }
+        else
+        {
+            T alpha_h;
+            RETURN_IF_HIP_ERROR(hipMemcpy(&alpha_h, alpha, sizeof(T), hipMemcpyDeviceToHost));
+            if(alpha_h == 0)return rocblas_status_success;
+        }
+
+        if(!x || !y || !A)
             return rocblas_status_invalid_pointer;
 
 Legacy L3 BLAS
@@ -577,6 +607,8 @@ This needs to be as follows in rocblas_gemm_strided_batched_impl
         if(!handle)
             return rocblas_status_invalid_handle;
 
+        RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
+
         auto layer_mode = handle->layer_mode;
   //----snip---logging---does---not---dereferences---null---pointer-------------------------------
 
@@ -594,14 +626,25 @@ This needs to be as follows in rocblas_gemm_strided_batched_impl
             return rocblas_status_invalid_size;
 
         // quick return m,n,k equal to 0 is valid in BLAS
-        if(!m || !n || !k || !batch_count)
+        if(!m || !n || !batch_count)
             return rocblas_status_success;
 
-       // --- on host if rocblas_pointer_mode_host, on device if rocblas_pointer_mode_device ---
-       if((!alpha && * alpha == 0) || (k == 0 && (!beta && beta == 1)))
-            return rocblas_status_success;
-
-       // --- on host if rocblas_pointer_mode_host, on device if rocblas_pointer_mode_device ---
-        if(!a || !b || !c || !d || !alpha || !beta)
+        if(!alpha || !beta)
             return rocblas_status_invalid_pointer;
 
+        if(handle->pointer_mode == rocblas_pointer_mode_host)
+        {
+            if ((* alpha == 0) || (k == 0)) && (* beta == 1)) return rocblas_status_success;
+        }
+        else
+        {
+            T alpha_h;
+            T beta_h;
+            RETURN_IF_HIP_ERROR(hipMemcpy(&alpha_h, alpha, sizeof(T), hipMemcpyDeviceToHost));
+            RETURN_IF_HIP_ERROR(hipMemcpy(&beta_h, beta, sizeof(T), hipMemcpyDeviceToHost));
+            if ((* alpha_h == 0) || (k==0)) && (* beta_h == 1)) return rocblas_status_success;
+        }
+
+       // --- on host if rocblas_pointer_mode_host, on device if rocblas_pointer_mode_device ---
+        if(!a || !b || !c || !d)
+            return rocblas_status_invalid_pointer;
