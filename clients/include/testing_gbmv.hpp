@@ -89,6 +89,9 @@ void testing_gbmv_bad_arg(const Arguments& arg)
     EXPECT_ROCBLAS_STATUS(
         rocblas_gbmv<T>(nullptr, transA, M, N, KL, KU, &alpha, dA, lda, dx, incx, &beta, dy, incy),
         rocblas_status_invalid_handle);
+
+    // TODO: See rocblas_gbmv.cpp comment on alpha==0 && beta==1 case.
+    // CHECK_ROCBLAS_ERROR(rocblas_gbmv<T>(handle, transA, 1, 1, 1, 1, &alpha, nullptr, 10, nullptr, 1, &beta, nullptr, 1));
 }
 
 template <typename T>
@@ -108,20 +111,24 @@ void testing_gbmv(const Arguments& arg)
     rocblas_local_handle handle;
 
     // argument sanity check before allocating invalid memory
-    if(M < 0 || N < 0 || lda < KL + KU + 1 || !incx || !incy || KL < 0 || KU < 0)
+    bool invalidSize = M < 0 || N < 0 || lda < KL + KU + 1 || !incx || !incy || KL < 0 || KU < 0;
+    if(invalidSize || !M || !N)
     {
-        static const size_t safe_size = 100; // arbitrarily set to 100
-        device_vector<T>    dA1(safe_size);
-        device_vector<T>    dx1(safe_size);
-        device_vector<T>    dy1(safe_size);
-        CHECK_DEVICE_ALLOCATION(dA1.memcheck());
-        CHECK_DEVICE_ALLOCATION(dx1.memcheck());
-        CHECK_DEVICE_ALLOCATION(dy1.memcheck());
-
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_gbmv<T>(
-                handle, transA, M, N, KL, KU, &h_alpha, dA1, lda, dx1, incx, &h_beta, dy1, incy),
-            rocblas_status_invalid_size);
+        EXPECT_ROCBLAS_STATUS(rocblas_gbmv<T>(handle,
+                                              transA,
+                                              M,
+                                              N,
+                                              KL,
+                                              KU,
+                                              nullptr,
+                                              nullptr,
+                                              lda,
+                                              nullptr,
+                                              incx,
+                                              nullptr,
+                                              nullptr,
+                                              incy),
+                              invalidSize ? rocblas_status_invalid_size : rocblas_status_success);
 
         return;
     }
