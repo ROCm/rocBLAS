@@ -40,8 +40,8 @@ template <typename Ti, typename To = Ti, typename Tc = To>
 struct RocblasContractionProblem
 {
     rocblas_handle    handle;
-    rocblas_operation trans_a = rocblas_operation_none;
-    rocblas_operation trans_b = rocblas_operation_none;
+    rocblas_operation trans_a;
+    rocblas_operation trans_b;
 
     // The size data members should exactly match Tensile's size parameters
     // even if rocBLAS uses smaller or differently-signed types
@@ -52,26 +52,26 @@ struct RocblasContractionProblem
     const Tc* alpha;
 
     const Ti* A;
-    size_t    row_stride_a = 1;
+    size_t    row_stride_a;
     size_t    col_stride_a;
     size_t    batch_stride_a;
 
     const Ti* B;
-    size_t    row_stride_b = 1;
+    size_t    row_stride_b;
     size_t    col_stride_b;
     size_t    batch_stride_b;
 
     const Tc* beta;
 
     const To* C;
-    size_t    row_stride_c = 1;
+    size_t    row_stride_c;
     size_t    col_stride_c;
     size_t    batch_stride_c;
 
-    To*    D              = const_cast<To*>(C); // Default D = C
-    size_t row_stride_d   = row_stride_c;
-    size_t col_stride_d   = col_stride_c;
-    size_t batch_stride_d = batch_stride_c;
+    To*    D;
+    size_t row_stride_d;
+    size_t col_stride_d;
+    size_t batch_stride_d;
 
     size_t batch_count;
 
@@ -91,10 +91,10 @@ struct RocblasContractionProblem
                               rocblas_int       ld_b,
                               rocblas_stride    batch_stride_b,
                               const Tc*         beta,
-                              const To*         C,
+                              To*               C,
                               rocblas_int       ld_c,
                               rocblas_stride    batch_stride_c,
-                              rocblas_int       batch_count = 1)
+                              rocblas_int       batch_count)
         : handle(handle)
         , trans_a(trans_a)
         , trans_b(trans_b)
@@ -103,15 +103,22 @@ struct RocblasContractionProblem
         , k(k)
         , alpha(alpha)
         , A(A)
+        , row_stride_a(1)
         , col_stride_a(ld_a)
         , batch_stride_a(batch_stride_a)
         , B(B)
+        , row_stride_b(1)
         , col_stride_b(ld_b)
         , batch_stride_b(batch_stride_b)
         , beta(beta)
         , C(C)
+        , row_stride_c(1)
         , col_stride_c(ld_c)
         , batch_stride_c(batch_stride_c)
+        , D(C)
+        , row_stride_d(1)
+        , col_stride_d(ld_c)
+        , batch_stride_d(batch_stride_c)
         , batch_count(batch_count)
     {
     }
@@ -138,7 +145,7 @@ struct RocblasContractionProblem
                               To*               D,
                               rocblas_int       ld_d,
                               rocblas_stride    batch_stride_d,
-                              rocblas_int       batch_count = 1)
+                              rocblas_int       batch_count)
         : handle(handle)
         , trans_a(trans_a)
         , trans_b(trans_b)
@@ -147,16 +154,20 @@ struct RocblasContractionProblem
         , k(k)
         , alpha(alpha)
         , A(A)
+        , row_stride_a(1)
         , col_stride_a(ld_a)
         , batch_stride_a(batch_stride_a)
         , B(B)
+        , row_stride_b(1)
         , col_stride_b(ld_b)
         , batch_stride_b(batch_stride_b)
         , beta(beta)
         , C(C)
+        , row_stride_c(1)
         , col_stride_c(ld_c)
         , batch_stride_c(batch_stride_c)
         , D(D)
+        , row_stride_d(1)
         , col_stride_d(ld_d)
         , batch_stride_d(batch_stride_d)
         , batch_count(batch_count)
@@ -189,7 +200,7 @@ struct RocblasContractionProblem
                               rocblas_int       row_stride_d,
                               rocblas_int       col_stride_d,
                               rocblas_stride    batch_stride_d,
-                              rocblas_int       batch_count = 1)
+                              rocblas_int       batch_count)
         : handle(handle)
         , trans_a(trans_a)
         , trans_b(trans_b)
