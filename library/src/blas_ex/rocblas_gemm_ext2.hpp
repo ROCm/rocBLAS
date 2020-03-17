@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #ifndef __ROCBLAS_GEMM_EX_HPP
 #define __ROCBLAS_GEMM_EX_HPP

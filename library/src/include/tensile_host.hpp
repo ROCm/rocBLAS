@@ -86,14 +86,14 @@ struct RocblasContractionProblem
                               const Tc*         alpha,
                               const Ti*         A,
                               rocblas_int       ld_a,
-                              rocblas_stride    stride_a,
+                              rocblas_stride    batch_stride_a,
                               const Ti*         B,
                               rocblas_int       ld_b,
-                              rocblas_stride    stride_b,
+                              rocblas_stride    batch_stride_b,
                               const Tc*         beta,
                               const To*         C,
                               rocblas_int       ld_c,
-                              rocblas_stride    stride_c,
+                              rocblas_stride    batch_stride_c,
                               rocblas_int       batch_count = 1)
         : handle(handle)
         , trans_a(trans_a)
@@ -104,14 +104,14 @@ struct RocblasContractionProblem
         , alpha(alpha)
         , A(A)
         , col_stride_a(ld_a)
-        , batch_stride_a(stride_a)
+        , batch_stride_a(batch_stride_a)
         , B(B)
         , col_stride_b(ld_b)
-        , batch_stride_b(stride_b)
+        , batch_stride_b(batch_stride_b)
         , beta(beta)
         , C(C)
         , col_stride_c(ld_c)
-        , batch_stride_c(stride_c)
+        , batch_stride_c(batch_stride_c)
         , batch_count(batch_count)
     {
     }
@@ -127,17 +127,17 @@ struct RocblasContractionProblem
                               const Tc*         alpha,
                               const Ti*         A,
                               rocblas_int       ld_a,
-                              rocblas_stride    stride_a,
+                              rocblas_stride    batch_stride_a,
                               const Ti*         B,
                               rocblas_int       ld_b,
-                              rocblas_stride    stride_b,
+                              rocblas_stride    batch_stride_b,
                               const Tc*         beta,
                               const To*         C,
                               rocblas_int       ld_c,
-                              rocblas_stride    stride_c,
+                              rocblas_stride    batch_stride_c,
                               To*               D,
                               rocblas_int       ld_d,
-                              rocblas_stride    stride_d,
+                              rocblas_stride    batch_stride_d,
                               rocblas_int       batch_count = 1)
         : handle(handle)
         , trans_a(trans_a)
@@ -148,17 +148,72 @@ struct RocblasContractionProblem
         , alpha(alpha)
         , A(A)
         , col_stride_a(ld_a)
-        , batch_stride_a(stride_a)
+        , batch_stride_a(batch_stride_a)
         , B(B)
         , col_stride_b(ld_b)
-        , batch_stride_b(stride_b)
+        , batch_stride_b(batch_stride_b)
         , beta(beta)
         , C(C)
         , col_stride_c(ld_c)
-        , batch_stride_c(stride_c)
+        , batch_stride_c(batch_stride_c)
         , D(D)
         , col_stride_d(ld_d)
-        , batch_stride_d(stride_d)
+        , batch_stride_d(batch_stride_d)
+        , batch_count(batch_count)
+    {
+    }
+
+    // gemm_ext2
+    // gemm_strided_batched_ext2
+    RocblasContractionProblem(rocblas_handle    handle,
+                              rocblas_operation trans_a,
+                              rocblas_operation trans_b,
+                              rocblas_int       m,
+                              rocblas_int       n,
+                              rocblas_int       k,
+                              const Tc*         alpha,
+                              const Ti*         A,
+                              rocblas_int       row_stride_a,
+                              rocblas_int       col_stride_a,
+                              rocblas_stride    batch_stride_a,
+                              const Ti*         B,
+                              rocblas_int       row_stride_b,
+                              rocblas_int       col_stride_b,
+                              rocblas_stride    batch_stride_b,
+                              const Tc*         beta,
+                              const To*         C,
+                              rocblas_int       row_stride_c,
+                              rocblas_int       col_stride_c,
+                              rocblas_stride    batch_stride_c,
+                              To*               D,
+                              rocblas_int       row_stride_d,
+                              rocblas_int       col_stride_d,
+                              rocblas_stride    batch_stride_d,
+                              rocblas_int       batch_count = 1)
+        : handle(handle)
+        , trans_a(trans_a)
+        , trans_b(trans_b)
+        , m(m)
+        , n(n)
+        , k(k)
+        , alpha(alpha)
+        , A(A)
+        , row_stride_a(row_stride_a)
+        , col_stride_a(col_stride_a)
+        , batch_stride_a(batch_stride_a)
+        , B(B)
+        , row_stride_b(row_stride_b)
+        , col_stride_b(col_stride_b)
+        , batch_stride_b(batch_stride_b)
+        , beta(beta)
+        , C(C)
+        , row_stride_c(row_stride_c)
+        , col_stride_c(col_stride_c)
+        , batch_stride_c(batch_stride_c)
+        , D(D)
+        , row_stride_d(row_stride_d)
+        , col_stride_d(col_stride_d)
+        , batch_stride_d(batch_stride_d)
         , batch_count(batch_count)
     {
     }

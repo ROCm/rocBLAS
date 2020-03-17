@@ -1,6 +1,8 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+
+#ifdef USE_TENSILE_CLIENT
 
 #include "handle.h"
 #include "logging.h"
@@ -234,11 +236,11 @@ rocblas_status rocblas_gemm_ext2_impl(rocblas_handle    handle,
     if(!a || !b || !c || !d || !alpha || !beta)
         return rocblas_status_invalid_pointer;
 
-    auto stride_a    = rocblas_stride(a_col_stride) * a_row_stride;
-    auto stride_b    = rocblas_stride(b_col_stride) * b_row_stride;
-    auto stride_c    = rocblas_stride(c_col_stride) * c_row_stride;
-    auto stride_d    = rocblas_stride(d_col_stride) * d_row_stride;
-    auto batch_count = 1;
+    rocblas_stride stride_a    = 0;
+    rocblas_stride stride_b    = 0;
+    rocblas_stride stride_c    = 0;
+    rocblas_stride stride_d    = 0;
+    rocblas_int    batch_count = 1;
 
     return rocblas_gemm_ext2_template<false>(handle,
                                              m,
@@ -274,6 +276,8 @@ rocblas_status rocblas_gemm_ext2_impl(rocblas_handle    handle,
                                              compute_type)
 }
 
+#endif
+
 extern "C" rocblas_status rocblas_gemm_ext2(rocblas_handle    handle,
                                             rocblas_int       m,
                                             rocblas_int       n,
@@ -300,6 +304,7 @@ extern "C" rocblas_status rocblas_gemm_ext2(rocblas_handle    handle,
                                             rocblas_gemm_algo algo,
                                             int32_t           solution_index,
                                             uint32_t          flags)
+#ifdef USE_TENSILE_HOST
 try
 {
     return rocblas_gemm_ext2_impl(handle,
@@ -333,3 +338,8 @@ catch(...)
 {
     return exception_to_rocblas_status();
 }
+#else
+{
+    return rocblas_status_not_implemented;
+}
+#endif

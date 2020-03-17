@@ -231,11 +231,11 @@ rocblas_status rocblas_gemm_ex_impl(rocblas_handle    handle,
     if(!a || !b || !c || !d || !alpha || !beta)
         return rocblas_status_invalid_pointer;
 
-    auto stride_a    = 0;
-    auto stride_b    = 0;
-    auto stride_c    = 0;
-    auto stride_d    = 0;
-    auto batch_count = 1;
+    rocblas_stride stride_a    = 0;
+    rocblas_stride stride_b    = 0;
+    rocblas_stride stride_c    = 0;
+    rocblas_stride stride_d    = 0;
+    rocblas_int    batch_count = 1;
 
     return rocblas_gemm_ex_template<false>(handle,
                                            trans_a,
