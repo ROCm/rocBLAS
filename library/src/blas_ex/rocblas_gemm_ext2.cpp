@@ -2,14 +2,14 @@
  * Copyright 2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#ifdef USE_TENSILE_CLIENT
-
+#include "rocblas_gemm_ext2.hpp"
 #include "handle.h"
 #include "logging.h"
-#include "rocblas-profile.h"
 #include "rocblas.h"
-#include "rocblas_gemm_ex.hpp"
 #include "utility.h"
+
+// This functionality is only availble when using the new Tensile client
+#ifdef USE_TENSILE_HOST
 
 rocblas_status rocblas_gemm_ext2_impl(rocblas_handle    handle,
                                       rocblas_int       m,
@@ -18,21 +18,21 @@ rocblas_status rocblas_gemm_ext2_impl(rocblas_handle    handle,
                                       const void*       alpha,
                                       const void*       a,
                                       rocblas_datatype  a_type,
-                                      rocblas_int       a_row_stride,
-                                      rocblas_int       a_col_stride,
+                                      rocblas_int       row_stride_a,
+                                      rocblas_int       col_stride_a,
                                       const void*       b,
                                       rocblas_datatype  b_type,
-                                      rocblas_int       b_row_stride,
-                                      rocblas_int       b_col_stride,
+                                      rocblas_int       row_stride_b,
+                                      rocblas_int       col_stride_b,
                                       const void*       beta,
                                       const void*       c,
                                       rocblas_datatype  c_type,
-                                      rocblas_int       c_row_stride,
-                                      rocblas_int       c_col_stride,
+                                      rocblas_int       row_stride_c,
+                                      rocblas_int       col_stride_c,
                                       void*             d,
                                       rocblas_datatype  d_type,
-                                      rocblas_int       d_row_stride,
-                                      rocblas_int       d_col_stride,
+                                      rocblas_int       row_stride_d,
+                                      rocblas_int       col_stride_d,
                                       rocblas_datatype  compute_type,
                                       rocblas_gemm_algo algo,
                                       int32_t           solution_index,
@@ -42,6 +42,8 @@ rocblas_status rocblas_gemm_ext2_impl(rocblas_handle    handle,
         return rocblas_status_invalid_handle;
 
     RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
+
+#if 0 // TODO: Implement logging with correct argument names
 
     auto layer_mode = handle->layer_mode;
     if(layer_mode
@@ -72,11 +74,11 @@ rocblas_status rocblas_gemm_ext2_impl(rocblas_handle    handle,
                                   alphass.str(),
                                   a,
                                   a_type_string,
-                                  a_row_stride,
-                                  a_col_stride,
+                                  row_stride_a,
+                                  col_stride_a,
                                   b,
                                   b_type_string,
-                                  b_row_stride,
+                                  row_stride_b,
                                   b_col_stide,
                                   betass.str(),
                                   c,
@@ -85,7 +87,7 @@ rocblas_status rocblas_gemm_ext2_impl(rocblas_handle    handle,
                                   c_col_stide,
                                   d,
                                   d_type_string,
-                                  d_row_stride,
+                                  row_stride_d,
                                   d_col_stide,
                                   compute_type_string,
                                   algo,
@@ -111,29 +113,29 @@ rocblas_status rocblas_gemm_ext2_impl(rocblas_handle    handle,
                                   alphas,
                                   "--a_type",
                                   a_type_string,
-                                  "--a_row_stride",
-                                  a_row_stride,
-                                  "--a_col_stride",
-                                  a_col_stride,
+                                  "--row_stride_a",
+                                  row_stride_a,
+                                  "--col_stride_a",
+                                  col_stride_a,
                                   "--b_type",
                                   b_type_string,
-                                  "--b_row_stride",
-                                  b_row_stride,
-                                  "--b_col_stride",
-                                  b_col_stride,
+                                  "--row_stride_b",
+                                  row_stride_b,
+                                  "--col_stride_b",
+                                  col_stride_b,
                                   betas,
                                   "--c_type",
                                   c_type_string,
-                                  "--c_row_stride",
-                                  c_row_stride,
-                                  "--c_col_stride",
-                                  c_col_stride,
+                                  "--row_stride_c",
+                                  row_stride_c,
+                                  "--col_stride_c",
+                                  col_stride_c,
                                   "--d_type",
                                   d_type_string,
-                                  "--d_row_stride",
-                                  d_row_stride,
-                                  "--d_col_stride",
-                                  d_col_stride,
+                                  "--row_stride_d",
+                                  row_stride_d,
+                                  "--col_stride_d",
+                                  col_stride_d,
                                   "--compute_type",
                                   compute_type_string,
                                   "--algo",
@@ -156,21 +158,21 @@ rocblas_status rocblas_gemm_ext2_impl(rocblas_handle    handle,
                               alpha,
                               a,
                               a_type_string,
-                              a_row_stride,
-                              a_col_stride,
+                              row_stride_a,
+                              col_stride_a,
                               b,
                               b_type_string,
-                              b_row_stride,
-                              b_col_stride,
+                              row_stride_b,
+                              col_stride_b,
                               beta,
                               c,
                               c_type_string,
-                              c_row_stride,
-                              c_col_stride,
+                              row_stride_c,
+                              col_stride_c,
                               d,
                               d_type_string,
-                              d_row_stride,
-                              d_col_stride,
+                              row_stride_d,
+                              col_stride_d,
                               compute_type_string,
                               algo,
                               solution_index,
@@ -198,22 +200,22 @@ rocblas_status rocblas_gemm_ext2_impl(rocblas_handle    handle,
                         n,
                         "K",
                         k,
-                        "a_row_stride",
-                        a_row_stride,
-                        "a_col_stride",
-                        a_col_stride,
-                        "b_row_stride",
-                        b_row_stride,
-                        "b_col_stride",
-                        b_col_stride,
-                        "c_row_stride",
-                        c_row_stride,
-                        "c_col_stride",
-                        c_col_stride,
-                        "d_row_stride",
-                        d_row_stride,
-                        "d_col_stride",
-                        d_col_stride,
+                        "row_stride_a",
+                        row_stride_a,
+                        "col_stride_a",
+                        col_stride_a,
+                        "row_stride_b",
+                        row_stride_b,
+                        "col_stride_b",
+                        col_stride_b,
+                        "row_stride_c",
+                        row_stride_c,
+                        "col_stride_c",
+                        col_stride_c,
+                        "row_stride_d",
+                        row_stride_d,
+                        "col_stride_d",
+                        col_stride_d,
                         "algo",
                         algo,
                         "solution_index",
@@ -223,7 +225,9 @@ rocblas_status rocblas_gemm_ext2_impl(rocblas_handle    handle,
         }
     }
 
-    // quick return m,n,k equal to 0 is valid in BLAS
+#endif // TODO
+
+    // quick return
     // Note: k==0 is not a quick return, because C still has to be multiplied by beta
     if(!m || !n)
         return rocblas_status_success;
@@ -236,47 +240,48 @@ rocblas_status rocblas_gemm_ext2_impl(rocblas_handle    handle,
     if(!a || !b || !c || !d || !alpha || !beta)
         return rocblas_status_invalid_pointer;
 
-    rocblas_stride stride_a    = 0;
-    rocblas_stride stride_b    = 0;
-    rocblas_stride stride_c    = 0;
-    rocblas_stride stride_d    = 0;
-    rocblas_int    batch_count = 1;
+    rocblas_stride batch_stride_a = 0;
+    rocblas_stride batch_stride_b = 0;
+    rocblas_stride batch_stride_c = 0;
+    rocblas_stride batch_stride_d = 0;
+    rocblas_int    offset         = 0;
+    rocblas_int    batch_count    = 1;
 
     return rocblas_gemm_ext2_template<false>(handle,
+                                             rocblas_operation_none,
+                                             rocblas_operation_none,
                                              m,
                                              n,
                                              k,
                                              alpha,
                                              a,
                                              a_type,
-                                             0,
-                                             a_row_stride,
-                                             a_col_stride,
-                                             stride_a,
+                                             offset,
+                                             row_stride_a,
+                                             col_stride_a,
+                                             batch_stride_a,
                                              b,
                                              b_type,
-                                             0,
-                                             b_row_stride,
-                                             b_col_stride,
-                                             stride_b,
+                                             offset,
+                                             row_stride_b,
+                                             col_stride_b,
+                                             batch_stride_b,
                                              beta,
                                              c,
                                              c_type,
-                                             0,
-                                             c_row_stride,
-                                             c_col_stride,
-                                             stride_c,
+                                             offset,
+                                             row_stride_c,
+                                             col_stride_c,
+                                             batch_stride_c,
                                              d,
                                              d_type,
-                                             0,
-                                             d_row_stride,
-                                             d_col_stride,
-                                             stride_d,
+                                             offset,
+                                             row_stride_d,
+                                             col_stride_d,
+                                             batch_stride_d,
                                              batch_count,
-                                             compute_type)
+                                             compute_type);
 }
-
-#endif
 
 extern "C" rocblas_status rocblas_gemm_ext2(rocblas_handle    handle,
                                             rocblas_int       m,
@@ -285,26 +290,25 @@ extern "C" rocblas_status rocblas_gemm_ext2(rocblas_handle    handle,
                                             const void*       alpha,
                                             const void*       a,
                                             rocblas_datatype  a_type,
-                                            rocblas_int       a_row_stride,
-                                            rocblas_int       a_col_stride,
+                                            rocblas_int       row_stride_a,
+                                            rocblas_int       col_stride_a,
                                             const void*       b,
                                             rocblas_datatype  b_type,
-                                            rocblas_int       b_row_stride,
-                                            rocblas_int       b_col_stride,
+                                            rocblas_int       row_stride_b,
+                                            rocblas_int       col_stride_b,
                                             const void*       beta,
                                             const void*       c,
                                             rocblas_datatype  c_type,
-                                            rocblas_int       c_row_stride,
-                                            rocblas_int       c_col_stride,
+                                            rocblas_int       row_stride_c,
+                                            rocblas_int       col_stride_c,
                                             void*             d,
                                             rocblas_datatype  d_type,
-                                            rocblas_int       d_row_stride,
-                                            rocblas_int       d_col_stride,
+                                            rocblas_int       row_stride_d,
+                                            rocblas_int       col_stride_d,
                                             rocblas_datatype  compute_type,
                                             rocblas_gemm_algo algo,
                                             int32_t           solution_index,
                                             uint32_t          flags)
-#ifdef USE_TENSILE_HOST
 try
 {
     return rocblas_gemm_ext2_impl(handle,
@@ -314,21 +318,21 @@ try
                                   alpha,
                                   a,
                                   a_type,
-                                  a_row_stride,
-                                  a_col_stride,
+                                  row_stride_a,
+                                  col_stride_a,
                                   b,
                                   b_type,
-                                  b_row_stride,
-                                  b_col_stride,
+                                  row_stride_b,
+                                  col_stride_b,
                                   beta,
                                   c,
                                   c_type,
-                                  c_row_stride,
-                                  c_col_stride,
+                                  row_stride_c,
+                                  col_stride_c,
                                   d,
                                   d_type,
-                                  d_row_stride,
-                                  d_col_size,
+                                  row_stride_d,
+                                  col_stride_d,
                                   compute_type,
                                   algo,
                                   solution_index,
@@ -338,8 +342,5 @@ catch(...)
 {
     return exception_to_rocblas_status();
 }
-#else
-{
-    return rocblas_status_not_implemented;
-}
-#endif
+
+#endif // USE_TENSILE_HOST

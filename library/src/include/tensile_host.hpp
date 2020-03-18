@@ -13,6 +13,14 @@
 #error "tensile_host.hpp #include'd when USE_TENSILE_HOST is undefined."
 #endif
 
+/*****************************************************************************
+ * WARNING: Tensile-specific data types, functions and macros should only be *
+ * referenced from tensile_host.cpp. This header file defines the interface  *
+ * that the rest of rocBLAS uses to access Tensile. If another Tensile       *
+ * feature needs to be accessed, the API for accessing it should be defined  *
+ * in this file, without referencing any Tensile-specific identifiers here.  *
+ *****************************************************************************/
+
 #include "handle.h"
 #include <cmath>
 #include <cstdio>

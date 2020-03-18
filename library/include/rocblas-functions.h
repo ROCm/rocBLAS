@@ -12476,7 +12476,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyrkx_strided_batched(rocblas_handle     
             when  side == rocblas_side_left  and
             is  n  when  side == rocblas_side_right.
 
-	    When uplo == rocblas_fill_upper the  leading  k by k
+        When uplo == rocblas_fill_upper the  leading  k by k
            upper triangular part of the array  A must contain the upper
            triangular matrix  and the strictly lower triangular part of
            A is not referenced.
@@ -12621,7 +12621,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrmm(rocblas_handle                handle
             when  side == rocblas_side_left  and
             is  n  when  side == rocblas_side_right.
 
-	    When uplo == rocblas_fill_upper the  leading  k by k
+        When uplo == rocblas_fill_upper the  leading  k by k
            upper triangular part of the array  A must contain the upper
            triangular matrix  and the strictly lower triangular part of
            A is not referenced.
@@ -12773,7 +12773,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrmm_batched(rocblas_handle              
             when  side == rocblas_side_left  and
             is  n  when  side == rocblas_side_right.
 
-	    When uplo == rocblas_fill_upper the  leading  k by k
+        When uplo == rocblas_fill_upper the  leading  k by k
            upper triangular part of the array  A must contain the upper
            triangular matrix  and the strictly lower triangular part of
            A is not referenced.
@@ -12806,7 +12806,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrmm_batched(rocblas_handle              
     ldb    [rocblas_int]
            ldb specifies the first dimension of B_i. ldb >= max( 1, m ).
 
-	       @param[in]
+           @param[in]
     stride_B  [rocblas_stride]
               stride from the start of one matrix (B_i) and the next one (B_i+1)
     @param[in]
@@ -14828,6 +14828,126 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    
                                         flags)
 
 // clang-format on
+
+/*! \brief BLAS EX API
+
+    \details
+    GEMM_EXT2 performs the matrix-matrix operations
+
+        D = alpha * A * B  + beta * C,
+
+    alpha and beta are scalars, and A, B, C, and D are matrices, with A a m by k
+    matrtix, B a k by n matrix, and C and D are m by n matrices. Each matrix A, B, C, D
+    has independent row and column strides.
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+    @param[in]
+    m         [rocblas_int]
+              matrix dimension m.
+    @param[in]
+    n         [rocblas_int]
+              matrix dimension n.
+    @param[in]
+    k         [rocblas_int]
+              matrix dimension k.
+    @param[in]
+    alpha     [const void *]
+              device pointer or host pointer specifying the scalar alpha. Same datatype as compute_type.
+    @param[in]
+    a         [void *]
+              device pointer storing matrix A.
+    @param[in]
+    a_type    [rocblas_datatype]
+              specifies the datatype of matrix A.
+    @param[in]
+    row_stride_a [rocblas_int]
+              specifies the row stride of A.
+    @param[in]
+    col_stride_a [rocblas_int]
+              specifies the column stride of A.
+    @param[in]
+    b         [void *]
+              device pointer storing matrix B.
+    @param[in]
+    b_type    [rocblas_datatype]
+              specifies the datatype of matrix B.
+    @param[in]
+    row_stride_b    [rocblas_int]
+              specifies the row stride of B.
+    @param[in]
+    col_stride_a    [rocblas_int]
+              specifies the column stride of B.
+    @param[in]
+    beta      [const void *]
+              device pointer or host pointer specifying the scalar beta. Same datatype as compute_type.
+    @param[in]
+    c         [void *]
+              device pointer storing matrix C.
+    @param[in]
+    c_type    [rocblas_datatype]
+              specifies the datatype of matrix C.
+    @param[in]
+    row_stride_c [rocblas_int]
+              specifies the row stride of C.
+    @param[in]
+    col_stride_c [rocblas_int]
+              specifies the column stride of C.
+    @param[out]
+    d         [void *]
+              device pointer storing matrix D.
+    @param[in]
+    d_type    [rocblas_datatype]
+              specifies the datatype of matrix D.
+    @param[in]
+    row_stride_d [rocblas_int]
+              specifies the row stride of D.
+    @param[in]
+    col_stride_d [rocblas_int]
+              specifies the column stride of D.
+    @param[in]
+    compute_type
+              [rocblas_datatype]
+              specifies the datatype of computation.
+    @param[in]
+    algo      [rocblas_gemm_algo]
+              enumerant specifying the algorithm type.
+    @param[in]
+    solution_index
+              [int32_t]
+              reserved for future use.
+    @param[in]
+    flags     [uint32_t]
+              reserved for future use.
+
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_gemm_ext2(rocblas_handle    handle,
+                                                rocblas_int       m,
+                                                rocblas_int       n,
+                                                rocblas_int       k,
+                                                const void*       alpha,
+                                                const void*       a,
+                                                rocblas_datatype  a_type,
+                                                rocblas_int       row_stride_a,
+                                                rocblas_int       col_stride_a,
+                                                const void*       b,
+                                                rocblas_datatype  b_type,
+                                                rocblas_int       row_stride_b,
+                                                rocblas_int       col_stride_b,
+                                                const void*       beta,
+                                                const void*       c,
+                                                rocblas_datatype  c_type,
+                                                rocblas_int       row_stride_c,
+                                                rocblas_int       col_stride_c,
+                                                void*             d,
+                                                rocblas_datatype  d_type,
+                                                rocblas_int       row_stride_d,
+                                                rocblas_int       col_stride_d,
+                                                rocblas_datatype  compute_type,
+                                                rocblas_gemm_algo algo,
+                                                int32_t           solution_index,
+                                                uint32_t          flags);
 
 /*! BLAS EX API
 
