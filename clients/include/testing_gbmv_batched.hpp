@@ -168,37 +168,26 @@ void testing_gbmv_batched(const Arguments& arg)
     rocblas_local_handle handle;
 
     // argument sanity check before allocating invalid memory
-    if(M <= 0 || N <= 0 || lda < KL + KU + 1 || !incx || !incy || KL < 0 || KU < 0
-       || batch_count <= 0)
+    bool invalidSize = M < 0 || N < 0 || lda < KL + KU + 1 || !incx || !incy || batch_count < 0
+                       || KL < 0 || KU < 0;
+    if(invalidSize || !M || !N || !batch_count)
     {
-        static constexpr size_t safe_size = 100; // arbitrarily set to 100
-        device_batch_vector<T>  dAA1(1, safe_size);
-        device_batch_vector<T>  dxA1(1, safe_size);
-        device_batch_vector<T>  dy_1A1(1, safe_size);
-
-        CHECK_HIP_ERROR(dAA1.memcheck());
-        CHECK_HIP_ERROR(dxA1.memcheck());
-        CHECK_HIP_ERROR(dy_1A1.memcheck());
-
         EXPECT_ROCBLAS_STATUS(rocblas_gbmv_batched<T>(handle,
                                                       transA,
                                                       M,
                                                       N,
                                                       KL,
                                                       KU,
-                                                      &h_alpha,
-                                                      dAA1.ptr_on_device(),
+                                                      nullptr,
+                                                      nullptr,
                                                       lda,
-                                                      dxA1.ptr_on_device(),
+                                                      nullptr,
                                                       incx,
-                                                      &h_beta,
-                                                      dy_1A1.ptr_on_device(),
+                                                      nullptr,
+                                                      nullptr,
                                                       incy,
                                                       batch_count),
-                              M < 0 || N < 0 || lda < KL + KU + 1 || !incx || !incy
-                                      || batch_count < 0 || KL < 0 || KU < 0
-                                  ? rocblas_status_invalid_size
-                                  : rocblas_status_success);
+                              invalidSize ? rocblas_status_invalid_size : rocblas_status_success);
         return;
     }
 
