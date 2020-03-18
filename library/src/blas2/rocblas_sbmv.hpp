@@ -233,7 +233,7 @@ rocblas_status rocblas_sbmv_template(rocblas_handle handle,
     {
         if(uplo == rocblas_fill_upper)
         {
-            hipLaunchKernelGGL(sbmv_kernel<true, sbmv_DIM_X, sbmv_DIM_Y>,
+            hipLaunchKernelGGL((sbmv_kernel<true, sbmv_DIM_X, sbmv_DIM_Y>),
                                grid,
                                threads,
                                0,
@@ -259,7 +259,7 @@ rocblas_status rocblas_sbmv_template(rocblas_handle handle,
         }
         else
         {
-            hipLaunchKernelGGL(sbmv_kernel<false, sbmv_DIM_X, sbmv_DIM_Y>,
+            hipLaunchKernelGGL((sbmv_kernel<false, sbmv_DIM_X, sbmv_DIM_Y>),
                                grid,
                                threads,
                                0,
@@ -292,7 +292,7 @@ rocblas_status rocblas_sbmv_template(rocblas_handle handle,
 
         if(uplo == rocblas_fill_upper)
         {
-            hipLaunchKernelGGL(sbmv_kernel<true, sbmv_DIM_X, sbmv_DIM_Y>,
+            hipLaunchKernelGGL((sbmv_kernel<true, sbmv_DIM_X, sbmv_DIM_Y>),
                                grid,
                                threads,
                                0,
@@ -318,7 +318,7 @@ rocblas_status rocblas_sbmv_template(rocblas_handle handle,
         }
         else
         {
-            hipLaunchKernelGGL(sbmv_kernel<false, sbmv_DIM_X, sbmv_DIM_Y>,
+            hipLaunchKernelGGL((sbmv_kernel<false, sbmv_DIM_X, sbmv_DIM_Y>),
                                grid,
                                threads,
                                0,
