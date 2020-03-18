@@ -194,7 +194,7 @@ rocblas_status rocblas_symv_template(rocblas_handle handle,
     bool upper = uplo == rocblas_fill_upper;
     if(handle->pointer_mode == rocblas_pointer_mode_device)
     {
-        hipLaunchKernelGGL(symv_kernel<symv_DIM_X, symv_DIM_Y>,
+        hipLaunchKernelGGL((symv_kernel<symv_DIM_X, symv_DIM_Y>),
                            grid,
                            threads,
                            0,
@@ -224,7 +224,7 @@ rocblas_status rocblas_symv_template(rocblas_handle handle,
         if(batch_count == 1 && !*alpha && *beta == 1)
             return rocblas_status_success;
 
-        hipLaunchKernelGGL(symv_kernel<symv_DIM_X, symv_DIM_Y>,
+        hipLaunchKernelGGL((symv_kernel<symv_DIM_X, symv_DIM_Y>),
                            grid,
                            threads,
                            0,
