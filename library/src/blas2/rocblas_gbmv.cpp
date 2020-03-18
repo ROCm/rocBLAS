@@ -139,6 +139,16 @@ namespace
         if(!m || !n)
             return rocblas_status_success;
 
+        // TODO: LAPACK does a alpha==0 && beta==1 quick return check here.
+        //       The following code is up for discussion if we want to include it here
+        //       or after the invalid_pointer check as we currently do (in rocblas_gbmv.hpp).
+
+        // if(handle->pointer_mode == rocblas_pointer_mode_host && alpha && beta)
+        // {
+        //     if(!*alpha && *beta == 1)
+        //         return rocblas_status_success;
+        // }
+
         if(!A || !x || !y || !alpha || !beta)
             return rocblas_status_invalid_pointer;
 
