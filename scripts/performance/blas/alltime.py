@@ -403,7 +403,7 @@ def getLabel(test):
         return 'alpha '+str(test['alpha'])+' incx '+str(test['incx'])+' incy '+str(test['incy'])
     elif  test['function']=='gemv':
         return 'transA ' + test['transA']+' incx '+str(test['incx'])+' incy '+str(test['incy'])
-    elif test['function'] in ['dot', 'copy', 'swap']:
+    elif test['function'] in ['dot', 'copy', 'swap', 'ger']:
         return 'incx '+str(test['incx'])+' incy '+str(test['incy'])
     elif test['function'] in ['asum', 'nrm2', 'scal']:
         return 'incx '+str(test['incx'])
@@ -421,7 +421,7 @@ def getXLabel(test):
         return 'M=N=K=lda=ldb=ldc'
     elif  test.function in ['axpy', 'asum', 'dot', 'copy', 'nrm2', 'scal', 'swap']:
         return 'N'
-    elif  test.function=='gemv':
+    elif  test.function in ['gemv', 'ger']:
         return 'M=N=lda'
     elif  test.function=='trsm':
         if test.side == 'R':
