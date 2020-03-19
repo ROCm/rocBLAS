@@ -2721,6 +2721,12 @@ static constexpr auto rocblas_geam<float> = rocblas_sgeam;
 template <>
 static constexpr auto rocblas_geam<double> = rocblas_dgeam;
 
+template <>
+static constexpr auto rocblas_geam<rocblas_float_complex> = rocblas_cgeam;
+
+template <>
+static constexpr auto rocblas_geam<rocblas_double_complex> = rocblas_zgeam;
+
 // gemm
 template <typename T>
 rocblas_status (*rocblas_gemm)(rocblas_handle    handle,
