@@ -224,6 +224,10 @@ enum rocblas_argument : int
 
 #if __cplusplus >= 201703L
 // C++17
+// ArgumentsHelper contains a templated lambda apply<> where there is a template
+// specialization for each line in the CPP macro FOR_EACH_ARGUMENT. For example,
+// the first lambda is:  apply<e_M> = [](auto&& func, const Arguments& arg, auto){func("M", arg.m)}
+// This lambda can be used to print "M" and arg.m
 struct ArgumentsHelper
 {
     template <rocblas_argument>
