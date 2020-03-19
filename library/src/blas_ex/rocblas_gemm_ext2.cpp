@@ -227,25 +227,25 @@ rocblas_status rocblas_gemm_ext2_impl(rocblas_handle    handle,
 
 #endif // TODO
 
+    // sizes must not be negative
+    if(m < 0 || n < 0 || k < 0)
+        return rocblas_status_invalid_size;
+
+    // We do not check strides for validity like BLAS checks leading dimensions
+    // for validity, since we allow arbitrary strides including 0.
+
     // quick return
     // Note: k==0 is not a quick return, because C still has to be multiplied by beta
     if(!m || !n)
         return rocblas_status_success;
 
-    // sizes must not be negative
-    if(m < 0 || n < 0 || k < 0)
-        return rocblas_status_invalid_size;
-
     // pointers must be valid
     if(!a || !b || !c || !d || !alpha || !beta)
         return rocblas_status_invalid_pointer;
 
-    rocblas_stride batch_stride_a = 0;
-    rocblas_stride batch_stride_b = 0;
-    rocblas_stride batch_stride_c = 0;
-    rocblas_stride batch_stride_d = 0;
-    rocblas_int    offset         = 0;
-    rocblas_int    batch_count    = 1;
+    rocblas_stride batch_stride = 0;
+    rocblas_int    offset       = 0;
+    rocblas_int    batch_count  = 1;
 
     return rocblas_gemm_ext2_template<false>(handle,
                                              rocblas_operation_none,
@@ -259,26 +259,26 @@ rocblas_status rocblas_gemm_ext2_impl(rocblas_handle    handle,
                                              offset,
                                              row_stride_a,
                                              col_stride_a,
-                                             batch_stride_a,
+                                             batch_stride,
                                              b,
                                              b_type,
                                              offset,
                                              row_stride_b,
                                              col_stride_b,
-                                             batch_stride_b,
+                                             batch_stride,
                                              beta,
                                              c,
                                              c_type,
                                              offset,
                                              row_stride_c,
                                              col_stride_c,
-                                             batch_stride_c,
+                                             batch_stride,
                                              d,
                                              d_type,
                                              offset,
                                              row_stride_d,
                                              col_stride_d,
-                                             batch_stride_d,
+                                             batch_stride,
                                              batch_count,
                                              compute_type);
 }
