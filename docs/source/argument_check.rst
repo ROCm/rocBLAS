@@ -59,6 +59,8 @@ To accommodate the additions
 
 - For batched and strided_batched L1 functions there is a quick-return-success for ``batch_count <= 0``
 
+- When ``rocblas_pointer_mode == rocblas_pointer_mode_device`` do not copy alpha and or beta from device to host for quick-return-success checks. In this case, ommit the quick-return-success checks for alpha and or beta. 
+
 - For vectors and matrices with batched stride, there is no argument checking for stride. To access elements in a strided_batched_matrix, for example the C matrix in gemm, the zero based index is calculated as ``i1 + i2 * ldc + i3 * stride_c``, where ``i1 = 0, 1, 2, … m-1``; ``i2 = 0, 1, 2,  … n-1``; ``i3 = 0, 1, 2, … batch_count -1``. An incorrect stride can result in a core dump due a segmentation fault. It can also produce an indeterminate result if there is a memory overlap in the output matrix between different values of ``i3``.
 
 
@@ -75,8 +77,6 @@ Device Memory Size Queries
 
 Logging
 -------
-
-- There is logging before a quick-return-success or error-return, except:
 
 - There is logging before a quick-return-success or error-return, except:
 
@@ -104,9 +104,7 @@ rocBLAS control flow:
 
 6. Return ``rocblas_status_invalid_pointer`` if any pointers used to determine quick return conditions are NULL.
 
-7. If a scalar argument passed by address is used to determine quick return conditions, and the current handle pointer mode is device, copy the scalar from the device to host, using RETURN_IF_HIP_ERROR() around hipMemcpy(). Otherwise, load the scalar from the host.
-
-8. If quick return conditions are met:
+7. If quick return conditions are met:
 
    - if there is no return value
 
@@ -304,13 +302,8 @@ We need to change this to
 
         if(!alpha)
             return rocblas_status_invalid_pointer;
-        if(handle->pointer_mode == rocblas_pointer_mode_device)
-        {
-            T alpha_h;
-            RETURN_IF_HIP_ERROR(hipMemcpy(&alpha_h, alpha, sizeof(T), hipMemcpyDeviceToHost);
-            if (alpha_h == 0) return rocblas_status_success;
-        }
-        else
+
+        if(handle->pointer_mode == rocblas_pointer_mode_host)
         {
             if (* alpha == 0) return rocblas_status_success;
         }
@@ -509,12 +502,6 @@ This needs to change to
         {
             if(* alpha == 0)) return rocblas_status_success;
         }
-        else
-        {
-            T alpha_h;
-            RETURN_IF_HIP_ERROR(hipMemcpy(&alpha_h, alpha, sizeof(T), hipMemcpyDeviceToHost));
-            if(alpha_h == 0)return rocblas_status_success;
-        }
 
         if(!x || !y || !A)
             return rocblas_status_invalid_pointer;
@@ -644,13 +631,6 @@ This needs to be as follows in rocblas_gemm_strided_batched_impl
         {
             if ((* alpha == 0) || (k == 0)) && (* beta == 1)) return rocblas_status_success;
         }
-        else
-        {
-            T alpha_h;
-            T beta_h;
-            RETURN_IF_HIP_ERROR(hipMemcpy(&alpha_h, alpha, sizeof(T), hipMemcpyDeviceToHost));
-            RETURN_IF_HIP_ERROR(hipMemcpy(&beta_h, beta, sizeof(T), hipMemcpyDeviceToHost));
-            if ((* alpha_h == 0) || (k==0)) && (* beta_h == 1)) return rocblas_status_success;
-        }
 
-       // --- on host if rocblas_pointer_mode_host, on device if rocblas_pointer_mode_device ---
+        if(!a || !b || !c || !d)
+            return rocblas_status_invalid_pointer;
