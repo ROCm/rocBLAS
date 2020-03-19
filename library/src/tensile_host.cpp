@@ -6,6 +6,12 @@
 
 #ifdef USE_TENSILE_HOST
 
+/*****************************************************************************
+ * This is the only file in rocBLAS which should #include Tensile headers    *
+ * or reference Tensile identifiers. tensile_host.hpp defines the interface. *
+ * TensileHost is a PIMPL base class with TensileHostImpl implementation.    *
+ *****************************************************************************/
+
 #include "tensile_host.hpp"
 #include "rocblas.h"
 //#include <Tensile/AMDGPU.hpp>
