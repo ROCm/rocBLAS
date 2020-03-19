@@ -200,12 +200,27 @@ static_assert(std::is_trivial<Arguments>{},
               "incompatible with C.");
 
 // Arguments enumerators
+// Create
+//     enum rocblas_argument : int {e_M, e_N, e_K, e_KL, ... };
+// There is an enum value for each case in FOR_EACH_ARGUMENT.
+//
 #define CREATE_ENUM(NAME) e_##NAME,
 enum rocblas_argument : int
 {
     FOR_EACH_ARGUMENT(CREATE_ENUM, )
 };
 #undef CREATE_ENUM
+
+// ArgumentsHelper contains a templated lambda apply<> where there is a template
+// specialization for each line in the CPP macro FOR_EACH_ARGUMENT. For example,
+// the first lambda is:  apply<e_M> = [](auto&& func, const Arguments& arg, auto){func("M", arg.m)}
+// This lambda can be used to print "M" and arg.m
+//
+// alpha and beta are specialized separately, because they need to use get_alpha() or get_beta().
+// To prevent multiple definitions of specializations for alpha and beta, the rocblas_argument
+// enum for alpha and beta are changed to rocblas_argument(-1) and rocblas_argument(-2) during
+// the FOR_EACH_ARGUMENT loop. Those out-of-range enum values are not used except here, and are
+// only used so that the FOR_EACH_ARGUMENT loop can be used to loop over all of the arguments.
 
 #if __cplusplus >= 201703L
 // C++17
