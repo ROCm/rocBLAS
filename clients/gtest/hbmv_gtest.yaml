@@ -67,7 +67,7 @@ Tests:
   precision: *single_double_precisions_complex
   uplo: N
 
-- name: gbmv_arg_check
+- name: hbmv_arg_check
   category: quick
   function:
   - hbmv
