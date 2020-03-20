@@ -87,29 +87,13 @@ void testing_tbmv_batched(const Arguments& arg)
     rocblas_local_handle handle;
 
     // argument sanity check before allocating invalid memory
-    if(M < 0 || K < 0 || lda < M || lda < 1 || !incx || K >= lda || batch_count <= 0)
+    bool invalidSize = M < 0 || K < 0 || lda < K + 1 || !incx || batch_count < 0;
+    if(invalidSize || !M || !batch_count)
     {
-        static const size_t    safe_size = 100; // arbitrarily set to 100
-        device_batch_vector<T> dA1(safe_size, 1, 5);
-        device_batch_vector<T> dx1(safe_size, 1, 5);
-        CHECK_HIP_ERROR(dA1.memcheck());
-        CHECK_HIP_ERROR(dx1.memcheck());
-
         EXPECT_ROCBLAS_STATUS(
-            rocblas_tbmv_batched<T>(handle,
-                                    uplo,
-                                    transA,
-                                    diag,
-                                    M,
-                                    K,
-                                    dA1.ptr_on_device(),
-                                    lda,
-                                    dx1.ptr_on_device(),
-                                    incx,
-                                    batch_count),
-            (M < 0 || K < 0 || lda < M || lda < 1 || !incx || K >= lda || batch_count < 0)
-                ? rocblas_status_invalid_size
-                : rocblas_status_success);
+            rocblas_tbmv_batched<T>(
+                handle, uplo, transA, diag, M, K, nullptr, lda, nullptr, incx, batch_count),
+            invalidSize ? rocblas_status_invalid_size : rocblas_status_success);
 
         return;
     }

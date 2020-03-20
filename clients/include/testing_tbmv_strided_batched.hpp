@@ -103,53 +103,50 @@ void testing_tbmv_strided_batched(const Arguments& arg)
     rocblas_local_handle handle;
 
     // argument sanity check before allocating invalid memory
-    if(M < 0 || K < 0 || lda < M || lda < 1 || !incx || K >= lda || batch_count <= 0)
+    bool invalidSize = M < 0 || K < 0 || lda < K + 1 || !incx || batch_count < 0;
+    if(invalidSize || !M || !batch_count)
     {
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_tbmv_strided_batched<T>(handle,
-                                            uplo,
-                                            transA,
-                                            diag,
-                                            M,
-                                            K,
-                                            nullptr,
-                                            lda,
-                                            stride_A,
-                                            nullptr,
-                                            incx,
-                                            stride_x,
-                                            batch_count),
-            (M < 0 || K < 0 || lda < M || lda < 1 || !incx || K >= lda || batch_count < 0)
-                ? rocblas_status_invalid_size
-                : rocblas_status_success);
+        EXPECT_ROCBLAS_STATUS(rocblas_tbmv_strided_batched<T>(handle,
+                                                              uplo,
+                                                              transA,
+                                                              diag,
+                                                              M,
+                                                              K,
+                                                              nullptr,
+                                                              lda,
+                                                              stride_A,
+                                                              nullptr,
+                                                              incx,
+                                                              stride_x,
+                                                              batch_count),
+                              invalidSize ? rocblas_status_invalid_size : rocblas_status_success);
 
         return;
     }
 
-    size_t size_A   = lda * size_t(M) + stride_A * (batch_count - 1);
+    size_t size_A   = lda * size_t(M);
     size_t abs_incx = size_t(incx >= 0 ? incx : -incx);
     size_t size_x   = M * abs_incx + stride_x * (batch_count - 1);
 
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
-    host_vector<T> hA(size_A);
-    host_vector<T> hx(size_x);
-    host_vector<T> hx_1(size_x);
-    host_vector<T> hx_gold(size_x);
+    host_strided_batch_vector<T> hA(size_A, 1, stride_A, batch_count);
+    host_strided_batch_vector<T> hx(M, incx, stride_x, batch_count);
+    host_strided_batch_vector<T> hx_1(M, incx, stride_x, batch_count);
+    host_strided_batch_vector<T> hx_gold(M, incx, stride_x, batch_count);
 
-    device_vector<T> dA(size_A);
-    device_vector<T> dx(size_x);
+    device_strided_batch_vector<T> dA(size_A, 1, stride_A, batch_count);
+    device_strided_batch_vector<T> dx(M, incx, stride_x, batch_count);
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
     // Initial Data on CPU
-    rocblas_seedrand();
-    rocblas_init<T>(hA, M, M, lda, stride_A, batch_count);
-    rocblas_init<T>(hx, 1, M, abs_incx, stride_x, batch_count);
-    hx_gold = hx;
+    rocblas_init<T>(hA, true);
+    rocblas_init<T>(hx, false);
+    hx_gold.copy_from(hx);
 
     // copy data from CPU to device
-    CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(T) * size_A, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T) * size_x, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(dA.transfer_from(hA));
+    CHECK_HIP_ERROR(dx.transfer_from(hx));
 
     double gpu_time_used, cpu_time_used;
     double rocblas_gflops, cblas_gflops, rocblas_bandwidth;
@@ -168,7 +165,7 @@ void testing_tbmv_strided_batched(const Arguments& arg)
             handle, uplo, transA, diag, M, K, dA, lda, stride_A, dx, incx, stride_x, batch_count));
 
         // copy output from device to CPU
-        CHECK_HIP_ERROR(hipMemcpy(hx_1, dx, sizeof(T) * size_x, hipMemcpyDeviceToHost));
+        CHECK_HIP_ERROR(hx_1.transfer_from(dx));
 
         // CPU BLAS
         cpu_time_used = get_time_us();
