@@ -132,7 +132,8 @@ void testing_spr2_strided_batched(const Arguments& arg)
     rocblas_local_handle handle;
 
     // argument check before allocating invalid memory
-    if(N <= 0 || !incx || !incy || batch_count <= 0)
+    bool invalidSize = N < 0 || !incx || !incy || batch_count < 0;
+    if(invalidSize || !N || !batch_count)
     {
         EXPECT_ROCBLAS_STATUS(rocblas_spr2_strided_batched<T>(handle,
                                                               uplo,
@@ -147,9 +148,7 @@ void testing_spr2_strided_batched(const Arguments& arg)
                                                               nullptr,
                                                               stride_A,
                                                               batch_count),
-                              N < 0 || !incx || !incy || batch_count < 0
-                                  ? rocblas_status_invalid_size
-                                  : rocblas_status_success);
+                              invalidSize ? rocblas_status_invalid_size : rocblas_status_success);
         return;
     }
 

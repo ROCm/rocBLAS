@@ -72,13 +72,13 @@ void testing_hpr_strided_batched(const Arguments& arg)
     rocblas_local_handle handle;
 
     // argument check before allocating invalid memory
-    if(N <= 0 || !incx || batch_count <= 0)
+    bool invalidSize = N < 0 || !incx || batch_count < 0;
+    if(invalidSize || !N || !batch_count)
     {
         EXPECT_ROCBLAS_STATUS(
             rocblas_hpr_strided_batched<T>(
                 handle, uplo, N, nullptr, nullptr, incx, stride_x, nullptr, stride_A, batch_count),
-            N < 0 || !incx || batch_count < 0 ? rocblas_status_invalid_size
-                                              : rocblas_status_success);
+            invalidSize ? rocblas_status_invalid_size : rocblas_status_success);
         return;
     }
 

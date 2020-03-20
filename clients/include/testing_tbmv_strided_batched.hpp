@@ -103,25 +103,23 @@ void testing_tbmv_strided_batched(const Arguments& arg)
     rocblas_local_handle handle;
 
     // argument sanity check before allocating invalid memory
-    if(M < 0 || K < 0 || lda < M || lda < 1 || !incx || K >= lda || batch_count <= 0)
+    bool invalidSize = M < 0 || K < 0 || lda < K + 1 || !incx || batch_count < 0;
+    if(invalidSize || !M || !batch_count)
     {
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_tbmv_strided_batched<T>(handle,
-                                            uplo,
-                                            transA,
-                                            diag,
-                                            M,
-                                            K,
-                                            nullptr,
-                                            lda,
-                                            stride_A,
-                                            nullptr,
-                                            incx,
-                                            stride_x,
-                                            batch_count),
-            (M < 0 || K < 0 || lda < M || lda < 1 || !incx || K >= lda || batch_count < 0)
-                ? rocblas_status_invalid_size
-                : rocblas_status_success);
+        EXPECT_ROCBLAS_STATUS(rocblas_tbmv_strided_batched<T>(handle,
+                                                              uplo,
+                                                              transA,
+                                                              diag,
+                                                              M,
+                                                              K,
+                                                              nullptr,
+                                                              lda,
+                                                              stride_A,
+                                                              nullptr,
+                                                              incx,
+                                                              stride_x,
+                                                              batch_count),
+                              invalidSize ? rocblas_status_invalid_size : rocblas_status_success);
 
         return;
     }

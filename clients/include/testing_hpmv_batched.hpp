@@ -141,22 +141,21 @@ void testing_hpmv_batched(const Arguments& arg)
     rocblas_local_handle handle;
 
     // argument sanity check before allocating invalid memory
-    if(N < 0 || !incx || !incy || batch_count <= 0)
+    bool invalidSize = N < 0 || !incx || !incy || batch_count < 0;
+    if(invalidSize || !N || !batch_count)
     {
         EXPECT_ROCBLAS_STATUS(rocblas_hpmv_batched<T>(handle,
                                                       uplo,
                                                       N,
-                                                      &h_alpha,
+                                                      nullptr,
                                                       nullptr,
                                                       nullptr,
                                                       incx,
-                                                      &h_beta,
+                                                      nullptr,
                                                       nullptr,
                                                       incy,
                                                       batch_count),
-                              (N < 0 || !incx || !incy || batch_count < 0)
-                                  ? rocblas_status_invalid_size
-                                  : rocblas_status_success);
+                              invalidSize ? rocblas_status_invalid_size : rocblas_status_success);
 
         return;
     }

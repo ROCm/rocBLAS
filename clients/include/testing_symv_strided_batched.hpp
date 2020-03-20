@@ -195,34 +195,25 @@ void testing_symv_strided_batched(const Arguments& arg)
     rocblas_local_handle handle;
 
     // argument sanity check before allocating invalid memory
-    if(N <= 0 || lda < 0 || lda < N || !incx || !incy || batch_count <= 0)
+    bool invalidSize = N < 0 || lda < 1 || lda < N || !incx || !incy || batch_count < 0;
+    if(invalidSize || !N || !batch_count)
     {
-        static const size_t safe_size = 100;
-        device_vector<T>    dA(safe_size);
-        device_vector<T>    dx(safe_size);
-        device_vector<T>    dy(safe_size);
-        CHECK_DEVICE_ALLOCATION(dA.memcheck());
-        CHECK_DEVICE_ALLOCATION(dx.memcheck());
-        CHECK_DEVICE_ALLOCATION(dy.memcheck());
-
         EXPECT_ROCBLAS_STATUS(rocblas_symv_strided_batched<T>(handle,
                                                               uplo,
                                                               N,
-                                                              alpha,
-                                                              dA,
+                                                              nullptr,
+                                                              nullptr,
                                                               lda,
                                                               strideA,
-                                                              dx,
+                                                              nullptr,
                                                               incx,
                                                               stridex,
-                                                              beta,
-                                                              dy,
+                                                              nullptr,
+                                                              nullptr,
                                                               incy,
                                                               stridey,
                                                               batch_count),
-                              N < 0 || lda < N || lda < 1 || !incx || !incy || batch_count < 0
-                                  ? rocblas_status_invalid_size
-                                  : rocblas_status_success);
+                              invalidSize ? rocblas_status_invalid_size : rocblas_status_success);
 
         return;
     }

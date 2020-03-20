@@ -177,7 +177,7 @@ inline rocblas_status rocblas_sbmv_arg_check(rocblas_handle handle,
     if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
         return rocblas_status_invalid_value;
 
-    if(n < 0 || k < 0 || lda < n || lda < 1 || !incx || !incy || batch_count < 0)
+    if(n < 0 || k < 0 || lda < k + 1 || lda < 1 || !incx || !incy || batch_count < 0)
         return rocblas_status_invalid_size;
 
     // quick return before pointer checks
