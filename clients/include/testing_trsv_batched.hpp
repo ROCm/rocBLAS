@@ -37,37 +37,14 @@ void testing_trsv_batched(const Arguments& arg)
     rocblas_local_handle handle;
 
     // check here to prevent undefined memory allocation error
-    if(M < 0 || lda < M || !incx || batch_count <= 0)
+    bool invalidSize = M < 0 || lda < M || !incx || batch_count < 0;
+    if(invalidSize || !M || !batch_count)
     {
-        device_batch_vector<T> dA(1, 1, 1);
-        device_batch_vector<T> dx_or_b(1, 1, 1);
-        CHECK_DEVICE_ALLOCATION(dA.memcheck());
-        CHECK_DEVICE_ALLOCATION(dx_or_b.memcheck());
-
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        if(batch_count == 0)
-            CHECK_ROCBLAS_ERROR(rocblas_trsv_batched<T>(handle,
-                                                        uplo,
-                                                        transA,
-                                                        diag,
-                                                        M,
-                                                        dA.ptr_on_device(),
-                                                        lda,
-                                                        dx_or_b.ptr_on_device(),
-                                                        incx,
-                                                        batch_count));
-        else
-            EXPECT_ROCBLAS_STATUS(rocblas_trsv_batched<T>(handle,
-                                                          uplo,
-                                                          transA,
-                                                          diag,
-                                                          M,
-                                                          dA.ptr_on_device(),
-                                                          lda,
-                                                          dx_or_b.ptr_on_device(),
-                                                          incx,
-                                                          batch_count),
-                                  rocblas_status_invalid_size);
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_trsv_batched<T>(
+                handle, uplo, transA, diag, M, nullptr, lda, nullptr, incx, batch_count),
+            invalidSize ? rocblas_status_invalid_size : rocblas_status_success);
         return;
     }
 

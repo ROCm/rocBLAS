@@ -109,9 +109,7 @@ namespace
             return rocblas_status_not_implemented;
         if(!A || !B)
             return rocblas_status_invalid_pointer;
-        if(batch_count < 0)
-            return rocblas_status_invalid_size;
-        if((m < 0 || lda < m || lda < 1 || !incx) && batch_count > 0)
+        if(m < 0 || lda < m || lda < 1 || !incx || batch_count < 0)
             return rocblas_status_invalid_size;
 
         // quick return if possible.
