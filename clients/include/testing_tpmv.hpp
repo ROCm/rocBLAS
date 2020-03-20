@@ -65,20 +65,13 @@ void testing_tpmv(const Arguments& arg)
     rocblas_diagonal     diag   = char2rocblas_diagonal(char_diag);
     rocblas_local_handle handle;
 
-    if(M < 0 || !incx)
+    bool invalidSize = M < 0 || !incx;
+    if(invalidSize || !M)
     {
         EXPECT_ROCBLAS_STATUS(
             rocblas_tpmv<T>(handle, uplo, transA, diag, M, nullptr, nullptr, incx),
-            rocblas_status_invalid_size);
+            invalidSize ? rocblas_status_invalid_size : rocblas_status_success);
 
-        return;
-    }
-
-    if(M == 0)
-    {
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_tpmv<T>(handle, uplo, transA, diag, M, nullptr, nullptr, incx),
-            rocblas_status_success);
         return;
     }
 

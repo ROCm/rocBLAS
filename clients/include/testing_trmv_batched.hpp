@@ -83,35 +83,14 @@ void testing_trmv_batched(const Arguments& arg)
 
     rocblas_local_handle handle;
 
-    if(M < 0 || lda < M || lda < 1 || !incx || batch_count < 0)
-    {
-        static const size_t    safe_size = 100; // arbitrarily set to 100
-        device_batch_vector<T> dA1(2, safe_size);
-        CHECK_HIP_ERROR(dA1.memcheck());
-        device_batch_vector<T> dx1(2, safe_size);
-        CHECK_HIP_ERROR(dx1.memcheck());
-
-        EXPECT_ROCBLAS_STATUS(rocblas_trmv_batched<T>(handle,
-                                                      uplo,
-                                                      transA,
-                                                      diag,
-                                                      M,
-                                                      dA1.ptr_on_device(),
-                                                      lda,
-                                                      dx1.ptr_on_device(),
-                                                      incx,
-                                                      batch_count),
-                              rocblas_status_invalid_size);
-
-        return;
-    }
-
-    if(!M || !batch_count)
+    bool invalidSize = M < 0 || lda < M || lda < 1 || !incx || batch_count < 0;
+    if(invalidSize || !M || !batch_count)
     {
         EXPECT_ROCBLAS_STATUS(
             rocblas_trmv_batched<T>(
                 handle, uplo, transA, diag, M, nullptr, lda, nullptr, incx, batch_count),
-            rocblas_status_success);
+            invalidSize ? rocblas_status_invalid_size : rocblas_status_success);
+
         return;
     }
 

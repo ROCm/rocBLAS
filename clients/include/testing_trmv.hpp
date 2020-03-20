@@ -66,20 +66,13 @@ void testing_trmv(const Arguments& arg)
     rocblas_diagonal     diag   = char2rocblas_diagonal(char_diag);
     rocblas_local_handle handle;
 
-    if(M < 0 || lda < M || lda < 1 || !incx)
+    bool invalidSize = M < 0 || lda < M || lda < 1 || !incx;
+    if(invalidSize || !M)
     {
         EXPECT_ROCBLAS_STATUS(
             rocblas_trmv<T>(handle, uplo, transA, diag, M, nullptr, lda, nullptr, incx),
-            rocblas_status_invalid_size);
+            invalidSize ? rocblas_status_invalid_size : rocblas_status_success);
 
-        return;
-    }
-
-    if(M == 0)
-    {
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_trmv<T>(handle, uplo, transA, diag, M, nullptr, lda, nullptr, incx),
-            rocblas_status_success);
         return;
     }
 
