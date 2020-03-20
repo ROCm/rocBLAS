@@ -100,11 +100,11 @@ rocBLAS control flow:
 
 5. Check for invalid sizes. Return ``rocblas_status_invalid_size`` if size arguments are invalid.
 
-3. Check for unsupported enum value. Return ``rocblas_status_invalid_value`` if enum value is invalid.
+6. Check for unsupported enum value. Return ``rocblas_status_invalid_value`` if enum value is invalid.
 
-6. Return ``rocblas_status_invalid_pointer`` if any pointers used to determine quick return conditions are NULL.
+7. Return ``rocblas_status_invalid_pointer`` if any pointers used to determine quick return conditions are NULL.
 
-7. If quick return conditions are met:
+8. If quick return conditions are met:
 
    - if there is no return value
 
@@ -116,11 +116,11 @@ rocBLAS control flow:
 
      - Else, return ``rocblas_status_success``
 
-9. Check for NULL pointer arguments not already covered by #3. Return ``rocblas_status_invalid_pointer`` if argument pointers are NULL.
+9. Return ``rocblas_status_invalid_pointer`` if any pointers not checked in #7 are NULL.
 
 10. (Optional.) Allocate device memory, returning ``rocblas_status_memory_error`` if the allocation fails.
 
-11. After completing the calculation, return ``rocblas_status_success``, assuming no errors in HIP calls or other errors in the calculation.
+11. If all checks above pass, launch the kernel and return ``rocblas_status_success``.
 
 
 Legacy L1 BLAS “single vector”
