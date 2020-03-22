@@ -26,7 +26,7 @@
 #include <unistd.h>
 #include <utility>
 
-// abort() function which safely flushes all IO
+// Abort function which safely flushes all IO
 extern "C" void rocblas_abort [[noreturn]] ();
 
 /*****************************************************************************
@@ -55,34 +55,39 @@ class rocblas_ostream
             std::promise<void> promise;
 
         public:
+            // The task takes ownership of the string payload and promise
             task_t(std::string&& str, std::promise<void>&& promise)
                 : str(std::move(str))
                 , promise(std::move(promise))
             {
             }
 
+            // Notify the future when the worker thread exits
             void set_value_at_thread_exit()
             {
                 promise.set_value_at_thread_exit();
             }
 
+            // Notify the future immediately
             void set_value()
             {
                 promise.set_value();
             }
 
+            // Size of the string payload
             size_t size() const
             {
                 return str.size();
             }
 
+            // Data of the string payload
             const char* data() const
             {
                 return str.data();
             }
         };
 
-        // Log file
+        // Log file. FILE is used instead of raw filehandles for signal safety.
         FILE* file;
 
         // This worker's thread
@@ -94,29 +99,31 @@ class rocblas_ostream
         // Mutex for this thread's queue
         std::mutex mutex;
 
-        // Queue of strings to be logged
+        // Queue of tasks
         std::queue<task_t> queue;
 
-        // Worker thread which waits for strings to log
+        // Worker thread which waits for and handles tasks sequentially
         void thread_function();
 
     public:
-        // Constructor creates a worker thread
+        // Worker constructor creates a worker thread for a raw filehandle
         explicit worker(int fd);
 
         // Send a string to be written
         void send(std::string);
 
-        // Destroy a worker when all references to it are gone
+        // Destroy a worker when all std::shared_ptr references to it are gone
         ~worker()
         {
             // Tell worker thread to exit, by sending it an empty string
             send({});
 
-            // Close the file
+            // Close the FILE
             fclose(file);
         }
     };
+
+    // Two filehandles point to the same file if they share the same (std_dev, std_ino).
 
     // Initial slice of struct stat which contains device ID and inode
     struct file_id_t
@@ -125,7 +132,7 @@ class rocblas_ostream
         ino_t st_ino; // Inode number
     };
 
-    // Compares device IDs and inodes for containers
+    // Compares device IDs and inodes for map containers
     struct file_id_less
     {
         bool operator()(const file_id_t& lhs, const file_id_t& rhs) const
@@ -203,18 +210,18 @@ public:
     // Implemented as singleton to avoid the static initialization order fiasco
     static rocblas_ostream& cout()
     {
-        static rocblas_ostream cout(STDOUT_FILENO);
+        static rocblas_ostream cout{STDOUT_FILENO};
         return cout;
     }
 
     // Implemented as singleton to avoid the static initialization order fiasco
     static rocblas_ostream& cerr()
     {
-        static rocblas_ostream cerr(STDERR_FILENO);
+        static rocblas_ostream cerr{STDERR_FILENO};
         return cerr;
     }
 
-    // abort() function which safely flushes all IO
+    // Abort function which safely flushes all IO
     friend void rocblas_abort();
 
     /*************************************************************************

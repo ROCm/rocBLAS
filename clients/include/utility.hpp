@@ -21,16 +21,22 @@
  * \brief provide common utilities
  */
 
-// We use rocblas_cout and rocblas_cerr
+// We use rocblas_cout and rocblas_cerr instead of std::cout, std::cerr, stdout and stderr,
+// for thread-safe IO.
+//
+// All stdio and std::ostream functions related to stdout and stderr are poisoned, as are
+// functions which can create buffer overflows, or which are inherently thread-unsafe.
+//
 // This must come after the header #includes above, to avoid poisoning system headers.
+//
 // This is only enabled for rocblas-test and rocblas-bench.
+
 #if defined(GOOGLE_TEST) || defined(ROCBLAS_BENCH)
 #undef stdout
 #undef stderr
-// All stdio and std::ostream functions related to stdout and stderr are poisoned, as are functions
-// which can create buffer overflows
-#pragma GCC poison cout cerr clog stdout stderr gets puts putchar fprintf printf sprintf vfprintf \
-    vprintf vsprintf
+#pragma GCC poison cout cerr clog stdout stderr gets puts putchar fputs fprintf printf sprintf   \
+    vfprintf vprintf vsprintf perror strerror strtok abort gmtime ctime asctime localtime tmpnam \
+        putenv clearenv fcloseall ecvt fcvt
 #endif
 
 static constexpr char LIMITED_MEMORY_STRING[]

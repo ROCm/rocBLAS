@@ -22,7 +22,7 @@ static std::string rocblas_parse_yaml(const std::string& yaml)
     int  fd    = mkostemp(tmp, O_CLOEXEC);
     if(fd == -1)
     {
-        perror("Cannot open temporary file");
+        dprintf(STDERR_FILENO, "Cannot open temporary file: %m\n");
         exit(EXIT_FAILURE);
     }
     auto exepath = rocblas_exepath();
