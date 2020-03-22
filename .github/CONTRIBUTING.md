@@ -425,14 +425,14 @@ If its argument is a pointer, it is dereferenced on the device. If the argument 
 
 21. `rocblas_cout` and `rocblas_cerr` should be used instead of `std::cout`, `std::cerr`, `stdout` or `stderr`, and `rocblas_ostream` should be used instead of `std::ostream`, `std::ofstream` or `std::ostringstream`.
 
-    In `rocblas-bench` and `rocblas-test`, `std::cout`, `std::cerr`, `printf`, `fprintf`, `stdout`, `stderr`, and other symbols are "poisoned", to remind you to use `rocblas_cout`, `rocblas_cerr`, and `rocblas_ostream` instead.
+    In `rocblas-bench` and `rocblas-test`, `std::cout`, `std::cerr`, `printf`, `fprintf`, `stdout`, `stderr`, `puts()`, `fputs()`, and other symbols are "poisoned", to remind you to use `rocblas_cout`, `rocblas_cerr`, and `rocblas_ostream` instead.
 
     `rocblas_cout` and `rocblas_cerr` are instances of `rocblas_ostream` which output to standard output and standard error, but in a way that prevents interlacing of different threads' output.
 
     `rocblas_ostream` provides standardized thread-safe formatted output for rocBLAS datatypes. It can be constructed in 3 ways:
     - By default, in which case it behaves like a `std::ostringstream`
     - With a file descriptor number, in which case the file descriptor is `dup()`ed and the same file it points to is outputted to
-    - With a string, in which case a new file is opened for writing, with file creation, truncation and appending enabled (`O_WRONLY | O_CREAT | O_TRUNC | O_APPEND`)
+    - With a string, in which case a new file is opened for writing, with file creation, truncation and appending enabled (`O_WRONLY | O_CREAT | O_TRUNC | O_APPEND | O_CLOEXEC`)
 
     `std::endl` or `std::flush` should be used at the end of an output sequence when an atomic flush of the output is needed (atomic meaning that multiple threads can be writing to the same file, but that their flushes will be atomic). Until then, the output will accumulate in the `rocblas_ostream` and will not be flushed until either `rocblas_ostream::flush()` is called, `std::endl` or `std::flush` is outputted, or the `rocblas_ostream` is destroyed.
 

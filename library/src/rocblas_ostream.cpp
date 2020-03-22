@@ -12,14 +12,14 @@
  * rocblas_ostream functions                                           *
  ***********************************************************************/
 
-// abort() function which safely flushes all IO
+// Abort function which safely flushes all IO
 ROCBLAS_EXPORT extern "C" void rocblas_abort()
 {
     // Make sure the alarm action is default
     signal(SIGALRM, SIG_DFL);
 
     // Timeout in case of deadlock
-    alarm(2);
+    alarm(3);
 
     // Obtain the map lock
     rocblas_ostream::map_mutex().lock();
@@ -34,10 +34,10 @@ ROCBLAS_EXPORT extern "C" void rocblas_abort()
     std::abort();
 }
 
-// Get worker for file descriptor
+// Get worker for writing to a file descriptor
 std::shared_ptr<rocblas_ostream::worker> rocblas_ostream::get_worker(int fd)
 {
-    // For a fd indicating an error
+    // For a file descriptor indicating an error, return a nullptr
     if(fd == -1)
         return nullptr;
 
@@ -48,7 +48,7 @@ std::shared_ptr<rocblas_ostream::worker> rocblas_ostream::get_worker(int fd)
         file_id_t   file_id;
     };
 
-    // Assert common initial sequence
+    // Verify common initial sequence
     static_assert(std::is_standard_layout<file_id_t>{} && std::is_standard_layout<struct stat>{}
                       && offsetof(file_id_t, st_dev) == 0 && offsetof(struct stat, st_dev) == 0
                       && offsetof(file_id_t, st_ino) == offsetof(struct stat, st_ino)
@@ -63,10 +63,11 @@ std::shared_ptr<rocblas_ostream::worker> rocblas_ostream::get_worker(int fd)
         return nullptr;
     }
 
-    // Lock the map
+    // Lock the map from file_id -> std::shared_ptr<rocblas_ostream::worker>
     std::lock_guard<std::recursive_mutex> lock(map_mutex());
 
-    // Insert a nullptr element if it doesn't already exist
+    // Insert a nullptr map element if file_id doesn't exist in map already
+    // worker_ptr is a reference to the std::shared_ptr<rocblas_ostream::worker>
     auto& worker_ptr = map().emplace(file_id, nullptr).first->second;
 
     // If a new entry was inserted, or an old entry is empty, create new worker
