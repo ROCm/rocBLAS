@@ -66,7 +66,7 @@ void testing_tbmv(const Arguments& arg)
     rocblas_local_handle handle;
 
     // argument sanity check before allocating invalid memory
-    if(M < 0 || K < 0 || lda < M || lda < 1 || !incx || K >= lda)
+    if(M < 0 || K < 0 || lda < K + 1 || !incx)
     {
         EXPECT_ROCBLAS_STATUS(
             rocblas_tbmv<T>(handle, uplo, transA, diag, M, K, nullptr, lda, nullptr, incx),
@@ -93,9 +93,8 @@ void testing_tbmv(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
     // Initial Data on CPU
-    rocblas_seedrand();
-    rocblas_init<T>(hA, M, M, lda);
-    rocblas_init<T>(hx, 1, M, abs_incx);
+    rocblas_init<T>(hA, true);
+    rocblas_init<T>(hx, false);
     hx_gold = hx;
 
     // copy data from CPU to device

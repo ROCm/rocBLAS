@@ -88,7 +88,7 @@ namespace
                             incx);
         }
 
-        if(m < 0 || k < 0 || lda < m || lda < 1 || !incx || k >= lda)
+        if(m < 0 || k < 0 || lda < k + 1 || !incx)
             return rocblas_status_invalid_size;
 
         if(!m)
