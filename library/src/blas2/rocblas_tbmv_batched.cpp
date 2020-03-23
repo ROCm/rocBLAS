@@ -104,7 +104,7 @@ namespace
                             batch_count);
         }
 
-        if(m < 0 || k < 0 || lda < m || lda < 1 || !incx || k >= lda || batch_count < 0)
+        if(m < 0 || k < 0 || lda < k + 1 || !incx || batch_count < 0)
             return rocblas_status_invalid_size;
         if(!m || !batch_count)
             return handle->is_device_memory_size_query() ? rocblas_status_size_unchanged
