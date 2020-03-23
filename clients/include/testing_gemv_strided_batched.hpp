@@ -43,11 +43,9 @@ void testing_gemv_strided_batched_bad_arg(const Arguments& arg)
     device_vector<T> dA(size_A);
     device_vector<T> dx(size_x);
     device_vector<T> dy(size_y);
-    if(!dA || !dx || !dy)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     EXPECT_ROCBLAS_STATUS(rocblas_gemv_strided_batched<T>(handle,
                                                           transA,
@@ -199,29 +197,19 @@ void testing_gemv_strided_batched(const Arguments& arg)
     // argument sanity check before allocating invalid memory
     if(M <= 0 || N <= 0 || lda < M || lda < 1 || !incx || !incy || batch_count <= 0)
     {
-        static constexpr size_t safe_size = 100; // arbitrarily set to 100
-        device_vector<T>        dA1(safe_size);
-        device_vector<T>        dx1(safe_size);
-        device_vector<T>        dy1(safe_size);
-        if(!dA1 || !dx1 || !dy1)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
-
         EXPECT_ROCBLAS_STATUS(rocblas_gemv_strided_batched<T>(handle,
                                                               transA,
                                                               M,
                                                               N,
                                                               &h_alpha,
-                                                              dA1,
+                                                              nullptr,
                                                               lda,
                                                               stride_a,
-                                                              dx1,
+                                                              nullptr,
                                                               incx,
                                                               stride_x,
                                                               &h_beta,
-                                                              dy1,
+                                                              nullptr,
                                                               incy,
                                                               stride_y,
                                                               batch_count),
@@ -235,29 +223,19 @@ void testing_gemv_strided_batched(const Arguments& arg)
     //quick return
     if(!M || !N || !batch_count)
     {
-        static const size_t safe_size = 100; // arbitrarily set to 100
-        device_vector<T>    dA1(safe_size);
-        device_vector<T>    dx1(safe_size);
-        device_vector<T>    dy1(safe_size);
-        if(!dA1 || !dx1 || !dy1)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
-
         EXPECT_ROCBLAS_STATUS(rocblas_gemv_strided_batched<T>(handle,
                                                               transA,
                                                               M,
                                                               N,
                                                               &h_alpha,
-                                                              dA1,
+                                                              nullptr,
                                                               lda,
                                                               stride_a,
-                                                              dx1,
+                                                              nullptr,
                                                               incx,
                                                               stride_x,
                                                               &h_beta,
-                                                              dy1,
+                                                              nullptr,
                                                               incy,
                                                               stride_y,
                                                               batch_count),
@@ -283,11 +261,12 @@ void testing_gemv_strided_batched(const Arguments& arg)
     device_vector<T> dy_2(size_y);
     device_vector<T> d_alpha(1);
     device_vector<T> d_beta(1);
-    if((!dA && size_A) || (!dx && size_x) || ((!dy_1 || !dy_2) && size_y) || !d_alpha || !d_beta)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy_1.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy_2.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
 
     // Initial Data on CPU
     rocblas_seedrand();

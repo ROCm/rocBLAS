@@ -37,9 +37,9 @@ void testing_trmv_bad_arg(const Arguments& arg)
     host_vector<T> hx(size_x);
     CHECK_HIP_ERROR(hx.memcheck());
     device_vector<T> dA(size_A);
-    CHECK_HIP_ERROR(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
     device_vector<T> dx(size_x);
-    CHECK_HIP_ERROR(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
     //
     // Checks.
@@ -68,14 +68,9 @@ void testing_trmv(const Arguments& arg)
 
     if(M < 0 || lda < M || lda < 1 || !incx)
     {
-        static const size_t safe_size = 100; // arbitrarily set to 100
-        device_vector<T>    dA1(safe_size);
-        CHECK_HIP_ERROR(dA1.memcheck());
-        device_vector<T> dx1(safe_size);
-        CHECK_HIP_ERROR(dx1.memcheck());
-
-        EXPECT_ROCBLAS_STATUS(rocblas_trmv<T>(handle, uplo, transA, diag, M, dA1, lda, dx1, incx),
-                              rocblas_status_invalid_size);
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_trmv<T>(handle, uplo, transA, diag, M, nullptr, lda, nullptr, incx),
+            rocblas_status_invalid_size);
 
         return;
     }
@@ -100,9 +95,9 @@ void testing_trmv(const Arguments& arg)
     host_vector<T> hx(size_x);
     CHECK_HIP_ERROR(hx.memcheck());
     device_vector<T> dA(size_A);
-    CHECK_HIP_ERROR(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
     device_vector<T> dx(size_x);
-    CHECK_HIP_ERROR(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
     host_vector<T> hres(size_x);
     CHECK_HIP_ERROR(hres.memcheck());
 

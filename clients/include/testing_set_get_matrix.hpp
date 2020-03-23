@@ -35,11 +35,7 @@ void testing_set_get_matrix(const Arguments& arg)
         host_vector<T> hc(safe_size);
 
         device_vector<T> dc(safe_size);
-        if(!dc)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
+        CHECK_DEVICE_ALLOCATION(dc.memcheck());
 
         EXPECT_ROCBLAS_STATUS(rocblas_set_matrix(rows, cols, sizeof(T), ha, lda, dc, ldc),
                               rocblas_status_invalid_size);
@@ -60,11 +56,7 @@ void testing_set_get_matrix(const Arguments& arg)
 
     // allocate memory on device
     device_vector<T> dc(cols * size_t(ldc));
-    if(!dc)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dc.memcheck());
 
     // Initial Data on CPU
     rocblas_seedrand();

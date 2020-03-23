@@ -25,11 +25,8 @@ void testing_nrm2_bad_arg_template(const Arguments& arg)
 
     device_vector<T1> dx(safe_size);
     device_vector<T2> d_rocblas_result(1);
-    if(!dx || !d_rocblas_result)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_rocblas_result.memcheck());
 
     CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
@@ -62,11 +59,8 @@ void testing_nrm2_template(const Arguments& arg)
         static const size_t safe_size = 100; //  arbitrarily set to zero
         device_vector<T1>   dx(safe_size);
         device_vector<T2>   d_rocblas_result(1);
-        if(!dx || !d_rocblas_result)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
+        CHECK_DEVICE_ALLOCATION(dx.memcheck());
+        CHECK_DEVICE_ALLOCATION(d_rocblas_result.memcheck());
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         CHECK_ROCBLAS_ERROR((rocblas_nrm2<T1, T2>(handle, N, dx, incx, d_rocblas_result)));
@@ -78,11 +72,8 @@ void testing_nrm2_template(const Arguments& arg)
     // allocate memory on device
     device_vector<T1> dx(size_x);
     device_vector<T2> d_rocblas_result_2(1);
-    if(!dx || !d_rocblas_result_2)
-    {
-        CHECK_HIP_ERROR(hipErrorOutOfMemory);
-        return;
-    }
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_rocblas_result_2.memcheck());
 
     // Naming: dx is in GPU (device) memory. hx is in CPU (host) memory, plz follow this practice
     host_vector<T1> hx(size_x);

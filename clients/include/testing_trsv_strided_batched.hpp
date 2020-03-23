@@ -44,12 +44,8 @@ void testing_trsv_strided_batched(const Arguments& arg)
         static const size_t safe_size = 100; // arbitrarily set to 100
         device_vector<T>    dx_or_b(safe_size);
         device_vector<T>    dA(safe_size);
-
-        if(!dA || !dx_or_b)
-        {
-            CHECK_HIP_ERROR(hipErrorOutOfMemory);
-            return;
-        }
+        CHECK_DEVICE_ALLOCATION(dx_or_b.memcheck());
+        CHECK_DEVICE_ALLOCATION(dA.memcheck());
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         if(batch_count == 0)
@@ -105,6 +101,8 @@ void testing_trsv_strided_batched(const Arguments& arg)
     // allocate memory on device
     device_vector<T> dA(size_A);
     device_vector<T> dx_or_b(size_x);
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx_or_b.memcheck());
 
     rocblas_init<T>(hA, M, M, lda, stride_a, batch_count);
 
