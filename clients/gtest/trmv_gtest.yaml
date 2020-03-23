@@ -36,6 +36,9 @@ Definitions:
   - &incx_range
     - [2, -2, 1, -1, 3, 10]
 
+  - &incx_range_small
+    - [ 2 ]
+
 
 Tests:
 - name: trmv_bad_arg
@@ -85,7 +88,7 @@ Tests:
   transA: [  N, T, C ]
   diag: [N, U]
   matrix_size: *large_matrix_size_range
-  incx: *incx_range
+  incx: *incx_range_small
 
 - name: trmv_batched_bad_arg
   category: pre_checkin
@@ -125,7 +128,7 @@ Tests:
   transA: [N, T, C]
   diag: [N, U]
   matrix_size: *large_matrix_size_range
-  incx: *incx_range
+  incx: *incx_range_small
   batch_count: [ 3 ]
 
 - name: trmv_strided_batched_bad_arg
@@ -170,7 +173,7 @@ Tests:
   transA: [N, T, C]
   diag: [N, U]
   matrix_size: *large_matrix_size_range
-  incx: *incx_range
+  incx: *incx_range_small
   batch_count: [ 3 ]
   stride_scale: [ 1.2 ]
 ...

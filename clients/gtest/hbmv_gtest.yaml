@@ -74,7 +74,7 @@ Tests:
   - hbmv_batched
   - hbmv_strided_batched
   precision: *single_double_precisions_complex
-  uplo: N
+  uplo: L
   matrix_size: *special_case_range
 
 # Regular hbmv
