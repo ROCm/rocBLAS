@@ -176,8 +176,8 @@ void testing_sbmv_batched(const Arguments& arg)
     rocblas_local_handle handle;
 
     // argument sanity check before allocating invalid memory
-    bool invalidSize = N < 0 || lda < K + 1 || K < 0 || !incx || !incy || batch_count < 0;
-    if(invalidSize || !N || !batch_count)
+    bool invalid_size = N < 0 || lda < K + 1 || K < 0 || !incx || !incy || batch_count < 0;
+    if(invalid_size || !N || !batch_count)
     {
         EXPECT_ROCBLAS_STATUS(rocblas_sbmv_batched<T>(handle,
                                                       uplo,
@@ -192,7 +192,7 @@ void testing_sbmv_batched(const Arguments& arg)
                                                       nullptr,
                                                       incy,
                                                       batch_count),
-                              invalidSize ? rocblas_status_invalid_size : rocblas_status_success);
+                              invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
         return;
     }
 

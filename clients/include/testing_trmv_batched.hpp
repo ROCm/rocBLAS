@@ -83,13 +83,13 @@ void testing_trmv_batched(const Arguments& arg)
 
     rocblas_local_handle handle;
 
-    bool invalidSize = M < 0 || lda < M || lda < 1 || !incx || batch_count < 0;
-    if(invalidSize || !M || !batch_count)
+    bool invalid_size = M < 0 || lda < M || lda < 1 || !incx || batch_count < 0;
+    if(invalid_size || !M || !batch_count)
     {
         EXPECT_ROCBLAS_STATUS(
             rocblas_trmv_batched<T>(
                 handle, uplo, transA, diag, M, nullptr, lda, nullptr, incx, batch_count),
-            invalidSize ? rocblas_status_invalid_size : rocblas_status_success);
+            invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
 
         return;
     }
