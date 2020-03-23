@@ -36,9 +36,6 @@ Definitions:
     - { incx:   1, incy:   1}
     - { incx:  -1, incy:  -1}
     - { incx:   1, incy:  -1}
-    - { incx:   0, incy:  -1}
-    - { incx:   0, incy:   1}
-    - { incx:   1, incy:   0}
     - { incx:   2, incy:   1}
     - { incx:  10, incy:  99}
 
@@ -89,7 +86,7 @@ Tests:
   - gerc
   precision: *single_double_precisions_complex
   matrix_size: *medium_matrix_size_range
-  incx_incy: *incx_incy_range
+  incx_incy: *incx_incy_range_small
   alpha: [ -0.5, 2.0, 0.0 ]
   alphai: [ -0.5, 0.0 ]
 
@@ -124,7 +121,7 @@ Tests:
   - gerc_batched
   precision: *single_double_precisions_complex
   matrix_size: *medium_matrix_size_range
-  incx_incy: *incx_incy_range
+  incx_incy: *incx_incy_range_small
   alpha: [ -0.5, 2.0, 0.0 ]
   alphai: [ -0.5, 0.0 ]
   batch_count: [ 1, 5 ]
@@ -162,7 +159,7 @@ Tests:
   - gerc_strided_batched
   precision: *single_double_precisions_complex
   matrix_size: *medium_matrix_size_range
-  incx_incy: *incx_incy_range
+  incx_incy: *incx_incy_range_small
   alpha: [ -0.5, 2.0, 0.0 ]
   alphai: [ -0.5, 1.0 ]
   stride_scale: [ 1 ]
