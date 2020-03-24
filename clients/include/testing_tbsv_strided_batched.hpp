@@ -112,56 +112,24 @@ void testing_tbsv_strided_batched(const Arguments& arg)
     rocblas_local_handle handle;
 
     // check here to prevent undefined memory allocation error
-    if(N < 0 || K < 0 || lda < K + 1 || !incx || batch_count <= 0)
+    bool invalid_size = N < 0 || K < 0 || lda < K + 1 || !incx || batch_count < 0;
+    if(invalid_size || !N || !batch_count)
     {
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        if(batch_count == 0)
-            CHECK_ROCBLAS_ERROR(rocblas_tbsv_strided_batched<T>(handle,
-                                                                uplo,
-                                                                transA,
-                                                                diag,
-                                                                N,
-                                                                K,
-                                                                nullptr,
-                                                                lda,
-                                                                stride_a,
-                                                                nullptr,
-                                                                incx,
-                                                                stride_x,
-                                                                batch_count));
-        else
-            EXPECT_ROCBLAS_STATUS(rocblas_tbsv_strided_batched<T>(handle,
-                                                                  uplo,
-                                                                  transA,
-                                                                  diag,
-                                                                  N,
-                                                                  K,
-                                                                  nullptr,
-                                                                  lda,
-                                                                  stride_a,
-                                                                  nullptr,
-                                                                  incx,
-                                                                  stride_x,
-                                                                  batch_count),
-                                  rocblas_status_invalid_size);
-        return;
-    }
-    if(N == 0)
-    {
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR(rocblas_tbsv_strided_batched<T>(handle,
-                                                            uplo,
-                                                            transA,
-                                                            diag,
-                                                            N,
-                                                            K,
-                                                            nullptr,
-                                                            lda,
-                                                            stride_a,
-                                                            nullptr,
-                                                            incx,
-                                                            stride_x,
-                                                            batch_count));
+        EXPECT_ROCBLAS_STATUS(rocblas_tbsv_strided_batched<T>(handle,
+                                                              uplo,
+                                                              transA,
+                                                              diag,
+                                                              N,
+                                                              K,
+                                                              nullptr,
+                                                              lda,
+                                                              stride_a,
+                                                              nullptr,
+                                                              incx,
+                                                              stride_x,
+                                                              batch_count),
+                              invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
         return;
     }
 
