@@ -145,10 +145,10 @@ install_packages( )
                                       "llvm-6.0-dev" "zlib1g-dev" "wget")
   local library_dependencies_centos_rhel=( "epel-release"
                                       "make" "cmake3" "rpm-build"
-                                      "python34" "PyYAML" "python3*-PyYAML" "python3*-distutils-extra" "python3*-venv"
+                                      "python34" "PyYAML" "python3*-PyYAML" "python3*-distutils-extra" "python3-virtualenv"
                                       "gcc-c++" "zlib-devel" "wget" )
   local library_dependencies_fedora=( "make" "cmake" "rpm-build"
-                                      "python34" "PyYAML" "python3*-PyYAML" "python3*-distutils-extra" "python3*-venv"
+                                      "python34" "PyYAML" "python3*-PyYAML" "python3*-distutils-extra" "python3-virtualenv"
                                       "gcc-c++" "libcxx-devel" "zlib-devel" "wget" "llvm7.0-devel" "llvm7.0-static" )
   local library_dependencies_sles=(   "make" "cmake" "python3-PyYAM" "python3-distutils-extra" "python3-venv"
                                       "gcc-c++" "libcxxtools9" "rpm-build" "wget" "llvm7-devel" )
