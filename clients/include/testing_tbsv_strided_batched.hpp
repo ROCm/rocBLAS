@@ -112,8 +112,8 @@ void testing_tbsv_strided_batched(const Arguments& arg)
     rocblas_local_handle handle;
 
     // check here to prevent undefined memory allocation error
-    bool invalidSize = N < 0 || K < 0 || lda < K + 1 || !incx || batch_count < 0;
-    if(invalidSize || !N || !batch_count)
+    bool invalid_size = N < 0 || K < 0 || lda < K + 1 || !incx || batch_count < 0;
+    if(invalid_size || !N || !batch_count)
     {
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         EXPECT_ROCBLAS_STATUS(rocblas_tbsv_strided_batched<T>(handle,
@@ -129,7 +129,7 @@ void testing_tbsv_strided_batched(const Arguments& arg)
                                                               incx,
                                                               stride_x,
                                                               batch_count),
-                              invalidSize ? rocblas_status_invalid_size : rocblas_status_success);
+                              invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
         return;
     }
 
