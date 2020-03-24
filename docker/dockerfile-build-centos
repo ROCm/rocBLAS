@@ -28,7 +28,7 @@ RUN yum install -y --nogpgcheck\
     python36-pip \
     python36-pytest \
     python36-setuptools \
-    python36-venv \
+    python36-virtualenv \
     PyYAML \
     llvm7.0-devel \
     llvm7.0-static \
