@@ -15,6 +15,10 @@ namespace
     constexpr char rocblas_trmm_name<float>[] = "rocblas_strmm";
     template <>
     constexpr char rocblas_trmm_name<double>[] = "rocblas_dtrmm";
+    template <>
+    constexpr char rocblas_trmm_name<rocblas_float_complex>[] = "rocblas_ctrmm";
+    template <>
+    constexpr char rocblas_trmm_name<rocblas_double_complex>[] = "rocblas_ztrmm";
 
     template <typename T>
     rocblas_status rocblas_trmm_impl(rocblas_handle    handle,
