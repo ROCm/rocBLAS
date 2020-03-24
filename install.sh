@@ -141,16 +141,16 @@ install_packages( )
 
   # dependencies needed to build the rocblas library
   local library_dependencies_ubuntu=( "make" "cmake-curses-gui" "pkg-config"
-                                      "python2.7" "python3" "python-yaml" "python3-yaml" "python3*-distutils"
+                                      "python2.7" "python3" "python-yaml" "python3-yaml" "python3*-distutils" "python3-venv"
                                       "llvm-6.0-dev" "zlib1g-dev" "wget")
   local library_dependencies_centos_rhel=( "epel-release"
                                       "make" "cmake3" "rpm-build"
-                                      "python34" "PyYAML" "python3*-PyYAML" "python3*-distutils-extra"
+                                      "python34" "PyYAML" "python3*-PyYAML" "python3*-distutils-extra" "python3-venv"
                                       "gcc-c++" "zlib-devel" "wget" )
   local library_dependencies_fedora=( "make" "cmake" "rpm-build"
-                                      "python34" "PyYAML" "python3*-PyYAML" "python3*-distutils-extra"
+                                      "python34" "PyYAML" "python3*-PyYAML" "python3*-distutils-extra" "python3-venv"
                                       "gcc-c++" "libcxx-devel" "zlib-devel" "wget" "llvm7.0-devel" "llvm7.0-static" )
-  local library_dependencies_sles=(   "make" "cmake" "python3-PyYAM" "python3-distutils-extra"
+  local library_dependencies_sles=(   "make" "cmake" "python3-PyYAM" "python3-distutils-extra" "python3-venv"
                                       "gcc-c++" "libcxxtools9" "rpm-build" "wget" "llvm7-devel" )
 
   if [[ ( "${ID}" != "centos" ) || ( "${VERSION_ID}" -ge 7 ) ]]; then
