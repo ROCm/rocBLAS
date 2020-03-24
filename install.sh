@@ -150,7 +150,7 @@ install_packages( )
   local library_dependencies_fedora=( "make" "cmake" "rpm-build"
                                       "python34" "PyYAML" "python3*-PyYAML" "python3*-distutils-extra" "python3*-venv"
                                       "gcc-c++" "libcxx-devel" "zlib-devel" "wget" "llvm7.0-devel" "llvm7.0-static" )
-  local library_dependencies_sles=(   "make" "cmake" "python3-PyYAM" "python3-distutils-extra" "python3*-venv"
+  local library_dependencies_sles=(   "make" "cmake" "python3-PyYAM" "python3-distutils-extra" "python3-venv"
                                       "gcc-c++" "libcxxtools9" "rpm-build" "wget" "llvm7-devel" )
 
   if [[ ( "${ID}" != "centos" ) || ( "${VERSION_ID}" -ge 7 ) ]]; then
