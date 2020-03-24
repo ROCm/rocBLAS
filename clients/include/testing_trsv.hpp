@@ -38,15 +38,9 @@ void testing_trsv(const Arguments& arg)
     // check here to prevent undefined memory allocation error
     if(M < 0 || lda < M || !incx)
     {
-        static const size_t safe_size = 100; // arbitrarily set to 100
-        device_vector<T>    dx_or_b(safe_size);
-        device_vector<T>    dA(safe_size);
-        CHECK_DEVICE_ALLOCATION(dx_or_b.memcheck());
-        CHECK_DEVICE_ALLOCATION(dA.memcheck());
-
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         EXPECT_ROCBLAS_STATUS(
-            rocblas_trsv<T>(handle, uplo, transA, diag, M, dA, lda, dx_or_b, incx),
+            rocblas_trsv<T>(handle, uplo, transA, diag, M, nullptr, lda, nullptr, incx),
             rocblas_status_invalid_size);
         return;
     }
