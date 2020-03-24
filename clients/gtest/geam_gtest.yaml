@@ -37,6 +37,22 @@ Definitions:
   - &huge_alpha_beta_range
     - { alpha:  1.0, beta:  3.0 }
 
+  - &small_complex_alpha_beta_range
+    - { alpha:  2, beta:  0, alphai:  0, betai:  0 }
+    - { alpha:  0, beta:  3, alphai:  0, betai:  0 }
+    - { alpha:  5, beta:  0, alphai:  0, betai:  5 }
+    - { alpha: -5, beta:  0, alphai: -5, betai:  0 }
+    - { alpha:  0, beta:  5, alphai:  0, betai: -5 }
+    - { alpha:  1, beta:  3, alphai:  3, betai:  1 }
+    - { alpha: -1, beta: -3, alphai:  3, betai:  1 }
+    - { alpha:  0, beta:  0, alphai:  2, betai:  1 }
+
+  - &large_complex_alpha_beta_range
+    - { alpha:  1, beta:  2, alphai:  3, betai:  4 }
+
+  - &huge_complex_alpha_beta_range
+    - { alpha:  4, beta:  3, alphai:  2, betai:  1 }
+
   - &transA_transB_range
     - { transA: N, transB: N }
     - { transA: N, transB: T }
@@ -45,11 +61,11 @@ Definitions:
 
 Tests:
 - name: geam_bad_arg
-  category: pre_checkin
+  category: quick
   function: geam_bad_arg
-  precision: *single_double_precisions
-  transA: N
-  transB: N
+  precision: *single_precision
+  transA: [N]
+  transB: [N]
 
 - name: geam_small
   category: quick
@@ -59,6 +75,14 @@ Tests:
   matrix_size: *small_matrix_size_range
   alpha_beta: *small_alpha_beta_range
 
+- name: geam_small_complex
+  category: quick
+  function: geam
+  precision: *single_double_precisions_complex
+  transA_transB: *transA_transB_range
+  matrix_size: *small_matrix_size_range
+  alpha_beta: *small_complex_alpha_beta_range
+
 - name: geam_large
   category: pre_checkin
   function: geam
@@ -67,6 +91,14 @@ Tests:
   matrix_size: *large_matrix_size_range
   alpha_beta: *large_alpha_beta_range
 
+- name: geam_large_complex
+  category: pre_checkin
+  function: geam
+  precision: *single_double_precisions_complex
+  transA_transB: *transA_transB_range
+  matrix_size: *large_matrix_size_range
+  alpha_beta: *large_complex_alpha_beta_range
+
 - name: geam_huge
   category: nightly
   function: geam
@@ -74,4 +106,12 @@ Tests:
   transA_transB: *transA_transB_range
   matrix_size: *huge_matrix_size_range
   alpha_beta: *huge_alpha_beta_range
+
+- name: geam_huge_complex
+  category: nightly
+  function: geam
+  precision: *single_double_precisions_complex
+  transA_transB: *transA_transB_range
+  matrix_size: *huge_matrix_size_range
+  alpha_beta: *huge_complex_alpha_beta_range
 ...
