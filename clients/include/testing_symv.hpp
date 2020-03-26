@@ -96,13 +96,12 @@ void testing_symv(const Arguments& arg)
     rocblas_local_handle handle;
 
     // argument sanity check before allocating invalid memory
-    if(N <= 0 || lda < 0 || lda < N || !incx || !incy)
+    if(N < 0 || lda < 1 || lda < N || !incx || !incy)
     {
         EXPECT_ROCBLAS_STATUS(
             rocblas_symv<T>(
-                handle, uplo, N, alpha, nullptr, lda, nullptr, incx, beta, nullptr, incy),
-            N < 0 || lda < 0 || lda < N || !incx || !incy ? rocblas_status_invalid_size
-                                                          : rocblas_status_success);
+                handle, uplo, N, nullptr, nullptr, lda, nullptr, incx, nullptr, nullptr, incy),
+            rocblas_status_invalid_size);
         return;
     }
 
