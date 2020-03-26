@@ -4,22 +4,31 @@ include: known_bugs.yaml
 
 Definitions:
   - &small_matrix_size_range
-    - { M:    -1, K:     1, lda:    1  }
-    - { M:     0, K:     0, lda:    1 }
-    - { M:     1, K:    -1, lda:    1  }
-    - { M:     1, K:     1, lda:    0  }
     - { M:     4, K:     2, lda:    10 }
     - { M:    10, K:     2, lda:    10 }
-    - { M:    10, K:     8, lda:    10 }
-    - { M:     0, K:     0, lda:    1  }
+    - { M:    10, K:     8, lda:    9  }
     - { M:     1, K:     0, lda:    1  }
-    - { M:    -1, K:    -1, lda:   -1  }
     - { M:    10, K:    10, lda:    2  }
     - { M:     9, K:     9, lda:   20  }
     - { M:     9, K:    15, lda:   20  }
-    - { M:     9, K:    10, lda:   10  }
-    - { M:   100, K:    60, lda:  200  }
-    - { M:    10, K:     7, lda:    8  }
+    - { M:     9, K:    10, lda:   11  }
+    - { M:   100, K:    60, lda:   65  }
+
+  - &special_case_range
+    - { M: 0, K: 0, lda: 1, incx: 1, batch_count: 1 }
+    - { M: 1, K: 1, lda: 2, incx: 1, batch_count: 0 }
+
+    - { M: -1, K:  0, lda: 1, incx: 1, batch_count:  0 }
+    - { M:  0, K: -1, lda: 1, incx: 1, batch_count:  0 }
+    - { M:  0, K:  0, lda: 0, incx: 1, batch_count:  0 }
+    - { M:  0, K:  4, lda: 4, incx: 1, batch_count:  0 }
+    - { M:  0, K:  0, lda: 1, incx: 0, batch_count:  0 }
+    - { M:  0, K:  0, lda: 1, incx: 1, batch_count: -1 }
+
+  - &manybatch_range
+    - { M:  10, K:   5, lda:   7 }
+    - { M: 150, K: 125, lda: 126 }
+    - { M: 150, K: 125, lda: 150 }
 
   - &medium_matrix_size_range
     - { M:   63,  K:   8,   lda:  128 }
@@ -54,9 +63,11 @@ Definitions:
 
   - &incx_range
     - { incx:  -5 }
-    - { incx:   0 }
     - { incx:   1 }
     - { incx:  10 }
+
+  - &incx_range_small
+    - { incx: 2 }
 
 
 Tests:
@@ -83,6 +94,17 @@ Tests:
   uplo: U
   transA: N
   diag: N
+
+- name: tbmv_arg_check
+  category: quick
+  function:
+  - tbmv: *single_double_precisions
+  - tbmv_batched: *single_double_precisions
+  - tbmv_strided_batched: *single_double_precisions
+  uplo: L
+  transA: N
+  diag: N
+  matrix_size: *special_case_range
 
 - name: tbmv_small
   category: quick
@@ -158,7 +180,7 @@ Tests:
   transA: [ N, T, C ]
   diag: [U, N]
   matrix_size: *large_matrix_size_range
-  incx_incy: *incx_range
+  incx_incy: *incx_range_small
   batch_count: [ 3 ]
 
 - name: tbmv_batched_large
@@ -169,7 +191,7 @@ Tests:
   transA: [ N, T, C ]
   diag: [U, N]
   matrix_size: *large_matrix_size_range
-  incx_incy: *incx_range
+  incx_incy: *incx_range_small
   batch_count: [ 3 ]
 
 - name: tbmv_strided_batched_large
@@ -180,7 +202,7 @@ Tests:
   transA: [ N, T, C ]
   diag: [U, N]
   matrix_size: *large_matrix_size_range
-  incx_incy: *incx_range
+  incx_incy: *incx_range_small
   stride_scale: [ 1 ]
   batch_count: [ 3 ]
 
@@ -191,8 +213,8 @@ Tests:
   uplo: [U, L]
   transA: [ N, T, C ]
   diag: [U, N]
-  matrix_size: *small_matrix_size_range
-  incx: [3]
+  matrix_size: *manybatch_range
+  incx_incy: *incx_range_small
   batch_count: [256]
 
 - name: tbmv_strided_batched_manybatch
@@ -202,8 +224,8 @@ Tests:
   uplo: [U, L]
   transA: [ N, T, C ]
   diag: [U, N]
-  matrix_size: *small_matrix_size_range
-  incx: [3]
+  matrix_size: *manybatch_range
+  incx_incy: *incx_range_small
   stride_scale: [ 1.5 ]
   batch_count: [256]
 

@@ -39,7 +39,7 @@ void testing_trsv_strided_batched(const Arguments& arg)
     rocblas_local_handle handle;
 
     // check here to prevent undefined memory allocation error
-    bool invalid_size = M < 0 || lda < M || !incx || batch_count < 0;
+    bool invalid_size = M < 0 || lda < M || lda < 1 || !incx || batch_count < 0;
     if(invalid_size || !M || !batch_count)
     {
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));

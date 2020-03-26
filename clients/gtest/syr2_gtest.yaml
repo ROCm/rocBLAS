@@ -4,13 +4,7 @@ include: known_bugs.yaml
 
 Definitions:
   - &small_matrix_size_range
-    - { N:    -1, lda:  -1 }
-    - { N:     0, lda:   1 }
-    - { N:     0, lda:   0 }
-    - { N:     1, lda:   0 }
     - { N:     5, lda:   4 }
-    - { N:    -1, lda:   5 }
-    - { N:     0, lda:   1 }
     - { N:     1, lda:  10 }
     - { N:     4, lda: 100 }
     - { N:    10, lda:  11 }
@@ -19,13 +13,23 @@ Definitions:
     - { N:    33, lda:  33 }
     - { N:    65, lda:  65 }
 
+  - &special_case_range
+    - { N: 0, lda: 1, incx: 1, incy: 1, batch_count: 1 }
+    - { N: 1, lda: 1, incx: 1, incy: 1, batch_count: 0 }
+
+    - { N: -1, lda: 1, incx: 1, incy: 1, batch_count:  0 }
+    - { N:  0, lda: 0, incx: 1, incy: 1, batch_count:  0 }
+    - { N:  2, lda: 1, incx: 1, incy: 1, batch_count:  0 }
+    - { N:  0, lda: 1, incx: 0, incy: 1, batch_count:  0 }
+    - { N:  0, lda: 1, incx: 1, incy: 0, batch_count:  0 }
+    - { N:  0, lda: 1, incx: 1, incy: 1, batch_count: -1 }
+
   - &medium_matrix_size_range
     - { N:  1000, lda: 1003 }
     - { N:  2011, lda: 3000 }
-    - { N:  3000, lda: 3000 }
 
   - &large_matrix_size_range
-    - { N:  2000, lda: 2000 }
+    - { N:  3000, lda: 3000 }
     - { N:  4011, lda: 4012 }
 
   - &incx_incy_range
@@ -58,6 +62,15 @@ Tests:
   - syr2_bad_arg: *single_double_precisions_complex_real
   - syr2_batched_bad_arg: *single_double_precisions_complex_real
   - syr2_strided_batched_bad_arg: *single_double_precisions_complex_real
+
+- name: syr2_arg_check
+  category: quick
+  function:
+  - syr2: *single_double_precisions_complex_real
+  - syr2_batched: *single_double_precisions_complex_real
+  - syr2_strided_batched: *single_double_precisions_complex_real
+  uplo: L
+  matrix_size: *special_case_range
 
 - name: syr2_small
   category: quick

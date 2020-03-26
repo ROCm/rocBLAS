@@ -167,22 +167,22 @@ void testing_symv_batched(const Arguments& arg)
     rocblas_local_handle handle;
 
     // argument sanity check before allocating invalid memory
-    if(N <= 0 || lda < 0 || lda < N || !incx || !incy || batch_count <= 0)
+    bool invalid_size = N < 0 || lda < 1 || lda < N || !incx || !incy || batch_count < 0;
+    if(invalid_size || !N || !batch_count)
     {
-        static const size_t    safe_size = 100;
-        device_batch_vector<T> dA(safe_size, 1, 1);
-        device_batch_vector<T> dx(safe_size, 1, 1);
-        device_batch_vector<T> dy(safe_size, 1, 1);
-        CHECK_DEVICE_ALLOCATION(dA.memcheck());
-        CHECK_DEVICE_ALLOCATION(dx.memcheck());
-        CHECK_DEVICE_ALLOCATION(dy.memcheck());
-
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_symv_batched<T>(
-                handle, uplo, N, alpha, dA, lda, dx, incx, beta, dy, incy, batch_count),
-            N < 0 || lda < N || lda < 1 || !incx || !incy || batch_count < 0
-                ? rocblas_status_invalid_size
-                : rocblas_status_success);
+        EXPECT_ROCBLAS_STATUS(rocblas_symv_batched<T>(handle,
+                                                      uplo,
+                                                      N,
+                                                      nullptr,
+                                                      nullptr,
+                                                      lda,
+                                                      nullptr,
+                                                      incx,
+                                                      nullptr,
+                                                      nullptr,
+                                                      incy,
+                                                      batch_count),
+                              invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
         return;
     }
 

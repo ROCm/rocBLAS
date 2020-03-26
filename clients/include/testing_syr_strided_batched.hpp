@@ -70,12 +70,13 @@ void testing_syr_strided_batched(const Arguments& arg)
     rocblas_local_handle handle;
 
     // argument check before allocating invalid memory
-    if(N <= 0 || lda < N || lda < 1 || !incx || batch_count <= 0)
+    bool invalid_size = N < 0 || lda < N || lda < 1 || !incx || batch_count < 0;
+    if(invalid_size || !N || !batch_count)
     {
         EXPECT_ROCBLAS_STATUS(rocblas_syr_strided_batched<T>(handle,
                                                              uplo,
                                                              N,
-                                                             &h_alpha,
+                                                             nullptr,
                                                              nullptr,
                                                              incx,
                                                              stridex,
@@ -83,9 +84,7 @@ void testing_syr_strided_batched(const Arguments& arg)
                                                              lda,
                                                              strideA,
                                                              batch_count),
-                              N < 0 || lda < N || lda < 1 || !incx || batch_count < 0
-                                  ? rocblas_status_invalid_size
-                                  : rocblas_status_success);
+                              invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
         return;
     }
 

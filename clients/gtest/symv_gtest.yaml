@@ -3,8 +3,18 @@ include: rocblas_common.yaml
 include: known_bugs.yaml
 
 Definitions:
+  - &special_case_range
+    - { N: 0, lda: 1, incx: 1, incy: 1, batch_count: 1 }
+    - { N: 1, lda: 1, incx: 1, incy: 1, batch_count: 0 }
+
+    - { N: -1, lda: 1, incx: 1, incy: 1, batch_count:  0 }
+    - { N:  0, lda: 0, incx: 1, incy: 1, batch_count:  0 }
+    - { N:  2, lda: 1, incx: 1, incy: 1, batch_count:  0 }
+    - { N:  0, lda: 1, incx: 0, incy: 1, batch_count:  0 }
+    - { N:  0, lda: 1, incx: 1, incy: 0, batch_count:  0 }
+    - { N:  0, lda: 1, incx: 1, incy: 1, batch_count: -1 }
+
   - &medium_matrix_size_range
-    - { N:    -1, lda:   -1 }
     - { N:    10, lda:    2 }
     - { N:    33, lda:   33 }
     - { N:   300, lda:  600 }
@@ -14,7 +24,6 @@ Definitions:
     - { N:  7000, lda:  7000 }
 
   - &incx_incy_range
-    - { incx:   0, incy:  -1 }
     - { incx:   2, incy:   1 }
     - { incx:  -1, incy:  -1 }
 
@@ -24,11 +33,24 @@ Definitions:
     - { alpha:  1,    alphai:  2,   beta:  1,   betai:  2 }
     - { alpha:  1.0,  alphai:  1,   beta:  0.5, betai:  1 }
 
+  - &alpha_beta_range_small
+    - { alpha: 2, alphai: 0.5, beta: 1.5, betai: -1.5 }
+
 Tests:
 - name: symv_bad
   category: pre_checkin
   function: symv_bad_arg
   precision: *single_precision
+
+- name: symv_arg_check
+  category: quick
+  function:
+  - symv
+  - symv_batched
+  - symv_strided_batched
+  precision: *single_double_precisions_complex_real
+  uplo: L
+  matrix_size: *special_case_range
 
 - name: symv_medium
   category: pre_checkin
@@ -46,7 +68,7 @@ Tests:
   uplo: [ U, L ]
   matrix_size: *large_matrix_size_range
   incx_incy: *incx_incy_range
-  alpha_beta: *complex_alpha_beta_range
+  alpha_beta: *alpha_beta_range_small
 
   # batched
 - name: symv_batched_bad
@@ -62,7 +84,7 @@ Tests:
   matrix_size: *medium_matrix_size_range
   incx_incy: *incx_incy_range
   alpha_beta: *complex_alpha_beta_range
-  batch_count: [ -1, 0, 1, 257 ]
+  batch_count: [ 1, 257 ]
 
 - name: symv_batched_large
   category: nightly
@@ -71,8 +93,8 @@ Tests:
   uplo: [ U, L ]
   matrix_size: *large_matrix_size_range
   incx_incy: *incx_incy_range
-  alpha_beta: *complex_alpha_beta_range
-  batch_count: [ -1, 1, 3 ]
+  alpha_beta: *alpha_beta_range_small
+  batch_count: [ 1, 3 ]
 
   # strided batched
 - name: symv_strided_batched_bad
@@ -88,7 +110,7 @@ Tests:
   matrix_size: *medium_matrix_size_range
   incx_incy: *incx_incy_range
   alpha_beta: *complex_alpha_beta_range
-  batch_count: [ -1, 0, 1, 257 ]
+  batch_count: [ 1, 257 ]
 
 - name: symv_strided_batched_large
   category: nightly
@@ -97,7 +119,7 @@ Tests:
   uplo: [ U, L ]
   matrix_size: *large_matrix_size_range
   incx_incy: *incx_incy_range
-  alpha_beta: *complex_alpha_beta_range
-  batch_count: [  -1, 1, 3 ]
+  alpha_beta: *alpha_beta_range_small
+  batch_count: [ 1, 3 ]
 
 ...
