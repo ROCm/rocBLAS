@@ -69,19 +69,13 @@ void testing_tbsv(const Arguments& arg)
     rocblas_local_handle handle;
 
     // check here to prevent undefined memory allocation error
-    if(N < 0 || K < 0 || lda < K + 1 || !incx)
+    bool invalid_size = N < 0 || K < 0 || lda < K + 1 || !incx;
+    if(invalid_size || !N)
     {
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         EXPECT_ROCBLAS_STATUS(
             rocblas_tbsv<T>(handle, uplo, transA, diag, N, K, nullptr, lda, nullptr, incx),
-            rocblas_status_invalid_size);
-        return;
-    }
-    if(N == 0)
-    {
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR(
-            rocblas_tbsv<T>(handle, uplo, transA, diag, N, K, nullptr, lda, nullptr, incx));
+            invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
         return;
     }
 
