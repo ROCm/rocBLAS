@@ -157,6 +157,10 @@ namespace
     constexpr char rocblas_geam_name<float>[] = "rocblas_sgeam";
     template <>
     constexpr char rocblas_geam_name<double>[] = "rocblas_dgeam";
+    template <>
+    constexpr char rocblas_geam_name<rocblas_float_complex>[] = "rocblas_cgeam";
+    template <>
+    constexpr char rocblas_geam_name<rocblas_double_complex>[] = "rocblas_zgeam";
 
     /*
  * ===========================================================================
@@ -652,6 +656,52 @@ rocblas_status rocblas_dgeam(rocblas_handle    handle,
 try
 {
     return rocblas_geam_template<double>(
+        handle, transA, transB, m, n, alpha, A, lda, beta, B, ldb, C, ldc);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
+}
+
+rocblas_status rocblas_cgeam(rocblas_handle               handle,
+                             rocblas_operation            transA,
+                             rocblas_operation            transB,
+                             rocblas_int                  m,
+                             rocblas_int                  n,
+                             const rocblas_float_complex* alpha,
+                             const rocblas_float_complex* A,
+                             rocblas_int                  lda,
+                             const rocblas_float_complex* beta,
+                             const rocblas_float_complex* B,
+                             rocblas_int                  ldb,
+                             rocblas_float_complex*       C,
+                             rocblas_int                  ldc)
+try
+{
+    return rocblas_geam_template<rocblas_float_complex>(
+        handle, transA, transB, m, n, alpha, A, lda, beta, B, ldb, C, ldc);
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
+}
+
+rocblas_status rocblas_zgeam(rocblas_handle                handle,
+                             rocblas_operation             transA,
+                             rocblas_operation             transB,
+                             rocblas_int                   m,
+                             rocblas_int                   n,
+                             const rocblas_double_complex* alpha,
+                             const rocblas_double_complex* A,
+                             rocblas_int                   lda,
+                             const rocblas_double_complex* beta,
+                             const rocblas_double_complex* B,
+                             rocblas_int                   ldb,
+                             rocblas_double_complex*       C,
+                             rocblas_int                   ldc)
+try
+{
+    return rocblas_geam_template<rocblas_double_complex>(
         handle, transA, transB, m, n, alpha, A, lda, beta, B, ldb, C, ldc);
 }
 catch(...)

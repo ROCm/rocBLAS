@@ -44,8 +44,7 @@ static __device__ void geam_device(rocblas_operation transA,
         {
             b_index = tx * ldb + ty;
         }
-
-        C[c_index] = fma(beta, B[b_index], alpha * A[a_index]);
+        C[c_index] = beta * B[b_index] + alpha * A[a_index];
     }
 }
 
@@ -105,7 +104,7 @@ static __device__ void geam_1D_device(
         }
         else
         {
-            C[tx] = fma(beta, B[tx], alpha * A[tx]);
+            C[tx] = beta * B[tx] + alpha * A[tx];
         }
     }
 }
@@ -173,7 +172,7 @@ static __device__ void geam_inplace_device(rocblas_operation transB,
             }
             else
             {
-                C[c_index] = fma(beta, B[b_index], alpha * C[c_index]);
+                C[c_index] = beta * B[b_index] + alpha * C[c_index];
             }
         }
     }
