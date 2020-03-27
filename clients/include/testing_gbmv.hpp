@@ -111,8 +111,8 @@ void testing_gbmv(const Arguments& arg)
     rocblas_local_handle handle;
 
     // argument sanity check before allocating invalid memory
-    bool invalidSize = M < 0 || N < 0 || lda < KL + KU + 1 || !incx || !incy || KL < 0 || KU < 0;
-    if(invalidSize || !M || !N)
+    bool invalid_size = M < 0 || N < 0 || lda < KL + KU + 1 || !incx || !incy || KL < 0 || KU < 0;
+    if(invalid_size || !M || !N)
     {
         EXPECT_ROCBLAS_STATUS(rocblas_gbmv<T>(handle,
                                               transA,
@@ -128,7 +128,7 @@ void testing_gbmv(const Arguments& arg)
                                               nullptr,
                                               nullptr,
                                               incy),
-                              invalidSize ? rocblas_status_invalid_size : rocblas_status_success);
+                              invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
 
         return;
     }

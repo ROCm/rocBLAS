@@ -147,25 +147,23 @@ void testing_gemv_batched(const Arguments& arg)
     rocblas_local_handle handle;
 
     // argument sanity check before allocating invalid memory
-    if(M <= 0 || N <= 0 || lda < M || lda < 1 || !incx || !incy || batch_count <= 0)
+    bool invalid_size = M < 0 || N < 0 || lda < M || lda < 1 || !incx || !incy || batch_count < 0;
+    if(invalid_size || !M || !N || !batch_count)
     {
         EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched<T>(handle,
                                                       transA,
                                                       M,
                                                       N,
-                                                      &h_alpha,
+                                                      nullptr,
                                                       nullptr,
                                                       lda,
                                                       nullptr,
                                                       incx,
-                                                      &h_beta,
+                                                      nullptr,
                                                       nullptr,
                                                       incy,
                                                       batch_count),
-                              M < 0 || N < 0 || lda < M || lda < 1 || !incx || !incy
-                                      || batch_count < 0
-                                  ? rocblas_status_invalid_size
-                                  : rocblas_status_success);
+                              invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
         return;
     }
 

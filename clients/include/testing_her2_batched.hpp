@@ -77,7 +77,8 @@ void testing_her2_batched(const Arguments& arg)
     rocblas_local_handle handle;
 
     // argument check before allocating invalid memory
-    if(N <= 0 || !incx || !incy || lda < 1 || lda < N || batch_count <= 0)
+    bool invalid_size = N < 0 || lda < 1 || lda < N || !incx || !incy || batch_count < 0;
+    if(invalid_size || !N || !batch_count)
     {
         EXPECT_ROCBLAS_STATUS((rocblas_her2_batched<T>)(handle,
                                                         uplo,
@@ -90,9 +91,7 @@ void testing_her2_batched(const Arguments& arg)
                                                         nullptr,
                                                         lda,
                                                         batch_count),
-                              N < 0 || !incx || !incy || lda < 1 || lda < N || batch_count < 0
-                                  ? rocblas_status_invalid_size
-                                  : rocblas_status_success);
+                              invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
         return;
     }
 

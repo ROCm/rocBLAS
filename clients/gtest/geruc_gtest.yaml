@@ -4,20 +4,27 @@ include: known_bugs.yaml
 
 Definitions:
   - &small_matrix_size_range
-    - { M:   -1, N:    1, lda:    1, stride_a:    1 }
-    - { M:    1, N:   -1, lda:    1, stride_a:    1 }
-    - { M:    1, N:    1, lda:   -1, stride_a:    1 }
-    - { M:   10, N:    1, lda:    9, stride_a:    1 }
-    - { M:    0, N:    1, lda:    1, stride_a:    1 }
-    - { M:    1, N:    0, lda:    1, stride_a:    1 }
-    - { M:    1, N:    1, lda:    0, stride_a:    1 }
     - { M:   11, N:   12, lda:   13, stride_a:  156 }
     - { M:   16, N:   16, lda:   16, stride_a:  256 }
     - { M:   33, N:   32, lda:   33, stride_a: 1056 }
     - { M:   65, N:   65, lda:   66, stride_a: 4300 }
 
+  - &special_case_range
+    # Quick return
+    - { M:    0, N:   1, lda:   1, incx: 1, incy: 1, batch_count: 1 }
+    - { M:    1, N:   0, lda:   1, incx: 1, incy: 1, batch_count: 1 }
+    - { M:    1, N:   1, lda:   1, incx: 1, incy: 1, batch_count: 0 }
+
+    # invalid arg checks
+    - { M:   -1, N:   0, lda:   1, incx: 1, incy: 1, batch_count:  0 }
+    - { M:    0, N:  -1, lda:   1, incx: 1, incy: 1, batch_count:  0 }
+    - { M:    5, N:   0, lda:   4, incx: 1, incy: 1, batch_count:  0 }
+    - { M:    0, N:   0, lda:   0, incx: 1, incy: 1, batch_count:  0 }
+    - { M:    0, N:   0, lda:   1, incx: 0, incy: 1, batch_count:  0 }
+    - { M:    0, N:   0, lda:   1, incx: 1, incy: 0, batch_count:  0 }
+    - { M:    0, N:   0, lda:   1, incx: 1, incy: 1, batch_count: -1 }
+
   - &medium_matrix_size_range
-    - { M:   10, N:   10, lda:    2, stride_a:    1000 }
     - { M:  600, N:  500, lda:  600, stride_a:  300000 }
     - { M:  800, N: 1000, lda:  800, stride_a: 1000100 }
 
@@ -29,15 +36,11 @@ Definitions:
     - { incx:   1, incy:   1}
     - { incx:  -1, incy:  -1}
     - { incx:   1, incy:  -1}
-    - { incx:   0, incy:  -1}
-    - { incx:   0, incy:   1}
-    - { incx:   1, incy:   0}
     - { incx:   2, incy:   1}
     - { incx:  10, incy:  99}
 
-  - &nightly_incx_incy_range
+  - &incx_incy_range_small
     - { incx:   1, incy:  -1 }
-    - { incx:   1, incy:   2 }
 
 Tests:
 - name: geruc_bad_arg
@@ -51,6 +54,20 @@ Tests:
   - gerc_strided_batched_bad_arg
   precision: *single_double_precisions_complex
 
+- name: geruc_arg_check
+  category: quick
+  function:
+  - geru
+  - gerc
+  - geru_batched
+  - gerc_batched
+  - geru_strided_batched
+  - gerc_strided_batched
+  precision: *single_double_precisions
+  transA: N
+  matrix_size: *special_case_range
+
+# Regular geruc
 - name: geruc_small
   category: quick
   function:
@@ -69,7 +86,7 @@ Tests:
   - gerc
   precision: *single_double_precisions_complex
   matrix_size: *medium_matrix_size_range
-  incx_incy: *incx_incy_range
+  incx_incy: *incx_incy_range_small
   alpha: [ -0.5, 2.0, 0.0 ]
   alphai: [ -0.5, 0.0 ]
 
@@ -80,10 +97,11 @@ Tests:
   - gerc
   precision: *single_double_precisions_complex
   matrix_size: *large_matrix_size_range
-  incx_incy: *incx_incy_range
+  incx_incy: *incx_incy_range_small
   alpha: [ -0.5, 2.0, 0.0 ]
   alphai: [ -0.5, 0.1 ]
 
+# geruc_batched
 - name: geruc_batched_small
   category: quick
   function:
@@ -103,7 +121,7 @@ Tests:
   - gerc_batched
   precision: *single_double_precisions_complex
   matrix_size: *medium_matrix_size_range
-  incx_incy: *incx_incy_range
+  incx_incy: *incx_incy_range_small
   alpha: [ -0.5, 2.0, 0.0 ]
   alphai: [ -0.5, 0.0 ]
   batch_count: [ 1, 5 ]
@@ -115,11 +133,12 @@ Tests:
   - gerc_batched
   precision: *single_double_precisions_complex
   matrix_size: *large_matrix_size_range
-  incx_incy: *nightly_incx_incy_range
+  incx_incy: *incx_incy_range_small
   alpha: [ -0.5, 2.0, 0.0 ]
   alphai: [ -0.5, 0.1 ]
   batch_count: [ 1, 3 ]
 
+# geruc_strided_batched
 - name: geruc_strided_batched_small
   category: quick
   function:
@@ -140,7 +159,7 @@ Tests:
   - gerc_strided_batched
   precision: *single_double_precisions_complex
   matrix_size: *medium_matrix_size_range
-  incx_incy: *incx_incy_range
+  incx_incy: *incx_incy_range_small
   alpha: [ -0.5, 2.0, 0.0 ]
   alphai: [ -0.5, 1.0 ]
   stride_scale: [ 1 ]
@@ -153,7 +172,7 @@ Tests:
   - gerc_strided_batched
   precision: *single_double_precisions_complex
   matrix_size: *large_matrix_size_range
-  incx_incy: *nightly_incx_incy_range
+  incx_incy: *incx_incy_range_small
   alpha: [ -0.5, 2.0, 0.0 ]
   alphai: [ -0.5, 0.1 ]
   stride_scale: [ 1 ]

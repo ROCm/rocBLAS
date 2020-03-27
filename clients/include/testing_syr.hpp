@@ -56,12 +56,10 @@ void testing_syr(const Arguments& arg)
     rocblas_local_handle handle;
 
     // argument check before allocating invalid memory
-    if(N <= 0 || lda < N || lda < 1 || !incx)
+    if(N < 0 || lda < N || lda < 1 || !incx)
     {
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_syr<T>(handle, uplo, N, &h_alpha, nullptr, incx, nullptr, lda),
-            (N < 0 || lda < N || lda < 1 || !incx) ? rocblas_status_invalid_size
-                                                   : rocblas_status_success);
+        EXPECT_ROCBLAS_STATUS(rocblas_syr<T>(handle, uplo, N, nullptr, nullptr, incx, nullptr, lda),
+                              rocblas_status_invalid_size);
 
         return;
     }

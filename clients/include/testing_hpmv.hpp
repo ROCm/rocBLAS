@@ -81,7 +81,7 @@ void testing_hpmv(const Arguments& arg)
     {
         EXPECT_ROCBLAS_STATUS(
             rocblas_hpmv<T>(
-                handle, uplo, N, &h_alpha, nullptr, nullptr, incx, &h_beta, nullptr, incy),
+                handle, uplo, N, nullptr, nullptr, nullptr, incx, nullptr, nullptr, incy),
             rocblas_status_invalid_size);
 
         return;

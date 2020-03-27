@@ -90,19 +90,13 @@ void testing_spmv(const Arguments& arg)
     rocblas_local_handle handle;
 
     // argument sanity check before allocating invalid memory
-    if(N <= 0 || !incx || !incy)
+    bool invalid_size = N < 0 || !incx || !incy;
+    if(invalid_size || !N)
     {
-        static const size_t safe_size = 100;
-        device_vector<T>    dA(safe_size);
-        device_vector<T>    dx(safe_size);
-        device_vector<T>    dy(safe_size);
-        CHECK_DEVICE_ALLOCATION(dA.memcheck());
-        CHECK_DEVICE_ALLOCATION(dx.memcheck());
-        CHECK_DEVICE_ALLOCATION(dy.memcheck());
-
-        EXPECT_ROCBLAS_STATUS(rocblas_spmv<T>(handle, uplo, N, alpha, dA, dx, incx, beta, dy, incy),
-                              N < 0 || !incx || !incy ? rocblas_status_invalid_size
-                                                      : rocblas_status_success);
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_spmv<T>(
+                handle, uplo, N, nullptr, nullptr, nullptr, incx, nullptr, nullptr, incy),
+            invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
         return;
     }
 
