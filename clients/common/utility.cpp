@@ -14,8 +14,14 @@
 // Note: We do not use random_device to initialize the RNG, because we want
 // repeatability in case of test failure. TODO: Add seed as an optional CLI
 // argument, and print the seed on output, to ensure repeatability.
-rocblas_rng_t rocblas_rng(69069);
-rocblas_rng_t rocblas_seed(rocblas_rng);
+const rocblas_rng_t rocblas_seed(69069); // A fixed seed to start at
+
+// This records the main thread ID at startup
+const std::thread::id main_thread_id = std::this_thread::get_id();
+
+// For the main thread, we use rocblas_seed; for other threads, we start with a different seed but
+// deterministically based on the thread id's hash function.
+thread_local rocblas_rng_t rocblas_rng = get_seed();
 
 /* ============================================================================================ */
 // Return path of this executable

@@ -87,8 +87,8 @@ class rocblas_ostream
             }
         };
 
-        // Log file. FILE is used instead of raw filehandles for signal safety.
-        FILE* file;
+        // FILE is used for safety in the presence of signals
+        FILE* file = nullptr;
 
         // This worker's thread
         std::thread thread;
@@ -119,7 +119,8 @@ class rocblas_ostream
             send({});
 
             // Close the FILE
-            fclose(file);
+            if(file)
+                fclose(file);
         }
     };
 
@@ -157,21 +158,33 @@ class rocblas_ostream
         return map_mutex;
     }
 
-    // Get worker for file descriptor
-    static std::shared_ptr<worker> get_worker(int fd);
-
     // Output buffer for formatted IO
     std::ostringstream os;
 
-    // Worker thread for accepting logs
+    // Worker thread for accepting tasks
     std::shared_ptr<worker> worker_ptr;
 
     // Flag indicating whether YAML mode is turned on
     bool yaml = false;
 
+    // Get worker for file descriptor
+    static std::shared_ptr<worker> get_worker(int fd);
+
 public:
     // Default constructor is a std::ostringstream with no worker
     rocblas_ostream() = default;
+
+    // Move constructor
+    rocblas_ostream(rocblas_ostream&&) = default;
+
+    // Copy constructor is deleted
+    rocblas_ostream(const rocblas_ostream&) = delete;
+
+    // Move assignment
+    rocblas_ostream& operator=(rocblas_ostream&&) = default;
+
+    // Copy assignment is deleted
+    rocblas_ostream& operator=(const rocblas_ostream&) = delete;
 
     // Construct from a file descriptor, which is duped
     explicit rocblas_ostream(int fd);

@@ -64,7 +64,6 @@ public:
     /*********************************************************************
      * Compute value hashes for (key1, value1, key2, value2, ...) tuples *
      *********************************************************************/
-private:
     // Default hash
     template <typename T>
     static size_t hash(const T& x)
@@ -97,7 +96,6 @@ private:
         return seed;
     }
 
-public:
     // Hash function class compatible with STL containers
     template <typename TUP>
     struct hash_t

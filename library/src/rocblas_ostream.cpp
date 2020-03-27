@@ -78,27 +78,28 @@ std::shared_ptr<rocblas_ostream::worker> rocblas_ostream::get_worker(int fd)
     return worker_ptr;
 }
 
-// Construct rocblas_ostream from a file descriptor which is duped
+// Construct rocblas_ostream from a file descriptor
 ROCBLAS_EXPORT rocblas_ostream::rocblas_ostream(int fd)
-    : worker_ptr(get_worker(fcntl(fd, F_DUPFD_CLOEXEC, 0)))
+    : worker_ptr(get_worker(fd))
 {
     if(!worker_ptr)
     {
-        dprintf(STDERR_FILENO, "Cannot dup file descriptor %d: %m\n", fd);
+        dprintf(STDERR_FILENO, "Error: Bad file descriptor %d\n", fd);
         rocblas_abort();
     }
 }
 
 // Construct rocblas_ostream from a filename opened for writing with truncation
 ROCBLAS_EXPORT rocblas_ostream::rocblas_ostream(const char* filename)
-    : worker_ptr(
-        get_worker(open(filename, O_WRONLY | O_CREAT | O_TRUNC | O_APPEND | O_CLOEXEC, 0644)))
 {
+    int fd     = open(filename, O_WRONLY | O_CREAT | O_TRUNC | O_APPEND | O_CLOEXEC, 0644);
+    worker_ptr = get_worker(fd);
     if(!worker_ptr)
     {
         dprintf(STDERR_FILENO, "Cannot open %s: %m\n", filename);
         rocblas_abort();
     }
+    close(fd);
 }
 
 // Flush the output
@@ -311,17 +312,22 @@ void rocblas_ostream::worker::thread_function()
     }
 }
 
-// Constructor creates a worker thread
+// Constructor creates a worker thread from a file descriptor
 rocblas_ostream::worker::worker(int fd)
-    : file(fdopen(fd, "a"))
-    , thread([=] { thread_function(); })
 {
-    if(!file)
+    // The worker duplicates the file descriptor (RAII)
+    fd = fcntl(fd, F_DUPFD_CLOEXEC, 0);
+
+    // If the dup fails or fdopen fails, print error and abort
+    if(fd == -1 || !(file = fdopen(fd, "a")))
     {
         perror("fdopen() error");
         rocblas_abort();
     }
 
-    // Detach from the worker thread
+    // Create a worker thread, capturing *this
+    thread = std::thread([=] { thread_function(); });
+
+    // Detatch from the worker thread
     thread.detach();
 }
