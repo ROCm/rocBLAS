@@ -4,38 +4,35 @@ include: known_bugs.yaml
 
 Definitions:
   - &small_matrix_size_range
-      # invalid size
-    - { N:    -1, K:  1, lda:    1 }
-    - { N:     0, K:  1, lda:    1 }
-    - { N:     0, K: -1, lda:    1 }
-    - { N:     1, K: -1, lda:    1 }
-    - { N:     5, K: 10, lda:    7 }
-
-      # K >= N
-    - { N:     5, K:  5, lda:    5 }
-    - { N:     5, K: 10, lda:   10 }
-
-      # N > lda > K
-    - { N:    10, K:  5, lda:    7 }
-
-      # Others
-    - { N:     0, K:   5, lda:  10 }
     - { N:     4, K:   2, lda:   4 }
-    - { N:    10, K:   1, lda:  20 }
+    - { N:    10, K:  15, lda:  16 }
     - { N:    10, K:   9, lda:  10 }
+    - { N:    10, K:   5, lda:   7 }
     - { N:   128, K:   1, lda: 128 }
     - { N:   128, K: 100, lda: 100 }
+    - { N:   128, K: 255, lda: 256 }
+
+  - &special_case_range
+    - { N: 0, K: 1, lda: 2, incx: 1, batch_count: 1 }
+    - { N: 1, K: 1, lda: 2, incx: 1, batch_count: 0 }
+
+    - { N: -1, K:  0, lda: 1, incx: 1, batch_count:  0 }
+    - { N:  0, K: -1, lda: 1, incx: 1, batch_count:  0 }
+    - { N:  0, K:  0, lda: 0, incx: 1, batch_count:  0 }
+    - { N:  0, K:  1, lda: 1, incx: 1, batch_count:  0 }
+    - { N:  0, K:  0, lda: 1, incx: 0, batch_count:  0 }
+    - { N:  0, K:  0, lda: 1, incx: 1, batch_count: -1 }
 
   - &medium_matrix_size_range
-    - { N:   192, K:  32, lda: 192 }
+    - { N:   192, K: 200, lda: 201 }
     - { N:   256, K:  64, lda:  65 }
     - { N:   384, K:   5, lda: 384 }
     - { N:   800, K: 500, lda: 801 }
 
   - &large_matrix_size_range
-    - { N:   640, K:  512, lda:  960 }
+    - { N:   640, K:  640, lda:  641 }
     - { N:  1000, K:  511, lda:  512 }
-    - { N:  1024, K: 1024, lda: 1025 }
+    - { N:  1024, K: 1025, lda: 1026 }
     - { N:  2000, K:  256, lda: 1000 }
 
   - &common_args
@@ -45,6 +42,18 @@ Definitions:
     diag: [N, U]
 
 Tests:
+- name: tbsv_arg_check
+  category: quick
+  function:
+  - tbsv: *single_double_precisions
+  - tbsv_batched: *single_double_precisions
+  - tbsv_strided_batched: *single_double_precisions
+  uplo: L
+  transA: N
+  diag: N
+  matrix_size: *special_case_range
+
+# Regular tbsv
 - name: tbsv_bad_arg
   category: pre_checkin
   function: tbsv_bad_arg
@@ -58,7 +67,7 @@ Tests:
   function: tbsv
   arguments: *common_args
   matrix_size: *small_matrix_size_range
-  incx: [ -3, -2, -1, 0, 1, 2, 3, 10, 100 ]
+  incx: [ -2, -1, 1, 2, 100 ]
 
 - name: tbsv_medium
   category: pre_checkin
@@ -74,6 +83,7 @@ Tests:
   matrix_size: *large_matrix_size_range
   incx: [ 1 ]
 
+# tbsv_batched
 - name: tbsv_batched_bad_arg
   category: pre_checkin
   function: tbsv_batched_bad_arg
@@ -87,8 +97,8 @@ Tests:
   function: tbsv_batched
   arguments: *common_args
   matrix_size: *small_matrix_size_range
-  incx: [ -3, -2, -1, 0, 1, 2, 3, 10, 100 ]
-  batch_count: [ -5, 0, 1, 3 ]
+  incx: [ -2, -1, 1, 2, 100 ]
+  batch_count: [ 1, 3 ]
 
 - name: tbsv_batched_medium
   category: pre_checkin
@@ -106,6 +116,7 @@ Tests:
   incx: [ 1 ]
   batch_count: [ 3 ]
 
+# tbsv_strided_batched
 - name: tbsv_strided_batched_bad_arg
   category: pre_checkin
   function: tbsv_strided_batched_bad_arg
@@ -119,9 +130,9 @@ Tests:
   function: tbsv_strided_batched
   arguments: *common_args
   matrix_size: *small_matrix_size_range
-  incx: [ -3, 0, 1, 100 ]
+  incx: [ -3, 1, 100 ]
   stride_scale: [ 1, 10, 100 ]
-  batch_count: [ -5, 0, 1, 3 ]
+  batch_count: [ 1, 3 ]
 
 - name: tbsv_strided_batched_medium
   category: pre_checkin

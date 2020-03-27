@@ -4,11 +4,6 @@ include: known_bugs.yaml
 
 Definitions:
   - &small_matrix_size_range
-    - { N:    -1, lda:   4 }
-    - { N:     0, lda:   1 }
-    - { N:     0, lda:   2 }
-    - { N:     1, lda:   0 }
-    - { N:     1, lda:  -1 }
     - { N:     1, lda:   1 }
     - { N:     4, lda:   4 }
     - { N:     4, lda:   3 }
@@ -17,6 +12,19 @@ Definitions:
     - { N:    16, lda: 100 }
     - { N:    33, lda:  35 }
     - { N:    65, lda:  65 }
+
+  - &special_case_range
+    # Quick return
+    - { N: 0, lda: 1, incx: 1, incy: 1, batch_count: 1 }
+    - { N: 1, lda: 1, incx: 1, incy: 1, batch_count: 0 }
+
+    # invalid_arg checks
+    - { N: -1, lda: 1, incx: 1, incy: 1, batch_count:  0 }
+    - { N:  0, lda: 0, incx: 1, incy: 1, batch_count:  0 }
+    - { N:  2, lda: 1, incx: 1, incy: 1, batch_count:  0 }
+    - { N:  0, lda: 1, incx: 0, incy: 1, batch_count:  0 }
+    - { N:  0, lda: 1, incx: 1, incy: 0, batch_count:  0 }
+    - { N:  0, lda: 1, incx: 1, incy: 1, batch_count: -1 }
 
   - &medium_matrix_size_range
     - { N:  1000, lda: 1000 }
@@ -27,9 +35,6 @@ Definitions:
     - { N:  4011, lda: 4012 }
 
   - &incx_incy_range
-    - { incx:   0, incy:   1 }
-    - { incx:   1, incy:   0 }
-
     - { incx:  -1, incy:   2 }
     - { incx:   3, incy:  -1 }
 
@@ -57,6 +62,16 @@ Tests:
   - her2_bad_arg: *single_double_precisions_complex
   - her2_batched_bad_arg: *single_double_precisions_complex
   - her2_strided_batched_bad_arg: *single_double_precisions_complex
+
+- name: her2_arg_check
+  category: quick
+  function:
+  - her2
+  - her2_batched
+  - her2_strided_batched
+  precision: *single_double_precisions_complex
+  uplo: L
+  matrix_size: *special_case_range
 
 - name: her2_small
   category: quick

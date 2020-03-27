@@ -92,8 +92,8 @@ void testing_trmm_batched(const Arguments& arg)
     size_t      size_B = ldb * size_t(N);
 
     // ensure invalid sizes and quick return checked before pointer check
-    bool invalidSize = M < 0 || N < 0 || lda < K || ldb < M || batch_count < 0;
-    if(M == 0 || N == 0 || batch_count == 0 || invalidSize)
+    bool invalid_size = M < 0 || N < 0 || lda < K || ldb < M || batch_count < 0;
+    if(M == 0 || N == 0 || batch_count == 0 || invalid_size)
     {
         EXPECT_ROCBLAS_STATUS(rocblas_trmm_batched<T>(handle,
                                                       side,
@@ -108,7 +108,7 @@ void testing_trmm_batched(const Arguments& arg)
                                                       nullptr,
                                                       ldb,
                                                       batch_count),
-                              invalidSize ? rocblas_status_invalid_size : rocblas_status_success);
+                              invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
         return;
     }
 

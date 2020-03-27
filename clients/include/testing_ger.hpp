@@ -72,7 +72,7 @@ void testing_ger(const Arguments& arg)
     {
         EXPECT_ROCBLAS_STATUS(
             (rocblas_ger<T, CONJ>(
-                handle, M, N, &h_alpha, nullptr, incx, nullptr, incy, nullptr, lda)),
+                handle, M, N, nullptr, nullptr, incx, nullptr, incy, nullptr, lda)),
             rocblas_status_invalid_size);
 
         return;

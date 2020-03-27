@@ -61,7 +61,6 @@ void testing_spr(const Arguments& arg)
     {
         EXPECT_ROCBLAS_STATUS(rocblas_spr<T>(handle, uplo, N, nullptr, nullptr, incx, nullptr),
                               rocblas_status_invalid_size);
-
         return;
     }
 

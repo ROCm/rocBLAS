@@ -24,19 +24,21 @@ Definitions:
     # Special Cases
   - &special_case_range
     # Quick return
-    - { M: 0, N: 1, lda: 10, KL: 2, KU: 2, incx: 1, incy: 1 }
-    - { M: 1, N: 0, lda: 10, KL: 2, KU: 2, incx: 1, incy: 1 }
-    - { M: 0, N: 1, lda: 11, KL: 5, KU: 5, incx: 1, incy: 1 }
+    - { M: 0, N: 1, lda: 10, KL: 2, KU: 2, incx: 1, incy: 1, batch_count: 1 }
+    - { M: 1, N: 0, lda: 10, KL: 2, KU: 2, incx: 1, incy: 1, batch_count: 1 }
+    - { M: 0, N: 1, lda: 11, KL: 5, KU: 5, incx: 1, incy: 1, batch_count: 1 }
+    - { M: 1, N: 1, lda: 10, KL: 2, KU: 2, incx: 1, incy: 1, batch_count: 0 }
 
     # invalid_arg checks
-    - { M: -1, N:  0, lda: 10, KL:  1, KU:  1, incx: 1, incy: 1 }
-    - { M:  0, N: -1, lda: 10, KL:  1, KU:  1, incx: 1, incy: 1 }
-    - { M:  0, N:  0, lda: 10, KL: -1, KU:  1, incx: 1, incy: 1 }
-    - { M:  0, N:  0, lda: 10, KL:  1, KU: -1, incx: 1, incy: 1 }
-    - { M:  0, N:  0, lda: 10, KL:  5, KU:  5, incx: 1, incy: 1 }
-    - { M:  0, N:  0, lda:  0, KL:  0, KU:  0, incx: 1, incy: 1 }
-    - { M:  0, N:  0, lda:  1, KL:  0, KU:  0, incx: 0, incy: 1 }
-    - { M:  0, N:  0, lda:  1, KL:  0, KU:  0, incx: 1, incy: 0 }
+    - { M: -1, N:  0, lda: 10, KL:  1, KU:  1, incx: 1, incy: 1, batch_count:  0 }
+    - { M:  0, N: -1, lda: 10, KL:  1, KU:  1, incx: 1, incy: 1, batch_count:  0 }
+    - { M:  0, N:  0, lda: 10, KL: -1, KU:  1, incx: 1, incy: 1, batch_count:  0 }
+    - { M:  0, N:  0, lda: 10, KL:  1, KU: -1, incx: 1, incy: 1, batch_count:  0 }
+    - { M:  0, N:  0, lda: 10, KL:  5, KU:  5, incx: 1, incy: 1, batch_count:  0 }
+    - { M:  0, N:  0, lda:  0, KL:  0, KU:  0, incx: 1, incy: 1, batch_count:  0 }
+    - { M:  0, N:  0, lda:  1, KL:  0, KU:  0, incx: 0, incy: 1, batch_count:  0 }
+    - { M:  0, N:  0, lda:  1, KL:  0, KU:  0, incx: 1, incy: 0, batch_count:  0 }
+    - { M:  0, N:  0, lda:  1, KL:  0, KU:  0, incx: 1, incy: 1, batch_count: -1 }
 
 
   - &medium_matrix_size_range
@@ -66,19 +68,26 @@ Definitions:
     - { alpha:  0.0, beta:  1.0, alphai: -0.5, betai: 0 }
 
 Tests:
-- name: gbmv_bad_arg
-  category: pre_checkin
-  function: gbmv_bad_arg
-  precision: *single_double_precisions
-  transA: N
-
 - name: gbmv_arg_check
   category: quick
-  function: gbmv
+  function:
+  - gbmv
+  - gbmv_batched
+  - gbmv_strided_batched
   precision: *single_double_precisions
   transA: N
   matrix_size: *special_case_range
 
+- name: gbmv_bad_arg
+  category: pre_checkin
+  function:
+  - gbmv_bad_arg
+  - gbmv_batched_bad_arg
+  - gbmv_strided_batched_bad_arg
+  precision: *single_double_precisions
+  transA: N
+
+# Regular gbmv
 - name: gbmv_NaN
   category: pre_checkin
   function: gbmv
@@ -116,12 +125,7 @@ Tests:
   incx_incy: *incx_incy_range
   alpha_beta: *alpha_beta_range
 
-- name: gbmv_batched_bad_arg
-  category: pre_checkin
-  function: gbmv_batched_bad_arg
-  precision: *single_double_precisions
-  transA: N
-
+# gbmv_batched
 - name: gbmv_batched_NaN
   category: pre_checkin
   function: gbmv_batched
@@ -163,12 +167,7 @@ Tests:
   alpha_beta: *alpha_beta_range
   batch_count: [ 3 ]
 
-- name: gbmv_strided_batched_bad_arg
-  category: pre_checkin
-  function: gbmv_strided_batched_bad_arg
-  precision: *single_double_precisions
-  transA: N
-
+# gbmv_strided_batched
 - name: gbmv_strided_batched_NaN
   category: pre_checkin
   function: gbmv_strided_batched

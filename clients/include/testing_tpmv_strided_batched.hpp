@@ -78,7 +78,8 @@ void testing_tpmv_strided_batched(const Arguments& arg)
     rocblas_local_handle handle;
 
     // argument sanity check before allocating invalid memory
-    if(M < 0 || !incx || batch_count < 0)
+    bool invalid_size = M < 0 || !incx || batch_count < 0;
+    if(invalid_size || !M || !batch_count)
     {
         EXPECT_ROCBLAS_STATUS(rocblas_tpmv_strided_batched<T>(handle,
                                                               uplo,
@@ -91,25 +92,8 @@ void testing_tpmv_strided_batched(const Arguments& arg)
                                                               incx,
                                                               stride_x,
                                                               batch_count),
-                              rocblas_status_invalid_size);
+                              invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
 
-        return;
-    }
-
-    if(!M || !batch_count)
-    {
-        EXPECT_ROCBLAS_STATUS(rocblas_tpmv_strided_batched<T>(handle,
-                                                              uplo,
-                                                              transA,
-                                                              diag,
-                                                              M,
-                                                              nullptr,
-                                                              stride_a,
-                                                              nullptr,
-                                                              incx,
-                                                              stride_x,
-                                                              batch_count),
-                              rocblas_status_success);
         return;
     }
 

@@ -92,13 +92,13 @@ void testing_trmm(const Arguments& arg)
     rocblas_local_handle handle;
 
     // ensure invalid sizes and quick return checked before pointer check
-    bool invalidSize = M < 0 || N < 0 || lda < K || ldb < M;
-    if(M == 0 || N == 0 || invalidSize)
+    bool invalid_size = M < 0 || N < 0 || lda < K || ldb < M;
+    if(M == 0 || N == 0 || invalid_size)
     {
         EXPECT_ROCBLAS_STATUS(
             rocblas_trmm<T>(
                 handle, side, uplo, transA, diag, M, N, nullptr, nullptr, lda, nullptr, ldb),
-            invalidSize ? rocblas_status_invalid_size : rocblas_status_success);
+            invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
         return;
     }
 

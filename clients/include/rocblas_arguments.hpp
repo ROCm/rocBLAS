@@ -213,8 +213,8 @@ enum rocblas_argument : int
 
 // ArgumentsHelper contains a templated lambda apply<> where there is a template
 // specialization for each line in the CPP macro FOR_EACH_ARGUMENT. For example,
-// the first lambda is:  apply<e_M> = [](auto&& func, const Arguments& arg, auto){func("M", arg.m)}
-// This lambda can be used to print "M" and arg.m
+// the first lambda is:  apply<e_M> = [](auto&& func, const Arguments& arg, auto){func("M", arg.m);};
+// This lambda can be used to print "M" and arg.m.
 //
 // alpha and beta are specialized separately, because they need to use get_alpha() or get_beta().
 // To prevent multiple definitions of specializations for alpha and beta, the rocblas_argument

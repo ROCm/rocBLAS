@@ -157,13 +157,21 @@ void testing_spmv_batched(const Arguments& arg)
     rocblas_local_handle handle;
 
     // argument sanity check before allocating invalid memory
-    if(N <= 0 || !incx || !incy || batch_count <= 0)
+    bool invalid_size = N < 0 || !incx || !incy || batch_count < 0;
+    if(invalid_size || !N || !batch_count)
     {
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_spmv_batched<T>(
-                handle, uplo, N, alpha, nullptr, nullptr, incx, beta, nullptr, incy, batch_count),
-            N < 0 || !incx || !incy || batch_count < 0 ? rocblas_status_invalid_size
-                                                       : rocblas_status_success);
+        EXPECT_ROCBLAS_STATUS(rocblas_spmv_batched<T>(handle,
+                                                      uplo,
+                                                      N,
+                                                      nullptr,
+                                                      nullptr,
+                                                      nullptr,
+                                                      incx,
+                                                      nullptr,
+                                                      nullptr,
+                                                      incy,
+                                                      batch_count),
+                              invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
         return;
     }
 

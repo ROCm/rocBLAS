@@ -4,8 +4,6 @@ include: known_bugs.yaml
 
 Definitions:
   - &small_matrix_size_range
-    - { N:    -1 }
-    - { N:     0 }
     - { N:     1 }
     - { N:     4 }
     - { N:    10 }
@@ -13,6 +11,14 @@ Definitions:
     - { N:    16 }
     - { N:    33 }
     - { N:    65 }
+
+  - &special_case_range
+    - { N: 0, incx: 1, batch_count: 1 }
+    - { N: 1, incx: 1, batch_count: 0 }
+
+    - { N: -1, incx: 1, batch_count:  0 }
+    - { N:  0, incx: 0, batch_count:  0 }
+    - { N:  0, incx: 1, batch_count: -1 }
 
   - &medium_matrix_size_range
     - { N:  1000 }
@@ -43,13 +49,23 @@ Tests:
   - spr_batched_bad_arg: *single_double_precisions
   - spr_strided_batched_bad_arg: *single_double_precisions
 
+- name: spr_arg_check
+  category: quick
+  function:
+  - spr
+  - spr_batched
+  - spr_strided_batched
+  precision: *single_double_precisions
+  uplo: L
+  matrix_size: *special_case_range
+
 - name: spr_small
   category: quick
   function: spr
   precision: *single_double_precisions_complex_real
   uplo: [ U, L ]
   matrix_size: *small_matrix_size_range
-  incx: [ -1, 1, 0, 2, -2, 10, 99 ]
+  incx: [ -1, 1, 2, -2, 10, 99 ]
   alpha_beta: *alpha_range
 
 - name: spr_medium
@@ -58,7 +74,7 @@ Tests:
   precision: *single_double_precisions_complex_real
   uplo: [ U, L ]
   matrix_size: *medium_matrix_size_range
-  incx: [ 0, 2, -2 ]
+  incx: [ 2, -2 ]
   alpha_beta: *alpha_range_small
 
 - name: spr_large
@@ -78,9 +94,9 @@ Tests:
   precision: *single_double_precisions_complex_real
   uplo: [ U, L ]
   matrix_size: *small_matrix_size_range
-  incx: [ -1, 1, 0, 2, -2, 10, 99 ]
+  incx: [ -1, 1, 2, -2, 10, 99 ]
   alpha_beta: *alpha_range
-  batch_count: [ -1, 0, 1, 5 ]
+  batch_count: [ 1, 5 ]
 
 - name: spr_batched_medium
   category: pre_checkin
@@ -110,10 +126,10 @@ Tests:
   precision: *single_double_precisions_complex_real
   uplo: [ U, L ]
   matrix_size: *small_matrix_size_range
-  incx: [ -1, 1, 0, 2, -2, 10, 99 ]
+  incx: [ -1, 1, 2, -2, 10, 99 ]
   alpha_beta: *alpha_range
   stride_scale: [ 1.0, 2.5 ]
-  batch_count: [ -1, 0, 1, 5 ]
+  batch_count: [ 1, 5 ]
 
 - name: spr_strided_batched_medium
   category: pre_checkin

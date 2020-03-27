@@ -4,16 +4,6 @@ include: known_bugs.yaml
 
 Definitions:
   - &small_matrix_size_range
-    # invalid
-    - { N:    -1, K:    0, lda:    1 }
-    - { N:    -1, K:    0, lda:   -1 }
-    - { N:     1, K:   -1, lda:    1 }
-    - { N:     1, K:    1, lda:    1 }
-    - { N:    10, K:   10, lda:   10 }
-
-    # quick return
-    - { N:     0, K:    0, lda:    1 }
-
     # regular cases
     - { N:     1, K:    0, lda:    1 }
     - { N:     4, K:    2, lda:    4 }
@@ -23,10 +13,24 @@ Definitions:
     - { N:    16, K:    4, lda:   16 }
     - { N:    63, K:   50, lda:   63 }
     - { N:    65, K:   64, lda:   65 }
-    - { N:   128, K:  100, lda:  128 }
-    - { N:   200, K:  150, lda:  200 }
+
+  - &special_case_range
+    # Quick return
+    - { N: 0, K: 0, lda: 1, batch_count: 1 }
+    - { N: 1, K: 0, lda: 1, batch_count: 0 }
+
+    # invalid_arg checks
+    - { N: -1, K:  0, lda: 1, incx: 1, incy: 1, batch_count:  0 }
+    - { N:  0, K: -1, lda: 1, incx: 1, incy: 1, batch_count:  0 }
+    - { N:  0, K:  0, lda: 0, incx: 1, incy: 1, batch_count:  0 }
+    - { N:  0, K:  1, lda: 1, incx: 1, incy: 1, batch_count:  0 }
+    - { N:  0, K:  0, lda: 1, incx: 0, incy: 1, batch_count:  0 }
+    - { N:  0, K:  0, lda: 1, incx: 1, incy: 0, batch_count:  0 }
+    - { N:  0, K:  0, lda: 1, incx: 1, incy: 1, batch_count: -1 }
 
   - &medium_matrix_size_range
+    - { N:   128, K:  100, lda:  128 }
+    - { N:   200, K:  150, lda:  200 }
     - { N:   400, K:   32, lda:  400 }
     - { N:   500, K:  129, lda:  601 }
 
@@ -39,10 +43,10 @@ Definitions:
     - { incx:   1, incy:   1 }
     - { incx:  -1, incy:   3 }
     - { incx:   3, incy:  -1 }
-    - { incx:   0, incy:   1 }
-    - { incx:   1, incy:   0 }
-    - { incx:   0, incy:  -1 }
     - { incx:  10, incy: 100 }
+
+  - &incx_incy_range_small
+    - { incx: 2, incy: 2 }
 
   - &alpha_beta_range
     - { alpha:  2.0, beta:  0.0, alphai:  1.5, betai: 0.5 }
@@ -50,13 +54,30 @@ Definitions:
     - { alpha:  2.0, beta:  1.0, alphai: -1.5, betai: 0.5 }
     - { alpha:  0.0, beta:  1.0, alphai:  0.0, betai: 0.0 }
 
+  - &alpha_beta_range_small
+    - { alpha: 2.0, beta: 1.5, alphai: -0.5, betai: 0.5 }
+
 Tests:
 - name: hbmv_bad_arg
   category: pre_checkin
-  function: hbmv_bad_arg
+  function:
+  - hbmv_bad_arg
+  - hbmv_batched_bad_arg
+  - hbmv_strided_batched_bad_arg
   precision: *single_double_precisions_complex
-  uplo: [ U, L ]
+  uplo: N
 
+- name: hbmv_arg_check
+  category: quick
+  function:
+  - hbmv
+  - hbmv_batched
+  - hbmv_strided_batched
+  precision: *single_double_precisions_complex
+  uplo: L
+  matrix_size: *special_case_range
+
+# Regular hbmv
 - name: hbmv_NaN
   category: pre_checkin
   function: hbmv
@@ -91,15 +112,10 @@ Tests:
   precision: *single_double_precisions_complex
   uplo: [ U, L ]
   matrix_size: *large_matrix_size_range
-  incx_incy: *incx_incy_range
-  alpha_beta: *alpha_beta_range
+  incx_incy: *incx_incy_range_small
+  alpha_beta: *alpha_beta_range_small
 
-- name: hbmv_batched_bad_arg
-  category: pre_checkin
-  function: hbmv_batched_bad_arg
-  precision: *single_double_precisions_complex
-  uplo: N
-
+# hbmv_batched
 - name: hbmv_batched_NaN
   category: pre_checkin
   function: hbmv_batched
@@ -137,16 +153,11 @@ Tests:
   precision: *single_double_precisions_complex
   uplo: [ U, L ]
   matrix_size: *large_matrix_size_range
-  incx_incy: *incx_incy_range
-  alpha_beta: *alpha_beta_range
+  incx_incy: *incx_incy_range_small
+  alpha_beta: *alpha_beta_range_small
   batch_count: [ 3 ]
 
-- name: hbmv_strided_batched_bad_arg
-  category: pre_checkin
-  function: hbmv_strided_batched_bad_arg
-  precision: *single_double_precisions_complex
-  uplo: N
-
+# hbmv_strided_batched
 - name: hbmv_strided_batched_NaN
   category: pre_checkin
   function: hbmv_strided_batched
@@ -187,8 +198,8 @@ Tests:
   precision: *single_double_precisions_complex
   uplo: [ U, L ]
   matrix_size: *large_matrix_size_range
-  incx_incy: *incx_incy_range
-  alpha_beta: *alpha_beta_range
+  incx_incy: *incx_incy_range_small
+  alpha_beta: *alpha_beta_range_small
   batch_count: [ 3 ]
   stride_scale: [ 1 ]
 ...
