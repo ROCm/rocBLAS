@@ -2,7 +2,7 @@
 rocBLAS order of argument checking and logging
 =================================================
 
-Legacy BLAS 
+Legacy BLAS
 ===========
 Legacy BLAS has two types of argument checking:
 
@@ -10,7 +10,7 @@ Legacy BLAS has two types of argument checking:
 
 2. Quick-return-success when an argument allows for the subprogram to be a no-operation or a constant result.
 
-Level 2 and Level 3 BLAS subprograms have both error-return and quick-return-success. Level 1 BLAS subprograms have only quick-return-success. 
+Level 2 and Level 3 BLAS subprograms have both error-return and quick-return-success. Level 1 BLAS subprograms have only quick-return-success.
 
 rocBLAS
 =======
@@ -30,8 +30,8 @@ rocBLAS has 5 types of argument checking:
 rocBLAS has the following differences when compared to Legacy BLAS
 ==================================================================
 
-- It is a C API, returning a ``rocblas_status`` type indicating the success of the call. 
-  
+- It is a C API, returning a ``rocblas_status`` type indicating the success of the call.
+
 - In legacy BLAS the following functions return a scalar result: dot, nrm2, asum, amax and amin. In rocBLAS a pointers to scalar return value  is passed as the last argument.
 
 - The first argument is a ``rocblas_handle`` argument, an opaque pointer to rocBLAS resources, corresponding to a single HIP stream.
@@ -42,7 +42,7 @@ rocBLAS has the following differences when compared to Legacy BLAS
 
 - The ``ROCBLAS_LAYER`` environment variable controls the option to log argument values.
 
-- There is added functionality like 
+- There is added functionality like
 
   - batched
 
@@ -55,13 +55,13 @@ To accommodate the additions
 
 - See Logging, below.
 
-- For batched and strided_batched L2 and L3 functions there is a quick-return-success for ``batch_count == 0``, and an invalid size error for ``batch_count < 0``. 
+- For batched and strided_batched L2 and L3 functions there is a quick-return-success for ``batch_count == 0``, and an invalid size error for ``batch_count < 0``.
 
 - For batched and strided_batched L1 functions there is a quick-return-success for ``batch_count <= 0``
 
-- When ``rocblas_pointer_mode == rocblas_pointer_mode_device`` do not copy alpha and or beta from device to host for quick-return-success checks. In this case, omit the quick-return-success checks for alpha and or beta. 
+- When ``rocblas_pointer_mode == rocblas_pointer_mode_device`` do not copy alpha and or beta from device to host for quick-return-success checks. In this case, omit the quick-return-success checks for alpha and or beta.
 
-- For vectors and matrices with batched stride, there is no argument checking for stride. To access elements in a strided_batched_matrix, for example the C matrix in gemm, the zero based index is calculated as ``i1 + i2 * ldc + i3 * stride_c``, where ``i1 = 0, 1, 2, … m-1``; ``i2 = 0, 1, 2,  … n-1``; ``i3 = 0, 1, 2, … batch_count -1``. An incorrect stride can result in a core dump due a segmentation fault. It can also produce an indeterminate result if there is a memory overlap in the output matrix between different values of ``i3``.
+- For vectors and matrices with batched stride, there is no argument checking for stride. To access elements in a strided_batched_matrix, for example the C matrix in gemm, the zero based index is calculated as ``i1 + i2 * ldc + i3 * stride_c``, where ``i1 = 0, 1, 2, ..., m-1``; ``i2 = 0, 1, 2, ..., n-1``; ``i3 = 0, 1, 2, ..., batch_count -1``. An incorrect stride can result in a core dump due a segmentation fault. It can also produce an indeterminate result if there is a memory overlap in the output matrix between different values of ``i3``.
 
 
 Device Memory Size Queries
@@ -80,7 +80,7 @@ Logging
 
 - There is logging before a quick-return-success or error-return, except:
 
-  - when ``handle == nullptr``, return ``rocblas_status_invalid_handle`` 
+  - when ``handle == nullptr``, return ``rocblas_status_invalid_handle``
   - when ``handle->is_device_memory_size_query()`` returns ``true``
 
 - Vectors and matrices are logged with their addresses, and are always on device memory.
