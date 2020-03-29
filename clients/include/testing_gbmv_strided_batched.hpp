@@ -203,9 +203,9 @@ void testing_gbmv_strided_batched(const Arguments& arg)
     abs_incy = incy >= 0 ? incy : -incy;
 
     // argument sanity check before allocating invalid memory
-    bool invalidSize = M < 0 || N < 0 || lda < KL + KU + 1 || !incx || !incy || KL < 0 || KU < 0
-                       || batch_count < 0;
-    if(invalidSize || !M || !N || !batch_count)
+    bool invalid_size = M < 0 || N < 0 || lda < KL + KU + 1 || !incx || !incy || KL < 0 || KU < 0
+                        || batch_count < 0;
+    if(invalid_size || !M || !N || !batch_count)
     {
         EXPECT_ROCBLAS_STATUS(rocblas_gbmv_strided_batched<T>(handle,
                                                               transA,
@@ -225,7 +225,7 @@ void testing_gbmv_strided_batched(const Arguments& arg)
                                                               incy,
                                                               stride_y,
                                                               batch_count),
-                              invalidSize ? rocblas_status_invalid_size : rocblas_status_success);
+                              invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
 
         return;
     }

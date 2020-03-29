@@ -66,7 +66,8 @@ void testing_tbmv(const Arguments& arg)
     rocblas_local_handle handle;
 
     // argument sanity check before allocating invalid memory
-    if(M < 0 || K < 0 || lda < K + 1 || !incx)
+    bool invalid_size = M < 0 || K < 0 || lda < K + 1 || !incx;
+    if(invalid_size)
     {
         EXPECT_ROCBLAS_STATUS(
             rocblas_tbmv<T>(handle, uplo, transA, diag, M, K, nullptr, lda, nullptr, incx),

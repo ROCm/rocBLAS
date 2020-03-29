@@ -36,12 +36,13 @@ void testing_trsv(const Arguments& arg)
     rocblas_local_handle handle;
 
     // check here to prevent undefined memory allocation error
-    if(M < 0 || lda < M || !incx)
+    bool invalid_size = M < 0 || lda < M || lda < 1 || !incx;
+    if(invalid_size || !M)
     {
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         EXPECT_ROCBLAS_STATUS(
             rocblas_trsv<T>(handle, uplo, transA, diag, M, nullptr, lda, nullptr, incx),
-            rocblas_status_invalid_size);
+            invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
         return;
     }
 

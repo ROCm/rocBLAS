@@ -4,8 +4,6 @@ include: known_bugs.yaml
 
 Definitions:
   - &small_matrix_size_range
-    - { N:    -1 }
-    - { N:     0 }
     - { N:     1 }
     - { N:     4 }
     - { N:    10 }
@@ -13,6 +11,15 @@ Definitions:
     - { N:    16 }
     - { N:    33 }
     - { N:    65 }
+
+  - &special_case_range
+    - { N: 0, incx: 1, incy: 1, batch_count: 1 }
+    - { N: 1, incx: 1, incy: 1, batch_count: 0 }
+
+    - { N: -1, incx: 1, incy: 1, batch_count:  0 }
+    - { N:  0, incx: 0, incy: 1, batch_count:  0 }
+    - { N:  0, incx: 1, incy: 0, batch_count:  0 }
+    - { N:  0, incx: 1, incy: 1, batch_count: -1 }
 
   - &medium_matrix_size_range
     - { N:  1000 }
@@ -43,6 +50,15 @@ Tests:
   - spr2_bad_arg: *single_double_precisions
   - spr2_batched_bad_arg: *single_double_precisions
   - spr2_strided_batched_bad_arg: *single_double_precisions
+
+- name: spr2_arg_check
+  category: quick
+  function:
+  - spr2: *single_double_precisions
+  - spr2_batched: *single_double_precisions
+  - spr2_strided_batched: *single_double_precisions
+  uplo: L
+  matrix_size: *special_case_range
 
 - name: spr2_small
   category: quick
@@ -81,7 +97,7 @@ Tests:
   matrix_size: *small_matrix_size_range
   incx_incy: *incx_incy_range
   alpha: [ -0.5, 2.0, 0.0 ]
-  batch_count: [ -1, 0, 1, 5 ]
+  batch_count: [ 1, 5 ]
 
 - name: spr2_batched_medium
   category: pre_checkin
@@ -114,7 +130,7 @@ Tests:
   incx_incy: *incx_incy_range
   alpha: [ -0.5, 2.0, 0.0 ]
   stride_scale: [ 1.0, 2.5 ]
-  batch_count: [ -1, 0, 1, 5 ]
+  batch_count: [ 1, 5 ]
 
 - name: spr2_strided_batched_medium
   category: pre_checkin

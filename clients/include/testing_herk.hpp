@@ -91,15 +91,15 @@ void testing_herk(const Arguments& arg)
     double rocblas_error = 0.0;
 
     // Note: K==0 is not an early exit, since C still needs to be multiplied by beta
-    bool invalidSize = N < 0 || K < 0 || ldc < N || (transA == rocblas_operation_none && lda < N)
-                       || (transA != rocblas_operation_none && lda < K);
-    if(N == 0 || invalidSize)
+    bool invalid_size = N < 0 || K < 0 || ldc < N || (transA == rocblas_operation_none && lda < N)
+                        || (transA != rocblas_operation_none && lda < K);
+    if(N == 0 || invalid_size)
     {
         // ensure invalid sizes checked before pointer check
         EXPECT_ROCBLAS_STATUS(
             (rocblas_herk<
                 T>)(handle, uplo, transA, N, K, nullptr, nullptr, lda, nullptr, nullptr, ldc),
-            invalidSize ? rocblas_status_invalid_size : rocblas_status_success);
+            invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
 
         return;
     }
