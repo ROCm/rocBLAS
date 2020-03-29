@@ -38,9 +38,6 @@ tags
 # build-in-source directory
 build*
 
-# Python3 venv
-venv
-
 # emacs temporary/backup files
 .\#*
 \#*\#
