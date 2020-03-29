@@ -9,14 +9,21 @@ endif()
 set(VIRTUALENV_HOME_DIR ${CMAKE_BINARY_DIR}/virtualenv CACHE PATH "Path to virtual environment")
 
 function(virtualenv_create)
+    message("${VIRTUALENV_PYTHON_EXE} -m venv ${VIRTUALENV_HOME_DIR} --system-site-packages --clear")
     execute_process(
-        COMMAND ${VIRTUALENV_PYTHON_EXE} -m venv ${VIRTUALENV_HOME_DIR} --system-site-packages
+      COMMAND ${VIRTUALENV_PYTHON_EXE} -m venv ${VIRTUALENV_HOME_DIR} --system-site-packages --clear
     )
 endfunction()
 
 function(virtualenv_install)
     virtualenv_create()
-    # TODO: Check result
-    message("${VIRTUALENV_HOME_DIR}/bin/pip install ${ARGN}")
-    execute_process( COMMAND ${VIRTUALENV_HOME_DIR}/bin/pip install ${ARGN} )
+
+    message("${VIRTUALENV_HOME_DIR}/bin/python -m pip install ${ARGN}")
+    execute_process(
+      RESULT_VARIABLE rc
+      COMMAND ${VIRTUALENV_HOME_DIR}/bin/python -m pip install ${ARGN}
+    )
+    if(rc)
+        message(FATAL_ERROR ${rc})
+    endif()
 endfunction()
