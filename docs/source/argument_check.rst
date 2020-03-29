@@ -61,7 +61,7 @@ To accommodate the additions
 
 - When ``rocblas_pointer_mode == rocblas_pointer_mode_device`` do not copy alpha and or beta from device to host for quick-return-success checks. In this case, omit the quick-return-success checks for alpha and or beta.
 
-- For vectors and matrices with batched stride, there is no argument checking for stride. To access elements in a strided_batched_matrix, for example the C matrix in gemm, the zero based index is calculated as ``i1 + i2 * ldc + i3 * stride_c``, where ``i1 = 0, 1, 2, … m-1``; ``i2 = 0, 1, 2,  … n-1``; ``i3 = 0, 1, 2, … batch_count -1``. An incorrect stride can result in a core dump due a segmentation fault. It can also produce an indeterminate result if there is a memory overlap in the output matrix between different values of ``i3``.
+- For vectors and matrices with batched stride, there is no argument checking for stride. To access elements in a strided_batched_matrix, for example the C matrix in gemm, the zero based index is calculated as ``i1 + i2 * ldc + i3 * stride_c``, where ``i1 = 0, 1, 2, ..., m-1``; ``i2 = 0, 1, 2, ..., n-1``; ``i3 = 0, 1, 2, ..., batch_count -1``. An incorrect stride can result in a core dump due a segmentation fault. It can also produce an indeterminate result if there is a memory overlap in the output matrix between different values of ``i3``.
 
 
 Device Memory Size Queries

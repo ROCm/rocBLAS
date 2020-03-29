@@ -10,16 +10,13 @@ set(VIRTUALENV_HOME_DIR ${CMAKE_BINARY_DIR}/virtualenv CACHE PATH "Path to virtu
 
 function(virtualenv_create)
     execute_process(
-        COMMAND ${VIRTUALENV_PYTHON_EXE} -m venv ${VIRTUALENV_HOME_DIR}
+        COMMAND ${VIRTUALENV_PYTHON_EXE} -m venv ${VIRTUALENV_HOME_DIR} --system-site-packages
     )
 endfunction()
 
 function(virtualenv_install)
     virtualenv_create()
     # TODO: Check result
-    message("${VIRTUALENV_HOME_DIR}/pip install ${ARGN}")
-    execute_process(
-        COMMAND ${VIRTUALENV_HOME_DIR}/bin/python ${VIRTUALENV_HOME_DIR}/bin/pip install ${ARGN}
-    )
+    message("${VIRTUALENV_HOME_DIR}/bin/pip install ${ARGN}")
+    execute_process( COMMAND ${VIRTUALENV_HOME_DIR}/bin/pip install ${ARGN} )
 endfunction()
-
