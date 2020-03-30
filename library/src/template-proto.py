@@ -45,7 +45,11 @@ def parseForExportedTemplates(inputFileName):
 def RunExporter():
 
     print("")
+    print("// Copyright (C) 2020 Advanced Micro Devices, Inc. All rights reserved.")
+    print("")
     print("// script generated file do not edit")
+    print("")
+    print("#pragma once")
     print("")
 
     # Parse Command Line Arguments
