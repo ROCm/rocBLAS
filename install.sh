@@ -141,7 +141,7 @@ install_packages( )
 
   # dependencies needed to build the rocblas library
   local library_dependencies_ubuntu=( "make" "cmake-curses-gui" "pkg-config"
-                                      "python2.7" "python3" "python-yaml" "python3-yaml" "python3*-distutils" "python3-venv"
+                                      "python2.7" "python3" "python-yaml" "python3-yaml" "python3*-distutils" "python3-venv" "python3*-pip"
                                       "llvm-6.0-dev" "zlib1g-dev" "wget")
   local library_dependencies_centos_rhel=( "epel-release"
                                       "make" "cmake3" "rpm-build"
@@ -445,11 +445,11 @@ if [[ "${install_dependencies}" == true ]]; then
       esac
 
       tar -xvf blis.tar.gz
+      rm -rf blis/amd-blis-mt
       mv amd-blis-mt blis
       rm blis.tar.gz
       cd blis/lib
-      ln -s libblis-mt.so libblis.so
-      popd
+      ln -sf libblis-mt.so libblis.so
     fi
     popd
   fi
