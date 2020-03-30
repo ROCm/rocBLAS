@@ -568,7 +568,7 @@ pushd .
   else
     CXX=${compiler} ${cmake_executable} ${cmake_common_options} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=${rocm_path} ../..
   fi
-  check_exit_code "$?"
+  #check_exit_code "$?"
 
   make -j$(nproc) install
   check_exit_code "$?"
