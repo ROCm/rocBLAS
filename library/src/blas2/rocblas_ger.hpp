@@ -121,8 +121,8 @@ rocblas_status rocblas_ger_template(rocblas_handle handle,
     auto shiftx = incx < 0 ? offsetx - ptrdiff_t(incx) * (m - 1) : offsetx;
     auto shifty = incy < 0 ? offsety - ptrdiff_t(incy) * (n - 1) : offsety;
 
-    static constexpr int DIM_X   = 32;
-    static constexpr int DIM_Y   = 32;
+    static constexpr int DIM_X   = 64;
+    static constexpr int DIM_Y   = 16;
     rocblas_int          blocksX = (m - 1) / DIM_X + 1;
     rocblas_int          blocksY = (n - 1) / DIM_Y + 1;
 
