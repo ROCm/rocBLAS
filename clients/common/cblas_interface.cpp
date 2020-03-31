@@ -1,10 +1,10 @@
 /* ************************************************************************
  * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************/
-
 #include "cblas_interface.hpp"
 #include "rocblas_vector.hpp"
 #include "utility.hpp"
+#include <omp.h>
 
 /*
  * ===========================================================================
@@ -376,6 +376,7 @@ void cblas_herkx(rocblas_fill      uplo,
     {
         if(uplo == rocblas_fill_upper)
         {
+#pragma omp parallel for
             for(int j = 0; j < n; ++j)
             {
                 for(int i = 0; i <= j; i++)
@@ -396,6 +397,7 @@ void cblas_herkx(rocblas_fill      uplo,
         }
         else // lower
         {
+#pragma omp parallel for
             for(int j = 0; j < n; ++j)
             {
                 for(int i = j; i < n; i++)
@@ -419,6 +421,7 @@ void cblas_herkx(rocblas_fill      uplo,
     {
         if(uplo == rocblas_fill_upper)
         {
+#pragma omp parallel for
             for(int j = 0; j < n; ++j)
             {
                 for(int i = 0; i <= j; i++)
@@ -438,6 +441,7 @@ void cblas_herkx(rocblas_fill      uplo,
         }
         else // lower
         {
+#pragma omp parallel for
             for(int j = 0; j < n; ++j)
             {
                 for(int i = j; i < n; i++)
