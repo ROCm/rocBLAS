@@ -84,7 +84,7 @@ install_apt_packages( )
   for package in "${package_dependencies[@]}"; do
     if [[ $(dpkg-query --show --showformat='${db:Status-Abbrev}\n' ${package} 2> /dev/null | grep -q "ii"; echo $?) -ne 0 ]]; then
       printf "\033[32mInstalling \033[33m${package}\033[32m from distro package manager\033[0m\n"
-      elevate_if_not_root apt install -y --no-install-recommends ${package}
+      elevate_if_not_root apt-get install -y --no-install-recommends ${package}
     fi
   done
 }
@@ -186,7 +186,7 @@ install_packages( )
 
   case "${ID}" in
     ubuntu)
-      elevate_if_not_root apt update
+      elevate_if_not_root apt-get update
       install_apt_packages "${library_dependencies_ubuntu[@]}"
 
       if [[ "${build_clients}" == true ]]; then
@@ -560,7 +560,7 @@ pushd .
 
 
   # Uncomment for cmake debugging
-  # CXX=${compiler} ${cmake_executable} -Wdev --debug-output --trace ${cmake_common_options} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=${rocm_path} ../..
+  cmake_common_options="${cmake_common_options} -Wdev --debug-output --trace"
 
   # Build library with AMD toolchain because of existense of device kernels
   if [[ "${build_clients}" == true ]]; then
