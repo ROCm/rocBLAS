@@ -186,7 +186,7 @@ available on ROCm supported platforms. If you are on a headless machine
 without the x-windows system, we recommend using **ccmake**; if you have
 access to X-windows, we recommend using **cmake-gui**.
 
-Install one-liners cmake: \* Ubuntu: ``sudo apt install cmake-qt-gui``
+Install one-liners cmake: \* Ubuntu: ``sudo apt-get install cmake-qt-gui``
 \* Fedora: ``sudo dnf install cmake-gui``
 
 Python
@@ -204,7 +204,7 @@ build gemm kernels in rocBLAS.
 
 Install one-liners PyYAML:
 
-* Ubuntu: ``sudo apt install python2.7 python-yaml``
+* Ubuntu: ``sudo apt-get install python2.7 python-yaml``
 
 * Fedora: ``sudo dnf install python PyYAML``
 
@@ -250,7 +250,7 @@ boost
 Linux distros typically have an easy installation mechanism for boost
 through the native package manager.
 
--  Ubuntu: ``sudo apt install libboost-program-options-dev``
+-  Ubuntu: ``sudo apt-get install libboost-program-options-dev``
 -  Fedora: ``sudo dnf install boost-program-options``
 
 Unfortunately, googletest and lapack are not as easy to install. Many
