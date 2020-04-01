@@ -64,11 +64,18 @@ public:
     /*********************************************************************
      * Compute value hashes for (key1, value1, key2, value2, ...) tuples *
      *********************************************************************/
-    // Default hash
-    template <typename T>
+    // Default hash for non-enum types
+    template <typename T, std::enable_if_t<!std::is_enum<T>{}, int> = 0>
     static size_t hash(const T& x)
     {
         return std::hash<T>{}(x);
+    }
+
+    // Workaround for compilers which don't implement C++14 enum hash
+    template <typename T, std::enable_if_t<std::is_enum<T>{}, int> = 0>
+    static size_t hash(const T& x)
+    {
+        return std::hash<typename std::underlying_type<T>::type>{}(x);
     }
 
     // C-style string hash since std::hash does not hash them
