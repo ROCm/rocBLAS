@@ -53,7 +53,6 @@ set( rocblas_benchmark_common
     )
 
 add_executable( rocblas-bench client.cpp ${rocblas_benchmark_common} )
-#target_compile_features( rocblas-bench PRIVATE cxx_std_14 )
 
 if( BUILD_WITH_TENSILE )
     target_compile_definitions( rocblas-bench PRIVATE BUILD_WITH_TENSILE=1 )
