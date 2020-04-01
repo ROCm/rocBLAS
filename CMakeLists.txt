@@ -27,7 +27,7 @@ endif()
 
 
 # Suppress spurious HIP warnings
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-result")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wno-unused-result")
 
 project( rocblas LANGUAGES CXX )
 
