@@ -132,6 +132,9 @@ typedef enum rocblas_status_
 
 /*! \brief Indicates the precision width of data stored in a blas type. */
 typedef enum rocblas_datatype_
+#if __cplusplus >= 201103L
+    : int
+#endif
 {
     rocblas_datatype_f16_r  = 150, /**< 16 bit floating point, real */
     rocblas_datatype_f32_r  = 151, /**< 32 bit floating point, real */

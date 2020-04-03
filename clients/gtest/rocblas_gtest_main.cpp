@@ -85,7 +85,7 @@ public:
         {
             skipped_tests++;
             if(showInlineSkips)
-                printf("Skipped test due to limited memory environment.\n");
+                rocblas_cout << "Skipped test due to limited memory environment." << std::endl;
         }
         eventListener->OnTestPartResult(result);
     }
@@ -122,9 +122,7 @@ public:
     void OnTestProgramEnd(const UnitTest& unit_test) override
     {
         if(skipped_tests)
-        {
-            printf("[ SKIPPED  ] %d tests.\n", skipped_tests);
-        }
+            rocblas_cout << "[ SKIPPED  ] " << skipped_tests << " tests." << std::endl;
         eventListener->OnTestProgramEnd(unit_test);
     }
 };
@@ -257,9 +255,9 @@ static void rocblas_print_version()
     static int  once = (rocblas_get_version_string(blas_version, sizeof(blas_version)), 0);
 
 #ifdef USE_TENSILE_HOST
-    printf("rocBLAS version: %s (new Tensile client)\n\n", blas_version);
+    rocblas_cout << "rocBLAS version: " << blas_version << " (new Tensile client)\n" << std::endl;
 #else
-    printf("rocBLAS version: %s\n\n", blas_version);
+    rocblas_cout << "rocBLAS version: " << blas_version << "\n" << std::endl;
 #endif
 }
 
@@ -270,7 +268,7 @@ static void rocblas_set_test_device()
     int device_count = query_device_property();
     if(device_count <= device_id)
     {
-        std::cerr << "Error: invalid device ID. There may not be such device ID.\n";
+        rocblas_cerr << "Error: invalid device ID. There may not be such device ID." << std::endl;
         exit(-1);
     }
     set_device(device_id);

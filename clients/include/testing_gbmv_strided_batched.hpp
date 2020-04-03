@@ -428,26 +428,26 @@ void testing_gbmv_strided_batched(const Arguments& arg)
         rocblas_bandwidth   = batch_count * (num_els) * sizeof(T) / gpu_time_used / 1e3;
 
         // only norm_check return an norm error, unit check won't return anything
-        std::cout
+        rocblas_cout
             << "M,N,KL,KU,alpha,lda,stride_A,incx,stride_x,beta,incy,stride_y,batch_count,rocblas-"
                "Gflops,rocblas-GB/s,";
         if(arg.norm_check)
         {
-            std::cout << "CPU-Gflops,norm_error_host_ptr,norm_error_device_ptr";
+            rocblas_cout << "CPU-Gflops,norm_error_host_ptr,norm_error_device_ptr";
         }
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
 
-        std::cout << M << "," << N << "," << KL << "," << KU << "," << h_alpha << "," << lda << ","
-                  << stride_A << "," << incx << "," << stride_x << "," << h_beta << "," << incy
-                  << "," << stride_y << "," << batch_count << "," << rocblas_gflops << ","
-                  << rocblas_bandwidth << ",";
+        rocblas_cout << M << "," << N << "," << KL << "," << KU << "," << h_alpha << "," << lda
+                     << "," << stride_A << "," << incx << "," << stride_x << "," << h_beta << ","
+                     << incy << "," << stride_y << "," << batch_count << "," << rocblas_gflops
+                     << "," << rocblas_bandwidth << ",";
 
         if(arg.norm_check)
         {
-            std::cout << cblas_gflops << ',';
-            std::cout << rocblas_error_1 << ',' << rocblas_error_2;
+            rocblas_cout << cblas_gflops << ',';
+            rocblas_cout << rocblas_error_1 << ',' << rocblas_error_2;
         }
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
     }
 }

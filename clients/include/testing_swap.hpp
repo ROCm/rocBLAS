@@ -143,7 +143,7 @@ void testing_swap(const Arguments& arg)
 
         gpu_time_used = (get_time_us() - gpu_time_used) / number_hot_calls;
 
-        std::cout << "N,incx,incy,rocblas-us" << std::endl;
-        std::cout << N << "," << incx << "," << incy << "," << gpu_time_used << std::endl;
+        rocblas_cout << "N,incx,incy,rocblas-us" << std::endl;
+        rocblas_cout << N << "," << incx << "," << incy << "," << gpu_time_used << std::endl;
     }
 }

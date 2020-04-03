@@ -5,12 +5,12 @@
 #ifndef _ROCBLAS_LOGGING_H_
 #define _ROCBLAS_LOGGING_H_
 #include "handle.h"
+#include "rocblas_ostream.hpp"
+#include "tuple_helper.hpp"
 #include <atomic>
 #include <cmath>
-#include <cstdio>
+#include <complex>
 #include <cstdlib>
-#include <cstring>
-#include <functional>
 #include <iomanip>
 #include <iostream>
 #include <limits>
@@ -25,251 +25,24 @@
 #include <unordered_map>
 #include <utility>
 
-class tuple_helper
-{
-protected:
-    /************************************************************************************
-     * Print values
-     ************************************************************************************/
-    // Default output
-    template <typename T>
-    static void print_value(std::ostream& os, const T& x)
-    {
-        os << x;
-    }
-
-    // Floating-point output
-    static void print_value(std::ostream& os, double x)
-    {
-        if(std::isnan(x))
-            os << ".nan";
-        else if(std::isinf(x))
-            os << (x < 0 ? "-.inf" : ".inf");
-        else
-        {
-            char s[32];
-            snprintf(s, sizeof(s) - 2, "%.17g", x);
-
-            // If no decimal point or exponent, append .0
-            char* end = s + strcspn(s, ".eE");
-            if(!*end)
-                strcpy(end, ".0");
-            os << s;
-        }
-    }
-
-    // Complex output
-    template <typename T>
-    static void print_value(std::ostream& os, const rocblas_complex_num<T>& x)
-    {
-        os << "'(";
-        print_value(os, std::real(x));
-        os << ",";
-        print_value(os, std::imag(x));
-        os << ")'";
-    }
-
-    // Character output
-    static void print_value(std::ostream& os, char c)
-    {
-        char s[]{c, 0};
-        os << std::quoted(s, '\'');
-    }
-
-    // bool output
-    static void print_value(std::ostream& os, bool b)
-    {
-        os << (b ? "true" : "false");
-    }
-
-    // string output
-    static void print_value(std::ostream& os, const char* s)
-    {
-        os << std::quoted(s);
-    }
-    static void print_value(std::ostream& os, const std::string& s)
-    {
-        print_value(os, s.c_str());
-    }
-
-    // rocblas_datatype
-    static void print_value(std::ostream& os, const rocblas_datatype& d)
-    {
-        os << rocblas_datatype_string(d);
-    }
-
-    /************************************************************************************
-     * Print tuples
-     ************************************************************************************/
-    template <typename TUP, size_t idx = std::tuple_size<TUP>{}>
-    struct print_tuple_recurse
-    {
-        template <typename F>
-        __attribute__((always_inline)) void operator()(F& print_argument, const TUP& tuple)
-        {
-            print_tuple_recurse<TUP, idx - 2>{}(print_argument, tuple);
-            print_argument(std::get<idx - 2>(tuple), std::get<idx - 1>(tuple));
-        }
-    };
-
-    template <typename TUP>
-    struct print_tuple_recurse<TUP, 0>
-    {
-        template <typename F>
-        __attribute__((always_inline)) void operator()(F&, const TUP&)
-        {
-        }
-    };
-
-    // Print a tuple which is expected to be (name1, value1, name2, value2, ...)
-    template <typename TUP>
-    static void print_tuple(std::ostream& os, const TUP& tuple)
-    {
-        static_assert(std::tuple_size<TUP>{} % 2 == 0, "Tuple size must be even");
-
-        // delim starts as "- {" and becomes "," afterwards
-        auto print_argument = [&, delim = "- {"](auto&& name, auto&& value) mutable {
-            os << delim << " " << name << ": ";
-            print_value(os, value);
-            delim = ",";
-        };
-        print_tuple_recurse<TUP>{}(print_argument, tuple);
-        os << " }" << std::endl;
-    }
-
-    /************************************************************************************
-     * Compute value hashes for (key1, value1, key2, value2, ...) tuples
-     ************************************************************************************/
-    // Workaround for compilers which don't implement C++14 enum hash (LWG 2148)
-    template <typename T, std::enable_if_t<std::is_enum<T>{}, int> = 0>
-    static size_t hash(const T& x)
-    {
-        return std::hash<typename std::underlying_type<T>::type>{}(x);
-    }
-
-    // Default hash for non-enum types
-    template <typename T, std::enable_if_t<!std::is_enum<T>{}, int> = 0>
-    static size_t hash(const T& x)
-    {
-        return std::hash<T>{}(x);
-    }
-
-    // C-style string hash since std::hash does not hash them
-    static size_t hash(const char* s)
-    {
-        size_t seed = 0xcbf29ce484222325;
-        for(auto p = reinterpret_cast<const unsigned char*>(s); *p; ++p)
-            seed = (seed ^ *p) * 0x100000001b3; // FNV-1a
-        return seed;
-    }
-
-    // For consistency with above
-    static size_t hash(const std::string& s)
-    {
-        return hash(s.c_str());
-    }
-
-    // Combine tuple value hashes, computing hash of all tuple values
-    template <typename TUP, size_t idx = std::tuple_size<TUP>{}>
-    struct tuple_hash_recurse
-    {
-        __attribute__((always_inline)) size_t operator()(const TUP& tup)
-        {
-            size_t seed = tuple_hash_recurse<TUP, idx - 2>{}(tup);
-            return seed ^ (hash(std::get<idx - 1>(tup)) + 0x9e3779b9 + (seed << 6) + (seed >> 2));
-        }
-    };
-
-    // Leaf node
-    template <typename TUP>
-    struct tuple_hash_recurse<TUP, 0>
-    {
-        __attribute__((always_inline)) size_t operator()(const TUP&)
-        {
-            return 0;
-        }
-    };
-
-    // Hash function class compatible with STL containers
-    template <typename TUP>
-    struct hash_t
-    {
-        static_assert(std::tuple_size<TUP>{} % 2 == 0, "Tuple size must be even");
-        size_t operator()(const TUP& x) const
-        {
-            return tuple_hash_recurse<TUP>{}(x);
-        }
-    };
-
-    /************************************************************************************
-     * Test (key1, value1, key2, value2, ...) tuples for equality of values
-     ************************************************************************************/
-    template <typename T>
-    static bool equal(const T& x1, const T& x2)
-    {
-        return x1 == x2;
-    }
-
-    static bool equal(const char* s1, const char* s2)
-    {
-        return !strcmp(s1, s2);
-    }
-    static bool equal(const std::string& s1, const char* s2)
-    {
-        return !strcmp(s1.c_str(), s2);
-    }
-    static bool equal(const char* s1, const std::string& s2)
-    {
-        return !strcmp(s1, s2.c_str());
-    }
-
-    // Recursively compare tuple values, short-circuiting
-    template <typename TUP, size_t idx = std::tuple_size<TUP>{}>
-    struct tuple_equal_recurse
-    {
-        bool operator()(const TUP& t1, const TUP& t2)
-        {
-            return equal(std::get<idx - 1>(t1), std::get<idx - 1>(t2))
-                   && tuple_equal_recurse<TUP, idx - 2>{}(t1, t2);
-        }
-    };
-
-    // Leaf node
-    template <typename TUP>
-    struct tuple_equal_recurse<TUP, 0>
-    {
-        bool operator()(const TUP&, const TUP&)
-        {
-            return true;
-        }
-    };
-
-    // Equality test class compatible with STL containers
-    template <typename TUP>
-    struct equal_t
-    {
-        static_assert(std::tuple_size<TUP>{} % 2 == 0, "Tuple size must be even");
-        __attribute__((flatten)) bool operator()(const TUP& x, const TUP& y) const
-        {
-            return tuple_equal_recurse<TUP>{}(x, y);
-        }
-    };
-};
-
 /************************************************************************************
  * Profile kernel arguments
  ************************************************************************************/
 template <typename TUP>
-class argument_profile : tuple_helper
+class argument_profile
 {
     // Output stream
-    std::ostream& os;
+    rocblas_ostream& os;
 
     // Mutex for multithreaded access to table
     std::shared_timed_mutex mutex;
 
     // Table mapping argument tuples into atomic counts
-    std::unordered_map<TUP, std::atomic_size_t*, hash_t<TUP>, equal_t<TUP>> map;
+    std::unordered_map<TUP,
+                       std::atomic_size_t*,
+                       typename tuple_helper::hash_t<TUP>,
+                       typename tuple_helper::equal_t<TUP>>
+        map;
 
 public:
     // A tuple of arguments is looked up in an unordered map.
@@ -309,7 +82,7 @@ public:
     }
 
     // Constructor
-    explicit argument_profile(std::ostream& os)
+    explicit argument_profile(rocblas_ostream& os)
         : os(os)
     {
     }
@@ -321,14 +94,17 @@ public:
         // Print all of the tuples in the map
         for(auto& p : map)
         {
-            print_tuple(os,
-                        std::tuple_cat(p.first, std::make_tuple("call_count", p.second->load())));
+            os << "- ";
+            tuple_helper::print_tuple_pairs(
+                os, std::tuple_cat(p.first, std::make_tuple("call_count", p.second->load())));
+            os << "\n";
             delete p.second;
         }
         os.flush();
     }
     catch(...)
     {
+        return;
     }
 };
 
@@ -339,20 +115,29 @@ public:
 template <typename... Ts>
 inline void log_profile(rocblas_handle handle, const char* func, Ts&&... xs)
 {
-    auto tup = std::make_tuple("rocblas_function", func, std::forward<Ts>(xs)...);
-    static argument_profile<decltype(tup)> profile{*handle->log_profile_os};
-    static int                             aqe = at_quick_exit([] { profile.~argument_profile(); });
+    // Make a tuple with the arguments
+    auto tup = std::make_tuple("rocblas_function", func, xs...);
+
+    // Set up profile
+    static argument_profile<decltype(tup)> profile(*handle->log_profile_os);
+
+    // Add at_quick_exit handler in case the program exits early
+    static int aqe = at_quick_exit([] { profile.~argument_profile(); });
+
+    // Profile the tuple
     profile(std::move(tup));
 }
 
-/************************************************************************************
- * Log values (for log_trace and log_bench)
- ************************************************************************************/
+/********************************************
+ * Log values (for log_trace and log_bench) *
+ ********************************************/
 template <typename H, typename... Ts>
-static inline void log_arguments(std::ostream& os, const char* sep, H head, Ts&&... xs)
+static inline void log_arguments(rocblas_ostream& os, const char* sep, H head, Ts&&... xs)
 {
     os << head;
-    int x[] = {(os << sep << std::forward<Ts>(xs), 0)...};
+    // TODO: Replace with C++17 fold expression
+    // ((os << sep << std::forward<Ts>(xs)), ...);
+    (void)(int[]){(os << sep << std::forward<Ts>(xs), 0)...};
     os << std::endl;
 }
 
@@ -375,10 +160,9 @@ inline void log_bench(rocblas_handle handle, Ts&&... xs)
     log_arguments(*handle->log_bench_os, " ", std::forward<Ts>(xs)...);
 }
 
-/************************************************************************************
- * Trace log scalar values pointed to by pointer
- ************************************************************************************/
-
+/*************************************************
+ * Trace log scalar values pointed to by pointer *
+ *************************************************/
 inline float log_trace_scalar_value(const rocblas_half* value)
 {
     return value ? float(*value) : std::numeric_limits<float>::quiet_NaN();
@@ -398,13 +182,12 @@ inline T log_trace_scalar_value(const T* value)
                      std::numeric_limits<typename T::value_type>::quiet_NaN()};
 }
 
-/************************************************************************************
- * Bench log scalar values pointed to by pointer
- ************************************************************************************/
-
+/*************************************************
+ * Bench log scalar values pointed to by pointer *
+ *************************************************/
 inline std::string log_bench_scalar_value(const char* name, const rocblas_half* value)
 {
-    std::stringstream ss;
+    rocblas_ostream ss;
     ss << "--" << name << " " << (value ? float(*value) : std::numeric_limits<float>::quiet_NaN());
     return ss.str();
 }
@@ -412,7 +195,7 @@ inline std::string log_bench_scalar_value(const char* name, const rocblas_half* 
 template <typename T, std::enable_if_t<!is_complex<T>, int> = 0>
 inline std::string log_bench_scalar_value(const char* name, const T* value)
 {
-    std::stringstream ss;
+    rocblas_ostream ss;
     ss << "--" << name << " " << (value ? *value : std::numeric_limits<T>::quiet_NaN());
     return ss.str();
 }
@@ -420,7 +203,7 @@ inline std::string log_bench_scalar_value(const char* name, const T* value)
 template <typename T, std::enable_if_t<+is_complex<T>, int> = 0>
 inline std::string log_bench_scalar_value(const char* name, const T* value)
 {
-    std::stringstream ss;
+    rocblas_ostream ss;
     ss << "--" << name << " "
        << (value ? std::real(*value) : std::numeric_limits<typename T::value_type>::quiet_NaN());
     if(value && std::imag(*value))
@@ -430,15 +213,14 @@ inline std::string log_bench_scalar_value(const char* name, const T* value)
 
 #define LOG_BENCH_SCALAR_VALUE(name) log_bench_scalar_value(#name, name)
 
-/************************************************************************************
- * Log alpha and beta with dynamic compute_type in *_ex functions
- ************************************************************************************/
-
-inline rocblas_status log_trace_alpha_beta_ex(rocblas_datatype   compute_type,
-                                              const void*        alpha,
-                                              const void*        beta,
-                                              std::stringstream& alphass,
-                                              std::stringstream& betass)
+/******************************************************************
+ * Log alpha and beta with dynamic compute_type in *_ex functions *
+ ******************************************************************/
+inline rocblas_status log_trace_alpha_beta_ex(rocblas_datatype compute_type,
+                                              const void*      alpha,
+                                              const void*      beta,
+                                              rocblas_ostream& alphass,
+                                              rocblas_ostream& betass)
 {
     switch(compute_type)
     {

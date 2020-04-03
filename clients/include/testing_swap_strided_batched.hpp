@@ -165,8 +165,8 @@ void testing_swap_strided_batched(const Arguments& arg)
 
         gpu_time_used = (get_time_us() - gpu_time_used) / number_hot_calls;
 
-        std::cout << "N,incx,incy,stride_x,stride_y,batch_count,rocblas-us" << std::endl;
-        std::cout << N << "," << incx << "," << incy << "," << stridex << "," << stridey << ","
-                  << batch_count << "," << gpu_time_used << std::endl;
+        rocblas_cout << "N,incx,incy,stride_x,stride_y,batch_count,rocblas-us" << std::endl;
+        rocblas_cout << N << "," << incx << "," << incy << "," << stridex << "," << stridey << ","
+                     << batch_count << "," << gpu_time_used << std::endl;
     }
 }

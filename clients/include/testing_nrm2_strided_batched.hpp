@@ -136,10 +136,8 @@ void testing_nrm2_strided_batched(const Arguments& arg)
 
         if(arg.norm_check)
         {
-            printf("cpu=%e, gpu_host_ptr=%e, gpu_dev_ptr=%e\n",
-                   cpu_result[0],
-                   rocblas_result_1[0],
-                   rocblas_result_2[0]);
+            rocblas_cout << "cpu=" << cpu_result[0] << ", gpu_host_ptr=" << rocblas_result_1[0]
+                         << ", gpu_dev_ptr=" << rocblas_result_2[0] << "\n";
             rocblas_error_1 = std::abs((cpu_result[0] - rocblas_result_1[0]) / cpu_result[0]);
             rocblas_error_2 = std::abs((cpu_result[0] - rocblas_result_2[0]) / cpu_result[0]);
         }
@@ -167,18 +165,19 @@ void testing_nrm2_strided_batched(const Arguments& arg)
 
         gpu_time_used = (get_time_us() - gpu_time_used) / number_hot_calls;
 
-        std::cout << "N,incx,stridex,batch_count,rocblas(us)";
+        rocblas_cout << "N,incx,stridex,batch_count,rocblas(us)";
 
         if(arg.norm_check)
-            std::cout << ",CPU(us),error_host_ptr,error_dev_ptr";
+            rocblas_cout << ",CPU(us),error_host_ptr,error_dev_ptr";
 
-        std::cout << std::endl;
-        std::cout << N << "," << incx << "," << stridex << "," << batch_count << ","
-                  << gpu_time_used;
+        rocblas_cout << std::endl;
+        rocblas_cout << N << "," << incx << "," << stridex << "," << batch_count << ","
+                     << gpu_time_used;
 
         if(arg.norm_check)
-            std::cout << "," << cpu_time_used << "," << rocblas_error_1 << "," << rocblas_error_2;
+            rocblas_cout << "," << cpu_time_used << "," << rocblas_error_1 << ","
+                         << rocblas_error_2;
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
     }
 }

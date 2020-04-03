@@ -14,8 +14,14 @@
 // Note: We do not use random_device to initialize the RNG, because we want
 // repeatability in case of test failure. TODO: Add seed as an optional CLI
 // argument, and print the seed on output, to ensure repeatability.
-rocblas_rng_t rocblas_rng(69069);
-rocblas_rng_t rocblas_seed(rocblas_rng);
+const rocblas_rng_t rocblas_seed(69069); // A fixed seed to start at
+
+// This records the main thread ID at startup
+const std::thread::id main_thread_id = std::this_thread::get_id();
+
+// For the main thread, we use rocblas_seed; for other threads, we start with a different seed but
+// deterministically based on the thread id's hash function.
+thread_local rocblas_rng_t rocblas_rng = get_seed();
 
 /* ============================================================================================ */
 // Return path of this executable
@@ -65,43 +71,51 @@ rocblas_int query_device_property()
     rocblas_status status = (rocblas_status)hipGetDeviceCount(&device_count);
     if(status != rocblas_status_success)
     {
-        printf("Query device error: cannot get device count \n");
+        rocblas_cerr << "Query device error: cannot get device count" << std::endl;
         return -1;
     }
     else
     {
-        printf("Query device success: there are %d devices \n", device_count);
+        rocblas_cout << "Query device success: there are " << device_count << " devices"
+                     << std::endl;
     }
 
     for(rocblas_int i = 0;; i++)
     {
-        puts("-------------------------------------------------------------------------------");
+        rocblas_cout
+            << "-------------------------------------------------------------------------------"
+            << std::endl;
 
         if(i >= device_count)
-        {
             break;
-        }
 
         hipDeviceProp_t props;
         rocblas_status  status = (rocblas_status)hipGetDeviceProperties(&props, i);
         if(status != rocblas_status_success)
         {
-            printf("Query device error: cannot get device ID %d's property\n", i);
+            rocblas_cerr << "Query device error: cannot get device ID " << i << "'s property"
+                         << std::endl;
         }
         else
         {
-            printf("Device ID %d : %s\n", i, props.name);
-            printf("with %3.1f GB memory, clock rate %dMHz @ computing capability %d.%d \n",
-                   props.totalGlobalMem / 1e9,
-                   (int)(props.clockRate / 1000),
-                   props.major,
-                   props.minor);
-            printf(
+            char buf[320];
+            snprintf(
+                buf,
+                sizeof(buf) - 1,
+                "Device ID %d : %s\n"
+                "with %3.1f GB memory, clock rate %d MHz @ computing capability %d.%d \n"
                 "maxGridDimX %d, sharedMemPerBlock %3.1f KB, maxThreadsPerBlock %d, warpSize %d\n",
+                i,
+                props.name,
+                props.totalGlobalMem / 1e9,
+                (int)(props.clockRate / 1000),
+                props.major,
+                props.minor,
                 props.maxGridSize[0],
                 props.sharedMemPerBlock / 1e3,
                 props.maxThreadsPerBlock,
                 props.warpSize);
+            rocblas_cout << buf;
         }
     }
 
@@ -114,8 +128,8 @@ void set_device(rocblas_int device_id)
     rocblas_status status = (rocblas_status)hipSetDevice(device_id);
     if(status != rocblas_status_success)
     {
-        printf("Set device error: cannot set device ID %d, there may not be such device ID\n",
-               (int)device_id);
+        rocblas_cerr << "Set device error: cannot set device ID " << device_id
+                     << ", there may not be such device ID" << std::endl;
     }
 }
 

@@ -6,13 +6,13 @@
 #define _ROCBLAS_HANDLE_H_
 
 #include "rocblas.h"
+#include "rocblas_ostream.hpp"
 #include "utility.h"
 #include <array>
-#include <fstream>
 #include <hip/hip_runtime.h>
-#include <iostream>
 #include <tuple>
 #include <type_traits>
+#include <unistd.h>
 #include <utility>
 
 /*******************************************************************************
@@ -79,12 +79,9 @@ public:
     static rocblas_layer_mode layer_mode;
 
     // logging streams
-    static std::ofstream log_trace_ofs;
-    static std::ostream* log_trace_os;
-    static std::ofstream log_bench_ofs;
-    static std::ostream* log_bench_os;
-    static std::ofstream log_profile_ofs;
-    static std::ostream* log_profile_os;
+    static rocblas_ostream* log_trace_os;
+    static rocblas_ostream* log_bench_os;
+    static rocblas_ostream* log_profile_os;
 
     // static data for startup initialization
     static struct init
@@ -124,6 +121,7 @@ public:
 
         // Compute the total size, rounding up each size to multiples of MIN_CHUNK_SIZE
         // TODO: Replace with C++17 fold expression eventually
+        // size_t total = (0 + ... + roundup_device_memory_size(size_t(sizes)));
         size_t total = 0;
         auto   dummy = {total += roundup_device_memory_size(size_t(sizes))...};
 
@@ -320,7 +318,6 @@ private:
             return rocblas_status_size_unchanged;    \
     } while(0)
 
-#if defined(ROCBLAS_LIBRARY_CHECKS)
 // Warn about potentially unsafe and synchronizing uses of hipMalloc and hipFree
 #define hipMalloc(ptr, size)                                                                     \
     _Pragma(                                                                                     \
@@ -329,7 +326,6 @@ private:
 #define hipFree(ptr)                                                                               \
     _Pragma("GCC warning \"Direct use of hipFree in rocBLAS is deprecated; see CONTRIBUTING.md\"") \
         hipFree(ptr)
-#endif
 
 namespace rocblas
 {

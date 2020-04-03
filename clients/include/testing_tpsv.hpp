@@ -199,20 +199,21 @@ void testing_tpsv(const Arguments& arg)
         cblas_gflops  = tpsv_gflop_count<T>(N) / cpu_time_used * 1e6;
 
         // only norm_check return an norm error, unit check won't return anything
-        std::cout << "N,incx,uplo,transA,diag,rocblas-Gflops,rocblas-GB/s,us";
+        rocblas_cout << "N,incx,uplo,transA,diag,rocblas-Gflops,rocblas-GB/s,us";
 
         if(arg.norm_check)
-            std::cout << ",CPU-Gflops,us,norm_error_host_ptr,norm_error_dev_ptr";
+            rocblas_cout << ",CPU-Gflops,us,norm_error_host_ptr,norm_error_dev_ptr";
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
 
-        std::cout << N << ',' << incx << ',' << char_uplo << ',' << char_transA << ',' << char_diag
-                  << ',' << rocblas_gflops << "," << rocblas_bandwidth << "," << gpu_time_used;
+        rocblas_cout << N << ',' << incx << ',' << char_uplo << ',' << char_transA << ','
+                     << char_diag << ',' << rocblas_gflops << "," << rocblas_bandwidth << ","
+                     << gpu_time_used;
 
         if(arg.norm_check)
-            std::cout << "," << cblas_gflops << "," << cpu_time_used << "," << max_err_1 << ","
-                      << max_err_2;
+            rocblas_cout << "," << cblas_gflops << "," << cpu_time_used << "," << max_err_1 << ","
+                         << max_err_2;
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
     }
 }

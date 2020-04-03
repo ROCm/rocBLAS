@@ -63,6 +63,7 @@ set(rocblas_no_tensile_test_source
     rocblas_gtest_main.cpp
     set_get_pointer_mode_gtest.cpp
     logging_mode_gtest.cpp
+    ostream_threadsafety_gtest.cpp
     set_get_vector_gtest.cpp
     set_get_matrix_gtest.cpp
     blas1_gtest.cpp
@@ -107,6 +108,7 @@ if(LINK_BLIS)
 endif()
 
 set( rocblas_benchmark_common
+      ../common/rocblas_arguments.cpp
       ../common/utility.cpp
       ../common/cblas_interface.cpp
       ${BLIS_CPP}

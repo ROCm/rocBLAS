@@ -189,19 +189,19 @@ void testing_syr2(const Arguments& arg)
         rocblas_bandwidth = syr2_gbyte_count<T>(N) / gpu_time_used * 1e6;
 
         // only norm_check return an norm error, unit check won't return anything
-        std::cout << "N,alpha,incx,incy,lda,rocblas-Gflops,rocblas-GB/s";
+        rocblas_cout << "N,alpha,incx,incy,lda,rocblas-Gflops,rocblas-GB/s";
 
         if(arg.norm_check)
-            std::cout << ",CPU-Gflops,norm_error_host_ptr,norm_error_dev_ptr";
+            rocblas_cout << ",CPU-Gflops,norm_error_host_ptr,norm_error_dev_ptr";
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
 
-        std::cout << N << "," << h_alpha << "," << incx << "," << incy << "," << lda << ","
-                  << rocblas_gflops << "," << rocblas_bandwidth;
+        rocblas_cout << N << "," << h_alpha << "," << incx << "," << incy << "," << lda << ","
+                     << rocblas_gflops << "," << rocblas_bandwidth;
 
         if(arg.norm_check)
-            std::cout << "," << cblas_gflops << "," << rocblas_error_1 << "," << rocblas_error_2;
+            rocblas_cout << "," << cblas_gflops << "," << rocblas_error_1 << "," << rocblas_error_2;
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
     }
 }

@@ -2,11 +2,24 @@
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+#include <boost/program_options.hpp>
+
 #include "rocblas.h"
 #include "rocblas.hpp"
 #include "rocblas_data.hpp"
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_parse_data.hpp"
+#include "type_dispatch.hpp"
+#include "utility.hpp"
+#include <algorithm>
+#include <cctype>
+#include <cstdio>
+#include <cstring>
+#include <iostream>
+#include <map>
+#include <stdexcept>
+#include <string>
+#include <type_traits>
 // blas1
 #include "testing_asum.hpp"
 #include "testing_asum_batched.hpp"
@@ -16,6 +29,8 @@
 #include "testing_copy_batched.hpp"
 #include "testing_copy_strided_batched.hpp"
 #include "testing_dot.hpp"
+#include "testing_dot_batched.hpp"
+#include "testing_dot_strided_batched.hpp"
 #include "testing_iamax_iamin.hpp"
 #include "testing_nrm2.hpp"
 #include "testing_nrm2_batched.hpp"
@@ -130,15 +145,6 @@
 #include "utility.hpp"
 #include <algorithm>
 #undef I
-#include <boost/program_options.hpp>
-#include <cctype>
-#include <cstdio>
-#include <cstring>
-#include <iostream>
-#include <map>
-#include <stdexcept>
-#include <string>
-#include <type_traits>
 
 using namespace std::literals; // For std::string literals of form "str"s
 
@@ -259,6 +265,8 @@ struct perf_blas<T, U, std::enable_if_t<std::is_same<T, float>{} || std::is_same
                 {"copy_batched", testing_copy_batched<T>},
                 {"copy_strided_batched", testing_copy_strided_batched<T>},
                 {"dot", testing_dot<T>},
+                {"dot_batched", testing_dot_batched<T>},
+                {"dot_strided_batched", testing_dot_strided_batched<T>},
                 {"swap", testing_swap<T>},
                 {"swap_batched", testing_swap_batched<T>},
                 {"swap_strided_batched", testing_swap_strided_batched<T>},
@@ -366,6 +374,8 @@ struct perf_blas<T, U, std::enable_if_t<std::is_same<T, rocblas_bfloat16>{}>> : 
     {
         static const func_map map = {
             {"dot", testing_dot<T>},
+            {"dot_batched", testing_dot_batched<T>},
+            {"dot_strided_batched", testing_dot_strided_batched<T>},
         };
         run_function(map, arg);
     }
@@ -379,6 +389,8 @@ struct perf_blas<T, U, std::enable_if_t<std::is_same<T, rocblas_half>{}>> : rocb
         static const func_map map
             = { {"axpy", testing_axpy<T>},
                 {"dot", testing_dot<T>},
+                {"dot_batched", testing_dot_batched<T>},
+                {"dot_strided_batched", testing_dot_strided_batched<T>},
 #if BUILD_WITH_TENSILE
                 {"gemm", testing_gemm<T>},
                 {"gemm_batched", testing_gemm_batched<T>},
@@ -406,7 +418,11 @@ struct perf_blas<T,
                 {"copy_batched", testing_copy_batched<T>},
                 {"copy_strided_batched", testing_copy_strided_batched<T>},
                 {"dot", testing_dot<T>},
+                {"dot_batched", testing_dot_batched<T>},
+                {"dot_strided_batched", testing_dot_strided_batched<T>},
                 {"dotc", testing_dotc<T>},
+                {"dotc_batched", testing_dotc_batched<T>},
+                {"dotc_strided_batched", testing_dotc_strided_batched<T>},
                 {"nrm2", testing_nrm2<T>},
                 {"nrm2_batched", testing_nrm2_batched<T>},
                 {"nrm2_strided_batched", testing_nrm2_strided_batched<T>},
@@ -636,17 +652,17 @@ int run_bench_test(Arguments& arg)
 
         if(arg.lda < min_lda)
         {
-            std::cout << "rocblas-bench INFO: lda < min_lda, set lda = " << min_lda << std::endl;
+            rocblas_cout << "rocblas-bench INFO: lda < min_lda, set lda = " << min_lda << std::endl;
             arg.lda = min_lda;
         }
         if(arg.ldb < min_ldb)
         {
-            std::cout << "rocblas-bench INFO: ldb < min_ldb, set ldb = " << min_ldb << std::endl;
+            rocblas_cout << "rocblas-bench INFO: ldb < min_ldb, set ldb = " << min_ldb << std::endl;
             arg.ldb = min_ldb;
         }
         if(arg.ldc < min_ldc)
         {
-            std::cout << "rocblas-bench INFO: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
+            rocblas_cout << "rocblas-bench INFO: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
             arg.ldc = min_ldc;
         }
     }
@@ -658,17 +674,17 @@ int run_bench_test(Arguments& arg)
         rocblas_int min_ldc = arg.M;
         if(arg.lda < min_lda)
         {
-            std::cout << "rocblas-bench INFO: lda < min_lda, set lda = " << min_lda << std::endl;
+            rocblas_cout << "rocblas-bench INFO: lda < min_lda, set lda = " << min_lda << std::endl;
             arg.lda = min_lda;
         }
         if(arg.ldb < min_ldb)
         {
-            std::cout << "rocblas-bench INFO: ldb < min_ldb, set ldb = " << min_ldb << std::endl;
+            rocblas_cout << "rocblas-bench INFO: ldb < min_ldb, set ldb = " << min_ldb << std::endl;
             arg.ldb = min_ldb;
         }
         if(arg.ldc < min_ldc)
         {
-            std::cout << "rocblas-bench INFO: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
+            rocblas_cout << "rocblas-bench INFO: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
             arg.ldc = min_ldc;
         }
 
@@ -683,20 +699,20 @@ int run_bench_test(Arguments& arg)
         rocblas_int min_stride_c = arg.ldc * arg.N;
         //      if (arg.stride_a < min_stride_a)
         //      {
-        //          std::cout << "rocblas-bench INFO: stride_a < min_stride_a, set stride_a = " <<
+        //          rocblas_cout << "rocblas-bench INFO: stride_a < min_stride_a, set stride_a = " <<
         //          min_stride_a << std::endl;
         //          arg.stride_a = min_stride_a;
         //      }
         //      if (arg.stride_b < min_stride_b)
         //      {
-        //          std::cout << "rocblas-bench INFO: stride_b < min_stride_b, set stride_b = " <<
+        //          rocblas_cout << "rocblas-bench INFO: stride_b < min_stride_b, set stride_b = " <<
         //          min_stride_b << std::endl;
         //          arg.stride_b = min_stride_b;
         //      }
         if(arg.stride_c < min_stride_c)
         {
-            std::cout << "rocblas-bench INFO: stride_c < min_stride_c, set stride_c = "
-                      << min_stride_c << std::endl;
+            rocblas_cout << "rocblas-bench INFO: stride_c < min_stride_c, set stride_c = "
+                         << min_stride_c << std::endl;
             arg.stride_c = min_stride_c;
         }
     }
@@ -711,22 +727,22 @@ int run_bench_test(Arguments& arg)
 
         if(arg.lda < min_lda)
         {
-            std::cout << "rocblas-bench INFO: lda < min_lda, set lda = " << min_lda << std::endl;
+            rocblas_cout << "rocblas-bench INFO: lda < min_lda, set lda = " << min_lda << std::endl;
             arg.lda = min_lda;
         }
         if(arg.ldb < min_ldb)
         {
-            std::cout << "rocblas-bench INFO: ldb < min_ldb, set ldb = " << min_ldb << std::endl;
+            rocblas_cout << "rocblas-bench INFO: ldb < min_ldb, set ldb = " << min_ldb << std::endl;
             arg.ldb = min_ldb;
         }
         if(arg.ldc < min_ldc)
         {
-            std::cout << "rocblas-bench INFO: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
+            rocblas_cout << "rocblas-bench INFO: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
             arg.ldc = min_ldc;
         }
         if(arg.ldd < min_ldd)
         {
-            std::cout << "rocblas-bench INFO: ldd < min_ldd, set ldd = " << min_ldc << std::endl;
+            rocblas_cout << "rocblas-bench INFO: ldd < min_ldd, set ldd = " << min_ldc << std::endl;
             arg.ldd = min_ldd;
         }
         rocblas_gemm_dispatch<perf_gemm_ex>(arg);
@@ -740,29 +756,29 @@ int run_bench_test(Arguments& arg)
         rocblas_int min_ldd = arg.M;
         if(arg.lda < min_lda)
         {
-            std::cout << "rocblas-bench INFO: lda < min_lda, set lda = " << min_lda << std::endl;
+            rocblas_cout << "rocblas-bench INFO: lda < min_lda, set lda = " << min_lda << std::endl;
             arg.lda = min_lda;
         }
         if(arg.ldb < min_ldb)
         {
-            std::cout << "rocblas-bench INFO: ldb < min_ldb, set ldb = " << min_ldb << std::endl;
+            rocblas_cout << "rocblas-bench INFO: ldb < min_ldb, set ldb = " << min_ldb << std::endl;
             arg.ldb = min_ldb;
         }
         if(arg.ldc < min_ldc)
         {
-            std::cout << "rocblas-bench INFO: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
+            rocblas_cout << "rocblas-bench INFO: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
             arg.ldc = min_ldc;
         }
         if(arg.ldd < min_ldd)
         {
-            std::cout << "rocblas-bench INFO: ldd < min_ldd, set ldd = " << min_ldc << std::endl;
+            rocblas_cout << "rocblas-bench INFO: ldd < min_ldd, set ldd = " << min_ldc << std::endl;
             arg.ldd = min_ldd;
         }
         rocblas_int min_stride_c = arg.ldc * arg.N;
         if(arg.stride_c < min_stride_c)
         {
-            std::cout << "rocblas-bench INFO: stride_c < min_stride_c, set stride_c = "
-                      << min_stride_c << std::endl;
+            rocblas_cout << "rocblas-bench INFO: stride_c < min_stride_c, set stride_c = "
+                         << min_stride_c << std::endl;
             arg.stride_c = min_stride_c;
         }
 
@@ -802,11 +818,12 @@ void fix_batch(int argc, char* argv[])
     for(int i = 1; i < argc; ++i)
         if(!strcmp(argv[i], "--batch"))
         {
-            static int once = fprintf(
-                stderr,
-                "%s warning: --batch is deprecated, and --batch_count should be used instead.\n",
-                argv[0]);
-            argv[i] = b_c;
+            static int once = (rocblas_cerr << argv[0]
+                                            << " warning: --batch is deprecated, and --batch_count "
+                                               "should be used instead."
+                                            << std::endl,
+                               0);
+            argv[i]         = b_c;
         }
 }
 
@@ -1022,7 +1039,7 @@ try
 
     if(vm.count("help"))
     {
-        std::cout << desc << std::endl;
+        rocblas_cout << desc << std::endl;
         return 0;
     }
 
@@ -1030,14 +1047,14 @@ try
     {
         char blas_version[100];
         rocblas_get_version_string(blas_version, sizeof(blas_version));
-        std::cout << "rocBLAS version: " << blas_version << std::endl;
+        rocblas_cout << "rocBLAS version: " << blas_version << std::endl;
         return 0;
     }
 
     // Device Query
     rocblas_int device_count = query_device_property();
 
-    std::cout << std::endl;
+    rocblas_cout << std::endl;
     if(device_count <= device_id)
         throw std::invalid_argument("Invalid Device ID");
     set_device(device_id);
@@ -1089,6 +1106,6 @@ try
 }
 catch(const std::invalid_argument& exp)
 {
-    std::cerr << exp.what() << std::endl;
+    rocblas_cerr << exp.what() << std::endl;
     return -1;
 }

@@ -61,7 +61,7 @@ rocblas_status rocblas_gemm_ex_impl(rocblas_handle    handle,
             {
                 if(layer_mode & rocblas_layer_mode_log_trace)
                 {
-                    std::stringstream alphass, betass;
+                    rocblas_ostream alphass, betass;
                     if(log_trace_alpha_beta_ex(compute_type, alpha, beta, alphass, betass)
                        == rocblas_status_success)
                     {

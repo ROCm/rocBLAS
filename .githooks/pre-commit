@@ -4,6 +4,8 @@
 # are installed, and if so, uses the installed version to format
 # the staged changes.
 
+export PATH=/usr/bin:/bin
+
 set -x
 
 format=/opt/rocm/hcc/bin/clang-format
@@ -40,9 +42,15 @@ done
 
 # do the formatting
 for file in $files; do
-    if [[ -e $file ]] && echo $file | grep -Eq '\.c$|\.h$|\.hpp$|\.cpp$|\.cl$|\.in$|\.txt$|\.yaml$|\.sh$|\.py$|\.pl$|\.cmake$|\.md$|\.rst$'; then
+    if [[ -e $file ]] && echo $file | grep -Eq '\.c$|\.h$|\.hpp$|\.cpp$|\.cl$|\.in$|\.txt$|\.yaml$|\.sh$|\.py$|\.pl$|\.cmake$|\.md$|\.rst$|\.groovy$'; then
         sed -i -e 's/[[:space:]]*$//' "$file" # Remove whitespace at end of lines
         sed -i -e '$a\' "$file" # Add missing newline to end of file
+        # Convert UTF8 non-ASCII to ASCII
+        temp=$(mktemp)
+        [[ -w $temp ]] || exit
+        iconv -s -f utf-8 -t ascii//TRANSLIT "$file" > "$temp" || exit
+        chmod --reference="$file" "$temp" || exit
+        mv -f "$temp" "$file" || exit
         git add -u "$file"
     fi
 done
