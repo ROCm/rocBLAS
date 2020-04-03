@@ -18,6 +18,7 @@
 #include <map>
 #include <memory>
 #include <mutex>
+#include <ostream>
 #include <queue>
 #include <sstream>
 #include <string>
