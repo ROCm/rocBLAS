@@ -19,6 +19,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#define ROCBLAS_EXPORT_NOINLINE __attribute__((visibility("default"))) __attribute__((noinline))
+
 /*! \brief rocblas_handle is a structure holding the rocblas library context.
  * It must be initialized using rocblas_create_handle()
  * and the returned handle must be passed

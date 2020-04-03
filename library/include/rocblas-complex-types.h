@@ -41,7 +41,7 @@ typedef struct
  *         with precision T.
  */
 template <typename T>
-class rocblas_complex_num
+class ROCBLAS_EXPORT rocblas_complex_num
 {
     // Internal real absolute function, to be sure we're on both device and host
     static __forceinline__ __device__ __host__ T abs(T x)
