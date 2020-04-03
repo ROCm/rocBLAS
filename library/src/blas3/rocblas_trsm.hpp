@@ -1358,9 +1358,10 @@ rocblas_status rocblas_trsm_template_mem(rocblas_handle handle,
     if(supplied_invA && supplied_invA_size / BLOCK < k)
     {
         // One-time warning message
-        static int msg = fputs("WARNING: TRSM invA_size argument is too small; invA argument "
-                               "is being ignored; TRSM performance is degraded\n",
-                               stderr);
+        static int msg = (rocblas_cerr << "WARNING: TRSM invA_size argument is too small; invA "
+                                          "argument is being ignored; TRSM performance is degraded"
+                                       << std::endl,
+                          0);
         perf_status    = rocblas_status_perf_degraded;
         supplied_invA  = nullptr;
     }
@@ -1442,9 +1443,10 @@ rocblas_status rocblas_trsm_template_mem(rocblas_handle handle,
         perf_status = rocblas_status_perf_degraded;
 
         // One-time warning about degraded performance
-        static int msg = fputs("WARNING: Device memory allocation size is too small for TRSM; "
-                               "TRSM performance is degraded\n",
-                               stderr);
+        static int msg = (rocblas_cerr << "WARNING: Device memory allocation size is too small for "
+                                          "TRSM; TRSM performance is degraded"
+                                       << std::endl,
+                          0);
     }
 
     std::tie(mem_x_temp, mem_x_temp_arr, mem_invA, mem_invA_arr) = mem;

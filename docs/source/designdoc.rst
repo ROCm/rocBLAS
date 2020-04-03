@@ -13,3 +13,4 @@ Design Documentation
    contributing
    addtest
    clients
+   thread_safe_logging

@@ -164,19 +164,19 @@ void testing_axpy(const Arguments& arg)
         rocblas_gflops    = axpy_gflop_count<T>(N) / gpu_time_used * 1e6 * 1;
         rocblas_bandwidth = (3.0 * N) * sizeof(T) / gpu_time_used / 1e3;
 
-        std::cout << "N,alpha,incx,incy,rocblas-Gflops,rocblas-GB/s,rocblas-us";
+        rocblas_cout << "N,alpha,incx,incy,rocblas-Gflops,rocblas-GB/s,rocblas-us";
 
         if(arg.norm_check)
-            std::cout << "CPU-Gflops,norm_error_host_ptr,norm_error_dev_ptr";
+            rocblas_cout << "CPU-Gflops,norm_error_host_ptr,norm_error_dev_ptr";
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
 
-        std::cout << N << "," << h_alpha << "," << incx << "," << incy << "," << rocblas_gflops
-                  << "," << rocblas_bandwidth << "," << gpu_time_used;
+        rocblas_cout << N << "," << h_alpha << "," << incx << "," << incy << "," << rocblas_gflops
+                     << "," << rocblas_bandwidth << "," << gpu_time_used;
 
         if(arg.norm_check)
-            std::cout << "," << cblas_gflops << ',' << rocblas_error_1 << ',' << rocblas_error_2;
+            rocblas_cout << "," << cblas_gflops << ',' << rocblas_error_1 << ',' << rocblas_error_2;
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
     }
 }

@@ -437,10 +437,7 @@ rocblas_status rocblas_trtri_small(rocblas_handle   handle,
                                    rocblas_int      sub_batch_count)
 {
     if(n > NB)
-    {
-        printf("n is %d must be less than %d, will exit\n", n, NB);
         return rocblas_status_not_implemented;
-    }
 
     size_t blockSize            = 128;
     size_t tri_elements_to_zero = num_non_tri_elements(n) * sub_batch_count;

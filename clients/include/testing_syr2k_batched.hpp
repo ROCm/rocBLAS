@@ -384,21 +384,21 @@ void testing_syr2k_batched(const Arguments& arg)
         rocblas_gflops
             = batch_count * syrXX_gflop_count_fn(N, K) * number_hot_calls / gpu_time_used * 1e6;
 
-        std::cout << "uplo,transA,N,K,alpha,lda,ldb,beta,ldc,batch_count,rocblas-Gflops,us";
+        rocblas_cout << "uplo,transA,N,K,alpha,lda,ldb,beta,ldc,batch_count,rocblas-Gflops,us";
 
         if(arg.norm_check)
-            std::cout << ",CPU-Gflops,us,norm-error";
+            rocblas_cout << ",CPU-Gflops,us,norm-error";
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
 
-        std::cout << arg.uplo << "," << arg.transA << "," << N << "," << K << ","
-                  << arg.get_alpha<T>() << "," << lda << "," << ldb << "," << arg.get_beta<T>()
-                  << "," << ldc << "," << batch_count << "," << rocblas_gflops << ","
-                  << gpu_time_used / number_hot_calls;
+        rocblas_cout << arg.uplo << "," << arg.transA << "," << N << "," << K << ","
+                     << arg.get_alpha<T>() << "," << lda << "," << ldb << "," << arg.get_beta<T>()
+                     << "," << ldc << "," << batch_count << "," << rocblas_gflops << ","
+                     << gpu_time_used / number_hot_calls;
 
         if(arg.norm_check)
-            std::cout << "," << cblas_gflops << "," << cpu_time_used << "," << rocblas_error;
+            rocblas_cout << "," << cblas_gflops << "," << cpu_time_used << "," << rocblas_error;
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
     }
 }

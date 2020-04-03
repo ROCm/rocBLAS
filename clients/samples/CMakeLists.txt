@@ -22,7 +22,6 @@ endif( )
 set( sample_list ${sample_list_base} ${sample_list_tensile} )
 foreach( exe ${sample_list} )
   target_link_libraries( ${exe} PRIVATE roc::rocblas )
-  target_compile_features( ${exe} PRIVATE cxx_static_assert cxx_nullptr cxx_auto_type )
 
   set_target_properties( ${exe} PROPERTIES CXX_EXTENSIONS NO )
   set_target_properties( ${exe} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )
@@ -72,5 +71,3 @@ if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
   # include order workaround to force /opt/rocm/include later in order to ignore installed rocblas
   set(CMAKE_CXX_FLAGS "-isystem /opt/rocm/include ${CMAKE_CXX_FLAGS}")
 endif()
-
-

@@ -5,6 +5,7 @@
 #ifndef ROCBLAS_TEST_H_
 #define ROCBLAS_TEST_H_
 
+#include "argument_model.hpp"
 #include "rocblas.h"
 #include "rocblas_arguments.hpp"
 #include "test_cleanup.hpp"
@@ -18,6 +19,12 @@
 #include <type_traits>
 #include <unordered_map>
 #include <utility>
+
+// Suppress warnings about hipMalloc(), hipFree() except in rocblas-test and rocblas-bench
+#if !defined(GOOGLE_TEST) && !defined(ROCBLAS_BENCH)
+#undef hipMalloc
+#undef hipFree
+#endif
 
 #ifdef GOOGLE_TEST
 #include <gtest/gtest.h>
@@ -55,27 +62,23 @@ inline void rocblas_expect_status(rocblas_status status, rocblas_status expect)
 {
     if(status != expect)
     {
-        std::cerr << "rocBLAS status error: Expected " << rocblas_status_to_string(expect)
-                  << ", received " << rocblas_status_to_string(status) << std::endl;
+        rocblas_cerr << "rocBLAS status error: Expected " << rocblas_status_to_string(expect)
+                     << ", received " << rocblas_status_to_string(status) << std::endl;
         if(expect == rocblas_status_success)
             exit(EXIT_FAILURE);
     }
 }
 
-#define CHECK_HIP_ERROR(ERROR)                    \
-    do                                            \
-    {                                             \
-        auto error = ERROR;                       \
-        if(error != hipSuccess)                   \
-        {                                         \
-            fprintf(stderr,                       \
-                    "error: '%s'(%d) at %s:%d\n", \
-                    hipGetErrorString(error),     \
-                    error,                        \
-                    __FILE__,                     \
-                    __LINE__);                    \
-            exit(EXIT_FAILURE);                   \
-        }                                         \
+#define CHECK_HIP_ERROR(ERROR)                                                     \
+    do                                                                             \
+    {                                                                              \
+        auto error = ERROR;                                                        \
+        if(error != hipSuccess)                                                    \
+        {                                                                          \
+            rocblas_cerr << "error: " << hipGetErrorString(error) << " (" << error \
+                         << ") at " __FILE__ ":" << __LINE__ << std::endl;         \
+            rocblas_abort();                                                       \
+        }                                                                          \
     } while(0)
 
 #define CHECK_DEVICE_ALLOCATION(ERROR)
@@ -151,15 +154,15 @@ public:
 
         // Warn about unset letter parameters
         if(name.find('*') != name.npos)
-            fputs("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-                  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
-                  "Warning: Character * found in name."
-                  " This means a required letter parameter\n"
-                  "(e.g., transA, diag, etc.) has not been set in the YAML file."
-                  " Check the YAML file.\n"
-                  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-                  "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n",
-                  stderr);
+            rocblas_cerr << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+                            "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
+                            "Warning: Character * found in name."
+                            " This means a required letter parameter\n"
+                            "(e.g., transA, diag, etc.) has not been set in the YAML file."
+                            " Check the YAML file.\n"
+                            "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+                            "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
+                         << std::endl;
 
         // Replace non-alphanumeric characters with letters
         std::replace(name.begin(), name.end(), '-', 'n'); // minus
@@ -264,13 +267,13 @@ struct rocblas_test_invalid
     // If this specialization is actually called, print fatal error message
     virtual void operator()(const Arguments&) final
     {
-        static constexpr char msg[] = "Internal error: Test called with invalid types\n";
+        static constexpr char msg[] = "Internal error: Test called with invalid types";
 
 #ifdef GOOGLE_TEST
         FAIL() << msg;
 #else
-        fputs(msg, stderr);
-        exit(EXIT_FAILURE);
+        rocblas_cerr << msg << std::endl;
+        rocblas_abort();
 #endif
     }
 };

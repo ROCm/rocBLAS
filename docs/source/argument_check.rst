@@ -123,10 +123,10 @@ rocBLAS control flow:
 11. If all checks above pass, launch the kernel and return ``rocblas_status_success``.
 
 
-Legacy L1 BLAS “single vector”
+Legacy L1 BLAS "single vector"
 ==============================
 
-Below are four code snippets from NETLIB for “single vector” legacy L1 BLAS. They have quick-return-success for (n <= 0) || (incx <= 0)
+Below are four code snippets from NETLIB for "single vector" legacy L1 BLAS. They have quick-return-success for (n <= 0) || (incx <= 0)
 
 .. code-block:: bash
 
@@ -214,7 +214,7 @@ We need to change this to
         if(!alpha || !x)
             return rocblas_status_invalid_pointer;
 
-Legacy L1 BLAS “two vector”
+Legacy L1 BLAS "two vector"
 ===========================
 
 Below are seven legacy L1 BLAS codes from NETLIB. There is quick-return-success for (n <= 0). In addition, for DAXPY, there is quick-return-success for (alpha == 0)

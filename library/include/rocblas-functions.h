@@ -115,7 +115,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdscal(rocblas_handle          handle,
 
 /*! \brief BLAS Level 1 API
      \details
-    scal_batched  scales each element of vector x_i with scalar alpha, for i = 1, … , batch_count.
+    scal_batched  scales each element of vector x_i with scalar alpha, for i = 1, ... , batch_count.
 
          x_i := alpha * x_i
 
@@ -182,7 +182,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdscal_batched(rocblas_handle             
 
 /*! \brief BLAS Level 1 API
      \details
-    scal_strided_batched  scales each element of vector x_i with scalar alpha, for i = 1, … , batch_count.
+    scal_strided_batched  scales each element of vector x_i with scalar alpha, for i = 1, ... , batch_count.
 
          x_i := alpha * x_i ,
 
@@ -262,7 +262,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdscal_strided_batched(rocblas_handle     
 /*! \brief BLAS Level 1 API
 
     \details
-    copy  copies each element x[i] into y[i], for  i = 1 , … , n
+    copy  copies each element x[i] into y[i], for  i = 1 , ... , n
 
         y := x,
 
@@ -316,7 +316,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zcopy(rocblas_handle                handle
 /*! \brief BLAS Level 1 API
 
     \details
-    copy_batched copies each element x_i[j] into y_i[j], for  j = 1 , … , n; i = 1 , … , batch_count
+    copy_batched copies each element x_i[j] into y_i[j], for  j = 1 , ... , n; i = 1 , ... , batch_count
 
         y_i := x_i,
 
@@ -380,7 +380,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zcopy_batched(rocblas_handle              
 /*! \brief BLAS Level 1 API
 
     \details
-    copy_strided_batched copies each element x_i[j] into y_i[j], for  j = 1 , … , n; i = 1 , … , batch_count
+    copy_strided_batched copies each element x_i[j] into y_i[j], for  j = 1 , ... , n; i = 1 , ... , batch_count
 
         y_i := x_i,
 
@@ -8946,7 +8946,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyr(rocblas_handle                handle,
         A[i] := A[i] + alpha*x[i]*x[i]**T
 
     where alpha is a scalar, x is an array of vectors, and A is an array of
-    n by n symmetric matrices, for i = 1 , … , batch_count
+    n by n symmetric matrices, for i = 1 , ... , batch_count
 
     @param[in]
     handle    [rocblas_handle]
@@ -9026,7 +9026,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyr_batched(rocblas_handle               
         A[i] := A[i] + alpha*x[i]*x[i]**T
 
     where alpha is a scalar, vectors, and A is an array of
-    n by n symmetric matrices, for i = 1 , … , batch_count
+    n by n symmetric matrices, for i = 1 , ... , batch_count
 
     @param[in]
     handle    [rocblas_handle]
@@ -9207,7 +9207,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyr2(rocblas_handle                handle
         A[i] := A[i] + alpha*x[i]*y[i]**T + alpha*y[i]*x[i]**T
 
     where alpha is a scalar, x[i] and y[i] are vectors, and A[i] is a
-    n by n symmetric matrix, for i = 1 , … , batch_count
+    n by n symmetric matrix, for i = 1 , ... , batch_count
 
     @param[in]
     handle    [rocblas_handle]
@@ -9300,7 +9300,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyr2_batched(rocblas_handle              
         A[i] := A[i] + alpha*x[i]*y[i]**T + alpha*y[i]*x[i]**T
 
     where alpha is a scalar, x[i] and y[i] are vectors, and A[i] is a
-    n by n symmetric matrices, for i = 1 , … , batch_count
+    n by n symmetric matrices, for i = 1 , ... , batch_count
 
     @param[in]
     handle    [rocblas_handle]

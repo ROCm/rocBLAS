@@ -47,12 +47,12 @@ endif()
 set( rocblas_benchmark_common
       ../common/utility.cpp
       ../common/cblas_interface.cpp
+      ../common/rocblas_arguments.cpp
       ${BLIS_CPP}
       ../common/rocblas_parse_data.cpp
     )
 
 add_executable( rocblas-bench client.cpp ${rocblas_benchmark_common} )
-target_compile_features( rocblas-bench PRIVATE cxx_static_assert cxx_nullptr cxx_auto_type)
 
 if( BUILD_WITH_TENSILE )
     target_compile_definitions( rocblas-bench PRIVATE BUILD_WITH_TENSILE=1 )
@@ -73,7 +73,7 @@ set( BLIS_LIBRARY ${CMAKE_SOURCE_DIR}/build/deps/blis/lib/libblis.so )
 if( OS_ID_rhel OR OS_ID_sles OR OS_ID_centos)
     if( OS_ID_rhel OR OS_ID_centos)
         if( CXX_VERSION_STRING MATCHES "clang")
-	    set( OPENMP_INCLUDE_DIR /opt/rh/devtoolset-7/root/usr/lib/gcc/x86_64-redhat-linux/7/include )
+           set( OPENMP_INCLUDE_DIR /opt/rh/devtoolset-7/root/usr/lib/gcc/x86_64-redhat-linux/7/include )
         endif()
         # defer OpenMP include as search order must come after clang
         set( XXX_OPENMP_INCLUDE_DIR /opt/rh/devtoolset-7/root/usr/lib/gcc/x86_64-redhat-linux/7/include )
@@ -165,3 +165,4 @@ set_target_properties( rocblas-bench PROPERTIES CXX_EXTENSIONS NO )
 set_target_properties( rocblas-bench PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )
 add_dependencies( rocblas-bench rocblas-common )
 add_subdirectory ( ./perf_script )
+target_compile_options( rocblas-bench PRIVATE -DROCBLAS_BENCH )

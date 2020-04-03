@@ -697,11 +697,13 @@ namespace
         // If not large enough, indicate degraded performance and ignore supplied invA
         if(supplied_invA && supplied_invA_size / BLOCK < m)
         {
-            static int msg = fputs("WARNING: TRSV invA_size argument is too small; invA argument "
-                                   "is being ignored; TRSV performance is degraded\n",
-                                   stderr);
-            perf_status    = rocblas_status_perf_degraded;
-            supplied_invA  = nullptr;
+            static int msg
+                = (rocblas_cerr << "WARNING: TRSV invA_size argument is too small; invA argument "
+                                   "is being ignored; TRSV performance is degraded"
+                                << std::endl,
+                   0);
+            perf_status   = rocblas_status_perf_degraded;
+            supplied_invA = nullptr;
         }
 
         if(!supplied_invA)
