@@ -27,6 +27,7 @@ Usage:
 \t\t-d          device number (default: 0)
 \t\t-g          generate graphs via Asymptote: 0(default) or 1
 \t\t-S          plot speedup (default: 1, disabled: 0)
+\t\t-X          do not generate figures
 '''
 
 # \t\t-t          data type: gflops #Maybe use option to plot time graphs too
@@ -60,6 +61,7 @@ class rundata:
         self.alpha = data['alpha']
         self.beta = data['beta']
         self.iters = data['iters']
+        self.cold_iters = data['cold_iters']
         self.samples = data['samples']
         self.lda = data['lda']
         self.ldb = data['ldb']
@@ -109,6 +111,9 @@ class rundata:
 
         cmd.append("-i")
         cmd.append(str(self.iters))
+
+        cmd.append("-j")
+        cmd.append(str(self.cold_iters))
 
         cmd.append("-a")
         cmd.append(str(self.samples))
@@ -403,7 +408,7 @@ def getLabel(test):
         return 'alpha '+str(test['alpha'])+' incx '+str(test['incx'])+' incy '+str(test['incy'])
     elif  test['function']=='gemv':
         return 'transA ' + test['transA']+' incx '+str(test['incx'])+' incy '+str(test['incy'])
-    elif test['function'] in ['dot', 'copy', 'swap']:
+    elif test['function'] in ['dot', 'copy', 'swap', 'ger', 'gerc', 'geru']:
         return 'incx '+str(test['incx'])+' incy '+str(test['incy'])
     elif test['function'] in ['asum', 'nrm2', 'scal']:
         return 'incx '+str(test['incx'])
@@ -421,7 +426,7 @@ def getXLabel(test):
         return 'M=N=K=lda=ldb=ldc'
     elif  test.function in ['axpy', 'asum', 'dot', 'copy', 'nrm2', 'scal', 'swap']:
         return 'N'
-    elif  test.function=='gemv':
+    elif  test.function in ['gemv', 'ger', 'gerc', 'geru']:
         return 'M=N=lda'
     elif  test.function=='trsm':
         if test.side == 'R':
@@ -481,10 +486,11 @@ def main(argv):
     docformat = "pdf"
     devicenum = 0
     doAsy = False
+    noFigures = False
     nsample = 10
 
     try:
-        opts, args = getopt.getopt(argv,"hA:f:B:Tt:a:b:o:S:sg:d:N:i:")
+        opts, args = getopt.getopt(argv,"hA:f:B:Tt:a:b:o:S:sg:d:N:i:X")
     except getopt.GetoptError:
         print("error in parsing arguments.")
         print(usage)
@@ -507,6 +513,8 @@ def main(argv):
             dryrun = True
         # elif opt in ("-s"):
         #     shortrun = True
+        elif opt in ("-X"):
+            noFigures = True
         elif opt in ("-g"):
             if int(arg) == 0:
                 doAsy = False
@@ -604,6 +612,21 @@ def main(argv):
     f = open(inputYaml, 'r')
     data = yamldata(f)
     f.close()
+
+    #only generate data
+    if noFigures:
+        benchruns = []
+        for tests in data.testcases:
+            for test in tests:
+                for idx, lwdir in enumerate(dirlist):
+                    wdir = lwdir[0]
+                    odir = lwdir[1]
+                    label = getLabel(test)
+                    benchruns.append( rundata(wdir, odir, idx, label, test, hwinfo) )
+        for run in benchruns:
+            print(" ".join(run.runcmd(nsample)))
+            run.executerun(nsample)
+        return
 
     #setup tests sorted by their respectice figures
     for tests in data.testcases:

@@ -19,6 +19,7 @@ Usage:
 \t\t-I          make transform in-place
 \t\t-a <int>    number of samples used for median per problem size
 \t\t-i <int>    number of iterations averaged per sample
+\t\t-j <int>    number of cold/warmup iterations before timing iterations
 \t\t-o <string> name of output file
 \t\t-R          set transform to be real/complex or complex/real
 \t\t-w <string> set working directory for rocblas-bench
@@ -35,7 +36,7 @@ Usage:
 # \t\t-Z <int>    maximum problem size in Z direction
 
 def runcase(workingdir, mval, nval, kval, ntrial, precision, nbatch,
-            devicenum, logfilename, function, side, uplo, diag, transA, transB, alpha, beta, incx, incy, lda, ldb, ldc, iters):
+            devicenum, logfilename, function, side, uplo, diag, transA, transB, alpha, beta, incx, incy, lda, ldb, ldc, iters, cold_iters):
     progname = "rocblas-bench"
     prog = os.path.join(workingdir, progname)
 
@@ -92,6 +93,10 @@ def runcase(workingdir, mval, nval, kval, ntrial, precision, nbatch,
 
     cmd.append("-i")
     cmd.append(str(iters))
+
+    if (cold_iters >= 0):
+        cmd.append("-j")
+        cmd.append(str(cold_iters))
 
     cmd.append("-r")
     cmd.append(precision)
@@ -174,6 +179,7 @@ def main(argv):
     mmax = 1
     ntrial = 1
     iters = 1
+    cold_iters = -1  # default to not set
     outfilename = "timing.dat"
     precision = "f32_r"
     nbatch = 1
@@ -203,7 +209,7 @@ def main(argv):
 
     try:
         print(argv)
-        opts, args = getopt.getopt(argv,"hb:d:I:i:o:Rt:w:m:n:k:M:N:K:y:Y:z:Z:f:r:g:p:s:a:x", ["side=", "uplo=", "diag=", "incx=", "incy=",
+        opts, args = getopt.getopt(argv,"hb:d:I:i:j:o:Rt:w:m:n:k:M:N:K:y:Y:z:Z:f:r:g:p:s:a:x", ["side=", "uplo=", "diag=", "incx=", "incy=",
          "alpha=", "beta=", "transA=", "transB=", "lda=", "ldb=", "ldc=", "LDA=", "LDB=", "LDC=", "initialization="])
     except getopt.GetoptError:
         print("error in parsing arguments.")
@@ -227,6 +233,8 @@ def main(argv):
             workingdir = arg
         elif opt in ("-i"):
             iters = int(arg)
+        elif opt in ("-j"):
+            cold_iters = int(arg)
         elif opt in ("-a"):
             ntrial = int(arg)
         elif opt in ("-m"):
@@ -319,7 +327,7 @@ def main(argv):
     done = False
     while(not done):
         us, gf, bw = runcase(workingdir, mval, nval, kval, ntrial,
-                          precision, nbatch, devicenum, logfilename, function, side, uplo, diag, transA, transB, alpha, beta, incx, incy, lda, ldb, ldc, iters)
+                          precision, nbatch, devicenum, logfilename, function, side, uplo, diag, transA, transB, alpha, beta, incx, incy, lda, ldb, ldc, iters, cold_iters)
         #print(seconds)
         with open(outfilename, 'a') as outfile:
             if function == 'trsm':
