@@ -373,6 +373,16 @@ include( GenerateExportHeader )
 set_target_properties( rocblas PROPERTIES CXX_VISIBILITY_PRESET "hidden" VISIBILITY_INLINES_HIDDEN ON )
 generate_export_header( rocblas EXPORT_FILE_NAME ${PROJECT_BINARY_DIR}/include/rocblas-export.h )
 
+# generate header with prototypes for export reuse
+set( SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}" )
+set( ROCBLAS_PROTO_TEMPLATES "${SRC_DIR}/../include/rocblas-exported-proto.hpp" )
+add_custom_command( TARGET rocblas PRE_BUILD
+  COMMAND python template-proto.py ${SRC_DIR}/blas3/Tensile/*.hpp ${SRC_DIR}/blas3/*.hpp ${SRC_DIR}/blas2/*.hpp ${SRC_DIR}/blas1/*.hpp > ${ROCBLAS_PROTO_TEMPLATES}
+  DEPENDS ${SRC_DIR}
+  COMMENT "Generating prototypes from ${SRC_DIR}."
+  WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+)
+
 # Following Boost conventions of prefixing 'lib' on static built libraries, across all platforms
 if( NOT BUILD_SHARED_LIBS )
   set_target_properties( rocblas PROPERTIES PREFIX "lib" )

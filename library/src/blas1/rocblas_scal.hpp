@@ -3,7 +3,6 @@
  * ************************************************************************ */
 #include "handle.h"
 #include "rocblas.h"
-#include "utility.h"
 
 template <typename T, typename U, typename V>
 __global__ void rocblas_scal_kernel(rocblas_int    n,
@@ -24,15 +23,15 @@ __global__ void rocblas_scal_kernel(rocblas_int    n,
 }
 
 template <rocblas_int NB, typename T, typename U, typename V>
-rocblas_status rocblas_scal_template(rocblas_handle handle,
-                                     rocblas_int    n,
-                                     const V*       alpha,
-                                     rocblas_stride stride_alpha,
-                                     U              x,
-                                     rocblas_int    offsetx,
-                                     rocblas_int    incx,
-                                     rocblas_stride stridex,
-                                     rocblas_int    batch_count)
+ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_scal_template(rocblas_handle handle,
+                                                             rocblas_int    n,
+                                                             const V*       alpha,
+                                                             rocblas_stride stride_alpha,
+                                                             U              x,
+                                                             rocblas_int    offsetx,
+                                                             rocblas_int    incx,
+                                                             rocblas_stride stridex,
+                                                             rocblas_int    batch_count)
 {
     // Quick return if possible. Not Argument error
     if(n <= 0 || incx <= 0 || batch_count <= 0)
