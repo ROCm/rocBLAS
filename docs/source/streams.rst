@@ -14,7 +14,7 @@ hipSetDevice() & hipGetDevice() are HIP device management APIs. They are
 NOT part of the rocBLAS API.
 
 Before a HIP kernel invocation, users need to call hipSetDevice() to set
-a device, e.g. device 1. If users do not explicitly call it, the system
+a device, e.g. device 1. If users do not explicitly call it, the system
 by default sets it as device 0. Unless users explicitly call
 hipSetDevice() to set to another device, their HIP kernels are always
 launched on device 0.
@@ -27,9 +27,9 @@ Once users set the device, they create a handle with
 ``rocblas_status rocblas_create_handle(rocblas_handle *handle)``
 
 Subsequent rocBLAS routines take this handle as an input parameter.
-rocBLAS ONLY queries (by hipGetDevice) the user’s device; rocBLAS
+rocBLAS ONLY queries (by hipGetDevice) the user's device; rocBLAS
 does NOT set the device for users. If rocBLAS does not see a valid
-device, it returns an error message to users. It is the users’
+device, it returns an error message to users. It is the users'
 responsibility to provide a valid device to rocBLAS and ensure the
 device safety as explained soon.
 

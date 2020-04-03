@@ -10,16 +10,41 @@
 #include "rocblas_vector.hpp"
 #include "utility.hpp"
 #include <cstdio>
+#include <sstream>
 #include <thread>
-
-constexpr size_t NTIMES  = 100; // Number of times the tests are repeated across files
-constexpr size_t NLINES  = 10000; // Number of lines each thread outputs
-constexpr size_t MAXLEN  = 2000; // Maximum length of random strings
-constexpr size_t NTHREAD = 16; // Number of threads to run simultaneously
-constexpr size_t SIGLEN  = 16; // Number of characters in signature
 
 inline void testing_ostream_threadsafety(const Arguments& arg)
 {
+    constexpr size_t NTIMES  = 100; // Number of times the tests are repeated across files
+    constexpr size_t NLINES  = 10000; // Number of lines each thread outputs
+    constexpr size_t MAXLEN  = 2000; // Maximum length of random strings
+    constexpr size_t NTHREAD = 16; // Number of threads to run simultaneously
+    constexpr size_t SIGLEN  = 16; // Number of characters in signature
+
+    // Signature for detecting garbled output
+    auto sig = [](const std::string& s) {
+        char h[SIGLEN + 1];
+        snprintf(h, sizeof(h), "%0*zX", int(SIGLEN), tuple_helper::hash(s));
+        return std::string(h);
+    };
+
+    // Verify that the signature matches the string
+    auto check_sig
+        = [&](const std::string& s) { return s.substr(0, SIGLEN) == sig(s.substr(SIGLEN)); };
+
+    // Each thread writes random strings with signature checksums
+    auto thread_func = [&](int fd) {
+        rocblas_ostream os(fd);
+        for(size_t i = 0; i < NLINES; ++i)
+        {
+            // Random ASCII string
+            auto s = random_string(MAXLEN);
+
+            // Write the signature followed by the random string, flushing at the end
+            os << sig(s) << s << std::endl;
+        }
+    };
+
     rocblas_seedrand();
 
     for(size_t n = 0; n < NTIMES; ++n)
@@ -33,34 +58,10 @@ inline void testing_ostream_threadsafety(const Arguments& arg)
             return;
         }
 
-        // Signature for detecting garbled output
-        auto sig = [](const std::string& s) {
-            char h[SIGLEN + 1];
-            snprintf(h, sizeof(h), "%0*zX", int(SIGLEN), tuple_helper::hash(s));
-            return std::string(h);
-        };
-
-        // Verify that the signature matches the string
-        auto check_sig
-            = [&sig](const std::string& s) { return s.substr(0, SIGLEN) == sig(s.substr(SIGLEN)); };
-
-        // Each thread writes random strings with signature checksums
-        auto thread_func = [&sig](rocblas_ostream os) {
-            for(size_t i = 0; i < NLINES; ++i)
-            {
-                // Random ASCII string
-                auto s = random_string(MAXLEN);
-
-                // Write the signature followed by the random string, flushing at the end
-                os << sig(s) << s << std::endl;
-            }
-        };
-
-        std::thread threads[NTHREAD];
-
         // Launch NTHREAD threads, creating a rocblas_ostream for each thread by duplicating fd
+        std::thread threads[NTHREAD];
         for(auto& t : threads)
-            t = std::thread(thread_func, rocblas_ostream(fd));
+            t = std::thread(thread_func, fd);
 
         // Close the original file descriptor
         if(close(fd))
