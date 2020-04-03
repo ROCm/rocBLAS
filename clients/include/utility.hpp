@@ -34,9 +34,9 @@
 #if defined(GOOGLE_TEST) || defined(ROCBLAS_BENCH)
 #undef stdout
 #undef stderr
-#pragma GCC poison cout cerr clog stdout stderr gets puts putchar fputs fprintf printf sprintf   \
-    vfprintf vprintf vsprintf perror strerror strtok abort gmtime ctime asctime localtime tmpnam \
-        putenv clearenv fcloseall ecvt fcvt
+#pragma GCC poison cout cerr clog stdout stderr gets puts putchar fputs fprintf printf sprintf    \
+    vfprintf vprintf vsprintf perror strerror strtok gmtime ctime asctime localtime tmpnam putenv \
+        clearenv fcloseall ecvt fcvt
 #endif
 
 static constexpr char LIMITED_MEMORY_STRING[]
