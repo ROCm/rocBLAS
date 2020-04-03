@@ -63,13 +63,13 @@ inline void testing_ostream_threadsafety(const Arguments& arg)
         for(auto& t : threads)
             t = std::thread(thread_func, fd);
 
-        // Close the original file descriptor
-        if(close(fd))
-            FAIL() << "Could not close filehandle for " << path;
-
         // Wait for the threads to exit
         for(auto& t : threads)
             t.join();
+
+        // Close the original file descriptor
+        if(close(fd))
+            FAIL() << "Could not close filehandle for " << path;
 
         // Reopen the file to check its integrity
         std::ifstream is(path);
