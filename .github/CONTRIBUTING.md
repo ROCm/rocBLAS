@@ -498,3 +498,6 @@ public:
 
 
 23. Automatically-generated files should always go into `build/` directories, and should not go into source directories (even if marked `.gitignore`). The CMake philosophy is such that you can create any `build/` directory, run `cmake` from there, and then have a self-contained build environment which will not touch any files outside of it.
+
+
+24. The `library/include` subdirectory of rocBLAS, to be distinguished from the `library/src/include` subdirectory, shall consist only of C-compatible header files for public rocBLAS APIs. It should not include internal APIs, even if they are used in other projects, e.g., rocSOLVER, and the headers must be compilable with a C compiler, and must use `.h` extensions.
