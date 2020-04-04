@@ -803,3 +803,6 @@ Coding Guidelines
         model.func();
 
   The former denotes the rocBLAS arguments as a list which is passed as a variadic template argument, and whose properties are known and can be optimized at compile-time, and which can be passed on as arguments to other templates, while the latter requires creating a dynamically-allocated runtime object which must be interpreted at runtime, such as by using ``switch`` statements on the arguments. The ``switch`` statement will need to list out and handle every possible argument, while the template solution simply passes the argument as another template argument, and hence can be resolved at compile-time.
+
+
+23. Automatically-generated files should always go into ``build/`` directories, and should not go into source directories (even if marked ``.gitignore``). The CMake philosophy is such that you can create any ``build/`` directory, run ``cmake`` from there, and then have a self-contained build environment which will not touch any files outside of it.
