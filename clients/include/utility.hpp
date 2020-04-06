@@ -8,7 +8,6 @@
 #include "cblas_interface.hpp"
 #include "logging.h"
 #include "rocblas.h"
-#include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
 #include "utility.h"
 #include <cstdio>
@@ -36,7 +35,11 @@
 #undef stderr
 #pragma GCC poison cout cerr clog stdout stderr gets puts putchar fputs fprintf printf sprintf    \
     vfprintf vprintf vsprintf perror strerror strtok gmtime ctime asctime localtime tmpnam putenv \
-        clearenv fcloseall ecvt fcvt
+        clearenv fcloseall ecvt fcvt sleep abort
+#else
+// Suppress warnings about hipMalloc(), hipFree() except in rocblas-test and rocblas-bench
+#undef hipMalloc
+#undef hipFree
 #endif
 
 static constexpr char LIMITED_MEMORY_STRING[]
