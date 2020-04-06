@@ -49,42 +49,64 @@ namespace
             auto transA_letter = rocblas_transpose_letter(transA);
             auto transB_letter = rocblas_transpose_letter(transB);
 
-            if(layer_mode & rocblas_layer_mode_log_trace)
-                log_trace(handle,
-                          rocblas_geam_name<T>,
-                          transA,
-                          transB,
-                          m,
-                          n,
-                          log_trace_scalar_value(alpha),
-                          A,
-                          lda,
-                          log_trace_scalar_value(beta),
-                          B,
-                          ldb,
-                          C,
-                          ldc);
+            if(handle->pointer_mode == rocblas_pointer_mode_host)
+            {
+                if(layer_mode & rocblas_layer_mode_log_trace)
+                    log_trace(handle,
+                              rocblas_geam_name<T>,
+                              transA,
+                              transB,
+                              m,
+                              n,
+                              log_trace_scalar_value(alpha),
+                              A,
+                              lda,
+                              log_trace_scalar_value(beta),
+                              B,
+                              ldb,
+                              C,
+                              ldc);
 
-            if(layer_mode & rocblas_layer_mode_log_bench)
-                log_bench(handle,
-                          "./rocblas-bench -f geam -r",
-                          rocblas_precision_string<T>,
-                          "--transposeA",
-                          transA_letter,
-                          "--transposeB",
-                          transB_letter,
-                          "-m",
-                          m,
-                          "-n",
-                          n,
-                          LOG_BENCH_SCALAR_VALUE(alpha),
-                          "--lda",
-                          lda,
-                          LOG_BENCH_SCALAR_VALUE(beta),
-                          "--ldb",
-                          ldb,
-                          "--ldc",
-                          ldc);
+                if(layer_mode & rocblas_layer_mode_log_bench)
+                    log_bench(handle,
+                              "./rocblas-bench -f geam -r",
+                              rocblas_precision_string<T>,
+                              "--transposeA",
+                              transA_letter,
+                              "--transposeB",
+                              transB_letter,
+                              "-m",
+                              m,
+                              "-n",
+                              n,
+                              LOG_BENCH_SCALAR_VALUE(alpha),
+                              "--lda",
+                              lda,
+                              LOG_BENCH_SCALAR_VALUE(beta),
+                              "--ldb",
+                              ldb,
+                              "--ldc",
+                              ldc);
+            }
+            else
+            {
+                if(layer_mode & rocblas_layer_mode_log_trace)
+                    log_trace(handle,
+                              rocblas_geam_name<T>,
+                              transA,
+                              transB,
+                              m,
+                              n,
+                              alpha,
+                              A,
+                              lda,
+                              alpha,
+                              B,
+                              ldb,
+                              C,
+                              ldc);
+            }
+
             if(layer_mode & rocblas_layer_mode_log_profile)
                 log_profile(handle,
                             rocblas_geam_name<T>,
