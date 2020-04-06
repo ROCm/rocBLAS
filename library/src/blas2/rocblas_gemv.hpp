@@ -8,27 +8,27 @@
 #include "rocblas.h"
 
 template <typename T, typename U, typename V, typename W>
-rocblas_status rocblas_gemv_template(rocblas_handle    handle,
-                                     rocblas_operation transA,
-                                     rocblas_int       m,
-                                     rocblas_int       n,
-                                     const U*          alpha,
-                                     rocblas_stride    stride_alpha,
-                                     const V*          A,
-                                     rocblas_int       offseta,
-                                     rocblas_int       lda,
-                                     rocblas_stride    strideA,
-                                     const V*          x,
-                                     rocblas_int       offsetx,
-                                     rocblas_int       incx,
-                                     rocblas_stride    stridex,
-                                     const U*          beta,
-                                     rocblas_stride    stride_beta,
-                                     W*                y,
-                                     rocblas_int       offsety,
-                                     rocblas_int       incy,
-                                     rocblas_stride    stridey,
-                                     rocblas_int       batch_count)
+ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_gemv_template(rocblas_handle    handle,
+                                                             rocblas_operation transA,
+                                                             rocblas_int       m,
+                                                             rocblas_int       n,
+                                                             const U*          alpha,
+                                                             rocblas_stride    stride_alpha,
+                                                             const V*          A,
+                                                             rocblas_int       offseta,
+                                                             rocblas_int       lda,
+                                                             rocblas_stride    strideA,
+                                                             const V*          x,
+                                                             rocblas_int       offsetx,
+                                                             rocblas_int       incx,
+                                                             rocblas_stride    stridex,
+                                                             const U*          beta,
+                                                             rocblas_stride    stride_beta,
+                                                             W*                y,
+                                                             rocblas_int       offsety,
+                                                             rocblas_int       incy,
+                                                             rocblas_stride    stridey,
+                                                             rocblas_int       batch_count)
 {
     //quick return
     if(!m || !n || !batch_count)

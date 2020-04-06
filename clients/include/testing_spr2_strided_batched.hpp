@@ -311,21 +311,21 @@ void testing_spr2_strided_batched(const Arguments& arg)
         rocblas_bandwidth = batch_count * (5.0 * N * (N + 1)) / 2 * sizeof(T) / gpu_time_used / 1e3;
 
         // only norm_check return an norm error, unit check won't return anything
-        std::cout << "N,alpha,incx,incy,stride_x,stride_y,stride_A,batch_count,rocblas-Gflops,"
-                     "rocblas-GB/s";
+        rocblas_cout << "N,alpha,incx,incy,stride_x,stride_y,stride_A,batch_count,rocblas-Gflops,"
+                        "rocblas-GB/s";
 
         if(arg.norm_check)
-            std::cout << ",CPU-Gflops,norm_error_host_ptr,norm_error_dev_ptr";
+            rocblas_cout << ",CPU-Gflops,norm_error_host_ptr,norm_error_dev_ptr";
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
 
-        std::cout << N << "," << h_alpha << "," << incx << "," << incy << "," << stride_x << ","
-                  << stride_y << "," << stride_A << "," << batch_count << "," << rocblas_gflops
-                  << "," << rocblas_bandwidth;
+        rocblas_cout << N << "," << h_alpha << "," << incx << "," << incy << "," << stride_x << ","
+                     << stride_y << "," << stride_A << "," << batch_count << "," << rocblas_gflops
+                     << "," << rocblas_bandwidth;
 
         if(arg.norm_check)
-            std::cout << "," << cblas_gflops << "," << rocblas_error_1 << "," << rocblas_error_2;
+            rocblas_cout << "," << cblas_gflops << "," << rocblas_error_1 << "," << rocblas_error_2;
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
     }
 }

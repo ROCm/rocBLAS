@@ -5,7 +5,6 @@
 /*********************************************************
  * Declaration of the rocBLAS<->Tensile interface layer. *
  *********************************************************/
-#pragma once
 #ifndef __TENSILE_HOST_HPP__
 #define __TENSILE_HOST_HPP__
 
@@ -22,10 +21,7 @@
  *****************************************************************************/
 
 #include "handle.h"
-#include <cmath>
-#include <cstdio>
-#include <cstring>
-#include <iomanip>
+#include "tuple_helper.hpp"
 #include <ostream>
 
 /**************************************************************************
@@ -82,6 +78,9 @@ struct RocblasContractionProblem
     size_t batch_stride_d;
 
     size_t batch_count;
+
+    // Functions to print RocblasContractionProblem out to stream in YAML format
+    friend rocblas_ostream& operator<<(rocblas_ostream& os, const RocblasContractionProblem& prob);
 
     // gemm
     // gemm_strided_batched
@@ -237,94 +236,53 @@ struct RocblasContractionProblem
     {
     }
 
-    // print_value is for formatting different data types
-
-    // Default output
-    template <typename T>
-    static void print_value(std::ostream& str, const T& x)
+    /***************************************************
+     * Print a RocblasContractionProblem for debugging *
+     ***************************************************/
+    friend rocblas_ostream& operator<<(rocblas_ostream& os, const RocblasContractionProblem& prob)
     {
-        str << x;
-    }
-
-    // Floating-point output
-    static void print_value(std::ostream& str, double x)
-    {
-        if(std::isnan(x))
-            str << ".nan";
-        else if(std::isinf(x))
-            str << (x < 0 ? "-.inf" : ".inf");
-        else
-        {
-            char s[32];
-            snprintf(s, sizeof(s) - 2, "%.17g", x);
-
-            // If no decimal point or exponent, append .0
-            char* end = s + strcspn(s, ".eE");
-            if(!*end)
-                strcat(end, ".0");
-            str << s;
-        }
-    }
-
-    // Character output
-    static void print_value(std::ostream& str, char c)
-    {
-        char s[]{c, 0};
-        str << std::quoted(s, '\'');
-    }
-
-    // bool output
-    static void print_value(std::ostream& str, bool b)
-    {
-        str << (b ? "true" : "false");
-    }
-
-    // string output
-    static void print_value(std::ostream& str, const char* s)
-    {
-        str << std::quoted(s);
-    }
-
-    // Function to print Arguments out to stream in YAML format
-    friend std::ostream& operator<<(std::ostream& str, const RocblasContractionProblem& prob)
-    {
-        // delim starts as '{' opening brace and becomes ',' afterwards
-        auto print = [&, delim = '{'](const char* name, auto x) mutable {
-            str << delim << " " << name << ": ";
-            print_value(str, x);
-            delim = ',';
-        };
-
-#define PRINT(name, value) print(#name, value)
-
-        PRINT(a_type, rocblas_precision_string<Ti>);
-        PRINT(b_type, rocblas_precision_string<Ti>);
-        PRINT(c_type, rocblas_precision_string<To>);
-        PRINT(d_type, rocblas_precision_string<To>);
-        PRINT(compute_type, rocblas_precision_string<Tc>);
-        PRINT(transA, rocblas_transpose_letter(prob.trans_a));
-        PRINT(transB, rocblas_transpose_letter(prob.trans_b));
-        PRINT(M, prob.m);
-        PRINT(N, prob.n);
-        PRINT(K, prob.k);
-        PRINT(row_stride_a, prob.col_stride_a);
-        PRINT(col_stride_a, prob.col_stride_a);
-        PRINT(row_stride_b, prob.row_stride_b);
-        PRINT(col_stride_b, prob.col_stride_b);
-        PRINT(row_stride_c, prob.row_stride_c);
-        PRINT(col_stride_c, prob.col_stride_c);
-        PRINT(row_stride_d, prob.row_stride_d);
-        PRINT(col_stride_d, prob.col_stride_d);
-        PRINT(beta, value_category(prob.beta));
-        PRINT(batch_count, prob.batch_count);
-        PRINT(batch_stride_a, prob.batch_stride_a);
-        PRINT(batch_stride_b, prob.batch_stride_b);
-        PRINT(batch_stride_c, prob.batch_stride_c);
-        PRINT(batch_stride_d, prob.batch_stride_d);
-
-#undef PRINT
-        str << " }\n";
-        return str;
+        return tuple_helper::print_tuple_pairs(
+            os,
+            std::make_tuple("a_type",
+                            rocblas_precision_string<Ti>,
+                            "b_type",
+                            rocblas_precision_string<Ti>,
+                            "c_type",
+                            rocblas_precision_string<To>,
+                            "d_type",
+                            rocblas_precision_string<To>,
+                            "compute_type",
+                            rocblas_precision_string<Tc>,
+                            "transA",
+                            rocblas_transpose_letter(prob.trans_a),
+                            "transB",
+                            rocblas_transpose_letter(prob.trans_b),
+                            "M",
+                            prob.m,
+                            "N",
+                            prob.n,
+                            "K",
+                            prob.k,
+                            "lda",
+                            prob.ld_a,
+                            "ldb",
+                            prob.ld_b,
+                            "ldc",
+                            prob.ld_c,
+                            "ldd",
+                            prob.ld_d,
+                            "beta",
+                            value_category(prob.beta),
+                            "batch_count",
+                            prob.batch_count,
+                            "stride_a",
+                            prob.stride_a,
+                            "stride_b",
+                            prob.stride_b,
+                            "stride_c",
+                            prob.stride_c,
+                            "stride_d",
+                            prob.stride_d));
     }
 };
 

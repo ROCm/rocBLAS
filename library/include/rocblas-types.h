@@ -19,6 +19,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#define ROCBLAS_EXPORT_NOINLINE __attribute__((visibility("default"))) __attribute__((noinline))
+
 /*! \brief rocblas_handle is a structure holding the rocblas library context.
  * It must be initialized using rocblas_create_handle()
  * and the returned handle must be passed
@@ -130,6 +132,9 @@ typedef enum rocblas_status_
 
 /*! \brief Indicates the precision width of data stored in a blas type. */
 typedef enum rocblas_datatype_
+#if __cplusplus >= 201103L
+    : int
+#endif
 {
     rocblas_datatype_f16_r  = 150, /**< 16 bit floating point, real */
     rocblas_datatype_f32_r  = 151, /**< 32 bit floating point, real */

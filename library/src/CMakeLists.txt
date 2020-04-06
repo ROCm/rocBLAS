@@ -78,7 +78,6 @@ if( BUILD_WITH_TENSILE )
     # Create a unique name for Tensile compiled for rocBLAS
     set_target_properties( Tensile PROPERTIES OUTPUT_NAME tensile-rocblas CXX_EXTENSIONS NO )
 
-    target_compile_features( Tensile PRIVATE cxx_static_assert cxx_nullptr cxx_auto_type )
     # Remove this check when we no longer build with older rocm stack(ie < 1.8.2)
     if(TARGET hip::device)
       target_link_libraries( Tensile PRIVATE hip::device )
@@ -257,6 +256,7 @@ set( rocblas_auxiliary_source
   handle.cpp
   rocblas_auxiliary.cpp
   buildinfo.cpp
+  rocblas_ostream.cpp
 )
 
 set( rocblas_blas1_source
@@ -329,8 +329,6 @@ endif()
 
 set_target_properties( rocblas PROPERTIES CXX_STANDARD 14 CXX_STANDARD_REQUIRED ON )
 
-target_compile_definitions( rocblas PRIVATE ROCBLAS_LIBRARY_CHECKS )
-
 if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
   # Remove following when hcc is fixed; hcc emits following spurious warning ROCm v1.6.1
   # "clang-5.0: warning: argument unused during compilation: '-isystem /opt/rocm/include'"
@@ -373,6 +371,16 @@ set_target_properties( rocblas PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BI
 include( GenerateExportHeader )
 set_target_properties( rocblas PROPERTIES CXX_VISIBILITY_PRESET "hidden" VISIBILITY_INLINES_HIDDEN ON )
 generate_export_header( rocblas EXPORT_FILE_NAME ${PROJECT_BINARY_DIR}/include/rocblas-export.h )
+
+# generate header with prototypes for export reuse
+set( SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}" )
+set( ROCBLAS_PROTO_TEMPLATES "${SRC_DIR}/../include/rocblas-exported-proto.hpp" )
+add_custom_command( TARGET rocblas PRE_BUILD
+  COMMAND python template-proto.py ${SRC_DIR}/blas3/Tensile/*.hpp ${SRC_DIR}/blas3/*.hpp ${SRC_DIR}/blas2/*.hpp ${SRC_DIR}/blas1/*.hpp > ${ROCBLAS_PROTO_TEMPLATES}
+  DEPENDS ${SRC_DIR}
+  COMMENT "Generating prototypes from ${SRC_DIR}."
+  WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+)
 
 # Following Boost conventions of prefixing 'lib' on static built libraries, across all platforms
 if( NOT BUILD_SHARED_LIBS )

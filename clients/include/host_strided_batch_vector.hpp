@@ -267,7 +267,7 @@ private:
 //! @param that That host strided batch vector.
 //!
 template <typename T>
-std::ostream& operator<<(std::ostream& os, const host_strided_batch_vector<T>& that)
+rocblas_ostream& operator<<(rocblas_ostream& os, const host_strided_batch_vector<T>& that)
 {
     auto n           = that.n();
     auto inc         = std::abs(that.inc());
