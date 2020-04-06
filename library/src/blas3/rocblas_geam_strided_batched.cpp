@@ -55,59 +55,80 @@ namespace
             auto transA_letter = rocblas_transpose_letter(transA);
             auto transB_letter = rocblas_transpose_letter(transB);
 
-            if(layer_mode & rocblas_layer_mode_log_trace)
+            if(handle->pointer_mode == rocblas_pointer_mode_host)
             {
-                std::cout << "log_trace" << std::endl;
-                log_trace(handle,
-                          rocblas_geam_strided_batched_name<T>,
-                          transA,
-                          transB,
-                          m,
-                          n,
-                          log_trace_scalar_value(alpha),
-                          A,
-                          lda,
-                          stride_a,
-                          log_trace_scalar_value(beta),
-                          B,
-                          ldb,
-                          stride_b,
-                          C,
-                          ldc,
-                          stride_c,
-                          batch_count);
+                if(layer_mode & rocblas_layer_mode_log_trace)
+                    log_trace(handle,
+                              rocblas_geam_strided_batched_name<T>,
+                              transA,
+                              transB,
+                              m,
+                              n,
+                              log_trace_scalar_value(alpha),
+                              A,
+                              lda,
+                              stride_a,
+                              log_trace_scalar_value(beta),
+                              B,
+                              ldb,
+                              stride_b,
+                              C,
+                              ldc,
+                              stride_c,
+                              batch_count);
+
+                if(layer_mode & rocblas_layer_mode_log_bench)
+                    log_bench(handle,
+                              "./rocblas-bench -f geam_strided_batched -r",
+                              rocblas_precision_string<T>,
+                              "--transposeA",
+                              transA_letter,
+                              "--transposeB",
+                              transB_letter,
+                              "-m",
+                              m,
+                              "-n",
+                              n,
+                              LOG_BENCH_SCALAR_VALUE(alpha),
+                              "--lda",
+                              lda,
+                              "--stride_a",
+                              stride_a,
+                              LOG_BENCH_SCALAR_VALUE(beta),
+                              "--ldb",
+                              ldb,
+                              "--stride_b",
+                              stride_b,
+                              "--ldc",
+                              ldc,
+                              "--stride_c",
+                              stride_c,
+                              "--batch_count",
+                              batch_count);
+            }
+            else
+            {
+                if(layer_mode & rocblas_layer_mode_log_trace)
+                    log_trace(handle,
+                              rocblas_geam_strided_batched_name<T>,
+                              transA,
+                              transB,
+                              m,
+                              n,
+                              alpha,
+                              A,
+                              lda,
+                              stride_a,
+                              beta,
+                              B,
+                              ldb,
+                              stride_b,
+                              C,
+                              ldc,
+                              stride_c,
+                              batch_count);
             }
 
-            if(layer_mode & rocblas_layer_mode_log_bench)
-            {
-                log_bench(handle,
-                          "./rocblas-bench -f geam_strided_batched -r",
-                          rocblas_precision_string<T>,
-                          "--transposeA",
-                          transA_letter,
-                          "--transposeB",
-                          transB_letter,
-                          "-m",
-                          m,
-                          "-n",
-                          n,
-                          //                        LOG_BENCH_SCALAR_VALUE(alpha),
-                          "--lda",
-                          lda,
-                          "--stride_a",
-                          stride_a,
-                          //                        LOG_BENCH_SCALAR_VALUE(beta),
-                          "--ldb",
-                          ldb,
-                          "--stride_b",
-                          stride_b,
-                          "--ldc",
-                          ldc,
-                          "--stride_c",
-                          stride_c,
-                          "--batch_count",
-                          batch_count);
-            }
             if(layer_mode & rocblas_layer_mode_log_profile)
             {
                 log_profile(handle,
