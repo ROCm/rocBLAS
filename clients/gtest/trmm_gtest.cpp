@@ -55,9 +55,9 @@ namespace
         {
             RocBLAS_TestName<trmm_template> name;
 
-            name << rocblas_datatype2string(arg.a_type)
+            name << rocblas_datatype2string(arg.a_type);
 
-                    if(strstr(arg.function, "_bad_arg") != nullptr)
+            if(strstr(arg.function, "_bad_arg") != nullptr)
             {
                 name << "_bad_arg";
             }
