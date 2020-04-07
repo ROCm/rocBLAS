@@ -55,21 +55,38 @@ namespace
         {
             RocBLAS_TestName<trmm_template> name;
 
-            name << rocblas_datatype2string(arg.a_type) << '_' << (char)std::toupper(arg.side)
-                 << (char)std::toupper(arg.uplo) << (char)std::toupper(arg.transA)
-                 << (char)std::toupper(arg.diag) << '_' << arg.M << '_' << arg.N << '_' << arg.alpha
-                 << '_' << arg.lda;
+            name << rocblas_datatype2string(arg.a_type)
 
-            if(TRMM_TYPE == TRMM_STRIDED_BATCHED)
-                name << '_' << arg.stride_a;
+                    if(strstr(arg.function, "_bad_arg") != nullptr)
+            {
+                name << "_bad_arg";
+            }
+            else
+            {
 
-            name << '_' << arg.ldb;
+                name << '_' << (char)std::toupper(arg.side) << (char)std::toupper(arg.uplo)
+                     << (char)std::toupper(arg.transA) << (char)std::toupper(arg.diag) << '_'
+                     << arg.M << '_' << arg.N;
 
-            if(TRMM_TYPE == TRMM_STRIDED_BATCHED)
-                name << '_' << arg.stride_b;
+                // use arg.get_alpha() to get real/complex alpha depending on datatype
+                if(arg.a_type == rocblas_datatype_f32_c || arg.a_type == rocblas_datatype_f64_c)
+                    name << '_' << arg.get_alpha<rocblas_float_complex>();
+                else
+                    name << '_' << arg.get_alpha<float>();
 
-            if(TRMM_TYPE == TRMM_STRIDED_BATCHED || TRMM_TYPE == TRMM_BATCHED)
-                name << '_' << arg.batch_count;
+                name << '_' << arg.lda;
+
+                if(TRMM_TYPE == TRMM_STRIDED_BATCHED)
+                    name << '_' << arg.stride_a;
+
+                name << '_' << arg.ldb;
+
+                if(TRMM_TYPE == TRMM_STRIDED_BATCHED)
+                    name << '_' << arg.stride_b;
+
+                if(TRMM_TYPE == TRMM_STRIDED_BATCHED || TRMM_TYPE == TRMM_BATCHED)
+                    name << '_' << arg.batch_count;
+            }
 
             return std::move(name);
         }

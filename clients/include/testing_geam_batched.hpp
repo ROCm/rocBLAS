@@ -36,9 +36,9 @@ void testing_geam_batched_bad_arg(const Arguments& arg)
 
     rocblas_local_handle handle;
 
-    size_t size_A = lda * (transA == rocblas_operation_none ? N : M);
-    size_t size_B = ldb * (transB == rocblas_operation_none ? N : M);
-    size_t size_C = lda * N;
+    size_t size_A = size_t(lda) * (transA == rocblas_operation_none ? N : M);
+    size_t size_B = size_t(ldb) * (transB == rocblas_operation_none ? N : M);
+    size_t size_C = size_t(lda) * N;
 
     // allocate memory on device
     device_batch_vector<T> dA(size_A, 1, batch_count);
@@ -192,9 +192,9 @@ void testing_geam_batched(const Arguments& arg)
         inc2_B = 1;
     }
 
-    size_t size_A = lda * A_col;
-    size_t size_B = ldb * B_col;
-    size_t size_C = ldc * N;
+    size_t size_A = size_t(lda) * size_t(A_col);
+    size_t size_B = size_t(ldb) * size_t(B_col);
+    size_t size_C = size_t(ldc) * size_t(N);
 
     // argument sanity check before allocating invalid memory
     bool invalid_size = M < 0 || N < 0 || lda < A_row || ldb < B_row || ldc < M || batch_count < 0;
@@ -315,9 +315,9 @@ void testing_geam_batched(const Arguments& arg)
             auto hB_copy_p = hB_copy[i3];
             auto hC_gold_p = hC_gold[i3];
 
-            for(int i1 = 0; i1 < M; i1++)
+            for(size_t i1 = 0; i1 < M; i1++)
             {
-                for(int i2 = 0; i2 < N; i2++)
+                for(size_t i2 = 0; i2 < N; i2++)
                 {
                     hC_gold_p[i1 + i2 * ldc] = alpha * hA_copy_p[i1 * inc1_A + i2 * inc2_A]
                                                + beta * hB_copy_p[i1 * inc1_B + i2 * inc2_B];
@@ -340,7 +340,7 @@ void testing_geam_batched(const Arguments& arg)
             rocblas_error_2 = norm_check_general<T>('F', M, N, ldc, hC_gold, hC_2, batch_count);
         }
 
-        //        // inplace check for dC == dA
+        // inplace check for dC == dA
         {
             if((lda == ldc) && (transA == rocblas_operation_none))
                 CHECK_HIP_ERROR(dC_in_place.transfer_from(hA));
@@ -378,9 +378,9 @@ void testing_geam_batched(const Arguments& arg)
                     auto hB_copy_p = hB_copy[i3];
                     auto hC_gold_p = hC_gold[i3];
 
-                    for(int i1 = 0; i1 < M; i1++)
+                    for(size_t i1 = 0; i1 < M; i1++)
                     {
-                        for(int i2 = 0; i2 < N; i2++)
+                        for(size_t i2 = 0; i2 < N; i2++)
                         {
                             hC_gold_p[i1 + i2 * ldc]
                                 = alpha * hA_copy_p[i1 * inc1_A + i2 * inc2_A]
@@ -440,9 +440,9 @@ void testing_geam_batched(const Arguments& arg)
                     auto hB_copy_p = hB_copy[i3];
                     auto hC_gold_p = hC_gold[i3];
 
-                    for(int i1 = 0; i1 < M; i1++)
+                    for(size_t i1 = 0; i1 < M; i1++)
                     {
-                        for(int i2 = 0; i2 < N; i2++)
+                        for(size_t i2 = 0; i2 < N; i2++)
                         {
                             hC_gold_p[i1 + i2 * ldc]
                                 = alpha * hA_copy_p[i1 * inc1_A + i2 * inc2_A]

@@ -100,7 +100,7 @@ namespace
                               alpha,
                               A,
                               lda,
-                              alpha,
+                              beta,
                               B,
                               ldb,
                               C,
