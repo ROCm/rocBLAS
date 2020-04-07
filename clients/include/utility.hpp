@@ -35,7 +35,7 @@
 #undef stderr
 #pragma GCC poison cout cerr clog stdout stderr gets puts putchar fputs fprintf printf sprintf    \
     vfprintf vprintf vsprintf perror strerror strtok gmtime ctime asctime localtime tmpnam putenv \
-        clearenv fcloseall ecvt fcvt sleep abort
+        clearenv fcloseall ecvt fcvt
 #else
 // Suppress warnings about hipMalloc(), hipFree() except in rocblas-test and rocblas-bench
 #undef hipMalloc
