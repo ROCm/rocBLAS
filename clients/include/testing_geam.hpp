@@ -138,9 +138,9 @@ void testing_geam(const Arguments& arg)
         inc2_B = 1;
     }
 
-    size_t size_A = lda * size_t(A_col);
-    size_t size_B = ldb * size_t(B_col);
-    size_t size_C = ldc * size_t(N);
+    size_t size_A = size_t(lda) * size_t(A_col);
+    size_t size_B = size_t(ldb) * size_t(B_col);
+    size_t size_C = size_t(ldc) * size_t(N);
 
     // argument sanity check before allocating invalid memory
     bool invalid_size = M < 0 || N < 0 || lda < A_row || ldb < B_row || ldc < M;
@@ -225,9 +225,9 @@ void testing_geam(const Arguments& arg)
         // reference calculation for golden result
         cpu_time_used = get_time_us();
 
-        for(int i1 = 0; i1 < M; i1++)
+        for(size_t i1 = 0; i1 < M; i1++)
         {
-            for(int i2 = 0; i2 < N; i2++)
+            for(size_t i2 = 0; i2 < N; i2++)
             {
                 hC_gold[i1 + i2 * ldc] = alpha * hA_copy[i1 * inc1_A + i2 * inc2_A]
                                          + beta * hB_copy[i1 * inc1_B + i2 * inc2_B];
@@ -269,9 +269,9 @@ void testing_geam(const Arguments& arg)
                 CHECK_HIP_ERROR(dA.transfer_from(hA));
 
                 // reference calculation
-                for(int i1 = 0; i1 < M; i1++)
+                for(size_t i1 = 0; i1 < M; i1++)
                 {
-                    for(int i2 = 0; i2 < N; i2++)
+                    for(size_t i2 = 0; i2 < N; i2++)
                     {
                         hC_gold[i1 + i2 * ldc] = alpha * hA_copy[i1 * inc1_A + i2 * inc2_A]
                                                  + beta * hB[i1 * inc1_B + i2 * inc2_B];
@@ -310,9 +310,9 @@ void testing_geam(const Arguments& arg)
                     hipMemcpy(hC_1, dC_in_place, sizeof(T) * size_C, hipMemcpyDeviceToHost));
 
                 // reference calculation
-                for(int i1 = 0; i1 < M; i1++)
+                for(size_t i1 = 0; i1 < M; i1++)
                 {
-                    for(int i2 = 0; i2 < N; i2++)
+                    for(size_t i2 = 0; i2 < N; i2++)
                     {
                         hC_gold[i1 + i2 * ldc] = alpha * hA_copy[i1 * inc1_A + i2 * inc2_A]
                                                  + beta * hB_copy[i1 * inc1_B + i2 * inc2_B];

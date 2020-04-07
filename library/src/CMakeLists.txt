@@ -142,7 +142,6 @@ if( BUILD_WITH_TENSILE )
     blas3/rocblas_trtri.cpp
     blas3/rocblas_trtri_batched.cpp
     blas3/rocblas_trtri_strided_batched.cpp
-    blas3/rocblas_geam.cpp
     ${Tensile_SRC}
   )
 
@@ -155,6 +154,9 @@ if( BUILD_WITH_TENSILE )
 endif( ) # BUILD_WITH_TENSILE
 
 set( rocblas_blas3_source_no_tensile
+    blas3/rocblas_geam.cpp
+    blas3/rocblas_geam_batched.cpp
+    blas3/rocblas_geam_strided_batched.cpp
     blas3/rocblas_hemm.cpp
     blas3/rocblas_hemm_batched.cpp
     blas3/rocblas_hemm_strided_batched.cpp

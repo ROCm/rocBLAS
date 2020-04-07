@@ -54,7 +54,6 @@ if( BUILD_WITH_TENSILE )
 
   set(rocblas_test_source
     ${Tensile_TEST_SRC}
-    geam_gtest.cpp
     trtri_gtest.cpp
     )
 endif( )
@@ -101,6 +100,7 @@ set(rocblas_no_tensile_test_source
     syrk_gtest.cpp
     syr2k_gtest.cpp
     syrkx_gtest.cpp
+    geam_gtest.cpp
     )
 
 if(LINK_BLIS)
