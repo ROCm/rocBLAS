@@ -5,6 +5,10 @@
 #ifndef ROCBLAS_TEST_H_
 #define ROCBLAS_TEST_H_
 
+#ifdef GOOGLE_TEST
+#include <gtest/gtest.h>
+#endif
+
 #include "argument_model.hpp"
 #include "rocblas.h"
 #include "rocblas_arguments.hpp"
@@ -20,38 +24,27 @@
 #include <unordered_map>
 #include <utility>
 
-// Suppress warnings about hipMalloc(), hipFree() except in rocblas-test and rocblas-bench
-#if !defined(GOOGLE_TEST) && !defined(ROCBLAS_BENCH)
-#undef hipMalloc
-#undef hipFree
-#endif
-
 #ifdef GOOGLE_TEST
-#include <gtest/gtest.h>
 
 // Extra macro so that macro arguments get expanded before calling Google Test
 #define CHECK_HIP_ERROR2(ERROR) ASSERT_EQ(ERROR, hipSuccess)
 #define CHECK_HIP_ERROR(ERROR) CHECK_HIP_ERROR2(ERROR)
 
-#define CHECK_DEVICE_ALLOCATION(ERROR)            \
-    do                                            \
-    {                                             \
-        auto error = ERROR;                       \
-        if(error == hipErrorOutOfMemory)          \
-        {                                         \
-            SUCCEED() << LIMITED_MEMORY_STRING;   \
-            return;                               \
-        }                                         \
-        else if(error != hipSuccess)              \
-        {                                         \
-            fprintf(stderr,                       \
-                    "error: '%s'(%d) at %s:%d\n", \
-                    hipGetErrorString(error),     \
-                    error,                        \
-                    __FILE__,                     \
-                    __LINE__);                    \
-            return;                               \
-        }                                         \
+#define CHECK_DEVICE_ALLOCATION(ERROR)                                              \
+    do                                                                              \
+    {                                                                               \
+        auto error = ERROR;                                                         \
+        if(error == hipErrorOutOfMemory)                                            \
+        {                                                                           \
+            SUCCEED() << LIMITED_MEMORY_STRING;                                     \
+            return;                                                                 \
+        }                                                                           \
+        else if(error != hipSuccess)                                                \
+        {                                                                           \
+            rocblas_cerr << "error: '" << hipGetErrorString(error) << "'(" << error \
+                         << ") at " __FILE__ ":" << __LINE__ << std::endl;          \
+            return;                                                                 \
+        }                                                                           \
     } while(0)
 
 #define EXPECT_ROCBLAS_STATUS ASSERT_EQ
