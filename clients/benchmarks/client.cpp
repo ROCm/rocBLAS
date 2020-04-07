@@ -125,6 +125,9 @@
 #include "testing_trmv_batched.hpp"
 #include "testing_trmv_strided_batched.hpp"
 // blas3 with no tensile
+#include "testing_geam.hpp"
+#include "testing_geam_batched.hpp"
+#include "testing_geam_strided_batched.hpp"
 #include "testing_her2k.hpp"
 #include "testing_her2k_batched.hpp"
 #include "testing_her2k_strided_batched.hpp"
@@ -171,7 +174,6 @@ void run_function(const func_map& map, const Arguments& arg, const std::string& 
 
 #if BUILD_WITH_TENSILE
 
-#include "testing_geam.hpp"
 #include "testing_gemm.hpp"
 #include "testing_gemm_batched.hpp"
 #include "testing_gemm_batched_ex.hpp"
@@ -341,8 +343,10 @@ struct perf_blas<T, U, std::enable_if_t<std::is_same<T, float>{} || std::is_same
                 {"syrkx", testing_syr2k<T, false>},
                 {"syrkx_batched", testing_syr2k_batched<T, false>},
                 {"syrkx_strided_batched", testing_syr2k_strided_batched<T, false>},
-#if BUILD_WITH_TENSILE
                 {"geam", testing_geam<T>},
+                {"geam_batched", testing_geam_batched<T>},
+                {"geam_strided_batched", testing_geam_strided_batched<T>},
+#if BUILD_WITH_TENSILE
                 {"trmm", testing_trmm<T>},
                 {"trmm_batched", testing_trmm_batched<T>},
                 {"trmm_strided_batched", testing_trmm_strided_batched<T>},
