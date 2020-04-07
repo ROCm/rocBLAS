@@ -54,25 +54,46 @@ namespace
         {
             RocBLAS_TestName<geam_template> name;
 
-            name << rocblas_datatype2string(arg.a_type) << '_' << (char)std::toupper(arg.transA)
-                 << (char)std::toupper(arg.transB) << '_' << arg.M << '_' << arg.N << '_'
-                 << arg.alpha << '_' << arg.lda;
+            name << rocblas_datatype2string(arg.a_type);
 
-            if(GEAM_TYPE == GEAM_STRIDED_BATCHED)
-                name << '_' << arg.stride_a;
+            if(strstr(arg.function, "_bad_arg") != nullptr)
+            {
+                name << "_bad_arg";
+            }
+            else
+            {
+                name << '_' << (char)std::toupper(arg.transA) << (char)std::toupper(arg.transB)
+                     << '_' << arg.M << '_' << arg.N;
 
-            name << '_' << arg.beta << '_' << arg.ldb;
+                // use arg.get_alpha() to get real/complex alpha depending on datatype
+                if(arg.a_type == rocblas_datatype_f32_c || arg.a_type == rocblas_datatype_f64_c)
+                    name << '_' << arg.get_alpha<rocblas_float_complex>();
+                else
+                    name << '_' << arg.get_alpha<float>();
 
-            if(GEAM_TYPE == GEAM_STRIDED_BATCHED)
-                name << '_' << arg.stride_b;
+                name << '_' << arg.lda;
 
-            name << '_' << arg.ldc;
+                if(GEAM_TYPE == GEAM_STRIDED_BATCHED)
+                    name << '_' << arg.stride_a;
 
-            if(GEAM_TYPE == GEAM_STRIDED_BATCHED)
-                name << '_' << arg.stride_c;
+                if(arg.b_type == rocblas_datatype_f32_c || arg.b_type == rocblas_datatype_f64_c)
+                    name << '_' << arg.get_beta<rocblas_float_complex>();
+                else
+                    name << '_' << arg.get_beta<float>();
 
-            if(GEAM_TYPE == GEAM_STRIDED_BATCHED || GEAM_TYPE == GEAM_BATCHED)
-                name << '_' << arg.batch_count;
+                name << '_' << arg.ldb;
+
+                if(GEAM_TYPE == GEAM_STRIDED_BATCHED)
+                    name << '_' << arg.stride_b;
+
+                name << '_' << arg.ldc;
+
+                if(GEAM_TYPE == GEAM_STRIDED_BATCHED)
+                    name << '_' << arg.stride_c;
+
+                if(GEAM_TYPE == GEAM_STRIDED_BATCHED || GEAM_TYPE == GEAM_BATCHED)
+                    name << '_' << arg.batch_count;
+            }
 
             return std::move(name);
         }

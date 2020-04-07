@@ -34,15 +34,15 @@ void testing_geam_strided_batched_bad_arg(const Arguments& arg)
     const rocblas_operation transA = rocblas_operation_none;
     const rocblas_operation transB = rocblas_operation_none;
 
-    const rocblas_stride stride_a = lda * (transA == rocblas_operation_none ? N : M);
-    const rocblas_stride stride_b = ldb * (transB == rocblas_operation_none ? N : M);
-    const rocblas_stride stride_c = ldc * N;
+    const rocblas_stride stride_a = size_t(lda) * (transA == rocblas_operation_none ? N : M);
+    const rocblas_stride stride_b = size_t(ldb) * (transB == rocblas_operation_none ? N : M);
+    const rocblas_stride stride_c = size_t(ldc) * N;
 
     rocblas_local_handle handle;
 
-    size_t size_A = batch_count * stride_a;
-    size_t size_B = batch_count * stride_b;
-    size_t size_C = batch_count * stride_c;
+    size_t size_A = size_t(batch_count) * size_t(stride_a);
+    size_t size_B = size_t(batch_count) * size_t(stride_b);
+    size_t size_C = size_t(batch_count) * size_t(stride_c);
 
     // allocate memory on device
     device_vector<T> dA(size_A);
@@ -176,13 +176,13 @@ void testing_geam_strided_batched(const Arguments& arg)
     rocblas_int M = arg.M;
     rocblas_int N = arg.N;
 
-    rocblas_int lda         = arg.lda;
-    rocblas_int ldb         = arg.ldb;
-    rocblas_int ldc         = arg.ldc;
-    rocblas_int stride_a    = arg.stride_a;
-    rocblas_int stride_b    = arg.stride_b;
-    rocblas_int stride_c    = arg.stride_c;
-    rocblas_int batch_count = arg.batch_count;
+    rocblas_int    lda         = arg.lda;
+    rocblas_int    ldb         = arg.ldb;
+    rocblas_int    ldc         = arg.ldc;
+    rocblas_stride stride_a    = arg.stride_a;
+    rocblas_stride stride_b    = arg.stride_b;
+    rocblas_stride stride_c    = arg.stride_c;
+    rocblas_int    batch_count = arg.batch_count;
 
     T alpha = arg.get_alpha<T>();
     T beta  = arg.get_beta<T>();
@@ -238,9 +238,9 @@ void testing_geam_strided_batched(const Arguments& arg)
                      << std::endl;
     if(stride_c < ldc * N)
         rocblas_cout << "WARNING: stride_c < ldc * N)" << std::endl;
-    size_t size_A = batch_count * stride_a;
-    size_t size_B = batch_count * stride_b;
-    size_t size_C = batch_count * stride_c;
+    size_t size_A = size_t(batch_count) * size_t(stride_a);
+    size_t size_B = size_t(batch_count) * size_t(stride_b);
+    size_t size_C = size_t(batch_count) * size_t(stride_c);
 
     // argument sanity check before allocating invalid memory
     bool invalid_size = M < 0 || N < 0 || lda < A_row || ldb < B_row || ldc < M || batch_count < 0;
@@ -364,11 +364,11 @@ void testing_geam_strided_batched(const Arguments& arg)
         // reference calculation for golden result
         cpu_time_used = get_time_us();
 
-        for(int i3 = 0; i3 < batch_count; i3++)
+        for(size_t i3 = 0; i3 < batch_count; i3++)
         {
-            for(int i1 = 0; i1 < M; i1++)
+            for(size_t i1 = 0; i1 < M; i1++)
             {
-                for(int i2 = 0; i2 < N; i2++)
+                for(size_t i2 = 0; i2 < N; i2++)
                 {
                     hC_gold[i1 + i2 * ldc + i3 * stride_c]
                         = alpha * hA_copy[i1 * inc1_A + i2 * inc2_A + i3 * stride_a]
@@ -429,11 +429,11 @@ void testing_geam_strided_batched(const Arguments& arg)
                 CHECK_HIP_ERROR(dA.transfer_from(hA));
 
                 // reference calculation
-                for(int i3 = 0; i3 < batch_count; i3++)
+                for(size_t i3 = 0; i3 < batch_count; i3++)
                 {
-                    for(int i1 = 0; i1 < M; i1++)
+                    for(size_t i1 = 0; i1 < M; i1++)
                     {
-                        for(int i2 = 0; i2 < N; i2++)
+                        for(size_t i2 = 0; i2 < N; i2++)
                         {
                             hC_gold[i1 + i2 * ldc + i3 * stride_c]
                                 = alpha * hA_copy[i1 * inc1_A + i2 * inc2_A + i3 * stride_a]
@@ -490,11 +490,11 @@ void testing_geam_strided_batched(const Arguments& arg)
                     hipMemcpy(hC_1, dC_in_place, sizeof(T) * size_C, hipMemcpyDeviceToHost));
 
                 // reference calculation
-                for(int i3 = 0; i3 < batch_count; i3++)
+                for(size_t i3 = 0; i3 < batch_count; i3++)
                 {
-                    for(int i1 = 0; i1 < M; i1++)
+                    for(size_t i1 = 0; i1 < M; i1++)
                     {
-                        for(int i2 = 0; i2 < N; i2++)
+                        for(size_t i2 = 0; i2 < N; i2++)
                         {
                             hC_gold[i1 + i2 * ldc + i3 * stride_c]
                                 = alpha * hA_copy[i1 * inc1_A + i2 * inc2_A + i3 * stride_a]
