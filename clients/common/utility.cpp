@@ -101,7 +101,7 @@ rocblas_int query_device_property()
             char buf[320];
             snprintf(
                 buf,
-                sizeof(buf) - 1,
+                sizeof(buf),
                 "Device ID %d : %s\n"
                 "with %3.1f GB memory, clock rate %d MHz @ computing capability %d.%d \n"
                 "maxGridDimX %d, sharedMemPerBlock %3.1f KB, maxThreadsPerBlock %d, warpSize %d\n",
