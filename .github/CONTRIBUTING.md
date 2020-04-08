@@ -501,3 +501,29 @@ public:
 
 
 24. The `library/include` subdirectory of rocBLAS, to be distinguished from the `library/src/include` subdirectory, shall consist only of C-compatible header files for public rocBLAS APIs. It should not include internal APIs, even if they are used in other projects, e.g., rocSOLVER, and the headers must be compilable with a C compiler, and must use `.h` extensions.
+
+
+25. Macro parameters should only be evaluated once when practical, and should be parenthesized if there is a chance of ambiguous precedence. They should be stored in a local temporary variable if needed more than once.
+
+Macros which expand to code with local variables, should use double-underscore suffixes in the local variable names, to prevent their conflict with variables passed in macro parameters. However, if they are in a completely separate block scope than the macro parameter is expanded in, or if they are only passed to another macro/function, then they do not need to use trailing underscores.
+```
+        #define CHECK_DEVICE_ALLOCATION(ERROR)                   \
+            do                                                   \
+            {                                                    \
+                /* Use error__ in case ERROR contains "error" */ \
+                hipError_t error__ = (ERROR);                    \
+                if(error__ != hipSuccess)                        \
+                {                                                \
+                    if(error__ == hipErrorOutOfMemory)           \
+                        SUCCEED() << LIMITED_MEMORY_STRING;      \
+                    else                                         \
+                        FAIL() << hipGetErrorString(error__);    \
+                    return;                                      \
+                }                                                \
+            } while(0)
+```
+The `ERROR` macro parameter is evaluated only once, and is stored in the temporary variable `error__`, for use multiple times later.
+
+The `ERROR` macro parameter is parenthesized when initializing `error__`, to avoid ambiguous precedence, such as if ``ERROR`` contains a comma expression.
+
+The `error__` variable name is used, to prevent it from conflicting with variables passed in the `ERROR` macro parameter, such as `error`.
