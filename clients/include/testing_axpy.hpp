@@ -52,14 +52,8 @@ void testing_axpy(const Arguments& arg)
     // argument sanity check before allocating invalid memory
     if(N <= 0)
     {
-        static const size_t safe_size = 100; // arbitrarily set to 100
-        device_vector<T>    dx(safe_size);
-        device_vector<T>    dy(safe_size);
-        CHECK_DEVICE_ALLOCATION(dx.memcheck());
-        CHECK_DEVICE_ALLOCATION(dy.memcheck());
-
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR(rocblas_axpy<T>(handle, N, &h_alpha, dx, incx, dy, incy));
+        CHECK_ROCBLAS_ERROR(rocblas_axpy<T>(handle, N, nullptr, nullptr, incx, nullptr, incy));
         return;
     }
 
@@ -67,6 +61,10 @@ void testing_axpy(const Arguments& arg)
     rocblas_int abs_incy = incy > 0 ? incy : -incy;
     size_t      size_x   = N * size_t(abs_incx);
     size_t      size_y   = N * size_t(abs_incy);
+    if(!size_x)
+        size_x = 1;
+    if(!size_y)
+        size_y = 1;
 
     // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
     host_vector<T> hx(size_x);

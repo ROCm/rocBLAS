@@ -34,6 +34,17 @@ Definitions:
     # - { incx:  0, incy:  1 } # Indeterminate when x is output (swap)
     # - { incx:  1, incy:  0 } # Indeterminate when y is output
 
+  - &incx_incy_range_axpy
+    - { incx:  1, incy:  1 }
+    - { incx:  1, incy:  2 }
+    - { incx:  2, incy:  1 }
+    - { incx:  1, incy: -1 }
+    - { incx: -1, incy:  1 }
+    - { incx: -1, incy: -1 }
+    - { incx:  0, incy:  1 }
+    # - { incx:  0, incy:  0 } # Indeterminate for axpy
+    # - { incx:  1, incy:  0 } # Indeterminate when y is output
+
   - &incx_incy_range_small
     - { incx: 2, incy: 2 }
     - { incx: -2, incy: -2 }
@@ -78,8 +89,8 @@ Tests:
 # quick
   - name: blas1_with_alpha
     category: quick
-    N: *N_range
-    incx_incy: *incx_incy_range
+    N: [ -1, 0, 5, 33792 ]
+    incx_incy: *incx_incy_range_axpy
     alpha_beta: *alpha_beta_range
     alphai_betai: *alphai_betai_range
     function:
@@ -87,8 +98,8 @@ Tests:
 
   - name: blas1_batched_with_alpha
     category: quick
-    N: *N_range
-    incx_incy: *incx_incy_range
+    N: [ -1, 0, 5, 33792 ]
+    incx_incy: *incx_incy_range_axpy
     alpha_beta: *alpha_beta_range
     alphai_betai: *alphai_betai_range
     batch_count: [-1, 0, 5]
@@ -97,10 +108,9 @@ Tests:
 
   - name: blas1_strided_batched_with_alpha
     category: quick
-    N: *N_range
-    incx: [ 1 ]
-    incy: [ 1 ]
-    batch_count: [-1, 0, 257]
+    N: [ -1, 0, 5, 33792 ]
+    incx_incy: *incx_incy_range_axpy
+    batch_count: [-1, 0, 5]
     stride_scale: [ 1 ]
     alpha_beta: *alpha_beta_range
     alphai_betai: *alphai_betai_range
