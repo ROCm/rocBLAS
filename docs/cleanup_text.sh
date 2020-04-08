@@ -113,7 +113,7 @@ while(<>)
       print ICONV;
       close ICONV;
     } else {
-      ($code, $code_indent) = (1, $indent) if /::\s*$/;
+      ($code, $code_indent) = (1, $indent) if /::(\s+\S+)?\s*$/;
       print;
     }
 }
