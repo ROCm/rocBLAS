@@ -60,6 +60,7 @@ endif( )
 
 set(rocblas_no_tensile_test_source
     rocblas_gtest_main.cpp
+    rocblas_test.cpp
     set_get_pointer_mode_gtest.cpp
     logging_mode_gtest.cpp
     ostream_threadsafety_gtest.cpp

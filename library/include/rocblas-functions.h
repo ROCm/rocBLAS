@@ -12476,18 +12476,18 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyrkx_strided_batched(rocblas_handle     
             when  side == rocblas_side_left  and
             is  n  when  side == rocblas_side_right.
 
-	    When uplo == rocblas_fill_upper the  leading  k by k
-           upper triangular part of the array  A must contain the upper
-           triangular matrix  and the strictly lower triangular part of
-           A is not referenced.
+        When uplo == rocblas_fill_upper the  leading  k by k
+        upper triangular part of the array  A must contain the upper
+        triangular matrix  and the strictly lower triangular part of
+        A is not referenced.
 
-           When uplo == rocblas_fill_lower the  leading  k by k
-           lower triangular part of the array  A must contain the lower
-           triangular matrix  and the strictly upper triangular part of
-           A is not referenced.
+        When uplo == rocblas_fill_lower the  leading  k by k
+        lower triangular part of the array  A must contain the lower
+        triangular matrix  and the strictly upper triangular part of
+        A is not referenced.
 
-           Note that when  diag == rocblas_diagonal_unit  the diagonal elements of
-           A  are not referenced either,  but are assumed to be  unity.
+        Note that when  diag == rocblas_diagonal_unit  the diagonal elements of
+        A  are not referenced either,  but are assumed to be  unity.
 
     @param[in]
     lda     [rocblas_int]
@@ -12621,18 +12621,18 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrmm(rocblas_handle                handle
             when  side == rocblas_side_left  and
             is  n  when  side == rocblas_side_right.
 
-	    When uplo == rocblas_fill_upper the  leading  k by k
-           upper triangular part of the array  A must contain the upper
-           triangular matrix  and the strictly lower triangular part of
-           A is not referenced.
+        When uplo == rocblas_fill_upper the  leading  k by k
+        upper triangular part of the array  A must contain the upper
+        triangular matrix  and the strictly lower triangular part of
+        A is not referenced.
 
-           When uplo == rocblas_fill_lower the  leading  k by k
-           lower triangular part of the array  A must contain the lower
-           triangular matrix  and the strictly upper triangular part of
-           A is not referenced.
+        When uplo == rocblas_fill_lower the  leading  k by k
+        lower triangular part of the array  A must contain the lower
+        triangular matrix  and the strictly upper triangular part of
+        A is not referenced.
 
-           Note that when  diag == rocblas_diagonal_unit  the diagonal elements of
-           A_i  are not referenced either,  but are assumed to be  unity.
+        Note that when  diag == rocblas_diagonal_unit  the diagonal elements of
+        A_i  are not referenced either,  but are assumed to be  unity.
 
     @param[in]
     lda     [rocblas_int]
@@ -12773,18 +12773,18 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrmm_batched(rocblas_handle              
             when  side == rocblas_side_left  and
             is  n  when  side == rocblas_side_right.
 
-	    When uplo == rocblas_fill_upper the  leading  k by k
-           upper triangular part of the array  A must contain the upper
-           triangular matrix  and the strictly lower triangular part of
-           A is not referenced.
+        When uplo == rocblas_fill_upper the  leading  k by k
+        upper triangular part of the array  A must contain the upper
+        triangular matrix  and the strictly lower triangular part of
+        A is not referenced.
 
-           When uplo == rocblas_fill_lower the  leading  k by k
-           lower triangular part of the array  A must contain the lower
-           triangular matrix  and the strictly upper triangular part of
-           A is not referenced.
+        When uplo == rocblas_fill_lower the  leading  k by k
+        lower triangular part of the array  A must contain the lower
+        triangular matrix  and the strictly upper triangular part of
+        A is not referenced.
 
-           Note that when  diag == rocblas_diagonal_unit  the diagonal elements of
-           A_i  are not referenced either,  but are assumed to be  unity.
+        Note that when  diag == rocblas_diagonal_unit  the diagonal elements of
+        A_i  are not referenced either,  but are assumed to be  unity.
 
     @param[in]
     lda     [rocblas_int]
@@ -12806,7 +12806,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrmm_batched(rocblas_handle              
     ldb    [rocblas_int]
            ldb specifies the first dimension of B_i. ldb >= max( 1, m ).
 
-	       @param[in]
+           @param[in]
     stride_B  [rocblas_stride]
               stride from the start of one matrix (B_i) and the next one (B_i+1)
     @param[in]
@@ -15625,7 +15625,7 @@ ROCBLAS_EXPORT const char* rocblas_status_to_string(rocblas_status status);
 /* \brief Initialize rocBLAS, to avoid costly startup time at the first call.
 */
 
-ROCBLAS_EXPORT void rocblas_init();
+ROCBLAS_EXPORT void rocblas_init(void);
 
 /*
  * ===========================================================================
@@ -15710,6 +15710,12 @@ ROCBLAS_EXPORT rocblas_status rocblas_set_device_memory_size(rocblas_handle hand
     handle          rocblas handle
  ******************************************************************************/
 ROCBLAS_EXPORT bool rocblas_is_managing_device_memory(rocblas_handle handle);
+
+/*! \brief
+    \details
+    Abort function which safely flushes all IO
+ ******************************************************************************/
+ROCBLAS_EXPORT void rocblas_abort(void) __attribute__((__noreturn__));
 
 #ifdef __cplusplus
 }

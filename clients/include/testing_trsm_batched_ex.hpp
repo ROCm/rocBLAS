@@ -58,28 +58,23 @@ void testing_trsm_batched_ex(const Arguments& arg)
         CHECK_DEVICE_ALLOCATION(dinvA.memcheck());
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        rocblas_status status = rocblas_trsm_batched_ex(handle,
-                                                        side,
-                                                        uplo,
-                                                        transA,
-                                                        diag,
-                                                        M,
-                                                        N,
-                                                        &alpha_h,
-                                                        dA.ptr_on_device(),
-                                                        lda,
-                                                        dXorB.ptr_on_device(),
-                                                        ldb,
-                                                        batch_count,
-                                                        dinvA.ptr_on_device(),
-                                                        TRSM_BLOCK * K,
-                                                        arg.compute_type);
-
-        if(batch_count == 0)
-            CHECK_ROCBLAS_ERROR(status);
-        else
-            EXPECT_ROCBLAS_STATUS(status, rocblas_status_invalid_size);
-
+        EXPECT_ROCBLAS_STATUS(rocblas_trsm_batched_ex(handle,
+                                                      side,
+                                                      uplo,
+                                                      transA,
+                                                      diag,
+                                                      M,
+                                                      N,
+                                                      &alpha_h,
+                                                      dA.ptr_on_device(),
+                                                      lda,
+                                                      dXorB.ptr_on_device(),
+                                                      ldb,
+                                                      batch_count,
+                                                      dinvA.ptr_on_device(),
+                                                      TRSM_BLOCK * K,
+                                                      arg.compute_type),
+                              batch_count ? rocblas_status_invalid_size : rocblas_status_success);
         return;
     }
 
