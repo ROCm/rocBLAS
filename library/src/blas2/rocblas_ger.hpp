@@ -1,10 +1,8 @@
 /* ************************************************************************
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+#pragma once
 #include "handle.h"
-#include "logging.h"
-#include "rocblas.h"
-#include "utility.h"
 
 template <bool CONJ, typename T, typename U, typename V, typename W>
 __global__ void ger_kernel(rocblas_int    m,

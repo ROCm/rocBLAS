@@ -3,8 +3,8 @@
  * ************************************************************************ */
 
 #pragma once
-
-#include "utility.h"
+#include "rocblas.h"
+#include <cstddef>
 
 template <rocblas_int NB, typename T>
 __device__ void trmvn_kernel_calc(rocblas_fill     uplo,

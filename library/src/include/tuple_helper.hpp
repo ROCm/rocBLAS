@@ -9,7 +9,6 @@
 #include "rocblas_ostream.hpp"
 #include <cstddef>
 #include <cstring>
-#include <functional>
 #include <string>
 #include <tuple>
 #include <type_traits>

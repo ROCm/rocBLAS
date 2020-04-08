@@ -6,7 +6,6 @@
 #include "fetch_template.h"
 #include "handle.h"
 #include "reduction_strided_batched.h"
-#include "rocblas.h"
 
 // allocate workspace inside this API
 template <rocblas_int NB,
