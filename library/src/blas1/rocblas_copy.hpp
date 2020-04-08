@@ -41,14 +41,11 @@ rocblas_status rocblas_copy_template(rocblas_handle handle,
                                      rocblas_int    batch_count)
 {
     // Quick return if possible.
-    if(n <= 0 || !batch_count)
+    if(n <= 0 || batch_count <= 0)
         return rocblas_status_success;
 
     if(!x || !y)
         return rocblas_status_invalid_pointer;
-
-    if(batch_count < 0)
-        return rocblas_status_invalid_size;
 
     // in case of negative inc shift pointer to end of data for negative indexing tid*inc
     ptrdiff_t shiftx = offsetx - ((incx < 0) ? ptrdiff_t(incx) * (n - 1) : 0);
