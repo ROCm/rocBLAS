@@ -2,6 +2,7 @@
  * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+#include "bytes.hpp"
 #include "cblas_interface.hpp"
 #include "flops.hpp"
 #include "norm.hpp"
@@ -328,11 +329,11 @@ void testing_ger_strided_batched(const Arguments& arg)
 
         gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;
         rocblas_gflops    = batch_count * ger_gflop_count<T, CONJ>(M, N) / gpu_time_used * 1e6;
-        rocblas_bandwidth = batch_count * (2.0 * M * N) * sizeof(T) / gpu_time_used / 1e3;
+        rocblas_bandwidth = batch_count * ger_gbyte_count<T>(M, N) / gpu_time_used * 1e6;
 
         // only norm_check return an norm error, unit check won't return anything
         rocblas_cout << "M,N,alpha,incx,stride_x,incy,stride_y,lda,stride_a,batch_count,rocblas-"
-                        "Gflops,rocblas-GB/s";
+                        "Gflops,rocblas-GB/s,rocblas-us";
 
         if(arg.norm_check)
             rocblas_cout << ",CPU-Gflops,norm_error_host_ptr,norm_error_dev_ptr";
@@ -341,7 +342,8 @@ void testing_ger_strided_batched(const Arguments& arg)
 
         rocblas_cout << M << "," << N << "," << h_alpha << "," << incx << "," << stride_x << ","
                      << incy << "," << stride_y << "," << lda << "," << stride_a << ","
-                     << batch_count << "," << rocblas_gflops << "," << rocblas_bandwidth;
+                     << batch_count << "," << rocblas_gflops << "," << rocblas_bandwidth << ","
+                     << gpu_time_used;
 
         if(arg.norm_check)
             rocblas_cout << "," << cblas_gflops << "," << rocblas_error_1 << "," << rocblas_error_2;
