@@ -370,8 +370,8 @@ void testing_gemm_batched_ex(const Arguments& arg)
             rocblas_init<To>(hC[b], M, N, ldc);
         rocblas_init<To>(hD_1[b], M, N, ldd);
     }
-    hD_2.copy_from(hD_1);
 
+    hD_2.copy_from(hD_1);
     for(int b = 0; b < batch_count; b++)
     {
         for(int i = 0; i < size_d; i++)
@@ -379,7 +379,6 @@ void testing_gemm_batched_ex(const Arguments& arg)
             hD_gold[b][i] = hD_1[b][i];
         }
     }
-    // hD_gold.copy_from(hD_1);
 
 #if 0 // Copied from testing_gemm_ex.hpp
     if(std::is_same<To, rocblas_half>{} && std::is_same<Tc, float>{})
