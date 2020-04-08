@@ -47,10 +47,16 @@ void cblas_dot<rocblas_half>(rocblas_int         n,
                              rocblas_int         incy,
                              rocblas_half*       result)
 {
-    size_t             abs_incx = incx >= 0 ? incx : -incx;
-    size_t             abs_incy = incy >= 0 ? incy : -incy;
-    host_vector<float> x_float(n * abs_incx);
-    host_vector<float> y_float(n * abs_incy);
+    size_t abs_incx = incx >= 0 ? incx : -incx;
+    size_t abs_incy = incy >= 0 ? incy : -incy;
+    size_t size_x   = n * abs_incx;
+    size_t size_y   = n * abs_incy;
+    if(!size_x)
+        size_x = 1;
+    if(!size_y)
+        size_y = 1;
+    host_vector<float> x_float(size_x);
+    host_vector<float> y_float(size_y);
 
     for(size_t i = 0; i < n; i++)
     {
@@ -69,10 +75,16 @@ void cblas_dot<rocblas_bfloat16>(rocblas_int             n,
                                  rocblas_int             incy,
                                  rocblas_bfloat16*       result)
 {
-    size_t             abs_incx = incx >= 0 ? incx : -incx;
-    size_t             abs_incy = incy >= 0 ? incy : -incy;
-    host_vector<float> x_float(n * abs_incx);
-    host_vector<float> y_float(n * abs_incy);
+    size_t abs_incx = incx >= 0 ? incx : -incx;
+    size_t abs_incy = incy >= 0 ? incy : -incy;
+    size_t size_x   = n * abs_incx;
+    size_t size_y   = n * abs_incy;
+    if(!size_x)
+        size_x = 1;
+    if(!size_y)
+        size_y = 1;
+    host_vector<float> x_float(size_x);
+    host_vector<float> y_float(size_y);
 
     for(size_t i = 0; i < n; i++)
     {

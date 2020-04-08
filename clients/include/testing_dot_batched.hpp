@@ -91,41 +91,20 @@ void testing_dot_batched(const Arguments& arg)
     // check to prevent undefined memmory allocation error
     if(N <= 0 || batch_count <= 0)
     {
-        static const size_t    safe_size = 100; // arbitrarily set to 100
-        device_batch_vector<T> dx(safe_size, 1, 1);
-        device_batch_vector<T> dy(safe_size, 1, 1);
-        device_vector<T>       d_rocblas_result(std::max(batch_count, 1));
-        CHECK_DEVICE_ALLOCATION(dx.memcheck());
-        CHECK_DEVICE_ALLOCATION(dy.memcheck());
+        device_vector<T> d_rocblas_result(std::max(batch_count, 1));
         CHECK_DEVICE_ALLOCATION(d_rocblas_result.memcheck());
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
-        if(batch_count < 0)
-        {
-            EXPECT_ROCBLAS_STATUS(
-                (CONJ ? rocblas_dotc_batched<T> : rocblas_dot_batched<T>)(handle,
-                                                                          N,
-                                                                          dx.ptr_on_device(),
-                                                                          incx,
-                                                                          dy.ptr_on_device(),
-                                                                          incy,
-                                                                          batch_count,
-                                                                          d_rocblas_result),
-                rocblas_status_invalid_size);
-        }
-        else
-        {
-            CHECK_ROCBLAS_ERROR(
-                (CONJ ? rocblas_dotc_batched<T> : rocblas_dot_batched<T>)(handle,
-                                                                          N,
-                                                                          dx.ptr_on_device(),
-                                                                          incx,
-                                                                          dy.ptr_on_device(),
-                                                                          incy,
-                                                                          batch_count,
-                                                                          d_rocblas_result));
-        }
+        CHECK_ROCBLAS_ERROR(
+            (CONJ ? rocblas_dotc_batched<T> : rocblas_dot_batched<T>)(handle,
+                                                                      N,
+                                                                      nullptr,
+                                                                      incx,
+                                                                      nullptr,
+                                                                      incy,
+                                                                      batch_count,
+                                                                      d_rocblas_result));
         return;
     }
 
@@ -138,16 +117,16 @@ void testing_dot_batched(const Arguments& arg)
     size_t         size_y   = N * size_t(abs_incy);
 
     //Device-arrays of pointers to device memory
-    device_batch_vector<T> dx(N, incx, batch_count);
-    device_batch_vector<T> dy(N, incy, batch_count);
+    device_batch_vector<T> dx(N, incx ? incx : 1, batch_count);
+    device_batch_vector<T> dy(N, incy ? incy : 1, batch_count);
     device_vector<T>       d_rocblas_result_2(batch_count);
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
     CHECK_DEVICE_ALLOCATION(d_rocblas_result_2.memcheck());
 
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
-    host_batch_vector<T> hx(N, incx, batch_count);
-    host_batch_vector<T> hy(N, incy, batch_count);
+    host_batch_vector<T> hx(N, incx ? incx : 1, batch_count);
+    host_batch_vector<T> hy(N, incy ? incy : 1, batch_count);
 
     // Initial Data on CPU
     rocblas_init(hx, true);

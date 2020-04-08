@@ -23,6 +23,17 @@ Definitions:
     - { incx:  0, incy:  0 }
     # - { incx:  1, incy:  0 } # Indeterminate when y is output
 
+  - &incx_incy_range_swap
+    - { incx:  1, incy:  1 }
+    - { incx:  1, incy:  2 }
+    - { incx:  2, incy:  1 }
+    - { incx:  1, incy: -1 }
+    - { incx: -1, incy:  1 }
+    - { incx: -1, incy: -1 }
+    # - { incx:  0, incy:  0 } # Indeterminate for swap
+    # - { incx:  0, incy:  1 } # Indeterminate when x is output (swap)
+    # - { incx:  1, incy:  0 } # Indeterminate when y is output
+
   - &incx_incy_range_small
     - { incx: 2, incy: 2 }
     - { incx: -2, incy: -2 }
@@ -390,7 +401,6 @@ Tests:
     N: [ -1, 0, 1025]
     incx_incy: *incx_incy_range
     function:
-      - swap: *single_double_precisions_complex_real
       - copy: *single_double_precisions_complex_real
       - rot:   *rot_precisions
       - rotm:  *single_double_precisions_complex_real
@@ -403,7 +413,6 @@ Tests:
     incx_incy: *incx_incy_range
     batch_count: [-1, 0, 257]
     function:
-      - swap_batched: *single_double_precisions_complex_real
       - copy_batched: *single_double_precisions_complex_real
       - rot_batched:   *rot_precisions
       - rotm_batched:  *single_double_precisions_complex_real
@@ -417,7 +426,6 @@ Tests:
     batch_count: [-1, 0, 257]
     stride_scale: [ 1 ]
     function:
-      - swap_strided_batched: *single_double_precisions_complex_real
       - copy_strided_batched:  *single_double_precisions_complex_real
       - rot_strided_batched:   *rot_precisions
       - rotm_strided_batched:  *single_double_precisions_complex_real
@@ -503,6 +511,20 @@ Tests:
       - dotc_strided_batched:  *double_precision_complex_real
       - rot_strided_batched:   *rot_precisions
       - rotm_strided_batched:  *single_double_precisions_complex_real
+
+# Swap gets its own for quick tests
+
+# quick
+  - name: blas1
+    category: quick
+    N: [ -1, 0, 32] #1025]
+    incx_incy: *incx_incy_range_swap
+    batch_count: [1, 7]
+    stride_scale: [ 1 ]
+    function:
+      - swap: *single_double_precisions_complex_real
+      - swap_batched: *single_double_precisions_complex_real
+      - swap_strided_batched: *single_double_precisions_complex_real
 
 # all functions bad arg
 # for bad_arg no arguments should be used by test code

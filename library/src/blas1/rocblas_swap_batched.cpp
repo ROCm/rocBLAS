@@ -60,11 +60,8 @@ namespace
                         batch_count);
 
         // Quick return if possible.
-        if(n <= 0 || batch_count == 0)
+        if(n <= 0 || batch_count <= 0)
             return rocblas_status_success;
-
-        if(batch_count < 0)
-            return rocblas_status_invalid_size;
 
         if(!x || !y)
             return rocblas_status_invalid_pointer;

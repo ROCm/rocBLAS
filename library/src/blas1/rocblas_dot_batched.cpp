@@ -84,16 +84,26 @@ namespace
                             batch_count);
         }
 
-        if(batch_count < 0)
-            return rocblas_status_invalid_size;
+        // Quick return if possible.
+        if(n <= 0 || batch_count <= 0)
+        {
+            if(handle->is_device_memory_size_query())
+                return rocblas_status_size_unchanged;
+            if(!results)
+                return rocblas_status_invalid_pointer;
+            if(rocblas_pointer_mode_device == handle->pointer_mode)
+                RETURN_IF_HIP_ERROR(hipMemsetAsync(results, 0, sizeof(*results)));
+            else
+                *results = T(0);
+            return rocblas_status_success;
+        }
 
         size_t dev_bytes = rocblas_reduction_kernel_workspace_size<NB, T2>(n, batch_count);
+        if(handle->is_device_memory_size_query())
+            return handle->set_optimal_device_memory_size(dev_bytes);
 
         if(!x || !y || !results)
             return rocblas_status_invalid_pointer;
-
-        if(handle->is_device_memory_size_query())
-            return handle->set_optimal_device_memory_size(dev_bytes);
 
         auto mem = handle->device_malloc(dev_bytes);
         if(!mem)
