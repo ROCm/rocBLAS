@@ -20,6 +20,20 @@
  * ===========================================================================
  */
 
+/* \brief byte counts of dot */
+template <typename T>
+constexpr double dot_gbyte_count(rocblas_int n)
+{
+    return (sizeof(T) * 2.0 * n) / 1e9;
+}
+
+/* \brief byte counts of dot */
+template <typename T>
+constexpr double nrm2_gbyte_count(rocblas_int n)
+{
+    return (sizeof(T) * n) / 1e9;
+}
+
 /*
  * ===========================================================================
  *    level 2 BLAS
