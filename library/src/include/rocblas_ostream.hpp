@@ -27,9 +27,6 @@
 #include <unistd.h>
 #include <utility>
 
-// Abort function which safely flushes all IO
-extern "C" void rocblas_abort [[noreturn]] ();
-
 /*****************************************************************************
  * rocBLAS output streams                                                    *
  *****************************************************************************/
@@ -236,7 +233,7 @@ public:
     }
 
     // Abort function which safely flushes all IO
-    friend void rocblas_abort();
+    friend void rocblas_abort_once();
 
     /*************************************************************************
      * Non-member friend functions for formatted output                      *

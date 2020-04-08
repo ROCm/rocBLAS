@@ -2,6 +2,9 @@
  * Copyright 2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+// Predeclare rocblas_abort_once() for friend declaration in rocblas_ostream.hpp
+static void rocblas_abort_once [[noreturn]] ();
+
 #include "rocblas_ostream.hpp"
 #include <csignal>
 #include <cstddef>
@@ -12,14 +15,22 @@
  * rocblas_ostream functions                                           *
  ***********************************************************************/
 
-// Abort function which safely flushes all IO
-ROCBLAS_EXPORT extern "C" void rocblas_abort()
+// Abort function which is called only once by rocblas_abort
+static void rocblas_abort_once()
 {
-    // Make sure the alarm action is default
+    // Make sure the alarm and abort actions are default
     signal(SIGALRM, SIG_DFL);
+    signal(SIGABRT, SIG_DFL);
+
+    // Unblock the alarm and abort signals
+    sigset_t set[1];
+    sigemptyset(set);
+    sigaddset(set, SIGALRM);
+    sigaddset(set, SIGABRT);
+    sigprocmask(SIG_UNBLOCK, set, nullptr);
 
     // Timeout in case of deadlock
-    alarm(3);
+    alarm(5);
 
     // Obtain the map lock
     rocblas_ostream::map_mutex().lock();
@@ -30,8 +41,15 @@ ROCBLAS_EXPORT extern "C" void rocblas_abort()
     // Flush all
     fflush(NULL);
 
-    // Exit
+    // Abort
     std::abort();
+}
+
+// Abort function which safely flushes all IO
+extern "C" void rocblas_abort()
+{
+    // If multiple threads call rocblas_abort(), the first one wins
+    static int once = (rocblas_abort_once(), 0);
 }
 
 // Get worker for writing to a file descriptor
