@@ -400,7 +400,7 @@ namespace
             {
                 rocblas_cerr << "\nrocBLAS error: Cannot read " << path << ": " << strerror(errno)
                              << std::endl;
-                abort();
+                rocblas_abort();
             }
 
             library = std::dynamic_pointer_cast<
