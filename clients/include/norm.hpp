@@ -239,14 +239,15 @@ double norm_check_general(char           norm_type,
 }
 
 /* ============== Norm Check for batched case ============= */
+
 template <typename T, typename T_hpa>
-double norm_check_general(char               norm_type,
-                          rocblas_int        M,
-                          rocblas_int        N,
-                          rocblas_int        lda,
-                          rocblas_int        batch_count,
-                          host_vector<T_hpa> hCPU[],
-                          host_vector<T>     hGPU[])
+double norm_check_general(char                      norm_type,
+                          rocblas_int               M,
+                          rocblas_int               N,
+                          rocblas_int               lda,
+                          host_batch_vector<T_hpa>& hCPU,
+                          host_batch_vector<T>&     hGPU,
+                          rocblas_int               batch_count)
 {
     // norm type can be O', 'I', 'F', 'o', 'i', 'f' for one, infinity or Frobenius norm
     // one norm is max column sum

@@ -39,9 +39,9 @@ void testing_gbmv_batched_bad_arg(const Arguments& arg)
     device_batch_vector<T> dA(batch_count, safe_size);
     device_batch_vector<T> dx(batch_count, safe_size);
     device_batch_vector<T> dy(batch_count, safe_size);
-    CHECK_HIP_ERROR(dA.memcheck());
-    CHECK_HIP_ERROR(dx.memcheck());
-    CHECK_HIP_ERROR(dy.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     auto dA_dev = dA.ptr_on_device();
     auto dx_dev = dx.ptr_on_device();
@@ -250,12 +250,12 @@ void testing_gbmv_batched(const Arguments& arg)
     device_vector<T> d_alpha(1);
     device_vector<T> d_beta(1);
 
-    CHECK_HIP_ERROR(AA.memcheck());
-    CHECK_HIP_ERROR(xA.memcheck());
-    CHECK_HIP_ERROR(y_1A.memcheck());
-    CHECK_HIP_ERROR(y_2A.memcheck());
-    CHECK_HIP_ERROR(d_alpha.memcheck());
-    CHECK_HIP_ERROR(d_beta.memcheck());
+    CHECK_DEVICE_ALLOCATION(AA.memcheck());
+    CHECK_DEVICE_ALLOCATION(xA.memcheck());
+    CHECK_DEVICE_ALLOCATION(y_1A.memcheck());
+    CHECK_DEVICE_ALLOCATION(y_2A.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
 
     rocblas_init(hA, true);
     rocblas_init(hxA);

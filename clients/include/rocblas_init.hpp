@@ -183,7 +183,7 @@ void rocblas_init_nan(T* A, size_t N)
 
 template <typename T>
 void rocblas_init_nan(
-    std::vector<T>& A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
+    T* A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
 {
     for(size_t i_batch = 0; i_batch < batch_count; i_batch++)
         for(size_t i = 0; i < M; ++i)
@@ -191,8 +191,27 @@ void rocblas_init_nan(
                 A[i + j * lda + i_batch * stride] = T(rocblas_nan_rng());
 }
 
+template <typename T>
+void rocblas_init_nan(
+    std::vector<T>& A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
+{
+    rocblas_init_nan(A.data(), M, N, lda, stride, batch_count);
+}
+
 /* ============================================================================================ */
 /*! \brief  Packs strided_batched matricies into groups of 4 in N */
+
+template <typename T>
+void rocblas_packInt8(T* A, const T* temp, size_t M, size_t N, size_t lda)
+{
+    if(N % 4 != 0)
+        std::cerr << "ERROR: dimension must be a multiple of 4 in order to pack" << std::endl;
+
+    for(size_t colBase = 0; colBase < N; colBase += 4)
+        for(size_t row = 0; row < lda; row++)
+            for(size_t colOffset = 0; colOffset < 4; colOffset++)
+                A[(colBase * lda + 4 * row) + colOffset] = temp[(colBase + colOffset) * lda + row];
+}
 
 template <typename T>
 void rocblas_packInt8(

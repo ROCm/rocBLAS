@@ -38,8 +38,8 @@ void testing_tbmv_batched_bad_arg(const Arguments& arg)
     // allocate memory on device
     device_batch_vector<T> dA(size_A, 1, batch_count);
     device_batch_vector<T> dx(M, incx, batch_count);
-    CHECK_HIP_ERROR(dA.memcheck());
-    CHECK_HIP_ERROR(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
     EXPECT_ROCBLAS_STATUS(
         rocblas_tbmv_batched<T>(
@@ -132,8 +132,8 @@ void testing_tbmv_batched(const Arguments& arg)
 
     device_batch_vector<T> dA(size_A, 1, batch_count);
     device_batch_vector<T> dx(M, incx, batch_count);
-    CHECK_HIP_ERROR(dx.memcheck());
-    CHECK_HIP_ERROR(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
 
     rocblas_init(hA, true);
     rocblas_init(hx, false);
