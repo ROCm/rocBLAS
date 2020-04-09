@@ -9,9 +9,6 @@
 #include "rocblas.h"
 #include "trtri_trsm.hpp"
 #include "utility.h"
-#include <algorithm>
-#include <cstdio>
-#include <tuple>
 
 namespace
 {

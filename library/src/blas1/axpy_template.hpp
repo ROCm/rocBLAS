@@ -4,8 +4,6 @@
 #pragma once
 #include "handle.h"
 #include "logging.h"
-#include "rocblas.h"
-#include "utility.h"
 
 //!
 //! @brief Kernel for all the versions (batched, strided batched) of axpy.

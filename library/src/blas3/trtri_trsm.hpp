@@ -8,7 +8,6 @@
 #define __TRTRI_TRSM_HPP__
 
 #include "gemm.hpp"
-#include "handle.h"
 #include "rocblas_trtri.hpp"
 
 static constexpr rocblas_int ROCBLAS_TRTRI_NB = 16;

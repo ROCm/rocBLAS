@@ -3,7 +3,6 @@
  * ************************************************************************ */
 #pragma once
 #include "handle.h"
-#include "rocblas.h"
 
 template <typename T, typename U>
 __device__ void her_kernel_calc(

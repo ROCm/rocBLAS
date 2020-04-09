@@ -5,10 +5,7 @@
 #define __ROCBLAS_TRSM_HPP__
 
 #include "../blas_ex/rocblas_gemm_ex.hpp"
-#include "handle.h"
-#include "rocblas.h"
 #include "trtri_trsm.hpp"
-#include "utility.h"
 
 ///////////////////// //////
 ///// helper templates /////

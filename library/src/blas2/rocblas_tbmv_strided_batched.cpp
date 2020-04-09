@@ -6,7 +6,6 @@
 #include "rocblas.h"
 #include "rocblas_tbmv.hpp"
 #include "utility.h"
-#include <limits>
 
 namespace
 {

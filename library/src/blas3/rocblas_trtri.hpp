@@ -6,10 +6,6 @@
 #define __ROCBLAS_TRTRI_HPP__
 
 #include "gemm.hpp"
-#include "handle.h"
-#include "rocblas.h"
-#include "utility.h"
-#include <memory>
 
 template <rocblas_int IB, typename T>
 __device__ void custom_trtri_device(rocblas_fill     uplo,
