@@ -837,3 +837,26 @@ The ``ERROR`` macro parameter is evaluated only once, and is stored in the tempo
 The ``ERROR`` macro parameter is parenthesized when initializing ``error__``, to avoid ambiguous precedence, such as if ``ERROR`` contains a comma expression.
 
 The ``error__`` variable name is used, to prevent it from conflicting with variables passed in the ``ERROR`` macro parameter, such as ``error``.
+
+
+26. Do not use variable-length arrays (VLA), which allocate on the stack, for arrays of unknown size.
+
+    ..code:: cpp
+
+        Ti* hostA[batch_count];
+        Ti* hostB[batch_count];
+        To* hostC[batch_count];
+        To* hostD[batch_count];
+
+        func(hostA, hostB, hostC, hostD);
+
+ Instead, allocate on the heap, using smart pointers to avoid memory leaks:
+
+    ..code:: cpp
+
+        auto hostA = std::make_unique<Ti*[]>(batch_count);
+        auto hostB = std::make_unique<Ti*[]>(batch_count);
+        auto hostC = std::make_unique<To*[]>(batch_count);
+        auto hostD = std::make_unique<To*[]>(batch_count);
+
+        func(&hostA[0], &hostB[0], &hostC[0], &hostD[0]);
