@@ -22,6 +22,9 @@ Definitions:
     - { incx:  1, incy: -1 }
     - { incx: -1, incy:  1 }
     - { incx: -1, incy: -1 }
+    # - { incx:  0, incy:  1 }
+    # - { incx:  0, incy:  0 }
+    # - { incx:  1, incy:  0 }
 
   - &incx_incy_range_small
     - { incx: 2, incy: 2 }

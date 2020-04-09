@@ -57,25 +57,22 @@ void testing_rot(const Arguments& arg)
     const U rel_error          = std::numeric_limits<U>::epsilon() * 1000;
 
     // check to prevent undefined memory allocation error
-    if(N <= 0 || incx <= 0 || incy <= 0)
+    if(N <= 0)
     {
-        static const size_t safe_size = 100; // arbitrarily set to 100
-        device_vector<T>    dx(safe_size);
-        device_vector<T>    dy(safe_size);
-        device_vector<U>    dc(1);
-        device_vector<V>    ds(1);
-        CHECK_DEVICE_ALLOCATION(dx.memcheck());
-        CHECK_DEVICE_ALLOCATION(dy.memcheck());
-        CHECK_DEVICE_ALLOCATION(dc.memcheck());
-        CHECK_DEVICE_ALLOCATION(ds.memcheck());
-
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR((rocblas_rot<T, U, V>(handle, N, dx, incx, dy, incy, dc, ds)));
+        CHECK_ROCBLAS_ERROR(
+            (rocblas_rot<T, U, V>(handle, N, nullptr, incx, nullptr, incy, nullptr, nullptr)));
         return;
     }
 
-    size_t size_x = N * size_t(incx);
-    size_t size_y = N * size_t(incy);
+    rocblas_int abs_incx = incx >= 0 ? incx : -incx;
+    rocblas_int abs_incy = incy >= 0 ? incy : -incy;
+    size_t      size_x   = N * size_t(abs_incx);
+    size_t      size_y   = N * size_t(abs_incy);
+    if(!size_x)
+        size_x = 1;
+    if(!size_y)
+        size_y = 1;
 
     device_vector<T> dx(size_x);
     device_vector<T> dy(size_y);
@@ -92,8 +89,8 @@ void testing_rot(const Arguments& arg)
     host_vector<U> hc(1);
     host_vector<V> hs(1);
     rocblas_seedrand();
-    rocblas_init<T>(hx, 1, N, incx);
-    rocblas_init<T>(hy, 1, N, incy);
+    rocblas_init<T>(hx, 1, N, abs_incx);
+    rocblas_init<T>(hy, 1, N, abs_incy);
 
     // Random alpha (0 - 10)
     host_vector<rocblas_int> alpha(1);
@@ -127,13 +124,13 @@ void testing_rot(const Arguments& arg)
             CHECK_HIP_ERROR(hipMemcpy(ry, dy, sizeof(T) * size_y, hipMemcpyDeviceToHost));
             if(arg.unit_check)
             {
-                near_check_general<T>(1, N, incx, cx, rx, rel_error);
-                near_check_general<T>(1, N, incy, cy, ry, rel_error);
+                near_check_general<T>(1, N, abs_incx, cx, rx, rel_error);
+                near_check_general<T>(1, N, abs_incy, cy, ry, rel_error);
             }
             if(arg.norm_check)
             {
-                norm_error_host_x = norm_check_general<T>('F', 1, N, incx, cx, rx);
-                norm_error_host_y = norm_check_general<T>('F', 1, N, incy, cy, ry);
+                norm_error_host_x = norm_check_general<T>('F', 1, N, abs_incx, cx, rx);
+                norm_error_host_y = norm_check_general<T>('F', 1, N, abs_incy, cy, ry);
             }
         }
 
@@ -151,13 +148,13 @@ void testing_rot(const Arguments& arg)
             CHECK_HIP_ERROR(hipMemcpy(ry, dy, sizeof(T) * size_y, hipMemcpyDeviceToHost));
             if(arg.unit_check)
             {
-                near_check_general<T>(1, N, incx, cx, rx, rel_error);
-                near_check_general<T>(1, N, incy, cy, ry, rel_error);
+                near_check_general<T>(1, N, abs_incx, cx, rx, rel_error);
+                near_check_general<T>(1, N, abs_incy, cy, ry, rel_error);
             }
             if(arg.norm_check)
             {
-                norm_error_device_x = norm_check_general<T>('F', 1, N, incx, cx, rx);
-                norm_error_device_y = norm_check_general<T>('F', 1, N, incy, cy, ry);
+                norm_error_device_x = norm_check_general<T>('F', 1, N, abs_incx, cx, rx);
+                norm_error_device_y = norm_check_general<T>('F', 1, N, abs_incy, cy, ry);
             }
         }
     }
