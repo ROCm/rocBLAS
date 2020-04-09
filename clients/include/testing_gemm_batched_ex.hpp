@@ -374,7 +374,7 @@ void testing_gemm_batched_ex(const Arguments& arg)
     hD_2.copy_from(hD_1);
     for(int b = 0; b < batch_count; b++)
     {
-        for(int i = 0; i < size_d; i++)
+        for(size_t i = 0; i < size_d; i++)
         {
             hD_gold[b][i] = hD_1[b][i];
         }
