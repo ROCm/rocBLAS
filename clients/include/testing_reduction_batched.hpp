@@ -33,7 +33,7 @@ void template_testing_reduction_batched_bad_arg(const Arguments&                
     // allocate memory on device
     //
     device_batch_vector<T> dx(N, incx, batch_count);
-    CHECK_HIP_ERROR(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
     R h_rocblas_result;
 
@@ -61,9 +61,9 @@ void template_testing_reduction_batched(
     if(N <= 0 || incx <= 0 || batch_count <= 0)
     {
         device_batch_vector<T> dx(3, 1, 2);
-        CHECK_HIP_ERROR(dx.memcheck());
+        CHECK_DEVICE_ALLOCATION(dx.memcheck());
         device_vector<R> dr(std::max(2, std::abs(batch_count)));
-        CHECK_HIP_ERROR(dr.memcheck());
+        CHECK_DEVICE_ALLOCATION(dr.memcheck());
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         EXPECT_ROCBLAS_STATUS(func(handle, N, dx.ptr_on_device(), incx, batch_count, dr),
                               (N > 0 && incx > 0 && batch_count < 0) ? rocblas_status_invalid_size
@@ -78,12 +78,12 @@ void template_testing_reduction_batched(
     host_vector<R> cpu_result(batch_count);
     CHECK_HIP_ERROR(cpu_result.memcheck());
     device_vector<R> dr(batch_count);
-    CHECK_HIP_ERROR(dr.memcheck());
+    CHECK_DEVICE_ALLOCATION(dr.memcheck());
 
     host_batch_vector<T> hx(N, incx, batch_count);
     CHECK_HIP_ERROR(hx.memcheck());
     device_batch_vector<T> dx(N, incx, batch_count);
-    CHECK_HIP_ERROR(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
     //
     // Initialize.

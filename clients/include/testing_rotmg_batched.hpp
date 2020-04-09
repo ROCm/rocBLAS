@@ -264,11 +264,11 @@ void testing_rotmg_batched(const Arguments& arg)
         device_batch_vector<T> dx1(1, 1, batch_count);
         device_batch_vector<T> dy1(1, 1, batch_count);
         device_batch_vector<T> dparams(5, 1, batch_count);
-        CHECK_HIP_ERROR(dd1.memcheck());
-        CHECK_HIP_ERROR(dd2.memcheck());
-        CHECK_HIP_ERROR(dx1.memcheck());
-        CHECK_HIP_ERROR(dy1.memcheck());
-        CHECK_HIP_ERROR(dparams.memcheck());
+        CHECK_DEVICE_ALLOCATION(dd1.memcheck());
+        CHECK_DEVICE_ALLOCATION(dd2.memcheck());
+        CHECK_DEVICE_ALLOCATION(dx1.memcheck());
+        CHECK_DEVICE_ALLOCATION(dy1.memcheck());
+        CHECK_DEVICE_ALLOCATION(dparams.memcheck());
 
         CHECK_HIP_ERROR(dd1.transfer_from(hd1));
         CHECK_HIP_ERROR(dd2.transfer_from(hd2));

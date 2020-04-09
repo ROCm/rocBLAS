@@ -308,9 +308,9 @@ void testing_gemm_batched_bad_arg(const Arguments& arg)
     device_batch_vector<T> dA(safe_size, 1, batch_count);
     device_batch_vector<T> dB(safe_size, 1, batch_count);
     device_batch_vector<T> dC(safe_size, 1, batch_count);
-    CHECK_HIP_ERROR(dA.memcheck());
-    CHECK_HIP_ERROR(dB.memcheck());
-    CHECK_HIP_ERROR(dC.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dB.memcheck());
+    CHECK_DEVICE_ALLOCATION(dC.memcheck());
 
     EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched<T>(handle,
                                                   transA,
