@@ -10,6 +10,7 @@
 #include <complex>
 #include <exception>
 #include <hip/hip_runtime.h>
+#include <new>
 #include <type_traits>
 
 #pragma STDC CX_LIMITED_RANGE ON
