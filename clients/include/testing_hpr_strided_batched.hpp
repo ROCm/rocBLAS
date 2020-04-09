@@ -36,8 +36,8 @@ void testing_hpr_strided_batched_bad_arg()
     // allocate memory on device
     device_strided_batch_vector<T> dA_1(size_A, 1, stride_A, batch_count);
     device_strided_batch_vector<T> dx(N, incx, stride_x, batch_count);
-    CHECK_HIP_ERROR(dA_1.memcheck());
-    CHECK_HIP_ERROR(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA_1.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
     EXPECT_ROCBLAS_STATUS((rocblas_hpr_strided_batched<T, U>)(handle,
                                                               rocblas_fill_full,

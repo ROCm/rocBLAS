@@ -26,7 +26,7 @@ void testing_asum_batched_bad_arg_template(const Arguments& arg)
     rocblas_local_handle handle;
 
     device_batch_vector<T1> dx(N, 1, batch_count);
-    CHECK_HIP_ERROR(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
     CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
@@ -57,9 +57,9 @@ void testing_asum_batched_template(const Arguments& arg)
     if(N <= 0 || incx <= 0 || batch_count <= 0)
     {
         device_batch_vector<T1> dx(3, 1, 2);
-        CHECK_HIP_ERROR(dx.memcheck());
+        CHECK_DEVICE_ALLOCATION(dx.memcheck());
         device_vector<T2> dr(std::max(2, std::abs(batch_count)));
-        CHECK_HIP_ERROR(dr.memcheck());
+        CHECK_DEVICE_ALLOCATION(dr.memcheck());
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         EXPECT_ROCBLAS_STATUS(
             (rocblas_asum_batched<T1, T2>(handle, N, dx.ptr_on_device(), incx, batch_count, dr)),
@@ -79,10 +79,10 @@ void testing_asum_batched_template(const Arguments& arg)
     host_vector<T2>   hr1(batch_count);
     host_vector<T2>   hr(batch_count);
 
-    CHECK_HIP_ERROR(dx.memcheck());
-    CHECK_HIP_ERROR(hx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(hx.memcheck());
 
-    CHECK_HIP_ERROR(dr.memcheck());
+    CHECK_DEVICE_ALLOCATION(dr.memcheck());
     CHECK_HIP_ERROR(hr1.memcheck());
     CHECK_HIP_ERROR(hr.memcheck());
 

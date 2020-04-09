@@ -24,9 +24,9 @@ void testing_axpy_batched_bad_arg(const Arguments& arg)
 
     T                      alpha = 0.6;
     device_batch_vector<T> dx(10, 1, 2);
-    CHECK_HIP_ERROR(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
     device_batch_vector<T> dy(10, 1, 2);
-    CHECK_HIP_ERROR(dy.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     EXPECT_ROCBLAS_STATUS(
         rocblas_axpy_batched<T>(
@@ -59,9 +59,9 @@ void testing_axpy_batched(const Arguments& arg)
     if(N <= 0 || batch_count <= 0)
     {
         device_batch_vector<T> dx(10, 1, 3);
-        CHECK_HIP_ERROR(dx.memcheck());
+        CHECK_DEVICE_ALLOCATION(dx.memcheck());
         device_batch_vector<T> dy(10, 1, 3);
-        CHECK_HIP_ERROR(dy.memcheck());
+        CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         EXPECT_ROCBLAS_STATUS(rocblas_axpy_batched<T>(handle,
@@ -98,9 +98,9 @@ void testing_axpy_batched(const Arguments& arg)
     device_batch_vector<T> dx(N, incx, batch_count), dy(N, incy, batch_count);
     device_vector<T>       dalpha(1);
 
-    CHECK_HIP_ERROR(dx.memcheck());
-    CHECK_HIP_ERROR(dy.memcheck());
-    CHECK_HIP_ERROR(dalpha.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
+    CHECK_DEVICE_ALLOCATION(dalpha.memcheck());
 
     //
     // Assign host alpha.
