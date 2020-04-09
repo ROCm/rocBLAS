@@ -2,8 +2,6 @@
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "handle.h"
-#include <cstdio>
-#include <cstdlib>
 
 #if BUILD_WITH_TENSILE
 #ifdef USE_TENSILE_HOST

@@ -9,6 +9,7 @@
 #include "rocblas_ostream.hpp"
 #include "utility.h"
 #include <array>
+#include <cstddef>
 #include <hip/hip_runtime.h>
 #include <tuple>
 #include <type_traits>

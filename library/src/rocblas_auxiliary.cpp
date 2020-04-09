@@ -5,9 +5,6 @@
 #include "handle.h"
 #include "logging.h"
 #include "rocblas-auxiliary.h"
-#include "rocblas-types.h"
-#include "utility.h"
-#include <cstdio>
 #include <memory>
 
 /* ============================================================================================ */

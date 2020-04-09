@@ -2,11 +2,7 @@
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "rocblas_hemv.hpp"
-#include "handle.h"
 #include "logging.h"
-#include "rocblas.h"
-#include "utility.h"
-#include <limits>
 
 namespace
 {

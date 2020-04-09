@@ -4,9 +4,6 @@
 #ifndef __ROCBLAS_TBMV_HPP__
 #define __ROCBLAS_TBMV_HPP__
 #include "../blas1/rocblas_copy.hpp"
-#include "handle.h"
-#include "rocblas.h"
-#include "utility.h"
 
 /**
   *  A combined kernel to handle all hpmv cases.

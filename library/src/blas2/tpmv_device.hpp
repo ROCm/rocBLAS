@@ -3,7 +3,6 @@
  * ************************************************************************ */
 
 #pragma once
-
 #include "utility.h"
 
 #ifdef tmpv_calc_upperat

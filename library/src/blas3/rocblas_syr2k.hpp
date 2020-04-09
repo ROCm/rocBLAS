@@ -3,10 +3,8 @@
  * ************************************************************************ */
 #ifndef __ROCBLAS_SYRK2K_HPP__
 #define __ROCBLAS_SYRK2K_HPP__
-
+#pragma once
 #include "handle.h"
-#include "rocblas.h"
-#include "utility.h"
 
 template <typename T, typename U>
 static __device__ void syr2k_scale_device(bool upper, rocblas_int n, T beta, U* C, rocblas_int ldc)

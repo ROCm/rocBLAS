@@ -6,9 +6,6 @@
 #include "rocblas.h"
 #include "rocblas_tpsv.hpp"
 #include "utility.h"
-#include <algorithm>
-#include <cstdio>
-#include <tuple>
 
 namespace
 {

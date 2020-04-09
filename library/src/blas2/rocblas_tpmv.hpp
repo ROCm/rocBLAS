@@ -2,13 +2,7 @@
  * Copyright 2019-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #pragma once
-
-#include "handle.h"
-#include "logging.h"
-#include "rocblas.h"
 #include "tpmv_template.hpp"
-#include "utility.h"
-#include <limits>
 
 template <typename A, typename X, typename W>
 rocblas_status rocblas_tpmv_template(rocblas_handle    handle,

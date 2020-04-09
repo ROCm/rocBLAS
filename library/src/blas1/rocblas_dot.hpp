@@ -1,11 +1,10 @@
 /* ************************************************************************
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+#pragma once
 #include "handle.h"
 #include "logging.h"
 #include "reduction_strided_batched.h"
-#include "rocblas.h"
-#include "utility.h"
 
 template <rocblas_int NB, bool CONJ, typename T, typename U, typename V = T>
 __global__ void dot_kernel_part1(rocblas_int    n,

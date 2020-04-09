@@ -2,11 +2,7 @@
  * Copyright 2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #pragma once
-
-#include "handle.h"
-#include "rocblas.h"
 #include "rocblas_syr2k.hpp"
-#include "utility.h"
 
 template <typename T, typename U>
 static __device__ void her2k_scale_device(bool upper, rocblas_int n, T beta, U* C, rocblas_int ldc)

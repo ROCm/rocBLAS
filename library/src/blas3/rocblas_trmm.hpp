@@ -1,14 +1,13 @@
 /* ************************************************************************
  * Copyright 2019-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+#pragma once
+
 #include "../blas1/rocblas_copy.hpp"
 #include "../blas1/rocblas_scal.hpp"
 #include "../blas2/rocblas_gemv.hpp"
 #include "../blas3/Tensile/gemm.hpp"
 #include "dcld.hpp"
-#include "handle.h"
-#include "rocblas.h"
-#include "utility.h"
 
 template <typename TScal, typename TPtr>
 __global__ void set_matrix_zero_if_alpha_zero_kernel(rocblas_int    m,

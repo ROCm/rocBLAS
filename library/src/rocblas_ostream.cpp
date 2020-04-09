@@ -7,7 +7,6 @@ static void rocblas_abort_once [[noreturn]] ();
 
 #include "rocblas_ostream.hpp"
 #include <csignal>
-#include <cstddef>
 #include <fcntl.h>
 #include <type_traits>
 

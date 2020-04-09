@@ -2,9 +2,7 @@
  * Copyright 2019-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #pragma once
-
 #include "handle.h"
-#include "rocblas.h"
 
 /**
   *  Computes y := alpha*A*x + beta*y where A is a symmetric matrix.

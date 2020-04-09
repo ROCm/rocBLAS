@@ -3,7 +3,6 @@
  * ************************************************************************ */
 #pragma once
 #include "handle.h"
-#include "rocblas.h"
 
 /**
   *  create partial sums for each ty.

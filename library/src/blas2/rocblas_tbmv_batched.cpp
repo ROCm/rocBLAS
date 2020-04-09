@@ -1,12 +1,8 @@
 /* ************************************************************************
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include "handle.h"
 #include "logging.h"
-#include "rocblas.h"
 #include "rocblas_tbmv.hpp"
-#include "utility.h"
-#include <limits>
 
 namespace
 {
