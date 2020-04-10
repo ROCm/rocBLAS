@@ -4,7 +4,6 @@
 #ifndef __ROCBLAS_HEMV_HPP__
 #define __ROCBLAS_HEMV_HPP__
 #include "handle.h"
-#include "rocblas.h"
 
 /**
   *  Computes y := alpha*A*x + beta*y where A is a hermetian matrix.

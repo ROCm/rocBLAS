@@ -1,15 +1,8 @@
 /* ************************************************************************
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-
+#pragma once
 #include "../blas1/rocblas_copy.hpp"
-#include "handle.h"
-#include "logging.h"
-#include "rocblas.h"
-#include "utility.h"
-#include <algorithm>
-#include <cstdio>
-#include <tuple>
 
 namespace
 {

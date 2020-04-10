@@ -803,3 +803,60 @@ Coding Guidelines
         model.func();
 
   The former denotes the rocBLAS arguments as a list which is passed as a variadic template argument, and whose properties are known and can be optimized at compile-time, and which can be passed on as arguments to other templates, while the latter requires creating a dynamically-allocated runtime object which must be interpreted at runtime, such as by using ``switch`` statements on the arguments. The ``switch`` statement will need to list out and handle every possible argument, while the template solution simply passes the argument as another template argument, and hence can be resolved at compile-time.
+
+
+23. Automatically-generated files should always go into ``build/`` directories, and should not go into source directories (even if marked ``.gitignore``). The CMake philosophy is such that you can create any ``build/`` directory, run ``cmake`` from there, and then have a self-contained build environment which will not touch any files outside of it.
+
+
+24. The ``library/include`` subdirectory of rocBLAS, to be distinguished from the ``library/src/include`` subdirectory, shall consist only of C-compatible header files for public rocBLAS APIs. It should not include internal APIs, even if they are used in other projects, e.g., rocSOLVER, and the headers must be compilable with a C compiler, and must use ``.h`` extensions.
+
+
+25. Macro parameters should only be evaluated once when practical, and should be parenthesized if there is a chance of ambiguous precedence. They should be stored in a local temporary variable if needed more than once.
+
+Macros which expand to code with local variables, should use double-underscore suffixes in the local variable names, to prevent their conflict with variables passed in macro parameters. However, if they are in a completely separate block scope than the macro parameter is expanded in, or if they are only passed to another macro/function, then they do not need to use trailing underscores.
+
+    ..code:: cpp
+
+        #define CHECK_DEVICE_ALLOCATION(ERROR)                   \
+            do                                                   \
+            {                                                    \
+                /* Use error__ in case ERROR contains "error" */ \
+                hipError_t error__ = (ERROR);                    \
+                if(error__ != hipSuccess)                        \
+                {                                                \
+                    if(error__ == hipErrorOutOfMemory)           \
+                        SUCCEED() << LIMITED_MEMORY_STRING;      \
+                    else                                         \
+                        FAIL() << hipGetErrorString(error__);    \
+                    return;                                      \
+                }                                                \
+            } while(0)
+
+The ``ERROR`` macro parameter is evaluated only once, and is stored in the temporary variable ``error__``, for use multiple times later.
+
+The ``ERROR`` macro parameter is parenthesized when initializing ``error__``, to avoid ambiguous precedence, such as if ``ERROR`` contains a comma expression.
+
+The ``error__`` variable name is used, to prevent it from conflicting with variables passed in the ``ERROR`` macro parameter, such as ``error``.
+
+
+26. Do not use variable-length arrays (VLA), which allocate on the stack, for arrays of unknown size.
+
+    ..code:: cpp
+
+        Ti* hostA[batch_count];
+        Ti* hostB[batch_count];
+        To* hostC[batch_count];
+        To* hostD[batch_count];
+
+        func(hostA, hostB, hostC, hostD);
+
+ Instead, allocate on the heap, using smart pointers to avoid memory leaks:
+
+    ..code:: cpp
+
+        auto hostA = std::make_unique<Ti*[]>(batch_count);
+        auto hostB = std::make_unique<Ti*[]>(batch_count);
+        auto hostC = std::make_unique<To*[]>(batch_count);
+        auto hostD = std::make_unique<To*[]>(batch_count);
+
+        func(&hostA[0], &hostB[0], &hostC[0], &hostD[0]);

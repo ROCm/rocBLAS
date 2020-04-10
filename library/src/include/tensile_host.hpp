@@ -22,7 +22,6 @@
 
 #include "handle.h"
 #include "tuple_helper.hpp"
-#include <ostream>
 
 /**************************************************************************
  * Return the value category for a value, as a double precision value,    *

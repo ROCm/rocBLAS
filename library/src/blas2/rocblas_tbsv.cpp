@@ -7,9 +7,6 @@
 #include "rocblas.h"
 #include "rocblas_gemv.hpp"
 #include "utility.h"
-#include <algorithm>
-#include <cstdio>
-#include <tuple>
 
 namespace
 {

@@ -143,7 +143,6 @@ if( BUILD_WITH_TENSILE )
     blas3/rocblas_trtri.cpp
     blas3/rocblas_trtri_batched.cpp
     blas3/rocblas_trtri_strided_batched.cpp
-    blas3/rocblas_geam.cpp
     ${Tensile_SRC}
   )
 
@@ -156,6 +155,9 @@ if( BUILD_WITH_TENSILE )
 endif( ) # BUILD_WITH_TENSILE
 
 set( rocblas_blas3_source_no_tensile
+    blas3/rocblas_geam.cpp
+    blas3/rocblas_geam_batched.cpp
+    blas3/rocblas_geam_strided_batched.cpp
     blas3/rocblas_hemm.cpp
     blas3/rocblas_hemm_batched.cpp
     blas3/rocblas_hemm_strided_batched.cpp
@@ -338,6 +340,9 @@ if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
   endforeach( )
 endif( )
 
+# Do not allow Variable Length Arrays (use unique_ptr instead)
+target_compile_options( rocblas PRIVATE -Werror=vla )
+
 target_include_directories( rocblas
   PUBLIC  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/library/include>
           $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -373,12 +378,11 @@ set_target_properties( rocblas PROPERTIES CXX_VISIBILITY_PRESET "hidden" VISIBIL
 generate_export_header( rocblas EXPORT_FILE_NAME ${PROJECT_BINARY_DIR}/include/rocblas-export.h )
 
 # generate header with prototypes for export reuse
-set( SRC_DIR "${CMAKE_CURRENT_SOURCE_DIR}" )
-set( ROCBLAS_PROTO_TEMPLATES "${SRC_DIR}/../include/rocblas-exported-proto.hpp" )
+set( ROCBLAS_PROTO_TEMPLATES "${PROJECT_BINARY_DIR}/include/rocblas-exported-proto.hpp" )
 add_custom_command( TARGET rocblas PRE_BUILD
-  COMMAND python template-proto.py ${SRC_DIR}/blas3/Tensile/*.hpp ${SRC_DIR}/blas3/*.hpp ${SRC_DIR}/blas2/*.hpp ${SRC_DIR}/blas1/*.hpp > ${ROCBLAS_PROTO_TEMPLATES}
-  DEPENDS ${SRC_DIR}
-  COMMENT "Generating prototypes from ${SRC_DIR}."
+  COMMAND python template-proto.py ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/*.hpp ${CMAKE_CURRENT_SOURCE_DIR}/blas3/*.hpp ${CMAKE_CURRENT_SOURCE_DIR}/blas2/*.hpp ${CMAKE_CURRENT_SOURCE_DIR}/blas1/*.hpp > ${ROCBLAS_PROTO_TEMPLATES}
+  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}
+  COMMENT "Generating prototypes from ${CMAKE_CURRENT_SOURCE_DIR}."
   WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
 )
 

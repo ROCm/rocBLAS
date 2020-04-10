@@ -2,8 +2,6 @@
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "handle.h"
-#include <cstdio>
-#include <cstdlib>
 
 #if BUILD_WITH_TENSILE
 #ifdef USE_TENSILE_HOST
@@ -80,7 +78,7 @@ _rocblas_handle::~_rocblas_handle()
         rocblas_cerr
             << "rocBLAS internal error: Handle object destroyed while device memory still in use."
             << std::endl;
-        abort();
+        rocblas_abort();
     }
     if(device_memory)
         (hipFree)(device_memory);
@@ -96,7 +94,7 @@ void* _rocblas_handle::device_allocator(size_t size)
         rocblas_cerr << "rocBLAS internal error: Cannot allocate device memory while it is already "
                         "allocated."
                      << std::endl;
-        abort();
+        rocblas_abort();
     }
     if(size > device_memory_size)
     {

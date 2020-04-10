@@ -9,9 +9,6 @@
 #include "rocblas_trsm.hpp"
 #include "trtri_trsm.hpp"
 #include "utility.h"
-#include <algorithm>
-#include <cstdio>
-#include <tuple>
 
 // Shared memory usuage is (128/2)^2 * sizeof(float) = 32K. LDS is 64K per CU. Theoretically
 // you can use all 64K, but in practice no.

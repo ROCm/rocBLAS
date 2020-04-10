@@ -1,10 +1,9 @@
 /* ************************************************************************
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+#pragma once
 #include "handle.h"
 #include "logging.h"
-#include "rocblas.h"
-#include "utility.h"
 
 template <typename T, typename U, std::enable_if_t<!is_complex<T>, int> = 0>
 __device__ __host__ void rocblas_rotg_calc(T& a, T& b, U& c, T& s)

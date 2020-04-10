@@ -4,7 +4,6 @@
 #ifndef __ROCBLAS_hbmv_HPP__
 #define __ROCBLAS_hbmv_HPP__
 #include "handle.h"
-#include "rocblas.h"
 
 /**
   *  Helper for the non-transpose case. Iterates through each diagonal

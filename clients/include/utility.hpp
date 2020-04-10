@@ -8,7 +8,6 @@
 #include "cblas_interface.hpp"
 #include "logging.h"
 #include "rocblas.h"
-#include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
 #include "utility.h"
 #include <cstdio>
@@ -30,13 +29,35 @@
 // This must come after the header #includes above, to avoid poisoning system headers.
 //
 // This is only enabled for rocblas-test and rocblas-bench.
+//
+// If you are here because of a poisoned identifier error, here is the rationale for each
+// included identifier:
+//
+// cout, stdout: rocblas_cout should be used instead, for thread-safe and atomic line buffering
+// cerr, stderr: rocblas_cerr should be used instead, for thread-safe and atomic line buffering
+// clog: C++ stream which should not be used
+// gets: Always unsafe; buffer-overflows; removed from later versions of the language; use fgets
+// puts, putchar, fputs, printf, fprintf, vprintf, vfprintf: Use rocblas_cout or rocblas_cerr
+// sprintf, vsprintf: Possible buffer overflows; us snprintf or vsnprintf instead
+// strerror: Thread-unsafe; use snprintf / dprintf with %m or strerror_* alternatives
+// strtok: Thread-unsafe; use strtok_r
+// gmtime, ctime, asctime, localtime: Thread-unsafe
+// tmpnam: Thread-unsafe; use mkstemp or related functions instead
+// putenv: Use setenv instead
+// clearenv, fcloseall, ecvt, fcvt: Miscellaneous thread-unsafe functions
+// sleep: Might interact with signals by using alarm(); use nanosleep() instead
+// abort: Does not abort as cleanly as rocblas_abort, and can be caught by a signal handler
 
 #if defined(GOOGLE_TEST) || defined(ROCBLAS_BENCH)
 #undef stdout
 #undef stderr
 #pragma GCC poison cout cerr clog stdout stderr gets puts putchar fputs fprintf printf sprintf    \
     vfprintf vprintf vsprintf perror strerror strtok gmtime ctime asctime localtime tmpnam putenv \
-        clearenv fcloseall ecvt fcvt
+        clearenv fcloseall ecvt fcvt sleep abort
+#else
+// Suppress warnings about hipMalloc(), hipFree() except in rocblas-test and rocblas-bench
+#undef hipMalloc
+#undef hipFree
 #endif
 
 static constexpr char LIMITED_MEMORY_STRING[]
