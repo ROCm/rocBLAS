@@ -15625,7 +15625,7 @@ ROCBLAS_EXPORT const char* rocblas_status_to_string(rocblas_status status);
 /* \brief Initialize rocBLAS, to avoid costly startup time at the first call.
 */
 
-ROCBLAS_EXPORT void rocblas_init(void);
+ROCBLAS_EXPORT void rocblas_initialize(void);
 
 /*
  * ===========================================================================

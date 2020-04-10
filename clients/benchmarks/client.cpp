@@ -849,6 +849,7 @@ try
     rocblas_int device_id;
     bool        datafile = rocblas_parse_data(argc, argv);
 
+    rocblas_inititalize();
     options_description desc("rocblas-bench command line options");
     desc.add_options()
         // clang-format off
