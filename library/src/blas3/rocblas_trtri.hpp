@@ -545,21 +545,30 @@ rocblas_status trtri_gemm_block(rocblas_handle handle,
                                 rocblas_int    offset_invAg2c = 0,
                                 rocblas_int    offset_C       = 0)
 {
-    T* host_A[batch_count];
-    T* host_invAg1[batch_count];
-    T* host_invAg2a[batch_count];
-    T* host_invAg2c[batch_count];
-    T* host_C[batch_count];
+    std::unique_ptr<T*[]> host_A;
+    std::unique_ptr<T*[]> host_invAg1;
+    std::unique_ptr<T*[]> host_invAg2a;
+    std::unique_ptr<T*[]> host_invAg2c;
+    std::unique_ptr<T*[]> host_C;
+
     if(BATCHED)
     {
-        RETURN_IF_HIP_ERROR(hipMemcpy(host_A, A, batch_count * sizeof(T*), hipMemcpyDeviceToHost));
+        host_A       = std::make_unique<T*[]>(batch_count);
+        host_invAg1  = std::make_unique<T*[]>(batch_count);
+        host_invAg2a = std::make_unique<T*[]>(batch_count);
+        host_invAg2c = std::make_unique<T*[]>(batch_count);
+        host_C       = std::make_unique<T*[]>(batch_count);
+
         RETURN_IF_HIP_ERROR(
-            hipMemcpy(host_invAg1, invAg1, batch_count * sizeof(T*), hipMemcpyDeviceToHost));
+            hipMemcpy(&host_A[0], A, batch_count * sizeof(T*), hipMemcpyDeviceToHost));
         RETURN_IF_HIP_ERROR(
-            hipMemcpy(host_invAg2a, invAg2a, batch_count * sizeof(T*), hipMemcpyDeviceToHost));
+            hipMemcpy(&host_invAg1[0], invAg1, batch_count * sizeof(T*), hipMemcpyDeviceToHost));
         RETURN_IF_HIP_ERROR(
-            hipMemcpy(host_invAg2c, invAg2c, batch_count * sizeof(T*), hipMemcpyDeviceToHost));
-        RETURN_IF_HIP_ERROR(hipMemcpy(host_C, C, batch_count * sizeof(T*), hipMemcpyDeviceToHost));
+            hipMemcpy(&host_invAg2a[0], invAg2a, batch_count * sizeof(T*), hipMemcpyDeviceToHost));
+        RETURN_IF_HIP_ERROR(
+            hipMemcpy(&host_invAg2c[0], invAg2c, batch_count * sizeof(T*), hipMemcpyDeviceToHost));
+        RETURN_IF_HIP_ERROR(
+            hipMemcpy(&host_C[0], C, batch_count * sizeof(T*), hipMemcpyDeviceToHost));
     }
 
     rocblas_status status       = rocblas_status_success;
@@ -577,11 +586,11 @@ rocblas_status trtri_gemm_block(rocblas_handle handle,
 
         if(BATCHED)
         {
-            aptr       = load_ptr_batch(host_A, b, offset_A, stride_A);
-            invAg1ptr  = load_ptr_batch(host_invAg1, b, offset_invAg1, stride_invA);
-            invAg2ptr  = load_ptr_batch(host_invAg2a, b, offset_invAg2a, stride_invA);
-            cptr       = load_ptr_batch(host_C, b, offset_C, stride_C);
-            invAg2cptr = load_ptr_batch(host_invAg2c, b, offset_invAg2c, stride_invA);
+            aptr       = load_ptr_batch(&host_A[0], b, offset_A, stride_A);
+            invAg1ptr  = load_ptr_batch(&host_invAg1[0], b, offset_invAg1, stride_invA);
+            invAg2ptr  = load_ptr_batch(&host_invAg2a[0], b, offset_invAg2a, stride_invA);
+            cptr       = load_ptr_batch(&host_C[0], b, offset_C, stride_C);
+            invAg2cptr = load_ptr_batch(&host_invAg2c[0], b, offset_invAg2c, stride_invA);
         }
         else
         {

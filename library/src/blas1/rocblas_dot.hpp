@@ -130,9 +130,9 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_dot_template(rocblas_handle __res
 
         // result is in the beginning of workspace[0]+offset
         size_t offset = size_t(batch_count) * blocks;
-        V      res_V[batch_count];
-        RETURN_IF_HIP_ERROR(
-            hipMemcpy(res_V, workspace + offset, sizeof(V) * batch_count, hipMemcpyDeviceToHost));
+        auto   res_V  = std::make_unique<V[]>(batch_count);
+        RETURN_IF_HIP_ERROR(hipMemcpy(
+            &res_V[0], workspace + offset, sizeof(V) * batch_count, hipMemcpyDeviceToHost));
         for(rocblas_int i = 0; i < batch_count; i++)
             results[i] = T(res_V[i]);
     }
