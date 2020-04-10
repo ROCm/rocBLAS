@@ -339,6 +339,9 @@ if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
   endforeach( )
 endif( )
 
+# Do not allow Variable Length Arrays (use unique_ptr instead)
+target_compile_options( rocblas PRIVATE -Werror=vla )
+
 target_include_directories( rocblas
   PUBLIC  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/library/include>
           $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
