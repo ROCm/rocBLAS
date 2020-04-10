@@ -35,6 +35,7 @@ typedef struct
 #include <hip/hip_runtime.h>
 #include <math.h>
 #include <ostream>
+#include <rocblas-export.h>
 #include <type_traits>
 
 /*! \brief rocblas_complex_num is a structure which represents a complex number
