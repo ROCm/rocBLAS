@@ -147,7 +147,7 @@ namespace
             a = {
                     Tensile_Ti,
                     {k, prob.m, prob.batch_count},
-                    {prob.row_stride_a, prob.col_stride_a, prob.batch_stride_a}
+                    {prob.a_row_stride, prob.a_col_stride, prob.batch_stride_a}
                 };
             freeIndex[0].i  = 1;
             boundIndex[0].a = 0;
@@ -157,7 +157,7 @@ namespace
             a = {
                     Tensile_Ti,
                     {prob.m, k, prob.batch_count},
-                    {prob.row_stride_b, prob.col_stride_a, prob.batch_stride_a}
+                    {prob.b_row_stride, prob.a_col_stride, prob.batch_stride_a}
                 };
             freeIndex[0].i  = 0;
             boundIndex[0].a = 1;
@@ -173,7 +173,7 @@ namespace
             b = {
                     Tensile_Ti,
                     {prob.n, k, prob.batch_count},
-                    {prob.row_stride_b, prob.col_stride_b, prob.batch_stride_b}
+                    {prob.b_row_stride, prob.b_col_stride, prob.batch_stride_b}
                 };
             freeIndex[1].i  = 0;
             boundIndex[0].b = 1;
@@ -183,7 +183,7 @@ namespace
             b = {
                     Tensile_Ti,
                     {k, prob.n, prob.batch_count},
-                    {prob.row_stride_b, prob.col_stride_b, prob.batch_stride_b}
+                    {prob.b_row_stride, prob.b_col_stride, prob.batch_stride_b}
                 };
             freeIndex[1].i  = 1;
             boundIndex[0].b = 0;
@@ -198,12 +198,12 @@ namespace
         // Descriptor for input matrix C
         Tensile::TensorDescriptor c{Tensile_To,
                                     {prob.m, prob.n, prob.batch_count},
-                                    {prob.row_stride_c, prob.col_stride_c, prob.batch_stride_c}};
+                                    {prob.c_row_stride, prob.c_col_stride, prob.batch_stride_c}};
 
         // Descriptor for output matrix D
         Tensile::TensorDescriptor d{Tensile_To,
                                     {prob.m, prob.n, prob.batch_count},
-                                    {prob.row_stride_c, prob.col_stride_d, prob.batch_stride_d}};
+                                    {prob.c_row_stride, prob.d_col_stride, prob.batch_stride_d}};
 
         // The ContractionProblem
         Tensile::ContractionProblem tensileProblem{a,
@@ -448,9 +448,8 @@ rocblas_status TensileHost::runContractionProblem(const RocblasContractionProble
         if(!solution)
         {
             // We print the error message only once, to avoid excessive logging
-            static int once
-                = (rocblas_cerr << "Error: No Tensile solution found for " << problem, 0);
-            status = rocblas_status_not_implemented;
+            static int once = (rocblas_cerr << "Error: No Tensile solution found for " << prob, 0);
+            status          = rocblas_status_not_implemented;
         }
         else
         {
@@ -475,14 +474,14 @@ rocblas_status TensileHost::runContractionProblem(const RocblasContractionProble
     {
         static int once = (rocblas_cerr << "Error: " << (solution ? "" : "No ")
                                         << "Tensile solution found, but " << e.what()
-                                        << " exception thown for " << problem << std::endl,
+                                        << " exception thown for " << prob << std::endl,
                            0);
     }
     catch(...)
     {
         static int once
             = (rocblas_cerr << "Error: " << (solution ? "" : "No ")
-                            << "Tensile solution found, but unknown exception thown for " << problem
+                            << "Tensile solution found, but unknown exception thown for " << prob
                             << std::endl,
                0);
     }

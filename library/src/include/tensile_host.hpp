@@ -55,25 +55,25 @@ struct RocblasContractionProblem
     const Tc* alpha;
 
     const Ti* A;
-    size_t    row_stride_a;
-    size_t    col_stride_a;
+    size_t    a_row_stride;
+    size_t    a_col_stride;
     size_t    batch_stride_a;
 
     const Ti* B;
-    size_t    row_stride_b;
-    size_t    col_stride_b;
+    size_t    b_row_stride;
+    size_t    b_col_stride;
     size_t    batch_stride_b;
 
     const Tc* beta;
 
     const To* C;
-    size_t    row_stride_c;
-    size_t    col_stride_c;
+    size_t    c_row_stride;
+    size_t    c_col_stride;
     size_t    batch_stride_c;
 
     To*    D;
-    size_t row_stride_d;
-    size_t col_stride_d;
+    size_t d_row_stride;
+    size_t d_col_stride;
     size_t batch_stride_d;
 
     size_t batch_count;
@@ -109,21 +109,21 @@ struct RocblasContractionProblem
         , k(k)
         , alpha(alpha)
         , A(A)
-        , row_stride_a(1)
-        , col_stride_a(ld_a)
+        , a_row_stride(1)
+        , a_col_stride(ld_a)
         , batch_stride_a(batch_stride_a)
         , B(B)
-        , row_stride_b(1)
-        , col_stride_b(ld_b)
+        , b_row_stride(1)
+        , b_col_stride(ld_b)
         , batch_stride_b(batch_stride_b)
         , beta(beta)
         , C(C)
-        , row_stride_c(1)
-        , col_stride_c(ld_c)
+        , c_row_stride(1)
+        , c_col_stride(ld_c)
         , batch_stride_c(batch_stride_c)
         , D(C)
-        , row_stride_d(1)
-        , col_stride_d(ld_c)
+        , d_row_stride(1)
+        , d_col_stride(ld_c)
         , batch_stride_d(batch_stride_c)
         , batch_count(batch_count)
     {
@@ -160,21 +160,21 @@ struct RocblasContractionProblem
         , k(k)
         , alpha(alpha)
         , A(A)
-        , row_stride_a(1)
-        , col_stride_a(ld_a)
+        , a_row_stride(1)
+        , a_col_stride(ld_a)
         , batch_stride_a(batch_stride_a)
         , B(B)
-        , row_stride_b(1)
-        , col_stride_b(ld_b)
+        , b_row_stride(1)
+        , b_col_stride(ld_b)
         , batch_stride_b(batch_stride_b)
         , beta(beta)
         , C(C)
-        , row_stride_c(1)
-        , col_stride_c(ld_c)
+        , c_row_stride(1)
+        , c_col_stride(ld_c)
         , batch_stride_c(batch_stride_c)
         , D(D)
-        , row_stride_d(1)
-        , col_stride_d(ld_d)
+        , d_row_stride(1)
+        , d_col_stride(ld_d)
         , batch_stride_d(batch_stride_d)
         , batch_count(batch_count)
     {
@@ -190,21 +190,21 @@ struct RocblasContractionProblem
                               rocblas_int       k,
                               const Tc*         alpha,
                               const Ti*         A,
-                              rocblas_int       row_stride_a,
-                              rocblas_int       col_stride_a,
+                              rocblas_int       a_row_stride,
+                              rocblas_int       a_col_stride,
                               rocblas_stride    batch_stride_a,
                               const Ti*         B,
-                              rocblas_int       row_stride_b,
-                              rocblas_int       col_stride_b,
+                              rocblas_int       b_row_stride,
+                              rocblas_int       b_col_stride,
                               rocblas_stride    batch_stride_b,
                               const Tc*         beta,
                               const To*         C,
-                              rocblas_int       row_stride_c,
-                              rocblas_int       col_stride_c,
+                              rocblas_int       c_row_stride,
+                              rocblas_int       c_col_stride,
                               rocblas_stride    batch_stride_c,
                               To*               D,
-                              rocblas_int       row_stride_d,
-                              rocblas_int       col_stride_d,
+                              rocblas_int       d_row_stride,
+                              rocblas_int       d_col_stride,
                               rocblas_stride    batch_stride_d,
                               rocblas_int       batch_count)
         : handle(handle)
@@ -215,21 +215,21 @@ struct RocblasContractionProblem
         , k(k)
         , alpha(alpha)
         , A(A)
-        , row_stride_a(row_stride_a)
-        , col_stride_a(col_stride_a)
+        , a_row_stride(a_row_stride)
+        , a_col_stride(a_col_stride)
         , batch_stride_a(batch_stride_a)
         , B(B)
-        , row_stride_b(row_stride_b)
-        , col_stride_b(col_stride_b)
+        , b_row_stride(b_row_stride)
+        , b_col_stride(b_col_stride)
         , batch_stride_b(batch_stride_b)
         , beta(beta)
         , C(C)
-        , row_stride_c(row_stride_c)
-        , col_stride_c(col_stride_c)
+        , c_row_stride(c_row_stride)
+        , c_col_stride(c_col_stride)
         , batch_stride_c(batch_stride_c)
         , D(D)
-        , row_stride_d(row_stride_d)
-        , col_stride_d(col_stride_d)
+        , d_row_stride(d_row_stride)
+        , d_col_stride(d_col_stride)
         , batch_stride_d(batch_stride_d)
         , batch_count(batch_count)
     {
@@ -240,6 +240,42 @@ struct RocblasContractionProblem
      ***************************************************/
     friend rocblas_ostream& operator<<(rocblas_ostream& os, const RocblasContractionProblem& prob)
     {
+        rocblas_handle    handle;
+        rocblas_operation trans_a;
+        rocblas_operation trans_b;
+
+        // The size data members should exactly match Tensile's size parameters
+        // even if rocBLAS uses smaller or differently-signed types
+        size_t m;
+        size_t n;
+        size_t k;
+
+        const Tc* alpha;
+
+        const Ti* A;
+        size_t    a_row_stride;
+        size_t    a_col_stride;
+        size_t    batch_stride_a;
+
+        const Ti* B;
+        size_t    b_row_stride;
+        size_t    b_col_stride;
+        size_t    batch_stride_b;
+
+        const Tc* beta;
+
+        const To* C;
+        size_t    c_row_stride;
+        size_t    c_col_stride;
+        size_t    batch_stride_c;
+
+        To*    D;
+        size_t d_row_stride;
+        size_t d_col_stride;
+        size_t batch_stride_d;
+
+        size_t batch_count;
+
         return tuple_helper::print_tuple_pairs(
             os,
             std::make_tuple("a_type",
@@ -262,26 +298,34 @@ struct RocblasContractionProblem
                             prob.n,
                             "K",
                             prob.k,
-                            "lda",
-                            prob.ld_a,
-                            "ldb",
-                            prob.ld_b,
-                            "ldc",
-                            prob.ld_c,
-                            "ldd",
-                            prob.ld_d,
+                            "a_row_stride",
+                            prob.a_row_stride,
+                            "a_col_stride",
+                            prob.a_col_stride,
+                            "b_row_stride",
+                            prob.b_row_stride,
+                            "b_col_stride",
+                            prob.b_col_stride,
+                            "c_row_stride",
+                            prob.c_row_stride,
+                            "c_col_stride",
+                            prob.c_col_stride,
+                            "d_row_stride",
+                            prob.d_row_stride,
+                            "d_col_stride",
+                            prob.d_col_stride,
                             "beta",
                             value_category(prob.beta),
                             "batch_count",
                             prob.batch_count,
                             "stride_a",
-                            prob.stride_a,
+                            prob.batch_stride_a,
                             "stride_b",
-                            prob.stride_b,
+                            prob.batch_stride_b,
                             "stride_c",
-                            prob.stride_c,
+                            prob.batch_stride_c,
                             "stride_d",
-                            prob.stride_d));
+                            prob.batch_stride_d));
     }
 };
 
