@@ -634,6 +634,8 @@ struct perf_blas_rotg<
 
 int run_bench_test(Arguments& arg)
 {
+    static int once = (rocblas_initialize(), 0); // Initialize rocBLAS once
+
     // disable unit_check in client benchmark, it is only used in gtest unit test
     arg.unit_check = 0;
 
@@ -849,7 +851,6 @@ try
     rocblas_int device_id;
     bool        datafile = rocblas_parse_data(argc, argv);
 
-    rocblas_inititalize();
     options_description desc("rocblas-bench command line options");
     desc.add_options()
         // clang-format off
