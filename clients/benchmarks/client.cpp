@@ -634,6 +634,8 @@ struct perf_blas_rotg<
 
 int run_bench_test(Arguments& arg)
 {
+    rocblas_cout << std::ios::fixed << std::setprecision(4);
+
     // disable unit_check in client benchmark, it is only used in gtest unit test
     arg.unit_check = 0;
 
