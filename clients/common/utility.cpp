@@ -49,18 +49,18 @@ std::string rocblas_exepath()
 double get_time_us(void)
 {
     hipDeviceSynchronize();
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    return (tv.tv_sec * 1000 * 1000) + tv.tv_usec;
+    struct timespec tv;
+    clock_gettime(CLOCK_MONOTONIC, &tv);
+    return tv.tv_sec * 1'000'000llu + (tv.tv_nsec + 500llu) / 1000;
 };
 
 /*! \brief  CPU Timer(in microsecond): synchronize with given queue/stream and return wall time */
 double get_time_us_sync(hipStream_t stream)
 {
     hipStreamSynchronize(stream);
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    return (tv.tv_sec * 1000 * 1000) + tv.tv_usec;
+    struct timespec tv;
+    clock_gettime(CLOCK_MONOTONIC, &tv);
+    return tv.tv_sec * 1'000'000llu + (tv.tv_nsec + 500llu) / 1000;
 };
 
 /* ============================================================================================ */

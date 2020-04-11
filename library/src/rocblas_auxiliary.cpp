@@ -12,11 +12,13 @@
 /*******************************************************************************
  * ! \brief  Initialize rocBLAS, to avoid costly startup time at the first call.
  ******************************************************************************/
-
-extern "C" void rocblas_init()
+extern "C" void rocblas_initialize()
 {
+    // Static resources are initialized only once, by creating and destroying a handle
     static rocblas_handle handle;
-    static int            dummy = (rocblas_create_handle(&handle), 0);
+    static int            dummy
+        = rocblas_create_handle(&handle) == rocblas_status_success ? rocblas_destroy_handle(handle),
+        0 : 0;
 }
 
 /*******************************************************************************
