@@ -14,9 +14,9 @@
  ******************************************************************************/
 extern "C" void rocblas_initialize()
 {
-    rocblas_handle handle;
     // Static resources are initialized only once, by creating and destroying a handle
-    static int dummy
+    static rocblas_handle handle;
+    static int            dummy
         = rocblas_create_handle(&handle) == rocblas_status_success ? rocblas_destroy_handle(handle),
         0 : 0;
 }
