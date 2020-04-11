@@ -144,31 +144,34 @@ ROCBLAS_EXPORT void rocblas_ostream::flush()
 // Floating-point output
 ROCBLAS_EXPORT rocblas_ostream& operator<<(rocblas_ostream& os, double x)
 {
-    char        s[32];
-    const char* out;
-
-    if(std::isnan(x))
-        out = os.yaml ? ".nan" : "nan";
-    else if(std::isinf(x))
-        out = os.yaml ? (x < 0 ? "-.inf" : ".inf") : (x < 0 ? "-inf" : "inf");
+    if(!os.yaml)
+        os.os << x;
     else
     {
-        out = s;
-        snprintf(s, sizeof(s) - 2, "%.17g", x);
-
-        // If no decimal point or exponent, append .0 to indicate floating point
-        for(char* end = s; *end != '.' && *end != 'e' && *end != 'E'; ++end)
+        // For YAML, we must output the floating-point value exactly
+        if(std::isnan(x))
+            os.os << ".nan";
+        else if(std::isinf(x))
+            os.os << (x < 0 ? "-.inf" : ".inf");
+        else
         {
-            if(!*end)
+            char s[32];
+            snprintf(s, sizeof(s) - 2, "%.17g", x);
+
+            // If no decimal point or exponent, append .0 to indicate floating point
+            for(char* end = s; *end != '.' && *end != 'e' && *end != 'E'; ++end)
             {
-                end[0] = '.';
-                end[1] = '0';
-                end[2] = '\0';
-                break;
+                if(!*end)
+                {
+                    end[0] = '.';
+                    end[1] = '0';
+                    end[2] = '\0';
+                    break;
+                }
             }
+            os.os << s;
         }
     }
-    os.os << out;
     return os;
 }
 
