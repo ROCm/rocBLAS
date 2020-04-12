@@ -1044,6 +1044,7 @@ try
     // Initialize rocBLAS; TODO: Remove this after it is determined why rocblas-bench
     // returns lower performance if this is executed after Boost parse_command_line().
     // Right now this causes 5-10 seconds of delay before processing the CLI arguments.
+    rocblas_cerr << "Initializing rocBLAS..." << std::endl;
     rocblas_initialize();
 
     variables_map vm;
