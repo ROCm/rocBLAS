@@ -14,11 +14,8 @@
  ******************************************************************************/
 extern "C" void rocblas_initialize()
 {
-    // Static resources are initialized only once, by creating and destroying a handle
-    static rocblas_handle handle;
-    static int            dummy
-        = rocblas_create_handle(&handle) == rocblas_status_success ? rocblas_destroy_handle(handle),
-        0 : 0;
+    rocblas_handle handle;
+    static auto    once = rocblas_create_handle(&handle) || rocblas_destroy_handle(handle);
 }
 
 /*******************************************************************************
@@ -30,10 +27,7 @@ extern "C" rocblas_pointer_mode rocblas_pointer_to_mode(void* ptr)
 {
     hipPointerAttribute_t attribute;
     hipPointerGetAttributes(&attribute, ptr);
-    if(ptr == attribute.devicePointer)
-        return rocblas_pointer_mode_device;
-    else
-        return rocblas_pointer_mode_host;
+    return ptr == attribute.devicePointer ? rocblas_pointer_mode_device : rocblas_pointer_mode_host;
 }
 
 /*******************************************************************************

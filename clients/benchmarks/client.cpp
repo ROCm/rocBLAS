@@ -634,10 +634,9 @@ struct perf_blas_rotg<
 
 int run_bench_test(Arguments& arg)
 {
-
     rocblas_initialize(); // Initialize rocBLAS
 
-    rocblas_cout << std::ios::fixed << std::setprecision(4);
+    rocblas_cout << std::ios::fixed << std::setprecision(7); // Set precision to 7 digits
 
     // disable unit_check in client benchmark, it is only used in gtest unit test
     arg.unit_check = 0;
@@ -841,11 +840,6 @@ using namespace boost::program_options;
 int main(int argc, char* argv[])
 try
 {
-    // Initialize rocBLAS; TODO: Remove this after it is determined why rocblas-bench
-    // returns lower performance if this is executed after Boost parse_command_line().
-    // Right now this causes 5-10 seconds of delay before processing the CLI arguments.
-    rocblas_initialize();
-
     fix_batch(argc, argv);
     Arguments   arg;
     std::string function;
@@ -1046,6 +1040,12 @@ try
 
         ("version", "Prints the version number");
     // clang-format on
+
+    // Initialize rocBLAS; TODO: Remove this after it is determined why rocblas-bench
+    // returns lower performance if this is executed after Boost parse_command_line().
+    // Right now this causes 5-10 seconds of delay before processing the CLI arguments.
+    rocblas_cerr << "Initializing rocBLAS..." << std::endl;
+    rocblas_initialize();
 
     variables_map vm;
     store(parse_command_line(argc, argv, desc), vm);
