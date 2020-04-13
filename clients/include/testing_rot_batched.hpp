@@ -93,8 +93,8 @@ void testing_rot_batched(const Arguments& arg)
     size_t      size_x   = N * size_t(abs_incx);
     size_t      size_y   = N * size_t(abs_incy);
 
-    device_batch_vector<T> dx(N, incx ? incx : 1, batch_count);
-    device_batch_vector<T> dy(N, incy ? incy : 1, batch_count);
+    device_batch_vector<T> dx(N, incx, batch_count);
+    device_batch_vector<T> dy(N, incy, batch_count);
     device_vector<U>       dc(1);
     device_vector<V>       ds(1);
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
@@ -103,8 +103,8 @@ void testing_rot_batched(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(ds.memcheck());
 
     // Initial Data on CPU
-    host_batch_vector<T> hx(N, incx ? incx : 1, batch_count);
-    host_batch_vector<T> hy(N, incy ? incy : 1, batch_count);
+    host_batch_vector<T> hx(N, incx, batch_count);
+    host_batch_vector<T> hy(N, incy, batch_count);
     host_vector<U>       hc(1);
     host_vector<V>       hs(1);
 

@@ -150,7 +150,7 @@ rocblas_status rocblas_rotm_template(rocblas_handle handle,
                                      rocblas_int    batch_count)
 {
     // Quick return if possible
-    if(n <= 0 /*|| incx <= 0 || incy <= 0 */ || batch_count <= 0)
+    if(n <= 0 || batch_count <= 0)
         return rocblas_status_success;
 
     if(quick_return_param(handle, param, stride_param))

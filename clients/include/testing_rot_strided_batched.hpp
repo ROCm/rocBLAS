@@ -95,10 +95,6 @@ void testing_rot_strided_batched(const Arguments& arg)
     rocblas_int abs_incy = incy >= 0 ? incy : -incy;
     size_t      size_x   = N * size_t(abs_incx) + size_t(stride_x) * size_t(batch_count - 1);
     size_t      size_y   = N * size_t(abs_incy) + size_t(stride_y) * size_t(batch_count - 1);
-    if(!size_x)
-        size_x = 1;
-    if(!size_y)
-        size_y = 1;
 
     device_vector<T> dx(size_x);
     device_vector<T> dy(size_y);
