@@ -40,9 +40,9 @@ void testing_hemv_batched_bad_arg(const Arguments& arg)
     device_batch_vector<T> dA(size_A, 1, batch_count);
     device_batch_vector<T> dx(N, incx, batch_count);
     device_batch_vector<T> dy(N, incy, batch_count);
-    CHECK_HIP_ERROR(dA.memcheck());
-    CHECK_HIP_ERROR(dx.memcheck());
-    CHECK_HIP_ERROR(dy.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     EXPECT_ROCBLAS_STATUS(rocblas_hemv_batched<T>(handle,
                                                   uplo,
@@ -149,31 +149,22 @@ void testing_hemv_batched(const Arguments& arg)
     rocblas_local_handle handle;
 
     // argument sanity check before allocating invalid memory
-    if(N < 0 || lda < N || lda < 1 || !incx || !incy || batch_count <= 0)
+    bool invalid_size = N < 0 || lda < N || lda < 1 || !incx || !incy || batch_count < 0;
+    if(invalid_size || !N || !batch_count)
     {
-        static const size_t    safe_size = 100; // arbitrarily set to 100
-        device_batch_vector<T> dA1(safe_size, 1, 5);
-        device_batch_vector<T> dx1(safe_size, 1, 5);
-        device_batch_vector<T> dy1(safe_size, 1, 5);
-        CHECK_HIP_ERROR(dA1.memcheck());
-        CHECK_HIP_ERROR(dx1.memcheck());
-        CHECK_HIP_ERROR(dy1.memcheck());
-
         EXPECT_ROCBLAS_STATUS(rocblas_hemv_batched<T>(handle,
                                                       uplo,
                                                       N,
-                                                      &h_alpha,
-                                                      dA1.ptr_on_device(),
+                                                      nullptr,
+                                                      nullptr,
                                                       lda,
-                                                      dx1.ptr_on_device(),
+                                                      nullptr,
                                                       incx,
-                                                      &h_beta,
-                                                      dy1.ptr_on_device(),
+                                                      nullptr,
+                                                      nullptr,
                                                       incy,
                                                       batch_count),
-                              (N < 0 || lda < N || lda < 1 || !incx || !incy || batch_count < 0)
-                                  ? rocblas_status_invalid_size
-                                  : rocblas_status_success);
+                              invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
 
         return;
     }
@@ -209,12 +200,12 @@ void testing_hemv_batched(const Arguments& arg)
     device_batch_vector<T> dy_2(N, incy, batch_count);
     device_vector<T>       d_alpha(1);
     device_vector<T>       d_beta(1);
-    CHECK_HIP_ERROR(dA.memcheck());
-    CHECK_HIP_ERROR(dx.memcheck());
-    CHECK_HIP_ERROR(dy_1.memcheck());
-    CHECK_HIP_ERROR(dy_2.memcheck());
-    CHECK_HIP_ERROR(d_alpha.memcheck());
-    CHECK_HIP_ERROR(d_beta.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy_1.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy_2.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
 
     rocblas_init(hA, true);
     rocblas_init(hx, false);
@@ -288,22 +279,22 @@ void testing_hemv_batched(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, N, batch_count, abs_incy, hy_gold, hy_1);
-            unit_check_general<T>(1, N, batch_count, abs_incy, hy_gold, hy_2);
+            unit_check_general<T>(1, N, abs_incy, hy_gold, hy_1, batch_count);
+            unit_check_general<T>(1, N, abs_incy, hy_gold, hy_2, batch_count);
         }
 
         if(arg.norm_check)
         {
             rocblas_error_1
-                = norm_check_general<T>('F', 1, N, abs_incy, batch_count, hy_gold, hy_1);
+                = norm_check_general<T>('F', 1, N, abs_incy, hy_gold, hy_1, batch_count);
             rocblas_error_2
-                = norm_check_general<T>('F', 1, N, abs_incy, batch_count, hy_gold, hy_2);
+                = norm_check_general<T>('F', 1, N, abs_incy, hy_gold, hy_2, batch_count);
         }
     }
 
     if(arg.timing)
     {
-        int number_cold_calls = 2;
+        int number_cold_calls = arg.cold_iters;
         int number_hot_calls  = arg.iters;
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
@@ -347,23 +338,23 @@ void testing_hemv_batched(const Arguments& arg)
             = batch_count * (((N * (N + 1.0)) / 2.0) + 3.0 * N) * sizeof(T) / gpu_time_used / 1e3;
 
         // only norm_check return an norm error, unit check won't return anything
-        std::cout << "N,alpha,lda,incx,beta,incy,batch_count,rocblas-Gflops,rocblas-GB/s,";
+        rocblas_cout << "N,alpha,lda,incx,beta,incy,batch_count,rocblas-Gflops,rocblas-GB/s,";
         if(arg.norm_check)
         {
-            std::cout << "CPU-Gflops,norm_error_host_ptr,norm_error_device_ptr";
+            rocblas_cout << "CPU-Gflops,norm_error_host_ptr,norm_error_device_ptr";
         }
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
 
-        std::cout << N << "," << h_alpha << "," << lda << "," << incx << "," << h_beta << ","
-                  << incy << "," << batch_count << "," << rocblas_gflops << "," << rocblas_bandwidth
-                  << ",";
+        rocblas_cout << N << "," << h_alpha << "," << lda << "," << incx << "," << h_beta << ","
+                     << incy << "," << batch_count << "," << rocblas_gflops << ","
+                     << rocblas_bandwidth << ",";
 
         if(arg.norm_check)
         {
-            std::cout << cblas_gflops << ',';
-            std::cout << rocblas_error_1 << ',' << rocblas_error_2;
+            rocblas_cout << cblas_gflops << ',';
+            rocblas_cout << rocblas_error_1 << ',' << rocblas_error_2;
         }
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
     }
 }

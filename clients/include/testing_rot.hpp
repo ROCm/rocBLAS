@@ -164,8 +164,8 @@ void testing_rot(const Arguments& arg)
 
     if(arg.timing)
     {
-        int number_cold_calls = 2;
-        int number_hot_calls  = 100;
+        int number_cold_calls = arg.cold_iters;
+        int number_hot_calls  = arg.iters;
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T) * size_x, hipMemcpyHostToDevice));
         CHECK_HIP_ERROR(hipMemcpy(dy, hy, sizeof(T) * size_y, hipMemcpyHostToDevice));
@@ -181,16 +181,16 @@ void testing_rot(const Arguments& arg)
         }
         gpu_time_used = (get_time_us() - gpu_time_used) / number_hot_calls;
 
-        std::cout << "N,incx,incy,rocblas(us),cpu(us)";
+        rocblas_cout << "N,incx,incy,rocblas(us),cpu(us)";
         if(arg.norm_check)
-            std::cout
+            rocblas_cout
                 << ",norm_error_host_x,norm_error_host_y,norm_error_device_x,norm_error_device_y";
-        std::cout << std::endl;
-        std::cout << N << "," << incx << "," << incy << "," << gpu_time_used << ","
-                  << cpu_time_used;
+        rocblas_cout << std::endl;
+        rocblas_cout << N << "," << incx << "," << incy << "," << gpu_time_used << ","
+                     << cpu_time_used;
         if(arg.norm_check)
-            std::cout << ',' << norm_error_host_x << ',' << norm_error_host_y << ","
-                      << norm_error_device_x << "," << norm_error_device_y;
-        std::cout << std::endl;
+            rocblas_cout << ',' << norm_error_host_x << ',' << norm_error_host_y << ","
+                         << norm_error_device_x << "," << norm_error_device_y;
+        rocblas_cout << std::endl;
     }
 }

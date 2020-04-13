@@ -5,9 +5,6 @@
 #include "handle.h"
 #include "logging.h"
 #include "rocblas-auxiliary.h"
-#include "rocblas-types.h"
-#include "utility.h"
-#include <cstdio>
 #include <memory>
 
 /* ============================================================================================ */
@@ -15,11 +12,10 @@
 /*******************************************************************************
  * ! \brief  Initialize rocBLAS, to avoid costly startup time at the first call.
  ******************************************************************************/
-
-extern "C" void rocblas_init()
+extern "C" void rocblas_initialize()
 {
-    static rocblas_handle handle;
-    static int            dummy = (rocblas_create_handle(&handle), 0);
+    rocblas_handle handle;
+    static auto    once = rocblas_create_handle(&handle) || rocblas_destroy_handle(handle);
 }
 
 /*******************************************************************************
@@ -31,10 +27,7 @@ extern "C" rocblas_pointer_mode rocblas_pointer_to_mode(void* ptr)
 {
     hipPointerAttribute_t attribute;
     hipPointerGetAttributes(&attribute, ptr);
-    if(ptr == attribute.devicePointer)
-        return rocblas_pointer_mode_device;
-    else
-        return rocblas_pointer_mode_host;
+    return ptr == attribute.devicePointer ? rocblas_pointer_mode_device : rocblas_pointer_mode_host;
 }
 
 /*******************************************************************************

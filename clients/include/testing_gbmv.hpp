@@ -89,6 +89,9 @@ void testing_gbmv_bad_arg(const Arguments& arg)
     EXPECT_ROCBLAS_STATUS(
         rocblas_gbmv<T>(nullptr, transA, M, N, KL, KU, &alpha, dA, lda, dx, incx, &beta, dy, incy),
         rocblas_status_invalid_handle);
+
+    // TODO: See rocblas_gbmv.cpp comment on alpha==0 && beta==1 case.
+    // CHECK_ROCBLAS_ERROR(rocblas_gbmv<T>(handle, transA, 1, 1, 1, 1, &alpha, nullptr, 10, nullptr, 1, &beta, nullptr, 1));
 }
 
 template <typename T>
@@ -108,20 +111,24 @@ void testing_gbmv(const Arguments& arg)
     rocblas_local_handle handle;
 
     // argument sanity check before allocating invalid memory
-    if(M < 0 || N < 0 || lda < KL + KU + 1 || !incx || !incy || KL < 0 || KU < 0)
+    bool invalid_size = M < 0 || N < 0 || lda < KL + KU + 1 || !incx || !incy || KL < 0 || KU < 0;
+    if(invalid_size || !M || !N)
     {
-        static const size_t safe_size = 100; // arbitrarily set to 100
-        device_vector<T>    dA1(safe_size);
-        device_vector<T>    dx1(safe_size);
-        device_vector<T>    dy1(safe_size);
-        CHECK_DEVICE_ALLOCATION(dA1.memcheck());
-        CHECK_DEVICE_ALLOCATION(dx1.memcheck());
-        CHECK_DEVICE_ALLOCATION(dy1.memcheck());
-
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_gbmv<T>(
-                handle, transA, M, N, KL, KU, &h_alpha, dA1, lda, dx1, incx, &h_beta, dy1, incy),
-            rocblas_status_invalid_size);
+        EXPECT_ROCBLAS_STATUS(rocblas_gbmv<T>(handle,
+                                              transA,
+                                              M,
+                                              N,
+                                              KL,
+                                              KU,
+                                              nullptr,
+                                              nullptr,
+                                              lda,
+                                              nullptr,
+                                              incx,
+                                              nullptr,
+                                              nullptr,
+                                              incy),
+                              invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
 
         return;
     }
@@ -242,7 +249,7 @@ void testing_gbmv(const Arguments& arg)
 
     if(arg.timing)
     {
-        int number_cold_calls = 2;
+        int number_cold_calls = arg.cold_iters;
         int number_hot_calls  = arg.iters;
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
@@ -271,23 +278,23 @@ void testing_gbmv(const Arguments& arg)
         rocblas_bandwidth   = (num_els) * sizeof(T) / gpu_time_used / 1e3;
 
         // only norm_check return an norm error, unit check won't return anything
-        std::cout << "M,N,KL,KU,alpha,lda,incx,beta,incy,rocblas-Gflops,rocblas-GB/s,";
+        rocblas_cout << "M,N,KL,KU,alpha,lda,incx,beta,incy,rocblas-Gflops,rocblas-GB/s,";
         if(arg.norm_check)
         {
-            std::cout << "CPU-Gflops,norm_error_host_ptr,norm_error_device_ptr";
+            rocblas_cout << "CPU-Gflops,norm_error_host_ptr,norm_error_device_ptr";
         }
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
 
-        std::cout << M << "," << N << "," << KL << "," << KU << "," << h_alpha << "," << lda << ","
-                  << incx << "," << h_beta << "," << incy << "," << rocblas_gflops << ","
-                  << rocblas_bandwidth << ",";
+        rocblas_cout << M << "," << N << "," << KL << "," << KU << "," << h_alpha << "," << lda
+                     << "," << incx << "," << h_beta << "," << incy << "," << rocblas_gflops << ","
+                     << rocblas_bandwidth << ",";
 
         if(arg.norm_check)
         {
-            std::cout << cblas_gflops << ',';
-            std::cout << rocblas_error_1 << ',' << rocblas_error_2;
+            rocblas_cout << cblas_gflops << ',';
+            rocblas_cout << rocblas_error_1 << ',' << rocblas_error_2;
         }
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
     }
 }

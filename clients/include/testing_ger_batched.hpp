@@ -2,6 +2,7 @@
  * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+#include "bytes.hpp"
 #include "cblas_interface.hpp"
 #include "flops.hpp"
 #include "norm.hpp"
@@ -101,15 +102,14 @@ void testing_ger_batched(const Arguments& arg)
     rocblas_local_handle handle;
 
     // argument check before allocating invalid memory
-    if(M <= 0 || N <= 0 || lda < M || lda < 1 || !incx || !incy || batch_count <= 0)
+    bool invalid_size = M < 0 || N < 0 || lda < M || lda < 1 || !incx || !incy || batch_count < 0;
+    if(invalid_size || !M || !N || !batch_count)
     {
         EXPECT_ROCBLAS_STATUS(
             (rocblas_ger_batched<T, CONJ>(
-                handle, M, N, &h_alpha, nullptr, incx, nullptr, incy, nullptr, lda, batch_count)),
+                handle, M, N, nullptr, nullptr, incx, nullptr, incy, nullptr, lda, batch_count)),
 
-            M < 0 || N < 0 || lda < M || lda < 1 || !incx || !incy || batch_count < 0
-                ? rocblas_status_invalid_size
-                : rocblas_status_success);
+            invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
         return;
     }
 
@@ -205,30 +205,27 @@ void testing_ger_batched(const Arguments& arg)
         {
             if(std::is_same<T, float>{} || std::is_same<T, double>{})
             {
-                unit_check_general<T>(M, N, batch_count, lda, hA_gold, hA_1);
-                unit_check_general<T>(M, N, batch_count, lda, hA_gold, hA_2);
+                unit_check_general<T>(M, N, lda, hA_gold, hA_1, batch_count);
+                unit_check_general<T>(M, N, lda, hA_gold, hA_2, batch_count);
             }
             else
             {
                 const double tol = N * sum_error_tolerance<T>;
-                for(int i = 0; i < batch_count; i++)
-                {
-                    near_check_general<T>(M, N, lda, hA_gold[i], hA_1[i], tol);
-                    near_check_general<T>(M, N, lda, hA_gold[i], hA_2[i], tol);
-                }
+                near_check_general<T>(M, N, lda, hA_gold, hA_1, batch_count, tol);
+                near_check_general<T>(M, N, lda, hA_gold, hA_2, batch_count, tol);
             }
         }
 
         if(arg.norm_check)
         {
-            rocblas_error_1 = norm_check_general<T>('F', M, N, lda, batch_count, hA_gold, hA_1);
-            rocblas_error_2 = norm_check_general<T>('F', M, N, lda, batch_count, hA_gold, hA_2);
+            rocblas_error_1 = norm_check_general<T>('F', M, N, lda, hA_gold, hA_1, batch_count);
+            rocblas_error_2 = norm_check_general<T>('F', M, N, lda, hA_gold, hA_2, batch_count);
         }
     }
 
     if(arg.timing)
     {
-        int number_cold_calls = 2;
+        int number_cold_calls = arg.cold_iters;
         int number_hot_calls  = arg.iters;
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
@@ -266,22 +263,24 @@ void testing_ger_batched(const Arguments& arg)
 
         gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;
         rocblas_gflops    = batch_count * ger_gflop_count<T, CONJ>(M, N) / gpu_time_used * 1e6;
-        rocblas_bandwidth = batch_count * (2.0 * M * N) * sizeof(T) / gpu_time_used / 1e3;
+        rocblas_bandwidth = batch_count * ger_gbyte_count<T>(M, N) / gpu_time_used * 1e6;
 
         // only norm_check return an norm error, unit check won't return anything
-        std::cout << "M,N,alpha,incx,incy,lda,batch_count,rocblas-Gflops,rocblas-GB/s";
+        rocblas_cout
+            << "M,N,alpha,incx,incy,lda,batch_count,rocblas-Gflops,rocblas-GB/s,rocblas-us";
 
         if(arg.norm_check)
-            std::cout << ",CPU-Gflops,norm_error_host_ptr,norm_error_dev_ptr";
+            rocblas_cout << ",CPU-Gflops,norm_error_host_ptr,norm_error_dev_ptr";
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
 
-        std::cout << M << "," << N << "," << h_alpha << "," << incx << "," << incy << "," << lda
-                  << "," << batch_count << "," << rocblas_gflops << "," << rocblas_bandwidth;
+        rocblas_cout << M << "," << N << "," << h_alpha << "," << incx << "," << incy << "," << lda
+                     << "," << batch_count << "," << rocblas_gflops << "," << rocblas_bandwidth
+                     << "," << gpu_time_used;
 
         if(arg.norm_check)
-            std::cout << "," << cblas_gflops << "," << rocblas_error_1 << "," << rocblas_error_2;
+            rocblas_cout << "," << cblas_gflops << "," << rocblas_error_1 << "," << rocblas_error_2;
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
     }
 }

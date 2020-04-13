@@ -36,7 +36,7 @@ In all of the 3 cases above, the launch can be made asynchronous by:
 - use rocblas_pointer_mode_device to keep the scalar result on the device. Note that a small number of Level1 BLAS functions return a scalar result.
 - use the provided device memory functions to preallocate device memory that persists in the handle. Note that most rocBLAS functions do not allocate temporary device memory.
 
-Before calling a rocBLAS arrays must be copied to the device. Integer scalars like m, n, k are stored on the host. Floating point scalars like alpha and beta can be on host or device.
+Before calling a rocBLAS function arrays must be copied to the device. Integer scalars like m, n, k are stored on the host. Floating point scalars like alpha and beta can be on host or device.
 
 Error handling is by returning a rocblas_status. Functions conform to the Legacy BLAS argument checking.
 
@@ -97,10 +97,10 @@ Below is a simple example code for calling function rocblas_sscal.
        return 0;
    }
 
+.. rubic:: References
 
-.. [Level1] C. L. Lawson, R. J. Hanson, D. Kincaid, and F. T. Krogh, Basic Linear Algebra Subprograms for FORTRAN usage, ACM Trans. Math. Soft., 5 (1979), pp. 308—323.
+.. [Level1] C. L. Lawson, R. J. Hanson, D. Kincaid, and F. T. Krogh, Basic Linear Algebra Subprograms for FORTRAN usage, ACM Trans. Math. Soft., 5 (1979), pp. 308--323.
 
-.. [Level2] J. J. Dongarra, J. Du Croz, S. Hammarling, and R. J. Hanson, An extended set of FORTRAN Basic Linear Algebra Subprograms, ACM Trans. Math. Soft., 14 (1988), pp. 1—17
+.. [Level2] J. J. Dongarra, J. Du Croz, S. Hammarling, and R. J. Hanson, An extended set of FORTRAN Basic Linear Algebra Subprograms, ACM Trans. Math. Soft., 14 (1988), pp. 1--17
 
-.. [Level3] J. J. Dongarra, J. Du Croz, S. Hammarling, and R. J. Hanson, Algorithm 656: An extended set of FORTRAN Basic Linear Algebra Subprograms, ACM Trans. Math. Soft., 14 (1988), pp. 18—32
-
+.. [Level3] J. J. Dongarra, J. Du Croz, S. Hammarling, and R. J. Hanson, Algorithm 656: An extended set of FORTRAN Basic Linear Algebra Subprograms, ACM Trans. Math. Soft., 14 (1988), pp. 18--32

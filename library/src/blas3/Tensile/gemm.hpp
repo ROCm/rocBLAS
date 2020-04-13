@@ -490,27 +490,27 @@ inline rocblas_status validateArgs(rocblas_handle    handle,
  */
 
 template <bool BATCHED, bool STRIDED, typename T, typename U, typename V>
-rocblas_status rocblas_gemm_template(rocblas_handle    handle,
-                                     rocblas_operation trans_a,
-                                     rocblas_operation trans_b,
-                                     rocblas_int       m,
-                                     rocblas_int       n,
-                                     rocblas_int       k,
-                                     const T*          alpha,
-                                     const U*          A,
-                                     rocblas_int       offset_a,
-                                     rocblas_int       ld_a,
-                                     rocblas_stride    stride_a,
-                                     const U*          B,
-                                     rocblas_int       offset_b,
-                                     rocblas_int       ld_b,
-                                     rocblas_stride    stride_b,
-                                     const T*          beta,
-                                     V*                C,
-                                     rocblas_int       offset_c,
-                                     rocblas_int       ld_c,
-                                     rocblas_stride    stride_c,
-                                     rocblas_int       batch_count)
+ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_gemm_template(rocblas_handle    handle,
+                                                             rocblas_operation trans_a,
+                                                             rocblas_operation trans_b,
+                                                             rocblas_int       m,
+                                                             rocblas_int       n,
+                                                             rocblas_int       k,
+                                                             const T*          alpha,
+                                                             const U*          A,
+                                                             rocblas_int       offset_a,
+                                                             rocblas_int       ld_a,
+                                                             rocblas_stride    stride_a,
+                                                             const U*          B,
+                                                             rocblas_int       offset_b,
+                                                             rocblas_int       ld_b,
+                                                             rocblas_stride    stride_b,
+                                                             const T*          beta,
+                                                             V*                C,
+                                                             rocblas_int       offset_c,
+                                                             rocblas_int       ld_c,
+                                                             rocblas_stride    stride_c,
+                                                             rocblas_int       batch_count)
 {
     // Early exit. Note: k==0 is not an early exit, since C still needs to be multiplied by beta.
     if(m == 0 || n == 0 || batch_count == 0)
@@ -539,13 +539,16 @@ rocblas_status rocblas_gemm_template(rocblas_handle    handle,
         // We cannot do this with a device array, so array of pointers must be on host for now
 
         // Host arrays of device pointers.
-        T* hostA[batch_count];
-        T* hostB[batch_count];
-        T* hostC[batch_count];
+        auto hostA = std::make_unique<T*[]>(batch_count);
+        auto hostB = std::make_unique<T*[]>(batch_count);
+        auto hostC = std::make_unique<T*[]>(batch_count);
 
-        RETURN_IF_HIP_ERROR(hipMemcpy(hostA, A, sizeof(hostA), hipMemcpyDeviceToHost));
-        RETURN_IF_HIP_ERROR(hipMemcpy(hostB, B, sizeof(hostB), hipMemcpyDeviceToHost));
-        RETURN_IF_HIP_ERROR(hipMemcpy(hostC, C, sizeof(hostC), hipMemcpyDeviceToHost));
+        RETURN_IF_HIP_ERROR(
+            hipMemcpy(&hostA[0], A, sizeof(T*) * batch_count, hipMemcpyDeviceToHost));
+        RETURN_IF_HIP_ERROR(
+            hipMemcpy(&hostB[0], B, sizeof(T*) * batch_count, hipMemcpyDeviceToHost));
+        RETURN_IF_HIP_ERROR(
+            hipMemcpy(&hostC[0], C, sizeof(T*) * batch_count, hipMemcpyDeviceToHost));
 
         for(rocblas_int b = 0; b < batch_count; b++)
         {

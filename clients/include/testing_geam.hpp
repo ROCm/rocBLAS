@@ -42,11 +42,6 @@ void testing_geam_bad_arg(const Arguments& arg)
     host_vector<T> hB(size_B);
     host_vector<T> hC(size_C);
 
-    rocblas_seedrand();
-    rocblas_init<T>(hA, M, N, lda);
-    rocblas_init<T>(hB, M, N, ldb);
-    rocblas_init<T>(hC, M, N, ldc);
-
     // allocate memory on device
     device_vector<T> dA(size_A);
     device_vector<T> dB(size_B);
@@ -54,11 +49,6 @@ void testing_geam_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dB.memcheck());
     CHECK_DEVICE_ALLOCATION(dC.memcheck());
-
-    // copy data from CPU to device, does not work for lda != A_row
-    CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(T) * size_A, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dB, hB, sizeof(T) * size_B, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dC, hC, sizeof(T) * size_C, hipMemcpyHostToDevice));
 
     EXPECT_ROCBLAS_STATUS(
         rocblas_geam<T>(
@@ -102,8 +92,8 @@ void testing_geam(const Arguments& arg)
     rocblas_int ldb = arg.ldb;
     rocblas_int ldc = arg.ldc;
 
-    T h_alpha = arg.alpha;
-    T h_beta  = arg.beta;
+    T alpha = arg.get_alpha<T>();
+    T beta  = arg.get_beta<T>();
 
     T* dC_in_place;
 
@@ -148,47 +138,50 @@ void testing_geam(const Arguments& arg)
         inc2_B = 1;
     }
 
-    size_t size_A = lda * size_t(A_col);
-    size_t size_B = ldb * size_t(B_col);
-    size_t size_C = ldc * size_t(N);
+    size_t size_A = size_t(lda) * size_t(A_col);
+    size_t size_B = size_t(ldb) * size_t(B_col);
+    size_t size_C = size_t(ldc) * size_t(N);
 
-    // check here to prevent undefined memory allocation error
-    if(M <= 0 || N <= 0 || lda < A_row || ldb < B_row || ldc < M)
+    // argument sanity check before allocating invalid memory
+    bool invalid_size = M < 0 || N < 0 || lda < A_row || ldb < B_row || ldc < M;
+    if(invalid_size || !M || !N)
     {
-        static const size_t safe_size = 100; // arbitararily set to 100
-        device_vector<T>    dA(safe_size);
-        device_vector<T>    dB(safe_size);
-        device_vector<T>    dC(safe_size);
-        CHECK_DEVICE_ALLOCATION(dA.memcheck());
-        CHECK_DEVICE_ALLOCATION(dB.memcheck());
-        CHECK_DEVICE_ALLOCATION(dC.memcheck());
-
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-
-        if(M == 0 && N == 0)
-        {
-            CHECK_ROCBLAS_ERROR(rocblas_geam<T>(
-                handle, transA, transB, M, N, &h_alpha, dA, lda, &h_beta, dB, ldb, dC, ldc));
-        }
-        else
-        {
-            EXPECT_ROCBLAS_STATUS(
-                rocblas_geam<T>(
-                    handle, transA, transB, M, N, &h_alpha, dA, lda, &h_beta, dB, ldb, dC, ldc),
-                rocblas_status_invalid_size);
-        }
-
+        EXPECT_ROCBLAS_STATUS(rocblas_geam<T>(handle,
+                                              transA,
+                                              transB,
+                                              M,
+                                              N,
+                                              nullptr,
+                                              nullptr,
+                                              lda,
+                                              nullptr,
+                                              nullptr,
+                                              ldb,
+                                              nullptr,
+                                              ldc),
+                              invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
         return;
     }
 
     // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory
+    host_vector<T> h_alpha(1);
+    host_vector<T> h_beta(1);
     host_vector<T> hA(size_A), hA_copy(size_A);
     host_vector<T> hB(size_B), hB_copy(size_B);
     host_vector<T> hC_1(size_C);
     host_vector<T> hC_2(size_C);
     host_vector<T> hC_gold(size_C);
+    CHECK_HIP_ERROR(h_alpha.memcheck());
+    CHECK_HIP_ERROR(h_beta.memcheck());
+    CHECK_HIP_ERROR(hA.memcheck());
+    CHECK_HIP_ERROR(hB.memcheck());
+    CHECK_HIP_ERROR(hC_1.memcheck());
+    CHECK_HIP_ERROR(hC_2.memcheck());
+    CHECK_HIP_ERROR(hC_gold.memcheck());
 
     // Initial Data on CPU
+    h_alpha[0] = alpha;
+    h_beta[0]  = beta;
     rocblas_seedrand();
     rocblas_init<T>(hA, A_row, A_col, lda);
     rocblas_init<T>(hB, B_row, B_col, ldb);
@@ -209,35 +202,35 @@ void testing_geam(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
 
     // copy data from CPU to device
-    CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(T) * size_A, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dB, hB, sizeof(T) * size_B, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(T), hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(d_beta, &h_beta, sizeof(T), hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(d_alpha.transfer_from(h_alpha));
+    CHECK_HIP_ERROR(d_beta.transfer_from(h_beta));
+    CHECK_HIP_ERROR(dA.transfer_from(hA));
+    CHECK_HIP_ERROR(dB.transfer_from(hB));
 
     if(arg.unit_check || arg.norm_check)
     {
         // ROCBLAS
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         CHECK_ROCBLAS_ERROR(rocblas_geam<T>(
-            handle, transA, transB, M, N, &h_alpha, dA, lda, &h_beta, dB, ldb, dC, ldc));
+            handle, transA, transB, M, N, &alpha, dA, lda, &beta, dB, ldb, dC, ldc));
 
-        CHECK_HIP_ERROR(hipMemcpy(hC_1, dC, sizeof(T) * size_C, hipMemcpyDeviceToHost));
+        CHECK_HIP_ERROR(hC_1.transfer_from(dC));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         CHECK_ROCBLAS_ERROR(rocblas_geam<T>(
             handle, transA, transB, M, N, d_alpha, dA, lda, d_beta, dB, ldb, dC, ldc));
 
-        CHECK_HIP_ERROR(hipMemcpy(hC_2, dC, sizeof(T) * size_C, hipMemcpyDeviceToHost));
+        CHECK_HIP_ERROR(hC_2.transfer_from(dC));
 
         // reference calculation for golden result
         cpu_time_used = get_time_us();
 
-        for(int i1 = 0; i1 < M; i1++)
+        for(size_t i1 = 0; i1 < M; i1++)
         {
-            for(int i2 = 0; i2 < N; i2++)
+            for(size_t i2 = 0; i2 < N; i2++)
             {
-                hC_gold[i1 + i2 * ldc] = h_alpha * hA_copy[i1 * inc1_A + i2 * inc2_A]
-                                         + h_beta * hB_copy[i1 * inc1_B + i2 * inc2_B];
+                hC_gold[i1 + i2 * ldc] = alpha * hA_copy[i1 * inc1_A + i2 * inc2_A]
+                                         + beta * hB_copy[i1 * inc1_B + i2 * inc2_B];
             }
         }
 
@@ -261,19 +254,8 @@ void testing_geam(const Arguments& arg)
             dC_in_place = dA;
 
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-            auto status_h = rocblas_geam<T>(handle,
-                                            transA,
-                                            transB,
-                                            M,
-                                            N,
-                                            &h_alpha,
-                                            dA,
-                                            lda,
-                                            &h_beta,
-                                            dB,
-                                            ldb,
-                                            dC_in_place,
-                                            ldc);
+            auto status_h = rocblas_geam<T>(
+                handle, transA, transB, M, N, &alpha, dA, lda, &beta, dB, ldb, dC_in_place, ldc);
 
             if(lda != ldc || transA != rocblas_operation_none)
             {
@@ -284,15 +266,15 @@ void testing_geam(const Arguments& arg)
                 CHECK_HIP_ERROR(
                     hipMemcpy(hC_1, dC_in_place, sizeof(T) * size_C, hipMemcpyDeviceToHost));
                 // dA was clobbered by dC_in_place, so copy hA back to dA
-                CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(T) * size_A, hipMemcpyHostToDevice));
+                CHECK_HIP_ERROR(dA.transfer_from(hA));
 
                 // reference calculation
-                for(int i1 = 0; i1 < M; i1++)
+                for(size_t i1 = 0; i1 < M; i1++)
                 {
-                    for(int i2 = 0; i2 < N; i2++)
+                    for(size_t i2 = 0; i2 < N; i2++)
                     {
-                        hC_gold[i1 + i2 * ldc] = h_alpha * hA_copy[i1 * inc1_A + i2 * inc2_A]
-                                                 + h_beta * hB[i1 * inc1_B + i2 * inc2_B];
+                        hC_gold[i1 + i2 * ldc] = alpha * hA_copy[i1 * inc1_A + i2 * inc2_A]
+                                                 + beta * hB[i1 * inc1_B + i2 * inc2_B];
                     }
                 }
 
@@ -313,19 +295,8 @@ void testing_geam(const Arguments& arg)
             dC_in_place = dB;
 
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-            auto status_h = rocblas_geam<T>(handle,
-                                            transA,
-                                            transB,
-                                            M,
-                                            N,
-                                            &h_alpha,
-                                            dA,
-                                            lda,
-                                            &h_beta,
-                                            dB,
-                                            ldb,
-                                            dC_in_place,
-                                            ldc);
+            auto status_h = rocblas_geam<T>(
+                handle, transA, transB, M, N, &alpha, dA, lda, &beta, dB, ldb, dC_in_place, ldc);
 
             if(ldb != ldc || transB != rocblas_operation_none)
             {
@@ -339,12 +310,12 @@ void testing_geam(const Arguments& arg)
                     hipMemcpy(hC_1, dC_in_place, sizeof(T) * size_C, hipMemcpyDeviceToHost));
 
                 // reference calculation
-                for(int i1 = 0; i1 < M; i1++)
+                for(size_t i1 = 0; i1 < M; i1++)
                 {
-                    for(int i2 = 0; i2 < N; i2++)
+                    for(size_t i2 = 0; i2 < N; i2++)
                     {
-                        hC_gold[i1 + i2 * ldc] = h_alpha * hA_copy[i1 * inc1_A + i2 * inc2_A]
-                                                 + h_beta * hB_copy[i1 * inc1_B + i2 * inc2_B];
+                        hC_gold[i1 + i2 * ldc] = alpha * hA_copy[i1 * inc1_A + i2 * inc2_A]
+                                                 + beta * hB_copy[i1 * inc1_B + i2 * inc2_B];
                     }
                 }
 
@@ -363,42 +334,40 @@ void testing_geam(const Arguments& arg)
 
     if(arg.timing)
     {
-        int number_cold_calls = 2;
-        int number_hot_calls  = 10;
+        int number_cold_calls = arg.cold_iters;
+        int number_hot_calls  = arg.iters;
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
         for(int i = 0; i < number_cold_calls; i++)
         {
-            rocblas_geam<T>(
-                handle, transA, transB, M, N, &h_alpha, dA, lda, &h_beta, dB, ldb, dC, ldc);
+            rocblas_geam<T>(handle, transA, transB, M, N, &alpha, dA, lda, &beta, dB, ldb, dC, ldc);
         }
 
         gpu_time_used = get_time_us(); // in microseconds
         for(int i = 0; i < number_hot_calls; i++)
         {
-            rocblas_geam<T>(
-                handle, transA, transB, M, N, &h_alpha, dA, lda, &h_beta, dB, ldb, dC, ldc);
+            rocblas_geam<T>(handle, transA, transB, M, N, &alpha, dA, lda, &beta, dB, ldb, dC, ldc);
         }
         gpu_time_used  = get_time_us() - gpu_time_used;
         rocblas_gflops = geam_gflop_count<T>(M, N) * number_hot_calls / gpu_time_used * 1e6;
 
-        std::cout << "transA,transB,M,N,alpha,lda,beta,ldb,ldc,rocblas-Gflops,us";
+        rocblas_cout << "transA,transB,M,N,alpha,lda,beta,ldb,ldc,rocblas-Gflops,us";
         if(arg.unit_check || arg.norm_check)
         {
-            std::cout << ",CPU-Gflops,us,norm_error_ptr_host,norm_error_ptr_dev";
+            rocblas_cout << ",CPU-Gflops,us,norm_error_ptr_host,norm_error_ptr_dev";
         }
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
 
-        std::cout << arg.transA << arg.transB << "," << M << "," << N << "," << h_alpha << ","
-                  << lda << "," << h_beta << "," << ldb << "," << ldc << "," << rocblas_gflops
-                  << "," << gpu_time_used / number_hot_calls << ",";
+        rocblas_cout << arg.transA << arg.transB << "," << M << "," << N << "," << alpha << ","
+                     << lda << "," << beta << "," << ldb << "," << ldc << "," << rocblas_gflops
+                     << "," << gpu_time_used / number_hot_calls << ",";
 
         if(arg.unit_check || arg.norm_check)
         {
-            std::cout << cblas_gflops << "," << cpu_time_used << ",";
-            std::cout << rocblas_error_1 << "," << rocblas_error_2;
+            rocblas_cout << cblas_gflops << "," << cpu_time_used << ",";
+            rocblas_cout << rocblas_error_1 << "," << rocblas_error_2;
         }
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
     }
 }

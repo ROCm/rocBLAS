@@ -90,19 +90,13 @@ void testing_spmv(const Arguments& arg)
     rocblas_local_handle handle;
 
     // argument sanity check before allocating invalid memory
-    if(N <= 0 || !incx || !incy)
+    bool invalid_size = N < 0 || !incx || !incy;
+    if(invalid_size || !N)
     {
-        static const size_t safe_size = 100;
-        device_vector<T>    dA(safe_size);
-        device_vector<T>    dx(safe_size);
-        device_vector<T>    dy(safe_size);
-        CHECK_DEVICE_ALLOCATION(dA.memcheck());
-        CHECK_DEVICE_ALLOCATION(dx.memcheck());
-        CHECK_DEVICE_ALLOCATION(dy.memcheck());
-
-        EXPECT_ROCBLAS_STATUS(rocblas_spmv<T>(handle, uplo, N, alpha, dA, dx, incx, beta, dy, incy),
-                              N < 0 || !incx || !incy ? rocblas_status_invalid_size
-                                                      : rocblas_status_success);
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_spmv<T>(
+                handle, uplo, N, nullptr, nullptr, nullptr, incx, nullptr, nullptr, incy),
+            invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
         return;
     }
 
@@ -117,7 +111,7 @@ void testing_spmv(const Arguments& arg)
     host_vector<T> hg(size_Y); // gold standard
 
     double gpu_time_used, cpu_time_used;
-    double rocblas_gflops, cblas_gflops;
+    double rocblas_gflops, cblas_gflops, rocblas_bandwidth;
     double h_error, d_error;
 
     device_vector<T> dA(size_A);
@@ -199,7 +193,7 @@ void testing_spmv(const Arguments& arg)
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
-        int number_cold_calls = 2;
+        int number_cold_calls = arg.cold_iters;
         int number_hot_calls  = arg.iters;
 
         for(int iter = 0; iter < number_cold_calls; iter++)
@@ -216,26 +210,27 @@ void testing_spmv(const Arguments& arg)
                 rocblas_spmv<T>(handle, uplo, N, alpha, dA, dx, incx, beta, dy, incy));
         }
 
-        gpu_time_used  = (get_time_us() - gpu_time_used) / number_hot_calls;
-        rocblas_gflops = spmv_gflop_count<T>(N) / gpu_time_used * 1e6;
+        gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;
+        rocblas_gflops    = spmv_gflop_count<T>(N) / gpu_time_used * 1e6;
+        rocblas_bandwidth = spmv_gbyte_count<T>(N) / gpu_time_used * 1e6;
 
         // only norm_check return an norm error, unit check won't return anything
-        std::cout << "uplo, N, incx, incy, rocblas-Gflops (us) ";
+        rocblas_cout << "uplo, N, incx, incy, rocblas-Gflops, rocblas-GB/s, (us) ";
         if(arg.norm_check)
         {
-            std::cout << "CPU-Gflops (us),norm_error_host_ptr,norm_error_dev_ptr";
+            rocblas_cout << "CPU-Gflops (us),norm_error_host_ptr,norm_error_dev_ptr";
         }
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
 
-        std::cout << arg.uplo << ',' << N << ',' << incx << "," << incy << "," << rocblas_gflops
-                  << "(" << gpu_time_used << "),";
+        rocblas_cout << arg.uplo << ',' << N << ',' << incx << "," << incy << "," << rocblas_gflops
+                     << "," << rocblas_bandwidth << ",(" << gpu_time_used << "),";
 
         if(arg.norm_check)
         {
-            std::cout << cblas_gflops << "(" << cpu_time_used << "),";
-            std::cout << h_error << "," << d_error;
+            rocblas_cout << cblas_gflops << "(" << cpu_time_used << "),";
+            rocblas_cout << h_error << "," << d_error;
         }
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
     }
 }

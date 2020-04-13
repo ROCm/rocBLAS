@@ -125,8 +125,8 @@ void testing_swap(const Arguments& arg)
 
     if(arg.timing)
     {
-        int number_cold_calls = 2;
-        int number_hot_calls  = 100;
+        int number_cold_calls = arg.cold_iters;
+        int number_hot_calls  = arg.iters;
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
         for(int iter = 0; iter < number_cold_calls; iter++)
@@ -143,7 +143,7 @@ void testing_swap(const Arguments& arg)
 
         gpu_time_used = (get_time_us() - gpu_time_used) / number_hot_calls;
 
-        std::cout << "N,incx,incy,rocblas-us" << std::endl;
-        std::cout << N << "," << incx << "," << incy << "," << gpu_time_used << std::endl;
+        rocblas_cout << "N,incx,incy,rocblas-us" << std::endl;
+        rocblas_cout << N << "," << incx << "," << incy << "," << gpu_time_used << std::endl;
     }
 }

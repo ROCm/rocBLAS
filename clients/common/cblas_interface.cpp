@@ -1,10 +1,10 @@
 /* ************************************************************************
  * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************/
-
 #include "cblas_interface.hpp"
 #include "rocblas_vector.hpp"
 #include "utility.hpp"
+#include <omp.h>
 
 /*
  * ===========================================================================
@@ -376,13 +376,13 @@ void cblas_herkx(rocblas_fill      uplo,
     {
         if(uplo == rocblas_fill_upper)
         {
+#pragma omp parallel for
             for(int j = 0; j < n; ++j)
             {
                 for(int i = 0; i <= j; i++)
                 {
                     C[i + j * ldc] *= *beta;
                 }
-                C[j + j * ldc].y = 0;
 
                 for(int l = 0; l < k; l++)
                 {
@@ -392,17 +392,18 @@ void cblas_herkx(rocblas_fill      uplo,
                         C[i + j * ldc] += temp * A[i + l * lda];
                     }
                 }
+                C[j + j * ldc].y = 0;
             }
         }
         else // lower
         {
+#pragma omp parallel for
             for(int j = 0; j < n; ++j)
             {
                 for(int i = j; i < n; i++)
                 {
                     C[i + j * ldc] *= *beta;
                 }
-                C[j + j * ldc].y = 0;
 
                 for(int l = 0; l < k; l++)
                 {
@@ -412,6 +413,7 @@ void cblas_herkx(rocblas_fill      uplo,
                         C[i + j * ldc] += temp * A[i + l * lda];
                     }
                 }
+                C[j + j * ldc].y = 0;
             }
         }
     }
@@ -419,13 +421,12 @@ void cblas_herkx(rocblas_fill      uplo,
     {
         if(uplo == rocblas_fill_upper)
         {
+#pragma omp parallel for
             for(int j = 0; j < n; ++j)
             {
                 for(int i = 0; i <= j; i++)
                 {
                     C[i + j * ldc] *= *beta;
-                    if(i == j)
-                        C[j + j * ldc].y = 0;
 
                     T temp(0);
                     for(int l = 0; l < k; l++)
@@ -433,18 +434,20 @@ void cblas_herkx(rocblas_fill      uplo,
                         temp += std::conj(A[l + i * lda]) * B[l + j * ldb];
                     }
                     C[i + j * ldc] += *alpha * temp;
+
+                    if(i == j)
+                        C[j + j * ldc].y = 0;
                 }
             }
         }
         else // lower
         {
+#pragma omp parallel for
             for(int j = 0; j < n; ++j)
             {
                 for(int i = j; i < n; i++)
                 {
                     C[i + j * ldc] *= *beta;
-                    if(i == j)
-                        C[j + j * ldc].y = 0;
 
                     T temp(0);
                     for(int l = 0; l < k; l++)
@@ -452,6 +455,9 @@ void cblas_herkx(rocblas_fill      uplo,
                         temp += std::conj(A[l + i * lda]) * B[l + j * ldb];
                     }
                     C[i + j * ldc] += *alpha * temp;
+
+                    if(i == j)
+                        C[j + j * ldc].y = 0;
                 }
             }
         }

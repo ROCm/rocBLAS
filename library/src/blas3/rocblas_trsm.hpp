@@ -5,10 +5,7 @@
 #define __ROCBLAS_TRSM_HPP__
 
 #include "../blas_ex/rocblas_gemm_ex.hpp"
-#include "handle.h"
-#include "rocblas.h"
 #include "trtri_trsm.hpp"
-#include "utility.h"
 
 ///////////////////// //////
 ///// helper templates /////
@@ -1358,9 +1355,10 @@ rocblas_status rocblas_trsm_template_mem(rocblas_handle handle,
     if(supplied_invA && supplied_invA_size / BLOCK < k)
     {
         // One-time warning message
-        static int msg = fputs("WARNING: TRSM invA_size argument is too small; invA argument "
-                               "is being ignored; TRSM performance is degraded\n",
-                               stderr);
+        static int msg = (rocblas_cerr << "WARNING: TRSM invA_size argument is too small; invA "
+                                          "argument is being ignored; TRSM performance is degraded"
+                                       << std::endl,
+                          0);
         perf_status    = rocblas_status_perf_degraded;
         supplied_invA  = nullptr;
     }
@@ -1442,9 +1440,10 @@ rocblas_status rocblas_trsm_template_mem(rocblas_handle handle,
         perf_status = rocblas_status_perf_degraded;
 
         // One-time warning about degraded performance
-        static int msg = fputs("WARNING: Device memory allocation size is too small for TRSM; "
-                               "TRSM performance is degraded\n",
-                               stderr);
+        static int msg = (rocblas_cerr << "WARNING: Device memory allocation size is too small for "
+                                          "TRSM; TRSM performance is degraded"
+                                       << std::endl,
+                          0);
     }
 
     std::tie(mem_x_temp, mem_x_temp_arr, mem_invA, mem_invA_arr) = mem;
@@ -1455,32 +1454,32 @@ rocblas_status rocblas_trsm_template_mem(rocblas_handle handle,
 //////////////////////////////
 //////////////////////////////
 template <rocblas_int BLOCK, bool BATCHED, typename T, typename U, typename V>
-rocblas_status rocblas_trsm_template(rocblas_handle    handle,
-                                     rocblas_side      side,
-                                     rocblas_fill      uplo,
-                                     rocblas_operation transA,
-                                     rocblas_diagonal  diag,
-                                     rocblas_int       m,
-                                     rocblas_int       n,
-                                     const T*          alpha,
-                                     U                 A,
-                                     rocblas_int       offset_A,
-                                     rocblas_int       lda,
-                                     rocblas_stride    stride_A,
-                                     V                 B,
-                                     rocblas_int       offset_B,
-                                     rocblas_int       ldb,
-                                     rocblas_stride    stride_B,
-                                     rocblas_int       batch_count,
-                                     bool              optimal_mem,
-                                     void*             x_temp,
-                                     void*             x_temparr,
-                                     void*             invA               = nullptr,
-                                     void*             invAarr            = nullptr,
-                                     U                 supplied_invA      = nullptr,
-                                     rocblas_int       supplied_invA_size = 0,
-                                     rocblas_int       offset_invA        = 0,
-                                     rocblas_stride    stride_invA        = 0)
+ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_trsm_template(rocblas_handle    handle,
+                                                             rocblas_side      side,
+                                                             rocblas_fill      uplo,
+                                                             rocblas_operation transA,
+                                                             rocblas_diagonal  diag,
+                                                             rocblas_int       m,
+                                                             rocblas_int       n,
+                                                             const T*          alpha,
+                                                             U                 A,
+                                                             rocblas_int       offset_A,
+                                                             rocblas_int       lda,
+                                                             rocblas_stride    stride_A,
+                                                             V                 B,
+                                                             rocblas_int       offset_B,
+                                                             rocblas_int       ldb,
+                                                             rocblas_stride    stride_B,
+                                                             rocblas_int       batch_count,
+                                                             bool              optimal_mem,
+                                                             void*             x_temp,
+                                                             void*             x_temparr,
+                                                             void*             invA       = nullptr,
+                                                             void*             invAarr    = nullptr,
+                                                             U              supplied_invA = nullptr,
+                                                             rocblas_int    supplied_invA_size = 0,
+                                                             rocblas_int    offset_invA        = 0,
+                                                             rocblas_stride stride_invA        = 0)
 {
     // return rocblas_status_not_implemented;
     if(batch_count == 0)

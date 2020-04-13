@@ -2,9 +2,6 @@
  * Copyright 2019-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #pragma once
-
-#include "handle.h"
-#include "rocblas.h"
 #include "trmv_template.hpp"
 
 template <typename A, typename X, typename W>

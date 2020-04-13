@@ -176,7 +176,8 @@ void testing_sbmv_batched(const Arguments& arg)
     rocblas_local_handle handle;
 
     // argument sanity check before allocating invalid memory
-    if(N <= 0 || lda < 0 || K < 0 || !incx || !incy || batch_count <= 0)
+    bool invalid_size = N < 0 || lda < K + 1 || K < 0 || !incx || !incy || batch_count < 0;
+    if(invalid_size || !N || !batch_count)
     {
         EXPECT_ROCBLAS_STATUS(rocblas_sbmv_batched<T>(handle,
                                                       uplo,
@@ -191,9 +192,7 @@ void testing_sbmv_batched(const Arguments& arg)
                                                       nullptr,
                                                       incy,
                                                       batch_count),
-                              N < 0 || lda < 0 || K < 0 || !incx || !incy || batch_count < 0
-                                  ? rocblas_status_invalid_size
-                                  : rocblas_status_success);
+                              invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
         return;
     }
 
@@ -302,17 +301,14 @@ void testing_sbmv_batched(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            for(int i = 0; i < batch_count; i++)
-            {
-                unit_check_general<T>(1, N, abs_incy, hg[i], hy[i]);
-                unit_check_general<T>(1, N, abs_incy, hg[i], hy2[i]);
-            }
+            unit_check_general<T>(1, N, abs_incy, hg, hy, batch_count);
+            unit_check_general<T>(1, N, abs_incy, hg, hy2, batch_count);
         }
 
         if(arg.norm_check)
         {
-            h_error = norm_check_general<T>('F', 1, N, abs_incy, batch_count, hg, hy);
-            d_error = norm_check_general<T>('F', 1, N, abs_incy, batch_count, hg, hy2);
+            h_error = norm_check_general<T>('F', 1, N, abs_incy, hg, hy, batch_count);
+            d_error = norm_check_general<T>('F', 1, N, abs_incy, hg, hy2, batch_count);
         }
     }
 
@@ -321,7 +317,7 @@ void testing_sbmv_batched(const Arguments& arg)
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
-        int number_cold_calls = 2;
+        int number_cold_calls = arg.cold_iters;
         int number_hot_calls  = arg.iters;
 
         for(int iter = 0; iter < number_cold_calls; iter++)
@@ -365,22 +361,23 @@ void testing_sbmv_batched(const Arguments& arg)
         rocblas_bandwidth = batch_count * sbmv_gbyte_count<T>(N, K) / gpu_time_used * 1e6;
 
         // only norm_check return an norm error, unit check won't return anything
-        std::cout
+        rocblas_cout
             << "uplo, N, lda, K, incx, incy, batch_count, rocblas-Gflops, rocblas-GB/s, (us) ";
         if(arg.norm_check)
         {
-            std::cout << "CPU-Gflops,(us),norm_error_host_ptr,norm_error_dev_ptr";
+            rocblas_cout << "CPU-Gflops,(us),norm_error_host_ptr,norm_error_dev_ptr";
         }
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
 
-        std::cout << arg.uplo << ',' << N << ',' << lda << ',' << K << ',' << incx << "," << incy
-                  << "," << batch_count << "," << rocblas_gflops << "," << rocblas_bandwidth << ",("
-                  << gpu_time_used << "),";
+        rocblas_cout << arg.uplo << ',' << N << ',' << lda << ',' << K << ',' << incx << "," << incy
+                     << "," << batch_count << "," << rocblas_gflops << "," << rocblas_bandwidth
+                     << ",(" << gpu_time_used << "),";
 
         if(arg.norm_check)
         {
-            std::cout << cblas_gflops << ",(" << cpu_time_used << ")," << h_error << "," << d_error;
+            rocblas_cout << cblas_gflops << ",(" << cpu_time_used << ")," << h_error << ","
+                         << d_error;
         }
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
     }
 }

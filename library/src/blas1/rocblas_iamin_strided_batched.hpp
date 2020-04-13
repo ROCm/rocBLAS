@@ -2,7 +2,6 @@
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #pragma once
-
 #include "rocblas_iamin.hpp"
 
 // allocate workspace inside this API

@@ -5,26 +5,29 @@
 #ifndef ROCBLAS_ARGUMENTS_H_
 #define ROCBLAS_ARGUMENTS_H_
 
+#include "../../library/src/include/rocblas_ostream.hpp"
 #include "rocblas.h"
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_math.hpp"
-#include <cinttypes>
-#include <cmath>
-#include <cstdio>
-#include <cstdlib>
-#include <cstring>
-#include <iomanip>
-#include <iostream>
-#include <type_traits>
+#include <cstddef>
+#include <istream>
+#include <map>
+#include <ostream>
+#include <tuple>
 
-/* ============================================================================================
- */
-/*! \brief Class used to parse command arguments in both client & gtest   */
-/* WARNING: If this data is changed, then rocblas_common.yaml must also be
- * changed. */
+// Predeclare enumerator
+enum rocblas_argument : int;
 
+/***************************************************************************
+ *! \brief Class used to parse command arguments in both client & gtest    *
+ * WARNING: If this data is changed, then rocblas_common.yaml must also be *
+ * changed.                                                                *
+ ***************************************************************************/
 struct Arguments
 {
+    /*************************************************************************
+     *                    Beginning Of Arguments                             *
+     *************************************************************************/
     rocblas_int M;
     rocblas_int N;
     rocblas_int K;
@@ -84,96 +87,81 @@ struct Arguments
 
     rocblas_initialization initialization;
     char                   known_bug_platforms[64];
+    bool                   c_noalias_d;
 
-    bool c_noalias_d;
+    /*************************************************************************
+     *                     End Of Arguments                                  *
+     *************************************************************************/
+
+    // clang-format off
+
+// Generic macro which operates over the list of arguments in order of declaration
+#define FOR_EACH_ARGUMENT(OPER, SEP) \
+    OPER(M) SEP                      \
+    OPER(N) SEP                      \
+    OPER(K) SEP                      \
+    OPER(KL) SEP                     \
+    OPER(KU) SEP                     \
+    OPER(lda) SEP                    \
+    OPER(ldb) SEP                    \
+    OPER(ldc) SEP                    \
+    OPER(ldd) SEP                    \
+    OPER(a_type) SEP                 \
+    OPER(b_type) SEP                 \
+    OPER(c_type) SEP                 \
+    OPER(d_type) SEP                 \
+    OPER(compute_type) SEP           \
+    OPER(incx) SEP                   \
+    OPER(incy) SEP                   \
+    OPER(incd) SEP                   \
+    OPER(incb) SEP                   \
+    OPER(alpha) SEP                  \
+    OPER(alphai) SEP                 \
+    OPER(beta) SEP                   \
+    OPER(betai) SEP                  \
+    OPER(transA) SEP                 \
+    OPER(transB) SEP                 \
+    OPER(side) SEP                   \
+    OPER(uplo) SEP                   \
+    OPER(diag) SEP                   \
+    OPER(batch_count) SEP            \
+    OPER(stride_a) SEP               \
+    OPER(stride_b) SEP               \
+    OPER(stride_c) SEP               \
+    OPER(stride_d) SEP               \
+    OPER(stride_x) SEP               \
+    OPER(stride_y) SEP               \
+    OPER(norm_check) SEP             \
+    OPER(unit_check) SEP             \
+    OPER(timing) SEP                 \
+    OPER(iters) SEP                  \
+    OPER(cold_iters) SEP             \
+    OPER(algo) SEP                   \
+    OPER(solution_index) SEP         \
+    OPER(flags) SEP                  \
+    OPER(function) SEP               \
+    OPER(name) SEP                   \
+    OPER(category) SEP               \
+    OPER(initialization) SEP         \
+    OPER(known_bug_platforms) SEP    \
+    OPER(c_noalias_d)
+
+    // clang-format on
 
     // Validate input format.
-    // rocblas_gentest.py is expected to conform to this format.
-    // rocblas_gentest.py uses rocblas_common.yaml to generate this format.
-    static void validate(std::istream& ifs)
-    {
-        auto error = [](auto name) {
-            std::cerr << "Arguments field " << name << " does not match format.\n\n"
-                      << "Fatal error: Binary test data does match input format.\n"
-                         "Ensure that rocblas_arguments.hpp and rocblas_common.yaml\n"
-                         "define exactly the same Arguments, that rocblas_gentest.py\n"
-                         "generates the data correctly, and that endianness is the same.\n";
-            abort();
-        };
+    static void validate(std::istream& ifs);
 
-        char      header[8]{}, trailer[8]{};
-        Arguments arg{};
-        ifs.read(header, sizeof(header));
-        ifs >> arg;
-        ifs.read(trailer, sizeof(trailer));
+    // Function to print Arguments out to stream in YAML format
+    friend rocblas_ostream& operator<<(rocblas_ostream& str, const Arguments& arg);
 
-        if(strcmp(header, "rocBLAS"))
-            error("header");
-        else if(strcmp(trailer, "ROCblas"))
-            error("trailer");
+    // Google Tests uses this with std:ostream automatically to dump parameters
+    friend std::ostream& operator<<(std::ostream& str, const Arguments& arg);
 
-        auto check_func = [&, sig = (unsigned char)0](const auto& elem, auto name) mutable {
-            static_assert(sizeof(elem) <= 255,
-                          "One of the fields of Arguments is too large (> 255 bytes)");
-            for(unsigned char i = 0; i < sizeof(elem); ++i)
-                if(reinterpret_cast<const unsigned char*>(&elem)[i] ^ sig ^ i)
-                    error(name);
-            sig += 89;
-        };
+    // Function to read Arguments data from stream
+    friend std::istream& operator>>(std::istream& str, Arguments& arg);
 
-#define ROCBLAS_FORMAT_CHECK(x) check_func(arg.x, #x)
-
-        // Order is important
-        ROCBLAS_FORMAT_CHECK(M);
-        ROCBLAS_FORMAT_CHECK(N);
-        ROCBLAS_FORMAT_CHECK(K);
-        ROCBLAS_FORMAT_CHECK(KL);
-        ROCBLAS_FORMAT_CHECK(KU);
-        ROCBLAS_FORMAT_CHECK(lda);
-        ROCBLAS_FORMAT_CHECK(ldb);
-        ROCBLAS_FORMAT_CHECK(ldc);
-        ROCBLAS_FORMAT_CHECK(ldd);
-        ROCBLAS_FORMAT_CHECK(a_type);
-        ROCBLAS_FORMAT_CHECK(b_type);
-        ROCBLAS_FORMAT_CHECK(c_type);
-        ROCBLAS_FORMAT_CHECK(d_type);
-        ROCBLAS_FORMAT_CHECK(compute_type);
-        ROCBLAS_FORMAT_CHECK(incx);
-        ROCBLAS_FORMAT_CHECK(incy);
-        ROCBLAS_FORMAT_CHECK(incd);
-        ROCBLAS_FORMAT_CHECK(incb);
-        ROCBLAS_FORMAT_CHECK(alpha);
-        ROCBLAS_FORMAT_CHECK(alphai);
-        ROCBLAS_FORMAT_CHECK(beta);
-        ROCBLAS_FORMAT_CHECK(betai);
-        ROCBLAS_FORMAT_CHECK(transA);
-        ROCBLAS_FORMAT_CHECK(transB);
-        ROCBLAS_FORMAT_CHECK(side);
-        ROCBLAS_FORMAT_CHECK(uplo);
-        ROCBLAS_FORMAT_CHECK(diag);
-        ROCBLAS_FORMAT_CHECK(batch_count);
-        ROCBLAS_FORMAT_CHECK(stride_a);
-        ROCBLAS_FORMAT_CHECK(stride_b);
-        ROCBLAS_FORMAT_CHECK(stride_c);
-        ROCBLAS_FORMAT_CHECK(stride_d);
-        ROCBLAS_FORMAT_CHECK(stride_x);
-        ROCBLAS_FORMAT_CHECK(stride_y);
-        ROCBLAS_FORMAT_CHECK(norm_check);
-        ROCBLAS_FORMAT_CHECK(unit_check);
-        ROCBLAS_FORMAT_CHECK(timing);
-        ROCBLAS_FORMAT_CHECK(iters);
-        ROCBLAS_FORMAT_CHECK(cold_iters);
-        ROCBLAS_FORMAT_CHECK(algo);
-        ROCBLAS_FORMAT_CHECK(solution_index);
-        ROCBLAS_FORMAT_CHECK(flags);
-        ROCBLAS_FORMAT_CHECK(function);
-        ROCBLAS_FORMAT_CHECK(name);
-        ROCBLAS_FORMAT_CHECK(category);
-        ROCBLAS_FORMAT_CHECK(initialization);
-        ROCBLAS_FORMAT_CHECK(known_bug_platforms);
-        ROCBLAS_FORMAT_CHECK(c_noalias_d);
-    }
-
+    // Convert (alpha, alphai) and (beta, betai) to a particular type
+    // Return alpha, beta adjusted to 0 for when they are NaN
     template <typename T>
     T get_alpha() const
     {
@@ -200,135 +188,9 @@ private:
     {
         return T(r, i);
     }
-
-    // Function to read Structures data from stream
-    friend std::istream& operator>>(std::istream& str, Arguments& arg)
-    {
-        str.read(reinterpret_cast<char*>(&arg), sizeof(arg));
-        return str;
-    }
-
-    // print_value is for formatting different data types
-
-    // Default output
-    template <typename T>
-    static void print_value(std::ostream& str, const T& x)
-    {
-        str << x;
-    }
-
-    // Floating-point output
-    static void print_value(std::ostream& str, double x)
-    {
-        if(std::isnan(x))
-            str << ".nan";
-        else if(std::isinf(x))
-            str << (x < 0 ? "-.inf" : ".inf");
-        else
-        {
-            char s[32];
-            snprintf(s, sizeof(s) - 2, "%.17g", x);
-
-            // If no decimal point or exponent, append .0
-            char* end = s + strcspn(s, ".eE");
-            if(!*end)
-                strcat(end, ".0");
-            str << s;
-        }
-    }
-
-    // Character output
-    static void print_value(std::ostream& str, char c)
-    {
-        char s[]{c, 0};
-        str << std::quoted(s, '\'');
-    }
-
-    // bool output
-    static void print_value(std::ostream& str, bool b)
-    {
-        str << (b ? "true" : "false");
-    }
-
-    // string output
-    static void print_value(std::ostream& str, const char* s)
-    {
-        str << std::quoted(s);
-    }
-
-    // rocblas_datatype output
-    static void print_value(std::ostream& os, const rocblas_datatype& d)
-    {
-        os << rocblas_datatype2string(d);
-    }
-
-    // Function to print Arguments out to stream in YAML format
-    // Google Tests uses this automatically to dump parameters
-    friend std::ostream& operator<<(std::ostream& str, const Arguments& arg)
-    {
-        // delim starts as '{' opening brace and becomes ',' afterwards
-        auto print = [&, delim = '{'](const char* name, auto x) mutable {
-            str << delim << " " << name << ": ";
-            print_value(str, x);
-            delim = ',';
-        };
-
-#define PRINT(n) print(#n, arg.n)
-
-        PRINT(function);
-        PRINT(a_type);
-        PRINT(b_type);
-        PRINT(c_type);
-        PRINT(d_type);
-        PRINT(compute_type);
-        PRINT(transA);
-        PRINT(transB);
-        PRINT(M);
-        PRINT(N);
-        PRINT(K);
-        PRINT(KL);
-        PRINT(KU);
-        PRINT(lda);
-        PRINT(ldb);
-        PRINT(ldc);
-        PRINT(ldd);
-        PRINT(incx);
-        PRINT(incy);
-        PRINT(incd);
-        PRINT(incb);
-        PRINT(alpha);
-        PRINT(alphai);
-        PRINT(beta);
-        PRINT(betai);
-        PRINT(side);
-        PRINT(uplo);
-        PRINT(diag);
-        PRINT(batch_count);
-        PRINT(stride_a);
-        PRINT(stride_b);
-        PRINT(stride_c);
-        PRINT(stride_d);
-        PRINT(stride_x);
-        PRINT(stride_y);
-        PRINT(algo);
-        PRINT(solution_index);
-        PRINT(flags);
-        PRINT(name);
-        PRINT(category);
-        PRINT(norm_check);
-        PRINT(unit_check);
-        PRINT(timing);
-        PRINT(iters);
-        PRINT(cold_iters);
-        PRINT(initialization);
-        PRINT(known_bug_platforms);
-        PRINT(c_noalias_d);
-
-#undef PRINT
-        return str << " }\n";
-    }
 };
 
+// We make sure that the Arguments struct is C-compatible
 static_assert(std::is_standard_layout<Arguments>{},
               "Arguments is not a standard layout type, and thus is "
               "incompatible with C.");
@@ -336,5 +198,127 @@ static_assert(std::is_standard_layout<Arguments>{},
 static_assert(std::is_trivial<Arguments>{},
               "Arguments is not a trivial type, and thus is "
               "incompatible with C.");
+
+// Arguments enumerators
+// Create
+//     enum rocblas_argument : int {e_M, e_N, e_K, e_KL, ... };
+// There is an enum value for each case in FOR_EACH_ARGUMENT.
+//
+#define CREATE_ENUM(NAME) e_##NAME,
+enum rocblas_argument : int
+{
+    FOR_EACH_ARGUMENT(CREATE_ENUM, )
+};
+#undef CREATE_ENUM
+
+// ArgumentsHelper contains a templated lambda apply<> where there is a template
+// specialization for each line in the CPP macro FOR_EACH_ARGUMENT. For example,
+// the first lambda is:  apply<e_M> = [](auto&& func, const Arguments& arg, auto){func("M", arg.m);};
+// This lambda can be used to print "M" and arg.m.
+//
+// alpha and beta are specialized separately, because they need to use get_alpha() or get_beta().
+// To prevent multiple definitions of specializations for alpha and beta, the rocblas_argument
+// enum for alpha and beta are changed to rocblas_argument(-1) and rocblas_argument(-2) during
+// the FOR_EACH_ARGUMENT loop. Those out-of-range enum values are not used except here, and are
+// only used so that the FOR_EACH_ARGUMENT loop can be used to loop over all of the arguments.
+
+#if __cplusplus >= 201703L
+// C++17
+// ArgumentsHelper contains a templated lambda apply<> where there is a template
+// specialization for each line in the CPP macro FOR_EACH_ARGUMENT. For example,
+// the first lambda is:  apply<e_M> = [](auto&& func, const Arguments& arg, auto){func("M", arg.m)}
+// This lambda can be used to print "M" and arg.m
+struct ArgumentsHelper
+{
+    template <rocblas_argument>
+    static constexpr auto apply = nullptr;
+
+    // Macro defining specializations for specific arguments
+    // e_alpha and e_beta get turned into negative sentinel value specializations
+#define APPLY(NAME)                                                                         \
+    template <>                                                                             \
+    static constexpr auto                                                                   \
+        apply<e_##NAME == e_alpha ? rocblas_argument(-1)                                    \
+                                  : e_##NAME == e_beta ? rocblas_argument(-2) : e_##NAME> = \
+            [](auto&& func, const Arguments& arg, auto) { func(#NAME, arg.NAME); }
+
+    // Specialize apply for each Argument
+    FOR_EACH_ARGUMENT(APPLY, ;);
+
+    // Specialization for e_alpha
+    template <>
+    static constexpr auto apply<e_alpha> = [](auto&& func, const Arguments& arg, auto T) {
+        func("alpha", arg.get_alpha<decltype(T)>());
+    };
+
+    // Specialization for e_beta
+    template <>
+    static constexpr auto apply<e_beta> = [](auto&& func, const Arguments& arg, auto T) {
+        func("beta", arg.get_beta<decltype(T)>());
+    };
+};
+
+#else
+
+// C++14. TODO: Remove when C++17 is used
+// clang-format off
+struct ArgumentsHelper
+{
+#define APPLY(NAME)                                             \
+    template <>                                                 \
+    struct apply<e_##NAME == e_alpha ? rocblas_argument(-1) :   \
+                 e_##NAME == e_beta  ? rocblas_argument(-2) :   \
+                 e_##NAME>                                      \
+    {                                                           \
+        auto operator()()                                       \
+        {                                                       \
+            return                                              \
+                [](auto&& func, const Arguments& arg, auto)     \
+                {                                               \
+                    func(#NAME, arg.NAME);                      \
+                };                                              \
+        }                                                       \
+    };
+
+    template <rocblas_argument>
+    struct apply
+    {
+    };
+
+    // Go through every argument and define specializations
+    FOR_EACH_ARGUMENT(APPLY, ;);
+
+    // Specialization for e_alpha
+    template <>
+    struct apply<e_alpha>
+    {
+        auto operator()()
+        {
+            return
+                [](auto&& func, const Arguments& arg, auto T)
+                {
+                    func("alpha", arg.get_alpha<decltype(T)>());
+                };
+        }
+    };
+
+    // Specialization for e_beta
+    template <>
+    struct apply<e_beta>
+    {
+        auto operator()()
+        {
+            return
+                [](auto&& func, const Arguments& arg, auto T)
+                {
+                    func("beta", arg.get_beta<decltype(T)>());
+                };
+        }
+    };
+};
+// clang-format on
+#endif
+
+#undef APPLY
 
 #endif

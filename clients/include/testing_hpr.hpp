@@ -148,7 +148,7 @@ void testing_hpr(const Arguments& arg)
 
     if(arg.timing)
     {
-        int number_cold_calls = 2;
+        int number_cold_calls = arg.cold_iters;
         int number_hot_calls  = arg.iters;
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
@@ -169,19 +169,19 @@ void testing_hpr(const Arguments& arg)
         rocblas_bandwidth = hpr_gbyte_count<T>(N) / gpu_time_used * 1e6;
 
         // only norm_check return an norm error, unit check won't return anything
-        std::cout << "N,alpha,incx,rocblas-Gflops,rocblas-GB/s";
+        rocblas_cout << "N,alpha,incx,rocblas-Gflops,rocblas-GB/s";
 
         if(arg.norm_check)
-            std::cout << ",CPU-Gflops,norm_error_host_ptr,norm_error_dev_ptr";
+            rocblas_cout << ",CPU-Gflops,norm_error_host_ptr,norm_error_dev_ptr";
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
 
-        std::cout << N << "," << h_alpha << "," << incx << "," << rocblas_gflops << ","
-                  << rocblas_bandwidth;
+        rocblas_cout << N << "," << h_alpha << "," << incx << "," << rocblas_gflops << ","
+                     << rocblas_bandwidth;
 
         if(arg.norm_check)
-            std::cout << "," << cblas_gflops << "," << rocblas_error_1 << "," << rocblas_error_2;
+            rocblas_cout << "," << cblas_gflops << "," << rocblas_error_1 << "," << rocblas_error_2;
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
     }
 }

@@ -191,27 +191,26 @@ void testing_hbmv_strided_batched(const Arguments& arg)
     rocblas_local_handle handle;
 
     // argument sanity check before allocating invalid memory
-    if(N <= 0 || K < 0 || lda <= K || !incx || !incy || batch_count <= 0)
+    bool invalid_size = N < 0 || K < 0 || lda <= K || !incx || !incy || batch_count < 0;
+    if(invalid_size || !N || !batch_count)
     {
         EXPECT_ROCBLAS_STATUS(rocblas_hbmv_strided_batched<T>(handle,
                                                               uplo,
                                                               N,
                                                               K,
-                                                              &h_alpha,
+                                                              nullptr,
                                                               nullptr,
                                                               lda,
                                                               stride_A,
                                                               nullptr,
                                                               incx,
                                                               stride_x,
-                                                              &h_beta,
+                                                              nullptr,
                                                               nullptr,
                                                               incy,
                                                               stride_y,
                                                               batch_count),
-                              (N < 0 || K < 0 || lda <= K || !incx || !incy || batch_count < 0)
-                                  ? rocblas_status_invalid_size
-                                  : rocblas_status_success);
+                              invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
 
         return;
     }
@@ -336,22 +335,22 @@ void testing_hbmv_strided_batched(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, N, batch_count, abs_incy, stride_y, hy_gold, hy_1);
-            unit_check_general<T>(1, N, batch_count, abs_incy, stride_y, hy_gold, hy_2);
+            unit_check_general<T>(1, N, abs_incy, stride_y, hy_gold, hy_1, batch_count);
+            unit_check_general<T>(1, N, abs_incy, stride_y, hy_gold, hy_2, batch_count);
         }
 
         if(arg.norm_check)
         {
             rocblas_error_1
-                = norm_check_general<T>('F', 1, N, abs_incy, stride_y, batch_count, hy_gold, hy_1);
+                = norm_check_general<T>('F', 1, N, abs_incy, stride_y, hy_gold, hy_1, batch_count);
             rocblas_error_2
-                = norm_check_general<T>('F', 1, N, abs_incy, stride_y, batch_count, hy_gold, hy_2);
+                = norm_check_general<T>('F', 1, N, abs_incy, stride_y, hy_gold, hy_2, batch_count);
         }
     }
 
     if(arg.timing)
     {
-        int number_cold_calls = 2;
+        int number_cold_calls = arg.cold_iters;
         int number_hot_calls  = arg.iters;
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
@@ -404,24 +403,26 @@ void testing_hbmv_strided_batched(const Arguments& arg)
                             / gpu_time_used / 1e3;
 
         // only norm_check return an norm error, unit check won't return anything
-        std::cout << "N,K,alpha,lda,stride_A,incx,stride_x,beta,incy,stride_y,batch_count,rocblas-"
-                     "Gflops,rocblas-GB/s,";
+        rocblas_cout
+            << "N,K,alpha,lda,stride_A,incx,stride_x,beta,incy,stride_y,batch_count,rocblas-"
+               "Gflops,rocblas-GB/s,";
         if(arg.norm_check)
         {
-            std::cout << "CPU-Gflops,norm_error_host_ptr,norm_error_device_ptr";
+            rocblas_cout << "CPU-Gflops,norm_error_host_ptr,norm_error_device_ptr";
         }
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
 
-        std::cout << N << "," << K << "," << h_alpha << "," << lda << "," << stride_A << "," << incx
-                  << "," << stride_x << "," << h_beta << "," << incy << "," << stride_y << ","
-                  << batch_count << "," << rocblas_gflops << "," << rocblas_bandwidth << ",";
+        rocblas_cout << N << "," << K << "," << h_alpha << "," << lda << "," << stride_A << ","
+                     << incx << "," << stride_x << "," << h_beta << "," << incy << "," << stride_y
+                     << "," << batch_count << "," << rocblas_gflops << "," << rocblas_bandwidth
+                     << ",";
 
         if(arg.norm_check)
         {
-            std::cout << cblas_gflops << ',';
-            std::cout << rocblas_error_1 << ',' << rocblas_error_2;
+            rocblas_cout << cblas_gflops << ',';
+            rocblas_cout << rocblas_error_1 << ',' << rocblas_error_2;
         }
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
     }
 }

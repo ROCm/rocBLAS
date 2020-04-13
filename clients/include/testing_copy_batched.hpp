@@ -111,19 +111,19 @@ void testing_copy_batched(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, N, batch_count, abs_incy, hy_gold, hy);
+            unit_check_general<T>(1, N, abs_incy, hy_gold, hy, batch_count);
         }
 
         if(arg.norm_check)
         {
-            rocblas_error = norm_check_general<T>('F', 1, N, abs_incy, batch_count, hy_gold, hy);
+            rocblas_error = norm_check_general<T>('F', 1, N, abs_incy, hy_gold, hy, batch_count);
         }
     }
 
     if(arg.timing)
     {
-        int number_cold_calls = 2;
-        int number_hot_calls  = 100;
+        int number_cold_calls = arg.cold_iters;
+        int number_hot_calls  = arg.iters;
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
@@ -141,18 +141,19 @@ void testing_copy_batched(const Arguments& arg)
 
         gpu_time_used = (get_time_us() - gpu_time_used) / number_hot_calls;
 
-        std::cout << "N,incx,incy,batch_count,rocblas-us";
+        rocblas_cout << "N,incx,incy,batch_count,rocblas-us";
 
         if(arg.norm_check)
-            std::cout << ",CPU-us,error";
+            rocblas_cout << ",CPU-us,error";
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
 
-        std::cout << N << "," << incx << "," << incy << "," << batch_count << "," << gpu_time_used;
+        rocblas_cout << N << "," << incx << "," << incy << "," << batch_count << ","
+                     << gpu_time_used;
 
         if(arg.norm_check)
-            std::cout << "," << cpu_time_used << "," << rocblas_error;
+            rocblas_cout << "," << cpu_time_used << "," << rocblas_error;
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
     }
 }

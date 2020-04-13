@@ -105,22 +105,22 @@ void testing_scal_batched(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, N, batch_count, incx, hx_gold, hx_1);
-            unit_check_general<T>(1, N, batch_count, incx, hx_gold, hx_2);
+            unit_check_general<T>(1, N, incx, hx_gold, hx_1, batch_count);
+            unit_check_general<T>(1, N, incx, hx_gold, hx_2, batch_count);
         }
 
         if(arg.norm_check)
         {
-            rocblas_error_1 = norm_check_general<T>('F', 1, N, incx, batch_count, hx_gold, hx_1);
-            rocblas_error_2 = norm_check_general<T>('F', 1, N, incx, batch_count, hx_gold, hx_2);
+            rocblas_error_1 = norm_check_general<T>('F', 1, N, incx, hx_gold, hx_1, batch_count);
+            rocblas_error_2 = norm_check_general<T>('F', 1, N, incx, hx_gold, hx_2, batch_count);
         }
 
     } // end of if unit/norm check
 
     if(arg.timing)
     {
-        int number_cold_calls = 2;
-        int number_hot_calls  = 100;
+        int number_cold_calls = arg.cold_iters;
+        int number_hot_calls  = arg.iters;
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
         for(int iter = 0; iter < number_cold_calls; iter++)
@@ -141,20 +141,20 @@ void testing_scal_batched(const Arguments& arg)
         rocblas_gflops    = batch_count * scal_gflop_count<T, U>(N) / gpu_time_used * 1e6 * 1;
         rocblas_bandwidth = batch_count * (2.0 * N) * sizeof(T) / gpu_time_used / 1e3;
 
-        std::cout << "N,alpha,incx,rocblas-Gflops,rocblas-GB/s,rocblas-us";
+        rocblas_cout << "N,alpha,incx,rocblas-Gflops,rocblas-GB/s,rocblas-us";
 
         if(arg.norm_check)
-            std::cout << ",CPU-Gflops,norm_error_host_ptr,norm_error_device_ptr";
+            rocblas_cout << ",CPU-Gflops,norm_error_host_ptr,norm_error_device_ptr";
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
 
-        std::cout << N << "," << h_alpha << "," << incx << "," << rocblas_gflops << ","
-                  << rocblas_bandwidth << "," << gpu_time_used;
+        rocblas_cout << N << "," << h_alpha << "," << incx << "," << rocblas_gflops << ","
+                     << rocblas_bandwidth << "," << gpu_time_used;
 
         if(arg.norm_check)
-            std::cout << cblas_gflops << ',' << rocblas_error_1 << ',' << rocblas_error_2;
+            rocblas_cout << cblas_gflops << ',' << rocblas_error_1 << ',' << rocblas_error_2;
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
     }
 }
 

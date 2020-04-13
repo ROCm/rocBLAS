@@ -103,13 +103,13 @@ namespace
             void* C_tmp_arr;
             std::tie(C_tmp, C_tmp_arr) = mem;
 
-            T* C_tmp_host[batch_count];
+            auto C_tmp_host = std::make_unique<T*[]>(batch_count);
             for(int b = 0; b < batch_count; b++)
             {
                 C_tmp_host[b] = (T*)C_tmp + b * els;
             }
-            RETURN_IF_HIP_ERROR(
-                hipMemcpy(C_tmp_arr, C_tmp_host, batch_count * sizeof(T*), hipMemcpyHostToDevice));
+            RETURN_IF_HIP_ERROR(hipMemcpy(
+                C_tmp_arr, &C_tmp_host[0], batch_count * sizeof(T*), hipMemcpyHostToDevice));
 
             status = rocblas_trtri_large<NB, true, false, T>(handle,
                                                              uplo,

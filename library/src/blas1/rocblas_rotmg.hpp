@@ -1,10 +1,9 @@
 /* ************************************************************************
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+#pragma once
 #include "handle.h"
 #include "logging.h"
-#include "rocblas.h"
-#include "utility.h"
 
 template <typename T>
 __device__ __host__ void rocblas_rotmg_calc(T& d1, T& d2, T& x1, const T& y1, T* param)

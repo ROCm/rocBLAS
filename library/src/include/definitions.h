@@ -49,50 +49,41 @@
         }                                                             \
     } while(0)
 
-#define PRINT_IF_HIP_ERROR(INPUT_STATUS_FOR_CHECK)                \
-    do                                                            \
-    {                                                             \
-        hipError_t TMP_STATUS_FOR_CHECK = INPUT_STATUS_FOR_CHECK; \
-        if(TMP_STATUS_FOR_CHECK != hipSuccess)                    \
-        {                                                         \
-            fprintf(stderr,                                       \
-                    "hip error code: '%s':%d at %s:%d\n",         \
-                    hipGetErrorName(TMP_STATUS_FOR_CHECK),        \
-                    TMP_STATUS_FOR_CHECK,                         \
-                    __FILE__,                                     \
-                    __LINE__);                                    \
-        }                                                         \
+#define PRINT_IF_HIP_ERROR(INPUT_STATUS_FOR_CHECK)                                                \
+    do                                                                                            \
+    {                                                                                             \
+        hipError_t TMP_STATUS_FOR_CHECK = INPUT_STATUS_FOR_CHECK;                                 \
+        if(TMP_STATUS_FOR_CHECK != hipSuccess)                                                    \
+        {                                                                                         \
+            rocblas_cerr << "hip error code: '" << hipGetErrorName(TMP_STATUS_FOR_CHECK)          \
+                         << "':" << TMP_STATUS_FOR_CHECK << " at " << __FILE__ << ":" << __LINE__ \
+                         << std::endl;                                                            \
+        }                                                                                         \
     } while(0)
 
-#define PRINT_IF_ROCBLAS_ERROR(INPUT_STATUS_FOR_CHECK)                \
-    do                                                                \
-    {                                                                 \
-        rocblas_status TMP_STATUS_FOR_CHECK = INPUT_STATUS_FOR_CHECK; \
-        if(TMP_STATUS_FOR_CHECK != rocblas_status_success)            \
-        {                                                             \
-            fprintf(stderr,                                           \
-                    "rocblas error: '%s':%d at %s:%d\n",              \
-                    rocblas_status_to_string(TMP_STATUS_FOR_CHECK),   \
-                    TMP_STATUS_FOR_CHECK,                             \
-                    __FILE__,                                         \
-                    __LINE__);                                        \
-        }                                                             \
+#define PRINT_IF_ROCBLAS_ERROR(INPUT_STATUS_FOR_CHECK)                                            \
+    do                                                                                            \
+    {                                                                                             \
+        rocblas_status TMP_STATUS_FOR_CHECK = INPUT_STATUS_FOR_CHECK;                             \
+        if(TMP_STATUS_FOR_CHECK != rocblas_status_success)                                        \
+        {                                                                                         \
+            rocblas_cerr << "rocblas error: '" << rocblas_status_to_string(TMP_STATUS_FOR_CHECK)  \
+                         << "':" << TMP_STATUS_FOR_CHECK << " at " << __FILE__ << ":" << __LINE__ \
+                         << std::endl;                                                            \
+        }                                                                                         \
     } while(0)
 
-#define PRINT_AND_RETURN_IF_ROCBLAS_ERROR(INPUT_STATUS_FOR_CHECK)     \
-    do                                                                \
-    {                                                                 \
-        rocblas_status TMP_STATUS_FOR_CHECK = INPUT_STATUS_FOR_CHECK; \
-        if(TMP_STATUS_FOR_CHECK != rocblas_status_success)            \
-        {                                                             \
-            fprintf(stderr,                                           \
-                    "rocblas error: '%s':%d at %s:%d\n",              \
-                    rocblas_status_to_string(TMP_STATUS_FOR_CHECK),   \
-                    TMP_STATUS_FOR_CHECK,                             \
-                    __FILE__,                                         \
-                    __LINE__);                                        \
-            return TMP_STATUS_FOR_CHECK;                              \
-        }                                                             \
+#define PRINT_AND_RETURN_IF_ROCBLAS_ERROR(INPUT_STATUS_FOR_CHECK)                                 \
+    do                                                                                            \
+    {                                                                                             \
+        rocblas_status TMP_STATUS_FOR_CHECK = INPUT_STATUS_FOR_CHECK;                             \
+        if(TMP_STATUS_FOR_CHECK != rocblas_status_success)                                        \
+        {                                                                                         \
+            rocblas_cerr << "rocblas error: '" << rocblas_status_to_string(TMP_STATUS_FOR_CHECK)  \
+                         << "':" << TMP_STATUS_FOR_CHECK << " at " << __FILE__ << ":" << __LINE__ \
+                         << std::endl;                                                            \
+            return TMP_STATUS_FOR_CHECK;                                                          \
+        }                                                                                         \
     } while(0)
 
 #endif // DEFINITIONS_H

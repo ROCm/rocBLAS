@@ -2,7 +2,6 @@
  * Copyright 2019-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #pragma once
-
 #include "../blas1/rocblas_copy.hpp"
 #include "tpmv_device.hpp"
 

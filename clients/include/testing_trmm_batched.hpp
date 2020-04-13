@@ -92,8 +92,8 @@ void testing_trmm_batched(const Arguments& arg)
     size_t      size_B = ldb * size_t(N);
 
     // ensure invalid sizes and quick return checked before pointer check
-    bool invalidSize = M < 0 || N < 0 || lda < K || ldb < M || batch_count < 0;
-    if(M == 0 || N == 0 || batch_count == 0 || invalidSize)
+    bool invalid_size = M < 0 || N < 0 || lda < K || ldb < M || batch_count < 0;
+    if(M == 0 || N == 0 || batch_count == 0 || invalid_size)
     {
         EXPECT_ROCBLAS_STATUS(rocblas_trmm_batched<T>(handle,
                                                       side,
@@ -108,7 +108,7 @@ void testing_trmm_batched(const Arguments& arg)
                                                       nullptr,
                                                       ldb,
                                                       batch_count),
-                              invalidSize ? rocblas_status_invalid_size : rocblas_status_success);
+                              invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
         return;
     }
 
@@ -219,20 +219,20 @@ void testing_trmm_batched(const Arguments& arg)
                 // For large K, rocblas_half tends to diverge proportional to K
                 // Tolerance is slightly greater than 1 / 1024.0
                 const double tol = K * sum_error_tolerance<T>;
-                near_check_general<T>(M, N, batch_count, ldb, hB_gold, hB_1, tol);
-                near_check_general<T>(M, N, batch_count, ldb, hB_gold, hB_2, tol);
+                near_check_general<T>(M, N, ldb, hB_gold, hB_1, batch_count, tol);
+                near_check_general<T>(M, N, ldb, hB_gold, hB_2, batch_count, tol);
             }
             else
             {
-                unit_check_general<T>(M, N, batch_count, ldb, hB_gold, hB_1);
-                unit_check_general<T>(M, N, batch_count, ldb, hB_gold, hB_2);
+                unit_check_general<T>(M, N, ldb, hB_gold, hB_1, batch_count);
+                unit_check_general<T>(M, N, ldb, hB_gold, hB_2, batch_count);
             }
         }
 
         if(arg.norm_check)
         {
-            auto err1 = std::abs(norm_check_general<T>('F', M, N, ldb, batch_count, hB_gold, hB_1));
-            auto err2 = std::abs(norm_check_general<T>('F', M, N, ldb, batch_count, hB_gold, hB_2));
+            auto err1 = std::abs(norm_check_general<T>('F', M, N, ldb, hB_gold, hB_1, batch_count));
+            auto err2 = std::abs(norm_check_general<T>('F', M, N, ldb, hB_gold, hB_2, batch_count));
             rocblas_error = err1 > err2 ? err1 : err2;
         }
     }
@@ -282,20 +282,20 @@ void testing_trmm_batched(const Arguments& arg)
         rocblas_gflops = trmm_gflop_count<T>(M, N, side) * batch_count * number_hot_calls
                          / gpu_time_used * 1e6;
 
-        std::cout << "M,N,alpha,lda,ldb,side,uplo,transA,diag,rocblas-Gflops,us";
+        rocblas_cout << "M,N,alpha,lda,ldb,side,uplo,transA,diag,rocblas-Gflops,us";
 
         if(arg.unit_check || arg.norm_check)
-            std::cout << ",CPU-Gflops,us,norm-error";
+            rocblas_cout << ",CPU-Gflops,us,norm-error";
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
 
-        std::cout << M << ',' << N << ',' << alpha << ',' << lda << ',' << ldb << ',' << char_side
-                  << ',' << char_uplo << ',' << char_transA << ',' << char_diag << ','
-                  << rocblas_gflops << "," << gpu_time_used / number_hot_calls;
+        rocblas_cout << M << ',' << N << ',' << alpha << ',' << lda << ',' << ldb << ','
+                     << char_side << ',' << char_uplo << ',' << char_transA << ',' << char_diag
+                     << ',' << rocblas_gflops << "," << gpu_time_used / number_hot_calls;
 
         if(arg.unit_check || arg.norm_check)
-            std::cout << ", " << cblas_gflops << ", " << cpu_time_used << ", " << rocblas_error;
+            rocblas_cout << ", " << cblas_gflops << ", " << cpu_time_used << ", " << rocblas_error;
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
     }
 }

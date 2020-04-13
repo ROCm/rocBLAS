@@ -1,11 +1,10 @@
 /* ************************************************************************
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+#pragma once
 #include "handle.h"
 #include "logging.h"
 #include "reduction_strided_batched.h"
-#include "rocblas.h"
-#include "utility.h"
 
 template <rocblas_int NB, bool CONJ, typename T, typename U, typename V = T>
 __global__ void dot_kernel_part1(rocblas_int    n,
@@ -45,19 +44,19 @@ __global__ void dot_kernel_part1(rocblas_int    n,
 // assume workspace has already been allocated, recommened for repeated calling of dot_strided_batched product
 // routine
 template <rocblas_int NB, bool CONJ, typename T, typename U, typename V = T>
-rocblas_status rocblas_dot_template(rocblas_handle __restrict__ handle,
-                                    rocblas_int    n,
-                                    const U        x,
-                                    rocblas_int    offsetx,
-                                    rocblas_int    incx,
-                                    rocblas_stride stridex,
-                                    const U        y,
-                                    rocblas_int    offsety,
-                                    rocblas_int    incy,
-                                    rocblas_stride stridey,
-                                    rocblas_int    batch_count,
-                                    T*             results,
-                                    V*             workspace)
+ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_dot_template(rocblas_handle __restrict__ handle,
+                                                            rocblas_int    n,
+                                                            const U        x,
+                                                            rocblas_int    offsetx,
+                                                            rocblas_int    incx,
+                                                            rocblas_stride stridex,
+                                                            const U        y,
+                                                            rocblas_int    offsety,
+                                                            rocblas_int    incy,
+                                                            rocblas_stride stridey,
+                                                            rocblas_int    batch_count,
+                                                            T*             results,
+                                                            V*             workspace)
 {
     // At least two kernels are needed to finish the reduction
     // kennel 1 write partial results per thread block in workspace, number of partial results is
@@ -131,9 +130,9 @@ rocblas_status rocblas_dot_template(rocblas_handle __restrict__ handle,
 
         // result is in the beginning of workspace[0]+offset
         size_t offset = size_t(batch_count) * blocks;
-        V      res_V[batch_count];
-        RETURN_IF_HIP_ERROR(
-            hipMemcpy(res_V, workspace + offset, sizeof(V) * batch_count, hipMemcpyDeviceToHost));
+        auto   res_V  = std::make_unique<V[]>(batch_count);
+        RETURN_IF_HIP_ERROR(hipMemcpy(
+            &res_V[0], workspace + offset, sizeof(V) * batch_count, hipMemcpyDeviceToHost));
         for(rocblas_int i = 0; i < batch_count; i++)
             results[i] = T(res_V[i]);
     }

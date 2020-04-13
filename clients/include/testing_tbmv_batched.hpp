@@ -38,8 +38,8 @@ void testing_tbmv_batched_bad_arg(const Arguments& arg)
     // allocate memory on device
     device_batch_vector<T> dA(size_A, 1, batch_count);
     device_batch_vector<T> dx(M, incx, batch_count);
-    CHECK_HIP_ERROR(dA.memcheck());
-    CHECK_HIP_ERROR(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
     EXPECT_ROCBLAS_STATUS(
         rocblas_tbmv_batched<T>(
@@ -87,29 +87,13 @@ void testing_tbmv_batched(const Arguments& arg)
     rocblas_local_handle handle;
 
     // argument sanity check before allocating invalid memory
-    if(M < 0 || K < 0 || lda < M || lda < 1 || !incx || K >= lda || batch_count <= 0)
+    bool invalid_size = M < 0 || K < 0 || lda < K + 1 || !incx || batch_count < 0;
+    if(invalid_size || !M || !batch_count)
     {
-        static const size_t    safe_size = 100; // arbitrarily set to 100
-        device_batch_vector<T> dA1(safe_size, 1, 5);
-        device_batch_vector<T> dx1(safe_size, 1, 5);
-        CHECK_HIP_ERROR(dA1.memcheck());
-        CHECK_HIP_ERROR(dx1.memcheck());
-
         EXPECT_ROCBLAS_STATUS(
-            rocblas_tbmv_batched<T>(handle,
-                                    uplo,
-                                    transA,
-                                    diag,
-                                    M,
-                                    K,
-                                    dA1.ptr_on_device(),
-                                    lda,
-                                    dx1.ptr_on_device(),
-                                    incx,
-                                    batch_count),
-            (M < 0 || K < 0 || lda < M || lda < 1 || !incx || K >= lda || batch_count < 0)
-                ? rocblas_status_invalid_size
-                : rocblas_status_success);
+            rocblas_tbmv_batched<T>(
+                handle, uplo, transA, diag, M, K, nullptr, lda, nullptr, incx, batch_count),
+            invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
 
         return;
     }
@@ -132,8 +116,8 @@ void testing_tbmv_batched(const Arguments& arg)
 
     device_batch_vector<T> dA(size_A, 1, batch_count);
     device_batch_vector<T> dx(M, incx, batch_count);
-    CHECK_HIP_ERROR(dx.memcheck());
-    CHECK_HIP_ERROR(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
 
     rocblas_init(hA, true);
     rocblas_init(hx, false);
@@ -179,19 +163,19 @@ void testing_tbmv_batched(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, M, batch_count, abs_incx, hx_gold, hx_1);
+            unit_check_general<T>(1, M, abs_incx, hx_gold, hx_1, batch_count);
         }
 
         if(arg.norm_check)
         {
             rocblas_error_1
-                = norm_check_general<T>('F', 1, M, abs_incx, batch_count, hx_gold, hx_1);
+                = norm_check_general<T>('F', 1, M, abs_incx, hx_gold, hx_1, batch_count);
         }
     }
 
     if(arg.timing)
     {
-        int number_cold_calls = 2;
+        int number_cold_calls = arg.cold_iters;
         int number_hot_calls  = arg.iters;
 
         for(int iter = 0; iter < number_cold_calls; iter++)
@@ -233,23 +217,23 @@ void testing_tbmv_batched(const Arguments& arg)
                             / gpu_time_used / 1e3;
 
         // only norm_check return an norm error, unit check won't return anything
-        std::cout << "M,K,lda,incx,batch_count,rocblas-Gflops,rocblas-GB/s,us,";
+        rocblas_cout << "M,K,lda,incx,batch_count,rocblas-Gflops,rocblas-GB/s,us,";
         if(arg.norm_check)
         {
-            std::cout << "CPU-Gflops,us,norm_error_device_ptr";
+            rocblas_cout << "CPU-Gflops,us,norm_error_device_ptr";
         }
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
 
-        std::cout << M << "," << K << "," << lda << "," << incx << "," << batch_count << ","
-                  << rocblas_gflops << "," << rocblas_bandwidth << ","
-                  << gpu_time_used / number_hot_calls << ",";
+        rocblas_cout << M << "," << K << "," << lda << "," << incx << "," << batch_count << ","
+                     << rocblas_gflops << "," << rocblas_bandwidth << ","
+                     << gpu_time_used / number_hot_calls << ",";
 
         if(arg.norm_check)
         {
-            std::cout << cblas_gflops << ',' << cpu_time_used << ',';
-            std::cout << rocblas_error_1;
+            rocblas_cout << cblas_gflops << ',' << cpu_time_used << ',';
+            rocblas_cout << rocblas_error_1;
         }
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
     }
 }

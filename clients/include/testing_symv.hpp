@@ -2,6 +2,7 @@
  * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+#include "bytes.hpp"
 #include "cblas_interface.hpp"
 #include "flops.hpp"
 #include "near.hpp"
@@ -95,13 +96,12 @@ void testing_symv(const Arguments& arg)
     rocblas_local_handle handle;
 
     // argument sanity check before allocating invalid memory
-    if(N <= 0 || lda < 0 || lda < N || !incx || !incy)
+    if(N < 0 || lda < 1 || lda < N || !incx || !incy)
     {
         EXPECT_ROCBLAS_STATUS(
             rocblas_symv<T>(
-                handle, uplo, N, alpha, nullptr, lda, nullptr, incx, beta, nullptr, incy),
-            N < 0 || lda < 0 || lda < N || !incx || !incy ? rocblas_status_invalid_size
-                                                          : rocblas_status_success);
+                handle, uplo, N, nullptr, nullptr, lda, nullptr, incx, nullptr, nullptr, incy),
+            rocblas_status_invalid_size);
         return;
     }
 
@@ -118,7 +118,7 @@ void testing_symv(const Arguments& arg)
     host_vector<T> hg(size_Y); // gold standard
 
     double gpu_time_used, cpu_time_used;
-    double rocblas_gflops, cblas_gflops;
+    double rocblas_gflops, cblas_gflops, rocblas_bandwidth;
     double h_error, d_error;
 
     device_vector<T> dA(size_A);
@@ -209,7 +209,7 @@ void testing_symv(const Arguments& arg)
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
-        int number_cold_calls = 2;
+        int number_cold_calls = arg.cold_iters;
         int number_hot_calls  = arg.iters;
 
         for(int iter = 0; iter < number_cold_calls; iter++)
@@ -226,26 +226,27 @@ void testing_symv(const Arguments& arg)
                 rocblas_symv<T>(handle, uplo, N, alpha, dA, lda, dx, incx, beta, dy, incy));
         }
 
-        gpu_time_used  = (get_time_us() - gpu_time_used) / number_hot_calls;
-        rocblas_gflops = symv_gflop_count<T>(N) / gpu_time_used * 1e6;
+        gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;
+        rocblas_gflops    = symv_gflop_count<T>(N) / gpu_time_used * 1e6;
+        rocblas_bandwidth = symv_gbyte_count<T>(N) / gpu_time_used * 1e6;
 
         // only norm_check return an norm error, unit check won't return anything
-        std::cout << "uplo, N, lda, incx, incy, rocblas-Gflops (us) ";
+        rocblas_cout << "uplo, N, lda, incx, incy, rocblas-Gflops, rocblas-GB/s, (us) ";
         if(arg.norm_check)
         {
-            std::cout << "CPU-Gflops (us),norm_error_host_ptr,norm_error_dev_ptr";
+            rocblas_cout << "CPU-Gflops (us),norm_error_host_ptr,norm_error_dev_ptr";
         }
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
 
-        std::cout << arg.uplo << ',' << N << ',' << lda << ',' << incx << "," << incy << ","
-                  << rocblas_gflops << "(" << gpu_time_used << "),";
+        rocblas_cout << arg.uplo << ',' << N << ',' << lda << ',' << incx << "," << incy << ","
+                     << rocblas_gflops << "," << rocblas_bandwidth << ",(" << gpu_time_used << "),";
 
         if(arg.norm_check)
         {
-            std::cout << cblas_gflops << "(" << cpu_time_used << "),";
-            std::cout << h_error << "," << d_error;
+            rocblas_cout << cblas_gflops << "(" << cpu_time_used << "),";
+            rocblas_cout << h_error << "," << d_error;
         }
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
     }
 }

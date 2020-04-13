@@ -87,34 +87,22 @@ void testing_tpsv_strided_batched(const Arguments& arg)
     rocblas_local_handle handle;
 
     // check here to prevent undefined memory allocation error
-    if(N < 0 || !incx || batch_count <= 0)
+    bool invalid_size = N < 0 || !incx || batch_count < 0;
+    if(invalid_size || !N || !batch_count)
     {
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        if(batch_count == 0)
-            CHECK_ROCBLAS_ERROR(rocblas_tpsv_strided_batched<T>(handle,
-                                                                uplo,
-                                                                transA,
-                                                                diag,
-                                                                N,
-                                                                nullptr,
-                                                                stride_ap,
-                                                                nullptr,
-                                                                incx,
-                                                                stride_x,
-                                                                batch_count));
-        else
-            EXPECT_ROCBLAS_STATUS(rocblas_tpsv_strided_batched<T>(handle,
-                                                                  uplo,
-                                                                  transA,
-                                                                  diag,
-                                                                  N,
-                                                                  nullptr,
-                                                                  stride_ap,
-                                                                  nullptr,
-                                                                  incx,
-                                                                  stride_x,
-                                                                  batch_count),
-                                  rocblas_status_invalid_size);
+        EXPECT_ROCBLAS_STATUS(rocblas_tpsv_strided_batched<T>(handle,
+                                                              uplo,
+                                                              transA,
+                                                              diag,
+                                                              N,
+                                                              nullptr,
+                                                              stride_ap,
+                                                              nullptr,
+                                                              incx,
+                                                              stride_x,
+                                                              batch_count),
+                              invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
         return;
     }
 
@@ -166,9 +154,8 @@ void testing_tpsv_strided_batched(const Arguments& arg)
     for(int b = 0; b < batch_count; b++)
     {
         cblas_trmv<T>(uplo, transA, diag, N, hA[b], N, hb[b], incx);
+        regular_to_packed(uplo == rocblas_fill_upper, (T*)(hA[b]), (T*)(hAP[b]), N);
     }
-
-    regular_to_packed(uplo == rocblas_fill_upper, hA, hAP, N, batch_count);
 
     cpu_x_or_b.copy_from(hb);
     hx_or_b_1.copy_from(hb);
@@ -284,22 +271,23 @@ void testing_tpsv_strided_batched(const Arguments& arg)
         cblas_gflops  = batch_count * tpsv_gflop_count<T>(N) / cpu_time_used * 1e6;
 
         // only norm_check return an norm error, unit check won't return anything
-        std::cout << "N,stride_a,incx,stride_x,uplo,transA,diag,batch_count,rocblas-Gflops,rocblas-"
-                     "GB/s,us";
+        rocblas_cout
+            << "N,stride_a,incx,stride_x,uplo,transA,diag,batch_count,rocblas-Gflops,rocblas-"
+               "GB/s,us";
 
         if(arg.norm_check)
-            std::cout << ",CPU-Gflops,us,norm_error_host_ptr,norm_error_dev_ptr";
+            rocblas_cout << ",CPU-Gflops,us,norm_error_host_ptr,norm_error_dev_ptr";
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
 
-        std::cout << N << ',' << stride_ap << ',' << incx << ',' << stride_x << ',' << char_uplo
-                  << ',' << char_transA << ',' << char_diag << ',' << batch_count << ','
-                  << rocblas_gflops << "," << rocblas_bandwidth << "," << gpu_time_used;
+        rocblas_cout << N << ',' << stride_ap << ',' << incx << ',' << stride_x << ',' << char_uplo
+                     << ',' << char_transA << ',' << char_diag << ',' << batch_count << ','
+                     << rocblas_gflops << "," << rocblas_bandwidth << "," << gpu_time_used;
 
         if(arg.norm_check)
-            std::cout << "," << cblas_gflops << "," << cpu_time_used << "," << max_err_1 << ","
-                      << max_err_2;
+            rocblas_cout << "," << cblas_gflops << "," << cpu_time_used << "," << max_err_1 << ","
+                         << max_err_2;
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
     }
 }

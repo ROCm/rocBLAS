@@ -1,3 +1,4 @@
+
 /* ************************************************************************
  * Copyright 2019-2020 Advanced Micro Devices, Inc.
  * ************************************************************************/
@@ -19,11 +20,10 @@
 #include <Tensile/hip/HipSolutionAdapter.hpp>
 #include <Tensile/hip/HipUtils.hpp>
 #include <complex>
-#include <cstdio>
-#include <cstdlib>
 #include <dlfcn.h>
 #include <exception>
 #include <glob.h>
+#include <iomanip>
 #include <libgen.h>
 #include <memory>
 #include <string>
@@ -380,22 +380,25 @@ namespace
             }
             else
             {
-                fprintf(stderr,
-                        g == GLOB_NOMATCH ? "\nrocBLAS warning: No paths matched %s. Make sure "
-                                            "ROCBLAS_TENSILE_LIBPATH is set correctly.\n"
-                                          : "rocBLAS warning: glob(\"%s\", ...) returned %s.\n",
-                        dir.c_str(),
-                        g == GLOB_ABORTED
-                            ? "GLOB_ABORTED"
-                            : g == GLOB_NOSPACE ? "GLOB_NOSPACE" : "an unknown error");
+                if(g == GLOB_NOMATCH)
+                    rocblas_cerr << "\nrocBLAS warning: No paths matched " << dir
+                                 << ". Make sure that ROCBLAS_TENSILE_LIBPATH is set correctly."
+                                 << std::endl;
+                else
+                    rocblas_cerr << "rocBLAS warning: glob(\"" << dir << "\", ...) returned "
+                                 << (g == GLOB_ABORTED
+                                         ? "GLOB_ABORTED"
+                                         : g == GLOB_NOSPACE ? "GLOB_NOSPACE" : "an unknown error")
+                                 << "." << std::endl;
             }
             globfree(&glob_result);
 
             path += "/TensileLibrary.yaml";
             if(!TestPath(path))
             {
-                fprintf(stderr, "\nrocBLAS error: Cannot read %s: %m\n", path.c_str());
-                abort();
+                rocblas_cerr << "\nrocBLAS error: Cannot read " << path << ": " << strerror(errno)
+                             << std::endl;
+                rocblas_abort();
             }
 
             library = std::dynamic_pointer_cast<
@@ -436,7 +439,9 @@ rocblas_status
         if(!solution)
         {
             // We print the error message only once, to avoid excessive logging
-            static int once = (std::cerr << "Error: No Tensile solution found for " << problem, 0);
+            static int once
+                = (rocblas_cerr << "Error: No Tensile solution found for " << problem, 0);
+            status = rocblas_status_not_implemented;
         }
         else
         {
@@ -459,16 +464,17 @@ rocblas_status
     }
     catch(const std::exception& e)
     {
-        static int once
-            = (std::cerr << "Error: " << (solution ? "" : "No ") << "Tensile solution found, but "
-                         << e.what() << " exception thown for " << problem,
-               0);
+        static int once = (rocblas_cerr << "Error: " << (solution ? "" : "No ")
+                                        << "Tensile solution found, but " << e.what()
+                                        << " exception thown for " << problem << std::endl,
+                           0);
     }
     catch(...)
     {
         static int once
-            = (std::cerr << "Error: " << (solution ? "" : "No ")
-                         << "Tensile solution found, but unknown exception thown for " << problem,
+            = (rocblas_cerr << "Error: " << (solution ? "" : "No ")
+                            << "Tensile solution found, but unknown exception thown for " << problem
+                            << std::endl,
                0);
     }
 

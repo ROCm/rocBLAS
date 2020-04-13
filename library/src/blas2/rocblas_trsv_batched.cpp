@@ -7,9 +7,6 @@
 #include "rocblas_gemv.hpp"
 #include "rocblas_trsv.hpp"
 #include "utility.h"
-#include <algorithm>
-#include <cstdio>
-#include <tuple>
 
 namespace
 {
@@ -107,18 +104,17 @@ namespace
 
         if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
             return rocblas_status_not_implemented;
-        if(!A || !B)
-            return rocblas_status_invalid_pointer;
-        if(batch_count < 0)
-            return rocblas_status_invalid_size;
-        if((m < 0 || lda < m || lda < 1 || !incx) && batch_count > 0)
+        if(m < 0 || lda < m || lda < 1 || !incx || batch_count < 0)
             return rocblas_status_invalid_size;
 
         // quick return if possible.
         // return rocblas_status_size_unchanged if device memory size query
-        if(!m)
+        if(!m || !batch_count)
             return handle->is_device_memory_size_query() ? rocblas_status_size_unchanged
                                                          : rocblas_status_success;
+
+        if(!A || !B)
+            return rocblas_status_invalid_pointer;
 
         void* mem_x_temp;
         void* mem_x_temp_arr;

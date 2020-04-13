@@ -131,7 +131,7 @@ void testing_scal(const Arguments& arg)
 
     if(arg.timing)
     {
-        int number_cold_calls = 2;
+        int number_cold_calls = arg.cold_iters;
         int number_hot_calls  = arg.iters;
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
@@ -151,19 +151,19 @@ void testing_scal(const Arguments& arg)
         rocblas_gflops    = scal_gflop_count<T, U>(N) / gpu_time_used * 1e6 * 1;
         rocblas_bandwidth = (2.0 * N) * sizeof(T) / gpu_time_used / 1e3;
 
-        std::cout << "N,alpha,incx,rocblas-Gflops,rocblas-GB/s,rocblas-us";
+        rocblas_cout << "N,alpha,incx,rocblas-Gflops,rocblas-GB/s,rocblas-us";
 
         if(arg.norm_check)
-            std::cout << ",CPU-Gflops,norm_error_host_ptr,norm_error_device_ptr";
+            rocblas_cout << ",CPU-Gflops,norm_error_host_ptr,norm_error_device_ptr";
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
 
-        std::cout << N << "," << h_alpha << "," << incx << "," << rocblas_gflops << ","
-                  << rocblas_bandwidth << "," << gpu_time_used;
+        rocblas_cout << N << "," << h_alpha << "," << incx << "," << rocblas_gflops << ","
+                     << rocblas_bandwidth << "," << gpu_time_used;
 
         if(arg.norm_check)
-            std::cout << cblas_gflops << ',' << rocblas_error_1 << ',' << rocblas_error_2;
+            rocblas_cout << cblas_gflops << ',' << rocblas_error_1 << ',' << rocblas_error_2;
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
     }
 }
