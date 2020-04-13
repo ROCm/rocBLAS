@@ -8,12 +8,27 @@
 #include "rocblas.h"
 #include <string>
 
-typedef enum rocblas_initialization_
+typedef enum rocblas_initialization_ : int
 {
     rocblas_initialization_random_int = 111,
     rocblas_initialization_trig_float = 222,
     rocblas_initialization_hpl        = 333,
 } rocblas_initialization;
+
+inline rocblas_ostream& operator<<(rocblas_ostream& os, rocblas_initialization init)
+{
+#define CASE(x) \
+    case x:     \
+        return os << #x
+    switch(init)
+    {
+        CASE(rocblas_initialization_random_int);
+        CASE(rocblas_initialization_trig_float);
+        CASE(rocblas_initialization_hpl);
+    }
+    return os << "unknown";
+}
+#undef CASE
 
 /* ============================================================================================ */
 /*  Convert rocblas constants to lapack char. */

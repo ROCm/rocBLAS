@@ -2,11 +2,7 @@
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "rocblas_tbmv.hpp"
-#include "handle.h"
 #include "logging.h"
-#include "rocblas.h"
-#include "utility.h"
-#include <limits>
 
 namespace
 {
@@ -88,7 +84,7 @@ namespace
                             incx);
         }
 
-        if(m < 0 || k < 0 || lda < m || lda < 1 || !incx || k >= lda)
+        if(m < 0 || k < 0 || lda < k + 1 || !incx)
             return rocblas_status_invalid_size;
 
         if(!m)

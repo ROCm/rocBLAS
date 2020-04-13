@@ -135,22 +135,22 @@ void testing_rotg_strided_batched(const Arguments& arg)
 
             if(arg.unit_check)
             {
-                near_check_general<T>(1, 1, batch_count, 1, stride_a, ca, ra, rel_error);
-                near_check_general<T>(1, 1, batch_count, 1, stride_b, cb, rb, rel_error);
-                near_check_general<U>(1, 1, batch_count, 1, stride_c, cc, rc, rel_error);
-                near_check_general<T>(1, 1, batch_count, 1, stride_s, cs, rs, rel_error);
+                near_check_general<T>(1, 1, 1, stride_a, ca, ra, batch_count, rel_error);
+                near_check_general<T>(1, 1, 1, stride_b, cb, rb, batch_count, rel_error);
+                near_check_general<U>(1, 1, 1, stride_c, cc, rc, batch_count, rel_error);
+                near_check_general<T>(1, 1, 1, stride_s, cs, rs, batch_count, rel_error);
             }
 
             if(arg.norm_check)
             {
                 norm_error_host
-                    = norm_check_general<T>('F', 1, 1, 1, stride_a, batch_count, ca, ra);
+                    = norm_check_general<T>('F', 1, 1, 1, stride_a, ca, ra, batch_count);
                 norm_error_host
-                    += norm_check_general<T>('F', 1, 1, 1, stride_b, batch_count, cb, rb);
+                    += norm_check_general<T>('F', 1, 1, 1, stride_b, cb, rb, batch_count);
                 norm_error_host
-                    += norm_check_general<U>('F', 1, 1, 1, stride_c, batch_count, cc, rc);
+                    += norm_check_general<U>('F', 1, 1, 1, stride_c, cc, rc, batch_count);
                 norm_error_host
-                    += norm_check_general<T>('F', 1, 1, 1, stride_s, batch_count, cs, rs);
+                    += norm_check_general<T>('F', 1, 1, 1, stride_s, cs, rs, batch_count);
             }
         }
 
@@ -182,29 +182,29 @@ void testing_rotg_strided_batched(const Arguments& arg)
 
             if(arg.unit_check)
             {
-                near_check_general<T>(1, 1, batch_count, 1, stride_a, ca, ra, rel_error);
-                near_check_general<T>(1, 1, batch_count, 1, stride_b, cb, rb, rel_error);
-                near_check_general<U>(1, 1, batch_count, 1, stride_c, cc, rc, rel_error);
-                near_check_general<T>(1, 1, batch_count, 1, stride_s, cs, rs, rel_error);
+                near_check_general<T>(1, 1, 1, stride_a, ca, ra, batch_count, rel_error);
+                near_check_general<T>(1, 1, 1, stride_b, cb, rb, batch_count, rel_error);
+                near_check_general<U>(1, 1, 1, stride_c, cc, rc, batch_count, rel_error);
+                near_check_general<T>(1, 1, 1, stride_s, cs, rs, batch_count, rel_error);
             }
 
             if(arg.norm_check)
             {
                 norm_error_host
-                    = norm_check_general<T>('F', 1, 1, 1, stride_a, batch_count, ca, ra);
+                    = norm_check_general<T>('F', 1, 1, 1, stride_a, ca, ra, batch_count);
                 norm_error_host
-                    += norm_check_general<T>('F', 1, 1, 1, stride_b, batch_count, cb, rb);
+                    += norm_check_general<T>('F', 1, 1, 1, stride_b, cb, rb, batch_count);
                 norm_error_host
-                    += norm_check_general<U>('F', 1, 1, 1, stride_c, batch_count, cc, rc);
+                    += norm_check_general<U>('F', 1, 1, 1, stride_c, cc, rc, batch_count);
                 norm_error_host
-                    += norm_check_general<T>('F', 1, 1, 1, stride_s, batch_count, cs, rs);
+                    += norm_check_general<T>('F', 1, 1, 1, stride_s, cs, rs, batch_count);
             }
         }
     }
 
     if(arg.timing)
     {
-        int number_cold_calls = 2;
+        int number_cold_calls = arg.cold_iters;
         int number_hot_calls  = arg.iters;
         // Device mode will be quicker
         // (TODO: or is there another reason we are typically using host_mode for timing?)
@@ -236,14 +236,14 @@ void testing_rotg_strided_batched(const Arguments& arg)
         }
         gpu_time_used = (get_time_us() - gpu_time_used) / number_hot_calls;
 
-        std::cout << "rocblas-us,CPU-us";
+        rocblas_cout << "rocblas-us,CPU-us";
         if(arg.norm_check)
-            std::cout << ",norm_error_host_ptr,norm_error_device";
-        std::cout << std::endl;
+            rocblas_cout << ",norm_error_host_ptr,norm_error_device";
+        rocblas_cout << std::endl;
 
-        std::cout << gpu_time_used << "," << cpu_time_used;
+        rocblas_cout << gpu_time_used << "," << cpu_time_used;
         if(arg.norm_check)
-            std::cout << ',' << norm_error_host << ',' << norm_error_device;
-        std::cout << std::endl;
+            rocblas_cout << ',' << norm_error_host << ',' << norm_error_device;
+        rocblas_cout << std::endl;
     }
 }

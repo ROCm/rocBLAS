@@ -24,9 +24,9 @@ void testing_axpy_batched_bad_arg(const Arguments& arg)
 
     T                      alpha = 0.6;
     device_batch_vector<T> dx(10, 1, 2);
-    CHECK_HIP_ERROR(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
     device_batch_vector<T> dy(10, 1, 2);
-    CHECK_HIP_ERROR(dy.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     EXPECT_ROCBLAS_STATUS(
         rocblas_axpy_batched<T>(
@@ -59,9 +59,9 @@ void testing_axpy_batched(const Arguments& arg)
     if(N <= 0 || batch_count <= 0)
     {
         device_batch_vector<T> dx(10, 1, 3);
-        CHECK_HIP_ERROR(dx.memcheck());
+        CHECK_DEVICE_ALLOCATION(dx.memcheck());
         device_batch_vector<T> dy(10, 1, 3);
-        CHECK_HIP_ERROR(dy.memcheck());
+        CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         EXPECT_ROCBLAS_STATUS(rocblas_axpy_batched<T>(handle,
@@ -98,9 +98,9 @@ void testing_axpy_batched(const Arguments& arg)
     device_batch_vector<T> dx(N, incx, batch_count), dy(N, incy, batch_count);
     device_vector<T>       dalpha(1);
 
-    CHECK_HIP_ERROR(dx.memcheck());
-    CHECK_HIP_ERROR(dy.memcheck());
-    CHECK_HIP_ERROR(dalpha.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dy.memcheck());
+    CHECK_DEVICE_ALLOCATION(dalpha.memcheck());
 
     //
     // Assign host alpha.
@@ -191,22 +191,22 @@ void testing_axpy_batched(const Arguments& arg)
         //
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, N, batch_count, abs_incy, hy, hy1);
+            unit_check_general<T>(1, N, abs_incy, hy, hy1, batch_count);
 
-            unit_check_general<T>(1, N, batch_count, abs_incy, hy, hy2);
+            unit_check_general<T>(1, N, abs_incy, hy, hy2, batch_count);
         }
 
         if(arg.norm_check)
         {
-            rocblas_error_1 = norm_check_general<T>('I', 1, N, abs_incy, batch_count, hy, hy1);
-            rocblas_error_2 = norm_check_general<T>('I', 1, N, abs_incy, batch_count, hy, hy2);
+            rocblas_error_1 = norm_check_general<T>('I', 1, N, abs_incy, hy, hy1, batch_count);
+            rocblas_error_2 = norm_check_general<T>('I', 1, N, abs_incy, hy, hy2, batch_count);
         }
     }
 
     if(arg.timing)
     {
-        int number_cold_calls = 2;
-        int number_hot_calls  = 100;
+        int number_cold_calls = arg.cold_iters;
+        int number_hot_calls  = arg.iters;
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
         //
@@ -253,14 +253,14 @@ void testing_axpy_batched(const Arguments& arg)
         //
         // Report.
         //
-        std::cout << "N,alpha,incx,incy,batch,rocblas-Gflops,rocblas-GB/s,rocblas-us";
+        rocblas_cout << "N,alpha,incx,incy,batch,rocblas-Gflops,rocblas-GB/s,rocblas-us";
         if(arg.norm_check)
-            std::cout << "CPU-Gflops,norm_error_host_ptr,norm_error_dev_ptr";
-        std::cout << std::endl;
-        std::cout << N << "," << h_alpha << "," << incx << "," << incy << "," << batch_count << ","
-                  << rocblas_gflops << "," << rocblas_bandwidth << "," << gpu_time_used;
+            rocblas_cout << "CPU-Gflops,norm_error_host_ptr,norm_error_dev_ptr";
+        rocblas_cout << std::endl;
+        rocblas_cout << N << "," << h_alpha << "," << incx << "," << incy << "," << batch_count
+                     << "," << rocblas_gflops << "," << rocblas_bandwidth << "," << gpu_time_used;
         if(arg.norm_check)
-            std::cout << "," << cblas_gflops << ',' << rocblas_error_1 << ',' << rocblas_error_2;
-        std::cout << std::endl;
+            rocblas_cout << "," << cblas_gflops << ',' << rocblas_error_1 << ',' << rocblas_error_2;
+        rocblas_cout << std::endl;
     }
 }

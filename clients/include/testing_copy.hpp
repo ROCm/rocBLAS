@@ -112,8 +112,8 @@ void testing_copy(const Arguments& arg)
 
     if(arg.timing)
     {
-        int number_cold_calls = 2;
-        int number_hot_calls  = 100;
+        int number_cold_calls = arg.cold_iters;
+        int number_hot_calls  = arg.iters;
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
@@ -129,18 +129,18 @@ void testing_copy(const Arguments& arg)
 
         gpu_time_used = (get_time_us() - gpu_time_used) / number_hot_calls;
 
-        std::cout << "N,incx,incy,rocblas-us";
+        rocblas_cout << "N,incx,incy,rocblas-us";
 
         if(arg.norm_check)
-            std::cout << ",CPU-us,error";
+            rocblas_cout << ",CPU-us,error";
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
 
-        std::cout << N << "," << incx << "," << incy << "," << gpu_time_used;
+        rocblas_cout << N << "," << incx << "," << incy << "," << gpu_time_used;
 
         if(arg.norm_check)
-            std::cout << "," << cpu_time_used << "," << rocblas_error;
+            rocblas_cout << "," << cpu_time_used << "," << rocblas_error;
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
     }
 }

@@ -4,15 +4,11 @@ include: known_bugs.yaml
 
 Definitions:
   - &small_matrix_size_range
-    - { M:    -1, N:    -1, lda:     1, ldb:     1, ldc:     1 }
     - { M:     0, N:     0, lda:     1, ldb:     1, ldc:     1 }
     - { M:     3, N:    33, lda:    35, ldb:    35, ldc:    35 }
-    - { M:     5, N:     5, lda:     5, ldb:     5, ldc:     5 }
     - { M:    10, N:    11, lda:   100, ldb:    12, ldc:    13 }
-    - { M:   600, N:   500, lda:   601, ldb:   602, ldc:   603 }
 
   - &large_matrix_size_range
-    - { M:   192, N:   192, lda:   192, ldb:   192, ldc:   192 }
     - { M:   192, N:   193, lda:   194, ldb:   195, ldc:   196 }
     - { M:   640, N:   641, lda:   960, ldb:   961, ldc:   962 }
     - { M:  1001, N:  1000, lda:  1003, ldb:  1002, ldc:  1001 }
@@ -21,21 +17,31 @@ Definitions:
     - { M:  4011, N:  4012, lda:  4012, ldb:  4013, ldc:  4014 }
 
   - &small_alpha_beta_range
-    - { alpha:  1.0, beta:  0.0 }
-    - { alpha:  0.0, beta:  1.0 }
-    - { alpha:  3.0, beta:  1.0 }
-    - { alpha: -1.0, beta: -1.0 }
-    - { alpha: -1.0, beta:  0.0 }
-    - { alpha:  0.0, beta: -1.0 }
+    - { alpha:  0.0, beta:  0.0 }
+    - { alpha:  2.0, beta:  0.0 }
+    - { alpha:  0.0, beta:  2.0 }
+    - { alpha: -3.0, beta: -2.0 }
 
   - &large_alpha_beta_range
-    - { alpha:  1.0, beta:  0.0 }
-    - { alpha:  1.0, beta:  3.0 }
-    - { alpha:  0.0, beta:  1.0 }
-    - { alpha:  0.0, beta:  0.0 }
+    - { alpha:  2.0, beta:  0.0 }
+    - { alpha:  0.0, beta:  2.0 }
+    - { alpha: -2.0, beta: -3.0 }
 
   - &huge_alpha_beta_range
     - { alpha:  1.0, beta:  3.0 }
+
+  - &small_complex_alpha_beta_range
+    - { alpha:  2, beta:  0, alphai:  0, betai:  0 }
+    - { alpha:  0, beta:  2, alphai:  0, betai:  0 }
+    - { alpha:  0, beta:  0, alphai:  2, betai:  0 }
+    - { alpha:  0, beta:  0, alphai:  0, betai:  2 }
+    - { alpha: -2, beta: -3, alphai: -4, betai: -5 }
+
+  - &large_complex_alpha_beta_range
+    - { alpha:  1, beta:  2, alphai:  3, betai:  4 }
+
+  - &huge_complex_alpha_beta_range
+    - { alpha:  4, beta:  3, alphai:  2, betai:  1 }
 
   - &transA_transB_range
     - { transA: N, transB: N }
@@ -45,11 +51,28 @@ Definitions:
 
 Tests:
 - name: geam_bad_arg
-  category: pre_checkin
+  category: quick
   function: geam_bad_arg
-  precision: *single_double_precisions
-  transA: N
-  transB: N
+  precision: *single_precision
+  transA: [N]
+  transB: [N]
+
+- name: geam_batched_bad_arg
+  category: quick
+  function: geam_batched_bad_arg
+  precision: *single_precision
+  transA: [N]
+  transB: [N]
+  batch_count: [        1    ]
+
+- name: geam_strided_batched_bad_arg
+  category: quick
+  function: geam_strided_batched_bad_arg
+  precision: *single_precision
+  transA: [N]
+  transB: [N]
+  stride_scale: [ 1         ]
+  batch_count: [        1    ]
 
 - name: geam_small
   category: quick
@@ -59,6 +82,52 @@ Tests:
   matrix_size: *small_matrix_size_range
   alpha_beta: *small_alpha_beta_range
 
+- name: geam_batched_small
+  category: quick
+  function: geam_batched
+  precision: *single_double_precisions
+  transA_transB: *transA_transB_range
+  matrix_size: *small_matrix_size_range
+  alpha_beta: *small_alpha_beta_range
+  batch_count: [        1, 2 ]
+
+- name: geam_strided_batched_small
+  category: quick
+  function: geam_strided_batched
+  precision: *single_double_precisions
+  transA_transB: *transA_transB_range
+  matrix_size: *small_matrix_size_range
+  alpha_beta: *small_alpha_beta_range
+  stride_scale: [ 1, 2      ]
+  batch_count: [        1, 2 ]
+
+- name: geam_small_complex
+  category: quick
+  function: geam
+  precision: *single_double_precisions_complex
+  transA_transB: *transA_transB_range
+  matrix_size: *small_matrix_size_range
+  alpha_beta: *small_complex_alpha_beta_range
+
+- name: geam_batched_small_complex
+  category: quick
+  function: geam_batched
+  precision: *single_double_precisions_complex
+  transA_transB: *transA_transB_range
+  matrix_size: *small_matrix_size_range
+  alpha_beta: *small_complex_alpha_beta_range
+  batch_count: [        1, 2 ]
+
+- name: geam_strided_batched_small_complex
+  category: quick
+  function: geam_strided_batched
+  precision: *single_double_precisions_complex
+  transA_transB: *transA_transB_range
+  matrix_size: *small_matrix_size_range
+  alpha_beta: *small_complex_alpha_beta_range
+  stride_scale: [ 1, 2      ]
+  batch_count: [        1, 2 ]
+
 - name: geam_large
   category: pre_checkin
   function: geam
@@ -67,6 +136,33 @@ Tests:
   matrix_size: *large_matrix_size_range
   alpha_beta: *large_alpha_beta_range
 
+- name: geam_large_complex
+  category: pre_checkin
+  function: geam
+  precision: *single_double_precisions_complex
+  transA_transB: *transA_transB_range
+  matrix_size: *large_matrix_size_range
+  alpha_beta: *large_complex_alpha_beta_range
+
+- name: geam_batched_large_complex
+  category: pre_checkin
+  function: geam_batched
+  precision: *single_double_precisions_complex
+  transA_transB: *transA_transB_range
+  matrix_size: *large_matrix_size_range
+  alpha_beta: *large_complex_alpha_beta_range
+  batch_count: [        1, 2 ]
+
+- name: geam_strided_batched_large_complex
+  category: pre_checkin
+  function: geam_strided_batched
+  precision: *single_double_precisions_complex
+  transA_transB: *transA_transB_range
+  matrix_size: *large_matrix_size_range
+  alpha_beta: *large_complex_alpha_beta_range
+  stride_scale: [ 1, 2      ]
+  batch_count: [        1, 2 ]
+
 - name: geam_huge
   category: nightly
   function: geam
@@ -74,4 +170,12 @@ Tests:
   transA_transB: *transA_transB_range
   matrix_size: *huge_matrix_size_range
   alpha_beta: *huge_alpha_beta_range
+
+- name: geam_huge_complex
+  category: nightly
+  function: geam
+  precision: *single_double_precisions_complex
+  transA_transB: *transA_transB_range
+  matrix_size: *huge_matrix_size_range
+  alpha_beta: *huge_complex_alpha_beta_range
 ...

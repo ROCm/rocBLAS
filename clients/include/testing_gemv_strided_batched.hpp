@@ -195,52 +195,26 @@ void testing_gemv_strided_batched(const Arguments& arg)
     size_y = dim_y * abs_incy;
 
     // argument sanity check before allocating invalid memory
-    if(M <= 0 || N <= 0 || lda < M || lda < 1 || !incx || !incy || batch_count <= 0)
+    bool invalid_size = M < 0 || N < 0 || lda < M || lda < 1 || !incx || !incy || batch_count < 0;
+    if(invalid_size || !M || !N || !batch_count)
     {
         EXPECT_ROCBLAS_STATUS(rocblas_gemv_strided_batched<T>(handle,
                                                               transA,
                                                               M,
                                                               N,
-                                                              &h_alpha,
+                                                              nullptr,
                                                               nullptr,
                                                               lda,
                                                               stride_a,
                                                               nullptr,
                                                               incx,
                                                               stride_x,
-                                                              &h_beta,
+                                                              nullptr,
                                                               nullptr,
                                                               incy,
                                                               stride_y,
                                                               batch_count),
-                              M < 0 || N < 0 || lda < M || lda < 1 || !incx || !incy
-                                      || batch_count < 0
-                                  ? rocblas_status_invalid_size
-                                  : rocblas_status_success);
-        return;
-    }
-
-    //quick return
-    if(!M || !N || !batch_count)
-    {
-        EXPECT_ROCBLAS_STATUS(rocblas_gemv_strided_batched<T>(handle,
-                                                              transA,
-                                                              M,
-                                                              N,
-                                                              &h_alpha,
-                                                              nullptr,
-                                                              lda,
-                                                              stride_a,
-                                                              nullptr,
-                                                              incx,
-                                                              stride_x,
-                                                              &h_beta,
-                                                              nullptr,
-                                                              incy,
-                                                              stride_y,
-                                                              batch_count),
-                              rocblas_status_success);
-
+                              invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
         return;
     }
 
@@ -363,23 +337,23 @@ void testing_gemv_strided_batched(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, dim_y, batch_count, abs_incy, stride_y, hy_gold, hy_1);
-            unit_check_general<T>(1, dim_y, batch_count, abs_incy, stride_y, hy_gold, hy_2);
+            unit_check_general<T>(1, dim_y, abs_incy, stride_y, hy_gold, hy_1, batch_count);
+            unit_check_general<T>(1, dim_y, abs_incy, stride_y, hy_gold, hy_2, batch_count);
         }
 
         if(arg.norm_check)
         {
             rocblas_error_1 = norm_check_general<T>(
-                'F', 1, dim_y, abs_incy, stride_y, batch_count, hy_gold, hy_1);
+                'F', 1, dim_y, abs_incy, stride_y, hy_gold, hy_1, batch_count);
             rocblas_error_2 = norm_check_general<T>(
-                'F', 1, dim_y, abs_incy, stride_y, batch_count, hy_gold, hy_2);
+                'F', 1, dim_y, abs_incy, stride_y, hy_gold, hy_2, batch_count);
         }
     }
 
     if(arg.timing)
     {
-        int number_cold_calls = 2;
-        int number_hot_calls  = 100;
+        int number_cold_calls = arg.cold_iters;
+        int number_hot_calls  = arg.iters;
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
         for(int iter = 0; iter < number_cold_calls; iter++)
@@ -429,24 +403,26 @@ void testing_gemv_strided_batched(const Arguments& arg)
         rocblas_bandwidth = batch_count * (1.0 * M * N) * sizeof(T) / gpu_time_used / 1e3;
 
         // only norm_check return an norm error, unit check won't return anything
-        std::cout << "M,N,alpha,lda,stride_a,incx,stride_x,beta,incy,stride_y,batch_count,rocblas-"
-                     "Gflops,rocblas-GB/s,";
+        rocblas_cout
+            << "M,N,alpha,lda,stride_a,incx,stride_x,beta,incy,stride_y,batch_count,rocblas-"
+               "Gflops,rocblas-GB/s,";
         if(arg.norm_check)
         {
-            std::cout << "CPU-Gflops,norm_error_host_ptr,norm_error_device_ptr";
+            rocblas_cout << "CPU-Gflops,norm_error_host_ptr,norm_error_device_ptr";
         }
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
 
-        std::cout << M << "," << N << "," << h_alpha << "," << lda << "," << stride_a << "," << incx
-                  << "," << stride_x << "," << h_beta << "," << incy << "," << stride_y << ","
-                  << batch_count << "," << rocblas_gflops << "," << rocblas_bandwidth << ",";
+        rocblas_cout << M << "," << N << "," << h_alpha << "," << lda << "," << stride_a << ","
+                     << incx << "," << stride_x << "," << h_beta << "," << incy << "," << stride_y
+                     << "," << batch_count << "," << rocblas_gflops << "," << rocblas_bandwidth
+                     << ",";
 
         if(arg.norm_check)
         {
-            std::cout << cblas_gflops << ',';
-            std::cout << rocblas_error_1 << ',' << rocblas_error_2;
+            rocblas_cout << cblas_gflops << ',';
+            rocblas_cout << rocblas_error_1 << ',' << rocblas_error_2;
         }
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
     }
 }

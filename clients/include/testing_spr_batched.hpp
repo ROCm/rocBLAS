@@ -30,8 +30,8 @@ void testing_spr_batched_bad_arg()
     // allocate memory on device
     device_batch_vector<T> dx(N, incx, batch_count);
     device_batch_vector<T> dA_1(size_A, 1, batch_count);
-    CHECK_HIP_ERROR(dx.memcheck());
-    CHECK_HIP_ERROR(dA_1.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA_1.memcheck());
 
     EXPECT_ROCBLAS_STATUS(
         rocblas_spr_batched<T>(handle, rocblas_fill_full, N, &alpha, dx, incx, dA_1, batch_count),
@@ -62,12 +62,12 @@ void testing_spr_batched(const Arguments& arg)
     rocblas_local_handle handle;
 
     // argument check before allocating invalid memory
-    if(N <= 0 || !incx || batch_count <= 0)
+    bool invalid_size = N < 0 || !incx || batch_count < 0;
+    if(invalid_size || !N || !batch_count)
     {
         EXPECT_ROCBLAS_STATUS(
             rocblas_spr_batched<T>(handle, uplo, N, nullptr, nullptr, incx, nullptr, batch_count),
-            N < 0 || !incx || batch_count < 0 ? rocblas_status_invalid_size
-                                              : rocblas_status_success);
+            invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
         return;
     }
 
@@ -92,10 +92,10 @@ void testing_spr_batched(const Arguments& arg)
     device_batch_vector<T> dA_2(size_A, 1, batch_count);
     device_batch_vector<T> dx(N, incx, batch_count);
     device_vector<T>       d_alpha(1);
-    CHECK_HIP_ERROR(dA_1.memcheck());
-    CHECK_HIP_ERROR(dA_2.memcheck());
-    CHECK_HIP_ERROR(dx.memcheck());
-    CHECK_HIP_ERROR(d_alpha.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA_1.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA_2.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
 
     double gpu_time_used, cpu_time_used;
     double rocblas_gflops, cblas_gflops, rocblas_bandwidth;
@@ -148,26 +148,26 @@ void testing_spr_batched(const Arguments& arg)
                || std::is_same<T, rocblas_double_complex>{})
             {
                 const double tol = N * sum_error_tolerance<T>;
-                near_check_general<T>(1, size_A, batch_count, 1, hA_gold, hA_1, tol);
-                near_check_general<T>(1, size_A, batch_count, 1, hA_gold, hA_2, tol);
+                near_check_general<T>(1, size_A, 1, hA_gold, hA_1, batch_count, tol);
+                near_check_general<T>(1, size_A, 1, hA_gold, hA_2, batch_count, tol);
             }
             else
             {
-                unit_check_general<T>(1, size_A, batch_count, 1, hA_gold, hA_1);
-                unit_check_general<T>(1, size_A, batch_count, 1, hA_gold, hA_2);
+                unit_check_general<T>(1, size_A, 1, hA_gold, hA_1, batch_count);
+                unit_check_general<T>(1, size_A, 1, hA_gold, hA_2, batch_count);
             }
         }
 
         if(arg.norm_check)
         {
-            rocblas_error_1 = norm_check_general<T>('F', 1, size_A, 1, batch_count, hA_gold, hA_1);
-            rocblas_error_2 = norm_check_general<T>('F', 1, size_A, 1, batch_count, hA_gold, hA_2);
+            rocblas_error_1 = norm_check_general<T>('F', 1, size_A, 1, hA_gold, hA_1, batch_count);
+            rocblas_error_2 = norm_check_general<T>('F', 1, size_A, 1, hA_gold, hA_2, batch_count);
         }
     }
 
     if(arg.timing)
     {
-        int number_cold_calls = 2;
+        int number_cold_calls = arg.cold_iters;
         int number_hot_calls  = arg.iters;
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
@@ -202,19 +202,19 @@ void testing_spr_batched(const Arguments& arg)
         rocblas_bandwidth = batch_count * (2.0 * N * (N + 1)) / 2 * sizeof(T) / gpu_time_used / 1e3;
 
         // only norm_check return an norm error, unit check won't return anything
-        std::cout << "N,alpha,incx,batch_count,rocblas-Gflops,rocblas-GB/s";
+        rocblas_cout << "N,alpha,incx,batch_count,rocblas-Gflops,rocblas-GB/s";
 
         if(arg.norm_check)
-            std::cout << ",CPU-Gflops,norm_error_host_ptr,norm_error_dev_ptr";
+            rocblas_cout << ",CPU-Gflops,norm_error_host_ptr,norm_error_dev_ptr";
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
 
-        std::cout << N << "," << h_alpha << "," << incx << "," << batch_count << ","
-                  << rocblas_gflops << "," << rocblas_bandwidth;
+        rocblas_cout << N << "," << h_alpha << "," << incx << "," << batch_count << ","
+                     << rocblas_gflops << "," << rocblas_bandwidth;
 
         if(arg.norm_check)
-            std::cout << "," << cblas_gflops << "," << rocblas_error_1 << "," << rocblas_error_2;
+            rocblas_cout << "," << cblas_gflops << "," << rocblas_error_1 << "," << rocblas_error_2;
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
     }
 }

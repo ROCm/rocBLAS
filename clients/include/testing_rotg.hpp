@@ -142,7 +142,7 @@ void testing_rotg(const Arguments& arg)
 
     if(arg.timing)
     {
-        int number_cold_calls = 2;
+        int number_cold_calls = arg.cold_iters;
         int number_hot_calls  = arg.iters;
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
@@ -166,14 +166,14 @@ void testing_rotg(const Arguments& arg)
         }
         gpu_time_used = (get_time_us() - gpu_time_used) / number_hot_calls;
 
-        std::cout << "rocblas-us,CPU-us";
+        rocblas_cout << "rocblas-us,CPU-us";
         if(arg.norm_check)
-            std::cout << ",norm_error_host_ptr,norm_error_dev_ptr";
-        std::cout << std::endl;
+            rocblas_cout << ",norm_error_host_ptr,norm_error_dev_ptr";
+        rocblas_cout << std::endl;
 
-        std::cout << gpu_time_used << "," << cpu_time_used;
+        rocblas_cout << gpu_time_used << "," << cpu_time_used;
         if(arg.norm_check)
-            std::cout << ',' << error_host << ',' << error_device;
-        std::cout << std::endl;
+            rocblas_cout << ',' << error_host << ',' << error_device;
+        rocblas_cout << std::endl;
     }
 }

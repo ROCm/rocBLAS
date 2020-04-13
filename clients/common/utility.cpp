@@ -14,8 +14,14 @@
 // Note: We do not use random_device to initialize the RNG, because we want
 // repeatability in case of test failure. TODO: Add seed as an optional CLI
 // argument, and print the seed on output, to ensure repeatability.
-rocblas_rng_t rocblas_rng(69069);
-rocblas_rng_t rocblas_seed(rocblas_rng);
+const rocblas_rng_t rocblas_seed(69069); // A fixed seed to start at
+
+// This records the main thread ID at startup
+const std::thread::id main_thread_id = std::this_thread::get_id();
+
+// For the main thread, we use rocblas_seed; for other threads, we start with a different seed but
+// deterministically based on the thread id's hash function.
+thread_local rocblas_rng_t rocblas_rng = get_seed();
 
 /* ============================================================================================ */
 // Return path of this executable
@@ -43,18 +49,18 @@ std::string rocblas_exepath()
 double get_time_us(void)
 {
     hipDeviceSynchronize();
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    return (tv.tv_sec * 1000 * 1000) + tv.tv_usec;
+    struct timespec tv;
+    clock_gettime(CLOCK_MONOTONIC, &tv);
+    return tv.tv_sec * 1'000'000llu + (tv.tv_nsec + 500llu) / 1000;
 };
 
 /*! \brief  CPU Timer(in microsecond): synchronize with given queue/stream and return wall time */
 double get_time_us_sync(hipStream_t stream)
 {
     hipStreamSynchronize(stream);
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    return (tv.tv_sec * 1000 * 1000) + tv.tv_usec;
+    struct timespec tv;
+    clock_gettime(CLOCK_MONOTONIC, &tv);
+    return tv.tv_sec * 1'000'000llu + (tv.tv_nsec + 500llu) / 1000;
 };
 
 /* ============================================================================================ */
@@ -65,43 +71,51 @@ rocblas_int query_device_property()
     rocblas_status status = (rocblas_status)hipGetDeviceCount(&device_count);
     if(status != rocblas_status_success)
     {
-        printf("Query device error: cannot get device count \n");
+        rocblas_cerr << "Query device error: cannot get device count" << std::endl;
         return -1;
     }
     else
     {
-        printf("Query device success: there are %d devices \n", device_count);
+        rocblas_cout << "Query device success: there are " << device_count << " devices"
+                     << std::endl;
     }
 
     for(rocblas_int i = 0;; i++)
     {
-        puts("-------------------------------------------------------------------------------");
+        rocblas_cout
+            << "-------------------------------------------------------------------------------"
+            << std::endl;
 
         if(i >= device_count)
-        {
             break;
-        }
 
         hipDeviceProp_t props;
         rocblas_status  status = (rocblas_status)hipGetDeviceProperties(&props, i);
         if(status != rocblas_status_success)
         {
-            printf("Query device error: cannot get device ID %d's property\n", i);
+            rocblas_cerr << "Query device error: cannot get device ID " << i << "'s property"
+                         << std::endl;
         }
         else
         {
-            printf("Device ID %d : %s\n", i, props.name);
-            printf("with %3.1f GB memory, clock rate %dMHz @ computing capability %d.%d \n",
-                   props.totalGlobalMem / 1e9,
-                   (int)(props.clockRate / 1000),
-                   props.major,
-                   props.minor);
-            printf(
+            char buf[320];
+            snprintf(
+                buf,
+                sizeof(buf),
+                "Device ID %d : %s\n"
+                "with %3.1f GB memory, clock rate %d MHz @ computing capability %d.%d \n"
                 "maxGridDimX %d, sharedMemPerBlock %3.1f KB, maxThreadsPerBlock %d, warpSize %d\n",
+                i,
+                props.name,
+                props.totalGlobalMem / 1e9,
+                (int)(props.clockRate / 1000),
+                props.major,
+                props.minor,
                 props.maxGridSize[0],
                 props.sharedMemPerBlock / 1e3,
                 props.maxThreadsPerBlock,
                 props.warpSize);
+            rocblas_cout << buf;
         }
     }
 
@@ -114,50 +128,44 @@ void set_device(rocblas_int device_id)
     rocblas_status status = (rocblas_status)hipSetDevice(device_id);
     if(status != rocblas_status_success)
     {
-        printf("Set device error: cannot set device ID %d, there may not be such device ID\n",
-               (int)device_id);
+        rocblas_cerr << "Set device error: cannot set device ID " << device_id
+                     << ", there may not be such device ID" << std::endl;
     }
 }
 
-/******************************************************************************************
- * Function which matches category with test_category, accounting for known_bug_platforms *
- ******************************************************************************************/
-bool match_test_category(const char* category,
-                         const char* test_category,
-                         const char* known_bug_platforms)
+/********************************************************************************************
+ * Function which matches Arguments with a category, accounting for arg.known_bug_platforms *
+ ********************************************************************************************/
+bool match_test_category(const Arguments& arg, const char* category)
 {
-    // Prefix for tests matching known bugs, but only on certain platforms
-    static constexpr char prefix[] = "known_bug_platforms_";
-
-    // If the test category matches the prefix
-    if(!strncmp(test_category, prefix, sizeof(prefix) - 1))
+    if(*arg.known_bug_platforms)
     {
-        // Move test_category past the prefix to get the normal test category name
-        test_category += sizeof(prefix) - 1;
-
         // Regular expression for token delimiters
-        static const std::regex regex("[:, \\f\\n\\r\\t\\v]+", std::regex_constants::optimize);
+        static const std::regex regex{"[:, \\f\\n\\r\\t\\v]+", std::regex_constants::optimize};
 
         // The name of the current GPU platform
         static const std::string platform
             = "gfx" + std::to_string(_rocblas_handle::device_arch_id());
 
         // Token iterator
-        std::cregex_token_iterator iter(
-            known_bug_platforms, known_bug_platforms + strlen(known_bug_platforms), regex, -1);
+        std::cregex_token_iterator iter{arg.known_bug_platforms,
+                                        arg.known_bug_platforms + strlen(arg.known_bug_platforms),
+                                        regex,
+                                        -1};
 
-        // Iterate across tokens
+        // Iterate across tokens in known_bug_platforms, looking for matches with platform
         for(; iter != std::cregex_token_iterator(); ++iter)
         {
-            // If a platform matches, set test_category to known_bug
-            if(iter->str() == platform)
+            // If a platform matches, set category to "known_bug"
+            if(!strcasecmp(iter->str().c_str(), platform.c_str()))
             {
-                test_category = "known_bug";
+                // We know that underlying arg object is non-const, so we can use const_cast
+                strcpy(const_cast<char*>(arg.category), "known_bug");
                 break;
             }
         }
     }
 
-    // Return whether test_category matches the requested category
-    return !strcmp(test_category, category);
+    // Return whether arg.category matches the requested category
+    return !strcmp(arg.category, category);
 }

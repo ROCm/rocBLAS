@@ -92,13 +92,13 @@ void testing_trmm(const Arguments& arg)
     rocblas_local_handle handle;
 
     // ensure invalid sizes and quick return checked before pointer check
-    bool invalidSize = M < 0 || N < 0 || lda < K || ldb < M;
-    if(M == 0 || N == 0 || invalidSize)
+    bool invalid_size = M < 0 || N < 0 || lda < K || ldb < M;
+    if(M == 0 || N == 0 || invalid_size)
     {
         EXPECT_ROCBLAS_STATUS(
             rocblas_trmm<T>(
                 handle, side, uplo, transA, diag, M, N, nullptr, nullptr, lda, nullptr, ldb),
-            invalidSize ? rocblas_status_invalid_size : rocblas_status_success);
+            invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
         return;
     }
 
@@ -229,20 +229,21 @@ void testing_trmm(const Arguments& arg)
         gpu_time_used  = get_time_us() - gpu_time_used;
         rocblas_gflops = trmm_gflop_count<T>(M, N, side) * number_hot_calls / gpu_time_used * 1e6;
 
-        std::cout << "M,N,alpha,lda,ldb,side,uplo,transA,diag,rocblas-Gflops,us";
+        rocblas_cout << "M,N,alpha,lda,ldb,side,uplo,transA,diag,rocblas-Gflops,us";
 
         if(arg.unit_check || arg.norm_check)
-            std::cout << ",CPU-Gflops,us,norm-error";
+            rocblas_cout << ",CPU-Gflops,us,norm-error";
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
 
-        std::cout << M << ',' << N << ',' << arg.get_alpha<T>() << ',' << lda << ',' << ldb << ','
-                  << char_side << ',' << char_uplo << ',' << char_transA << ',' << char_diag << ','
-                  << rocblas_gflops << "," << gpu_time_used / number_hot_calls;
+        rocblas_cout << M << ',' << N << ',' << arg.get_alpha<T>() << ',' << lda << ',' << ldb
+                     << ',' << char_side << ',' << char_uplo << ',' << char_transA << ','
+                     << char_diag << ',' << rocblas_gflops << ","
+                     << gpu_time_used / number_hot_calls;
 
         if(arg.unit_check || arg.norm_check)
-            std::cout << ", " << cblas_gflops << ", " << cpu_time_used << ", " << rocblas_error;
+            rocblas_cout << ", " << cblas_gflops << ", " << cpu_time_used << ", " << rocblas_error;
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
     }
 }

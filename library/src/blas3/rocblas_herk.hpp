@@ -2,11 +2,7 @@
  * Copyright 2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #pragma once
-
-#include "handle.h"
-#include "rocblas.h"
 #include "rocblas_syrk.hpp"
-#include "utility.h"
 
 template <typename T, typename U>
 static __device__ void herk_scale_device(bool upper, rocblas_int n, T beta, U* C, rocblas_int ldc)
@@ -59,22 +55,22 @@ __global__ void herk_scale_kernel(bool           upper,
 }
 
 template <typename TScal, typename TConstPtr, typename TPtr>
-rocblas_status rocblas_herk_arg_check(rocblas_handle    handle,
-                                      rocblas_fill      uplo,
-                                      rocblas_operation transA,
-                                      rocblas_int       n,
-                                      rocblas_int       k,
-                                      TScal             alpha,
-                                      TConstPtr         AP,
-                                      rocblas_int       offsetA,
-                                      rocblas_int       lda,
-                                      rocblas_stride    strideA,
-                                      TScal             beta,
-                                      TPtr              CP,
-                                      rocblas_int       offsetC,
-                                      rocblas_int       ldc,
-                                      rocblas_stride    strideC,
-                                      rocblas_int       batch_count)
+inline rocblas_status rocblas_herk_arg_check(rocblas_handle    handle,
+                                             rocblas_fill      uplo,
+                                             rocblas_operation transA,
+                                             rocblas_int       n,
+                                             rocblas_int       k,
+                                             TScal             alpha,
+                                             TConstPtr         AP,
+                                             rocblas_int       offsetA,
+                                             rocblas_int       lda,
+                                             rocblas_stride    strideA,
+                                             TScal             beta,
+                                             TPtr              CP,
+                                             rocblas_int       offsetC,
+                                             rocblas_int       ldc,
+                                             rocblas_stride    strideC,
+                                             rocblas_int       batch_count)
 {
     if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
         return rocblas_status_invalid_value;
@@ -91,28 +87,29 @@ rocblas_status rocblas_herk_arg_check(rocblas_handle    handle,
 
     return rocblas_status_continue;
 }
+
 /**
   *  TScal     is always: const T* (either host or device)
   *  TConstPtr is either: const T* OR const T* const*
   *  TPtr      is either:       T* OR       T* const*
   */
 template <typename TScal, typename TConstPtr, typename TPtr>
-rocblas_status rocblas_herk_template(rocblas_handle    handle,
-                                     rocblas_fill      uplo,
-                                     rocblas_operation transA,
-                                     rocblas_int       n,
-                                     rocblas_int       k,
-                                     TScal             alpha,
-                                     TConstPtr         AP,
-                                     rocblas_int       offsetA,
-                                     rocblas_int       lda,
-                                     rocblas_stride    strideA,
-                                     TScal             beta,
-                                     TPtr              CP,
-                                     rocblas_int       offsetC,
-                                     rocblas_int       ldc,
-                                     rocblas_stride    strideC,
-                                     rocblas_int       batch_count)
+ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_herk_template(rocblas_handle    handle,
+                                                             rocblas_fill      uplo,
+                                                             rocblas_operation transA,
+                                                             rocblas_int       n,
+                                                             rocblas_int       k,
+                                                             TScal             alpha,
+                                                             TConstPtr         AP,
+                                                             rocblas_int       offsetA,
+                                                             rocblas_int       lda,
+                                                             rocblas_stride    strideA,
+                                                             TScal             beta,
+                                                             TPtr              CP,
+                                                             rocblas_int       offsetC,
+                                                             rocblas_int       ldc,
+                                                             rocblas_stride    strideC,
+                                                             rocblas_int       batch_count)
 {
     // quick return
     if(!n || !batch_count)

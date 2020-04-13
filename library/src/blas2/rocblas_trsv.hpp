@@ -1,15 +1,9 @@
 /* ************************************************************************
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+#pragma once
 #include "../blas3/trtri_trsm.hpp"
-#include "handle.h"
-#include "logging.h"
-#include "rocblas.h"
 #include "rocblas_gemv.hpp"
-#include "utility.h"
-#include <algorithm>
-#include <cstdio>
-#include <tuple>
 
 namespace
 {
@@ -697,11 +691,13 @@ namespace
         // If not large enough, indicate degraded performance and ignore supplied invA
         if(supplied_invA && supplied_invA_size / BLOCK < m)
         {
-            static int msg = fputs("WARNING: TRSV invA_size argument is too small; invA argument "
-                                   "is being ignored; TRSV performance is degraded\n",
-                                   stderr);
-            perf_status    = rocblas_status_perf_degraded;
-            supplied_invA  = nullptr;
+            static int msg
+                = (rocblas_cerr << "WARNING: TRSV invA_size argument is too small; invA argument "
+                                   "is being ignored; TRSV performance is degraded"
+                                << std::endl,
+                   0);
+            perf_status   = rocblas_status_perf_degraded;
+            supplied_invA = nullptr;
         }
 
         if(!supplied_invA)
@@ -751,28 +747,28 @@ namespace
     }
 
     template <rocblas_int BLOCK, bool BATCHED, typename T, typename U, typename V>
-    rocblas_status rocblas_trsv_template(rocblas_handle    handle,
-                                         rocblas_fill      uplo,
-                                         rocblas_operation transA,
-                                         rocblas_diagonal  diag,
-                                         rocblas_int       m,
-                                         U                 A,
-                                         rocblas_int       offset_A,
-                                         rocblas_int       lda,
-                                         rocblas_stride    stride_A,
-                                         V                 B,
-                                         rocblas_int       offset_B,
-                                         rocblas_int       incx,
-                                         rocblas_stride    stride_B,
-                                         rocblas_int       batch_count,
-                                         void*             x_temp,
-                                         void*             x_temparr,
-                                         void*             invA               = nullptr,
-                                         void*             invAarr            = nullptr,
-                                         U                 supplied_invA      = nullptr,
-                                         rocblas_int       supplied_invA_size = 0,
-                                         rocblas_int       offset_invA        = 0,
-                                         rocblas_stride    stride_invA        = 0)
+    ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_trsv_template(rocblas_handle    handle,
+                                                                 rocblas_fill      uplo,
+                                                                 rocblas_operation transA,
+                                                                 rocblas_diagonal  diag,
+                                                                 rocblas_int       m,
+                                                                 U                 A,
+                                                                 rocblas_int       offset_A,
+                                                                 rocblas_int       lda,
+                                                                 rocblas_stride    stride_A,
+                                                                 V                 B,
+                                                                 rocblas_int       offset_B,
+                                                                 rocblas_int       incx,
+                                                                 rocblas_stride    stride_B,
+                                                                 rocblas_int       batch_count,
+                                                                 void*             x_temp,
+                                                                 void*             x_temparr,
+                                                                 void*             invA = nullptr,
+                                                                 void* invAarr          = nullptr,
+                                                                 U     supplied_invA    = nullptr,
+                                                                 rocblas_int supplied_invA_size = 0,
+                                                                 rocblas_int offset_invA        = 0,
+                                                                 rocblas_stride stride_invA     = 0)
     {
         if(batch_count == 0)
             return rocblas_status_success;

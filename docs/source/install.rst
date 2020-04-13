@@ -315,8 +315,8 @@ user to set it up.
 Common build problems
 ---------------------
 
--  **Issue:** Could not find a configuration file for package “LLVM”
-   that is compatible with requested version “7.0”.
+-  **Issue:** Could not find a configuration file for package "LLVM"
+   that is compatible with requested version "7.0".
 
    **Solution:** You may have outdated rocBLAS dependencies in
    /usr/local. If you do not have anything other than rocBLAS
@@ -325,8 +325,8 @@ Common build problems
    have other software in /usr/local, then uninstall the rocBLAS
    dependencies, and re-install by running install.sh with the -d flag.
 
--  **Issue:** “Tensile could not be found because dependency Python
-   Interp could not be found”.
+-  **Issue:** "Tensile could not be found because dependency Python
+   Interp could not be found".
 
    **Solution:** Due to a bug in Tensile, you may need cmake-gui 3.5 and
    above, though in the cmakefiles it requires 2.8.
@@ -347,7 +347,7 @@ Common build problems
    **Solution:** export HCC_AMDGPU_TARGET=gfx900
 
 -  **Issue:** Could not find a package configuration file provided by
-   “ROCM” with any of the following names:
+   "ROCM" with any of the following names:
 
    ROCMConfig.cmake
 

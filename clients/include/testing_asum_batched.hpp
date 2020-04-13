@@ -26,7 +26,7 @@ void testing_asum_batched_bad_arg(const Arguments& arg)
     rocblas_local_handle handle;
 
     device_batch_vector<T> dx(N, 1, batch_count);
-    CHECK_HIP_ERROR(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
     CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
@@ -57,9 +57,9 @@ void testing_asum_batched(const Arguments& arg)
     if(N <= 0 || incx <= 0 || batch_count <= 0)
     {
         device_batch_vector<T> dx(3, 1, 2);
-        CHECK_HIP_ERROR(dx.memcheck());
+        CHECK_DEVICE_ALLOCATION(dx.memcheck());
         device_vector<real_t<T>> dr(std::max(2, std::abs(batch_count)));
-        CHECK_HIP_ERROR(dr.memcheck());
+        CHECK_DEVICE_ALLOCATION(dr.memcheck());
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         EXPECT_ROCBLAS_STATUS(
             rocblas_asum_batched<T>(handle, N, dx.ptr_on_device(), incx, batch_count, dr),
@@ -79,10 +79,10 @@ void testing_asum_batched(const Arguments& arg)
     host_vector<real_t<T>>   hr1(batch_count);
     host_vector<real_t<T>>   hr(batch_count);
 
-    CHECK_HIP_ERROR(dx.memcheck());
-    CHECK_HIP_ERROR(hx.memcheck());
+    CHECK_DEVICE_ALLOCATION(dx.memcheck());
+    CHECK_DEVICE_ALLOCATION(hx.memcheck());
 
-    CHECK_HIP_ERROR(dr.memcheck());
+    CHECK_DEVICE_ALLOCATION(dr.memcheck());
     CHECK_HIP_ERROR(hr1.memcheck());
     CHECK_HIP_ERROR(hr.memcheck());
 
@@ -131,8 +131,8 @@ void testing_asum_batched(const Arguments& arg)
 
         if(arg.norm_check)
         {
-            std::cout << "cpu=" << std::scientific << cpu_result[0] << ", gpu_host_ptr=" << hr1[0]
-                      << ", gpu_dev_ptr=" << hr[0] << "\n";
+            rocblas_cout << "cpu=" << std::scientific << cpu_result[0]
+                         << ", gpu_host_ptr=" << hr1[0] << ", gpu_dev_ptr=" << hr[0] << std::endl;
 
             rocblas_error_1 = std::abs((cpu_result[0] - hr1[0]) / cpu_result[0]);
             rocblas_error_2 = std::abs((cpu_result[0] - hr[0]) / cpu_result[0]);
@@ -141,8 +141,8 @@ void testing_asum_batched(const Arguments& arg)
 
     if(arg.timing)
     {
-        int number_cold_calls = 2;
-        int number_hot_calls  = 100;
+        int number_cold_calls = arg.cold_iters;
+        int number_hot_calls  = arg.iters;
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
         for(int iter = 0; iter < number_cold_calls; iter++)
@@ -159,17 +159,18 @@ void testing_asum_batched(const Arguments& arg)
 
         gpu_time_used = (get_time_us() - gpu_time_used) / number_hot_calls;
 
-        std::cout << "N,incx,batch_count,rocblas(us)";
+        rocblas_cout << "N,incx,batch_count,rocblas(us)";
 
         if(arg.norm_check)
-            std::cout << ",CPU(us),error_host_ptr,error_dev_ptr";
+            rocblas_cout << ",CPU(us),error_host_ptr,error_dev_ptr";
 
-        std::cout << std::endl;
-        std::cout << N << "," << incx << "," << batch_count << "," << gpu_time_used;
+        rocblas_cout << std::endl;
+        rocblas_cout << N << "," << incx << "," << batch_count << "," << gpu_time_used;
 
         if(arg.norm_check)
-            std::cout << "," << cpu_time_used << "," << rocblas_error_1 << "," << rocblas_error_2;
+            rocblas_cout << "," << cpu_time_used << "," << rocblas_error_1 << ","
+                         << rocblas_error_2;
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
     }
 }

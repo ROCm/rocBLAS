@@ -174,21 +174,21 @@ void testing_rotmg_batched(const Arguments& arg)
 
             if(arg.unit_check)
             {
-                near_check_general<T>(1, 1, batch_count, 1, rd1, cd1, rel_error);
-                near_check_general<T>(1, 1, batch_count, 1, rd2, cd2, rel_error);
-                near_check_general<T>(1, 1, batch_count, 1, rx1, cx1, rel_error);
-                near_check_general<T>(1, 1, batch_count, 1, ry1, cy1, rel_error);
-                near_check_general<T>(1, 5, batch_count, 1, rparams, cparams, rel_error);
+                near_check_general<T>(1, 1, 1, rd1, cd1, batch_count, rel_error);
+                near_check_general<T>(1, 1, 1, rd2, cd2, batch_count, rel_error);
+                near_check_general<T>(1, 1, 1, rx1, cx1, batch_count, rel_error);
+                near_check_general<T>(1, 1, 1, ry1, cy1, batch_count, rel_error);
+                near_check_general<T>(1, 5, 1, rparams, cparams, batch_count, rel_error);
             }
 
             if(arg.norm_check)
             {
-                norm_error_host = norm_check_general<T>('F', 1, 1, batch_count, 1, rd1, cd1);
-                norm_error_host += norm_check_general<T>('F', 1, 1, batch_count, 1, rd2, cd2);
-                norm_error_host += norm_check_general<T>('F', 1, 1, batch_count, 1, rx1, cx1);
-                norm_error_host += norm_check_general<T>('F', 1, 1, batch_count, 1, ry1, cy1);
+                norm_error_host = norm_check_general<T>('F', 1, 1, 1, rd1, cd1, batch_count);
+                norm_error_host += norm_check_general<T>('F', 1, 1, 1, rd2, cd2, batch_count);
+                norm_error_host += norm_check_general<T>('F', 1, 1, 1, rx1, cx1, batch_count);
+                norm_error_host += norm_check_general<T>('F', 1, 1, 1, ry1, cy1, batch_count);
                 norm_error_host
-                    += norm_check_general<T>('F', 1, 5, batch_count, 1, rparams, cparams);
+                    += norm_check_general<T>('F', 1, 5, 1, rparams, cparams, batch_count);
             }
         }
 
@@ -233,28 +233,28 @@ void testing_rotmg_batched(const Arguments& arg)
 
             if(arg.unit_check)
             {
-                near_check_general<T>(1, 1, batch_count, 1, rd1, cd1, rel_error);
-                near_check_general<T>(1, 1, batch_count, 1, rd2, cd2, rel_error);
-                near_check_general<T>(1, 1, batch_count, 1, rx1, cx1, rel_error);
-                near_check_general<T>(1, 1, batch_count, 1, ry1, cy1, rel_error);
-                near_check_general<T>(1, 5, batch_count, 1, rparams, cparams, rel_error);
+                near_check_general<T>(1, 1, 1, rd1, cd1, batch_count, rel_error);
+                near_check_general<T>(1, 1, 1, rd2, cd2, batch_count, rel_error);
+                near_check_general<T>(1, 1, 1, rx1, cx1, batch_count, rel_error);
+                near_check_general<T>(1, 1, 1, ry1, cy1, batch_count, rel_error);
+                near_check_general<T>(1, 5, 1, rparams, cparams, batch_count, rel_error);
             }
 
             if(arg.norm_check)
             {
-                norm_error_device = norm_check_general<T>('F', 1, 1, batch_count, 1, rd1, cx1);
-                norm_error_device += norm_check_general<T>('F', 1, 1, batch_count, 1, rd2, cd2);
-                norm_error_device += norm_check_general<T>('F', 1, 1, batch_count, 1, rx1, cx1);
-                norm_error_device += norm_check_general<T>('F', 1, 1, batch_count, 1, ry1, cy1);
+                norm_error_device = norm_check_general<T>('F', 1, 1, 1, rd1, cx1, batch_count);
+                norm_error_device += norm_check_general<T>('F', 1, 1, 1, rd2, cd2, batch_count);
+                norm_error_device += norm_check_general<T>('F', 1, 1, 1, rx1, cx1, batch_count);
+                norm_error_device += norm_check_general<T>('F', 1, 1, 1, ry1, cy1, batch_count);
                 norm_error_device
-                    += norm_check_general<T>('F', 1, 5, batch_count, 1, rparams, cparams);
+                    += norm_check_general<T>('F', 1, 5, 1, rparams, cparams, batch_count);
             }
         }
     }
 
     if(arg.timing)
     {
-        int number_cold_calls = 2;
+        int number_cold_calls = arg.cold_iters;
         int number_hot_calls  = arg.iters;
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
@@ -264,11 +264,11 @@ void testing_rotmg_batched(const Arguments& arg)
         device_batch_vector<T> dx1(1, 1, batch_count);
         device_batch_vector<T> dy1(1, 1, batch_count);
         device_batch_vector<T> dparams(5, 1, batch_count);
-        CHECK_HIP_ERROR(dd1.memcheck());
-        CHECK_HIP_ERROR(dd2.memcheck());
-        CHECK_HIP_ERROR(dx1.memcheck());
-        CHECK_HIP_ERROR(dy1.memcheck());
-        CHECK_HIP_ERROR(dparams.memcheck());
+        CHECK_DEVICE_ALLOCATION(dd1.memcheck());
+        CHECK_DEVICE_ALLOCATION(dd2.memcheck());
+        CHECK_DEVICE_ALLOCATION(dx1.memcheck());
+        CHECK_DEVICE_ALLOCATION(dy1.memcheck());
+        CHECK_DEVICE_ALLOCATION(dparams.memcheck());
 
         CHECK_HIP_ERROR(dd1.transfer_from(hd1));
         CHECK_HIP_ERROR(dd2.transfer_from(hd2));
@@ -299,14 +299,14 @@ void testing_rotmg_batched(const Arguments& arg)
         }
         gpu_time_used = (get_time_us() - gpu_time_used) / number_hot_calls;
 
-        std::cout << "rocblas-us,CPU-us";
+        rocblas_cout << "rocblas-us,CPU-us";
         if(arg.norm_check)
-            std::cout << ",norm_error_host_ptr,norm_error_device";
-        std::cout << std::endl;
+            rocblas_cout << ",norm_error_host_ptr,norm_error_device";
+        rocblas_cout << std::endl;
 
-        std::cout << gpu_time_used << "," << cpu_time_used;
+        rocblas_cout << gpu_time_used << "," << cpu_time_used;
         if(arg.norm_check)
-            std::cout << ',' << norm_error_host << ',' << norm_error_device;
-        std::cout << std::endl;
+            rocblas_cout << ',' << norm_error_host << ',' << norm_error_device;
+        rocblas_cout << std::endl;
     }
 }

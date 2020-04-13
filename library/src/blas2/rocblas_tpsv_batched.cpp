@@ -6,9 +6,6 @@
 #include "rocblas.h"
 #include "rocblas_tpsv.hpp"
 #include "utility.h"
-#include <algorithm>
-#include <cstdio>
-#include <tuple>
 
 namespace
 {
@@ -100,7 +97,7 @@ namespace
 
         if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
             return rocblas_status_invalid_value;
-        if(batch_count < 0 || ((n < 0 || !incx) && batch_count > 0))
+        if(n < 0 || !incx || batch_count < 0)
             return rocblas_status_invalid_size;
         if(!n || !batch_count)
             return rocblas_status_success;

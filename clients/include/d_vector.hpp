@@ -50,7 +50,8 @@ public:
         if((hipMalloc)(&d, bytes) != hipSuccess)
         {
             static char* lc = setlocale(LC_NUMERIC, "");
-            fprintf(stderr, "Error allocating %'zu bytes (%zu GB)\n", bytes, bytes >> 30);
+            rocblas_cerr << "Error allocating " << bytes << " bytes (" << (bytes >> 30) << " GB)"
+                         << std::endl;
 
             d = nullptr;
         }
@@ -71,15 +72,6 @@ public:
         }
 #endif
         return d;
-    }
-
-    bool check_available_memory(size_t batches = 1)
-    {
-        size_t     free_mem  = 0;
-        size_t     total_mem = 0;
-        hipError_t err       = hipMemGetInfo(&free_mem, &total_mem);
-
-        return (err == hipSuccess && free_mem >= (bytes * batches));
     }
 
     void device_vector_check(T* d)

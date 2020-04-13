@@ -2,7 +2,6 @@
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #pragma once
-
 #include "logging.h"
 #include "rocblas_reduction_template.hpp"
 #include "utility.h"

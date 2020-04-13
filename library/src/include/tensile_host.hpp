@@ -5,7 +5,6 @@
 /*********************************************************
  * Declaration of the rocBLAS<->Tensile interface layer. *
  *********************************************************/
-#pragma once
 #ifndef __TENSILE_HOST_HPP__
 #define __TENSILE_HOST_HPP__
 
@@ -14,18 +13,14 @@
 #endif
 
 #include "handle.h"
-#include <cmath>
-#include <cstdio>
-#include <cstring>
-#include <iomanip>
-#include <ostream>
+#include "tuple_helper.hpp"
 
 /**************************************************************************
-     * Return the value category for a value, as a double precision value,    *
-     * such as whether it's 0, 1, or some other value. Tensile uses a double  *
-     * precision value to express the category of beta. This function is to   *
-     * convert complex or other types to a double representing the category.  *
-     **************************************************************************/
+ * Return the value category for a value, as a double precision value,    *
+ * such as whether it's 0, 1, or some other value. Tensile uses a double  *
+ * precision value to express the category of beta. This function is to   *
+ * convert complex or other types to a double representing the category.  *
+ **************************************************************************/
 template <typename T>
 constexpr double value_category(const T& beta)
 {
@@ -63,6 +58,9 @@ struct RocblasContractionProblem
     size_t    ld_d     = ld_c;
     size_t    stride_d = stride_c;
     size_t    batch_count;
+
+    // Functions to print RocblasContractionProblem out to stream in YAML format
+    friend rocblas_ostream& operator<<(rocblas_ostream& os, const RocblasContractionProblem& prob);
 
     // gemm
     // gemm_strided_batched
@@ -152,90 +150,53 @@ struct RocblasContractionProblem
     {
     }
 
-    // print_value is for formatting different data types
-
-    // Default output
-    template <typename T>
-    static void print_value(std::ostream& str, const T& x)
+    /***************************************************
+     * Print a RocblasContractionProblem for debugging *
+     ***************************************************/
+    friend rocblas_ostream& operator<<(rocblas_ostream& os, const RocblasContractionProblem& prob)
     {
-        str << x;
-    }
-
-    // Floating-point output
-    static void print_value(std::ostream& str, double x)
-    {
-        if(std::isnan(x))
-            str << ".nan";
-        else if(std::isinf(x))
-            str << (x < 0 ? "-.inf" : ".inf");
-        else
-        {
-            char s[32];
-            snprintf(s, sizeof(s) - 2, "%.17g", x);
-
-            // If no decimal point or exponent, append .0
-            char* end = s + strcspn(s, ".eE");
-            if(!*end)
-                strcat(end, ".0");
-            str << s;
-        }
-    }
-
-    // Character output
-    static void print_value(std::ostream& str, char c)
-    {
-        char s[]{c, 0};
-        str << std::quoted(s, '\'');
-    }
-
-    // bool output
-    static void print_value(std::ostream& str, bool b)
-    {
-        str << (b ? "true" : "false");
-    }
-
-    // string output
-    static void print_value(std::ostream& str, const char* s)
-    {
-        str << std::quoted(s);
-    }
-
-    // Function to print Arguments out to stream in YAML format
-    friend std::ostream& operator<<(std::ostream& str, const RocblasContractionProblem& prob)
-    {
-        // delim starts as '{' opening brace and becomes ',' afterwards
-        auto print = [&, delim = '{'](const char* name, auto x) mutable {
-            str << delim << " " << name << ": ";
-            print_value(str, x);
-            delim = ',';
-        };
-
-#define PRINT(name, value) print(#name, value)
-
-        PRINT(a_type, rocblas_precision_string<Ti>);
-        PRINT(b_type, rocblas_precision_string<Ti>);
-        PRINT(c_type, rocblas_precision_string<To>);
-        PRINT(d_type, rocblas_precision_string<To>);
-        PRINT(compute_type, rocblas_precision_string<Tc>);
-        PRINT(transA, rocblas_transpose_letter(prob.trans_a));
-        PRINT(transB, rocblas_transpose_letter(prob.trans_b));
-        PRINT(M, prob.m);
-        PRINT(N, prob.n);
-        PRINT(K, prob.k);
-        PRINT(lda, prob.ld_a);
-        PRINT(ldb, prob.ld_b);
-        PRINT(ldc, prob.ld_c);
-        PRINT(ldd, prob.ld_d);
-        PRINT(beta, value_category(prob.beta));
-        PRINT(batch_count, prob.batch_count);
-        PRINT(stride_a, prob.stride_a);
-        PRINT(stride_b, prob.stride_b);
-        PRINT(stride_c, prob.stride_c);
-        PRINT(stride_d, prob.stride_d);
-
-#undef PRINT
-        str << " }\n";
-        return str;
+        return tuple_helper::print_tuple_pairs(
+            os,
+            std::make_tuple("a_type",
+                            rocblas_precision_string<Ti>,
+                            "b_type",
+                            rocblas_precision_string<Ti>,
+                            "c_type",
+                            rocblas_precision_string<To>,
+                            "d_type",
+                            rocblas_precision_string<To>,
+                            "compute_type",
+                            rocblas_precision_string<Tc>,
+                            "transA",
+                            rocblas_transpose_letter(prob.trans_a),
+                            "transB",
+                            rocblas_transpose_letter(prob.trans_b),
+                            "M",
+                            prob.m,
+                            "N",
+                            prob.n,
+                            "K",
+                            prob.k,
+                            "lda",
+                            prob.ld_a,
+                            "ldb",
+                            prob.ld_b,
+                            "ldc",
+                            prob.ld_c,
+                            "ldd",
+                            prob.ld_d,
+                            "beta",
+                            value_category(prob.beta),
+                            "batch_count",
+                            prob.batch_count,
+                            "stride_a",
+                            prob.stride_a,
+                            "stride_b",
+                            prob.stride_b,
+                            "stride_c",
+                            prob.stride_c,
+                            "stride_d",
+                            prob.stride_d));
     }
 };
 

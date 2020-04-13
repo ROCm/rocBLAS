@@ -4,8 +4,6 @@ include: known_bugs.yaml
 
 Definitions:
   - &small_matrix_size_range
-    - { N:    -1 }
-    - { N:     0 }
     - { N:     1 }
     - { N:     4 }
     - { N:    10 }
@@ -13,6 +11,14 @@ Definitions:
     - { N:    16 }
     - { N:    33 }
     - { N:    65 }
+
+  - &special_case_range
+    - { N: 0, incx: 1, batch_count: 1 }
+    - { N: 1, incx: 1, batch_count: 0 }
+
+    - { N: -1, incx: 1, batch_count:  0 }
+    - { N:  0, incx: 0, batch_count:  0 }
+    - { N:  0, incx: 1, batch_count: -1 }
 
   - &medium_matrix_size_range
     - { N:  1000 }
@@ -41,13 +47,22 @@ Tests:
   - hpr_batched_bad_arg: *single_double_precisions_complex
   - hpr_strided_batched_bad_arg: *single_double_precisions_complex
 
+- name: hpr_arg_check
+  category: quick
+  function:
+  - hpr: *single_double_precisions_complex
+  - hpr_batched: *single_double_precisions_complex
+  - hpr_strided_batched: *single_double_precisions_complex
+  uplo: L
+  matrix_size: *special_case_range
+
 - name: hpr_small
   category: quick
   function: hpr
   precision: *single_double_precisions_complex
   uplo: [ U, L ]
   matrix_size: *small_matrix_size_range
-  incx: [ -1, 1, 0, 2, -2, 99 ]
+  incx: [ -1, 1, 2, -2, 99 ]
   alpha_beta: *alpha_range
 
 - name: hpr_medium
@@ -56,7 +71,7 @@ Tests:
   precision: *single_double_precisions_complex
   uplo: [ U, L ]
   matrix_size: *medium_matrix_size_range
-  incx: [ 0, 2, -2 ]
+  incx: [ 2, -2 ]
   alpha_beta: *alpha_range
 
 - name: hpr_large
@@ -76,9 +91,9 @@ Tests:
   precision: *single_double_precisions_complex
   uplo: [ U, L ]
   matrix_size: *small_matrix_size_range
-  incx: [ -1, 1, 0, 2, -2, 99 ]
+  incx: [ -1, 1, 2, -2, 99 ]
   alpha_beta: *alpha_range
-  batch_count: [ -1, 0, 1, 5 ]
+  batch_count: [ 1, 5 ]
 
 - name: hpr_batched_medium
   category: pre_checkin
@@ -108,10 +123,10 @@ Tests:
   precision: *single_double_precisions_complex
   uplo: [ U, L ]
   matrix_size: *small_matrix_size_range
-  incx: [ -1, 1, 0, 2, -2, 99 ]
+  incx: [ -1, 1, 2, -2, 99 ]
   alpha_beta: *alpha_range
   stride_scale: [ 1.0, 2.5 ]
-  batch_count: [ -1, 0, 1, 5 ]
+  batch_count: [ 1, 5 ]
 
 - name: hpr_strided_batched_medium
   category: pre_checkin

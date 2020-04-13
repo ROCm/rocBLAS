@@ -78,7 +78,6 @@ if( BUILD_WITH_TENSILE )
     # Create a unique name for Tensile compiled for rocBLAS
     set_target_properties( Tensile PROPERTIES OUTPUT_NAME tensile-rocblas CXX_EXTENSIONS NO )
 
-    target_compile_features( Tensile PRIVATE cxx_static_assert cxx_nullptr cxx_auto_type )
     # Remove this check when we no longer build with older rocm stack(ie < 1.8.2)
     if(TARGET hip::device)
       target_link_libraries( Tensile PRIVATE hip::device )
@@ -143,7 +142,6 @@ if( BUILD_WITH_TENSILE )
     blas3/rocblas_trtri.cpp
     blas3/rocblas_trtri_batched.cpp
     blas3/rocblas_trtri_strided_batched.cpp
-    blas3/rocblas_geam.cpp
     ${Tensile_SRC}
   )
 
@@ -156,6 +154,12 @@ if( BUILD_WITH_TENSILE )
 endif( ) # BUILD_WITH_TENSILE
 
 set( rocblas_blas3_source_no_tensile
+    blas3/rocblas_geam.cpp
+    blas3/rocblas_geam_batched.cpp
+    blas3/rocblas_geam_strided_batched.cpp
+    blas3/rocblas_hemm.cpp
+    blas3/rocblas_hemm_batched.cpp
+    blas3/rocblas_hemm_strided_batched.cpp
     blas3/rocblas_herk.cpp
     blas3/rocblas_herk_batched.cpp
     blas3/rocblas_herk_strided_batched.cpp
@@ -165,6 +169,9 @@ set( rocblas_blas3_source_no_tensile
     blas3/rocblas_herkx.cpp
     blas3/rocblas_herkx_batched.cpp
     blas3/rocblas_herkx_strided_batched.cpp
+    blas3/rocblas_symm.cpp
+    blas3/rocblas_symm_batched.cpp
+    blas3/rocblas_symm_strided_batched.cpp
     blas3/rocblas_syrk.cpp
     blas3/rocblas_syrk_batched.cpp
     blas3/rocblas_syrk_strided_batched.cpp
@@ -187,6 +194,9 @@ set( rocblas_blas2_source
   blas2/rocblas_gbmv.cpp
   blas2/rocblas_gbmv_batched.cpp
   blas2/rocblas_gbmv_strided_batched.cpp
+  blas2/rocblas_tbsv.cpp
+  blas2/rocblas_tbsv_batched.cpp
+  blas2/rocblas_tbsv_strided_batched.cpp
   blas2/rocblas_trmv.cpp
   blas2/rocblas_trmv_batched.cpp
   blas2/rocblas_trmv_strided_batched.cpp
@@ -247,6 +257,7 @@ set( rocblas_auxiliary_source
   handle.cpp
   rocblas_auxiliary.cpp
   buildinfo.cpp
+  rocblas_ostream.cpp
 )
 
 set( rocblas_blas1_source
@@ -319,8 +330,6 @@ endif()
 
 set_target_properties( rocblas PROPERTIES CXX_STANDARD 14 CXX_STANDARD_REQUIRED ON )
 
-target_compile_definitions( rocblas PRIVATE ROCBLAS_LIBRARY_CHECKS )
-
 if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
   # Remove following when hcc is fixed; hcc emits following spurious warning ROCm v1.6.1
   # "clang-5.0: warning: argument unused during compilation: '-isystem /opt/rocm/include'"
@@ -329,6 +338,9 @@ if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
     target_compile_options( rocblas PRIVATE --amdgpu-target=${target} )
   endforeach( )
 endif( )
+
+# Do not allow Variable Length Arrays (use unique_ptr instead)
+target_compile_options( rocblas PRIVATE -Werror=vla )
 
 target_include_directories( rocblas
   PUBLIC  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/library/include>
@@ -363,6 +375,15 @@ set_target_properties( rocblas PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BI
 include( GenerateExportHeader )
 set_target_properties( rocblas PROPERTIES CXX_VISIBILITY_PRESET "hidden" VISIBILITY_INLINES_HIDDEN ON )
 generate_export_header( rocblas EXPORT_FILE_NAME ${PROJECT_BINARY_DIR}/include/rocblas-export.h )
+
+# generate header with prototypes for export reuse
+set( ROCBLAS_PROTO_TEMPLATES "${PROJECT_BINARY_DIR}/include/rocblas-exported-proto.hpp" )
+add_custom_command( TARGET rocblas PRE_BUILD
+  COMMAND python template-proto.py ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/*.hpp ${CMAKE_CURRENT_SOURCE_DIR}/blas3/*.hpp ${CMAKE_CURRENT_SOURCE_DIR}/blas2/*.hpp ${CMAKE_CURRENT_SOURCE_DIR}/blas1/*.hpp > ${ROCBLAS_PROTO_TEMPLATES}
+  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}
+  COMMENT "Generating prototypes from ${CMAKE_CURRENT_SOURCE_DIR}."
+  WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+)
 
 # Following Boost conventions of prefixing 'lib' on static built libraries, across all platforms
 if( NOT BUILD_SHARED_LIBS )

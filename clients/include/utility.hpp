@@ -8,7 +8,6 @@
 #include "cblas_interface.hpp"
 #include "logging.h"
 #include "rocblas.h"
-#include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
 #include "utility.h"
 #include <cstdio>
@@ -21,7 +20,46 @@
  * \brief provide common utilities
  */
 
-// Passed into gtest's SUCCEED macro when skipping a test.
+// We use rocblas_cout and rocblas_cerr instead of std::cout, std::cerr, stdout and stderr,
+// for thread-safe IO.
+//
+// All stdio and std::ostream functions related to stdout and stderr are poisoned, as are
+// functions which can create buffer overflows, or which are inherently thread-unsafe.
+//
+// This must come after the header #includes above, to avoid poisoning system headers.
+//
+// This is only enabled for rocblas-test and rocblas-bench.
+//
+// If you are here because of a poisoned identifier error, here is the rationale for each
+// included identifier:
+//
+// cout, stdout: rocblas_cout should be used instead, for thread-safe and atomic line buffering
+// cerr, stderr: rocblas_cerr should be used instead, for thread-safe and atomic line buffering
+// clog: C++ stream which should not be used
+// gets: Always unsafe; buffer-overflows; removed from later versions of the language; use fgets
+// puts, putchar, fputs, printf, fprintf, vprintf, vfprintf: Use rocblas_cout or rocblas_cerr
+// sprintf, vsprintf: Possible buffer overflows; us snprintf or vsnprintf instead
+// strerror: Thread-unsafe; use snprintf / dprintf with %m or strerror_* alternatives
+// strtok: Thread-unsafe; use strtok_r
+// gmtime, ctime, asctime, localtime: Thread-unsafe
+// tmpnam: Thread-unsafe; use mkstemp or related functions instead
+// putenv: Use setenv instead
+// clearenv, fcloseall, ecvt, fcvt: Miscellaneous thread-unsafe functions
+// sleep: Might interact with signals by using alarm(); use nanosleep() instead
+// abort: Does not abort as cleanly as rocblas_abort, and can be caught by a signal handler
+
+#if defined(GOOGLE_TEST) || defined(ROCBLAS_BENCH)
+#undef stdout
+#undef stderr
+#pragma GCC poison cout cerr clog stdout stderr gets puts putchar fputs fprintf printf sprintf    \
+    vfprintf vprintf vsprintf perror strerror strtok gmtime ctime asctime localtime tmpnam putenv \
+        clearenv fcloseall ecvt fcvt sleep abort
+#else
+// Suppress warnings about hipMalloc(), hipFree() except in rocblas-test and rocblas-bench
+#undef hipMalloc
+#undef hipFree
+#endif
+
 static constexpr char LIMITED_MEMORY_STRING[]
     = "Error: Attempting to allocate more memory than available.";
 
@@ -79,51 +117,6 @@ double get_time_us_sync(hipStream_t stream);
 // Return path of this executable
 std::string rocblas_exepath();
 
-class rocblas_print_helper
-{
-public:
-    /************************************************************************************
-     * Print values
-     ************************************************************************************/
-    // Default output
-    template <typename T>
-    static void print_value(std::ostream& os, const T& x)
-    {
-        os << x;
-    }
-
-    // Floating-point output
-    static void print_value(std::ostream& os, double x)
-    {
-        if(std::isnan(x))
-            os << ".nan";
-        else if(std::isinf(x))
-            os << (x < 0 ? "-.inf" : ".inf");
-        else
-        {
-            char s[32];
-            snprintf(s, sizeof(s) - 2, "%.17g", x);
-
-            // If no decimal point or exponent, append .0
-            char* end = s + strcspn(s, ".eE");
-            if(!*end)
-                strcpy(end, ".0");
-            os << s;
-        }
-    }
-
-    // Complex output
-    template <typename T>
-    static void print_value(std::ostream& os, const rocblas_complex_num<T>& x)
-    {
-        os << "'(";
-        print_value(os, std::real(x));
-        os << ",";
-        print_value(os, std::imag(x));
-        os << ")'";
-    }
-};
-
 /* ============================================================================================ */
 /*! \brief  Debugging purpose, print out CPU and GPU result matrix, not valid in complex number  */
 template <typename T>
@@ -133,33 +126,81 @@ inline void rocblas_print_matrix(
     for(size_t i = 0; i < m; i++)
         for(size_t j = 0; j < n; j++)
         {
-            printf("matrix  col %d, row %d, CPU result=%f, GPU result=%f\n",
-                   i,
-                   j,
-                   CPU_result[j + i * lda],
-                   GPU_result[j + i * lda]);
+            rocblas_cout << "matrix  col " << i << ", row " << j
+                         << ", CPU result=" << CPU_result[j + i * lda]
+                         << ", GPU result=" << GPU_result[j + i * lda] << "\n";
         }
 }
 
 template <typename T>
-void rocblas_print_matrix(const char* name, T* A, rocblas_int m, rocblas_int n, rocblas_int lda)
+void rocblas_print_matrix(const char* name, T* A, size_t m, size_t n, size_t lda)
 {
-    printf("---------- %s ----------\n", name);
-    for(int i = 0; i < m; i++)
+    rocblas_cout << "---------- " << name << " ----------\n";
+    for(size_t i = 0; i < m; i++)
+    {
+        for(size_t j = 0; j < n; j++)
+            rocblas_cout << A[i + j * lda] << " ";
+        rocblas_cout << std::endl;
+    }
+}
+
+/* ============================================================================= */
+/*! \brief For testing purposes, to convert a regular matrix to a banded matrix. */
+template <typename T>
+inline void regular_to_banded(
+    bool upper, const T* A, rocblas_int lda, T* AB, rocblas_int ldab, rocblas_int n, rocblas_int k)
+{
+    // convert regular hA matrix to banded hAB matrix
+    for(int j = 0; j < n; j++)
+    {
+        rocblas_int min1 = upper ? std::max(0, j - k) : j;
+        rocblas_int max1 = upper ? j : std::min(n - 1, j + k);
+        rocblas_int m    = upper ? k - j : -j;
+
+        // Move bands of hA into new banded hAB format.
+        for(int i = min1; i <= max1; i++)
+            AB[j * ldab + (m + i)] = A[j * lda + i];
+
+        min1 = upper ? k + 1 : std::min(k + 1, n - j);
+        max1 = ldab - 1;
+
+        // fill in bottom with random data to ensure we aren't using it.
+        // for !upper, fill in bottom right triangle as well.
+        for(int i = min1; i <= max1; i++)
+            rocblas_init<T>(AB + j * ldab + i, 1, 1, 1);
+
+        // for upper, fill in top left triangle with random data to ensure
+        // we aren't using it.
+        if(upper)
+        {
+            for(int i = 0; i < m; i++)
+                rocblas_init<T>(AB + j * ldab + i, 1, 1, 1);
+        }
+    }
+}
+
+/* =============================================================================== */
+/*! \brief For testing purposes, zeros out elements not needed in a banded matrix. */
+template <typename T>
+inline void banded_matrix_setup(bool upper, T* A, rocblas_int lda, rocblas_int n, rocblas_int k)
+{
+    // Made A a banded matrix with k sub/super-diagonals
+    for(int i = 0; i < n; i++)
     {
         for(int j = 0; j < n; j++)
         {
-            rocblas_print_helper::print_value(std::cout, A[i + j * lda]);
-            printf(" ");
+            if(upper && (j > k + i || i > j))
+                A[j * n + i] = T(0);
+            else if(!upper && (i > k + j || j > i))
+                A[j * n + i] = T(0);
         }
-        printf("\n");
     }
 }
 
 /* ============================================================================================= */
 /*! \brief For testing purposes, to convert a regular matrix to a packed matrix.                  */
 template <typename T>
-inline void pack_matrix(bool upper, const T* A, T* AP, rocblas_int n)
+inline void regular_to_packed(bool upper, const T* A, T* AP, rocblas_int n)
 {
     int index = 0;
     if(upper)
@@ -181,39 +222,6 @@ inline void pack_matrix(bool upper, const T* A, T* AP, rocblas_int n)
                 AP[index++] = A[j + i * n];
             }
         }
-    }
-}
-
-template <typename T>
-inline void
-    regular_to_packed(bool upper, const host_vector<T>& A, host_vector<T>& AP, rocblas_int n)
-{
-    pack_matrix(upper, (const T*)A, (T*)AP, n);
-}
-
-template <typename T>
-inline void regular_to_packed(bool                        upper,
-                              const host_batch_vector<T>& A,
-                              host_batch_vector<T>&       AP,
-                              rocblas_int                 n,
-                              rocblas_int                 batch_count)
-{
-    for(int b = 0; b < batch_count; b++)
-    {
-        pack_matrix(upper, (const T*)(A[b]), (T*)(AP[b]), n);
-    }
-}
-
-template <typename T>
-inline void regular_to_packed(bool                                upper,
-                              const host_strided_batch_vector<T>& A,
-                              host_strided_batch_vector<T>&       AP,
-                              rocblas_int                         n,
-                              rocblas_int                         batch_count)
-{
-    for(int b = 0; b < batch_count; b++)
-    {
-        pack_matrix(upper, (const T*)(A[b]), (T*)(AP[b]), n);
     }
 }
 
@@ -298,7 +306,7 @@ void print_strided_batched(const char* name,
 {
     // n1, n2, n3 are matrix dimensions, sometimes called m, n, batch_count
     // s1, s1, s3 are matrix strides, sometimes called 1, lda, stride_a
-    printf("---------- %s ----------\n", name);
+    rocblas_cout << "---------- " << name << " ----------\n";
     int max_size = 8;
 
     for(int i3 = 0; i3 < n3 && i3 < max_size; i3++)
@@ -307,14 +315,14 @@ void print_strided_batched(const char* name,
         {
             for(int i2 = 0; i2 < n2 && i2 < max_size; i2++)
             {
-                rocblas_print_helper::print_value(std::cout, A[(i1 * s1) + (i2 * s2) + (i3 * s3)]);
-                printf("|");
+                rocblas_cout << A[(i1 * s1) + (i2 * s2) + (i3 * s3)] << "|";
             }
-            printf("\n");
+            rocblas_cout << "\n";
         }
         if(i3 < (n3 - 1) && i3 < (max_size - 1))
-            printf("\n");
+            rocblas_cout << "\n";
     }
+    rocblas_cout << std::flush;
 }
 
 #endif

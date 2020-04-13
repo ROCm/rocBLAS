@@ -130,28 +130,22 @@ void testing_swap_strided_batched(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            for(int i = 0; i < batch_count; i++)
-            {
-                unit_check_general<T>(1, N, abs_incx, hx_gold + i * stridex, hx + i * stridex);
-                unit_check_general<T>(1, N, abs_incy, hy_gold + i * stridey, hy + i * stridey);
-            }
+            unit_check_general<T>(1, N, abs_incx, stridex, hx_gold, hx, batch_count);
+            unit_check_general<T>(1, N, abs_incy, stridey, hy_gold, hy, batch_count);
         }
 
         if(arg.norm_check)
         {
-            for(int i = 0; i < batch_count; i++)
-            {
-                rocblas_error = norm_check_general<T>(
-                    'F', 1, N, abs_incx, hx_gold + i * stridex, hx + i * stridex);
-                rocblas_error = norm_check_general<T>(
-                    'F', 1, N, abs_incy, hy_gold + i * stridey, hy + i * stridey);
-            }
+            rocblas_error
+                = norm_check_general<T>('F', 1, N, abs_incx, stridex, hx_gold, hx, batch_count);
+            rocblas_error
+                = norm_check_general<T>('F', 1, N, abs_incy, stridey, hy_gold, hy, batch_count);
         }
     }
 
     if(arg.timing)
     {
-        int number_cold_calls = 2;
+        int number_cold_calls = arg.cold_iters;
         int number_hot_calls  = arg.iters;
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
@@ -171,8 +165,8 @@ void testing_swap_strided_batched(const Arguments& arg)
 
         gpu_time_used = (get_time_us() - gpu_time_used) / number_hot_calls;
 
-        std::cout << "N,incx,incy,stride_x,stride_y,batch_count,rocblas-us" << std::endl;
-        std::cout << N << "," << incx << "," << incy << "," << stridex << "," << stridey << ","
-                  << batch_count << "," << gpu_time_used << std::endl;
+        rocblas_cout << "N,incx,incy,stride_x,stride_y,batch_count,rocblas-us" << std::endl;
+        rocblas_cout << N << "," << incx << "," << incy << "," << stridex << "," << stridey << ","
+                     << batch_count << "," << gpu_time_used << std::endl;
     }
 }

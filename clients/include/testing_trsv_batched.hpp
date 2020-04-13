@@ -37,37 +37,14 @@ void testing_trsv_batched(const Arguments& arg)
     rocblas_local_handle handle;
 
     // check here to prevent undefined memory allocation error
-    if(M < 0 || lda < M || !incx || batch_count <= 0)
+    bool invalid_size = M < 0 || lda < M || lda < 1 || !incx || batch_count < 0;
+    if(invalid_size || !M || !batch_count)
     {
-        device_batch_vector<T> dA(1, 1, 1);
-        device_batch_vector<T> dx_or_b(1, 1, 1);
-        CHECK_DEVICE_ALLOCATION(dA.memcheck());
-        CHECK_DEVICE_ALLOCATION(dx_or_b.memcheck());
-
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        if(batch_count == 0)
-            CHECK_ROCBLAS_ERROR(rocblas_trsv_batched<T>(handle,
-                                                        uplo,
-                                                        transA,
-                                                        diag,
-                                                        M,
-                                                        dA.ptr_on_device(),
-                                                        lda,
-                                                        dx_or_b.ptr_on_device(),
-                                                        incx,
-                                                        batch_count));
-        else
-            EXPECT_ROCBLAS_STATUS(rocblas_trsv_batched<T>(handle,
-                                                          uplo,
-                                                          transA,
-                                                          diag,
-                                                          M,
-                                                          dA.ptr_on_device(),
-                                                          lda,
-                                                          dx_or_b.ptr_on_device(),
-                                                          incx,
-                                                          batch_count),
-                                  rocblas_status_invalid_size);
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_trsv_batched<T>(
+                handle, uplo, transA, diag, M, nullptr, lda, nullptr, incx, batch_count),
+            invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
         return;
     }
 
@@ -247,7 +224,7 @@ void testing_trsv_batched(const Arguments& arg)
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
-        int number_cold_calls = 2;
+        int number_cold_calls = arg.cold_iters;
         int number_hot_calls  = arg.iters;
 
         for(int i = 0; i < number_cold_calls; i++)
@@ -291,21 +268,21 @@ void testing_trsv_batched(const Arguments& arg)
         cblas_gflops  = batch_count * trsv_gflop_count<T>(M) / cpu_time_used * 1e6;
 
         // only norm_check return an norm error, unit check won't return anything
-        std::cout << "M,lda,incx,uplo,transA,diag,batch_count,rocblas-Gflops,us";
+        rocblas_cout << "M,lda,incx,uplo,transA,diag,batch_count,rocblas-Gflops,us";
 
         if(arg.norm_check)
-            std::cout << ",CPU-Gflops,us,norm_error_host_ptr,norm_error_dev_ptr";
+            rocblas_cout << ",CPU-Gflops,us,norm_error_host_ptr,norm_error_dev_ptr";
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
 
-        std::cout << M << ',' << lda << ',' << incx << ',' << char_uplo << ',' << char_transA << ','
-                  << char_diag << ',' << batch_count << ',' << rocblas_gflops << ","
-                  << gpu_time_used / number_hot_calls;
+        rocblas_cout << M << ',' << lda << ',' << incx << ',' << char_uplo << ',' << char_transA
+                     << ',' << char_diag << ',' << batch_count << ',' << rocblas_gflops << ","
+                     << gpu_time_used / number_hot_calls;
 
         if(arg.norm_check)
-            std::cout << "," << cblas_gflops << "," << cpu_time_used << "," << max_err_1 << ","
-                      << max_err_2;
+            rocblas_cout << "," << cblas_gflops << "," << cpu_time_used << "," << max_err_1 << ","
+                         << max_err_2;
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
     }
 }

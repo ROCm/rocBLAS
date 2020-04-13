@@ -66,20 +66,13 @@ void testing_trmv(const Arguments& arg)
     rocblas_diagonal     diag   = char2rocblas_diagonal(char_diag);
     rocblas_local_handle handle;
 
-    if(M < 0 || lda < M || lda < 1 || !incx)
+    bool invalid_size = M < 0 || lda < M || lda < 1 || !incx;
+    if(invalid_size || !M)
     {
         EXPECT_ROCBLAS_STATUS(
             rocblas_trmv<T>(handle, uplo, transA, diag, M, nullptr, lda, nullptr, incx),
-            rocblas_status_invalid_size);
+            invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
 
-        return;
-    }
-
-    if(M == 0)
-    {
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_trmv<T>(handle, uplo, transA, diag, M, nullptr, lda, nullptr, incx),
-            rocblas_status_success);
         return;
     }
 
@@ -162,7 +155,7 @@ void testing_trmv(const Arguments& arg)
         // Warmup
         //
         {
-            int number_cold_calls = 2;
+            int number_cold_calls = arg.cold_iters;
             for(int iter = 0; iter < number_cold_calls; iter++)
             {
                 rocblas_trmv<T>(handle, uplo, transA, diag, M, dA, lda, dx, incx);
@@ -191,22 +184,22 @@ void testing_trmv(const Arguments& arg)
         //
         // Display.
         //
-        std::cout << "M,lda,incx,uplo,transA,diag,rocblas-Gflops,rocblas-GB/s,";
+        rocblas_cout << "M,lda,incx,uplo,transA,diag,rocblas-Gflops,rocblas-GB/s,";
         if(arg.norm_check)
         {
-            std::cout << "CPU-Gflops,norm_error";
+            rocblas_cout << "CPU-Gflops,norm_error";
         }
-        std::cout << std::endl;
-        std::cout << M << "," << lda << "," << incx << "," << incx << "," << incx << "," << incx
-                  << "," << char_uplo << ',' << char_transA << ',' << char_diag << ','
-                  << rocblas_gflops << "," << rocblas_bandwidth << ",";
+        rocblas_cout << std::endl;
+        rocblas_cout << M << "," << lda << "," << incx << "," << incx << "," << incx << "," << incx
+                     << "," << char_uplo << ',' << char_transA << ',' << char_diag << ','
+                     << rocblas_gflops << "," << rocblas_bandwidth << ",";
 
         if(arg.norm_check)
         {
-            std::cout << cblas_gflops << ',';
-            std::cout << rocblas_error;
+            rocblas_cout << cblas_gflops << ',';
+            rocblas_cout << rocblas_error;
         }
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
     }
 }

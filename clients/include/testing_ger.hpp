@@ -2,6 +2,7 @@
  * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+#include "bytes.hpp"
 #include "cblas_interface.hpp"
 #include "flops.hpp"
 #include "near.hpp"
@@ -72,7 +73,7 @@ void testing_ger(const Arguments& arg)
     {
         EXPECT_ROCBLAS_STATUS(
             (rocblas_ger<T, CONJ>(
-                handle, M, N, &h_alpha, nullptr, incx, nullptr, incy, nullptr, lda)),
+                handle, M, N, nullptr, nullptr, incx, nullptr, incy, nullptr, lda)),
             rocblas_status_invalid_size);
 
         return;
@@ -178,7 +179,7 @@ void testing_ger(const Arguments& arg)
 
     if(arg.timing)
     {
-        int number_cold_calls = 2;
+        int number_cold_calls = arg.cold_iters;
         int number_hot_calls  = arg.iters;
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
@@ -194,24 +195,25 @@ void testing_ger(const Arguments& arg)
             rocblas_ger<T, CONJ>(handle, M, N, &h_alpha, dx, incx, dy, incy, dA_1, lda);
         }
 
-        gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;
+        gpu_time_used = (get_time_us() - gpu_time_used) / number_hot_calls;
+
         rocblas_gflops    = ger_gflop_count<T, CONJ>(M, N) / gpu_time_used * 1e6;
-        rocblas_bandwidth = (2.0 * M * N) * sizeof(T) / gpu_time_used / 1e3;
+        rocblas_bandwidth = ger_gbyte_count<T>(M, N) / gpu_time_used * 1e6;
 
         // only norm_check return an norm error, unit check won't return anything
-        std::cout << "M,N,alpha,incx,incy,lda,rocblas-Gflops,rocblas-GB/s";
+        rocblas_cout << "M,N,alpha,incx,incy,lda,rocblas-Gflops,rocblas-GB/s,rocblas-us";
 
         if(arg.norm_check)
-            std::cout << ",CPU-Gflops,norm_error_host_ptr,norm_error_dev_ptr";
+            rocblas_cout << ",CPU-Gflops,norm_error_host_ptr,norm_error_dev_ptr";
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
 
-        std::cout << M << "," << N << "," << h_alpha << "," << incx << "," << incy << "," << lda
-                  << "," << rocblas_gflops << "," << rocblas_bandwidth;
+        rocblas_cout << M << "," << N << "," << h_alpha << "," << incx << "," << incy << "," << lda
+                     << "," << rocblas_gflops << "," << rocblas_bandwidth << "," << gpu_time_used;
 
         if(arg.norm_check)
-            std::cout << "," << cblas_gflops << "," << rocblas_error_1 << "," << rocblas_error_2;
+            rocblas_cout << "," << cblas_gflops << "," << rocblas_error_1 << "," << rocblas_error_2;
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
     }
 }

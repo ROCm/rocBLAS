@@ -78,7 +78,8 @@ void testing_tpmv_strided_batched(const Arguments& arg)
     rocblas_local_handle handle;
 
     // argument sanity check before allocating invalid memory
-    if(M < 0 || !incx || batch_count < 0)
+    bool invalid_size = M < 0 || !incx || batch_count < 0;
+    if(invalid_size || !M || !batch_count)
     {
         EXPECT_ROCBLAS_STATUS(rocblas_tpmv_strided_batched<T>(handle,
                                                               uplo,
@@ -91,25 +92,8 @@ void testing_tpmv_strided_batched(const Arguments& arg)
                                                               incx,
                                                               stride_x,
                                                               batch_count),
-                              rocblas_status_invalid_size);
+                              invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
 
-        return;
-    }
-
-    if(!M || !batch_count)
-    {
-        EXPECT_ROCBLAS_STATUS(rocblas_tpmv_strided_batched<T>(handle,
-                                                              uplo,
-                                                              transA,
-                                                              diag,
-                                                              M,
-                                                              nullptr,
-                                                              stride_a,
-                                                              nullptr,
-                                                              incx,
-                                                              stride_x,
-                                                              batch_count),
-                              rocblas_status_success);
         return;
     }
 
@@ -177,7 +161,7 @@ void testing_tpmv_strided_batched(const Arguments& arg)
         //
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, M, batch_count, abs_incx, stride_x, hx, hres);
+            unit_check_general<T>(1, M, abs_incx, stride_x, hx, hres, batch_count);
         }
 
         //
@@ -186,7 +170,7 @@ void testing_tpmv_strided_batched(const Arguments& arg)
         if(arg.norm_check)
         {
             rocblas_error
-                = norm_check_general<T>('F', 1, M, batch_count, abs_incx, stride_x, hx, hres);
+                = norm_check_general<T>('F', 1, M, abs_incx, stride_x, hx, hres, batch_count);
         }
     }
 
@@ -197,7 +181,7 @@ void testing_tpmv_strided_batched(const Arguments& arg)
         // Warmup
         //
         {
-            int number_cold_calls = 2;
+            int number_cold_calls = arg.cold_iters;
             for(int iter = 0; iter < number_cold_calls; iter++)
             {
                 rocblas_tpmv_strided_batched<T>(
@@ -229,21 +213,21 @@ void testing_tpmv_strided_batched(const Arguments& arg)
         //
         // Display.
         //
-        std::cout << "M,stride_a,incx,stride_x,batch_count, "
-                     "uplo,transA,diag,rocblas-Gflops,rocblas-GB/s,";
+        rocblas_cout << "M,stride_a,incx,stride_x,batch_count, "
+                        "uplo,transA,diag,rocblas-Gflops,rocblas-GB/s,";
         if(arg.norm_check)
         {
-            std::cout << "CPU-Gflops,norm_error";
+            rocblas_cout << "CPU-Gflops,norm_error";
         }
-        std::cout << std::endl;
-        std::cout << M << "," << stride_a << "," << incx << "," << stride_x << "," << batch_count
-                  << "," << char_uplo << ',' << char_transA << ',' << char_diag << ','
-                  << rocblas_gflops << "," << rocblas_bandwidth << ",";
+        rocblas_cout << std::endl;
+        rocblas_cout << M << "," << stride_a << "," << incx << "," << stride_x << "," << batch_count
+                     << "," << char_uplo << ',' << char_transA << ',' << char_diag << ','
+                     << rocblas_gflops << "," << rocblas_bandwidth << ",";
         if(arg.norm_check)
         {
-            std::cout << cblas_gflops << ',';
-            std::cout << rocblas_error;
+            rocblas_cout << cblas_gflops << ',';
+            rocblas_cout << rocblas_error;
         }
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
     }
 }

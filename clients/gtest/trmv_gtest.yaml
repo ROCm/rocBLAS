@@ -13,6 +13,16 @@ Definitions:
     - { M:    10, lda:    2, stride_a:      20 }
     - { M:   100, lda:  200, stride_a:    40000 }
 
+  - &special_case_range
+    - { M: 0, lda: 1, incx: 1, batch_count: 1, stride_a: 1 }
+    - { M: 1, lda: 1, incx: 1, batch_count: 0, stride_a: 1 }
+
+    - { M: -1, lda: 1, incx: 1, batch_count:  0, stride_a: 1 }
+    - { M:  0, lda: 0, incx: 1, batch_count:  0, stride_a: 1 }
+    - { M:  2, lda: 1, incx: 1, batch_count:  0, stride_a: 1 }
+    - { M:  0, lda: 1, incx: 0, batch_count:  0, stride_a: 1 }
+    - { M:  0, lda: 1, incx: 1, batch_count: -1, stride_a: 1 }
+
   - &medium_matrix_size_range
     - { M:   300, lda:  400, stride_a:   160000 }
     - { M:   600, lda:  601, stride_a:   400000 }
@@ -24,7 +34,10 @@ Definitions:
     - { M:  8000, lda: 8000, stride_a: 64000000 }
 
   - &incx_range
-    - [2, -2,1,-1,0,3,10]
+    - [2, -2, 1, -1, 3, 10]
+
+  - &incx_range_small
+    - [ 2 ]
 
 
 Tests:
@@ -36,6 +49,16 @@ Tests:
   transA: [N, T, C]
   diag: [N, U]
 
+- name: trmv_arg_check
+  category: quick
+  function:
+  - trmv: *single_double_precisions
+  - trmv_batched: *single_double_precisions
+  - trmv_strided_batched: *single_double_precisions
+  uplo: L
+  transA: N
+  diag: N
+  matrix_size: *special_case_range
 
 - name: trmv_small
   category: quick
@@ -65,7 +88,7 @@ Tests:
   transA: [  N, T, C ]
   diag: [N, U]
   matrix_size: *large_matrix_size_range
-  incx: *incx_range
+  incx: *incx_range_small
 
 - name: trmv_batched_bad_arg
   category: pre_checkin
@@ -105,7 +128,7 @@ Tests:
   transA: [N, T, C]
   diag: [N, U]
   matrix_size: *large_matrix_size_range
-  incx: *incx_range
+  incx: *incx_range_small
   batch_count: [ 3 ]
 
 - name: trmv_strided_batched_bad_arg
@@ -150,7 +173,7 @@ Tests:
   transA: [N, T, C]
   diag: [N, U]
   matrix_size: *large_matrix_size_range
-  incx: *incx_range
+  incx: *incx_range_small
   batch_count: [ 3 ]
   stride_scale: [ 1.2 ]
 ...

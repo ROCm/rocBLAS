@@ -152,10 +152,10 @@ void testing_her2k_batched(const Arguments& arg)
     double rocblas_error = 0.0;
 
     // Note: K==0 is not an early exit, since C still needs to be multiplied by beta
-    bool invalidSize = batch_count < 0 || N < 0 || K < 0 || ldc < N
-                       || (transA == rocblas_operation_none && (lda < N || ldb < N))
-                       || (transA != rocblas_operation_none && (lda < K || ldb < K));
-    if(N == 0 || batch_count == 0 || invalidSize)
+    bool invalid_size = batch_count < 0 || N < 0 || K < 0 || ldc < N
+                        || (transA == rocblas_operation_none && (lda < N || ldb < N))
+                        || (transA != rocblas_operation_none && (lda < K || ldb < K));
+    if(N == 0 || batch_count == 0 || invalid_size)
     {
         // ensure invalid sizes checked before pointer check
         EXPECT_ROCBLAS_STATUS(rocblas_herXX_batched_fn(handle,
@@ -172,7 +172,7 @@ void testing_her2k_batched(const Arguments& arg)
                                                        nullptr,
                                                        ldc,
                                                        batch_count),
-                              invalidSize ? rocblas_status_invalid_size : rocblas_status_success);
+                              invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
 
         return;
     }
@@ -315,21 +315,21 @@ void testing_her2k_batched(const Arguments& arg)
         if(arg.unit_check)
         {
             const double tol = K * sum_error_tolerance<T>;
-            near_check_general<T>(N, N, batch_count, ldc, hC_gold, hC_1, tol);
-            near_check_general<T>(N, N, batch_count, ldc, hC_gold, hC_2, tol);
+            near_check_general<T>(N, N, ldc, hC_gold, hC_1, batch_count, tol);
+            near_check_general<T>(N, N, ldc, hC_gold, hC_2, batch_count, tol);
         }
 
         if(arg.norm_check)
         {
-            auto err1 = std::abs(norm_check_general<T>('F', N, N, ldc, batch_count, hC_gold, hC_1));
-            auto err2 = std::abs(norm_check_general<T>('F', N, N, ldc, batch_count, hC_gold, hC_2));
+            auto err1 = std::abs(norm_check_general<T>('F', N, N, ldc, hC_gold, hC_1, batch_count));
+            auto err2 = std::abs(norm_check_general<T>('F', N, N, ldc, hC_gold, hC_2, batch_count));
             rocblas_error = err1 > err2 ? err1 : err2;
         }
     }
 
     if(arg.timing)
     {
-        int number_cold_calls = 2;
+        int number_cold_calls = arg.cold_iters;
         int number_hot_calls  = arg.iters;
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
@@ -374,21 +374,21 @@ void testing_her2k_batched(const Arguments& arg)
         rocblas_gflops
             = batch_count * herXX_gflop_count_fn(N, K) * number_hot_calls / gpu_time_used * 1e6;
 
-        std::cout << "uplo,transA,N,K,alpha,lda,ldb,beta,ldc,batch_count,rocblas-Gflops,us";
+        rocblas_cout << "uplo,transA,N,K,alpha,lda,ldb,beta,ldc,batch_count,rocblas-Gflops,us";
 
         if(arg.norm_check)
-            std::cout << ",CPU-Gflops,us,norm-error";
+            rocblas_cout << ",CPU-Gflops,us,norm-error";
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
 
-        std::cout << arg.uplo << "," << arg.transA << "," << N << "," << K << ","
-                  << arg.get_alpha<T>() << "," << lda << "," << ldb << "," << arg.get_beta<U>()
-                  << "," << ldc << "," << batch_count << "," << rocblas_gflops << ","
-                  << gpu_time_used / number_hot_calls;
+        rocblas_cout << arg.uplo << "," << arg.transA << "," << N << "," << K << ","
+                     << arg.get_alpha<T>() << "," << lda << "," << ldb << "," << arg.get_beta<U>()
+                     << "," << ldc << "," << batch_count << "," << rocblas_gflops << ","
+                     << gpu_time_used / number_hot_calls;
 
         if(arg.norm_check)
-            std::cout << "," << cblas_gflops << "," << cpu_time_used << "," << rocblas_error;
+            rocblas_cout << "," << cblas_gflops << "," << cpu_time_used << "," << rocblas_error;
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
     }
 }

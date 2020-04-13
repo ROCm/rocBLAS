@@ -214,22 +214,22 @@ void testing_gemm_strided_batched(const Arguments& arg)
                 // For large K, rocblas_half tends to diverge proportional to K
                 // Tolerance is slightly greater than 1 / 1024.0
                 const double tol = K * sum_error_tolerance<T>;
-                near_check_general<T>(M, N, batch_count, ldc, stride_c, hC_gold, hC_1, tol);
-                near_check_general<T>(M, N, batch_count, ldc, stride_c, hC_gold, hC_2, tol);
+                near_check_general<T>(M, N, ldc, stride_c, hC_gold, hC_1, batch_count, tol);
+                near_check_general<T>(M, N, ldc, stride_c, hC_gold, hC_2, batch_count, tol);
             }
             else
             {
-                unit_check_general<T>(M, N, batch_count, ldc, stride_c, hC_gold, hC_1);
-                unit_check_general<T>(M, N, batch_count, ldc, stride_c, hC_gold, hC_2);
+                unit_check_general<T>(M, N, ldc, stride_c, hC_gold, hC_1, batch_count);
+                unit_check_general<T>(M, N, ldc, stride_c, hC_gold, hC_2, batch_count);
             }
         }
 
         if(arg.norm_check)
         {
             double error_hst_ptr = std::abs(
-                norm_check_general<T>('F', M, N, ldc, stride_c, batch_count, hC_gold, hC_1));
+                norm_check_general<T>('F', M, N, ldc, stride_c, hC_gold, hC_1, batch_count));
             double error_dev_ptr = std::abs(
-                norm_check_general<T>('F', M, N, ldc, stride_c, batch_count, hC_gold, hC_2));
+                norm_check_general<T>('F', M, N, ldc, stride_c, hC_gold, hC_2, batch_count));
             rocblas_error = error_hst_ptr > error_dev_ptr ? error_hst_ptr : error_dev_ptr;
         }
     }
@@ -290,24 +290,24 @@ void testing_gemm_strided_batched(const Arguments& arg)
         gpu_time_used  = (get_time_us() - gpu_time_used) / number_hot_calls;
         rocblas_gflops = gemm_gflop_count<T>(M, N, K) * batch_count / gpu_time_used * 1e6;
 
-        std::cout
+        rocblas_cout
             << "transA,transB,M,N,K,alpha,lda,stride_a,ldb,stride_b,beta,ldc,stride_c,Batch_Count,"
                "rocblas-Gflops,"
                "us";
 
         if(arg.norm_check)
-            std::cout << ",CPU-Gflops,us,norm-error";
+            rocblas_cout << ",CPU-Gflops,us,norm-error";
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
 
-        std::cout << arg.transA << "," << arg.transB << "," << M << "," << N << "," << K << ","
-                  << arg.get_alpha<T>() << "," << lda << "," << stride_a << "," << ldb << ","
-                  << stride_b << "," << arg.get_beta<T>() << "," << ldc << "," << stride_c << ","
-                  << batch_count << "," << rocblas_gflops << "," << gpu_time_used;
+        rocblas_cout << arg.transA << "," << arg.transB << "," << M << "," << N << "," << K << ","
+                     << arg.get_alpha<T>() << "," << lda << "," << stride_a << "," << ldb << ","
+                     << stride_b << "," << arg.get_beta<T>() << "," << ldc << "," << stride_c << ","
+                     << batch_count << "," << rocblas_gflops << "," << gpu_time_used;
 
         if(arg.norm_check)
-            std::cout << "," << cblas_gflops << "," << cpu_time_used << "," << rocblas_error;
+            rocblas_cout << "," << cblas_gflops << "," << cpu_time_used << "," << rocblas_error;
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
     }
 }

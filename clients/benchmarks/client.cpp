@@ -2,11 +2,24 @@
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+#include <boost/program_options.hpp>
+
 #include "rocblas.h"
 #include "rocblas.hpp"
 #include "rocblas_data.hpp"
 #include "rocblas_datatype2string.hpp"
 #include "rocblas_parse_data.hpp"
+#include "type_dispatch.hpp"
+#include "utility.hpp"
+#include <algorithm>
+#include <cctype>
+#include <cstdio>
+#include <cstring>
+#include <iostream>
+#include <map>
+#include <stdexcept>
+#include <string>
+#include <type_traits>
 // blas1
 #include "testing_asum.hpp"
 #include "testing_asum_batched.hpp"
@@ -16,6 +29,8 @@
 #include "testing_copy_batched.hpp"
 #include "testing_copy_strided_batched.hpp"
 #include "testing_dot.hpp"
+#include "testing_dot_batched.hpp"
+#include "testing_dot_strided_batched.hpp"
 #include "testing_iamax_iamin.hpp"
 #include "testing_nrm2.hpp"
 #include "testing_nrm2_batched.hpp"
@@ -97,6 +112,9 @@
 #include "testing_tbmv.hpp"
 #include "testing_tbmv_batched.hpp"
 #include "testing_tbmv_strided_batched.hpp"
+#include "testing_tbsv.hpp"
+#include "testing_tbsv_batched.hpp"
+#include "testing_tbsv_strided_batched.hpp"
 #include "testing_tpmv.hpp"
 #include "testing_tpmv_batched.hpp"
 #include "testing_tpmv_strided_batched.hpp"
@@ -107,12 +125,18 @@
 #include "testing_trmv_batched.hpp"
 #include "testing_trmv_strided_batched.hpp"
 // blas3 with no tensile
+#include "testing_geam.hpp"
+#include "testing_geam_batched.hpp"
+#include "testing_geam_strided_batched.hpp"
 #include "testing_her2k.hpp"
 #include "testing_her2k_batched.hpp"
 #include "testing_her2k_strided_batched.hpp"
 #include "testing_herk.hpp"
 #include "testing_herk_batched.hpp"
 #include "testing_herk_strided_batched.hpp"
+#include "testing_symm_hemm.hpp"
+#include "testing_symm_hemm_batched.hpp"
+#include "testing_symm_hemm_strided_batched.hpp"
 #include "testing_syr2k.hpp"
 #include "testing_syr2k_batched.hpp"
 #include "testing_syr2k_strided_batched.hpp"
@@ -124,15 +148,6 @@
 #include "utility.hpp"
 #include <algorithm>
 #undef I
-#include <boost/program_options.hpp>
-#include <cctype>
-#include <cstdio>
-#include <cstring>
-#include <iostream>
-#include <map>
-#include <stdexcept>
-#include <string>
-#include <type_traits>
 
 using namespace std::literals; // For std::string literals of form "str"s
 
@@ -159,7 +174,6 @@ void run_function(const func_map& map, const Arguments& arg, const std::string& 
 
 #if BUILD_WITH_TENSILE
 
-#include "testing_geam.hpp"
 #include "testing_gemm.hpp"
 #include "testing_gemm_batched.hpp"
 #include "testing_gemm_batched_ex.hpp"
@@ -253,6 +267,8 @@ struct perf_blas<T, U, std::enable_if_t<std::is_same<T, float>{} || std::is_same
                 {"copy_batched", testing_copy_batched<T>},
                 {"copy_strided_batched", testing_copy_strided_batched<T>},
                 {"dot", testing_dot<T>},
+                {"dot_batched", testing_dot_batched<T>},
+                {"dot_strided_batched", testing_dot_strided_batched<T>},
                 {"swap", testing_swap<T>},
                 {"swap_batched", testing_swap_batched<T>},
                 {"swap_strided_batched", testing_swap_strided_batched<T>},
@@ -275,6 +291,12 @@ struct perf_blas<T, U, std::enable_if_t<std::is_same<T, float>{} || std::is_same
                 {"gemv", testing_gemv<T>},
                 {"gemv_batched", testing_gemv_batched<T>},
                 {"gemv_strided_batched", testing_gemv_strided_batched<T>},
+                {"tbmv", testing_tbmv<T>},
+                {"tbmv_batched", testing_tbmv_batched<T>},
+                {"tbmv_strided_batched", testing_tbmv_strided_batched<T>},
+                {"tbsv", testing_tbsv<T>},
+                {"tbsv_batched", testing_tbsv_batched<T>},
+                {"tbsv_strided_batched", testing_tbsv_strided_batched<T>},
                 {"tpmv", testing_tpmv<T>},
                 {"tpmv_batched", testing_tpmv_batched<T>},
                 {"tpmv_strided_batched", testing_tpmv_strided_batched<T>},
@@ -299,9 +321,6 @@ struct perf_blas<T, U, std::enable_if_t<std::is_same<T, float>{} || std::is_same
                 {"syr2", testing_syr2<T>},
                 {"syr2_batched", testing_syr2_batched<T>},
                 {"syr2_strided_batched", testing_syr2_strided_batched<T>},
-                {"tbmv", testing_tbmv<T>},
-                {"tbmv_batched", testing_tbmv_batched<T>},
-                {"tbmv_strided_batched", testing_tbmv_strided_batched<T>},
                 {"sbmv", testing_sbmv<T>},
                 {"sbmv_batched", testing_sbmv_batched<T>},
                 {"sbmv_strided_batched", testing_sbmv_strided_batched<T>},
@@ -312,6 +331,9 @@ struct perf_blas<T, U, std::enable_if_t<std::is_same<T, float>{} || std::is_same
                 {"symv_batched", testing_symv_batched<T>},
                 {"symv_strided_batched", testing_symv_strided_batched<T>},
                 // L3
+                {"symm", testing_symm_hemm<T, false>},
+                {"symm_batched", testing_symm_hemm_batched<T, false>},
+                {"symm_strided_batched", testing_symm_hemm_strided_batched<T, false>},
                 {"syrk", testing_syrk<T>},
                 {"syrk_batched", testing_syrk_batched<T>},
                 {"syrk_strided_batched", testing_syrk_strided_batched<T>},
@@ -321,8 +343,10 @@ struct perf_blas<T, U, std::enable_if_t<std::is_same<T, float>{} || std::is_same
                 {"syrkx", testing_syr2k<T, false>},
                 {"syrkx_batched", testing_syr2k_batched<T, false>},
                 {"syrkx_strided_batched", testing_syr2k_strided_batched<T, false>},
-#if BUILD_WITH_TENSILE
                 {"geam", testing_geam<T>},
+                {"geam_batched", testing_geam_batched<T>},
+                {"geam_strided_batched", testing_geam_strided_batched<T>},
+#if BUILD_WITH_TENSILE
                 {"trmm", testing_trmm<T>},
                 {"trmm_batched", testing_trmm_batched<T>},
                 {"trmm_strided_batched", testing_trmm_strided_batched<T>},
@@ -354,6 +378,8 @@ struct perf_blas<T, U, std::enable_if_t<std::is_same<T, rocblas_bfloat16>{}>> : 
     {
         static const func_map map = {
             {"dot", testing_dot<T>},
+            {"dot_batched", testing_dot_batched<T>},
+            {"dot_strided_batched", testing_dot_strided_batched<T>},
         };
         run_function(map, arg);
     }
@@ -367,6 +393,8 @@ struct perf_blas<T, U, std::enable_if_t<std::is_same<T, rocblas_half>{}>> : rocb
         static const func_map map
             = { {"axpy", testing_axpy<T>},
                 {"dot", testing_dot<T>},
+                {"dot_batched", testing_dot_batched<T>},
+                {"dot_strided_batched", testing_dot_strided_batched<T>},
 #if BUILD_WITH_TENSILE
                 {"gemm", testing_gemm<T>},
                 {"gemm_batched", testing_gemm_batched<T>},
@@ -394,7 +422,11 @@ struct perf_blas<T,
                 {"copy_batched", testing_copy_batched<T>},
                 {"copy_strided_batched", testing_copy_strided_batched<T>},
                 {"dot", testing_dot<T>},
+                {"dot_batched", testing_dot_batched<T>},
+                {"dot_strided_batched", testing_dot_strided_batched<T>},
                 {"dotc", testing_dotc<T>},
+                {"dotc_batched", testing_dotc_batched<T>},
+                {"dotc_strided_batched", testing_dotc_strided_batched<T>},
                 {"nrm2", testing_nrm2<T>},
                 {"nrm2_batched", testing_nrm2_batched<T>},
                 {"nrm2_strided_batched", testing_nrm2_strided_batched<T>},
@@ -445,6 +477,12 @@ struct perf_blas<T,
                 {"syr2", testing_syr2<T>},
                 {"syr2_batched", testing_syr2_batched<T>},
                 {"syr2_strided_batched", testing_syr2_strided_batched<T>},
+                {"tbmv", testing_tbmv<T>},
+                {"tbmv_batched", testing_tbmv_batched<T>},
+                {"tbmv_strided_batched", testing_tbmv_strided_batched<T>},
+                {"tbsv", testing_tbsv<T>},
+                {"tbsv_batched", testing_tbsv_batched<T>},
+                {"tbsv_strided_batched", testing_tbsv_strided_batched<T>},
                 {"tpmv", testing_tpmv<T>},
                 {"tpmv_batched", testing_tpmv_batched<T>},
                 {"tpmv_strided_batched", testing_tpmv_strided_batched<T>},
@@ -457,9 +495,6 @@ struct perf_blas<T,
                 {"trmv", testing_trmv<T>},
                 {"trmv_batched", testing_trmv_batched<T>},
                 {"trmv_strided_batched", testing_trmv_strided_batched<T>},
-                {"tbmv", testing_tbmv<T>},
-                {"tbmv_batched", testing_tbmv_batched<T>},
-                {"tbmv_strided_batched", testing_tbmv_strided_batched<T>},
                 // L3
                 {"syrk", testing_syrk<T>},
                 {"syrk_batched", testing_syrk_batched<T>},
@@ -470,6 +505,12 @@ struct perf_blas<T,
                 {"syrkx", testing_syr2k<T, false>},
                 {"syrkx_batched", testing_syr2k_batched<T, false>},
                 {"syrkx_strided_batched", testing_syr2k_strided_batched<T, false>},
+                {"symm", testing_symm_hemm<T, false>},
+                {"symm_batched", testing_symm_hemm_batched<T, false>},
+                {"symm_strided_batched", testing_symm_hemm_strided_batched<T, false>},
+                {"hemm", testing_symm_hemm<T, true>},
+                {"hemm_batched", testing_symm_hemm_batched<T, true>},
+                {"hemm_strided_batched", testing_symm_hemm_strided_batched<T, true>},
                 {"herk", testing_herk<T>},
                 {"herk_batched", testing_herk_batched<T>},
                 {"herk_strided_batched", testing_herk_strided_batched<T>},
@@ -593,6 +634,10 @@ struct perf_blas_rotg<
 
 int run_bench_test(Arguments& arg)
 {
+    rocblas_initialize(); // Initialize rocBLAS
+
+    rocblas_cout << std::ios::fixed << std::setprecision(7); // Set precision to 7 digits
+
     // disable unit_check in client benchmark, it is only used in gtest unit test
     arg.unit_check = 0;
 
@@ -615,17 +660,17 @@ int run_bench_test(Arguments& arg)
 
         if(arg.lda < min_lda)
         {
-            std::cout << "rocblas-bench INFO: lda < min_lda, set lda = " << min_lda << std::endl;
+            rocblas_cout << "rocblas-bench INFO: lda < min_lda, set lda = " << min_lda << std::endl;
             arg.lda = min_lda;
         }
         if(arg.ldb < min_ldb)
         {
-            std::cout << "rocblas-bench INFO: ldb < min_ldb, set ldb = " << min_ldb << std::endl;
+            rocblas_cout << "rocblas-bench INFO: ldb < min_ldb, set ldb = " << min_ldb << std::endl;
             arg.ldb = min_ldb;
         }
         if(arg.ldc < min_ldc)
         {
-            std::cout << "rocblas-bench INFO: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
+            rocblas_cout << "rocblas-bench INFO: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
             arg.ldc = min_ldc;
         }
     }
@@ -637,17 +682,17 @@ int run_bench_test(Arguments& arg)
         rocblas_int min_ldc = arg.M;
         if(arg.lda < min_lda)
         {
-            std::cout << "rocblas-bench INFO: lda < min_lda, set lda = " << min_lda << std::endl;
+            rocblas_cout << "rocblas-bench INFO: lda < min_lda, set lda = " << min_lda << std::endl;
             arg.lda = min_lda;
         }
         if(arg.ldb < min_ldb)
         {
-            std::cout << "rocblas-bench INFO: ldb < min_ldb, set ldb = " << min_ldb << std::endl;
+            rocblas_cout << "rocblas-bench INFO: ldb < min_ldb, set ldb = " << min_ldb << std::endl;
             arg.ldb = min_ldb;
         }
         if(arg.ldc < min_ldc)
         {
-            std::cout << "rocblas-bench INFO: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
+            rocblas_cout << "rocblas-bench INFO: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
             arg.ldc = min_ldc;
         }
 
@@ -662,20 +707,20 @@ int run_bench_test(Arguments& arg)
         rocblas_int min_stride_c = arg.ldc * arg.N;
         //      if (arg.stride_a < min_stride_a)
         //      {
-        //          std::cout << "rocblas-bench INFO: stride_a < min_stride_a, set stride_a = " <<
+        //          rocblas_cout << "rocblas-bench INFO: stride_a < min_stride_a, set stride_a = " <<
         //          min_stride_a << std::endl;
         //          arg.stride_a = min_stride_a;
         //      }
         //      if (arg.stride_b < min_stride_b)
         //      {
-        //          std::cout << "rocblas-bench INFO: stride_b < min_stride_b, set stride_b = " <<
+        //          rocblas_cout << "rocblas-bench INFO: stride_b < min_stride_b, set stride_b = " <<
         //          min_stride_b << std::endl;
         //          arg.stride_b = min_stride_b;
         //      }
         if(arg.stride_c < min_stride_c)
         {
-            std::cout << "rocblas-bench INFO: stride_c < min_stride_c, set stride_c = "
-                      << min_stride_c << std::endl;
+            rocblas_cout << "rocblas-bench INFO: stride_c < min_stride_c, set stride_c = "
+                         << min_stride_c << std::endl;
             arg.stride_c = min_stride_c;
         }
     }
@@ -690,22 +735,22 @@ int run_bench_test(Arguments& arg)
 
         if(arg.lda < min_lda)
         {
-            std::cout << "rocblas-bench INFO: lda < min_lda, set lda = " << min_lda << std::endl;
+            rocblas_cout << "rocblas-bench INFO: lda < min_lda, set lda = " << min_lda << std::endl;
             arg.lda = min_lda;
         }
         if(arg.ldb < min_ldb)
         {
-            std::cout << "rocblas-bench INFO: ldb < min_ldb, set ldb = " << min_ldb << std::endl;
+            rocblas_cout << "rocblas-bench INFO: ldb < min_ldb, set ldb = " << min_ldb << std::endl;
             arg.ldb = min_ldb;
         }
         if(arg.ldc < min_ldc)
         {
-            std::cout << "rocblas-bench INFO: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
+            rocblas_cout << "rocblas-bench INFO: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
             arg.ldc = min_ldc;
         }
         if(arg.ldd < min_ldd)
         {
-            std::cout << "rocblas-bench INFO: ldd < min_ldd, set ldd = " << min_ldc << std::endl;
+            rocblas_cout << "rocblas-bench INFO: ldd < min_ldd, set ldd = " << min_ldc << std::endl;
             arg.ldd = min_ldd;
         }
         rocblas_gemm_dispatch<perf_gemm_ex>(arg);
@@ -719,29 +764,29 @@ int run_bench_test(Arguments& arg)
         rocblas_int min_ldd = arg.M;
         if(arg.lda < min_lda)
         {
-            std::cout << "rocblas-bench INFO: lda < min_lda, set lda = " << min_lda << std::endl;
+            rocblas_cout << "rocblas-bench INFO: lda < min_lda, set lda = " << min_lda << std::endl;
             arg.lda = min_lda;
         }
         if(arg.ldb < min_ldb)
         {
-            std::cout << "rocblas-bench INFO: ldb < min_ldb, set ldb = " << min_ldb << std::endl;
+            rocblas_cout << "rocblas-bench INFO: ldb < min_ldb, set ldb = " << min_ldb << std::endl;
             arg.ldb = min_ldb;
         }
         if(arg.ldc < min_ldc)
         {
-            std::cout << "rocblas-bench INFO: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
+            rocblas_cout << "rocblas-bench INFO: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
             arg.ldc = min_ldc;
         }
         if(arg.ldd < min_ldd)
         {
-            std::cout << "rocblas-bench INFO: ldd < min_ldd, set ldd = " << min_ldc << std::endl;
+            rocblas_cout << "rocblas-bench INFO: ldd < min_ldd, set ldd = " << min_ldc << std::endl;
             arg.ldd = min_ldd;
         }
         rocblas_int min_stride_c = arg.ldc * arg.N;
         if(arg.stride_c < min_stride_c)
         {
-            std::cout << "rocblas-bench INFO: stride_c < min_stride_c, set stride_c = "
-                      << min_stride_c << std::endl;
+            rocblas_cout << "rocblas-bench INFO: stride_c < min_stride_c, set stride_c = "
+                         << min_stride_c << std::endl;
             arg.stride_c = min_stride_c;
         }
 
@@ -781,11 +826,12 @@ void fix_batch(int argc, char* argv[])
     for(int i = 1; i < argc; ++i)
         if(!strcmp(argv[i], "--batch"))
         {
-            static int once = fprintf(
-                stderr,
-                "%s warning: --batch is deprecated, and --batch_count should be used instead.\n",
-                argv[0]);
-            argv[i] = b_c;
+            static int once = (rocblas_cerr << argv[0]
+                                            << " warning: --batch is deprecated, and --batch_count "
+                                               "should be used instead."
+                                            << std::endl,
+                               0);
+            argv[i]         = b_c;
         }
 }
 
@@ -995,13 +1041,19 @@ try
         ("version", "Prints the version number");
     // clang-format on
 
+    // Initialize rocBLAS; TODO: Remove this after it is determined why rocblas-bench
+    // returns lower performance if this is executed after Boost parse_command_line().
+    // Right now this causes 5-10 seconds of delay before processing the CLI arguments.
+    rocblas_cerr << "Initializing rocBLAS..." << std::endl;
+    rocblas_initialize();
+
     variables_map vm;
     store(parse_command_line(argc, argv, desc), vm);
     notify(vm);
 
     if(vm.count("help"))
     {
-        std::cout << desc << std::endl;
+        rocblas_cout << desc << std::endl;
         return 0;
     }
 
@@ -1009,14 +1061,14 @@ try
     {
         char blas_version[100];
         rocblas_get_version_string(blas_version, sizeof(blas_version));
-        std::cout << "rocBLAS version: " << blas_version << std::endl;
+        rocblas_cout << "rocBLAS version: " << blas_version << std::endl;
         return 0;
     }
 
     // Device Query
     rocblas_int device_count = query_device_property();
 
-    std::cout << std::endl;
+    rocblas_cout << std::endl;
     if(device_count <= device_id)
         throw std::invalid_argument("Invalid Device ID");
     set_device(device_id);
@@ -1068,6 +1120,6 @@ try
 }
 catch(const std::invalid_argument& exp)
 {
-    std::cerr << exp.what() << std::endl;
+    rocblas_cerr << exp.what() << std::endl;
     return -1;
 }

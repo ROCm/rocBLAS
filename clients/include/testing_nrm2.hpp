@@ -122,10 +122,8 @@ void testing_nrm2(const Arguments& arg)
 
         if(arg.norm_check)
         {
-            printf("cpu=%e, gpu_host_ptr=%e, gpu_dev_ptr=%e\n",
-                   cpu_result,
-                   rocblas_result_1,
-                   rocblas_result_2);
+            rocblas_cout << "cpu=" << cpu_result << ", gpu_host_ptr=" << rocblas_result_1
+                         << ", gpu_dev_ptr=" << rocblas_result_2 << "\n";
             rocblas_error_1 = std::abs((cpu_result - rocblas_result_1) / cpu_result);
             rocblas_error_2 = std::abs((cpu_result - rocblas_result_2) / cpu_result);
         }
@@ -133,8 +131,8 @@ void testing_nrm2(const Arguments& arg)
 
     if(arg.timing)
     {
-        int number_cold_calls = 2;
-        int number_hot_calls  = 100;
+        int number_cold_calls = arg.cold_iters;
+        int number_hot_calls  = arg.iters;
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
         for(int iter = 0; iter < number_cold_calls; iter++)
@@ -151,17 +149,18 @@ void testing_nrm2(const Arguments& arg)
 
         gpu_time_used = (get_time_us() - gpu_time_used) / number_hot_calls;
 
-        std::cout << "N,incx,rocblas(us)";
+        rocblas_cout << "N,incx,rocblas(us)";
 
         if(arg.norm_check)
-            std::cout << ",CPU(us),error_host_ptr,error_dev_ptr";
+            rocblas_cout << ",CPU(us),error_host_ptr,error_dev_ptr";
 
-        std::cout << std::endl;
-        std::cout << N << "," << incx << "," << gpu_time_used;
+        rocblas_cout << std::endl;
+        rocblas_cout << N << "," << incx << "," << gpu_time_used;
 
         if(arg.norm_check)
-            std::cout << "," << cpu_time_used << "," << rocblas_error_1 << "," << rocblas_error_2;
+            rocblas_cout << "," << cpu_time_used << "," << rocblas_error_1 << ","
+                         << rocblas_error_2;
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
     }
 }

@@ -37,8 +37,8 @@ void testing_herk_strided_batched_bad_arg(const Arguments& arg)
     // allocate memory on device
     device_vector<T> dA(batch_count);
     device_vector<T> dC(batch_count);
-    CHECK_HIP_ERROR(dA.memcheck());
-    CHECK_HIP_ERROR(dC.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dC.memcheck());
 
     EXPECT_ROCBLAS_STATUS((rocblas_herk_strided_batched<T>)(nullptr,
                                                             uplo,
@@ -192,9 +192,9 @@ void testing_herk_strided_batched(const Arguments& arg)
     double rocblas_error = 0.0;
 
     // Note: K==0 is not an early exit, since C still needs to be multiplied by beta
-    bool invalidSize = N < 0 || K < 0 || ldc < N || (transA == rocblas_operation_none && lda < N)
-                       || (transA != rocblas_operation_none && lda < K) || batch_count < 0;
-    if(N == 0 || batch_count == 0 || invalidSize)
+    bool invalid_size = N < 0 || K < 0 || ldc < N || (transA == rocblas_operation_none && lda < N)
+                        || (transA != rocblas_operation_none && lda < K) || batch_count < 0;
+    if(N == 0 || batch_count == 0 || invalid_size)
     {
         // ensure invalid sizes checked before pointer check
         EXPECT_ROCBLAS_STATUS((rocblas_herk_strided_batched<T>)(handle,
@@ -211,7 +211,7 @@ void testing_herk_strided_batched(const Arguments& arg)
                                                                 ldc,
                                                                 strideC,
                                                                 batch_count),
-                              invalidSize ? rocblas_status_invalid_size : rocblas_status_success);
+                              invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
 
         return;
     }
@@ -228,10 +228,10 @@ void testing_herk_strided_batched(const Arguments& arg)
     device_vector<T> dC(size_C);
     device_vector<U> d_alpha(1);
     device_vector<U> d_beta(1);
-    CHECK_HIP_ERROR(dA.memcheck());
-    CHECK_HIP_ERROR(dC.memcheck());
-    CHECK_HIP_ERROR(d_alpha.memcheck());
-    CHECK_HIP_ERROR(d_beta.memcheck());
+    CHECK_DEVICE_ALLOCATION(dA.memcheck());
+    CHECK_DEVICE_ALLOCATION(dC.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
+    CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
 
     // Naming: dX is in GPU (device) memory. hK is in CPU (host) memory
     host_vector<U> h_alpha(1);
@@ -342,29 +342,29 @@ void testing_herk_strided_batched(const Arguments& arg)
                || std::is_same<T, rocblas_double_complex>{})
             {
                 const double tol = K * sum_error_tolerance<T>;
-                near_check_general<T>(N, N, batch_count, ldc, strideC, hC_gold, hC_1, tol);
-                near_check_general<T>(N, N, batch_count, ldc, strideC, hC_gold, hC_2, tol);
+                near_check_general<T>(N, N, ldc, strideC, hC_gold, hC_1, batch_count, tol);
+                near_check_general<T>(N, N, ldc, strideC, hC_gold, hC_2, batch_count, tol);
             }
             else
             {
-                unit_check_general<T>(N, N, batch_count, ldc, strideC, hC_gold, hC_1);
-                unit_check_general<T>(N, N, batch_count, ldc, strideC, hC_gold, hC_2);
+                unit_check_general<T>(N, N, ldc, strideC, hC_gold, hC_1, batch_count);
+                unit_check_general<T>(N, N, ldc, strideC, hC_gold, hC_2, batch_count);
             }
         }
 
         if(arg.norm_check)
         {
             auto err1 = std::abs(
-                norm_check_general<T>('F', N, N, ldc, strideC, batch_count, hC_gold, hC_1));
+                norm_check_general<T>('F', N, N, ldc, strideC, hC_gold, hC_1, batch_count));
             auto err2 = std::abs(
-                norm_check_general<T>('F', N, N, ldc, strideC, batch_count, hC_gold, hC_2));
+                norm_check_general<T>('F', N, N, ldc, strideC, hC_gold, hC_2, batch_count));
             rocblas_error = err1 > err2 ? err1 : err2;
         }
     }
 
     if(arg.timing)
     {
-        int number_cold_calls = 2;
+        int number_cold_calls = arg.cold_iters;
         int number_hot_calls  = arg.iters;
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
@@ -409,21 +409,21 @@ void testing_herk_strided_batched(const Arguments& arg)
         rocblas_gflops
             = batch_count * herk_gflop_count<T>(N, K) * number_hot_calls / gpu_time_used * 1e6;
 
-        std::cout << "uplo,transA,N,K,alpha,lda,strideA,beta,ldc,strideC,rocblas-Gflops,us";
+        rocblas_cout << "uplo,transA,N,K,alpha,lda,strideA,beta,ldc,strideC,rocblas-Gflops,us";
 
         if(arg.norm_check)
-            std::cout << ",CPU-Gflops,us,norm-error";
+            rocblas_cout << ",CPU-Gflops,us,norm-error";
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
 
-        std::cout << arg.uplo << "," << arg.transA << "," << N << "," << K << ","
-                  << arg.get_alpha<T>() << "," << lda << "," << strideA << "," << arg.get_beta<T>()
-                  << "," << ldc << "," << strideC << "," << rocblas_gflops << ","
-                  << gpu_time_used / number_hot_calls;
+        rocblas_cout << arg.uplo << "," << arg.transA << "," << N << "," << K << ","
+                     << arg.get_alpha<T>() << "," << lda << "," << strideA << ","
+                     << arg.get_beta<T>() << "," << ldc << "," << strideC << "," << rocblas_gflops
+                     << "," << gpu_time_used / number_hot_calls;
 
         if(arg.norm_check)
-            std::cout << "," << cblas_gflops << "," << cpu_time_used << "," << rocblas_error;
+            rocblas_cout << "," << cblas_gflops << "," << cpu_time_used << "," << rocblas_error;
 
-        std::cout << std::endl;
+        rocblas_cout << std::endl;
     }
 }

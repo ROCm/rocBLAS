@@ -194,18 +194,18 @@ void testing_dot_batched(const Arguments& arg)
             (CONJ ? cblas_dotc<T> : cblas_dot<T>)(N, hx[b], incx, hy[b], incy, &cpu_result[b]);
         }
         cpu_time_used = get_time_us() - cpu_time_used;
-        cblas_gflops  = batch_count * dot_gflop_count<CONJ, T>(N) / cpu_time_used * 1e6 * 1;
+        // cblas_gflops  = batch_count * dot_gflop_count<CONJ, T>(N) / cpu_time_used * 1e6 * 1;
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, 1, batch_count, 1, 1, cpu_result, rocblas_result_1);
-            unit_check_general<T>(1, 1, batch_count, 1, 1, cpu_result, rocblas_result_2);
+            unit_check_general<T>(1, 1, 1, 1, cpu_result, rocblas_result_1, batch_count);
+            unit_check_general<T>(1, 1, 1, 1, cpu_result, rocblas_result_2, batch_count);
         }
 
         if(arg.norm_check)
         {
-            std::cout << "cpu=" << cpu_result << ", gpu_host_ptr=" << rocblas_result_1
-                      << ", gpu_device_ptr=" << rocblas_result_2 << "\n";
+            rocblas_cout << "cpu=" << cpu_result << ", gpu_host_ptr=" << rocblas_result_1
+                         << ", gpu_device_ptr=" << rocblas_result_2 << std::endl;
 
             for(int b = 0; b < batch_count; ++b)
             {
@@ -219,7 +219,7 @@ void testing_dot_batched(const Arguments& arg)
 
     if(arg.timing)
     {
-        int number_cold_calls = 2;
+        int number_cold_calls = arg.cold_iters;
         int number_hot_calls  = arg.iters;
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
@@ -249,23 +249,16 @@ void testing_dot_batched(const Arguments& arg)
                                                                       rocblas_result_1);
         }
 
-        gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;
-        rocblas_gflops    = batch_count * dot_gflop_count<CONJ, T>(N) / gpu_time_used * 1e6 * 1;
-        rocblas_bandwidth = batch_count * (2.0 * N) * sizeof(T) / gpu_time_used / 1e3;
+        gpu_time_used = get_time_us() - gpu_time_used;
 
-        std::cout << "N,incx,incy,batch_count,rocblas-Gflops,rocblas-GB/s,rocblas-us";
-
-        if(arg.norm_check)
-            std::cout << ",CPU-Gflops,norm_error_host_ptr,norm_error_dev_ptr";
-
-        std::cout << std::endl;
-        std::cout << N << "," << incx << "," << incy << "," << batch_count << "," << rocblas_gflops
-                  << "," << rocblas_bandwidth << "," << gpu_time_used;
-
-        if(arg.norm_check)
-            std::cout << "," << cblas_gflops << "," << rocblas_error_1 << "," << rocblas_error_2;
-
-        std::cout << std::endl;
+        ArgumentModel<e_N, e_incx, e_incy, e_batch_count>{}.log_args<T>(rocblas_cout,
+                                                                        arg,
+                                                                        gpu_time_used,
+                                                                        dot_gflop_count<CONJ, T>(N),
+                                                                        (2.0 * N) * sizeof(T),
+                                                                        cpu_time_used,
+                                                                        rocblas_error_1,
+                                                                        rocblas_error_1);
     }
 }
 
