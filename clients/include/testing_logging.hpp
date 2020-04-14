@@ -80,8 +80,6 @@ void testing_logging()
     ASSERT_EQ(setenv_status, 0);
 #endif
 
-    rocblas::reinit_logs(); // reinitialize logging with newly set environment
-
     //
     // call rocBLAS functions with log_trace and log_bench to output log_trace and log_bench files
     //
@@ -329,8 +327,6 @@ void testing_logging()
 #ifdef GOOGLE_TEST
     ASSERT_EQ(setenv_status, 0);
 #endif
-
-    rocblas::reinit_logs(); // reinitialize logging, flushing old data to files
 
     //
     // write "golden file"
