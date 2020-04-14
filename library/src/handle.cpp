@@ -85,10 +85,6 @@ _rocblas_handle::~_rocblas_handle()
     }
     if(device_memory)
         (hipFree)(device_memory);
-
-    delete log_trace_os;
-    delete log_bench_os;
-    delete log_profile_os;
 }
 
 /*******************************************************************************
@@ -244,14 +240,14 @@ extern "C" bool rocblas_is_managing_device_memory(rocblas_handle handle)
  *                              the full logfile path.
  */
 
-static rocblas_ostream* open_log_stream(const char* environment_variable_name)
+static auto open_log_stream(const char* environment_variable_name)
 {
     // if environment variable is set, open file at logfile_pathname contained in the
     // environment variable; else use standard error
     const char* logfile_pathname = getenv(environment_variable_name);
 
-    return logfile_pathname ? new rocblas_ostream(logfile_pathname)
-                            : new rocblas_ostream(STDERR_FILENO);
+    return logfile_pathname ? std::make_unique<rocblas_ostream>(logfile_pathname)
+                            : std::make_unique<rocblas_ostream>(STDERR_FILENO);
 }
 
 /*******************************************************************************
@@ -265,27 +261,16 @@ void _rocblas_handle::init_logging()
     {
         layer_mode = static_cast<rocblas_layer_mode>(strtol(str_layer_mode, 0, 0));
 
-        try
-        {
-            // open log_trace file
-            if(layer_mode & rocblas_layer_mode_log_trace)
-                log_trace_os = open_log_stream("ROCBLAS_LOG_TRACE_PATH");
+        // open log_trace file
+        if(layer_mode & rocblas_layer_mode_log_trace)
+            log_trace_os = open_log_stream("ROCBLAS_LOG_TRACE_PATH");
 
-            // open log_bench file
-            if(layer_mode & rocblas_layer_mode_log_bench)
-                log_bench_os = open_log_stream("ROCBLAS_LOG_BENCH_PATH");
+        // open log_bench file
+        if(layer_mode & rocblas_layer_mode_log_bench)
+            log_bench_os = open_log_stream("ROCBLAS_LOG_BENCH_PATH");
 
-            // open log_profile file
-            if(layer_mode & rocblas_layer_mode_log_profile)
-                log_profile_os = open_log_stream("ROCBLAS_LOG_PROFILE_PATH");
-        }
-        catch(...)
-        {
-            delete log_trace_os;
-            delete log_bench_os;
-            delete log_profile_os;
-            log_trace_os = log_bench_os = log_profile_os = nullptr;
-            throw;
-        }
+        // open log_profile file
+        if(layer_mode & rocblas_layer_mode_log_profile)
+            log_profile_os = open_log_stream("ROCBLAS_LOG_PROFILE_PATH");
     }
 }

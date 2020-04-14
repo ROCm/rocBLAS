@@ -11,6 +11,7 @@
 #include <array>
 #include <cstddef>
 #include <hip/hip_runtime.h>
+#include <memory>
 #include <tuple>
 #include <type_traits>
 #include <unistd.h>
@@ -80,10 +81,10 @@ public:
     rocblas_layer_mode layer_mode = rocblas_layer_mode_none;
 
     // logging streams
-    rocblas_ostream* log_trace_os   = nullptr;
-    rocblas_ostream* log_bench_os   = nullptr;
-    rocblas_ostream* log_profile_os = nullptr;
-    void             init_logging();
+    std::unique_ptr<rocblas_ostream> log_trace_os;
+    std::unique_ptr<rocblas_ostream> log_bench_os;
+    std::unique_ptr<rocblas_ostream> log_profile_os;
+    void                             init_logging();
 
     static int device_arch_id()
     {
