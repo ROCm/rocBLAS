@@ -221,14 +221,14 @@ public:
     // Implemented as singleton to avoid the static initialization order fiasco
     static rocblas_ostream& cout()
     {
-        static rocblas_ostream cout{STDOUT_FILENO};
+        thread_local rocblas_ostream cout{STDOUT_FILENO};
         return cout;
     }
 
     // Implemented as singleton to avoid the static initialization order fiasco
     static rocblas_ostream& cerr()
     {
-        static rocblas_ostream cerr{STDERR_FILENO};
+        thread_local rocblas_ostream cerr{STDERR_FILENO};
         return cerr;
     }
 
