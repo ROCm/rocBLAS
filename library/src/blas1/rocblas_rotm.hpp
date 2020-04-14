@@ -150,11 +150,14 @@ rocblas_status rocblas_rotm_template(rocblas_handle handle,
                                      rocblas_int    batch_count)
 {
     // Quick return if possible
-    if(n <= 0 || incx <= 0 || incy <= 0 || batch_count <= 0)
+    if(n <= 0 || batch_count <= 0)
         return rocblas_status_success;
 
     if(quick_return_param(handle, param, stride_param))
         return rocblas_status_success;
+
+    auto shiftx = incx < 0 ? offset_x - ptrdiff_t(incx) * (n - 1) : offset_x;
+    auto shifty = incy < 0 ? offset_y - ptrdiff_t(incy) * (n - 1) : offset_y;
 
     dim3        blocks((n - 1) / NB + 1, batch_count);
     dim3        threads(NB);
@@ -168,11 +171,11 @@ rocblas_status rocblas_rotm_template(rocblas_handle handle,
                            rocblas_stream,
                            n,
                            x,
-                           offset_x,
+                           shiftx,
                            incx,
                            stride_x,
                            y,
-                           offset_y,
+                           shifty,
                            incy,
                            stride_y,
                            param,
@@ -186,11 +189,11 @@ rocblas_status rocblas_rotm_template(rocblas_handle handle,
                            rocblas_stream,
                            n,
                            x,
-                           offset_x,
+                           shiftx,
                            incx,
                            stride_x,
                            y,
-                           offset_y,
+                           shifty,
                            incy,
                            stride_y,
                            param[0],

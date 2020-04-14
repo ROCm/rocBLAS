@@ -70,33 +70,20 @@ void testing_rotmg_strided_batched(const Arguments& arg)
     // check to prevent undefined memory allocation error
     if(batch_count <= 0)
     {
-        size_t           safe_size = 1;
-        device_vector<T> d1(safe_size);
-        device_vector<T> d2(safe_size);
-        device_vector<T> x1(safe_size);
-        device_vector<T> y1(safe_size);
-        device_vector<T> params(safe_size);
-        CHECK_DEVICE_ALLOCATION(d1.memcheck());
-        CHECK_DEVICE_ALLOCATION(d2.memcheck());
-        CHECK_DEVICE_ALLOCATION(x1.memcheck());
-        CHECK_DEVICE_ALLOCATION(y1.memcheck());
-        CHECK_DEVICE_ALLOCATION(params.memcheck());
-
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         EXPECT_ROCBLAS_STATUS((rocblas_rotmg_strided_batched<T>(handle,
-                                                                d1,
+                                                                nullptr,
                                                                 stride_d1,
-                                                                d2,
+                                                                nullptr,
                                                                 stride_d2,
-                                                                x1,
+                                                                nullptr,
                                                                 stride_x1,
-                                                                y1,
+                                                                nullptr,
                                                                 stride_y1,
-                                                                params,
+                                                                nullptr,
                                                                 stride_param,
                                                                 batch_count)),
-                              batch_count < 0 ? rocblas_status_invalid_size
-                                              : rocblas_status_success);
+                              rocblas_status_success);
         return;
     }
 
