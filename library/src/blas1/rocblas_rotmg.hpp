@@ -191,7 +191,7 @@ rocblas_status rocblas_rotmg_template(rocblas_handle handle,
                                       rocblas_stride stride_param,
                                       rocblas_int    batch_count)
 {
-    if(!batch_count)
+    if(batch_count <= 0)
         return rocblas_status_success;
 
     hipStream_t rocblas_stream = handle->rocblas_stream;

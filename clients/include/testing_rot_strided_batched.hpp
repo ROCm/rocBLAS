@@ -73,37 +73,28 @@ void testing_rot_strided_batched(const Arguments& arg)
     const U rel_error          = std::numeric_limits<U>::epsilon() * 1000;
 
     // check to prevent undefined memory allocation error
-    if(N <= 0 || incx <= 0 || incy <= 0 || batch_count <= 0)
+    if(N <= 0 || batch_count <= 0)
     {
-        static const size_t safe_size = 100; // arbitrarily set to 100
-        device_vector<T>    dx(safe_size);
-        device_vector<T>    dy(safe_size);
-        device_vector<U>    dc(1);
-        device_vector<V>    ds(1);
-        CHECK_DEVICE_ALLOCATION(dx.memcheck());
-        CHECK_DEVICE_ALLOCATION(dy.memcheck());
-        CHECK_DEVICE_ALLOCATION(dc.memcheck());
-        CHECK_DEVICE_ALLOCATION(ds.memcheck());
-
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         EXPECT_ROCBLAS_STATUS((rocblas_rot_strided_batched<T, U, V>)(handle,
                                                                      N,
-                                                                     dx,
+                                                                     nullptr,
                                                                      incx,
                                                                      stride_x,
-                                                                     dy,
+                                                                     nullptr,
                                                                      incy,
                                                                      stride_y,
-                                                                     dc,
-                                                                     ds,
+                                                                     nullptr,
+                                                                     nullptr,
                                                                      batch_count),
-                              batch_count < 0 ? rocblas_status_invalid_size
-                                              : rocblas_status_success);
+                              rocblas_status_success);
         return;
     }
 
-    size_t size_x = N * size_t(incx) + size_t(stride_x) * size_t(batch_count - 1);
-    size_t size_y = N * size_t(incy) + size_t(stride_y) * size_t(batch_count - 1);
+    rocblas_int abs_incx = incx >= 0 ? incx : -incx;
+    rocblas_int abs_incy = incy >= 0 ? incy : -incy;
+    size_t      size_x   = N * size_t(abs_incx) + size_t(stride_x) * size_t(batch_count - 1);
+    size_t      size_y   = N * size_t(abs_incy) + size_t(stride_y) * size_t(batch_count - 1);
 
     device_vector<T> dx(size_x);
     device_vector<T> dy(size_y);
@@ -120,8 +111,8 @@ void testing_rot_strided_batched(const Arguments& arg)
     host_vector<U> hc(1);
     host_vector<V> hs(1);
     rocblas_seedrand();
-    rocblas_init<T>(hx, 1, N, incx, stride_x, batch_count);
-    rocblas_init<T>(hy, 1, N, incy, stride_y, batch_count);
+    rocblas_init<T>(hx, 1, N, abs_incx, stride_x, batch_count);
+    rocblas_init<T>(hy, 1, N, abs_incy, stride_y, batch_count);
 
     // Random alpha (0 - 10)
     host_vector<rocblas_int> alpha(1);
@@ -159,15 +150,15 @@ void testing_rot_strided_batched(const Arguments& arg)
             CHECK_HIP_ERROR(hipMemcpy(ry, dy, sizeof(T) * size_y, hipMemcpyDeviceToHost));
             if(arg.unit_check)
             {
-                near_check_general<T>(1, N, incx, stride_x, cx, rx, batch_count, rel_error);
-                near_check_general<T>(1, N, incy, stride_y, cy, ry, batch_count, rel_error);
+                near_check_general<T>(1, N, abs_incx, stride_x, cx, rx, batch_count, rel_error);
+                near_check_general<T>(1, N, abs_incy, stride_y, cy, ry, batch_count, rel_error);
             }
             if(arg.norm_check)
             {
                 norm_error_host_x
-                    = norm_check_general<T>('F', 1, N, incx, stride_x, cx, rx, batch_count);
+                    = norm_check_general<T>('F', 1, N, abs_incx, stride_x, cx, rx, batch_count);
                 norm_error_host_y
-                    = norm_check_general<T>('F', 1, N, incy, stride_x, cy, ry, batch_count);
+                    = norm_check_general<T>('F', 1, N, abs_incy, stride_x, cy, ry, batch_count);
             }
         }
 
@@ -186,15 +177,15 @@ void testing_rot_strided_batched(const Arguments& arg)
             CHECK_HIP_ERROR(hipMemcpy(ry, dy, sizeof(T) * size_y, hipMemcpyDeviceToHost));
             if(arg.unit_check)
             {
-                near_check_general<T>(1, N, incx, stride_x, cx, rx, batch_count, rel_error);
-                near_check_general<T>(1, N, incy, stride_y, cy, ry, batch_count, rel_error);
+                near_check_general<T>(1, N, abs_incx, stride_x, cx, rx, batch_count, rel_error);
+                near_check_general<T>(1, N, abs_incy, stride_y, cy, ry, batch_count, rel_error);
             }
             if(arg.norm_check)
             {
                 norm_error_device_x
-                    = norm_check_general<T>('F', 1, N, incx, stride_x, cx, rx, batch_count);
+                    = norm_check_general<T>('F', 1, N, abs_incx, stride_x, cx, rx, batch_count);
                 norm_error_device_y
-                    = norm_check_general<T>('F', 1, N, incy, stride_y, cy, ry, batch_count);
+                    = norm_check_general<T>('F', 1, N, abs_incy, stride_y, cy, ry, batch_count);
             }
         }
     }
