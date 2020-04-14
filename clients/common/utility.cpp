@@ -49,18 +49,18 @@ std::string rocblas_exepath()
 double get_time_us(void)
 {
     hipDeviceSynchronize();
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    return (tv.tv_sec * 1000 * 1000) + tv.tv_usec;
+    struct timespec tv;
+    clock_gettime(CLOCK_MONOTONIC, &tv);
+    return tv.tv_sec * 1'000'000llu + (tv.tv_nsec + 500llu) / 1000;
 };
 
 /*! \brief  CPU Timer(in microsecond): synchronize with given queue/stream and return wall time */
 double get_time_us_sync(hipStream_t stream)
 {
     hipStreamSynchronize(stream);
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    return (tv.tv_sec * 1000 * 1000) + tv.tv_usec;
+    struct timespec tv;
+    clock_gettime(CLOCK_MONOTONIC, &tv);
+    return tv.tv_sec * 1'000'000llu + (tv.tv_nsec + 500llu) / 1000;
 };
 
 /* ============================================================================================ */
@@ -101,7 +101,7 @@ rocblas_int query_device_property()
             char buf[320];
             snprintf(
                 buf,
-                sizeof(buf) - 1,
+                sizeof(buf),
                 "Device ID %d : %s\n"
                 "with %3.1f GB memory, clock rate %d MHz @ computing capability %d.%d \n"
                 "maxGridDimX %d, sharedMemPerBlock %3.1f KB, maxThreadsPerBlock %d, warpSize %d\n",

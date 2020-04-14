@@ -395,9 +395,9 @@ rocblas_status rocblas_reduction_strided_batched_kernel(rocblas_handle __restric
         {
             // If FINALIZE is not trivial and kernel part2 was not called, then
             // workspace[0] needs to be finalized on host.
-            To res[batch_count];
+            auto res = std::make_unique<To[]>(batch_count);
             RETURN_IF_HIP_ERROR(
-                hipMemcpy(res, workspace, batch_count * sizeof(To), hipMemcpyDeviceToHost));
+                hipMemcpy(&res[0], workspace, batch_count * sizeof(To), hipMemcpyDeviceToHost));
             for(rocblas_int i = 0; i < batch_count; i++)
                 result[i] = Tr(FINALIZE{}(res[i]));
         }

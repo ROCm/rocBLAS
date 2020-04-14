@@ -31,6 +31,13 @@ inline size_t tri_count(rocblas_int n)
     return size_t(n) * (1 + n) / 2;
 }
 
+/* \brief byte counts of GER */
+template <typename T>
+constexpr double ger_gbyte_count(rocblas_int m, rocblas_int n)
+{
+    return (sizeof(T) * (m * n + m + n)) / 1e9;
+}
+
 /* \brief byte counts of HPR */
 template <typename T>
 constexpr double hpr_gbyte_count(rocblas_int n)

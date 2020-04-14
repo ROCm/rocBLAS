@@ -1,15 +1,9 @@
 /* ************************************************************************
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+#pragma once
 #include "../blas3/trtri_trsm.hpp"
-#include "handle.h"
-#include "logging.h"
-#include "rocblas.h"
 #include "rocblas_gemv.hpp"
-#include "utility.h"
-#include <algorithm>
-#include <cstdio>
-#include <tuple>
 
 namespace
 {

@@ -20,8 +20,6 @@
 #include <Tensile/hip/HipSolutionAdapter.hpp>
 #include <Tensile/hip/HipUtils.hpp>
 #include <complex>
-#include <cstdio>
-#include <cstdlib>
 #include <dlfcn.h>
 #include <exception>
 #include <glob.h>
@@ -400,7 +398,7 @@ namespace
             {
                 rocblas_cerr << "\nrocBLAS error: Cannot read " << path << ": " << strerror(errno)
                              << std::endl;
-                abort();
+                rocblas_abort();
             }
 
             library = std::dynamic_pointer_cast<

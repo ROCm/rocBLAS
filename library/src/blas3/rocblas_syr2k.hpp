@@ -3,10 +3,8 @@
  * ************************************************************************ */
 #ifndef __ROCBLAS_SYRK2K_HPP__
 #define __ROCBLAS_SYRK2K_HPP__
-
+#pragma once
 #include "handle.h"
-#include "rocblas.h"
-#include "utility.h"
 
 template <typename T, typename U>
 static __device__ void syr2k_scale_device(bool upper, rocblas_int n, T beta, U* C, rocblas_int ldc)
@@ -41,6 +39,24 @@ __global__ void syr2k_scale_kernel(bool           upper,
 
     auto C = load_ptr_batch(CP_array, hipBlockIdx_z, shift_c, stride_c);
     syr2k_scale_device(upper, n, beta, C, ldc);
+}
+
+/** helper for complex support */
+template <typename T>
+inline __device__ void syr2k_her2k_zero_imaginary(T& a)
+{
+}
+
+template <>
+inline __device__ void syr2k_her2k_zero_imaginary<rocblas_float_complex>(rocblas_float_complex& a)
+{
+    a.imag(0);
+}
+
+template <>
+inline __device__ void syr2k_her2k_zero_imaginary<rocblas_double_complex>(rocblas_double_complex& a)
+{
+    a.imag(0);
 }
 
 /**
@@ -170,11 +186,11 @@ static __device__ void syr2k_her2k_mult_add_device(bool        upper,
 
     } // k_pos
 
-    // if(HERM && row == col && row < n)
-    // {
-    //     // zero imaginary in case of numerical drift
-    //     C[col * ldc + row].y = 0;
-    // }
+    if(!TWOK && HERM && row == col && row < n)
+    {
+        // zero imaginary for cases when A*B aren't true Hermetian
+        syr2k_her2k_zero_imaginary(C[col * ldc + row]);
+    }
 }
 
 /**

@@ -1,6 +1,7 @@
 /* ************************************************************************
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+#pragma once
 #include "axpy_template.hpp"
 
 template <int NB, typename T>

@@ -15,7 +15,7 @@
 #include "unit.hpp"
 #include "utility.hpp"
 
-#define DEBUG_PRINT false
+#define DEBUG_PRINT 0
 
 /* ============================================================================================ */
 template <typename Ti, typename To, typename Tc>

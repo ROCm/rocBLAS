@@ -2,9 +2,11 @@
  * Copyright 2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+// Predeclare rocblas_abort_once() for friend declaration in rocblas_ostream.hpp
+static void rocblas_abort_once [[noreturn]] ();
+
 #include "rocblas_ostream.hpp"
 #include <csignal>
-#include <cstddef>
 #include <fcntl.h>
 #include <type_traits>
 
@@ -12,14 +14,22 @@
  * rocblas_ostream functions                                           *
  ***********************************************************************/
 
-// Abort function which safely flushes all IO
-ROCBLAS_EXPORT extern "C" void rocblas_abort()
+// Abort function which is called only once by rocblas_abort
+static void rocblas_abort_once()
 {
-    // Make sure the alarm action is default
+    // Make sure the alarm and abort actions are default
     signal(SIGALRM, SIG_DFL);
+    signal(SIGABRT, SIG_DFL);
+
+    // Unblock the alarm and abort signals
+    sigset_t set[1];
+    sigemptyset(set);
+    sigaddset(set, SIGALRM);
+    sigaddset(set, SIGABRT);
+    sigprocmask(SIG_UNBLOCK, set, nullptr);
 
     // Timeout in case of deadlock
-    alarm(3);
+    alarm(5);
 
     // Obtain the map lock
     rocblas_ostream::map_mutex().lock();
@@ -30,8 +40,15 @@ ROCBLAS_EXPORT extern "C" void rocblas_abort()
     // Flush all
     fflush(NULL);
 
-    // Exit
+    // Abort
     std::abort();
+}
+
+// Abort function which safely flushes all IO
+extern "C" void rocblas_abort()
+{
+    // If multiple threads call rocblas_abort(), the first one wins
+    static int once = (rocblas_abort_once(), 0);
 }
 
 // Get worker for writing to a file descriptor
@@ -127,31 +144,34 @@ ROCBLAS_EXPORT void rocblas_ostream::flush()
 // Floating-point output
 ROCBLAS_EXPORT rocblas_ostream& operator<<(rocblas_ostream& os, double x)
 {
-    char        s[32];
-    const char* out;
-
-    if(std::isnan(x))
-        out = os.yaml ? ".nan" : "nan";
-    else if(std::isinf(x))
-        out = os.yaml ? (x < 0 ? "-.inf" : ".inf") : (x < 0 ? "-inf" : "inf");
+    if(!os.yaml)
+        os.os << x;
     else
     {
-        out = s;
-        snprintf(s, sizeof(s) - 2, "%.17g", x);
-
-        // If no decimal point or exponent, append .0 to indicate floating point
-        for(char* end = s; *end != '.' && *end != 'e' && *end != 'E'; ++end)
+        // For YAML, we must output the floating-point value exactly
+        if(std::isnan(x))
+            os.os << ".nan";
+        else if(std::isinf(x))
+            os.os << (x < 0 ? "-.inf" : ".inf");
+        else
         {
-            if(!*end)
+            char s[32];
+            snprintf(s, sizeof(s) - 2, "%.17g", x);
+
+            // If no decimal point or exponent, append .0 to indicate floating point
+            for(char* end = s; *end != '.' && *end != 'e' && *end != 'E'; ++end)
             {
-                end[0] = '.';
-                end[1] = '0';
-                end[2] = '\0';
-                break;
+                if(!*end)
+                {
+                    end[0] = '.';
+                    end[1] = '0';
+                    end[2] = '\0';
+                    break;
+                }
             }
+            os.os << s;
         }
     }
-    os.os << out;
     return os;
 }
 

@@ -384,14 +384,12 @@ constexpr double spr2_gflop_count(rocblas_int n)
 template <typename T, bool CONJ>
 constexpr double ger_gflop_count(rocblas_int m, rocblas_int n)
 {
-    rocblas_int min = (m < n) ? m : n;
-    return (2.0 * m * n + min) / 1e9;
+    return (2.0 * m * n) / 1e9;
 }
 
 template <>
 constexpr double ger_gflop_count<rocblas_float_complex, false>(rocblas_int m, rocblas_int n)
 {
-    // conjugate not counted
     return 4.0 * ger_gflop_count<float, false>(m, n);
 }
 
@@ -399,7 +397,7 @@ template <>
 constexpr double ger_gflop_count<rocblas_float_complex, true>(rocblas_int m, rocblas_int n)
 {
 
-    return 4.0 * ger_gflop_count<float, false>(m, n) + n; // conjugate +n
+    return 4.0 * ger_gflop_count<float, false>(m, n) + n / 1e9; // +n for conjugate
 }
 
 template <>

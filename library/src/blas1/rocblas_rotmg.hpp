@@ -1,10 +1,9 @@
 /* ************************************************************************
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+#pragma once
 #include "handle.h"
 #include "logging.h"
-#include "rocblas.h"
-#include "utility.h"
 
 template <typename T>
 __device__ __host__ void rocblas_rotmg_calc(T& d1, T& d2, T& x1, const T& y1, T* param)
@@ -192,7 +191,7 @@ rocblas_status rocblas_rotmg_template(rocblas_handle handle,
                                       rocblas_stride stride_param,
                                       rocblas_int    batch_count)
 {
-    if(!batch_count)
+    if(batch_count <= 0)
         return rocblas_status_success;
 
     hipStream_t rocblas_stream = handle->rocblas_stream;

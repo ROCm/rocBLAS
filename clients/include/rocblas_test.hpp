@@ -5,6 +5,10 @@
 #ifndef ROCBLAS_TEST_H_
 #define ROCBLAS_TEST_H_
 
+#ifdef GOOGLE_TEST
+#include <gtest/gtest.h>
+#endif
+
 #include "argument_model.hpp"
 #include "rocblas.h"
 #include "rocblas_arguments.hpp"
@@ -20,41 +24,47 @@
 #include <unordered_map>
 #include <utility>
 
-// Suppress warnings about hipMalloc(), hipFree() except in rocblas-test and rocblas-bench
-#if !defined(GOOGLE_TEST) && !defined(ROCBLAS_BENCH)
-#undef hipMalloc
-#undef hipFree
-#endif
-
 #ifdef GOOGLE_TEST
-#include <gtest/gtest.h>
 
 // Extra macro so that macro arguments get expanded before calling Google Test
 #define CHECK_HIP_ERROR2(ERROR) ASSERT_EQ(ERROR, hipSuccess)
 #define CHECK_HIP_ERROR(ERROR) CHECK_HIP_ERROR2(ERROR)
 
-#define CHECK_DEVICE_ALLOCATION(ERROR)            \
-    do                                            \
-    {                                             \
-        auto error = ERROR;                       \
-        if(error == hipErrorOutOfMemory)          \
-        {                                         \
-            SUCCEED() << LIMITED_MEMORY_STRING;   \
-            return;                               \
-        }                                         \
-        else if(error != hipSuccess)              \
-        {                                         \
-            fprintf(stderr,                       \
-                    "error: '%s'(%d) at %s:%d\n", \
-                    hipGetErrorString(error),     \
-                    error,                        \
-                    __FILE__,                     \
-                    __LINE__);                    \
-            return;                               \
-        }                                         \
+#define CHECK_DEVICE_ALLOCATION(ERROR)                   \
+    do                                                   \
+    {                                                    \
+        /* Use error__ in case ERROR contains "error" */ \
+        hipError_t error__ = (ERROR);                    \
+        if(error__ != hipSuccess)                        \
+        {                                                \
+            if(error__ == hipErrorOutOfMemory)           \
+                SUCCEED() << LIMITED_MEMORY_STRING;      \
+            else                                         \
+                FAIL() << hipGetErrorString(error__);    \
+            return;                                      \
+        }                                                \
     } while(0)
 
-#define EXPECT_ROCBLAS_STATUS ASSERT_EQ
+// This wraps the rocBLAS call with catch_signals_and_exceptions_as_failures().
+// By placing it at the rocBLAS call site, memory resources are less likely to
+// be leaked in the event of a caught signal.
+#define EXPECT_ROCBLAS_STATUS(STATUS, EXPECT)                \
+    do                                                       \
+    {                                                        \
+        volatile bool signal_or_exception = true;            \
+        /* Use status__ in case STATUS contains "status" */  \
+        rocblas_status status__;                             \
+        catch_signals_and_exceptions_as_failures([&] {       \
+            status__            = (STATUS);                  \
+            signal_or_exception = false;                     \
+        });                                                  \
+        if(signal_or_exception)                              \
+            return;                                          \
+        { /* localize status for ASSERT_EQ message */        \
+            rocblas_status status = status__;                \
+            ASSERT_EQ(status, EXPECT); /* prints "status" */ \
+        }                                                    \
+    } while(0)
 
 #else // GOOGLE_TEST
 
@@ -69,16 +79,17 @@ inline void rocblas_expect_status(rocblas_status status, rocblas_status expect)
     }
 }
 
-#define CHECK_HIP_ERROR(ERROR)                                                     \
-    do                                                                             \
-    {                                                                              \
-        auto error = ERROR;                                                        \
-        if(error != hipSuccess)                                                    \
-        {                                                                          \
-            rocblas_cerr << "error: " << hipGetErrorString(error) << " (" << error \
-                         << ") at " __FILE__ ":" << __LINE__ << std::endl;         \
-            rocblas_abort();                                                       \
-        }                                                                          \
+#define CHECK_HIP_ERROR(ERROR)                                                         \
+    do                                                                                 \
+    {                                                                                  \
+        /* Use error__ in case ERROR contains "error" */                               \
+        hipError_t error__ = (ERROR);                                                  \
+        if(error__ != hipSuccess)                                                      \
+        {                                                                              \
+            rocblas_cerr << "error: " << hipGetErrorString(error__) << " (" << error__ \
+                         << ") at " __FILE__ ":" << __LINE__ << std::endl;             \
+            rocblas_abort();                                                           \
+        }                                                                              \
     } while(0)
 
 #define CHECK_DEVICE_ALLOCATION(ERROR)
@@ -99,13 +110,13 @@ bool match_test_category(const Arguments& arg, const char* category);
 // The tests are instantiated by filtering through the RocBLAS_Data stream
 // The filter is by category and by the type_filter() and function_filter()
 // functions in the testclass
-#define INSTANTIATE_TEST_CATEGORY(testclass, categ0ry)                                           \
-    INSTANTIATE_TEST_CASE_P(categ0ry,                                                            \
+#define INSTANTIATE_TEST_CATEGORY(testclass, category)                                           \
+    INSTANTIATE_TEST_CASE_P(category,                                                            \
                             testclass,                                                           \
                             testing::ValuesIn(RocBLAS_TestData::begin([](const Arguments& arg) { \
                                                   return testclass::type_filter(arg)             \
                                                          && testclass::function_filter(arg)      \
-                                                         && match_test_category(arg, #categ0ry); \
+                                                         && match_test_category(arg, #category); \
                                               }),                                                \
                                               RocBLAS_TestData::end()),                          \
                             testclass::PrintToStringParamName());
@@ -118,11 +129,11 @@ bool match_test_category(const Arguments& arg, const char* category);
     INSTANTIATE_TEST_CATEGORY(testclass, known_bug)
 
 // Function to catch signals and exceptions as failures
-void catch_signals_and_exceptions_as_failures(const std::function<void()>& test);
+void catch_signals_and_exceptions_as_failures(std::function<void()> test, bool set_alarm = false);
 
 // Macro to call catch_signals_and_exceptions_as_failures() with a lambda expression
 #define CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(test) \
-    catch_signals_and_exceptions_as_failures([&] { test; })
+    catch_signals_and_exceptions_as_failures([&] { test; }, true)
 
 /* ============================================================================================ */
 /*! \brief  Normalized test name to conform to Google Tests */
@@ -233,6 +244,9 @@ public:
         }
     };
 };
+
+// Function to set up signal handlers
+void rocblas_test_sigaction();
 
 #endif // GOOGLE_TEST
 

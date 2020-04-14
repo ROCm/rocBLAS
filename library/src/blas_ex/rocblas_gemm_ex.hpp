@@ -11,8 +11,6 @@
 #include "gemm.hpp"
 #include "handle.h"
 #include "logging.h"
-#include "rocblas.h"
-#include "utility.h"
 
 /////////////////
 // Device Side //
@@ -576,15 +574,15 @@ rocblas_status gemm_ex_batched_template(rocblas_handle    handle,
 {
     // BATCHED VERSION
     // Host arrays of device pointers.
-    Ti* hostA[batch_count];
-    Ti* hostB[batch_count];
-    To* hostC[batch_count];
-    To* hostD[batch_count];
+    auto hostA = std::make_unique<Ti*[]>(batch_count);
+    auto hostB = std::make_unique<Ti*[]>(batch_count);
+    auto hostC = std::make_unique<To*[]>(batch_count);
+    auto hostD = std::make_unique<To*[]>(batch_count);
 
-    RETURN_IF_HIP_ERROR(hipMemcpy(hostA, a, sizeof(hostA), hipMemcpyDeviceToHost));
-    RETURN_IF_HIP_ERROR(hipMemcpy(hostB, b, sizeof(hostB), hipMemcpyDeviceToHost));
-    RETURN_IF_HIP_ERROR(hipMemcpy(hostC, c, sizeof(hostC), hipMemcpyDeviceToHost));
-    RETURN_IF_HIP_ERROR(hipMemcpy(hostD, d, sizeof(hostD), hipMemcpyDeviceToHost));
+    RETURN_IF_HIP_ERROR(hipMemcpy(&hostA[0], a, sizeof(Ti*) * batch_count, hipMemcpyDeviceToHost));
+    RETURN_IF_HIP_ERROR(hipMemcpy(&hostB[0], b, sizeof(Ti*) * batch_count, hipMemcpyDeviceToHost));
+    RETURN_IF_HIP_ERROR(hipMemcpy(&hostC[0], c, sizeof(To*) * batch_count, hipMemcpyDeviceToHost));
+    RETURN_IF_HIP_ERROR(hipMemcpy(&hostD[0], d, sizeof(To*) * batch_count, hipMemcpyDeviceToHost));
 
     stride_a = rocblas_stride(lda) * (trans_a == rocblas_operation_none ? k : m);
     stride_b = rocblas_stride(ldb) * (trans_b == rocblas_operation_none ? n : k);

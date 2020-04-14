@@ -401,7 +401,6 @@ void cblas_herkx(rocblas_fill      uplo,
                 {
                     C[i + j * ldc] *= *beta;
                 }
-                C[j + j * ldc].y = 0;
 
                 for(int l = 0; l < k; l++)
                 {
@@ -411,6 +410,7 @@ void cblas_herkx(rocblas_fill      uplo,
                         C[i + j * ldc] += temp * A[i + l * lda];
                     }
                 }
+                C[j + j * ldc].y = 0;
             }
         }
         else // lower
@@ -422,7 +422,6 @@ void cblas_herkx(rocblas_fill      uplo,
                 {
                     C[i + j * ldc] *= *beta;
                 }
-                C[j + j * ldc].y = 0;
 
                 for(int l = 0; l < k; l++)
                 {
@@ -432,6 +431,7 @@ void cblas_herkx(rocblas_fill      uplo,
                         C[i + j * ldc] += temp * A[i + l * lda];
                     }
                 }
+                C[j + j * ldc].y = 0;
             }
         }
     }
@@ -445,8 +445,6 @@ void cblas_herkx(rocblas_fill      uplo,
                 for(int i = 0; i <= j; i++)
                 {
                     C[i + j * ldc] *= *beta;
-                    if(i == j)
-                        C[j + j * ldc].y = 0;
 
                     T temp(0);
                     for(int l = 0; l < k; l++)
@@ -454,6 +452,9 @@ void cblas_herkx(rocblas_fill      uplo,
                         temp += std::conj(A[l + i * lda]) * B[l + j * ldb];
                     }
                     C[i + j * ldc] += *alpha * temp;
+
+                    if(i == j)
+                        C[j + j * ldc].y = 0;
                 }
             }
         }
@@ -465,8 +466,6 @@ void cblas_herkx(rocblas_fill      uplo,
                 for(int i = j; i < n; i++)
                 {
                     C[i + j * ldc] *= *beta;
-                    if(i == j)
-                        C[j + j * ldc].y = 0;
 
                     T temp(0);
                     for(int l = 0; l < k; l++)
@@ -474,6 +473,9 @@ void cblas_herkx(rocblas_fill      uplo,
                         temp += std::conj(A[l + i * lda]) * B[l + j * ldb];
                     }
                     C[i + j * ldc] += *alpha * temp;
+
+                    if(i == j)
+                        C[j + j * ldc].y = 0;
                 }
             }
         }

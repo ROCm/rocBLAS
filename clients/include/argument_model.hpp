@@ -43,8 +43,9 @@ public:
         // bytes/us to GB/s = 10^6 * 10^-9 = 10^-3
         double rocblas_GBps = gpu_bytes * batch_count / gpu_us / 1e3;
 
-        name_line << "rocblas-Gflops,rocblas-GB/s,rocblas-us,";
-        val_line << rocblas_gflops << "," << rocblas_GBps << "," << gpu_us << ",";
+        // append performance fields
+        name_line << ",rocblas-Gflops,rocblas-GB/s,rocblas-us,";
+        val_line << "," << rocblas_gflops << "," << rocblas_GBps << "," << gpu_us << ",";
 
         if(arg.unit_check || arg.norm_check)
         {

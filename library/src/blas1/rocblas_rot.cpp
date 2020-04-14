@@ -39,6 +39,8 @@ namespace
         if(!handle)
             return rocblas_status_invalid_handle;
 
+        RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
+
         auto layer_mode = handle->layer_mode;
         if(layer_mode & rocblas_layer_mode_log_trace)
             log_trace(handle, rocblas_rot_name<T, V>, n, x, incx, y, incy, c, s);
@@ -59,10 +61,11 @@ namespace
         if(layer_mode & rocblas_layer_mode_log_profile)
             log_profile(handle, rocblas_rot_name<T, V>, "N", n, "incx", incx, "incy", incy);
 
+        if(n <= 0)
+            return rocblas_status_success;
+
         if(!x || !y || !c || !s)
             return rocblas_status_invalid_pointer;
-
-        RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
         return rocblas_rot_template<NB, T>(handle, n, x, 0, incx, 0, y, 0, incy, 0, c, 0, s, 0, 1);
     }

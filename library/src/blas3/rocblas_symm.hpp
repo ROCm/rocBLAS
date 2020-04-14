@@ -5,8 +5,6 @@
 #define __ROCBLAS_SYMM_HPP__
 
 #include "handle.h"
-#include "rocblas.h"
-#include "utility.h"
 
 template <typename T>
 static __device__ void
