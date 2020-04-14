@@ -265,16 +265,27 @@ void _rocblas_handle::init_logging()
     {
         layer_mode = static_cast<rocblas_layer_mode>(strtol(str_layer_mode, 0, 0));
 
-        // open log_trace file
-        if(layer_mode & rocblas_layer_mode_log_trace)
-            log_trace_os = open_log_stream("ROCBLAS_LOG_TRACE_PATH");
+        try
+        {
+            // open log_trace file
+            if(layer_mode & rocblas_layer_mode_log_trace)
+                log_trace_os = open_log_stream("ROCBLAS_LOG_TRACE_PATH");
 
-        // open log_bench file
-        if(layer_mode & rocblas_layer_mode_log_bench)
-            log_bench_os = open_log_stream("ROCBLAS_LOG_BENCH_PATH");
+            // open log_bench file
+            if(layer_mode & rocblas_layer_mode_log_bench)
+                log_bench_os = open_log_stream("ROCBLAS_LOG_BENCH_PATH");
 
-        // open log_profile file
-        if(layer_mode & rocblas_layer_mode_log_profile)
-            log_profile_os = open_log_stream("ROCBLAS_LOG_PROFILE_PATH");
+            // open log_profile file
+            if(layer_mode & rocblas_layer_mode_log_profile)
+                log_profile_os = open_log_stream("ROCBLAS_LOG_PROFILE_PATH");
+        }
+        catch(...)
+        {
+            delete log_trace_os;
+            delete log_bench_os;
+            delete log_profile_os;
+            log_trace_os = log_bench_os = log_profile_os = nullptr;
+            throw;
+        }
     }
 }
