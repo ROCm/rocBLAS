@@ -29,6 +29,7 @@ void testing_rotm_batched_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
     CHECK_DEVICE_ALLOCATION(dparam.memcheck());
 
+    CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
     EXPECT_ROCBLAS_STATUS((rocblas_rotm_batched<T>(nullptr,
                                                    N,
                                                    dx.ptr_on_device(),
@@ -77,41 +78,18 @@ void testing_rotm_batched(const Arguments& arg)
     const T rel_error          = std::numeric_limits<T>::epsilon() * 1000;
 
     // check to prevent undefined memory allocation error
-    if(N <= 0 || incx <= 0 || incy <= 0 || batch_count <= 0)
+    if(N <= 0 || batch_count <= 0)
     {
-        size_t                 safe_size = 100;
-        device_batch_vector<T> dx(safe_size, 1, 1);
-        device_batch_vector<T> dy(safe_size, 1, 1);
-        device_batch_vector<T> dparam(1, 1, 1);
-        CHECK_DEVICE_ALLOCATION(dx.memcheck());
-        CHECK_DEVICE_ALLOCATION(dy.memcheck());
-        CHECK_DEVICE_ALLOCATION(dparam.memcheck());
-
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        if(batch_count < 0)
-            EXPECT_ROCBLAS_STATUS((rocblas_rotm_batched<T>(handle,
-                                                           N,
-                                                           dx.ptr_on_device(),
-                                                           incx,
-                                                           dy.ptr_on_device(),
-                                                           incy,
-                                                           dparam.ptr_on_device(),
-                                                           batch_count)),
-                                  rocblas_status_invalid_size);
-        else
-            CHECK_ROCBLAS_ERROR((rocblas_rotm_batched<T>(handle,
-                                                         N,
-                                                         dx.ptr_on_device(),
-                                                         incx,
-                                                         dy.ptr_on_device(),
-                                                         incy,
-                                                         dparam.ptr_on_device(),
-                                                         batch_count)));
+        CHECK_ROCBLAS_ERROR((rocblas_rotm_batched<T>(
+            handle, N, nullptr, incx, nullptr, incy, nullptr, batch_count)));
         return;
     }
 
-    size_t size_x = N * size_t(incx);
-    size_t size_y = N * size_t(incy);
+    rocblas_int abs_incx = incx >= 0 ? incx : -incx;
+    rocblas_int abs_incy = incy >= 0 ? incy : -incy;
+    size_t      size_x   = N * size_t(abs_incx);
+    size_t      size_y   = N * size_t(abs_incy);
 
     device_batch_vector<T> dx(N, incx, batch_count);
     device_batch_vector<T> dy(N, incy, batch_count);
@@ -221,15 +199,15 @@ void testing_rotm_batched(const Arguments& arg)
 
                 if(arg.unit_check)
                 {
-                    near_check_general<T>(1, N, incx, cx, rx, batch_count, rel_error);
-                    near_check_general<T>(1, N, incy, cy, ry, batch_count, rel_error);
+                    near_check_general<T>(1, N, abs_incx, cx, rx, batch_count, rel_error);
+                    near_check_general<T>(1, N, abs_incy, cy, ry, batch_count, rel_error);
                 }
                 if(arg.norm_check)
                 {
                     norm_error_device_x
-                        = norm_check_general<T>('F', 1, N, incx, cx, rx, batch_count);
+                        = norm_check_general<T>('F', 1, N, abs_incx, cx, rx, batch_count);
                     norm_error_device_y
-                        = norm_check_general<T>('F', 1, N, incy, cy, ry, batch_count);
+                        = norm_check_general<T>('F', 1, N, abs_incy, cy, ry, batch_count);
                 }
             }
         }
