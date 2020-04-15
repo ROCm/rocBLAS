@@ -158,6 +158,10 @@ include( clients/cmake/build-options.cmake )
 # force library install path to lib (CentOS 7 defaults to lib64)
 set(CMAKE_INSTALL_LIBDIR "lib" CACHE INTERNAL "Installation directory for libraries" FORCE)
 
+if( CXX_VERSION_STRING MATCHES "clang")
+  set(HIPCC_COMPILE_FLAGS_APPEND "-parallel-jobs=2")
+endif( )
+
 option( BUILD_WITH_TENSILE_HOST "Use the new tensile client for gemm?" ON )
 
 if( BUILD_WITH_TENSILE )
