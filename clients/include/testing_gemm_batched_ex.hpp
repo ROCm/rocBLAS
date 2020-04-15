@@ -566,9 +566,9 @@ void testing_gemm_batched_ex(const Arguments& arg)
         if(arg.norm_check)
         {
             auto err1
-                = std::abs(norm_check_general<To>('F', M, N, ldd, batch_count, hD_gold, hD_1));
+                = std::abs(norm_check_general<To>('F', M, N, ldd, hD_gold, hD_1, batch_count));
             auto err2
-                = std::abs(norm_check_general<To>('F', M, N, ldd, batch_count, hD_gold, hD_2));
+                = std::abs(norm_check_general<To>('F', M, N, ldd, hD_gold, hD_2, batch_count));
             rocblas_error = err1 > err2 ? err1 : err2;
         }
     }
