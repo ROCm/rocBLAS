@@ -50,8 +50,8 @@ void testing_copy(const Arguments& arg)
         return;
     }
 
-    rocblas_int abs_incx = incx > 0 ? incx : -incx; //incx == 0 ? 1 : -incx;
-    rocblas_int abs_incy = incy > 0 ? incy : -incy; //incy == 0 ? 1 : -incy;
+    rocblas_int abs_incx = incx >= 0 ? incx : -incx;
+    rocblas_int abs_incy = incy >= 0 ? incy : -incy;
     size_t      size_x   = N * size_t(abs_incx);
     size_t      size_y   = N * size_t(abs_incy);
     if(!size_x)
