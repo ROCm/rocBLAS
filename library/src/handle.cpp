@@ -66,6 +66,9 @@ _rocblas_handle::_rocblas_handle()
 
     // Allocate device memory
     THROW_IF_HIP_ERROR((hipMalloc)(&device_memory, device_memory_size));
+
+    // Initialize logging
+    init_logging();
 }
 
 /*******************************************************************************
@@ -221,15 +224,6 @@ extern "C" bool rocblas_is_managing_device_memory(rocblas_handle handle)
     return handle && handle->device_memory_is_rocblas_managed;
 }
 
-/*******************************************************************************
- * Static handle data
- ******************************************************************************/
-rocblas_layer_mode    _rocblas_handle::layer_mode = rocblas_layer_mode_none;
-rocblas_ostream*      _rocblas_handle::log_trace_os;
-rocblas_ostream*      _rocblas_handle::log_bench_os;
-rocblas_ostream*      _rocblas_handle::log_profile_os;
-_rocblas_handle::init _rocblas_handle::handle_init;
-
 /**
  *  @brief Logging function
  *
@@ -244,61 +238,39 @@ _rocblas_handle::init _rocblas_handle::handle_init;
  *  environment_variable_name   const char*
  *                              Name of environment variable that contains
  *                              the full logfile path.
- *
- *  @parm[out]
- *  log_os      rocblas_ostream*&
- *              Output stream. Stream to filename in environment_variable_name
- *              if set, else set to standard error
  */
 
-static void open_log_stream(const char* environment_variable_name, rocblas_ostream*& log_os)
+static auto open_log_stream(const char* environment_variable_name)
 {
     // if environment variable is set, open file at logfile_pathname contained in the
     // environment variable; else use standard error
     const char* logfile_pathname = getenv(environment_variable_name);
 
-    log_os = logfile_pathname ? new rocblas_ostream(logfile_pathname)
-                              : new rocblas_ostream(STDERR_FILENO);
+    return logfile_pathname ? std::make_unique<rocblas_ostream>(logfile_pathname)
+                            : std::make_unique<rocblas_ostream>(STDERR_FILENO);
 }
 
 /*******************************************************************************
- * Static runtime initialization
+ * Logging initialization
  ******************************************************************************/
-_rocblas_handle::init::init()
+void _rocblas_handle::init_logging()
 {
-    // nullify output stream pointers
-    log_trace_os = log_bench_os = log_profile_os = nullptr;
-
     // set layer_mode from value of environment variable ROCBLAS_LAYER
-    auto str_layer_mode = getenv("ROCBLAS_LAYER");
+    const char* str_layer_mode = getenv("ROCBLAS_LAYER");
     if(str_layer_mode)
     {
         layer_mode = static_cast<rocblas_layer_mode>(strtol(str_layer_mode, 0, 0));
 
         // open log_trace file
         if(layer_mode & rocblas_layer_mode_log_trace)
-            open_log_stream("ROCBLAS_LOG_TRACE_PATH", log_trace_os);
+            log_trace_os = open_log_stream("ROCBLAS_LOG_TRACE_PATH");
 
         // open log_bench file
         if(layer_mode & rocblas_layer_mode_log_bench)
-            open_log_stream("ROCBLAS_LOG_BENCH_PATH", log_bench_os);
+            log_bench_os = open_log_stream("ROCBLAS_LOG_BENCH_PATH");
 
         // open log_profile file
         if(layer_mode & rocblas_layer_mode_log_profile)
-            open_log_stream("ROCBLAS_LOG_PROFILE_PATH", log_profile_os);
+            log_profile_os = open_log_stream("ROCBLAS_LOG_PROFILE_PATH");
     }
 }
-
-/*******************************************************************************
- * Static reinitialization (for testing only)
- ******************************************************************************/
-namespace rocblas
-{
-    void reinit_logs()
-    {
-        delete _rocblas_handle::log_trace_os;
-        delete _rocblas_handle::log_bench_os;
-        delete _rocblas_handle::log_profile_os;
-        new(&_rocblas_handle::handle_init) _rocblas_handle::init;
-    }
-} // namespace rocblas
