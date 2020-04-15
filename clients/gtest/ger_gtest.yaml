@@ -7,7 +7,9 @@ Definitions:
     - { M:   11, N:   12, lda:   13, stride_a:  156 }
     - { M:   16, N:   16, lda:   16, stride_a:  256 }
     - { M:   33, N:   32, lda:   33, stride_a: 1056 }
-    - { M:   65, N:   65, lda:   66, stride_a: 4300 }
+    - { M:   10, N:   60, lda:   20, stride_a: 1200 }
+    - { M:   24, N:    1, lda:   24, stride_a: 24 }
+    - { M:    1, N:   11, lda:    4, stride_a: 44 }
 
   - &special_case_range
     # Quick return
@@ -25,13 +27,13 @@ Definitions:
     - { M:    0, N:   0, lda:   1, incx: 1, incy: 1, batch_count: -1 }
 
   - &medium_matrix_size_range
-    - { M:  600, N:  500, lda:  500, stride_a:  250000 }
+    - { M:  600, N:  500, lda:  600, stride_a:  300000 }
+    - { M:  500, N:  700, lda:  500, stride_a:  350000 }
     - { M: 1000, N: 1000, lda: 1000, stride_a: 1000100 }
 
   - &large_matrix_size_range
-    - { M: 2000, N: 2000, lda: 2000, stride_a:    4000000 }
-    - { M: 4011, N: 4011, lda: 4011, stride_a:   16088200 }
-    - { M: 8000, N: 8000, lda: 8000, stride_a:   64000000 }
+    - { M: 1025, N: 4011, lda: 1025, stride_a:   4111275 }
+    - { M: 7000, N: 2000, lda: 7000, stride_a:   14000000 }
 
   - &incx_incy_range
     - { incx:   1, incy:   1}
