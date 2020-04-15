@@ -24,6 +24,8 @@ inline size_t sym_tri_count(rocblas_int n)
  *    level 1 BLAS
  * ===========================================================================
  */
+
+// axpy
 template <typename T>
 constexpr double axpy_gflop_count(rocblas_int n)
 {
@@ -40,6 +42,7 @@ constexpr double axpy_gflop_count<rocblas_double_complex>(rocblas_int n)
     return (8.0 * n) / 1e9;
 }
 
+// dot
 template <bool CONJ, typename T>
 constexpr double dot_gflop_count(rocblas_int n)
 {
@@ -66,6 +69,26 @@ constexpr double dot_gflop_count<true, rocblas_double_complex>(rocblas_int n)
     return (9.0 * n) / 1e9;
 }
 
+// nrm2
+template <typename T>
+constexpr double nrm2_gflop_count(rocblas_int n)
+{
+    return (2.0 * n) / 1e9;
+}
+
+template <>
+constexpr double nrm2_gflop_count<rocblas_float_complex>(rocblas_int n)
+{
+    return (6.0 * n + 2.0 * n) / 1e9;
+}
+
+template <>
+constexpr double nrm2_gflop_count<rocblas_double_complex>(rocblas_int n)
+{
+    return nrm2_gflop_count<rocblas_float_complex>(n);
+}
+
+// scal
 template <typename T, typename U>
 constexpr double scal_gflop_count(rocblas_int n)
 {
