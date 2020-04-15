@@ -2,6 +2,7 @@
  * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+#include "bytes.hpp"
 #include "cblas_interface.hpp"
 #include "flops.hpp"
 #include "near.hpp"
@@ -182,7 +183,7 @@ void testing_dot(const Arguments& arg)
                                                          arg,
                                                          gpu_time_used,
                                                          dot_gflop_count<CONJ, T>(N),
-                                                         (2.0 * N) * sizeof(T),
+                                                         dot_gbyte_count<T>(N),
                                                          cpu_time_used,
                                                          rocblas_error_1,
                                                          rocblas_error_2);
