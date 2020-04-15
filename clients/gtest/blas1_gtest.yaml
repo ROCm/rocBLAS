@@ -521,7 +521,7 @@ Tests:
 # quick
   - name: blas1
     category: quick
-    N: [ -1, 0, 32] #1025]
+    N: [ -1, 0, 32, 1025]
     incx_incy: *incx_incy_range_x_y_output
     batch_count: [1, 7]
     stride_scale: [ 1 ]
