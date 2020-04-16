@@ -15,7 +15,7 @@ Requirements
 - The following schemes need to be supported:
 
   - **Default** Functions allocate required device memory automatically. This has the disadvantage that allocation is a synchronizing event.
-  - **Preallocate** Query all the functions called using a rocblas_handle to find out how much device memory is needed. Preallocate the required device memory when a rocblas_handle is created, and there are no more synchronizing allocations or deallocations.
+  - **Preallocate** Query all the functions called using a rocblas_handle to find out how much device memory is needed. Preallocate the required device memory when the rocblas_handle is created, and there are no more synchronizing allocations or deallocations.
   - **Manual** Query a function to find out how much device memory is required. Allocate and deallocate the device memory before and after function calls. This allows the user to control where the synchronizing allocation and deallocation occur. 
 
 In all above schemes, temporary device memory needs to be held by the rocblas_handle and recycled if a subsequent function using the handle needs it. 
@@ -41,10 +41,10 @@ Design
   - Functions are provided to allocate temporary device memory
   - opaque RAII objects are used to hold the temorary device memory, and allocated memory is returned to the handle automatically when it is no longer needed.
 
-The functions for the rocBLAS user are described in the User Guide. The functions for the rocBLAS developer are described below:
+The functions for the rocBLAS user are described in the User Guide. The functions for the rocBLAS developer are described below.
 
 
-Answering Device Memory Size Queries In Function That Needs Memmory
+Answering Device Memory Size Queries In Function That Needs Memory
 ===================================================================
 
 Example
@@ -107,7 +107,7 @@ Function
 Returns size of a rocBLAS runtime data type.
 
 
-Answering Device Memory Size Queries In Function That Does Not Needs Memmory
+Answering Device Memory Size Queries In Function That Does Not Needs Memory
 ============================================================================
 
 Example
@@ -189,9 +189,12 @@ return value:
 - **On failure**, returns a null pointer
 
 
-rocblas_status_perf_degraded
-============================
-- Used to indicate that a slower algorithm was used because of insufficient device memory for the optimal algorithm.
+Performance degrade
+===================
+The rocblas_status enum value ``rocblas_status_perf_degraded`` is used to indicate that a slower algorithm was used because of insufficient device memory for the optimal algorithm.
+
+Example
+-------
 
 ::
 
