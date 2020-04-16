@@ -27,18 +27,10 @@ void testing_scal_batched(const Arguments& arg)
     // argument sanity check before allocating invalid memory
     if(N < 0 || incx <= 0 || batch_count <= 0)
     {
-        device_batch_vector<T> dx(1, 1, 1);
-        CHECK_DEVICE_ALLOCATION(dx.memcheck());
-
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        EXPECT_ROCBLAS_STATUS((rocblas_scal_batched<T, U>)(handle,
-                                                           N,
-                                                           &h_alpha,
-                                                           dx.ptr_on_device(),
-                                                           incx,
-                                                           batch_count),
-                              batch_count < 0 ? rocblas_status_invalid_size
-                                              : rocblas_status_success);
+        EXPECT_ROCBLAS_STATUS(
+            (rocblas_scal_batched<T, U>)(handle, N, nullptr, nullptr, incx, batch_count),
+            rocblas_status_success);
         return;
     }
 

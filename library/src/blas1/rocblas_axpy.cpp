@@ -38,11 +38,6 @@ namespace
 
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
-        if(!alpha)
-        {
-            return rocblas_status_invalid_pointer;
-        }
-
         auto layer_mode = handle->layer_mode;
         if(handle->pointer_mode == rocblas_pointer_mode_host)
         {
@@ -79,15 +74,22 @@ namespace
             log_profile(handle, name, "N", n, "incx", incx, "incy", incy);
         }
 
-        if(!x || !y)
-        {
-            return rocblas_status_invalid_pointer;
-        }
-
         if(n <= 0) // Quick return if possible. Not Argument error
         {
             return rocblas_status_success;
         }
+
+        if(!alpha)
+            return rocblas_status_invalid_pointer;
+
+        if(handle->pointer_mode == rocblas_pointer_mode_host)
+        {
+            if(*alpha == 0)
+                return rocblas_status_success;
+        }
+
+        if(!x || !y)
+            return rocblas_status_invalid_pointer;
 
         return rocblas_axpy_template<NB>(handle, n, alpha, x, incx, y, incy);
     }

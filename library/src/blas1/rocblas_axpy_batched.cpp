@@ -38,11 +38,6 @@ namespace
 
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
-        if(!alpha)
-        {
-            return rocblas_status_invalid_pointer;
-        }
-
         auto layer_mode = handle->layer_mode;
         if(handle->pointer_mode == rocblas_pointer_mode_host)
         {
@@ -82,20 +77,22 @@ namespace
             log_profile(handle, name, "N", n, "incx", incx, "incy", incy, "batch", batch_count);
         }
 
-        if(!x || !y)
-        {
-            return rocblas_status_invalid_pointer;
-        }
-
-        if(n <= 0 || 0 == batch_count) // Quick return if possible. Not Argument error
+        if(n <= 0 || batch_count <= 0) // Quick return if possible. Not Argument error
         {
             return rocblas_status_success;
         }
 
-        if(batch_count < 0)
+        if(!alpha)
+            return rocblas_status_invalid_pointer;
+
+        if(handle->pointer_mode == rocblas_pointer_mode_host)
         {
-            return rocblas_status_invalid_size;
+            if(*alpha == 0)
+                return rocblas_status_success;
         }
+
+        if(!x || !y)
+            return rocblas_status_invalid_pointer;
 
         return rocblas_axpy_batched_template<NB>(handle, n, alpha, x, incx, y, incy, batch_count);
     }
