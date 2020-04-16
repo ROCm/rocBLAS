@@ -90,7 +90,7 @@ public:
     {
         return handle;
     }
-    operator const rocblas_handle &() const
+    operator const rocblas_handle&() const
     {
         return handle;
     }
