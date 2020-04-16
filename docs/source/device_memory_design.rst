@@ -15,10 +15,10 @@ Requirements
 - The following schemes need to be supported:
 
   - **Default** Functions allocate required device memory automatically. This has the disadvantage that allocation is a synchronizing event.
-  - **Preallocate** Query a code to find out how much device memory is needed. Preallocate the required device memory when a rocblas_handle is created, and there are no more synchronizing allocations or deallocations.
+  - **Preallocate** Query all the functions called using a rocblas_handle to find out how much device memory is needed. Preallocate the required device memory when a rocblas_handle is created, and there are no more synchronizing allocations or deallocations.
   - **Manual** Query a function to find out how much device memory is required. Allocate and deallocate the device memory before and after function calls. This allows the user to control where the synchronizing allocation and deallocation occur. 
 
-In all above schemes, temporary device memory needs to be held in the handle and recycled if a subsequent function needs it. 
+In all above schemes, temporary device memory needs to be held by the rocblas_handle and recycled if a subsequent function using the handle needs it. 
 
 Design
 ======
