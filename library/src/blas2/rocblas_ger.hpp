@@ -51,7 +51,8 @@ __global__ void ger_kernel(rocblas_int    m,
 
     if(hipThreadIdx_x < WIN)
     {
-        ydata[tyi + hipThreadIdx_x] = ty < n ? y[(ty + hipThreadIdx_x) * incy] : 0;
+        ydata[tyi + hipThreadIdx_x]
+            = (ty + hipThreadIdx_x < n) ? y[(ty + hipThreadIdx_x) * incy] : 0;
     }
 
     __syncthreads();
