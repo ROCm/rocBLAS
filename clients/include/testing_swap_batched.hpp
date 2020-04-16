@@ -54,10 +54,9 @@ void testing_swap_batched(const Arguments& arg)
     // argument sanity check before allocating invalid memory
     if(N <= 0 || batch_count <= 0)
     {
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         EXPECT_ROCBLAS_STATUS(
             rocblas_swap_batched<T>(handle, N, nullptr, incx, nullptr, incy, batch_count),
-            N > 0 && batch_count < 0 ? rocblas_status_invalid_size : rocblas_status_success);
+            rocblas_status_success);
         return;
     }
 

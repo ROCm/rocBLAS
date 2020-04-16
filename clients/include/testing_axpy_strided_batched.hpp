@@ -55,6 +55,10 @@ void testing_axpy_strided_batched(const Arguments& arg)
     rocblas_int N = arg.N, incx = arg.incx, incy = arg.incy, batch_count = arg.batch_count;
 
     rocblas_stride stridex = arg.stride_x, stridey = arg.stride_y;
+    if(!stridex)
+        stridex = N;
+    if(!stridey)
+        stridey = N;
 
     T                    h_alpha = arg.get_alpha<T>();
     rocblas_local_handle handle;
@@ -62,16 +66,11 @@ void testing_axpy_strided_batched(const Arguments& arg)
     // argument sanity check before allocating invalid memory
     if(N <= 0 || batch_count <= 0)
     {
-        device_strided_batch_vector<T> dx(10, 1, 10, 2), dy(10, 1, 10, 2);
-
-        CHECK_DEVICE_ALLOCATION(dx.memcheck());
-        CHECK_DEVICE_ALLOCATION(dy.memcheck());
-
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         EXPECT_ROCBLAS_STATUS(
             rocblas_axpy_strided_batched<T>(
-                handle, N, &h_alpha, dx, incx, stridex, dy, incy, stridey, batch_count),
-            (N > 0 && batch_count < 0) ? rocblas_status_invalid_size : rocblas_status_success);
+                handle, N, nullptr, nullptr, incx, stridex, nullptr, incy, stridey, batch_count),
+            rocblas_status_success);
         return;
     }
 
@@ -80,9 +79,9 @@ void testing_axpy_strided_batched(const Arguments& arg)
     //
     // Host memory.
     //
-    host_strided_batch_vector<T> hx(N, incx, stridex, batch_count),
-        hy(N, incy, stridey, batch_count), hy1(N, incy, stridey, batch_count),
-        hy2(N, incy, stridey, batch_count);
+    host_strided_batch_vector<T> hx(N, incx ? incx : 1, stridex, batch_count),
+        hy(N, incy ? incy : 1, stridey, batch_count), hy1(N, incy ? incy : 1, stridey, batch_count),
+        hy2(N, incy ? incy : 1, stridey, batch_count);
     host_vector<T> halpha(1);
 
     CHECK_HIP_ERROR(hx.memcheck());
@@ -91,8 +90,8 @@ void testing_axpy_strided_batched(const Arguments& arg)
     CHECK_HIP_ERROR(hy2.memcheck());
     CHECK_HIP_ERROR(halpha.memcheck());
 
-    device_strided_batch_vector<T> dx(N, incx, stridex, batch_count),
-        dy(N, incy, stridey, batch_count);
+    device_strided_batch_vector<T> dx(N, incx ? incx : 1, stridex, batch_count),
+        dy(N, incy ? incy : 1, stridey, batch_count);
     device_vector<T> dalpha(1);
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy.memcheck());

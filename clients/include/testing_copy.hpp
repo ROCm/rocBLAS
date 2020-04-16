@@ -46,13 +46,7 @@ void testing_copy(const Arguments& arg)
     // argument sanity check before allocating invalid memory
     if(N <= 0)
     {
-        static const size_t safe_size = 100; //  arbitrarily set to 100
-        device_vector<T>    dx(safe_size);
-        device_vector<T>    dy(safe_size);
-        CHECK_DEVICE_ALLOCATION(dx.memcheck());
-        CHECK_DEVICE_ALLOCATION(dy.memcheck());
-
-        CHECK_ROCBLAS_ERROR(rocblas_copy<T>(handle, N, dx, incx, dy, incy));
+        CHECK_ROCBLAS_ERROR(rocblas_copy<T>(handle, N, nullptr, incx, nullptr, incy));
         return;
     }
 
@@ -60,6 +54,10 @@ void testing_copy(const Arguments& arg)
     rocblas_int abs_incy = incy >= 0 ? incy : -incy;
     size_t      size_x   = N * size_t(abs_incx);
     size_t      size_y   = N * size_t(abs_incy);
+    if(!size_x)
+        size_x = 1;
+    if(!size_y)
+        size_y = 1;
 
     // allocate memory on device
     device_vector<T> dx(size_x);

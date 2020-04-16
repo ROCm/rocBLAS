@@ -53,34 +53,24 @@ void testing_copy_batched(const Arguments& arg)
     // argument sanity check before allocating invalid memory
     if(N <= 0 || batch_count <= 0)
     {
-        size_t                 safe_size = 100;
-        device_batch_vector<T> dx(safe_size, 1, 1);
-        device_batch_vector<T> dy(safe_size, 1, 1);
-        CHECK_DEVICE_ALLOCATION(dx.memcheck());
-        CHECK_DEVICE_ALLOCATION(dy.memcheck());
-
         EXPECT_ROCBLAS_STATUS(
-            rocblas_copy_batched<T>(
-                handle, N, dx.ptr_on_device(), incx, dy.ptr_on_device(), incy, batch_count),
-            N > 0 && batch_count < 0 ? rocblas_status_invalid_size : rocblas_status_success);
+            rocblas_copy_batched<T>(handle, N, nullptr, incx, nullptr, incy, batch_count),
+            rocblas_status_success);
         return;
     }
 
-    rocblas_int abs_incx = incx >= 0 ? incx : -incx;
     rocblas_int abs_incy = incy >= 0 ? incy : -incy;
-    size_t      size_x   = N * size_t(abs_incx);
-    size_t      size_y   = N * size_t(abs_incy);
 
     //Device-arrays of pointers to device memory
-    device_batch_vector<T> dx(N, incx, batch_count);
-    device_batch_vector<T> dy(N, incy, batch_count);
+    device_batch_vector<T> dx(N, incx ? incx : 1, batch_count);
+    device_batch_vector<T> dy(N, incy ? incy : 1, batch_count);
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory, plz follow this practice
-    host_batch_vector<T> hy(N, incy, batch_count);
-    host_batch_vector<T> hy_gold(N, incy, batch_count);
-    host_batch_vector<T> hx(N, incx, batch_count);
+    host_batch_vector<T> hy(N, incy ? incy : 1, batch_count);
+    host_batch_vector<T> hy_gold(N, incy ? incy : 1, batch_count);
+    host_batch_vector<T> hx(N, incx ? incx : 1, batch_count);
 
     // Initial Data on CPU
     rocblas_init(hx, true);
