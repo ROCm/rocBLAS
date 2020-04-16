@@ -11,12 +11,12 @@ Requirements
 ============
 - Some rocBLAS functions need temporary device memory.
 - Allocating and deallocating device memory is expensive and synchronizing.
-- Temporary device memory should be recycled across multiple rocBLAS function calls using the same handle.
+- Temporary device memory should be recycled across multiple rocBLAS function calls using the same rocblas_handle.
 - The following schemes need to be supported:
 
   - **Default** Functions allocate required device memory automatically. This has the disadvantage that allocation is a synchronizing event.
-  - **Preallocate** Provide tools to measure how much device memory is needed. Preallocate the required device memory, and there are no more synchronizing allocations or deallocations.
-  - **Manual** Query function to find out how much device memory is required. Allocate and deallocate the device memory before and after function calls. This allows the user to control where the synchronizing allocation and deallocation occur. 
+  - **Preallocate** Query a code to find out how much device memory is needed. Preallocate the required device memory when a rocblas_handle is created, and there are no more synchronizing allocations or deallocations.
+  - **Manual** Query a function to find out how much device memory is required. Allocate and deallocate the device memory before and after function calls. This allows the user to control where the synchronizing allocation and deallocation occur. 
 
 In all above schemes, temporary device memory needs to be held in the handle and recycled if a subsequent function needs it. 
 
@@ -24,12 +24,12 @@ Design
 ======
 
 - rocBLAS uses per-handle device memory allocation with out-of-band management
-- The state of the device memory is stored in the rocBLAS handle
+- The state of the device memory is stored in the rocblas_handle
 - For the user of rocBLAS:
 
-  - Functions are provided to query how much memory a function requires
-  - An environment variable is provided to pre-allocate when the rocBLAS handle is created
-  - Functions are provided to manually allocate and deallocate after the handle is created
+  - Functions are provided to query how much device memory a function needs
+  - An environment variable is provided to pre-allocate when the rocblas_handle is created
+  - Functions are provided to manually allocate and deallocate after the rocblas_handle is created
   - The following two new values are added to the rocblas_status enum to indicate how a rocBLAS function is changing the state of the temporary device memory in the rocBLAS handle
 
      - rocblas_status_size_unchanged
