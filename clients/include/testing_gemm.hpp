@@ -108,21 +108,24 @@ void testing_gemm(const Arguments& arg)
 
     // check here to prevent undefined memory allocation error
     // Note: K==0 is not an early exit, since C still needs to be multiplied by beta
-    if(M < 0 || N < 0 || K < 0 || lda < A_row || ldb < B_row || ldc < M)
+    bool invalid_size = M < 0 || N < 0 || K < 0 || lda < A_row || ldb < B_row || ldc < M;
+    if(invalid_size)
     {
-        static const size_t safe_size = 100;
-
-        device_vector<T> dA(safe_size);
-        device_vector<T> dB(safe_size);
-        device_vector<T> dC(safe_size);
-        CHECK_DEVICE_ALLOCATION(dA.memcheck());
-        CHECK_DEVICE_ALLOCATION(dB.memcheck());
-        CHECK_DEVICE_ALLOCATION(dC.memcheck());
-
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_gemm<T>(
-                handle, transA, transB, M, N, K, &h_alpha, dA, lda, dB, ldb, &h_beta, dC, ldc),
-            rocblas_status_invalid_size);
+        EXPECT_ROCBLAS_STATUS(rocblas_gemm<T>(handle,
+                                              transA,
+                                              transB,
+                                              M,
+                                              N,
+                                              K,
+                                              nullptr,
+                                              nullptr,
+                                              lda,
+                                              nullptr,
+                                              ldb,
+                                              nullptr,
+                                              nullptr,
+                                              ldc),
+                              rocblas_status_invalid_size);
 
         return;
     }

@@ -37,6 +37,23 @@ namespace
         if(!handle)
             return rocblas_status_invalid_handle;
 
+        // gemm based trmm block sizes
+        constexpr rocblas_int RB = 128;
+        constexpr rocblas_int CB = 128;
+
+        // work arrays dt1 and dt2 are used in trmm
+        rocblas_int size_dt1 = RB * CB;
+        rocblas_int size_dt2 = CB * CB;
+
+        size_t dev_bytes = (size_dt1 + size_dt2) * sizeof(T);
+        if(handle->is_device_memory_size_query())
+        {
+            if(m == 0 || n == 0)
+                return rocblas_status_size_unchanged;
+
+            return handle->set_optimal_device_memory_size(dev_bytes);
+        }
+
         auto layer_mode = handle->layer_mode;
         if(layer_mode
                & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
@@ -136,27 +153,10 @@ namespace
             return rocblas_status_invalid_size;
 
         if(m == 0 || n == 0)
-        {
-            if(handle->is_device_memory_size_query())
-                return rocblas_status_size_unchanged;
-            else
-                return rocblas_status_success;
-        }
+            return rocblas_status_success;
 
         if(!a || !c || !alpha)
             return rocblas_status_invalid_pointer;
-
-        // gemm based trmm block sizes
-        constexpr rocblas_int RB = 128;
-        constexpr rocblas_int CB = 128;
-
-        // work arrays dt1 and dt2 are used in trmm
-        rocblas_int size_dt1 = RB * CB;
-        rocblas_int size_dt2 = CB * CB;
-
-        size_t dev_bytes = (size_dt1 + size_dt2) * sizeof(T);
-        if(handle->is_device_memory_size_query())
-            return handle->set_optimal_device_memory_size(dev_bytes);
 
         auto mem = handle->device_malloc(dev_bytes);
         if(!mem)
