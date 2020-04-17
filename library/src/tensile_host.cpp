@@ -1,4 +1,3 @@
-
 /* ************************************************************************
  * Copyright 2019-2020 Advanced Micro Devices, Inc.
  * ************************************************************************/
@@ -279,41 +278,17 @@ namespace
         return inputs;
     }
 
-    /*******************************************************************************
-     * The TensileHostImpl class implements TensileHost as an opaque derived class *
-     *******************************************************************************/
-    class TensileHostImpl : public TensileHost
+    /*************************************************
+     * The TensileHost class interfaces with Tensile *
+     *************************************************/
+    struct TensileHost
     {
-        /************************************************************
-         * Allow TensileHost to downcast and access TensileHostImpl *
-         ************************************************************/
-        friend class TensileHost;
-
         /*******************
          * Class variables *
          *******************/
         std::shared_ptr<Tensile::MasterSolutionLibrary<Tensile::ContractionProblem>> library;
         std::shared_ptr<Tensile::Hardware>                                           hardware;
         Tensile::hip::SolutionAdapter                                                adapter;
-
-        /******************************************************************************
-         * GetProcessorName() returns the processor architecture name for directories *
-         ******************************************************************************/
-        static constexpr const char* GetProcessorName(Tensile::AMDGPU::Processor p)
-        {
-            switch(p)
-            {
-            case Tensile::AMDGPU::Processor::gfx803:
-                return "gfx803";
-            default: // Default falls to the most common hardware
-            case Tensile::AMDGPU::Processor::gfx900:
-                return "gfx900";
-            case Tensile::AMDGPU::Processor::gfx906:
-                return "gfx906";
-            case Tensile::AMDGPU::Processor::gfx908:
-                return "gfx908";
-            }
-        }
 
         /*******************************************************
          * Testpath() tests that a path exists and is readable *
@@ -327,15 +302,16 @@ namespace
          * Constructor loads host according to environment variables *
          * and default paths based on librocblas.so location and GPU *
          *************************************************************/
-    public:
-        TensileHostImpl()
+        TensileHost()
             : hardware{Tensile::hip::GetCurrentDevice()}
         {
             std::string path;
             path.reserve(PATH_MAX);
 
-            auto        pAMDGPU   = std::dynamic_pointer_cast<Tensile::AMDGPU>(hardware);
-            std::string processor = GetProcessorName(pAMDGPU->processor);
+            auto pAMDGPU = std::dynamic_pointer_cast<Tensile::AMDGPU>(hardware);
+
+            // The name of the current GPU platform
+            std::string processor = "gfx" + std::to_string(_rocblas_handle::device_arch_id());
 
             const char* env = getenv("ROCBLAS_TENSILE_LIBPATH");
             if(env)
@@ -347,7 +323,8 @@ namespace
                 Dl_info info;
 
                 // Find the location of librocblas.so
-                if(dladdr((void*)createTensileHost, &info))
+                struct TensileHost& getTensileHost();
+                if(dladdr((void*)getTensileHost, &info))
                 {
                     path = info.dli_fname;
                     dirname(&path[0]);
@@ -407,34 +384,43 @@ namespace
         }
     };
 
+    /*****************************************************************************
+     * getTensileHost returns a TensileHost, initializing it on the first call   *
+     *****************************************************************************/
+    TensileHost& getTensileHost()
+    try
+    {
+        static TensileHost host; // Create host on first call, caching it on later calls
+        return host;
+    }
+    catch(const std::exception& e)
+    {
+        rocblas_cerr << "\nCould not initialize Tensile host: " << e.what() << std::endl;
+        rocblas_abort();
+    }
+    catch(...)
+    {
+        rocblas_cerr << "\nCould not initialize Tensile host: Unknown exception thrown"
+                     << std::endl;
+        rocblas_abort();
+    }
 } // namespace
-
-/*****************************************************************************
- * createTensileHost returns an instance of TensileHostImpl as a TensileHost *
- *****************************************************************************/
-TensileHost* createTensileHost()
-{
-    //    static int once = (tensileInitialize(), 0);
-    return new TensileHostImpl;
-}
 
 /******************************************************************************
  * runContractionProblem calls Tensile to run a contraction problem described *
  * by RocblasContractionProblem                                               *
  ******************************************************************************/
 template <typename Ti, typename To, typename Tc>
-rocblas_status
-    TensileHost::runContractionProblem(const RocblasContractionProblem<Ti, To, Tc>& problem)
+rocblas_status runContractionProblem(const RocblasContractionProblem<Ti, To, Tc>& problem)
 {
     rocblas_status                                status = rocblas_status_internal_error;
     std::shared_ptr<Tensile::ContractionSolution> solution;
+    TensileHost&                                  host = getTensileHost();
 
     try
     {
-        // We know that the TensileHost instance is a TensileHostImpl, so we can downcast to it
-        auto* host            = static_cast<TensileHostImpl*>(this);
-        auto  tensile_problem = ConstructTensileProblem(problem);
-        solution              = host->library->findBestSolution(tensile_problem, *host->hardware);
+        auto tensile_problem = ConstructTensileProblem(problem);
+        solution             = host.library->findBestSolution(tensile_problem, *host.hardware);
 
         if(!solution)
         {
@@ -446,17 +432,17 @@ rocblas_status
         else
         {
             auto           inputs = GetTensileInputs(problem);
-            auto           result = solution->solve(tensile_problem, inputs, *host->hardware);
+            auto           result = solution->solve(tensile_problem, inputs, *host.hardware);
             rocblas_handle handle = problem.handle;
             if(handle->startEvent && handle->stopEvent)
             {
                 hipStream_t stream;
                 rocblas_get_stream(handle, &stream);
-                host->adapter.launchKernels(result, stream, handle->startEvent, handle->stopEvent);
+                host.adapter.launchKernels(result, stream, handle->startEvent, handle->stopEvent);
             }
             else
             {
-                host->adapter.launchKernels(result);
+                host.adapter.launchKernels(result);
             }
 
             status = rocblas_status_success;
@@ -481,6 +467,14 @@ rocblas_status
     return status;
 }
 
+/*******************************************************************************
+ * ! \brief  Initialize rocBLAS, to avoid costly startup time at the first call.
+ ******************************************************************************/
+extern "C" void rocblas_initialize()
+{
+    getTensileHost();
+}
+
 /******************************************************************************
  * Intantiate the cases of runContractionProblem which are needed to satisfy  *
  * rocBLAS dependencies. This file's template functions are not defined in a  *
@@ -488,28 +482,26 @@ rocblas_status
  ******************************************************************************/
 
 // Non-EX types
-template rocblas_status
-    TensileHost::runContractionProblem(const RocblasContractionProblem<rocblas_half>&);
+template rocblas_status runContractionProblem(const RocblasContractionProblem<rocblas_half>&);
 
-template rocblas_status TensileHost::runContractionProblem(const RocblasContractionProblem<float>&);
+template rocblas_status runContractionProblem(const RocblasContractionProblem<float>&);
 
-template rocblas_status
-    TensileHost::runContractionProblem(const RocblasContractionProblem<double>&);
+template rocblas_status runContractionProblem(const RocblasContractionProblem<double>&);
 
 template rocblas_status
-    TensileHost::runContractionProblem(const RocblasContractionProblem<rocblas_float_complex>&);
+    runContractionProblem(const RocblasContractionProblem<rocblas_float_complex>&);
 
 template rocblas_status
-    TensileHost::runContractionProblem(const RocblasContractionProblem<rocblas_double_complex>&);
+    runContractionProblem(const RocblasContractionProblem<rocblas_double_complex>&);
 
 // EX types
-template rocblas_status TensileHost::runContractionProblem(
-    const RocblasContractionProblem<rocblas_half, rocblas_half, float>&);
+template rocblas_status
+    runContractionProblem(const RocblasContractionProblem<rocblas_half, rocblas_half, float>&);
 
-template rocblas_status TensileHost::runContractionProblem(
+template rocblas_status runContractionProblem(
     const RocblasContractionProblem<rocblas_bfloat16, rocblas_bfloat16, float>&);
 
 template rocblas_status
-    TensileHost::runContractionProblem(const RocblasContractionProblem<int8_t, int32_t, int32_t>&);
+    runContractionProblem(const RocblasContractionProblem<int8_t, int32_t, int32_t>&);
 
 #endif

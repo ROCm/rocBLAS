@@ -410,7 +410,7 @@ inline rocblas_status call_tensile(rocblas_handle    handle,
                                          stride_c,
                                          batch_count};
 
-    return handle->host->runContractionProblem(problem);
+    return runContractionProblem(problem);
 
 #else // USE_TENSILE_HOST
 

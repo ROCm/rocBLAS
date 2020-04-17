@@ -37,9 +37,6 @@ private:
     };
 
 public:
-#ifdef USE_TENSILE_HOST
-    struct TensileHost* host = nullptr;
-#endif
     _rocblas_handle();
     ~_rocblas_handle();
 
