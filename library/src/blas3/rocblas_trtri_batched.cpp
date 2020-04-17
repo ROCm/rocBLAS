@@ -34,6 +34,17 @@ namespace
         if(!handle)
             return rocblas_status_invalid_handle;
 
+        // Compute the optimal size for temporary device memory
+        size_t els   = rocblas_trtri_temp_size<NB>(n, 1);
+        size_t size  = els * batch_count * sizeof(T);
+        size_t sizep = batch_count * sizeof(T*);
+        if(handle->is_device_memory_size_query())
+        {
+            if(n <= NB || !batch_count)
+                return rocblas_status_size_unchanged;
+            return handle->set_optimal_device_memory_size(size, sizep);
+        }
+
         auto layer_mode = handle->layer_mode;
         if(layer_mode & rocblas_layer_mode_log_trace)
             log_trace(
@@ -56,25 +67,13 @@ namespace
                         batch_count);
 
         if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
-            return rocblas_status_not_implemented;
-        if(n < 0)
+            return rocblas_status_invalid_value;
+        if(n < 0 || lda < n || ldinvA < n || batch_count < 0)
             return rocblas_status_invalid_size;
-        if(!A)
-            return rocblas_status_invalid_pointer;
-        if(lda < n)
-            return rocblas_status_invalid_size;
-        if(!invA)
-            return rocblas_status_invalid_pointer;
-        if(ldinvA < n || batch_count < 0)
-            return rocblas_status_invalid_size;
-
-        // For small n or zero batch_count, and device memory size query, return size unchanged
-        if((n <= NB || !batch_count) && handle->is_device_memory_size_query())
-            return rocblas_status_size_unchanged;
-
-        // Quick return if possible.
         if(!n || !batch_count)
             return rocblas_status_success;
+        if(!A || !invA)
+            return rocblas_status_invalid_pointer;
 
         rocblas_status status;
         if(n <= NB)
@@ -84,15 +83,6 @@ namespace
         }
         else
         {
-            // Compute the optimal size for temporary device memory
-            size_t els   = rocblas_trtri_temp_size<NB>(n, 1);
-            size_t size  = els * batch_count * sizeof(T);
-            size_t sizep = batch_count * sizeof(T*);
-
-            // If size is queried, set optimal size
-            if(handle->is_device_memory_size_query())
-                return handle->set_optimal_device_memory_size(size, sizep);
-
             // Allocate memory
             auto mem = handle->device_malloc(size, sizep);
             if(!mem)

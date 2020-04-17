@@ -279,12 +279,44 @@ void testing_gemm_batched_ex(const Arguments& arg)
 
     // Quick-return or error sizes
     // Note: K==0 is not an early exit, since we still must multiply C by beta
-    if(M <= 0 || N <= 0 || K < 0 || lda < A_row || ldb < B_row || ldc < M || ldd < M
-       || batch_count <= 0
-       || (std::is_same<Ti, int8_t>{}
-           && (K % 4 != 0 || (transA != rocblas_operation_none && lda % 4 != 0))))
+    bool invalid_size = M < 0 || N < 0 || K < 0 || lda < A_row || ldb < B_row || ldc < M || ldd < M
+                        || batch_count < 0;
+    bool int8_invalid = (std::is_same<Ti, int8_t>{}
+                         && (K % 4 != 0 || (transA != rocblas_operation_none && lda % 4 != 0)));
+
+    if(invalid_size || !M || !N || !batch_count)
     {
-        // TODO: Fix argument checking to check nullptrs after invalid_size
+        EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex(handle,
+                                                      transA,
+                                                      transB,
+                                                      M,
+                                                      N,
+                                                      K,
+                                                      &h_alpha_Tc,
+                                                      nullptr,
+                                                      arg.a_type,
+                                                      lda,
+                                                      nullptr,
+                                                      arg.b_type,
+                                                      ldb,
+                                                      nullptr,
+                                                      nullptr,
+                                                      arg.c_type,
+                                                      ldc,
+                                                      nullptr,
+                                                      arg.d_type,
+                                                      ldd,
+                                                      batch_count,
+                                                      arg.compute_type,
+                                                      algo,
+                                                      solution_index,
+                                                      flags),
+                              invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
+        return;
+    }
+    if(int8_invalid)
+    {
+        // This check is currently done below the invalid_pointer checks, so we can't pass in nullptrs.
         device_batch_vector<Ti> dA(1, 1, 1);
         device_batch_vector<Ti> dB(1, 1, 1);
         device_batch_vector<To> dC(1, 1, 1);
@@ -319,8 +351,7 @@ void testing_gemm_batched_ex(const Arguments& arg)
                                                       algo,
                                                       solution_index,
                                                       flags),
-                              !M || !N || !batch_count ? rocblas_status_success
-                                                       : rocblas_status_invalid_size);
+                              rocblas_status_invalid_size);
         return;
     }
 
