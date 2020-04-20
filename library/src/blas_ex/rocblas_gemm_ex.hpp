@@ -830,6 +830,79 @@ rocblas_status gemm_ex_typecasting(rocblas_handle    handle,
     }
 }
 
+template <typename T>
+inline rocblas_status validateArgs(rocblas_handle    handle,
+                                   rocblas_operation trans_a,
+                                   rocblas_operation trans_b,
+                                   rocblas_int       m,
+                                   rocblas_int       n,
+                                   rocblas_int       k,
+                                   const T*          alpha,
+                                   const void*       a,
+                                   rocblas_int       ld_a,
+                                   const void*       b,
+                                   rocblas_int       ld_b,
+                                   const T*          beta,
+                                   const void*       c,
+                                   rocblas_int       ld_c,
+                                   const void*       d,
+                                   rocblas_int       ld_d,
+                                   rocblas_datatype  compute_type,
+                                   rocblas_int       batch_count = 1)
+{
+    // handle must be valid
+    if(!handle)
+        return rocblas_status_invalid_handle;
+
+    // sizes must not be negative
+    if(m < 0 || n < 0 || k < 0 || batch_count < 0)
+        return rocblas_status_invalid_size;
+
+    // leading dimensions must be valid
+    if(ld_c < m || ld_d < m || ld_a < (trans_a == rocblas_operation_none ? m : k)
+       || ld_b < (trans_b == rocblas_operation_none ? k : n))
+        return rocblas_status_invalid_size;
+
+    // quick return 0 is valid in BLAS
+    // Note: k==0 is not a quick return, because C must still be multiplied by beta
+    if(!m || !n || !batch_count)
+        return rocblas_status_success;
+
+    if(!alpha || !beta)
+        return rocblas_status_invalid_pointer;
+
+    if(handle->pointer_mode == rocblas_pointer_mode_host)
+    {
+        if(compute_type == rocblas_datatype_f16_r)
+        {
+            rocblas_half* alpha_half = (rocblas_half*)alpha;
+            rocblas_half* beta_half  = (rocblas_half*)beta;
+            if(((*alpha_half == 0) || (k == 0)) && (*beta_half == 1))
+                return rocblas_status_success;
+        }
+        else if(compute_type == rocblas_datatype_f32_r)
+        {
+            float* alpha_float = (float*)alpha;
+            float* beta_float  = (float*)beta;
+            if(((*alpha_float == 0) || (k == 0)) && (*beta_float == 1))
+                return rocblas_status_success;
+        }
+        else if(compute_type == rocblas_datatype_f64_r)
+        {
+            float* alpha_double = (float*)alpha;
+            float* beta_double  = (float*)beta;
+            if(((*alpha_double == 0) || (k == 0)) && (*beta_double == 1))
+                return rocblas_status_success;
+        }
+    }
+
+    // pointers must be valid
+    if(!a || !b || !c || !d)
+        return rocblas_status_invalid_pointer;
+
+    return rocblas_status_success;
+}
+
 template <bool BATCHED>
 rocblas_status rocblas_gemm_ex_template(rocblas_handle    handle,
                                         rocblas_operation trans_a,

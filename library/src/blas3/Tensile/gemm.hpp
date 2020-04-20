@@ -439,18 +439,19 @@ inline rocblas_status call_tensile(rocblas_handle    handle,
 /*******************************************************************************
  * Validate Arguments
  ******************************************************************************/
+template <typename T>
 inline rocblas_status validateArgs(rocblas_handle    handle,
                                    rocblas_operation trans_a,
                                    rocblas_operation trans_b,
                                    rocblas_int       m,
                                    rocblas_int       n,
                                    rocblas_int       k,
-                                   const void*       alpha,
+                                   const T*          alpha,
                                    const void*       a,
                                    rocblas_int       ld_a,
                                    const void*       b,
                                    rocblas_int       ld_b,
-                                   const void*       beta,
+                                   const T*          beta,
                                    const void*       c,
                                    rocblas_int       ld_c,
                                    rocblas_int       batch_count = 1)
@@ -481,7 +482,8 @@ inline rocblas_status validateArgs(rocblas_handle    handle,
 
     if(handle->pointer_mode == rocblas_pointer_mode_host)
     {
-        if((*alpha == 0) || (k == 0)) && (*beta == 1)) return rocblas_status_success;
+        if(((*alpha == 0) || (k == 0)) && (*beta == 1))
+            return rocblas_status_success;
     }
 
     // pointers must be valid
