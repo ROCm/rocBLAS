@@ -269,7 +269,7 @@ try
                                   compute_type,
                                   batch_count);
 
-    if(validArgs != rocblas_status_success)
+    if(validArgs != rocblas_status_continue)
         return validArgs;
 
     return rocblas_gemm_ex_template<false>(handle,

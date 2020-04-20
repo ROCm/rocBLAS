@@ -900,7 +900,7 @@ inline rocblas_status validateArgs(rocblas_handle    handle,
     if(!a || !b || !c || !d)
         return rocblas_status_invalid_pointer;
 
-    return rocblas_status_success;
+    return rocblas_status_continue;
 }
 
 template <bool BATCHED>
