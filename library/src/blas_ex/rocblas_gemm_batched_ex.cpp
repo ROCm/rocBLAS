@@ -242,7 +242,7 @@ try
                                   compute_type,
                                   batch_count);
 
-    if(validArgs != rocblas_status_success)
+    if(validArgs != rocblas_status_continue)
         return validArgs;
 
     auto stride_a = rocblas_stride(lda) * (trans_a == rocblas_operation_none ? k : m);

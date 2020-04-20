@@ -231,7 +231,7 @@ rocblas_status rocblas_gemm_ex_impl(rocblas_handle    handle,
                                   ldd,
                                   compute_type);
 
-    if(validArgs != rocblas_status_success)
+    if(validArgs != rocblas_status_continue)
         return validArgs;
 
     auto stride_a    = rocblas_stride(lda) * (trans_a == rocblas_operation_none ? k : m);
