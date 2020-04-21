@@ -871,30 +871,33 @@ inline rocblas_status validateArgs(rocblas_handle    handle,
     if(!alpha || !beta)
         return rocblas_status_invalid_pointer;
 
-    if(handle->pointer_mode == rocblas_pointer_mode_host)
-    {
-        if(compute_type == rocblas_datatype_f16_r)
-        {
-            rocblas_half* alpha_half = (rocblas_half*)alpha;
-            rocblas_half* beta_half  = (rocblas_half*)beta;
-            if(((*alpha_half == 0) || (k == 0)) && (*beta_half == 1))
-                return rocblas_status_success;
-        }
-        else if(compute_type == rocblas_datatype_f32_r)
-        {
-            float* alpha_float = (float*)alpha;
-            float* beta_float  = (float*)beta;
-            if(((*alpha_float == 0) || (k == 0)) && (*beta_float == 1))
-                return rocblas_status_success;
-        }
-        else if(compute_type == rocblas_datatype_f64_r)
-        {
-            float* alpha_double = (float*)alpha;
-            float* beta_double  = (float*)beta;
-            if(((*alpha_double == 0) || (k == 0)) && (*beta_double == 1))
-                return rocblas_status_success;
-        }
-    }
+    // Can't quick return in gemm_ex as output D is not C.
+    // We could do a memcpy from C -> D then return immediately.
+
+    // if(handle->pointer_mode == rocblas_pointer_mode_host)
+    // {
+    //     if(compute_type == rocblas_datatype_f16_r)
+    //     {
+    //         rocblas_half* alpha_half = (rocblas_half*)alpha;
+    //         rocblas_half* beta_half  = (rocblas_half*)beta;
+    //         if(((*alpha_half == 0) || (k == 0)) && (*beta_half == 1))
+    //             return rocblas_status_success;
+    //     }
+    //     else if(compute_type == rocblas_datatype_f32_r)
+    //     {
+    //         float* alpha_float = (float*)alpha;
+    //         float* beta_float  = (float*)beta;
+    //         if(((*alpha_float == 0) || (k == 0)) && (*beta_float == 1))
+    //             return rocblas_status_success;
+    //     }
+    //     else if(compute_type == rocblas_datatype_f64_r)
+    //     {
+    //         float* alpha_double = (float*)alpha;
+    //         float* beta_double  = (float*)beta;
+    //         if(((*alpha_double == 0) || (k == 0)) && (*beta_double == 1))
+    //             return rocblas_status_success;
+    //     }
+    // }
 
     // pointers must be valid
     if(!a || !b || !c || !d)
