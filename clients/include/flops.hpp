@@ -507,6 +507,13 @@ constexpr double geam_gflop_count(rocblas_int m, rocblas_int n)
     return (3.0 * m * n) / 1e9;
 }
 
+/* \brief floating point counts of DGMM */
+template <typename T>
+constexpr double dgmm_gflop_count(rocblas_int m, rocblas_int n)
+{
+    return (m * n) / 1e9;
+}
+
 /* \brief floating point counts of HEMM */
 template <typename T>
 constexpr double hemm_gflop_count(rocblas_side side, rocblas_int m, rocblas_int n)

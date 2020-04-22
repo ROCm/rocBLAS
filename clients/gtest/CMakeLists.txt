@@ -102,6 +102,7 @@ set(rocblas_no_tensile_test_source
     syr2k_gtest.cpp
     syrkx_gtest.cpp
     geam_gtest.cpp
+    dgmm_gtest.cpp
     )
 
 if(LINK_BLIS)

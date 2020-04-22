@@ -567,8 +567,9 @@ void testing_geam_strided_batched(const Arguments& arg)
                                             stride_c,
                                             batch_count);
         }
-        gpu_time_used  = get_time_us() - gpu_time_used;
-        rocblas_gflops = geam_gflop_count<T>(M, N) * number_hot_calls / gpu_time_used * 1e6;
+        gpu_time_used = get_time_us() - gpu_time_used;
+        rocblas_gflops
+            = geam_gflop_count<T>(M, N) * batch_count * number_hot_calls / gpu_time_used * 1e6;
 
         rocblas_cout << "transA,transB,M,N,alpha,lda,stride_a,beta,ldb,stride_b,ldc,stride_c,batch_"
                         "count,rocblas-Gflops,us";

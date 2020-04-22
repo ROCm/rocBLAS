@@ -1,0 +1,134 @@
+---
+include: rocblas_common.yaml
+include: known_bugs.yaml
+
+Definitions:
+  - &small_matrix_size_range
+    - { M:     0, N:     0, lda:     1, incx:     1, ldc:     1 }
+    - { M:     3, N:     3, lda:     3, incx:     1, ldc:     3 }
+    - { M:     3, N:    33, lda:    35, incx:     2, ldc:    35 }
+    - { M:    10, N:    11, lda:   100, incx:     3, ldc:    13 }
+
+  - &large_matrix_size_range
+    - { M:   192, N:   193, lda:   194, incx:     1, ldc:   196 }
+    - { M:   640, N:   641, lda:   960, incx:     2, ldc:   962 }
+    - { M:  1001, N:  1000, lda:  1003, incx:     3, ldc:  1001 }
+
+  - &huge_matrix_size_range
+    - { M:  4011, N:  4012, lda:  4012, incx:     2, ldc:  4014 }
+
+Tests:
+- name: dgmm_bad_arg
+  category: quick
+  function: dgmm_bad_arg
+  precision: *single_precision
+  side: [R]
+
+- name: dgmm_batched_bad_arg
+  category: quick
+  function: dgmm_batched_bad_arg
+  precision: *single_precision
+  side: [R]
+  batch_count: [        1    ]
+
+- name: dgmm_strided_batched_bad_arg
+  category: quick
+  function: dgmm_strided_batched_bad_arg
+  precision: *single_precision
+  side: [R]
+  stride_scale: [ 1         ]
+  batch_count: [        1    ]
+
+- name: dgmm_small
+  category: quick
+  function: dgmm
+  precision: *single_double_precisions
+  side: [L, R]
+  matrix_size: *small_matrix_size_range
+
+- name: dgmm_batched_small
+  category: quick
+  function: dgmm_batched
+  precision: *single_double_precisions
+  side: [L, R]
+  matrix_size: *small_matrix_size_range
+  batch_count: [        1, 2 ]
+
+- name: dgmm_strided_batched_small
+  category: quick
+  function: dgmm_strided_batched
+  precision: *single_double_precisions
+  side: [L, R]
+  matrix_size: *small_matrix_size_range
+  stride_scale: [ 1, 2      ]
+  batch_count: [        1, 2 ]
+
+- name: dgmm_small_complex
+  category: quick
+  function: dgmm
+  precision: *single_double_precisions_complex
+  side: [L, R]
+  matrix_size: *small_matrix_size_range
+
+- name: dgmm_batched_small_complex
+  category: quick
+  function: dgmm_batched
+  precision: *single_double_precisions_complex
+  side: [L, R]
+  matrix_size: *small_matrix_size_range
+  batch_count: [        1, 2 ]
+
+- name: dgmm_strided_batched_small_complex
+  category: quick
+  function: dgmm_strided_batched
+  precision: *single_double_precisions_complex
+  side: [L, R]
+  matrix_size: *small_matrix_size_range
+  stride_scale: [ 1, 2      ]
+  batch_count: [        1, 2 ]
+
+- name: dgmm_large
+  category: pre_checkin
+  function: dgmm
+  precision: *single_double_precisions
+  side: [L, R]
+  matrix_size: *large_matrix_size_range
+
+- name: dgmm_large_complex
+  category: pre_checkin
+  function: dgmm
+  precision: *single_double_precisions_complex
+  side: [L, R]
+  matrix_size: *large_matrix_size_range
+
+- name: dgmm_batched_large_complex
+  category: pre_checkin
+  function: dgmm_batched
+  precision: *single_double_precisions_complex
+  side: [L, R]
+  matrix_size: *large_matrix_size_range
+  batch_count: [        1, 2 ]
+
+- name: dgmm_strided_batched_large_complex
+  category: pre_checkin
+  function: dgmm_strided_batched
+  precision: *single_double_precisions_complex
+  side: [L, R]
+  matrix_size: *large_matrix_size_range
+  stride_scale: [ 1, 2      ]
+  batch_count: [        1, 2 ]
+
+- name: dgmm_huge
+  category: nightly
+  function: dgmm
+  precision: *single_double_precisions
+  side: [L, R]
+  matrix_size: *huge_matrix_size_range
+
+- name: dgmm_huge_complex
+  category: nightly
+  function: dgmm
+  precision: *single_double_precisions_complex
+  side: [L, R]
+  matrix_size: *huge_matrix_size_range
+...

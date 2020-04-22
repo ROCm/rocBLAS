@@ -125,6 +125,9 @@
 #include "testing_trmv_batched.hpp"
 #include "testing_trmv_strided_batched.hpp"
 // blas3 with no tensile
+#include "testing_dgmm.hpp"
+#include "testing_dgmm_batched.hpp"
+#include "testing_dgmm_strided_batched.hpp"
 #include "testing_geam.hpp"
 #include "testing_geam_batched.hpp"
 #include "testing_geam_strided_batched.hpp"
@@ -346,6 +349,9 @@ struct perf_blas<T, U, std::enable_if_t<std::is_same<T, float>{} || std::is_same
                 {"geam", testing_geam<T>},
                 {"geam_batched", testing_geam_batched<T>},
                 {"geam_strided_batched", testing_geam_strided_batched<T>},
+                {"dgmm", testing_dgmm<T>},
+                {"dgmm_batched", testing_dgmm_batched<T>},
+                {"dgmm_strided_batched", testing_dgmm_strided_batched<T>},
 #if BUILD_WITH_TENSILE
                 {"trmm", testing_trmm<T>},
                 {"trmm_batched", testing_trmm_batched<T>},
