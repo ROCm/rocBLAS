@@ -509,13 +509,9 @@ __global__ void trtri_diagonal_kernel(rocblas_fill     uplo,
                          + (IB * 2 * ldinvA + IB * 2) * (hipBlockIdx_x % tiles)
                          + sub_stride_invA * (hipBlockIdx_x / tiles);
 
-    custom_trtri_device<IB>(uplo,
-                            diag,
-                            min(IB, n - (hipBlockIdx_x % tiles) * IB),
-                            individual_A,
-                            lda,
-                            individual_invA,
-                            ldinvA);
+    auto rem = n - (hipBlockIdx_x % tiles) * IB;
+    custom_trtri_device<IB>(
+        uplo, diag, rem < IB ? rem : IB, individual_A, lda, individual_invA, ldinvA);
 }
 
 // compute square block of invA
