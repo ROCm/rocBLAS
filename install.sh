@@ -31,6 +31,7 @@ rocBLAS build & installation helper script
            --ignore-cuda         Ignores installed cuda version and builds with rocm stack instead
            --skipldconf          Skip ld.so.conf entry
       -v | --rocm-dev            Set specific rocm-dev version
+           --yaml                Set Tensile backend to use YAML
 EOF
 #           --prefix              Specify an alternate CMAKE_INSTALL_PREFIX for cmake
 }
@@ -278,6 +279,7 @@ build_release=true
 build_hip_clang=false
 build_dir=./build
 skip_ld_conf_entry=false
+tensile_yaml_backend=false
 
 rocm_path=/opt/rocm
 if ! [ -z ${ROCM_PATH+x} ]; then
@@ -291,7 +293,7 @@ fi
 # check if we have a modern version of getopt that can handle whitespace and long parameters
 getopt -T
 if [[ $? -eq 4 ]]; then
-  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,no_tensile,tensile-host,no-tensile-host,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,ignore-cuda,rocm-dev: --options nsrhicdgl:a:o:f:b:t:u:v: -- "$@")
+  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,no_tensile,tensile-host,no-tensile-host,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,ignore-cuda,rocm-dev:,yaml --options nsrhicdgl:a:o:f:b:t:u:v: -- "$@")
 else
   echo "Need a new version of getopt"
   exit 1
@@ -374,6 +376,9 @@ while true; do
     --prefix)
         install_prefix=${2}
         shift 2 ;;
+    --yaml)
+        tensile_yaml_backend=true
+        shift ;;
     --) shift ; break ;;
     *)  echo "Unexpected command line parameter received; aborting";
         exit 1
@@ -529,6 +534,10 @@ pushd .
 
   if [[ "${build_tensile_host}" == true ]]; then
     tensile_opt="${tensile_opt} -DBUILD_WITH_TENSILE_HOST=ON"
+  fi
+
+  if [[ "${tensile_yaml_backend}" == true ]]; then
+    tensile_opt="${tensile_opt} -DTensile_YAML=ON"
   fi
 
   cmake_common_options="${cmake_common_options} ${tensile_opt}"

@@ -393,7 +393,11 @@ namespace
             }
             globfree(&glob_result);
 
+#ifdef TENSILE_YAML
             path += "/TensileLibrary.yaml";
+#else
+            path += "/TensileLibrary.dat";
+#endif
             if(!TestPath(path))
             {
                 rocblas_cerr << "\nrocBLAS error: Cannot read " << path << ": " << strerror(errno)
