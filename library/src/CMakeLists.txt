@@ -148,6 +148,9 @@ if( BUILD_WITH_TENSILE )
 endif( ) # BUILD_WITH_TENSILE
 
 set( rocblas_blas3_source_no_tensile
+    blas3/rocblas_dgmm.cpp
+    blas3/rocblas_dgmm_batched.cpp
+    blas3/rocblas_dgmm_strided_batched.cpp
     blas3/rocblas_geam.cpp
     blas3/rocblas_geam_batched.cpp
     blas3/rocblas_geam_strided_batched.cpp
