@@ -22,9 +22,9 @@ rocBLAS build & installation helper script
       -o | --cov                 Set Tensile code_object_version (V2 or V3)
       -t | --test_local_path     Use a local path for Tensile instead of remote GIT repo
            --cpu_ref_lib         Specify library to use for CPU reference code in testing (blis or lapack)
-           --hip-clang           Build library for amdgpu backend using hip-clang
+           --[no-]hip-clang      Whether to build library for amdgpu backend using hip-clang
            --build_dir           Specify name of output directory (default is ./build)
-      -n | --no_tensile          Build subset of library that does not require Tensile
+      -n | --no-tensile          Build subset of library that does not require Tensile
       -s | --tensile-host        Build with Tensile host
       -r | --no-tensile-host     Do not build with Tensile host
       -u | --use-custom-version  Ignore Tensile version and just use the Tensile tag
@@ -265,7 +265,7 @@ install_dependencies=false
 install_prefix=rocblas-install
 tensile_logic=asm_full
 tensile_architecture=all
-tensile_cov=V2
+tensile_cov=
 tensile_fork=
 tensile_tag=
 tensile_test_local_path=
@@ -293,7 +293,7 @@ fi
 # check if we have a modern version of getopt that can handle whitespace and long parameters
 getopt -T
 if [[ $? -eq 4 ]]; then
-  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,no_tensile,tensile-host,no-tensile-host,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,static,ignore-cuda,rocm-dev: --options nsrhicdgl:a:o:f:b:t:u:v: -- "$@")
+  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,no-hip-clang,no_tensile,no-tensile,tensile-host,no-tensile-host,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,static,ignore-cuda,rocm-dev: --options nsrhicdgl:a:o:f:b:t:u:v: -- "$@")
 else
   echo "Need a new version of getopt"
   exit 1
@@ -342,7 +342,7 @@ while true; do
     -t|--test_local_path)
         tensile_test_local_path=${2}
         shift 2 ;;
-    -n|--no_tensile)
+    -n|--no_tensile|--no-tensile)
         build_tensile=false
         shift ;;
     -s|--tensile-host)
@@ -362,7 +362,9 @@ while true; do
         shift 2 ;;
     --hip-clang)
         build_hip_clang=true
-        tensile_cov=V3
+        shift ;;
+    --no-hip-clang)
+        build_hip_clang=false
         shift ;;
     --skipldconf)
         skip_ld_conf_entry=true
@@ -385,6 +387,14 @@ while true; do
         ;;
   esac
 done
+
+if [[ -z $tensile_cov ]]; then
+    if [[ $build_hip_clang == true ]]; then
+        tensile_cov=V3
+    else
+        tensile_cov=V2
+    fi
+fi
 
 set -x
 
