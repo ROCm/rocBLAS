@@ -21,7 +21,7 @@ def runCI =
     prj.timeout.test = 600
     if (jobName.contains('hipclang'))
     {
-        prj.timeout.compile = 300
+        prj.timeout.compile = 120
     }
 
     // Define test architectures, optional rocm version argument is available
