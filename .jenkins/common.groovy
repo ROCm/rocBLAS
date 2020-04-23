@@ -6,7 +6,7 @@ def runCompileCommand(platform, project, jobName)
     project.paths.construct_build_prefix()
 
     String compiler = jobName.contains('hipclang') ? 'hipcc' : 'hcc'
-    String hipClang = jobName.contains('hipclang') ? '--hip-clang' : ''
+    String hipClang = jobName.contains('hipclang') ? '--hip-clang' : '--no-hip-clang'
     String sles = platform.jenkinsLabel.contains('sles') ? '/usr/bin/sudo --preserve-env' : ''
     String parallelJobs = jobName.contains('hipclang') ? "export HIPCC_COMPILE_FLAGS_APPEND=-parallel-jobs=2" : ":"
 
