@@ -439,38 +439,30 @@ inline rocblas_status call_tensile(rocblas_handle    handle,
 /*******************************************************************************
  * Validate Arguments
  ******************************************************************************/
+template <typename T>
 inline rocblas_status validateArgs(rocblas_handle    handle,
                                    rocblas_operation trans_a,
                                    rocblas_operation trans_b,
                                    rocblas_int       m,
                                    rocblas_int       n,
                                    rocblas_int       k,
-                                   const void*       alpha,
+                                   const T*          alpha,
                                    const void*       a,
                                    rocblas_int       ld_a,
                                    const void*       b,
                                    rocblas_int       ld_b,
-                                   const void*       beta,
+                                   const T*          beta,
                                    const void*       c,
                                    rocblas_int       ld_c,
                                    rocblas_int       batch_count = 1)
 {
-    // quick return 0 is valid in BLAS
-    // Note: k==0 is not a quick return, because C must still be multiplied by beta
-    if(!m || !n || !batch_count)
-        return rocblas_status_success;
-
-    // sizes must not be negative
-    if(m < 0 || n < 0 || k < 0 || batch_count < 0)
-        return rocblas_status_invalid_size;
-
     // handle must be valid
     if(!handle)
         return rocblas_status_invalid_handle;
 
-    // pointers must be valid
-    if(!c || !alpha || !beta || ((!a || !b) && k != 0))
-        return rocblas_status_invalid_pointer;
+    // sizes must not be negative
+    if(m < 0 || n < 0 || k < 0 || batch_count < 0)
+        return rocblas_status_invalid_size;
 
     rocblas_int num_rows_a = trans_a == rocblas_operation_none ? m : k;
     rocblas_int num_rows_b = trans_b == rocblas_operation_none ? k : n;
@@ -480,7 +472,25 @@ inline rocblas_status validateArgs(rocblas_handle    handle,
     if(num_rows_a > ld_a || num_rows_b > ld_b || num_rows_c > ld_c)
         return rocblas_status_invalid_size;
 
-    return rocblas_status_success;
+    // quick return 0 is valid in BLAS
+    // Note: k==0 is not a quick return, because C must still be multiplied by beta
+    if(!m || !n || !batch_count)
+        return rocblas_status_success;
+
+    if(!alpha || !beta)
+        return rocblas_status_invalid_pointer;
+
+    if(handle->pointer_mode == rocblas_pointer_mode_host)
+    {
+        if(((*alpha == 0) || (k == 0)) && (*beta == 1))
+            return rocblas_status_success;
+    }
+
+    // pointers must be valid
+    if(!a || !b || !c)
+        return rocblas_status_invalid_pointer;
+
+    return rocblas_status_continue;
 }
 
 /*

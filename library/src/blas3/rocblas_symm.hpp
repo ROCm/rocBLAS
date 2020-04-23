@@ -241,7 +241,7 @@ rocblas_status rocblas_symm_arg_check(rocblas_handle handle,
     if(!m || !n || !batch_count)
         return rocblas_status_success;
 
-    if((n > 0 && m > 0 && (!AP || !BP || !alpha)) || !CP || !beta)
+    if(!AP || !BP || !alpha || !CP || !beta)
         return rocblas_status_invalid_pointer;
 
     return rocblas_status_continue;

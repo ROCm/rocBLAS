@@ -271,11 +271,43 @@ void testing_gemm_ex(const Arguments& arg)
     auto                 B_col = transB == rocblas_operation_none ? N : K;
 
     // check for invalid sizes
-    if(M < 0 || N < 0 || K < 0 || lda < A_row || ldb < B_row || ldc < M || ldd < M
-       || (std::is_same<Ti, int8_t>{}
-           && (K % 4 != 0 || (transA != rocblas_operation_none && lda % 4 != 0)
-               || (transB == rocblas_operation_none && ldb % 4 != 0))))
+    bool invalid_size = M < 0 || N < 0 || K < 0 || lda < A_row || ldb < B_row || ldc < M || ldd < M;
+    bool int8_invalid = (std::is_same<Ti, int8_t>{}
+                         && (K % 4 != 0 || (transA != rocblas_operation_none && lda % 4 != 0)
+                             || (transB == rocblas_operation_none && ldb % 4 != 0)));
+
+    if(invalid_size)
     {
+        EXPECT_ROCBLAS_STATUS(rocblas_gemm_ex(handle,
+                                              transA,
+                                              transB,
+                                              M,
+                                              N,
+                                              K,
+                                              nullptr,
+                                              nullptr,
+                                              arg.a_type,
+                                              lda,
+                                              nullptr,
+                                              arg.b_type,
+                                              ldb,
+                                              nullptr,
+                                              nullptr,
+                                              arg.c_type,
+                                              ldc,
+                                              nullptr,
+                                              arg.d_type,
+                                              ldd,
+                                              arg.compute_type,
+                                              algo,
+                                              solution_index,
+                                              flags),
+                              rocblas_status_invalid_size);
+        return;
+    }
+    if(int8_invalid)
+    {
+        // This check is currently done below the invalid_pointer checks, so we can't pass in nullptrs.
         static const size_t safe_size = 100;
         device_vector<Ti>   dA(safe_size);
         device_vector<Ti>   dB(safe_size);

@@ -830,6 +830,58 @@ rocblas_status gemm_ex_typecasting(rocblas_handle    handle,
     }
 }
 
+template <typename T>
+inline rocblas_status validateArgs(rocblas_handle    handle,
+                                   rocblas_operation trans_a,
+                                   rocblas_operation trans_b,
+                                   rocblas_int       m,
+                                   rocblas_int       n,
+                                   rocblas_int       k,
+                                   const T*          alpha,
+                                   const void*       a,
+                                   rocblas_int       ld_a,
+                                   const void*       b,
+                                   rocblas_int       ld_b,
+                                   const T*          beta,
+                                   const void*       c,
+                                   rocblas_int       ld_c,
+                                   const void*       d,
+                                   rocblas_int       ld_d,
+                                   rocblas_datatype  compute_type,
+                                   rocblas_int       batch_count = 1)
+{
+    // handle must be valid
+    if(!handle)
+        return rocblas_status_invalid_handle;
+
+    // sizes must not be negative
+    if(m < 0 || n < 0 || k < 0 || batch_count < 0)
+        return rocblas_status_invalid_size;
+
+    // leading dimensions must be valid
+    if(ld_c < m || ld_d < m || ld_a < (trans_a == rocblas_operation_none ? m : k)
+       || ld_b < (trans_b == rocblas_operation_none ? k : n))
+        return rocblas_status_invalid_size;
+
+    // quick return 0 is valid in BLAS
+    // Note: k==0 is not a quick return, because C must still be multiplied by beta
+    if(!m || !n || !batch_count)
+        return rocblas_status_success;
+
+    if(!alpha || !beta)
+        return rocblas_status_invalid_pointer;
+
+    // If (alpha == 0 || k == 0) && beta == 1 we could just copy
+    // C into D. Right now this should be handled as a "scale"
+    // operation later, which should be ok.
+
+    // pointers must be valid
+    if(!a || !b || !c || !d)
+        return rocblas_status_invalid_pointer;
+
+    return rocblas_status_continue;
+}
+
 template <bool BATCHED>
 rocblas_status rocblas_gemm_ex_template(rocblas_handle    handle,
                                         rocblas_operation trans_a,
