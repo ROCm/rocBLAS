@@ -60,6 +60,8 @@ else()
     target_compile_definitions( rocblas-bench PRIVATE BUILD_WITH_TENSILE=0 )
 endif()
 
+target_compile_features( rocblas-bench PRIVATE cxx_static_assert cxx_nullptr cxx_auto_type )
+
 # Internal header includes
 target_include_directories( rocblas-bench
   PRIVATE
@@ -73,7 +75,7 @@ set( BLIS_LIBRARY ${CMAKE_SOURCE_DIR}/build/deps/blis/lib/libblis.so )
 if( OS_ID_rhel OR OS_ID_sles OR OS_ID_centos)
     if( OS_ID_rhel OR OS_ID_centos)
         if( CXX_VERSION_STRING MATCHES "clang")
-           set( OPENMP_INCLUDE_DIR /opt/rh/devtoolset-7/root/usr/lib/gcc/x86_64-redhat-linux/7/include )
+           set( XXX_OPENMP_INCLUDE_DIR /opt/rh/devtoolset-7/root/usr/lib/gcc/x86_64-redhat-linux/7/include )
         endif()
         # defer OpenMP include as search order must come after clang
         set( XXX_OPENMP_INCLUDE_DIR /opt/rh/devtoolset-7/root/usr/lib/gcc/x86_64-redhat-linux/7/include )
@@ -85,9 +87,11 @@ if( OS_ID_rhel OR OS_ID_sles OR OS_ID_centos)
     endif()
 
     message(STATUS "RocmPath: ${ROCM_PATH}")
-    if(EXISTS ${ROCM_PATH}/hcc/lib/clang/10.0.0/include/immintrin.h AND CMAKE_CXX_COMPILER MATCHES ".*/hcc$")
+    if(EXISTS ${ROCM_PATH}/llvm/lib/clang/11.0.0/include/immintrin.h AND CMAKE_CXX_COMPILER MATCHES ".*/hcc$|.*/hipcc$" )
+        set( CLANG_INCLUDE_DIR ${ROCM_PATH}/llvm/lib/clang/11.0.0/include )
+    elseif (EXISTS ${ROCM_PATH}/hcc/lib/clang/10.0.0/include/immintrin.h AND CMAKE_CXX_COMPILER MATCHES ".*/hcc$|.*/hipcc$" )
         set( CLANG_INCLUDE_DIR ${ROCM_PATH}/hcc/lib/clang/10.0.0/include )
-    elseif (EXISTS ${ROCM_PATH}/hcc/lib/clang/9.0.0/include/immintrin.h AND CMAKE_CXX_COMPILER MATCHES ".*/hcc$")
+    elseif (EXISTS ${ROCM_PATH}/hcc/lib/clang/9.0.0/include/immintrin.h AND CMAKE_CXX_COMPILER MATCHES ".*/hcc$|.*/hipcc$")
         set( CLANG_INCLUDE_DIR ${ROCM_PATH}/hcc/lib/clang/9.0.0/include )
     else()
         set( CLANG_INCLUDE_DIR )
@@ -153,7 +157,10 @@ elseif( CMAKE_COMPILER_IS_GNUCXX OR CXX_VERSION_STRING MATCHES "clang")
 endif( )
 
 if( CXX_VERSION_STRING MATCHES "clang" )
-  target_link_libraries( rocblas-bench PRIVATE -lpthread -lm -stdlib=libstdc++ ${ROCM_PATH}/lib/libclang_rt.builtins-x86_64.a )
+  target_link_libraries( rocblas-bench PRIVATE -lpthread -lstdc++ -lgcc_s -lm ${ROCM_PATH}/llvm/lib/clang/11.0.0/lib/linux/libclang_rt.builtins-x86_64.a )
+  if(OS_ID_rhel OR OS_ID_centos)
+    set(CMAKE_CXX_FLAGS "-isystem ${CLANG_INCLUDE_DIR} -isystem ${XXX_OPENMP_INCLUDE_DIR} ${CMAKE_CXX_FLAGS}")
+  endif( )
 else( )
   if(OS_ID_rhel OR OS_ID_centos)
     set(CMAKE_CXX_FLAGS "-isystem ${CLANG_INCLUDE_DIR} -isystem ${XXX_OPENMP_INCLUDE_DIR} ${CMAKE_CXX_FLAGS}")
