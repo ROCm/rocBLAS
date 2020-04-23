@@ -17,7 +17,7 @@ endif()
 project( rocblas-clients LANGUAGES CXX )
 
 if(OS_ID_rhel OR OS_ID_centos OR OS_ID_sles)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp=libgomp -pthread")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp=libgomp -pthread -stdlib=libstdc++ -std=c++14")
 else()
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -pthread")
 endif()
