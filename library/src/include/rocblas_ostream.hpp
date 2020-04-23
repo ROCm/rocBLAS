@@ -168,15 +168,18 @@ class rocblas_ostream
     // Get worker for file descriptor
     static std::shared_ptr<worker> get_worker(int fd);
 
+    // Private explicit copy constructor duplicates the worker and starts a new buffer
+    explicit rocblas_ostream(const rocblas_ostream& other)
+        : worker_ptr(other.worker_ptr)
+    {
+    }
+
 public:
     // Default constructor is a std::ostringstream with no worker
     rocblas_ostream() = default;
 
     // Move constructor
     rocblas_ostream(rocblas_ostream&&) = default;
-
-    // Copy constructor is deleted
-    rocblas_ostream(const rocblas_ostream&) = delete;
 
     // Move assignment
     rocblas_ostream& operator=(rocblas_ostream&&) = default;
@@ -194,6 +197,15 @@ public:
     explicit rocblas_ostream(const std::string& filename)
         : rocblas_ostream(filename.c_str())
     {
+    }
+
+    // Create a duplicate of this
+    rocblas_ostream dup() const
+    {
+        if(!worker_ptr)
+            throw std::runtime_error(
+                "Attempting to duplicate a rocblas_ostream without an associated file");
+        return rocblas_ostream(*this);
     }
 
     // Convert stream output to string
