@@ -34,26 +34,12 @@ void testing_trtri_batched(const Arguments& arg)
     rocblas_local_handle handle;
 
     // argument sanity check, quick return if input parameters are invalid before allocating invalid
-    if(N < 0 || lda < 0 || lda < N || batch_count <= 0)
+    bool invalid_size = N < 0 || lda < N || batch_count < 0;
+    if(invalid_size || batch_count == 0)
     {
-        static constexpr size_t safe_size = 100;
-        device_batch_vector<T>  dA(safe_size, 1, 1);
-        device_batch_vector<T>  dInv(safe_size, 1, 1);
-        CHECK_DEVICE_ALLOCATION(dA.memcheck());
-        CHECK_DEVICE_ALLOCATION(dInv.memcheck());
-
-        EXPECT_ROCBLAS_STATUS(rocblas_trtri_batched<T>(handle,
-                                                       uplo,
-                                                       diag,
-                                                       N,
-                                                       dA.ptr_on_device(),
-                                                       lda,
-                                                       dInv.ptr_on_device(),
-                                                       lda,
-                                                       batch_count),
-                              N < 0 || lda < 0 || lda < N || batch_count < 0
-                                  ? rocblas_status_invalid_size
-                                  : rocblas_status_success);
+        EXPECT_ROCBLAS_STATUS(rocblas_trtri_batched<T>(
+                                  handle, uplo, diag, N, nullptr, lda, nullptr, lda, batch_count),
+                              invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
         return;
     }
 
