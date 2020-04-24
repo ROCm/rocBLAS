@@ -7,6 +7,10 @@
 #ifndef USE_TENSILE_HOST
 #include "Tensile.h"
 #endif
+#else
+// see TensileHost.cpp for normal rocblas_initialize definition
+// it isn't compiled if not BUILD_WITH_TENSILE so defining here
+extern "C" void rocblas_initialize() {}
 #endif
 
 /*******************************************************************************
