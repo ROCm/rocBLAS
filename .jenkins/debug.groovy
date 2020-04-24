@@ -23,7 +23,7 @@ def runCI =
     prj.timeout.compile = 180
     if (jobName.contains('hipclang'))
     {
-        prj.timeout.compile = 300
+        prj.timeout.compile = 120
     }
 
     boolean formatCheck = true
