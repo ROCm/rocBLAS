@@ -19,7 +19,6 @@ RUN dnf -y update && dnf install -y \
     git \
     make \
     cmake \
-    clang \
     gcc-c++ \
     gcc-gfortran \
     python34 \

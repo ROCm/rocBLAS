@@ -17,8 +17,6 @@ RUN yum install -y --nogpgcheck\
     cmake3 \
     make \
     gcc-c++ \
-    clang \
-    clang-devel \
     devtoolset-7-gcc-gfortran \
     gcc-gfortran \
     pkgconfig \
