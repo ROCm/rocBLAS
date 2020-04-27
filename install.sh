@@ -596,7 +596,7 @@ pushd .
         elevate_if_not_root dnf install rocblas-*.rpm
       ;;
       sles|opensuse-leap)
-        elevate_if_not_root zypper --no-gpg-checks in -y install rocblas-*.rpm
+        elevate_if_not_root zypper -n --no-gpg-checks install rocblas-*.rpm
       ;;
     esac
 
