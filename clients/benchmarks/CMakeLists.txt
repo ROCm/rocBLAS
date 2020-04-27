@@ -157,7 +157,7 @@ elseif( CMAKE_COMPILER_IS_GNUCXX OR CXX_VERSION_STRING MATCHES "clang")
 endif( )
 
 if( CXX_VERSION_STRING MATCHES "clang" )
-  target_link_libraries( rocblas-bench PRIVATE -lpthread -lstdc++ -lgcc_s -lm ${ROCM_PATH}/llvm/lib/clang/11.0.0/lib/linux/libclang_rt.builtins-x86_64.a )
+  target_link_libraries( rocblas-bench PRIVATE -lpthread -lstdc++ -lgcc_s -lm -rtlib=compiler-rt )
   if(OS_ID_rhel OR OS_ID_centos)
     set(CMAKE_CXX_FLAGS "-isystem ${CLANG_INCLUDE_DIR} -isystem ${XXX_OPENMP_INCLUDE_DIR} ${CMAKE_CXX_FLAGS}")
   endif( )
