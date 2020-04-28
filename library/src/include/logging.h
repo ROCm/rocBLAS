@@ -138,7 +138,7 @@ inline void log_profile(rocblas_handle handle, const char* func, Ts&&... xs)
  * Log values (for log_trace and log_bench) *
  ********************************************/
 template <typename H, typename... Ts>
-static inline void log_arguments(rocblas_ostream& os, const char* sep, H&& head, Ts&&... xs)
+void log_arguments(rocblas_ostream& os, const char* sep, H&& head, Ts&&... xs)
 {
     os << std::forward<H>(head);
     // TODO: Replace with C++17 fold expression

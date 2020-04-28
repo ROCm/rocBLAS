@@ -139,16 +139,16 @@ __global__ void haxpy_mlt_8_kernel(rocblas_int    n_mlt_8,
 //! @brief General template to compute y = a * x + y.
 //!
 template <int NB, typename A, typename X, typename Y>
-static rocblas_status axpy_template(rocblas_handle handle,
-                                    rocblas_int    n,
-                                    const A*       alpha,
-                                    X              x,
-                                    rocblas_int    incx,
-                                    rocblas_stride stridex,
-                                    Y              y,
-                                    rocblas_int    incy,
-                                    rocblas_stride stridey,
-                                    rocblas_int    batch_count)
+rocblas_status axpy_template(rocblas_handle handle,
+                             rocblas_int    n,
+                             const A*       alpha,
+                             X              x,
+                             rocblas_int    incx,
+                             rocblas_stride stridex,
+                             Y              y,
+                             rocblas_int    incy,
+                             rocblas_stride stridey,
+                             rocblas_int    batch_count)
 {
     //
     // Using rocblas_half ?

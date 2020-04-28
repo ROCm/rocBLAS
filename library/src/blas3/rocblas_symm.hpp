@@ -7,8 +7,7 @@
 #include "handle.h"
 
 template <typename T>
-static __device__ void
-    symm_scale_device(rocblas_int m, rocblas_int n, T beta, T* C, rocblas_int ldc)
+__device__ void symm_scale_device(rocblas_int m, rocblas_int n, T beta, T* C, rocblas_int ldc)
 {
     auto tx = blockIdx.x * blockDim.x + threadIdx.x;
     auto ty = blockIdx.y * blockDim.y + threadIdx.y;
@@ -43,16 +42,16 @@ __global__ void symm_scale_kernel(rocblas_int    m,
   * kernel
   */
 template <bool HERM, bool RIGHT, rocblas_int TILE_NK, typename T>
-static __device__ void symm_hemm_mult_add_device(bool        upper,
-                                                 rocblas_int m,
-                                                 rocblas_int n,
-                                                 T           alpha,
-                                                 const T* __restrict__ A,
-                                                 rocblas_int lda,
-                                                 const T* __restrict__ B,
-                                                 rocblas_int ldb,
-                                                 T* __restrict__ C,
-                                                 rocblas_int ldc)
+__device__ void symm_hemm_mult_add_device(bool        upper,
+                                          rocblas_int m,
+                                          rocblas_int n,
+                                          T           alpha,
+                                          const T* __restrict__ A,
+                                          rocblas_int lda,
+                                          const T* __restrict__ B,
+                                          rocblas_int ldb,
+                                          T* __restrict__ C,
+                                          rocblas_int ldc)
 {
     __shared__ T atile[TILE_NK][TILE_NK];
     __shared__ T btile[TILE_NK][TILE_NK];
