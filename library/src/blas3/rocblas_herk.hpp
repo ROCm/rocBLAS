@@ -5,7 +5,7 @@
 #include "rocblas_syrk.hpp"
 
 template <typename T, typename U>
-static __device__ void herk_scale_device(bool upper, rocblas_int n, T beta, U* C, rocblas_int ldc)
+__device__ void herk_scale_device(bool upper, rocblas_int n, T beta, U* C, rocblas_int ldc)
 {
     auto tx = blockIdx.x * blockDim.x + threadIdx.x;
     auto ty = blockIdx.y * blockDim.y + threadIdx.y;

@@ -547,3 +547,30 @@ Instead, allocate on the heap, using smart pointers to avoid memory leaks:
 
     func(&hostA[0], &hostB[0], &hostC[0], &hostD[0]);
 ```
+
+
+27. Do not define unnamed (anonymous) namespaces in header files ([DCL59-CPP](https://wiki.sei.cmu.edu/confluence/display/cplusplus/DCL59-CPP.+Do+not+define+an+unnamed+namespace+in+a+header+file)).
+
+If the reason for using an unnamed namespace in a header file is to prevent multiple definitions, keep in mind that the following are allowed to be defined in multiple compilation units, such as if they all come from the same header file, as long as they are defined with identical token sequences in each compilation unit:
+
+ - `class`es
+ - `typedef`s or type aliases
+ - `enum`s
+ - `template` functions
+ - `inline` functions
+ - `constexpr` functions (implies `inline`)
+ - `inline` or `constexpr` variables or variable `template`s (only for C++17 or later, although some C++14 compilers treat `constexpr` variables as `inline`)
+
+If functions defined in header files are declared `template`, then multiple instantiations with the same `template` arguments are automatically merged, something which cannot happen if the `template` functions are declared `static`, or appear in unnamed namespaces, in which case the instantiations are local to each compilation unit, and are not combined.
+
+If a function defined in a header file at `namespace` scope (outside of a `class`) contains `static` _local variables_ which are expected to be singletons holding state throughout the entire library, then the function cannot be marked `static` or be part of an unnamed `namespace`, because then each compilation unit will have its own separate copy of that function and its local `static` variables. (`static` member functions of classes always have external linkage, and it is okay to define `static` `class` member functions in-place inside of header files, because all in-place `static` member function definitions, including their `static` local variables, will be automatically merged.)
+
+Guidelines:
+
+- Do not use unnamed `namespace`s inside of header files.
+
+- Use either `template` or `inline` (or both) for functions defined outside of classes in header files.
+
+- Do not declare namespace-scope (not `class`-scope) functions `static` inside of header files unless there is a very good reason, that the function does not have any non-`const` `static` local variables, and that it is acceptable that each compilation unit will have its own independent definition of the function and its `static` local variables. (`static` `class` member functions defined in header files are okay.)
+
+- Use `static` for `constexpr` `template` variables until C++17, after which `constexpr` variables become `inline` variables, and thus can be defined in multiple compilation units. It is okay if the `constexpr` variables remain `static` in C++17; it just means there might be a little bit of redundancy between compilation units.
