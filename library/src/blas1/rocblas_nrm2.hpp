@@ -23,24 +23,21 @@ struct rocblas_finalize_nrm2
     }
 };
 
-// allocate workspace inside this API
-template <rocblas_int NB, typename Ti, typename To>
-rocblas_status rocblas_nrm2_template(rocblas_handle handle,
-                                     rocblas_int    n,
-                                     const Ti*      x,
-                                     rocblas_int    shiftx,
-                                     rocblas_int    incx,
-                                     To*            workspace,
-                                     To*            results)
+template <rocblas_int NB, bool ISBATCHED, typename Ti, typename To>
+ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_nrm2_template(rocblas_handle handle,
+                                                             rocblas_int    n,
+                                                             const Ti*      x,
+                                                             rocblas_int    shiftx,
+                                                             rocblas_int    incx,
+                                                             rocblas_stride stridex,
+                                                             rocblas_int    batch_count,
+                                                             To*            results,
+                                                             To*            workspace)
 {
-    static constexpr bool           isbatched     = false;
-    static constexpr rocblas_stride stridex_0     = 0;
-    static constexpr rocblas_int    batch_count_1 = 1;
-
     return rocblas_reduction_template<NB,
-                                      isbatched,
+                                      ISBATCHED,
                                       rocblas_fetch_nrm2<To>,
                                       rocblas_reduce_sum,
                                       rocblas_finalize_nrm2>(
-        handle, n, x, shiftx, incx, stridex_0, batch_count_1, results, workspace);
+        handle, n, x, shiftx, incx, stridex, batch_count, results, workspace);
 }

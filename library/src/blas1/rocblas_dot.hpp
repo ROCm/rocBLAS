@@ -4,7 +4,7 @@
 #pragma once
 #include "handle.h"
 #include "logging.h"
-#include "reduction_strided_batched.h"
+#include "reduction_strided_batched.hpp"
 
 template <rocblas_int NB, bool CONJ, typename T, typename U, typename V = T>
 __global__ void dot_kernel_part1(rocblas_int    n,
@@ -126,15 +126,21 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_dot_template(rocblas_handle __res
                            handle->rocblas_stream,
                            blocks,
                            workspace,
-                           (V*)(workspace + size_t(batch_count) * blocks));
+                           (T*)(workspace + size_t(batch_count) * blocks));
 
         // result is in the beginning of workspace[0]+offset
         size_t offset = size_t(batch_count) * blocks;
-        auto   res_V  = std::make_unique<V[]>(batch_count);
-        RETURN_IF_HIP_ERROR(hipMemcpy(
-            &res_V[0], workspace + offset, sizeof(V) * batch_count, hipMemcpyDeviceToHost));
-        for(rocblas_int i = 0; i < batch_count; i++)
-            results[i] = T(res_V[i]);
+        RETURN_IF_HIP_ERROR(hipMemcpyAsync(results,
+                                           workspace + offset,
+                                           sizeof(T) * batch_count,
+                                           hipMemcpyDeviceToHost,
+                                           handle->rocblas_stream));
+
+        // auto   res_V  = std::make_unique<V[]>(batch_count);
+        // RETURN_IF_HIP_ERROR(hipMemcpy(
+        //     &res_V[0], workspace + offset, sizeof(V) * batch_count, hipMemcpyDeviceToHost));
+        // for(rocblas_int i = 0; i < batch_count; i++)
+        //     results[i] = T(res_V[i]);
     }
 
     return rocblas_status_success;
