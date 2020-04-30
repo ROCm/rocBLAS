@@ -81,7 +81,7 @@ void testing_dgmm(const Arguments& arg)
     size_t size_x = size_t(abs_incx) * (rocblas_side_right == side ? size_t(N) : size_t(M));
 
     // argument sanity check before allocating invalid memory
-    bool invalid_size = M < 0 || N < 0 || lda < M || ldc < M;
+    bool invalid_size = M < 0 || N < 0 || lda < M || ldc < M || incx == 0;
     if(invalid_size || !M || !N)
     {
         EXPECT_ROCBLAS_STATUS(
@@ -184,7 +184,7 @@ void testing_dgmm(const Arguments& arg)
         gpu_time_used  = get_time_us() - gpu_time_used;
         rocblas_gflops = dgmm_gflop_count<T>(M, N) * number_hot_calls / gpu_time_used * 1e6;
 
-        rocblas_cout << "\nside,M,N,lda,incx,ldc,rocblas-Gflops,us";
+        rocblas_cout << "side,M,N,lda,incx,ldc,rocblas-Gflops,us";
         if(arg.unit_check || arg.norm_check)
         {
             rocblas_cout << ",CPU-Gflops,us,norm_error";

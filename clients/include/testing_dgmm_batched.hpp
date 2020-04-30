@@ -89,7 +89,7 @@ void testing_dgmm_batched(const Arguments& arg)
     size_t size_x = size_t(abs_incx) * (rocblas_side_right == side ? size_t(N) : size_t(M));
 
     // argument sanity check before allocating invalid memory
-    bool invalid_size = M < 0 || N < 0 || lda < M || ldc < M || batch_count < 0;
+    bool invalid_size = M < 0 || N < 0 || lda < M || ldc < M || batch_count < 0 || incx == 0;
     if(invalid_size || !M || !N || !batch_count)
     {
         EXPECT_ROCBLAS_STATUS(
