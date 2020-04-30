@@ -1316,17 +1316,17 @@ rocblas_status special_trsm_template(rocblas_handle    handle,
  *  arrays of pointers for invA and x_temp (mem_x_temp_arr, mem_invA_arr).
  */
 template <rocblas_int BLOCK, bool BATCHED, typename T, typename U>
-rocblas_status rocblas_trsm_template_mem(rocblas_handle handle,
-                                         rocblas_side   side,
-                                         rocblas_int    m,
-                                         rocblas_int    n,
-                                         rocblas_int    batch_count,
-                                         void*&         mem_x_temp,
-                                         void*&         mem_x_temp_arr,
-                                         void*&         mem_invA,
-                                         void*&         mem_invA_arr,
-                                         U              supplied_invA      = nullptr,
-                                         rocblas_int    supplied_invA_size = 0)
+ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_trsm_template_mem(rocblas_handle handle,
+                                                                 rocblas_side   side,
+                                                                 rocblas_int    m,
+                                                                 rocblas_int    n,
+                                                                 rocblas_int    batch_count,
+                                                                 void*&         mem_x_temp,
+                                                                 void*&         mem_x_temp_arr,
+                                                                 void*&         mem_invA,
+                                                                 void*&         mem_invA_arr,
+                                                                 U supplied_invA = nullptr,
+                                                                 rocblas_int supplied_invA_size = 0)
 {
     rocblas_status perf_status = rocblas_status_success;
     rocblas_int    k           = side == rocblas_side_left ? m : n;

@@ -662,15 +662,15 @@ rocblas_status special_trsv_template(rocblas_handle    handle,
 }
 
 template <rocblas_int BLOCK, bool BATCHED, typename T, typename U>
-rocblas_status rocblas_trsv_template_mem(rocblas_handle handle,
-                                         rocblas_int    m,
-                                         rocblas_int    batch_count,
-                                         void**         mem_x_temp,
-                                         void**         mem_x_temp_arr,
-                                         void**         mem_invA,
-                                         void**         mem_invA_arr,
-                                         U              supplied_invA      = nullptr,
-                                         rocblas_int    supplied_invA_size = 0)
+ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_trsv_template_mem(rocblas_handle handle,
+                                                                 rocblas_int    m,
+                                                                 rocblas_int    batch_count,
+                                                                 void**         mem_x_temp,
+                                                                 void**         mem_x_temp_arr,
+                                                                 void**         mem_invA,
+                                                                 void**         mem_invA_arr,
+                                                                 U supplied_invA = nullptr,
+                                                                 rocblas_int supplied_invA_size = 0)
 {
 
     // Whether size is an exact multiple of blocksize
