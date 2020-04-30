@@ -57,14 +57,10 @@ void testing_nrm2(const Arguments& arg)
     // check to prevent undefined memory allocation error
     if(N <= 0 || incx <= 0)
     {
-        static const size_t      safe_size = 100; //  arbitrarily set to zero
-        device_vector<T>         dx(safe_size);
-        device_vector<real_t<T>> d_rocblas_result(1);
-        CHECK_DEVICE_ALLOCATION(dx.memcheck());
-        CHECK_DEVICE_ALLOCATION(d_rocblas_result.memcheck());
-
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR(rocblas_nrm2<T>(handle, N, dx, incx, d_rocblas_result));
+        host_vector<real_t<T>> res(1);
+        CHECK_HIP_ERROR(res.memcheck());
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+        CHECK_ROCBLAS_ERROR(rocblas_nrm2<T>(handle, N, nullptr, incx, res));
         return;
     }
 

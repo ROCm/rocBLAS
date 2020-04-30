@@ -63,11 +63,8 @@ void testing_iamax_iamin(const Arguments& arg, rocblas_iamax_iamin_t<T> func)
     // check to prevent undefined memory allocation error
     if(N <= 0 || incx <= 0)
     {
-        static const size_t safe_size = 100; // arbritrarily set to 100
-        device_vector<T>    dx(safe_size);
-        CHECK_DEVICE_ALLOCATION(dx.memcheck());
-
-        CHECK_ROCBLAS_ERROR(func(handle, N, dx, incx, &h_rocblas_result_1));
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+        CHECK_ROCBLAS_ERROR(func(handle, N, nullptr, incx, &h_rocblas_result_1));
 
 #ifdef GOOGLE_TEST
         EXPECT_EQ(h_rocblas_result_1, 0);

@@ -2,9 +2,7 @@
  * Copyright 2019-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#ifndef REDUCTION_STRIDED_BATCHED_H_
-#define REDUCTION_STRIDED_BATCHED_H_
-
+#pragma once
 #include "handle.h"
 #include "rocblas.h"
 #include "utility.h"
@@ -405,5 +403,3 @@ rocblas_status rocblas_reduction_strided_batched_kernel(rocblas_handle __restric
 
     return rocblas_status_success;
 }
-
-#endif

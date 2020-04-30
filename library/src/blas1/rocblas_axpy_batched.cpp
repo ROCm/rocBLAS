@@ -1,7 +1,7 @@
 /* ************************************************************************
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include "rocblas_axpy_batched.hpp"
+#include "rocblas_axpy.hpp"
 
 namespace
 {
@@ -94,7 +94,9 @@ namespace
         if(!x || !y)
             return rocblas_status_invalid_pointer;
 
-        return rocblas_axpy_batched_template<NB>(handle, n, alpha, x, incx, y, incy, batch_count);
+        static constexpr rocblas_stride stride_0 = 0;
+        return rocblas_axpy_template<NB>(
+            handle, n, alpha, x, incx, stride_0, y, incy, stride_0, batch_count);
     }
 
 }
