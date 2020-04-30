@@ -154,7 +154,7 @@ void testing_dgmm_strided_batched(const Arguments& arg)
     rocblas_local_handle handle;
 
     // argument sanity check before allocating invalid memory
-    bool invalid_size = M < 0 || N < 0 || lda < M || ldc < M || batch_count < 0;
+    bool invalid_size = M < 0 || N < 0 || lda < M || ldc < M || batch_count < 0 || incx == 0;
     if(invalid_size || M == 0 || N == 0 || batch_count == 0)
     {
         EXPECT_ROCBLAS_STATUS(rocblas_dgmm_strided_batched<T>(handle,

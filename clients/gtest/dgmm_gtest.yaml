@@ -3,8 +3,20 @@ include: rocblas_common.yaml
 include: known_bugs.yaml
 
 Definitions:
+  - &invalid_size_range
+    - { M:     3, N:     3, lda:     3, incx:     3, ldc:     3 } # batch_count < 0
+    - { M:    -1, N:     1, lda:     1, incx:     1, ldc:     1 } # M < 0
+    - { M:     1, N:    -1, lda:     1, incx:     1, ldc:     1 } # N < 0
+    - { M:     2, N:     2, lda:     1, incx:     1, ldc:     2 } # lda < M
+    - { M:     2, N:     2, lda:     2, incx:     1, ldc:     1 } # ldc < M
+    - { M:     2, N:     2, lda:     2, incx:     0, ldc:     2 } # incx = 0
+
+  - &quick_return_size_range
+    - { M:     3, N:     3, lda:     3, incx:     3, ldc:     3 } # batch_count == 0
+    - { M:     0, N:     1, lda:     1, incx:     1, ldc:     1 } # M == 0
+    - { M:     1, N:     0, lda:     1, incx:     1, ldc:     1 } # N == 0
+
   - &small_matrix_size_range
-    - { M:     0, N:     0, lda:     1, incx:     1, ldc:     1 }
     - { M:     3, N:     3, lda:     3, incx:     1, ldc:     3 }
     - { M:     3, N:    33, lda:    35, incx:     2, ldc:    35 }
     - { M:    10, N:    11, lda:   100, incx:     3, ldc:    13 }
@@ -39,6 +51,57 @@ Tests:
   stride_scale: [ 1         ]
   batch_count: [        1    ]
 
+
+- name: dgmm_invalid_size
+  category: quick
+  function: dgmm
+  precision: *single_double_precisions
+  side: [L]
+  matrix_size: *invalid_size_range
+
+- name: dgmm_batched_invalid_size
+  category: quick
+  function: dgmm_batched
+  precision: *single_double_precisions
+  side: [L, ]
+  matrix_size: *invalid_size_range
+  batch_count: [        1, -1 ]
+
+- name: dgmm_strided_batched_invalid_size
+  category: quick
+  function: dgmm_strided_batched
+  precision: *single_double_precisions
+  side: [L, ]
+  matrix_size: *invalid_size_range
+  stride_scale: [ 1         ]
+  batch_count: [        1, -1 ]
+
+
+- name: dgmm_quick_return
+  category: quick
+  function: dgmm
+  precision: *single_double_precisions
+  side: [L, ]
+  matrix_size: *quick_return_size_range
+
+- name: dgmm_batched_quick_return
+  category: quick
+  function: dgmm_batched
+  precision: *single_double_precisions
+  side: [L, ]
+  matrix_size: *quick_return_size_range
+  batch_count: [        1, 0  ]
+
+- name: dgmm_strided_batched_quick_return
+  category: quick
+  function: dgmm_strided_batched
+  precision: *single_double_precisions
+  side: [L, ]
+  matrix_size: *quick_return_size_range
+  stride_scale: [ 1         ]
+  batch_count: [        1, 0  ]
+
+
 - name: dgmm_small
   category: quick
   function: dgmm
@@ -62,6 +125,7 @@ Tests:
   matrix_size: *small_matrix_size_range
   stride_scale: [ 1, 2      ]
   batch_count: [        1, 2 ]
+
 
 - name: dgmm_small_complex
   category: quick
@@ -87,12 +151,14 @@ Tests:
   stride_scale: [ 1, 2      ]
   batch_count: [        1, 2 ]
 
+
 - name: dgmm_large
   category: pre_checkin
   function: dgmm
   precision: *single_double_precisions
   side: [L, R]
   matrix_size: *large_matrix_size_range
+
 
 - name: dgmm_large_complex
   category: pre_checkin
@@ -117,6 +183,7 @@ Tests:
   matrix_size: *large_matrix_size_range
   stride_scale: [ 1, 2      ]
   batch_count: [        1, 2 ]
+
 
 - name: dgmm_huge
   category: nightly

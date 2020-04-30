@@ -14069,7 +14069,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgemm_strided_batched(rocblas_handle      
     \details
     xDGMM performs one of the matrix-matrix operations
 
-        C = A + diag(x) if side == rocblas_side_right
+        C = A * diag(x) if side == rocblas_side_right
         C = diag(x) * A if side == rocblas_side_left
 
     where C and A are m by n dimensional matrices. diag( x ) is a diagonal matrix

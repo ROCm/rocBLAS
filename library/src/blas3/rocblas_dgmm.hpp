@@ -5,20 +5,20 @@
 #include "handle.h"
 
 template <bool side_right, typename TConstPtr, typename TPtr>
-__global__ void dgmm_device(rocblas_int m,
-                            rocblas_int n,
-                            TConstPtr   Aa,
-                            rocblas_int offset_a,
-                            rocblas_int lda,
-                            rocblas_int stride_a,
-                            TConstPtr   Xa,
-                            rocblas_int shift_x,
-                            rocblas_int incx,
-                            rocblas_int stride_x,
-                            TPtr        Ca,
-                            rocblas_int offset_c,
-                            rocblas_int ldc,
-                            rocblas_int stride_c)
+__global__ void dgmm_device(rocblas_int    m,
+                            rocblas_int    n,
+                            TConstPtr      Aa,
+                            rocblas_int    offset_a,
+                            rocblas_int    lda,
+                            rocblas_stride stride_a,
+                            TConstPtr      Xa,
+                            rocblas_int    shift_x,
+                            rocblas_int    incx,
+                            rocblas_stride stride_x,
+                            TPtr           Ca,
+                            rocblas_int    offset_c,
+                            rocblas_int    ldc,
+                            rocblas_stride stride_c)
 {
     rocblas_int tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     rocblas_int ty = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;

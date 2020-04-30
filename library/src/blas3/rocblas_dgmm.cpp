@@ -82,7 +82,7 @@ namespace
                             ldc);
         }
 
-        if(m < 0 || n < 0 || ldc < m || lda < m)
+        if(m < 0 || n < 0 || ldc < m || lda < m || incx == 0)
             return rocblas_status_invalid_size;
 
         if(!m || !n)
