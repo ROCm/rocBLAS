@@ -507,11 +507,35 @@ constexpr double geam_gflop_count(rocblas_int m, rocblas_int n)
     return (3.0 * m * n) / 1e9;
 }
 
+template <>
+constexpr double geam_gflop_count<rocblas_float_complex>(rocblas_int m, rocblas_int n)
+{
+    return (14.0 * m * n) / 1e9;
+}
+
+template <>
+constexpr double geam_gflop_count<rocblas_double_complex>(rocblas_int m, rocblas_int n)
+{
+    return (14.0 * m * n) / 1e9;
+}
+
 /* \brief floating point counts of DGMM */
 template <typename T>
 constexpr double dgmm_gflop_count(rocblas_int m, rocblas_int n)
 {
     return (m * n) / 1e9;
+}
+
+template <>
+constexpr double dgmm_gflop_count<rocblas_float_complex>(rocblas_int m, rocblas_int n)
+{
+    return (6 * m * n) / 1e9;
+}
+
+template <>
+constexpr double dgmm_gflop_count<rocblas_double_complex>(rocblas_int m, rocblas_int n)
+{
+    return (6 * m * n) / 1e9;
 }
 
 /* \brief floating point counts of HEMM */
