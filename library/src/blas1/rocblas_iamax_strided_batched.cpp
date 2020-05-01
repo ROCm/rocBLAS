@@ -38,15 +38,16 @@ namespace
                                       rocblas_fetch_amax_amin<S>,
                                       rocblas_reduce_amax,
                                       rocblas_finalize_amax_amin,
-                                      index_value_t<S>>(handle,
-                                                        n,
-                                                        x,
-                                                        incx,
-                                                        stridex,
-                                                        batch_count,
-                                                        result,
-                                                        rocblas_iamax_strided_batched_name<T>,
-                                                        "iamax_strided_batched");
+                                      rocblas_index_value_t<S>>(
+            handle,
+            n,
+            x,
+            incx,
+            stridex,
+            batch_count,
+            result,
+            rocblas_iamax_strided_batched_name<T>,
+            "iamax_strided_batched");
     }
 
 }

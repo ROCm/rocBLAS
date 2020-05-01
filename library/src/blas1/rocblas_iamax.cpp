@@ -29,8 +29,8 @@ namespace
         static constexpr rocblas_int    batch_count_1 = 1;
         static constexpr int            NB            = 1024;
 
-        index_value_t<S>* mem           = nullptr;
-        rocblas_status    checks_status = rocblas_reduction_setup<NB, isbatched>(handle,
+        rocblas_index_value_t<S>* mem           = nullptr;
+        rocblas_status            checks_status = rocblas_reduction_setup<NB, isbatched>(handle,
                                                                               n,
                                                                               x,
                                                                               incx,
