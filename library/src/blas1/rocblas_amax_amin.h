@@ -5,18 +5,6 @@
 #include "rocblas_reduction_template.hpp"
 
 //!
-//! @brief Struct to define pair of value and index.
-//!
-template <typename T>
-struct ROCBLAS_EXPORT rocblas_index_value_t
-{
-    //! @brief Important: index must come first, so that rocblas_index_value_t* can be cast to rocblas_int*
-    rocblas_int index;
-    //! @brief The value.
-    T value;
-};
-
-//!
 //! @brief Struct-operator a default_value of rocblas_index_value_t<T>
 //!
 template <typename T>
