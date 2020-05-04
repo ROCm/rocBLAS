@@ -31,11 +31,11 @@ typedef struct
 // If this a full internal build, we need full support of complex arithmetic
 // and classes. We need __host__ and __device__ so we use <hip/hip_runtime.h>.
 
+#include "rocblas-export.h"
 #include <complex>
 #include <hip/hip_runtime.h>
 #include <math.h>
 #include <ostream>
-#include <rocblas-export.h>
 #include <type_traits>
 
 /*! \brief rocblas_complex_num is a structure which represents a complex number
@@ -44,6 +44,9 @@ typedef struct
 template <typename T>
 class ROCBLAS_EXPORT rocblas_complex_num
 {
+    T x; // The real part of the number.
+    T y; // The imaginary part of the number.
+
     // Internal real absolute function, to be sure we're on both device and host
     static __forceinline__ __device__ __host__ T abs(T x)
     {
@@ -61,9 +64,6 @@ class ROCBLAS_EXPORT rocblas_complex_num
     }
 
 public:
-    T x; // The real part of the number.
-    T y; // The imaginary part of the number.
-
     // We do not initialize the members x or y by default, to ensure that it can
     // be used in __shared__ and that it is a trivial class compatible with C.
     __device__ __host__ rocblas_complex_num()                           = default;
@@ -75,13 +75,14 @@ public:
     using value_type                                                              = T;
 
     // Constructor
-    __device__ __host__ rocblas_complex_num(T r, T i)
+    __device__ __host__ constexpr rocblas_complex_num(T r, T i)
         : x{r}
         , y{i}
     {
     }
 
     // Conversion from real
+    // TODO: Make constexpr after HSA_STATUS_ERROR_INVALID_ISA bug goes away
     __device__ __host__ rocblas_complex_num(T r)
         : x{r}
         , y{0}
@@ -89,39 +90,39 @@ public:
     }
 
     // Conversion from std::complex<T>
-    __device__ __host__ rocblas_complex_num(const std::complex<T>& z)
-        : x{reinterpret_cast<const T (&)[2]>(z)[0]}
-        , y{reinterpret_cast<const T (&)[2]>(z)[1]}
+    __device__ __host__ constexpr rocblas_complex_num(const std::complex<T>& z)
+        : x{z.real()}
+        , y{z.imag()}
     {
     }
 
     // Conversion to std::complex<T>
-    __device__ __host__ operator std::complex<T>() const
+    __device__ __host__ constexpr operator std::complex<T>() const
     {
         return {x, y};
     }
 
     // Conversion from different complex (explicit)
     template <typename U, std::enable_if_t<std::is_constructible<T, U>{}, int> = 0>
-    __device__ __host__ explicit rocblas_complex_num(const rocblas_complex_num<U>& z)
-        : x(z.x)
-        , y(z.y)
+    __device__ __host__ explicit constexpr rocblas_complex_num(const rocblas_complex_num<U>& z)
+        : x(z.real())
+        , y(z.imag())
     {
     }
 
     // Conversion to bool
-    __device__ __host__ explicit operator bool() const
+    __device__ __host__ constexpr explicit operator bool() const
     {
         return x || y;
     }
 
-    // setters like c++20
-    __device__ __host__ inline void real(const T& r)
+    // Setters like C++20
+    __device__ __host__ constexpr void real(T r)
     {
         x = r;
     }
 
-    __device__ __host__ inline void imag(const T& i)
+    __device__ __host__ constexpr void imag(T i)
     {
         y = i;
     }
@@ -129,6 +130,16 @@ public:
     // Accessors
     friend __device__ __host__ T std::real(const rocblas_complex_num& z);
     friend __device__ __host__ T std::imag(const rocblas_complex_num& z);
+
+    constexpr T real() const
+    {
+        return x;
+    }
+
+    constexpr T imag() const
+    {
+        return y;
+    }
 
     // stream output
     friend auto& operator<<(std::ostream& out, const rocblas_complex_num& z)
@@ -162,13 +173,13 @@ public:
     }
 
     template <typename U, std::enable_if_t<std::is_convertible<U, T>{}, int> = 0>
-    __device__ __host__ bool operator==(const U& rhs) const
+    __device__ __host__ constexpr bool operator==(const U& rhs) const
     {
         return x == T(rhs) && y == 0;
     }
 
     template <typename U, std::enable_if_t<std::is_convertible<U, T>{}, int> = 0>
-    __device__ __host__ bool operator!=(const U& rhs) const
+    __device__ __host__ constexpr bool operator!=(const U& rhs) const
     {
         return !(*this == rhs);
     }
@@ -195,12 +206,12 @@ public:
     }
 
     // Unary operations
-    __device__ __host__ rocblas_complex_num operator-() const
+    __device__ __host__ constexpr rocblas_complex_num operator-() const
     {
         return {-x, -y};
     }
 
-    __device__ __host__ rocblas_complex_num operator+() const
+    __device__ __host__ constexpr rocblas_complex_num operator+() const
     {
         return *this;
     }
@@ -272,12 +283,12 @@ public:
         return lhs /= rhs;
     }
 
-    __device__ __host__ bool operator==(const rocblas_complex_num& rhs) const
+    __device__ __host__ constexpr bool operator==(const rocblas_complex_num& rhs) const
     {
         return x == rhs.x && y == rhs.y;
     }
 
-    __device__ __host__ bool operator!=(const rocblas_complex_num& rhs) const
+    __device__ __host__ constexpr bool operator!=(const rocblas_complex_num& rhs) const
     {
         return !(*this == rhs);
     }
@@ -308,6 +319,7 @@ public:
     friend __device__ __host__ rocblas_complex_num operator/(const U&                   lhs,
                                                              const rocblas_complex_num& rhs)
     {
+        // Smith Algorithm. https://dl.acm.org/doi/10.1145/368637.368661
         if(abs(rhs.x) > abs(rhs.y))
         {
             T ratio = rhs.y / rhs.x;
@@ -323,13 +335,15 @@ public:
     }
 
     template <typename U, std::enable_if_t<std::is_convertible<U, T>{}, int> = 0>
-    friend __device__ __host__ bool operator==(const U& lhs, const rocblas_complex_num& rhs)
+    friend __device__ __host__ constexpr bool operator==(const U&                   lhs,
+                                                         const rocblas_complex_num& rhs)
     {
         return T(lhs) == rhs.x && 0 == rhs.y;
     }
 
     template <typename U, std::enable_if_t<std::is_convertible<U, T>{}, int> = 0>
-    friend __device__ __host__ bool operator!=(const U& lhs, const rocblas_complex_num& rhs)
+    friend __device__ __host__ constexpr bool operator!=(const U&                   lhs,
+                                                         const rocblas_complex_num& rhs)
     {
         return !(lhs == rhs);
     }
@@ -339,19 +353,19 @@ public:
 namespace std
 {
     template <typename T>
-    __device__ __host__ inline T real(const rocblas_complex_num<T>& z)
+    __device__ __host__ constexpr T real(const rocblas_complex_num<T>& z)
     {
         return z.x;
     }
 
     template <typename T>
-    __device__ __host__ inline T imag(const rocblas_complex_num<T>& z)
+    __device__ __host__ constexpr T imag(const rocblas_complex_num<T>& z)
     {
         return z.y;
     }
 
     template <typename T>
-    __device__ __host__ inline rocblas_complex_num<T> conj(const rocblas_complex_num<T>& z)
+    __device__ __host__ constexpr rocblas_complex_num<T> conj(const rocblas_complex_num<T>& z)
     {
         return {z.x, -z.y};
     }

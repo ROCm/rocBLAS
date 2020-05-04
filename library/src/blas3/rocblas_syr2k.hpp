@@ -16,9 +16,7 @@ __device__ void syr2k_scale_device(bool upper, rocblas_int n, T beta, U* C, rocb
     int to   = upper ? ty : tx;
 
     if(tx < n && ty < n && from <= to)
-    {
         C[ty * ldc + tx] *= beta;
-    }
 }
 
 /**
@@ -43,18 +41,12 @@ __global__ void syr2k_scale_kernel(bool           upper,
 
 /** helper for complex support */
 template <typename T>
-inline __device__ void syr2k_her2k_zero_imaginary(T& a)
+__forceinline__ __device__ void syr2k_her2k_zero_imaginary(T&)
 {
 }
 
-template <>
-inline __device__ void syr2k_her2k_zero_imaginary<rocblas_float_complex>(rocblas_float_complex& a)
-{
-    a.imag(0);
-}
-
-template <>
-inline __device__ void syr2k_her2k_zero_imaginary<rocblas_double_complex>(rocblas_double_complex& a)
+template <typename T>
+__forceinline__ __device__ void syr2k_her2k_zero_imaginary(rocblas_complex_num<T>& a)
 {
     a.imag(0);
 }
