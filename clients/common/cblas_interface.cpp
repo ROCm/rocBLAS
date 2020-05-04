@@ -410,7 +410,7 @@ void cblas_herkx(rocblas_fill      uplo,
                         C[i + j * ldc] += temp * A[i + l * lda];
                     }
                 }
-                C[j + j * ldc].y = 0;
+                C[j + j * ldc].imag(0);
             }
         }
         else // lower
@@ -431,7 +431,7 @@ void cblas_herkx(rocblas_fill      uplo,
                         C[i + j * ldc] += temp * A[i + l * lda];
                     }
                 }
-                C[j + j * ldc].y = 0;
+                C[j + j * ldc].imag(0);
             }
         }
     }
@@ -454,7 +454,7 @@ void cblas_herkx(rocblas_fill      uplo,
                     C[i + j * ldc] += *alpha * temp;
 
                     if(i == j)
-                        C[j + j * ldc].y = 0;
+                        C[j + j * ldc].imag(0);
                 }
             }
         }
@@ -475,7 +475,7 @@ void cblas_herkx(rocblas_fill      uplo,
                     C[i + j * ldc] += *alpha * temp;
 
                     if(i == j)
-                        C[j + j * ldc].y = 0;
+                        C[j + j * ldc].imag(0);
                 }
             }
         }
