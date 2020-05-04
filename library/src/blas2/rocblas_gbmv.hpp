@@ -212,7 +212,7 @@ __global__ void gbmvx_kernel(rocblas_operation transA,
                              W                 ya,
                              ptrdiff_t         shifty,
                              rocblas_int       incy,
-                             rocblas_int       stridey)
+                             rocblas_stride    stridey)
 {
     rocblas_int num_threads = hipBlockDim_x * hipBlockDim_y * hipBlockDim_z;
     if(DIM_X * DIM_Y != num_threads)
