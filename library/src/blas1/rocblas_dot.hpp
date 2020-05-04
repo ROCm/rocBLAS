@@ -15,7 +15,7 @@ __global__ void dot_kernel_part1(rocblas_int    n,
                                  const U        ya,
                                  ptrdiff_t      shifty,
                                  rocblas_int    incy,
-                                 rocblas_int    stridey,
+                                 rocblas_stride stridey,
                                  V*             workspace)
 {
     ptrdiff_t tx  = hipThreadIdx_x;

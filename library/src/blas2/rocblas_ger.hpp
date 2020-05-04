@@ -17,17 +17,17 @@ __global__ void ger_kernel(rocblas_int    m,
                            W              alpha_device_host,
                            rocblas_stride stride_alpha,
                            const U __restrict__ xa,
-                           ptrdiff_t   shiftx,
-                           rocblas_int incx,
-                           rocblas_int stridex,
+                           ptrdiff_t      shiftx,
+                           rocblas_int    incx,
+                           rocblas_stride stridex,
                            const U __restrict__ ya,
-                           ptrdiff_t   shifty,
-                           rocblas_int incy,
-                           rocblas_int stridey,
-                           V           Aa,
-                           ptrdiff_t   shifta,
-                           rocblas_int lda,
-                           rocblas_int strideA)
+                           ptrdiff_t      shifty,
+                           rocblas_int    incy,
+                           rocblas_stride stridey,
+                           V              Aa,
+                           ptrdiff_t      shifta,
+                           rocblas_int    lda,
+                           rocblas_stride strideA)
 {
     __shared__ T xdata[DIM_X];
     __shared__ T ydata[DIM_Y * WIN];
