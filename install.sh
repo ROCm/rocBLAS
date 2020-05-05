@@ -23,6 +23,7 @@ rocBLAS build & installation helper script
       -t | --test_local_path     Use a local path for Tensile instead of remote GIT repo
            --cpu_ref_lib         Specify library to use for CPU reference code in testing (blis or lapack)
            --[no-]hip-clang      Whether to build library for amdgpu backend using hip-clang
+           --[no-]merge-files    Whether to enable Tensile_MERGE_FILES (default is enable)
            --build_dir           Specify name of output directory (default is ./build)
       -n | --no-tensile          Build subset of library that does not require Tensile
       -s | --tensile-host        Build with Tensile host
@@ -267,6 +268,7 @@ tensile_logic=asm_full
 tensile_architecture=all
 tensile_cov=
 tensile_fork=
+tensile_merge_files=
 tensile_tag=
 tensile_test_local_path=
 tensile_version=
@@ -293,7 +295,7 @@ fi
 # check if we have a modern version of getopt that can handle whitespace and long parameters
 getopt -T
 if [[ $? -eq 4 ]]; then
-  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,no-hip-clang,no_tensile,no-tensile,tensile-host,no-tensile-host,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,static,ignore-cuda,rocm-dev: --options nsrhicdgl:a:o:f:b:t:u:v: -- "$@")
+  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,no-hip-clang,merge-files,no-merge-files,no_tensile,no-tensile,tensile-host,no-tensile-host,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,static,ignore-cuda,rocm-dev: --options nsrhicdgl:a:o:f:b:t:u:v: -- "$@")
 else
   echo "Need a new version of getopt"
   exit 1
@@ -365,6 +367,12 @@ while true; do
         shift ;;
     --no-hip-clang)
         build_hip_clang=false
+        shift ;;
+    --merge-files)
+        tensile_merge_files=true
+        shift ;;
+    --no-merge-files)
+        tensile_merge_files=false
         shift ;;
     --skipldconf)
         skip_ld_conf_entry=true
@@ -540,6 +548,9 @@ pushd .
 
   if [[ "${build_tensile_host}" == true ]]; then
     tensile_opt="${tensile_opt} -DBUILD_WITH_TENSILE_HOST=ON"
+  fi
+  if [[ "${tensile_merge_files}" == false ]]; then
+    tensile_opt="${tensile_opt} -DTensile_MERGE_FILES=OFF"
   fi
 
   cmake_common_options="${cmake_common_options} ${tensile_opt}"
