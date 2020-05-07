@@ -140,7 +140,7 @@ namespace
         auto validArgs = validateArgs(
             handle, trans_a, trans_b, m, n, k, alpha, A, ld_a, B, ld_b, beta, C, ld_c);
 
-        if(validArgs != rocblas_status_success)
+        if(validArgs != rocblas_status_continue)
             return validArgs;
 
         return rocblas_gemm_template<false, false>(handle,

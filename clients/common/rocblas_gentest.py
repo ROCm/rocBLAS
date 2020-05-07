@@ -293,6 +293,15 @@ def setdefaults(test):
             test.setdefault('stride_y', int(test['stride_scale']))
 
 
+    elif test['function'] in ('dgmm_strided_batched'):
+        setkey_product(test, 'stride_c', ['N', 'ldc', 'stride_scale'])
+        setkey_product(test, 'stride_a', ['N', 'lda', 'stride_scale'])
+        if test['side'].upper() == 'L':
+            setkey_product(test, 'stride_x', ['M', 'incx', 'stride_scale'])
+        else:
+            setkey_product(test, 'stride_x', ['N', 'incx', 'stride_scale'])
+
+
     elif test['function'] in ('geam_strided_batched'):
         setkey_product(test, 'stride_c', ['N', 'ldc', 'stride_scale'])
 

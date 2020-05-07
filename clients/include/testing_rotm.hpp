@@ -30,6 +30,7 @@ void testing_rotm_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
     CHECK_DEVICE_ALLOCATION(dparam.memcheck());
 
+    CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
     EXPECT_ROCBLAS_STATUS(rocblas_rotm<T>(nullptr, N, dx, incx, dy, incy, dparam),
                           rocblas_status_invalid_handle);
     EXPECT_ROCBLAS_STATUS(rocblas_rotm<T>(handle, N, nullptr, incx, dy, incy, dparam),
@@ -54,23 +55,17 @@ void testing_rotm(const Arguments& arg)
     const T rel_error          = std::numeric_limits<T>::epsilon() * 1000;
 
     // check to prevent undefined memory allocation error
-    if(N <= 0 || incx <= 0 || incy <= 0)
+    if(N <= 0)
     {
-        static const size_t safe_size = 100; // arbitrarily set to 100
-        device_vector<T>    dx(safe_size);
-        device_vector<T>    dy(safe_size);
-        device_vector<T>    dparam(5);
-        CHECK_DEVICE_ALLOCATION(dx.memcheck());
-        CHECK_DEVICE_ALLOCATION(dy.memcheck());
-        CHECK_DEVICE_ALLOCATION(dparam.memcheck());
-
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR(rocblas_rotm<T>(handle, N, dx, incx, dy, incy, dparam));
+        CHECK_ROCBLAS_ERROR(rocblas_rotm<T>(handle, N, nullptr, incx, nullptr, incy, nullptr));
         return;
     }
 
-    size_t size_x = N * size_t(incx);
-    size_t size_y = N * size_t(incy);
+    rocblas_int abs_incx = incx >= 0 ? incx : -incx;
+    rocblas_int abs_incy = incy >= 0 ? incy : -incy;
+    size_t      size_x   = N * size_t(abs_incx);
+    size_t      size_y   = N * size_t(abs_incy);
 
     device_vector<T> dx(size_x);
     device_vector<T> dy(size_y);
@@ -85,8 +80,8 @@ void testing_rotm(const Arguments& arg)
     host_vector<T> hdata(4);
     host_vector<T> hparam(5);
     rocblas_seedrand();
-    rocblas_init<T>(hx, 1, N, incx);
-    rocblas_init<T>(hy, 1, N, incy);
+    rocblas_init<T>(hx, 1, N, abs_incx);
+    rocblas_init<T>(hy, 1, N, abs_incy);
     rocblas_init<T>(hdata, 1, 4, 1);
 
     // CPU BLAS reference data
@@ -116,13 +111,13 @@ void testing_rotm(const Arguments& arg)
                 CHECK_HIP_ERROR(hipMemcpy(ry, dy, sizeof(T) * size_y, hipMemcpyDeviceToHost));
                 if(arg.unit_check)
                 {
-                    near_check_general<T>(1, N, incx, cx, rx, rel_error);
-                    near_check_general<T>(1, N, incy, cy, ry, rel_error);
+                    near_check_general<T>(1, N, abs_incx, cx, rx, rel_error);
+                    near_check_general<T>(1, N, abs_incy, cy, ry, rel_error);
                 }
                 if(arg.norm_check)
                 {
-                    norm_error_host_x = norm_check_general<T>('F', 1, N, incx, cx, rx);
-                    norm_error_host_y = norm_check_general<T>('F', 1, N, incy, cy, ry);
+                    norm_error_host_x = norm_check_general<T>('F', 1, N, abs_incx, cx, rx);
+                    norm_error_host_y = norm_check_general<T>('F', 1, N, abs_incy, cy, ry);
                 }
             }
 
@@ -139,13 +134,13 @@ void testing_rotm(const Arguments& arg)
                 CHECK_HIP_ERROR(hipMemcpy(ry, dy, sizeof(T) * size_y, hipMemcpyDeviceToHost));
                 if(arg.unit_check)
                 {
-                    near_check_general<T>(1, N, incx, cx, rx, rel_error);
-                    near_check_general<T>(1, N, incy, cy, ry, rel_error);
+                    near_check_general<T>(1, N, abs_incx, cx, rx, rel_error);
+                    near_check_general<T>(1, N, abs_incy, cy, ry, rel_error);
                 }
                 if(arg.norm_check)
                 {
-                    norm_error_device_x = norm_check_general<T>('F', 1, N, incx, cx, rx);
-                    norm_error_device_y = norm_check_general<T>('F', 1, N, incy, cy, ry);
+                    norm_error_device_x = norm_check_general<T>('F', 1, N, abs_incx, cx, rx);
+                    norm_error_device_y = norm_check_general<T>('F', 1, N, abs_incy, cy, ry);
                 }
             }
         }

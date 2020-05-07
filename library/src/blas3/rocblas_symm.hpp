@@ -7,8 +7,7 @@
 #include "handle.h"
 
 template <typename T>
-static __device__ void
-    symm_scale_device(rocblas_int m, rocblas_int n, T beta, T* C, rocblas_int ldc)
+__device__ void symm_scale_device(rocblas_int m, rocblas_int n, T beta, T* C, rocblas_int ldc)
 {
     auto tx = blockIdx.x * blockDim.x + threadIdx.x;
     auto ty = blockIdx.y * blockDim.y + threadIdx.y;
@@ -43,16 +42,16 @@ __global__ void symm_scale_kernel(rocblas_int    m,
   * kernel
   */
 template <bool HERM, bool RIGHT, rocblas_int TILE_NK, typename T>
-static __device__ void symm_hemm_mult_add_device(bool        upper,
-                                                 rocblas_int m,
-                                                 rocblas_int n,
-                                                 T           alpha,
-                                                 const T* __restrict__ A,
-                                                 rocblas_int lda,
-                                                 const T* __restrict__ B,
-                                                 rocblas_int ldb,
-                                                 T* __restrict__ C,
-                                                 rocblas_int ldc)
+__device__ void symm_hemm_mult_add_device(bool        upper,
+                                          rocblas_int m,
+                                          rocblas_int n,
+                                          T           alpha,
+                                          const T* __restrict__ A,
+                                          rocblas_int lda,
+                                          const T* __restrict__ B,
+                                          rocblas_int ldb,
+                                          T* __restrict__ C,
+                                          rocblas_int ldc)
 {
     __shared__ T atile[TILE_NK][TILE_NK];
     __shared__ T btile[TILE_NK][TILE_NK];
@@ -241,37 +240,38 @@ rocblas_status rocblas_symm_arg_check(rocblas_handle handle,
     if(!m || !n || !batch_count)
         return rocblas_status_success;
 
-    if((n > 0 && m > 0 && (!AP || !BP || !alpha)) || !CP || !beta)
+    if(!AP || !BP || !alpha || !CP || !beta)
         return rocblas_status_invalid_pointer;
 
     return rocblas_status_continue;
 }
+
 /**
   *  TScal     is always: const T* (either host or device)
   *  TConstPtr is either: const T* OR const T* const*
   *  TPtr      is either:       T* OR       T* const*
   */
 template <bool HERM, typename TScal, typename TConstPtr, typename TPtr>
-rocblas_status rocblas_symm_template(rocblas_handle handle,
-                                     rocblas_side   side,
-                                     rocblas_fill   uplo,
-                                     rocblas_int    m,
-                                     rocblas_int    n,
-                                     TScal          alpha,
-                                     TConstPtr      AP,
-                                     rocblas_int    offsetA,
-                                     rocblas_int    lda,
-                                     rocblas_stride strideA,
-                                     TConstPtr      BP,
-                                     rocblas_int    offsetB,
-                                     rocblas_int    ldb,
-                                     rocblas_stride strideB,
-                                     TScal          beta,
-                                     TPtr           CP,
-                                     rocblas_int    offsetC,
-                                     rocblas_int    ldc,
-                                     rocblas_stride strideC,
-                                     rocblas_int    batch_count)
+ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_symm_template(rocblas_handle handle,
+                                                             rocblas_side   side,
+                                                             rocblas_fill   uplo,
+                                                             rocblas_int    m,
+                                                             rocblas_int    n,
+                                                             TScal          alpha,
+                                                             TConstPtr      AP,
+                                                             rocblas_int    offsetA,
+                                                             rocblas_int    lda,
+                                                             rocblas_stride strideA,
+                                                             TConstPtr      BP,
+                                                             rocblas_int    offsetB,
+                                                             rocblas_int    ldb,
+                                                             rocblas_stride strideB,
+                                                             TScal          beta,
+                                                             TPtr           CP,
+                                                             rocblas_int    offsetC,
+                                                             rocblas_int    ldc,
+                                                             rocblas_stride strideC,
+                                                             rocblas_int    batch_count)
 {
     // quick return
     if(!m || !n || !batch_count)

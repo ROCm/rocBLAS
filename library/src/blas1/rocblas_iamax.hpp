@@ -8,8 +8,9 @@
 struct rocblas_reduce_amax
 {
     template <typename To>
-    __forceinline__ __host__ __device__ void operator()(index_value_t<To>& __restrict__ x,
-                                                        const index_value_t<To>& __restrict__ y)
+    __forceinline__ __host__ __device__ void
+        operator()(rocblas_index_value_t<To>& __restrict__ x,
+                   const rocblas_index_value_t<To>& __restrict__ y)
     {
         // If y.index == -1 then y.value is invalid and should not be compared
         if(y.index != -1)
@@ -22,22 +23,21 @@ struct rocblas_reduce_amax
     }
 };
 
-template <rocblas_int NB, typename T, typename S>
-rocblas_status rocblas_iamax_template(rocblas_handle    handle,
-                                      rocblas_int       n,
-                                      const T*          x,
-                                      rocblas_int       shiftx,
-                                      rocblas_int       incx,
-                                      rocblas_int*      result,
-                                      index_value_t<S>* workspace)
+template <rocblas_int NB, bool ISBATCHED, typename T, typename S>
+ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_iamax_template(rocblas_handle            handle,
+                                                              rocblas_int               n,
+                                                              const T*                  x,
+                                                              rocblas_int               shiftx,
+                                                              rocblas_int               incx,
+                                                              rocblas_stride            stridex,
+                                                              rocblas_int               batch_count,
+                                                              rocblas_int*              result,
+                                                              rocblas_index_value_t<S>* workspace)
 {
-    static constexpr bool           isbatched     = false;
-    static constexpr rocblas_stride stridex_0     = 0;
-    static constexpr rocblas_int    batch_count_1 = 1;
     return rocblas_reduction_template<NB,
-                                      isbatched,
+                                      ISBATCHED,
                                       rocblas_fetch_amax_amin<S>,
                                       rocblas_reduce_amax,
                                       rocblas_finalize_amax_amin>(
-        handle, n, x, shiftx, incx, stridex_0, batch_count_1, result, workspace);
+        handle, n, x, shiftx, incx, stridex, batch_count, result, workspace);
 }

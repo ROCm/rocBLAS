@@ -325,4 +325,34 @@ void print_strided_batched(const char* name,
     rocblas_cout << std::flush;
 }
 
+template <typename T>
+void print_batched_matrix(const char*           name,
+                          host_batch_vector<T>& A,
+                          rocblas_int           n1,
+                          rocblas_int           n2,
+                          rocblas_int           s1,
+                          rocblas_int           s2,
+                          rocblas_int           batch_count)
+{
+    // n1, n2 are matrix dimensions, sometimes called m, n
+    // s1, s2 are matrix strides, sometimes called 1, lda
+    int max_size = 8;
+
+    for(int i3 = 0; i3 < A.batch_count() && i3 < max_size; i3++)
+    {
+        auto A_p = A[i3];
+        for(int i1 = 0; i1 < n1 && i1 < max_size; i1++)
+        {
+            for(int i2 = 0; i2 < n2 && i2 < max_size; i2++)
+            {
+                rocblas_cout << A_p[(i1 * s1) + (i2 * s2)] << "|";
+            }
+            rocblas_cout << "\n";
+        }
+        if(i3 < (batch_count - 1) && i3 < (max_size - 1))
+            rocblas_cout << "\n";
+    }
+    rocblas_cout << std::flush;
+}
+
 #endif

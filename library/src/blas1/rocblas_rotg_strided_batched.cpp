@@ -35,6 +35,8 @@ namespace
         if(!handle)
             return rocblas_status_invalid_handle;
 
+        RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
+
         auto layer_mode = handle->layer_mode;
         if(layer_mode & rocblas_layer_mode_log_trace)
             log_trace(handle,
@@ -78,12 +80,11 @@ namespace
                         "batch_count",
                         batch_count);
 
+        if(batch_count <= 0)
+            return rocblas_status_success;
+
         if(!a || !b || !c || !s)
             return rocblas_status_invalid_pointer;
-        if(batch_count < 0)
-            return rocblas_status_invalid_size;
-
-        RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
         return rocblas_rotg_template(
             handle, a, 0, stride_a, b, 0, stride_b, c, 0, stride_c, s, 0, stride_s, batch_count);

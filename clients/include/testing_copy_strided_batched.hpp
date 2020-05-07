@@ -56,22 +56,21 @@ void testing_copy_strided_batched(const Arguments& arg)
     rocblas_local_handle handle;
     rocblas_int          abs_incx = incx >= 0 ? incx : -incx;
     rocblas_int          abs_incy = incy >= 0 ? incy : -incy;
-    size_t               size_x   = size_t(stride_x) * size_t(batch_count);
-    size_t               size_y   = size_t(stride_y) * size_t(batch_count);
+
+    size_t size_x = size_t(stride_x) * size_t(batch_count);
+    size_t size_y = size_t(stride_y) * size_t(batch_count);
+    if(!size_x)
+        size_x = batch_count;
+    if(!size_y)
+        size_y = batch_count;
 
     // argument sanity check before allocating invalid memory
     if(N <= 0 || batch_count <= 0)
     {
-        static const size_t safe_size = 100; //  arbitrarily set to 100
-        device_vector<T>    dx(safe_size);
-        device_vector<T>    dy(safe_size);
-        CHECK_DEVICE_ALLOCATION(dx.memcheck());
-        CHECK_DEVICE_ALLOCATION(dy.memcheck());
-
-        EXPECT_ROCBLAS_STATUS(rocblas_copy_strided_batched<T>(
-                                  handle, N, dx, incx, stride_x, dy, incy, stride_y, batch_count),
-                              N > 0 && batch_count < 0 ? rocblas_status_invalid_size
-                                                       : rocblas_status_success);
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_copy_strided_batched<T>(
+                handle, N, nullptr, incx, stride_x, nullptr, incy, stride_y, batch_count),
+            rocblas_status_success);
         return;
     }
 

@@ -24,17 +24,29 @@ namespace
         rocblas_handle handle, rocblas_int n, const T* x, rocblas_int incx, rocblas_int* result)
     {
         static constexpr bool           isbatched     = false;
+        static constexpr rocblas_int    shiftx_0      = 0;
         static constexpr rocblas_stride stridex_0     = 0;
         static constexpr rocblas_int    batch_count_1 = 1;
         static constexpr int            NB            = 1024;
 
-        return rocblas_reduction_impl<NB,
-                                      isbatched,
-                                      rocblas_fetch_amax_amin<S>,
-                                      rocblas_reduce_amax,
-                                      rocblas_finalize_amax_amin,
-                                      index_value_t<S>>(
-            handle, n, x, incx, stridex_0, batch_count_1, result, rocblas_iamax_name<T>, "iamax");
+        rocblas_index_value_t<S>* mem           = nullptr;
+        rocblas_status            checks_status = rocblas_reduction_setup<NB, isbatched>(handle,
+                                                                              n,
+                                                                              x,
+                                                                              incx,
+                                                                              stridex_0,
+                                                                              batch_count_1,
+                                                                              result,
+                                                                              rocblas_iamax_name<S>,
+                                                                              "iamax",
+                                                                              mem);
+        if(checks_status != rocblas_status_continue)
+        {
+            return checks_status;
+        }
+
+        return rocblas_iamax_template<NB, isbatched>(
+            handle, n, x, shiftx_0, incx, stridex_0, batch_count_1, result, mem);
     }
 
 }

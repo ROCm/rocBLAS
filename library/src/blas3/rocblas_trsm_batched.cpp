@@ -46,6 +46,13 @@ namespace
         if(!handle)
             return rocblas_status_invalid_handle;
 
+        if(handle->is_device_memory_size_query())
+        {
+            if(!m || !n || !batch_count)
+                return rocblas_status_size_unchanged;
+            // Regular case is being handled after logging for now since logic is complex.
+        }
+
         /////////////
         // LOGGING //
         /////////////
@@ -151,27 +158,20 @@ namespace
             }
         }
 
-        // quick return if possible.
-        // return status_size_unchanged if device memory size query
-        if(!m || !n || !batch_count)
-            return handle->is_device_memory_size_query() ? rocblas_status_size_unchanged
-                                                         : rocblas_status_success;
-        /////////////////////
-        // ARGUMENT CHECKS //
-        /////////////////////
         if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
-            return rocblas_status_not_implemented;
-        if(!alpha || !A || !B)
-            return rocblas_status_invalid_pointer;
-
-        if(batch_count < 0 || m < 0 || n < 0)
-            return rocblas_status_invalid_size;
+            return rocblas_status_invalid_value;
 
         // A is of size lda*k
         rocblas_int k = side == rocblas_side_left ? m : n;
-
-        if(lda < k || ldb < m)
+        if(batch_count < 0 || m < 0 || n < 0 || lda < k || ldb < m)
             return rocblas_status_invalid_size;
+
+        // quick return if possible.
+        if(!m || !n || !batch_count)
+            return rocblas_status_success;
+
+        if(!alpha || !A || !B)
+            return rocblas_status_invalid_pointer;
 
         //////////////////////
         // MEMORY MANAGEMENT//

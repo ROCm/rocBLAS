@@ -87,6 +87,11 @@ namespace
                         "batch_count",
                         batch_count);
 
+        if(n <= 0 || batch_count <= 0)
+            return rocblas_status_success;
+        if(!x || !y)
+            return rocblas_status_invalid_pointer;
+
         return rocblas_copy_template<false, NB>(
             handle, n, x, 0, incx, stridex, y, 0, incy, stridey, batch_count);
     }

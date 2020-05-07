@@ -200,27 +200,10 @@ struct RocblasContractionProblem
     }
 };
 
-/********************************************************************************
- * TensileHost is the base class used to represent the interface with Tensile.  *
- * The actual implementation is in TensileHostImpl defined in tensile_host.cpp. *
- ********************************************************************************/
-struct TensileHost
-{
-    // runContractionProblem() is the how a RocblasContractionProblem is run
-    template <typename Ti, typename To, typename Tc>
-    rocblas_status runContractionProblem(RocblasContractionProblem<Ti, To, Tc> const& problem);
-
-    // Allow the polymorphic deletion of TensileHost
-    virtual ~TensileHost() = default;
-
-    // Prevent instantiating this class except as base class
-protected:
-    TensileHost() = default;
-};
-
 /*******************************************************************************
- * createTensileHost() returns an instance of TensileHostImpl as a TensileHost *
+ * runContractionProblem() solves a RocblasContractionProblem                  *
  *******************************************************************************/
-TensileHost* createTensileHost();
+template <typename Ti, typename To, typename Tc>
+rocblas_status runContractionProblem(RocblasContractionProblem<Ti, To, Tc> const& problem);
 
 #endif // __TENSILE_HOST_HPP__

@@ -44,18 +44,14 @@ void testing_trsm(const Arguments& arg)
     rocblas_local_handle handle;
 
     // check here to prevent undefined memory allocation error
-    if(M < 0 || N < 0 || lda < K || ldb < M)
+    bool invalid_size = M < 0 || N < 0 || lda < K || ldb < M;
+    if(invalid_size)
     {
-        static const size_t safe_size = 100; // arbitrarily set to 100
-        device_vector<T>    dA(safe_size);
-        device_vector<T>    dXorB(safe_size);
-        CHECK_DEVICE_ALLOCATION(dA.memcheck());
-        CHECK_DEVICE_ALLOCATION(dXorB.memcheck());
-
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
         EXPECT_ROCBLAS_STATUS(
-            rocblas_trsm<T>(handle, side, uplo, transA, diag, M, N, &alpha_h, dA, lda, dXorB, ldb),
+            rocblas_trsm<T>(
+                handle, side, uplo, transA, diag, M, N, nullptr, nullptr, lda, nullptr, ldb),
             rocblas_status_invalid_size);
 
         return;

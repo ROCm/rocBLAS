@@ -80,24 +80,10 @@ void testing_rotg_batched(const Arguments& arg)
     // check to prevent undefined memory allocation error
     if(batch_count <= 0)
     {
-        device_batch_vector<T> da(1, 1, 1);
-        device_batch_vector<T> db(1, 1, 1);
-        device_batch_vector<U> dc(1, 1, 1);
-        device_batch_vector<T> ds(1, 1, 1);
-        CHECK_DEVICE_ALLOCATION(da.memcheck());
-        CHECK_DEVICE_ALLOCATION(db.memcheck());
-        CHECK_DEVICE_ALLOCATION(dc.memcheck());
-        CHECK_DEVICE_ALLOCATION(ds.memcheck());
-
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        EXPECT_ROCBLAS_STATUS((rocblas_rotg_batched<T, U>)(handle,
-                                                           da.ptr_on_device(),
-                                                           db.ptr_on_device(),
-                                                           dc.ptr_on_device(),
-                                                           ds.ptr_on_device(),
-                                                           batch_count),
-                              batch_count < 0 ? rocblas_status_invalid_size
-                                              : rocblas_status_success);
+        EXPECT_ROCBLAS_STATUS(
+            (rocblas_rotg_batched<T, U>)(handle, nullptr, nullptr, nullptr, nullptr, batch_count),
+            rocblas_status_success);
         return;
     }
 

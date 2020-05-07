@@ -49,12 +49,8 @@ void testing_scal(const Arguments& arg)
     // argument sanity check before allocating invalid memory
     if(N <= 0 || incx <= 0)
     {
-        static const size_t safe_size = 100; // arbitrarily set to 100
-        device_vector<T>    dx(safe_size);
-        CHECK_DEVICE_ALLOCATION(dx.memcheck());
-
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR((rocblas_scal<T, U>(handle, N, &h_alpha, dx, incx)));
+        CHECK_ROCBLAS_ERROR((rocblas_scal<T, U>(handle, N, nullptr, nullptr, incx)));
         return;
     }
 

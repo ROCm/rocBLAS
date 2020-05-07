@@ -2,6 +2,7 @@
  * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+#include "bytes.hpp"
 #include "cblas_interface.hpp"
 #include "flops.hpp"
 #include "near.hpp"
@@ -99,6 +100,10 @@ void testing_dot_strided_batched(const Arguments& arg)
     rocblas_stride stride_y    = arg.stride_y;
     size_t         size_x      = N * size_t(abs_incx);
     size_t         size_y      = N * size_t(abs_incy);
+    if(!size_x)
+        size_x = 1;
+    if(!size_y)
+        size_y = 1;
 
     double               rocblas_error_1 = 0;
     double               rocblas_error_2 = 0;
@@ -107,12 +112,7 @@ void testing_dot_strided_batched(const Arguments& arg)
     // check to prevent undefined memmory allocation error
     if(N <= 0 || batch_count <= 0)
     {
-        static const size_t safe_size = 100; //  arbitrarily set to 100
-        device_vector<T>    dx(safe_size);
-        device_vector<T>    dy(safe_size);
-        device_vector<T>    d_rocblas_result(std::max(batch_count, 1));
-        CHECK_DEVICE_ALLOCATION(dx.memcheck());
-        CHECK_DEVICE_ALLOCATION(dy.memcheck());
+        device_vector<T> d_rocblas_result(std::max(batch_count, 1));
         CHECK_DEVICE_ALLOCATION(d_rocblas_result.memcheck());
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
@@ -120,16 +120,15 @@ void testing_dot_strided_batched(const Arguments& arg)
         EXPECT_ROCBLAS_STATUS((CONJ ? rocblas_dotc_strided_batched<T>
                                     : rocblas_dot_strided_batched<T>)(handle,
                                                                       N,
-                                                                      dx,
+                                                                      nullptr,
                                                                       incx,
                                                                       stride_x,
-                                                                      dy,
+                                                                      nullptr,
                                                                       incy,
                                                                       stride_y,
                                                                       batch_count,
                                                                       d_rocblas_result),
-                              batch_count < 0 ? rocblas_status_invalid_size
-                                              : rocblas_status_success);
+                              rocblas_status_success);
         return;
     }
 
@@ -275,7 +274,7 @@ void testing_dot_strided_batched(const Arguments& arg)
             arg,
             gpu_time_used,
             dot_gflop_count<CONJ, T>(N),
-            (2.0 * N) * sizeof(T),
+            dot_gbyte_count<T>(N),
             cpu_time_used,
             rocblas_error_1,
             rocblas_error_2);

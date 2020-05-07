@@ -45,8 +45,13 @@ bool rocblas_parse_data(int& argc, char** argv, const std::string& default_file)
     // Scan, process and remove any --yaml or --data options
     for(int i = 1; argv[i]; ++i)
     {
-        if(!strcmp(argv[i], "--data") || (yaml |= !strcmp(argv[i], "--yaml")))
+        if(!strcmp(argv[i], "--data") || !strcmp(argv[i], "--yaml"))
         {
+            if(!strcmp(argv[i], "--yaml"))
+            {
+                yaml = true;
+            }
+
             if(filename != "")
             {
                 rocblas_cerr << "Only one of the --yaml and --data options may be specified"

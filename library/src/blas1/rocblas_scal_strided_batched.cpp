@@ -38,8 +38,6 @@ namespace
     {
         if(!handle)
             return rocblas_status_invalid_handle;
-        if(!alpha)
-            return rocblas_status_invalid_pointer;
 
         auto layer_mode = handle->layer_mode;
         if(handle->pointer_mode == rocblas_pointer_mode_host)
@@ -92,11 +90,10 @@ namespace
                         "batch_count",
                         batch_count);
 
-        if(!x)
+        if(n <= 0 || incx <= 0 || batch_count <= 0)
+            return rocblas_status_success;
+        if(!x || !alpha)
             return rocblas_status_invalid_pointer;
-
-        if(batch_count < 0)
-            return rocblas_status_invalid_size;
 
         return rocblas_scal_template<NB, T>(handle, n, alpha, 0, x, 0, incx, stridex, batch_count);
     }

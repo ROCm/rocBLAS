@@ -312,28 +312,59 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
     auto                 B_col       = transB == rocblas_operation_none ? N : K;
     auto                 batch_count = arg.batch_count;
 
-    // Early exit
-    if(!M || !N || !batch_count)
-        return;
-
     // check for invalid sizes
-    if(M < 0 || N < 0 || K < 0 || lda < A_row || ldb < B_row || ldc < M || ldd < M
-       || batch_count < 0
-       || (std::is_same<Ti, int8_t>{}
-           && (K % 4 != 0 || (transA != rocblas_operation_none && lda % 4 != 0)
-               || (transB == rocblas_operation_none && ldb % 4 != 0) || stride_a % 4 != 0
-               || stride_b % 4 != 0)))
+    bool invalid_size = M < 0 || N < 0 || K < 0 || lda < A_row || ldb < B_row || ldc < M || ldd < M
+                        || batch_count < 0;
+    bool int8_invalid = (std::is_same<Ti, int8_t>{}
+                         && (K % 4 != 0 || (transA != rocblas_operation_none && lda % 4 != 0)
+                             || (transB == rocblas_operation_none && ldb % 4 != 0)
+                             || stride_a % 4 != 0 || stride_b % 4 != 0));
+
+    if(invalid_size || !M || !N || !batch_count)
     {
-        static const size_t safe_size = 100;
-        device_vector<Ti>   dA(safe_size);
-        device_vector<Ti>   dB(safe_size);
-        device_vector<To>   dC(safe_size);
-        device_vector<To>   dD(safe_size);
+        EXPECT_ROCBLAS_STATUS(rocblas_gemm_strided_batched_ex(handle,
+                                                              transA,
+                                                              transB,
+                                                              M,
+                                                              N,
+                                                              K,
+                                                              nullptr,
+                                                              nullptr,
+                                                              arg.a_type,
+                                                              lda,
+                                                              stride_a,
+                                                              nullptr,
+                                                              arg.b_type,
+                                                              ldb,
+                                                              stride_b,
+                                                              nullptr,
+                                                              nullptr,
+                                                              arg.c_type,
+                                                              ldc,
+                                                              stride_c,
+                                                              nullptr,
+                                                              arg.d_type,
+                                                              ldd,
+                                                              stride_d,
+                                                              batch_count,
+                                                              arg.compute_type,
+                                                              algo,
+                                                              solution_index,
+                                                              flags),
+                              invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
+        return;
+    }
+    if(int8_invalid)
+    {
+        size_t            safe_size = 5;
+        device_vector<Ti> dA(safe_size);
+        device_vector<Ti> dB(safe_size);
+        device_vector<To> dC(safe_size);
+        device_vector<To> dD(safe_size);
         CHECK_DEVICE_ALLOCATION(dA.memcheck());
         CHECK_DEVICE_ALLOCATION(dB.memcheck());
         CHECK_DEVICE_ALLOCATION(dC.memcheck());
         CHECK_DEVICE_ALLOCATION(dD.memcheck());
-
         EXPECT_ROCBLAS_STATUS(rocblas_gemm_strided_batched_ex(handle,
                                                               transA,
                                                               transB,

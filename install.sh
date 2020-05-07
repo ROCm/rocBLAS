@@ -22,14 +22,16 @@ rocBLAS build & installation helper script
       -o | --cov                 Set Tensile code_object_version (V2 or V3)
       -t | --test_local_path     Use a local path for Tensile instead of remote GIT repo
            --cpu_ref_lib         Specify library to use for CPU reference code in testing (blis or lapack)
-           --hip-clang           Build library for amdgpu backend using hip-clang
+           --[no-]hip-clang      Whether to build library for amdgpu backend using hip-clang
+           --[no-]merge-files    Whether to enable Tensile_MERGE_FILES (default is enable)
            --build_dir           Specify name of output directory (default is ./build)
-      -n | --no_tensile          Build subset of library that does not require Tensile
+      -n | --no-tensile          Build subset of library that does not require Tensile
       -s | --tensile-host        Build with Tensile host
       -r | --no-tensile-host     Do not build with Tensile host
       -u | --use-custom-version  Ignore Tensile version and just use the Tensile tag
            --ignore-cuda         Ignores installed cuda version and builds with rocm stack instead
            --skipldconf          Skip ld.so.conf entry
+           --static              Create static library instead of shared library
       -v | --rocm-dev            Set specific rocm-dev version
 EOF
 #           --prefix              Specify an alternate CMAKE_INSTALL_PREFIX for cmake
@@ -84,7 +86,7 @@ install_apt_packages( )
   for package in "${package_dependencies[@]}"; do
     if [[ $(dpkg-query --show --showformat='${db:Status-Abbrev}\n' ${package} 2> /dev/null | grep -q "ii"; echo $?) -ne 0 ]]; then
       printf "\033[32mInstalling \033[33m${package}\033[32m from distro package manager\033[0m\n"
-      elevate_if_not_root apt install -y --no-install-recommends ${package}
+      elevate_if_not_root apt-get install -y --no-install-recommends ${package}
     fi
   done
 }
@@ -186,7 +188,7 @@ install_packages( )
 
   case "${ID}" in
     ubuntu)
-      elevate_if_not_root apt update
+      elevate_if_not_root apt-get update
       install_apt_packages "${library_dependencies_ubuntu[@]}"
 
       if [[ "${build_clients}" == true ]]; then
@@ -264,8 +266,9 @@ install_dependencies=false
 install_prefix=rocblas-install
 tensile_logic=asm_full
 tensile_architecture=all
-tensile_cov=V2
+tensile_cov=
 tensile_fork=
+tensile_merge_files=
 tensile_tag=
 tensile_test_local_path=
 tensile_version=
@@ -278,6 +281,7 @@ build_release=true
 build_hip_clang=false
 build_dir=./build
 skip_ld_conf_entry=false
+static_lib=false
 
 rocm_path=/opt/rocm
 if ! [ -z ${ROCM_PATH+x} ]; then
@@ -291,7 +295,7 @@ fi
 # check if we have a modern version of getopt that can handle whitespace and long parameters
 getopt -T
 if [[ $? -eq 4 ]]; then
-  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,no_tensile,tensile-host,no-tensile-host,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,ignore-cuda,rocm-dev: --options nsrhicdgl:a:o:f:b:t:u:v: -- "$@")
+  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,no-hip-clang,merge-files,no-merge-files,no_tensile,no-tensile,tensile-host,no-tensile-host,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,static,ignore-cuda,rocm-dev: --options nsrhicdgl:a:o:f:b:t:u:v: -- "$@")
 else
   echo "Need a new version of getopt"
   exit 1
@@ -340,7 +344,7 @@ while true; do
     -t|--test_local_path)
         tensile_test_local_path=${2}
         shift 2 ;;
-    -n|--no_tensile)
+    -n|--no_tensile|--no-tensile)
         build_tensile=false
         shift ;;
     -s|--tensile-host)
@@ -360,10 +364,21 @@ while true; do
         shift 2 ;;
     --hip-clang)
         build_hip_clang=true
-        tensile_cov=V3
+        shift ;;
+    --no-hip-clang)
+        build_hip_clang=false
+        shift ;;
+    --merge-files)
+        tensile_merge_files=true
+        shift ;;
+    --no-merge-files)
+        tensile_merge_files=false
         shift ;;
     --skipldconf)
         skip_ld_conf_entry=true
+        shift ;;
+    --static)
+        static_lib=true
         shift ;;
     -u|--use-custom-version)
         tensile_version=${2}
@@ -381,6 +396,14 @@ while true; do
   esac
 done
 
+if [[ -z $tensile_cov ]]; then
+    if [[ $build_hip_clang == true ]]; then
+        tensile_cov=V3
+    else
+        tensile_cov=V2
+    fi
+fi
+
 set -x
 
 if [[ "${cpu_ref_lib}" == blis ]]; then
@@ -393,6 +416,32 @@ else
 fi
 
 printf "\033[32mCreating project build directory in: \033[33m${build_dir}\033[0m\n"
+
+install_blis()
+{
+    #Download prebuilt AMD multithreaded blis
+    if [[ "${cpu_ref_lib}" == blis ]] && [[ ! -f "${build_dir}/deps/blis/lib/libblis.so" ]]; then
+      case "${ID}" in
+          centos|rhel|sles|opensuse-leap)
+              wget -nv -O blis.tar.gz https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-centos-2.0.tar.gz
+              ;;
+          ubuntu)
+              wget -nv -O blis.tar.gz https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-ubuntu-2.0.tar.gz
+              ;;
+          *)
+              echo "Unsupported OS for this script"
+              wget -nv -O blis.tar.gz https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-ubuntu-2.0.tar.gz
+              ;;
+      esac
+
+      tar -xvf blis.tar.gz
+      rm -rf blis/amd-blis-mt
+      mv amd-blis-mt blis
+      rm blis.tar.gz
+      cd blis/lib
+      ln -sf libblis-mt.so libblis.so
+    fi
+}
 
 # #################################################
 # prep
@@ -428,51 +477,13 @@ if [[ "${install_dependencies}" == true ]]; then
     ${cmake_executable} -lpthread -DBUILD_BOOST=OFF ../../deps
     make -j$(nproc)
     elevate_if_not_root make install
-
-    #Download prebuilt AMD multithreaded blis
-    if [[ "${cpu_ref_lib}" == blis ]] && [[ ! -f "${build_dir}/deps/blis/lib/libblis.so" ]]; then
-      case "${ID}" in
-          centos|rhel|sles|opensuse-leap)
-              wget -nv -O blis.tar.gz https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-centos-2.0.tar.gz
-              ;;
-          ubuntu)
-              wget -nv -O blis.tar.gz https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-ubuntu-2.0.tar.gz
-              ;;
-          *)
-              echo "Unsupported OS for this script"
-              wget -nv -O blis.tar.gz https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-ubuntu-2.0.tar.gz
-              ;;
-      esac
-
-      tar -xvf blis.tar.gz
-      rm -rf blis/amd-blis-mt
-      mv amd-blis-mt blis
-      rm blis.tar.gz
-      cd blis/lib
-      ln -sf libblis-mt.so libblis.so
-    fi
+    install_blis
     popd
   fi
-elif [[ "${cpu_ref_lib}" == blis ]] && [[ ! -f "${build_dir}/deps/blis/lib/libblis.so" ]] && [[ "${build_clients}" == true ]]; then
+elif [[ "${build_clients}" == true ]]; then
   pushd .
   mkdir -p ${build_dir}/deps && cd ${build_dir}/deps
-  case "${ID}" in
-    centos|rhel|sles|opensuse-leap)
-      wget -nv -O blis.tar.gz https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-centos-2.0.tar.gz
-      ;;
-    ubuntu)
-      wget -nv -O blis.tar.gz https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-ubuntu-2.0.tar.gz
-      ;;
-    *)
-      echo "Unsupported OS for this script"
-      wget -nv -O blis.tar.gz https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-ubuntu-2.0.tar.gz
-      ;;
-  esac
-  tar -xvf blis.tar.gz
-  mv amd-blis-mt blis
-  rm blis.tar.gz
-  cd blis/lib
-  ln -s libblis-mt.so libblis.so
+  install_blis
   popd
 fi
 
@@ -500,6 +511,10 @@ pushd .
   else
     mkdir -p ${build_dir}/debug/clients && cd ${build_dir}/debug
     cmake_common_options="${cmake_common_options} -DCMAKE_BUILD_TYPE=Debug"
+  fi
+
+  if [[ "${static_lib}" == true ]]; then
+    cmake_common_options="${cmake_common_options} -DBUILD_SHARED_LIBS=OFF"
   fi
 
   if [[ -n "${tensile_fork}" ]]; then
@@ -534,12 +549,15 @@ pushd .
   if [[ "${build_tensile_host}" == true ]]; then
     tensile_opt="${tensile_opt} -DBUILD_WITH_TENSILE_HOST=ON"
   fi
+  if [[ "${tensile_merge_files}" == false ]]; then
+    tensile_opt="${tensile_opt} -DTensile_MERGE_FILES=OFF"
+  fi
 
   cmake_common_options="${cmake_common_options} ${tensile_opt}"
 
 
   if [[ "${build_clients}" == true ]]; then
-    cmake_client_options="${cmake_client_options} -DBUILD_CLIENTS_SAMPLES=ON -DBUILD_CLIENTS_TESTS=ON -DBUILD_CLIENTS_BENCHMARKS=ON -DLINK_BLIS=${LINK_BLIS}"
+    cmake_client_options="${cmake_client_options} -DBUILD_CLIENTS_SAMPLES=ON -DBUILD_CLIENTS_TESTS=ON -DBUILD_CLIENTS_BENCHMARKS=ON -DLINK_BLIS=${LINK_BLIS} -DBUILD_DIR=${build_dir}"
   fi
 
   if [[ "${build_hip_clang}" == true ]]; then

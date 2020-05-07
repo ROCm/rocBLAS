@@ -223,23 +223,27 @@ try
         }
     }
 
-    // Early exit
-    // Note: k==0 is not an early exit, since C still needs to be multiplied by beta
-    if(!m || !n || !batch_count)
-        return rocblas_status_success;
+    auto validArgs = validateArgs(handle,
+                                  trans_a,
+                                  trans_b,
+                                  m,
+                                  n,
+                                  k,
+                                  alpha,
+                                  a,
+                                  lda,
+                                  b,
+                                  ldb,
+                                  beta,
+                                  c,
+                                  ldc,
+                                  d,
+                                  ldd,
+                                  compute_type,
+                                  batch_count);
 
-    // sizes must not be negative
-    if(m < 0 || n < 0 || k < 0 || batch_count < 0)
-        return rocblas_status_invalid_size;
-
-    // leading dimensions must be valid
-    if(ldc < m || ldd < m || lda < (trans_a == rocblas_operation_none ? m : k)
-       || ldb < (trans_b == rocblas_operation_none ? k : n))
-        return rocblas_status_invalid_size;
-
-    // pointers must be valid
-    if(!a || !b || !c || !d || !alpha || !beta)
-        return rocblas_status_invalid_pointer;
+    if(validArgs != rocblas_status_continue)
+        return validArgs;
 
     auto stride_a = rocblas_stride(lda) * (trans_a == rocblas_operation_none ? k : m);
     auto stride_b = rocblas_stride(ldb) * (trans_b == rocblas_operation_none ? n : k);
