@@ -7,7 +7,7 @@
 #include "handle.h"
 
 template <typename T, typename U>
-static __device__ void syr2k_scale_device(bool upper, rocblas_int n, T beta, U* C, rocblas_int ldc)
+__device__ void syr2k_scale_device(bool upper, rocblas_int n, T beta, U* C, rocblas_int ldc)
 {
     auto tx = blockIdx.x * blockDim.x + threadIdx.x;
     auto ty = blockIdx.y * blockDim.y + threadIdx.y;
@@ -16,9 +16,7 @@ static __device__ void syr2k_scale_device(bool upper, rocblas_int n, T beta, U* 
     int to   = upper ? ty : tx;
 
     if(tx < n && ty < n && from <= to)
-    {
         C[ty * ldc + tx] *= beta;
-    }
 }
 
 /**
@@ -43,18 +41,12 @@ __global__ void syr2k_scale_kernel(bool           upper,
 
 /** helper for complex support */
 template <typename T>
-inline __device__ void syr2k_her2k_zero_imaginary(T& a)
+__forceinline__ __device__ void syr2k_her2k_zero_imaginary(T&)
 {
 }
 
-template <>
-inline __device__ void syr2k_her2k_zero_imaginary<rocblas_float_complex>(rocblas_float_complex& a)
-{
-    a.imag(0);
-}
-
-template <>
-inline __device__ void syr2k_her2k_zero_imaginary<rocblas_double_complex>(rocblas_double_complex& a)
+template <typename T>
+__forceinline__ __device__ void syr2k_her2k_zero_imaginary(rocblas_complex_num<T>& a)
 {
     a.imag(0);
 }
@@ -63,16 +55,16 @@ inline __device__ void syr2k_her2k_zero_imaginary<rocblas_double_complex>(rocbla
   * kernel
   */
 template <bool TWOK, bool HERM, bool trans, rocblas_int TILE_NK, typename T, typename U>
-static __device__ void syr2k_her2k_mult_add_device(bool        upper,
-                                                   rocblas_int n,
-                                                   rocblas_int k,
-                                                   U           alpha,
-                                                   const T* __restrict__ A,
-                                                   rocblas_int lda,
-                                                   const T* __restrict__ B,
-                                                   rocblas_int ldb,
-                                                   T* __restrict__ C,
-                                                   rocblas_int ldc)
+__device__ void syr2k_her2k_mult_add_device(bool        upper,
+                                            rocblas_int n,
+                                            rocblas_int k,
+                                            U           alpha,
+                                            const T* __restrict__ A,
+                                            rocblas_int lda,
+                                            const T* __restrict__ B,
+                                            rocblas_int ldb,
+                                            T* __restrict__ C,
+                                            rocblas_int ldc)
 {
     __shared__ T atile[TILE_NK][TILE_NK];
     __shared__ T btile[TILE_NK][TILE_NK];

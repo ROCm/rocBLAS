@@ -11,6 +11,7 @@
 #include <array>
 #include <cstddef>
 #include <hip/hip_runtime.h>
+#include <memory>
 #include <tuple>
 #include <type_traits>
 #include <unistd.h>
@@ -36,9 +37,6 @@ private:
     };
 
 public:
-#ifdef USE_TENSILE_HOST
-    struct TensileHost* host = nullptr;
-#endif
     _rocblas_handle();
     ~_rocblas_handle();
 
@@ -77,18 +75,13 @@ public:
     rocblas_pointer_mode pointer_mode = rocblas_pointer_mode_host;
 
     // default logging_mode is no logging
-    static rocblas_layer_mode layer_mode;
+    rocblas_layer_mode layer_mode = rocblas_layer_mode_none;
 
     // logging streams
-    static rocblas_ostream* log_trace_os;
-    static rocblas_ostream* log_bench_os;
-    static rocblas_ostream* log_profile_os;
-
-    // static data for startup initialization
-    static struct init
-    {
-        init();
-    } handle_init;
+    std::unique_ptr<rocblas_ostream> log_trace_os;
+    std::unique_ptr<rocblas_ostream> log_bench_os;
+    std::unique_ptr<rocblas_ostream> log_profile_os;
+    void                             init_logging();
 
     static int device_arch_id()
     {
@@ -327,10 +320,5 @@ private:
 #define hipFree(ptr)                                                                               \
     _Pragma("GCC warning \"Direct use of hipFree in rocBLAS is deprecated; see CONTRIBUTING.md\"") \
         hipFree(ptr)
-
-namespace rocblas
-{
-    void reinit_logs(); // Reinitialize static data (for testing only)
-}
 
 #endif

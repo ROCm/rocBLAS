@@ -32,6 +32,14 @@ namespace
         if(!handle)
             return rocblas_status_invalid_handle;
 
+        size_t size = rocblas_trtri_temp_size<NB>(n, 1) * sizeof(T);
+        if(handle->is_device_memory_size_query())
+        {
+            if(!n)
+                return rocblas_status_size_unchanged;
+            return handle->set_optimal_device_memory_size(size);
+        }
+
         auto layer_mode = handle->layer_mode;
         if(layer_mode & rocblas_layer_mode_log_trace)
             log_trace(handle, rocblas_trtri_name<T>, uplo, diag, n, A, lda, invA, ldinvA);
@@ -51,19 +59,13 @@ namespace
                         ldinvA);
 
         if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
-            return rocblas_status_not_implemented;
-        if(n < 0)
+            return rocblas_status_invalid_value;
+        if(n < 0 || lda < n)
             return rocblas_status_invalid_size;
-        if(!A)
+        if(!n)
+            return rocblas_status_success;
+        if(!A || !invA)
             return rocblas_status_invalid_pointer;
-        if(lda < n)
-            return rocblas_status_invalid_size;
-        if(!invA)
-            return rocblas_status_invalid_pointer;
-
-        size_t size = rocblas_trtri_temp_size<NB>(n, 1) * sizeof(T);
-        if(handle->is_device_memory_size_query())
-            return handle->set_optimal_device_memory_size(size);
 
         auto mem = handle->device_malloc(size);
         if(!mem)

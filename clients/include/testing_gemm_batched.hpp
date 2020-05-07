@@ -37,35 +37,26 @@ void testing_gemm_batched(const Arguments& arg)
 
     // check here to prevent undefined memory allocation error
     // Note: K==0 is not an early exit, since C still needs to be multiplied by beta.
-    if(M <= 0 || N <= 0 || K < 0 || lda < A_row || ldb < B_row || ldc < M || batch_count <= 0)
+    bool invalid_size
+        = M < 0 || N < 0 || K < 0 || lda < A_row || ldb < B_row || ldc < M || batch_count < 0;
+    if(invalid_size || !M || !N || !batch_count)
     {
-        rocblas_int safe_size = 100;
-        rocblas_int num_batch = batch_count < 0 ? 1 : batch_count;
-
-        device_batch_vector<T> dA(safe_size, 1, num_batch);
-        device_batch_vector<T> dB(safe_size, 1, num_batch);
-        device_batch_vector<T> dC(safe_size, 1, num_batch);
-        CHECK_DEVICE_ALLOCATION(dA.memcheck());
-        CHECK_DEVICE_ALLOCATION(dB.memcheck());
-        CHECK_DEVICE_ALLOCATION(dC.memcheck());
-
         EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched<T>(handle,
                                                       transA,
                                                       transB,
                                                       M,
                                                       N,
                                                       K,
-                                                      &h_alpha,
-                                                      dA.ptr_on_device(),
+                                                      nullptr,
+                                                      nullptr,
                                                       lda,
-                                                      dB.ptr_on_device(),
+                                                      nullptr,
                                                       ldb,
-                                                      &h_beta,
-                                                      dC.ptr_on_device(),
+                                                      nullptr,
+                                                      nullptr,
                                                       ldc,
                                                       batch_count),
-                              !M || !N || !batch_count ? rocblas_status_success
-                                                       : rocblas_status_invalid_size);
+                              invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
 
         return;
     }

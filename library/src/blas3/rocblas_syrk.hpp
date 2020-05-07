@@ -6,7 +6,7 @@
 #include "handle.h"
 
 template <typename T, typename U>
-static __device__ void syrk_scale_device(bool upper, rocblas_int n, T beta, U* C, rocblas_int ldc)
+__device__ void syrk_scale_device(bool upper, rocblas_int n, T beta, U* C, rocblas_int ldc)
 {
     auto tx = blockIdx.x * blockDim.x + threadIdx.x;
     auto ty = blockIdx.y * blockDim.y + threadIdx.y;
@@ -45,14 +45,14 @@ __global__ void syrk_scale_kernel(bool           upper,
   * kernel
   */
 template <bool HERM, bool TRANSA, rocblas_int TILE_NK, typename T, typename U>
-static __device__ void syrk_herk_mult_add_device(bool        upper,
-                                                 rocblas_int n,
-                                                 rocblas_int k,
-                                                 U           alpha,
-                                                 const T* __restrict__ A,
-                                                 rocblas_int lda,
-                                                 T* __restrict__ C,
-                                                 rocblas_int ldc)
+__device__ void syrk_herk_mult_add_device(bool        upper,
+                                          rocblas_int n,
+                                          rocblas_int k,
+                                          U           alpha,
+                                          const T* __restrict__ A,
+                                          rocblas_int lda,
+                                          T* __restrict__ C,
+                                          rocblas_int ldc)
 {
     __shared__ T atile[TILE_NK][TILE_NK];
     __shared__ T btile[TILE_NK][TILE_NK];

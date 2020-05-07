@@ -2,6 +2,7 @@
  * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+#include "bytes.hpp"
 #include "cblas_interface.hpp"
 #include "near.hpp"
 #include "norm.hpp"
@@ -56,14 +57,10 @@ void testing_nrm2(const Arguments& arg)
     // check to prevent undefined memory allocation error
     if(N <= 0 || incx <= 0)
     {
-        static const size_t      safe_size = 100; //  arbitrarily set to zero
-        device_vector<T>         dx(safe_size);
-        device_vector<real_t<T>> d_rocblas_result(1);
-        CHECK_DEVICE_ALLOCATION(dx.memcheck());
-        CHECK_DEVICE_ALLOCATION(d_rocblas_result.memcheck());
-
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR(rocblas_nrm2<T>(handle, N, dx, incx, d_rocblas_result));
+        host_vector<real_t<T>> res(1);
+        CHECK_HIP_ERROR(res.memcheck());
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+        CHECK_ROCBLAS_ERROR(rocblas_nrm2<T>(handle, N, nullptr, incx, res));
         return;
     }
 
@@ -149,18 +146,13 @@ void testing_nrm2(const Arguments& arg)
 
         gpu_time_used = (get_time_us() - gpu_time_used) / number_hot_calls;
 
-        rocblas_cout << "N,incx,rocblas(us)";
-
-        if(arg.norm_check)
-            rocblas_cout << ",CPU(us),error_host_ptr,error_dev_ptr";
-
-        rocblas_cout << std::endl;
-        rocblas_cout << N << "," << incx << "," << gpu_time_used;
-
-        if(arg.norm_check)
-            rocblas_cout << "," << cpu_time_used << "," << rocblas_error_1 << ","
-                         << rocblas_error_2;
-
-        rocblas_cout << std::endl;
+        ArgumentModel<e_N, e_incx>{}.log_args<T>(rocblas_cout,
+                                                 arg,
+                                                 gpu_time_used,
+                                                 nrm2_gflop_count<T>(N),
+                                                 nrm2_gbyte_count<T>(N),
+                                                 cpu_time_used,
+                                                 rocblas_error_1,
+                                                 rocblas_error_2);
     }
 }

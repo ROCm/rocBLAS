@@ -77,13 +77,7 @@ if( BUILD_WITH_TENSILE )
   else()
     # Create a unique name for Tensile compiled for rocBLAS
     set_target_properties( Tensile PROPERTIES OUTPUT_NAME tensile-rocblas CXX_EXTENSIONS NO )
-
-    # Remove this check when we no longer build with older rocm stack(ie < 1.8.2)
-    if(TARGET hip::device)
-      target_link_libraries( Tensile PRIVATE hip::device )
-    else()
-      target_link_libraries( Tensile PRIVATE hip::hip_hcc hip::hip_device hcc::hccshared )
-    endif()
+    target_link_libraries( Tensile PRIVATE hip::device )
   endif()
 
   if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
@@ -154,6 +148,9 @@ if( BUILD_WITH_TENSILE )
 endif( ) # BUILD_WITH_TENSILE
 
 set( rocblas_blas3_source_no_tensile
+    blas3/rocblas_dgmm.cpp
+    blas3/rocblas_dgmm_batched.cpp
+    blas3/rocblas_dgmm_strided_batched.cpp
     blas3/rocblas_geam.cpp
     blas3/rocblas_geam_batched.cpp
     blas3/rocblas_geam_strided_batched.cpp
@@ -321,12 +318,7 @@ if( DEFINED ENV{ROCM_RPATH} )
   set ( CMAKE_SHARED_LINKER_FLAGS " -Wl,--enable-new-dtags -Wl,--rpath,$ENV{ROCM_RPATH}" )
 endif( )
 
-# Remove this check when we no longer build with older rocm stack(ie < 1.8.2)
-if(TARGET hip::device)
 target_link_libraries( rocblas PRIVATE hip::device )
-else()
-target_link_libraries( rocblas PRIVATE hip::hip_hcc hip::hip_device hcc::hccshared )
-endif()
 
 set_target_properties( rocblas PROPERTIES CXX_STANDARD 14 CXX_STANDARD_REQUIRED ON )
 

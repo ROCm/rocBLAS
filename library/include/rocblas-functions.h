@@ -14067,6 +14067,308 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgemm_strided_batched(rocblas_handle      
 /*! \brief BLAS Level 3 API
 
     \details
+    xDGMM performs one of the matrix-matrix operations
+
+        C = A * diag(x) if side == rocblas_side_right
+        C = diag(x) * A if side == rocblas_side_left
+
+    where C and A are m by n dimensional matrices. diag( x ) is a diagonal matrix
+    and x is vector of dimension n if side == rocblas_side_right and dimension m
+    if side == rocblas_side_left.
+
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+    @param[in]
+    side      [rocblas_side]
+              specifies the side of diag(x)
+    @param[in]
+    m         [rocblas_int]
+              matrix dimension m.
+    @param[in]
+    n         [rocblas_int]
+              matrix dimension n.
+    @param[in]
+    A         device pointer storing matrix A.
+    @param[in]
+    lda       [rocblas_int]
+              specifies the leading dimension of A.
+    @param[in]
+    x         device pointer storing vector x.
+    @param[in]
+    incx      [rocblas_int]
+              specifies the increment between values of x
+    @param[in, out]
+    C         device pointer storing matrix C.
+    @param[in]
+    ldc       [rocblas_int]
+              specifies the leading dimension of C.
+
+    ********************************************************************/
+
+ROCBLAS_EXPORT rocblas_status rocblas_sdgmm(rocblas_handle handle,
+                                            rocblas_side   side,
+                                            rocblas_int    m,
+                                            rocblas_int    n,
+                                            const float*   A,
+                                            rocblas_int    lda,
+                                            const float*   x,
+                                            rocblas_int    incx,
+                                            float*         C,
+                                            rocblas_int    ldc);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ddgmm(rocblas_handle handle,
+                                            rocblas_side   side,
+                                            rocblas_int    m,
+                                            rocblas_int    n,
+                                            const double*  A,
+                                            rocblas_int    lda,
+                                            const double*  x,
+                                            rocblas_int    incx,
+                                            double*        C,
+                                            rocblas_int    ldc);
+
+ROCBLAS_EXPORT rocblas_status rocblas_cdgmm(rocblas_handle               handle,
+                                            rocblas_side                 side,
+                                            rocblas_int                  m,
+                                            rocblas_int                  n,
+                                            const rocblas_float_complex* A,
+                                            rocblas_int                  lda,
+                                            const rocblas_float_complex* x,
+                                            rocblas_int                  incx,
+                                            rocblas_float_complex*       C,
+                                            rocblas_int                  ldc);
+
+ROCBLAS_EXPORT rocblas_status rocblas_zdgmm(rocblas_handle                handle,
+                                            rocblas_side                  side,
+                                            rocblas_int                   m,
+                                            rocblas_int                   n,
+                                            const rocblas_double_complex* A,
+                                            rocblas_int                   lda,
+                                            const rocblas_double_complex* x,
+                                            rocblas_int                   incx,
+                                            rocblas_double_complex*       C,
+                                            rocblas_int                   ldc);
+
+/*! \brief BLAS Level 3 API
+
+    \details
+    xDGMM_batched performs one of the batched matrix-matrix operations
+
+        C_i = A_i * diag(x_i) for i = 0, 1, ... batch_count-1 if side == rocblas_side_right
+        C_i = diag(x_i) * A_i for i = 0, 1, ... batch_count-1 if side == rocblas_side_left
+
+    where C_i and A_i are m by n dimensional matrices. diag(x_i) is a diagonal matrix
+    and x_i is vector of dimension n if side == rocblas_side_right and dimension m
+    if side == rocblas_side_left.
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+    @param[in]
+    side      [rocblas_side]
+              specifies the side of diag(x)
+    @param[in]
+    m         [rocblas_int]
+              matrix dimension m.
+    @param[in]
+    n         [rocblas_int]
+              matrix dimension n.
+    @param[in]
+    A         device array of device pointers storing each matrix A_i on the GPU.
+              Each A_i is of dimension ( lda, n )
+    @param[in]
+    lda       [rocblas_int]
+              specifies the leading dimension of A_i.
+    @param[in]
+    x         device array of device pointers storing each vector x_i on the GPU.
+              Each x_i is of dimension n if side == rocblas_side_right and dimension
+              m if side == rocblas_side_left
+    @param[in]
+    incx      [rocblas_int]
+              specifies the increment between values of x_i
+    @param[in, out]
+    C         device array of device pointers storing each matrix C_i on the GPU.
+              Each C_i is of dimension ( ldc, n ).
+    @param[in]
+    ldc       [rocblas_int]
+              specifies the leading dimension of C_i.
+    @param[in]
+    batch_count [rocblas_int]
+                number of instances in the batch.
+
+    ********************************************************************/
+
+ROCBLAS_EXPORT rocblas_status rocblas_sdgmm_batched(rocblas_handle     handle,
+                                                    rocblas_side       side,
+                                                    rocblas_int        m,
+                                                    rocblas_int        n,
+                                                    const float* const A[],
+                                                    rocblas_int        lda,
+                                                    const float* const x[],
+                                                    rocblas_int        incx,
+                                                    float* const       C[],
+                                                    rocblas_int        ldc,
+                                                    rocblas_int        batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ddgmm_batched(rocblas_handle      handle,
+                                                    rocblas_side        side,
+                                                    rocblas_int         m,
+                                                    rocblas_int         n,
+                                                    const double* const A[],
+                                                    rocblas_int         lda,
+                                                    const double* const x[],
+                                                    rocblas_int         incx,
+                                                    double* const       C[],
+                                                    rocblas_int         ldc,
+                                                    rocblas_int         batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_cdgmm_batched(rocblas_handle                     handle,
+                                                    rocblas_side                       side,
+                                                    rocblas_int                        m,
+                                                    rocblas_int                        n,
+                                                    const rocblas_float_complex* const A[],
+                                                    rocblas_int                        lda,
+                                                    const rocblas_float_complex* const x[],
+                                                    rocblas_int                        incx,
+                                                    rocblas_float_complex* const       C[],
+                                                    rocblas_int                        ldc,
+                                                    rocblas_int                        batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_zdgmm_batched(rocblas_handle                      handle,
+                                                    rocblas_side                        side,
+                                                    rocblas_int                         m,
+                                                    rocblas_int                         n,
+                                                    const rocblas_double_complex* const A[],
+                                                    rocblas_int                         lda,
+                                                    const rocblas_double_complex* const x[],
+                                                    rocblas_int                         incx,
+                                                    rocblas_double_complex* const       C[],
+                                                    rocblas_int                         ldc,
+                                                    rocblas_int batch_count);
+
+/*! \brief BLAS Level 3 API
+
+    \details
+    xDGMM_strided_batched performs one of the batched matrix-matrix operations
+
+        C_i = A_i * diag(x_i)   if side == rocblas_side_right   for i = 0, 1, ... batch_count-1
+        C_i = diag(x_i) * A_i   if side == rocblas_side_left    for i = 0, 1, ... batch_count-1
+
+    where C_i and A_i are m by n dimensional matrices. diag(x_i) is a diagonal matrix
+    and x_i is vector of dimension n if side == rocblas_side_right and dimension m
+    if side == rocblas_side_left.
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+    @param[in]
+    side      [rocblas_side]
+              specifies the side of diag(x)
+    @param[in]
+    m         [rocblas_int]
+              matrix dimension m.
+    @param[in]
+    n         [rocblas_int]
+              matrix dimension n.
+    @param[in]
+    A         device pointer to the first matrix A_0 on the GPU.
+              Each A_i is of dimension ( lda, n )
+    @param[in]
+    lda       [rocblas_int]
+              specifies the leading dimension of A.
+    @param[in]
+    stride_A  [rocblas_stride]
+              stride from the start of one matrix (A_i) and the next one (A_i+1)
+    @param[in]
+    x         pointer to the first vector x_0 on the GPU.
+              Each x_i is of dimension n if side == rocblas_side_right and dimension
+              m if side == rocblas_side_left
+    @param[in]
+    incx      [rocblas_int]
+              specifies the increment between values of x
+    @param[in]
+    stride_x  [rocblas_stride]
+              stride from the start of one vector(x_i) and the next one (x_i+1)
+    @param[in, out]
+    C         device pointer to the first matrix C_0 on the GPU.
+              Each C_i is of dimension ( ldc, n ).
+    @param[in]
+    ldc       [rocblas_int]
+              specifies the leading dimension of C.
+    @param[in]
+    stride_C  [rocblas_stride]
+              stride from the start of one matrix (C_i) and the next one (C_i+1)
+    @param[in]
+    batch_count [rocblas_int]
+                number of instances i in the batch.
+
+    ********************************************************************/
+
+ROCBLAS_EXPORT rocblas_status rocblas_sdgmm_strided_batched(rocblas_handle handle,
+                                                            rocblas_side   side,
+                                                            rocblas_int    m,
+                                                            rocblas_int    n,
+                                                            const float*   A,
+                                                            rocblas_int    lda,
+                                                            rocblas_stride stride_a,
+                                                            const float*   x,
+                                                            rocblas_int    incx,
+                                                            rocblas_stride stride_x,
+                                                            float*         C,
+                                                            rocblas_int    ldc,
+                                                            rocblas_stride stride_c,
+                                                            rocblas_int    batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ddgmm_strided_batched(rocblas_handle handle,
+                                                            rocblas_side   side,
+                                                            rocblas_int    m,
+                                                            rocblas_int    n,
+                                                            const double*  A,
+                                                            rocblas_int    lda,
+                                                            rocblas_stride stride_a,
+                                                            const double*  x,
+                                                            rocblas_int    incx,
+                                                            rocblas_stride stride_x,
+                                                            double*        C,
+                                                            rocblas_int    ldc,
+                                                            rocblas_stride stride_c,
+                                                            rocblas_int    batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_cdgmm_strided_batched(rocblas_handle               handle,
+                                                            rocblas_side                 side,
+                                                            rocblas_int                  m,
+                                                            rocblas_int                  n,
+                                                            const rocblas_float_complex* A,
+                                                            rocblas_int                  lda,
+                                                            rocblas_stride               stride_a,
+                                                            const rocblas_float_complex* x,
+                                                            rocblas_int                  incx,
+                                                            rocblas_stride               stride_x,
+                                                            rocblas_float_complex*       C,
+                                                            rocblas_int                  ldc,
+                                                            rocblas_stride               stride_c,
+                                                            rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_zdgmm_strided_batched(rocblas_handle                handle,
+                                                            rocblas_side                  side,
+                                                            rocblas_int                   m,
+                                                            rocblas_int                   n,
+                                                            const rocblas_double_complex* A,
+                                                            rocblas_int                   lda,
+                                                            rocblas_stride                stride_a,
+                                                            const rocblas_double_complex* x,
+                                                            rocblas_int                   incx,
+                                                            rocblas_stride                stride_x,
+                                                            rocblas_double_complex*       C,
+                                                            rocblas_int                   ldc,
+                                                            rocblas_stride                stride_c,
+                                                            rocblas_int batch_count);
+
+/*! \brief BLAS Level 3 API
+
+    \details
     xGEAM performs one of the matrix-matrix operations
 
         C = alpha*op( A ) + beta*op( B ),
@@ -14172,21 +14474,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgeam(rocblas_handle                handle
                                             rocblas_double_complex*       C,
                                             rocblas_int                   ldc);
 
-ROCBLAS_EXPORT rocblas_status rocblas_sgeam_batched(rocblas_handle     handle,
-                                                    rocblas_operation  transA,
-                                                    rocblas_operation  transB,
-                                                    rocblas_int        m,
-                                                    rocblas_int        n,
-                                                    const float*       alpha,
-                                                    const float* const A[],
-                                                    rocblas_int        lda,
-                                                    const float*       beta,
-                                                    const float* const B[],
-                                                    rocblas_int        ldb,
-                                                    float* const       C[],
-                                                    rocblas_int        ldc,
-                                                    rocblas_int        batch_count);
-
 /*! \brief BLAS Level 3 API
 
     \details
@@ -14247,6 +14534,21 @@ ROCBLAS_EXPORT rocblas_status rocblas_sgeam_batched(rocblas_handle     handle,
                 number of instances i in the batch.
 
     ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_sgeam_batched(rocblas_handle     handle,
+                                                    rocblas_operation  transA,
+                                                    rocblas_operation  transB,
+                                                    rocblas_int        m,
+                                                    rocblas_int        n,
+                                                    const float*       alpha,
+                                                    const float* const A[],
+                                                    rocblas_int        lda,
+                                                    const float*       beta,
+                                                    const float* const B[],
+                                                    rocblas_int        ldb,
+                                                    float* const       C[],
+                                                    rocblas_int        ldc,
+                                                    rocblas_int        batch_count);
+
 ROCBLAS_EXPORT rocblas_status rocblas_dgeam_batched(rocblas_handle      handle,
                                                     rocblas_operation   transA,
                                                     rocblas_operation   transB,

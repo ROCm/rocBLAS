@@ -509,13 +509,9 @@ __global__ void trtri_diagonal_kernel(rocblas_fill     uplo,
                          + (IB * 2 * ldinvA + IB * 2) * (hipBlockIdx_x % tiles)
                          + sub_stride_invA * (hipBlockIdx_x / tiles);
 
-    custom_trtri_device<IB>(uplo,
-                            diag,
-                            min(IB, n - (hipBlockIdx_x % tiles) * IB),
-                            individual_A,
-                            lda,
-                            individual_invA,
-                            ldinvA);
+    auto rem = n - (hipBlockIdx_x % tiles) * IB;
+    custom_trtri_device<IB>(
+        uplo, diag, rem < IB ? rem : IB, individual_A, lda, individual_invA, ldinvA);
 }
 
 // compute square block of invA
@@ -990,7 +986,8 @@ rocblas_status rocblas_trtri_large(rocblas_handle   handle,
 }
 
 template <rocblas_int NB>
-constexpr size_t rocblas_trtri_temp_size(rocblas_int n, rocblas_int batch_count)
+ROCBLAS_EXPORT_NOINLINE constexpr size_t rocblas_trtri_temp_size(rocblas_int n,
+                                                                 rocblas_int batch_count)
 {
     size_t size = 0;
     if(n > NB * 2 && batch_count > 0)
@@ -1008,23 +1005,23 @@ constexpr size_t rocblas_trtri_temp_size(rocblas_int n, rocblas_int batch_count)
 }
 
 template <rocblas_int NB, bool BATCHED, bool STRIDED, typename T, typename U, typename V>
-rocblas_status rocblas_trtri_template(rocblas_handle   handle,
-                                      rocblas_fill     uplo,
-                                      rocblas_diagonal diag,
-                                      rocblas_int      n,
-                                      U                A,
-                                      rocblas_int      offset_A,
-                                      rocblas_int      lda,
-                                      rocblas_stride   stride_A,
-                                      rocblas_stride   sub_stride_A,
-                                      V                invA,
-                                      rocblas_int      offset_invA,
-                                      rocblas_int      ldinvA,
-                                      rocblas_stride   stride_invA,
-                                      rocblas_stride   sub_stride_invA,
-                                      rocblas_int      batch_count,
-                                      rocblas_int      sub_batch_count,
-                                      V                C_tmp)
+ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_trtri_template(rocblas_handle   handle,
+                                                              rocblas_fill     uplo,
+                                                              rocblas_diagonal diag,
+                                                              rocblas_int      n,
+                                                              U                A,
+                                                              rocblas_int      offset_A,
+                                                              rocblas_int      lda,
+                                                              rocblas_stride   stride_A,
+                                                              rocblas_stride   sub_stride_A,
+                                                              V                invA,
+                                                              rocblas_int      offset_invA,
+                                                              rocblas_int      ldinvA,
+                                                              rocblas_stride   stride_invA,
+                                                              rocblas_stride   sub_stride_invA,
+                                                              rocblas_int      batch_count,
+                                                              rocblas_int      sub_batch_count,
+                                                              V                C_tmp)
 {
     if(!n || !sub_batch_count)
         return rocblas_status_success;

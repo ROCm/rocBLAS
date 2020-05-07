@@ -56,16 +56,12 @@ void testing_asum_strided_batched(const Arguments& arg)
     // check to prevent undefined memory allocation error
     if(N <= 0 || incx <= 0 || batch_count <= 0)
     {
-        device_strided_batch_vector<T> dx(3, 1, 3, 3);
-        CHECK_DEVICE_ALLOCATION(dx.memcheck());
-        device_vector<real_t<T>> dr(std::max(3, std::abs(batch_count)));
-        CHECK_DEVICE_ALLOCATION(dr.memcheck());
-
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+        host_vector<real_t<T>> res(std::max(1, std::abs(batch_count)));
+        CHECK_HIP_ERROR(res.memcheck());
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         EXPECT_ROCBLAS_STATUS(
-            rocblas_asum_strided_batched<T>(handle, N, dx, incx, stridex, batch_count, dr),
-            (N > 0 && incx > 0 && batch_count < 0) ? rocblas_status_invalid_size
-                                                   : rocblas_status_success);
+            rocblas_asum_strided_batched<T>(handle, N, nullptr, incx, stridex, batch_count, res),
+            rocblas_status_success);
 
         return;
     }

@@ -16,15 +16,15 @@
 // Device Side //
 /////////////////
 template <typename To>
-static rocblas_status device_strided_batched_matrix_copy(const To*      src,
-                                                         rocblas_stride ld_src,
-                                                         rocblas_stride stride_src,
-                                                         To*            dst,
-                                                         rocblas_stride ld_dst,
-                                                         rocblas_stride stride_dst,
-                                                         rocblas_int    n1,
-                                                         rocblas_int    n2,
-                                                         rocblas_int    batch_count)
+rocblas_status device_strided_batched_matrix_copy(const To*      src,
+                                                  rocblas_stride ld_src,
+                                                  rocblas_stride stride_src,
+                                                  To*            dst,
+                                                  rocblas_stride ld_dst,
+                                                  rocblas_stride stride_dst,
+                                                  rocblas_int    n1,
+                                                  rocblas_int    n2,
+                                                  rocblas_int    batch_count)
 {
     if(src == dst && ld_src == ld_dst && stride_src == stride_dst)
         return rocblas_status_success; // no copy if src matrix == dst matrix
@@ -683,7 +683,7 @@ rocblas_status gemm_ex_batched_template(rocblas_handle    handle,
         handle, trans_a,  trans_b, m,    n,   k,        alpha, a,   lda,      stride_a,   b,
         ldb,    stride_b, beta,    c_in, ldi, stride_i, d,     ldd, stride_d, batch_count};
 
-    return handle->host->runContractionProblem(problem);
+    return runContractionProblem(problem);
 
 #else // USE_TENSILE_HOST
 
@@ -828,6 +828,58 @@ rocblas_status gemm_ex_typecasting(rocblas_handle    handle,
                                         stride_d,
                                         batch_count);
     }
+}
+
+template <typename T>
+inline rocblas_status validateArgs(rocblas_handle    handle,
+                                   rocblas_operation trans_a,
+                                   rocblas_operation trans_b,
+                                   rocblas_int       m,
+                                   rocblas_int       n,
+                                   rocblas_int       k,
+                                   const T*          alpha,
+                                   const void*       a,
+                                   rocblas_int       ld_a,
+                                   const void*       b,
+                                   rocblas_int       ld_b,
+                                   const T*          beta,
+                                   const void*       c,
+                                   rocblas_int       ld_c,
+                                   const void*       d,
+                                   rocblas_int       ld_d,
+                                   rocblas_datatype  compute_type,
+                                   rocblas_int       batch_count = 1)
+{
+    // handle must be valid
+    if(!handle)
+        return rocblas_status_invalid_handle;
+
+    // sizes must not be negative
+    if(m < 0 || n < 0 || k < 0 || batch_count < 0)
+        return rocblas_status_invalid_size;
+
+    // leading dimensions must be valid
+    if(ld_c < m || ld_d < m || ld_a < (trans_a == rocblas_operation_none ? m : k)
+       || ld_b < (trans_b == rocblas_operation_none ? k : n))
+        return rocblas_status_invalid_size;
+
+    // quick return 0 is valid in BLAS
+    // Note: k==0 is not a quick return, because C must still be multiplied by beta
+    if(!m || !n || !batch_count)
+        return rocblas_status_success;
+
+    if(!alpha || !beta)
+        return rocblas_status_invalid_pointer;
+
+    // If (alpha == 0 || k == 0) && beta == 1 we could just copy
+    // C into D. Right now this should be handled as a "scale"
+    // operation later, which should be ok.
+
+    // pointers must be valid
+    if(!a || !b || !c || !d)
+        return rocblas_status_invalid_pointer;
+
+    return rocblas_status_continue;
 }
 
 template <bool BATCHED>

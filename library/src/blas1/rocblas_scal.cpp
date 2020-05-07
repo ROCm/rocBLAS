@@ -30,8 +30,6 @@ namespace
     {
         if(!handle)
             return rocblas_status_invalid_handle;
-        if(!alpha)
-            return rocblas_status_invalid_pointer;
 
         auto layer_mode = handle->layer_mode;
         if(handle->pointer_mode == rocblas_pointer_mode_host)
@@ -70,7 +68,9 @@ namespace
         if(layer_mode & rocblas_layer_mode_log_profile)
             log_profile(handle, rocblas_scal_name<T, U>, "N", n, "incx", incx);
 
-        if(!x)
+        if(n <= 0 || incx <= 0)
+            return rocblas_status_success;
+        if(!x || !alpha)
             return rocblas_status_invalid_pointer;
 
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);

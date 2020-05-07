@@ -47,14 +47,9 @@ void testing_trsm_strided_batched(const Arguments& arg)
     rocblas_local_handle handle;
 
     // check here to prevent undefined memory allocation error
-    if(M < 0 || N < 0 || lda < K || ldb < M || batch_count <= 0)
+    bool invalid_size = M < 0 || N < 0 || lda < K || ldb < M || batch_count < 0;
+    if(invalid_size || batch_count == 0)
     {
-        static const size_t safe_size = 100; // arbitrarily set to 100
-        device_vector<T>    dA(safe_size);
-        device_vector<T>    dXorB(safe_size);
-        CHECK_DEVICE_ALLOCATION(dA.memcheck());
-        CHECK_DEVICE_ALLOCATION(dXorB.memcheck());
-
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         EXPECT_ROCBLAS_STATUS(rocblas_trsm_strided_batched<T>(handle,
                                                               side,
@@ -63,15 +58,15 @@ void testing_trsm_strided_batched(const Arguments& arg)
                                                               diag,
                                                               M,
                                                               N,
-                                                              &alpha_h,
-                                                              dA,
+                                                              nullptr,
+                                                              nullptr,
                                                               lda,
                                                               stride_a,
-                                                              dXorB,
+                                                              nullptr,
                                                               ldb,
                                                               stride_b,
                                                               batch_count),
-                              batch_count ? rocblas_status_invalid_size : rocblas_status_success);
+                              invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
         return;
     }
 

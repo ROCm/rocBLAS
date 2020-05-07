@@ -33,16 +33,12 @@ void testing_trtri(const Arguments& arg)
     rocblas_local_handle handle;
 
     // check here to prevent undefined memory allocation error
-    if(N < 0 || lda < 0 || lda < N)
+    bool invalid_size = lda < 0 || lda < N;
+    if(invalid_size)
     {
-        static const size_t safe_size = 100;
-        device_vector<T>    dA(safe_size);
-        device_vector<T>    dinvA(safe_size);
-        CHECK_DEVICE_ALLOCATION(dA.memcheck());
-        CHECK_DEVICE_ALLOCATION(dinvA.memcheck());
-
-        EXPECT_ROCBLAS_STATUS(rocblas_trtri<T>(handle, uplo, diag, N, dA, lda, dinvA, ldinvA),
-                              rocblas_status_invalid_size);
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_trtri<T>(handle, uplo, diag, N, nullptr, lda, nullptr, ldinvA),
+            rocblas_status_invalid_size);
         return;
     }
 

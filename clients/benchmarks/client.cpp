@@ -125,6 +125,9 @@
 #include "testing_trmv_batched.hpp"
 #include "testing_trmv_strided_batched.hpp"
 // blas3 with no tensile
+#include "testing_dgmm.hpp"
+#include "testing_dgmm_batched.hpp"
+#include "testing_dgmm_strided_batched.hpp"
 #include "testing_geam.hpp"
 #include "testing_geam_batched.hpp"
 #include "testing_geam_strided_batched.hpp"
@@ -266,6 +269,9 @@ struct perf_blas<T, U, std::enable_if_t<std::is_same<T, float>{} || std::is_same
                 {"copy", testing_copy<T>},
                 {"copy_batched", testing_copy_batched<T>},
                 {"copy_strided_batched", testing_copy_strided_batched<T>},
+                {"dgmm", testing_dgmm<T>},
+                {"dgmm_batched", testing_dgmm_batched<T>},
+                {"dgmm_strided_batched", testing_dgmm_strided_batched<T>},
                 {"dot", testing_dot<T>},
                 {"dot_batched", testing_dot_batched<T>},
                 {"dot_strided_batched", testing_dot_strided_batched<T>},
@@ -288,6 +294,9 @@ struct perf_blas<T, U, std::enable_if_t<std::is_same<T, float>{} || std::is_same
                 {"gbmv", testing_gbmv<T>},
                 {"gbmv_batched", testing_gbmv_batched<T>},
                 {"gbmv_strided_batched", testing_gbmv_strided_batched<T>},
+                {"geam", testing_geam<T>},
+                {"geam_batched", testing_geam_batched<T>},
+                {"geam_strided_batched", testing_geam_strided_batched<T>},
                 {"gemv", testing_gemv<T>},
                 {"gemv_batched", testing_gemv_batched<T>},
                 {"gemv_strided_batched", testing_gemv_strided_batched<T>},
@@ -343,9 +352,6 @@ struct perf_blas<T, U, std::enable_if_t<std::is_same<T, float>{} || std::is_same
                 {"syrkx", testing_syr2k<T, false>},
                 {"syrkx_batched", testing_syr2k_batched<T, false>},
                 {"syrkx_strided_batched", testing_syr2k_strided_batched<T, false>},
-                {"geam", testing_geam<T>},
-                {"geam_batched", testing_geam_batched<T>},
-                {"geam_strided_batched", testing_geam_strided_batched<T>},
 #if BUILD_WITH_TENSILE
                 {"trmm", testing_trmm<T>},
                 {"trmm_batched", testing_trmm_batched<T>},
@@ -421,6 +427,9 @@ struct perf_blas<T,
                 {"copy", testing_copy<T>},
                 {"copy_batched", testing_copy_batched<T>},
                 {"copy_strided_batched", testing_copy_strided_batched<T>},
+                {"dgmm", testing_dgmm<T>},
+                {"dgmm_batched", testing_dgmm_batched<T>},
+                {"dgmm_strided_batched", testing_dgmm_strided_batched<T>},
                 {"dot", testing_dot<T>},
                 {"dot_batched", testing_dot_batched<T>},
                 {"dot_strided_batched", testing_dot_strided_batched<T>},
@@ -439,6 +448,9 @@ struct perf_blas<T,
                 {"gbmv_batched", testing_gbmv_batched<T>},
                 {"gbmv_strided_batched", testing_gbmv_strided_batched<T>},
                 {"gemv", testing_gemv<T>},
+                {"geam", testing_geam<T>},
+                {"geam_batched", testing_geam_batched<T>},
+                {"geam_strided_batched", testing_geam_strided_batched<T>},
                 {"gemv_batched", testing_gemv_batched<T>},
                 {"gemv_strided_batched", testing_gemv_strided_batched<T>},
                 {"geru", testing_ger<T, false>},

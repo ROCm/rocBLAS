@@ -58,22 +58,10 @@ void testing_axpy_batched(const Arguments& arg)
     // argument sanity check before allocating invalid memory
     if(N <= 0 || batch_count <= 0)
     {
-        device_batch_vector<T> dx(10, 1, 3);
-        CHECK_DEVICE_ALLOCATION(dx.memcheck());
-        device_batch_vector<T> dy(10, 1, 3);
-        CHECK_DEVICE_ALLOCATION(dy.memcheck());
-
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        EXPECT_ROCBLAS_STATUS(rocblas_axpy_batched<T>(handle,
-                                                      N,
-                                                      &h_alpha,
-                                                      dx.ptr_on_device(),
-                                                      incx,
-                                                      dy.ptr_on_device(),
-                                                      incy,
-                                                      batch_count),
-                              (N > 0 && batch_count < 0) ? rocblas_status_invalid_size
-                                                         : rocblas_status_success);
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_axpy_batched<T>(handle, N, nullptr, nullptr, incx, nullptr, incy, batch_count),
+            rocblas_status_success);
         return;
     }
 
@@ -82,8 +70,8 @@ void testing_axpy_batched(const Arguments& arg)
     //
     // Host memory.
     //
-    host_batch_vector<T> hx(N, incx, batch_count), hy(N, incy, batch_count),
-        hy1(N, incy, batch_count), hy2(N, incy, batch_count);
+    host_batch_vector<T> hx(N, incx ? incx : 1, batch_count), hy(N, incy ? incy : 1, batch_count),
+        hy1(N, incy ? incy : 1, batch_count), hy2(N, incy ? incy : 1, batch_count);
     host_vector<T> halpha(1);
 
     CHECK_HIP_ERROR(hx.memcheck());
@@ -95,7 +83,7 @@ void testing_axpy_batched(const Arguments& arg)
     //
     // Device memory.
     //
-    device_batch_vector<T> dx(N, incx, batch_count), dy(N, incy, batch_count);
+    device_batch_vector<T> dx(N, incx ? incx : 1, batch_count), dy(N, incy ? incy : 1, batch_count);
     device_vector<T>       dalpha(1);
 
     CHECK_DEVICE_ALLOCATION(dx.memcheck());

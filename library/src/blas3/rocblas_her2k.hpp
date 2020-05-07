@@ -2,32 +2,8 @@
  * Copyright 2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #pragma once
+#include "herk_scale_device.hpp"
 #include "rocblas_syr2k.hpp"
-
-template <typename T, typename U>
-static __device__ void her2k_scale_device(bool upper, rocblas_int n, T beta, U* C, rocblas_int ldc)
-{
-    auto tx = blockIdx.x * blockDim.x + threadIdx.x;
-    auto ty = blockIdx.y * blockDim.y + threadIdx.y;
-
-    int from = upper ? tx : ty;
-    int to   = upper ? ty : tx;
-
-    if(tx < n && ty < n)
-    {
-        if(from < to)
-        {
-            C[ty * ldc + tx] *= beta;
-        }
-        else if(from == to)
-        {
-            // multiply only real component and zero imaginary on diagonal
-            U& e = C[ty * ldc + tx];
-            e.x  = beta * e.x;
-            e.y  = 0.0;
-        }
-    }
-}
 
 /**
   *  Loads pointers and launches the actual calculation kernel.
@@ -50,7 +26,7 @@ __global__ void her2k_scale_kernel(bool           upper,
         return;
 
     auto C = load_ptr_batch(CP_array, hipBlockIdx_z, shift_c, stride_c);
-    her2k_scale_device(upper, n, beta, C, ldc);
+    herk_scale_device(upper, n, beta, C, ldc);
 }
 
 template <typename TScal, typename TConstPtr, typename UScal, typename TPtr>
@@ -144,7 +120,7 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_her2k_template(rocblas_handle    
     if(handle->pointer_mode == rocblas_pointer_mode_device)
     {
         // scale C so we can use directly for output without work buffer, zeros diag imaginary
-        hipLaunchKernelGGL((her2k_scale_kernel),
+        hipLaunchKernelGGL(her2k_scale_kernel,
                            her2k_scale_grid,
                            her2k_scale_threads,
                            0,
@@ -219,7 +195,7 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_her2k_template(rocblas_handle    
             return rocblas_status_success;
 
         // scale C so we can use directly for output without work buffer, zeros diag imaginary
-        hipLaunchKernelGGL((her2k_scale_kernel),
+        hipLaunchKernelGGL(her2k_scale_kernel,
                            her2k_scale_grid,
                            her2k_scale_threads,
                            0,
