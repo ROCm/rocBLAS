@@ -32,11 +32,12 @@ typedef struct
 // and classes. We need __host__ and __device__ so we use <hip/hip_runtime.h>.
 
 #include "rocblas-export.h"
-#include <complex>
 #include <hip/hip_runtime.h>
 #include <math.h>
 #include <ostream>
 #include <type_traits>
+
+#include <complex>
 
 /*! \brief rocblas_complex_num is a structure which represents a complex number
  *         with precision T.
@@ -131,12 +132,12 @@ public:
     friend __device__ __host__ T std::real(const rocblas_complex_num& z);
     friend __device__ __host__ T std::imag(const rocblas_complex_num& z);
 
-    constexpr T real() const
+    __device__ __host__ constexpr T real() const
     {
         return x;
     }
 
-    constexpr T imag() const
+    __device__ __host__ constexpr T imag() const
     {
         return y;
     }
