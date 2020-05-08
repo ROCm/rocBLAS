@@ -94,6 +94,20 @@ result is only available when the kernel has completed execution.
 Asynchronous API
 ================
 
+rocBLAS functions will be asynchronous unless:
+
+* the user requests logging
+
+* the function needs to allocate device memory
+
+* the function returns a scalar result from GPU to CPU
+
+The order of operations in the asynchronous functions is as in the figure
+below. The argument checking, calculation of process grid, and kernel 
+launch take very little time. The asynchronous kernel running on the GPU 
+does not block the CPU. After the kernel launch the CPU keeps processing 
+the next instructions.
+
 .. asynch_blocks
 .. figure:: ../fig/asynch_function.PNG
    :alt: code blocks in asynch function call
@@ -101,10 +115,37 @@ Asynchronous API
 
    Code blocks in asynch function call
 
-Except a functions having memory allocation inside preventing
-asynchronicity, most of the rocBLAS functions are configured to operate
-in non-blocking fashion with respect to CPU, meaning these library
-functions return immediately.
+
+Logging results in system calls, and the program will need to wait for them to 
+complete before executing the next instruction. See the Logging section for more information.
+
+.. note:: The default is no logging.
+
+If the cpu needs to allocate device memory, it needs to wait till this is complete before
+executing the next instruction. See the Device Memory Allocation section for more information.
+
+.. note:: Memory can be pre-allocated. This will make the function asynchronous as it removes the need for the function to allocate memory.
+
+The following functions calculate a scalar result: max, min, dot, nrm2. If 
+rocblas_pointer_mode == rocblas_pointer_mode_host the result will need to be 
+copied from device to host, and the program will need to wait for the copy 
+before executing the next instruction. If rocblas_pointer_mode = rocblas_pointer_mode_device
+there is no need fot the copy, and the function will be asynchronous. See the section
+on Pointer Mode for more information
+
+.. note:: Set rocblas_pointer_mode to rocblas_pointer_mode_device to make functions that return a scalar result asynchronous.
+
+The order of operations with logging, device memory allocation and return of a scalar
+result is as in the figure below:
+
+.. asynch_blocks
+.. figure:: ../fig/synchronous_function.PNG
+   :alt: code blocks in synchronous function call
+   :align: center
+
+   Code blocks in synchronous function call
+
+
 
 hipBLAS
 =======
