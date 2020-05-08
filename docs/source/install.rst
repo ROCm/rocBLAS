@@ -16,12 +16,26 @@ Prerequisites
 Installing pre-built packages
 =============================
 
-rocBLAS can be installed on Ubuntu using
+rocBLAS can be installed on Ubuntu or Debian using
 
 ::
 
    sudo apt-get update
    sudo apt-get install rocblas
+
+rocBLAS can be installed on CentOS using
+
+::
+
+    sudo yum update
+    sudo yum install rocblas
+
+rocBLAS can be installed on SLES using
+
+::
+
+    sudo dnf upgrade
+    sudo dnf install rocblas
 
 Once installed, rocBLAS can be used just like any other library with a C API.
 The header file will need to be included in the user code in order to make calls
@@ -31,7 +45,7 @@ dependent for the user applciation.
 Building from source
 ====================
 
-Building from source is not necessary, as rocBLAS can be used after installing the pre-built
+For most users building from source is not necessary, as rocBLAS can be used after installing the pre-built
 packages as described above. If desired, the following instructions can be used to build rocBLAS from source.
 
 Requirements
@@ -51,13 +65,17 @@ The rocBLAS source code is available at the `rocBLAS github page <https://github
    git clone -b master https://github.com/ROCmSoftwarePlatform/rocBLAS.git
    cd rocBLAS
 
-Below are steps to build either (dependencies + library) or
-(dependencies + library + client). You only need (dependencies +
-library) if you call rocBLAS from your code, or if you need to install
-rocBLAS for other users. The client contains the test code and examples.
+Below are steps to build either 
+
+* dependencies + library
+
+* dependencies + library + client
+
+You only need (dependencies + library) if you call rocBLAS from your code.
+The client contains the test and benchmark code.
 
 It is recommended that the script install.sh be used to build rocBLAS.
-If you need individual commands, they are also given.
+If you need individual commands, they are also provided.
 
 Use install.sh to build (library dependencies + library)
 --------------------------------------------------------
@@ -312,46 +330,3 @@ downloaded by cmake during library configuration and automatically
 configured as part of the build, so no further action is required by the
 user to set it up.
 
-Common build problems
----------------------
-
--  **Issue:** Could not find a configuration file for package "LLVM"
-   that is compatible with requested version "7.0".
-
-   **Solution:** You may have outdated rocBLAS dependencies in
-   /usr/local. If you do not have anything other than rocBLAS
-   dependencies in /usr/local, then rename /usr/local and re-build
-   rocBLAS dependencies by running install.sh with the -d flag. If you
-   have other software in /usr/local, then uninstall the rocBLAS
-   dependencies, and re-install by running install.sh with the -d flag.
-
--  **Issue:** "Tensile could not be found because dependency Python
-   Interp could not be found".
-
-   **Solution:** Due to a bug in Tensile, you may need cmake-gui 3.5 and
-   above, though in the cmakefiles it requires 2.8.
-
--  **Issue:** HIP (/opt/rocm/hip) was built using hcc
-   1.0.xxx-xxx-xxx-xxx, but you are using /opt/rocm/hcc/hcc with version
-   1.0.yyy-yyy-yyy-yyy from hipcc. (version does not match) . Please
-   rebuild HIP including cmake or update HCC_HOME variable.
-
-   **Solution:** Download HIP from github and use hcc to `build from
-   source <https://github.com/ROCm-Developer-Tools/HIP/blob/master/INSTALL.md>`__
-   and then use the build HIP instead of /opt/rocm/hip one or singly
-   overwrite the new build HIP to this location.
-
--  **Issue:** For MI25 (Vega10 Server) - HCC RUNTIME ERROR: Fail to find
-   compatible kernel
-
-   **Solution:** export HCC_AMDGPU_TARGET=gfx900
-
--  **Issue:** Could not find a package configuration file provided by
-   "ROCM" with any of the following names:
-
-   ROCMConfig.cmake
-
-   rocm-config.cmake
-
-   **Solution:** Install `ROCm cmake
-   modules <https://github.com/RadeonOpenCompute/rocm-cmake>`__
