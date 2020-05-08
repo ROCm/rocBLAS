@@ -36,13 +36,19 @@ typedef struct ihipStream_t* hipStream_t;
 typedef struct ihipEvent_t* hipEvent_t;
 
 // integer types
-// /*! \brief To specify whether int32 or int64 is used
+// /*! \brief To specify whether int32 is used for LP64 or int64 is used for ILP64
 //  */
 #if defined(rocblas_ILP64)
 typedef int64_t rocblas_int;
-typedef int64_t rocblas_stride;
 #else
 typedef int32_t rocblas_int;
+#endif
+
+// /*! \brief Stride between matrices or vectors in strided_batched functions
+//  */
+#if defined(rocblas_ILP64)
+typedef int64_t rocblas_stride;
+#else
 typedef int64_t rocblas_stride;
 #endif
 
@@ -52,7 +58,7 @@ typedef double rocblas_double;
 
 // Clang supports _Float16 on C11 and C++11
 // GCC does not currently support _Float16 on amd64
-/*! \brief Represents a 16 bit floating point number. */
+/*! \brief Represents an IEEE 16 bit floating-point number. */
 #if __clang_major__ >= 10 && (__STDC_VERSION__ >= 201112L || __cplusplus >= 201103L)
 typedef _Float16 rocblas_half;
 #else
@@ -154,8 +160,8 @@ typedef enum rocblas_datatype_
     rocblas_datatype_bf16_c = 169, /**< 16 bit bfloat, complex */
 } rocblas_datatype;
 
-/*! \brief Indicates the pointer is device pointer or host pointer. This is typically used for
-*    scalars such as alpha and beta. */
+/*! \brief Indicates if scalar pointers are on host or device. This is used for
+*    scalars alpha and beta and for scalar function return values. */
 typedef enum rocblas_pointer_mode_
 {
     /*! \brief Scalar values affected by this variable will be located on the host. */

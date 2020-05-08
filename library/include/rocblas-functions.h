@@ -1141,7 +1141,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zaxpy_batched(rocblas_handle              
 /*! \brief BLAS Level 1 API
 
     \details
-    axpy_batched   compute y := alpha * x + y over a set of strided batched vectors.
+    axpy_strided_batched   compute y := alpha * x + y over a set of strided batched vectors.
 
     @param[in]
     handle    rocblas_handle
