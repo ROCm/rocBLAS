@@ -2177,6 +2177,21 @@ inline void cblas_hpr2(rocblas_fill            uplo,
  * ===========================================================================
  */
 
+// geam
+template <typename T>
+void cblas_geam(rocblas_operation transa,
+                rocblas_operation transb,
+                rocblas_int       m,
+                rocblas_int       n,
+                T*                alpha,
+                T*                A,
+                rocblas_int       lda,
+                T*                beta,
+                T*                B,
+                rocblas_int       ldb,
+                T*                C,
+                rocblas_int       ldc);
+
 // gemm
 template <typename Ti, typename To = Ti, typename Tc>
 void cblas_gemm(rocblas_operation      transA,
