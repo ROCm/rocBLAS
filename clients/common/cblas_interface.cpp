@@ -113,6 +113,128 @@ void cblas_dot<rocblas_bfloat16>(rocblas_int             n,
  * ===========================================================================
  */
 
+// geam
+template <typename T>
+inline T geam_conj_helper(const T& x)
+{
+    return x;
+}
+
+template <>
+inline rocblas_float_complex geam_conj_helper(const rocblas_float_complex& x)
+{
+    return std::conj(x);
+}
+
+template <>
+inline rocblas_double_complex geam_conj_helper(const rocblas_double_complex& x)
+{
+    return std::conj(x);
+}
+
+template <typename T>
+void cblas_geam_helper(rocblas_operation transA,
+                       rocblas_operation transB,
+                       rocblas_int       M,
+                       rocblas_int       N,
+                       T                 alpha,
+                       T*                A,
+                       rocblas_int       lda,
+                       T                 beta,
+                       T*                B,
+                       rocblas_int       ldb,
+                       T*                C,
+                       rocblas_int       ldc)
+{
+    rocblas_int inc1_A = transA == rocblas_operation_none ? 1 : lda;
+    rocblas_int inc2_A = transA == rocblas_operation_none ? lda : 1;
+    rocblas_int inc1_B = transB == rocblas_operation_none ? 1 : ldb;
+    rocblas_int inc2_B = transB == rocblas_operation_none ? ldb : 1;
+
+    for(rocblas_int i = 0; i < M; i++)
+    {
+        for(rocblas_int j = 0; j < N; j++)
+        {
+            T a_val = A[i * inc1_A + j * inc2_A];
+            T b_val = B[i * inc1_B + j * inc2_B];
+            if(transA == rocblas_operation_conjugate_transpose)
+                a_val = geam_conj_helper(a_val);
+            if(transB == rocblas_operation_conjugate_transpose)
+                b_val = geam_conj_helper(b_val);
+            C[i + j * ldc] = alpha * a_val + beta * b_val;
+        }
+    }
+}
+
+template <>
+void cblas_geam(rocblas_operation transa,
+                rocblas_operation transb,
+                rocblas_int       m,
+                rocblas_int       n,
+                float*            alpha,
+                float*            A,
+                rocblas_int       lda,
+                float*            beta,
+                float*            B,
+                rocblas_int       ldb,
+                float*            C,
+                rocblas_int       ldc)
+{
+    return cblas_geam_helper(transa, transb, m, n, *alpha, A, lda, *beta, B, ldb, C, ldc);
+}
+
+template <>
+void cblas_geam(rocblas_operation transa,
+                rocblas_operation transb,
+                rocblas_int       m,
+                rocblas_int       n,
+                double*           alpha,
+                double*           A,
+                rocblas_int       lda,
+                double*           beta,
+                double*           B,
+                rocblas_int       ldb,
+                double*           C,
+                rocblas_int       ldc)
+{
+    return cblas_geam_helper(transa, transb, m, n, *alpha, A, lda, *beta, B, ldb, C, ldc);
+}
+
+template <>
+void cblas_geam(rocblas_operation      transa,
+                rocblas_operation      transb,
+                rocblas_int            m,
+                rocblas_int            n,
+                rocblas_float_complex* alpha,
+                rocblas_float_complex* A,
+                rocblas_int            lda,
+                rocblas_float_complex* beta,
+                rocblas_float_complex* B,
+                rocblas_int            ldb,
+                rocblas_float_complex* C,
+                rocblas_int            ldc)
+{
+    return cblas_geam_helper(transa, transb, m, n, *alpha, A, lda, *beta, B, ldb, C, ldc);
+}
+
+template <>
+void cblas_geam(rocblas_operation       transa,
+                rocblas_operation       transb,
+                rocblas_int             m,
+                rocblas_int             n,
+                rocblas_double_complex* alpha,
+                rocblas_double_complex* A,
+                rocblas_int             lda,
+                rocblas_double_complex* beta,
+                rocblas_double_complex* B,
+                rocblas_int             ldb,
+                rocblas_double_complex* C,
+                rocblas_int             ldc)
+{
+    return cblas_geam_helper(transa, transb, m, n, *alpha, A, lda, *beta, B, ldb, C, ldc);
+}
+
+// gemm
 template <>
 void cblas_gemm<rocblas_bfloat16, float, float>(rocblas_operation transA,
                                                 rocblas_operation transB,
