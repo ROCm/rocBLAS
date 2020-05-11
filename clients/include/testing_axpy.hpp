@@ -2,6 +2,7 @@
  * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+#include "bytes.hpp"
 #include "cblas_interface.hpp"
 #include "flops.hpp"
 #include "norm.hpp"
@@ -98,7 +99,6 @@ void testing_axpy(const Arguments& arg)
     CHECK_HIP_ERROR(hipMemcpy(dy_1, hy_1, sizeof(T) * size_y, hipMemcpyHostToDevice));
 
     double gpu_time_used, cpu_time_used;
-    double rocblas_gflops, cblas_gflops, rocblas_bandwidth;
     double rocblas_error_1 = 0.0;
     double rocblas_error_2 = 0.0;
 
@@ -125,7 +125,6 @@ void testing_axpy(const Arguments& arg)
         cblas_axpy<T>(N, h_alpha, hx, incx, hy_gold, incy);
 
         cpu_time_used = get_time_us() - cpu_time_used;
-        cblas_gflops  = axpy_gflop_count<T>(N) / cpu_time_used * 1e6;
 
         if(arg.unit_check)
         {
@@ -158,23 +157,15 @@ void testing_axpy(const Arguments& arg)
             rocblas_axpy<T>(handle, N, &h_alpha, dx, incx, dy_1, incy);
         }
 
-        gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;
-        rocblas_gflops    = axpy_gflop_count<T>(N) / gpu_time_used * 1e6 * 1;
-        rocblas_bandwidth = (3.0 * N) * sizeof(T) / gpu_time_used / 1e3;
+        gpu_time_used = get_time_us() - gpu_time_used;
 
-        rocblas_cout << "N,alpha,incx,incy,rocblas-Gflops,rocblas-GB/s,rocblas-us";
-
-        if(arg.norm_check)
-            rocblas_cout << "CPU-Gflops,norm_error_host_ptr,norm_error_dev_ptr";
-
-        rocblas_cout << std::endl;
-
-        rocblas_cout << N << "," << h_alpha << "," << incx << "," << incy << "," << rocblas_gflops
-                     << "," << rocblas_bandwidth << "," << gpu_time_used;
-
-        if(arg.norm_check)
-            rocblas_cout << "," << cblas_gflops << ',' << rocblas_error_1 << ',' << rocblas_error_2;
-
-        rocblas_cout << std::endl;
+        ArgumentModel<e_N, e_alpha, e_incx, e_incy>{}.log_args<T>(rocblas_cout,
+                                                                  arg,
+                                                                  gpu_time_used,
+                                                                  axpy_gflop_count<T>(N),
+                                                                  axpy_gbyte_count<T>(N),
+                                                                  cpu_time_used,
+                                                                  rocblas_error_1,
+                                                                  rocblas_error_2);
     }
 }

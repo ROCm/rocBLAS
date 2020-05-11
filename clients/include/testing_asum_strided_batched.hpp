@@ -2,7 +2,9 @@
  * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+#include "bytes.hpp"
 #include "cblas_interface.hpp"
+#include "flops.hpp"
 #include "near.hpp"
 #include "rocblas.hpp"
 #include "rocblas_init.hpp"
@@ -151,21 +153,15 @@ void testing_asum_strided_batched(const Arguments& arg)
             rocblas_asum_strided_batched<T>(handle, N, dx, incx, stridex, batch_count, hr);
         }
 
-        gpu_time_used = (get_time_us() - gpu_time_used) / number_hot_calls;
+        gpu_time_used = get_time_us() - gpu_time_used;
 
-        rocblas_cout << "N,incx,stridex,batch_count,rocblas(us)";
-
-        if(arg.norm_check)
-            rocblas_cout << ",CPU(us),error_host_ptr,error_dev_ptr";
-
-        rocblas_cout << std::endl;
-        rocblas_cout << N << "," << incx << "," << stridex << "," << batch_count << ","
-                     << gpu_time_used;
-
-        if(arg.norm_check)
-            rocblas_cout << "," << cpu_time_used << "," << rocblas_error_1 << ","
-                         << rocblas_error_2;
-
-        rocblas_cout << std::endl;
+        ArgumentModel<e_N, e_incx, e_stride_x, e_batch_count>{}.log_args<T>(rocblas_cout,
+                                                                            arg,
+                                                                            gpu_time_used,
+                                                                            asum_gflop_count<T>(N),
+                                                                            asum_gbyte_count<T>(N),
+                                                                            cpu_time_used,
+                                                                            rocblas_error_1,
+                                                                            rocblas_error_2);
     }
 }

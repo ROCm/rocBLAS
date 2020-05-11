@@ -2,6 +2,7 @@
  * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+#include "bytes.hpp"
 #include "cblas_interface.hpp"
 #include "flops.hpp"
 #include "norm.hpp"
@@ -63,7 +64,6 @@ void testing_scal_batched(const Arguments& arg)
     CHECK_HIP_ERROR(dx_1.transfer_from(hx_1));
 
     double gpu_time_used, cpu_time_used;
-    double rocblas_gflops, cblas_gflops, rocblas_bandwidth;
     double rocblas_error_1 = 0.0;
     double rocblas_error_2 = 0.0;
 
@@ -93,7 +93,6 @@ void testing_scal_batched(const Arguments& arg)
             cblas_scal<T, U>(N, h_alpha, hx_gold[i], incx);
         }
         cpu_time_used = get_time_us() - cpu_time_used;
-        cblas_gflops  = batch_count * scal_gflop_count<T, U>(N) / cpu_time_used * 1e6 * 1;
 
         if(arg.unit_check)
         {
@@ -129,24 +128,16 @@ void testing_scal_batched(const Arguments& arg)
                 handle, N, &h_alpha, dx_1.ptr_on_device(), incx, batch_count);
         }
 
-        gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;
-        rocblas_gflops    = batch_count * scal_gflop_count<T, U>(N) / gpu_time_used * 1e6 * 1;
-        rocblas_bandwidth = batch_count * (2.0 * N) * sizeof(T) / gpu_time_used / 1e3;
+        gpu_time_used = get_time_us() - gpu_time_used;
 
-        rocblas_cout << "N,alpha,incx,rocblas-Gflops,rocblas-GB/s,rocblas-us";
-
-        if(arg.norm_check)
-            rocblas_cout << ",CPU-Gflops,norm_error_host_ptr,norm_error_device_ptr";
-
-        rocblas_cout << std::endl;
-
-        rocblas_cout << N << "," << h_alpha << "," << incx << "," << rocblas_gflops << ","
-                     << rocblas_bandwidth << "," << gpu_time_used;
-
-        if(arg.norm_check)
-            rocblas_cout << cblas_gflops << ',' << rocblas_error_1 << ',' << rocblas_error_2;
-
-        rocblas_cout << std::endl;
+        ArgumentModel<e_N, e_alpha, e_incx, e_batch_count>{}.log_args<T>(rocblas_cout,
+                                                                         arg,
+                                                                         gpu_time_used,
+                                                                         scal_gflop_count<T, U>(N),
+                                                                         scal_gbyte_count<T>(N),
+                                                                         cpu_time_used,
+                                                                         rocblas_error_1,
+                                                                         rocblas_error_2);
     }
 }
 

@@ -20,6 +20,27 @@
  * ===========================================================================
  */
 
+/* \brief byte counts of ASUM */
+template <typename T>
+constexpr double asum_gbyte_count(rocblas_int n)
+{
+    return (sizeof(T) * n) / 1e9;
+}
+
+/* \brief byte counts of AXPY */
+template <typename T>
+constexpr double axpy_gbyte_count(rocblas_int n)
+{
+    return (sizeof(T) * 3.0 * n) / 1e9;
+}
+
+/* \brief byte counts of COPY */
+template <typename T>
+constexpr double copy_gbyte_count(rocblas_int n)
+{
+    return (sizeof(T) * n) / 1e9;
+}
+
 /* \brief byte counts of DOT */
 template <typename T>
 constexpr double dot_gbyte_count(rocblas_int n)
@@ -32,6 +53,13 @@ template <typename T>
 constexpr double nrm2_gbyte_count(rocblas_int n)
 {
     return (sizeof(T) * n) / 1e9;
+}
+
+/* \brief byte counts of SCAL */
+template <typename T>
+constexpr double scal_gbyte_count(rocblas_int n)
+{
+    return (sizeof(T) * 2.0 * n) / 1e9;
 }
 
 /*
