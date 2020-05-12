@@ -12,7 +12,6 @@ Prerequisites
 
 -  A ROCm enabled platform, more information `here <https://rocm.github.io/>`_.
 
-
 Installing pre-built packages
 =============================
 
@@ -42,14 +41,15 @@ The header file will need to be included in the user code in order to make calls
 into rocBLAS, and the rocBLAS shared library will become link-time and run-time
 dependent for the user applciation.
 
-Building from source
-====================
+Building from source using install.sh
+=====================================
 
 For most users building from source is not necessary, as rocBLAS can be used after installing the pre-built
 packages as described above. If desired, the following instructions can be used to build rocBLAS from source.
 
 Requirements
-````````````
+------------
+
 As a general rule, 64GB of system memory is required for a full rocBLAS build. This value can be lower if
 rocBLAS is built with a different Tensile logic target (see the --logic command for ./install.sh). This value
 may also increase in the future as more functions are added to rocBLAS and dependencies such as Tensile grow.
@@ -77,8 +77,8 @@ The client contains the test and benchmark code.
 It is recommended that the script install.sh be used to build rocBLAS.
 If you need individual commands, they are also provided.
 
-Use install.sh to build (library dependencies + library)
---------------------------------------------------------
+Build library dependencies + library
+------------------------------------
 
 Common uses of install.sh to build (library dependencies + library) are
 in the table below.
@@ -119,8 +119,8 @@ in the table below.
 |                                           | need the -i flag.        |
 +-------------------------------------------+--------------------------+
 
-Use install.sh to build (library dependencies + client dependencies + library + client)
----------------------------------------------------------------------------------------
+Build library dependencies + client dependencies + library + client
+-------------------------------------------------------------------
 
 The client contains executables in the table below.
 
@@ -189,14 +189,14 @@ in the table below.
 |                                           | need the -i flag.        |
 +-------------------------------------------+--------------------------+
 
-Build (library dependencies + library) using individual commands
-----------------------------------------------------------------
+Building from source using individual commands
+==============================================
 
 Before building the library please install the library dependencies
 CMake, Python 2.7, Python 3, and Python-yaml.
 
 CMake 3.5 or later
-******************
+------------------
 
 The build infrastructure for rocBLAS is based on
 `Cmake <https://cmake.org/>`__ v3.5. This is the version of cmake
@@ -208,14 +208,14 @@ Install one-liners cmake: \* Ubuntu: ``sudo apt install cmake-qt-gui``
 \* Fedora: ``sudo dnf install cmake-gui``
 
 Python
-******
+------
 
 By default both python2 and python3 are on Ubuntu.
 Python is used in Tensile, and Tensile is part of rocBLAS.
 To build rocBLAS both Python 2.7 and Python 3 are needed.
 
 Python-yaml
-***********
+-----------
 
 PyYAML files contain training information from Tensile that is used to
 build gemm kernels in rocBLAS.
@@ -227,7 +227,7 @@ Install one-liners PyYAML:
 * Fedora: ``sudo dnf install python PyYAML``
 
 Build library
-*************
+-------------
 
 The rocBLAS library contains both host and device code, so the HCC
 compiler must be specified during cmake configuration to properly
@@ -245,11 +245,8 @@ initialize build tools. Example steps to build rocBLAS:
    #if you want to install in /opt/rocm or the directory set in cmake with -DCMAKE_INSTALL_PREFIX
    sudo make install # sudo required if installing into system directory such as /opt/rocm
 
-Build (library dependencies + client dependencies + library + client) using individual commands
------------------------------------------------------------------------------------------------
-
 Additional dependencies for the rocBLAS clients
-***********************************************
+-----------------------------------------------
 
 The unit tests and benchmarking applications in the client introduce the
 following dependencies:
@@ -263,7 +260,7 @@ following dependencies:
 4. `googletest <https://github.com/google/googletest>`__
 
 boost
-`````
+-----
 
 Linux distros typically have an easy installation mechanism for boost
 through the native package manager.
@@ -282,7 +279,7 @@ The following is a sequence of steps to build dependencies and install
 them to the cmake default /usr/local.
 
 gfortran and lapack
-```````````````````
+-------------------
 
 LAPACK is used in the client to test rocBLAS. LAPACK is a Fortran
 Library, so gfortran is required for building the client.
@@ -300,8 +297,8 @@ Library, so gfortran is required for building the client.
    cmake -DBUILD_BOOST=OFF ../../deps   # assuming boost is installed through package manager as above
    make -j$(nproc) install
 
-Build library and client using individual commands
---------------------------------------------------
+Build library + client
+----------------------
 
 Once dependencies are available on the system, it is possible to
 configure the clients to build. This requires a few extra cmake flags to
@@ -321,7 +318,7 @@ CMAKE_PREFIX_PATH to cmake to help find them. \*
    sudo make install   # sudo required if installing into system directory such as /opt/rocm
 
 Use of Tensile
---------------
+==============
 
 The rocBLAS library uses
 `Tensile <https://github.com/ROCmSoftwarePlatform/Tensile>`__, which
@@ -329,4 +326,3 @@ supplies the high-performance implementation of xGEMM. Tensile is
 downloaded by cmake during library configuration and automatically
 configured as part of the build, so no further action is required by the
 user to set it up.
-
