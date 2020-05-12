@@ -269,35 +269,35 @@ constexpr size_t rocblas_sizeof_datatype(rocblas_datatype type)
 
 // return rocblas_datatype from type
 template <typename> static constexpr rocblas_datatype rocblas_datatype_from_type     = rocblas_datatype(-1);
-template <> static constexpr auto rocblas_datatype_from_type<rocblas_half>           = rocblas_datatype_f16_r;
-template <> static constexpr auto rocblas_datatype_from_type<float>                  = rocblas_datatype_f32_r;
-template <> static constexpr auto rocblas_datatype_from_type<double>                 = rocblas_datatype_f64_r;
-template <> static constexpr auto rocblas_datatype_from_type<rocblas_float_complex>  = rocblas_datatype_f32_c;
-template <> static constexpr auto rocblas_datatype_from_type<rocblas_double_complex> = rocblas_datatype_f64_c;
-template <> static constexpr auto rocblas_datatype_from_type<int8_t>                 = rocblas_datatype_i8_r;
-template <> static constexpr auto rocblas_datatype_from_type<uint8_t>                = rocblas_datatype_u8_r;
-template <> static constexpr auto rocblas_datatype_from_type<int32_t>                = rocblas_datatype_i32_r;
-template <> static constexpr auto rocblas_datatype_from_type<uint32_t>               = rocblas_datatype_u32_r;
-template <> static constexpr auto rocblas_datatype_from_type<rocblas_bfloat16>       = rocblas_datatype_bf16_r;
+template <> ROCBLAS_CLANG_STATIC constexpr auto rocblas_datatype_from_type<rocblas_half>           = rocblas_datatype_f16_r;
+template <> ROCBLAS_CLANG_STATIC constexpr auto rocblas_datatype_from_type<float>                  = rocblas_datatype_f32_r;
+template <> ROCBLAS_CLANG_STATIC constexpr auto rocblas_datatype_from_type<double>                 = rocblas_datatype_f64_r;
+template <> ROCBLAS_CLANG_STATIC constexpr auto rocblas_datatype_from_type<rocblas_float_complex>  = rocblas_datatype_f32_c;
+template <> ROCBLAS_CLANG_STATIC constexpr auto rocblas_datatype_from_type<rocblas_double_complex> = rocblas_datatype_f64_c;
+template <> ROCBLAS_CLANG_STATIC constexpr auto rocblas_datatype_from_type<int8_t>                 = rocblas_datatype_i8_r;
+template <> ROCBLAS_CLANG_STATIC constexpr auto rocblas_datatype_from_type<uint8_t>                = rocblas_datatype_u8_r;
+template <> ROCBLAS_CLANG_STATIC constexpr auto rocblas_datatype_from_type<int32_t>                = rocblas_datatype_i32_r;
+template <> ROCBLAS_CLANG_STATIC constexpr auto rocblas_datatype_from_type<uint32_t>               = rocblas_datatype_u32_r;
+template <> ROCBLAS_CLANG_STATIC constexpr auto rocblas_datatype_from_type<rocblas_bfloat16>       = rocblas_datatype_bf16_r;
 
 // return precision string for data type
 template <typename> static constexpr char rocblas_precision_string                [] = "invalid";
-template <> static constexpr char rocblas_precision_string<rocblas_bfloat16      >[] = "bf16_r";
-template <> static constexpr char rocblas_precision_string<rocblas_half          >[] = "f16_r";
-template <> static constexpr char rocblas_precision_string<float                 >[] = "f32_r";
-template <> static constexpr char rocblas_precision_string<double                >[] = "f64_r";
-template <> static constexpr char rocblas_precision_string<int8_t                >[] = "i8_r";
-template <> static constexpr char rocblas_precision_string<uint8_t               >[] = "u8_r";
-template <> static constexpr char rocblas_precision_string<int32_t               >[] = "i32_r";
-template <> static constexpr char rocblas_precision_string<uint32_t              >[] = "u32_r";
-template <> static constexpr char rocblas_precision_string<rocblas_float_complex >[] = "f32_c";
-template <> static constexpr char rocblas_precision_string<rocblas_double_complex>[] = "f64_c";
+template <> ROCBLAS_CLANG_STATIC constexpr char rocblas_precision_string<rocblas_bfloat16      >[] = "bf16_r";
+template <> ROCBLAS_CLANG_STATIC constexpr char rocblas_precision_string<rocblas_half          >[] = "f16_r";
+template <> ROCBLAS_CLANG_STATIC constexpr char rocblas_precision_string<float                 >[] = "f32_r";
+template <> ROCBLAS_CLANG_STATIC constexpr char rocblas_precision_string<double                >[] = "f64_r";
+template <> ROCBLAS_CLANG_STATIC constexpr char rocblas_precision_string<int8_t                >[] = "i8_r";
+template <> ROCBLAS_CLANG_STATIC constexpr char rocblas_precision_string<uint8_t               >[] = "u8_r";
+template <> ROCBLAS_CLANG_STATIC constexpr char rocblas_precision_string<int32_t               >[] = "i32_r";
+template <> ROCBLAS_CLANG_STATIC constexpr char rocblas_precision_string<uint32_t              >[] = "u32_r";
+template <> ROCBLAS_CLANG_STATIC constexpr char rocblas_precision_string<rocblas_float_complex >[] = "f32_c";
+template <> ROCBLAS_CLANG_STATIC constexpr char rocblas_precision_string<rocblas_double_complex>[] = "f64_c";
 #if 0 // Not implemented
-template <> static constexpr char rocblas_precision_string<rocblas_half_complex  >[] = "f16_c";
-template <> static constexpr char rocblas_precision_string<rocblas_i8_complex    >[] = "i8_c";
-template <> static constexpr char rocblas_precision_string<rocblas_u8_complex    >[] = "u8_c";
-template <> static constexpr char rocblas_precision_string<rocblas_i32_complex   >[] = "i32_c";
-template <> static constexpr char rocblas_precision_string<rocblas_u32_complex   >[] = "u32_c";
+template <> ROCBLAS_CLANG_STATIC constexpr char rocblas_precision_string<rocblas_half_complex  >[] = "f16_c";
+template <> ROCBLAS_CLANG_STATIC constexpr char rocblas_precision_string<rocblas_i8_complex    >[] = "i8_c";
+template <> ROCBLAS_CLANG_STATIC constexpr char rocblas_precision_string<rocblas_u8_complex    >[] = "u8_c";
+template <> ROCBLAS_CLANG_STATIC constexpr char rocblas_precision_string<rocblas_i32_complex   >[] = "i32_c";
+template <> ROCBLAS_CLANG_STATIC constexpr char rocblas_precision_string<rocblas_u32_complex   >[] = "u32_c";
 #endif
 
 // clang-format on
