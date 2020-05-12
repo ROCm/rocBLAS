@@ -151,6 +151,7 @@ void cblas_geam_helper(rocblas_operation transA,
     rocblas_int inc1_B = transB == rocblas_operation_none ? 1 : ldb;
     rocblas_int inc2_B = transB == rocblas_operation_none ? ldb : 1;
 
+#pragma omp parallel for
     for(rocblas_int i = 0; i < M; i++)
     {
         for(rocblas_int j = 0; j < N; j++)
