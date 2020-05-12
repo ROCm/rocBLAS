@@ -29,16 +29,16 @@ template <class T>
 static constexpr double sum_error_tolerance = 0.0;
 
 template <>
-static constexpr double sum_error_tolerance<rocblas_bfloat16> = 1 / 100.0;
+ROCBLAS_CLANG_STATIC constexpr double sum_error_tolerance<rocblas_bfloat16> = 1 / 100.0;
 
 template <>
-static constexpr double sum_error_tolerance<rocblas_half> = 1 / 900.0;
+ROCBLAS_CLANG_STATIC constexpr double sum_error_tolerance<rocblas_half> = 1 / 900.0;
 
 template <>
-static constexpr double sum_error_tolerance<rocblas_float_complex> = 1 / 10000.0;
+ROCBLAS_CLANG_STATIC constexpr double sum_error_tolerance<rocblas_float_complex> = 1 / 10000.0;
 
 template <>
-static constexpr double sum_error_tolerance<rocblas_double_complex> = 1 / 1000000.0;
+ROCBLAS_CLANG_STATIC constexpr double sum_error_tolerance<rocblas_double_complex> = 1 / 1000000.0;
 
 #ifndef GOOGLE_TEST
 #define NEAR_CHECK(M, N, lda, strideA, hCPU, hGPU, batch_count, err, NEAR_ASSERT)
