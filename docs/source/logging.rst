@@ -7,6 +7,8 @@
 Logging
 =======
 
+**Note that performance will degrade when logging is enabled.**
+
 Four environment variables can be set to control logging:
 
 * ``ROCBLAS_LAYER``
@@ -51,6 +53,3 @@ is streamed to standard error.
 When profile logging is enabled, memory usage will increase. If the
 program exits abnormally, then it is possible that profile logging will
 not be outputted before the program exits.
-
-**Note that performance will degrade when logging is enabled.**
-
