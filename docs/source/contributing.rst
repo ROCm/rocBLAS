@@ -108,10 +108,10 @@ Implementation
 Format
 ------
 
-C and C++ code is formatted using ``clang-format``. Use the clang-format
-version for Clang 9, which is available in the ``/opt/rocm`` directory.
-Please do not use your system's built-in ``clang-format``, as this is an
-older version that will result in different results.
+C and C++ code is formatted using ``clang-format``. To run clang-format
+use the version in the ``/opt/rocm`` directory. Please do not use your 
+system's built-in ``clang-format``, as this may be an older version that 
+will result in different results.
 
 To format a file, use:
 
