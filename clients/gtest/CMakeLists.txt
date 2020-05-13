@@ -148,12 +148,18 @@ set( BLIS_LIBRARY ${CMAKE_SOURCE_DIR}/${BUILD_DIR}/deps/blis/lib/libblis.so )
 
 if( OS_ID_rhel OR OS_ID_sles OR OS_ID_centos)
     if( OS_ID_rhel OR OS_ID_centos)
-        if( CXX_VERSION_STRING MATCHES "clang")
-           set( XXX_OPENMP_INCLUDE_DIR /opt/rh/devtoolset-7/root/usr/lib/gcc/x86_64-redhat-linux/7/include )
+        if( EXISTS "/usr/lib/gcc/x86_64-redhat-linux/8/" )
+            set( ROCM_OPENMP_PATH /usr/lib/gcc/x86_64-redhat-linux/8 )
+        else()
+            set( ROCM_OPENMP_PATH /opt/rh/devtoolset-7/root/usr/lib/gcc/x86_64-redhat-linux/7 )
         endif()
+
         # defer OpenMP include as search order must come after clang
-        set( XXX_OPENMP_INCLUDE_DIR /opt/rh/devtoolset-7/root/usr/lib/gcc/x86_64-redhat-linux/7/include )
-        set( OPENMP_LIBRARY /opt/rh/devtoolset-7/root/usr/lib/gcc/x86_64-redhat-linux/7/libgomp.so )
+        set( XXX_OPENMP_INCLUDE_DIR ${ROCM_OPENMP_PATH}/include )
+        set( OPENMP_LIBRARY ${ROCM_OPENMP_PATH}/libgomp.so )
+        if( CXX_VERSION_STRING MATCHES "clang")
+            set( XXX_OPENMP_INCLUDE_DIR ${ROCM_OPENMP_PATH}/include )
+        endif()
     else()
     #SLES
         set( OPENMP_INCLUDE_DIR /usr/lib64/gcc/x86_64-suse-linux/7/include/ )
