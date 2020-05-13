@@ -17,12 +17,8 @@ def runCI =
     def prj = new rocProject('rocBLAS', 'Extended')
     // customize for project
     prj.paths.build_command = './install.sh -lasm_ci -c'
-    prj.timeout.compile = 180
+    prj.timeout.compile = 240
     prj.timeout.test = 600
-    if (jobName.contains('hipclang'))
-    {
-        prj.timeout.compile = 120
-    }
 
     // Define test architectures, optional rocm version argument is available
     def nodes = new dockerNodes(nodeDetails, jobName, prj)
@@ -67,7 +63,7 @@ ci: {
     def jobNameList = ["compute-rocm-dkms-no-npi":([ubuntu16:['gfx900'],centos7:['gfx906'],sles15sp1:['gfx906']]),
                        "compute-rocm-dkms-no-npi-hipclang":([ubuntu16:['gfx900'],centos7:['gfx906'],sles15sp1:['gfx906']]),
                        "rocm-docker":([ubuntu16:['gfx900'],ubuntu18:['gfx900'],centos7:['gfx906'],sles15sp1:['gfx906']])]
-    jobNameList = auxiliary.appendJobNameList(jobNameList)
+    jobNameList = auxiliary.appendJobNameList(jobNameList, 'rocBLAS')
 
     propertyList.each
     {
