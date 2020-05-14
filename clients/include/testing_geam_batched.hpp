@@ -309,20 +309,24 @@ void testing_geam_batched(const Arguments& arg)
         // reference calculation for golden result
         cpu_time_used = get_time_us();
 
-        for(int i3 = 0; i3 < batch_count; i3++)
+        for(int b = 0; b < batch_count; b++)
         {
-            auto hA_copy_p = hA_copy[i3];
-            auto hB_copy_p = hB_copy[i3];
-            auto hC_gold_p = hC_gold[i3];
+            auto hA_copy_p = hA_copy[b];
+            auto hB_copy_p = hB_copy[b];
+            auto hC_gold_p = hC_gold[b];
 
-            for(size_t i1 = 0; i1 < M; i1++)
-            {
-                for(size_t i2 = 0; i2 < N; i2++)
-                {
-                    hC_gold_p[i1 + i2 * ldc] = alpha * hA_copy_p[i1 * inc1_A + i2 * inc2_A]
-                                               + beta * hB_copy_p[i1 * inc1_B + i2 * inc2_B];
-                }
-            }
+            cblas_geam(transA,
+                       transB,
+                       M,
+                       N,
+                       (T*)h_alpha,
+                       (T*)hA_copy_p,
+                       lda,
+                       (T*)h_beta,
+                       (T*)hB_copy_p,
+                       ldb,
+                       (T*)hC_gold_p,
+                       ldc);
         }
 
         cpu_time_used = get_time_us() - cpu_time_used;
@@ -372,21 +376,24 @@ void testing_geam_batched(const Arguments& arg)
                 CHECK_HIP_ERROR(dA.transfer_from(hA));
 
                 // reference calculation
-                for(int i3 = 0; i3 < batch_count; i3++)
+                for(int b = 0; b < batch_count; b++)
                 {
-                    auto hA_copy_p = hA_copy[i3];
-                    auto hB_copy_p = hB_copy[i3];
-                    auto hC_gold_p = hC_gold[i3];
+                    auto hA_copy_p = hA_copy[b];
+                    auto hB_copy_p = hB_copy[b];
+                    auto hC_gold_p = hC_gold[b];
 
-                    for(size_t i1 = 0; i1 < M; i1++)
-                    {
-                        for(size_t i2 = 0; i2 < N; i2++)
-                        {
-                            hC_gold_p[i1 + i2 * ldc]
-                                = alpha * hA_copy_p[i1 * inc1_A + i2 * inc2_A]
-                                  + beta * hB_copy_p[i1 * inc1_B + i2 * inc2_B];
-                        }
-                    }
+                    cblas_geam(transA,
+                               transB,
+                               M,
+                               N,
+                               (T*)h_alpha,
+                               (T*)hA_copy_p,
+                               lda,
+                               (T*)h_beta,
+                               (T*)hB_copy_p,
+                               ldb,
+                               (T*)hC_gold_p,
+                               ldc);
                 }
 
                 if(arg.unit_check)
@@ -434,21 +441,24 @@ void testing_geam_batched(const Arguments& arg)
                 CHECK_HIP_ERROR(hC_1.transfer_from(dC_in_place));
 
                 // reference calculation
-                for(int i3 = 0; i3 < batch_count; i3++)
+                for(int b = 0; b < batch_count; b++)
                 {
-                    auto hA_copy_p = hA_copy[i3];
-                    auto hB_copy_p = hB_copy[i3];
-                    auto hC_gold_p = hC_gold[i3];
+                    auto hA_copy_p = hA_copy[b];
+                    auto hB_copy_p = hB_copy[b];
+                    auto hC_gold_p = hC_gold[b];
 
-                    for(size_t i1 = 0; i1 < M; i1++)
-                    {
-                        for(size_t i2 = 0; i2 < N; i2++)
-                        {
-                            hC_gold_p[i1 + i2 * ldc]
-                                = alpha * hA_copy_p[i1 * inc1_A + i2 * inc2_A]
-                                  + beta * hB_copy_p[i1 * inc1_B + i2 * inc2_B];
-                        }
-                    }
+                    cblas_geam(transA,
+                               transB,
+                               M,
+                               N,
+                               (T*)h_alpha,
+                               (T*)hA_copy_p,
+                               lda,
+                               (T*)h_beta,
+                               (T*)hB_copy_p,
+                               ldb,
+                               (T*)hC_gold_p,
+                               ldc);
                 }
 
                 if(arg.unit_check)
