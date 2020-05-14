@@ -26,6 +26,8 @@ foreach( exe ${sample_list} )
   set_target_properties( ${exe} PROPERTIES CXX_EXTENSIONS NO )
   set_target_properties( ${exe} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )
 
+  target_compile_definitions( ${exe} PRIVATE ROCM_USE_FLOAT16 )
+
   target_include_directories( ${exe}
     PRIVATE
       $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../include>
