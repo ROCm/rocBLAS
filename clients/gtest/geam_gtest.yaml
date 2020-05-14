@@ -46,8 +46,13 @@ Definitions:
   - &transA_transB_range
     - { transA: N, transB: N }
     - { transA: N, transB: T }
+    - { transA: N, transB: C }
     - { transA: T, transB: N }
     - { transA: T, transB: T }
+    - { transA: T, transB: C }
+    - { transA: C, transB: N }
+    - { transA: C, transB: T }
+    - { transA: C, transB: C }
 
 Tests:
 - name: geam_bad_arg

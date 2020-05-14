@@ -211,6 +211,7 @@ void testing_geam(const Arguments& arg)
     {
         // ROCBLAS
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+
         CHECK_ROCBLAS_ERROR(rocblas_geam<T>(
             handle, transA, transB, M, N, &alpha, dA, lda, &beta, dB, ldb, dC, ldc));
 
@@ -225,14 +226,18 @@ void testing_geam(const Arguments& arg)
         // reference calculation for golden result
         cpu_time_used = get_time_us();
 
-        for(size_t i1 = 0; i1 < M; i1++)
-        {
-            for(size_t i2 = 0; i2 < N; i2++)
-            {
-                hC_gold[i1 + i2 * ldc] = alpha * hA_copy[i1 * inc1_A + i2 * inc2_A]
-                                         + beta * hB_copy[i1 * inc1_B + i2 * inc2_B];
-            }
-        }
+        cblas_geam(transA,
+                   transB,
+                   M,
+                   N,
+                   (T*)h_alpha,
+                   (T*)hA,
+                   lda,
+                   (T*)h_beta,
+                   (T*)hB,
+                   ldb,
+                   (T*)hC_gold,
+                   ldc);
 
         cpu_time_used = get_time_us() - cpu_time_used;
         cblas_gflops  = geam_gflop_count<T>(M, N) / cpu_time_used * 1e6;
@@ -269,14 +274,18 @@ void testing_geam(const Arguments& arg)
                 CHECK_HIP_ERROR(dA.transfer_from(hA));
 
                 // reference calculation
-                for(size_t i1 = 0; i1 < M; i1++)
-                {
-                    for(size_t i2 = 0; i2 < N; i2++)
-                    {
-                        hC_gold[i1 + i2 * ldc] = alpha * hA_copy[i1 * inc1_A + i2 * inc2_A]
-                                                 + beta * hB[i1 * inc1_B + i2 * inc2_B];
-                    }
-                }
+                cblas_geam(transA,
+                           transB,
+                           M,
+                           N,
+                           (T*)h_alpha,
+                           (T*)hA_copy,
+                           lda,
+                           (T*)h_beta,
+                           (T*)hB,
+                           ldb,
+                           (T*)hC_gold,
+                           ldc);
 
                 if(arg.unit_check)
                 {
@@ -310,14 +319,18 @@ void testing_geam(const Arguments& arg)
                     hipMemcpy(hC_1, dC_in_place, sizeof(T) * size_C, hipMemcpyDeviceToHost));
 
                 // reference calculation
-                for(size_t i1 = 0; i1 < M; i1++)
-                {
-                    for(size_t i2 = 0; i2 < N; i2++)
-                    {
-                        hC_gold[i1 + i2 * ldc] = alpha * hA_copy[i1 * inc1_A + i2 * inc2_A]
-                                                 + beta * hB_copy[i1 * inc1_B + i2 * inc2_B];
-                    }
-                }
+                cblas_geam(transA,
+                           transB,
+                           M,
+                           N,
+                           (T*)h_alpha,
+                           (T*)hA_copy,
+                           lda,
+                           (T*)h_beta,
+                           (T*)hB_copy,
+                           ldb,
+                           (T*)hC_gold,
+                           ldc);
 
                 if(arg.unit_check)
                 {
