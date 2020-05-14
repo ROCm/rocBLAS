@@ -17,6 +17,10 @@
 template <typename T>
 void testing_swap_batched_bad_arg(const Arguments& arg)
 {
+    const bool FORTRAN = arg.fortran;
+    auto       rocblas_swap_batched_fn
+        = FORTRAN ? rocblas_swap_batched<T, true> : rocblas_swap_batched<T, false>;
+
     rocblas_int N           = 100;
     rocblas_int incx        = 1;
     rocblas_int incy        = 1;
@@ -30,13 +34,13 @@ void testing_swap_batched_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dyt.memcheck());
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_swap_batched<T>(handle, N, nullptr, incx, dyt.ptr_on_device(), incy, batch_count),
+        rocblas_swap_batched_fn(handle, N, nullptr, incx, dyt.ptr_on_device(), incy, batch_count),
         rocblas_status_invalid_pointer);
     EXPECT_ROCBLAS_STATUS(
-        rocblas_swap_batched<T>(handle, N, dxt.ptr_on_device(), incx, nullptr, incy, batch_count),
+        rocblas_swap_batched_fn(handle, N, dxt.ptr_on_device(), incx, nullptr, incy, batch_count),
         rocblas_status_invalid_pointer);
     EXPECT_ROCBLAS_STATUS(
-        rocblas_swap_batched<T>(
+        rocblas_swap_batched_fn(
             nullptr, N, dxt.ptr_on_device(), incx, dyt.ptr_on_device(), incy, batch_count),
         rocblas_status_invalid_handle);
 }
@@ -44,6 +48,10 @@ void testing_swap_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_swap_batched(const Arguments& arg)
 {
+    const bool FORTRAN = arg.fortran;
+    auto       rocblas_swap_batched_fn
+        = FORTRAN ? rocblas_swap_batched<T, true> : rocblas_swap_batched<T, false>;
+
     rocblas_int N           = arg.N;
     rocblas_int incx        = arg.incx;
     rocblas_int incy        = arg.incy;
@@ -55,7 +63,7 @@ void testing_swap_batched(const Arguments& arg)
     if(N <= 0 || batch_count <= 0)
     {
         EXPECT_ROCBLAS_STATUS(
-            rocblas_swap_batched<T>(handle, N, nullptr, incx, nullptr, incy, batch_count),
+            rocblas_swap_batched_fn(handle, N, nullptr, incx, nullptr, incy, batch_count),
             rocblas_status_success);
         return;
     }
@@ -100,7 +108,7 @@ void testing_swap_batched(const Arguments& arg)
     if(arg.unit_check || arg.norm_check)
     {
         // GPU BLAS
-        CHECK_ROCBLAS_ERROR(rocblas_swap_batched<T>(
+        CHECK_ROCBLAS_ERROR(rocblas_swap_batched_fn(
             handle, N, dx.ptr_on_device(), incx, dy.ptr_on_device(), incy, batch_count));
 
         // copy data from device to CPU
@@ -136,7 +144,7 @@ void testing_swap_batched(const Arguments& arg)
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            rocblas_swap_batched<T>(
+            rocblas_swap_batched_fn(
                 handle, N, dx.ptr_on_device(), incx, dy.ptr_on_device(), incy, batch_count);
         }
 
@@ -144,7 +152,7 @@ void testing_swap_batched(const Arguments& arg)
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            rocblas_swap_batched<T>(
+            rocblas_swap_batched_fn(
                 handle, N, dx.ptr_on_device(), incx, dy.ptr_on_device(), incy, batch_count);
         }
 

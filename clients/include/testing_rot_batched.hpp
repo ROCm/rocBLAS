@@ -16,6 +16,10 @@
 template <typename T, typename U = T, typename V = T>
 void testing_rot_batched_bad_arg(const Arguments& arg)
 {
+    const bool FORTRAN = arg.fortran;
+    auto       rocblas_rot_batched_fn
+        = FORTRAN ? rocblas_rot_batched<T, U, V, true> : rocblas_rot_batched<T, U, V, false>;
+
     rocblas_int N           = 100;
     rocblas_int incx        = 1;
     rocblas_int incy        = 1;
@@ -32,42 +36,46 @@ void testing_rot_batched_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(ds.memcheck());
 
     EXPECT_ROCBLAS_STATUS(
-        (rocblas_rot_batched<T, U, V>(
+        (rocblas_rot_batched_fn(
             nullptr, N, dx.ptr_on_device(), incx, dy.ptr_on_device(), incy, dc, ds, batch_count)),
         rocblas_status_invalid_handle);
     EXPECT_ROCBLAS_STATUS(
-        (rocblas_rot_batched<T, U, V>(
+        (rocblas_rot_batched_fn(
             handle, N, nullptr, incx, dy.ptr_on_device(), incy, dc, ds, batch_count)),
         rocblas_status_invalid_pointer);
     EXPECT_ROCBLAS_STATUS(
-        (rocblas_rot_batched<T, U, V>(
+        (rocblas_rot_batched_fn(
             handle, N, dx.ptr_on_device(), incx, nullptr, incy, dc, ds, batch_count)),
         rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS((rocblas_rot_batched<T, U, V>(handle,
-                                                        N,
-                                                        dx.ptr_on_device(),
-                                                        incx,
-                                                        dy.ptr_on_device(),
-                                                        incy,
-                                                        nullptr,
-                                                        ds,
-                                                        batch_count)),
+    EXPECT_ROCBLAS_STATUS((rocblas_rot_batched_fn(handle,
+                                                  N,
+                                                  dx.ptr_on_device(),
+                                                  incx,
+                                                  dy.ptr_on_device(),
+                                                  incy,
+                                                  nullptr,
+                                                  ds,
+                                                  batch_count)),
                           rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS((rocblas_rot_batched<T, U, V>(handle,
-                                                        N,
-                                                        dx.ptr_on_device(),
-                                                        incx,
-                                                        dy.ptr_on_device(),
-                                                        incy,
-                                                        dc,
-                                                        nullptr,
-                                                        batch_count)),
+    EXPECT_ROCBLAS_STATUS((rocblas_rot_batched_fn(handle,
+                                                  N,
+                                                  dx.ptr_on_device(),
+                                                  incx,
+                                                  dy.ptr_on_device(),
+                                                  incy,
+                                                  dc,
+                                                  nullptr,
+                                                  batch_count)),
                           rocblas_status_invalid_pointer);
 }
 
 template <typename T, typename U = T, typename V = T>
 void testing_rot_batched(const Arguments& arg)
 {
+    const bool FORTRAN = arg.fortran;
+    auto       rocblas_rot_batched_fn
+        = FORTRAN ? rocblas_rot_batched<T, U, V, true> : rocblas_rot_batched<T, U, V, false>;
+
     rocblas_int N           = arg.N;
     rocblas_int incx        = arg.incx;
     rocblas_int incy        = arg.incy;
@@ -83,7 +91,7 @@ void testing_rot_batched(const Arguments& arg)
     if(N <= 0 || batch_count <= 0)
     {
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR((rocblas_rot_batched<T, U, V>(
+        CHECK_ROCBLAS_ERROR((rocblas_rot_batched_fn(
             handle, N, nullptr, incx, nullptr, incy, nullptr, nullptr, batch_count)));
         return;
     }
@@ -143,15 +151,15 @@ void testing_rot_batched(const Arguments& arg)
             CHECK_HIP_ERROR(dx.transfer_from(hx));
             CHECK_HIP_ERROR(dy.transfer_from(hy));
 
-            CHECK_ROCBLAS_ERROR((rocblas_rot_batched<T, U, V>(handle,
-                                                              N,
-                                                              dx.ptr_on_device(),
-                                                              incx,
-                                                              dy.ptr_on_device(),
-                                                              incy,
-                                                              hc,
-                                                              hs,
-                                                              batch_count)));
+            CHECK_ROCBLAS_ERROR((rocblas_rot_batched_fn(handle,
+                                                        N,
+                                                        dx.ptr_on_device(),
+                                                        incx,
+                                                        dy.ptr_on_device(),
+                                                        incy,
+                                                        hc,
+                                                        hs,
+                                                        batch_count)));
 
             host_batch_vector<T> rx(N, incx, batch_count);
             host_batch_vector<T> ry(N, incy, batch_count);
@@ -180,15 +188,15 @@ void testing_rot_batched(const Arguments& arg)
             CHECK_HIP_ERROR(dc.transfer_from(hc));
             CHECK_HIP_ERROR(ds.transfer_from(hs));
 
-            CHECK_ROCBLAS_ERROR((rocblas_rot_batched<T, U, V>(handle,
-                                                              N,
-                                                              dx.ptr_on_device(),
-                                                              incx,
-                                                              dy.ptr_on_device(),
-                                                              incy,
-                                                              dc,
-                                                              ds,
-                                                              batch_count)));
+            CHECK_ROCBLAS_ERROR((rocblas_rot_batched_fn(handle,
+                                                        N,
+                                                        dx.ptr_on_device(),
+                                                        incx,
+                                                        dy.ptr_on_device(),
+                                                        incy,
+                                                        dc,
+                                                        ds,
+                                                        batch_count)));
 
             host_batch_vector<T> rx(N, incx, batch_count);
             host_batch_vector<T> ry(N, incy, batch_count);
@@ -220,13 +228,13 @@ void testing_rot_batched(const Arguments& arg)
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            rocblas_rot_batched<T, U, V>(
+            rocblas_rot_batched_fn(
                 handle, N, dx.ptr_on_device(), incx, dy.ptr_on_device(), incy, hc, hs, batch_count);
         }
         gpu_time_used = get_time_us(); // in microseconds
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            rocblas_rot_batched<T, U, V>(
+            rocblas_rot_batched_fn(
                 handle, N, dx.ptr_on_device(), incx, dy.ptr_on_device(), incy, hc, hs, batch_count);
         }
         gpu_time_used = (get_time_us() - gpu_time_used) / number_hot_calls;

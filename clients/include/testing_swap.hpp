@@ -16,6 +16,9 @@
 template <typename T>
 void testing_swap_bad_arg(const Arguments& arg)
 {
+    const bool FORTRAN         = arg.fortran;
+    auto       rocblas_swap_fn = FORTRAN ? rocblas_swap<T, true> : rocblas_swap<T, false>;
+
     rocblas_int         N         = 100;
     rocblas_int         incx      = 1;
     rocblas_int         incy      = 1;
@@ -29,17 +32,20 @@ void testing_swap_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
-    EXPECT_ROCBLAS_STATUS(rocblas_swap<T>(handle, N, nullptr, incx, dy, incy),
+    EXPECT_ROCBLAS_STATUS(rocblas_swap_fn(handle, N, nullptr, incx, dy, incy),
                           rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(rocblas_swap<T>(handle, N, dx, incx, nullptr, incy),
+    EXPECT_ROCBLAS_STATUS(rocblas_swap_fn(handle, N, dx, incx, nullptr, incy),
                           rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(rocblas_swap<T>(nullptr, N, dx, incx, dy, incy),
+    EXPECT_ROCBLAS_STATUS(rocblas_swap_fn(nullptr, N, dx, incx, dy, incy),
                           rocblas_status_invalid_handle);
 }
 
 template <typename T>
 void testing_swap(const Arguments& arg)
 {
+    const bool FORTRAN         = arg.fortran;
+    auto       rocblas_swap_fn = FORTRAN ? rocblas_swap<T, true> : rocblas_swap<T, false>;
+
     rocblas_int          N    = arg.N;
     rocblas_int          incx = arg.incx;
     rocblas_int          incy = arg.incy;
@@ -48,7 +54,7 @@ void testing_swap(const Arguments& arg)
     // argument sanity check before allocating invalid memory
     if(N <= 0)
     {
-        CHECK_ROCBLAS_ERROR(rocblas_swap<T>(handle, N, nullptr, incx, nullptr, incy));
+        CHECK_ROCBLAS_ERROR(rocblas_swap_fn(handle, N, nullptr, incx, nullptr, incy));
         return;
     }
 
@@ -95,7 +101,7 @@ void testing_swap(const Arguments& arg)
         // GPU BLAS
         CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T) * size_x, hipMemcpyHostToDevice));
         CHECK_HIP_ERROR(hipMemcpy(dy, hy, sizeof(T) * size_y, hipMemcpyHostToDevice));
-        CHECK_ROCBLAS_ERROR(rocblas_swap<T>(handle, N, dx, incx, dy, incy));
+        CHECK_ROCBLAS_ERROR(rocblas_swap_fn(handle, N, dx, incx, dy, incy));
         CHECK_HIP_ERROR(hipMemcpy(hx, dx, sizeof(T) * size_x, hipMemcpyDeviceToHost));
         CHECK_HIP_ERROR(hipMemcpy(hy, dy, sizeof(T) * size_y, hipMemcpyDeviceToHost));
 
@@ -125,14 +131,14 @@ void testing_swap(const Arguments& arg)
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            rocblas_swap<T>(handle, N, dx, incx, dy, incy);
+            rocblas_swap_fn(handle, N, dx, incx, dy, incy);
         }
 
         gpu_time_used = get_time_us(); // in microseconds
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            rocblas_swap<T>(handle, N, dx, incx, dy, incy);
+            rocblas_swap_fn(handle, N, dx, incx, dy, incy);
         }
 
         gpu_time_used = (get_time_us() - gpu_time_used) / number_hot_calls;

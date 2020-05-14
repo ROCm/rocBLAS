@@ -19,6 +19,12 @@
 template <typename T, bool CONJ = false>
 void testing_dot_strided_batched_bad_arg(const Arguments& arg)
 {
+    const bool FORTRAN                  = arg.fortran;
+    auto rocblas_dot_strided_batched_fn = FORTRAN ? (CONJ ? rocblas_dotc_strided_batched<T, true>
+                                                          : rocblas_dot_strided_batched<T, true>)
+                                                  : (CONJ ? rocblas_dotc_strided_batched<T, false>
+                                                          : rocblas_dot_strided_batched<T, false>);
+
     rocblas_int N           = 100;
     rocblas_int incx        = 1;
     rocblas_int incy        = 1;
@@ -39,45 +45,20 @@ void testing_dot_strided_batched_bad_arg(const Arguments& arg)
     CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
     EXPECT_ROCBLAS_STATUS(
-        (CONJ ? rocblas_dotc_strided_batched<T> : rocblas_dot_strided_batched<T>)(handle,
-                                                                                  N,
-                                                                                  nullptr,
-                                                                                  incx,
-                                                                                  stride_x,
-                                                                                  dy,
-                                                                                  incy,
-                                                                                  stride_y,
-                                                                                  batch_count,
-                                                                                  d_rocblas_result),
+        (rocblas_dot_strided_batched_fn)(
+            handle, N, nullptr, incx, stride_x, dy, incy, stride_y, batch_count, d_rocblas_result),
         rocblas_status_invalid_pointer);
     EXPECT_ROCBLAS_STATUS(
-        (CONJ ? rocblas_dotc_strided_batched<T> : rocblas_dot_strided_batched<T>)(handle,
-                                                                                  N,
-                                                                                  dx,
-                                                                                  incx,
-                                                                                  stride_x,
-                                                                                  nullptr,
-                                                                                  incy,
-                                                                                  stride_y,
-                                                                                  batch_count,
-                                                                                  d_rocblas_result),
+        (rocblas_dot_strided_batched_fn)(
+            handle, N, dx, incx, stride_x, nullptr, incy, stride_y, batch_count, d_rocblas_result),
         rocblas_status_invalid_pointer);
     EXPECT_ROCBLAS_STATUS(
-        (CONJ ? rocblas_dotc_strided_batched<T>
-              : rocblas_dot_strided_batched<
-                  T>)(handle, N, dx, incx, stride_x, dy, incy, stride_y, batch_count, nullptr),
+        (rocblas_dot_strided_batched_fn)(
+            handle, N, dx, incx, stride_x, dy, incy, stride_y, batch_count, nullptr),
         rocblas_status_invalid_pointer);
     EXPECT_ROCBLAS_STATUS(
-        (CONJ ? rocblas_dotc_strided_batched<T> : rocblas_dot_strided_batched<T>)(nullptr,
-                                                                                  N,
-                                                                                  dx,
-                                                                                  incx,
-                                                                                  stride_x,
-                                                                                  dy,
-                                                                                  incy,
-                                                                                  stride_y,
-                                                                                  batch_count,
-                                                                                  d_rocblas_result),
+        (rocblas_dot_strided_batched_fn)(
+            nullptr, N, dx, incx, stride_x, dy, incy, stride_y, batch_count, d_rocblas_result),
         rocblas_status_invalid_handle);
 }
 
@@ -90,6 +71,12 @@ void testing_dotc_strided_batched_bad_arg(const Arguments& arg)
 template <typename T, bool CONJ = false>
 void testing_dot_strided_batched(const Arguments& arg)
 {
+    const bool FORTRAN                  = arg.fortran;
+    auto rocblas_dot_strided_batched_fn = FORTRAN ? (CONJ ? rocblas_dotc_strided_batched<T, true>
+                                                          : rocblas_dot_strided_batched<T, true>)
+                                                  : (CONJ ? rocblas_dotc_strided_batched<T, false>
+                                                          : rocblas_dot_strided_batched<T, false>);
+
     rocblas_int    N           = arg.N;
     rocblas_int    incx        = arg.incx;
     rocblas_int    incy        = arg.incy;
@@ -117,17 +104,16 @@ void testing_dot_strided_batched(const Arguments& arg)
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
-        EXPECT_ROCBLAS_STATUS((CONJ ? rocblas_dotc_strided_batched<T>
-                                    : rocblas_dot_strided_batched<T>)(handle,
-                                                                      N,
-                                                                      nullptr,
-                                                                      incx,
-                                                                      stride_x,
-                                                                      nullptr,
-                                                                      incy,
-                                                                      stride_y,
-                                                                      batch_count,
-                                                                      d_rocblas_result),
+        EXPECT_ROCBLAS_STATUS((rocblas_dot_strided_batched_fn)(handle,
+                                                               N,
+                                                               nullptr,
+                                                               incx,
+                                                               stride_x,
+                                                               nullptr,
+                                                               incy,
+                                                               stride_y,
+                                                               batch_count,
+                                                               d_rocblas_result),
                               rocblas_status_success);
         return;
     }
@@ -167,31 +153,13 @@ void testing_dot_strided_batched(const Arguments& arg)
     {
         // GPU BLAS, rocblas_pointer_mode_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR((CONJ ? rocblas_dotc_strided_batched<T>
-                                  : rocblas_dot_strided_batched<T>)(handle,
-                                                                    N,
-                                                                    dx,
-                                                                    incx,
-                                                                    stride_x,
-                                                                    dy,
-                                                                    incy,
-                                                                    stride_y,
-                                                                    batch_count,
-                                                                    rocblas_result_1));
+        CHECK_ROCBLAS_ERROR((rocblas_dot_strided_batched_fn)(
+            handle, N, dx, incx, stride_x, dy, incy, stride_y, batch_count, rocblas_result_1));
 
         // GPU BLAS, rocblas_pointer_mode_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR((CONJ ? rocblas_dotc_strided_batched<T>
-                                  : rocblas_dot_strided_batched<T>)(handle,
-                                                                    N,
-                                                                    dx,
-                                                                    incx,
-                                                                    stride_x,
-                                                                    dy,
-                                                                    incy,
-                                                                    stride_y,
-                                                                    batch_count,
-                                                                    d_rocblas_result_2));
+        CHECK_ROCBLAS_ERROR((rocblas_dot_strided_batched_fn)(
+            handle, N, dx, incx, stride_x, dy, incy, stride_y, batch_count, d_rocblas_result_2));
         CHECK_HIP_ERROR(hipMemcpy(
             rocblas_result_2, d_rocblas_result_2, sizeof(T) * batch_count, hipMemcpyDeviceToHost));
 
@@ -237,34 +205,16 @@ void testing_dot_strided_batched(const Arguments& arg)
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            (CONJ ? rocblas_dotc_strided_batched<T>
-                  : rocblas_dot_strided_batched<T>)(handle,
-                                                    N,
-                                                    dx,
-                                                    incx,
-                                                    stride_x,
-                                                    dy,
-                                                    incy,
-                                                    stride_y,
-                                                    batch_count,
-                                                    rocblas_result_1);
+            (rocblas_dot_strided_batched_fn)(
+                handle, N, dx, incx, stride_x, dy, incy, stride_y, batch_count, rocblas_result_1);
         }
 
         gpu_time_used = get_time_us(); // in microseconds
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            (CONJ ? rocblas_dotc_strided_batched<T>
-                  : rocblas_dot_strided_batched<T>)(handle,
-                                                    N,
-                                                    dx,
-                                                    incx,
-                                                    stride_x,
-                                                    dy,
-                                                    incy,
-                                                    stride_y,
-                                                    batch_count,
-                                                    rocblas_result_1);
+            (rocblas_dot_strided_batched_fn)(
+                handle, N, dx, incx, stride_x, dy, incy, stride_y, batch_count, rocblas_result_1);
         }
 
         gpu_time_used = get_time_us() - gpu_time_used;

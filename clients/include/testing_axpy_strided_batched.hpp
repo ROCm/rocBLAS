@@ -19,6 +19,10 @@
 template <typename T>
 void testing_axpy_strided_batched_bad_arg(const Arguments& arg)
 {
+    const bool FORTRAN = arg.fortran;
+    auto       rocblas_axpy_strided_batched_fn
+        = FORTRAN ? rocblas_axpy_strided_batched<T, true> : rocblas_axpy_strided_batched<T, false>;
+
     rocblas_local_handle handle;
     rocblas_int          N = 100, incx = 1, incy = 1, batch_count = arg.batch_count;
 
@@ -32,20 +36,20 @@ void testing_axpy_strided_batched_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_axpy_strided_batched<T>(
+        rocblas_axpy_strided_batched_fn(
             handle, N, &alpha, nullptr, incx, stridex, dy, incy, stridey, batch_count),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_axpy_strided_batched<T>(
+        rocblas_axpy_strided_batched_fn(
             handle, N, &alpha, dx, incx, stridex, nullptr, incy, stridey, batch_count),
         rocblas_status_invalid_pointer);
     EXPECT_ROCBLAS_STATUS(
-        rocblas_axpy_strided_batched<T>(
+        rocblas_axpy_strided_batched_fn(
             handle, N, nullptr, dx, incx, stridex, dy, incy, stridey, batch_count),
         rocblas_status_invalid_pointer);
     EXPECT_ROCBLAS_STATUS(
-        rocblas_axpy_strided_batched<T>(
+        rocblas_axpy_strided_batched_fn(
             nullptr, N, &alpha, dx, incx, stridex, dy, incy, stridey, batch_count),
         rocblas_status_invalid_handle);
 }
@@ -53,6 +57,10 @@ void testing_axpy_strided_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_axpy_strided_batched(const Arguments& arg)
 {
+    const bool FORTRAN = arg.fortran;
+    auto       rocblas_axpy_strided_batched_fn
+        = FORTRAN ? rocblas_axpy_strided_batched<T, true> : rocblas_axpy_strided_batched<T, false>;
+
     rocblas_int N = arg.N, incx = arg.incx, incy = arg.incy, batch_count = arg.batch_count;
 
     rocblas_stride stridex = arg.stride_x, stridey = arg.stride_y;
@@ -69,7 +77,7 @@ void testing_axpy_strided_batched(const Arguments& arg)
     {
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         EXPECT_ROCBLAS_STATUS(
-            rocblas_axpy_strided_batched<T>(
+            rocblas_axpy_strided_batched_fn(
                 handle, N, nullptr, nullptr, incx, stridex, nullptr, incy, stridey, batch_count),
             rocblas_status_success);
         return;
@@ -141,7 +149,7 @@ void testing_axpy_strided_batched(const Arguments& arg)
             //
             // Call routine.
             //
-            CHECK_ROCBLAS_ERROR(rocblas_axpy_strided_batched<T>(
+            CHECK_ROCBLAS_ERROR(rocblas_axpy_strided_batched_fn(
                 handle, N, halpha, dx, incx, stridex, dy, incy, stridey, batch_count));
 
             CHECK_HIP_ERROR(hy1.transfer_from(dy));
@@ -158,7 +166,7 @@ void testing_axpy_strided_batched(const Arguments& arg)
             //
             // Call routine.
             //
-            CHECK_ROCBLAS_ERROR(rocblas_axpy_strided_batched<T>(
+            CHECK_ROCBLAS_ERROR(rocblas_axpy_strided_batched_fn(
                 handle, N, dalpha, dx, incx, stridex, dy, incy, stridey, batch_count));
 
             //
@@ -217,7 +225,7 @@ void testing_axpy_strided_batched(const Arguments& arg)
         //
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            rocblas_axpy_strided_batched<T>(
+            rocblas_axpy_strided_batched_fn(
                 handle, N, &h_alpha, dx, incx, stridex, dy, incy, stridey, batch_count);
         }
 
@@ -229,7 +237,7 @@ void testing_axpy_strided_batched(const Arguments& arg)
         gpu_time_used = get_time_us(); // in microseconds
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            rocblas_axpy_strided_batched<T>(
+            rocblas_axpy_strided_batched_fn(
                 handle, N, &h_alpha, dx, incx, stridex, dy, incy, stridey, batch_count);
         }
         gpu_time_used = get_time_us() - gpu_time_used;

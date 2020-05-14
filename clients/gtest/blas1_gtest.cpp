@@ -204,6 +204,11 @@ namespace
                 {
                     name << "_" << arg.batch_count;
                 }
+
+                if(arg.fortran)
+                {
+                    name << "_F";
+                }
             }
 
             return std::move(name);

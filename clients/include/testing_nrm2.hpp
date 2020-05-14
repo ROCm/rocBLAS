@@ -18,6 +18,9 @@
 template <typename T>
 void testing_nrm2_bad_arg(const Arguments& arg)
 {
+    const bool FORTRAN         = arg.fortran;
+    auto       rocblas_nrm2_fn = FORTRAN ? rocblas_nrm2<T, true> : rocblas_nrm2<T, false>;
+
     rocblas_int         N         = 100;
     rocblas_int         incx      = 1;
     static const size_t safe_size = 100;
@@ -31,17 +34,20 @@ void testing_nrm2_bad_arg(const Arguments& arg)
 
     CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
-    EXPECT_ROCBLAS_STATUS(rocblas_nrm2<T>(handle, N, nullptr, incx, d_rocblas_result),
+    EXPECT_ROCBLAS_STATUS(rocblas_nrm2_fn(handle, N, nullptr, incx, d_rocblas_result),
                           rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(rocblas_nrm2<T>(handle, N, dx, incx, nullptr),
+    EXPECT_ROCBLAS_STATUS(rocblas_nrm2_fn(handle, N, dx, incx, nullptr),
                           rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(rocblas_nrm2<T>(nullptr, N, dx, incx, d_rocblas_result),
+    EXPECT_ROCBLAS_STATUS(rocblas_nrm2_fn(nullptr, N, dx, incx, d_rocblas_result),
                           rocblas_status_invalid_handle);
 }
 
 template <typename T>
 void testing_nrm2(const Arguments& arg)
 {
+    const bool FORTRAN         = arg.fortran;
+    auto       rocblas_nrm2_fn = FORTRAN ? rocblas_nrm2<T, true> : rocblas_nrm2<T, false>;
+
     rocblas_int N    = arg.N;
     rocblas_int incx = arg.incx;
 
@@ -60,7 +66,7 @@ void testing_nrm2(const Arguments& arg)
         host_vector<real_t<T>> res(1);
         CHECK_HIP_ERROR(res.memcheck());
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR(rocblas_nrm2<T>(handle, N, nullptr, incx, res));
+        CHECK_ROCBLAS_ERROR(rocblas_nrm2_fn(handle, N, nullptr, incx, res));
         return;
     }
 
@@ -88,11 +94,11 @@ void testing_nrm2(const Arguments& arg)
     {
         // GPU BLAS, rocblas_pointer_mode_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR(rocblas_nrm2<T>(handle, N, dx, incx, &rocblas_result_1));
+        CHECK_ROCBLAS_ERROR(rocblas_nrm2_fn(handle, N, dx, incx, &rocblas_result_1));
 
         // GPU BLAS, rocblas_pointer_mode_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR(rocblas_nrm2<T>(handle, N, dx, incx, d_rocblas_result_2));
+        CHECK_ROCBLAS_ERROR(rocblas_nrm2_fn(handle, N, dx, incx, d_rocblas_result_2));
         CHECK_HIP_ERROR(hipMemcpy(
             &rocblas_result_2, d_rocblas_result_2, sizeof(real_t<T>), hipMemcpyDeviceToHost));
 
@@ -134,14 +140,14 @@ void testing_nrm2(const Arguments& arg)
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            rocblas_nrm2<T>(handle, N, dx, incx, &rocblas_result_2);
+            rocblas_nrm2_fn(handle, N, dx, incx, &rocblas_result_2);
         }
 
         gpu_time_used = get_time_us(); // in microseconds
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            rocblas_nrm2<T>(handle, N, dx, incx, &rocblas_result_2);
+            rocblas_nrm2_fn(handle, N, dx, incx, &rocblas_result_2);
         }
 
         gpu_time_used = (get_time_us() - gpu_time_used) / number_hot_calls;

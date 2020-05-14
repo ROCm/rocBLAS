@@ -413,6 +413,8 @@ struct perf_blas<T, U, std::enable_if_t<std::is_same<T, rocblas_half>{}>> : rocb
     {
         static const func_map map
             = { {"axpy", testing_axpy<T>},
+                {"axpy_batched", testing_axpy_batched<T>},
+                {"axpy_strided_batched", testing_axpy_strided_batched<T>},
                 {"dot", testing_dot<T>},
                 {"dot_batched", testing_dot_batched<T>},
                 {"dot_strided_batched", testing_dot_strided_batched<T>},
@@ -1069,6 +1071,10 @@ try
         ("c_noalias_d",
          bool_switch(&arg.c_noalias_d)->default_value(false),
          "C and D are stored in separate memory")
+
+        ("fortran",
+         bool_switch(&arg.fortran)->default_value(false),
+         "Run using Fortran interface")
 
         ("help,h", "produces this help message")
 

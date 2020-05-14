@@ -26,7 +26,7 @@ if ( NOT DEFINED CMAKE_Fortran_COMPILER AND NOT DEFINED ENV{FC} )
 endif()
 
 unset(ENV{ROCM_BUILD_ID})
-project( rocblas LANGUAGES CXX )
+project( rocblas LANGUAGES CXX Fortran )
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
@@ -95,6 +95,7 @@ elseif( CXX_VERSION_STRING MATCHES "nvcc" )
 elseif( CXX_VERSION_STRING MATCHES "HCC" )
   message( STATUS "HCC compiler set; ROCm backend selected [ CXX=/opt/rocm-<ver>/bin/hcc cmake ... ]" )
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -hc")
+
 endif( )
 
 # This finds the rocm-cmake project, and installs it if not found

@@ -299,7 +299,13 @@ set( rocblas_blas1_source
   blas1/rocblas_swap_strided_batched.cpp
 )
 
+set(rocblas_f90_source
+    rocblas_module.f90
+)
+
 prepend_path( ".." rocblas_headers_public relative_rocblas_headers_public )
+
+
 
 add_library( rocblas
   ${rocblas_ex_source}
@@ -310,6 +316,9 @@ add_library( rocblas
   ${relative_rocblas_headers_public}
   ${rocblas_auxiliary_source}
 )
+
+# Create rocBLAS Fortran module
+add_library(rocblas_fortran ${rocblas_f90_source})
 
 add_library( roc::rocblas ALIAS rocblas )
 
@@ -386,6 +395,11 @@ endif( )
 
 ############################################################
 # Installation
+
+# Force installation of .f90 module file
+install(FILES "rocblas_module.f90"
+        DESTINATION "rocblas/include"
+)
 
 rocm_install_targets(
   TARGETS ${package_targets}

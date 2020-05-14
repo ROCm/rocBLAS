@@ -16,6 +16,10 @@
 template <typename T>
 void testing_swap_strided_batched_bad_arg(const Arguments& arg)
 {
+    const bool FORTRAN = arg.fortran;
+    auto       rocblas_swap_strided_batched_fn
+        = FORTRAN ? rocblas_swap_strided_batched<T, true> : rocblas_swap_strided_batched<T, false>;
+
     rocblas_int    N           = 100;
     rocblas_int    incx        = 1;
     rocblas_int    incy        = 1;
@@ -33,13 +37,13 @@ void testing_swap_strided_batched_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
-    EXPECT_ROCBLAS_STATUS(rocblas_swap_strided_batched<T>(
+    EXPECT_ROCBLAS_STATUS(rocblas_swap_strided_batched_fn(
                               handle, N, nullptr, incx, stridex, dy, incy, stridey, batch_count),
                           rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(rocblas_swap_strided_batched<T>(
+    EXPECT_ROCBLAS_STATUS(rocblas_swap_strided_batched_fn(
                               handle, N, dx, incx, stridex, nullptr, incy, stridey, batch_count),
                           rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(rocblas_swap_strided_batched<T>(
+    EXPECT_ROCBLAS_STATUS(rocblas_swap_strided_batched_fn(
                               nullptr, N, dx, incx, stridex, dy, incy, stridey, batch_count),
                           rocblas_status_invalid_handle);
 }
@@ -47,6 +51,10 @@ void testing_swap_strided_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_swap_strided_batched(const Arguments& arg)
 {
+    const bool FORTRAN = arg.fortran;
+    auto       rocblas_swap_strided_batched_fn
+        = FORTRAN ? rocblas_swap_strided_batched<T, true> : rocblas_swap_strided_batched<T, false>;
+
     rocblas_int    N           = arg.N;
     rocblas_int    incx        = arg.incx;
     rocblas_int    incy        = arg.incy;
@@ -60,7 +68,7 @@ void testing_swap_strided_batched(const Arguments& arg)
     if(N <= 0 || batch_count <= 0)
     {
         EXPECT_ROCBLAS_STATUS(
-            rocblas_swap_strided_batched<T>(
+            rocblas_swap_strided_batched_fn(
                 handle, N, nullptr, incx, stridex, nullptr, incy, stridey, batch_count),
             rocblas_status_success);
         return;
@@ -109,7 +117,7 @@ void testing_swap_strided_batched(const Arguments& arg)
     if(arg.unit_check || arg.norm_check)
     {
         // GPU BLAS
-        CHECK_ROCBLAS_ERROR(rocblas_swap_strided_batched<T>(
+        CHECK_ROCBLAS_ERROR(rocblas_swap_strided_batched_fn(
             handle, N, dx, incx, stridex, dy, incy, stridey, batch_count));
         CHECK_HIP_ERROR(hipMemcpy(hx, dx, dataSizeX, hipMemcpyDeviceToHost));
         CHECK_HIP_ERROR(hipMemcpy(hy, dy, dataSizeY, hipMemcpyDeviceToHost));
@@ -145,7 +153,7 @@ void testing_swap_strided_batched(const Arguments& arg)
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            rocblas_swap_strided_batched<T>(
+            rocblas_swap_strided_batched_fn(
                 handle, N, dx, incx, stridex, dy, incy, stridey, batch_count);
         }
 
@@ -153,7 +161,7 @@ void testing_swap_strided_batched(const Arguments& arg)
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            rocblas_swap_strided_batched<T>(
+            rocblas_swap_strided_batched_fn(
                 handle, N, dx, incx, stridex, dy, incy, stridey, batch_count);
         }
 
