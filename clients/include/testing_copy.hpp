@@ -18,6 +18,9 @@
 template <typename T>
 void testing_copy_bad_arg(const Arguments& arg)
 {
+    const bool FORTRAN         = arg.fortran;
+    auto       rocblas_copy_fn = FORTRAN ? rocblas_copy<T, true> : rocblas_copy<T, false>;
+
     rocblas_int         N         = 100;
     rocblas_int         incx      = 1;
     rocblas_int         incy      = 1;
@@ -29,17 +32,20 @@ void testing_copy_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
-    EXPECT_ROCBLAS_STATUS(rocblas_copy<T>(handle, N, nullptr, incx, dy, incy),
+    EXPECT_ROCBLAS_STATUS(rocblas_copy_fn(handle, N, nullptr, incx, dy, incy),
                           rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(rocblas_copy<T>(handle, N, dx, incx, nullptr, incy),
+    EXPECT_ROCBLAS_STATUS(rocblas_copy_fn(handle, N, dx, incx, nullptr, incy),
                           rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(rocblas_copy<T>(nullptr, N, dx, incx, dy, incy),
+    EXPECT_ROCBLAS_STATUS(rocblas_copy_fn(nullptr, N, dx, incx, dy, incy),
                           rocblas_status_invalid_handle);
 }
 
 template <typename T>
 void testing_copy(const Arguments& arg)
 {
+    const bool FORTRAN         = arg.fortran;
+    auto       rocblas_copy_fn = FORTRAN ? rocblas_copy<T, true> : rocblas_copy<T, false>;
+
     rocblas_int          N    = arg.N;
     rocblas_int          incx = arg.incx;
     rocblas_int          incy = arg.incy;
@@ -48,7 +54,7 @@ void testing_copy(const Arguments& arg)
     // argument sanity check before allocating invalid memory
     if(N <= 0)
     {
-        CHECK_ROCBLAS_ERROR(rocblas_copy<T>(handle, N, nullptr, incx, nullptr, incy));
+        CHECK_ROCBLAS_ERROR(rocblas_copy_fn(handle, N, nullptr, incx, nullptr, incy));
         return;
     }
 
@@ -91,7 +97,7 @@ void testing_copy(const Arguments& arg)
     if(arg.unit_check || arg.norm_check)
     {
         // GPU BLAS
-        CHECK_ROCBLAS_ERROR(rocblas_copy<T>(handle, N, dx, incx, dy, incy));
+        CHECK_ROCBLAS_ERROR(rocblas_copy_fn(handle, N, dx, incx, dy, incy));
         CHECK_HIP_ERROR(hipMemcpy(hy, dy, sizeof(T) * size_y, hipMemcpyDeviceToHost));
 
         // CPU BLAS
@@ -117,14 +123,14 @@ void testing_copy(const Arguments& arg)
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            rocblas_copy<T>(handle, N, dx, incx, dy, incy);
+            rocblas_copy_fn(handle, N, dx, incx, dy, incy);
         }
 
         gpu_time_used = get_time_us(); // in microseconds
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            rocblas_copy<T>(handle, N, dx, incx, dy, incy);
+            rocblas_copy_fn(handle, N, dx, incx, dy, incy);
         }
 
         gpu_time_used = get_time_us() - gpu_time_used;

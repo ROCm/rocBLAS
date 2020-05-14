@@ -46,7 +46,7 @@ The environment variable ROCBLAS_DEVICE_MEMORY_SIZE is used to set how much memo
 
 Functions for manually allocating
 =================================
-The following helper functions can be used to manually allocate and deallocate. See the API section for information on the functions. 
+The following helper functions can be used to manually allocate and deallocate. See the API section for information on the functions.
 
 - rocblas_set_device_memory_size
 - rocblas_get_device_memory_size

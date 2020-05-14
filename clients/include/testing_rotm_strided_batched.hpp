@@ -16,6 +16,10 @@
 template <typename T>
 void testing_rotm_strided_batched_bad_arg(const Arguments& arg)
 {
+    const bool FORTRAN = arg.fortran;
+    auto       rocblas_rotm_strided_batched_fn
+        = FORTRAN ? rocblas_rotm_strided_batched<T, true> : rocblas_rotm_strided_batched<T, false>;
+
     rocblas_int         N            = 100;
     rocblas_int         incx         = 1;
     rocblas_stride      stride_x     = 1;
@@ -35,10 +39,10 @@ void testing_rotm_strided_batched_bad_arg(const Arguments& arg)
 
     CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
     EXPECT_ROCBLAS_STATUS(
-        (rocblas_rotm_strided_batched<T>(
+        (rocblas_rotm_strided_batched_fn(
             nullptr, N, dx, incx, stride_x, dy, incy, stride_y, dparam, stride_param, batch_count)),
         rocblas_status_invalid_handle);
-    EXPECT_ROCBLAS_STATUS((rocblas_rotm_strided_batched<T>(handle,
+    EXPECT_ROCBLAS_STATUS((rocblas_rotm_strided_batched_fn(handle,
                                                            N,
                                                            nullptr,
                                                            incx,
@@ -50,7 +54,7 @@ void testing_rotm_strided_batched_bad_arg(const Arguments& arg)
                                                            stride_param,
                                                            batch_count)),
                           rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS((rocblas_rotm_strided_batched<T>(handle,
+    EXPECT_ROCBLAS_STATUS((rocblas_rotm_strided_batched_fn(handle,
                                                            N,
                                                            dx,
                                                            incx,
@@ -63,7 +67,7 @@ void testing_rotm_strided_batched_bad_arg(const Arguments& arg)
                                                            batch_count)),
                           rocblas_status_invalid_pointer);
     EXPECT_ROCBLAS_STATUS(
-        (rocblas_rotm_strided_batched<T>(
+        (rocblas_rotm_strided_batched_fn(
             handle, N, dx, incx, stride_x, dy, incy, stride_y, nullptr, stride_param, batch_count)),
         rocblas_status_invalid_pointer);
 }
@@ -71,6 +75,10 @@ void testing_rotm_strided_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_rotm_strided_batched(const Arguments& arg)
 {
+    const bool FORTRAN = arg.fortran;
+    auto       rocblas_rotm_strided_batched_fn
+        = FORTRAN ? rocblas_rotm_strided_batched<T, true> : rocblas_rotm_strided_batched<T, false>;
+
     rocblas_int N            = arg.N;
     rocblas_int incx         = arg.incx;
     rocblas_int stride_x     = arg.stride_x;
@@ -89,7 +97,7 @@ void testing_rotm_strided_batched(const Arguments& arg)
     if(N <= 0 || batch_count <= 0)
     {
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        EXPECT_ROCBLAS_STATUS((rocblas_rotm_strided_batched<T>(handle,
+        EXPECT_ROCBLAS_STATUS((rocblas_rotm_strided_batched_fn(handle,
                                                                N,
                                                                nullptr,
                                                                incx,
@@ -161,7 +169,7 @@ void testing_rotm_strided_batched(const Arguments& arg)
             //     CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
             //     CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T) * size_x, hipMemcpyHostToDevice));
             //     CHECK_HIP_ERROR(hipMemcpy(dy, hy, sizeof(T) * size_y, hipMemcpyHostToDevice));
-            //     CHECK_ROCBLAS_ERROR((rocblas_rotm_strided_batched<T>(
+            //     CHECK_ROCBLAS_ERROR((rocblas_rotm_strided_batched_fn(
             //         handle, N, dx, incx, stride_x, dy, incy, stride_y, hparam, batch_count)));
             //     host_vector<T> rx(size_x);
             //     host_vector<T> ry(size_y);
@@ -189,7 +197,7 @@ void testing_rotm_strided_batched(const Arguments& arg)
                 CHECK_HIP_ERROR(hipMemcpy(dy, hy, sizeof(T) * size_y, hipMemcpyHostToDevice));
                 CHECK_HIP_ERROR(
                     hipMemcpy(dparam, hparam, sizeof(T) * size_param, hipMemcpyHostToDevice));
-                CHECK_ROCBLAS_ERROR((rocblas_rotm_strided_batched<T>(handle,
+                CHECK_ROCBLAS_ERROR((rocblas_rotm_strided_batched_fn(handle,
                                                                      N,
                                                                      dx,
                                                                      incx,
@@ -231,7 +239,7 @@ void testing_rotm_strided_batched(const Arguments& arg)
 
             for(int iter = 0; iter < number_cold_calls; iter++)
             {
-                rocblas_rotm_strided_batched<T>(handle,
+                rocblas_rotm_strided_batched_fn(handle,
                                                 N,
                                                 dx,
                                                 incx,
@@ -246,7 +254,7 @@ void testing_rotm_strided_batched(const Arguments& arg)
             gpu_time_used = get_time_us(); // in microseconds
             for(int iter = 0; iter < number_hot_calls; iter++)
             {
-                rocblas_rotm_strided_batched<T>(handle,
+                rocblas_rotm_strided_batched_fn(handle,
                                                 N,
                                                 dx,
                                                 incx,

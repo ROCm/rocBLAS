@@ -16,6 +16,10 @@
 template <typename T, typename U = T>
 void testing_rotg_strided_batched_bad_arg(const Arguments& arg)
 {
+    const bool FORTRAN                         = arg.fortran;
+    auto       rocblas_rotg_strided_batched_fn = FORTRAN ? rocblas_rotg_strided_batched<T, U, true>
+                                                   : rocblas_rotg_strided_batched<T, U, false>;
+
     static const size_t safe_size   = 1;
     rocblas_int         batch_count = 5;
     rocblas_stride      stride_a    = 10;
@@ -34,23 +38,23 @@ void testing_rotg_strided_batched_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(ds.memcheck());
 
     EXPECT_ROCBLAS_STATUS(
-        (rocblas_rotg_strided_batched<T, U>(
+        (rocblas_rotg_strided_batched_fn(
             nullptr, da, stride_a, db, stride_b, dc, stride_c, ds, stride_s, batch_count)),
         rocblas_status_invalid_handle);
     EXPECT_ROCBLAS_STATUS(
-        (rocblas_rotg_strided_batched<T, U>(
+        (rocblas_rotg_strided_batched_fn(
             handle, nullptr, stride_a, db, stride_b, dc, stride_c, ds, stride_s, batch_count)),
         rocblas_status_invalid_pointer);
     EXPECT_ROCBLAS_STATUS(
-        (rocblas_rotg_strided_batched<T, U>(
+        (rocblas_rotg_strided_batched_fn(
             handle, da, stride_a, nullptr, stride_b, dc, stride_c, ds, stride_s, batch_count)),
         rocblas_status_invalid_pointer);
     EXPECT_ROCBLAS_STATUS(
-        (rocblas_rotg_strided_batched<T, U>(
+        (rocblas_rotg_strided_batched_fn(
             handle, da, stride_a, db, stride_b, nullptr, stride_c, ds, stride_s, batch_count)),
         rocblas_status_invalid_pointer);
     EXPECT_ROCBLAS_STATUS(
-        (rocblas_rotg_strided_batched<T, U>(
+        (rocblas_rotg_strided_batched_fn(
             handle, da, stride_a, db, stride_b, dc, stride_c, nullptr, stride_s, batch_count)),
         rocblas_status_invalid_pointer);
 }
@@ -58,6 +62,10 @@ void testing_rotg_strided_batched_bad_arg(const Arguments& arg)
 template <typename T, typename U = T>
 void testing_rotg_strided_batched(const Arguments& arg)
 {
+    const bool FORTRAN                         = arg.fortran;
+    auto       rocblas_rotg_strided_batched_fn = FORTRAN ? rocblas_rotg_strided_batched<T, U, true>
+                                                   : rocblas_rotg_strided_batched<T, U, false>;
+
     const int   TEST_COUNT  = 100;
     rocblas_int stride_a    = arg.stride_a;
     rocblas_int stride_b    = arg.stride_b;
@@ -74,16 +82,16 @@ void testing_rotg_strided_batched(const Arguments& arg)
     if(batch_count <= 0)
     {
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        EXPECT_ROCBLAS_STATUS((rocblas_rotg_strided_batched<T, U>(handle,
-                                                                  nullptr,
-                                                                  stride_a,
-                                                                  nullptr,
-                                                                  stride_b,
-                                                                  nullptr,
-                                                                  stride_c,
-                                                                  nullptr,
-                                                                  stride_s,
-                                                                  batch_count)),
+        EXPECT_ROCBLAS_STATUS((rocblas_rotg_strided_batched_fn(handle,
+                                                               nullptr,
+                                                               stride_a,
+                                                               nullptr,
+                                                               stride_b,
+                                                               nullptr,
+                                                               stride_c,
+                                                               nullptr,
+                                                               stride_s,
+                                                               batch_count)),
                               rocblas_status_success);
         return;
     }
@@ -127,7 +135,7 @@ void testing_rotg_strided_batched(const Arguments& arg)
             host_vector<U> rc = hc;
             host_vector<T> rs = hs;
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-            CHECK_ROCBLAS_ERROR((rocblas_rotg_strided_batched<T, U>(
+            CHECK_ROCBLAS_ERROR((rocblas_rotg_strided_batched_fn(
                 handle, ra, stride_a, rb, stride_b, rc, stride_c, rs, stride_s, batch_count)));
 
             if(arg.unit_check)
@@ -166,7 +174,7 @@ void testing_rotg_strided_batched(const Arguments& arg)
             CHECK_HIP_ERROR(hipMemcpy(dc, hc, sizeof(U) * size_c, hipMemcpyHostToDevice));
             CHECK_HIP_ERROR(hipMemcpy(ds, hs, sizeof(T) * size_s, hipMemcpyHostToDevice));
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-            CHECK_ROCBLAS_ERROR((rocblas_rotg_strided_batched<T, U>(
+            CHECK_ROCBLAS_ERROR((rocblas_rotg_strided_batched_fn(
                 handle, da, stride_a, db, stride_b, dc, stride_c, ds, stride_s, batch_count)));
             host_vector<T> ra(size_a);
             host_vector<T> rb(size_b);
@@ -222,13 +230,13 @@ void testing_rotg_strided_batched(const Arguments& arg)
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            rocblas_rotg_strided_batched<T, U>(
+            rocblas_rotg_strided_batched_fn(
                 handle, da, stride_a, db, stride_b, dc, stride_c, ds, stride_s, batch_count);
         }
         gpu_time_used = get_time_us(); // in microseconds
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            rocblas_rotg_strided_batched<T, U>(
+            rocblas_rotg_strided_batched_fn(
                 handle, da, stride_a, db, stride_b, dc, stride_c, ds, stride_s, batch_count);
         }
         gpu_time_used = (get_time_us() - gpu_time_used) / number_hot_calls;

@@ -37,13 +37,17 @@ void testing_iamax_iamin_bad_arg(const Arguments& arg, rocblas_iamax_iamin_t<T> 
 template <typename T>
 void testing_iamax_bad_arg(const Arguments& arg)
 {
-    testing_iamax_iamin_bad_arg<T>(arg, rocblas_iamax<T>);
+    const bool FORTRAN          = arg.fortran;
+    auto       rocblas_iamax_fn = FORTRAN ? rocblas_iamax<T, true> : rocblas_iamax<T, false>;
+    testing_iamax_iamin_bad_arg<T>(arg, rocblas_iamax_fn);
 }
 
 template <typename T>
 void testing_iamin_bad_arg(const Arguments& arg)
 {
-    testing_iamax_iamin_bad_arg<T>(arg, rocblas_iamin<T>);
+    const bool FORTRAN          = arg.fortran;
+    auto       rocblas_iamin_fn = FORTRAN ? rocblas_iamin<T, true> : rocblas_iamin<T, false>;
+    testing_iamax_iamin_bad_arg<T>(arg, rocblas_iamin_fn);
 }
 
 template <typename T, void REFBLAS_FUNC(rocblas_int, const T*, rocblas_int, rocblas_int*)>
@@ -164,11 +168,15 @@ void testing_iamax_iamin(const Arguments& arg, rocblas_iamax_iamin_t<T> func)
 template <typename T>
 void testing_iamax(const Arguments& arg)
 {
-    testing_iamax_iamin<T, rocblas_iamax_iamin_ref::iamax<T>>(arg, rocblas_iamax<T>);
+    const bool FORTRAN          = arg.fortran;
+    auto       rocblas_iamax_fn = FORTRAN ? rocblas_iamax<T, true> : rocblas_iamax<T, false>;
+    testing_iamax_iamin<T, rocblas_iamax_iamin_ref::iamax<T>>(arg, rocblas_iamax_fn);
 }
 
 template <typename T>
 void testing_iamin(const Arguments& arg)
 {
-    testing_iamax_iamin<T, rocblas_iamax_iamin_ref::iamin<T>>(arg, rocblas_iamin<T>);
+    const bool FORTRAN          = arg.fortran;
+    auto       rocblas_iamin_fn = FORTRAN ? rocblas_iamin<T, true> : rocblas_iamin<T, false>;
+    testing_iamax_iamin<T, rocblas_iamax_iamin_ref::iamin<T>>(arg, rocblas_iamin_fn);
 }

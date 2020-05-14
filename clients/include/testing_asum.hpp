@@ -18,6 +18,9 @@
 template <typename T>
 void testing_asum_bad_arg(const Arguments& arg)
 {
+    const bool FORTRAN         = arg.fortran;
+    auto       rocblas_asum_fn = FORTRAN ? rocblas_asum<T, true> : rocblas_asum<T, false>;
+
     rocblas_int         N                = 100;
     rocblas_int         incx             = 1;
     static const size_t safe_size        = 100;
@@ -28,17 +31,19 @@ void testing_asum_bad_arg(const Arguments& arg)
     device_vector<T>     dx(safe_size);
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
-    EXPECT_ROCBLAS_STATUS(rocblas_asum<T>(handle, N, nullptr, incx, h_rocblas_result),
+    EXPECT_ROCBLAS_STATUS(rocblas_asum_fn(handle, N, nullptr, incx, h_rocblas_result),
                           rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(rocblas_asum<T>(handle, N, dx, incx, nullptr),
+    EXPECT_ROCBLAS_STATUS(rocblas_asum_fn(handle, N, dx, incx, nullptr),
                           rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(rocblas_asum<T>(nullptr, N, dx, incx, h_rocblas_result),
+    EXPECT_ROCBLAS_STATUS(rocblas_asum_fn(nullptr, N, dx, incx, h_rocblas_result),
                           rocblas_status_invalid_handle);
 }
 
 template <typename T>
 void testing_asum(const Arguments& arg)
 {
+    const bool FORTRAN         = arg.fortran;
+    auto       rocblas_asum_fn = FORTRAN ? rocblas_asum<T, true> : rocblas_asum<T, false>;
 
     rocblas_int N    = arg.N;
     rocblas_int incx = arg.incx;
@@ -61,7 +66,7 @@ void testing_asum(const Arguments& arg)
         CHECK_DEVICE_ALLOCATION(dr.memcheck());
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR(rocblas_asum<T>(handle, N, dx, incx, dr));
+        CHECK_ROCBLAS_ERROR(rocblas_asum_fn(handle, N, dx, incx, dr));
         return;
     }
 
@@ -90,13 +95,13 @@ void testing_asum(const Arguments& arg)
     {
         // GPU BLAS rocblas_pointer_mode_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR(rocblas_asum<T>(handle, N, dx, incx, &rocblas_result_1));
+        CHECK_ROCBLAS_ERROR(rocblas_asum_fn(handle, N, dx, incx, &rocblas_result_1));
 
         // GPU BLAS rocblas_pointer_mode_device
         CHECK_HIP_ERROR(dx.transfer_from(hx));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR(rocblas_asum<T>(handle, N, dx, incx, dr));
+        CHECK_ROCBLAS_ERROR(rocblas_asum_fn(handle, N, dx, incx, dr));
         CHECK_HIP_ERROR(hipMemcpy(&rocblas_result_2, dr, sizeof(real_t<T>), hipMemcpyDeviceToHost));
 
         // CPU BLAS
@@ -129,14 +134,14 @@ void testing_asum(const Arguments& arg)
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            rocblas_asum<T>(handle, N, dx, incx, &rocblas_result_1);
+            rocblas_asum_fn(handle, N, dx, incx, &rocblas_result_1);
         }
 
         gpu_time_used = get_time_us(); // in microseconds
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            rocblas_asum<T>(handle, N, dx, incx, &rocblas_result_1);
+            rocblas_asum_fn(handle, N, dx, incx, &rocblas_result_1);
         }
 
         gpu_time_used = get_time_us() - gpu_time_used;

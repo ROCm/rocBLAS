@@ -14,7 +14,15 @@ if( NOT DEFINED CMAKE_CONFIGURATION_TYPES AND NOT DEFINED CMAKE_BUILD_TYPE )
 endif()
 
 # This project may compile dependencies for clients
-project( rocblas-clients LANGUAGES CXX )
+project( rocblas-clients LANGUAGES CXX Fortran )
+
+set(rocblas_f90_source_clients
+    include/rocblas_fortran.f90
+)
+
+add_library(rocblas_fortran_client ${rocblas_f90_source_clients})
+add_dependencies(rocblas_fortran_client rocblas_fortran)
+include_directories(${CMAKE_BINARY_DIR}/include)
 
 if(OS_ID_rhel OR OS_ID_centos OR OS_ID_sles)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp=libgomp -pthread -stdlib=libstdc++ -std=c++14")
