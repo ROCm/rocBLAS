@@ -149,6 +149,10 @@ install_packages( )
                                       "make" "cmake3" "rpm-build"
                                       "python34" "PyYAML" "python3*-PyYAML" "python3*-distutils-extra" "python3-virtualenv"
                                       "gcc-c++" "zlib-devel" "wget" )
+  local library_dependencies_centos_rhel_8=( "epel-release"
+                                      "make" "cmake3" "rpm-build"
+                                      "python3" "python3*-PyYAML" "python3-virtualenv"
+                                      "gcc-c++" "zlib-devel" "wget" "llvm-devel" "llvm-static" )
   local library_dependencies_fedora=( "make" "cmake" "rpm-build"
                                       "python34" "PyYAML" "python3*-PyYAML" "python3*-distutils-extra" "python3-virtualenv"
                                       "gcc-c++" "libcxx-devel" "zlib-devel" "wget" "llvm7.0-devel" "llvm7.0-static" )
@@ -183,6 +187,7 @@ install_packages( )
   # dependencies to build the client
   local client_dependencies_ubuntu=( "gfortran" "libomp-dev" "libboost-program-options-dev")
   local client_dependencies_centos_rhel=( "devtoolset-7-gcc-gfortran" "libgomp" "boost-devel" )
+  local client_dependencies_centos_rhel_8=( "gcc-gfortran" "libgomp" "boost-devel" )
   local client_dependencies_fedora=( "gcc-gfortran" "libgomp" "boost-devel" )
   local client_dependencies_sles=( "gcc-fortran" "libgomp1" "libboost_program_options1_66_0-devel" )
 
@@ -197,13 +202,21 @@ install_packages( )
       ;;
 
     centos|rhel)
-#     yum -y update brings *all* installed packages up to date
-#     without seeking user approval
-#     elevate_if_not_root yum -y update
-      install_yum_packages "${library_dependencies_centos_rhel[@]}"
+      if [[ ( "${VERSION_ID}" -ge 8 ) ]]; then
+        install_yum_packages "${library_dependencies_centos_rhel_8[@]}"
 
-      if [[ "${build_clients}" == true ]]; then
-        install_yum_packages "${client_dependencies_centos_rhel[@]}"
+        if [[ "${build_clients}" == true ]]; then
+          install_yum_packages "${client_dependencies_centos_rhel_8[@]}"
+        fi
+      else
+  #     yum -y update brings *all* installed packages up to date
+  #     without seeking user approval
+  #     elevate_if_not_root yum -y update
+        install_yum_packages "${library_dependencies_centos_rhel[@]}"
+
+        if [[ "${build_clients}" == true ]]; then
+          install_yum_packages "${client_dependencies_centos_rhel[@]}"
+        fi
       fi
       ;;
 
@@ -487,10 +500,10 @@ elif [[ "${build_clients}" == true ]]; then
   popd
 fi
 
-# We append customary rocm path; if user provides custom rocm path in ${path}, our
-# hard-coded path has lesser priority
+# If user provides custom ${rocm_path} path for hcc it has lesser priority,
+# but with hip-clang existing path has lesser priority to avoid use of installed clang++ by tensile
 if [[ "${build_hip_clang}" == true ]]; then
-  export PATH=${PATH}:${rocm_path}/bin:${rocm_path}/hip/bin:${rocm_path}/llvm/bin
+  export PATH=${rocm_path}/bin:${rocm_path}/hip/bin:${rocm_path}/llvm/bin:${PATH}
 else
   export PATH=${PATH}:${rocm_path}/bin:${rocm_path}/hip/bin:${rocm_path}/hcc/bin
 fi

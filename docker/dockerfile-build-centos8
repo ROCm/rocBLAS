@@ -1,0 +1,51 @@
+# Parameters related to building rocblas
+ARG base_image
+
+FROM ${base_image}
+LABEL maintainer="rocblas-maintainer@amd.com"
+
+ARG user_uid
+
+# Install dependent packages
+RUN yum install -y --nogpgcheck\
+    sudo \
+    ca-certificates \
+    git \
+    cmake3 \
+    make \
+    gcc-c++ \
+    gcc-gfortran \
+    pkgconfig \
+    python27 \
+    python3 \
+    python3-devel \
+    python3-pip \
+    python3-pytest \
+    python3-setuptools \
+    python3-virtualenv \
+    python3-pyyaml \
+    llvm-devel \
+    llvm-static \
+    libcxx-devel \
+    boost-devel \
+    zlib-devel \
+    libgomp \
+    numactl-libs \
+    rpm-build
+
+# Create a jenkins user with this specific uid so it can use sudo priviledges
+# Grant any member of sudo group password-less sudo privileges
+RUN useradd --create-home -u ${user_uid} -o -G video --shell /bin/bash jenkins && \
+    echo '%video ALL=(ALL) NOPASSWD:ALL' | tee /etc/sudoers.d/sudo-nopasswd && \
+    chmod 400 /etc/sudoers.d/sudo-nopasswd
+
+ARG ROCBLAS_SRC_ROOT=/usr/local/src/rocBLAS
+
+# Clone rocblas repo
+# Build client dependencies and install into /usr/local (LAPACK & GTEST)
+RUN mkdir -p ${ROCBLAS_SRC_ROOT} && cd ${ROCBLAS_SRC_ROOT} && \
+    git clone -b develop --depth=1 https://github.com/ROCmSoftwarePlatform/rocBLAS . && \
+    mkdir -p build/deps && cd build/deps && \
+    cmake3 -DBUILD_BOOST=OFF ${ROCBLAS_SRC_ROOT}/deps && \
+    make -j $(nproc) install && \
+    rm -rf ${ROCBLAS_SRC_ROOT}
