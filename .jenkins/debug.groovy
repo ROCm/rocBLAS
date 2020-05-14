@@ -20,11 +20,7 @@ def runCI =
 
     // Define test architectures, optional rocm version argument is available
     def nodes = new dockerNodes(nodeDetails, jobName, prj)
-    prj.timeout.compile = 180
-    if (jobName.contains('hipclang'))
-    {
-        prj.timeout.compile = 120
-    }
+    prj.timeout.compile = 240
 
     boolean formatCheck = true
 
@@ -51,7 +47,7 @@ ci: {
     def jobNameList = ["compute-rocm-dkms-no-npi":([ubuntu16:['gfx900'],centos7:['gfx906'],sles15sp1:['gfx906']]),
                        "compute-rocm-dkms-no-npi-hipclang":([ubuntu16:['gfx900'],centos7:['gfx906'],sles15sp1:['gfx906']]),
                        "rocm-docker":([ubuntu16:['gfx900'],centos7:['gfx906'],sles15sp1:['gfx906']])]
-    jobNameList = auxiliary.appendJobNameList(jobNameList)
+    jobNameList = auxiliary.appendJobNameList(jobNameList, 'rocBLAS')
 
     propertyList.each
     {
