@@ -77,7 +77,15 @@ __global__ void geam_device(rocblas_operation transA,
         {
             b_index = tx * ldb + ty;
         }
-        C[c_index] = beta * B[b_index] + alpha * A[a_index];
+
+        auto a_val = A[a_index];
+        auto b_val = B[b_index];
+        if(transA == rocblas_operation_conjugate_transpose)
+            a_val = conj(a_val);
+        if(transB == rocblas_operation_conjugate_transpose)
+            b_val = conj(b_val);
+
+        C[c_index] = beta * b_val + alpha * a_val;
     }
 }
 
@@ -124,7 +132,11 @@ __global__ void geam_2matrix_device(rocblas_operation transA,
             {
                 a_index = tx * lda + ty;
             }
-            C[c_index] = alpha * A[a_index];
+
+            auto a_val = A[a_index];
+            if(transA == rocblas_operation_conjugate_transpose)
+                a_val = conj(a_val);
+            C[c_index] = alpha * a_val;
         }
     }
 }
@@ -246,13 +258,18 @@ __global__ void geam_inplace_device(rocblas_operation transB,
             {
                 b_index = tx * ldb + ty;
             }
+
+            auto b_val = B[b_index];
+            if(transB == rocblas_operation_conjugate_transpose)
+                b_val = conj(b_val);
+
             if(alpha == 0)
             {
-                C[c_index] = beta * B[b_index];
+                C[c_index] = beta * b_val;
             }
             else
             {
-                C[c_index] = beta * B[b_index] + alpha * C[c_index];
+                C[c_index] = beta * b_val + alpha * C[c_index];
             }
         }
     }
@@ -299,7 +316,6 @@ rocblas_status rocblas_geam_template(rocblas_handle    handle,
     hipStream_t rocblas_stream = handle->rocblas_stream;
 
     auto pointer_mode = handle->pointer_mode;
-
     if(pointer_mode == rocblas_pointer_mode_host && !*alpha && !*beta)
     {
         static constexpr int GEAM_DIM_X = 16;
@@ -326,6 +342,7 @@ rocblas_status rocblas_geam_template(rocblas_handle    handle,
     else if(C == A)
     {
         // C <- alpha * C + beta * B
+        // transA == rocblas_operation_none
         static constexpr int GEAM_DIM_X = 16;
         static constexpr int GEAM_DIM_Y = 16;
         rocblas_int          blocksX    = (m - 1) / GEAM_DIM_X + 1;
@@ -380,6 +397,7 @@ rocblas_status rocblas_geam_template(rocblas_handle    handle,
     else if(C == B)
     {
         // C <- alpha * A + beta * C
+        // transB == rocblas_operation_none
         static constexpr int GEAM_DIM_X = 16;
         static constexpr int GEAM_DIM_Y = 16;
         rocblas_int          blocksX    = (m - 1) / GEAM_DIM_X + 1;
@@ -668,5 +686,6 @@ rocblas_status rocblas_geam_template(rocblas_handle    handle,
                                stride_c);
         }
     }
+
     return rocblas_status_success;
 }
