@@ -8,12 +8,12 @@ def runCompileCommand(platform, project, jobName)
     String compiler = jobName.contains('hipclang') ? 'hipcc' : 'hcc'
     String hipClang = jobName.contains('hipclang') ? '--hip-clang' : '--no-hip-clang'
     String sles = platform.jenkinsLabel.contains('sles') ? '/usr/bin/sudo --preserve-env' : ''
-    String centos = platform.jenkinsLabel.contains('centos') ? 'source scl_source enable devtoolset-7' : ''
+    String centos7 = platform.jenkinsLabel.contains('centos7') ? 'source scl_source enable devtoolset-7' : ''
 
     def command = """#!/usr/bin/env bash
                 set -x
                 cd ${project.paths.project_build_prefix}
-                ${centos}
+                ${centos7}
                 ${sles} CXX=/opt/rocm/bin/${compiler} ${project.paths.build_command} ${hipClang}
                 """
     platform.runCommand(this, command)
