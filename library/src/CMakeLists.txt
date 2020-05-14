@@ -359,6 +359,8 @@ if( BUILD_WITH_TENSILE )
   endif()
 endif()
 
+target_compile_definitions( rocblas PRIVATE ROCM_USE_FLOAT16 )
+
 rocm_set_soversion( rocblas ${rocblas_SOVERSION} )
 set_target_properties( rocblas PROPERTIES CXX_EXTENSIONS NO )
 set_target_properties( rocblas PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )

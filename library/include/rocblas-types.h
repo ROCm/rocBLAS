@@ -56,13 +56,10 @@ typedef int64_t rocblas_stride;
 typedef float  rocblas_float;
 typedef double rocblas_double;
 
-// Clang supports _Float16 on C11 and C++11
-// GCC does not currently support _Float16 on amd64
-/*! \brief Represents an IEEE 16 bit floating-point number. */
-#if __clang_major__ >= 10 && (__STDC_VERSION__ >= 201112L || __cplusplus >= 201103L)
+#ifdef ROCM_USE_FLOAT16
 typedef _Float16 rocblas_half;
 #else
-typedef struct
+typedef struct rocblas_half
 {
     uint16_t data;
 } rocblas_half;
