@@ -255,3 +255,4 @@ endif( )
 
 set_target_properties( rocblas-test PROPERTIES CXX_EXTENSIONS NO )
 set_target_properties( rocblas-test PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )
+target_compile_definitions( rocblas-test PRIVATE ROCM_USE_FLOAT16 )
