@@ -80,7 +80,7 @@ if( BUILD_WITH_TENSILE )
     target_link_libraries( Tensile PRIVATE hip::device )
   endif()
 
-  if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
+  if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" OR CXX_VERSION_STRING MATCHES "clang" )
     # Remove following when hcc is fixed; hcc emits following spurious warning ROCm v1.6.1
     # "clang-5.0: warning: argument unused during compilation: '-isystem /opt/rocm/include'"
     # target_compile_options( Tensile PRIVATE -Wno-unused-command-line-argument -fno-gpu-rdc -Wno-deprecated-declarations)
@@ -331,7 +331,7 @@ target_link_libraries( rocblas PRIVATE hip::device )
 
 set_target_properties( rocblas PROPERTIES CXX_STANDARD 14 CXX_STANDARD_REQUIRED ON )
 
-if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
+if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" OR CXX_VERSION_STRING MATCHES "clang" )
   # Remove following when hcc is fixed; hcc emits following spurious warning ROCm v1.6.1
   # "clang-5.0: warning: argument unused during compilation: '-isystem /opt/rocm/include'"
   target_compile_options( rocblas PRIVATE -Wno-unused-command-line-argument -fno-gpu-rdc )
