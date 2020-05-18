@@ -480,19 +480,20 @@ inline rocblas_status validateArgs(rocblas_handle    handle,
     if(!beta)
         return rocblas_status_invalid_pointer;
 
-    if(handle->pointer_mode == rocblas_pointer_mode_host)
+    if(handle->pointer_mode == rocblas_pointer_mode_host && *beta == 1)
     {
-        if((k == 0) && (*beta == 1))
+        if((k == 0)
+            return rocblas_status_success;
+
+        if(!alpha)
+            return rocblas_status_invalid_pointer;
+
+        if((*alpha == 0)
             return rocblas_status_success;
     }
-
-    if(!alpha)
-        return rocblas_status_invalid_pointer;
-
-    if(handle->pointer_mode == rocblas_pointer_mode_host)
+    else if(!alpha)
     {
-        if((*alpha == 0) && (*beta == 1))
-            return rocblas_status_success;
+        return rocblas_status_invalid_pointer;
     }
 
     // pointers must be valid
