@@ -482,18 +482,18 @@ inline rocblas_status validateArgs(rocblas_handle    handle,
 
     if(handle->pointer_mode == rocblas_pointer_mode_host && *beta == 1)
     {
-        if((k == 0)
+        if(!k)
             return rocblas_status_success;
 
         if(!alpha)
             return rocblas_status_invalid_pointer;
 
-        if((*alpha == 0)
+        if(!*alpha)
             return rocblas_status_success;
     }
 
     // pointers must be valid
-    if(((!a || !b || !alpha) && k != 0) || !c)
+    if((k && (!a || !b || !alpha)) || !c)
         return rocblas_status_invalid_pointer;
 
     return rocblas_status_continue;
@@ -539,10 +539,13 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_gemm_template(rocblas_handle    h
     // TODO: Make this asynchronous, putting synchronization in closer to Tensile call.
     if(handle->pointer_mode == rocblas_pointer_mode_device)
     {
-        RETURN_IF_HIP_ERROR(hipMemcpy(&alpha_h, alpha, sizeof(T), hipMemcpyDeviceToHost));
-        RETURN_IF_HIP_ERROR(hipMemcpy(&beta_h, beta, sizeof(T), hipMemcpyDeviceToHost));
+        if(k)
+            RETURN_IF_HIP_ERROR(hipMemcpy(&alpha_h, alpha, sizeof(T), hipMemcpyDeviceToHost));
+        else
+            alpha_h = 0;
         alpha = &alpha_h;
-        beta  = &beta_h;
+        RETURN_IF_HIP_ERROR(hipMemcpy(&beta_h, beta, sizeof(T), hipMemcpyDeviceToHost));
+        beta = &beta_h;
     }
 
     // When beta == 1 and either k == 0 or alpha == 0, the operation is a no-op
