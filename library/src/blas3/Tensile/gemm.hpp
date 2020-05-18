@@ -491,13 +491,9 @@ inline rocblas_status validateArgs(rocblas_handle    handle,
         if((*alpha == 0)
             return rocblas_status_success;
     }
-    else if(!alpha)
-    {
-        return rocblas_status_invalid_pointer;
-    }
 
     // pointers must be valid
-    if(((!a || !b) && k != 0) || !c)
+    if(((!a || !b || !alpha) && k != 0) || !c)
         return rocblas_status_invalid_pointer;
 
     return rocblas_status_continue;
