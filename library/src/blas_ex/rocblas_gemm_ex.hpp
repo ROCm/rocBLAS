@@ -876,7 +876,7 @@ inline rocblas_status validateArgs(rocblas_handle    handle,
     // operation later, which should be ok.
 
     // pointers must be valid
-    if(!a || !b || !c || !d)
+    if(((!a || !b) && k != 0) || !c || !d)
         return rocblas_status_invalid_pointer;
 
     return rocblas_status_continue;
