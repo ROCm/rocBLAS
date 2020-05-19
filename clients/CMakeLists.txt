@@ -128,11 +128,15 @@ function(rocm_create_package_clients)
     ### AMD BLIS is not packaged right now, so we have to put the so files into /opt/rocm/lib temporarily
     ### BLIS will be packaged soon and this will not be needed
     set(BLIS_LIB_DIR "${PACKAGE_DIR}/${CPACK_PACKAGING_INSTALL_PREFIX}/lib")
+    set(ROCBLAS_FORT_LIB_DIR "${PACKAGE_INSTALL_DIR}/lib")
     file(MAKE_DIRECTORY "${BLIS_LIB_DIR}")
+    file(MAKE_DIRECTORY "${ROCBLAS_FORT_LIB_DIR}")
     file(WRITE "${PROJECT_BINARY_DIR}/package/DEBIAN/control" ${DEB_CONTROL_FILE_CONTENT})
     add_custom_target(package_clients
         COMMAND ${CMAKE_COMMAND} -E remove -f "${PACKAGE_INSTALL_DIR}/*"
         COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_BINARY_DIR}/../../deps/blis/lib/*" "${BLIS_LIB_DIR}"
+        COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_BINARY_DIR}/../clients/*rocblas_fortran_client*" "${ROCBLAS_FORT_LIB_DIR}"
+        COMMAND ln -r -s "${ROCBLAS_FORT_LIB_DIR}/*rocblas_fortran_client*" "${PACKAGE_DIR}/${CPACK_PACKAGING_INSTALL_PREFIX}/lib/"
         COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_BINARY_DIR}/staging/*" "${PACKAGE_INSTALL_DIR}/bin"
         COMMAND dpkg -b "${PROJECT_BINARY_DIR}/package/"  ${PACKAGE_NAME})
 endfunction(rocm_create_package_clients)
