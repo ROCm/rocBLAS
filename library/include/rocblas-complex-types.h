@@ -414,10 +414,10 @@ template <typename T>
 static constexpr bool is_complex = false;
 
 template <>
-static constexpr bool is_complex<rocblas_float_complex> = true;
+ROCBLAS_CLANG_STATIC constexpr bool is_complex<rocblas_float_complex> = true;
 
 template <>
-static constexpr bool is_complex<rocblas_double_complex> = true;
+ROCBLAS_CLANG_STATIC constexpr bool is_complex<rocblas_double_complex> = true;
 
 //!
 //! @brief Struct to define pair of value and index.
