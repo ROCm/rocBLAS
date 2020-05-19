@@ -30,16 +30,12 @@
  */
 
 // scal
-
 template <typename T, typename U = T, bool FORTRAN = false>
-
-
 static rocblas_status (*rocblas_scal)(
     rocblas_handle handle, rocblas_int n, const U* alpha, T* x, rocblas_int incx);
 
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto rocblas_scal<float> = rocblas_sscal;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto rocblas_scal<float, float, true> = rocblas_sscal_fortran;
 
@@ -74,8 +70,6 @@ ROCBLAS_CLANG_STATIC constexpr auto
 
 // scal_batched
 template <typename T, typename U = T, bool FORTRAN = false>
-
-
 static rocblas_status (*rocblas_scal_batched)(rocblas_handle handle,
                                               rocblas_int    n,
                                               const U*       alpha,
@@ -85,7 +79,6 @@ static rocblas_status (*rocblas_scal_batched)(rocblas_handle handle,
 
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto rocblas_scal_batched<float> = rocblas_sscal_batched;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_scal_batched<float, float, true> = rocblas_sscal_batched_fortran;
@@ -96,52 +89,38 @@ template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_scal_batched<double, double, true> = rocblas_dscal_batched_fortran;
 
-
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_scal_batched<rocblas_float_complex> = rocblas_cscal_batched;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto rocblas_scal_batched<rocblas_float_complex,
                                                          rocblas_float_complex,
                                                          true> = rocblas_cscal_batched_fortran;
 
-
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_scal_batched<rocblas_double_complex> = rocblas_zscal_batched;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto rocblas_scal_batched<rocblas_double_complex,
                                                          rocblas_double_complex,
                                                          true> = rocblas_zscal_batched_fortran;
 
-
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_scal_batched<rocblas_float_complex, float> = rocblas_csscal_batched;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_scal_batched<rocblas_float_complex, float, true> = rocblas_csscal_batched_fortran;
 
-
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_scal_batched<rocblas_double_complex, double> = rocblas_zdscal_batched;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_scal_batched<rocblas_double_complex, double, true> = rocblas_zdscal_batched_fortran;
 
 // scal_strided_batched
 template <typename T, typename U = T, bool FORTRAN = false>
-
-
 static rocblas_status (*rocblas_scal_strided_batched)(rocblas_handle handle,
                                                       rocblas_int    n,
                                                       const U*       alpha,
@@ -153,22 +132,16 @@ static rocblas_status (*rocblas_scal_strided_batched)(rocblas_handle handle,
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_scal_strided_batched<float> = rocblas_sscal_strided_batched;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_scal_strided_batched<float, float, true> = rocblas_sscal_strided_batched_fortran;
 
-
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_scal_strided_batched<double> = rocblas_dscal_strided_batched;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_scal_strided_batched<double, double, true> = rocblas_dscal_strided_batched_fortran;
-
-
 
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
@@ -207,16 +180,12 @@ ROCBLAS_CLANG_STATIC constexpr auto
                                  true> = rocblas_zdscal_strided_batched_fortran;
 
 // copy
-
 template <typename T, bool FORTRAN = false>
-
-
 static rocblas_status (*rocblas_copy)(
     rocblas_handle handle, rocblas_int n, const T* x, rocblas_int incx, T* y, rocblas_int incy);
 
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto rocblas_copy<float> = rocblas_scopy;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto rocblas_copy<float, true> = rocblas_scopy_fortran;
 
@@ -238,8 +207,6 @@ ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_copy<rocblas_double_complex, true> = rocblas_zcopy_fortran;
 
 template <typename T, bool FORTRAN = false>
-
-
 static rocblas_status (*rocblas_copy_batched)(rocblas_handle handle,
                                               rocblas_int    n,
                                               const T* const x[],
@@ -250,7 +217,6 @@ static rocblas_status (*rocblas_copy_batched)(rocblas_handle handle,
 
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto rocblas_copy_batched<float> = rocblas_scopy_batched;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_copy_batched<float, true> = rocblas_scopy_batched_fortran;
@@ -261,29 +227,21 @@ template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_copy_batched<double, true> = rocblas_dcopy_batched_fortran;
 
-
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_copy_batched<rocblas_float_complex> = rocblas_ccopy_batched;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_copy_batched<rocblas_float_complex, true> = rocblas_ccopy_batched_fortran;
 
-
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_copy_batched<rocblas_double_complex> = rocblas_zcopy_batched;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_copy_batched<rocblas_double_complex, true> = rocblas_zcopy_batched_fortran;
 
 template <typename T, bool FORTRAN = false>
-
-
 static rocblas_status (*rocblas_copy_strided_batched)(rocblas_handle handle,
                                                       rocblas_int    n,
                                                       const T*       x,
@@ -297,22 +255,16 @@ static rocblas_status (*rocblas_copy_strided_batched)(rocblas_handle handle,
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_copy_strided_batched<float> = rocblas_scopy_strided_batched;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_copy_strided_batched<float, true> = rocblas_scopy_strided_batched_fortran;
 
-
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_copy_strided_batched<double> = rocblas_dcopy_strided_batched;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_copy_strided_batched<double, true> = rocblas_dcopy_strided_batched_fortran;
-
-
 
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
@@ -331,16 +283,12 @@ ROCBLAS_CLANG_STATIC constexpr auto
                                  true> = rocblas_zcopy_strided_batched_fortran;
 
 // swap
-
 template <typename T, bool FORTRAN = false>
-
-
 static rocblas_status (*rocblas_swap)(
     rocblas_handle handle, rocblas_int n, T* x, rocblas_int incx, T* y, rocblas_int incy);
 
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto rocblas_swap<float> = rocblas_sswap;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto rocblas_swap<float, true> = rocblas_sswap_fortran;
 
@@ -363,8 +311,6 @@ ROCBLAS_CLANG_STATIC constexpr auto
 
 // swap_batched
 template <typename T, bool FORTRAN = false>
-
-
 static rocblas_status (*rocblas_swap_batched)(rocblas_handle handle,
                                               rocblas_int    n,
                                               T*             x[],
@@ -375,7 +321,6 @@ static rocblas_status (*rocblas_swap_batched)(rocblas_handle handle,
 
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto rocblas_swap_batched<float> = rocblas_sswap_batched;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_swap_batched<float, true> = rocblas_sswap_batched_fortran;
@@ -386,30 +331,22 @@ template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_swap_batched<double, true> = rocblas_dswap_batched_fortran;
 
-
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_swap_batched<rocblas_float_complex> = rocblas_cswap_batched;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_swap_batched<rocblas_float_complex, true> = rocblas_cswap_batched_fortran;
 
-
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_swap_batched<rocblas_double_complex> = rocblas_zswap_batched;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_swap_batched<rocblas_double_complex, true> = rocblas_zswap_batched_fortran;
 
 // swap_strided_batched
 template <typename T, bool FORTRAN = false>
-
-
 static rocblas_status (*rocblas_swap_strided_batched)(rocblas_handle handle,
                                                       rocblas_int    n,
                                                       T*             x,
@@ -423,22 +360,16 @@ static rocblas_status (*rocblas_swap_strided_batched)(rocblas_handle handle,
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_swap_strided_batched<float> = rocblas_sswap_strided_batched;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_swap_strided_batched<float, true> = rocblas_sswap_strided_batched_fortran;
 
-
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_swap_strided_batched<double> = rocblas_dswap_strided_batched;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_swap_strided_batched<double, true> = rocblas_dswap_strided_batched_fortran;
-
-
 
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
@@ -457,10 +388,7 @@ ROCBLAS_CLANG_STATIC constexpr auto
                                  true> = rocblas_zswap_strided_batched_fortran;
 
 // dot
-
 template <typename T, bool FORTRAN = false>
-
-
 static rocblas_status (*rocblas_dot)(rocblas_handle handle,
                                      rocblas_int    n,
                                      const T*       x,
@@ -471,7 +399,6 @@ static rocblas_status (*rocblas_dot)(rocblas_handle handle,
 
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto rocblas_dot<float> = rocblas_sdot;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto rocblas_dot<float, true> = rocblas_sdot_fortran;
 
@@ -617,37 +544,26 @@ template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_dot_strided_batched<float, true> = rocblas_sdot_strided_batched_fortran;
 
-
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_dot_strided_batched<double> = rocblas_ddot_strided_batched;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_dot_strided_batched<double, true> = rocblas_ddot_strided_batched_fortran;
 
-
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_dot_strided_batched<rocblas_half> = rocblas_hdot_strided_batched;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_dot_strided_batched<rocblas_half, true> = rocblas_hdot_strided_batched_fortran;
 
-
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_dot_strided_batched<rocblas_bfloat16> = rocblas_bfdot_strided_batched;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_dot_strided_batched<rocblas_bfloat16, true> = rocblas_bfdot_strided_batched_fortran;
-
-
 
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
@@ -666,10 +582,7 @@ ROCBLAS_CLANG_STATIC constexpr auto
                                 true> = rocblas_zdotu_strided_batched_fortran;
 
 // dotc
-
 template <typename T, bool FORTRAN = false>
-
-
 static rocblas_status (*rocblas_dotc_strided_batched)(rocblas_handle handle,
                                                       rocblas_int    n,
                                                       const T*       x,
@@ -698,16 +611,12 @@ ROCBLAS_CLANG_STATIC constexpr auto
                                  true> = rocblas_zdotc_strided_batched_fortran;
 
 // asum
-
 template <typename T, bool FORTRAN = false>
-
-
 static rocblas_status (*rocblas_asum)(
     rocblas_handle handle, rocblas_int n, const T* x, rocblas_int incx, real_t<T>* result);
 
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto rocblas_asum<float> = rocblas_sasum;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto rocblas_asum<float, true> = rocblas_sasum_fortran;
 
@@ -730,8 +639,6 @@ ROCBLAS_CLANG_STATIC constexpr auto
 
 // asum_batched
 template <typename T, bool FORTRAN = false>
-
-
 static rocblas_status (*rocblas_asum_batched)(rocblas_handle handle,
                                               rocblas_int    n,
                                               const T* const x[],
@@ -741,7 +648,6 @@ static rocblas_status (*rocblas_asum_batched)(rocblas_handle handle,
 
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto rocblas_asum_batched<float> = rocblas_sasum_batched;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_asum_batched<float, true> = rocblas_sasum_batched_fortran;
@@ -752,30 +658,22 @@ template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_asum_batched<double, true> = rocblas_dasum_batched_fortran;
 
-
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_asum_batched<rocblas_float_complex> = rocblas_scasum_batched;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_asum_batched<rocblas_float_complex, true> = rocblas_scasum_batched_fortran;
 
-
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_asum_batched<rocblas_double_complex> = rocblas_dzasum_batched;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_asum_batched<rocblas_double_complex, true> = rocblas_dzasum_batched_fortran;
 
 // asum_strided_batched
 template <typename T, bool FORTRAN = false>
-
-
 static rocblas_status (*rocblas_asum_strided_batched)(rocblas_handle handle,
                                                       rocblas_int    n,
                                                       const T*       x,
@@ -787,22 +685,16 @@ static rocblas_status (*rocblas_asum_strided_batched)(rocblas_handle handle,
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_asum_strided_batched<float> = rocblas_sasum_strided_batched;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_asum_strided_batched<float, true> = rocblas_sasum_strided_batched_fortran;
 
-
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_asum_strided_batched<double> = rocblas_dasum_strided_batched;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_asum_strided_batched<double, true> = rocblas_dasum_strided_batched_fortran;
-
-
 
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
@@ -821,16 +713,12 @@ ROCBLAS_CLANG_STATIC constexpr auto
                                  true> = rocblas_dzasum_strided_batched_fortran;
 
 // nrm2
-
 template <typename T, bool FORTRAN = false>
-
-
 static rocblas_status (*rocblas_nrm2)(
     rocblas_handle handle, rocblas_int n, const T* x, rocblas_int incx, real_t<T>* result);
 
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto rocblas_nrm2<float> = rocblas_snrm2;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto rocblas_nrm2<float, true> = rocblas_snrm2_fortran;
 
@@ -853,8 +741,6 @@ ROCBLAS_CLANG_STATIC constexpr auto
 
 // nrm2_batched
 template <typename T, bool FORTRAN = false>
-
-
 static rocblas_status (*rocblas_nrm2_batched)(rocblas_handle handle,
                                               rocblas_int    n,
                                               const T* const x[],
@@ -864,7 +750,6 @@ static rocblas_status (*rocblas_nrm2_batched)(rocblas_handle handle,
 
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto rocblas_nrm2_batched<float> = rocblas_snrm2_batched;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_nrm2_batched<float, true> = rocblas_snrm2_batched_fortran;
@@ -875,30 +760,22 @@ template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_nrm2_batched<double, true> = rocblas_dnrm2_batched_fortran;
 
-
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_nrm2_batched<rocblas_float_complex> = rocblas_scnrm2_batched;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_nrm2_batched<rocblas_float_complex, true> = rocblas_scnrm2_batched_fortran;
 
-
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_nrm2_batched<rocblas_double_complex> = rocblas_dznrm2_batched;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_nrm2_batched<rocblas_double_complex, true> = rocblas_dznrm2_batched_fortran;
 
 // nrm2_strided_batched
 template <typename T, bool FORTRAN = false>
-
-
 static rocblas_status (*rocblas_nrm2_strided_batched)(rocblas_handle handle,
                                                       rocblas_int    n,
                                                       const T*       x,
@@ -910,22 +787,16 @@ static rocblas_status (*rocblas_nrm2_strided_batched)(rocblas_handle handle,
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_nrm2_strided_batched<float> = rocblas_snrm2_strided_batched;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_nrm2_strided_batched<float, true> = rocblas_snrm2_strided_batched_fortran;
 
-
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_nrm2_strided_batched<double> = rocblas_dnrm2_strided_batched;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_nrm2_strided_batched<double, true> = rocblas_dnrm2_strided_batched_fortran;
-
-
 
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
@@ -964,7 +835,6 @@ rocblas_iamax_iamin_t<T, FORTRAN> rocblas_iamax;
 
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto rocblas_iamax<float> = rocblas_isamax;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto rocblas_iamax<float, true> = rocblas_isamax_fortran;
 
@@ -985,8 +855,6 @@ template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_iamax<rocblas_double_complex, true> = rocblas_izamax_fortran;
 
-
-
 //
 // iamin
 //
@@ -995,7 +863,6 @@ rocblas_iamax_iamin_t<T, FORTRAN> rocblas_iamin;
 
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto rocblas_iamin<float> = rocblas_isamin;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto rocblas_iamin<float, true> = rocblas_isamin_fortran;
 
@@ -1016,8 +883,6 @@ template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_iamin<rocblas_double_complex, true> = rocblas_izamin_fortran;
 
-
-
 //
 // Define the signature type for the iamax_iamin batched.
 //
@@ -1037,7 +902,6 @@ rocblas_iamax_iamin_batched_t<T, FORTRAN> rocblas_iamax_batched;
 
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto rocblas_iamax_batched<float> = rocblas_isamax_batched;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_iamax_batched<float, true> = rocblas_isamax_batched_fortran;
@@ -1048,27 +912,19 @@ template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_iamax_batched<double, true> = rocblas_idamax_batched_fortran;
 
-
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_iamax_batched<rocblas_float_complex> = rocblas_icamax_batched;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_iamax_batched<rocblas_float_complex, true> = rocblas_icamax_batched_fortran;
 
-
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_iamax_batched<rocblas_double_complex> = rocblas_izamax_batched;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_iamax_batched<rocblas_double_complex, true> = rocblas_izamax_batched_fortran;
-
-
 
 //
 // iamin
@@ -1078,7 +934,6 @@ rocblas_iamax_iamin_batched_t<T, FORTRAN> rocblas_iamin_batched;
 
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto rocblas_iamin_batched<float> = rocblas_isamin_batched;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_iamin_batched<float, true> = rocblas_isamin_batched_fortran;
@@ -1089,27 +944,19 @@ template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_iamin_batched<double, true> = rocblas_idamin_batched_fortran;
 
-
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_iamin_batched<rocblas_float_complex> = rocblas_icamin_batched;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_iamin_batched<rocblas_float_complex, true> = rocblas_icamin_batched_fortran;
 
-
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_iamin_batched<rocblas_double_complex> = rocblas_izamin_batched;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_iamin_batched<rocblas_double_complex, true> = rocblas_izamin_batched_fortran;
-
-
 
 //
 // Define the signature type for the iamax_iamin strided batched.
@@ -1132,22 +979,16 @@ rocblas_iamax_iamin_strided_batched_t<T, FORTRAN> rocblas_iamax_strided_batched;
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_iamax_strided_batched<float> = rocblas_isamax_strided_batched;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_iamax_strided_batched<float, true> = rocblas_isamax_strided_batched_fortran;
 
-
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_iamax_strided_batched<double> = rocblas_idamax_strided_batched;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_iamax_strided_batched<double, true> = rocblas_idamax_strided_batched_fortran;
-
-
 
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
@@ -1174,22 +1015,16 @@ rocblas_iamax_iamin_strided_batched_t<T, FORTRAN> rocblas_iamin_strided_batched;
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_iamin_strided_batched<float> = rocblas_isamin_strided_batched;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_iamin_strided_batched<float, true> = rocblas_isamin_strided_batched_fortran;
 
-
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_iamin_strided_batched<double> = rocblas_idamin_strided_batched;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_iamin_strided_batched<double, true> = rocblas_idamin_strided_batched_fortran;
-
-
 
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
@@ -1208,10 +1043,7 @@ ROCBLAS_CLANG_STATIC constexpr auto
                                   true> = rocblas_izamin_strided_batched_fortran;
 
 // axpy
-
 template <typename T, bool FORTRAN = false>
-
-
 static rocblas_status (*rocblas_axpy)(rocblas_handle handle,
                                       rocblas_int    n,
                                       const T*       alpha,
@@ -1221,7 +1053,6 @@ static rocblas_status (*rocblas_axpy)(rocblas_handle handle,
                                       rocblas_int    incy);
 
 template <>
-
 ROCBLAS_CLANG_STATIC constexpr auto rocblas_axpy<rocblas_half, false> = rocblas_haxpy;
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto rocblas_axpy<rocblas_half, true> = rocblas_haxpy_fortran;
@@ -1250,8 +1081,6 @@ ROCBLAS_CLANG_STATIC constexpr auto
 
 // axpy batched
 template <typename T, bool FORTRAN = false>
-
-
 static rocblas_status (*rocblas_axpy_batched)(rocblas_handle handle,
                                               rocblas_int    n,
                                               const T*       alpha,
@@ -1262,7 +1091,6 @@ static rocblas_status (*rocblas_axpy_batched)(rocblas_handle handle,
                                               rocblas_int    batch_count);
 
 template <>
-
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_axpy_batched<rocblas_half, false> = rocblas_haxpy_batched;
 template <>
@@ -1297,8 +1125,6 @@ ROCBLAS_CLANG_STATIC constexpr auto
 
 // axpy strided batched
 template <typename T, bool FORTRAN = false>
-
-
 static rocblas_status (*rocblas_axpy_strided_batched)(rocblas_handle handle,
                                                       rocblas_int    n,
                                                       const T*       alpha,
@@ -1312,7 +1138,6 @@ static rocblas_status (*rocblas_axpy_strided_batched)(rocblas_handle handle,
 
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
-
     rocblas_axpy_strided_batched<rocblas_half, false> = rocblas_haxpy_strided_batched;
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
@@ -1350,8 +1175,6 @@ ROCBLAS_CLANG_STATIC constexpr auto
 
 // rot
 template <typename T, typename U = T, typename V = T, bool FORTRAN = false>
-
-
 static rocblas_status (*rocblas_rot)(rocblas_handle handle,
                                      rocblas_int    n,
                                      T*             x,
@@ -1363,7 +1186,6 @@ static rocblas_status (*rocblas_rot)(rocblas_handle handle,
 
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto rocblas_rot<float> = rocblas_srot;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto rocblas_rot<float, float, float, true> = rocblas_srot_fortran;
 
@@ -1372,8 +1194,6 @@ ROCBLAS_CLANG_STATIC constexpr auto rocblas_rot<double> = rocblas_drot;
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_rot<double, double, double, true> = rocblas_drot_fortran;
-
-
 
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
@@ -1385,12 +1205,9 @@ ROCBLAS_CLANG_STATIC constexpr auto
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_rot<rocblas_float_complex, float, float> = rocblas_csrot;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_rot<rocblas_float_complex, float, float, true> = rocblas_csrot_fortran;
-
-
 
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
@@ -1404,15 +1221,12 @@ ROCBLAS_CLANG_STATIC constexpr auto rocblas_rot<rocblas_double_complex,
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_rot<rocblas_double_complex, double, double> = rocblas_zdrot;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_rot<rocblas_double_complex, double, double, true> = rocblas_zdrot_fortran;
 
 // rot_batched
 template <typename T, typename U = T, typename V = T, bool FORTRAN = false>
-
-
 static rocblas_status (*rocblas_rot_batched)(rocblas_handle handle,
                                              rocblas_int    n,
                                              T* const       x[],
@@ -1425,7 +1239,6 @@ static rocblas_status (*rocblas_rot_batched)(rocblas_handle handle,
 
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto rocblas_rot_batched<float> = rocblas_srot_batched;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_rot_batched<float, float, float, true> = rocblas_srot_batched_fortran;
@@ -1435,8 +1248,6 @@ ROCBLAS_CLANG_STATIC constexpr auto rocblas_rot_batched<double> = rocblas_drot_b
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_rot_batched<double, double, double, true> = rocblas_drot_batched_fortran;
-
-
 
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
@@ -1459,14 +1270,11 @@ ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_rot_batched<rocblas_double_complex,
                         double,
                         rocblas_double_complex> = rocblas_zrot_batched;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto rocblas_rot_batched<rocblas_double_complex,
                                                         double,
                                                         rocblas_double_complex,
                                                         true> = rocblas_zrot_batched_fortran;
-
-
 
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
@@ -1478,10 +1286,7 @@ ROCBLAS_CLANG_STATIC constexpr auto rocblas_rot_batched<rocblas_double_complex,
                                                         true> = rocblas_zdrot_batched_fortran;
 
 // rot_strided_batched
-
 template <typename T, typename U = T, typename V = T, bool FORTRAN = false>
-
-
 static rocblas_status (*rocblas_rot_strided_batched)(rocblas_handle handle,
                                                      rocblas_int    n,
                                                      T*             x,
@@ -1497,25 +1302,19 @@ static rocblas_status (*rocblas_rot_strided_batched)(rocblas_handle handle,
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_rot_strided_batched<float> = rocblas_srot_strided_batched;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_rot_strided_batched<float, float, float, true> = rocblas_srot_strided_batched_fortran;
 
-
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_rot_strided_batched<double> = rocblas_drot_strided_batched;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_rot_strided_batched<double,
                                 double,
                                 double,
                                 true> = rocblas_drot_strided_batched_fortran;
-
-
 
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
@@ -1534,15 +1333,12 @@ ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_rot_strided_batched<rocblas_float_complex,
                                 float,
                                 float> = rocblas_csrot_strided_batched;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_rot_strided_batched<rocblas_float_complex,
                                 float,
                                 float,
                                 true> = rocblas_csrot_strided_batched_fortran;
-
-
 
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
@@ -1561,7 +1357,6 @@ ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_rot_strided_batched<rocblas_double_complex,
                                 double,
                                 double> = rocblas_zdrot_strided_batched;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_rot_strided_batched<rocblas_double_complex,
@@ -1571,13 +1366,10 @@ ROCBLAS_CLANG_STATIC constexpr auto
 
 // rotg
 template <typename T, typename U = T, bool FORTRAN = false>
-
-
 static rocblas_status (*rocblas_rotg)(rocblas_handle handle, T* a, T* b, U* c, T* s);
 
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto rocblas_rotg<float> = rocblas_srotg;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto rocblas_rotg<float, float, true> = rocblas_srotg_fortran;
 
@@ -1600,8 +1392,6 @@ ROCBLAS_CLANG_STATIC constexpr auto
 
 // rotg_batched
 template <typename T, typename U = T, bool FORTRAN = false>
-
-
 static rocblas_status (*rocblas_rotg_batched)(rocblas_handle handle,
                                               T* const       a[],
                                               T* const       b[],
@@ -1611,7 +1401,6 @@ static rocblas_status (*rocblas_rotg_batched)(rocblas_handle handle,
 
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto rocblas_rotg_batched<float> = rocblas_srotg_batched;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_rotg_batched<float, float, true> = rocblas_srotg_batched_fortran;
@@ -1622,30 +1411,22 @@ template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_rotg_batched<double, double, true> = rocblas_drotg_batched_fortran;
 
-
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_rotg_batched<rocblas_float_complex, float> = rocblas_crotg_batched;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_rotg_batched<rocblas_float_complex, float, true> = rocblas_crotg_batched_fortran;
 
-
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_rotg_batched<rocblas_double_complex, double> = rocblas_zrotg_batched;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_rotg_batched<rocblas_double_complex, double, true> = rocblas_zrotg_batched_fortran;
 
 //rotg_strided_batched
 template <typename T, typename U = T, bool FORTRAN = false>
-
-
 static rocblas_status (*rocblas_rotg_strided_batched)(rocblas_handle handle,
                                                       T*             a,
                                                       rocblas_stride stride_a,
@@ -1660,22 +1441,16 @@ static rocblas_status (*rocblas_rotg_strided_batched)(rocblas_handle handle,
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_rotg_strided_batched<float> = rocblas_srotg_strided_batched;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_rotg_strided_batched<float, float, true> = rocblas_srotg_strided_batched_fortran;
 
-
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_rotg_strided_batched<double> = rocblas_drotg_strided_batched;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_rotg_strided_batched<double, double, true> = rocblas_drotg_strided_batched_fortran;
-
-
 
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
@@ -1696,10 +1471,7 @@ ROCBLAS_CLANG_STATIC constexpr auto
                                  true> = rocblas_zrotg_strided_batched_fortran;
 
 //rotm
-
 template <typename T, bool FORTRAN = false>
-
-
 static rocblas_status (*rocblas_rotm)(rocblas_handle handle,
                                       rocblas_int    n,
                                       T*             x,
@@ -1710,7 +1482,6 @@ static rocblas_status (*rocblas_rotm)(rocblas_handle handle,
 
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto rocblas_rotm<float> = rocblas_srotm;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto rocblas_rotm<float, true> = rocblas_srotm_fortran;
 
@@ -1721,8 +1492,6 @@ ROCBLAS_CLANG_STATIC constexpr auto rocblas_rotm<double, true> = rocblas_drotm_f
 
 // rotm_batched
 template <typename T, bool FORTRAN = false>
-
-
 static rocblas_status (*rocblas_rotm_batched)(rocblas_handle handle,
                                               rocblas_int    n,
                                               T* const       x[],
@@ -1731,7 +1500,6 @@ static rocblas_status (*rocblas_rotm_batched)(rocblas_handle handle,
                                               rocblas_int    incy,
                                               const T* const param[],
                                               rocblas_int    batch_count);
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto rocblas_rotm_batched<float> = rocblas_srotm_batched;
 template <>
@@ -1746,8 +1514,6 @@ ROCBLAS_CLANG_STATIC constexpr auto
 
 // rotm_strided_batched
 template <typename T, bool FORTRAN = false>
-
-
 static rocblas_status (*rocblas_rotm_strided_batched)(rocblas_handle handle,
                                                       rocblas_int    n,
                                                       T*             x,
@@ -1762,31 +1528,24 @@ static rocblas_status (*rocblas_rotm_strided_batched)(rocblas_handle handle,
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_rotm_strided_batched<float> = rocblas_srotm_strided_batched;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_rotm_strided_batched<float, true> = rocblas_srotm_strided_batched_fortran;
 
-
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_rotm_strided_batched<double> = rocblas_drotm_strided_batched;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_rotm_strided_batched<double, true> = rocblas_drotm_strided_batched_fortran;
 
 //rotmg
 template <typename T, bool FORTRAN = false>
-
-
 static rocblas_status (*rocblas_rotmg)(
     rocblas_handle handle, T* d1, T* d2, T* x1, const T* y1, T* param);
 
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto rocblas_rotmg<float> = rocblas_srotmg;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto rocblas_rotmg<float, true> = rocblas_srotmg_fortran;
 
@@ -1797,8 +1556,6 @@ ROCBLAS_CLANG_STATIC constexpr auto rocblas_rotmg<double, true> = rocblas_drotmg
 
 //rotmg_batched
 template <typename T, bool FORTRAN = false>
-
-
 static rocblas_status (*rocblas_rotmg_batched)(rocblas_handle handle,
                                                T* const       d1[],
                                                T* const       d2[],
@@ -1809,7 +1566,6 @@ static rocblas_status (*rocblas_rotmg_batched)(rocblas_handle handle,
 
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto rocblas_rotmg_batched<float> = rocblas_srotmg_batched;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_rotmg_batched<float, true> = rocblas_srotmg_batched_fortran;
@@ -1822,8 +1578,6 @@ ROCBLAS_CLANG_STATIC constexpr auto
 
 //rotmg_strided_batched
 template <typename T, bool FORTRAN = false>
-
-
 static rocblas_status (*rocblas_rotmg_strided_batched)(rocblas_handle handle,
                                                        T*             d1,
                                                        rocblas_stride stride_d1,
@@ -1840,22 +1594,16 @@ static rocblas_status (*rocblas_rotmg_strided_batched)(rocblas_handle handle,
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_rotmg_strided_batched<float> = rocblas_srotmg_strided_batched;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_rotmg_strided_batched<float, true> = rocblas_srotmg_strided_batched_fortran;
 
-
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_rotmg_strided_batched<double> = rocblas_drotmg_strided_batched;
-
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_rotmg_strided_batched<double, true> = rocblas_drotmg_strided_batched_fortran;
-
-
 
 /*
  * ===========================================================================
