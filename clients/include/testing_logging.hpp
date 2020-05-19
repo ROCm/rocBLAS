@@ -19,15 +19,15 @@
 template <typename T>
 static constexpr auto precision_letter = "*";
 template <>
-static constexpr auto precision_letter<rocblas_half> = "h";
+ROCBLAS_CLANG_STATIC constexpr auto precision_letter<rocblas_half> = "h";
 template <>
-static constexpr auto precision_letter<float> = "s";
+ROCBLAS_CLANG_STATIC constexpr auto precision_letter<float> = "s";
 template <>
-static constexpr auto precision_letter<double> = "d";
+ROCBLAS_CLANG_STATIC constexpr auto precision_letter<double> = "d";
 template <>
-static constexpr auto precision_letter<rocblas_float_complex> = "c";
+ROCBLAS_CLANG_STATIC constexpr auto precision_letter<rocblas_float_complex> = "c";
 template <>
-static constexpr auto precision_letter<rocblas_double_complex> = "z";
+ROCBLAS_CLANG_STATIC constexpr auto precision_letter<rocblas_double_complex> = "z";
 
 // replaces X in string with s, d, c, z or h depending on typename T
 template <typename T>
