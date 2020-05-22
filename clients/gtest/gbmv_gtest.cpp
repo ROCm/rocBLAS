@@ -75,6 +75,11 @@ namespace
             if(GBMV_TYPE == GBMV_STRIDED_BATCHED || GBMV_TYPE == GBMV_BATCHED)
                 name << '_' << arg.batch_count;
 
+            if(arg.fortran)
+            {
+                name << "_F";
+            }
+
             return std::move(name);
         }
     };

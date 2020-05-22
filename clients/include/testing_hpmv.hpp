@@ -20,6 +20,9 @@
 template <typename T>
 void testing_hpmv_bad_arg(const Arguments& arg)
 {
+    const bool FORTRAN         = arg.fortran;
+    auto       rocblas_hpmv_fn = FORTRAN ? rocblas_hpmv<T, true> : rocblas_hpmv<T, false>;
+
     const rocblas_int N    = 100;
     const rocblas_int incx = 1;
     const rocblas_int incy = 1;
@@ -43,30 +46,33 @@ void testing_hpmv_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_hpmv<T>(handle, uplo, N, &alpha, nullptr, dx, incx, &beta, dy, incy),
+        rocblas_hpmv_fn(handle, uplo, N, &alpha, nullptr, dx, incx, &beta, dy, incy),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_hpmv<T>(handle, uplo, N, &alpha, dA, nullptr, incx, &beta, dy, incy),
+        rocblas_hpmv_fn(handle, uplo, N, &alpha, dA, nullptr, incx, &beta, dy, incy),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_hpmv<T>(handle, uplo, N, &alpha, dA, dx, incx, &beta, nullptr, incy),
+        rocblas_hpmv_fn(handle, uplo, N, &alpha, dA, dx, incx, &beta, nullptr, incy),
         rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_hpmv<T>(handle, uplo, N, nullptr, dA, dx, incx, &beta, dy, incy),
+    EXPECT_ROCBLAS_STATUS(rocblas_hpmv_fn(handle, uplo, N, nullptr, dA, dx, incx, &beta, dy, incy),
                           rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_hpmv<T>(handle, uplo, N, &alpha, dA, dx, incx, nullptr, dy, incy),
+    EXPECT_ROCBLAS_STATUS(rocblas_hpmv_fn(handle, uplo, N, &alpha, dA, dx, incx, nullptr, dy, incy),
                           rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_hpmv<T>(nullptr, uplo, N, &alpha, dA, dx, incx, &beta, dy, incy),
+    EXPECT_ROCBLAS_STATUS(rocblas_hpmv_fn(nullptr, uplo, N, &alpha, dA, dx, incx, &beta, dy, incy),
                           rocblas_status_invalid_handle);
 }
 
 template <typename T>
 void testing_hpmv(const Arguments& arg)
 {
+    const bool FORTRAN         = arg.fortran;
+    auto       rocblas_hpmv_fn = FORTRAN ? rocblas_hpmv<T, true> : rocblas_hpmv<T, false>;
+
     rocblas_int  N       = arg.N;
     rocblas_int  incx    = arg.incx;
     rocblas_int  incy    = arg.incy;
@@ -80,7 +86,7 @@ void testing_hpmv(const Arguments& arg)
     if(N < 0 || !incx || !incy)
     {
         EXPECT_ROCBLAS_STATUS(
-            rocblas_hpmv<T>(
+            rocblas_hpmv_fn(
                 handle, uplo, N, nullptr, nullptr, nullptr, incx, nullptr, nullptr, incy),
             rocblas_status_invalid_size);
 
@@ -153,11 +159,11 @@ void testing_hpmv(const Arguments& arg)
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         CHECK_ROCBLAS_ERROR(
-            rocblas_hpmv<T>(handle, uplo, N, &h_alpha, dA, dx, incx, &h_beta, dy_1, incy));
+            rocblas_hpmv_fn(handle, uplo, N, &h_alpha, dA, dx, incx, &h_beta, dy_1, incy));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         CHECK_ROCBLAS_ERROR(
-            rocblas_hpmv<T>(handle, uplo, N, d_alpha, dA, dx, incx, d_beta, dy_2, incy));
+            rocblas_hpmv_fn(handle, uplo, N, d_alpha, dA, dx, incx, d_beta, dy_2, incy));
 
         // copy output from device to CPU
         CHECK_HIP_ERROR(hy_1.transfer_from(dy_1));
@@ -192,14 +198,14 @@ void testing_hpmv(const Arguments& arg)
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            rocblas_hpmv<T>(handle, uplo, N, &h_alpha, dA, dx, incx, &h_beta, dy_1, incy);
+            rocblas_hpmv_fn(handle, uplo, N, &h_alpha, dA, dx, incx, &h_beta, dy_1, incy);
         }
 
         gpu_time_used = get_time_us(); // in microseconds
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            rocblas_hpmv<T>(handle, uplo, N, &h_alpha, dA, dx, incx, &h_beta, dy_1, incy);
+            rocblas_hpmv_fn(handle, uplo, N, &h_alpha, dA, dx, incx, &h_beta, dy_1, incy);
         }
 
         gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;

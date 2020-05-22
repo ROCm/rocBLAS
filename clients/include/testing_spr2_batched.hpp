@@ -16,8 +16,12 @@
 #include "utility.hpp"
 
 template <typename T>
-void testing_spr2_batched_bad_arg()
+void testing_spr2_batched_bad_arg(const Arguments& arg)
 {
+    const bool FORTRAN = arg.fortran;
+    auto       rocblas_spr2_batched_fn
+        = FORTRAN ? rocblas_spr2_batched<T, true> : rocblas_spr2_batched<T, false>;
+
     rocblas_fill         uplo        = rocblas_fill_upper;
     rocblas_int          N           = 100;
     rocblas_int          incx        = 1;
@@ -37,30 +41,34 @@ void testing_spr2_batched_bad_arg()
     CHECK_DEVICE_ALLOCATION(dA_1.memcheck());
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_spr2_batched<T>(
+        rocblas_spr2_batched_fn(
             handle, rocblas_fill_full, N, &alpha, dx, incx, dy, incy, dA_1, batch_count),
         rocblas_status_invalid_value);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_spr2_batched<T>(
+    EXPECT_ROCBLAS_STATUS(rocblas_spr2_batched_fn(
                               handle, uplo, N, &alpha, nullptr, incx, dy, incy, dA_1, batch_count),
                           rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_spr2_batched<T>(
+    EXPECT_ROCBLAS_STATUS(rocblas_spr2_batched_fn(
                               handle, uplo, N, &alpha, dx, incx, nullptr, incy, dA_1, batch_count),
                           rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_spr2_batched<T>(handle, uplo, N, &alpha, dx, incx, dy, incy, nullptr, batch_count),
+        rocblas_spr2_batched_fn(handle, uplo, N, &alpha, dx, incx, dy, incy, nullptr, batch_count),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_spr2_batched<T>(nullptr, uplo, N, &alpha, dx, incx, dy, incy, dA_1, batch_count),
+        rocblas_spr2_batched_fn(nullptr, uplo, N, &alpha, dx, incx, dy, incy, dA_1, batch_count),
         rocblas_status_invalid_handle);
 }
 
 template <typename T>
 void testing_spr2_batched(const Arguments& arg)
 {
+    const bool FORTRAN = arg.fortran;
+    auto       rocblas_spr2_batched_fn
+        = FORTRAN ? rocblas_spr2_batched<T, true> : rocblas_spr2_batched<T, false>;
+
     rocblas_int  N           = arg.N;
     rocblas_int  incx        = arg.incx;
     rocblas_int  incy        = arg.incy;
@@ -75,7 +83,7 @@ void testing_spr2_batched(const Arguments& arg)
     if(invalid_size || !N || !batch_count)
     {
         EXPECT_ROCBLAS_STATUS(
-            rocblas_spr2_batched<T>(
+            rocblas_spr2_batched_fn(
                 handle, uplo, N, nullptr, nullptr, incx, nullptr, incy, nullptr, batch_count),
             invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
         return;
@@ -132,7 +140,7 @@ void testing_spr2_batched(const Arguments& arg)
     if(arg.unit_check || arg.norm_check)
     {
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR(rocblas_spr2_batched<T>(handle,
+        CHECK_ROCBLAS_ERROR(rocblas_spr2_batched_fn(handle,
                                                     uplo,
                                                     N,
                                                     &h_alpha,
@@ -144,7 +152,7 @@ void testing_spr2_batched(const Arguments& arg)
                                                     batch_count));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR(rocblas_spr2_batched<T>(handle,
+        CHECK_ROCBLAS_ERROR(rocblas_spr2_batched_fn(handle,
                                                     uplo,
                                                     N,
                                                     d_alpha,
@@ -189,7 +197,7 @@ void testing_spr2_batched(const Arguments& arg)
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            rocblas_spr2_batched<T>(handle,
+            rocblas_spr2_batched_fn(handle,
                                     uplo,
                                     N,
                                     &h_alpha,
@@ -205,7 +213,7 @@ void testing_spr2_batched(const Arguments& arg)
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            rocblas_spr2_batched<T>(handle,
+            rocblas_spr2_batched_fn(handle,
                                     uplo,
                                     N,
                                     &h_alpha,

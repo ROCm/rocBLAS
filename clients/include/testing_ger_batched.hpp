@@ -18,6 +18,12 @@
 template <typename T, bool CONJ>
 void testing_ger_batched_bad_arg(const Arguments& arg)
 {
+    const bool FORTRAN = arg.fortran;
+    auto       rocblas_ger_batched_fn
+        = FORTRAN
+              ? (CONJ ? rocblas_ger_batched<T, true, true> : rocblas_ger_batched<T, false, true>)
+              : (CONJ ? rocblas_ger_batched<T, true, false> : rocblas_ger_batched<T, false, false>);
+
     rocblas_int       M           = 100;
     rocblas_int       N           = 100;
     rocblas_int       incx        = 1;
@@ -38,59 +44,65 @@ void testing_ger_batched_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
-    EXPECT_ROCBLAS_STATUS((rocblas_ger_batched<T, CONJ>(handle,
-                                                        M,
-                                                        N,
-                                                        &alpha,
-                                                        nullptr,
-                                                        incx,
-                                                        dy.ptr_on_device(),
-                                                        incy,
-                                                        dA.ptr_on_device(),
-                                                        lda,
-                                                        batch_count)),
+    EXPECT_ROCBLAS_STATUS((rocblas_ger_batched_fn(handle,
+                                                  M,
+                                                  N,
+                                                  &alpha,
+                                                  nullptr,
+                                                  incx,
+                                                  dy.ptr_on_device(),
+                                                  incy,
+                                                  dA.ptr_on_device(),
+                                                  lda,
+                                                  batch_count)),
                           rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS((rocblas_ger_batched<T, CONJ>(handle,
-                                                        M,
-                                                        N,
-                                                        &alpha,
-                                                        dx.ptr_on_device(),
-                                                        incx,
-                                                        nullptr,
-                                                        incy,
-                                                        dA.ptr_on_device(),
-                                                        lda,
-                                                        batch_count)),
+    EXPECT_ROCBLAS_STATUS((rocblas_ger_batched_fn(handle,
+                                                  M,
+                                                  N,
+                                                  &alpha,
+                                                  dx.ptr_on_device(),
+                                                  incx,
+                                                  nullptr,
+                                                  incy,
+                                                  dA.ptr_on_device(),
+                                                  lda,
+                                                  batch_count)),
                           rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS((rocblas_ger_batched<T, CONJ>(handle,
-                                                        M,
-                                                        N,
-                                                        &alpha,
-                                                        dx.ptr_on_device(),
-                                                        incx,
-                                                        dy.ptr_on_device(),
-                                                        incy,
-                                                        nullptr,
-                                                        lda,
-                                                        batch_count)),
+    EXPECT_ROCBLAS_STATUS((rocblas_ger_batched_fn(handle,
+                                                  M,
+                                                  N,
+                                                  &alpha,
+                                                  dx.ptr_on_device(),
+                                                  incx,
+                                                  dy.ptr_on_device(),
+                                                  incy,
+                                                  nullptr,
+                                                  lda,
+                                                  batch_count)),
                           rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS((rocblas_ger_batched<T, CONJ>(nullptr,
-                                                        M,
-                                                        N,
-                                                        &alpha,
-                                                        dx.ptr_on_device(),
-                                                        incx,
-                                                        dy.ptr_on_device(),
-                                                        incy,
-                                                        dA.ptr_on_device(),
-                                                        lda,
-                                                        batch_count)),
+    EXPECT_ROCBLAS_STATUS((rocblas_ger_batched_fn(nullptr,
+                                                  M,
+                                                  N,
+                                                  &alpha,
+                                                  dx.ptr_on_device(),
+                                                  incx,
+                                                  dy.ptr_on_device(),
+                                                  incy,
+                                                  dA.ptr_on_device(),
+                                                  lda,
+                                                  batch_count)),
                           rocblas_status_invalid_handle);
 }
 
 template <typename T, bool CONJ>
 void testing_ger_batched(const Arguments& arg)
 {
+    const bool FORTRAN = arg.fortran;
+    auto       rocblas_ger_batched_fn
+        = FORTRAN
+              ? (CONJ ? rocblas_ger_batched<T, true, true> : rocblas_ger_batched<T, false, true>)
+              : (CONJ ? rocblas_ger_batched<T, true, false> : rocblas_ger_batched<T, false, false>);
+
     rocblas_int M           = arg.M;
     rocblas_int N           = arg.N;
     rocblas_int incx        = arg.incx;
@@ -106,7 +118,7 @@ void testing_ger_batched(const Arguments& arg)
     if(invalid_size || !M || !N || !batch_count)
     {
         EXPECT_ROCBLAS_STATUS(
-            (rocblas_ger_batched<T, CONJ>(
+            (rocblas_ger_batched_fn(
                 handle, M, N, nullptr, nullptr, incx, nullptr, incy, nullptr, lda, batch_count)),
 
             invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
@@ -163,30 +175,30 @@ void testing_ger_batched(const Arguments& arg)
         CHECK_HIP_ERROR(d_alpha.transfer_from(halpha));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR((rocblas_ger_batched<T, CONJ>(handle,
-                                                          M,
-                                                          N,
-                                                          &h_alpha,
-                                                          dx.ptr_on_device(),
-                                                          incx,
-                                                          dy.ptr_on_device(),
-                                                          incy,
-                                                          dA_1.ptr_on_device(),
-                                                          lda,
-                                                          batch_count)));
+        CHECK_ROCBLAS_ERROR((rocblas_ger_batched_fn(handle,
+                                                    M,
+                                                    N,
+                                                    &h_alpha,
+                                                    dx.ptr_on_device(),
+                                                    incx,
+                                                    dy.ptr_on_device(),
+                                                    incy,
+                                                    dA_1.ptr_on_device(),
+                                                    lda,
+                                                    batch_count)));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR((rocblas_ger_batched<T, CONJ>(handle,
-                                                          M,
-                                                          N,
-                                                          d_alpha,
-                                                          dx.ptr_on_device(),
-                                                          incx,
-                                                          dy.ptr_on_device(),
-                                                          incy,
-                                                          dA_2.ptr_on_device(),
-                                                          lda,
-                                                          batch_count)));
+        CHECK_ROCBLAS_ERROR((rocblas_ger_batched_fn(handle,
+                                                    M,
+                                                    N,
+                                                    d_alpha,
+                                                    dx.ptr_on_device(),
+                                                    incx,
+                                                    dy.ptr_on_device(),
+                                                    incy,
+                                                    dA_2.ptr_on_device(),
+                                                    lda,
+                                                    batch_count)));
 
         // copy output from device to CPU
         CHECK_HIP_ERROR(hA_1.transfer_from(dA_1));
@@ -231,34 +243,34 @@ void testing_ger_batched(const Arguments& arg)
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            rocblas_ger_batched<T, CONJ>(handle,
-                                         M,
-                                         N,
-                                         &h_alpha,
-                                         dx.ptr_on_device(),
-                                         incx,
-                                         dy.ptr_on_device(),
-                                         incy,
-                                         dA_1.ptr_on_device(),
-                                         lda,
-                                         batch_count);
+            rocblas_ger_batched_fn(handle,
+                                   M,
+                                   N,
+                                   &h_alpha,
+                                   dx.ptr_on_device(),
+                                   incx,
+                                   dy.ptr_on_device(),
+                                   incy,
+                                   dA_1.ptr_on_device(),
+                                   lda,
+                                   batch_count);
         }
 
         gpu_time_used = get_time_us(); // in microseconds
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            rocblas_ger_batched<T, CONJ>(handle,
-                                         M,
-                                         N,
-                                         &h_alpha,
-                                         dx.ptr_on_device(),
-                                         incx,
-                                         dy.ptr_on_device(),
-                                         incy,
-                                         dA_1.ptr_on_device(),
-                                         lda,
-                                         batch_count);
+            rocblas_ger_batched_fn(handle,
+                                   M,
+                                   N,
+                                   &h_alpha,
+                                   dx.ptr_on_device(),
+                                   incx,
+                                   dy.ptr_on_device(),
+                                   incy,
+                                   dA_1.ptr_on_device(),
+                                   lda,
+                                   batch_count);
         }
 
         gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;

@@ -17,8 +17,12 @@
 #include "utility.hpp"
 
 template <typename T>
-void testing_syr2_strided_batched_bad_arg()
+void testing_syr2_strided_batched_bad_arg(const Arguments& arg)
 {
+    const bool FORTRAN = arg.fortran;
+    auto       rocblas_syr2_strided_batched_fn
+        = FORTRAN ? rocblas_syr2_strided_batched<T, true> : rocblas_syr2_strided_batched<T, false>;
+
     rocblas_fill uplo        = rocblas_fill_upper;
     rocblas_int  N           = 100;
     rocblas_int  incx        = 1;
@@ -43,7 +47,7 @@ void testing_syr2_strided_batched_bad_arg()
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
-    EXPECT_ROCBLAS_STATUS(rocblas_syr2_strided_batched<T>(handle,
+    EXPECT_ROCBLAS_STATUS(rocblas_syr2_strided_batched_fn(handle,
                                                           rocblas_fill_full,
                                                           N,
                                                           &alpha,
@@ -59,7 +63,7 @@ void testing_syr2_strided_batched_bad_arg()
                                                           batch_count),
                           rocblas_status_invalid_value);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_syr2_strided_batched<T>(handle,
+    EXPECT_ROCBLAS_STATUS(rocblas_syr2_strided_batched_fn(handle,
                                                           uplo,
                                                           N,
                                                           nullptr,
@@ -75,7 +79,7 @@ void testing_syr2_strided_batched_bad_arg()
                                                           batch_count),
                           rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_syr2_strided_batched<T>(handle,
+    EXPECT_ROCBLAS_STATUS(rocblas_syr2_strided_batched_fn(handle,
                                                           uplo,
                                                           N,
                                                           &alpha,
@@ -91,7 +95,7 @@ void testing_syr2_strided_batched_bad_arg()
                                                           batch_count),
                           rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_syr2_strided_batched<T>(handle,
+    EXPECT_ROCBLAS_STATUS(rocblas_syr2_strided_batched_fn(handle,
                                                           uplo,
                                                           N,
                                                           &alpha,
@@ -107,7 +111,7 @@ void testing_syr2_strided_batched_bad_arg()
                                                           batch_count),
                           rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_syr2_strided_batched<T>(handle,
+    EXPECT_ROCBLAS_STATUS(rocblas_syr2_strided_batched_fn(handle,
                                                           uplo,
                                                           N,
                                                           &alpha,
@@ -123,7 +127,7 @@ void testing_syr2_strided_batched_bad_arg()
                                                           batch_count),
                           rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_syr2_strided_batched<T>(nullptr,
+    EXPECT_ROCBLAS_STATUS(rocblas_syr2_strided_batched_fn(nullptr,
                                                           uplo,
                                                           N,
                                                           &alpha,
@@ -143,6 +147,10 @@ void testing_syr2_strided_batched_bad_arg()
 template <typename T>
 void testing_syr2_strided_batched(const Arguments& arg)
 {
+    const bool FORTRAN = arg.fortran;
+    auto       rocblas_syr2_strided_batched_fn
+        = FORTRAN ? rocblas_syr2_strided_batched<T, true> : rocblas_syr2_strided_batched<T, false>;
+
     rocblas_int    N           = arg.N;
     rocblas_int    incx        = arg.incx;
     rocblas_int    incy        = arg.incy;
@@ -160,7 +168,7 @@ void testing_syr2_strided_batched(const Arguments& arg)
     bool invalid_size = N < 0 || lda < N || lda < 1 || !incx || !incy || batch_count < 0;
     if(invalid_size || !N || !batch_count)
     {
-        EXPECT_ROCBLAS_STATUS(rocblas_syr2_strided_batched<T>(handle,
+        EXPECT_ROCBLAS_STATUS(rocblas_syr2_strided_batched_fn(handle,
                                                               uplo,
                                                               N,
                                                               nullptr,
@@ -223,7 +231,7 @@ void testing_syr2_strided_batched(const Arguments& arg)
     if(arg.unit_check || arg.norm_check)
     {
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR(rocblas_syr2_strided_batched<T>(handle,
+        CHECK_ROCBLAS_ERROR(rocblas_syr2_strided_batched_fn(handle,
                                                             uplo,
                                                             N,
                                                             &h_alpha,
@@ -239,7 +247,7 @@ void testing_syr2_strided_batched(const Arguments& arg)
                                                             batch_count));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR(rocblas_syr2_strided_batched<T>(handle,
+        CHECK_ROCBLAS_ERROR(rocblas_syr2_strided_batched_fn(handle,
                                                             uplo,
                                                             N,
                                                             d_alpha,
@@ -298,7 +306,7 @@ void testing_syr2_strided_batched(const Arguments& arg)
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            rocblas_syr2_strided_batched<T>(handle,
+            rocblas_syr2_strided_batched_fn(handle,
                                             uplo,
                                             N,
                                             &h_alpha,
@@ -318,7 +326,7 @@ void testing_syr2_strided_batched(const Arguments& arg)
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            rocblas_syr2_strided_batched<T>(handle,
+            rocblas_syr2_strided_batched_fn(handle,
                                             uplo,
                                             N,
                                             &h_alpha,

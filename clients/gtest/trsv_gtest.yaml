@@ -46,8 +46,17 @@ Tests:
   transA: N
   diag: N
   matrix_size: *special_case_range
+  fortran: [ false, true ]
 
 # Regular trsv
+- name: trsv_fortran
+  category: quick
+  function: trsv
+  arguments: *common_args
+  matrix_size: *small_matrix_size_range
+  incx: [ 2 ]
+  fortran: true
+
 - name: trsv_small
   category: quick
   function: trsv
@@ -70,6 +79,15 @@ Tests:
   incx: [ 2 ]
 
 # trsv_batched
+- name: trsv_batched_fortran
+  category: quick
+  function: trsv_batched
+  arguments: *common_args
+  matrix_size: *small_matrix_size_range
+  incx: [ 2 ]
+  batch_count: [ -1, 0, 3 ]
+  fortran: true
+
 - name: trsv_batched_small
   category: quick
   function: trsv_batched
@@ -96,6 +114,16 @@ Tests:
   batch_count: [ 3 ]
 
 # trsv_strided_batched
+- name: trsv_strided_batched_fortran
+  category: quick
+  function: trsv_strided_batched
+  arguments: *common_args
+  matrix_size: *small_matrix_size_range
+  incx: [ 2 ]
+  batch_count: [ -1, 0, 3 ]
+  stride_scale: [ 2 ]
+  fortran: true
+
 - name: trsv_strided_batched_small
   category: quick
   function: trsv_strided_batched

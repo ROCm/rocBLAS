@@ -75,6 +75,12 @@ namespace
                 if(HER2_TYPE == HER2_STRIDED_BATCHED || HER2_TYPE == HER2_BATCHED)
                     name << '_' << arg.batch_count;
             }
+
+            if(arg.fortran)
+            {
+                name << "_F";
+            }
+
             return std::move(name);
         }
     };
@@ -99,15 +105,15 @@ namespace
             if(!strcmp(arg.function, "her2"))
                 testing_her2<T>(arg);
             else if(!strcmp(arg.function, "her2_bad_arg"))
-                testing_her2_bad_arg<T>();
+                testing_her2_bad_arg<T>(arg);
             else if(!strcmp(arg.function, "her2_batched"))
                 testing_her2_batched<T>(arg);
             else if(!strcmp(arg.function, "her2_batched_bad_arg"))
-                testing_her2_batched_bad_arg<T>();
+                testing_her2_batched_bad_arg<T>(arg);
             else if(!strcmp(arg.function, "her2_strided_batched"))
                 testing_her2_strided_batched<T>(arg);
             else if(!strcmp(arg.function, "her2_strided_batched_bad_arg"))
-                testing_her2_strided_batched_bad_arg<T>();
+                testing_her2_strided_batched_bad_arg<T>(arg);
             else
                 FAIL() << "Internal error: Test called with unknown function: " << arg.function;
         }
