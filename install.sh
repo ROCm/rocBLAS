@@ -22,7 +22,7 @@ rocBLAS build & installation helper script
       -o | --cov                 Set Tensile code_object_version (V2 or V3)
       -t | --test_local_path     Use a local path for Tensile instead of remote GIT repo
            --cpu_ref_lib         Specify library to use for CPU reference code in testing (blis or lapack)
-           --[no-]hip-clang      Whether to build library for amdgpu backend using hip-clang
+           --hip-clang           Whether to build library for amdgpu backend using hip-clang
            --[no-]merge-files    Whether to enable Tensile_MERGE_FILES (default is enable)
            --build_dir           Specify name of output directory (default is ./build)
       -n | --no-tensile          Build subset of library that does not require Tensile
@@ -165,23 +165,19 @@ install_packages( )
     library_dependencies_centos_rhel+=( "llvm7.0-devel" "llvm7.0-static" )
   fi
 
-  if [[ "${build_hip_clang}" == false ]]; then
-    # Installing rocm-dev installs hip-hcc, which overwrites the hip-vdi runtime
+  if [[ -z ${custom_rocm_dev+foo} ]]; then
+  # Install base rocm-dev package unless -v/--rocm-dev flag is passed
+    library_dependencies_ubuntu+=( "rocm-dev" )
+    library_dependencies_centos+=( "rocm-dev" )
+    library_dependencies_fedora+=( "rocm-dev" )
+    library_dependencies_sles+=( "rocm-dev" )
 
-    if [[ -z ${custom_rocm_dev+foo} ]]; then
-    # Install base rocm-dev package unless -v/--rocm-dev flag is passed
-      library_dependencies_ubuntu+=( "rocm-dev" )
-      library_dependencies_centos+=( "rocm-dev" )
-      library_dependencies_fedora+=( "rocm-dev" )
-      library_dependencies_sles+=( "rocm-dev" )
-
-    else
-    # Install rocm-specific rocm-dev package
-      library_dependencies_ubuntu+=( "${custom_rocm_dev}" )
-      library_dependencies_centos+=( "${custom_rocm_dev}" )
-      library_dependencies_fedora+=( "${custom_rocm_dev}" )
-      library_dependencies_sles+=( "${custom_rocm_dev}" )
-    fi
+  else
+  # Install rocm-specific rocm-dev package
+    library_dependencies_ubuntu+=( "${custom_rocm_dev}" )
+    library_dependencies_centos+=( "${custom_rocm_dev}" )
+    library_dependencies_fedora+=( "${custom_rocm_dev}" )
+    library_dependencies_sles+=( "${custom_rocm_dev}" )
   fi
 
   # dependencies to build the client
@@ -308,7 +304,7 @@ fi
 # check if we have a modern version of getopt that can handle whitespace and long parameters
 getopt -T
 if [[ $? -eq 4 ]]; then
-  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,no-hip-clang,merge-files,no-merge-files,no_tensile,no-tensile,tensile-host,no-tensile-host,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,static,ignore-cuda,rocm-dev: --options nsrhicdgl:a:o:f:b:t:u:v: -- "$@")
+  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,merge-files,no-merge-files,no_tensile,no-tensile,tensile-host,no-tensile-host,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,static,ignore-cuda,rocm-dev: --options nsrhicdgl:a:o:f:b:t:u:v: -- "$@")
 else
   echo "Need a new version of getopt"
   exit 1
@@ -377,9 +373,6 @@ while true; do
         shift 2 ;;
     --hip-clang)
         build_hip_clang=true
-        shift ;;
-    --no-hip-clang)
-        build_hip_clang=false
         shift ;;
     --merge-files)
         tensile_merge_files=true
@@ -500,13 +493,8 @@ elif [[ "${build_clients}" == true ]]; then
   popd
 fi
 
-# If user provides custom ${rocm_path} path for hcc it has lesser priority,
-# but with hip-clang existing path has lesser priority to avoid use of installed clang++ by tensile
-if [[ "${build_hip_clang}" == true ]]; then
-  export PATH=${rocm_path}/bin:${rocm_path}/hip/bin:${rocm_path}/llvm/bin:${PATH}
-else
-  export PATH=${PATH}:${rocm_path}/bin:${rocm_path}/hip/bin:${rocm_path}/hcc/bin
-fi
+# With hip-clang existing path has lesser priority to avoid use of installed clang++ by tensile
+export PATH=${rocm_path}/bin:${rocm_path}/hip/bin:${rocm_path}/llvm/bin:${PATH}
 
 pushd .
   # #################################################
@@ -577,11 +565,8 @@ pushd .
       cmake_common_options="${cmake_common_options} -DRUN_HEADER_TESTING=OFF"
   fi
 
-  compiler="hcc"
-  if [[ "${build_hip_clang}" == true ]]; then
-    compiler="hipcc"
-    cmake_common_options="${cmake_common_options} -DTensile_COMPILER=hipcc"
-  fi
+  compiler="hipcc"
+  cmake_common_options="${cmake_common_options} -DTensile_COMPILER=hipcc"
 
   if [[ "${ignore_cuda}" == true ]]; then
     cmake_common_options="${cmake_common_options} -DIGNORE_CUDA=ON"

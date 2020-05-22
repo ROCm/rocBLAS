@@ -93,12 +93,8 @@ if( OS_ID_rhel OR OS_ID_sles OR OS_ID_centos)
     endif()
 
     message(STATUS "RocmPath: ${ROCM_PATH}")
-    if(EXISTS ${ROCM_PATH}/llvm/lib/clang/11.0.0/include/immintrin.h AND CMAKE_CXX_COMPILER MATCHES ".*/hcc$|.*/hipcc$" )
+    if(EXISTS ${ROCM_PATH}/llvm/lib/clang/11.0.0/include/immintrin.h AND CMAKE_CXX_COMPILER MATCHES ".*/hipcc$" )
         set( CLANG_INCLUDE_DIR ${ROCM_PATH}/llvm/lib/clang/11.0.0/include )
-    elseif (EXISTS ${ROCM_PATH}/hcc/lib/clang/10.0.0/include/immintrin.h AND CMAKE_CXX_COMPILER MATCHES ".*/hcc$|.*/hipcc$" )
-        set( CLANG_INCLUDE_DIR ${ROCM_PATH}/hcc/lib/clang/10.0.0/include )
-    elseif (EXISTS ${ROCM_PATH}/hcc/lib/clang/9.0.0/include/immintrin.h AND CMAKE_CXX_COMPILER MATCHES ".*/hcc$|.*/hipcc$")
-        set( CLANG_INCLUDE_DIR ${ROCM_PATH}/hcc/lib/clang/9.0.0/include )
     else()
         set( CLANG_INCLUDE_DIR )
     endif()
@@ -152,12 +148,7 @@ else( )
   target_link_libraries( rocblas-bench PRIVATE hip::device )
 endif( )
 
-if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
-  # Remove following when hcc is fixed; hcc emits following spurious warning ROCm v1.6.1
-  # "clang-5.0: warning: argument unused during compilation: '-isystem ${ROCM_PATH}/include'"
-  target_compile_options( rocblas-bench PRIVATE -Wno-unused-command-line-argument -mf16c )
-  target_include_directories( rocblas-bench PRIVATE ${ROCM_PATH}/hsa/include)
-elseif( CMAKE_COMPILER_IS_GNUCXX OR CXX_VERSION_STRING MATCHES "clang")
+if( CMAKE_COMPILER_IS_GNUCXX OR CXX_VERSION_STRING MATCHES "clang")
   # GCC or hip-clang needs specific flags to turn on f16c intrinsics
   target_compile_options( rocblas-bench PRIVATE -mf16c )
 endif( )
