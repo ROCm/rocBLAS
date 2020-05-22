@@ -50,6 +50,7 @@ Tests:
   - spr2_bad_arg: *single_double_precisions
   - spr2_batched_bad_arg: *single_double_precisions
   - spr2_strided_batched_bad_arg: *single_double_precisions
+  fortran: [ false, true ]
 
 - name: spr2_arg_check
   category: quick
@@ -59,6 +60,16 @@ Tests:
   - spr2_strided_batched: *single_double_precisions
   uplo: L
   matrix_size: *special_case_range
+
+- name: spr2_fortran
+  category: quick
+  function: spr2
+  precision: *single_double_precisions
+  uplo: [ U, L ]
+  matrix_size: *small_matrix_size_range
+  incx_incy: *incx_incy_range_small
+  alpha: [ 2.0 ]
+  fortran: true
 
 - name: spr2_small
   category: quick
@@ -88,6 +99,16 @@ Tests:
   alpha: [ 1000.6 ]
 
 # batched
+- name: spr2_batched_fortran
+  category: quick
+  function: spr2_batched
+  precision: *single_double_precisions
+  uplo: [ U, L ]
+  matrix_size: *small_matrix_size_range
+  incx_incy: *incx_incy_range_small
+  alpha: [ 2.0 ]
+  batch_count: [ -1, 0, 3 ]
+  fortran: true
 
 - name: spr2_batched_small
   category: quick
@@ -120,6 +141,17 @@ Tests:
   batch_count: [ 1, 3 ]
 
 # strided batched
+- name: spr2_strided_batched_fortran
+  category: quick
+  function: spr2_strided_batched
+  precision: *single_double_precisions
+  uplo: [ U, L ]
+  matrix_size: *small_matrix_size_range
+  incx_incy: *incx_incy_range_small
+  alpha: [ 2.0 ]
+  batch_count: [ -1, 0, 3 ]
+  stride_scale: [ 2 ]
+  fortran: true
 
 - name: spr2_strided_batched_small
   category: quick

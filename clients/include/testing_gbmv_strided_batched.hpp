@@ -19,6 +19,10 @@
 template <typename T>
 void testing_gbmv_strided_batched_bad_arg(const Arguments& arg)
 {
+    const bool FORTRAN = arg.fortran;
+    auto       rocblas_gbmv_strided_batched_fn
+        = FORTRAN ? rocblas_gbmv_strided_batched<T, true> : rocblas_gbmv_strided_batched<T, false>;
+
     const rocblas_int       M           = 100;
     const rocblas_int       N           = 100;
     const rocblas_int       KL          = 5;
@@ -45,7 +49,7 @@ void testing_gbmv_strided_batched_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
-    EXPECT_ROCBLAS_STATUS(rocblas_gbmv_strided_batched<T>(handle,
+    EXPECT_ROCBLAS_STATUS(rocblas_gbmv_strided_batched_fn(handle,
                                                           transA,
                                                           M,
                                                           N,
@@ -65,7 +69,7 @@ void testing_gbmv_strided_batched_bad_arg(const Arguments& arg)
                                                           batch_count),
                           rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_gbmv_strided_batched<T>(handle,
+    EXPECT_ROCBLAS_STATUS(rocblas_gbmv_strided_batched_fn(handle,
                                                           transA,
                                                           M,
                                                           N,
@@ -85,7 +89,7 @@ void testing_gbmv_strided_batched_bad_arg(const Arguments& arg)
                                                           batch_count),
                           rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_gbmv_strided_batched<T>(handle,
+    EXPECT_ROCBLAS_STATUS(rocblas_gbmv_strided_batched_fn(handle,
                                                           transA,
                                                           M,
                                                           N,
@@ -105,7 +109,7 @@ void testing_gbmv_strided_batched_bad_arg(const Arguments& arg)
                                                           batch_count),
                           rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_gbmv_strided_batched<T>(handle,
+    EXPECT_ROCBLAS_STATUS(rocblas_gbmv_strided_batched_fn(handle,
                                                           transA,
                                                           M,
                                                           N,
@@ -125,7 +129,7 @@ void testing_gbmv_strided_batched_bad_arg(const Arguments& arg)
                                                           batch_count),
                           rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_gbmv_strided_batched<T>(handle,
+    EXPECT_ROCBLAS_STATUS(rocblas_gbmv_strided_batched_fn(handle,
                                                           transA,
                                                           M,
                                                           N,
@@ -145,7 +149,7 @@ void testing_gbmv_strided_batched_bad_arg(const Arguments& arg)
                                                           batch_count),
                           rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_gbmv_strided_batched<T>(nullptr,
+    EXPECT_ROCBLAS_STATUS(rocblas_gbmv_strided_batched_fn(nullptr,
                                                           transA,
                                                           M,
                                                           N,
@@ -169,6 +173,10 @@ void testing_gbmv_strided_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_gbmv_strided_batched(const Arguments& arg)
 {
+    const bool FORTRAN = arg.fortran;
+    auto       rocblas_gbmv_strided_batched_fn
+        = FORTRAN ? rocblas_gbmv_strided_batched<T, true> : rocblas_gbmv_strided_batched<T, false>;
+
     rocblas_int       M           = arg.M;
     rocblas_int       N           = arg.N;
     rocblas_int       KL          = arg.KL;
@@ -207,7 +215,7 @@ void testing_gbmv_strided_batched(const Arguments& arg)
                         || batch_count < 0;
     if(invalid_size || !M || !N || !batch_count)
     {
-        EXPECT_ROCBLAS_STATUS(rocblas_gbmv_strided_batched<T>(handle,
+        EXPECT_ROCBLAS_STATUS(rocblas_gbmv_strided_batched_fn(handle,
                                                               transA,
                                                               M,
                                                               N,
@@ -295,7 +303,7 @@ void testing_gbmv_strided_batched(const Arguments& arg)
         CHECK_HIP_ERROR(d_beta.transfer_from(hbeta));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR(rocblas_gbmv_strided_batched<T>(handle,
+        CHECK_ROCBLAS_ERROR(rocblas_gbmv_strided_batched_fn(handle,
                                                             transA,
                                                             M,
                                                             N,
@@ -315,7 +323,7 @@ void testing_gbmv_strided_batched(const Arguments& arg)
                                                             batch_count));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR(rocblas_gbmv_strided_batched<T>(handle,
+        CHECK_ROCBLAS_ERROR(rocblas_gbmv_strided_batched_fn(handle,
                                                             transA,
                                                             M,
                                                             N,
@@ -372,7 +380,7 @@ void testing_gbmv_strided_batched(const Arguments& arg)
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            rocblas_gbmv_strided_batched<T>(handle,
+            rocblas_gbmv_strided_batched_fn(handle,
                                             transA,
                                             M,
                                             N,
@@ -396,7 +404,7 @@ void testing_gbmv_strided_batched(const Arguments& arg)
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            rocblas_gbmv_strided_batched<T>(handle,
+            rocblas_gbmv_strided_batched_fn(handle,
                                             transA,
                                             M,
                                             N,

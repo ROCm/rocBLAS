@@ -45,6 +45,7 @@ Tests:
   category: pre_checkin
   function: spmv_bad_arg
   precision: *single_precision
+  fortran: [ false, true ]
 
 - name: spmv_arg_check
   category: quick
@@ -55,6 +56,16 @@ Tests:
   precision: *single_double_precisions
   uplo: L
   matrix_size: *special_case_range
+
+- name: spmv_fortran
+  category: quick
+  function: spmv
+  precision: *single_double_precisions
+  uplo: [ U, L ]
+  matrix_size: *medium_matrix_size_range
+  incx_incy: *incx_incy_range_small
+  alpha_beta: *alpha_beta_range_small
+  fortran: true
 
 - name: spmv_medium
   category: pre_checkin
@@ -79,6 +90,18 @@ Tests:
   category: pre_checkin
   function: spmv_batched_bad_arg
   precision: *single_precision
+  fortran: [ false, true ]
+
+- name: spmv_batched_fortran
+  category: quick
+  function: spmv_batched
+  precision: *single_double_precisions
+  uplo: [ U, L ]
+  matrix_size: *medium_matrix_size_range
+  incx_incy: *incx_incy_range_small
+  alpha_beta: *alpha_beta_range_small
+  batch_count: [ -1, 0, 3 ]
+  fortran: true
 
 - name: spmv_batched_medium
   category: pre_checkin
@@ -105,6 +128,18 @@ Tests:
   category: pre_checkin
   function: spmv_strided_batched_bad_arg
   precision: *single_precision
+  fortran: [ false, true ]
+
+- name: spmv_strided_batched_fortran
+  category: quick
+  function: spmv_strided_batched
+  precision: *single_double_precisions
+  uplo: [ U, L ]
+  matrix_size: *medium_matrix_size_range
+  incx_incy: *incx_incy_range_small
+  alpha_beta: *alpha_beta_range_small
+  batch_count: [ -1, 0, 3 ]
+  fortran: true
 
 - name: spmv_strided_batched_medium
   category: pre_checkin
