@@ -44,11 +44,11 @@ if ! [ -z ${ROCM_PATH+x} ]; then
     rocm_path=${ROCM_PATH}
 fi
 
-HCC=${rocm_path}/hcc/bin/hcc
+HIPCC=${rocm_path}/hip/bin/hipcc
 
-HCC_OPTS="-Werror -DBUILD_WITH_TENSILE=1 -DTensile_RUNTIME_LANGUAGE_HIP=1 -DTensile_RUNTIME_LANGUAGE_OCL=0 -Drocblas_EXPORTS -I$(realpath library/include) -I$(realpath library/src/include) -I$(realpath $BUILD_DIR/include) -I$(realpath $SOURCE_DIR/library/src/blas3/Tensile) -isystem ${rocm_path}/hip/include -isystem ${rocm_path}/hsa/include -isystem ${rocm_path}/hcc/include -isystem ${rocm_path}/include -I$(realpath $BUILD_DIR/Tensile) -O3 -DNDEBUG -fPIC"
+HIPCC_OPTS="-Werror -DBUILD_WITH_TENSILE=1 -DTensile_RUNTIME_LANGUAGE_HIP=1 -DTensile_RUNTIME_LANGUAGE_OCL=0 -Drocblas_EXPORTS -I$(realpath library/include) -I$(realpath library/src/include) -I$(realpath $BUILD_DIR/include) -I$(realpath $SOURCE_DIR/library/src/blas3/Tensile) -isystem ${rocm_path}/hip/include -isystem ${rocm_path}/include -I$(realpath $BUILD_DIR/Tensile) -O3 -DNDEBUG -fPIC"
 
-GPU_OPTS="-Wno-unused-command-line-argument -fvisibility=hidden -fvisibility-inlines-hidden -hc -fno-gpu-rdc --amdgpu-target=gfx803 --amdgpu-target=gfx900 --amdgpu-target=gfx906 -Werror"
+GPU_OPTS="-Wno-unused-command-line-argument -fvisibility=hidden -fvisibility-inlines-hidden -fno-gpu-rdc --amdgpu-target=gfx803 --amdgpu-target=gfx900 --amdgpu-target=gfx906 -Werror"
 
 CLANG=${rocm_path}/llvm/bin/clang
 CLANG_OPTS="-xc-header -std=c99"  # auto set in hip_common.h -D__HIP_PLATFORM_HCC__
@@ -56,9 +56,9 @@ CLANG_OPTS="-xc-header -std=c99"  # auto set in hip_common.h -D__HIP_PLATFORM_HC
 GCC=/usr/bin/gcc
 GCC_OPTS="-xc-header"
 
-C99="$HCC -xc-header -std=c99"
-CPP11="$HCC -xc++-header -std=c++11"
-CPP14="$HCC -xc++-header -std=c++14"
+C99="$HIPCC -xc-header -std=c99"
+CPP11="$HIPCC -xc++-header -std=c++11"
+CPP14="$HIPCC -xc++-header -std=c++14"
 
 if [[ -e /.dockerenv ]]; then
     NP=4   # limit parallelism to 4
@@ -93,7 +93,7 @@ xargs_coproc
 find library clients \( -iname \*.hpp -o -iname \*.h \) \
      \! -name testing_trmm.hpp -print0 | while read -r -d $'\0' file; do
     out=$(out_uptodate "$file" cpp14 true) || \
-        echo "$CPP14 -c -o "$out" $HCC_OPTS $GPU_OPTS "$file" || (rm -f "$out"; echo "$file" >&4; exit 255)" >&$XARGS_IN
+        echo "$CPP14 -c -o "$out" $HIPCC_OPTS $GPU_OPTS "$file" || (rm -f "$out"; echo "$file" >&4; exit 255)" >&$XARGS_IN
 done
 
 if ! xargs_wait; then
@@ -122,7 +122,7 @@ if [[ -x "$CLANG" ]]; then
     xargs_coproc
     for file in $SOURCE_DIR/library/include/*.{h,in}; do
         out=$(out_uptodate $file clang) || \
-             echo "$CLANG $CLANG_OPTS -c -o "$out" $HCC_OPTS "$file" || (rm -f "$out"; echo "$file" >&4; exit 255)" >&$XARGS_IN
+             echo "$CLANG $CLANG_OPTS -c -o "$out" $HIPCC_OPTS "$file" || (rm -f "$out"; echo "$file" >&4; exit 255)" >&$XARGS_IN
     done
 
     if ! xargs_wait; then
@@ -145,7 +145,7 @@ if [[ -x "$GCC" ]]; then
     xargs_coproc
     for file in $SOURCE_DIR/library/include/*.{h,in}; do
         out=$(out_uptodate $file clang) || \
-             echo "$GCC $GCC_OPTS -c -o "$out" $HCC_OPTS "$file" || (rm -f "$out"; echo "$file" >&4; exit 255)" >&$XARGS_IN
+             echo "$GCC $GCC_OPTS -c -o "$out" $HIPCC_OPTS "$file" || (rm -f "$out"; echo "$file" >&4; exit 255)" >&$XARGS_IN
     done
 
     if ! xargs_wait; then
@@ -167,7 +167,7 @@ fi
 xargs_coproc
 for file in $SOURCE_DIR/library/include/*.{h,in}; do
     out=$(out_uptodate $file c99) || \
-        echo "$C99 -c -o "$out" $HCC_OPTS $GPU_OPTS "$file" || (rm -f "$out"; echo "$file" >&4; exit 255)" >&$XARGS_IN
+        echo "$C99 -c -o "$out" $HIPCC_OPTS $GPU_OPTS "$file" || (rm -f "$out"; echo "$file" >&4; exit 255)" >&$XARGS_IN
 done
 
 if ! xargs_wait; then
@@ -187,7 +187,7 @@ fi
 xargs_coproc
 for file in $SOURCE_DIR/library/include/*.{h,in}; do
     out=$(out_uptodate $file cpp11) ||
-        echo "$CPP11 -c -o "$out" $HCC_OPTS $GPU_OPTS "$file" || (rm -f "$out"; echo "$file" >&4; exit 255)" >&$XARGS_IN
+        echo "$CPP11 -c -o "$out" $HIPCC_OPTS $GPU_OPTS "$file" || (rm -f "$out"; echo "$file" >&4; exit 255)" >&$XARGS_IN
 done
 
 if ! xargs_wait; then

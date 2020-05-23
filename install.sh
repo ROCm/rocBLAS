@@ -275,7 +275,7 @@ install_dependencies=false
 install_prefix=rocblas-install
 tensile_logic=asm_full
 tensile_architecture=all
-tensile_cov=
+tensile_cov=V3
 tensile_fork=
 tensile_merge_files=
 tensile_tag=
@@ -401,14 +401,6 @@ while true; do
         ;;
   esac
 done
-
-if [[ -z $tensile_cov ]]; then
-    if [[ $build_hip_clang == true ]]; then
-        tensile_cov=V3
-    else
-        tensile_cov=V2
-    fi
-fi
 
 set -x
 

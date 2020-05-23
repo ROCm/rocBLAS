@@ -171,7 +171,7 @@ if( BUILD_WITH_TENSILE )
   set( Tensile_TEST_LOCAL_PATH "" CACHE PATH "Use local Tensile directory instead of fetching a GitHub branch" )
   set_property( CACHE Tensile_ARCHITECTURE PROPERTY STRINGS all gfx803 gfx900 gfx906 gfx908)
   set_property( CACHE Tensile_LOGIC PROPERTY STRINGS asm_full asm_lite asm_miopen hip_lite other )
-  set_property( CACHE Tensile_CODE_OBJECT_VERSION PROPERTY STRINGS V3 )
+  set_property( CACHE Tensile_CODE_OBJECT_VERSION PROPERTY STRINGS V2 V3 )
   set_property( CACHE Tensile_COMPILER PROPERTY STRINGS hipcc)
 
   include(virtualenv)

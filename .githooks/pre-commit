@@ -8,7 +8,7 @@ export PATH=/usr/bin:/bin
 
 set -x
 
-format=/opt/rocm/hcc/bin/clang-format
+format=/opt/rocm/llvm/bin/clang-format
 
 # Redirect stdout to stderr.
 exec >&2
