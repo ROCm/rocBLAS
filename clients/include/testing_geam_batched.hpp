@@ -19,6 +19,10 @@
 template <typename T>
 void testing_geam_batched_bad_arg(const Arguments& arg)
 {
+    const bool FORTRAN = arg.fortran;
+    auto       rocblas_geam_batched_fn
+        = FORTRAN ? rocblas_geam_batched<T, true> : rocblas_geam_batched<T, false>;
+
     const rocblas_int M = 100;
     const rocblas_int N = 100;
 
@@ -48,7 +52,7 @@ void testing_geam_batched_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dB.memcheck());
     CHECK_DEVICE_ALLOCATION(dC.memcheck());
 
-    EXPECT_ROCBLAS_STATUS(rocblas_geam_batched<T>(handle,
+    EXPECT_ROCBLAS_STATUS(rocblas_geam_batched_fn(handle,
                                                   transA,
                                                   transB,
                                                   M,
@@ -64,7 +68,7 @@ void testing_geam_batched_bad_arg(const Arguments& arg)
                                                   batch_count),
                           rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_geam_batched<T>(handle,
+    EXPECT_ROCBLAS_STATUS(rocblas_geam_batched_fn(handle,
                                                   transA,
                                                   transB,
                                                   M,
@@ -80,7 +84,7 @@ void testing_geam_batched_bad_arg(const Arguments& arg)
                                                   batch_count),
                           rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_geam_batched<T>(handle,
+    EXPECT_ROCBLAS_STATUS(rocblas_geam_batched_fn(handle,
                                                   transA,
                                                   transB,
                                                   M,
@@ -97,11 +101,11 @@ void testing_geam_batched_bad_arg(const Arguments& arg)
                           rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_geam_batched<T>(
+        rocblas_geam_batched_fn(
             handle, transA, transB, M, N, nullptr, dA, lda, &h_beta, dB, ldb, dC, ldc, batch_count),
         rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_geam_batched<T>(handle,
+    EXPECT_ROCBLAS_STATUS(rocblas_geam_batched_fn(handle,
                                                   transA,
                                                   transB,
                                                   M,
@@ -117,7 +121,7 @@ void testing_geam_batched_bad_arg(const Arguments& arg)
                                                   batch_count),
                           rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_geam_batched<T>(nullptr,
+    EXPECT_ROCBLAS_STATUS(rocblas_geam_batched_fn(nullptr,
                                                   transA,
                                                   transB,
                                                   M,
@@ -137,6 +141,10 @@ void testing_geam_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_geam_batched(const Arguments& arg)
 {
+    const bool FORTRAN = arg.fortran;
+    auto       rocblas_geam_batched_fn
+        = FORTRAN ? rocblas_geam_batched<T, true> : rocblas_geam_batched<T, false>;
+
     rocblas_operation transA = char2rocblas_operation(arg.transA);
     rocblas_operation transB = char2rocblas_operation(arg.transB);
 
@@ -200,7 +208,7 @@ void testing_geam_batched(const Arguments& arg)
     bool invalid_size = M < 0 || N < 0 || lda < A_row || ldb < B_row || ldc < M || batch_count < 0;
     if(invalid_size || !M || !N || !batch_count)
     {
-        EXPECT_ROCBLAS_STATUS(rocblas_geam_batched<T>(handle,
+        EXPECT_ROCBLAS_STATUS(rocblas_geam_batched_fn(handle,
                                                       transA,
                                                       transB,
                                                       M,
@@ -267,7 +275,7 @@ void testing_geam_batched(const Arguments& arg)
     {
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
-        CHECK_ROCBLAS_ERROR(rocblas_geam_batched<T>(handle,
+        CHECK_ROCBLAS_ERROR(rocblas_geam_batched_fn(handle,
                                                     transA,
                                                     transB,
                                                     M,
@@ -289,7 +297,7 @@ void testing_geam_batched(const Arguments& arg)
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
-        CHECK_ROCBLAS_ERROR(rocblas_geam_batched<T>(handle,
+        CHECK_ROCBLAS_ERROR(rocblas_geam_batched_fn(handle,
                                                     transA,
                                                     transB,
                                                     M,
@@ -350,7 +358,7 @@ void testing_geam_batched(const Arguments& arg)
                 CHECK_HIP_ERROR(dC_in_place.transfer_from(hA));
             //
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-            auto status_h = rocblas_geam_batched<T>(handle,
+            auto status_h = rocblas_geam_batched_fn(handle,
                                                     transA,
                                                     transB,
                                                     M,
@@ -415,7 +423,7 @@ void testing_geam_batched(const Arguments& arg)
                 CHECK_HIP_ERROR(dC_in_place.transfer_from(hB));
 
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-            auto status_h = rocblas_geam_batched<T>(handle,
+            auto status_h = rocblas_geam_batched_fn(handle,
                                                     transA,
                                                     transB,
                                                     M,
@@ -485,7 +493,7 @@ void testing_geam_batched(const Arguments& arg)
 
         for(int i = 0; i < number_cold_calls; i++)
         {
-            rocblas_geam_batched<T>(handle,
+            rocblas_geam_batched_fn(handle,
                                     transA,
                                     transB,
                                     M,
@@ -504,7 +512,7 @@ void testing_geam_batched(const Arguments& arg)
         gpu_time_used = get_time_us(); // in microseconds
         for(int i = 0; i < number_hot_calls; i++)
         {
-            rocblas_geam_batched<T>(handle,
+            rocblas_geam_batched_fn(handle,
                                     transA,
                                     transB,
                                     M,

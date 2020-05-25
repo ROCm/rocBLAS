@@ -82,6 +82,11 @@ namespace
                || TRSM_TYPE == TRSM_BATCHED || TRSM_TYPE == TRSM_BATCHED_EX)
                 name << '_' << arg.batch_count;
 
+            if(arg.fortran)
+            {
+                name << "_F";
+            }
+
             return std::move(name);
         }
     };
