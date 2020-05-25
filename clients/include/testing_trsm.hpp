@@ -21,6 +21,9 @@
 template <typename T>
 void testing_trsm(const Arguments& arg)
 {
+    const bool FORTRAN         = arg.fortran;
+    auto       rocblas_trsm_fn = FORTRAN ? rocblas_trsm<T, true> : rocblas_trsm<T, false>;
+
     rocblas_int M   = arg.M;
     rocblas_int N   = arg.N;
     rocblas_int lda = arg.lda;
@@ -50,7 +53,7 @@ void testing_trsm(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
         EXPECT_ROCBLAS_STATUS(
-            rocblas_trsm<T>(
+            rocblas_trsm_fn(
                 handle, side, uplo, transA, diag, M, N, nullptr, nullptr, lda, nullptr, ldb),
             rocblas_status_invalid_size);
 
@@ -178,7 +181,7 @@ void testing_trsm(const Arguments& arg)
         CHECK_HIP_ERROR(hipMemcpy(dXorB, hXorB_1, sizeof(T) * size_B, hipMemcpyHostToDevice));
 
         CHECK_ROCBLAS_ERROR(
-            rocblas_trsm<T>(handle, side, uplo, transA, diag, M, N, &alpha_h, dA, lda, dXorB, ldb));
+            rocblas_trsm_fn(handle, side, uplo, transA, diag, M, N, &alpha_h, dA, lda, dXorB, ldb));
 
         CHECK_HIP_ERROR(hipMemcpy(hXorB_1, dXorB, sizeof(T) * size_B, hipMemcpyDeviceToHost));
 
@@ -188,7 +191,7 @@ void testing_trsm(const Arguments& arg)
         CHECK_HIP_ERROR(hipMemcpy(alpha_d, &alpha_h, sizeof(T), hipMemcpyHostToDevice));
 
         CHECK_ROCBLAS_ERROR(
-            rocblas_trsm<T>(handle, side, uplo, transA, diag, M, N, alpha_d, dA, lda, dXorB, ldb));
+            rocblas_trsm_fn(handle, side, uplo, transA, diag, M, N, alpha_d, dA, lda, dXorB, ldb));
 
         CHECK_HIP_ERROR(hipMemcpy(hXorB_2, dXorB, sizeof(T) * size_B, hipMemcpyDeviceToHost));
 
@@ -225,7 +228,7 @@ void testing_trsm(const Arguments& arg)
 
         for(int i = 0; i < number_cold_calls; i++)
         {
-            CHECK_ROCBLAS_ERROR(rocblas_trsm<T>(
+            CHECK_ROCBLAS_ERROR(rocblas_trsm_fn(
                 handle, side, uplo, transA, diag, M, N, &alpha_h, dA, lda, dXorB, ldb));
         }
 
@@ -233,7 +236,7 @@ void testing_trsm(const Arguments& arg)
 
         for(int i = 0; i < number_hot_calls; i++)
         {
-            CHECK_ROCBLAS_ERROR(rocblas_trsm<T>(
+            CHECK_ROCBLAS_ERROR(rocblas_trsm_fn(
                 handle, side, uplo, transA, diag, M, N, &alpha_h, dA, lda, dXorB, ldb));
         }
 

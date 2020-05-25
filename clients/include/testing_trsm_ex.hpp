@@ -35,6 +35,9 @@ void printMatrix(const char* name, T* A, rocblas_int m, rocblas_int n, rocblas_i
 template <typename T>
 void testing_trsm_ex(const Arguments& arg)
 {
+    const bool FORTRAN            = arg.fortran;
+    auto       rocblas_trsm_ex_fn = FORTRAN ? rocblas_trsm_ex_fortran : rocblas_trsm_ex;
+
     rocblas_int M   = arg.M;
     rocblas_int N   = arg.N;
     rocblas_int lda = arg.lda;
@@ -62,21 +65,21 @@ void testing_trsm_ex(const Arguments& arg)
     if(invalid_size)
     {
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        EXPECT_ROCBLAS_STATUS(rocblas_trsm_ex(handle,
-                                              side,
-                                              uplo,
-                                              transA,
-                                              diag,
-                                              M,
-                                              N,
-                                              nullptr,
-                                              nullptr,
-                                              lda,
-                                              nullptr,
-                                              ldb,
-                                              nullptr,
-                                              TRSM_BLOCK * K,
-                                              arg.compute_type),
+        EXPECT_ROCBLAS_STATUS(rocblas_trsm_ex_fn(handle,
+                                                 side,
+                                                 uplo,
+                                                 transA,
+                                                 diag,
+                                                 M,
+                                                 N,
+                                                 nullptr,
+                                                 nullptr,
+                                                 lda,
+                                                 nullptr,
+                                                 ldb,
+                                                 nullptr,
+                                                 TRSM_BLOCK * K,
+                                                 arg.compute_type),
                               rocblas_status_invalid_size);
         return;
     }
@@ -244,21 +247,21 @@ void testing_trsm_ex(const Arguments& arg)
                                                                  1));
 
         size_t x_temp_size = M * N;
-        CHECK_ROCBLAS_ERROR(rocblas_trsm_ex(handle,
-                                            side,
-                                            uplo,
-                                            transA,
-                                            diag,
-                                            M,
-                                            N,
-                                            &alpha_h,
-                                            dA,
-                                            lda,
-                                            dXorB,
-                                            ldb,
-                                            dinvA,
-                                            TRSM_BLOCK * K,
-                                            arg.compute_type));
+        CHECK_ROCBLAS_ERROR(rocblas_trsm_ex_fn(handle,
+                                               side,
+                                               uplo,
+                                               transA,
+                                               diag,
+                                               M,
+                                               N,
+                                               &alpha_h,
+                                               dA,
+                                               lda,
+                                               dXorB,
+                                               ldb,
+                                               dinvA,
+                                               TRSM_BLOCK * K,
+                                               arg.compute_type));
 
         CHECK_HIP_ERROR(hipMemcpy(hXorB_1, dXorB, sizeof(T) * size_B, hipMemcpyDeviceToHost));
 
@@ -267,21 +270,21 @@ void testing_trsm_ex(const Arguments& arg)
         CHECK_HIP_ERROR(hipMemcpy(dXorB, hXorB_2, sizeof(T) * size_B, hipMemcpyHostToDevice));
         CHECK_HIP_ERROR(hipMemcpy(alpha_d, &alpha_h, sizeof(T), hipMemcpyHostToDevice));
 
-        CHECK_ROCBLAS_ERROR(rocblas_trsm_ex(handle,
-                                            side,
-                                            uplo,
-                                            transA,
-                                            diag,
-                                            M,
-                                            N,
-                                            alpha_d,
-                                            dA,
-                                            lda,
-                                            dXorB,
-                                            ldb,
-                                            dinvA,
-                                            TRSM_BLOCK * K,
-                                            arg.compute_type));
+        CHECK_ROCBLAS_ERROR(rocblas_trsm_ex_fn(handle,
+                                               side,
+                                               uplo,
+                                               transA,
+                                               diag,
+                                               M,
+                                               N,
+                                               alpha_d,
+                                               dA,
+                                               lda,
+                                               dXorB,
+                                               ldb,
+                                               dinvA,
+                                               TRSM_BLOCK * K,
+                                               arg.compute_type));
 
         CHECK_HIP_ERROR(hipMemcpy(hXorB_2, dXorB, sizeof(T) * size_B, hipMemcpyDeviceToHost));
 

@@ -18,6 +18,10 @@
 template <typename T>
 void testing_gemm_batched(const Arguments& arg)
 {
+    const bool FORTRAN = arg.fortran;
+    auto       rocblas_gemm_batched_fn
+        = FORTRAN ? rocblas_gemm_batched<T, true> : rocblas_gemm_batched<T, false>;
+
     rocblas_local_handle handle;
     rocblas_int          M           = arg.M;
     rocblas_int          N           = arg.N;
@@ -41,7 +45,7 @@ void testing_gemm_batched(const Arguments& arg)
         = M < 0 || N < 0 || K < 0 || lda < A_row || ldb < B_row || ldc < M || batch_count < 0;
     if(invalid_size || !M || !N || !batch_count)
     {
-        EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched<T>(handle,
+        EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_fn(handle,
                                                       transA,
                                                       transB,
                                                       M,
@@ -122,7 +126,7 @@ void testing_gemm_batched(const Arguments& arg)
         // ROCBLAS rocblas_pointer_mode_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
-        CHECK_ROCBLAS_ERROR((rocblas_gemm_batched<T>(handle,
+        CHECK_ROCBLAS_ERROR((rocblas_gemm_batched_fn(handle,
                                                      transA,
                                                      transB,
                                                      M,
@@ -147,7 +151,7 @@ void testing_gemm_batched(const Arguments& arg)
         CHECK_HIP_ERROR(d_alpha.transfer_from(halpha));
         CHECK_HIP_ERROR(d_beta.transfer_from(hbeta));
 
-        CHECK_ROCBLAS_ERROR((rocblas_gemm_batched<T>(handle,
+        CHECK_ROCBLAS_ERROR((rocblas_gemm_batched_fn(handle,
                                                      transA,
                                                      transB,
                                                      M,
@@ -211,7 +215,7 @@ void testing_gemm_batched(const Arguments& arg)
 
         for(int i = 0; i < number_cold_calls; i++)
         {
-            CHECK_ROCBLAS_ERROR((rocblas_gemm_batched<T>(handle,
+            CHECK_ROCBLAS_ERROR((rocblas_gemm_batched_fn(handle,
                                                          transA,
                                                          transB,
                                                          M,
@@ -232,7 +236,7 @@ void testing_gemm_batched(const Arguments& arg)
 
         for(int i = 0; i < number_hot_calls; i++)
         {
-            rocblas_gemm_batched<T>(handle,
+            rocblas_gemm_batched_fn(handle,
                                     transA,
                                     transB,
                                     M,
@@ -276,6 +280,10 @@ void testing_gemm_batched(const Arguments& arg)
 template <typename T>
 void testing_gemm_batched_bad_arg(const Arguments& arg)
 {
+    const bool FORTRAN = arg.fortran;
+    auto       rocblas_gemm_batched_fn
+        = FORTRAN ? rocblas_gemm_batched<T, true> : rocblas_gemm_batched<T, false>;
+
     const rocblas_int M = 100;
     const rocblas_int N = 100;
     const rocblas_int K = 100;
@@ -303,7 +311,7 @@ void testing_gemm_batched_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dB.memcheck());
     CHECK_DEVICE_ALLOCATION(dC.memcheck());
 
-    EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched<T>(handle,
+    EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_fn(handle,
                                                   transA,
                                                   transB,
                                                   M,
@@ -320,7 +328,7 @@ void testing_gemm_batched_bad_arg(const Arguments& arg)
                                                   batch_count),
                           rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched<T>(handle,
+    EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_fn(handle,
                                                   transA,
                                                   transB,
                                                   M,
@@ -337,7 +345,7 @@ void testing_gemm_batched_bad_arg(const Arguments& arg)
                                                   batch_count),
                           rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched<T>(handle,
+    EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_fn(handle,
                                                   transA,
                                                   transB,
                                                   M,
@@ -354,7 +362,7 @@ void testing_gemm_batched_bad_arg(const Arguments& arg)
                                                   batch_count),
                           rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched<T>(handle,
+    EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_fn(handle,
                                                   transA,
                                                   transB,
                                                   M,
@@ -371,7 +379,7 @@ void testing_gemm_batched_bad_arg(const Arguments& arg)
                                                   batch_count),
                           rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched<T>(handle,
+    EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_fn(handle,
                                                   transA,
                                                   transB,
                                                   M,
@@ -388,7 +396,7 @@ void testing_gemm_batched_bad_arg(const Arguments& arg)
                                                   batch_count),
                           rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched<T>(nullptr,
+    EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_fn(nullptr,
                                                   transA,
                                                   transB,
                                                   M,

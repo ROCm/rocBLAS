@@ -106,6 +106,7 @@ Tests:
   uplo: [L]
   transA: [N]
   diag: [N]
+  fortran: [ false, true ]
 
 - name: trmm_batched_bad_arg
   category: quick
@@ -115,6 +116,7 @@ Tests:
   uplo: [U]
   transA: [N]
   diag: [N]
+  fortran: [ false, true ]
 
 - name: trmm_strided_batched_bad_arg
   category: quick
@@ -124,6 +126,7 @@ Tests:
   uplo: [L]
   transA: [N]
   diag: [N]
+  fortran: [ false, true ]
 
 - name: trmm_batched_small
   category: quick
@@ -164,6 +167,7 @@ Tests:
   alpha_beta: *complex_alpha_range
   stride_scale: [ 1, 2      ]
   batch_count: [        1, 2 ]
+  fortran: [ false, true ]
 
 - name: trmm_strided_batched_medium
   category: pre_checkin
@@ -177,6 +181,7 @@ Tests:
   alpha_beta: *complex_alpha_range
   stride_scale: [ 1, 2      ]
   batch_count: [        1, 2 ]
+  fortran: [ false, true ]
 
 - name: trmm_small
   category: quick
@@ -210,6 +215,7 @@ Tests:
   diag: [N, U]
   matrix_size: *medium_matrix_size_range
   alpha: *alpha_range
+  fortran: [ false, true ]
 
 - name: trmm_medium
   category: pre_checkin
@@ -221,6 +227,7 @@ Tests:
   diag: [N, U]
   matrix_size: *medium_matrix_size_range
   alpha_beta: *complex_alpha_range
+  fortran: [ false, true ]
 
 - name: trmm_NaN
   category: pre_checkin
