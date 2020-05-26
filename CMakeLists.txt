@@ -203,14 +203,23 @@ if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
   find_package( hcc REQUIRED CONFIG PATHS ${ROCM_PATH} /opt/rocm )
   find_package( hip REQUIRED CONFIG PATHS ${ROCM_PATH} /opt/rocm )
 endif( )
+if( CMAKE_CXX_COMPILER MATCHES ".*/hipcc$" )
+  find_package( hip REQUIRED CONFIG PATHS ${ROCM_PATH} /opt/rocm )
+endif( )
 
 # CMake list of machine targets
-if( Tensile_ARCHITECTURE STREQUAL "all" )
-  set( gpus "gfx803;gfx900;gfx906;gfx908")
+if( Tensile_ARCHITECTURE )
+  if( Tensile_ARCHITECTURE STREQUAL "all" )
+    set( gpus "gfx803;gfx900;gfx906;gfx908")
+  else()
+    set( gpus ${Tensile_ARCHITECTURE})
+  endif()
+  # We must match tensile if architecture is set
+  set( ROCBLAS_GPUS ${gpus} )
 else()
-  set( gpus ${Tensile_ARCHITECTURE})
-endif()
-set( AMDGPU_TARGETS ${gpus} CACHE STRING "List of specific machine types for library to target" )
+  set( ROCBLAS_GPUS ${AMDGPU_TARGETS} )
+endif( )
+message(STATUS "Specific GPU TARGET(s): " ${ROCBLAS_GPUS})
 
 add_subdirectory( library )
 
