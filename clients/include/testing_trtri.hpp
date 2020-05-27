@@ -17,6 +17,9 @@
 template <typename T>
 void testing_trtri(const Arguments& arg)
 {
+    const bool FORTRAN          = arg.fortran;
+    auto       rocblas_trtri_fn = FORTRAN ? rocblas_trtri<T, true> : rocblas_trtri<T, false>;
+
     rocblas_int N = arg.N;
     rocblas_int lda;
     rocblas_int ldinvA;
@@ -37,7 +40,7 @@ void testing_trtri(const Arguments& arg)
     if(invalid_size)
     {
         EXPECT_ROCBLAS_STATUS(
-            rocblas_trtri<T>(handle, uplo, diag, N, nullptr, lda, nullptr, ldinvA),
+            rocblas_trtri_fn(handle, uplo, diag, N, nullptr, lda, nullptr, ldinvA),
             rocblas_status_invalid_size);
         return;
     }
@@ -96,7 +99,7 @@ void testing_trtri(const Arguments& arg)
         gpu_time_used = get_time_us(); // in microseconds
     }
 
-    CHECK_ROCBLAS_ERROR(rocblas_trtri<T>(handle, uplo, diag, N, dA, lda, dinvA, ldinvA));
+    CHECK_ROCBLAS_ERROR(rocblas_trtri_fn(handle, uplo, diag, N, dA, lda, dinvA, ldinvA));
 
     if(arg.timing)
     {

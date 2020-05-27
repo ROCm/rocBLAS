@@ -74,6 +74,11 @@ namespace
             if(HBMV_TYPE == HBMV_STRIDED_BATCHED || HBMV_TYPE == HBMV_BATCHED)
                 name << '_' << arg.batch_count;
 
+            if(arg.fortran)
+            {
+                name << "_F";
+            }
+
             return std::move(name);
         }
     };

@@ -19,8 +19,15 @@ project( rocblas-clients LANGUAGES CXX Fortran )
 set(rocblas_f90_source_clients
     include/rocblas_fortran.f90
 )
+set(rocblas_f90_source_clients_tensile
+    include/rocblas_fortran_tensile.f90
+)
 
-add_library(rocblas_fortran_client ${rocblas_f90_source_clients})
+if( BUILD_WITH_TENSILE )
+  add_library(rocblas_fortran_client ${rocblas_f90_source_clients} ${rocblas_f90_source_clients_tensile})
+else()
+  add_library(rocblas_fortran_client ${rocblas_f90_source_clients})
+endif()
 add_dependencies(rocblas_fortran_client rocblas_fortran)
 include_directories(${CMAKE_BINARY_DIR}/include)
 

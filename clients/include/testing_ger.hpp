@@ -19,6 +19,11 @@
 template <typename T, bool CONJ = false>
 void testing_ger_bad_arg(const Arguments& arg)
 {
+    const bool FORTRAN        = arg.fortran;
+    auto       rocblas_ger_fn = FORTRAN
+                              ? (CONJ ? rocblas_ger<T, true, true> : rocblas_ger<T, false, true>)
+                              : (CONJ ? rocblas_ger<T, true, false> : rocblas_ger<T, false, false>);
+
     rocblas_int M     = 100;
     rocblas_int N     = 100;
     rocblas_int incx  = 1;
@@ -43,22 +48,25 @@ void testing_ger_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     EXPECT_ROCBLAS_STATUS(
-        (rocblas_ger<T, CONJ>(handle, M, N, &alpha, nullptr, incx, dy, incy, dA_1, lda)),
+        (rocblas_ger_fn(handle, M, N, &alpha, nullptr, incx, dy, incy, dA_1, lda)),
         rocblas_status_invalid_pointer);
     EXPECT_ROCBLAS_STATUS(
-        (rocblas_ger<T, CONJ>(handle, M, N, &alpha, dx, incx, nullptr, incy, dA_1, lda)),
+        (rocblas_ger_fn(handle, M, N, &alpha, dx, incx, nullptr, incy, dA_1, lda)),
         rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(
-        (rocblas_ger<T, CONJ>(handle, M, N, &alpha, dx, incx, dy, incy, nullptr, lda)),
-        rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(
-        (rocblas_ger<T, CONJ>(nullptr, M, N, &alpha, dx, incx, dy, incy, dA_1, lda)),
-        rocblas_status_invalid_handle);
+    EXPECT_ROCBLAS_STATUS((rocblas_ger_fn(handle, M, N, &alpha, dx, incx, dy, incy, nullptr, lda)),
+                          rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS((rocblas_ger_fn(nullptr, M, N, &alpha, dx, incx, dy, incy, dA_1, lda)),
+                          rocblas_status_invalid_handle);
 }
 
 template <typename T, bool CONJ = false>
 void testing_ger(const Arguments& arg)
 {
+    const bool FORTRAN        = arg.fortran;
+    auto       rocblas_ger_fn = FORTRAN
+                              ? (CONJ ? rocblas_ger<T, true, true> : rocblas_ger<T, false, true>)
+                              : (CONJ ? rocblas_ger<T, true, false> : rocblas_ger<T, false, false>);
+
     rocblas_int M       = arg.M;
     rocblas_int N       = arg.N;
     rocblas_int incx    = arg.incx;
@@ -72,8 +80,7 @@ void testing_ger(const Arguments& arg)
     if(M < 0 || N < 0 || lda < M || lda < 1 || !incx || !incy)
     {
         EXPECT_ROCBLAS_STATUS(
-            (rocblas_ger<T, CONJ>(
-                handle, M, N, nullptr, nullptr, incx, nullptr, incy, nullptr, lda)),
+            (rocblas_ger_fn(handle, M, N, nullptr, nullptr, incx, nullptr, incy, nullptr, lda)),
             rocblas_status_invalid_size);
 
         return;
@@ -137,11 +144,10 @@ void testing_ger(const Arguments& arg)
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         CHECK_ROCBLAS_ERROR(
-            (rocblas_ger<T, CONJ>(handle, M, N, &h_alpha, dx, incx, dy, incy, dA_1, lda)));
+            (rocblas_ger_fn(handle, M, N, &h_alpha, dx, incx, dy, incy, dA_1, lda)));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR(
-            (rocblas_ger<T, CONJ>(handle, M, N, d_alpha, dx, incx, dy, incy, dA_2, lda)));
+        CHECK_ROCBLAS_ERROR((rocblas_ger_fn(handle, M, N, d_alpha, dx, incx, dy, incy, dA_2, lda)));
 
         // copy output from device to CPU
         hipMemcpy(hA_1, dA_1, sizeof(T) * N * lda, hipMemcpyDeviceToHost);
@@ -185,14 +191,14 @@ void testing_ger(const Arguments& arg)
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            rocblas_ger<T, CONJ>(handle, M, N, &h_alpha, dx, incx, dy, incy, dA_1, lda);
+            rocblas_ger_fn(handle, M, N, &h_alpha, dx, incx, dy, incy, dA_1, lda);
         }
 
         gpu_time_used = get_time_us(); // in microseconds
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            rocblas_ger<T, CONJ>(handle, M, N, &h_alpha, dx, incx, dy, incy, dA_1, lda);
+            rocblas_ger_fn(handle, M, N, &h_alpha, dx, incx, dy, incy, dA_1, lda);
         }
 
         gpu_time_used = (get_time_us() - gpu_time_used) / number_hot_calls;

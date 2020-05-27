@@ -20,6 +20,9 @@
 template <typename T>
 void testing_gbmv_bad_arg(const Arguments& arg)
 {
+    const bool FORTRAN         = arg.fortran;
+    auto       rocblas_gbmv_fn = FORTRAN ? rocblas_gbmv<T, true> : rocblas_gbmv<T, false>;
+
     const rocblas_int M    = 100;
     const rocblas_int N    = 100;
     const rocblas_int KL   = 5;
@@ -64,39 +67,42 @@ void testing_gbmv_bad_arg(const Arguments& arg)
     dy.transfer_from(hy);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_gbmv<T>(
+        rocblas_gbmv_fn(
             handle, transA, M, N, KL, KU, &alpha, nullptr, lda, dx, incx, &beta, dy, incy),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_gbmv<T>(
+        rocblas_gbmv_fn(
             handle, transA, M, N, KL, KU, &alpha, dA, lda, nullptr, incx, &beta, dy, incy),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_gbmv<T>(
+        rocblas_gbmv_fn(
             handle, transA, M, N, KL, KU, &alpha, dA, lda, dx, incx, &beta, nullptr, incy),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_gbmv<T>(handle, transA, M, N, KL, KU, nullptr, dA, lda, dx, incx, &beta, dy, incy),
+        rocblas_gbmv_fn(handle, transA, M, N, KL, KU, nullptr, dA, lda, dx, incx, &beta, dy, incy),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_gbmv<T>(handle, transA, M, N, KL, KU, &alpha, dA, lda, dx, incx, nullptr, dy, incy),
+        rocblas_gbmv_fn(handle, transA, M, N, KL, KU, &alpha, dA, lda, dx, incx, nullptr, dy, incy),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_gbmv<T>(nullptr, transA, M, N, KL, KU, &alpha, dA, lda, dx, incx, &beta, dy, incy),
+        rocblas_gbmv_fn(nullptr, transA, M, N, KL, KU, &alpha, dA, lda, dx, incx, &beta, dy, incy),
         rocblas_status_invalid_handle);
 
     // TODO: See rocblas_gbmv.cpp comment on alpha==0 && beta==1 case.
-    // CHECK_ROCBLAS_ERROR(rocblas_gbmv<T>(handle, transA, 1, 1, 1, 1, &alpha, nullptr, 10, nullptr, 1, &beta, nullptr, 1));
+    // CHECK_ROCBLAS_ERROR(rocblas_gbmv_fn(handle, transA, 1, 1, 1, 1, &alpha, nullptr, 10, nullptr, 1, &beta, nullptr, 1));
 }
 
 template <typename T>
 void testing_gbmv(const Arguments& arg)
 {
+    const bool FORTRAN         = arg.fortran;
+    auto       rocblas_gbmv_fn = FORTRAN ? rocblas_gbmv<T, true> : rocblas_gbmv<T, false>;
+
     rocblas_int       M       = arg.M;
     rocblas_int       N       = arg.N;
     rocblas_int       KL      = arg.KL;
@@ -114,7 +120,7 @@ void testing_gbmv(const Arguments& arg)
     bool invalid_size = M < 0 || N < 0 || lda < KL + KU + 1 || !incx || !incy || KL < 0 || KU < 0;
     if(invalid_size || !M || !N)
     {
-        EXPECT_ROCBLAS_STATUS(rocblas_gbmv<T>(handle,
+        EXPECT_ROCBLAS_STATUS(rocblas_gbmv_fn(handle,
                                               transA,
                                               M,
                                               N,
@@ -215,11 +221,11 @@ void testing_gbmv(const Arguments& arg)
         d_beta.transfer_from(hbeta);
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR(rocblas_gbmv<T>(
+        CHECK_ROCBLAS_ERROR(rocblas_gbmv_fn(
             handle, transA, M, N, KL, KU, &h_alpha, dA, lda, dx, incx, &h_beta, dy_1, incy));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR(rocblas_gbmv<T>(
+        CHECK_ROCBLAS_ERROR(rocblas_gbmv_fn(
             handle, transA, M, N, KL, KU, d_alpha, dA, lda, dx, incx, d_beta, dy_2, incy));
 
         // copy output from device to CPU
@@ -255,7 +261,7 @@ void testing_gbmv(const Arguments& arg)
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            rocblas_gbmv<T>(
+            rocblas_gbmv_fn(
                 handle, transA, M, N, KL, KU, &h_alpha, dA, lda, dx, incx, &h_beta, dy_1, incy);
         }
 
@@ -263,7 +269,7 @@ void testing_gbmv(const Arguments& arg)
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            rocblas_gbmv<T>(
+            rocblas_gbmv_fn(
                 handle, transA, M, N, KL, KU, &h_alpha, dA, lda, dx, incx, &h_beta, dy_1, incy);
         }
 

@@ -17,8 +17,11 @@
 #include "utility.hpp"
 
 template <typename T>
-void testing_hpr2_bad_arg()
+void testing_hpr2_bad_arg(const Arguments& arg)
 {
+    const bool FORTRAN         = arg.fortran;
+    auto       rocblas_hpr2_fn = FORTRAN ? rocblas_hpr2<T, true> : rocblas_hpr2<T, false>;
+
     rocblas_fill         uplo  = rocblas_fill_upper;
     rocblas_int          N     = 100;
     rocblas_int          incx  = 1;
@@ -41,25 +44,28 @@ void testing_hpr2_bad_arg()
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     EXPECT_ROCBLAS_STATUS(
-        (rocblas_hpr2<T>)(handle, rocblas_fill_full, N, &alpha, dx, incx, dy, incy, dA_1),
+        (rocblas_hpr2_fn)(handle, rocblas_fill_full, N, &alpha, dx, incx, dy, incy, dA_1),
         rocblas_status_invalid_value);
 
-    EXPECT_ROCBLAS_STATUS((rocblas_hpr2<T>)(handle, uplo, N, &alpha, nullptr, incx, dy, incy, dA_1),
+    EXPECT_ROCBLAS_STATUS((rocblas_hpr2_fn)(handle, uplo, N, &alpha, nullptr, incx, dy, incy, dA_1),
                           rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS((rocblas_hpr2<T>)(handle, uplo, N, &alpha, dx, incx, nullptr, incy, dA_1),
+    EXPECT_ROCBLAS_STATUS((rocblas_hpr2_fn)(handle, uplo, N, &alpha, dx, incx, nullptr, incy, dA_1),
                           rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS((rocblas_hpr2<T>)(handle, uplo, N, &alpha, dx, incx, dy, incy, nullptr),
+    EXPECT_ROCBLAS_STATUS((rocblas_hpr2_fn)(handle, uplo, N, &alpha, dx, incx, dy, incy, nullptr),
                           rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS((rocblas_hpr2<T>)(nullptr, uplo, N, &alpha, dx, incx, dy, incy, dA_1),
+    EXPECT_ROCBLAS_STATUS((rocblas_hpr2_fn)(nullptr, uplo, N, &alpha, dx, incx, dy, incy, dA_1),
                           rocblas_status_invalid_handle);
 }
 
 template <typename T>
 void testing_hpr2(const Arguments& arg)
 {
+    const bool FORTRAN         = arg.fortran;
+    auto       rocblas_hpr2_fn = FORTRAN ? rocblas_hpr2<T, true> : rocblas_hpr2<T, false>;
+
     rocblas_int          N       = arg.N;
     rocblas_int          incx    = arg.incx;
     rocblas_int          incy    = arg.incy;
@@ -71,7 +77,7 @@ void testing_hpr2(const Arguments& arg)
     if(N < 0 || !incx || !incy)
     {
         EXPECT_ROCBLAS_STATUS(
-            (rocblas_hpr2<T>)(handle, uplo, N, nullptr, nullptr, incx, nullptr, incy, nullptr),
+            (rocblas_hpr2_fn)(handle, uplo, N, nullptr, nullptr, incx, nullptr, incy, nullptr),
             rocblas_status_invalid_size);
 
         return;
@@ -136,10 +142,10 @@ void testing_hpr2(const Arguments& arg)
     if(arg.unit_check || arg.norm_check)
     {
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR((rocblas_hpr2<T>)(handle, uplo, N, &h_alpha, dx, incx, dy, incy, dA_1));
+        CHECK_ROCBLAS_ERROR((rocblas_hpr2_fn)(handle, uplo, N, &h_alpha, dx, incx, dy, incy, dA_1));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR((rocblas_hpr2<T>)(handle, uplo, N, d_alpha, dx, incx, dy, incy, dA_2));
+        CHECK_ROCBLAS_ERROR((rocblas_hpr2_fn)(handle, uplo, N, d_alpha, dx, incx, dy, incy, dA_2));
 
         // copy output from device to CPU
         CHECK_HIP_ERROR(hA_1.transfer_from(dA_1));
@@ -173,14 +179,14 @@ void testing_hpr2(const Arguments& arg)
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            rocblas_hpr2<T>(handle, uplo, N, &h_alpha, dx, incx, dy, incy, dA_1);
+            rocblas_hpr2_fn(handle, uplo, N, &h_alpha, dx, incx, dy, incy, dA_1);
         }
 
         gpu_time_used = get_time_us(); // in microseconds
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            rocblas_hpr2<T>(handle, uplo, N, &h_alpha, dx, incx, dy, incy, dA_1);
+            rocblas_hpr2_fn(handle, uplo, N, &h_alpha, dx, incx, dy, incy, dA_1);
         }
 
         gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;

@@ -18,6 +18,10 @@
 template <typename T>
 void testing_gemm_strided_batched(const Arguments& arg)
 {
+    const bool FORTRAN = arg.fortran;
+    auto       rocblas_gemm_strided_batched_fn
+        = FORTRAN ? rocblas_gemm_strided_batched<T, true> : rocblas_gemm_strided_batched<T, false>;
+
     rocblas_int M = arg.M;
     rocblas_int N = arg.N;
     rocblas_int K = arg.K;
@@ -50,7 +54,7 @@ void testing_gemm_strided_batched(const Arguments& arg)
         = M < 0 || N < 0 || K < 0 || lda < A_row || ldb < B_row || ldc < M || batch_count < 0;
     if(invalid_size || !M || !N || !batch_count)
     {
-        EXPECT_ROCBLAS_STATUS(rocblas_gemm_strided_batched<T>(handle,
+        EXPECT_ROCBLAS_STATUS(rocblas_gemm_strided_batched_fn(handle,
                                                               transA,
                                                               transB,
                                                               M,
@@ -130,7 +134,7 @@ void testing_gemm_strided_batched(const Arguments& arg)
 
         CHECK_HIP_ERROR(hipMemcpy(dC, hC_1, sizeof(T) * size_c, hipMemcpyHostToDevice));
 
-        CHECK_ROCBLAS_ERROR(rocblas_gemm_strided_batched<T>(handle,
+        CHECK_ROCBLAS_ERROR(rocblas_gemm_strided_batched_fn(handle,
                                                             transA,
                                                             transB,
                                                             M,
@@ -158,7 +162,7 @@ void testing_gemm_strided_batched(const Arguments& arg)
         CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(T), hipMemcpyHostToDevice));
         CHECK_HIP_ERROR(hipMemcpy(d_beta, &h_beta, sizeof(T), hipMemcpyHostToDevice));
 
-        CHECK_ROCBLAS_ERROR(rocblas_gemm_strided_batched<T>(handle,
+        CHECK_ROCBLAS_ERROR(rocblas_gemm_strided_batched_fn(handle,
                                                             transA,
                                                             transB,
                                                             M,
@@ -236,7 +240,7 @@ void testing_gemm_strided_batched(const Arguments& arg)
 
         for(int i = 0; i < number_cold_calls; i++)
         {
-            CHECK_ROCBLAS_ERROR(rocblas_gemm_strided_batched<T>(handle,
+            CHECK_ROCBLAS_ERROR(rocblas_gemm_strided_batched_fn(handle,
                                                                 transA,
                                                                 transB,
                                                                 M,
@@ -260,7 +264,7 @@ void testing_gemm_strided_batched(const Arguments& arg)
 
         for(int i = 0; i < number_hot_calls; i++)
         {
-            rocblas_gemm_strided_batched<T>(handle,
+            rocblas_gemm_strided_batched_fn(handle,
                                             transA,
                                             transB,
                                             M,

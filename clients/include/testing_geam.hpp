@@ -19,6 +19,9 @@
 template <typename T>
 void testing_geam_bad_arg(const Arguments& arg)
 {
+    const bool FORTRAN         = arg.fortran;
+    auto       rocblas_geam_fn = FORTRAN ? rocblas_geam<T, true> : rocblas_geam<T, false>;
+
     const rocblas_int M = 100;
     const rocblas_int N = 100;
 
@@ -51,30 +54,30 @@ void testing_geam_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dC.memcheck());
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_geam<T>(
+        rocblas_geam_fn(
             handle, transA, transB, M, N, &h_alpha, nullptr, lda, &h_beta, dB, ldb, dC, ldc),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_geam<T>(
+        rocblas_geam_fn(
             handle, transA, transB, M, N, &h_alpha, dA, lda, &h_beta, nullptr, ldb, dC, ldc),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_geam<T>(
+        rocblas_geam_fn(
             handle, transA, transB, M, N, &h_alpha, dA, lda, &h_beta, dB, ldb, nullptr, ldc),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_geam<T>(handle, transA, transB, M, N, nullptr, dA, lda, &h_beta, dB, ldb, dC, ldc),
+        rocblas_geam_fn(handle, transA, transB, M, N, nullptr, dA, lda, &h_beta, dB, ldb, dC, ldc),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_geam<T>(handle, transA, transB, M, N, &h_alpha, dA, lda, nullptr, dB, ldb, dC, ldc),
+        rocblas_geam_fn(handle, transA, transB, M, N, &h_alpha, dA, lda, nullptr, dB, ldb, dC, ldc),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_geam<T>(
+        rocblas_geam_fn(
             nullptr, transA, transB, M, N, &h_alpha, dA, lda, &h_beta, dB, ldb, dC, ldc),
         rocblas_status_invalid_handle);
 }
@@ -82,6 +85,9 @@ void testing_geam_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_geam(const Arguments& arg)
 {
+    const bool FORTRAN         = arg.fortran;
+    auto       rocblas_geam_fn = FORTRAN ? rocblas_geam<T, true> : rocblas_geam<T, false>;
+
     rocblas_operation transA = char2rocblas_operation(arg.transA);
     rocblas_operation transB = char2rocblas_operation(arg.transB);
 
@@ -146,7 +152,7 @@ void testing_geam(const Arguments& arg)
     bool invalid_size = M < 0 || N < 0 || lda < A_row || ldb < B_row || ldc < M;
     if(invalid_size || !M || !N)
     {
-        EXPECT_ROCBLAS_STATUS(rocblas_geam<T>(handle,
+        EXPECT_ROCBLAS_STATUS(rocblas_geam_fn(handle,
                                               transA,
                                               transB,
                                               M,
@@ -212,13 +218,13 @@ void testing_geam(const Arguments& arg)
         // ROCBLAS
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
-        CHECK_ROCBLAS_ERROR(rocblas_geam<T>(
+        CHECK_ROCBLAS_ERROR(rocblas_geam_fn(
             handle, transA, transB, M, N, &alpha, dA, lda, &beta, dB, ldb, dC, ldc));
 
         CHECK_HIP_ERROR(hC_1.transfer_from(dC));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR(rocblas_geam<T>(
+        CHECK_ROCBLAS_ERROR(rocblas_geam_fn(
             handle, transA, transB, M, N, d_alpha, dA, lda, d_beta, dB, ldb, dC, ldc));
 
         CHECK_HIP_ERROR(hC_2.transfer_from(dC));
@@ -259,7 +265,7 @@ void testing_geam(const Arguments& arg)
             dC_in_place = dA;
 
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-            auto status_h = rocblas_geam<T>(
+            auto status_h = rocblas_geam_fn(
                 handle, transA, transB, M, N, &alpha, dA, lda, &beta, dB, ldb, dC_in_place, ldc);
 
             if(lda != ldc || transA != rocblas_operation_none)
@@ -304,7 +310,7 @@ void testing_geam(const Arguments& arg)
             dC_in_place = dB;
 
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-            auto status_h = rocblas_geam<T>(
+            auto status_h = rocblas_geam_fn(
                 handle, transA, transB, M, N, &alpha, dA, lda, &beta, dB, ldb, dC_in_place, ldc);
 
             if(ldb != ldc || transB != rocblas_operation_none)
@@ -354,13 +360,13 @@ void testing_geam(const Arguments& arg)
 
         for(int i = 0; i < number_cold_calls; i++)
         {
-            rocblas_geam<T>(handle, transA, transB, M, N, &alpha, dA, lda, &beta, dB, ldb, dC, ldc);
+            rocblas_geam_fn(handle, transA, transB, M, N, &alpha, dA, lda, &beta, dB, ldb, dC, ldc);
         }
 
         gpu_time_used = get_time_us(); // in microseconds
         for(int i = 0; i < number_hot_calls; i++)
         {
-            rocblas_geam<T>(handle, transA, transB, M, N, &alpha, dA, lda, &beta, dB, ldb, dC, ldc);
+            rocblas_geam_fn(handle, transA, transB, M, N, &alpha, dA, lda, &beta, dB, ldb, dC, ldc);
         }
         gpu_time_used  = get_time_us() - gpu_time_used;
         rocblas_gflops = geam_gflop_count<T>(M, N) * number_hot_calls / gpu_time_used * 1e6;

@@ -3,6 +3,33 @@ include: rocblas_common.yaml
 include: known_bugs.yaml
 
 Definitions:
+
+  - &fortran_matrix_size_range
+    - { M:     9, N:     1, K:     9, lda:     9, ldb:     9, ldc:     9, ldd:     9 }
+    - { M:     1, N:     1, K:     1, lda:     1, ldb:     1, ldc:     1, ldd:     1 }
+    - { M:     1, N:     2, K:     3, lda:     4, ldb:     5, ldc:     6, ldd:     6 }
+    - { M:     7, N:     9, K:    15, lda:    17, ldb:    18, ldc:    19, ldd:    19 }
+    - { M:     8, N:     1, K:     1, lda:     8, ldb:     8, ldc:     8, ldd:     8 }
+    - { M:     2, N:     2, K:     2, lda:     2, ldb:     2, ldc:     2, ldd:     2 }
+    - { M:     3, N:     3, K:     3, lda:     3, ldb:     3, ldc:     3, ldd:     3 }
+    - { M:     4, N:     4, K:     4, lda:     4, ldb:     4, ldc:     4, ldd:     4 }
+    - { M:     5, N:     5, K:     5, lda:     5, ldb:     5, ldc:     5, ldd:     5 }
+    - { M:     6, N:     6, K:     6, lda:     6, ldb:     6, ldc:     6, ldd:     6 }
+    - { M:     7, N:     7, K:     7, lda:     7, ldb:     7, ldc:     7, ldd:     7 }
+    - { M:     8, N:     8, K:     8, lda:     8, ldb:     8, ldc:     8, ldd:     8 }
+    - { M:     9, N:     9, K:     9, lda:     9, ldb:     9, ldc:     9, ldd:     9 }
+    - { M:    10, N:    10, K:    10, lda:    10, ldb:    10, ldc:    10, ldd:    10 }
+    - { M:    11, N:    11, K:    11, lda:    11, ldb:    11, ldc:    11, ldd:    11 }
+    - { M:    12, N:    12, K:    12, lda:    12, ldb:    12, ldc:    12, ldd:    12 }
+    - { M:    13, N:    13, K:    13, lda:    13, ldb:    13, ldc:    13, ldd:    13 }
+    - { M:    14, N:    14, K:    14, lda:    14, ldb:    14, ldc:    14, ldd:    14 }
+    - { M:    15, N:    15, K:    15, lda:    15, ldb:    15, ldc:    15, ldd:    15 }
+    - { M:    16, N:    16, K:    16, lda:    16, ldb:    16, ldc:    16, ldd:    16 }
+    - { M:    17, N:    17, K:    17, lda:    17, ldb:    17, ldc:    17, ldd:    17 }
+    - { M:    18, N:    18, K:    18, lda:    18, ldb:    18, ldc:    18, ldd:    18 }
+    - { M:    19, N:    19, K:    19, lda:    19, ldb:    19, ldc:    19, ldd:    19 }
+    - { M:    20, N:    20, K:    20, lda:    20, ldb:    20, ldc:    20, ldd:    20 }
+
   - &small_matrix_size_range
     - { M:     9, N:     1, K:     9, lda:     9, ldb:     9, ldc:     9, ldd:     9 }
     - { M:     1, N:     1, K:     1, lda:     1, ldb:     1, ldc:     1, ldd:     1 }
@@ -164,6 +191,9 @@ Definitions:
     - { alpha:  1, beta:  3, alphai:  3, betai:  1 }
     - { alpha: -1, beta: -3, alphai:  3, betai:  1 }
     - { alpha:  0, beta:  0, alphai:  2, betai:  1 }
+
+  - &alpha_beta_range_small
+    - { alpha: 2, alphai: 2, beta: -1.0, betai: 2.0 }
 
   - &transA_transB_range
     - { transA: N, transB: N }
@@ -2355,6 +2385,7 @@ Tests:
   precision: *half_single_double_precisions
   transA: N
   transB: N
+  fortran: [ false, true ]
 
 - name: gemm_bad_arg
   category: pre_checkin
@@ -2366,6 +2397,7 @@ Tests:
   precision: *single_double_precisions_complex
   transA: N
   transB: N
+  fortran: [ false, true ]
 
 - name: gemm_NaN
   category: pre_checkin
@@ -2378,6 +2410,18 @@ Tests:
   alphai: [ -1.0, 0.0, 1.0]
   beta: .NaN  # converted to 0.0 in test code
   betai: .NaN
+
+- name: gemm_fortran
+  category: quick
+  function:
+    - gemm: *half_single_double_precisions
+    - gemm: *single_double_precisions_complex
+    - gemm_ex: *real_precisions
+    - gemm_ex: *single_double_precisions_complex
+  matrix_size: *fortran_matrix_size_range
+  transA_transB: *transA_transB_range
+  alpha_beta: *alpha_beta_range_small
+  fortran: true
 
 - name: gemm_small
   category: quick

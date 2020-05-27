@@ -73,27 +73,15 @@ Definitions:
 Tests:
 - name: tbmv_bad_arg
   category: pre_checkin
-  function: tbmv_bad_arg
+  function:
+    - tbmv_bad_arg
+    - tbmv_batched_bad_arg
+    - tbmv_strided_batched_bad_arg
   precision: *single_double_precisions
   uplo: U
   transA: N
   diag: N
-
-- name: tbmv_batched_bad_arg
-  category: pre_checkin
-  function: tbmv_batched_bad_arg
-  precision: *single_double_precisions
-  uplo: U
-  transA: N
-  diag: N
-
-- name: tbmv_strided_batched_bad_arg
-  category: pre_checkin
-  function: tbmv_strided_batched_bad_arg
-  precision: *single_double_precisions
-  uplo: U
-  transA: N
-  diag: N
+  fortran: [ false, true ]
 
 - name: tbmv_arg_check
   category: quick
@@ -105,6 +93,42 @@ Tests:
   transA: N
   diag: N
   matrix_size: *special_case_range
+
+- name: tbmv_fortran
+  category: quick
+  function: tbmv
+  precision: *single_double_precisions_complex_real
+  uplo: [U, L]
+  transA: [ N, T, C ]
+  diag: [U, N]
+  matrix_size: *small_matrix_size_range
+  incx_incy: *incx_range_small
+  fortran: true
+
+- name: tbmv_batched_fortran
+  category: quick
+  function: tbmv_batched
+  precision: *single_double_precisions_complex_real
+  uplo: [U, L]
+  transA: [ N, T, C ]
+  diag: [U, N]
+  matrix_size: *small_matrix_size_range
+  incx_incy: *incx_range_small
+  batch_count: [ -1, 0, 3 ]
+  fortran: true
+
+- name: tbmv_strided_batched_fortran
+  category: quick
+  function: tbmv_strided_batched
+  precision: *single_double_precisions_complex_real
+  uplo: [U, L]
+  transA: [ N, T, C ]
+  diag: [U, N]
+  matrix_size: *small_matrix_size_range
+  incx_incy: *incx_range_small
+  batch_count: [ -1, 0, 3 ]
+  stride_scale: [ 2 ]
+  fortran: true
 
 - name: tbmv_small
   category: quick

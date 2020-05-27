@@ -113,6 +113,7 @@ Tests:
   diag: [N, U]
   matrix_size: *small_matrix_size_range
   alpha: *alpha_range
+  fortran: [ false, true ]
 
 - name: trsm_small_complex
   category: quick
@@ -124,6 +125,7 @@ Tests:
   diag: [N, U]
   matrix_size: *small_matrix_size_range
   alpha_beta: *complex_alpha_range
+  fortran: [ false, true ]
 
 - name: trsm_batched_small
   category: quick
@@ -136,6 +138,7 @@ Tests:
   matrix_size: *small_matrix_size_range
   alpha: *alpha_range
   batch_count: [-1, 0, 1, 5]
+  fortran: [ false, true ]
 
 - name: trsm_batched_small_complex
   category: quick
@@ -148,6 +151,7 @@ Tests:
   matrix_size: *small_matrix_size_range
   alpha_beta: *complex_alpha_range
   batch_count: [-1, 0, 1, 5]
+  fortran: [ false, true ]
 
 - name: trsm_strided_batched_small
   category: quick
@@ -161,6 +165,7 @@ Tests:
   alpha: *alpha_range
   stride_scale: [ 1, 1.5, 5 ]
   batch_count: [ -1, 0, 1, 5 ]
+  fortran: [ false, true ]
 
 - name: trsm_strided_batched_small_complex
   category: quick
@@ -174,6 +179,7 @@ Tests:
   alpha_beta: *complex_alpha_range
   stride_scale: [ 1, 1.5, 5 ]
   batch_count: [ -1, 0, 1, 5 ]
+  fortran: [ false, true ]
 
 # Medium - pre_checkin
 - name: trsm_medium

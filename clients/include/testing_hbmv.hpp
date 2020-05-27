@@ -20,6 +20,9 @@
 template <typename T>
 void testing_hbmv_bad_arg(const Arguments& arg)
 {
+    const bool FORTRAN         = arg.fortran;
+    auto       rocblas_hbmv_fn = FORTRAN ? rocblas_hbmv<T, true> : rocblas_hbmv<T, false>;
+
     const rocblas_int N    = 100;
     const rocblas_int K    = 10;
     const rocblas_int lda  = 100;
@@ -45,33 +48,36 @@ void testing_hbmv_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_hbmv<T>(handle, uplo, N, K, &alpha, nullptr, lda, dx, incx, &beta, dy, incy),
+        rocblas_hbmv_fn(handle, uplo, N, K, &alpha, nullptr, lda, dx, incx, &beta, dy, incy),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_hbmv<T>(handle, uplo, N, K, &alpha, dA, lda, nullptr, incx, &beta, dy, incy),
+        rocblas_hbmv_fn(handle, uplo, N, K, &alpha, dA, lda, nullptr, incx, &beta, dy, incy),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_hbmv<T>(handle, uplo, N, K, &alpha, dA, lda, dx, incx, &beta, nullptr, incy),
+        rocblas_hbmv_fn(handle, uplo, N, K, &alpha, dA, lda, dx, incx, &beta, nullptr, incy),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_hbmv<T>(handle, uplo, N, K, nullptr, dA, lda, dx, incx, &beta, dy, incy),
+        rocblas_hbmv_fn(handle, uplo, N, K, nullptr, dA, lda, dx, incx, &beta, dy, incy),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_hbmv<T>(handle, uplo, N, K, &alpha, dA, lda, dx, incx, nullptr, dy, incy),
+        rocblas_hbmv_fn(handle, uplo, N, K, &alpha, dA, lda, dx, incx, nullptr, dy, incy),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_hbmv<T>(nullptr, uplo, N, K, &alpha, dA, lda, dx, incx, &beta, dy, incy),
+        rocblas_hbmv_fn(nullptr, uplo, N, K, &alpha, dA, lda, dx, incx, &beta, dy, incy),
         rocblas_status_invalid_handle);
 }
 
 template <typename T>
 void testing_hbmv(const Arguments& arg)
 {
+    const bool FORTRAN         = arg.fortran;
+    auto       rocblas_hbmv_fn = FORTRAN ? rocblas_hbmv<T, true> : rocblas_hbmv<T, false>;
+
     rocblas_int  N       = arg.N;
     rocblas_int  K       = arg.K;
     rocblas_int  lda     = arg.lda;
@@ -87,7 +93,7 @@ void testing_hbmv(const Arguments& arg)
     if(N < 0 || K < 0 || lda <= K || !incx || !incy)
     {
         EXPECT_ROCBLAS_STATUS(
-            rocblas_hbmv<T>(
+            rocblas_hbmv_fn(
                 handle, uplo, N, K, nullptr, nullptr, lda, nullptr, incx, nullptr, nullptr, incy),
             rocblas_status_invalid_size);
 
@@ -160,11 +166,11 @@ void testing_hbmv(const Arguments& arg)
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         CHECK_ROCBLAS_ERROR(
-            rocblas_hbmv<T>(handle, uplo, N, K, &h_alpha, dA, lda, dx, incx, &h_beta, dy_1, incy));
+            rocblas_hbmv_fn(handle, uplo, N, K, &h_alpha, dA, lda, dx, incx, &h_beta, dy_1, incy));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         CHECK_ROCBLAS_ERROR(
-            rocblas_hbmv<T>(handle, uplo, N, K, d_alpha, dA, lda, dx, incx, d_beta, dy_2, incy));
+            rocblas_hbmv_fn(handle, uplo, N, K, d_alpha, dA, lda, dx, incx, d_beta, dy_2, incy));
 
         // copy output from device to CPU
         CHECK_HIP_ERROR(hy_1.transfer_from(dy_1));
@@ -199,14 +205,14 @@ void testing_hbmv(const Arguments& arg)
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            rocblas_hbmv<T>(handle, uplo, N, K, &h_alpha, dA, lda, dx, incx, &h_beta, dy_1, incy);
+            rocblas_hbmv_fn(handle, uplo, N, K, &h_alpha, dA, lda, dx, incx, &h_beta, dy_1, incy);
         }
 
         gpu_time_used = get_time_us(); // in microseconds
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            rocblas_hbmv<T>(handle, uplo, N, K, &h_alpha, dA, lda, dx, incx, &h_beta, dy_1, incy);
+            rocblas_hbmv_fn(handle, uplo, N, K, &h_alpha, dA, lda, dx, incx, &h_beta, dy_1, incy);
         }
 
         gpu_time_used  = (get_time_us() - gpu_time_used) / number_hot_calls;

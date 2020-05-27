@@ -19,6 +19,9 @@
 template <typename T>
 void testing_tpsv_bad_arg(const Arguments& arg)
 {
+    const bool FORTRAN         = arg.fortran;
+    auto       rocblas_tpsv_fn = FORTRAN ? rocblas_tpsv<T, true> : rocblas_tpsv<T, false>;
+
     const rocblas_int       N      = 100;
     const rocblas_int       incx   = 1;
     const rocblas_operation transA = rocblas_operation_none;
@@ -38,19 +41,22 @@ void testing_tpsv_bad_arg(const Arguments& arg)
     //
     // Checks.
     //
-    EXPECT_ROCBLAS_STATUS(rocblas_tpsv<T>(handle, rocblas_fill_full, transA, diag, N, dA, dx, incx),
+    EXPECT_ROCBLAS_STATUS(rocblas_tpsv_fn(handle, rocblas_fill_full, transA, diag, N, dA, dx, incx),
                           rocblas_status_invalid_value);
-    EXPECT_ROCBLAS_STATUS(rocblas_tpsv<T>(handle, uplo, transA, diag, N, nullptr, dx, incx),
+    EXPECT_ROCBLAS_STATUS(rocblas_tpsv_fn(handle, uplo, transA, diag, N, nullptr, dx, incx),
                           rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(rocblas_tpsv<T>(handle, uplo, transA, diag, N, dA, nullptr, incx),
+    EXPECT_ROCBLAS_STATUS(rocblas_tpsv_fn(handle, uplo, transA, diag, N, dA, nullptr, incx),
                           rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(rocblas_tpsv<T>(nullptr, uplo, transA, diag, N, dA, dx, incx),
+    EXPECT_ROCBLAS_STATUS(rocblas_tpsv_fn(nullptr, uplo, transA, diag, N, dA, dx, incx),
                           rocblas_status_invalid_handle);
 }
 
 template <typename T>
 void testing_tpsv(const Arguments& arg)
 {
+    const bool FORTRAN         = arg.fortran;
+    auto       rocblas_tpsv_fn = FORTRAN ? rocblas_tpsv<T, true> : rocblas_tpsv<T, false>;
+
     rocblas_int N           = arg.N;
     rocblas_int incx        = arg.incx;
     char        char_uplo   = arg.uplo;
@@ -70,7 +76,7 @@ void testing_tpsv(const Arguments& arg)
     {
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         EXPECT_ROCBLAS_STATUS(
-            rocblas_tpsv<T>(handle, uplo, transA, diag, N, nullptr, nullptr, incx),
+            rocblas_tpsv_fn(handle, uplo, transA, diag, N, nullptr, nullptr, incx),
             invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
         return;
     }
@@ -137,14 +143,14 @@ void testing_tpsv(const Arguments& arg)
         // calculate dxorb <- A^(-1) b   rocblas_device_pointer_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
-        CHECK_ROCBLAS_ERROR(rocblas_tpsv<T>(handle, uplo, transA, diag, N, dAP, dx_or_b, incx));
+        CHECK_ROCBLAS_ERROR(rocblas_tpsv_fn(handle, uplo, transA, diag, N, dAP, dx_or_b, incx));
         CHECK_HIP_ERROR(hx_or_b_1.transfer_from(dx_or_b));
 
         // calculate dxorb <- A^(-1) b   rocblas_device_pointer_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         CHECK_HIP_ERROR(dx_or_b.transfer_from(hx_or_b_2));
 
-        CHECK_ROCBLAS_ERROR(rocblas_tpsv<T>(handle, uplo, transA, diag, N, dAP, dx_or_b, incx));
+        CHECK_ROCBLAS_ERROR(rocblas_tpsv_fn(handle, uplo, transA, diag, N, dAP, dx_or_b, incx));
         CHECK_HIP_ERROR(hx_or_b_2.transfer_from(dx_or_b));
 
         max_err_1 = rocblas_abs(vector_norm_1<T>(N, abs_incx, hx, hx_or_b_1));
@@ -178,12 +184,12 @@ void testing_tpsv(const Arguments& arg)
         int number_hot_calls  = arg.iters;
 
         for(int i = 0; i < number_cold_calls; i++)
-            rocblas_tpsv<T>(handle, uplo, transA, diag, N, dAP, dx_or_b, incx);
+            rocblas_tpsv_fn(handle, uplo, transA, diag, N, dAP, dx_or_b, incx);
 
         gpu_time_used = get_time_us(); // in microseconds
 
         for(int i = 0; i < number_hot_calls; i++)
-            rocblas_tpsv<T>(handle, uplo, transA, diag, N, dAP, dx_or_b, incx);
+            rocblas_tpsv_fn(handle, uplo, transA, diag, N, dAP, dx_or_b, incx);
 
         gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;
         rocblas_gflops    = tpsv_gflop_count<T>(N) / gpu_time_used * 1e6;

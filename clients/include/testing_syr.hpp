@@ -16,8 +16,11 @@
 #include "utility.hpp"
 
 template <typename T>
-void testing_syr_bad_arg()
+void testing_syr_bad_arg(const Arguments& arg)
 {
+    const bool FORTRAN        = arg.fortran;
+    auto       rocblas_syr_fn = FORTRAN ? rocblas_syr<T, true> : rocblas_syr<T, false>;
+
     rocblas_fill         uplo  = rocblas_fill_upper;
     rocblas_int          N     = 100;
     rocblas_int          incx  = 1;
@@ -35,19 +38,22 @@ void testing_syr_bad_arg()
     CHECK_DEVICE_ALLOCATION(dA_1.memcheck());
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
-    EXPECT_ROCBLAS_STATUS(rocblas_syr<T>(handle, uplo, N, &alpha, nullptr, incx, dA_1, lda),
+    EXPECT_ROCBLAS_STATUS(rocblas_syr_fn(handle, uplo, N, &alpha, nullptr, incx, dA_1, lda),
                           rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_syr<T>(handle, uplo, N, &alpha, dx, incx, nullptr, lda),
+    EXPECT_ROCBLAS_STATUS(rocblas_syr_fn(handle, uplo, N, &alpha, dx, incx, nullptr, lda),
                           rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_syr<T>(nullptr, uplo, N, &alpha, dx, incx, dA_1, lda),
+    EXPECT_ROCBLAS_STATUS(rocblas_syr_fn(nullptr, uplo, N, &alpha, dx, incx, dA_1, lda),
                           rocblas_status_invalid_handle);
 }
 
 template <typename T>
 void testing_syr(const Arguments& arg)
 {
+    const bool FORTRAN        = arg.fortran;
+    auto       rocblas_syr_fn = FORTRAN ? rocblas_syr<T, true> : rocblas_syr<T, false>;
+
     rocblas_int          N       = arg.N;
     rocblas_int          incx    = arg.incx;
     rocblas_int          lda     = arg.lda;
@@ -58,7 +64,7 @@ void testing_syr(const Arguments& arg)
     // argument check before allocating invalid memory
     if(N < 0 || lda < N || lda < 1 || !incx)
     {
-        EXPECT_ROCBLAS_STATUS(rocblas_syr<T>(handle, uplo, N, nullptr, nullptr, incx, nullptr, lda),
+        EXPECT_ROCBLAS_STATUS(rocblas_syr_fn(handle, uplo, N, nullptr, nullptr, incx, nullptr, lda),
                               rocblas_status_invalid_size);
 
         return;
@@ -113,10 +119,10 @@ void testing_syr(const Arguments& arg)
         CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(T), hipMemcpyHostToDevice));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR(rocblas_syr<T>(handle, uplo, N, &h_alpha, dx, incx, dA_1, lda));
+        CHECK_ROCBLAS_ERROR(rocblas_syr_fn(handle, uplo, N, &h_alpha, dx, incx, dA_1, lda));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR(rocblas_syr<T>(handle, uplo, N, d_alpha, dx, incx, dA_2, lda));
+        CHECK_ROCBLAS_ERROR(rocblas_syr_fn(handle, uplo, N, d_alpha, dx, incx, dA_2, lda));
 
         // copy output from device to CPU
         hipMemcpy(hA_1, dA_1, sizeof(T) * N * lda, hipMemcpyDeviceToHost);
@@ -158,14 +164,14 @@ void testing_syr(const Arguments& arg)
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            rocblas_syr<T>(handle, uplo, N, &h_alpha, dx, incx, dA_1, lda);
+            rocblas_syr_fn(handle, uplo, N, &h_alpha, dx, incx, dA_1, lda);
         }
 
         gpu_time_used = get_time_us(); // in microseconds
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            rocblas_syr<T>(handle, uplo, N, &h_alpha, dx, incx, dA_1, lda);
+            rocblas_syr_fn(handle, uplo, N, &h_alpha, dx, incx, dA_1, lda);
         }
 
         gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;
