@@ -46,7 +46,7 @@ Definitions:
     # - { incx:  1, incy:  0 } # Indeterminate when y is output
 
   - &incx_incy_range_small
-    - { incx: 2, incy: 2 }
+    - { incx: 1, incy: 1 }
     - { incx: -2, incy: -2 }
 
   - &alpha_beta_range
@@ -157,7 +157,7 @@ Tests:
 # pre_checkin
   - name: blas1_with_alpha
     category: pre_checkin
-    N: [ 50000, 1049600 ]
+    N: [ 50007, 1049600 ]
     incx_incy: *incx_incy_range_small
     alpha_beta: *alpha_beta_range
     alphai_betai: *alphai_betai_range

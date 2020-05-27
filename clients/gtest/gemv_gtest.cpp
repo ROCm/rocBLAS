@@ -74,6 +74,11 @@ namespace
             if(GEMV_TYPE == GEMV_STRIDED_BATCHED || GEMV_TYPE == GEMV_BATCHED)
                 name << '_' << arg.batch_count;
 
+            if(arg.fortran)
+            {
+                name << "_F";
+            }
+
             return std::move(name);
         }
     };

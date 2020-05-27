@@ -61,6 +61,9 @@ Tests:
   precision: *single_precision
   transA: [N]
   transB: [N]
+  stride_scale: [ 1 ]
+  batch_count: [ 1 ]
+  fortran: [ false, true ]
 
 - name: geam_batched_bad_arg
   category: quick
@@ -69,6 +72,7 @@ Tests:
   transA: [N]
   transB: [N]
   batch_count: [        1    ]
+  fortran: [ false, true ]
 
 - name: geam_strided_batched_bad_arg
   category: quick
@@ -78,6 +82,7 @@ Tests:
   transB: [N]
   stride_scale: [ 1         ]
   batch_count: [        1    ]
+  fortran: [ false, true ]
 
 - name: geam_small
   category: quick
@@ -86,6 +91,7 @@ Tests:
   transA_transB: *transA_transB_range
   matrix_size: *small_matrix_size_range
   alpha_beta: *small_alpha_beta_range
+  fortran: [ false, true ]
 
 - name: geam_batched_small
   category: quick
@@ -95,6 +101,7 @@ Tests:
   matrix_size: *small_matrix_size_range
   alpha_beta: *small_alpha_beta_range
   batch_count: [        1, 2 ]
+  fortran: [ false, true ]
 
 - name: geam_strided_batched_small
   category: quick
@@ -105,6 +112,7 @@ Tests:
   alpha_beta: *small_alpha_beta_range
   stride_scale: [ 1, 2      ]
   batch_count: [        1, 2 ]
+  fortran: [ false, true ]
 
 - name: geam_small_complex
   category: quick
@@ -113,6 +121,7 @@ Tests:
   transA_transB: *transA_transB_range
   matrix_size: *small_matrix_size_range
   alpha_beta: *small_complex_alpha_beta_range
+  fortran: [ false, true ]
 
 - name: geam_batched_small_complex
   category: quick
@@ -122,6 +131,7 @@ Tests:
   matrix_size: *small_matrix_size_range
   alpha_beta: *small_complex_alpha_beta_range
   batch_count: [        1, 2 ]
+  fortran: [ false, true ]
 
 - name: geam_strided_batched_small_complex
   category: quick
@@ -132,6 +142,7 @@ Tests:
   alpha_beta: *small_complex_alpha_beta_range
   stride_scale: [ 1, 2      ]
   batch_count: [        1, 2 ]
+  fortran: [ false, true ]
 
 - name: geam_large
   category: pre_checkin

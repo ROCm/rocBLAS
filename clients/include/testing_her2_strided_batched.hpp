@@ -17,8 +17,12 @@
 #include "utility.hpp"
 
 template <typename T>
-void testing_her2_strided_batched_bad_arg()
+void testing_her2_strided_batched_bad_arg(const Arguments& arg)
 {
+    const bool FORTRAN = arg.fortran;
+    auto       rocblas_her2_strided_batched_fn
+        = FORTRAN ? rocblas_her2_strided_batched<T, true> : rocblas_her2_strided_batched<T, false>;
+
     rocblas_fill   uplo        = rocblas_fill_upper;
     rocblas_int    N           = 10;
     rocblas_int    incx        = 1;
@@ -126,6 +130,10 @@ void testing_her2_strided_batched_bad_arg()
 template <typename T>
 void testing_her2_strided_batched(const Arguments& arg)
 {
+    const bool FORTRAN = arg.fortran;
+    auto       rocblas_her2_strided_batched_fn
+        = FORTRAN ? rocblas_her2_strided_batched<T, true> : rocblas_her2_strided_batched<T, false>;
+
     rocblas_int    N           = arg.N;
     rocblas_int    lda         = arg.lda;
     rocblas_int    incx        = arg.incx;

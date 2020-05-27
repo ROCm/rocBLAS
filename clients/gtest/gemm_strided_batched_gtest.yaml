@@ -227,6 +227,9 @@ Definitions:
     - { alpha:  1, beta:  3, alphai:  3, betai:  1 }
     - { alpha: -1, beta: -3, alphai:  3, betai:  1 }
 
+  - &alpha_beta_range_small
+    - { alpha: 2, alphai: 2, beta: -1.0, betai: 2.0 }
+
 Tests:
 - name: gemm_strided_batched_bad_arg
   category: pre_checkin
@@ -234,6 +237,7 @@ Tests:
     - gemm_strided_batched_ex_bad_arg: *real_precisions
   transA: N
   transB: N
+  fortran: [ false, true ]
 
 - name: gemm_strided_batched_bad_arg
   category: pre_checkin
@@ -241,6 +245,7 @@ Tests:
     - gemm_strided_batched_ex_bad_arg: *single_double_precisions_complex
   transA: N
   transB: N
+  fortran: [ false, true ]
 
 - name: gemm_strided_batched_NaN
   category: pre_checkin
@@ -256,6 +261,19 @@ Tests:
   batch_count: [ 1, 3 ]
 
 # TODO: Add int8 precisions by replacing *hpa_half_single_double_precisions with *real_precisions
+
+- name: gemm_strided_batched_fortran
+  category: quick
+  function:
+    - gemm_strided_batched: *half_single_double_precisions
+    - gemm_strided_batched: *single_double_precisions_complex
+    - gemm_strided_batched_ex: *real_precisions
+    - gemm_strided_batched_ex: *single_double_precisions_complex
+  matrix_size: *small_matrix_size_range
+  transA_transB: *transA_transB_range
+  alpha_beta: *alpha_beta_range_small
+  batch_count: [ -1, 0, 3 ]
+  fortran: true
 
 - name: gemm_strided_batched_small
   category: quick

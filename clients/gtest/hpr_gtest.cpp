@@ -76,6 +76,12 @@ namespace
                 if(HPR_TYPE == HPR_STRIDED_BATCHED || HPR_TYPE == HPR_BATCHED)
                     name << '_' << arg.batch_count;
             }
+
+            if(arg.fortran)
+            {
+                name << "_F";
+            }
+
             return std::move(name);
         }
     };
@@ -100,15 +106,15 @@ namespace
             if(!strcmp(arg.function, "hpr"))
                 testing_hpr<T>(arg);
             else if(!strcmp(arg.function, "hpr_bad_arg"))
-                testing_hpr_bad_arg<T>();
+                testing_hpr_bad_arg<T>(arg);
             else if(!strcmp(arg.function, "hpr_batched"))
                 testing_hpr_batched<T>(arg);
             else if(!strcmp(arg.function, "hpr_batched_bad_arg"))
-                testing_hpr_batched_bad_arg<T>();
+                testing_hpr_batched_bad_arg<T>(arg);
             else if(!strcmp(arg.function, "hpr_strided_batched"))
                 testing_hpr_strided_batched<T>(arg);
             else if(!strcmp(arg.function, "hpr_strided_batched_bad_arg"))
-                testing_hpr_strided_batched_bad_arg<T>();
+                testing_hpr_strided_batched_bad_arg<T>(arg);
             else
                 FAIL() << "Internal error: Test called with unknown function: " << arg.function;
         }

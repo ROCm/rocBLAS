@@ -20,6 +20,9 @@
 template <typename T>
 void testing_trmv_bad_arg(const Arguments& arg)
 {
+    const bool FORTRAN         = arg.fortran;
+    auto       rocblas_trmv_fn = FORTRAN ? rocblas_trmv<T, true> : rocblas_trmv<T, false>;
+
     const rocblas_int       M      = 100;
     const rocblas_int       lda    = 100;
     const rocblas_int       incx   = 1;
@@ -44,19 +47,22 @@ void testing_trmv_bad_arg(const Arguments& arg)
     //
     // Checks.
     //
-    EXPECT_ROCBLAS_STATUS(rocblas_trmv<T>(handle, uplo, transA, diag, M, nullptr, lda, dx, incx),
+    EXPECT_ROCBLAS_STATUS(rocblas_trmv_fn(handle, uplo, transA, diag, M, nullptr, lda, dx, incx),
                           rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_trmv<T>(handle, uplo, transA, diag, M, dA, lda, nullptr, incx),
+    EXPECT_ROCBLAS_STATUS(rocblas_trmv_fn(handle, uplo, transA, diag, M, dA, lda, nullptr, incx),
                           rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_trmv<T>(nullptr, uplo, transA, diag, M, dA, lda, dx, incx),
+    EXPECT_ROCBLAS_STATUS(rocblas_trmv_fn(nullptr, uplo, transA, diag, M, dA, lda, dx, incx),
                           rocblas_status_invalid_handle);
 }
 
 template <typename T>
 void testing_trmv(const Arguments& arg)
 {
+    const bool FORTRAN         = arg.fortran;
+    auto       rocblas_trmv_fn = FORTRAN ? rocblas_trmv<T, true> : rocblas_trmv<T, false>;
+
     rocblas_int M = arg.M, lda = arg.lda, incx = arg.incx;
 
     char char_uplo = arg.uplo, char_transA = arg.transA, char_diag = arg.diag;
@@ -70,7 +76,7 @@ void testing_trmv(const Arguments& arg)
     if(invalid_size || !M)
     {
         EXPECT_ROCBLAS_STATUS(
-            rocblas_trmv<T>(handle, uplo, transA, diag, M, nullptr, lda, nullptr, incx),
+            rocblas_trmv_fn(handle, uplo, transA, diag, M, nullptr, lda, nullptr, incx),
             invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
 
         return;
@@ -119,7 +125,7 @@ void testing_trmv(const Arguments& arg)
         //
         // ROCBLAS
         //
-        CHECK_ROCBLAS_ERROR(rocblas_trmv<T>(handle, uplo, transA, diag, M, dA, lda, dx, incx));
+        CHECK_ROCBLAS_ERROR(rocblas_trmv_fn(handle, uplo, transA, diag, M, dA, lda, dx, incx));
         CHECK_HIP_ERROR(hres.transfer_from(dx));
 
         //
@@ -158,7 +164,7 @@ void testing_trmv(const Arguments& arg)
             int number_cold_calls = arg.cold_iters;
             for(int iter = 0; iter < number_cold_calls; iter++)
             {
-                rocblas_trmv<T>(handle, uplo, transA, diag, M, dA, lda, dx, incx);
+                rocblas_trmv_fn(handle, uplo, transA, diag, M, dA, lda, dx, incx);
             }
         }
 
@@ -170,7 +176,7 @@ void testing_trmv(const Arguments& arg)
             int number_hot_calls = arg.iters;
             for(int iter = 0; iter < number_hot_calls; iter++)
             {
-                rocblas_trmv<T>(handle, uplo, transA, diag, M, dA, lda, dx, incx);
+                rocblas_trmv_fn(handle, uplo, transA, diag, M, dA, lda, dx, incx);
             }
             gpu_time_used = (get_time_us() - gpu_time_used) / number_hot_calls;
         }

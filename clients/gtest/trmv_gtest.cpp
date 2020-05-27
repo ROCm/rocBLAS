@@ -70,6 +70,11 @@ namespace
             if(TRMV_TYPE == TRMV_STRIDED_BATCHED || TRMV_TYPE == TRMV_BATCHED)
                 name << '_' << arg.batch_count;
 
+            if(arg.fortran)
+            {
+                name << "_F";
+            }
+
             return std::move(name);
         }
     };

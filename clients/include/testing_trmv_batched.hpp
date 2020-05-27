@@ -22,6 +22,10 @@
 template <typename T>
 void testing_trmv_batched_bad_arg(const Arguments& arg)
 {
+    const bool FORTRAN = arg.fortran;
+    auto       rocblas_trmv_batched_fn
+        = FORTRAN ? rocblas_trmv_batched<T, true> : rocblas_trmv_batched<T, false>;
+
     const rocblas_int       M           = 100;
     const rocblas_int       lda         = 100;
     const rocblas_int       incx        = 1;
@@ -48,16 +52,16 @@ void testing_trmv_batched_bad_arg(const Arguments& arg)
     // Checks.
     //
     EXPECT_ROCBLAS_STATUS(
-        rocblas_trmv_batched<T>(
+        rocblas_trmv_batched_fn(
             handle, uplo, transA, diag, M, nullptr, lda, dx.ptr_on_device(), incx, batch_count),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_trmv_batched<T>(
+        rocblas_trmv_batched_fn(
             handle, uplo, transA, diag, M, dA.ptr_on_device(), lda, nullptr, incx, batch_count),
         rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_trmv_batched<T>(nullptr,
+    EXPECT_ROCBLAS_STATUS(rocblas_trmv_batched_fn(nullptr,
                                                   uplo,
                                                   transA,
                                                   diag,
@@ -73,6 +77,10 @@ void testing_trmv_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_trmv_batched(const Arguments& arg)
 {
+    const bool FORTRAN = arg.fortran;
+    auto       rocblas_trmv_batched_fn
+        = FORTRAN ? rocblas_trmv_batched<T, true> : rocblas_trmv_batched<T, false>;
+
     rocblas_int M = arg.M, lda = arg.lda, incx = arg.incx, batch_count = arg.batch_count;
 
     char char_uplo = arg.uplo, char_transA = arg.transA, char_diag = arg.diag;
@@ -87,7 +95,7 @@ void testing_trmv_batched(const Arguments& arg)
     if(invalid_size || !M || !batch_count)
     {
         EXPECT_ROCBLAS_STATUS(
-            rocblas_trmv_batched<T>(
+            rocblas_trmv_batched_fn(
                 handle, uplo, transA, diag, M, nullptr, lda, nullptr, incx, batch_count),
             invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
 
@@ -138,7 +146,7 @@ void testing_trmv_batched(const Arguments& arg)
         //
         // GPU BLAS
         //
-        CHECK_ROCBLAS_ERROR(rocblas_trmv_batched<T>(
+        CHECK_ROCBLAS_ERROR(rocblas_trmv_batched_fn(
             handle, uplo, transA, diag, M, dA_on_device, lda, dx_on_device, incx, batch_count));
         CHECK_HIP_ERROR(hres.transfer_from(dx));
 
@@ -183,7 +191,7 @@ void testing_trmv_batched(const Arguments& arg)
             int number_cold_calls = arg.cold_iters;
             for(int iter = 0; iter < number_cold_calls; iter++)
             {
-                rocblas_trmv_batched<T>(handle,
+                rocblas_trmv_batched_fn(handle,
                                         uplo,
                                         transA,
                                         diag,
@@ -204,7 +212,7 @@ void testing_trmv_batched(const Arguments& arg)
             int number_hot_calls = arg.iters;
             for(int iter = 0; iter < number_hot_calls; iter++)
             {
-                rocblas_trmv_batched<T>(handle,
+                rocblas_trmv_batched_fn(handle,
                                         uplo,
                                         transA,
                                         diag,

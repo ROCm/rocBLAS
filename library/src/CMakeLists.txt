@@ -42,7 +42,7 @@ if( BUILD_WITH_TENSILE )
   endif( )
 
   set( Tensile_RUNTIME_LANGUAGE "HIP" )
-  message( STATUS "AMDGPU_TARGETS=${AMDGPU_TARGETS}" )
+  message( STATUS "ROCBLAS_GPUS=${ROCBLAS_GPUS}" )
   if( BUILD_WITH_TENSILE_HOST )
     #TODO update when this feature has been validated
     #set( PACKAGE_TENSILE_LIBRARY ON )
@@ -84,7 +84,7 @@ if( BUILD_WITH_TENSILE )
     # Remove following when hcc is fixed; hcc emits following spurious warning ROCm v1.6.1
     # "clang-5.0: warning: argument unused during compilation: '-isystem /opt/rocm/include'"
     # target_compile_options( Tensile PRIVATE -Wno-unused-command-line-argument -fno-gpu-rdc -Wno-deprecated-declarations)
-    foreach( target ${AMDGPU_TARGETS} )
+    foreach( target ${ROCBLAS_GPUS} )
       if( BUILD_WITH_TENSILE_HOST )
           # Remove following when hcc is fixed; hcc emits following spurious warning ROCm v1.6.1
           # "clang-5.0: warning: argument unused during compilation: '-isystem /opt/rocm/include'"
@@ -95,6 +95,16 @@ if( BUILD_WITH_TENSILE )
           # "clang-5.0: warning: argument unused during compilation: '-isystem /opt/rocm/include'"
           target_compile_options( Tensile PRIVATE -Wno-unused-command-line-argument -fno-gpu-rdc -Wno-deprecated-declarations)
           target_compile_options( Tensile PRIVATE --amdgpu-target=${target} )
+      endif()
+    endforeach( )
+  endif( )
+
+  if( CMAKE_CXX_COMPILER MATCHES ".*/hipcc$" )
+    foreach( target ${ROCBLAS_GPUS} )
+      if( BUILD_WITH_TENSILE_HOST )
+        target_compile_options( TensileHost PRIVATE --amdgpu-target=${target} )
+      else()
+        target_compile_options( Tensile PRIVATE --amdgpu-target=${target} )
       endif()
     endforeach( )
   endif( )
@@ -335,8 +345,16 @@ if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
   # Remove following when hcc is fixed; hcc emits following spurious warning ROCm v1.6.1
   # "clang-5.0: warning: argument unused during compilation: '-isystem /opt/rocm/include'"
   target_compile_options( rocblas PRIVATE -Wno-unused-command-line-argument -fno-gpu-rdc )
-  foreach( target ${AMDGPU_TARGETS} )
+  foreach( target ${ROCBLAS_GPUS} )
     target_compile_options( rocblas PRIVATE --amdgpu-target=${target} )
+  endforeach( )
+endif( )
+
+if( CMAKE_CXX_COMPILER MATCHES ".*/hipcc$" )
+  foreach( target ${ROCBLAS_GPUS} )
+    message( STATUS "TARGET: " ${target} )
+    target_compile_options( rocblas PRIVATE --amdgpu-target=${target} )
+    target_link_libraries( rocblas PRIVATE --amdgpu-target=${target} )
   endforeach( )
 endif( )
 

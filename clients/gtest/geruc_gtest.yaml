@@ -56,6 +56,7 @@ Tests:
   - gerc_batched_bad_arg
   - gerc_strided_batched_bad_arg
   precision: *single_double_precisions_complex
+  fortran: [ false, true ]
 
 - name: geruc_arg_check
   category: quick
@@ -71,6 +72,18 @@ Tests:
   matrix_size: *special_case_range
 
 # Regular geruc
+- name: geruc_fortran
+  category: quick
+  function:
+  - geru
+  - gerc
+  precision: *single_double_precisions_complex
+  matrix_size: *small_matrix_size_range
+  incx_incy: *incx_incy_range_small
+  alpha: [ 2.0 ]
+  alphai: [ -2.0 ]
+  fortran: true
+
 - name: geruc_small
   category: quick
   function:
@@ -105,6 +118,19 @@ Tests:
   alphai: [ -0.5, 0.1 ]
 
 # geruc_batched
+- name: geruc_batched_fortran
+  category: quick
+  function:
+  - geru_batched
+  - gerc_batched
+  precision: *single_double_precisions_complex
+  matrix_size: *small_matrix_size_range
+  incx_incy: *incx_incy_range_small
+  alpha: [ 2.0 ]
+  alphai: [ -2.0 ]
+  batch_count: [ -1, 0, 3 ]
+  fortran: true
+
 - name: geruc_batched_small
   category: quick
   function:
@@ -142,6 +168,20 @@ Tests:
   batch_count: [ 1, 3 ]
 
 # geruc_strided_batched
+- name: geruc_strided_batched_fortran
+  category: quick
+  function:
+  - geru_strided_batched
+  - gerc_strided_batched
+  precision: *single_double_precisions_complex
+  matrix_size: *small_matrix_size_range
+  incx_incy: *incx_incy_range_small
+  alpha: [ 2.0 ]
+  alphai: [ -2.0 ]
+  batch_count: [ -1, 0, 3 ]
+  stride_scale: [ 2 ]
+  fortran: true
+
 - name: geruc_strided_batched_small
   category: quick
   function:

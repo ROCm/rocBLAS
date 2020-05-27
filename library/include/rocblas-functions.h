@@ -5280,6 +5280,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrmv(rocblas_handle                handle
                                             rocblas_int                   lda,
                                             rocblas_double_complex*       x,
                                             rocblas_int                   incx);
+
 ROCBLAS_EXPORT rocblas_status rocblas_strmv_batched(rocblas_handle      handle,
                                                     rocblas_fill        uplo,
                                                     rocblas_operation   transA,
@@ -5777,6 +5778,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztpmv_strided_batched(rocblas_handle      
                                                             rocblas_int                   incx,
                                                             rocblas_stride                stridex,
                                                             rocblas_int batch_count);
+
 ROCBLAS_EXPORT rocblas_status rocblas_stbmv(rocblas_handle    handle,
                                             rocblas_fill      uplo,
                                             rocblas_operation trans,
