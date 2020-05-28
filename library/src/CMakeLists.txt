@@ -66,17 +66,17 @@ if( BUILD_WITH_TENSILE )
    )
 
   ## Create a unique name for Tensile compiled for rocBLAS
-  #  set_target_properties( Tensile PROPERTIES OUTPUT_NAME tensile-rocblas CXX_EXTENSIONS NO )
+  #  set_target_properties( Tensile PROPERTIES OUTPUT_NAME rocblas-tensile CXX_EXTENSIONS NO )
   # build gemm with Tensile Host library
   if( BUILD_WITH_TENSILE_HOST )
       # Create a unique name for Tensile compiled for rocBLAS
-      set_target_properties( TensileHost PROPERTIES OUTPUT_NAME tensile-rocblas CXX_EXTENSIONS NO )
+      set_target_properties( TensileHost PROPERTIES OUTPUT_NAME rocblas-tensile CXX_EXTENSIONS NO )
       #target_compile_definitions( Tensile PUBLIC USE_TENSILE_HOST )
       target_compile_definitions( TensileHost PUBLIC USE_TENSILE_HOST )
       #endif()
   else()
     # Create a unique name for Tensile compiled for rocBLAS
-    set_target_properties( Tensile PROPERTIES OUTPUT_NAME tensile-rocblas CXX_EXTENSIONS NO )
+    set_target_properties( Tensile PROPERTIES OUTPUT_NAME rocblas-tensile CXX_EXTENSIONS NO )
     target_link_libraries( Tensile PRIVATE hip::device )
   endif()
 
