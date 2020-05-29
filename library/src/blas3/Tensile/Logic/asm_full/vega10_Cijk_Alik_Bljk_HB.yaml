@@ -3,7 +3,7 @@
 - gfx900
 - [Device 6863, Device 6862, Device 687f, Device 6860, Device 6861, 'Vega 10 XTX [Radeon
     Vega Frontier Edition]', 'Vega [Radeon RX Vega]', 'Vega 10 XT [Radeon RX Vega
-    64]', Vega, Device 6864, Device 686c]
+    64]', Vega, Device 6864, Device 686c, 'Vega 10 [Radeon Instinct MI25 MxGPU]']
 - AssignedDerivedParameters: true
   Batched: true
   ComplexConjugateA: false
