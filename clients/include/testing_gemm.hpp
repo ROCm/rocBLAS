@@ -136,9 +136,10 @@ void testing_gemm(const Arguments& arg)
         return;
     }
 
-    const auto size_A = size_t(lda) * size_t(A_col);
-    const auto size_B = size_t(ldb) * size_t(B_col);
-    const auto size_C = size_t(ldc) * size_t(N);
+    const auto size_A      = size_t(lda) * size_t(A_col);
+    const auto size_B      = size_t(ldb) * size_t(B_col);
+    const auto size_C      = size_t(ldc) * size_t(N);
+    const auto size_C_copy = arg.unit_check || arg.norm_check ? size_C : 0;
 
     // allocate memory on device
     device_vector<T> dA(size_A);
@@ -156,8 +157,8 @@ void testing_gemm(const Arguments& arg)
     host_vector<T> hA(size_A);
     host_vector<T> hB(size_B);
     host_vector<T> hC_1(size_C);
-    host_vector<T> hC_2(size_C);
-    host_vector<T> hC_gold(size_C);
+    host_vector<T> hC_2(size_C_copy);
+    host_vector<T> hC_gold(size_C_copy);
 
     // Initial Data on CPU
     if(arg.initialization == rocblas_initialization_random_int)
@@ -190,8 +191,11 @@ void testing_gemm(const Arguments& arg)
             rocblas_init_hpl<T>(hC_1, M, N, ldc);
     }
 
-    hC_2    = hC_1;
-    hC_gold = hC_1;
+    if(size_C_copy)
+    {
+        hC_2    = hC_1;
+        hC_gold = hC_1;
+    }
 
     // copy data from CPU to device
     CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(T) * size_A, hipMemcpyHostToDevice));
