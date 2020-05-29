@@ -76,9 +76,10 @@ void testing_gemm_batched(const Arguments& arg)
         = transB == rocblas_operation_none ? size_t(N) * size_t(ldb) : size_t(K) * size_t(ldb);
     size_t size_one_c = N * ldc;
 
-    size_t size_a = size_one_a;
-    size_t size_b = size_one_b;
-    size_t size_c = size_one_c;
+    size_t     size_a      = size_one_a;
+    size_t     size_b      = size_one_b;
+    size_t     size_c      = size_one_c;
+    const auto size_c_copy = arg.unit_check || arg.norm_check ? size_c : 0;
 
     // allocate memory on device
     device_batch_vector<T> dA(size_a, 1, batch_count);
@@ -96,8 +97,8 @@ void testing_gemm_batched(const Arguments& arg)
     host_batch_vector<T> hA(size_a, 1, batch_count);
     host_batch_vector<T> hB(size_b, 1, batch_count);
     host_batch_vector<T> hC_1(size_c, 1, batch_count);
-    host_batch_vector<T> hC_2(size_c, 1, batch_count);
-    host_batch_vector<T> hC_gold(size_c, 1, batch_count);
+    host_batch_vector<T> hC_2(size_c_copy, 1, batch_count);
+    host_batch_vector<T> hC_gold(size_c_copy, 1, batch_count);
     host_vector<T>       halpha(1);
     host_vector<T>       hbeta(1);
     halpha[0] = h_alpha;
@@ -114,8 +115,11 @@ void testing_gemm_batched(const Arguments& arg)
     else
         rocblas_init(hC_1, false);
 
-    hC_2.copy_from(hC_1);
-    hC_gold.copy_from(hC_1);
+    if(size_c_copy)
+    {
+        hC_2.copy_from(hC_1);
+        hC_gold.copy_from(hC_1);
+    }
 
     CHECK_HIP_ERROR(dA.transfer_from(hA));
     CHECK_HIP_ERROR(dB.transfer_from(hB));

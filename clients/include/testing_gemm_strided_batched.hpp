@@ -87,9 +87,10 @@ void testing_gemm_strided_batched(const Arguments& arg)
         = transB == rocblas_operation_none ? size_t(N) * size_t(ldb) : size_t(K) * size_t(ldb);
     size_t size_one_c = N * ldc;
 
-    size_t size_a = size_one_a + size_t(stride_a) * size_t(batch_count - 1);
-    size_t size_b = size_one_b + size_t(stride_b) * size_t(batch_count - 1);
-    size_t size_c = size_one_c + size_t(stride_c) * size_t(batch_count - 1);
+    size_t     size_a      = size_one_a + size_t(stride_a) * size_t(batch_count - 1);
+    size_t     size_b      = size_one_b + size_t(stride_b) * size_t(batch_count - 1);
+    size_t     size_c      = size_one_c + size_t(stride_c) * size_t(batch_count - 1);
+    const auto size_c_copy = arg.unit_check || arg.norm_check ? size_c : 0;
 
     // allocate memory on device
     device_vector<T> dA(size_a);
@@ -107,8 +108,8 @@ void testing_gemm_strided_batched(const Arguments& arg)
     host_vector<T> hA(size_a);
     host_vector<T> hB(size_b);
     host_vector<T> hC_1(size_c);
-    host_vector<T> hC_2(size_c);
-    host_vector<T> hC_gold(size_c);
+    host_vector<T> hC_2(size_c_copy);
+    host_vector<T> hC_gold(size_c_copy);
 
     // Initial Data on CPU
     rocblas_seedrand();
@@ -120,8 +121,11 @@ void testing_gemm_strided_batched(const Arguments& arg)
     else
         rocblas_init<T>(hC_1, M, N, ldc, stride_c, batch_count);
 
-    hC_2    = hC_1;
-    hC_gold = hC_1;
+    if(size_c_copy)
+    {
+        hC_2    = hC_1;
+        hC_gold = hC_1;
+    }
 
     // copy data from CPU to device
     CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(T) * size_a, hipMemcpyHostToDevice));
