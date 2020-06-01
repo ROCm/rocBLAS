@@ -41,11 +41,13 @@ The header file will need to be included in the user code in order to make calls
 into rocBLAS, and the rocBLAS shared library will become link-time and run-time
 dependent for the user applciation.
 
+
 Building from source using install.sh
 =====================================
 
 For most users building from source is not necessary, as rocBLAS can be used after installing the pre-built
 packages as described above. If desired, the following instructions can be used to build rocBLAS from source.
+
 
 Requirements
 ------------
@@ -74,8 +76,6 @@ Below are steps to build either
 You only need (dependencies + library) if you call rocBLAS from your code.
 The client contains the test and benchmark code.
 
-It is recommended that the script install.sh be used to build rocBLAS.
-If you need individual commands, they are also provided.
 
 Build library dependencies + library
 ------------------------------------
@@ -118,6 +118,7 @@ in the table below.
 |                                           | directory, you do not    |
 |                                           | need the -i flag.        |
 +-------------------------------------------+--------------------------+
+
 
 Build library dependencies + client dependencies + library + client
 -------------------------------------------------------------------
@@ -189,133 +190,6 @@ in the table below.
 |                                           | need the -i flag.        |
 +-------------------------------------------+--------------------------+
 
-Building from source using individual commands
-==============================================
-
-Before building the library please install the library dependencies
-CMake, Python 2.7, Python 3, and Python-yaml.
-
-CMake 3.5 or later
-------------------
-
-The build infrastructure for rocBLAS is based on
-`Cmake <https://cmake.org/>`__ v3.5. This is the version of cmake
-available on ROCm supported platforms. If you are on a headless machine
-without the x-windows system, we recommend using **ccmake**; if you have
-access to X-windows, we recommend using **cmake-gui**.
-
-Install one-liners cmake: \* Ubuntu: ``sudo apt install cmake-qt-gui``
-\* Fedora: ``sudo dnf install cmake-gui``
-
-Python
-------
-
-By default both python2 and python3 are on Ubuntu.
-Python is used in Tensile, and Tensile is part of rocBLAS.
-To build rocBLAS both Python 2.7 and Python 3 are needed.
-
-Python-yaml
------------
-
-PyYAML files contain training information from Tensile that is used to
-build gemm kernels in rocBLAS.
-
-Install one-liners PyYAML:
-
-* Ubuntu: ``sudo apt install python2.7 python-yaml``
-
-* Fedora: ``sudo dnf install python PyYAML``
-
-Build library
--------------
-
-The rocBLAS library contains both host and device code, so the HCC
-compiler must be specified during cmake configuration to properly
-initialize build tools. Example steps to build rocBLAS:
-
-.. code:: bash
-
-   # after downloading and changing to rocblas directory:
-   mkdir -p build/release
-   cd build/release
-   # Default install path is in /opt/rocm, use -DCMAKE_INSTALL_PREFIX=<path> to specify other install path
-   # Default build config is 'Release', define -DCMAKE_BUILD_TYPE=Debug to specify Debug configuration
-   CXX=/opt/rocm/bin/hcc cmake ../..
-   make -j$(nproc)
-   #if you want to install in /opt/rocm or the directory set in cmake with -DCMAKE_INSTALL_PREFIX
-   sudo make install # sudo required if installing into system directory such as /opt/rocm
-
-Additional dependencies for the rocBLAS clients
------------------------------------------------
-
-The unit tests and benchmarking applications in the client introduce the
-following dependencies:
-
-#. `boost <http://www.boost.org/>`__
-
-2. `fortran <http://gcc.gnu.org/wiki/GFortran>`__
-
-3. `lapack <https://github.com/Reference-LAPACK/lapack-release>`__ - lapack itself brings a dependency on a fortran compiler
-
-4. `googletest <https://github.com/google/googletest>`__
-
-boost
------
-
-Linux distros typically have an easy installation mechanism for boost
-through the native package manager.
-
--  Ubuntu: ``sudo apt install libboost-program-options-dev``
--  Fedora: ``sudo dnf install boost-program-options``
-
-Unfortunately, googletest and lapack are not as easy to install. Many
-distros do not provide a googletest package with pre-compiled libraries,
-and the lapack packages do not have the necessary cmake config files for
-cmake to configure linking the cblas library. rocBLAS provide a cmake
-script that builds the above dependencies from source. This is an
-optional step; users can provide their own builds of these dependencies
-and help cmake find them by setting the CMAKE_PREFIX_PATH definition.
-The following is a sequence of steps to build dependencies and install
-them to the cmake default /usr/local.
-
-gfortran and lapack
--------------------
-
-LAPACK is used in the client to test rocBLAS. LAPACK is a Fortran
-Library, so gfortran is required for building the client.
-
-\*Ubuntu ``apt-get update``
-
-``apt-get install gfortran``
-
-\*Fedora ``yum install gcc-gfortran``
-
-.. code:: bash
-
-   mkdir -p build/release/deps
-   cd build/release/deps
-   cmake -DBUILD_BOOST=OFF ../../deps   # assuming boost is installed through package manager as above
-   make -j$(nproc) install
-
-Build library + client
-----------------------
-
-Once dependencies are available on the system, it is possible to
-configure the clients to build. This requires a few extra cmake flags to
-the library cmake configure script. If the dependencies are not
-installed into system defaults (like /usr/local ), you should pass the
-CMAKE_PREFIX_PATH to cmake to help find them. \*
-``-DCMAKE_PREFIX_PATH="<semicolon separated paths>"``
-
-.. code:: bash
-
-   # after downloading and changing to rocblas directory:
-   mkdir -p build/release
-   cd build/release
-   # Default install location is in /opt/rocm, use -DCMAKE_INSTALL_PREFIX=<path> to specify other
-   CXX=/opt/rocm/bin/hcc cmake -DBUILD_CLIENTS_TESTS=ON -DBUILD_CLIENTS_BENCHMARKS=ON -DBUILD_CLIENTS_SAMPLES=ON ../..
-   make -j$(nproc)
-   sudo make install   # sudo required if installing into system directory such as /opt/rocm
 
 Use of Tensile
 ==============
