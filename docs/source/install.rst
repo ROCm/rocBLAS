@@ -67,7 +67,7 @@ The rocBLAS source code is available at the `rocBLAS github page <https://github
    git clone -b master https://github.com/ROCmSoftwarePlatform/rocBLAS.git
    cd rocBLAS
 
-Below are steps to build either 
+Below are steps to build either
 
 * dependencies + library
 
@@ -189,6 +189,12 @@ in the table below.
 |                                           | directory, you do not    |
 |                                           | need the -i flag.        |
 +-------------------------------------------+--------------------------+
+
+
+Dependencies
+============
+
+Dependencies are listed in the script install.sh. The -d flag to install.sh installs dependencies.
 
 
 Use of Tensile
