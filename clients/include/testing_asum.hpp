@@ -130,18 +130,18 @@ void testing_asum(const Arguments& arg)
     {
         int number_cold_calls = arg.cold_iters;
         int number_hot_calls  = arg.iters;
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            rocblas_asum_fn(handle, N, dx, incx, &rocblas_result_1);
+            rocblas_asum_fn(handle, N, dx, incx, dr);
         }
 
         gpu_time_used = get_time_us(); // in microseconds
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            rocblas_asum_fn(handle, N, dx, incx, &rocblas_result_1);
+            rocblas_asum_fn(handle, N, dx, incx, dr);
         }
 
         gpu_time_used = get_time_us() - gpu_time_used;

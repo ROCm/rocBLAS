@@ -145,12 +145,12 @@ void testing_nrm2_batched(const Arguments& arg)
     {
         int number_cold_calls = arg.cold_iters;
         int number_hot_calls  = arg.iters;
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
             rocblas_nrm2_batched_fn(
-                handle, N, dx.ptr_on_device(), incx, batch_count, rocblas_result_2);
+                handle, N, dx.ptr_on_device(), incx, batch_count, d_rocblas_result_2);
         }
 
         gpu_time_used = get_time_us(); // in microseconds
@@ -158,7 +158,7 @@ void testing_nrm2_batched(const Arguments& arg)
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
             rocblas_nrm2_batched_fn(
-                handle, N, dx.ptr_on_device(), incx, batch_count, rocblas_result_2);
+                handle, N, dx.ptr_on_device(), incx, batch_count, d_rocblas_result_2);
         }
 
         gpu_time_used = (get_time_us() - gpu_time_used) / number_hot_calls;
