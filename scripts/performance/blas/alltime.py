@@ -69,6 +69,7 @@ class rundata:
         self.LDA = data['LDA']
         self.LDB = data['LDB']
         self.LDC = data['LDC']
+        self.algo = data['algo']
         self.transA = data['transA']
         self.transB = data['transB']
         self.initialization = data['initialization']
@@ -159,6 +160,9 @@ class rundata:
 
         cmd.append("--LDC")
         cmd.append(str(self.LDC))
+
+        cmd.append("--algo")
+        cmd.append(str(self.algo))
 
         cmd.append("--incx")
         cmd.append(str(self.incx))

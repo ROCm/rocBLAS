@@ -36,7 +36,7 @@ Usage:
 # \t\t-Z <int>    maximum problem size in Z direction
 
 def runcase(workingdir, mval, nval, kval, ntrial, precision, nbatch,
-            devicenum, logfilename, function, side, uplo, diag, transA, transB, alpha, beta, incx, incy, lda, ldb, ldc, iters, cold_iters):
+            devicenum, logfilename, function, side, uplo, diag, transA, transB, alpha, beta, incx, incy, lda, ldb, ldc, algo, iters, cold_iters):
     progname = "rocblas-bench"
     prog = os.path.join(workingdir, progname)
 
@@ -103,6 +103,9 @@ def runcase(workingdir, mval, nval, kval, ntrial, precision, nbatch,
 
     cmd.append("--batch_count")
     cmd.append(str(nbatch))
+
+    cmd.append("--algo")
+    cmd.append(str(algo))
 
     cmd.append("--device")
     cmd.append(str(devicenum))
@@ -183,6 +186,7 @@ def main(argv):
     outfilename = "timing.dat"
     precision = "f32_r"
     nbatch = 1
+    algo = 0
     # datatype = "time"
     radix = 2
     step_size = 10
@@ -210,7 +214,7 @@ def main(argv):
     try:
         print(argv)
         opts, args = getopt.getopt(argv,"hb:d:I:i:j:o:Rt:w:m:n:k:M:N:K:y:Y:z:Z:f:r:g:p:s:a:x", ["side=", "uplo=", "diag=", "incx=", "incy=",
-         "alpha=", "beta=", "transA=", "transB=", "lda=", "ldb=", "ldc=", "LDA=", "LDB=", "LDC=", "initialization="])
+         "alpha=", "beta=", "transA=", "transB=", "lda=", "ldb=", "ldc=", "LDA=", "LDB=", "LDC=", "algo=", "initialization="])
     except getopt.GetoptError:
         print("error in parsing arguments.")
         print(usage)
@@ -289,6 +293,8 @@ def main(argv):
             LDB = int(arg)
         elif opt in ("--LDC"):
             LDC = int(arg)
+        elif opt in ("--algo"):
+            algo = int(arg)
         elif opt in ("--initialization"):
             initialization = arg
         elif opt in ("-p"):
@@ -327,7 +333,7 @@ def main(argv):
     done = False
     while(not done):
         us, gf, bw = runcase(workingdir, mval, nval, kval, ntrial,
-                          precision, nbatch, devicenum, logfilename, function, side, uplo, diag, transA, transB, alpha, beta, incx, incy, lda, ldb, ldc, iters, cold_iters)
+                          precision, nbatch, devicenum, logfilename, function, side, uplo, diag, transA, transB, alpha, beta, incx, incy, lda, ldb, ldc, algo, iters, cold_iters)
         #print(seconds)
         with open(outfilename, 'a') as outfile:
             if function == 'trsm':
