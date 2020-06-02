@@ -116,25 +116,30 @@ void testing_dot(const Arguments& arg)
     CHECK_HIP_ERROR(hipMemcpy(dy, hy, sizeof(T) * size_y, hipMemcpyHostToDevice));
 
     double gpu_time_used, cpu_time_used;
-    double rocblas_gflops, cblas_gflops, rocblas_bandwidth;
+
+    // arg.algo indicates to force optimized x dot x kernel algorithm with equal inc
+    auto dy_ptr = (arg.algo) ? (T*)(dx) : (T*)(dy);
+    auto hy_ptr = (arg.algo) ? &hx[0] : &hy[0];
+    if(arg.algo)
+        incy = incx;
 
     if(arg.unit_check || arg.norm_check)
     {
         // GPU BLAS, rocblas_pointer_mode_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR((rocblas_dot_fn)(handle, N, dx, incx, dy, incy, &rocblas_result_1));
+        CHECK_ROCBLAS_ERROR((rocblas_dot_fn)(handle, N, dx, incx, dy_ptr, incy, &rocblas_result_1));
 
         // GPU BLAS, rocblas_pointer_mode_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR((rocblas_dot_fn)(handle, N, dx, incx, dy, incy, d_rocblas_result_2));
+        CHECK_ROCBLAS_ERROR(
+            (rocblas_dot_fn)(handle, N, dx, incx, dy_ptr, incy, d_rocblas_result_2));
         CHECK_HIP_ERROR(
             hipMemcpy(&rocblas_result_2, d_rocblas_result_2, sizeof(T), hipMemcpyDeviceToHost));
 
         // CPU BLAS
         cpu_time_used = get_time_us();
-        (CONJ ? cblas_dotc<T> : cblas_dot<T>)(N, hx, incx, hy, incy, &cpu_result);
+        (CONJ ? cblas_dotc<T> : cblas_dot<T>)(N, hx, incx, hy_ptr, incy, &cpu_result);
         cpu_time_used = get_time_us() - cpu_time_used;
-        cblas_gflops  = dot_gflop_count<CONJ, T>(N) / cpu_time_used * 1e6 * 1;
 
         if(arg.unit_check)
         {
@@ -160,26 +165,26 @@ void testing_dot(const Arguments& arg)
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            (rocblas_dot_fn)(handle, N, dx, incx, dy, incy, d_rocblas_result_2);
+            (rocblas_dot_fn)(handle, N, dx, incx, dy_ptr, incy, d_rocblas_result_2);
         }
 
         gpu_time_used = get_time_us(); // in microseconds
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            (rocblas_dot_fn)(handle, N, dx, incx, dy, incy, d_rocblas_result_2);
+            (rocblas_dot_fn)(handle, N, dx, incx, dy_ptr, incy, d_rocblas_result_2);
         }
 
         gpu_time_used = get_time_us() - gpu_time_used;
 
-        ArgumentModel<e_N, e_incx, e_incy>{}.log_args<T>(rocblas_cout,
-                                                         arg,
-                                                         gpu_time_used,
-                                                         dot_gflop_count<CONJ, T>(N),
-                                                         dot_gbyte_count<T>(N),
-                                                         cpu_time_used,
-                                                         rocblas_error_1,
-                                                         rocblas_error_2);
+        ArgumentModel<e_N, e_incx, e_incy, e_algo>{}.log_args<T>(rocblas_cout,
+                                                                 arg,
+                                                                 gpu_time_used,
+                                                                 dot_gflop_count<CONJ, T>(N),
+                                                                 dot_gbyte_count<T>(N),
+                                                                 cpu_time_used,
+                                                                 rocblas_error_1,
+                                                                 rocblas_error_2);
     }
 }
 

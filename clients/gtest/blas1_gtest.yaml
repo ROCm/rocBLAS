@@ -592,6 +592,38 @@ Tests:
       - dot_strided_batched:   *half_bfloat_single_double_complex_real_precisions
       - dotc_strided_batched:  *single_double_precisions_complex
 
+# quick
+# dot alt algorithm, algo=1 forces x*x with incx=incy to test special case kernel
+  - name: blas1
+    category: quick
+    N: [ -1, 0, 1025]
+    incx_incy: *incx_incy_range
+    algo: 1
+    function:
+      - dot:   *half_bfloat_single_double_complex_real_precisions
+      - dotc:  *single_double_precisions_complex
+
+  - name: blas1_batched
+    category: quick
+    N: [ -1, 0, 1025]
+    incx_incy: *incx_incy_range
+    batch_count: [-1, 0, 257]
+    algo: 1
+    function:
+      - dot_batched:   *half_bfloat_single_double_complex_real_precisions
+      - dotc_batched:  *single_double_precisions_complex
+
+  - name: blas1_strided_batched
+    category: quick
+    N: [ -1, 0, 1025]
+    incx_incy: *incx_incy_range
+    batch_count: [-1, 0, 257]
+    stride_scale: [ 1 ]
+    algo: 1
+    function:
+      - dot_strided_batched:   *half_bfloat_single_double_complex_real_precisions
+      - dotc_strided_batched:  *single_double_precisions_complex
+
 # pre_checkin
   - name: blas1
     category: pre_checkin
@@ -604,6 +636,7 @@ Tests:
       - dotc:  *double_precision_complex_real
       - rot:   *rot_precisions
       - rotm:  *single_double_precisions_complex_real
+
 
   - name: blas1_batched
     category: pre_checkin

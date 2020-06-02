@@ -39,60 +39,55 @@ namespace
 
     // allocate workspace inside this API
     template <bool CONJ, typename T, typename T2 = T>
-    rocblas_status rocblas_dot_batched_impl(rocblas_handle handle,
-                                            rocblas_int    n,
-                                            const T* const x[],
-                                            rocblas_int    incx,
-                                            const T* const y[],
-                                            rocblas_int    incy,
-                                            rocblas_int    batch_count,
-                                            T*             results)
+    inline rocblas_status rocblas_dot_batched_impl(rocblas_handle handle,
+                                                   rocblas_int    n,
+                                                   const T* const x[],
+                                                   rocblas_int    incx,
+                                                   const T* const y[],
+                                                   rocblas_int    incy,
+                                                   rocblas_int    batch_count,
+                                                   T*             results)
     {
         if(!handle)
             return rocblas_status_invalid_handle;
 
-        size_t dev_bytes = rocblas_reduction_kernel_workspace_size<NB, T2>(n, batch_count);
+        size_t dev_bytes = rocblas_reduction_kernel_workspace_size<NB * WIN, T2>(n, batch_count);
         if(handle->is_device_memory_size_query())
         {
             if(n <= 0 || batch_count <= 0)
                 return rocblas_status_size_unchanged;
-
-            if(handle->is_device_memory_size_query())
+            else
                 return handle->set_optimal_device_memory_size(dev_bytes);
         }
 
-        if(!handle->is_device_memory_size_query())
-        {
-            auto layer_mode = handle->layer_mode;
-            if(layer_mode & rocblas_layer_mode_log_trace)
-                log_trace(
-                    handle, rocblas_dot_batched_name<CONJ, T>, n, x, incx, y, incy, batch_count);
+        auto layer_mode = handle->layer_mode;
+        if(layer_mode & rocblas_layer_mode_log_trace)
+            log_trace(handle, rocblas_dot_batched_name<CONJ, T>, n, x, incx, y, incy, batch_count);
 
-            if(layer_mode & rocblas_layer_mode_log_bench)
-                log_bench(handle,
-                          "./rocblas-bench -f dot_batched -r",
-                          rocblas_precision_string<T>,
-                          "-n",
-                          n,
-                          "--incx",
-                          incx,
-                          "--incy",
-                          incy,
-                          "--batch_count",
-                          batch_count);
+        if(layer_mode & rocblas_layer_mode_log_bench)
+            log_bench(handle,
+                      "./rocblas-bench -f dot_batched -r",
+                      rocblas_precision_string<T>,
+                      "-n",
+                      n,
+                      "--incx",
+                      incx,
+                      "--incy",
+                      incy,
+                      "--batch_count",
+                      batch_count);
 
-            if(layer_mode & rocblas_layer_mode_log_profile)
-                log_profile(handle,
-                            rocblas_dot_batched_name<CONJ, T>,
-                            "N",
-                            n,
-                            "incx",
-                            incx,
-                            "incy",
-                            incy,
-                            "batch_count",
-                            batch_count);
-        }
+        if(layer_mode & rocblas_layer_mode_log_profile)
+            log_profile(handle,
+                        rocblas_dot_batched_name<CONJ, T>,
+                        "N",
+                        n,
+                        "incx",
+                        incx,
+                        "incy",
+                        incy,
+                        "batch_count",
+                        batch_count);
 
         // Quick return if possible.
         if(n <= 0 || batch_count <= 0)

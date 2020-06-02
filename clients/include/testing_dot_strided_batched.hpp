@@ -147,19 +147,35 @@ void testing_dot_strided_batched(const Arguments& arg)
     CHECK_HIP_ERROR(hipMemcpy(dy, hy, sizeof(T) * size_y, hipMemcpyHostToDevice));
 
     double gpu_time_used, cpu_time_used;
-    double rocblas_gflops, cblas_gflops, rocblas_bandwidth;
+
+    // arg.algo indicates to force optimized x dot x kernel algorithm with equal inc
+    auto dy_ptr = (arg.algo) ? (T*)(dx) : (T*)(dy);
+    auto hy_ptr = (arg.algo) ? &hx[0] : &hy[0];
+    if(arg.algo)
+    {
+        incy     = incx;
+        stride_y = stride_x;
+    }
 
     if(arg.unit_check || arg.norm_check)
     {
         // GPU BLAS, rocblas_pointer_mode_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         CHECK_ROCBLAS_ERROR((rocblas_dot_strided_batched_fn)(
-            handle, N, dx, incx, stride_x, dy, incy, stride_y, batch_count, rocblas_result_1));
+            handle, N, dx, incx, stride_x, dy_ptr, incy, stride_y, batch_count, rocblas_result_1));
 
         // GPU BLAS, rocblas_pointer_mode_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR((rocblas_dot_strided_batched_fn)(
-            handle, N, dx, incx, stride_x, dy, incy, stride_y, batch_count, d_rocblas_result_2));
+        CHECK_ROCBLAS_ERROR((rocblas_dot_strided_batched_fn)(handle,
+                                                             N,
+                                                             dx,
+                                                             incx,
+                                                             stride_x,
+                                                             dy_ptr,
+                                                             incy,
+                                                             stride_y,
+                                                             batch_count,
+                                                             d_rocblas_result_2));
         CHECK_HIP_ERROR(hipMemcpy(
             rocblas_result_2, d_rocblas_result_2, sizeof(T) * batch_count, hipMemcpyDeviceToHost));
 
@@ -170,12 +186,11 @@ void testing_dot_strided_batched(const Arguments& arg)
             (CONJ ? cblas_dotc<T> : cblas_dot<T>)(N,
                                                   hx + b * stride_x,
                                                   incx,
-                                                  hy + b * stride_y,
+                                                  hy_ptr + b * stride_y,
                                                   incy,
                                                   &cpu_result[b]);
         }
         cpu_time_used = get_time_us() - cpu_time_used;
-        // cblas_gflops  = batch_count * dot_gflop_count<CONJ, T>(N) / cpu_time_used * 1e6 * 1;
 
         if(arg.unit_check)
         {
@@ -205,29 +220,45 @@ void testing_dot_strided_batched(const Arguments& arg)
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            (rocblas_dot_strided_batched_fn)(
-                handle, N, dx, incx, stride_x, dy, incy, stride_y, batch_count, d_rocblas_result_2);
+            (rocblas_dot_strided_batched_fn)(handle,
+                                             N,
+                                             dx,
+                                             incx,
+                                             stride_x,
+                                             dy_ptr,
+                                             incy,
+                                             stride_y,
+                                             batch_count,
+                                             d_rocblas_result_2);
         }
 
         gpu_time_used = get_time_us(); // in microseconds
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            (rocblas_dot_strided_batched_fn)(
-                handle, N, dx, incx, stride_x, dy, incy, stride_y, batch_count, d_rocblas_result_2);
+            (rocblas_dot_strided_batched_fn)(handle,
+                                             N,
+                                             dx,
+                                             incx,
+                                             stride_x,
+                                             dy_ptr,
+                                             incy,
+                                             stride_y,
+                                             batch_count,
+                                             d_rocblas_result_2);
         }
 
         gpu_time_used = get_time_us() - gpu_time_used;
 
-        ArgumentModel<e_N, e_incx, e_incy, e_stride_x, e_stride_y, e_batch_count>{}.log_args<T>(
-            rocblas_cout,
-            arg,
-            gpu_time_used,
-            dot_gflop_count<CONJ, T>(N),
-            dot_gbyte_count<T>(N),
-            cpu_time_used,
-            rocblas_error_1,
-            rocblas_error_2);
+        ArgumentModel<e_N, e_incx, e_incy, e_stride_x, e_stride_y, e_batch_count, e_algo>{}
+            .log_args<T>(rocblas_cout,
+                         arg,
+                         gpu_time_used,
+                         dot_gflop_count<CONJ, T>(N),
+                         dot_gbyte_count<T>(N),
+                         cpu_time_used,
+                         rocblas_error_1,
+                         rocblas_error_2);
     }
 }
 
