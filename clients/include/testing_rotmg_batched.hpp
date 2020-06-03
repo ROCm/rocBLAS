@@ -16,6 +16,10 @@
 template <typename T, typename U = T>
 void testing_rotmg_batched_bad_arg(const Arguments& arg)
 {
+    const bool FORTRAN = arg.fortran;
+    auto       rocblas_rotgm_batched_fn
+        = FORTRAN ? rocblas_rotmg_batched<T, true> : rocblas_rotmg_batched<T, false>;
+
     rocblas_int         batch_count = 5;
     static const size_t safe_size   = 5;
 
@@ -31,7 +35,7 @@ void testing_rotmg_batched_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(y1.memcheck());
     CHECK_DEVICE_ALLOCATION(param.memcheck());
 
-    EXPECT_ROCBLAS_STATUS(rocblas_rotmg_batched<T>(nullptr,
+    EXPECT_ROCBLAS_STATUS(rocblas_rotgm_batched_fn(nullptr,
                                                    d1.ptr_on_device(),
                                                    d2.ptr_on_device(),
                                                    x1.ptr_on_device(),
@@ -39,7 +43,7 @@ void testing_rotmg_batched_bad_arg(const Arguments& arg)
                                                    param.ptr_on_device(),
                                                    batch_count),
                           rocblas_status_invalid_handle);
-    EXPECT_ROCBLAS_STATUS(rocblas_rotmg_batched<T>(handle,
+    EXPECT_ROCBLAS_STATUS(rocblas_rotgm_batched_fn(handle,
                                                    nullptr,
                                                    d2.ptr_on_device(),
                                                    x1.ptr_on_device(),
@@ -47,7 +51,7 @@ void testing_rotmg_batched_bad_arg(const Arguments& arg)
                                                    param.ptr_on_device(),
                                                    batch_count),
                           rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(rocblas_rotmg_batched<T>(handle,
+    EXPECT_ROCBLAS_STATUS(rocblas_rotgm_batched_fn(handle,
                                                    d1.ptr_on_device(),
                                                    nullptr,
                                                    x1.ptr_on_device(),
@@ -55,7 +59,7 @@ void testing_rotmg_batched_bad_arg(const Arguments& arg)
                                                    param.ptr_on_device(),
                                                    batch_count),
                           rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(rocblas_rotmg_batched<T>(handle,
+    EXPECT_ROCBLAS_STATUS(rocblas_rotgm_batched_fn(handle,
                                                    d1.ptr_on_device(),
                                                    d2.ptr_on_device(),
                                                    nullptr,
@@ -63,7 +67,7 @@ void testing_rotmg_batched_bad_arg(const Arguments& arg)
                                                    param.ptr_on_device(),
                                                    batch_count),
                           rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(rocblas_rotmg_batched<T>(handle,
+    EXPECT_ROCBLAS_STATUS(rocblas_rotgm_batched_fn(handle,
                                                    d1.ptr_on_device(),
                                                    d2.ptr_on_device(),
                                                    x1.ptr_on_device(),
@@ -71,7 +75,7 @@ void testing_rotmg_batched_bad_arg(const Arguments& arg)
                                                    param.ptr_on_device(),
                                                    batch_count),
                           rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(rocblas_rotmg_batched<T>(handle,
+    EXPECT_ROCBLAS_STATUS(rocblas_rotgm_batched_fn(handle,
                                                    d1.ptr_on_device(),
                                                    d2.ptr_on_device(),
                                                    x1.ptr_on_device(),
@@ -84,6 +88,10 @@ void testing_rotmg_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_rotmg_batched(const Arguments& arg)
 {
+    const bool FORTRAN = arg.fortran;
+    auto       rocblas_rotgm_batched_fn
+        = FORTRAN ? rocblas_rotmg_batched<T, true> : rocblas_rotmg_batched<T, false>;
+
     const int            TEST_COUNT  = 100;
     rocblas_int          batch_count = arg.batch_count;
     rocblas_local_handle handle;
@@ -96,7 +104,7 @@ void testing_rotmg_batched(const Arguments& arg)
     if(batch_count <= 0)
     {
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        EXPECT_ROCBLAS_STATUS(rocblas_rotmg_batched<T>(
+        EXPECT_ROCBLAS_STATUS(rocblas_rotgm_batched_fn(
                                   handle, nullptr, nullptr, nullptr, nullptr, nullptr, batch_count),
                               rocblas_status_success);
         return;
@@ -152,7 +160,7 @@ void testing_rotmg_batched(const Arguments& arg)
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
             CHECK_ROCBLAS_ERROR(
-                rocblas_rotmg_batched<T>(handle, rd1, rd2, rx1, ry1, rparams, batch_count));
+                rocblas_rotgm_batched_fn(handle, rd1, rd2, rx1, ry1, rparams, batch_count));
 
             if(arg.unit_check)
             {
@@ -194,7 +202,7 @@ void testing_rotmg_batched(const Arguments& arg)
             CHECK_HIP_ERROR(dparams.transfer_from(hparams));
 
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-            CHECK_ROCBLAS_ERROR(rocblas_rotmg_batched<T>(handle,
+            CHECK_ROCBLAS_ERROR(rocblas_rotgm_batched_fn(handle,
                                                          dd1.ptr_on_device(),
                                                          dd2.ptr_on_device(),
                                                          dx1.ptr_on_device(),
@@ -260,7 +268,7 @@ void testing_rotmg_batched(const Arguments& arg)
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            rocblas_rotmg_batched<T>(handle,
+            rocblas_rotgm_batched_fn(handle,
                                      dd1.ptr_on_device(),
                                      dd2.ptr_on_device(),
                                      dx1.ptr_on_device(),
@@ -271,7 +279,7 @@ void testing_rotmg_batched(const Arguments& arg)
         gpu_time_used = get_time_us(); // in microseconds
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            rocblas_rotmg_batched<T>(handle,
+            rocblas_rotgm_batched_fn(handle,
                                      dd1.ptr_on_device(),
                                      dd2.ptr_on_device(),
                                      dx1.ptr_on_device(),

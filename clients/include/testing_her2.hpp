@@ -17,8 +17,11 @@
 #include "utility.hpp"
 
 template <typename T>
-void testing_her2_bad_arg()
+void testing_her2_bad_arg(const Arguments& arg)
 {
+    const bool FORTRAN         = arg.fortran;
+    auto       rocblas_her2_fn = FORTRAN ? rocblas_her2<T, true> : rocblas_her2<T, false>;
+
     rocblas_fill         uplo  = rocblas_fill_upper;
     rocblas_int          N     = 100;
     rocblas_int          lda   = 100;
@@ -65,6 +68,9 @@ void testing_her2_bad_arg()
 template <typename T>
 void testing_her2(const Arguments& arg)
 {
+    const bool FORTRAN         = arg.fortran;
+    auto       rocblas_her2_fn = FORTRAN ? rocblas_her2<T, true> : rocblas_her2<T, false>;
+
     rocblas_int          N       = arg.N;
     rocblas_int          incx    = arg.incx;
     rocblas_int          incy    = arg.incy;

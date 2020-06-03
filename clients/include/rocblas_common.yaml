@@ -255,6 +255,7 @@ Arguments:
   - stride_d: rocblas_int
   - stride_x: rocblas_int
   - stride_y: rocblas_int
+  - fortran: c_bool
   - norm_check: rocblas_int
   - unit_check: rocblas_int
   - timing: rocblas_int
@@ -325,6 +326,7 @@ Defaults:
   uplo: '*'
   diag: '*'
   batch_count: -1
+  fortran: false
   norm_check: 0
   unit_check: 1
   timing: 0

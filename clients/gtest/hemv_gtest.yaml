@@ -67,15 +67,7 @@ Tests:
   - hemv_strided_batched_bad_arg
   precision: *single_double_precisions_complex
   uplo: N
-
-- name: hemv_bad_arg
-  category: pre_checkin
-  function:
-  - hemv_bad_arg
-  - hemv_batched_bad_arg
-  - hemv_strided_batched_bad_arg
-  precision: *single_double_precisions_complex
-  uplo: N
+  fortran: [ true, false ]
 
 - name: hemv_NaN
   category: pre_checkin
@@ -86,6 +78,16 @@ Tests:
   incx_incy: *incx_incy_range
   alpha: [ -1.0, 0, 1.0, 2.0 ]
   beta: .NaN  # converted to 0.0 in test code
+
+- name: hemv_fortran
+  category: quick
+  function: hemv
+  precision: *single_double_precisions_complex
+  uplo: [ U, L ]
+  matrix_size: *small_matrix_size_range
+  incx_incy: *incx_incy_range_small
+  alpha_beta: *alpha_beta_range_small
+  fortran: true
 
 - name: hemv_small
   category: quick
@@ -125,6 +127,17 @@ Tests:
   alpha: [ -1.0, 0, 1.0, 2.0 ]
   beta: .NaN  # converted to 0.0 in test code
   batch_count: [ -1, 0, 1, 3 ]
+
+- name: hemv_batched_fortran
+  category: quick
+  function: hemv_batched
+  precision: *single_double_precisions_complex
+  uplo: [ U, L ]
+  matrix_size: *small_matrix_size_range
+  incx_incy: *incx_incy_range_small
+  alpha_beta: *alpha_beta_range_small
+  batch_count: [ -1, 0, 3 ]
+  fortran: true
 
 - name: hemv_batched_small
   category: quick
@@ -168,6 +181,18 @@ Tests:
   beta: .NaN  # converted to 0.0 in test code
   batch_count: [ -1, 0, 1, 3 ]
   stride_scale: [ 1.5 ]
+
+- name: hemv_strided_batched_fortran
+  category: quick
+  function: hemv_strided_batched
+  precision: *single_double_precisions_complex
+  uplo: [ U, L ]
+  matrix_size: *small_matrix_size_range
+  incx_incy: *incx_incy_range_small
+  alpha_beta: *alpha_beta_range_small
+  batch_count: [ -1, 0, 3 ]
+  stride_scale: [ 2 ]
+  fortran: true
 
 - name: hemv_strided_batched_small
   category: quick

@@ -35,7 +35,6 @@ Definitions:
   - &incx_range_small
     - [ 2 ]
 
-
 Tests:
 - name: tpmv_bad_arg
   category: pre_checkin
@@ -44,6 +43,7 @@ Tests:
   uplo: [L, U]
   transA: [N, T, C]
   diag: [N, U]
+  fortran: [ false, true ]
 
 - name: tpmv_arg_checks
   category: quick
@@ -55,6 +55,17 @@ Tests:
   transA: N
   diag: N
   matrix_size: *special_case_range
+
+- name: tpmv_small
+  category: quick
+  function: tpmv
+  precision: *single_double_precisions_complex_real
+  uplo: [L, U]
+  transA: [N, T, C]
+  diag: [N, U]
+  matrix_size: *small_matrix_size_range
+  incx: *incx_range_small
+  fortran: true
 
 - name: tpmv_small
   category: quick
@@ -93,6 +104,19 @@ Tests:
   uplo: [L, U]
   transA: [  N, T, C ]
   diag: [N, U]
+  fortran: [ false, true ]
+
+- name: tpmv_batched_small
+  category: quick
+  function: tpmv_batched
+  precision: *single_double_precisions_complex_real
+  uplo: [L, U]
+  transA: [N, T, C]
+  diag: [N, U]
+  matrix_size: *small_matrix_size_range
+  incx: *incx_range_small
+  batch_count: [ -1, 0, 3 ]
+  fortran: true
 
 - name: tpmv_batched_small
   category: quick
@@ -136,6 +160,19 @@ Tests:
   transA: [  T ]
   diag: [N]
   stride_scale: [ 1 ]
+
+- name: tpmv_strided_batched_small
+  category: quick
+  function: tpmv_strided_batched
+  precision: *single_double_precisions_complex_real
+  uplo: [L, U]
+  transA: [N, T, C]
+  diag: [N, U]
+  matrix_size: *small_matrix_size_range
+  incx: *incx_range_small
+  batch_count: [ -1, 0, 3 ]
+  stride_scale: [ 2 ]
+  fortran: true
 
 - name: tpmv_strided_batched_small
   category: quick

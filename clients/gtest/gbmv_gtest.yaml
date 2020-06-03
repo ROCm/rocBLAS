@@ -61,11 +61,18 @@ Definitions:
     - { incx:   0, incy:  -1, stride_scale: 2   }
     - { incx:  10, incy: 100, stride_scale: 1   }
 
+  - &incx_incy_range_small
+    - { incx:  2, incy:  2 }
+    - { incx: -1, incy: -2}
+
   - &alpha_beta_range
     - { alpha:  2.0, beta:  0.0, alphai: 1.5, betai: 0.5 }
     - { alpha: -1.0, beta: -1.0, alphai: 0.5, betai: 1.5 }
     - { alpha:  2.0, beta:  1.0, alphai: -1.5, betai: 0.5 }
     - { alpha:  0.0, beta:  1.0, alphai: -0.5, betai: 0 }
+
+  - &alpha_beta_range_small
+    - { alpha: 2.0, beta: 2.5, alphai: -2.0, betai: 1.0 }
 
 Tests:
 - name: gbmv_arg_check
@@ -86,6 +93,7 @@ Tests:
   - gbmv_strided_batched_bad_arg
   precision: *single_double_precisions
   transA: N
+  fortran: [ true, false ]
 
 # Regular gbmv
 - name: gbmv_NaN
@@ -97,6 +105,16 @@ Tests:
   incx_incy: *incx_incy_range
   alpha: [ -1.0, 0, 1.0, 2.0 ]
   beta: .NaN  # converted to 0.0 in test code
+
+- name: gbmv_small
+  category: quick
+  function: gbmv
+  precision: *single_double_precisions_complex_real
+  transA: [ N, T, C ]
+  matrix_size: *small_matrix_size_range
+  incx_incy: *incx_incy_range_small
+  alpha_beta: *alpha_beta_range_small
+  fortran: true
 
 - name: gbmv_small
   category: quick
@@ -140,6 +158,17 @@ Tests:
 - name: gbmv_batched_small
   category: quick
   function: gbmv_batched
+  precision: *single_double_precisions_complex_real
+  transA: [ N, T, C ]
+  matrix_size: *small_matrix_size_range
+  incx_incy: *incx_incy_range_small
+  alpha_beta: *alpha_beta_range_small
+  fortran: true
+  batch_count: [ -1, 0, 4 ]
+
+- name: gbmv_batched_small
+  category: quick
+  function: gbmv_batched
   precision: *single_double_precisions
   transA: [ N, T, C ]
   matrix_size: *small_matrix_size_range
@@ -178,6 +207,18 @@ Tests:
   alpha: [ -1.0, 0, 1.0, 2.0 ]
   beta: .NaN  # converted to 0.0 in test code
   batch_count: [ -1, 0, 1, 3 ]
+
+- name: gbmv_strided_batched_small
+  category: quick
+  function: gbmv_strided_batched
+  precision: *single_double_precisions_complex_real
+  transA: [ N, T, C ]
+  matrix_size: *small_matrix_size_range
+  incx_incy: *incx_incy_range_small
+  alpha_beta: *alpha_beta_range_small
+  fortran: true
+  batch_count: [ -1, 0, 4 ]
+  stride_scale: 1.5
 
 - name: gbmv_strided_batched_small
   category: quick

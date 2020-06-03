@@ -19,7 +19,10 @@
 template <typename T, bool HERM>
 void testing_symm_hemm_batched_bad_arg(const Arguments& arg)
 {
-    auto rocblas_fn = HERM ? rocblas_hemm_batched<T> : rocblas_symm_batched<T>;
+    const bool FORTRAN = arg.fortran;
+    auto       rocblas_fn
+        = HERM ? (FORTRAN ? rocblas_hemm_batched<T, true> : rocblas_hemm_batched<T, false>)
+               : (FORTRAN ? rocblas_symm_batched<T, true> : rocblas_symm_batched<T, false>);
 
     rocblas_local_handle handle;
     const rocblas_side   side        = rocblas_side_left;
@@ -125,7 +128,10 @@ void testing_symm_hemm_batched_bad_arg(const Arguments& arg)
 template <typename T, bool HERM>
 void testing_symm_hemm_batched(const Arguments& arg)
 {
-    auto rocblas_fn     = HERM ? rocblas_hemm_batched<T> : rocblas_symm_batched<T>;
+    const bool FORTRAN = arg.fortran;
+    auto       rocblas_fn
+        = HERM ? (FORTRAN ? rocblas_hemm_batched<T, true> : rocblas_hemm_batched<T, false>)
+               : (FORTRAN ? rocblas_symm_batched<T, true> : rocblas_symm_batched<T, false>);
     auto gflop_count_fn = HERM ? hemm_gflop_count<T> : symm_gflop_count<T>;
 
     rocblas_local_handle handle;

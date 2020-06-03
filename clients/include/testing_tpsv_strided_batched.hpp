@@ -19,6 +19,10 @@
 template <typename T>
 void testing_tpsv_strided_batched_bad_arg(const Arguments& arg)
 {
+    const bool FORTRAN = arg.fortran;
+    auto       rocblas_tpsv_strided_batched_fn
+        = FORTRAN ? rocblas_tpsv_strided_batched<T, true> : rocblas_tpsv_strided_batched<T, false>;
+
     const rocblas_int       N           = 100;
     const rocblas_int       incx        = 1;
     const rocblas_stride    stride_x    = 200;
@@ -40,7 +44,7 @@ void testing_tpsv_strided_batched_bad_arg(const Arguments& arg)
     //
     // Checks.
     //
-    EXPECT_ROCBLAS_STATUS(rocblas_tpsv_strided_batched<T>(handle,
+    EXPECT_ROCBLAS_STATUS(rocblas_tpsv_strided_batched_fn(handle,
                                                           rocblas_fill_full,
                                                           transA,
                                                           diag,
@@ -53,15 +57,15 @@ void testing_tpsv_strided_batched_bad_arg(const Arguments& arg)
                                                           batch_count),
                           rocblas_status_invalid_value);
     EXPECT_ROCBLAS_STATUS(
-        rocblas_tpsv_strided_batched<T>(
+        rocblas_tpsv_strided_batched_fn(
             handle, uplo, transA, diag, N, nullptr, stride_a, dx, incx, stride_x, batch_count),
         rocblas_status_invalid_pointer);
     EXPECT_ROCBLAS_STATUS(
-        rocblas_tpsv_strided_batched<T>(
+        rocblas_tpsv_strided_batched_fn(
             handle, uplo, transA, diag, N, dA, stride_a, nullptr, incx, stride_x, batch_count),
         rocblas_status_invalid_pointer);
     EXPECT_ROCBLAS_STATUS(
-        rocblas_tpsv_strided_batched<T>(
+        rocblas_tpsv_strided_batched_fn(
             nullptr, uplo, transA, diag, N, dA, stride_a, dx, incx, stride_x, batch_count),
         rocblas_status_invalid_handle);
 }
@@ -69,6 +73,10 @@ void testing_tpsv_strided_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_tpsv_strided_batched(const Arguments& arg)
 {
+    const bool FORTRAN = arg.fortran;
+    auto       rocblas_tpsv_strided_batched_fn
+        = FORTRAN ? rocblas_tpsv_strided_batched<T, true> : rocblas_tpsv_strided_batched<T, false>;
+
     rocblas_int N           = arg.N;
     rocblas_int incx        = arg.incx;
     char        char_uplo   = arg.uplo;
@@ -91,7 +99,7 @@ void testing_tpsv_strided_batched(const Arguments& arg)
     if(invalid_size || !N || !batch_count)
     {
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        EXPECT_ROCBLAS_STATUS(rocblas_tpsv_strided_batched<T>(handle,
+        EXPECT_ROCBLAS_STATUS(rocblas_tpsv_strided_batched_fn(handle,
                                                               uplo,
                                                               transA,
                                                               diag,
@@ -172,7 +180,7 @@ void testing_tpsv_strided_batched(const Arguments& arg)
         // calculate dxorb <- A^(-1) b   rocblas_device_pointer_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
-        CHECK_ROCBLAS_ERROR(rocblas_tpsv_strided_batched<T>(
+        CHECK_ROCBLAS_ERROR(rocblas_tpsv_strided_batched_fn(
             handle, uplo, transA, diag, N, dAP, stride_ap, dx_or_b, incx, stride_x, batch_count));
 
         CHECK_HIP_ERROR(hx_or_b_1.transfer_from(dx_or_b));
@@ -181,7 +189,7 @@ void testing_tpsv_strided_batched(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         CHECK_HIP_ERROR(dx_or_b.transfer_from(hx_or_b_2));
 
-        CHECK_ROCBLAS_ERROR(rocblas_tpsv_strided_batched<T>(
+        CHECK_ROCBLAS_ERROR(rocblas_tpsv_strided_batched_fn(
             handle, uplo, transA, diag, N, dAP, stride_ap, dx_or_b, incx, stride_x, batch_count));
 
         CHECK_HIP_ERROR(hx_or_b_2.transfer_from(dx_or_b));
@@ -229,7 +237,7 @@ void testing_tpsv_strided_batched(const Arguments& arg)
         int number_hot_calls  = arg.iters;
 
         for(int i = 0; i < number_cold_calls; i++)
-            rocblas_tpsv_strided_batched<T>(handle,
+            rocblas_tpsv_strided_batched_fn(handle,
                                             uplo,
                                             transA,
                                             diag,
@@ -244,7 +252,7 @@ void testing_tpsv_strided_batched(const Arguments& arg)
         gpu_time_used = get_time_us(); // in microseconds
 
         for(int i = 0; i < number_hot_calls; i++)
-            rocblas_tpsv_strided_batched<T>(handle,
+            rocblas_tpsv_strided_batched_fn(handle,
                                             uplo,
                                             transA,
                                             diag,

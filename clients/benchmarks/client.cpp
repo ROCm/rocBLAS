@@ -20,11 +20,18 @@
 #include <stdexcept>
 #include <string>
 #include <type_traits>
+// aux
+#include "testing_set_get_matrix.hpp"
+#include "testing_set_get_matrix_async.hpp"
+#include "testing_set_get_vector.hpp"
+#include "testing_set_get_vector_async.hpp"
 // blas1
 #include "testing_asum.hpp"
 #include "testing_asum_batched.hpp"
 #include "testing_asum_strided_batched.hpp"
 #include "testing_axpy.hpp"
+#include "testing_axpy_batched.hpp"
+#include "testing_axpy_strided_batched.hpp"
 #include "testing_copy.hpp"
 #include "testing_copy_batched.hpp"
 #include "testing_copy_strided_batched.hpp"
@@ -32,6 +39,8 @@
 #include "testing_dot_batched.hpp"
 #include "testing_dot_strided_batched.hpp"
 #include "testing_iamax_iamin.hpp"
+#include "testing_iamax_iamin_batched.hpp"
+#include "testing_iamax_iamin_strided_batched.hpp"
 #include "testing_nrm2.hpp"
 #include "testing_nrm2_batched.hpp"
 #include "testing_nrm2_strided_batched.hpp"
@@ -50,10 +59,6 @@
 #include "testing_scal.hpp"
 #include "testing_scal_batched.hpp"
 #include "testing_scal_strided_batched.hpp"
-#include "testing_set_get_matrix.hpp"
-#include "testing_set_get_matrix_async.hpp"
-#include "testing_set_get_vector.hpp"
-#include "testing_set_get_vector_async.hpp"
 #include "testing_swap.hpp"
 #include "testing_swap_batched.hpp"
 #include "testing_swap_strided_batched.hpp"
@@ -264,33 +269,40 @@ struct perf_blas<T, U, std::enable_if_t<std::is_same<T, float>{} || std::is_same
     void operator()(const Arguments& arg)
     {
         static const func_map map
-            = { {"asum", testing_asum<T>},
+            = { {"set_get_vector", testing_set_get_vector<T>},
+                {"set_get_matrix", testing_set_get_matrix<T>},
+                // L1
+                {"asum", testing_asum<T>},
+                {"asum_batched", testing_asum_batched<T>},
+                {"asum_strided_batched", testing_asum_strided_batched<T>},
                 {"axpy", testing_axpy<T>},
+                {"axpy_batched", testing_axpy_batched<T>},
+                {"axpy_strided_batched", testing_axpy_strided_batched<T>},
                 {"copy", testing_copy<T>},
                 {"copy_batched", testing_copy_batched<T>},
                 {"copy_strided_batched", testing_copy_strided_batched<T>},
-                {"dgmm", testing_dgmm<T>},
-                {"dgmm_batched", testing_dgmm_batched<T>},
-                {"dgmm_strided_batched", testing_dgmm_strided_batched<T>},
                 {"dot", testing_dot<T>},
                 {"dot_batched", testing_dot_batched<T>},
                 {"dot_strided_batched", testing_dot_strided_batched<T>},
-                {"swap", testing_swap<T>},
-                {"swap_batched", testing_swap_batched<T>},
-                {"swap_strided_batched", testing_swap_strided_batched<T>},
                 {"iamax", testing_iamax<T>},
+                {"iamax_batched", testing_iamax_batched<T>},
+                {"iamax_strided_batched", testing_iamax_strided_batched<T>},
                 {"iamin", testing_iamin<T>},
+                {"iamin_batched", testing_iamin_batched<T>},
+                {"iamin_strided_batched", testing_iamin_strided_batched<T>},
                 {"nrm2", testing_nrm2<T>},
                 {"nrm2_batched", testing_nrm2_batched<T>},
                 {"nrm2_strided_batched", testing_nrm2_strided_batched<T>},
-                {"set_get_vector", testing_set_get_vector<T>},
-                {"set_get_matrix", testing_set_get_matrix<T>},
                 {"rotm", testing_rotm<T>},
                 {"rotm_batched", testing_rotm_batched<T>},
                 {"rotm_strided_batched", testing_rotm_strided_batched<T>},
                 {"rotmg", testing_rotmg<T>},
                 {"rotmg_batched", testing_rotmg_batched<T>},
                 {"rotmg_strided_batched", testing_rotmg_strided_batched<T>},
+                {"swap", testing_swap<T>},
+                {"swap_batched", testing_swap_batched<T>},
+                {"swap_strided_batched", testing_swap_strided_batched<T>},
+                // L2
                 {"gbmv", testing_gbmv<T>},
                 {"gbmv_batched", testing_gbmv_batched<T>},
                 {"gbmv_strided_batched", testing_gbmv_strided_batched<T>},
@@ -300,30 +312,15 @@ struct perf_blas<T, U, std::enable_if_t<std::is_same<T, float>{} || std::is_same
                 {"gemv", testing_gemv<T>},
                 {"gemv_batched", testing_gemv_batched<T>},
                 {"gemv_strided_batched", testing_gemv_strided_batched<T>},
-                {"tbmv", testing_tbmv<T>},
-                {"tbmv_batched", testing_tbmv_batched<T>},
-                {"tbmv_strided_batched", testing_tbmv_strided_batched<T>},
-                {"tbsv", testing_tbsv<T>},
-                {"tbsv_batched", testing_tbsv_batched<T>},
-                {"tbsv_strided_batched", testing_tbsv_strided_batched<T>},
-                {"tpmv", testing_tpmv<T>},
-                {"tpmv_batched", testing_tpmv_batched<T>},
-                {"tpmv_strided_batched", testing_tpmv_strided_batched<T>},
-                {"tpsv", testing_tpsv<T>},
-                {"tpsv_batched", testing_tpsv_batched<T>},
-                {"tpsv_strided_batched", testing_tpsv_strided_batched<T>},
-                {"trmv", testing_trmv<T>},
-                {"trmv_batched", testing_trmv_batched<T>},
-                {"trmv_strided_batched", testing_trmv_strided_batched<T>},
+                {"ger", testing_ger<T, false>},
+                {"ger_batched", testing_ger_batched<T, false>},
+                {"ger_strided_batched", testing_ger_strided_batched<T, false>},
                 {"spr", testing_spr<T>},
                 {"spr_batched", testing_spr_batched<T>},
                 {"spr_strided_batched", testing_spr_strided_batched<T>},
                 {"spr2", testing_spr2<T>},
                 {"spr2_batched", testing_spr2_batched<T>},
                 {"spr2_strided_batched", testing_spr2_strided_batched<T>},
-                {"ger", testing_ger<T, false>},
-                {"ger_batched", testing_ger_batched<T, false>},
-                {"ger_strided_batched", testing_ger_strided_batched<T, false>},
                 {"syr", testing_syr<T>},
                 {"syr_batched", testing_syr_batched<T>},
                 {"syr_strided_batched", testing_syr_strided_batched<T>},
@@ -339,7 +336,25 @@ struct perf_blas<T, U, std::enable_if_t<std::is_same<T, float>{} || std::is_same
                 {"symv", testing_symv<T>},
                 {"symv_batched", testing_symv_batched<T>},
                 {"symv_strided_batched", testing_symv_strided_batched<T>},
+                {"tbmv", testing_tbmv<T>},
+                {"tbmv_batched", testing_tbmv_batched<T>},
+                {"tbmv_strided_batched", testing_tbmv_strided_batched<T>},
+                {"tbsv", testing_tbsv<T>},
+                {"tbsv_batched", testing_tbsv_batched<T>},
+                {"tbsv_strided_batched", testing_tbsv_strided_batched<T>},
+                {"tpmv", testing_tpmv<T>},
+                {"tpmv_batched", testing_tpmv_batched<T>},
+                {"tpmv_strided_batched", testing_tpmv_strided_batched<T>},
+                {"tpsv", testing_tpsv<T>},
+                {"tpsv_batched", testing_tpsv_batched<T>},
+                {"tpsv_strided_batched", testing_tpsv_strided_batched<T>},
+                {"trmv", testing_trmv<T>},
+                {"trmv_batched", testing_trmv_batched<T>},
+                {"trmv_strided_batched", testing_trmv_strided_batched<T>},
                 // L3
+                {"dgmm", testing_dgmm<T>},
+                {"dgmm_batched", testing_dgmm_batched<T>},
+                {"dgmm_strided_batched", testing_dgmm_strided_batched<T>},
                 {"symm", testing_symm_hemm<T, false>},
                 {"symm_batched", testing_symm_hemm_batched<T, false>},
                 {"symm_strided_batched", testing_symm_hemm_strided_batched<T, false>},
@@ -398,6 +413,8 @@ struct perf_blas<T, U, std::enable_if_t<std::is_same<T, rocblas_half>{}>> : rocb
     {
         static const func_map map
             = { {"axpy", testing_axpy<T>},
+                {"axpy_batched", testing_axpy_batched<T>},
+                {"axpy_strided_batched", testing_axpy_strided_batched<T>},
                 {"dot", testing_dot<T>},
                 {"dot_batched", testing_dot_batched<T>},
                 {"dot_strided_batched", testing_dot_strided_batched<T>},
@@ -424,33 +441,34 @@ struct perf_blas<T,
                 {"asum_batched", testing_asum_batched<T>},
                 {"asum_strided_batched", testing_asum_strided_batched<T>},
                 {"axpy", testing_axpy<T>},
+                {"axpy_batched", testing_axpy_batched<T>},
+                {"axpy_strided_batched", testing_axpy_strided_batched<T>},
                 {"copy", testing_copy<T>},
                 {"copy_batched", testing_copy_batched<T>},
                 {"copy_strided_batched", testing_copy_strided_batched<T>},
-                {"dgmm", testing_dgmm<T>},
-                {"dgmm_batched", testing_dgmm_batched<T>},
-                {"dgmm_strided_batched", testing_dgmm_strided_batched<T>},
                 {"dot", testing_dot<T>},
                 {"dot_batched", testing_dot_batched<T>},
                 {"dot_strided_batched", testing_dot_strided_batched<T>},
                 {"dotc", testing_dotc<T>},
                 {"dotc_batched", testing_dotc_batched<T>},
                 {"dotc_strided_batched", testing_dotc_strided_batched<T>},
+                {"iamax", testing_iamax<T>},
+                {"iamax_batched", testing_iamax_batched<T>},
+                {"iamax_strided_batched", testing_iamax_strided_batched<T>},
+                {"iamin", testing_iamin<T>},
+                {"iamin_batched", testing_iamin_batched<T>},
+                {"iamin_strided_batched", testing_iamin_strided_batched<T>},
                 {"nrm2", testing_nrm2<T>},
                 {"nrm2_batched", testing_nrm2_batched<T>},
                 {"nrm2_strided_batched", testing_nrm2_strided_batched<T>},
                 {"swap", testing_swap<T>},
                 {"swap_batched", testing_swap_batched<T>},
                 {"swap_strided_batched", testing_swap_strided_batched<T>},
-                {"iamax", testing_iamax<T>},
-                {"iamin", testing_iamin<T>},
+                // L2
                 {"gbmv", testing_gbmv<T>},
                 {"gbmv_batched", testing_gbmv_batched<T>},
                 {"gbmv_strided_batched", testing_gbmv_strided_batched<T>},
                 {"gemv", testing_gemv<T>},
-                {"geam", testing_geam<T>},
-                {"geam_batched", testing_geam_batched<T>},
-                {"geam_strided_batched", testing_geam_strided_batched<T>},
                 {"gemv_batched", testing_gemv_batched<T>},
                 {"gemv_strided_batched", testing_gemv_strided_batched<T>},
                 {"geru", testing_ger<T, false>},
@@ -508,6 +526,12 @@ struct perf_blas<T,
                 {"trmv_batched", testing_trmv_batched<T>},
                 {"trmv_strided_batched", testing_trmv_strided_batched<T>},
                 // L3
+                {"dgmm", testing_dgmm<T>},
+                {"dgmm_batched", testing_dgmm_batched<T>},
+                {"dgmm_strided_batched", testing_dgmm_strided_batched<T>},
+                {"geam", testing_geam<T>},
+                {"geam_batched", testing_geam_batched<T>},
+                {"geam_strided_batched", testing_geam_strided_batched<T>},
                 {"syrk", testing_syrk<T>},
                 {"syrk_batched", testing_syrk_batched<T>},
                 {"syrk_strided_batched", testing_syrk_strided_batched<T>},
@@ -1047,6 +1071,10 @@ try
         ("c_noalias_d",
          bool_switch(&arg.c_noalias_d)->default_value(false),
          "C and D are stored in separate memory")
+
+        ("fortran",
+         bool_switch(&arg.fortran)->default_value(false),
+         "Run using Fortran interface")
 
         ("help,h", "produces this help message")
 

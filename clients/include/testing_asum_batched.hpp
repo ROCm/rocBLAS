@@ -2,7 +2,9 @@
  * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+#include "bytes.hpp"
 #include "cblas_interface.hpp"
+#include "flops.hpp"
 #include "near.hpp"
 #include "rocblas.hpp"
 #include "rocblas_init.hpp"
@@ -16,6 +18,10 @@
 template <typename T>
 void testing_asum_batched_bad_arg(const Arguments& arg)
 {
+    const bool FORTRAN = arg.fortran;
+    auto       rocblas_asum_batched_fn
+        = FORTRAN ? rocblas_asum_batched<T, true> : rocblas_asum_batched<T, false>;
+
     rocblas_int         N                = 100;
     rocblas_int         incx             = 1;
     rocblas_int         batch_count      = 5;
@@ -31,12 +37,12 @@ void testing_asum_batched_bad_arg(const Arguments& arg)
     CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_asum_batched<T>(handle, N, nullptr, incx, batch_count, h_rocblas_result),
+        rocblas_asum_batched_fn(handle, N, nullptr, incx, batch_count, h_rocblas_result),
         rocblas_status_invalid_pointer);
     EXPECT_ROCBLAS_STATUS(
-        rocblas_asum_batched<T>(handle, N, dx.ptr_on_device(), incx, batch_count, nullptr),
+        rocblas_asum_batched_fn(handle, N, dx.ptr_on_device(), incx, batch_count, nullptr),
         rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(rocblas_asum_batched<T>(
+    EXPECT_ROCBLAS_STATUS(rocblas_asum_batched_fn(
                               nullptr, N, dx.ptr_on_device(), incx, batch_count, h_rocblas_result),
                           rocblas_status_invalid_handle);
 }
@@ -44,6 +50,10 @@ void testing_asum_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_asum_batched(const Arguments& arg)
 {
+    const bool FORTRAN = arg.fortran;
+    auto       rocblas_asum_batched_fn
+        = FORTRAN ? rocblas_asum_batched<T, true> : rocblas_asum_batched<T, false>;
+
     rocblas_int N           = arg.N;
     rocblas_int incx        = arg.incx;
     rocblas_int batch_count = arg.batch_count;
@@ -59,7 +69,7 @@ void testing_asum_batched(const Arguments& arg)
         host_vector<real_t<T>> res(std::max(1, std::abs(batch_count)));
         CHECK_HIP_ERROR(res.memcheck());
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        EXPECT_ROCBLAS_STATUS(rocblas_asum_batched<T>(handle, N, nullptr, incx, batch_count, res),
+        EXPECT_ROCBLAS_STATUS(rocblas_asum_batched_fn(handle, N, nullptr, incx, batch_count, res),
                               rocblas_status_success);
 
         return;
@@ -98,12 +108,12 @@ void testing_asum_batched(const Arguments& arg)
         // GPU BLAS rocblas_pointer_mode_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         CHECK_ROCBLAS_ERROR(
-            rocblas_asum_batched<T>(handle, N, dx.ptr_on_device(), incx, batch_count, hr1));
+            rocblas_asum_batched_fn(handle, N, dx.ptr_on_device(), incx, batch_count, hr1));
 
         // GPU BLAS rocblas_pointer_mode_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         CHECK_ROCBLAS_ERROR(
-            rocblas_asum_batched<T>(handle, N, dx.ptr_on_device(), incx, batch_count, dr));
+            rocblas_asum_batched_fn(handle, N, dx.ptr_on_device(), incx, batch_count, dr));
 
         //
         // Transfer from device to host.
@@ -139,34 +149,29 @@ void testing_asum_batched(const Arguments& arg)
     {
         int number_cold_calls = arg.cold_iters;
         int number_hot_calls  = arg.iters;
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            rocblas_asum_batched<T>(handle, N, dx.ptr_on_device(), incx, batch_count, hr1);
+            rocblas_asum_batched_fn(handle, N, dx.ptr_on_device(), incx, batch_count, dr);
         }
 
         gpu_time_used = get_time_us(); // in microseconds
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            rocblas_asum_batched<T>(handle, N, dx.ptr_on_device(), incx, batch_count, hr1);
+            rocblas_asum_batched_fn(handle, N, dx.ptr_on_device(), incx, batch_count, dr);
         }
 
-        gpu_time_used = (get_time_us() - gpu_time_used) / number_hot_calls;
+        gpu_time_used = get_time_us() - gpu_time_used;
 
-        rocblas_cout << "N,incx,batch_count,rocblas(us)";
-
-        if(arg.norm_check)
-            rocblas_cout << ",CPU(us),error_host_ptr,error_dev_ptr";
-
-        rocblas_cout << std::endl;
-        rocblas_cout << N << "," << incx << "," << batch_count << "," << gpu_time_used;
-
-        if(arg.norm_check)
-            rocblas_cout << "," << cpu_time_used << "," << rocblas_error_1 << ","
-                         << rocblas_error_2;
-
-        rocblas_cout << std::endl;
+        ArgumentModel<e_N, e_incx, e_batch_count>{}.log_args<T>(rocblas_cout,
+                                                                arg,
+                                                                gpu_time_used,
+                                                                asum_gflop_count<T>(N),
+                                                                asum_gbyte_count<T>(N),
+                                                                cpu_time_used,
+                                                                rocblas_error_1,
+                                                                rocblas_error_2);
     }
 }

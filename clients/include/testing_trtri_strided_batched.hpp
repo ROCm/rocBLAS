@@ -18,6 +18,10 @@
 template <typename T>
 void testing_trtri_strided_batched(const Arguments& arg)
 {
+    const bool FORTRAN                          = arg.fortran;
+    auto       rocblas_trtri_strided_batched_fn = FORTRAN ? rocblas_trtri_strided_batched<T, true>
+                                                    : rocblas_trtri_strided_batched<T, false>;
+
     rocblas_int N           = arg.N;
     rocblas_int lda         = arg.lda;
     rocblas_int batch_count = arg.batch_count;
@@ -40,7 +44,7 @@ void testing_trtri_strided_batched(const Arguments& arg)
     if(invalid_size || N == 0 || batch_count == 0)
     {
         EXPECT_ROCBLAS_STATUS(
-            rocblas_trtri_strided_batched<T>(
+            rocblas_trtri_strided_batched_fn(
                 handle, uplo, diag, N, nullptr, lda, stride_a, nullptr, lda, stride_a, batch_count),
             invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
         return;
@@ -107,11 +111,11 @@ void testing_trtri_strided_batched(const Arguments& arg)
         gpu_time_used = get_time_us(); // in microseconds
     }
 
-    CHECK_ROCBLAS_ERROR(rocblas_trtri_strided_batched<T>(
+    CHECK_ROCBLAS_ERROR(rocblas_trtri_strided_batched_fn(
         handle, uplo, diag, N, dA, lda, stride_a, dinvA, lda, stride_a, batch_count));
 
     // Test in place
-    CHECK_ROCBLAS_ERROR(rocblas_trtri_strided_batched<T>(
+    CHECK_ROCBLAS_ERROR(rocblas_trtri_strided_batched_fn(
         handle, uplo, diag, N, dA, lda, stride_a, dA, lda, stride_a, batch_count));
 
     if(arg.timing)

@@ -16,6 +16,9 @@
 template <typename T, typename U = T>
 void testing_rotg_bad_arg(const Arguments& arg)
 {
+    const bool FORTRAN         = arg.fortran;
+    auto       rocblas_rotg_fn = FORTRAN ? rocblas_rotg<T, U, true> : rocblas_rotg<T, U, false>;
+
     static const size_t safe_size = 1;
 
     rocblas_local_handle handle;
@@ -28,20 +31,23 @@ void testing_rotg_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(c.memcheck());
     CHECK_DEVICE_ALLOCATION(s.memcheck());
 
-    EXPECT_ROCBLAS_STATUS((rocblas_rotg<T, U>(nullptr, a, b, c, s)), rocblas_status_invalid_handle);
-    EXPECT_ROCBLAS_STATUS((rocblas_rotg<T, U>(handle, nullptr, b, c, s)),
+    EXPECT_ROCBLAS_STATUS((rocblas_rotg_fn(nullptr, a, b, c, s)), rocblas_status_invalid_handle);
+    EXPECT_ROCBLAS_STATUS((rocblas_rotg_fn(handle, nullptr, b, c, s)),
                           rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS((rocblas_rotg<T, U>(handle, a, nullptr, c, s)),
+    EXPECT_ROCBLAS_STATUS((rocblas_rotg_fn(handle, a, nullptr, c, s)),
                           rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS((rocblas_rotg<T, U>(handle, a, b, nullptr, s)),
+    EXPECT_ROCBLAS_STATUS((rocblas_rotg_fn(handle, a, b, nullptr, s)),
                           rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS((rocblas_rotg<T, U>(handle, a, b, c, nullptr)),
+    EXPECT_ROCBLAS_STATUS((rocblas_rotg_fn(handle, a, b, c, nullptr)),
                           rocblas_status_invalid_pointer);
 }
 
 template <typename T, typename U = T>
 void testing_rotg(const Arguments& arg)
 {
+    const bool FORTRAN         = arg.fortran;
+    auto       rocblas_rotg_fn = FORTRAN ? rocblas_rotg<T, U, true> : rocblas_rotg<T, U, false>;
+
     const int TEST_COUNT = 100;
 
     rocblas_local_handle handle;
@@ -78,7 +84,7 @@ void testing_rotg(const Arguments& arg)
             host_vector<U> hc = c;
             host_vector<T> hs = s;
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-            CHECK_ROCBLAS_ERROR((rocblas_rotg<T, U>(handle, ha, hb, hc, hs)));
+            CHECK_ROCBLAS_ERROR((rocblas_rotg_fn(handle, ha, hb, hc, hs)));
 
             if(arg.unit_check)
             {
@@ -112,7 +118,7 @@ void testing_rotg(const Arguments& arg)
             CHECK_HIP_ERROR(hipMemcpy(dc, c, sizeof(U), hipMemcpyHostToDevice));
             CHECK_HIP_ERROR(hipMemcpy(ds, s, sizeof(T), hipMemcpyHostToDevice));
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-            CHECK_ROCBLAS_ERROR((rocblas_rotg<T, U>(handle, da, db, dc, ds)));
+            CHECK_ROCBLAS_ERROR((rocblas_rotg_fn(handle, da, db, dc, ds)));
             host_vector<T> ha(1);
             host_vector<T> hb(1);
             host_vector<U> hc(1);
@@ -152,7 +158,7 @@ void testing_rotg(const Arguments& arg)
         host_vector<T> hs = s;
         for(int iter = 0; iter < number_cold_calls; ++iter)
         {
-            rocblas_rotg<T, U>(handle, ha, hb, hc, hs);
+            rocblas_rotg_fn(handle, ha, hb, hc, hs);
         }
 
         gpu_time_used = get_time_us();
@@ -162,7 +168,7 @@ void testing_rotg(const Arguments& arg)
             hb = b;
             hc = c;
             hs = s;
-            rocblas_rotg<T, U>(handle, ha, hb, hc, hs);
+            rocblas_rotg_fn(handle, ha, hb, hc, hs);
         }
         gpu_time_used = (get_time_us() - gpu_time_used) / number_hot_calls;
 

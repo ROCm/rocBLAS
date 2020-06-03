@@ -2,6 +2,7 @@
  * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+#include "bytes.hpp"
 #include "cblas_interface.hpp"
 #include "flops.hpp"
 #include "norm.hpp"
@@ -17,6 +18,9 @@
 template <typename T, typename U = T>
 void testing_scal_bad_arg(const Arguments& arg)
 {
+    const bool FORTRAN         = arg.fortran;
+    auto       rocblas_scal_fn = FORTRAN ? rocblas_scal<T, U, true> : rocblas_scal<T, U, false>;
+
     rocblas_int N     = 100;
     rocblas_int incx  = 1;
     U           alpha = (U)0.6;
@@ -29,17 +33,20 @@ void testing_scal_bad_arg(const Arguments& arg)
     device_vector<T> dx(size_x);
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
-    EXPECT_ROCBLAS_STATUS((rocblas_scal<T, U>(handle, N, &alpha, nullptr, incx)),
+    EXPECT_ROCBLAS_STATUS((rocblas_scal_fn(handle, N, &alpha, nullptr, incx)),
                           rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS((rocblas_scal<T, U>(handle, N, nullptr, dx, incx)),
+    EXPECT_ROCBLAS_STATUS((rocblas_scal_fn(handle, N, nullptr, dx, incx)),
                           rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS((rocblas_scal<T, U>(nullptr, N, &alpha, dx, incx)),
+    EXPECT_ROCBLAS_STATUS((rocblas_scal_fn(nullptr, N, &alpha, dx, incx)),
                           rocblas_status_invalid_handle);
 }
 
 template <typename T, typename U = T>
 void testing_scal(const Arguments& arg)
 {
+    const bool FORTRAN         = arg.fortran;
+    auto       rocblas_scal_fn = FORTRAN ? rocblas_scal<T, U, true> : rocblas_scal<T, U, false>;
+
     rocblas_int N       = arg.N;
     rocblas_int incx    = arg.incx;
     U           h_alpha = arg.get_alpha<U>();
@@ -50,7 +57,7 @@ void testing_scal(const Arguments& arg)
     if(N <= 0 || incx <= 0)
     {
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR((rocblas_scal<T, U>(handle, N, nullptr, nullptr, incx)));
+        CHECK_ROCBLAS_ERROR((rocblas_scal_fn(handle, N, nullptr, nullptr, incx)));
         return;
     }
 
@@ -82,7 +89,6 @@ void testing_scal(const Arguments& arg)
     CHECK_HIP_ERROR(hipMemcpy(dx_1, hx_1, sizeof(T) * size_x, hipMemcpyHostToDevice));
 
     double gpu_time_used, cpu_time_used;
-    double rocblas_gflops, cblas_gflops, rocblas_bandwidth;
     double rocblas_error_1 = 0.0;
     double rocblas_error_2 = 0.0;
 
@@ -95,11 +101,11 @@ void testing_scal(const Arguments& arg)
 
         // GPU BLAS, rocblas_pointer_mode_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR((rocblas_scal<T, U>(handle, N, &h_alpha, dx_1, incx)));
+        CHECK_ROCBLAS_ERROR((rocblas_scal_fn(handle, N, &h_alpha, dx_1, incx)));
 
         // GPU BLAS, rocblas_pointer_mode_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR((rocblas_scal<T, U>(handle, N, d_alpha, dx_2, incx)));
+        CHECK_ROCBLAS_ERROR((rocblas_scal_fn(handle, N, d_alpha, dx_2, incx)));
 
         // copy output from device to CPU
         CHECK_HIP_ERROR(hipMemcpy(hx_1, dx_1, sizeof(T) * N * incx, hipMemcpyDeviceToHost));
@@ -109,7 +115,6 @@ void testing_scal(const Arguments& arg)
         cpu_time_used = get_time_us();
         cblas_scal<T, U>(N, h_alpha, hy_gold, incx);
         cpu_time_used = get_time_us() - cpu_time_used;
-        cblas_gflops  = scal_gflop_count<T, U>(N) / cpu_time_used * 1e6 * 1;
 
         if(arg.unit_check)
         {
@@ -133,33 +138,25 @@ void testing_scal(const Arguments& arg)
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            rocblas_scal<T, U>(handle, N, &h_alpha, dx_1, incx);
+            rocblas_scal_fn(handle, N, &h_alpha, dx_1, incx);
         }
 
         gpu_time_used = get_time_us(); // in microseconds
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            rocblas_scal<T, U>(handle, N, &h_alpha, dx_1, incx);
+            rocblas_scal_fn(handle, N, &h_alpha, dx_1, incx);
         }
 
-        gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;
-        rocblas_gflops    = scal_gflop_count<T, U>(N) / gpu_time_used * 1e6 * 1;
-        rocblas_bandwidth = (2.0 * N) * sizeof(T) / gpu_time_used / 1e3;
+        gpu_time_used = get_time_us() - gpu_time_used;
 
-        rocblas_cout << "N,alpha,incx,rocblas-Gflops,rocblas-GB/s,rocblas-us";
-
-        if(arg.norm_check)
-            rocblas_cout << ",CPU-Gflops,norm_error_host_ptr,norm_error_device_ptr";
-
-        rocblas_cout << std::endl;
-
-        rocblas_cout << N << "," << h_alpha << "," << incx << "," << rocblas_gflops << ","
-                     << rocblas_bandwidth << "," << gpu_time_used;
-
-        if(arg.norm_check)
-            rocblas_cout << cblas_gflops << ',' << rocblas_error_1 << ',' << rocblas_error_2;
-
-        rocblas_cout << std::endl;
+        ArgumentModel<e_N, e_alpha, e_incx>{}.log_args<T>(rocblas_cout,
+                                                          arg,
+                                                          gpu_time_used,
+                                                          scal_gflop_count<T, U>(N),
+                                                          scal_gbyte_count<T>(N),
+                                                          cpu_time_used,
+                                                          rocblas_error_1,
+                                                          rocblas_error_2);
     }
 }

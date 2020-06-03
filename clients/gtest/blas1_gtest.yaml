@@ -46,7 +46,7 @@ Definitions:
     # - { incx:  1, incy:  0 } # Indeterminate when y is output
 
   - &incx_incy_range_small
-    - { incx: 2, incy: 2 }
+    - { incx: 1, incy: 1 }
     - { incx: -2, incy: -2 }
 
   - &alpha_beta_range
@@ -65,6 +65,7 @@ Tests:
 
   - name: blas1
     category: quick
+    fortran: [ true, false ]
     function:
       - rotg:  *rotg_precisions
       - rotmg: *single_double_precisions_complex_real
@@ -72,6 +73,7 @@ Tests:
   - name: blas1_batched
     category: quick
     batch_count: [-1, 0, 5]
+    fortran: [ true, false ]
     function:
       - rotg_batched: *rotg_precisions
       - rotmg_batched: *single_double_precisions_complex_real
@@ -80,11 +82,46 @@ Tests:
     category: quick
     batch_count: [-1, 0, 5]
     stride_scale: [ 1.5 ]
+    fortran: [ true, false ]
     function:
       - rotg_strided_batched: *rotg_precisions
       - rotmg_strided_batched: *single_double_precisions_complex_real
 
 # All functions with alpha and incx and incy
+
+# fortran
+  - name: blas1_with_alpha
+    category: quick
+    N: [ -1, 0, 64 ]
+    incx_incy: *incx_incy_range_small
+    alpha_beta: *alpha_beta_range
+    alphai_betai: *alphai_betai_range
+    fortran: true
+    function:
+      - axpy: *half_single_precisions_complex_real
+
+  - name: blas1_batched_with_alpha
+    category: quick
+    N: [ -1, 0, 64 ]
+    incx_incy: *incx_incy_range_small
+    alpha_beta: *alpha_beta_range
+    alphai_betai: *alphai_betai_range
+    batch_count: [-1, 0, 5]
+    fortran: true
+    function:
+      - axpy_batched: *half_single_precisions_complex_real
+
+  - name: blas1_strided_batched_with_alpha
+    category: quick
+    N: [ -1, 0, 64 ]
+    incx_incy: *incx_incy_range_small
+    alpha_beta: *alpha_beta_range
+    alphai_betai: *alphai_betai_range
+    batch_count: [-1, 0, 5]
+    stride_scale: [1, 2]
+    fortran: true
+    function:
+      - axpy_strided_batched: *half_single_precisions_complex_real
 
 # quick
   - name: blas1_with_alpha
@@ -120,7 +157,7 @@ Tests:
 # pre_checkin
   - name: blas1_with_alpha
     category: pre_checkin
-    N: [ 50000, 1049600 ]
+    N: [ 50007, 1049600 ]
     incx_incy: *incx_incy_range_small
     alpha_beta: *alpha_beta_range
     alphai_betai: *alphai_betai_range
@@ -181,6 +218,43 @@ Tests:
       - axpy_strided_batched:  *half_single_precisions_complex_real
 
 # All functions with alpha and incx but no incy
+
+# fortran
+  - name: blas1_with_alpha
+    category: quick
+    N: [ -1, 0, 64 ]
+    incx: *incx_range_small
+    alpha_beta: *alpha_beta_range
+    alphai_betai: *alphai_betai_range
+    fortran: true
+    function:
+      - scal:  *single_double_precisions_complex_real
+      - scal:  *single_double_complex_real_in_complex_out
+
+  - name: blas1_batched_with_alpha
+    category: quick
+    N: [ -1, 0, 64 ]
+    incx: *incx_range_small
+    alpha_beta: *alpha_beta_range
+    alphai_betai: *alphai_betai_range
+    batch_count: [-1, 0, 5]
+    fortran: true
+    function:
+      - scal_batched:  *single_double_precisions_complex_real
+      - scal_batched:  *single_double_complex_real_in_complex_out
+
+  - name: blas1_strided_batched_with_alpha
+    category: quick
+    N: [ -1, 0, 64 ]
+    incx: *incx_range_small
+    alpha_beta: *alpha_beta_range
+    alphai_betai: *alphai_betai_range
+    batch_count: [-1, 0, 5]
+    stride_scale: [1, 2]
+    fortran: true
+    function:
+      - scal_strided_batched:  *single_double_precisions_complex_real
+      - scal_strided_batched:  *single_double_complex_real_in_complex_out
 
 # quick
   - name: blas1_with_alpha
@@ -300,6 +374,43 @@ Tests:
 # All functions with incx, no incy, no alpha
 # nrm2,asum,iamax,iamin all variants
 
+#fortran
+  - name: blas1
+    category: quick
+    N: [-1, 0, 1024]
+    incx: *incx_range_small
+    fortran: true
+    function:
+      - asum:  *single_double_precisions_complex_real
+      - nrm2: *single_double_precisions_complex_real
+      - iamax: *single_double_precisions_complex_real
+      - iamin: *single_double_precisions_complex_real
+
+  - name: blas1_batched
+    category: quick
+    N: [-1, 0, 1024]
+    incx: *incx_range_small
+    batch_count: [ -1, 0, 5 ]
+    fortran: true
+    function:
+      - asum_batched:  *single_double_precisions_complex_real
+      - nrm2_batched:  *single_double_precisions_complex_real
+      - iamax_batched: *single_double_precisions_complex_real
+      - iamin_batched: *single_double_precisions_complex_real
+
+  - name: blas1_strided_batched
+    category: quick
+    N: [-1, 0, 1024]
+    incx: *incx_range_small
+    batch_count: [ -1, 0, 5 ]
+    stride_scale: [ 1, 2 ]
+    fortran: true
+    function:
+      - asum_strided_batched:  *single_double_precisions_complex_real
+      - nrm2_strided_batched:  *single_double_precisions_complex_real
+      - iamax_strided_batched: *single_double_precisions_complex_real
+      - iamin_strided_batched: *single_double_precisions_complex_real
+
 # quick
   - name: blas1
     category: quick
@@ -405,6 +516,51 @@ Tests:
 
 # All functions with incx, incy, no alpha
 
+# fortran
+  - name: blas1
+    category: quick
+    N: [ -1, 0, 1025]
+    incx_incy: *incx_incy_range_small
+    fortran: true
+    function:
+      - copy: *single_double_precisions_complex_real
+      - dot:   *half_bfloat_single_double_complex_real_precisions
+      - dotc:  *single_double_precisions_complex
+      - swap: *single_double_precisions_complex_real
+      - rot:   *rot_precisions
+      - rotm:  *single_double_precisions_complex_real
+
+
+  - name: blas1_batched
+    category: quick
+    N: [ -1, 0, 1025]
+    incx_incy: *incx_incy_range_small
+    batch_count: [-1, 0, 5]
+    fortran: true
+    function:
+      - copy_batched: *single_double_precisions_complex_real
+      - dot_batched:   *half_bfloat_single_double_complex_real_precisions
+      - dotc_batched:  *single_double_precisions_complex
+      - swap_batched: *single_double_precisions_complex_real
+      - rot_batched:   *rot_precisions
+      - rotm_batched:  *single_double_precisions_complex_real
+
+  - name: blas1_strided_batched
+    category: quick
+    N: [ -1, 0, 1025]
+    incx_incy: *incx_incy_range_small
+    batch_count: [-1, 0, 5]
+    stride_scale: [1, 2]
+    fortran: true
+    function:
+      - copy_strided_batched: *single_double_precisions_complex_real
+      - dot_strided_batched:   *half_bfloat_single_double_complex_real_precisions
+      - dotc_strided_batched:  *single_double_precisions_complex
+      - swap_strided_batched: *single_double_precisions_complex_real
+      - rot_strided_batched:   *rot_precisions
+      - rotm_strided_batched:  *single_double_precisions_complex_real
+
+
 # quick
   - name: blas1
     category: quick
@@ -436,6 +592,38 @@ Tests:
       - dot_strided_batched:   *half_bfloat_single_double_complex_real_precisions
       - dotc_strided_batched:  *single_double_precisions_complex
 
+# quick
+# dot alt algorithm, algo=1 forces x*x with incx=incy to test special case kernel
+  - name: blas1
+    category: quick
+    N: [ -1, 0, 1025]
+    incx_incy: *incx_incy_range
+    algo: 1
+    function:
+      - dot:   *half_bfloat_single_double_complex_real_precisions
+      - dotc:  *single_double_precisions_complex
+
+  - name: blas1_batched
+    category: quick
+    N: [ -1, 0, 1025]
+    incx_incy: *incx_incy_range
+    batch_count: [-1, 0, 257]
+    algo: 1
+    function:
+      - dot_batched:   *half_bfloat_single_double_complex_real_precisions
+      - dotc_batched:  *single_double_precisions_complex
+
+  - name: blas1_strided_batched
+    category: quick
+    N: [ -1, 0, 1025]
+    incx_incy: *incx_incy_range
+    batch_count: [-1, 0, 257]
+    stride_scale: [ 1 ]
+    algo: 1
+    function:
+      - dot_strided_batched:   *half_bfloat_single_double_complex_real_precisions
+      - dotc_strided_batched:  *single_double_precisions_complex
+
 # pre_checkin
   - name: blas1
     category: pre_checkin
@@ -448,6 +636,7 @@ Tests:
       - dotc:  *double_precision_complex_real
       - rot:   *rot_precisions
       - rotm:  *single_double_precisions_complex_real
+
 
   - name: blas1_batched
     category: pre_checkin
@@ -540,6 +729,7 @@ Tests:
 # for bad_arg no arguments should be used by test code
   - name: blas1_bad_arg
     category: pre_checkin
+    # fortran: [ false, true ]
     function:
       - nrm2_bad_arg:  *single_double_precisions_complex_real
       - nrm2_batched_bad_arg:  *single_double_precisions_complex_real

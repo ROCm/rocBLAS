@@ -20,6 +20,10 @@
 template <typename T>
 void testing_hemv_batched_bad_arg(const Arguments& arg)
 {
+    const bool FORTRAN = arg.fortran;
+    auto       rocblas_hemv_batched_fn
+        = FORTRAN ? rocblas_hemv_batched<T, true> : rocblas_hemv_batched<T, false>;
+
     const rocblas_int N           = 100;
     const rocblas_int lda         = 100;
     const rocblas_int incx        = 1;
@@ -44,7 +48,7 @@ void testing_hemv_batched_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
-    EXPECT_ROCBLAS_STATUS(rocblas_hemv_batched<T>(handle,
+    EXPECT_ROCBLAS_STATUS(rocblas_hemv_batched_fn(handle,
                                                   uplo,
                                                   N,
                                                   &alpha,
@@ -58,7 +62,7 @@ void testing_hemv_batched_bad_arg(const Arguments& arg)
                                                   batch_count),
                           rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_hemv_batched<T>(handle,
+    EXPECT_ROCBLAS_STATUS(rocblas_hemv_batched_fn(handle,
                                                   uplo,
                                                   N,
                                                   &alpha,
@@ -72,7 +76,7 @@ void testing_hemv_batched_bad_arg(const Arguments& arg)
                                                   batch_count),
                           rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_hemv_batched<T>(handle,
+    EXPECT_ROCBLAS_STATUS(rocblas_hemv_batched_fn(handle,
                                                   uplo,
                                                   N,
                                                   &alpha,
@@ -86,7 +90,7 @@ void testing_hemv_batched_bad_arg(const Arguments& arg)
                                                   batch_count),
                           rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_hemv_batched<T>(handle,
+    EXPECT_ROCBLAS_STATUS(rocblas_hemv_batched_fn(handle,
                                                   uplo,
                                                   N,
                                                   nullptr,
@@ -100,7 +104,7 @@ void testing_hemv_batched_bad_arg(const Arguments& arg)
                                                   batch_count),
                           rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_hemv_batched<T>(handle,
+    EXPECT_ROCBLAS_STATUS(rocblas_hemv_batched_fn(handle,
                                                   uplo,
                                                   N,
                                                   &alpha,
@@ -114,7 +118,7 @@ void testing_hemv_batched_bad_arg(const Arguments& arg)
                                                   batch_count),
                           rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_hemv_batched<T>(nullptr,
+    EXPECT_ROCBLAS_STATUS(rocblas_hemv_batched_fn(nullptr,
                                                   uplo,
                                                   N,
                                                   &alpha,
@@ -129,7 +133,7 @@ void testing_hemv_batched_bad_arg(const Arguments& arg)
                           rocblas_status_invalid_handle);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_hemv_batched<T>(
+        rocblas_hemv_batched_fn(
             handle, uplo, N, nullptr, nullptr, lda, nullptr, incx, nullptr, nullptr, incy, 0),
         rocblas_status_success);
 }
@@ -137,6 +141,10 @@ void testing_hemv_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_hemv_batched(const Arguments& arg)
 {
+    const bool FORTRAN = arg.fortran;
+    auto       rocblas_hemv_batched_fn
+        = FORTRAN ? rocblas_hemv_batched<T, true> : rocblas_hemv_batched<T, false>;
+
     rocblas_int  N           = arg.N;
     rocblas_int  lda         = arg.lda;
     rocblas_int  incx        = arg.incx;
@@ -152,7 +160,7 @@ void testing_hemv_batched(const Arguments& arg)
     bool invalid_size = N < 0 || lda < N || lda < 1 || !incx || !incy || batch_count < 0;
     if(invalid_size || !N || !batch_count)
     {
-        EXPECT_ROCBLAS_STATUS(rocblas_hemv_batched<T>(handle,
+        EXPECT_ROCBLAS_STATUS(rocblas_hemv_batched_fn(handle,
                                                       uplo,
                                                       N,
                                                       nullptr,
@@ -235,7 +243,7 @@ void testing_hemv_batched(const Arguments& arg)
         CHECK_HIP_ERROR(dy_2.transfer_from(hy_2));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR(rocblas_hemv_batched<T>(handle,
+        CHECK_ROCBLAS_ERROR(rocblas_hemv_batched_fn(handle,
                                                     uplo,
                                                     N,
                                                     &h_alpha,
@@ -251,7 +259,7 @@ void testing_hemv_batched(const Arguments& arg)
         CHECK_HIP_ERROR(d_alpha.transfer_from(halpha));
         CHECK_HIP_ERROR(d_beta.transfer_from(hbeta));
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR(rocblas_hemv_batched<T>(handle,
+        CHECK_ROCBLAS_ERROR(rocblas_hemv_batched_fn(handle,
                                                     uplo,
                                                     N,
                                                     d_alpha,
@@ -300,7 +308,7 @@ void testing_hemv_batched(const Arguments& arg)
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            rocblas_hemv_batched<T>(handle,
+            rocblas_hemv_batched_fn(handle,
                                     uplo,
                                     N,
                                     &h_alpha,
@@ -318,7 +326,7 @@ void testing_hemv_batched(const Arguments& arg)
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            rocblas_hemv_batched<T>(handle,
+            rocblas_hemv_batched_fn(handle,
                                     uplo,
                                     N,
                                     &h_alpha,

@@ -9,7 +9,6 @@ ARG user_uid
 # Install dependent packages
 RUN yum install -y --nogpgcheck\
     sudo \
-    rock-dkms \
     centos-release-scl \
     devtoolset-7 \
     ca-certificates \

@@ -26,7 +26,7 @@ if ( NOT DEFINED CMAKE_Fortran_COMPILER AND NOT DEFINED ENV{FC} )
 endif()
 
 unset(ENV{ROCM_BUILD_ID})
-project( rocblas LANGUAGES CXX )
+project( rocblas LANGUAGES CXX Fortran )
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
@@ -95,6 +95,7 @@ elseif( CXX_VERSION_STRING MATCHES "nvcc" )
 elseif( CXX_VERSION_STRING MATCHES "HCC" )
   message( STATUS "HCC compiler set; ROCm backend selected [ CXX=/opt/rocm-<ver>/bin/hcc cmake ... ]" )
   set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -hc")
+
 endif( )
 
 # This finds the rocm-cmake project, and installs it if not found
@@ -137,7 +138,7 @@ get_os_id(OS_ID)
 message (STATUS "OS detected is ${OS_ID}")
 
 # Versioning via rocm-cmake
-set ( VERSION_STRING "2.22.0" )
+set ( VERSION_STRING "2.24.0" )
 rocm_setup_version( VERSION ${VERSION_STRING} )
 
 # Append our library helper cmake path and the cmake path for hip (for convenience)
@@ -194,7 +195,7 @@ if( BUILD_WITH_TENSILE )
   if (TENSILE_VERSION)
     find_package(Tensile ${TENSILE_VERSION} EXACT REQUIRED HIP LLVM OpenMP PATHS "${INSTALLED_TENSILE_PATH}")
   else()
-    find_package(Tensile 4.19.0 EXACT REQUIRED HIP LLVM OpenMP PATHS "${INSTALLED_TENSILE_PATH}")
+    find_package(Tensile 4.20.0 EXACT REQUIRED HIP LLVM OpenMP PATHS "${INSTALLED_TENSILE_PATH}")
   endif()
 endif()
 

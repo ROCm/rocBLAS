@@ -19,6 +19,10 @@
 template <typename T>
 void testing_dgmm_strided_batched_bad_arg(const Arguments& arg)
 {
+    const bool FORTRAN = arg.fortran;
+    auto       rocblas_dgmm_strided_batched_fn
+        = FORTRAN ? rocblas_dgmm_strided_batched<T, true> : rocblas_dgmm_strided_batched<T, false>;
+
     const rocblas_int M = 100;
     const rocblas_int N = 100;
 
@@ -50,7 +54,7 @@ void testing_dgmm_strided_batched_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dX.memcheck());
     CHECK_DEVICE_ALLOCATION(dC.memcheck());
 
-    EXPECT_ROCBLAS_STATUS(rocblas_dgmm_strided_batched<T>(handle,
+    EXPECT_ROCBLAS_STATUS(rocblas_dgmm_strided_batched_fn(handle,
                                                           side,
                                                           M,
                                                           N,
@@ -66,7 +70,7 @@ void testing_dgmm_strided_batched_bad_arg(const Arguments& arg)
                                                           batch_count),
                           rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_dgmm_strided_batched<T>(handle,
+    EXPECT_ROCBLAS_STATUS(rocblas_dgmm_strided_batched_fn(handle,
                                                           side,
                                                           M,
                                                           N,
@@ -82,7 +86,7 @@ void testing_dgmm_strided_batched_bad_arg(const Arguments& arg)
                                                           batch_count),
                           rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_dgmm_strided_batched<T>(handle,
+    EXPECT_ROCBLAS_STATUS(rocblas_dgmm_strided_batched_fn(handle,
                                                           side,
                                                           M,
                                                           N,
@@ -98,7 +102,7 @@ void testing_dgmm_strided_batched_bad_arg(const Arguments& arg)
                                                           batch_count),
                           rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_dgmm_strided_batched<T>(nullptr,
+    EXPECT_ROCBLAS_STATUS(rocblas_dgmm_strided_batched_fn(nullptr,
                                                           side,
                                                           M,
                                                           N,
@@ -118,6 +122,10 @@ void testing_dgmm_strided_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_dgmm_strided_batched(const Arguments& arg)
 {
+    const bool FORTRAN = arg.fortran;
+    auto       rocblas_dgmm_strided_batched_fn
+        = FORTRAN ? rocblas_dgmm_strided_batched<T, true> : rocblas_dgmm_strided_batched<T, false>;
+
     rocblas_side side = char2rocblas_side(arg.side);
 
     rocblas_int M = arg.M;
@@ -157,7 +165,7 @@ void testing_dgmm_strided_batched(const Arguments& arg)
     bool invalid_size = M < 0 || N < 0 || lda < M || ldc < M || batch_count < 0 || incx == 0;
     if(invalid_size || M == 0 || N == 0 || batch_count == 0)
     {
-        EXPECT_ROCBLAS_STATUS(rocblas_dgmm_strided_batched<T>(handle,
+        EXPECT_ROCBLAS_STATUS(rocblas_dgmm_strided_batched_fn(handle,
                                                               side,
                                                               M,
                                                               N,
@@ -213,7 +221,7 @@ void testing_dgmm_strided_batched(const Arguments& arg)
     if(arg.unit_check || arg.norm_check)
     {
         // ROCBLAS
-        CHECK_ROCBLAS_ERROR(rocblas_dgmm_strided_batched<T>(handle,
+        CHECK_ROCBLAS_ERROR(rocblas_dgmm_strided_batched_fn(handle,
                                                             side,
                                                             M,
                                                             N,
@@ -279,7 +287,7 @@ void testing_dgmm_strided_batched(const Arguments& arg)
 
         for(int i = 0; i < number_cold_calls; i++)
         {
-            rocblas_dgmm_strided_batched<T>(handle,
+            rocblas_dgmm_strided_batched_fn(handle,
                                             side,
                                             M,
                                             N,
@@ -298,7 +306,7 @@ void testing_dgmm_strided_batched(const Arguments& arg)
         gpu_time_used = get_time_us(); // in microseconds
         for(int i = 0; i < number_hot_calls; i++)
         {
-            rocblas_dgmm_strided_batched<T>(handle,
+            rocblas_dgmm_strided_batched_fn(handle,
                                             side,
                                             M,
                                             N,

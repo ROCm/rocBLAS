@@ -31,6 +31,7 @@ Tests:
   category: pre_checkin
   function: syrk_bad_arg
   precision: *single_precision
+  fortran: [ false, true ]
 
 - name: syrk_quick
   category: quick
@@ -50,6 +51,7 @@ Tests:
   transA: [N, T]
   matrix_size: *medium_matrix_size_range
   alpha_beta: *alpha_beta_range
+  fortran: [ false, true ]
 
 - name: syrk_large
   category: nightly
@@ -65,6 +67,7 @@ Tests:
   category: pre_checkin
   function: syrk_batched_bad_arg
   precision: *single_precision
+  fortran: [ false, true ]
 
 - name: syrk_batched_quick
   category: quick
@@ -86,6 +89,7 @@ Tests:
   matrix_size: *medium_matrix_size_range
   alpha_beta: *alpha_beta_range
   batch_count: [ 1, 7 ]
+  fortran: [ false, true ]
 
 - name: syrk_batched_large
   category: nightly
@@ -102,6 +106,7 @@ Tests:
   category: pre_checkin
   function: syrk_strided_batched_bad_arg
   precision: *single_precision
+  fortran: [ false, true ]
 
 - name: syrk_strided_batched_quick
   category: quick
@@ -123,6 +128,7 @@ Tests:
   matrix_size: *medium_matrix_size_range
   alpha_beta: *alpha_beta_range
   batch_count: [ 1, 7 ]
+  fortran: [ false, true ]
 
 - name: syrk_strided_batched_large
   category: nightly

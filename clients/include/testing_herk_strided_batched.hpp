@@ -19,6 +19,11 @@
 template <typename T>
 void testing_herk_strided_batched_bad_arg(const Arguments& arg)
 {
+    const bool FORTRAN                         = arg.fortran;
+    auto       rocblas_herk_strided_batched_fn = FORTRAN
+                                               ? rocblas_herk_strided_batched<T, real_t<T>, true>
+                                               : rocblas_herk_strided_batched<T, real_t<T>, false>;
+
     rocblas_local_handle    handle;
     const rocblas_fill      uplo   = rocblas_fill_upper;
     const rocblas_operation transA = rocblas_operation_none;
@@ -40,7 +45,7 @@ void testing_herk_strided_batched_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dC.memcheck());
 
-    EXPECT_ROCBLAS_STATUS((rocblas_herk_strided_batched<T>)(nullptr,
+    EXPECT_ROCBLAS_STATUS((rocblas_herk_strided_batched_fn)(nullptr,
                                                             uplo,
                                                             transA,
                                                             N,
@@ -56,7 +61,7 @@ void testing_herk_strided_batched_bad_arg(const Arguments& arg)
                                                             batch_count),
                           rocblas_status_invalid_handle);
 
-    EXPECT_ROCBLAS_STATUS((rocblas_herk_strided_batched<T>)(handle,
+    EXPECT_ROCBLAS_STATUS((rocblas_herk_strided_batched_fn)(handle,
                                                             rocblas_fill_full,
                                                             transA,
                                                             N,
@@ -72,7 +77,7 @@ void testing_herk_strided_batched_bad_arg(const Arguments& arg)
                                                             batch_count),
                           rocblas_status_invalid_value);
 
-    EXPECT_ROCBLAS_STATUS((rocblas_herk_strided_batched<T>)(handle,
+    EXPECT_ROCBLAS_STATUS((rocblas_herk_strided_batched_fn)(handle,
                                                             uplo,
                                                             rocblas_operation_transpose,
                                                             N,
@@ -88,7 +93,7 @@ void testing_herk_strided_batched_bad_arg(const Arguments& arg)
                                                             batch_count),
                           rocblas_status_invalid_value);
 
-    EXPECT_ROCBLAS_STATUS((rocblas_herk_strided_batched<T>)(handle,
+    EXPECT_ROCBLAS_STATUS((rocblas_herk_strided_batched_fn)(handle,
                                                             uplo,
                                                             transA,
                                                             N,
@@ -104,7 +109,7 @@ void testing_herk_strided_batched_bad_arg(const Arguments& arg)
                                                             batch_count),
                           rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS((rocblas_herk_strided_batched<T>)(handle,
+    EXPECT_ROCBLAS_STATUS((rocblas_herk_strided_batched_fn)(handle,
                                                             uplo,
                                                             transA,
                                                             N,
@@ -120,7 +125,7 @@ void testing_herk_strided_batched_bad_arg(const Arguments& arg)
                                                             batch_count),
                           rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS((rocblas_herk_strided_batched<T>)(handle,
+    EXPECT_ROCBLAS_STATUS((rocblas_herk_strided_batched_fn)(handle,
                                                             uplo,
                                                             transA,
                                                             N,
@@ -136,7 +141,7 @@ void testing_herk_strided_batched_bad_arg(const Arguments& arg)
                                                             batch_count),
                           rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS((rocblas_herk_strided_batched<T>)(handle,
+    EXPECT_ROCBLAS_STATUS((rocblas_herk_strided_batched_fn)(handle,
                                                             uplo,
                                                             transA,
                                                             N,
@@ -153,7 +158,7 @@ void testing_herk_strided_batched_bad_arg(const Arguments& arg)
                           rocblas_status_invalid_pointer);
 
     // quick return with invalid pointers
-    EXPECT_ROCBLAS_STATUS((rocblas_herk_strided_batched<T>)(handle,
+    EXPECT_ROCBLAS_STATUS((rocblas_herk_strided_batched_fn)(handle,
                                                             uplo,
                                                             transA,
                                                             0,
@@ -173,6 +178,11 @@ void testing_herk_strided_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_herk_strided_batched(const Arguments& arg)
 {
+    const bool FORTRAN                         = arg.fortran;
+    auto       rocblas_herk_strided_batched_fn = FORTRAN
+                                               ? rocblas_herk_strided_batched<T, real_t<T>, true>
+                                               : rocblas_herk_strided_batched<T, real_t<T>, false>;
+
     rocblas_local_handle handle;
     rocblas_fill         uplo   = char2rocblas_fill(arg.uplo);
     rocblas_operation    transA = char2rocblas_operation(arg.transA);
@@ -197,7 +207,7 @@ void testing_herk_strided_batched(const Arguments& arg)
     if(N == 0 || batch_count == 0 || invalid_size)
     {
         // ensure invalid sizes checked before pointer check
-        EXPECT_ROCBLAS_STATUS((rocblas_herk_strided_batched<T>)(handle,
+        EXPECT_ROCBLAS_STATUS((rocblas_herk_strided_batched_fn)(handle,
                                                                 uplo,
                                                                 transA,
                                                                 N,
@@ -267,7 +277,7 @@ void testing_herk_strided_batched(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         CHECK_HIP_ERROR(dC.transfer_from(hC_1));
 
-        CHECK_ROCBLAS_ERROR((rocblas_herk_strided_batched<T>)(handle,
+        CHECK_ROCBLAS_ERROR((rocblas_herk_strided_batched_fn)(handle,
                                                               uplo,
                                                               transA,
                                                               N,
@@ -291,7 +301,7 @@ void testing_herk_strided_batched(const Arguments& arg)
         CHECK_HIP_ERROR(d_alpha.transfer_from(h_alpha));
         CHECK_HIP_ERROR(d_beta.transfer_from(h_beta));
 
-        CHECK_ROCBLAS_ERROR((rocblas_herk_strided_batched<T>)(handle,
+        CHECK_ROCBLAS_ERROR((rocblas_herk_strided_batched_fn)(handle,
                                                               uplo,
                                                               transA,
                                                               N,
@@ -371,7 +381,7 @@ void testing_herk_strided_batched(const Arguments& arg)
 
         for(int i = 0; i < number_cold_calls; i++)
         {
-            rocblas_herk_strided_batched<T>(handle,
+            rocblas_herk_strided_batched_fn(handle,
                                             uplo,
                                             transA,
                                             N,
@@ -390,7 +400,7 @@ void testing_herk_strided_batched(const Arguments& arg)
         gpu_time_used = get_time_us(); // in microseconds
         for(int i = 0; i < number_hot_calls; i++)
         {
-            rocblas_herk_strided_batched<T>(handle,
+            rocblas_herk_strided_batched_fn(handle,
                                             uplo,
                                             transA,
                                             N,

@@ -14,7 +14,22 @@ if( NOT DEFINED CMAKE_CONFIGURATION_TYPES AND NOT DEFINED CMAKE_BUILD_TYPE )
 endif()
 
 # This project may compile dependencies for clients
-project( rocblas-clients LANGUAGES CXX )
+project( rocblas-clients LANGUAGES CXX Fortran )
+
+set(rocblas_f90_source_clients
+    include/rocblas_fortran.f90
+)
+set(rocblas_f90_source_clients_tensile
+    include/rocblas_fortran_tensile.f90
+)
+
+if( BUILD_WITH_TENSILE )
+  add_library(rocblas_fortran_client ${rocblas_f90_source_clients} ${rocblas_f90_source_clients_tensile})
+else()
+  add_library(rocblas_fortran_client ${rocblas_f90_source_clients})
+endif()
+add_dependencies(rocblas_fortran_client rocblas_fortran)
+include_directories(${CMAKE_BINARY_DIR}/include)
 
 if(OS_ID_rhel OR OS_ID_centos OR OS_ID_sles)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp=libgomp -pthread -stdlib=libstdc++ -std=c++14")
@@ -120,11 +135,15 @@ function(rocm_create_package_clients)
     ### AMD BLIS is not packaged right now, so we have to put the so files into /opt/rocm/lib temporarily
     ### BLIS will be packaged soon and this will not be needed
     set(BLIS_LIB_DIR "${PACKAGE_DIR}/${CPACK_PACKAGING_INSTALL_PREFIX}/lib")
+    set(ROCBLAS_FORT_LIB_DIR "${PACKAGE_INSTALL_DIR}/lib")
     file(MAKE_DIRECTORY "${BLIS_LIB_DIR}")
+    file(MAKE_DIRECTORY "${ROCBLAS_FORT_LIB_DIR}")
     file(WRITE "${PROJECT_BINARY_DIR}/package/DEBIAN/control" ${DEB_CONTROL_FILE_CONTENT})
     add_custom_target(package_clients
         COMMAND ${CMAKE_COMMAND} -E remove -f "${PACKAGE_INSTALL_DIR}/*"
         COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_BINARY_DIR}/../../deps/blis/lib/*" "${BLIS_LIB_DIR}"
+        COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_BINARY_DIR}/../clients/*rocblas_fortran_client*" "${ROCBLAS_FORT_LIB_DIR}"
+        COMMAND ln -r -s "${ROCBLAS_FORT_LIB_DIR}/*rocblas_fortran_client*" "${PACKAGE_DIR}/${CPACK_PACKAGING_INSTALL_PREFIX}/lib/"
         COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_BINARY_DIR}/staging/*" "${PACKAGE_INSTALL_DIR}/bin"
         COMMAND dpkg -b "${PROJECT_BINARY_DIR}/package/"  ${PACKAGE_NAME})
 endfunction(rocm_create_package_clients)

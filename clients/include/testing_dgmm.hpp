@@ -19,6 +19,9 @@
 template <typename T>
 void testing_dgmm_bad_arg(const Arguments& arg)
 {
+    const bool FORTRAN         = arg.fortran;
+    auto       rocblas_dgmm_fn = FORTRAN ? rocblas_dgmm<T, true> : rocblas_dgmm<T, false>;
+
     const rocblas_int M = 100;
     const rocblas_int N = 100;
 
@@ -43,22 +46,25 @@ void testing_dgmm_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dX.memcheck());
     CHECK_DEVICE_ALLOCATION(dC.memcheck());
 
-    EXPECT_ROCBLAS_STATUS(rocblas_dgmm<T>(handle, side, M, N, nullptr, lda, dX, incx, dC, ldc),
+    EXPECT_ROCBLAS_STATUS(rocblas_dgmm_fn(handle, side, M, N, nullptr, lda, dX, incx, dC, ldc),
                           rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_dgmm<T>(handle, side, M, N, dA, lda, nullptr, incx, dC, ldc),
+    EXPECT_ROCBLAS_STATUS(rocblas_dgmm_fn(handle, side, M, N, dA, lda, nullptr, incx, dC, ldc),
                           rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_dgmm<T>(handle, side, M, N, dA, lda, dX, incx, nullptr, ldc),
+    EXPECT_ROCBLAS_STATUS(rocblas_dgmm_fn(handle, side, M, N, dA, lda, dX, incx, nullptr, ldc),
                           rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_dgmm<T>(nullptr, side, M, N, dA, lda, dX, incx, dC, ldc),
+    EXPECT_ROCBLAS_STATUS(rocblas_dgmm_fn(nullptr, side, M, N, dA, lda, dX, incx, dC, ldc),
                           rocblas_status_invalid_handle);
 }
 
 template <typename T>
 void testing_dgmm(const Arguments& arg)
 {
+    const bool FORTRAN         = arg.fortran;
+    auto       rocblas_dgmm_fn = FORTRAN ? rocblas_dgmm<T, true> : rocblas_dgmm<T, false>;
+
     rocblas_side side = char2rocblas_side(arg.side);
 
     rocblas_int M = arg.M;
@@ -85,7 +91,7 @@ void testing_dgmm(const Arguments& arg)
     if(invalid_size || !M || !N)
     {
         EXPECT_ROCBLAS_STATUS(
-            rocblas_dgmm<T>(handle, side, M, N, nullptr, lda, nullptr, incx, nullptr, ldc),
+            rocblas_dgmm_fn(handle, side, M, N, nullptr, lda, nullptr, incx, nullptr, ldc),
             invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
         return;
     }
@@ -128,7 +134,7 @@ void testing_dgmm(const Arguments& arg)
     if(arg.unit_check || arg.norm_check)
     {
         // ROCBLAS
-        CHECK_ROCBLAS_ERROR(rocblas_dgmm<T>(handle, side, M, N, dA, lda, dX, incx, dC, ldc));
+        CHECK_ROCBLAS_ERROR(rocblas_dgmm_fn(handle, side, M, N, dA, lda, dX, incx, dC, ldc));
 
         CHECK_HIP_ERROR(hC_1.transfer_from(dC));
 
@@ -173,13 +179,13 @@ void testing_dgmm(const Arguments& arg)
 
         for(int i = 0; i < number_cold_calls; i++)
         {
-            rocblas_dgmm<T>(handle, side, M, N, dA, lda, dX, incx, dC, ldc);
+            rocblas_dgmm_fn(handle, side, M, N, dA, lda, dX, incx, dC, ldc);
         }
 
         gpu_time_used = get_time_us(); // in microseconds
         for(int i = 0; i < number_hot_calls; i++)
         {
-            rocblas_dgmm<T>(handle, side, M, N, dA, lda, dX, incx, dC, ldc);
+            rocblas_dgmm_fn(handle, side, M, N, dA, lda, dX, incx, dC, ldc);
         }
         gpu_time_used  = get_time_us() - gpu_time_used;
         rocblas_gflops = dgmm_gflop_count<T>(M, N) * number_hot_calls / gpu_time_used * 1e6;

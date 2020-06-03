@@ -17,6 +17,9 @@
 template <typename T>
 void testing_rotm_bad_arg(const Arguments& arg)
 {
+    const bool FORTRAN         = arg.fortran;
+    auto       rocblas_rotm_fn = FORTRAN ? rocblas_rotm<T, true> : rocblas_rotm<T, false>;
+
     rocblas_int         N         = 100;
     rocblas_int         incx      = 1;
     rocblas_int         incy      = 1;
@@ -31,19 +34,22 @@ void testing_rotm_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dparam.memcheck());
 
     CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-    EXPECT_ROCBLAS_STATUS(rocblas_rotm<T>(nullptr, N, dx, incx, dy, incy, dparam),
+    EXPECT_ROCBLAS_STATUS(rocblas_rotm_fn(nullptr, N, dx, incx, dy, incy, dparam),
                           rocblas_status_invalid_handle);
-    EXPECT_ROCBLAS_STATUS(rocblas_rotm<T>(handle, N, nullptr, incx, dy, incy, dparam),
+    EXPECT_ROCBLAS_STATUS(rocblas_rotm_fn(handle, N, nullptr, incx, dy, incy, dparam),
                           rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(rocblas_rotm<T>(handle, N, dx, incx, nullptr, incy, dparam),
+    EXPECT_ROCBLAS_STATUS(rocblas_rotm_fn(handle, N, dx, incx, nullptr, incy, dparam),
                           rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(rocblas_rotm<T>(handle, N, dx, incx, dy, incy, nullptr),
+    EXPECT_ROCBLAS_STATUS(rocblas_rotm_fn(handle, N, dx, incx, dy, incy, nullptr),
                           rocblas_status_invalid_pointer);
 }
 
 template <typename T>
 void testing_rotm(const Arguments& arg)
 {
+    const bool FORTRAN         = arg.fortran;
+    auto       rocblas_rotm_fn = FORTRAN ? rocblas_rotm<T, true> : rocblas_rotm<T, false>;
+
     rocblas_int N    = arg.N;
     rocblas_int incx = arg.incx;
     rocblas_int incy = arg.incy;
@@ -58,7 +64,7 @@ void testing_rotm(const Arguments& arg)
     if(N <= 0)
     {
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR(rocblas_rotm<T>(handle, N, nullptr, incx, nullptr, incy, nullptr));
+        CHECK_ROCBLAS_ERROR(rocblas_rotm_fn(handle, N, nullptr, incx, nullptr, incy, nullptr));
         return;
     }
 
@@ -104,7 +110,7 @@ void testing_rotm(const Arguments& arg)
                 CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
                 CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T) * size_x, hipMemcpyHostToDevice));
                 CHECK_HIP_ERROR(hipMemcpy(dy, hy, sizeof(T) * size_y, hipMemcpyHostToDevice));
-                CHECK_ROCBLAS_ERROR(rocblas_rotm<T>(handle, N, dx, incx, dy, incy, hparam));
+                CHECK_ROCBLAS_ERROR(rocblas_rotm_fn(handle, N, dx, incx, dy, incy, hparam));
                 host_vector<T> rx(size_x);
                 host_vector<T> ry(size_y);
                 CHECK_HIP_ERROR(hipMemcpy(rx, dx, sizeof(T) * size_x, hipMemcpyDeviceToHost));
@@ -127,7 +133,7 @@ void testing_rotm(const Arguments& arg)
                 CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T) * size_x, hipMemcpyHostToDevice));
                 CHECK_HIP_ERROR(hipMemcpy(dy, hy, sizeof(T) * size_y, hipMemcpyHostToDevice));
                 CHECK_HIP_ERROR(hipMemcpy(dparam, hparam, sizeof(T) * 5, hipMemcpyHostToDevice));
-                CHECK_ROCBLAS_ERROR(rocblas_rotm<T>(handle, N, dx, incx, dy, incy, dparam));
+                CHECK_ROCBLAS_ERROR(rocblas_rotm_fn(handle, N, dx, incx, dy, incy, dparam));
                 host_vector<T> rx(size_x);
                 host_vector<T> ry(size_y);
                 CHECK_HIP_ERROR(hipMemcpy(rx, dx, sizeof(T) * size_x, hipMemcpyDeviceToHost));
@@ -156,12 +162,12 @@ void testing_rotm(const Arguments& arg)
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            rocblas_rotm<T>(handle, N, dx, incx, dy, incy, hparam);
+            rocblas_rotm_fn(handle, N, dx, incx, dy, incy, hparam);
         }
         gpu_time_used = get_time_us(); // in microseconds
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            rocblas_rotm<T>(handle, N, dx, incx, dy, incy, hparam);
+            rocblas_rotm_fn(handle, N, dx, incx, dy, incy, hparam);
         }
         gpu_time_used = (get_time_us() - gpu_time_used) / number_hot_calls;
 

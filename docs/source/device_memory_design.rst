@@ -7,7 +7,7 @@
 Device Memory Allocation
 ========================
 
-Requirements 
+Requirements
 ============
 - Some rocBLAS functions need temporary device memory.
 - Allocating and deallocating device memory is expensive and synchronizing.
@@ -16,9 +16,9 @@ Requirements
 
   - **Default** Functions allocate required device memory automatically. This has the disadvantage that allocation is a synchronizing event.
   - **Preallocate** Query all the functions called using a rocblas_handle to find out how much device memory is needed. Preallocate the required device memory when the rocblas_handle is created, and there are no more synchronizing allocations or deallocations.
-  - **Manual** Query a function to find out how much device memory is required. Allocate and deallocate the device memory before and after function calls. This allows the user to control where the synchronizing allocation and deallocation occur. 
+  - **Manual** Query a function to find out how much device memory is required. Allocate and deallocate the device memory before and after function calls. This allows the user to control where the synchronizing allocation and deallocation occur.
 
-In all above schemes, temporary device memory needs to be held by the rocblas_handle and recycled if a subsequent function using the handle needs it. 
+In all above schemes, temporary device memory needs to be held by the rocblas_handle and recycled if a subsequent function using the handle needs it.
 
 Design
 ======
@@ -77,7 +77,7 @@ Function
 
 Indicates if the current function call is collecting information about the optimal device memory allocation size.
 
-return value: 
+return value:
 
 - **true** if information is being collected
 - **false** if information is not being collected
@@ -129,7 +129,7 @@ Macro
 
 ::
 
-    RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle) 
+    RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle)
 
 A convenience macro that returns rocblas_status_size_unchanged if the function call is a memory size query.
 
@@ -219,6 +219,6 @@ Example
             // Not enough device memory for either optimal or degraded algorithm
             ret = rocblas_status_memory_error;
         }
-    } 
+    }
     return ret;
 
