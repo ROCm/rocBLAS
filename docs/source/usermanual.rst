@@ -10,8 +10,8 @@ User Guide
 
    intro
    install
-   exports
+   api     
    logging
    streams
    device_memory
-   api
+   functions

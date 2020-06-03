@@ -46,7 +46,7 @@ The environment variable ROCBLAS_DEVICE_MEMORY_SIZE is used to set how much memo
 
 Functions for manually allocating
 =================================
-The following helper functions can be used to manually allocate and deallocate. See the API section for information on the functions. 
+The following helper functions can be used to manually allocate and deallocate. See the API section for information on the functions.
 
 - rocblas_set_device_memory_size
 - rocblas_get_device_memory_size
@@ -56,7 +56,7 @@ The following helper functions can be used to manually allocate and deallocate. 
 
 rocBLAS Function Return Values for insufficient device memory
 =============================================================
-If the user preallocates or manually allocates, then that size is used as the limit, and no resizing or synchronizing ever occurs. The following two rocBLAS function return values indicate insufficient memory:
+If the user preallocates or manually allocates, then that size is used as the limit, and no resizing or synchronizing ever occurs. The following two function return values indicate insufficient memory:
 
 - rocblas_status == rocblas_status_memory_error: indicates there is not sufficient device memory for a rocBLAS function
 - rocblas_status == rocblas_status_perf_degraded: indicates that a slower algorthm was used because of insufficient device memory for the optimal algorithm

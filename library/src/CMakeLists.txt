@@ -66,17 +66,17 @@ if( BUILD_WITH_TENSILE )
    )
 
   ## Create a unique name for Tensile compiled for rocBLAS
-  #  set_target_properties( Tensile PROPERTIES OUTPUT_NAME tensile-rocblas CXX_EXTENSIONS NO )
+  #  set_target_properties( Tensile PROPERTIES OUTPUT_NAME rocblas-tensile CXX_EXTENSIONS NO )
   # build gemm with Tensile Host library
   if( BUILD_WITH_TENSILE_HOST )
       # Create a unique name for Tensile compiled for rocBLAS
-      set_target_properties( TensileHost PROPERTIES OUTPUT_NAME tensile-rocblas CXX_EXTENSIONS NO )
+      set_target_properties( TensileHost PROPERTIES OUTPUT_NAME rocblas-tensile CXX_EXTENSIONS NO )
       #target_compile_definitions( Tensile PUBLIC USE_TENSILE_HOST )
       target_compile_definitions( TensileHost PUBLIC USE_TENSILE_HOST )
       #endif()
   else()
     # Create a unique name for Tensile compiled for rocBLAS
-    set_target_properties( Tensile PROPERTIES OUTPUT_NAME tensile-rocblas CXX_EXTENSIONS NO )
+    set_target_properties( Tensile PROPERTIES OUTPUT_NAME rocblas-tensile CXX_EXTENSIONS NO )
     target_link_libraries( Tensile PRIVATE hip::device )
   endif()
 
@@ -309,7 +309,13 @@ set( rocblas_blas1_source
   blas1/rocblas_swap_strided_batched.cpp
 )
 
+set(rocblas_f90_source
+    rocblas_module.f90
+)
+
 prepend_path( ".." rocblas_headers_public relative_rocblas_headers_public )
+
+
 
 add_library( rocblas
   ${rocblas_ex_source}
@@ -320,6 +326,9 @@ add_library( rocblas
   ${relative_rocblas_headers_public}
   ${rocblas_auxiliary_source}
 )
+
+# Create rocBLAS Fortran module
+add_library(rocblas_fortran ${rocblas_f90_source})
 
 add_library( roc::rocblas ALIAS rocblas )
 
@@ -404,6 +413,11 @@ endif( )
 
 ############################################################
 # Installation
+
+# Force installation of .f90 module file
+install(FILES "rocblas_module.f90"
+        DESTINATION "rocblas/include"
+)
 
 rocm_install_targets(
   TARGETS ${package_targets}

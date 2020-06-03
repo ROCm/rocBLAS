@@ -48,6 +48,7 @@ Tests:
   uplo: [L, U]
   transA: [N, T, C]
   diag: [N, U]
+  fortran: [ false, true ]
 
 - name: trmv_arg_check
   category: quick
@@ -59,6 +60,17 @@ Tests:
   transA: N
   diag: N
   matrix_size: *special_case_range
+
+- name: trmv_fortran
+  category: quick
+  function: trmv
+  precision: *single_double_precisions_complex_real
+  uplo: [L, U]
+  transA: [N, T, C]
+  diag: [N, U]
+  matrix_size: *small_matrix_size_range
+  incx: *incx_range_small
+  fortran: true
 
 - name: trmv_small
   category: quick
@@ -97,6 +109,19 @@ Tests:
   uplo: [L, U]
   transA: [  N, T, C ]
   diag: [N, U]
+  fortran: [ false, true ]
+
+- name: trmv_batched_fortran
+  category: quick
+  function: trmv_batched
+  precision: *single_double_precisions_complex_real
+  uplo: [L, U]
+  transA: [N, T, C]
+  diag: [N, U]
+  matrix_size: *small_matrix_size_range
+  incx: *incx_range_small
+  batch_count: [ -1, 0, 3 ]
+  fortran: true
 
 - name: trmv_batched_small
   category: quick
@@ -140,6 +165,20 @@ Tests:
   transA: [  T ]
   diag: [N]
   stride_scale: [ 1 ]
+  fortran: [ false, true ]
+
+- name: trmv_strided_batched_fortran
+  category: quick
+  function: trmv_strided_batched
+  precision: *single_double_precisions_complex_real
+  uplo: [L, U]
+  transA: [N, T, C]
+  diag: [N, U]
+  matrix_size: *small_matrix_size_range
+  incx: *incx_range_small
+  batch_count: [ -1, 0, 3 ]
+  stride_scale: [ 2 ]
+  fortran: true
 
 - name: trmv_strided_batched_small
   category: quick

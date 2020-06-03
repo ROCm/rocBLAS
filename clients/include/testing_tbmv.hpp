@@ -20,6 +20,9 @@
 template <typename T>
 void testing_tbmv_bad_arg(const Arguments& arg)
 {
+    const bool FORTRAN         = arg.fortran;
+    auto       rocblas_tbmv_fn = FORTRAN ? rocblas_tbmv<T, true> : rocblas_tbmv<T, false>;
+
     const rocblas_int M    = 100;
     const rocblas_int K    = 5;
     const rocblas_int lda  = 100;
@@ -40,19 +43,22 @@ void testing_tbmv_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
-    EXPECT_ROCBLAS_STATUS(rocblas_tbmv<T>(handle, uplo, transA, diag, M, K, nullptr, lda, dx, incx),
+    EXPECT_ROCBLAS_STATUS(rocblas_tbmv_fn(handle, uplo, transA, diag, M, K, nullptr, lda, dx, incx),
                           rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_tbmv<T>(handle, uplo, transA, diag, M, K, dA, lda, nullptr, incx),
+    EXPECT_ROCBLAS_STATUS(rocblas_tbmv_fn(handle, uplo, transA, diag, M, K, dA, lda, nullptr, incx),
                           rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_tbmv<T>(nullptr, uplo, transA, diag, M, K, dA, lda, dx, incx),
+    EXPECT_ROCBLAS_STATUS(rocblas_tbmv_fn(nullptr, uplo, transA, diag, M, K, dA, lda, dx, incx),
                           rocblas_status_invalid_handle);
 }
 
 template <typename T>
 void testing_tbmv(const Arguments& arg)
 {
+    const bool FORTRAN         = arg.fortran;
+    auto       rocblas_tbmv_fn = FORTRAN ? rocblas_tbmv<T, true> : rocblas_tbmv<T, false>;
+
     rocblas_int       M         = arg.M;
     rocblas_int       K         = arg.K;
     rocblas_int       lda       = arg.lda;
@@ -70,7 +76,7 @@ void testing_tbmv(const Arguments& arg)
     if(invalid_size)
     {
         EXPECT_ROCBLAS_STATUS(
-            rocblas_tbmv<T>(handle, uplo, transA, diag, M, K, nullptr, lda, nullptr, incx),
+            rocblas_tbmv_fn(handle, uplo, transA, diag, M, K, nullptr, lda, nullptr, incx),
             rocblas_status_invalid_size);
 
         return;
@@ -115,7 +121,7 @@ void testing_tbmv(const Arguments& arg)
     {
         // pointer mode shouldn't matter here
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR(rocblas_tbmv<T>(handle, uplo, transA, diag, M, K, dA, lda, dx, incx));
+        CHECK_ROCBLAS_ERROR(rocblas_tbmv_fn(handle, uplo, transA, diag, M, K, dA, lda, dx, incx));
 
         // copy output from device to CPU
         CHECK_HIP_ERROR(hipMemcpy(hx_1, dx, sizeof(T) * size_x, hipMemcpyDeviceToHost));
@@ -145,14 +151,14 @@ void testing_tbmv(const Arguments& arg)
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            rocblas_tbmv<T>(handle, uplo, transA, diag, M, K, dA, lda, dx, incx);
+            rocblas_tbmv_fn(handle, uplo, transA, diag, M, K, dA, lda, dx, incx);
         }
 
         gpu_time_used = get_time_us(); // in microseconds
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            rocblas_tbmv<T>(handle, uplo, transA, diag, M, K, dA, lda, dx, incx);
+            rocblas_tbmv_fn(handle, uplo, transA, diag, M, K, dA, lda, dx, incx);
         }
 
         gpu_time_used  = (get_time_us() - gpu_time_used) / number_hot_calls;

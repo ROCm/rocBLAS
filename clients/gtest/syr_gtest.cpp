@@ -78,6 +78,12 @@ namespace
                 if(SYR_TYPE == SYR_STRIDED_BATCHED || SYR_TYPE == SYR_BATCHED)
                     name << '_' << arg.batch_count;
             }
+
+            if(arg.fortran)
+            {
+                name << "_F";
+            }
+
             return std::move(name);
         }
     };
@@ -103,15 +109,15 @@ namespace
             if(!strcmp(arg.function, "syr"))
                 testing_syr<T>(arg);
             else if(!strcmp(arg.function, "syr_bad_arg"))
-                testing_syr_bad_arg<T>();
+                testing_syr_bad_arg<T>(arg);
             else if(!strcmp(arg.function, "syr_batched"))
                 testing_syr_batched<T>(arg);
             else if(!strcmp(arg.function, "syr_batched_bad_arg"))
-                testing_syr_batched_bad_arg<T>();
+                testing_syr_batched_bad_arg<T>(arg);
             else if(!strcmp(arg.function, "syr_strided_batched"))
                 testing_syr_strided_batched<T>(arg);
             else if(!strcmp(arg.function, "syr_strided_batched_bad_arg"))
-                testing_syr_strided_batched_bad_arg<T>();
+                testing_syr_strided_batched_bad_arg<T>(arg);
             else
                 FAIL() << "Internal error: Test called with unknown function: " << arg.function;
         }

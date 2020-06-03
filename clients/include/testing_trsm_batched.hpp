@@ -21,6 +21,10 @@
 template <typename T>
 void testing_trsm_batched(const Arguments& arg)
 {
+    const bool FORTRAN = arg.fortran;
+    auto       rocblas_trsm_batched_fn
+        = FORTRAN ? rocblas_trsm_batched<T, true> : rocblas_trsm_batched<T, false>;
+
     rocblas_int M           = arg.M;
     rocblas_int N           = arg.N;
     rocblas_int lda         = arg.lda;
@@ -48,7 +52,7 @@ void testing_trsm_batched(const Arguments& arg)
     if(invalid_size || batch_count == 0)
     {
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        EXPECT_ROCBLAS_STATUS(rocblas_trsm_batched<T>(handle,
+        EXPECT_ROCBLAS_STATUS(rocblas_trsm_batched_fn(handle,
                                                       side,
                                                       uplo,
                                                       transA,
@@ -205,7 +209,7 @@ void testing_trsm_batched(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         CHECK_HIP_ERROR(dXorB.transfer_from(hXorB_1));
 
-        CHECK_ROCBLAS_ERROR(rocblas_trsm_batched<T>(handle,
+        CHECK_ROCBLAS_ERROR(rocblas_trsm_batched_fn(handle,
                                                     side,
                                                     uplo,
                                                     transA,
@@ -226,7 +230,7 @@ void testing_trsm_batched(const Arguments& arg)
         CHECK_HIP_ERROR(alpha_d.transfer_from(halpha));
         CHECK_HIP_ERROR(dXorB.transfer_from(hXorB_2));
 
-        CHECK_ROCBLAS_ERROR(rocblas_trsm_batched<T>(handle,
+        CHECK_ROCBLAS_ERROR(rocblas_trsm_batched_fn(handle,
                                                     side,
                                                     uplo,
                                                     transA,
@@ -278,7 +282,7 @@ void testing_trsm_batched(const Arguments& arg)
 
         gpu_time_used = get_time_us(); // in microseconds
 
-        CHECK_ROCBLAS_ERROR(rocblas_trsm_batched<T>(handle,
+        CHECK_ROCBLAS_ERROR(rocblas_trsm_batched_fn(handle,
                                                     side,
                                                     uplo,
                                                     transA,

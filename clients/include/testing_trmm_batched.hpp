@@ -19,6 +19,10 @@
 template <typename T>
 void testing_trmm_batched_bad_arg(const Arguments& arg)
 {
+    const bool FORTRAN = arg.fortran;
+    auto       rocblas_trmm_batched_fn
+        = FORTRAN ? rocblas_trmm_batched<T, true> : rocblas_trmm_batched<T, false>;
+
     rocblas_local_handle handle;
     const rocblas_int    M           = 100;
     const rocblas_int    N           = 100;
@@ -41,22 +45,22 @@ void testing_trmm_batched_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dB.memcheck());
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_trmm_batched<T>(
+        rocblas_trmm_batched_fn(
             handle, side, uplo, transA, diag, M, N, &alpha, nullptr, lda, dB, ldb, batch_count),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_trmm_batched<T>(
+        rocblas_trmm_batched_fn(
             handle, side, uplo, transA, diag, M, N, &alpha, dA, lda, nullptr, ldb, batch_count),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_trmm_batched<T>(
+        rocblas_trmm_batched_fn(
             handle, side, uplo, transA, diag, M, N, nullptr, dA, lda, dB, ldb, batch_count),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_trmm_batched<T>(
+        rocblas_trmm_batched_fn(
             nullptr, side, uplo, transA, diag, M, N, &alpha, dA, lda, dB, ldb, batch_count),
         rocblas_status_invalid_handle);
 }
@@ -64,6 +68,10 @@ void testing_trmm_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_trmm_batched(const Arguments& arg)
 {
+    const bool FORTRAN = arg.fortran;
+    auto       rocblas_trmm_batched_fn
+        = FORTRAN ? rocblas_trmm_batched<T, true> : rocblas_trmm_batched<T, false>;
+
     bool nantest = rocblas_isnan(arg.alpha) || rocblas_isnan(arg.alphai);
     if(!std::is_same<T, float>{} && !std::is_same<T, double>{} && !std::is_same<T, rocblas_half>{}
        && !is_complex<T> && nantest)
@@ -95,7 +103,7 @@ void testing_trmm_batched(const Arguments& arg)
     bool invalid_size = M < 0 || N < 0 || lda < K || ldb < M || batch_count < 0;
     if(M == 0 || N == 0 || batch_count == 0 || invalid_size)
     {
-        EXPECT_ROCBLAS_STATUS(rocblas_trmm_batched<T>(handle,
+        EXPECT_ROCBLAS_STATUS(rocblas_trmm_batched_fn(handle,
                                                       side,
                                                       uplo,
                                                       transA,
@@ -158,7 +166,7 @@ void testing_trmm_batched(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         CHECK_HIP_ERROR(dB.transfer_from(hB_1));
 
-        CHECK_ROCBLAS_ERROR(rocblas_trmm_batched<T>(handle,
+        CHECK_ROCBLAS_ERROR(rocblas_trmm_batched_fn(handle,
                                                     side,
                                                     uplo,
                                                     transA,
@@ -179,7 +187,7 @@ void testing_trmm_batched(const Arguments& arg)
         CHECK_HIP_ERROR(dB.transfer_from(hB_2));
         CHECK_HIP_ERROR(d_alpha.transfer_from(h_alpha));
 
-        CHECK_ROCBLAS_ERROR(rocblas_trmm_batched<T>(handle,
+        CHECK_ROCBLAS_ERROR(rocblas_trmm_batched_fn(handle,
                                                     side,
                                                     uplo,
                                                     transA,
@@ -246,7 +254,7 @@ void testing_trmm_batched(const Arguments& arg)
 
         for(int i = 0; i < number_cold_calls; i++)
         {
-            CHECK_ROCBLAS_ERROR(rocblas_trmm_batched<T>(handle,
+            CHECK_ROCBLAS_ERROR(rocblas_trmm_batched_fn(handle,
                                                         side,
                                                         uplo,
                                                         transA,
@@ -264,7 +272,7 @@ void testing_trmm_batched(const Arguments& arg)
         gpu_time_used = get_time_us(); // in microseconds
         for(int i = 0; i < number_hot_calls; i++)
         {
-            rocblas_trmm_batched<T>(handle,
+            rocblas_trmm_batched_fn(handle,
                                     side,
                                     uplo,
                                     transA,

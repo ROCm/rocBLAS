@@ -22,6 +22,10 @@
 template <typename T>
 void testing_trsm_batched_ex(const Arguments& arg)
 {
+    const bool FORTRAN = arg.fortran;
+    auto       rocblas_trsm_batched_ex_fn
+        = FORTRAN ? rocblas_trsm_batched_ex_fortran : rocblas_trsm_batched_ex;
+
     rocblas_int M   = arg.M;
     rocblas_int N   = arg.N;
     rocblas_int lda = arg.lda;
@@ -50,22 +54,22 @@ void testing_trsm_batched_ex(const Arguments& arg)
     if(invalid_size || batch_count == 0)
     {
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        EXPECT_ROCBLAS_STATUS(rocblas_trsm_batched_ex(handle,
-                                                      side,
-                                                      uplo,
-                                                      transA,
-                                                      diag,
-                                                      M,
-                                                      N,
-                                                      nullptr,
-                                                      nullptr,
-                                                      lda,
-                                                      nullptr,
-                                                      ldb,
-                                                      batch_count,
-                                                      nullptr,
-                                                      TRSM_BLOCK * K,
-                                                      arg.compute_type),
+        EXPECT_ROCBLAS_STATUS(rocblas_trsm_batched_ex_fn(handle,
+                                                         side,
+                                                         uplo,
+                                                         transA,
+                                                         diag,
+                                                         M,
+                                                         N,
+                                                         nullptr,
+                                                         nullptr,
+                                                         lda,
+                                                         nullptr,
+                                                         ldb,
+                                                         batch_count,
+                                                         nullptr,
+                                                         TRSM_BLOCK * K,
+                                                         arg.compute_type),
                               invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
         return;
     }
@@ -244,22 +248,22 @@ void testing_trsm_batched_ex(const Arguments& arg)
         }
 
         size_t x_temp_size = M * N;
-        CHECK_ROCBLAS_ERROR(rocblas_trsm_batched_ex(handle,
-                                                    side,
-                                                    uplo,
-                                                    transA,
-                                                    diag,
-                                                    M,
-                                                    N,
-                                                    &alpha_h,
-                                                    dA.ptr_on_device(),
-                                                    lda,
-                                                    dXorB.ptr_on_device(),
-                                                    ldb,
-                                                    batch_count,
-                                                    dinvA.ptr_on_device(),
-                                                    TRSM_BLOCK * K,
-                                                    arg.compute_type));
+        CHECK_ROCBLAS_ERROR(rocblas_trsm_batched_ex_fn(handle,
+                                                       side,
+                                                       uplo,
+                                                       transA,
+                                                       diag,
+                                                       M,
+                                                       N,
+                                                       &alpha_h,
+                                                       dA.ptr_on_device(),
+                                                       lda,
+                                                       dXorB.ptr_on_device(),
+                                                       ldb,
+                                                       batch_count,
+                                                       dinvA.ptr_on_device(),
+                                                       TRSM_BLOCK * K,
+                                                       arg.compute_type));
 
         CHECK_HIP_ERROR(hXorB_1.transfer_from(dXorB));
 
@@ -269,22 +273,22 @@ void testing_trsm_batched_ex(const Arguments& arg)
         CHECK_HIP_ERROR(dXorB.transfer_from(hXorB_2));
         CHECK_HIP_ERROR(alpha_d.transfer_from(halpha));
 
-        CHECK_ROCBLAS_ERROR(rocblas_trsm_batched_ex(handle,
-                                                    side,
-                                                    uplo,
-                                                    transA,
-                                                    diag,
-                                                    M,
-                                                    N,
-                                                    alpha_d,
-                                                    dA.ptr_on_device(),
-                                                    lda,
-                                                    dXorB.ptr_on_device(),
-                                                    ldb,
-                                                    batch_count,
-                                                    dinvA.ptr_on_device(),
-                                                    TRSM_BLOCK * K,
-                                                    arg.compute_type));
+        CHECK_ROCBLAS_ERROR(rocblas_trsm_batched_ex_fn(handle,
+                                                       side,
+                                                       uplo,
+                                                       transA,
+                                                       diag,
+                                                       M,
+                                                       N,
+                                                       alpha_d,
+                                                       dA.ptr_on_device(),
+                                                       lda,
+                                                       dXorB.ptr_on_device(),
+                                                       ldb,
+                                                       batch_count,
+                                                       dinvA.ptr_on_device(),
+                                                       TRSM_BLOCK * K,
+                                                       arg.compute_type));
 
         CHECK_HIP_ERROR(hXorB_2.transfer_from(dXorB));
 
@@ -324,22 +328,22 @@ void testing_trsm_batched_ex(const Arguments& arg)
 
         gpu_time_used = get_time_us(); // in microseconds
 
-        CHECK_ROCBLAS_ERROR(rocblas_trsm_batched_ex(handle,
-                                                    side,
-                                                    uplo,
-                                                    transA,
-                                                    diag,
-                                                    M,
-                                                    N,
-                                                    &alpha_h,
-                                                    dA.ptr_on_device(),
-                                                    lda,
-                                                    dXorB.ptr_on_device(),
-                                                    ldb,
-                                                    batch_count,
-                                                    dinvA.ptr_on_device(),
-                                                    TRSM_BLOCK * K,
-                                                    arg.compute_type));
+        CHECK_ROCBLAS_ERROR(rocblas_trsm_batched_ex_fn(handle,
+                                                       side,
+                                                       uplo,
+                                                       transA,
+                                                       diag,
+                                                       M,
+                                                       N,
+                                                       &alpha_h,
+                                                       dA.ptr_on_device(),
+                                                       lda,
+                                                       dXorB.ptr_on_device(),
+                                                       ldb,
+                                                       batch_count,
+                                                       dinvA.ptr_on_device(),
+                                                       TRSM_BLOCK * K,
+                                                       arg.compute_type));
 
         gpu_time_used  = get_time_us() - gpu_time_used;
         rocblas_gflops = batch_count * trsm_gflop_count<T>(M, N, K) / gpu_time_used * 1e6;

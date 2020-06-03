@@ -80,6 +80,12 @@ namespace
                  << (char)std::toupper(arg.diag) << '_' << arg.N << '_' << arg.lda;
             if(K != trtri_k)
                 name << '_' << arg.batch_count;
+
+            if(arg.fortran)
+            {
+                name << "_F";
+            }
+
             return std::move(name);
         }
     };

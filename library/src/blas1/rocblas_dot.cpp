@@ -34,47 +34,43 @@ namespace
 
     // allocate workspace inside this API
     template <bool CONJ, typename T, typename T2 = T>
-    rocblas_status rocblas_dot_impl(rocblas_handle handle,
-                                    rocblas_int    n,
-                                    const T*       x,
-                                    rocblas_int    incx,
-                                    const T*       y,
-                                    rocblas_int    incy,
-                                    T*             result)
+    inline rocblas_status rocblas_dot_impl(rocblas_handle handle,
+                                           rocblas_int    n,
+                                           const T*       x,
+                                           rocblas_int    incx,
+                                           const T*       y,
+                                           rocblas_int    incy,
+                                           T*             result)
     {
         if(!handle)
             return rocblas_status_invalid_handle;
 
-        size_t dev_bytes = rocblas_reduction_kernel_workspace_size<NB, T2>(n);
+        size_t dev_bytes = rocblas_reduction_kernel_workspace_size<NB * WIN, T2>(n);
         if(handle->is_device_memory_size_query())
         {
             if(n <= 0)
                 return rocblas_status_size_unchanged;
-
-            if(handle->is_device_memory_size_query())
+            else
                 return handle->set_optimal_device_memory_size(dev_bytes);
         }
 
-        if(!handle->is_device_memory_size_query())
-        {
-            auto layer_mode = handle->layer_mode;
-            if(layer_mode & rocblas_layer_mode_log_trace)
-                log_trace(handle, rocblas_dot_name<CONJ, T>, n, x, incx, y, incy);
+        auto layer_mode = handle->layer_mode;
+        if(layer_mode & rocblas_layer_mode_log_trace)
+            log_trace(handle, rocblas_dot_name<CONJ, T>, n, x, incx, y, incy);
 
-            if(layer_mode & rocblas_layer_mode_log_bench)
-                log_bench(handle,
-                          "./rocblas-bench -f dot -r",
-                          rocblas_precision_string<T>,
-                          "-n",
-                          n,
-                          "--incx",
-                          incx,
-                          "--incy",
-                          incy);
+        if(layer_mode & rocblas_layer_mode_log_bench)
+            log_bench(handle,
+                      "./rocblas-bench -f dot -r",
+                      rocblas_precision_string<T>,
+                      "-n",
+                      n,
+                      "--incx",
+                      incx,
+                      "--incy",
+                      incy);
 
-            if(layer_mode & rocblas_layer_mode_log_profile)
-                log_profile(handle, rocblas_dot_name<CONJ, T>, "N", n, "incx", incx, "incy", incy);
-        }
+        if(layer_mode & rocblas_layer_mode_log_profile)
+            log_profile(handle, rocblas_dot_name<CONJ, T>, "N", n, "incx", incx, "incy", incy);
 
         // Quick return if possible.
         if(n <= 0)

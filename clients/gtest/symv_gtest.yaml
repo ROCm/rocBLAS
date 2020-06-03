@@ -41,6 +41,7 @@ Tests:
   category: pre_checkin
   function: symv_bad_arg
   precision: *single_precision
+  fortran: [ false, true ]
 
 - name: symv_arg_check
   category: quick
@@ -51,6 +52,16 @@ Tests:
   precision: *single_double_precisions_complex_real
   uplo: L
   matrix_size: *special_case_range
+
+- name: symv_fortran
+  category: quick
+  function: symv
+  precision: *single_double_precisions_complex_real
+  uplo: [ U, L ]
+  matrix_size: *medium_matrix_size_range
+  incx_incy: *incx_incy_range
+  alpha_beta: *alpha_beta_range_small
+  fortran: true
 
 - name: symv_medium
   category: pre_checkin
@@ -75,6 +86,18 @@ Tests:
   category: pre_checkin
   function: symv_batched_bad_arg
   precision: *single_precision
+  fortran: [ false, true ]
+
+- name: symv_batched_fortran
+  category: quick
+  function: symv_batched
+  precision: *single_double_precisions_complex_real
+  uplo: [ U, L ]
+  matrix_size: *medium_matrix_size_range
+  incx_incy: *incx_incy_range
+  alpha_beta: *alpha_beta_range_small
+  batch_count: [ -1, 0, 3 ]
+  fortran: true
 
 - name: symv_batched_medium
   category: pre_checkin
@@ -101,6 +124,18 @@ Tests:
   category: pre_checkin
   function: symv_strided_batched_bad_arg
   precision: *single_precision
+  fortran: [ false, true ]
+
+- name: symv_strided_batched_fortran
+  category: quick
+  function: symv_strided_batched
+  precision: *single_double_precisions_complex_real
+  uplo: [ U, L ]
+  matrix_size: *medium_matrix_size_range
+  incx_incy: *incx_incy_range
+  alpha_beta: *alpha_beta_range_small
+  batch_count: [ -1, 0, 3 ]
+  fortran: true
 
 - name: symv_strided_batched_medium
   category: pre_checkin

@@ -20,6 +20,9 @@
 template <typename T>
 void testing_hemv_bad_arg(const Arguments& arg)
 {
+    const bool FORTRAN         = arg.fortran;
+    auto       rocblas_hemv_fn = FORTRAN ? rocblas_hemv<T, true> : rocblas_hemv<T, false>;
+
     const rocblas_int N    = 100;
     const rocblas_int lda  = 100;
     const rocblas_int incx = 1;
@@ -44,33 +47,36 @@ void testing_hemv_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_hemv<T>(handle, uplo, N, &alpha, nullptr, lda, dx, incx, &beta, dy, incy),
+        rocblas_hemv_fn(handle, uplo, N, &alpha, nullptr, lda, dx, incx, &beta, dy, incy),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_hemv<T>(handle, uplo, N, &alpha, dA, lda, nullptr, incx, &beta, dy, incy),
+        rocblas_hemv_fn(handle, uplo, N, &alpha, dA, lda, nullptr, incx, &beta, dy, incy),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_hemv<T>(handle, uplo, N, &alpha, dA, lda, dx, incx, &beta, nullptr, incy),
+        rocblas_hemv_fn(handle, uplo, N, &alpha, dA, lda, dx, incx, &beta, nullptr, incy),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_hemv<T>(handle, uplo, N, nullptr, dA, lda, dx, incx, &beta, dy, incy),
+        rocblas_hemv_fn(handle, uplo, N, nullptr, dA, lda, dx, incx, &beta, dy, incy),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_hemv<T>(handle, uplo, N, &alpha, dA, lda, dx, incx, nullptr, dy, incy),
+        rocblas_hemv_fn(handle, uplo, N, &alpha, dA, lda, dx, incx, nullptr, dy, incy),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_hemv<T>(nullptr, uplo, N, &alpha, dA, lda, dx, incx, &beta, dy, incy),
+        rocblas_hemv_fn(nullptr, uplo, N, &alpha, dA, lda, dx, incx, &beta, dy, incy),
         rocblas_status_invalid_handle);
 }
 
 template <typename T>
 void testing_hemv(const Arguments& arg)
 {
+    const bool FORTRAN         = arg.fortran;
+    auto       rocblas_hemv_fn = FORTRAN ? rocblas_hemv<T, true> : rocblas_hemv<T, false>;
+
     rocblas_int  N       = arg.N;
     rocblas_int  lda     = arg.lda;
     rocblas_int  incx    = arg.incx;
@@ -85,7 +91,7 @@ void testing_hemv(const Arguments& arg)
     if(N < 0 || lda < N || lda < 1 || !incx || !incy)
     {
         EXPECT_ROCBLAS_STATUS(
-            rocblas_hemv<T>(
+            rocblas_hemv_fn(
                 handle, uplo, N, &h_alpha, nullptr, lda, nullptr, incx, &h_beta, nullptr, incy),
             rocblas_status_invalid_size);
 
@@ -158,11 +164,11 @@ void testing_hemv(const Arguments& arg)
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         CHECK_ROCBLAS_ERROR(
-            rocblas_hemv<T>(handle, uplo, N, &h_alpha, dA, lda, dx, incx, &h_beta, dy_1, incy));
+            rocblas_hemv_fn(handle, uplo, N, &h_alpha, dA, lda, dx, incx, &h_beta, dy_1, incy));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         CHECK_ROCBLAS_ERROR(
-            rocblas_hemv<T>(handle, uplo, N, d_alpha, dA, lda, dx, incx, d_beta, dy_2, incy));
+            rocblas_hemv_fn(handle, uplo, N, d_alpha, dA, lda, dx, incx, d_beta, dy_2, incy));
 
         // copy output from device to CPU
         CHECK_HIP_ERROR(hy_1.transfer_from(dy_1));
@@ -197,14 +203,14 @@ void testing_hemv(const Arguments& arg)
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            rocblas_hemv<T>(handle, uplo, N, &h_alpha, dA, lda, dx, incx, &h_beta, dy_1, incy);
+            rocblas_hemv_fn(handle, uplo, N, &h_alpha, dA, lda, dx, incx, &h_beta, dy_1, incy);
         }
 
         gpu_time_used = get_time_us(); // in microseconds
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            rocblas_hemv<T>(handle, uplo, N, &h_alpha, dA, lda, dx, incx, &h_beta, dy_1, incy);
+            rocblas_hemv_fn(handle, uplo, N, &h_alpha, dA, lda, dx, incx, &h_beta, dy_1, incy);
         }
 
         gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;

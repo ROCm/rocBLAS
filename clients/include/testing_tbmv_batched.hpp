@@ -20,6 +20,10 @@
 template <typename T>
 void testing_tbmv_batched_bad_arg(const Arguments& arg)
 {
+    const bool FORTRAN = arg.fortran;
+    auto       rocblas_tbmv_batched_fn
+        = FORTRAN ? rocblas_tbmv_batched<T, true> : rocblas_tbmv_batched<T, false>;
+
     const rocblas_int M           = 100;
     const rocblas_int K           = 5;
     const rocblas_int lda         = 100;
@@ -42,16 +46,16 @@ void testing_tbmv_batched_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_tbmv_batched<T>(
+        rocblas_tbmv_batched_fn(
             handle, uplo, transA, diag, M, K, nullptr, lda, dx.ptr_on_device(), incx, batch_count),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_tbmv_batched<T>(
+        rocblas_tbmv_batched_fn(
             handle, uplo, transA, diag, M, K, dA.ptr_on_device(), lda, nullptr, incx, batch_count),
         rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_tbmv_batched<T>(nullptr,
+    EXPECT_ROCBLAS_STATUS(rocblas_tbmv_batched_fn(nullptr,
                                                   uplo,
                                                   transA,
                                                   diag,
@@ -66,13 +70,17 @@ void testing_tbmv_batched_bad_arg(const Arguments& arg)
 
     // Adding test to check that if batch_count == 0 we can pass in nullptrs and get a success.
     EXPECT_ROCBLAS_STATUS(
-        rocblas_tbmv_batched<T>(handle, uplo, transA, diag, M, K, nullptr, lda, nullptr, incx, 0),
+        rocblas_tbmv_batched_fn(handle, uplo, transA, diag, M, K, nullptr, lda, nullptr, incx, 0),
         rocblas_status_success);
 }
 
 template <typename T>
 void testing_tbmv_batched(const Arguments& arg)
 {
+    const bool FORTRAN = arg.fortran;
+    auto       rocblas_tbmv_batched_fn
+        = FORTRAN ? rocblas_tbmv_batched<T, true> : rocblas_tbmv_batched<T, false>;
+
     rocblas_int       M           = arg.M;
     rocblas_int       K           = arg.K;
     rocblas_int       lda         = arg.lda;
@@ -91,7 +99,7 @@ void testing_tbmv_batched(const Arguments& arg)
     if(invalid_size || !M || !batch_count)
     {
         EXPECT_ROCBLAS_STATUS(
-            rocblas_tbmv_batched<T>(
+            rocblas_tbmv_batched_fn(
                 handle, uplo, transA, diag, M, K, nullptr, lda, nullptr, incx, batch_count),
             invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
 
@@ -138,7 +146,7 @@ void testing_tbmv_batched(const Arguments& arg)
     {
         // pointer mode shouldn't matter here
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR(rocblas_tbmv_batched<T>(handle,
+        CHECK_ROCBLAS_ERROR(rocblas_tbmv_batched_fn(handle,
                                                     uplo,
                                                     transA,
                                                     diag,
@@ -180,7 +188,7 @@ void testing_tbmv_batched(const Arguments& arg)
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            rocblas_tbmv_batched<T>(handle,
+            rocblas_tbmv_batched_fn(handle,
                                     uplo,
                                     transA,
                                     diag,
@@ -197,7 +205,7 @@ void testing_tbmv_batched(const Arguments& arg)
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            rocblas_tbmv_batched<T>(handle,
+            rocblas_tbmv_batched_fn(handle,
                                     uplo,
                                     transA,
                                     diag,

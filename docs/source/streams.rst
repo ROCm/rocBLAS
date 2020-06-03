@@ -31,7 +31,7 @@ rocBLAS ONLY queries (by hipGetDevice) the user's device; rocBLAS
 does NOT set the device for users. If rocBLAS does not see a valid
 device, it returns an error message to users. It is the users'
 responsibility to provide a valid device to rocBLAS and ensure the
-device safety as explained soon.
+device safety.
 
 Users CANNOT switch devices between rocblas_create_handle() and
 rocblas_destroy_handle() (the same as cuBLAS requires). If users want to

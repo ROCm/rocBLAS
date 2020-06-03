@@ -2,6 +2,7 @@
  * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+#include "bytes.hpp"
 #include "cblas_interface.hpp"
 #include "flops.hpp"
 #include "norm.hpp"
@@ -17,6 +18,10 @@
 template <typename T, typename U = T>
 void testing_scal_strided_batched(const Arguments& arg)
 {
+    const bool FORTRAN                         = arg.fortran;
+    auto       rocblas_scal_strided_batched_fn = FORTRAN ? rocblas_scal_strided_batched<T, U, true>
+                                                   : rocblas_scal_strided_batched<T, U, false>;
+
     rocblas_int N           = arg.N;
     rocblas_int incx        = arg.incx;
     rocblas_int stridex     = arg.stride_x;
@@ -30,13 +35,8 @@ void testing_scal_strided_batched(const Arguments& arg)
     if(N <= 0 || incx <= 0 || batch_count <= 0)
     {
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        EXPECT_ROCBLAS_STATUS((rocblas_scal_strided_batched<T, U>)(handle,
-                                                                   N,
-                                                                   nullptr,
-                                                                   nullptr,
-                                                                   incx,
-                                                                   stridex,
-                                                                   batch_count),
+        EXPECT_ROCBLAS_STATUS((rocblas_scal_strided_batched_fn)(
+                                  handle, N, nullptr, nullptr, incx, stridex, batch_count),
                               rocblas_status_success);
         return;
     }
@@ -69,7 +69,6 @@ void testing_scal_strided_batched(const Arguments& arg)
     CHECK_HIP_ERROR(hipMemcpy(dx_1, hx_1, sizeof(T) * size_x, hipMemcpyHostToDevice));
 
     double gpu_time_used, cpu_time_used;
-    double rocblas_gflops, cblas_gflops, rocblas_bandwidth;
     double rocblas_error_1 = 0.0;
     double rocblas_error_2 = 0.0;
 
@@ -82,13 +81,13 @@ void testing_scal_strided_batched(const Arguments& arg)
 
         // GPU BLAS, rocblas_pointer_mode_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR((rocblas_scal_strided_batched<T, U>(
+        CHECK_ROCBLAS_ERROR((rocblas_scal_strided_batched_fn(
             handle, N, &h_alpha, dx_1, incx, stridex, batch_count)));
 
         // GPU BLAS, rocblas_pointer_mode_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR((rocblas_scal_strided_batched<T, U>(
-            handle, N, d_alpha, dx_2, incx, stridex, batch_count)));
+        CHECK_ROCBLAS_ERROR((
+            rocblas_scal_strided_batched_fn(handle, N, d_alpha, dx_2, incx, stridex, batch_count)));
 
         // copy output from device to CPU
         CHECK_HIP_ERROR(hipMemcpy(hx_1, dx_1, sizeof(T) * size_x, hipMemcpyDeviceToHost));
@@ -102,7 +101,6 @@ void testing_scal_strided_batched(const Arguments& arg)
         }
 
         cpu_time_used = get_time_us() - cpu_time_used;
-        cblas_gflops  = batch_count * scal_gflop_count<T, U>(N) / cpu_time_used * 1e6 * 1;
 
         if(arg.unit_check)
         {
@@ -128,42 +126,37 @@ void testing_scal_strided_batched(const Arguments& arg)
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            rocblas_scal_strided_batched<T, U>(
-                handle, N, &h_alpha, dx_1, incx, stridex, batch_count);
+            rocblas_scal_strided_batched_fn(handle, N, &h_alpha, dx_1, incx, stridex, batch_count);
         }
 
         gpu_time_used = get_time_us(); // in microseconds
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            rocblas_scal_strided_batched<T, U>(
-                handle, N, &h_alpha, dx_1, incx, stridex, batch_count);
+            rocblas_scal_strided_batched_fn(handle, N, &h_alpha, dx_1, incx, stridex, batch_count);
         }
 
-        gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;
-        rocblas_gflops    = batch_count * scal_gflop_count<T, U>(N) / gpu_time_used * 1e6 * 1;
-        rocblas_bandwidth = batch_count * (2.0 * N) * sizeof(T) / gpu_time_used / 1e3;
+        gpu_time_used = get_time_us() - gpu_time_used;
 
-        rocblas_cout << "N,alpha,incx,rocblas-Gflops,rocblas-GB/s,rocblas-us";
-
-        if(arg.norm_check)
-            rocblas_cout << ",CPU-Gflops,norm_error_host_ptr,norm_error_device_ptr";
-
-        rocblas_cout << std::endl;
-
-        rocblas_cout << N << "," << h_alpha << "," << incx << "," << rocblas_gflops << ","
-                     << rocblas_bandwidth << "," << gpu_time_used;
-
-        if(arg.norm_check)
-            rocblas_cout << cblas_gflops << ',' << rocblas_error_1 << ',' << rocblas_error_2;
-
-        rocblas_cout << std::endl;
+        ArgumentModel<e_N, e_alpha, e_incx, e_stride_x, e_batch_count>{}.log_args<T>(
+            rocblas_cout,
+            arg,
+            gpu_time_used,
+            scal_gflop_count<T, U>(N),
+            scal_gbyte_count<T>(N),
+            cpu_time_used,
+            rocblas_error_1,
+            rocblas_error_2);
     }
 }
 
 template <typename T, typename U = T>
 void testing_scal_strided_batched_bad_arg(const Arguments& arg)
 {
+    const bool FORTRAN                         = arg.fortran;
+    auto       rocblas_scal_strided_batched_fn = FORTRAN ? rocblas_scal_strided_batched<T, U, true>
+                                                   : rocblas_scal_strided_batched<T, U, false>;
+
     rocblas_int N           = 100;
     rocblas_int incx        = 1;
     U           h_alpha     = U(1.0);
@@ -179,14 +172,9 @@ void testing_scal_strided_batched_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
     EXPECT_ROCBLAS_STATUS(
-        (rocblas_scal_strided_batched<T, U>)(handle, N, nullptr, dx, incx, stridex, batch_count),
+        (rocblas_scal_strided_batched_fn)(handle, N, nullptr, dx, incx, stridex, batch_count),
         rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS((rocblas_scal_strided_batched<T, U>)(handle,
-                                                               N,
-                                                               &h_alpha,
-                                                               nullptr,
-                                                               incx,
-                                                               stridex,
-                                                               batch_count),
-                          rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS(
+        (rocblas_scal_strided_batched_fn)(handle, N, &h_alpha, nullptr, incx, stridex, batch_count),
+        rocblas_status_invalid_pointer);
 }

@@ -18,6 +18,9 @@
 template <typename T>
 void testing_gemm_bad_arg(const Arguments& arg)
 {
+    const bool FORTRAN         = arg.fortran;
+    auto       rocblas_gemm_fn = FORTRAN ? rocblas_gemm<T, true> : rocblas_gemm<T, false>;
+
     const rocblas_int M = 100;
     const rocblas_int N = 100;
     const rocblas_int K = 100;
@@ -45,36 +48,36 @@ void testing_gemm_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dC.memcheck());
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_gemm<T>(
+        rocblas_gemm_fn(
             handle, transA, transB, M, N, K, &alpha, nullptr, lda, dB, ldb, &beta, dC, ldc),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_gemm<T>(
+        rocblas_gemm_fn(
             handle, transA, transB, M, N, K, &alpha, dA, lda, nullptr, ldb, &beta, dC, ldc),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_gemm<T>(
+        rocblas_gemm_fn(
             handle, transA, transB, M, N, K, &alpha, dA, lda, dB, ldb, &beta, nullptr, ldc),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_gemm<T>(handle, transA, transB, M, N, K, nullptr, dA, lda, dB, ldb, &beta, dC, ldc),
+        rocblas_gemm_fn(handle, transA, transB, M, N, K, nullptr, dA, lda, dB, ldb, &beta, dC, ldc),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_gemm<T>(
+        rocblas_gemm_fn(
             handle, transA, transB, M, N, K, &alpha, dA, lda, dB, ldb, nullptr, dC, ldc),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_gemm<T>(nullptr, transA, transB, M, N, K, &alpha, dA, lda, dB, ldb, &beta, dC, ldc),
+        rocblas_gemm_fn(nullptr, transA, transB, M, N, K, &alpha, dA, lda, dB, ldb, &beta, dC, ldc),
         rocblas_status_invalid_handle);
 
     // if k == 0 we can test that A and B can both be nullptr without issue.
     EXPECT_ROCBLAS_STATUS(
-        rocblas_gemm<T>(
+        rocblas_gemm_fn(
             handle, transA, transB, M, N, 0, &alpha, nullptr, lda, nullptr, ldb, &beta, dC, ldc),
         rocblas_status_success);
 }
@@ -82,6 +85,9 @@ void testing_gemm_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_gemm(const Arguments& arg)
 {
+    const bool FORTRAN         = arg.fortran;
+    auto       rocblas_gemm_fn = FORTRAN ? rocblas_gemm<T, true> : rocblas_gemm<T, false>;
+
     rocblas_operation transA = char2rocblas_operation(arg.transA);
     rocblas_operation transB = char2rocblas_operation(arg.transB);
 
@@ -111,7 +117,7 @@ void testing_gemm(const Arguments& arg)
     bool invalid_size = M < 0 || N < 0 || K < 0 || lda < A_row || ldb < B_row || ldc < M;
     if(invalid_size)
     {
-        EXPECT_ROCBLAS_STATUS(rocblas_gemm<T>(handle,
+        EXPECT_ROCBLAS_STATUS(rocblas_gemm_fn(handle,
                                               transA,
                                               transB,
                                               M,
@@ -130,9 +136,10 @@ void testing_gemm(const Arguments& arg)
         return;
     }
 
-    const auto size_A = size_t(lda) * size_t(A_col);
-    const auto size_B = size_t(ldb) * size_t(B_col);
-    const auto size_C = size_t(ldc) * size_t(N);
+    const auto size_A      = size_t(lda) * size_t(A_col);
+    const auto size_B      = size_t(ldb) * size_t(B_col);
+    const auto size_C      = size_t(ldc) * size_t(N);
+    const auto size_C_copy = arg.unit_check || arg.norm_check ? size_C : 0;
 
     // allocate memory on device
     device_vector<T> dA(size_A);
@@ -150,8 +157,8 @@ void testing_gemm(const Arguments& arg)
     host_vector<T> hA(size_A);
     host_vector<T> hB(size_B);
     host_vector<T> hC_1(size_C);
-    host_vector<T> hC_2(size_C);
-    host_vector<T> hC_gold(size_C);
+    host_vector<T> hC_2(size_C_copy);
+    host_vector<T> hC_gold(size_C_copy);
 
     // Initial Data on CPU
     if(arg.initialization == rocblas_initialization_random_int)
@@ -184,8 +191,11 @@ void testing_gemm(const Arguments& arg)
             rocblas_init_hpl<T>(hC_1, M, N, ldc);
     }
 
-    hC_2    = hC_1;
-    hC_gold = hC_1;
+    if(size_C_copy)
+    {
+        hC_2    = hC_1;
+        hC_gold = hC_1;
+    }
 
     // copy data from CPU to device
     CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(T) * size_A, hipMemcpyHostToDevice));
@@ -196,7 +206,7 @@ void testing_gemm(const Arguments& arg)
         // ROCBLAS rocblas_pointer_mode_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         CHECK_HIP_ERROR(hipMemcpy(dC, hC_1, sizeof(T) * size_C, hipMemcpyHostToDevice));
-        CHECK_ROCBLAS_ERROR(rocblas_gemm<T>(
+        CHECK_ROCBLAS_ERROR(rocblas_gemm_fn(
             handle, transA, transB, M, N, K, &h_alpha, dA, lda, dB, ldb, &h_beta, dC, ldc));
         CHECK_HIP_ERROR(hipMemcpy(hC_1, dC, sizeof(T) * size_C, hipMemcpyDeviceToHost));
 
@@ -205,7 +215,7 @@ void testing_gemm(const Arguments& arg)
         CHECK_HIP_ERROR(hipMemcpy(dC, hC_2, sizeof(T) * size_C, hipMemcpyHostToDevice));
         CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(T), hipMemcpyHostToDevice));
         CHECK_HIP_ERROR(hipMemcpy(d_beta, &h_beta, sizeof(T), hipMemcpyHostToDevice));
-        CHECK_ROCBLAS_ERROR(rocblas_gemm<T>(
+        CHECK_ROCBLAS_ERROR(rocblas_gemm_fn(
             handle, transA, transB, M, N, K, d_alpha, dA, lda, dB, ldb, d_beta, dC, ldc));
         CHECK_HIP_ERROR(hipMemcpy(hC_2, dC, sizeof(T) * size_C, hipMemcpyDeviceToHost));
 
@@ -257,14 +267,14 @@ void testing_gemm(const Arguments& arg)
 
         for(int i = 0; i < number_cold_calls; i++)
         {
-            CHECK_ROCBLAS_ERROR(rocblas_gemm<T>(
+            CHECK_ROCBLAS_ERROR(rocblas_gemm_fn(
                 handle, transA, transB, M, N, K, &h_alpha, dA, lda, dB, ldb, &h_beta, dC, ldc));
         }
 
         gpu_time_used = get_time_us(); // in microseconds
         for(int i = 0; i < number_hot_calls; i++)
         {
-            rocblas_gemm<T>(
+            rocblas_gemm_fn(
                 handle, transA, transB, M, N, K, &h_alpha, dA, lda, dB, ldb, &h_beta, dC, ldc);
         }
         gpu_time_used  = get_time_us() - gpu_time_used;

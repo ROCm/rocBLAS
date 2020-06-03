@@ -17,8 +17,11 @@
 #include "utility.hpp"
 
 template <typename T>
-void testing_symv_bad_arg()
+void testing_symv_bad_arg(const Arguments& arg)
 {
+    const bool FORTRAN         = arg.fortran;
+    auto       rocblas_symv_fn = FORTRAN ? rocblas_symv<T, true> : rocblas_symv<T, false>;
+
     rocblas_fill         uplo  = rocblas_fill_upper;
     rocblas_int          N     = 100;
     rocblas_int          incx  = 1;
@@ -43,37 +46,40 @@ void testing_symv_bad_arg()
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_symv<T>(nullptr, uplo, N, &alpha, dA, lda, dx, incx, &beta, dy, incy),
+        rocblas_symv_fn(nullptr, uplo, N, &alpha, dA, lda, dx, incx, &beta, dy, incy),
         rocblas_status_invalid_handle);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_symv<T>(handle, rocblas_fill_full, N, &alpha, dA, lda, dx, incx, &beta, dy, incy),
+        rocblas_symv_fn(handle, rocblas_fill_full, N, &alpha, dA, lda, dx, incx, &beta, dy, incy),
         rocblas_status_invalid_value);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_symv<T>(handle, uplo, N, nullptr, dA, lda, dx, incx, &beta, dy, incy),
+        rocblas_symv_fn(handle, uplo, N, nullptr, dA, lda, dx, incx, &beta, dy, incy),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_symv<T>(handle, uplo, N, &alpha, nullptr, lda, dx, incx, &beta, dy, incy),
+        rocblas_symv_fn(handle, uplo, N, &alpha, nullptr, lda, dx, incx, &beta, dy, incy),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_symv<T>(handle, uplo, N, &alpha, dA, lda, nullptr, incx, &beta, dy, incy),
+        rocblas_symv_fn(handle, uplo, N, &alpha, dA, lda, nullptr, incx, &beta, dy, incy),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_symv<T>(handle, uplo, N, &alpha, dA, lda, dx, incx, nullptr, dy, incy),
+        rocblas_symv_fn(handle, uplo, N, &alpha, dA, lda, dx, incx, nullptr, dy, incy),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_symv<T>(handle, uplo, N, &alpha, dA, lda, dx, incx, &beta, nullptr, incy),
+        rocblas_symv_fn(handle, uplo, N, &alpha, dA, lda, dx, incx, &beta, nullptr, incy),
         rocblas_status_invalid_pointer);
 }
 
 template <typename T>
 void testing_symv(const Arguments& arg)
 {
+    const bool FORTRAN         = arg.fortran;
+    auto       rocblas_symv_fn = FORTRAN ? rocblas_symv<T, true> : rocblas_symv<T, false>;
+
     rocblas_int N    = arg.N;
     rocblas_int lda  = arg.lda;
     rocblas_int incx = arg.incx;
@@ -99,7 +105,7 @@ void testing_symv(const Arguments& arg)
     if(N < 0 || lda < 1 || lda < N || !incx || !incy)
     {
         EXPECT_ROCBLAS_STATUS(
-            rocblas_symv<T>(
+            rocblas_symv_fn(
                 handle, uplo, N, nullptr, nullptr, lda, nullptr, incx, nullptr, nullptr, incy),
             rocblas_status_invalid_size);
         return;
@@ -162,7 +168,7 @@ void testing_symv(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
         CHECK_ROCBLAS_ERROR(
-            rocblas_symv<T>(handle, uplo, N, alpha, dA, lda, dx, incx, beta, dy, incy));
+            rocblas_symv_fn(handle, uplo, N, alpha, dA, lda, dx, incx, beta, dy, incy));
 
         // copy output from device to CPU
         CHECK_HIP_ERROR(hy.transfer_from(dy));
@@ -177,7 +183,7 @@ void testing_symv(const Arguments& arg)
         dy.transfer_from(hy2);
 
         CHECK_ROCBLAS_ERROR(
-            rocblas_symv<T>(handle, uplo, N, d_alpha, dA, lda, dx, incx, d_beta, dy, incy));
+            rocblas_symv_fn(handle, uplo, N, d_alpha, dA, lda, dx, incx, d_beta, dy, incy));
 
         // copy output from device to CPU
         CHECK_HIP_ERROR(hy2.transfer_from(dy));
@@ -215,7 +221,7 @@ void testing_symv(const Arguments& arg)
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
             CHECK_ROCBLAS_ERROR(
-                rocblas_symv<T>(handle, uplo, N, alpha, dA, lda, dx, incx, beta, dy, incy));
+                rocblas_symv_fn(handle, uplo, N, alpha, dA, lda, dx, incx, beta, dy, incy));
         }
 
         gpu_time_used = get_time_us(); // in microseconds
@@ -223,7 +229,7 @@ void testing_symv(const Arguments& arg)
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
             CHECK_ROCBLAS_ERROR(
-                rocblas_symv<T>(handle, uplo, N, alpha, dA, lda, dx, incx, beta, dy, incy));
+                rocblas_symv_fn(handle, uplo, N, alpha, dA, lda, dx, incx, beta, dy, incy));
         }
 
         gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;

@@ -71,6 +71,8 @@ struct Arguments
     rocblas_int stride_x;
     rocblas_int stride_y;
 
+    bool fortran;
+
     rocblas_int norm_check;
     rocblas_int unit_check;
     rocblas_int timing;
@@ -131,6 +133,7 @@ struct Arguments
     OPER(stride_d) SEP               \
     OPER(stride_x) SEP               \
     OPER(stride_y) SEP               \
+    OPER(fortran) SEP                \
     OPER(norm_check) SEP             \
     OPER(unit_check) SEP             \
     OPER(timing) SEP                 \

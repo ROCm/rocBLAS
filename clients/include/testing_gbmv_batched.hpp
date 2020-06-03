@@ -19,6 +19,10 @@
 template <typename T>
 void testing_gbmv_batched_bad_arg(const Arguments& arg)
 {
+    const bool FORTRAN = arg.fortran;
+    auto       rocblas_gbmv_batched_fn
+        = FORTRAN ? rocblas_gbmv_batched<T, true> : rocblas_gbmv_batched<T, false>;
+
     const rocblas_int M           = 100;
     const rocblas_int N           = 100;
     const rocblas_int KL          = 5;
@@ -47,7 +51,7 @@ void testing_gbmv_batched_bad_arg(const Arguments& arg)
     auto dx_dev = dx.ptr_on_device();
     auto dy_dev = dy.ptr_on_device();
 
-    EXPECT_ROCBLAS_STATUS(rocblas_gbmv_batched<T>(handle,
+    EXPECT_ROCBLAS_STATUS(rocblas_gbmv_batched_fn(handle,
                                                   transA,
                                                   M,
                                                   N,
@@ -64,7 +68,7 @@ void testing_gbmv_batched_bad_arg(const Arguments& arg)
                                                   batch_count),
                           rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_gbmv_batched<T>(handle,
+    EXPECT_ROCBLAS_STATUS(rocblas_gbmv_batched_fn(handle,
                                                   transA,
                                                   M,
                                                   N,
@@ -81,7 +85,7 @@ void testing_gbmv_batched_bad_arg(const Arguments& arg)
                                                   batch_count),
                           rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_gbmv_batched<T>(handle,
+    EXPECT_ROCBLAS_STATUS(rocblas_gbmv_batched_fn(handle,
                                                   transA,
                                                   M,
                                                   N,
@@ -98,7 +102,7 @@ void testing_gbmv_batched_bad_arg(const Arguments& arg)
                                                   batch_count),
                           rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_gbmv_batched<T>(handle,
+    EXPECT_ROCBLAS_STATUS(rocblas_gbmv_batched_fn(handle,
                                                   transA,
                                                   M,
                                                   N,
@@ -115,7 +119,7 @@ void testing_gbmv_batched_bad_arg(const Arguments& arg)
                                                   batch_count),
                           rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_gbmv_batched<T>(handle,
+    EXPECT_ROCBLAS_STATUS(rocblas_gbmv_batched_fn(handle,
                                                   transA,
                                                   M,
                                                   N,
@@ -132,7 +136,7 @@ void testing_gbmv_batched_bad_arg(const Arguments& arg)
                                                   batch_count),
                           rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_gbmv_batched<T>(nullptr,
+    EXPECT_ROCBLAS_STATUS(rocblas_gbmv_batched_fn(nullptr,
                                                   transA,
                                                   M,
                                                   N,
@@ -153,6 +157,10 @@ void testing_gbmv_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_gbmv_batched(const Arguments& arg)
 {
+    const bool FORTRAN = arg.fortran;
+    auto       rocblas_gbmv_batched_fn
+        = FORTRAN ? rocblas_gbmv_batched<T, true> : rocblas_gbmv_batched<T, false>;
+
     rocblas_int       M           = arg.M;
     rocblas_int       N           = arg.N;
     rocblas_int       KL          = arg.KL;
@@ -172,7 +180,7 @@ void testing_gbmv_batched(const Arguments& arg)
                         || KL < 0 || KU < 0;
     if(invalid_size || !M || !N || !batch_count)
     {
-        EXPECT_ROCBLAS_STATUS(rocblas_gbmv_batched<T>(handle,
+        EXPECT_ROCBLAS_STATUS(rocblas_gbmv_batched_fn(handle,
                                                       transA,
                                                       M,
                                                       N,
@@ -272,7 +280,7 @@ void testing_gbmv_batched(const Arguments& arg)
     {
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR(rocblas_gbmv_batched<T>(handle,
+        CHECK_ROCBLAS_ERROR(rocblas_gbmv_batched_fn(handle,
                                                     transA,
                                                     M,
                                                     N,
@@ -289,7 +297,7 @@ void testing_gbmv_batched(const Arguments& arg)
                                                     batch_count));
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR(rocblas_gbmv_batched<T>(handle,
+        CHECK_ROCBLAS_ERROR(rocblas_gbmv_batched_fn(handle,
                                                     transA,
                                                     M,
                                                     N,
@@ -343,7 +351,7 @@ void testing_gbmv_batched(const Arguments& arg)
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            rocblas_gbmv_batched<T>(handle,
+            rocblas_gbmv_batched_fn(handle,
                                     transA,
                                     M,
                                     N,
@@ -364,7 +372,7 @@ void testing_gbmv_batched(const Arguments& arg)
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            rocblas_gbmv_batched<T>(handle,
+            rocblas_gbmv_batched_fn(handle,
                                     transA,
                                     M,
                                     N,

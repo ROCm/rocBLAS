@@ -16,8 +16,11 @@
 #include "utility.hpp"
 
 template <typename T>
-void testing_spmv_bad_arg()
+void testing_spmv_bad_arg(const Arguments& arg)
 {
+    const bool FORTRAN         = arg.fortran;
+    auto       rocblas_spmv_fn = FORTRAN ? rocblas_spmv<T, true> : rocblas_spmv<T, false>;
+
     rocblas_fill         uplo  = rocblas_fill_upper;
     rocblas_int          N     = 100;
     rocblas_int          incx  = 1;
@@ -40,35 +43,38 @@ void testing_spmv_bad_arg()
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
-    EXPECT_ROCBLAS_STATUS(rocblas_spmv<T>(nullptr, uplo, N, &alpha, dA, dx, incx, &beta, dy, incy),
+    EXPECT_ROCBLAS_STATUS(rocblas_spmv_fn(nullptr, uplo, N, &alpha, dA, dx, incx, &beta, dy, incy),
                           rocblas_status_invalid_handle);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_spmv<T>(handle, rocblas_fill_full, N, &alpha, dA, dx, incx, &beta, dy, incy),
+        rocblas_spmv_fn(handle, rocblas_fill_full, N, &alpha, dA, dx, incx, &beta, dy, incy),
         rocblas_status_invalid_value);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_spmv<T>(handle, uplo, N, nullptr, dA, dx, incx, &beta, dy, incy),
+    EXPECT_ROCBLAS_STATUS(rocblas_spmv_fn(handle, uplo, N, nullptr, dA, dx, incx, &beta, dy, incy),
                           rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_spmv<T>(handle, uplo, N, &alpha, nullptr, dx, incx, &beta, dy, incy),
+        rocblas_spmv_fn(handle, uplo, N, &alpha, nullptr, dx, incx, &beta, dy, incy),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_spmv<T>(handle, uplo, N, &alpha, dA, nullptr, incx, &beta, dy, incy),
+        rocblas_spmv_fn(handle, uplo, N, &alpha, dA, nullptr, incx, &beta, dy, incy),
         rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_spmv<T>(handle, uplo, N, &alpha, dA, dx, incx, nullptr, dy, incy),
+    EXPECT_ROCBLAS_STATUS(rocblas_spmv_fn(handle, uplo, N, &alpha, dA, dx, incx, nullptr, dy, incy),
                           rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_spmv<T>(handle, uplo, N, &alpha, dA, dx, incx, &beta, nullptr, incy),
+        rocblas_spmv_fn(handle, uplo, N, &alpha, dA, dx, incx, &beta, nullptr, incy),
         rocblas_status_invalid_pointer);
 }
 
 template <typename T>
 void testing_spmv(const Arguments& arg)
 {
+    const bool FORTRAN         = arg.fortran;
+    auto       rocblas_spmv_fn = FORTRAN ? rocblas_spmv<T, true> : rocblas_spmv<T, false>;
+
     rocblas_int N    = arg.N;
     rocblas_int incx = arg.incx;
     rocblas_int incy = arg.incy;
@@ -94,7 +100,7 @@ void testing_spmv(const Arguments& arg)
     if(invalid_size || !N)
     {
         EXPECT_ROCBLAS_STATUS(
-            rocblas_spmv<T>(
+            rocblas_spmv_fn(
                 handle, uplo, N, nullptr, nullptr, nullptr, incx, nullptr, nullptr, incy),
             invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
         return;
@@ -155,7 +161,7 @@ void testing_spmv(const Arguments& arg)
         //
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
-        CHECK_ROCBLAS_ERROR(rocblas_spmv<T>(handle, uplo, N, alpha, dA, dx, incx, beta, dy, incy));
+        CHECK_ROCBLAS_ERROR(rocblas_spmv_fn(handle, uplo, N, alpha, dA, dx, incx, beta, dy, incy));
 
         // copy output from device to CPU
         CHECK_HIP_ERROR(hy.transfer_from(dy));
@@ -170,7 +176,7 @@ void testing_spmv(const Arguments& arg)
         dy.transfer_from(hy2);
 
         CHECK_ROCBLAS_ERROR(
-            rocblas_spmv<T>(handle, uplo, N, d_alpha, dA, dx, incx, d_beta, dy, incy));
+            rocblas_spmv_fn(handle, uplo, N, d_alpha, dA, dx, incx, d_beta, dy, incy));
 
         // copy output from device to CPU
         CHECK_HIP_ERROR(hy2.transfer_from(dy));
@@ -199,7 +205,7 @@ void testing_spmv(const Arguments& arg)
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
             CHECK_ROCBLAS_ERROR(
-                rocblas_spmv<T>(handle, uplo, N, alpha, dA, dx, incx, beta, dy, incy));
+                rocblas_spmv_fn(handle, uplo, N, alpha, dA, dx, incx, beta, dy, incy));
         }
 
         gpu_time_used = get_time_us(); // in microseconds
@@ -207,7 +213,7 @@ void testing_spmv(const Arguments& arg)
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
             CHECK_ROCBLAS_ERROR(
-                rocblas_spmv<T>(handle, uplo, N, alpha, dA, dx, incx, beta, dy, incy));
+                rocblas_spmv_fn(handle, uplo, N, alpha, dA, dx, incx, beta, dy, incy));
         }
 
         gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;

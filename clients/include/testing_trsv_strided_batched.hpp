@@ -21,6 +21,10 @@
 template <typename T>
 void testing_trsv_strided_batched(const Arguments& arg)
 {
+    const bool FORTRAN = arg.fortran;
+    auto       rocblas_trsv_strided_batched_fn
+        = FORTRAN ? rocblas_trsv_strided_batched<T, true> : rocblas_trsv_strided_batched<T, false>;
+
     rocblas_int M           = arg.M;
     rocblas_int lda         = arg.lda;
     rocblas_int incx        = arg.incx;
@@ -43,7 +47,7 @@ void testing_trsv_strided_batched(const Arguments& arg)
     if(invalid_size || !M || !batch_count)
     {
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        EXPECT_ROCBLAS_STATUS(rocblas_trsv_strided_batched<T>(handle,
+        EXPECT_ROCBLAS_STATUS(rocblas_trsv_strided_batched_fn(handle,
                                                               uplo,
                                                               transA,
                                                               diag,
@@ -169,7 +173,7 @@ void testing_trsv_strided_batched(const Arguments& arg)
         // calculate dxorb <- A^(-1) b   rocblas_device_pointer_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
-        CHECK_ROCBLAS_ERROR(rocblas_trsv_strided_batched<T>(handle,
+        CHECK_ROCBLAS_ERROR(rocblas_trsv_strided_batched_fn(handle,
                                                             uplo,
                                                             transA,
                                                             diag,
@@ -186,7 +190,7 @@ void testing_trsv_strided_batched(const Arguments& arg)
         // calculate dxorb <- A^(-1) b   rocblas_device_pointer_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         CHECK_HIP_ERROR(hipMemcpy(dx_or_b, hx_or_b_2, sizeof(T) * size_x, hipMemcpyHostToDevice));
-        CHECK_ROCBLAS_ERROR(rocblas_trsv_strided_batched<T>(handle,
+        CHECK_ROCBLAS_ERROR(rocblas_trsv_strided_batched_fn(handle,
                                                             uplo,
                                                             transA,
                                                             diag,
@@ -248,7 +252,7 @@ void testing_trsv_strided_batched(const Arguments& arg)
         int number_hot_calls  = arg.iters;
 
         for(int i = 0; i < number_cold_calls; i++)
-            rocblas_trsv_strided_batched<T>(handle,
+            rocblas_trsv_strided_batched_fn(handle,
                                             uplo,
                                             transA,
                                             diag,
@@ -264,7 +268,7 @@ void testing_trsv_strided_batched(const Arguments& arg)
         gpu_time_used = get_time_us(); // in microseconds
 
         for(int i = 0; i < number_hot_calls; i++)
-            rocblas_trsv_strided_batched<T>(handle,
+            rocblas_trsv_strided_batched_fn(handle,
                                             uplo,
                                             transA,
                                             diag,

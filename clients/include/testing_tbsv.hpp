@@ -18,6 +18,9 @@
 template <typename T>
 void testing_tbsv_bad_arg(const Arguments& arg)
 {
+    const bool FORTRAN         = arg.fortran;
+    auto       rocblas_tbsv_fn = FORTRAN ? rocblas_tbsv<T, true> : rocblas_tbsv<T, false>;
+
     const rocblas_int       N      = 100;
     const rocblas_int       K      = 5;
     const rocblas_int       lda    = 100;
@@ -40,19 +43,22 @@ void testing_tbsv_bad_arg(const Arguments& arg)
     // Checks.
     //
     EXPECT_ROCBLAS_STATUS(
-        rocblas_tbsv<T>(handle, rocblas_fill_full, transA, diag, N, K, dA, lda, dx, incx),
+        rocblas_tbsv_fn(handle, rocblas_fill_full, transA, diag, N, K, dA, lda, dx, incx),
         rocblas_status_invalid_value);
-    EXPECT_ROCBLAS_STATUS(rocblas_tbsv<T>(handle, uplo, transA, diag, N, K, nullptr, lda, dx, incx),
+    EXPECT_ROCBLAS_STATUS(rocblas_tbsv_fn(handle, uplo, transA, diag, N, K, nullptr, lda, dx, incx),
                           rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(rocblas_tbsv<T>(handle, uplo, transA, diag, N, K, dA, lda, nullptr, incx),
+    EXPECT_ROCBLAS_STATUS(rocblas_tbsv_fn(handle, uplo, transA, diag, N, K, dA, lda, nullptr, incx),
                           rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(rocblas_tbsv<T>(nullptr, uplo, transA, diag, N, K, dA, lda, dx, incx),
+    EXPECT_ROCBLAS_STATUS(rocblas_tbsv_fn(nullptr, uplo, transA, diag, N, K, dA, lda, dx, incx),
                           rocblas_status_invalid_handle);
 }
 
 template <typename T>
 void testing_tbsv(const Arguments& arg)
 {
+    const bool FORTRAN         = arg.fortran;
+    auto       rocblas_tbsv_fn = FORTRAN ? rocblas_tbsv<T, true> : rocblas_tbsv<T, false>;
+
     rocblas_int N           = arg.N;
     rocblas_int K           = arg.K;
     rocblas_int lda         = arg.lda;
@@ -74,7 +80,7 @@ void testing_tbsv(const Arguments& arg)
     {
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         EXPECT_ROCBLAS_STATUS(
-            rocblas_tbsv<T>(handle, uplo, transA, diag, N, K, nullptr, lda, nullptr, incx),
+            rocblas_tbsv_fn(handle, uplo, transA, diag, N, K, nullptr, lda, nullptr, incx),
             invalid_size ? rocblas_status_invalid_size : rocblas_status_success);
         return;
     }
@@ -142,7 +148,7 @@ void testing_tbsv(const Arguments& arg)
         CHECK_HIP_ERROR(dx_or_b.transfer_from(hx_or_b_1));
 
         CHECK_ROCBLAS_ERROR(
-            rocblas_tbsv<T>(handle, uplo, transA, diag, N, K, dAB, lda, dx_or_b, incx));
+            rocblas_tbsv_fn(handle, uplo, transA, diag, N, K, dAB, lda, dx_or_b, incx));
 
         CHECK_HIP_ERROR(hx_or_b_1.transfer_from(dx_or_b));
 
@@ -151,7 +157,7 @@ void testing_tbsv(const Arguments& arg)
         CHECK_HIP_ERROR(dx_or_b.transfer_from(hx_or_b_2));
 
         CHECK_ROCBLAS_ERROR(
-            rocblas_tbsv<T>(handle, uplo, transA, diag, N, K, dAB, lda, dx_or_b, incx));
+            rocblas_tbsv_fn(handle, uplo, transA, diag, N, K, dAB, lda, dx_or_b, incx));
         CHECK_HIP_ERROR(hx_or_b_2.transfer_from(dx_or_b));
 
         //computed result is in hx_or_b, so forward error is E = hx - hx_or_b
@@ -187,12 +193,12 @@ void testing_tbsv(const Arguments& arg)
         int number_hot_calls  = arg.iters;
 
         for(int i = 0; i < number_cold_calls; i++)
-            rocblas_tbsv<T>(handle, uplo, transA, diag, N, K, dAB, lda, dx_or_b, incx);
+            rocblas_tbsv_fn(handle, uplo, transA, diag, N, K, dAB, lda, dx_or_b, incx);
 
         gpu_time_used = get_time_us(); // in microseconds
 
         for(int i = 0; i < number_hot_calls; i++)
-            rocblas_tbsv<T>(handle, uplo, transA, diag, N, K, dAB, lda, dx_or_b, incx);
+            rocblas_tbsv_fn(handle, uplo, transA, diag, N, K, dAB, lda, dx_or_b, incx);
 
         gpu_time_used  = get_time_us() - gpu_time_used;
         rocblas_gflops = tbsv_gflop_count<T>(N, K) * number_hot_calls / gpu_time_used * 1e6;

@@ -2,6 +2,7 @@
  * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+#include "bytes.hpp"
 #include "cblas_interface.hpp"
 #include "flops.hpp"
 #include "norm.hpp"
@@ -18,6 +19,10 @@
 template <typename T>
 void testing_axpy_batched_bad_arg(const Arguments& arg)
 {
+    const bool FORTRAN = arg.fortran;
+    auto       rocblas_axpy_batched_fn
+        = FORTRAN ? rocblas_axpy_batched<T, true> : rocblas_axpy_batched<T, false>;
+
     rocblas_local_handle handle;
 
     rocblas_int N = 100, incx = 1, incy = 1, batch_count = arg.batch_count;
@@ -29,20 +34,20 @@ void testing_axpy_batched_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_axpy_batched<T>(
+        rocblas_axpy_batched_fn(
             handle, N, &alpha, nullptr, incx, dy.ptr_on_device(), incy, batch_count),
         rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_axpy_batched<T>(
+        rocblas_axpy_batched_fn(
             handle, N, &alpha, dx.ptr_on_device(), incx, nullptr, incy, batch_count),
         rocblas_status_invalid_pointer);
     EXPECT_ROCBLAS_STATUS(
-        rocblas_axpy_batched<T>(
+        rocblas_axpy_batched_fn(
             handle, N, nullptr, dx.ptr_on_device(), incx, dy.ptr_on_device(), incy, batch_count),
         rocblas_status_invalid_pointer);
     EXPECT_ROCBLAS_STATUS(
-        rocblas_axpy_batched<T>(
+        rocblas_axpy_batched_fn(
             nullptr, N, &alpha, dx.ptr_on_device(), incx, dy.ptr_on_device(), incy, batch_count),
         rocblas_status_invalid_handle);
 }
@@ -50,6 +55,10 @@ void testing_axpy_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_axpy_batched(const Arguments& arg)
 {
+    const bool FORTRAN = arg.fortran;
+    auto       rocblas_axpy_batched_fn
+        = FORTRAN ? rocblas_axpy_batched<T, true> : rocblas_axpy_batched<T, false>;
+
     rocblas_local_handle handle;
     rocblas_int          N = arg.N, incx = arg.incx, incy = arg.incy, batch_count = arg.batch_count;
 
@@ -60,7 +69,7 @@ void testing_axpy_batched(const Arguments& arg)
     {
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         EXPECT_ROCBLAS_STATUS(
-            rocblas_axpy_batched<T>(handle, N, nullptr, nullptr, incx, nullptr, incy, batch_count),
+            rocblas_axpy_batched_fn(handle, N, nullptr, nullptr, incx, nullptr, incy, batch_count),
             rocblas_status_success);
         return;
     }
@@ -107,7 +116,6 @@ void testing_axpy_batched(const Arguments& arg)
     //
 
     double gpu_time_used, cpu_time_used;
-    double rocblas_gflops, cblas_gflops, rocblas_bandwidth;
     double rocblas_error_1 = 0.0;
     double rocblas_error_2 = 0.0;
 
@@ -132,7 +140,7 @@ void testing_axpy_batched(const Arguments& arg)
         // Call routine.
         //
         CHECK_HIP_ERROR(dy.transfer_from(hy));
-        CHECK_ROCBLAS_ERROR(rocblas_axpy_batched<T>(
+        CHECK_ROCBLAS_ERROR(rocblas_axpy_batched_fn(
             handle, N, halpha, dx.ptr_on_device(), incx, dy.ptr_on_device(), incy, batch_count));
 
         //
@@ -150,7 +158,7 @@ void testing_axpy_batched(const Arguments& arg)
         //
         CHECK_HIP_ERROR(dalpha.transfer_from(halpha));
         CHECK_HIP_ERROR(dy.transfer_from(hy));
-        CHECK_ROCBLAS_ERROR(rocblas_axpy_batched<T>(
+        CHECK_ROCBLAS_ERROR(rocblas_axpy_batched_fn(
             handle, N, dalpha, dx.ptr_on_device(), incx, dy.ptr_on_device(), incy, batch_count));
         //
         // Transfer from device to host.
@@ -171,7 +179,6 @@ void testing_axpy_batched(const Arguments& arg)
                 cblas_axpy<T>(N, h_alpha, hx[batch_index], incx, hy[batch_index], incy);
             }
             cpu_time_used = get_time_us() - cpu_time_used;
-            cblas_gflops  = axpy_gflop_count<T>(N * batch_count) / cpu_time_used * 1e6;
         }
 
         //
@@ -207,7 +214,7 @@ void testing_axpy_batched(const Arguments& arg)
         //
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            rocblas_axpy_batched<T>(handle,
+            rocblas_axpy_batched_fn(handle,
                                     N,
                                     &h_alpha,
                                     dx.ptr_on_device(),
@@ -225,7 +232,7 @@ void testing_axpy_batched(const Arguments& arg)
         gpu_time_used = get_time_us(); // in microseconds
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            rocblas_axpy_batched<T>(handle,
+            rocblas_axpy_batched_fn(handle,
                                     N,
                                     &h_alpha,
                                     dx.ptr_on_device(),
@@ -234,21 +241,16 @@ void testing_axpy_batched(const Arguments& arg)
                                     incy,
                                     batch_count);
         }
-        gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;
-        rocblas_gflops    = axpy_gflop_count<T>(N * batch_count) / gpu_time_used * 1e6 * 1;
-        rocblas_bandwidth = (3.0 * N) * sizeof(T) / gpu_time_used / 1e3;
+        gpu_time_used = get_time_us() - gpu_time_used;
 
-        //
-        // Report.
-        //
-        rocblas_cout << "N,alpha,incx,incy,batch,rocblas-Gflops,rocblas-GB/s,rocblas-us";
-        if(arg.norm_check)
-            rocblas_cout << "CPU-Gflops,norm_error_host_ptr,norm_error_dev_ptr";
-        rocblas_cout << std::endl;
-        rocblas_cout << N << "," << h_alpha << "," << incx << "," << incy << "," << batch_count
-                     << "," << rocblas_gflops << "," << rocblas_bandwidth << "," << gpu_time_used;
-        if(arg.norm_check)
-            rocblas_cout << "," << cblas_gflops << ',' << rocblas_error_1 << ',' << rocblas_error_2;
-        rocblas_cout << std::endl;
+        ArgumentModel<e_N, e_alpha, e_incx, e_incy, e_batch_count>{}.log_args<T>(
+            rocblas_cout,
+            arg,
+            gpu_time_used,
+            axpy_gflop_count<T>(N),
+            axpy_gbyte_count<T>(N),
+            cpu_time_used,
+            rocblas_error_1,
+            rocblas_error_2);
     }
 }

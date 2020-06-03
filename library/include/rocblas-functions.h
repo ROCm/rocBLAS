@@ -59,30 +59,6 @@ extern "C" {
  * ===========================================================================
  */
 
-/*! \brief BLAS Level 1 API
-
-    \details
-    scal  scales each element of vector x with scalar alpha.
-
-        x := alpha * x
-
-    @param[in]
-    handle    [rocblas_handle]
-              handle to the rocblas library context queue.
-    @param[in]
-    n         [rocblas_int]
-              the number of elements in x.
-    @param[in]
-    alpha     device pointer or host pointer for the scalar alpha.
-    @param[inout]
-    x         device pointer storing vector x.
-    @param[in]
-    incx      [rocblas_int]
-              specifies the increment for the elements of x.
-
-
-    ********************************************************************/
-
 ROCBLAS_EXPORT rocblas_status rocblas_sscal(
     rocblas_handle handle, rocblas_int n, const float* alpha, float* x, rocblas_int incx);
 
@@ -107,36 +83,34 @@ ROCBLAS_EXPORT rocblas_status rocblas_csscal(rocblas_handle         handle,
                                              rocblas_float_complex* x,
                                              rocblas_int            incx);
 
+/*! \brief BLAS Level 1 API
+
+    \details
+    scal  scales each element of vector x with scalar alpha.
+
+        x := alpha * x
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+    @param[in]
+    n         [rocblas_int]
+              the number of elements in x.
+    @param[in]
+    alpha     device pointer or host pointer for the scalar alpha.
+    @param[inout]
+    x         device pointer storing vector x.
+    @param[in]
+    incx      [rocblas_int]
+              specifies the increment for the elements of x.
+
+
+    ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_zdscal(rocblas_handle          handle,
                                              rocblas_int             n,
                                              const double*           alpha,
                                              rocblas_double_complex* x,
                                              rocblas_int             incx);
-
-/*! \brief BLAS Level 1 API
-     \details
-    scal_batched  scales each element of vector x_i with scalar alpha, for i = 1, ... , batch_count.
-
-         x_i := alpha * x_i
-
-     where (x_i) is the i-th instance of the batch.
-    @param[in]
-    handle      [rocblas_handle]
-                handle to the rocblas library context queue.
-    @param[in]
-    n           [rocblas_int]
-                the number of elements in each x_i.
-    @param[in]
-    alpha       host pointer or device pointer for the scalar alpha.
-    @param[inout]
-    x           device array of device pointers storing each vector x_i.
-    @param[in]
-    incx        [rocblas_int]
-                specifies the increment for the elements of each x_i.
-    @param[in]
-    batch_count [rocblas_int]
-                specifies the number of batches in x.
-     ********************************************************************/
 
 ROCBLAS_EXPORT rocblas_status rocblas_sscal_batched(rocblas_handle handle,
                                                     rocblas_int    n,
@@ -173,21 +147,14 @@ ROCBLAS_EXPORT rocblas_status rocblas_csscal_batched(rocblas_handle             
                                                      rocblas_int                  incx,
                                                      rocblas_int                  batch_count);
 
-ROCBLAS_EXPORT rocblas_status rocblas_zdscal_batched(rocblas_handle                handle,
-                                                     rocblas_int                   n,
-                                                     const double*                 alpha,
-                                                     rocblas_double_complex* const x[],
-                                                     rocblas_int                   incx,
-                                                     rocblas_int                   batch_count);
-
 /*! \brief BLAS Level 1 API
      \details
-    scal_strided_batched  scales each element of vector x_i with scalar alpha, for i = 1, ... , batch_count.
+    scal_batched  scales each element of vector x_i with scalar alpha, for i = 1, ... , batch_count.
 
-         x_i := alpha * x_i ,
+         x_i := alpha * x_i
 
      where (x_i) is the i-th instance of the batch.
-     @param[in]
+    @param[in]
     handle      [rocblas_handle]
                 handle to the rocblas library context queue.
     @param[in]
@@ -196,20 +163,20 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdscal_batched(rocblas_handle             
     @param[in]
     alpha       host pointer or device pointer for the scalar alpha.
     @param[inout]
-    x           device pointer to the first vector (x_1) in the batch.
+    x           device array of device pointers storing each vector x_i.
     @param[in]
     incx        [rocblas_int]
-                specifies the increment for the elements of x.
-    @param[in]
-    stride_x    [rocblas_stride]
-                stride from the start of one vector (x_i) and the next one (x_i+1).
-                There are no restrictions placed on stride_x, however the user should
-                take care to ensure that stride_x is of appropriate size, for a typical
-                case this means stride_x >= n * incx.
+                specifies the increment for the elements of each x_i.
     @param[in]
     batch_count [rocblas_int]
                 specifies the number of batches in x.
      ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_zdscal_batched(rocblas_handle                handle,
+                                                     rocblas_int                   n,
+                                                     const double*                 alpha,
+                                                     rocblas_double_complex* const x[],
+                                                     rocblas_int                   incx,
+                                                     rocblas_int                   batch_count);
 
 ROCBLAS_EXPORT rocblas_status rocblas_sscal_strided_batched(rocblas_handle handle,
                                                             rocblas_int    n,
@@ -251,6 +218,36 @@ ROCBLAS_EXPORT rocblas_status rocblas_csscal_strided_batched(rocblas_handle     
                                                              rocblas_stride         stride_x,
                                                              rocblas_int            batch_count);
 
+/*! \brief BLAS Level 1 API
+     \details
+    scal_strided_batched  scales each element of vector x_i with scalar alpha, for i = 1, ... , batch_count.
+
+         x_i := alpha * x_i ,
+
+     where (x_i) is the i-th instance of the batch.
+     @param[in]
+    handle      [rocblas_handle]
+                handle to the rocblas library context queue.
+    @param[in]
+    n           [rocblas_int]
+                the number of elements in each x_i.
+    @param[in]
+    alpha       host pointer or device pointer for the scalar alpha.
+    @param[inout]
+    x           device pointer to the first vector (x_1) in the batch.
+    @param[in]
+    incx        [rocblas_int]
+                specifies the increment for the elements of x.
+    @param[in]
+    stride_x    [rocblas_stride]
+                stride from the start of one vector (x_i) and the next one (x_i+1).
+                There are no restrictions placed on stride_x, however the user should
+                take care to ensure that stride_x is of appropriate size, for a typical
+                case this means stride_x >= n * incx.
+    @param[in]
+    batch_count [rocblas_int]
+                specifies the number of batches in x.
+     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_zdscal_strided_batched(rocblas_handle          handle,
                                                              rocblas_int             n,
                                                              const double*           alpha,
@@ -258,6 +255,27 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdscal_strided_batched(rocblas_handle     
                                                              rocblas_int             incx,
                                                              rocblas_stride          stride_x,
                                                              rocblas_int             batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_scopy(rocblas_handle handle,
+                                            rocblas_int    n,
+                                            const float*   x,
+                                            rocblas_int    incx,
+                                            float*         y,
+                                            rocblas_int    incy);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dcopy(rocblas_handle handle,
+                                            rocblas_int    n,
+                                            const double*  x,
+                                            rocblas_int    incx,
+                                            double*        y,
+                                            rocblas_int    incy);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ccopy(rocblas_handle               handle,
+                                            rocblas_int                  n,
+                                            const rocblas_float_complex* x,
+                                            rocblas_int                  incx,
+                                            rocblas_float_complex*       y,
+                                            rocblas_int                  incy);
 
 /*! \brief BLAS Level 1 API
 
@@ -284,34 +302,36 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdscal_strided_batched(rocblas_handle     
               specifies the increment for the elements of y.
 
     ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_scopy(rocblas_handle handle,
-                                            rocblas_int    n,
-                                            const float*   x,
-                                            rocblas_int    incx,
-                                            float*         y,
-                                            rocblas_int    incy);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dcopy(rocblas_handle handle,
-                                            rocblas_int    n,
-                                            const double*  x,
-                                            rocblas_int    incx,
-                                            double*        y,
-                                            rocblas_int    incy);
-
-ROCBLAS_EXPORT rocblas_status rocblas_ccopy(rocblas_handle               handle,
-                                            rocblas_int                  n,
-                                            const rocblas_float_complex* x,
-                                            rocblas_int                  incx,
-                                            rocblas_float_complex*       y,
-                                            rocblas_int                  incy);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zcopy(rocblas_handle                handle,
                                             rocblas_int                   n,
                                             const rocblas_double_complex* x,
                                             rocblas_int                   incx,
                                             rocblas_double_complex*       y,
                                             rocblas_int                   incy);
+
+ROCBLAS_EXPORT rocblas_status rocblas_scopy_batched(rocblas_handle     handle,
+                                                    rocblas_int        n,
+                                                    const float* const x[],
+                                                    rocblas_int        incx,
+                                                    float* const       y[],
+                                                    rocblas_int        incy,
+                                                    rocblas_int        batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dcopy_batched(rocblas_handle      handle,
+                                                    rocblas_int         n,
+                                                    const double* const x[],
+                                                    rocblas_int         incx,
+                                                    double* const       y[],
+                                                    rocblas_int         incy,
+                                                    rocblas_int         batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ccopy_batched(rocblas_handle                     handle,
+                                                    rocblas_int                        n,
+                                                    const rocblas_float_complex* const x[],
+                                                    rocblas_int                        incx,
+                                                    rocblas_float_complex* const       y[],
+                                                    rocblas_int                        incy,
+                                                    rocblas_int                        batch_count);
 
 /*! \brief BLAS Level 1 API
 
@@ -344,31 +364,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zcopy(rocblas_handle                handle
                 number of instances in the batch
 
     ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_scopy_batched(rocblas_handle     handle,
-                                                    rocblas_int        n,
-                                                    const float* const x[],
-                                                    rocblas_int        incx,
-                                                    float* const       y[],
-                                                    rocblas_int        incy,
-                                                    rocblas_int        batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dcopy_batched(rocblas_handle      handle,
-                                                    rocblas_int         n,
-                                                    const double* const x[],
-                                                    rocblas_int         incx,
-                                                    double* const       y[],
-                                                    rocblas_int         incy,
-                                                    rocblas_int         batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_ccopy_batched(rocblas_handle                     handle,
-                                                    rocblas_int                        n,
-                                                    const rocblas_float_complex* const x[],
-                                                    rocblas_int                        incx,
-                                                    rocblas_float_complex* const       y[],
-                                                    rocblas_int                        incy,
-                                                    rocblas_int                        batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zcopy_batched(rocblas_handle                      handle,
                                                     rocblas_int                         n,
                                                     const rocblas_double_complex* const x[],
@@ -376,6 +371,36 @@ ROCBLAS_EXPORT rocblas_status rocblas_zcopy_batched(rocblas_handle              
                                                     rocblas_double_complex* const       y[],
                                                     rocblas_int                         incy,
                                                     rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_scopy_strided_batched(rocblas_handle handle,
+                                                            rocblas_int    n,
+                                                            const float*   x,
+                                                            rocblas_int    incx,
+                                                            rocblas_stride stridex,
+                                                            float*         y,
+                                                            rocblas_int    incy,
+                                                            rocblas_stride stridey,
+                                                            rocblas_int    batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dcopy_strided_batched(rocblas_handle handle,
+                                                            rocblas_int    n,
+                                                            const double*  x,
+                                                            rocblas_int    incx,
+                                                            rocblas_stride stridex,
+                                                            double*        y,
+                                                            rocblas_int    incy,
+                                                            rocblas_stride stridey,
+                                                            rocblas_int    batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ccopy_strided_batched(rocblas_handle               handle,
+                                                            rocblas_int                  n,
+                                                            const rocblas_float_complex* x,
+                                                            rocblas_int                  incx,
+                                                            rocblas_stride               stridex,
+                                                            rocblas_float_complex*       y,
+                                                            rocblas_int                  incy,
+                                                            rocblas_stride               stridey,
+                                                            rocblas_int batch_count);
 
 /*! \brief BLAS Level 1 API
 
@@ -423,37 +448,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zcopy_batched(rocblas_handle              
                 number of instances in the batch
 
     ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_scopy_strided_batched(rocblas_handle handle,
-                                                            rocblas_int    n,
-                                                            const float*   x,
-                                                            rocblas_int    incx,
-                                                            rocblas_stride stridex,
-                                                            float*         y,
-                                                            rocblas_int    incy,
-                                                            rocblas_stride stridey,
-                                                            rocblas_int    batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dcopy_strided_batched(rocblas_handle handle,
-                                                            rocblas_int    n,
-                                                            const double*  x,
-                                                            rocblas_int    incx,
-                                                            rocblas_stride stridex,
-                                                            double*        y,
-                                                            rocblas_int    incy,
-                                                            rocblas_stride stridey,
-                                                            rocblas_int    batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_ccopy_strided_batched(rocblas_handle               handle,
-                                                            rocblas_int                  n,
-                                                            const rocblas_float_complex* x,
-                                                            rocblas_int                  incx,
-                                                            rocblas_stride               stridex,
-                                                            rocblas_float_complex*       y,
-                                                            rocblas_int                  incy,
-                                                            rocblas_stride               stridey,
-                                                            rocblas_int batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zcopy_strided_batched(rocblas_handle                handle,
                                                             rocblas_int                   n,
                                                             const rocblas_double_complex* x,
@@ -463,40 +457,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zcopy_strided_batched(rocblas_handle      
                                                             rocblas_int                   incy,
                                                             rocblas_stride                stridey,
                                                             rocblas_int batch_count);
-
-/*! \brief BLAS Level 1 API
-
-    \details
-    dot(u)  performs the dot product of vectors x and y
-
-        result = x * y;
-
-    dotc  performs the dot product of the conjugate of complex vector x and complex vector y
-
-        result = conjugate (x) * y;
-
-    @param[in]
-    handle    [rocblas_handle]
-              handle to the rocblas library context queue.
-    @param[in]
-    n         [rocblas_int]
-              the number of elements in x and y.
-    @param[in]
-    x         device pointer storing vector x.
-    @param[in]
-    incx      [rocblas_int]
-              specifies the increment for the elements of y.
-    @param[in]
-    y         device pointer storing vector y.
-    @param[in]
-    incy      [rocblas_int]
-              specifies the increment for the elements of y.
-    @param[inout]
-    result
-              device pointer or host pointer to store the dot product.
-              return is 0.0 if n <= 0.
-
-    ********************************************************************/
 
 ROCBLAS_EXPORT rocblas_status rocblas_sdot(rocblas_handle handle,
                                            rocblas_int    n,
@@ -554,6 +514,39 @@ ROCBLAS_EXPORT rocblas_status rocblas_cdotc(rocblas_handle               handle,
                                             rocblas_int                  incy,
                                             rocblas_float_complex*       result);
 
+/*! \brief BLAS Level 1 API
+
+    \details
+    dot(u)  performs the dot product of vectors x and y
+
+        result = x * y;
+
+    dotc  performs the dot product of the conjugate of complex vector x and complex vector y
+
+        result = conjugate (x) * y;
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+    @param[in]
+    n         [rocblas_int]
+              the number of elements in x and y.
+    @param[in]
+    x         device pointer storing vector x.
+    @param[in]
+    incx      [rocblas_int]
+              specifies the increment for the elements of y.
+    @param[in]
+    y         device pointer storing vector y.
+    @param[in]
+    incy      [rocblas_int]
+              specifies the increment for the elements of y.
+    @param[inout]
+    result
+              device pointer or host pointer to store the dot product.
+              return is 0.0 if n <= 0.
+
+    ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_zdotc(rocblas_handle                handle,
                                             rocblas_int                   n,
                                             const rocblas_double_complex* x,
@@ -561,46 +554,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdotc(rocblas_handle                handle
                                             const rocblas_double_complex* y,
                                             rocblas_int                   incy,
                                             rocblas_double_complex*       result);
-
-/*! \brief BLAS Level 1 API
-
-    \details
-    dot_batched(u) performs a batch of dot products of vectors x and y
-
-        result_i = x_i * y_i;
-
-    dotc_batched  performs a batch of dot products of the conjugate of complex vector x and complex vector y
-
-        result_i = conjugate (x_i) * y_i;
-
-    where (x_i, y_i) is the i-th instance of the batch.
-    x_i and y_i are vectors, for i = 1, ..., batch_count
-
-    @param[in]
-    handle    [rocblas_handle]
-              handle to the rocblas library context queue.
-    @param[in]
-    n         [rocblas_int]
-              the number of elements in each x_i and y_i.
-    @param[in]
-    x         device array of device pointers storing each vector x_i.
-    @param[in]
-    incx      [rocblas_int]
-              specifies the increment for the elements of each x_i.
-    @param[in]
-    y         device array of device pointers storing each vector y_i.
-    @param[in]
-    incy      [rocblas_int]
-              specifies the increment for the elements of each y_i.
-    @param[in]
-    batch_count [rocblas_int]
-                number of instances in the batch
-    @param[inout]
-    result
-              device array or host array of batch_count size to store the dot products of each batch.
-              return 0.0 for each element if n <= 0.
-
-    ********************************************************************/
 
 ROCBLAS_EXPORT rocblas_status rocblas_sdot_batched(rocblas_handle     handle,
                                                    rocblas_int        n,
@@ -665,23 +618,14 @@ ROCBLAS_EXPORT rocblas_status rocblas_cdotc_batched(rocblas_handle              
                                                     rocblas_int                        batch_count,
                                                     rocblas_float_complex*             result);
 
-ROCBLAS_EXPORT rocblas_status rocblas_zdotc_batched(rocblas_handle                      handle,
-                                                    rocblas_int                         n,
-                                                    const rocblas_double_complex* const x[],
-                                                    rocblas_int                         incx,
-                                                    const rocblas_double_complex* const y[],
-                                                    rocblas_int                         incy,
-                                                    rocblas_int                         batch_count,
-                                                    rocblas_double_complex*             result);
-
 /*! \brief BLAS Level 1 API
 
     \details
-    dot_strided_batched(u)  performs a batch of dot products of vectors x and y
+    dot_batched(u) performs a batch of dot products of vectors x and y
 
         result_i = x_i * y_i;
 
-    dotc_strided_batched  performs a batch of dot products of the conjugate of complex vector x and complex vector y
+    dotc_batched  performs a batch of dot products of the conjugate of complex vector x and complex vector y
 
         result_i = conjugate (x_i) * y_i;
 
@@ -695,21 +639,15 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdotc_batched(rocblas_handle              
     n         [rocblas_int]
               the number of elements in each x_i and y_i.
     @param[in]
-    x         device pointer to the first vector (x_1) in the batch.
+    x         device array of device pointers storing each vector x_i.
     @param[in]
     incx      [rocblas_int]
               specifies the increment for the elements of each x_i.
     @param[in]
-    stridex     [rocblas_stride]
-                stride from the start of one vector (x_i) and the next one (x_i+1)
-    @param[in]
-    y         device pointer to the first vector (y_1) in the batch.
+    y         device array of device pointers storing each vector y_i.
     @param[in]
     incy      [rocblas_int]
               specifies the increment for the elements of each y_i.
-    @param[in]
-    stridey     [rocblas_stride]
-                stride from the start of one vector (y_i) and the next one (y_i+1)
     @param[in]
     batch_count [rocblas_int]
                 number of instances in the batch
@@ -719,6 +657,14 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdotc_batched(rocblas_handle              
               return 0.0 for each element if n <= 0.
 
     ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_zdotc_batched(rocblas_handle                      handle,
+                                                    rocblas_int                         n,
+                                                    const rocblas_double_complex* const x[],
+                                                    rocblas_int                         incx,
+                                                    const rocblas_double_complex* const y[],
+                                                    rocblas_int                         incy,
+                                                    rocblas_int                         batch_count,
+                                                    rocblas_double_complex*             result);
 
 ROCBLAS_EXPORT rocblas_status rocblas_sdot_strided_batched(rocblas_handle handle,
                                                            rocblas_int    n,
@@ -797,6 +743,51 @@ ROCBLAS_EXPORT rocblas_status rocblas_cdotc_strided_batched(rocblas_handle      
                                                             rocblas_int            batch_count,
                                                             rocblas_float_complex* result);
 
+/*! \brief BLAS Level 1 API
+
+    \details
+    dot_strided_batched(u)  performs a batch of dot products of vectors x and y
+
+        result_i = x_i * y_i;
+
+    dotc_strided_batched  performs a batch of dot products of the conjugate of complex vector x and complex vector y
+
+        result_i = conjugate (x_i) * y_i;
+
+    where (x_i, y_i) is the i-th instance of the batch.
+    x_i and y_i are vectors, for i = 1, ..., batch_count
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+    @param[in]
+    n         [rocblas_int]
+              the number of elements in each x_i and y_i.
+    @param[in]
+    x         device pointer to the first vector (x_1) in the batch.
+    @param[in]
+    incx      [rocblas_int]
+              specifies the increment for the elements of each x_i.
+    @param[in]
+    stridex     [rocblas_stride]
+                stride from the start of one vector (x_i) and the next one (x_i+1)
+    @param[in]
+    y         device pointer to the first vector (y_1) in the batch.
+    @param[in]
+    incy      [rocblas_int]
+              specifies the increment for the elements of each y_i.
+    @param[in]
+    stridey     [rocblas_stride]
+                stride from the start of one vector (y_i) and the next one (y_i+1)
+    @param[in]
+    batch_count [rocblas_int]
+                number of instances in the batch
+    @param[inout]
+    result
+              device array or host array of batch_count size to store the dot products of each batch.
+              return 0.0 for each element if n <= 0.
+
+    ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_zdotc_strided_batched(rocblas_handle                handle,
                                                             rocblas_int                   n,
                                                             const rocblas_double_complex* x,
@@ -807,6 +798,19 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdotc_strided_batched(rocblas_handle      
                                                             rocblas_stride                stridey,
                                                             rocblas_int             batch_count,
                                                             rocblas_double_complex* result);
+
+ROCBLAS_EXPORT rocblas_status rocblas_sswap(
+    rocblas_handle handle, rocblas_int n, float* x, rocblas_int incx, float* y, rocblas_int incy);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dswap(
+    rocblas_handle handle, rocblas_int n, double* x, rocblas_int incx, double* y, rocblas_int incy);
+
+ROCBLAS_EXPORT rocblas_status rocblas_cswap(rocblas_handle         handle,
+                                            rocblas_int            n,
+                                            rocblas_float_complex* x,
+                                            rocblas_int            incx,
+                                            rocblas_float_complex* y,
+                                            rocblas_int            incy);
 
 /*! \brief BLAS Level 1 API
 
@@ -833,26 +837,36 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdotc_strided_batched(rocblas_handle      
               specifies the increment for the elements of y.
 
     ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_sswap(
-    rocblas_handle handle, rocblas_int n, float* x, rocblas_int incx, float* y, rocblas_int incy);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dswap(
-    rocblas_handle handle, rocblas_int n, double* x, rocblas_int incx, double* y, rocblas_int incy);
-
-ROCBLAS_EXPORT rocblas_status rocblas_cswap(rocblas_handle         handle,
-                                            rocblas_int            n,
-                                            rocblas_float_complex* x,
-                                            rocblas_int            incx,
-                                            rocblas_float_complex* y,
-                                            rocblas_int            incy);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zswap(rocblas_handle          handle,
                                             rocblas_int             n,
                                             rocblas_double_complex* x,
                                             rocblas_int             incx,
                                             rocblas_double_complex* y,
                                             rocblas_int             incy);
+
+ROCBLAS_EXPORT rocblas_status rocblas_sswap_batched(rocblas_handle handle,
+                                                    rocblas_int    n,
+                                                    float*         x[],
+                                                    rocblas_int    incx,
+                                                    float*         y[],
+                                                    rocblas_int    incy,
+                                                    rocblas_int    batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dswap_batched(rocblas_handle handle,
+                                                    rocblas_int    n,
+                                                    double*        x[],
+                                                    rocblas_int    incx,
+                                                    double*        y[],
+                                                    rocblas_int    incy,
+                                                    rocblas_int    batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_cswap_batched(rocblas_handle         handle,
+                                                    rocblas_int            n,
+                                                    rocblas_float_complex* x[],
+                                                    rocblas_int            incx,
+                                                    rocblas_float_complex* y[],
+                                                    rocblas_int            incy,
+                                                    rocblas_int            batch_count);
 
 /*! \brief BLAS Level 1 API
 
@@ -882,31 +896,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zswap(rocblas_handle          handle,
                 number of instances in the batch.
 
     ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_sswap_batched(rocblas_handle handle,
-                                                    rocblas_int    n,
-                                                    float*         x[],
-                                                    rocblas_int    incx,
-                                                    float*         y[],
-                                                    rocblas_int    incy,
-                                                    rocblas_int    batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dswap_batched(rocblas_handle handle,
-                                                    rocblas_int    n,
-                                                    double*        x[],
-                                                    rocblas_int    incx,
-                                                    double*        y[],
-                                                    rocblas_int    incy,
-                                                    rocblas_int    batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_cswap_batched(rocblas_handle         handle,
-                                                    rocblas_int            n,
-                                                    rocblas_float_complex* x[],
-                                                    rocblas_int            incx,
-                                                    rocblas_float_complex* y[],
-                                                    rocblas_int            incy,
-                                                    rocblas_int            batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zswap_batched(rocblas_handle          handle,
                                                     rocblas_int             n,
                                                     rocblas_double_complex* x[],
@@ -914,6 +903,36 @@ ROCBLAS_EXPORT rocblas_status rocblas_zswap_batched(rocblas_handle          hand
                                                     rocblas_double_complex* y[],
                                                     rocblas_int             incy,
                                                     rocblas_int             batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_sswap_strided_batched(rocblas_handle handle,
+                                                            rocblas_int    n,
+                                                            float*         x,
+                                                            rocblas_int    incx,
+                                                            rocblas_stride stridex,
+                                                            float*         y,
+                                                            rocblas_int    incy,
+                                                            rocblas_stride stridey,
+                                                            rocblas_int    batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dswap_strided_batched(rocblas_handle handle,
+                                                            rocblas_int    n,
+                                                            double*        x,
+                                                            rocblas_int    incx,
+                                                            rocblas_stride stridex,
+                                                            double*        y,
+                                                            rocblas_int    incy,
+                                                            rocblas_stride stridey,
+                                                            rocblas_int    batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_cswap_strided_batched(rocblas_handle         handle,
+                                                            rocblas_int            n,
+                                                            rocblas_float_complex* x,
+                                                            rocblas_int            incx,
+                                                            rocblas_stride         stridex,
+                                                            rocblas_float_complex* y,
+                                                            rocblas_int            incy,
+                                                            rocblas_stride         stridey,
+                                                            rocblas_int            batch_count);
 
 /*! \brief BLAS Level 1 API
 
@@ -955,37 +974,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zswap_batched(rocblas_handle          hand
                  number of instances in the batch.
 
     ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_sswap_strided_batched(rocblas_handle handle,
-                                                            rocblas_int    n,
-                                                            float*         x,
-                                                            rocblas_int    incx,
-                                                            rocblas_stride stridex,
-                                                            float*         y,
-                                                            rocblas_int    incy,
-                                                            rocblas_stride stridey,
-                                                            rocblas_int    batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dswap_strided_batched(rocblas_handle handle,
-                                                            rocblas_int    n,
-                                                            double*        x,
-                                                            rocblas_int    incx,
-                                                            rocblas_stride stridex,
-                                                            double*        y,
-                                                            rocblas_int    incy,
-                                                            rocblas_stride stridey,
-                                                            rocblas_int    batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_cswap_strided_batched(rocblas_handle         handle,
-                                                            rocblas_int            n,
-                                                            rocblas_float_complex* x,
-                                                            rocblas_int            incx,
-                                                            rocblas_stride         stridex,
-                                                            rocblas_float_complex* y,
-                                                            rocblas_int            incy,
-                                                            rocblas_stride         stridey,
-                                                            rocblas_int            batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zswap_strided_batched(rocblas_handle          handle,
                                                             rocblas_int             n,
                                                             rocblas_double_complex* x,
@@ -995,34 +983,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zswap_strided_batched(rocblas_handle      
                                                             rocblas_int             incy,
                                                             rocblas_stride          stridey,
                                                             rocblas_int             batch_count);
-
-/*! \brief BLAS Level 1 API
-
-    \details
-    axpy   computes constant alpha multiplied by vector x, plus vector y
-
-        y := alpha * x + y
-
-    @param[in]
-    handle    [rocblas_handle]
-              handle to the rocblas library context queue.
-    @param[in]
-    n         [rocblas_int]
-              the number of elements in x and y.
-    @param[in]
-    alpha     device pointer or host pointer to specify the scalar alpha.
-    @param[in]
-    x         device pointer storing vector x.
-    @param[in]
-    incx      [rocblas_int]
-              specifies the increment for the elements of x.
-    @param[out]
-    y         device pointer storing vector y.
-    @param[inout]
-    incy      [rocblas_int]
-              specifies the increment for the elements of y.
-
-    ********************************************************************/
 
 ROCBLAS_EXPORT rocblas_status rocblas_saxpy(rocblas_handle handle,
                                             rocblas_int    n,
@@ -1056,6 +1016,33 @@ ROCBLAS_EXPORT rocblas_status rocblas_caxpy(rocblas_handle               handle,
                                             rocblas_float_complex*       y,
                                             rocblas_int                  incy);
 
+/*! \brief BLAS Level 1 API
+
+    \details
+    axpy   computes constant alpha multiplied by vector x, plus vector y
+
+        y := alpha * x + y
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+    @param[in]
+    n         [rocblas_int]
+              the number of elements in x and y.
+    @param[in]
+    alpha     device pointer or host pointer to specify the scalar alpha.
+    @param[in]
+    x         device pointer storing vector x.
+    @param[in]
+    incx      [rocblas_int]
+              specifies the increment for the elements of x.
+    @param[out]
+    y         device pointer storing vector y.
+    @param[inout]
+    incy      [rocblas_int]
+              specifies the increment for the elements of y.
+
+    ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_zaxpy(rocblas_handle                handle,
                                             rocblas_int                   n,
                                             const rocblas_double_complex* alpha,
@@ -1063,35 +1050,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zaxpy(rocblas_handle                handle
                                             rocblas_int                   incx,
                                             rocblas_double_complex*       y,
                                             rocblas_int                   incy);
-
-/*! \brief BLAS Level 1 API
-
-    \details
-    axpy_batched   compute y := alpha * x + y over a set of batched vectors.
-
-    @param[in]
-    handle    rocblas_handle
-              handle to the rocblas library context queue.
-    @param[in]
-    n         rocblas_int
-    @param[in]
-    alpha     specifies the scalar alpha.
-    @param[in]
-    x         pointer storing vector x on the GPU.
-    @param[in]
-    incx      rocblas_int
-              specifies the increment for the elements of x.
-    @param[out]
-    y         pointer storing vector y on the GPU.
-    @param[inout]
-    incy      rocblas_int
-              specifies the increment for the elements of y.
-
-    @param[in]
-    batch_count rocblas_int
-              number of instances in the batch
-
-    ********************************************************************/
 
 ROCBLAS_EXPORT rocblas_status rocblas_haxpy_batched(rocblas_handle            handle,
                                                     rocblas_int               n,
@@ -1129,19 +1087,10 @@ ROCBLAS_EXPORT rocblas_status rocblas_caxpy_batched(rocblas_handle              
                                                     rocblas_int                        incy,
                                                     rocblas_int                        batch_count);
 
-ROCBLAS_EXPORT rocblas_status rocblas_zaxpy_batched(rocblas_handle                      handle,
-                                                    rocblas_int                         n,
-                                                    const rocblas_double_complex*       alpha,
-                                                    const rocblas_double_complex* const x[],
-                                                    rocblas_int                         incx,
-                                                    rocblas_double_complex* const       y[],
-                                                    rocblas_int                         incy,
-                                                    rocblas_int batch_count);
-
 /*! \brief BLAS Level 1 API
 
     \details
-    axpy_batched   compute y := alpha * x + y over a set of strided batched vectors.
+    axpy_batched   compute y := alpha * x + y over a set of batched vectors.
 
     @param[in]
     handle    rocblas_handle
@@ -1155,23 +1104,25 @@ ROCBLAS_EXPORT rocblas_status rocblas_zaxpy_batched(rocblas_handle              
     @param[in]
     incx      rocblas_int
               specifies the increment for the elements of x.
-    @param[in]
-    stridex   rocblas_stride
-              specifies the increment between vectors of x.
     @param[out]
     y         pointer storing vector y on the GPU.
     @param[inout]
     incy      rocblas_int
               specifies the increment for the elements of y.
-    @param[in]
-    stridey   rocblas_stride
-              specifies the increment between vectors of y.
 
     @param[in]
     batch_count rocblas_int
               number of instances in the batch
 
     ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_zaxpy_batched(rocblas_handle                      handle,
+                                                    rocblas_int                         n,
+                                                    const rocblas_double_complex*       alpha,
+                                                    const rocblas_double_complex* const x[],
+                                                    rocblas_int                         incx,
+                                                    rocblas_double_complex* const       y[],
+                                                    rocblas_int                         incy,
+                                                    rocblas_int batch_count);
 
 ROCBLAS_EXPORT rocblas_status rocblas_haxpy_strided_batched(rocblas_handle      handle,
                                                             rocblas_int         n,
@@ -1217,6 +1168,40 @@ ROCBLAS_EXPORT rocblas_status rocblas_caxpy_strided_batched(rocblas_handle      
                                                             rocblas_stride               stridey,
                                                             rocblas_int batch_count);
 
+/*! \brief BLAS Level 1 API
+
+    \details
+    axpy_strided_batched   compute y := alpha * x + y over a set of strided batched vectors.
+
+    @param[in]
+    handle    rocblas_handle
+              handle to the rocblas library context queue.
+    @param[in]
+    n         rocblas_int
+    @param[in]
+    alpha     specifies the scalar alpha.
+    @param[in]
+    x         pointer storing vector x on the GPU.
+    @param[in]
+    incx      rocblas_int
+              specifies the increment for the elements of x.
+    @param[in]
+    stridex   rocblas_stride
+              specifies the increment between vectors of x.
+    @param[out]
+    y         pointer storing vector y on the GPU.
+    @param[inout]
+    incy      rocblas_int
+              specifies the increment for the elements of y.
+    @param[in]
+    stridey   rocblas_stride
+              specifies the increment between vectors of y.
+
+    @param[in]
+    batch_count rocblas_int
+              number of instances in the batch
+
+    ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_zaxpy_strided_batched(rocblas_handle                handle,
                                                             rocblas_int                   n,
                                                             const rocblas_double_complex* alpha,
@@ -1227,6 +1212,18 @@ ROCBLAS_EXPORT rocblas_status rocblas_zaxpy_strided_batched(rocblas_handle      
                                                             rocblas_int                   incy,
                                                             rocblas_stride                stridey,
                                                             rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_sasum(
+    rocblas_handle handle, rocblas_int n, const float* x, rocblas_int incx, float* result);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dasum(
+    rocblas_handle handle, rocblas_int n, const double* x, rocblas_int incx, double* result);
+
+ROCBLAS_EXPORT rocblas_status rocblas_scasum(rocblas_handle               handle,
+                                             rocblas_int                  n,
+                                             const rocblas_float_complex* x,
+                                             rocblas_int                  incx,
+                                             float*                       result);
 
 /*! \brief BLAS Level 1 API
 
@@ -1252,24 +1249,32 @@ ROCBLAS_EXPORT rocblas_status rocblas_zaxpy_strided_batched(rocblas_handle      
               return is 0.0 if n <= 0.
 
     ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_sasum(
-    rocblas_handle handle, rocblas_int n, const float* x, rocblas_int incx, float* result);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dasum(
-    rocblas_handle handle, rocblas_int n, const double* x, rocblas_int incx, double* result);
-
-ROCBLAS_EXPORT rocblas_status rocblas_scasum(rocblas_handle               handle,
-                                             rocblas_int                  n,
-                                             const rocblas_float_complex* x,
-                                             rocblas_int                  incx,
-                                             float*                       result);
-
 ROCBLAS_EXPORT rocblas_status rocblas_dzasum(rocblas_handle                handle,
                                              rocblas_int                   n,
                                              const rocblas_double_complex* x,
                                              rocblas_int                   incx,
                                              double*                       result);
+
+ROCBLAS_EXPORT rocblas_status rocblas_sasum_batched(rocblas_handle     handle,
+                                                    rocblas_int        n,
+                                                    const float* const x[],
+                                                    rocblas_int        incx,
+                                                    rocblas_int        batch_count,
+                                                    float*             results);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dasum_batched(rocblas_handle      handle,
+                                                    rocblas_int         n,
+                                                    const double* const x[],
+                                                    rocblas_int         incx,
+                                                    rocblas_int         batch_count,
+                                                    double*             results);
+
+ROCBLAS_EXPORT rocblas_status rocblas_scasum_batched(rocblas_handle                     handle,
+                                                     rocblas_int                        n,
+                                                     const rocblas_float_complex* const x[],
+                                                     rocblas_int                        incx,
+                                                     rocblas_int                        batch_count,
+                                                     float*                             results);
 
 /*! \brief BLAS Level 1 API
 
@@ -1297,34 +1302,36 @@ ROCBLAS_EXPORT rocblas_status rocblas_dzasum(rocblas_handle                handl
     batch_count [rocblas_int]
               number of instances in the batch.
     ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_sasum_batched(rocblas_handle     handle,
-                                                    rocblas_int        n,
-                                                    const float* const x[],
-                                                    rocblas_int        incx,
-                                                    rocblas_int        batch_count,
-                                                    float*             results);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dasum_batched(rocblas_handle      handle,
-                                                    rocblas_int         n,
-                                                    const double* const x[],
-                                                    rocblas_int         incx,
-                                                    rocblas_int         batch_count,
-                                                    double*             results);
-
-ROCBLAS_EXPORT rocblas_status rocblas_scasum_batched(rocblas_handle                     handle,
-                                                     rocblas_int                        n,
-                                                     const rocblas_float_complex* const x[],
-                                                     rocblas_int                        incx,
-                                                     rocblas_int                        batch_count,
-                                                     float*                             results);
-
 ROCBLAS_EXPORT rocblas_status rocblas_dzasum_batched(rocblas_handle                      handle,
                                                      rocblas_int                         n,
                                                      const rocblas_double_complex* const x[],
                                                      rocblas_int                         incx,
                                                      rocblas_int batch_count,
                                                      double*     results);
+
+ROCBLAS_EXPORT rocblas_status rocblas_sasum_strided_batched(rocblas_handle handle,
+                                                            rocblas_int    n,
+                                                            const float*   x,
+                                                            rocblas_int    incx,
+                                                            rocblas_stride stridex,
+                                                            rocblas_int    batch_count,
+                                                            float*         results);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dasum_strided_batched(rocblas_handle handle,
+                                                            rocblas_int    n,
+                                                            const double*  x,
+                                                            rocblas_int    incx,
+                                                            rocblas_stride stridex,
+                                                            rocblas_int    batch_count,
+                                                            double*        results);
+
+ROCBLAS_EXPORT rocblas_status rocblas_scasum_strided_batched(rocblas_handle               handle,
+                                                             rocblas_int                  n,
+                                                             const rocblas_float_complex* x,
+                                                             rocblas_int                  incx,
+                                                             rocblas_stride               stridex,
+                                                             rocblas_int batch_count,
+                                                             float*      results);
 
 /*! \brief BLAS Level 1 API
 
@@ -1358,31 +1365,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_dzasum_batched(rocblas_handle             
     batch_count [rocblas_int]
               number of instances in the batch
     ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_sasum_strided_batched(rocblas_handle handle,
-                                                            rocblas_int    n,
-                                                            const float*   x,
-                                                            rocblas_int    incx,
-                                                            rocblas_stride stridex,
-                                                            rocblas_int    batch_count,
-                                                            float*         results);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dasum_strided_batched(rocblas_handle handle,
-                                                            rocblas_int    n,
-                                                            const double*  x,
-                                                            rocblas_int    incx,
-                                                            rocblas_stride stridex,
-                                                            rocblas_int    batch_count,
-                                                            double*        results);
-
-ROCBLAS_EXPORT rocblas_status rocblas_scasum_strided_batched(rocblas_handle               handle,
-                                                             rocblas_int                  n,
-                                                             const rocblas_float_complex* x,
-                                                             rocblas_int                  incx,
-                                                             rocblas_stride               stridex,
-                                                             rocblas_int batch_count,
-                                                             float*      results);
-
 ROCBLAS_EXPORT rocblas_status rocblas_dzasum_strided_batched(rocblas_handle                handle,
                                                              rocblas_int                   n,
                                                              const rocblas_double_complex* x,
@@ -1390,6 +1372,18 @@ ROCBLAS_EXPORT rocblas_status rocblas_dzasum_strided_batched(rocblas_handle     
                                                              rocblas_stride                stridex,
                                                              rocblas_int batch_count,
                                                              double*     results);
+
+ROCBLAS_EXPORT rocblas_status rocblas_snrm2(
+    rocblas_handle handle, rocblas_int n, const float* x, rocblas_int incx, float* result);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dnrm2(
+    rocblas_handle handle, rocblas_int n, const double* x, rocblas_int incx, double* result);
+
+ROCBLAS_EXPORT rocblas_status rocblas_scnrm2(rocblas_handle               handle,
+                                             rocblas_int                  n,
+                                             const rocblas_float_complex* x,
+                                             rocblas_int                  incx,
+                                             float*                       result);
 
 /*! \brief BLAS Level 1 API
 
@@ -1415,24 +1409,32 @@ ROCBLAS_EXPORT rocblas_status rocblas_dzasum_strided_batched(rocblas_handle     
               device pointer or host pointer to store the nrm2 product.
               return is 0.0 if n, incx<=0.
     ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_snrm2(
-    rocblas_handle handle, rocblas_int n, const float* x, rocblas_int incx, float* result);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dnrm2(
-    rocblas_handle handle, rocblas_int n, const double* x, rocblas_int incx, double* result);
-
-ROCBLAS_EXPORT rocblas_status rocblas_scnrm2(rocblas_handle               handle,
-                                             rocblas_int                  n,
-                                             const rocblas_float_complex* x,
-                                             rocblas_int                  incx,
-                                             float*                       result);
-
 ROCBLAS_EXPORT rocblas_status rocblas_dznrm2(rocblas_handle                handle,
                                              rocblas_int                   n,
                                              const rocblas_double_complex* x,
                                              rocblas_int                   incx,
                                              double*                       result);
+
+ROCBLAS_EXPORT rocblas_status rocblas_snrm2_batched(rocblas_handle     handle,
+                                                    rocblas_int        n,
+                                                    const float* const x[],
+                                                    rocblas_int        incx,
+                                                    rocblas_int        batch_count,
+                                                    float*             results);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dnrm2_batched(rocblas_handle      handle,
+                                                    rocblas_int         n,
+                                                    const double* const x[],
+                                                    rocblas_int         incx,
+                                                    rocblas_int         batch_count,
+                                                    double*             results);
+
+ROCBLAS_EXPORT rocblas_status rocblas_scnrm2_batched(rocblas_handle                     handle,
+                                                     rocblas_int                        n,
+                                                     const rocblas_float_complex* const x[],
+                                                     rocblas_int                        incx,
+                                                     rocblas_int                        batch_count,
+                                                     float*                             results);
 
 /*! \brief BLAS Level 1 API
 
@@ -1462,34 +1464,36 @@ ROCBLAS_EXPORT rocblas_status rocblas_dznrm2(rocblas_handle                handl
               return is 0.0 for each element if n <= 0, incx<=0.
 
     ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_snrm2_batched(rocblas_handle     handle,
-                                                    rocblas_int        n,
-                                                    const float* const x[],
-                                                    rocblas_int        incx,
-                                                    rocblas_int        batch_count,
-                                                    float*             results);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dnrm2_batched(rocblas_handle      handle,
-                                                    rocblas_int         n,
-                                                    const double* const x[],
-                                                    rocblas_int         incx,
-                                                    rocblas_int         batch_count,
-                                                    double*             results);
-
-ROCBLAS_EXPORT rocblas_status rocblas_scnrm2_batched(rocblas_handle                     handle,
-                                                     rocblas_int                        n,
-                                                     const rocblas_float_complex* const x[],
-                                                     rocblas_int                        incx,
-                                                     rocblas_int                        batch_count,
-                                                     float*                             results);
-
 ROCBLAS_EXPORT rocblas_status rocblas_dznrm2_batched(rocblas_handle                      handle,
                                                      rocblas_int                         n,
                                                      const rocblas_double_complex* const x[],
                                                      rocblas_int                         incx,
                                                      rocblas_int batch_count,
                                                      double*     results);
+
+ROCBLAS_EXPORT rocblas_status rocblas_snrm2_strided_batched(rocblas_handle handle,
+                                                            rocblas_int    n,
+                                                            const float*   x,
+                                                            rocblas_int    incx,
+                                                            rocblas_stride stridex,
+                                                            rocblas_int    batch_count,
+                                                            float*         results);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dnrm2_strided_batched(rocblas_handle handle,
+                                                            rocblas_int    n,
+                                                            const double*  x,
+                                                            rocblas_int    incx,
+                                                            rocblas_stride stridex,
+                                                            rocblas_int    batch_count,
+                                                            double*        results);
+
+ROCBLAS_EXPORT rocblas_status rocblas_scnrm2_strided_batched(rocblas_handle               handle,
+                                                             rocblas_int                  n,
+                                                             const rocblas_float_complex* x,
+                                                             rocblas_int                  incx,
+                                                             rocblas_stride               stridex,
+                                                             rocblas_int batch_count,
+                                                             float*      results);
 
 /*! \brief BLAS Level 1 API
 
@@ -1525,31 +1529,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_dznrm2_batched(rocblas_handle             
               return is 0.0 for each element if n <= 0, incx<=0.
 
     ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_snrm2_strided_batched(rocblas_handle handle,
-                                                            rocblas_int    n,
-                                                            const float*   x,
-                                                            rocblas_int    incx,
-                                                            rocblas_stride stridex,
-                                                            rocblas_int    batch_count,
-                                                            float*         results);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dnrm2_strided_batched(rocblas_handle handle,
-                                                            rocblas_int    n,
-                                                            const double*  x,
-                                                            rocblas_int    incx,
-                                                            rocblas_stride stridex,
-                                                            rocblas_int    batch_count,
-                                                            double*        results);
-
-ROCBLAS_EXPORT rocblas_status rocblas_scnrm2_strided_batched(rocblas_handle               handle,
-                                                             rocblas_int                  n,
-                                                             const rocblas_float_complex* x,
-                                                             rocblas_int                  incx,
-                                                             rocblas_stride               stridex,
-                                                             rocblas_int batch_count,
-                                                             float*      results);
-
 ROCBLAS_EXPORT rocblas_status rocblas_dznrm2_strided_batched(rocblas_handle                handle,
                                                              rocblas_int                   n,
                                                              const rocblas_double_complex* x,
@@ -1558,6 +1537,17 @@ ROCBLAS_EXPORT rocblas_status rocblas_dznrm2_strided_batched(rocblas_handle     
                                                              rocblas_int batch_count,
                                                              double*     results);
 
+ROCBLAS_EXPORT rocblas_status rocblas_isamax(
+    rocblas_handle handle, rocblas_int n, const float* x, rocblas_int incx, rocblas_int* result);
+
+ROCBLAS_EXPORT rocblas_status rocblas_idamax(
+    rocblas_handle handle, rocblas_int n, const double* x, rocblas_int incx, rocblas_int* result);
+
+ROCBLAS_EXPORT rocblas_status rocblas_icamax(rocblas_handle               handle,
+                                             rocblas_int                  n,
+                                             const rocblas_float_complex* x,
+                                             rocblas_int                  incx,
+                                             rocblas_int*                 result);
 /*! \brief BLAS Level 1 API
 
     \details
@@ -1581,24 +1571,30 @@ ROCBLAS_EXPORT rocblas_status rocblas_dznrm2_strided_batched(rocblas_handle     
               return is 0.0 if n, incx<=0.
     ********************************************************************/
 
-ROCBLAS_EXPORT rocblas_status rocblas_isamax(
-    rocblas_handle handle, rocblas_int n, const float* x, rocblas_int incx, rocblas_int* result);
-
-ROCBLAS_EXPORT rocblas_status rocblas_idamax(
-    rocblas_handle handle, rocblas_int n, const double* x, rocblas_int incx, rocblas_int* result);
-
-ROCBLAS_EXPORT rocblas_status rocblas_icamax(rocblas_handle               handle,
-                                             rocblas_int                  n,
-                                             const rocblas_float_complex* x,
-                                             rocblas_int                  incx,
-                                             rocblas_int*                 result);
-
 ROCBLAS_EXPORT rocblas_status rocblas_izamax(rocblas_handle                handle,
                                              rocblas_int                   n,
                                              const rocblas_double_complex* x,
                                              rocblas_int                   incx,
                                              rocblas_int*                  result);
 
+ROCBLAS_EXPORT rocblas_status rocblas_isamax_batched(rocblas_handle     handle,
+                                                     rocblas_int        n,
+                                                     const float* const x[],
+                                                     rocblas_int        incx,
+                                                     rocblas_int        batch_count,
+                                                     rocblas_int*       result);
+ROCBLAS_EXPORT rocblas_status rocblas_idamax_batched(rocblas_handle      handle,
+                                                     rocblas_int         n,
+                                                     const double* const x[],
+                                                     rocblas_int         incx,
+                                                     rocblas_int         batch_count,
+                                                     rocblas_int*        result);
+ROCBLAS_EXPORT rocblas_status rocblas_icamax_batched(rocblas_handle                     handle,
+                                                     rocblas_int                        n,
+                                                     const rocblas_float_complex* const x[],
+                                                     rocblas_int                        incx,
+                                                     rocblas_int                        batch_count,
+                                                     rocblas_int*                       result);
 /*! \brief BLAS Level 1 API
 
     \details
@@ -1623,28 +1619,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_izamax(rocblas_handle                handl
               device or host array of pointers of batch_count size for results.
               return is 0 if n, incx<=0.
     ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_isamax_batched(rocblas_handle     handle,
-                                                     rocblas_int        n,
-                                                     const float* const x[],
-                                                     rocblas_int        incx,
-                                                     rocblas_int        batch_count,
-                                                     rocblas_int*       result);
-
-ROCBLAS_EXPORT rocblas_status rocblas_idamax_batched(rocblas_handle      handle,
-                                                     rocblas_int         n,
-                                                     const double* const x[],
-                                                     rocblas_int         incx,
-                                                     rocblas_int         batch_count,
-                                                     rocblas_int*        result);
-
-ROCBLAS_EXPORT rocblas_status rocblas_icamax_batched(rocblas_handle                     handle,
-                                                     rocblas_int                        n,
-                                                     const rocblas_float_complex* const x[],
-                                                     rocblas_int                        incx,
-                                                     rocblas_int                        batch_count,
-                                                     rocblas_int*                       result);
-
 ROCBLAS_EXPORT rocblas_status rocblas_izamax_batched(rocblas_handle                      handle,
                                                      rocblas_int                         n,
                                                      const rocblas_double_complex* const x[],
@@ -1652,6 +1626,29 @@ ROCBLAS_EXPORT rocblas_status rocblas_izamax_batched(rocblas_handle             
                                                      rocblas_int  batch_count,
                                                      rocblas_int* result);
 
+ROCBLAS_EXPORT rocblas_status rocblas_isamax_strided_batched(rocblas_handle handle,
+                                                             rocblas_int    n,
+                                                             const float*   x,
+                                                             rocblas_int    incx,
+                                                             rocblas_stride stridex,
+                                                             rocblas_int    batch_count,
+                                                             rocblas_int*   result);
+
+ROCBLAS_EXPORT rocblas_status rocblas_idamax_strided_batched(rocblas_handle handle,
+                                                             rocblas_int    n,
+                                                             const double*  x,
+                                                             rocblas_int    incx,
+                                                             rocblas_stride stridex,
+                                                             rocblas_int    batch_count,
+                                                             rocblas_int*   result);
+
+ROCBLAS_EXPORT rocblas_status rocblas_icamax_strided_batched(rocblas_handle               handle,
+                                                             rocblas_int                  n,
+                                                             const rocblas_float_complex* x,
+                                                             rocblas_int                  incx,
+                                                             rocblas_stride               stridex,
+                                                             rocblas_int  batch_count,
+                                                             rocblas_int* result);
 /*! \brief BLAS Level 1 API
 
     \details
@@ -1681,30 +1678,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_izamax_batched(rocblas_handle             
 
     ********************************************************************/
 
-ROCBLAS_EXPORT rocblas_status rocblas_isamax_strided_batched(rocblas_handle handle,
-                                                             rocblas_int    n,
-                                                             const float*   x,
-                                                             rocblas_int    incx,
-                                                             rocblas_stride stridex,
-                                                             rocblas_int    batch_count,
-                                                             rocblas_int*   result);
-
-ROCBLAS_EXPORT rocblas_status rocblas_idamax_strided_batched(rocblas_handle handle,
-                                                             rocblas_int    n,
-                                                             const double*  x,
-                                                             rocblas_int    incx,
-                                                             rocblas_stride stridex,
-                                                             rocblas_int    batch_count,
-                                                             rocblas_int*   result);
-
-ROCBLAS_EXPORT rocblas_status rocblas_icamax_strided_batched(rocblas_handle               handle,
-                                                             rocblas_int                  n,
-                                                             const rocblas_float_complex* x,
-                                                             rocblas_int                  incx,
-                                                             rocblas_stride               stridex,
-                                                             rocblas_int  batch_count,
-                                                             rocblas_int* result);
-
 ROCBLAS_EXPORT rocblas_status rocblas_izamax_strided_batched(rocblas_handle                handle,
                                                              rocblas_int                   n,
                                                              const rocblas_double_complex* x,
@@ -1713,6 +1686,17 @@ ROCBLAS_EXPORT rocblas_status rocblas_izamax_strided_batched(rocblas_handle     
                                                              rocblas_int  batch_count,
                                                              rocblas_int* result);
 
+ROCBLAS_EXPORT rocblas_status rocblas_isamin(
+    rocblas_handle handle, rocblas_int n, const float* x, rocblas_int incx, rocblas_int* result);
+
+ROCBLAS_EXPORT rocblas_status rocblas_idamin(
+    rocblas_handle handle, rocblas_int n, const double* x, rocblas_int incx, rocblas_int* result);
+
+ROCBLAS_EXPORT rocblas_status rocblas_icamin(rocblas_handle               handle,
+                                             rocblas_int                  n,
+                                             const rocblas_float_complex* x,
+                                             rocblas_int                  incx,
+                                             rocblas_int*                 result);
 /*! \brief BLAS Level 1 API
 
     \details
@@ -1737,23 +1721,32 @@ ROCBLAS_EXPORT rocblas_status rocblas_izamax_strided_batched(rocblas_handle     
               return is 0.0 if n, incx<=0.
     ********************************************************************/
 
-ROCBLAS_EXPORT rocblas_status rocblas_isamin(
-    rocblas_handle handle, rocblas_int n, const float* x, rocblas_int incx, rocblas_int* result);
-
-ROCBLAS_EXPORT rocblas_status rocblas_idamin(
-    rocblas_handle handle, rocblas_int n, const double* x, rocblas_int incx, rocblas_int* result);
-
-ROCBLAS_EXPORT rocblas_status rocblas_icamin(rocblas_handle               handle,
-                                             rocblas_int                  n,
-                                             const rocblas_float_complex* x,
-                                             rocblas_int                  incx,
-                                             rocblas_int*                 result);
-
 ROCBLAS_EXPORT rocblas_status rocblas_izamin(rocblas_handle                handle,
                                              rocblas_int                   n,
                                              const rocblas_double_complex* x,
                                              rocblas_int                   incx,
                                              rocblas_int*                  result);
+
+ROCBLAS_EXPORT rocblas_status rocblas_isamin_batched(rocblas_handle     handle,
+                                                     rocblas_int        n,
+                                                     const float* const x[],
+                                                     rocblas_int        incx,
+                                                     rocblas_int        batch_count,
+                                                     rocblas_int*       result);
+
+ROCBLAS_EXPORT rocblas_status rocblas_idamin_batched(rocblas_handle      handle,
+                                                     rocblas_int         n,
+                                                     const double* const x[],
+                                                     rocblas_int         incx,
+                                                     rocblas_int         batch_count,
+                                                     rocblas_int*        result);
+
+ROCBLAS_EXPORT rocblas_status rocblas_icamin_batched(rocblas_handle                     handle,
+                                                     rocblas_int                        n,
+                                                     const rocblas_float_complex* const x[],
+                                                     rocblas_int                        incx,
+                                                     rocblas_int                        batch_count,
+                                                     rocblas_int*                       result);
 
 /*! \brief BLAS Level 1 API
 
@@ -1779,34 +1772,36 @@ ROCBLAS_EXPORT rocblas_status rocblas_izamin(rocblas_handle                handl
               device or host pointers to array of batch_count size for results.
               return is 0 if n, incx<=0.
     ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_isamin_batched(rocblas_handle     handle,
-                                                     rocblas_int        n,
-                                                     const float* const x[],
-                                                     rocblas_int        incx,
-                                                     rocblas_int        batch_count,
-                                                     rocblas_int*       result);
-
-ROCBLAS_EXPORT rocblas_status rocblas_idamin_batched(rocblas_handle      handle,
-                                                     rocblas_int         n,
-                                                     const double* const x[],
-                                                     rocblas_int         incx,
-                                                     rocblas_int         batch_count,
-                                                     rocblas_int*        result);
-
-ROCBLAS_EXPORT rocblas_status rocblas_icamin_batched(rocblas_handle                     handle,
-                                                     rocblas_int                        n,
-                                                     const rocblas_float_complex* const x[],
-                                                     rocblas_int                        incx,
-                                                     rocblas_int                        batch_count,
-                                                     rocblas_int*                       result);
-
 ROCBLAS_EXPORT rocblas_status rocblas_izamin_batched(rocblas_handle                      handle,
                                                      rocblas_int                         n,
                                                      const rocblas_double_complex* const x[],
                                                      rocblas_int                         incx,
                                                      rocblas_int  batch_count,
                                                      rocblas_int* result);
+
+ROCBLAS_EXPORT rocblas_status rocblas_isamin_strided_batched(rocblas_handle handle,
+                                                             rocblas_int    n,
+                                                             const float*   x,
+                                                             rocblas_int    incx,
+                                                             rocblas_stride stridex,
+                                                             rocblas_int    batch_count,
+                                                             rocblas_int*   result);
+
+ROCBLAS_EXPORT rocblas_status rocblas_idamin_strided_batched(rocblas_handle handle,
+                                                             rocblas_int    n,
+                                                             const double*  x,
+                                                             rocblas_int    incx,
+                                                             rocblas_stride stridex,
+                                                             rocblas_int    batch_count,
+                                                             rocblas_int*   result);
+
+ROCBLAS_EXPORT rocblas_status rocblas_icamin_strided_batched(rocblas_handle               handle,
+                                                             rocblas_int                  n,
+                                                             const rocblas_float_complex* x,
+                                                             rocblas_int                  incx,
+                                                             rocblas_stride               stridex,
+                                                             rocblas_int  batch_count,
+                                                             rocblas_int* result);
 
 /*! \brief BLAS Level 1 API
 
@@ -1836,31 +1831,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_izamin_batched(rocblas_handle             
               return is 0 if n <= 0, incx<=0.
 
     ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_isamin_strided_batched(rocblas_handle handle,
-                                                             rocblas_int    n,
-                                                             const float*   x,
-                                                             rocblas_int    incx,
-                                                             rocblas_stride stridex,
-                                                             rocblas_int    batch_count,
-                                                             rocblas_int*   result);
-
-ROCBLAS_EXPORT rocblas_status rocblas_idamin_strided_batched(rocblas_handle handle,
-                                                             rocblas_int    n,
-                                                             const double*  x,
-                                                             rocblas_int    incx,
-                                                             rocblas_stride stridex,
-                                                             rocblas_int    batch_count,
-                                                             rocblas_int*   result);
-
-ROCBLAS_EXPORT rocblas_status rocblas_icamin_strided_batched(rocblas_handle               handle,
-                                                             rocblas_int                  n,
-                                                             const rocblas_float_complex* x,
-                                                             rocblas_int                  incx,
-                                                             rocblas_stride               stridex,
-                                                             rocblas_int  batch_count,
-                                                             rocblas_int* result);
-
 ROCBLAS_EXPORT rocblas_status rocblas_izamin_strided_batched(rocblas_handle                handle,
                                                              rocblas_int                   n,
                                                              const rocblas_double_complex* x,
@@ -1868,35 +1838,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_izamin_strided_batched(rocblas_handle     
                                                              rocblas_stride                stridex,
                                                              rocblas_int  batch_count,
                                                              rocblas_int* result);
-
-/*! \brief BLAS Level 1 API
-
-    \details
-    rot applies the Givens rotation matrix defined by c=cos(alpha) and s=sin(alpha) to vectors x and y.
-        Scalars c and s may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode.
-
-    @param[in]
-    handle  [rocblas_handle]
-            handle to the rocblas library context queue.
-    @param[in]
-    n       [rocblas_int]
-            number of elements in the x and y vectors.
-    @param[inout]
-    x       device pointer storing vector x.
-    @param[in]
-    incx    [rocblas_int]
-            specifies the increment between elements of x.
-    @param[inout]
-    y       device pointer storing vector y.
-    @param[in]
-    incy    [rocblas_int]
-            specifies the increment between elements of y.
-    @param[in]
-    c       device pointer or host pointer storing scalar cosine component of the rotation matrix.
-    @param[in]
-    s       device pointer or host pointer storing scalar sine component of the rotation matrix.
-
-    ********************************************************************/
 
 ROCBLAS_EXPORT rocblas_status rocblas_srot(rocblas_handle handle,
                                            rocblas_int    n,
@@ -1943,6 +1884,34 @@ ROCBLAS_EXPORT rocblas_status rocblas_zrot(rocblas_handle                handle,
                                            const double*                 c,
                                            const rocblas_double_complex* s);
 
+/*! \brief BLAS Level 1 API
+
+    \details
+    rot applies the Givens rotation matrix defined by c=cos(alpha) and s=sin(alpha) to vectors x and y.
+        Scalars c and s may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode.
+
+    @param[in]
+    handle  [rocblas_handle]
+            handle to the rocblas library context queue.
+    @param[in]
+    n       [rocblas_int]
+            number of elements in the x and y vectors.
+    @param[inout]
+    x       device pointer storing vector x.
+    @param[in]
+    incx    [rocblas_int]
+            specifies the increment between elements of x.
+    @param[inout]
+    y       device pointer storing vector y.
+    @param[in]
+    incy    [rocblas_int]
+            specifies the increment between elements of y.
+    @param[in]
+    c       device pointer or host pointer storing scalar cosine component of the rotation matrix.
+    @param[in]
+    s       device pointer or host pointer storing scalar sine component of the rotation matrix.
+
+    ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_zdrot(rocblas_handle          handle,
                                             rocblas_int             n,
                                             rocblas_double_complex* x,
@@ -1951,38 +1920,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdrot(rocblas_handle          handle,
                                             rocblas_int             incy,
                                             const double*           c,
                                             const double*           s);
-
-/*! \brief BLAS Level 1 API
-
-    \details
-    rot_batched applies the Givens rotation matrix defined by c=cos(alpha) and s=sin(alpha) to batched vectors x_i and y_i, for i = 1, ..., batch_count.
-        Scalars c and s may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode.
-
-    @param[in]
-    handle  [rocblas_handle]
-            handle to the rocblas library context queue.
-    @param[in]
-    n       [rocblas_int]
-            number of elements in each x_i and y_i vectors.
-    @param[inout]
-    x       device array of deivce pointers storing each vector x_i.
-    @param[in]
-    incx    [rocblas_int]
-            specifies the increment between elements of each x_i.
-    @param[inout]
-    y       device array of device pointers storing each vector y_i.
-    @param[in]
-    incy    [rocblas_int]
-            specifies the increment between elements of each y_i.
-    @param[in]
-    c       device pointer or host pointer to scalar cosine component of the rotation matrix.
-    @param[in]
-    s       device pointer or host pointer to scalar sine component of the rotation matrix.
-    @param[in]
-    batch_count [rocblas_int]
-                the number of x and y arrays, i.e. the number of batches.
-
-    ********************************************************************/
 
 ROCBLAS_EXPORT rocblas_status rocblas_srot_batched(rocblas_handle handle,
                                                    rocblas_int    n,
@@ -2033,21 +1970,10 @@ ROCBLAS_EXPORT rocblas_status rocblas_zrot_batched(rocblas_handle               
                                                    const double*                 c,
                                                    const rocblas_double_complex* s,
                                                    rocblas_int                   batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_zdrot_batched(rocblas_handle                handle,
-                                                    rocblas_int                   n,
-                                                    rocblas_double_complex* const x[],
-                                                    rocblas_int                   incx,
-                                                    rocblas_double_complex* const y[],
-                                                    rocblas_int                   incy,
-                                                    const double*                 c,
-                                                    const double*                 s,
-                                                    rocblas_int                   batch_count);
-
 /*! \brief BLAS Level 1 API
 
     \details
-    rot_strided_batched applies the Givens rotation matrix defined by c=cos(alpha) and s=sin(alpha) to strided batched vectors x_i and y_i, for i = 1, ..., batch_count.
+    rot_batched applies the Givens rotation matrix defined by c=cos(alpha) and s=sin(alpha) to batched vectors x_i and y_i, for i = 1, ..., batch_count.
         Scalars c and s may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode.
 
     @param[in]
@@ -2057,30 +1983,33 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdrot_batched(rocblas_handle              
     n       [rocblas_int]
             number of elements in each x_i and y_i vectors.
     @param[inout]
-    x       device pointer to the first vector x_1.
+    x       device array of deivce pointers storing each vector x_i.
     @param[in]
     incx    [rocblas_int]
             specifies the increment between elements of each x_i.
-    @param[in]
-    stride_x [rocblas_stride]
-             specifies the increment from the beginning of x_i to the beginning of x_(i+1)
     @param[inout]
-    y       device pointer to the first vector y_1.
+    y       device array of device pointers storing each vector y_i.
     @param[in]
     incy    [rocblas_int]
             specifies the increment between elements of each y_i.
-    @param[in]
-    stride_y [rocblas_stride]
-             specifies the increment from the beginning of y_i to the beginning of y_(i+1)
     @param[in]
     c       device pointer or host pointer to scalar cosine component of the rotation matrix.
     @param[in]
     s       device pointer or host pointer to scalar sine component of the rotation matrix.
     @param[in]
     batch_count [rocblas_int]
-            the number of x and y arrays, i.e. the number of batches.
+                the number of x and y arrays, i.e. the number of batches.
 
     ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_zdrot_batched(rocblas_handle                handle,
+                                                    rocblas_int                   n,
+                                                    rocblas_double_complex* const x[],
+                                                    rocblas_int                   incx,
+                                                    rocblas_double_complex* const y[],
+                                                    rocblas_int                   incy,
+                                                    const double*                 c,
+                                                    const double*                 s,
+                                                    rocblas_int                   batch_count);
 
 ROCBLAS_EXPORT rocblas_status rocblas_srot_strided_batched(rocblas_handle handle,
                                                            rocblas_int    n,
@@ -2141,7 +2070,43 @@ ROCBLAS_EXPORT rocblas_status rocblas_zrot_strided_batched(rocblas_handle       
                                                            const double*                 c,
                                                            const rocblas_double_complex* s,
                                                            rocblas_int batch_count);
+/*! \brief BLAS Level 1 API
 
+    \details
+    rot_strided_batched applies the Givens rotation matrix defined by c=cos(alpha) and s=sin(alpha) to strided batched vectors x_i and y_i, for i = 1, ..., batch_count.
+        Scalars c and s may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode.
+
+    @param[in]
+    handle  [rocblas_handle]
+            handle to the rocblas library context queue.
+    @param[in]
+    n       [rocblas_int]
+            number of elements in each x_i and y_i vectors.
+    @param[inout]
+    x       device pointer to the first vector x_1.
+    @param[in]
+    incx    [rocblas_int]
+            specifies the increment between elements of each x_i.
+    @param[in]
+    stride_x [rocblas_stride]
+             specifies the increment from the beginning of x_i to the beginning of x_(i+1)
+    @param[inout]
+    y       device pointer to the first vector y_1.
+    @param[in]
+    incy    [rocblas_int]
+            specifies the increment between elements of each y_i.
+    @param[in]
+    stride_y [rocblas_stride]
+             specifies the increment from the beginning of y_i to the beginning of y_(i+1)
+    @param[in]
+    c       device pointer or host pointer to scalar cosine component of the rotation matrix.
+    @param[in]
+    s       device pointer or host pointer to scalar sine component of the rotation matrix.
+    @param[in]
+    batch_count [rocblas_int]
+            the number of x and y arrays, i.e. the number of batches.
+
+    ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_zdrot_strided_batched(rocblas_handle          handle,
                                                             rocblas_int             n,
                                                             rocblas_double_complex* x,
@@ -2154,6 +2119,17 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdrot_strided_batched(rocblas_handle      
                                                             const double*           s,
                                                             rocblas_int             batch_count);
 
+ROCBLAS_EXPORT rocblas_status
+    rocblas_srotg(rocblas_handle handle, float* a, float* b, float* c, float* s);
+
+ROCBLAS_EXPORT rocblas_status
+    rocblas_drotg(rocblas_handle handle, double* a, double* b, double* c, double* s);
+
+ROCBLAS_EXPORT rocblas_status rocblas_crotg(rocblas_handle         handle,
+                                            rocblas_float_complex* a,
+                                            rocblas_float_complex* b,
+                                            float*                 c,
+                                            rocblas_float_complex* s);
 /*! \brief BLAS Level 1 API
 
     \details
@@ -2176,24 +2152,32 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdrot_strided_batched(rocblas_handle      
 
     ********************************************************************/
 
-ROCBLAS_EXPORT rocblas_status
-    rocblas_srotg(rocblas_handle handle, float* a, float* b, float* c, float* s);
-
-ROCBLAS_EXPORT rocblas_status
-    rocblas_drotg(rocblas_handle handle, double* a, double* b, double* c, double* s);
-
-ROCBLAS_EXPORT rocblas_status rocblas_crotg(rocblas_handle         handle,
-                                            rocblas_float_complex* a,
-                                            rocblas_float_complex* b,
-                                            float*                 c,
-                                            rocblas_float_complex* s);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zrotg(rocblas_handle          handle,
                                             rocblas_double_complex* a,
                                             rocblas_double_complex* b,
                                             double*                 c,
                                             rocblas_double_complex* s);
 
+ROCBLAS_EXPORT rocblas_status rocblas_srotg_batched(rocblas_handle handle,
+                                                    float* const   a[],
+                                                    float* const   b[],
+                                                    float* const   c[],
+                                                    float* const   s[],
+                                                    rocblas_int    batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_drotg_batched(rocblas_handle handle,
+                                                    double* const  a[],
+                                                    double* const  b[],
+                                                    double* const  c[],
+                                                    double* const  s[],
+                                                    rocblas_int    batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_crotg_batched(rocblas_handle               handle,
+                                                    rocblas_float_complex* const a[],
+                                                    rocblas_float_complex* const b[],
+                                                    float* const                 c[],
+                                                    rocblas_float_complex* const s[],
+                                                    rocblas_int                  batch_count);
 /*! \brief BLAS Level 1 API
 
     \details
@@ -2218,28 +2202,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zrotg(rocblas_handle          handle,
                 number of batches (length of arrays a, b, c, and s).
 
     ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_srotg_batched(rocblas_handle handle,
-                                                    float* const   a[],
-                                                    float* const   b[],
-                                                    float* const   c[],
-                                                    float* const   s[],
-                                                    rocblas_int    batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_drotg_batched(rocblas_handle handle,
-                                                    double* const  a[],
-                                                    double* const  b[],
-                                                    double* const  c[],
-                                                    double* const  s[],
-                                                    rocblas_int    batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_crotg_batched(rocblas_handle               handle,
-                                                    rocblas_float_complex* const a[],
-                                                    rocblas_float_complex* const b[],
-                                                    float* const                 c[],
-                                                    rocblas_float_complex* const s[],
-                                                    rocblas_int                  batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zrotg_batched(rocblas_handle                handle,
                                                     rocblas_double_complex* const a[],
                                                     rocblas_double_complex* const b[],
@@ -2247,6 +2209,38 @@ ROCBLAS_EXPORT rocblas_status rocblas_zrotg_batched(rocblas_handle              
                                                     rocblas_double_complex* const s[],
                                                     rocblas_int                   batch_count);
 
+ROCBLAS_EXPORT rocblas_status rocblas_srotg_strided_batched(rocblas_handle handle,
+                                                            float*         a,
+                                                            rocblas_stride stride_a,
+                                                            float*         b,
+                                                            rocblas_stride stride_b,
+                                                            float*         c,
+                                                            rocblas_stride stride_c,
+                                                            float*         s,
+                                                            rocblas_stride stride_s,
+                                                            rocblas_int    batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_drotg_strided_batched(rocblas_handle handle,
+                                                            double*        a,
+                                                            rocblas_stride stride_a,
+                                                            double*        b,
+                                                            rocblas_stride stride_b,
+                                                            double*        c,
+                                                            rocblas_stride stride_c,
+                                                            double*        s,
+                                                            rocblas_stride stride_s,
+                                                            rocblas_int    batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_crotg_strided_batched(rocblas_handle         handle,
+                                                            rocblas_float_complex* a,
+                                                            rocblas_stride         stride_a,
+                                                            rocblas_float_complex* b,
+                                                            rocblas_stride         stride_b,
+                                                            float*                 c,
+                                                            rocblas_stride         stride_c,
+                                                            rocblas_float_complex* s,
+                                                            rocblas_stride         stride_s,
+                                                            rocblas_int            batch_count);
 /*! \brief BLAS Level 1 API
 
     \details
@@ -2283,40 +2277,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zrotg_batched(rocblas_handle              
                 number of batches (length of arrays a, b, c, and s).
 
     ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_srotg_strided_batched(rocblas_handle handle,
-                                                            float*         a,
-                                                            rocblas_stride stride_a,
-                                                            float*         b,
-                                                            rocblas_stride stride_b,
-                                                            float*         c,
-                                                            rocblas_stride stride_c,
-                                                            float*         s,
-                                                            rocblas_stride stride_s,
-                                                            rocblas_int    batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_drotg_strided_batched(rocblas_handle handle,
-                                                            double*        a,
-                                                            rocblas_stride stride_a,
-                                                            double*        b,
-                                                            rocblas_stride stride_b,
-                                                            double*        c,
-                                                            rocblas_stride stride_c,
-                                                            double*        s,
-                                                            rocblas_stride stride_s,
-                                                            rocblas_int    batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_crotg_strided_batched(rocblas_handle         handle,
-                                                            rocblas_float_complex* a,
-                                                            rocblas_stride         stride_a,
-                                                            rocblas_float_complex* b,
-                                                            rocblas_stride         stride_b,
-                                                            float*                 c,
-                                                            rocblas_stride         stride_c,
-                                                            rocblas_float_complex* s,
-                                                            rocblas_stride         stride_s,
-                                                            rocblas_int            batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zrotg_strided_batched(rocblas_handle          handle,
                                                             rocblas_double_complex* a,
                                                             rocblas_stride          stride_a,
@@ -2328,6 +2288,13 @@ ROCBLAS_EXPORT rocblas_status rocblas_zrotg_strided_batched(rocblas_handle      
                                                             rocblas_stride          stride_s,
                                                             rocblas_int             batch_count);
 
+ROCBLAS_EXPORT rocblas_status rocblas_srotm(rocblas_handle handle,
+                                            rocblas_int    n,
+                                            float*         x,
+                                            rocblas_int    incx,
+                                            float*         y,
+                                            rocblas_int    incy,
+                                            const float*   param);
 /*! \brief BLAS Level 1 API
 
     \details
@@ -2364,15 +2331,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zrotg_strided_batched(rocblas_handle      
             param may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode.
 
     ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_srotm(rocblas_handle handle,
-                                            rocblas_int    n,
-                                            float*         x,
-                                            rocblas_int    incx,
-                                            float*         y,
-                                            rocblas_int    incy,
-                                            const float*   param);
-
 ROCBLAS_EXPORT rocblas_status rocblas_drotm(rocblas_handle handle,
                                             rocblas_int    n,
                                             double*        x,
@@ -2380,6 +2338,15 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotm(rocblas_handle handle,
                                             double*        y,
                                             rocblas_int    incy,
                                             const double*  param);
+
+ROCBLAS_EXPORT rocblas_status rocblas_srotm_batched(rocblas_handle     handle,
+                                                    rocblas_int        n,
+                                                    float* const       x[],
+                                                    rocblas_int        incx,
+                                                    float* const       y[],
+                                                    rocblas_int        incy,
+                                                    const float* const param[],
+                                                    rocblas_int        batch_count);
 
 /*! \brief BLAS Level 1 API
 
@@ -2420,16 +2387,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotm(rocblas_handle handle,
                 the number of x and y arrays, i.e. the number of batches.
 
     ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_srotm_batched(rocblas_handle     handle,
-                                                    rocblas_int        n,
-                                                    float* const       x[],
-                                                    rocblas_int        incx,
-                                                    float* const       y[],
-                                                    rocblas_int        incy,
-                                                    const float* const param[],
-                                                    rocblas_int        batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_drotm_batched(rocblas_handle      handle,
                                                     rocblas_int         n,
                                                     double* const       x[],
@@ -2438,6 +2395,18 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotm_batched(rocblas_handle      handle,
                                                     rocblas_int         incy,
                                                     const double* const param[],
                                                     rocblas_int         batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_srotm_strided_batched(rocblas_handle handle,
+                                                            rocblas_int    n,
+                                                            float*         x,
+                                                            rocblas_int    incx,
+                                                            rocblas_stride stride_x,
+                                                            float*         y,
+                                                            rocblas_int    incy,
+                                                            rocblas_stride stride_y,
+                                                            const float*   param,
+                                                            rocblas_stride stride_param,
+                                                            rocblas_int    batch_count);
 
 /*! \brief BLAS Level 1 API
 
@@ -2487,19 +2456,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotm_batched(rocblas_handle      handle,
                 the number of x and y arrays, i.e. the number of batches.
 
     ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_srotm_strided_batched(rocblas_handle handle,
-                                                            rocblas_int    n,
-                                                            float*         x,
-                                                            rocblas_int    incx,
-                                                            rocblas_stride stride_x,
-                                                            float*         y,
-                                                            rocblas_int    incy,
-                                                            rocblas_stride stride_y,
-                                                            const float*   param,
-                                                            rocblas_stride stride_param,
-                                                            rocblas_int    batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_drotm_strided_batched(rocblas_handle handle,
                                                             rocblas_int    n,
                                                             double*        x,
@@ -2511,6 +2467,9 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotm_strided_batched(rocblas_handle handl
                                                             const double*  param,
                                                             rocblas_stride stride_param,
                                                             rocblas_int    batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_srotmg(
+    rocblas_handle handle, float* d1, float* d2, float* x1, const float* y1, float* param);
 
 /*! \brief BLAS Level 1 API
 
@@ -2547,11 +2506,16 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotm_strided_batched(rocblas_handle handl
 
     ********************************************************************/
 
-ROCBLAS_EXPORT rocblas_status rocblas_srotmg(
-    rocblas_handle handle, float* d1, float* d2, float* x1, const float* y1, float* param);
-
 ROCBLAS_EXPORT rocblas_status rocblas_drotmg(
     rocblas_handle handle, double* d1, double* d2, double* x1, const double* y1, double* param);
+
+ROCBLAS_EXPORT rocblas_status rocblas_srotmg_batched(rocblas_handle     handle,
+                                                     float* const       d1[],
+                                                     float* const       d2[],
+                                                     float* const       x1[],
+                                                     const float* const y1[],
+                                                     float* const       param[],
+                                                     rocblas_int        batch_count);
 
 /*! \brief BLAS Level 1 API
 
@@ -2590,15 +2554,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotmg(
                 the number of instances in the batch.
 
     ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_srotmg_batched(rocblas_handle     handle,
-                                                     float* const       d1[],
-                                                     float* const       d2[],
-                                                     float* const       x1[],
-                                                     const float* const y1[],
-                                                     float* const       param[],
-                                                     rocblas_int        batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_drotmg_batched(rocblas_handle      handle,
                                                      double* const       d1[],
                                                      double* const       d2[],
@@ -2606,6 +2561,19 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotmg_batched(rocblas_handle      handle,
                                                      const double* const y1[],
                                                      double* const       param[],
                                                      rocblas_int         batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_srotmg_strided_batched(rocblas_handle handle,
+                                                             float*         d1,
+                                                             rocblas_stride stride_d1,
+                                                             float*         d2,
+                                                             rocblas_stride stride_d2,
+                                                             float*         x1,
+                                                             rocblas_stride stride_x1,
+                                                             const float*   y1,
+                                                             rocblas_stride stride_y1,
+                                                             float*         param,
+                                                             rocblas_stride stride_param,
+                                                             rocblas_int    batch_count);
 
 /*! \brief BLAS Level 1 API
 
@@ -2659,20 +2627,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotmg_batched(rocblas_handle      handle,
                 the number of instances in the batch.
 
     ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_srotmg_strided_batched(rocblas_handle handle,
-                                                             float*         d1,
-                                                             rocblas_stride stride_d1,
-                                                             float*         d2,
-                                                             rocblas_stride stride_d2,
-                                                             float*         x1,
-                                                             rocblas_stride stride_x1,
-                                                             const float*   y1,
-                                                             rocblas_stride stride_y1,
-                                                             float*         param,
-                                                             rocblas_stride stride_param,
-                                                             rocblas_int    batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_drotmg_strided_batched(rocblas_handle handle,
                                                              double*        d1,
                                                              rocblas_stride stride_d1,
@@ -2691,6 +2645,51 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotmg_strided_batched(rocblas_handle hand
  *    level 2 BLAS
  * ===========================================================================
  */
+
+ROCBLAS_EXPORT rocblas_status rocblas_sgbmv(rocblas_handle    handle,
+                                            rocblas_operation trans,
+                                            rocblas_int       m,
+                                            rocblas_int       n,
+                                            rocblas_int       kl,
+                                            rocblas_int       ku,
+                                            const float*      alpha,
+                                            const float*      A,
+                                            rocblas_int       lda,
+                                            const float*      x,
+                                            rocblas_int       incx,
+                                            const float*      beta,
+                                            float*            y,
+                                            rocblas_int       incy);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dgbmv(rocblas_handle    handle,
+                                            rocblas_operation trans,
+                                            rocblas_int       m,
+                                            rocblas_int       n,
+                                            rocblas_int       kl,
+                                            rocblas_int       ku,
+                                            const double*     alpha,
+                                            const double*     A,
+                                            rocblas_int       lda,
+                                            const double*     x,
+                                            rocblas_int       incx,
+                                            const double*     beta,
+                                            double*           y,
+                                            rocblas_int       incy);
+
+ROCBLAS_EXPORT rocblas_status rocblas_cgbmv(rocblas_handle               handle,
+                                            rocblas_operation            trans,
+                                            rocblas_int                  m,
+                                            rocblas_int                  n,
+                                            rocblas_int                  kl,
+                                            rocblas_int                  ku,
+                                            const rocblas_float_complex* alpha,
+                                            const rocblas_float_complex* A,
+                                            rocblas_int                  lda,
+                                            const rocblas_float_complex* x,
+                                            rocblas_int                  incx,
+                                            const rocblas_float_complex* beta,
+                                            rocblas_float_complex*       y,
+                                            rocblas_int                  incy);
 
 /*! \brief BLAS Level 2 API
 
@@ -2758,51 +2757,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_drotmg_strided_batched(rocblas_handle hand
               specifies the increment for the elements of y.
 
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_sgbmv(rocblas_handle    handle,
-                                            rocblas_operation trans,
-                                            rocblas_int       m,
-                                            rocblas_int       n,
-                                            rocblas_int       kl,
-                                            rocblas_int       ku,
-                                            const float*      alpha,
-                                            const float*      A,
-                                            rocblas_int       lda,
-                                            const float*      x,
-                                            rocblas_int       incx,
-                                            const float*      beta,
-                                            float*            y,
-                                            rocblas_int       incy);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dgbmv(rocblas_handle    handle,
-                                            rocblas_operation trans,
-                                            rocblas_int       m,
-                                            rocblas_int       n,
-                                            rocblas_int       kl,
-                                            rocblas_int       ku,
-                                            const double*     alpha,
-                                            const double*     A,
-                                            rocblas_int       lda,
-                                            const double*     x,
-                                            rocblas_int       incx,
-                                            const double*     beta,
-                                            double*           y,
-                                            rocblas_int       incy);
-
-ROCBLAS_EXPORT rocblas_status rocblas_cgbmv(rocblas_handle               handle,
-                                            rocblas_operation            trans,
-                                            rocblas_int                  m,
-                                            rocblas_int                  n,
-                                            rocblas_int                  kl,
-                                            rocblas_int                  ku,
-                                            const rocblas_float_complex* alpha,
-                                            const rocblas_float_complex* A,
-                                            rocblas_int                  lda,
-                                            const rocblas_float_complex* x,
-                                            rocblas_int                  incx,
-                                            const rocblas_float_complex* beta,
-                                            rocblas_float_complex*       y,
-                                            rocblas_int                  incy);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zgbmv(rocblas_handle                handle,
                                             rocblas_operation             trans,
                                             rocblas_int                   m,
@@ -2817,6 +2771,54 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgbmv(rocblas_handle                handle
                                             const rocblas_double_complex* beta,
                                             rocblas_double_complex*       y,
                                             rocblas_int                   incy);
+
+ROCBLAS_EXPORT rocblas_status rocblas_sgbmv_batched(rocblas_handle     handle,
+                                                    rocblas_operation  trans,
+                                                    rocblas_int        m,
+                                                    rocblas_int        n,
+                                                    rocblas_int        kl,
+                                                    rocblas_int        ku,
+                                                    const float*       alpha,
+                                                    const float* const A[],
+                                                    rocblas_int        lda,
+                                                    const float* const x[],
+                                                    rocblas_int        incx,
+                                                    const float*       beta,
+                                                    float* const       y[],
+                                                    rocblas_int        incy,
+                                                    rocblas_int        batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dgbmv_batched(rocblas_handle      handle,
+                                                    rocblas_operation   trans,
+                                                    rocblas_int         m,
+                                                    rocblas_int         n,
+                                                    rocblas_int         kl,
+                                                    rocblas_int         ku,
+                                                    const double*       alpha,
+                                                    const double* const A[],
+                                                    rocblas_int         lda,
+                                                    const double* const x[],
+                                                    rocblas_int         incx,
+                                                    const double*       beta,
+                                                    double* const       y[],
+                                                    rocblas_int         incy,
+                                                    rocblas_int         batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_cgbmv_batched(rocblas_handle                     handle,
+                                                    rocblas_operation                  trans,
+                                                    rocblas_int                        m,
+                                                    rocblas_int                        n,
+                                                    rocblas_int                        kl,
+                                                    rocblas_int                        ku,
+                                                    const rocblas_float_complex*       alpha,
+                                                    const rocblas_float_complex* const A[],
+                                                    rocblas_int                        lda,
+                                                    const rocblas_float_complex* const x[],
+                                                    rocblas_int                        incx,
+                                                    const rocblas_float_complex*       beta,
+                                                    rocblas_float_complex* const       y[],
+                                                    rocblas_int                        incy,
+                                                    rocblas_int                        batch_count);
 
 /*! \brief BLAS Level 2 API
 
@@ -2889,54 +2891,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgbmv(rocblas_handle                handle
                 specifies the number of instances in the batch.
 
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_sgbmv_batched(rocblas_handle     handle,
-                                                    rocblas_operation  trans,
-                                                    rocblas_int        m,
-                                                    rocblas_int        n,
-                                                    rocblas_int        kl,
-                                                    rocblas_int        ku,
-                                                    const float*       alpha,
-                                                    const float* const A[],
-                                                    rocblas_int        lda,
-                                                    const float* const x[],
-                                                    rocblas_int        incx,
-                                                    const float*       beta,
-                                                    float* const       y[],
-                                                    rocblas_int        incy,
-                                                    rocblas_int        batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dgbmv_batched(rocblas_handle      handle,
-                                                    rocblas_operation   trans,
-                                                    rocblas_int         m,
-                                                    rocblas_int         n,
-                                                    rocblas_int         kl,
-                                                    rocblas_int         ku,
-                                                    const double*       alpha,
-                                                    const double* const A[],
-                                                    rocblas_int         lda,
-                                                    const double* const x[],
-                                                    rocblas_int         incx,
-                                                    const double*       beta,
-                                                    double* const       y[],
-                                                    rocblas_int         incy,
-                                                    rocblas_int         batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_cgbmv_batched(rocblas_handle                     handle,
-                                                    rocblas_operation                  trans,
-                                                    rocblas_int                        m,
-                                                    rocblas_int                        n,
-                                                    rocblas_int                        kl,
-                                                    rocblas_int                        ku,
-                                                    const rocblas_float_complex*       alpha,
-                                                    const rocblas_float_complex* const A[],
-                                                    rocblas_int                        lda,
-                                                    const rocblas_float_complex* const x[],
-                                                    rocblas_int                        incx,
-                                                    const rocblas_float_complex*       beta,
-                                                    rocblas_float_complex* const       y[],
-                                                    rocblas_int                        incy,
-                                                    rocblas_int                        batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zgbmv_batched(rocblas_handle                      handle,
                                                     rocblas_operation                   trans,
                                                     rocblas_int                         m,
@@ -2952,6 +2906,63 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgbmv_batched(rocblas_handle              
                                                     rocblas_double_complex* const       y[],
                                                     rocblas_int                         incy,
                                                     rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_sgbmv_strided_batched(rocblas_handle    handle,
+                                                            rocblas_operation trans,
+                                                            rocblas_int       m,
+                                                            rocblas_int       n,
+                                                            rocblas_int       kl,
+                                                            rocblas_int       ku,
+                                                            const float*      alpha,
+                                                            const float*      A,
+                                                            rocblas_int       lda,
+                                                            rocblas_stride    stride_A,
+                                                            const float*      x,
+                                                            rocblas_int       incx,
+                                                            rocblas_stride    stride_x,
+                                                            const float*      beta,
+                                                            float*            y,
+                                                            rocblas_int       incy,
+                                                            rocblas_stride    stride_y,
+                                                            rocblas_int       batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dgbmv_strided_batched(rocblas_handle    handle,
+                                                            rocblas_operation trans,
+                                                            rocblas_int       m,
+                                                            rocblas_int       n,
+                                                            rocblas_int       kl,
+                                                            rocblas_int       ku,
+                                                            const double*     alpha,
+                                                            const double*     A,
+                                                            rocblas_int       lda,
+                                                            rocblas_stride    stride_A,
+                                                            const double*     x,
+                                                            rocblas_int       incx,
+                                                            rocblas_stride    stride_x,
+                                                            const double*     beta,
+                                                            double*           y,
+                                                            rocblas_int       incy,
+                                                            rocblas_stride    stride_y,
+                                                            rocblas_int       batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_cgbmv_strided_batched(rocblas_handle               handle,
+                                                            rocblas_operation            trans,
+                                                            rocblas_int                  m,
+                                                            rocblas_int                  n,
+                                                            rocblas_int                  kl,
+                                                            rocblas_int                  ku,
+                                                            const rocblas_float_complex* alpha,
+                                                            const rocblas_float_complex* A,
+                                                            rocblas_int                  lda,
+                                                            rocblas_stride               stride_A,
+                                                            const rocblas_float_complex* x,
+                                                            rocblas_int                  incx,
+                                                            rocblas_stride               stride_x,
+                                                            const rocblas_float_complex* beta,
+                                                            rocblas_float_complex*       y,
+                                                            rocblas_int                  incy,
+                                                            rocblas_stride               stride_y,
+                                                            rocblas_int batch_count);
 
 /*! \brief BLAS Level 2 API
 
@@ -3033,63 +3044,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgbmv_batched(rocblas_handle              
                 specifies the number of instances in the batch.
 
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_sgbmv_strided_batched(rocblas_handle    handle,
-                                                            rocblas_operation trans,
-                                                            rocblas_int       m,
-                                                            rocblas_int       n,
-                                                            rocblas_int       kl,
-                                                            rocblas_int       ku,
-                                                            const float*      alpha,
-                                                            const float*      A,
-                                                            rocblas_int       lda,
-                                                            rocblas_stride    stride_A,
-                                                            const float*      x,
-                                                            rocblas_int       incx,
-                                                            rocblas_stride    stride_x,
-                                                            const float*      beta,
-                                                            float*            y,
-                                                            rocblas_int       incy,
-                                                            rocblas_stride    stride_y,
-                                                            rocblas_int       batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dgbmv_strided_batched(rocblas_handle    handle,
-                                                            rocblas_operation trans,
-                                                            rocblas_int       m,
-                                                            rocblas_int       n,
-                                                            rocblas_int       kl,
-                                                            rocblas_int       ku,
-                                                            const double*     alpha,
-                                                            const double*     A,
-                                                            rocblas_int       lda,
-                                                            rocblas_stride    stride_A,
-                                                            const double*     x,
-                                                            rocblas_int       incx,
-                                                            rocblas_stride    stride_x,
-                                                            const double*     beta,
-                                                            double*           y,
-                                                            rocblas_int       incy,
-                                                            rocblas_stride    stride_y,
-                                                            rocblas_int       batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_cgbmv_strided_batched(rocblas_handle               handle,
-                                                            rocblas_operation            trans,
-                                                            rocblas_int                  m,
-                                                            rocblas_int                  n,
-                                                            rocblas_int                  kl,
-                                                            rocblas_int                  ku,
-                                                            const rocblas_float_complex* alpha,
-                                                            const rocblas_float_complex* A,
-                                                            rocblas_int                  lda,
-                                                            rocblas_stride               stride_A,
-                                                            const rocblas_float_complex* x,
-                                                            rocblas_int                  incx,
-                                                            rocblas_stride               stride_x,
-                                                            const rocblas_float_complex* beta,
-                                                            rocblas_float_complex*       y,
-                                                            rocblas_int                  incy,
-                                                            rocblas_stride               stride_y,
-                                                            rocblas_int batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zgbmv_strided_batched(rocblas_handle                handle,
                                                             rocblas_operation             trans,
                                                             rocblas_int                   m,
@@ -3108,6 +3062,45 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgbmv_strided_batched(rocblas_handle      
                                                             rocblas_int                   incy,
                                                             rocblas_stride                stride_y,
                                                             rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_sgemv(rocblas_handle    handle,
+                                            rocblas_operation trans,
+                                            rocblas_int       m,
+                                            rocblas_int       n,
+                                            const float*      alpha,
+                                            const float*      A,
+                                            rocblas_int       lda,
+                                            const float*      x,
+                                            rocblas_int       incx,
+                                            const float*      beta,
+                                            float*            y,
+                                            rocblas_int       incy);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dgemv(rocblas_handle    handle,
+                                            rocblas_operation trans,
+                                            rocblas_int       m,
+                                            rocblas_int       n,
+                                            const double*     alpha,
+                                            const double*     A,
+                                            rocblas_int       lda,
+                                            const double*     x,
+                                            rocblas_int       incx,
+                                            const double*     beta,
+                                            double*           y,
+                                            rocblas_int       incy);
+
+ROCBLAS_EXPORT rocblas_status rocblas_cgemv(rocblas_handle               handle,
+                                            rocblas_operation            trans,
+                                            rocblas_int                  m,
+                                            rocblas_int                  n,
+                                            const rocblas_float_complex* alpha,
+                                            const rocblas_float_complex* A,
+                                            rocblas_int                  lda,
+                                            const rocblas_float_complex* x,
+                                            rocblas_int                  incx,
+                                            const rocblas_float_complex* beta,
+                                            rocblas_float_complex*       y,
+                                            rocblas_int                  incy);
 
 /*! \brief BLAS Level 2 API
 
@@ -3154,45 +3147,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgbmv_strided_batched(rocblas_handle      
               specifies the increment for the elements of y.
 
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_sgemv(rocblas_handle    handle,
-                                            rocblas_operation trans,
-                                            rocblas_int       m,
-                                            rocblas_int       n,
-                                            const float*      alpha,
-                                            const float*      A,
-                                            rocblas_int       lda,
-                                            const float*      x,
-                                            rocblas_int       incx,
-                                            const float*      beta,
-                                            float*            y,
-                                            rocblas_int       incy);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dgemv(rocblas_handle    handle,
-                                            rocblas_operation trans,
-                                            rocblas_int       m,
-                                            rocblas_int       n,
-                                            const double*     alpha,
-                                            const double*     A,
-                                            rocblas_int       lda,
-                                            const double*     x,
-                                            rocblas_int       incx,
-                                            const double*     beta,
-                                            double*           y,
-                                            rocblas_int       incy);
-
-ROCBLAS_EXPORT rocblas_status rocblas_cgemv(rocblas_handle               handle,
-                                            rocblas_operation            trans,
-                                            rocblas_int                  m,
-                                            rocblas_int                  n,
-                                            const rocblas_float_complex* alpha,
-                                            const rocblas_float_complex* A,
-                                            rocblas_int                  lda,
-                                            const rocblas_float_complex* x,
-                                            rocblas_int                  incx,
-                                            const rocblas_float_complex* beta,
-                                            rocblas_float_complex*       y,
-                                            rocblas_int                  incy);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zgemv(rocblas_handle                handle,
                                             rocblas_operation             trans,
                                             rocblas_int                   m,
@@ -3205,6 +3159,48 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgemv(rocblas_handle                handle
                                             const rocblas_double_complex* beta,
                                             rocblas_double_complex*       y,
                                             rocblas_int                   incy);
+
+ROCBLAS_EXPORT rocblas_status rocblas_sgemv_batched(rocblas_handle     handle,
+                                                    rocblas_operation  trans,
+                                                    rocblas_int        m,
+                                                    rocblas_int        n,
+                                                    const float*       alpha,
+                                                    const float* const A[],
+                                                    rocblas_int        lda,
+                                                    const float* const x[],
+                                                    rocblas_int        incx,
+                                                    const float*       beta,
+                                                    float* const       y[],
+                                                    rocblas_int        incy,
+                                                    rocblas_int        batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dgemv_batched(rocblas_handle      handle,
+                                                    rocblas_operation   trans,
+                                                    rocblas_int         m,
+                                                    rocblas_int         n,
+                                                    const double*       alpha,
+                                                    const double* const A[],
+                                                    rocblas_int         lda,
+                                                    const double* const x[],
+                                                    rocblas_int         incx,
+                                                    const double*       beta,
+                                                    double* const       y[],
+                                                    rocblas_int         incy,
+                                                    rocblas_int         batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_cgemv_batched(rocblas_handle                     handle,
+                                                    rocblas_operation                  trans,
+                                                    rocblas_int                        m,
+                                                    rocblas_int                        n,
+                                                    const rocblas_float_complex*       alpha,
+                                                    const rocblas_float_complex* const A[],
+                                                    rocblas_int                        lda,
+                                                    const rocblas_float_complex* const x[],
+                                                    rocblas_int                        incx,
+                                                    const rocblas_float_complex*       beta,
+                                                    rocblas_float_complex* const       y[],
+                                                    rocblas_int                        incy,
+                                                    rocblas_int                        batch_count);
 
 /*! \brief BLAS Level 2 API
 
@@ -3255,48 +3251,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgemv(rocblas_handle                handle
                 number of instances in the batch
 
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_sgemv_batched(rocblas_handle     handle,
-                                                    rocblas_operation  trans,
-                                                    rocblas_int        m,
-                                                    rocblas_int        n,
-                                                    const float*       alpha,
-                                                    const float* const A[],
-                                                    rocblas_int        lda,
-                                                    const float* const x[],
-                                                    rocblas_int        incx,
-                                                    const float*       beta,
-                                                    float* const       y[],
-                                                    rocblas_int        incy,
-                                                    rocblas_int        batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dgemv_batched(rocblas_handle      handle,
-                                                    rocblas_operation   trans,
-                                                    rocblas_int         m,
-                                                    rocblas_int         n,
-                                                    const double*       alpha,
-                                                    const double* const A[],
-                                                    rocblas_int         lda,
-                                                    const double* const x[],
-                                                    rocblas_int         incx,
-                                                    const double*       beta,
-                                                    double* const       y[],
-                                                    rocblas_int         incy,
-                                                    rocblas_int         batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_cgemv_batched(rocblas_handle                     handle,
-                                                    rocblas_operation                  trans,
-                                                    rocblas_int                        m,
-                                                    rocblas_int                        n,
-                                                    const rocblas_float_complex*       alpha,
-                                                    const rocblas_float_complex* const A[],
-                                                    rocblas_int                        lda,
-                                                    const rocblas_float_complex* const x[],
-                                                    rocblas_int                        incx,
-                                                    const rocblas_float_complex*       beta,
-                                                    rocblas_float_complex* const       y[],
-                                                    rocblas_int                        incy,
-                                                    rocblas_int                        batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zgemv_batched(rocblas_handle                      handle,
                                                     rocblas_operation                   trans,
                                                     rocblas_int                         m,
@@ -3310,6 +3264,57 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgemv_batched(rocblas_handle              
                                                     rocblas_double_complex* const       y[],
                                                     rocblas_int                         incy,
                                                     rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_sgemv_strided_batched(rocblas_handle    handle,
+                                                            rocblas_operation transA,
+                                                            rocblas_int       m,
+                                                            rocblas_int       n,
+                                                            const float*      alpha,
+                                                            const float*      A,
+                                                            rocblas_int       lda,
+                                                            rocblas_stride    strideA,
+                                                            const float*      x,
+                                                            rocblas_int       incx,
+                                                            rocblas_stride    stridex,
+                                                            const float*      beta,
+                                                            float*            y,
+                                                            rocblas_int       incy,
+                                                            rocblas_stride    stridey,
+                                                            rocblas_int       batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dgemv_strided_batched(rocblas_handle    handle,
+                                                            rocblas_operation transA,
+                                                            rocblas_int       m,
+                                                            rocblas_int       n,
+                                                            const double*     alpha,
+                                                            const double*     A,
+                                                            rocblas_int       lda,
+                                                            rocblas_stride    strideA,
+                                                            const double*     x,
+                                                            rocblas_int       incx,
+                                                            rocblas_stride    stridex,
+                                                            const double*     beta,
+                                                            double*           y,
+                                                            rocblas_int       incy,
+                                                            rocblas_stride    stridey,
+                                                            rocblas_int       batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_cgemv_strided_batched(rocblas_handle               handle,
+                                                            rocblas_operation            transA,
+                                                            rocblas_int                  m,
+                                                            rocblas_int                  n,
+                                                            const rocblas_float_complex* alpha,
+                                                            const rocblas_float_complex* A,
+                                                            rocblas_int                  lda,
+                                                            rocblas_stride               strideA,
+                                                            const rocblas_float_complex* x,
+                                                            rocblas_int                  incx,
+                                                            rocblas_stride               stridex,
+                                                            const rocblas_float_complex* beta,
+                                                            rocblas_float_complex*       y,
+                                                            rocblas_int                  incy,
+                                                            rocblas_stride               stridey,
+                                                            rocblas_int batch_count);
 
 /*! \brief BLAS Level 2 API
 
@@ -3375,57 +3380,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgemv_batched(rocblas_handle              
                 number of instances in the batch
 
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_sgemv_strided_batched(rocblas_handle    handle,
-                                                            rocblas_operation transA,
-                                                            rocblas_int       m,
-                                                            rocblas_int       n,
-                                                            const float*      alpha,
-                                                            const float*      A,
-                                                            rocblas_int       lda,
-                                                            rocblas_stride    strideA,
-                                                            const float*      x,
-                                                            rocblas_int       incx,
-                                                            rocblas_stride    stridex,
-                                                            const float*      beta,
-                                                            float*            y,
-                                                            rocblas_int       incy,
-                                                            rocblas_stride    stridey,
-                                                            rocblas_int       batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dgemv_strided_batched(rocblas_handle    handle,
-                                                            rocblas_operation transA,
-                                                            rocblas_int       m,
-                                                            rocblas_int       n,
-                                                            const double*     alpha,
-                                                            const double*     A,
-                                                            rocblas_int       lda,
-                                                            rocblas_stride    strideA,
-                                                            const double*     x,
-                                                            rocblas_int       incx,
-                                                            rocblas_stride    stridex,
-                                                            const double*     beta,
-                                                            double*           y,
-                                                            rocblas_int       incy,
-                                                            rocblas_stride    stridey,
-                                                            rocblas_int       batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_cgemv_strided_batched(rocblas_handle               handle,
-                                                            rocblas_operation            transA,
-                                                            rocblas_int                  m,
-                                                            rocblas_int                  n,
-                                                            const rocblas_float_complex* alpha,
-                                                            const rocblas_float_complex* A,
-                                                            rocblas_int                  lda,
-                                                            rocblas_stride               strideA,
-                                                            const rocblas_float_complex* x,
-                                                            rocblas_int                  incx,
-                                                            rocblas_stride               stridex,
-                                                            const rocblas_float_complex* beta,
-                                                            rocblas_float_complex*       y,
-                                                            rocblas_int                  incy,
-                                                            rocblas_stride               stridey,
-                                                            rocblas_int batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zgemv_strided_batched(rocblas_handle                handle,
                                                             rocblas_operation             transA,
                                                             rocblas_int                   m,
@@ -3442,6 +3396,19 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgemv_strided_batched(rocblas_handle      
                                                             rocblas_int                   incy,
                                                             rocblas_stride                stridey,
                                                             rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_chbmv(rocblas_handle               handle,
+                                            rocblas_fill                 uplo,
+                                            rocblas_int                  n,
+                                            rocblas_int                  k,
+                                            const rocblas_float_complex* alpha,
+                                            const rocblas_float_complex* A,
+                                            rocblas_int                  lda,
+                                            const rocblas_float_complex* x,
+                                            rocblas_int                  incx,
+                                            const rocblas_float_complex* beta,
+                                            rocblas_float_complex*       y,
+                                            rocblas_int                  incy);
 
 /*! \brief BLAS Level 2 API
 
@@ -3515,19 +3482,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgemv_strided_batched(rocblas_handle      
               specifies the increment for the elements of y.
 
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_chbmv(rocblas_handle               handle,
-                                            rocblas_fill                 uplo,
-                                            rocblas_int                  n,
-                                            rocblas_int                  k,
-                                            const rocblas_float_complex* alpha,
-                                            const rocblas_float_complex* A,
-                                            rocblas_int                  lda,
-                                            const rocblas_float_complex* x,
-                                            rocblas_int                  incx,
-                                            const rocblas_float_complex* beta,
-                                            rocblas_float_complex*       y,
-                                            rocblas_int                  incy);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zhbmv(rocblas_handle                handle,
                                             rocblas_fill                  uplo,
                                             rocblas_int                   n,
@@ -3540,6 +3494,20 @@ ROCBLAS_EXPORT rocblas_status rocblas_zhbmv(rocblas_handle                handle
                                             const rocblas_double_complex* beta,
                                             rocblas_double_complex*       y,
                                             rocblas_int                   incy);
+
+ROCBLAS_EXPORT rocblas_status rocblas_chbmv_batched(rocblas_handle                     handle,
+                                                    rocblas_fill                       uplo,
+                                                    rocblas_int                        n,
+                                                    rocblas_int                        k,
+                                                    const rocblas_float_complex*       alpha,
+                                                    const rocblas_float_complex* const A[],
+                                                    rocblas_int                        lda,
+                                                    const rocblas_float_complex* const x[],
+                                                    rocblas_int                        incx,
+                                                    const rocblas_float_complex*       beta,
+                                                    rocblas_float_complex* const       y[],
+                                                    rocblas_int                        incy,
+                                                    rocblas_int                        batch_count);
 
 /*! \brief BLAS Level 2 API
 
@@ -3616,20 +3584,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zhbmv(rocblas_handle                handle
                 number of instances in the batch.
 
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_chbmv_batched(rocblas_handle                     handle,
-                                                    rocblas_fill                       uplo,
-                                                    rocblas_int                        n,
-                                                    rocblas_int                        k,
-                                                    const rocblas_float_complex*       alpha,
-                                                    const rocblas_float_complex* const A[],
-                                                    rocblas_int                        lda,
-                                                    const rocblas_float_complex* const x[],
-                                                    rocblas_int                        incx,
-                                                    const rocblas_float_complex*       beta,
-                                                    rocblas_float_complex* const       y[],
-                                                    rocblas_int                        incy,
-                                                    rocblas_int                        batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zhbmv_batched(rocblas_handle                      handle,
                                                     rocblas_fill                        uplo,
                                                     rocblas_int                         n,
@@ -3643,6 +3597,23 @@ ROCBLAS_EXPORT rocblas_status rocblas_zhbmv_batched(rocblas_handle              
                                                     rocblas_double_complex* const       y[],
                                                     rocblas_int                         incy,
                                                     rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_chbmv_strided_batched(rocblas_handle               handle,
+                                                            rocblas_fill                 uplo,
+                                                            rocblas_int                  n,
+                                                            rocblas_int                  k,
+                                                            const rocblas_float_complex* alpha,
+                                                            const rocblas_float_complex* A,
+                                                            rocblas_int                  lda,
+                                                            rocblas_stride               stride_A,
+                                                            const rocblas_float_complex* x,
+                                                            rocblas_int                  incx,
+                                                            rocblas_stride               stride_x,
+                                                            const rocblas_float_complex* beta,
+                                                            rocblas_float_complex*       y,
+                                                            rocblas_int                  incy,
+                                                            rocblas_stride               stride_y,
+                                                            rocblas_int batch_count);
 
 /*! \brief BLAS Level 2 API
 
@@ -3728,23 +3699,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zhbmv_batched(rocblas_handle              
                 number of instances in the batch.
 
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_chbmv_strided_batched(rocblas_handle               handle,
-                                                            rocblas_fill                 uplo,
-                                                            rocblas_int                  n,
-                                                            rocblas_int                  k,
-                                                            const rocblas_float_complex* alpha,
-                                                            const rocblas_float_complex* A,
-                                                            rocblas_int                  lda,
-                                                            rocblas_stride               stride_A,
-                                                            const rocblas_float_complex* x,
-                                                            rocblas_int                  incx,
-                                                            rocblas_stride               stride_x,
-                                                            const rocblas_float_complex* beta,
-                                                            rocblas_float_complex*       y,
-                                                            rocblas_int                  incy,
-                                                            rocblas_stride               stride_y,
-                                                            rocblas_int batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zhbmv_strided_batched(rocblas_handle                handle,
                                                             rocblas_fill                  uplo,
                                                             rocblas_int                   n,
@@ -3761,6 +3715,18 @@ ROCBLAS_EXPORT rocblas_status rocblas_zhbmv_strided_batched(rocblas_handle      
                                                             rocblas_int                   incy,
                                                             rocblas_stride                stride_y,
                                                             rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_chemv(rocblas_handle               handle,
+                                            rocblas_fill                 uplo,
+                                            rocblas_int                  n,
+                                            const rocblas_float_complex* alpha,
+                                            const rocblas_float_complex* A,
+                                            rocblas_int                  lda,
+                                            const rocblas_float_complex* x,
+                                            rocblas_int                  incx,
+                                            const rocblas_float_complex* beta,
+                                            rocblas_float_complex*       y,
+                                            rocblas_int                  incy);
 
 /*! \brief BLAS Level 2 API
 
@@ -3813,18 +3779,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zhbmv_strided_batched(rocblas_handle      
               specifies the increment for the elements of y.
 
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_chemv(rocblas_handle               handle,
-                                            rocblas_fill                 uplo,
-                                            rocblas_int                  n,
-                                            const rocblas_float_complex* alpha,
-                                            const rocblas_float_complex* A,
-                                            rocblas_int                  lda,
-                                            const rocblas_float_complex* x,
-                                            rocblas_int                  incx,
-                                            const rocblas_float_complex* beta,
-                                            rocblas_float_complex*       y,
-                                            rocblas_int                  incy);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zhemv(rocblas_handle                handle,
                                             rocblas_fill                  uplo,
                                             rocblas_int                   n,
@@ -3836,6 +3790,19 @@ ROCBLAS_EXPORT rocblas_status rocblas_zhemv(rocblas_handle                handle
                                             const rocblas_double_complex* beta,
                                             rocblas_double_complex*       y,
                                             rocblas_int                   incy);
+
+ROCBLAS_EXPORT rocblas_status rocblas_chemv_batched(rocblas_handle                     handle,
+                                                    rocblas_fill                       uplo,
+                                                    rocblas_int                        n,
+                                                    const rocblas_float_complex*       alpha,
+                                                    const rocblas_float_complex* const A[],
+                                                    rocblas_int                        lda,
+                                                    const rocblas_float_complex* const x[],
+                                                    rocblas_int                        incx,
+                                                    const rocblas_float_complex*       beta,
+                                                    rocblas_float_complex* const       y[],
+                                                    rocblas_int                        incy,
+                                                    rocblas_int                        batch_count);
 
 /*! \brief BLAS Level 2 API
 
@@ -3891,19 +3858,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zhemv(rocblas_handle                handle
                 number of instances in the batch.
 
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_chemv_batched(rocblas_handle                     handle,
-                                                    rocblas_fill                       uplo,
-                                                    rocblas_int                        n,
-                                                    const rocblas_float_complex*       alpha,
-                                                    const rocblas_float_complex* const A[],
-                                                    rocblas_int                        lda,
-                                                    const rocblas_float_complex* const x[],
-                                                    rocblas_int                        incx,
-                                                    const rocblas_float_complex*       beta,
-                                                    rocblas_float_complex* const       y[],
-                                                    rocblas_int                        incy,
-                                                    rocblas_int                        batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zhemv_batched(rocblas_handle                      handle,
                                                     rocblas_fill                        uplo,
                                                     rocblas_int                         n,
@@ -3916,6 +3870,22 @@ ROCBLAS_EXPORT rocblas_status rocblas_zhemv_batched(rocblas_handle              
                                                     rocblas_double_complex* const       y[],
                                                     rocblas_int                         incy,
                                                     rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_chemv_strided_batched(rocblas_handle               handle,
+                                                            rocblas_fill                 uplo,
+                                                            rocblas_int                  n,
+                                                            const rocblas_float_complex* alpha,
+                                                            const rocblas_float_complex* A,
+                                                            rocblas_int                  lda,
+                                                            rocblas_stride               stride_A,
+                                                            const rocblas_float_complex* x,
+                                                            rocblas_int                  incx,
+                                                            rocblas_stride               stride_x,
+                                                            const rocblas_float_complex* beta,
+                                                            rocblas_float_complex*       y,
+                                                            rocblas_int                  incy,
+                                                            rocblas_stride               stride_y,
+                                                            rocblas_int batch_count);
 
 /*! \brief BLAS Level 2 API
 
@@ -3971,22 +3941,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zhemv_batched(rocblas_handle              
                 number of instances in the batch.
 
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_chemv_strided_batched(rocblas_handle               handle,
-                                                            rocblas_fill                 uplo,
-                                                            rocblas_int                  n,
-                                                            const rocblas_float_complex* alpha,
-                                                            const rocblas_float_complex* A,
-                                                            rocblas_int                  lda,
-                                                            rocblas_stride               stride_A,
-                                                            const rocblas_float_complex* x,
-                                                            rocblas_int                  incx,
-                                                            rocblas_stride               stride_x,
-                                                            const rocblas_float_complex* beta,
-                                                            rocblas_float_complex*       y,
-                                                            rocblas_int                  incy,
-                                                            rocblas_stride               stride_y,
-                                                            rocblas_int batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zhemv_strided_batched(rocblas_handle                handle,
                                                             rocblas_fill                  uplo,
                                                             rocblas_int                   n,
@@ -4002,6 +3956,15 @@ ROCBLAS_EXPORT rocblas_status rocblas_zhemv_strided_batched(rocblas_handle      
                                                             rocblas_int                   incy,
                                                             rocblas_stride                stride_y,
                                                             rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_cher(rocblas_handle               handle,
+                                           rocblas_fill                 uplo,
+                                           rocblas_int                  n,
+                                           const float*                 alpha,
+                                           const rocblas_float_complex* x,
+                                           rocblas_int                  incx,
+                                           rocblas_float_complex*       A,
+                                           rocblas_int                  lda);
 
 /*! \brief BLAS Level 2 API
 
@@ -4047,15 +4010,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zhemv_strided_batched(rocblas_handle      
     lda       [rocblas_int]
               specifies the leading dimension of A. Must be at least max(1, n).
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_cher(rocblas_handle               handle,
-                                           rocblas_fill                 uplo,
-                                           rocblas_int                  n,
-                                           const float*                 alpha,
-                                           const rocblas_float_complex* x,
-                                           rocblas_int                  incx,
-                                           rocblas_float_complex*       A,
-                                           rocblas_int                  lda);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zher(rocblas_handle                handle,
                                            rocblas_fill                  uplo,
                                            rocblas_int                   n,
@@ -4064,6 +4018,16 @@ ROCBLAS_EXPORT rocblas_status rocblas_zher(rocblas_handle                handle,
                                            rocblas_int                   incx,
                                            rocblas_double_complex*       A,
                                            rocblas_int                   lda);
+
+ROCBLAS_EXPORT rocblas_status rocblas_cher_batched(rocblas_handle                     handle,
+                                                   rocblas_fill                       uplo,
+                                                   rocblas_int                        n,
+                                                   const float*                       alpha,
+                                                   const rocblas_float_complex* const x[],
+                                                   rocblas_int                        incx,
+                                                   rocblas_float_complex* const       A[],
+                                                   rocblas_int                        lda,
+                                                   rocblas_int                        batch_count);
 
 /*! \brief BLAS Level 2 API
 
@@ -4112,16 +4076,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zher(rocblas_handle                handle,
     batch_count [rocblas_int]
                 number of instances in the batch.
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_cher_batched(rocblas_handle                     handle,
-                                                   rocblas_fill                       uplo,
-                                                   rocblas_int                        n,
-                                                   const float*                       alpha,
-                                                   const rocblas_float_complex* const x[],
-                                                   rocblas_int                        incx,
-                                                   rocblas_float_complex* const       A[],
-                                                   rocblas_int                        lda,
-                                                   rocblas_int                        batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zher_batched(rocblas_handle                      handle,
                                                    rocblas_fill                        uplo,
                                                    rocblas_int                         n,
@@ -4131,6 +4085,18 @@ ROCBLAS_EXPORT rocblas_status rocblas_zher_batched(rocblas_handle               
                                                    rocblas_double_complex* const       A[],
                                                    rocblas_int                         lda,
                                                    rocblas_int                         batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_cher_strided_batched(rocblas_handle               handle,
+                                                           rocblas_fill                 uplo,
+                                                           rocblas_int                  n,
+                                                           const float*                 alpha,
+                                                           const rocblas_float_complex* x,
+                                                           rocblas_int                  incx,
+                                                           rocblas_stride               stride_x,
+                                                           rocblas_float_complex*       A,
+                                                           rocblas_int                  lda,
+                                                           rocblas_stride               stride_A,
+                                                           rocblas_int batch_count);
 
 /*! \brief BLAS Level 2 API
 
@@ -4185,18 +4151,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zher_batched(rocblas_handle               
     batch_count [rocblas_int]
                 number of instances in the batch.
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_cher_strided_batched(rocblas_handle               handle,
-                                                           rocblas_fill                 uplo,
-                                                           rocblas_int                  n,
-                                                           const float*                 alpha,
-                                                           const rocblas_float_complex* x,
-                                                           rocblas_int                  incx,
-                                                           rocblas_stride               stride_x,
-                                                           rocblas_float_complex*       A,
-                                                           rocblas_int                  lda,
-                                                           rocblas_stride               stride_A,
-                                                           rocblas_int batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zher_strided_batched(rocblas_handle                handle,
                                                            rocblas_fill                  uplo,
                                                            rocblas_int                   n,
@@ -4208,6 +4162,17 @@ ROCBLAS_EXPORT rocblas_status rocblas_zher_strided_batched(rocblas_handle       
                                                            rocblas_int                   lda,
                                                            rocblas_stride                stride_A,
                                                            rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_cher2(rocblas_handle               handle,
+                                            rocblas_fill                 uplo,
+                                            rocblas_int                  n,
+                                            const rocblas_float_complex* alpha,
+                                            const rocblas_float_complex* x,
+                                            rocblas_int                  incx,
+                                            const rocblas_float_complex* y,
+                                            rocblas_int                  incy,
+                                            rocblas_float_complex*       A,
+                                            rocblas_int                  lda);
 
 /*! \brief BLAS Level 2 API
 
@@ -4258,17 +4223,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zher_strided_batched(rocblas_handle       
     lda       [rocblas_int]
               specifies the leading dimension of A. Must be at least max(lda, 1).
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_cher2(rocblas_handle               handle,
-                                            rocblas_fill                 uplo,
-                                            rocblas_int                  n,
-                                            const rocblas_float_complex* alpha,
-                                            const rocblas_float_complex* x,
-                                            rocblas_int                  incx,
-                                            const rocblas_float_complex* y,
-                                            rocblas_int                  incy,
-                                            rocblas_float_complex*       A,
-                                            rocblas_int                  lda);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zher2(rocblas_handle                handle,
                                             rocblas_fill                  uplo,
                                             rocblas_int                   n,
@@ -4279,6 +4233,18 @@ ROCBLAS_EXPORT rocblas_status rocblas_zher2(rocblas_handle                handle
                                             rocblas_int                   incy,
                                             rocblas_double_complex*       A,
                                             rocblas_int                   lda);
+
+ROCBLAS_EXPORT rocblas_status rocblas_cher2_batched(rocblas_handle                     handle,
+                                                    rocblas_fill                       uplo,
+                                                    rocblas_int                        n,
+                                                    const rocblas_float_complex*       alpha,
+                                                    const rocblas_float_complex* const x[],
+                                                    rocblas_int                        incx,
+                                                    const rocblas_float_complex* const y[],
+                                                    rocblas_int                        incy,
+                                                    rocblas_float_complex* const       A[],
+                                                    rocblas_int                        lda,
+                                                    rocblas_int                        batch_count);
 
 /*! \brief BLAS Level 2 API
 
@@ -4332,18 +4298,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zher2(rocblas_handle                handle
     batch_count [rocblas_int]
                 number of instances in the batch.
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_cher2_batched(rocblas_handle                     handle,
-                                                    rocblas_fill                       uplo,
-                                                    rocblas_int                        n,
-                                                    const rocblas_float_complex*       alpha,
-                                                    const rocblas_float_complex* const x[],
-                                                    rocblas_int                        incx,
-                                                    const rocblas_float_complex* const y[],
-                                                    rocblas_int                        incy,
-                                                    rocblas_float_complex* const       A[],
-                                                    rocblas_int                        lda,
-                                                    rocblas_int                        batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zher2_batched(rocblas_handle                      handle,
                                                     rocblas_fill                        uplo,
                                                     rocblas_int                         n,
@@ -4356,6 +4310,20 @@ ROCBLAS_EXPORT rocblas_status rocblas_zher2_batched(rocblas_handle              
                                                     rocblas_int                         lda,
                                                     rocblas_int batch_count);
 
+ROCBLAS_EXPORT rocblas_status rocblas_cher2_strided_batched(rocblas_handle               handle,
+                                                            rocblas_fill                 uplo,
+                                                            rocblas_int                  n,
+                                                            const rocblas_float_complex* alpha,
+                                                            const rocblas_float_complex* x,
+                                                            rocblas_int                  incx,
+                                                            rocblas_stride               stride_x,
+                                                            const rocblas_float_complex* y,
+                                                            rocblas_int                  incy,
+                                                            rocblas_stride               stride_y,
+                                                            rocblas_float_complex*       A,
+                                                            rocblas_int                  lda,
+                                                            rocblas_stride               stride_A,
+                                                            rocblas_int batch_count);
 /*! \brief BLAS Level 2 API
 
     \details
@@ -4417,20 +4385,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zher2_batched(rocblas_handle              
     batch_count [rocblas_int]
                 number of instances in the batch.
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_cher2_strided_batched(rocblas_handle               handle,
-                                                            rocblas_fill                 uplo,
-                                                            rocblas_int                  n,
-                                                            const rocblas_float_complex* alpha,
-                                                            const rocblas_float_complex* x,
-                                                            rocblas_int                  incx,
-                                                            rocblas_stride               stride_x,
-                                                            const rocblas_float_complex* y,
-                                                            rocblas_int                  incy,
-                                                            rocblas_stride               stride_y,
-                                                            rocblas_float_complex*       A,
-                                                            rocblas_int                  lda,
-                                                            rocblas_stride               stride_A,
-                                                            rocblas_int batch_count);
 
 ROCBLAS_EXPORT rocblas_status rocblas_zher2_strided_batched(rocblas_handle                handle,
                                                             rocblas_fill                  uplo,
@@ -4446,6 +4400,17 @@ ROCBLAS_EXPORT rocblas_status rocblas_zher2_strided_batched(rocblas_handle      
                                                             rocblas_int                   lda,
                                                             rocblas_stride                stride_A,
                                                             rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_chpmv(rocblas_handle               handle,
+                                            rocblas_fill                 uplo,
+                                            rocblas_int                  n,
+                                            const rocblas_float_complex* alpha,
+                                            const rocblas_float_complex* AP,
+                                            const rocblas_float_complex* x,
+                                            rocblas_int                  incx,
+                                            const rocblas_float_complex* beta,
+                                            rocblas_float_complex*       y,
+                                            rocblas_int                  incy);
 
 /*! \brief BLAS Level 2 API
 
@@ -4510,17 +4475,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zher2_strided_batched(rocblas_handle      
               specifies the increment for the elements of y.
 
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_chpmv(rocblas_handle               handle,
-                                            rocblas_fill                 uplo,
-                                            rocblas_int                  n,
-                                            const rocblas_float_complex* alpha,
-                                            const rocblas_float_complex* AP,
-                                            const rocblas_float_complex* x,
-                                            rocblas_int                  incx,
-                                            const rocblas_float_complex* beta,
-                                            rocblas_float_complex*       y,
-                                            rocblas_int                  incy);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zhpmv(rocblas_handle                handle,
                                             rocblas_fill                  uplo,
                                             rocblas_int                   n,
@@ -4531,6 +4485,18 @@ ROCBLAS_EXPORT rocblas_status rocblas_zhpmv(rocblas_handle                handle
                                             const rocblas_double_complex* beta,
                                             rocblas_double_complex*       y,
                                             rocblas_int                   incy);
+
+ROCBLAS_EXPORT rocblas_status rocblas_chpmv_batched(rocblas_handle                     handle,
+                                                    rocblas_fill                       uplo,
+                                                    rocblas_int                        n,
+                                                    const rocblas_float_complex*       alpha,
+                                                    const rocblas_float_complex* const AP[],
+                                                    const rocblas_float_complex* const x[],
+                                                    rocblas_int                        incx,
+                                                    const rocblas_float_complex*       beta,
+                                                    rocblas_float_complex* const       y[],
+                                                    rocblas_int                        incy,
+                                                    rocblas_int                        batch_count);
 
 /*! \brief BLAS Level 2 API
 
@@ -4599,18 +4565,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zhpmv(rocblas_handle                handle
                 number of instances in the batch.
 
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_chpmv_batched(rocblas_handle                     handle,
-                                                    rocblas_fill                       uplo,
-                                                    rocblas_int                        n,
-                                                    const rocblas_float_complex*       alpha,
-                                                    const rocblas_float_complex* const AP[],
-                                                    const rocblas_float_complex* const x[],
-                                                    rocblas_int                        incx,
-                                                    const rocblas_float_complex*       beta,
-                                                    rocblas_float_complex* const       y[],
-                                                    rocblas_int                        incy,
-                                                    rocblas_int                        batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zhpmv_batched(rocblas_handle                      handle,
                                                     rocblas_fill                        uplo,
                                                     rocblas_int                         n,
@@ -4622,6 +4576,21 @@ ROCBLAS_EXPORT rocblas_status rocblas_zhpmv_batched(rocblas_handle              
                                                     rocblas_double_complex* const       y[],
                                                     rocblas_int                         incy,
                                                     rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_chpmv_strided_batched(rocblas_handle               handle,
+                                                            rocblas_fill                 uplo,
+                                                            rocblas_int                  n,
+                                                            const rocblas_float_complex* alpha,
+                                                            const rocblas_float_complex* AP,
+                                                            rocblas_stride               stride_A,
+                                                            const rocblas_float_complex* x,
+                                                            rocblas_int                  incx,
+                                                            rocblas_stride               stride_x,
+                                                            const rocblas_float_complex* beta,
+                                                            rocblas_float_complex*       y,
+                                                            rocblas_int                  incy,
+                                                            rocblas_stride               stride_y,
+                                                            rocblas_int batch_count);
 
 /*! \brief BLAS Level 2 API
 
@@ -4699,21 +4668,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zhpmv_batched(rocblas_handle              
                 number of instances in the batch.
 
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_chpmv_strided_batched(rocblas_handle               handle,
-                                                            rocblas_fill                 uplo,
-                                                            rocblas_int                  n,
-                                                            const rocblas_float_complex* alpha,
-                                                            const rocblas_float_complex* AP,
-                                                            rocblas_stride               stride_A,
-                                                            const rocblas_float_complex* x,
-                                                            rocblas_int                  incx,
-                                                            rocblas_stride               stride_x,
-                                                            const rocblas_float_complex* beta,
-                                                            rocblas_float_complex*       y,
-                                                            rocblas_int                  incy,
-                                                            rocblas_stride               stride_y,
-                                                            rocblas_int batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zhpmv_strided_batched(rocblas_handle                handle,
                                                             rocblas_fill                  uplo,
                                                             rocblas_int                   n,
@@ -4728,6 +4682,14 @@ ROCBLAS_EXPORT rocblas_status rocblas_zhpmv_strided_batched(rocblas_handle      
                                                             rocblas_int                   incy,
                                                             rocblas_stride                stride_y,
                                                             rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_chpr(rocblas_handle               handle,
+                                           rocblas_fill                 uplo,
+                                           rocblas_int                  n,
+                                           const float*                 alpha,
+                                           const rocblas_float_complex* x,
+                                           rocblas_int                  incx,
+                                           rocblas_float_complex*       AP);
 
 /*! \brief BLAS Level 2 API
 
@@ -4786,14 +4748,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zhpmv_strided_batched(rocblas_handle      
             Note that the imaginary part of the diagonal elements are not accessed and are assumed
             to be 0.
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_chpr(rocblas_handle               handle,
-                                           rocblas_fill                 uplo,
-                                           rocblas_int                  n,
-                                           const float*                 alpha,
-                                           const rocblas_float_complex* x,
-                                           rocblas_int                  incx,
-                                           rocblas_float_complex*       AP);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zhpr(rocblas_handle                handle,
                                            rocblas_fill                  uplo,
                                            rocblas_int                   n,
@@ -4801,6 +4755,15 @@ ROCBLAS_EXPORT rocblas_status rocblas_zhpr(rocblas_handle                handle,
                                            const rocblas_double_complex* x,
                                            rocblas_int                   incx,
                                            rocblas_double_complex*       AP);
+
+ROCBLAS_EXPORT rocblas_status rocblas_chpr_batched(rocblas_handle                     handle,
+                                                   rocblas_fill                       uplo,
+                                                   rocblas_int                        n,
+                                                   const float*                       alpha,
+                                                   const rocblas_float_complex* const x[],
+                                                   rocblas_int                        incx,
+                                                   rocblas_float_complex* const       AP[],
+                                                   rocblas_int                        batch_count);
 
 /*! \brief BLAS Level 2 API
 
@@ -4862,15 +4825,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zhpr(rocblas_handle                handle,
     batch_count [rocblas_int]
                 number of instances in the batch.
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_chpr_batched(rocblas_handle                     handle,
-                                                   rocblas_fill                       uplo,
-                                                   rocblas_int                        n,
-                                                   const float*                       alpha,
-                                                   const rocblas_float_complex* const x[],
-                                                   rocblas_int                        incx,
-                                                   rocblas_float_complex* const       AP[],
-                                                   rocblas_int                        batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zhpr_batched(rocblas_handle                      handle,
                                                    rocblas_fill                        uplo,
                                                    rocblas_int                         n,
@@ -4879,6 +4833,17 @@ ROCBLAS_EXPORT rocblas_status rocblas_zhpr_batched(rocblas_handle               
                                                    rocblas_int                         incx,
                                                    rocblas_double_complex* const       AP[],
                                                    rocblas_int                         batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_chpr_strided_batched(rocblas_handle               handle,
+                                                           rocblas_fill                 uplo,
+                                                           rocblas_int                  n,
+                                                           const float*                 alpha,
+                                                           const rocblas_float_complex* x,
+                                                           rocblas_int                  incx,
+                                                           rocblas_stride               stride_x,
+                                                           rocblas_float_complex*       AP,
+                                                           rocblas_stride               stride_A,
+                                                           rocblas_int batch_count);
 
 /*! \brief BLAS Level 2 API
 
@@ -4946,17 +4911,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zhpr_batched(rocblas_handle               
     batch_count [rocblas_int]
                 number of instances in the batch.
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_chpr_strided_batched(rocblas_handle               handle,
-                                                           rocblas_fill                 uplo,
-                                                           rocblas_int                  n,
-                                                           const float*                 alpha,
-                                                           const rocblas_float_complex* x,
-                                                           rocblas_int                  incx,
-                                                           rocblas_stride               stride_x,
-                                                           rocblas_float_complex*       AP,
-                                                           rocblas_stride               stride_A,
-                                                           rocblas_int batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zhpr_strided_batched(rocblas_handle                handle,
                                                            rocblas_fill                  uplo,
                                                            rocblas_int                   n,
@@ -4967,6 +4921,16 @@ ROCBLAS_EXPORT rocblas_status rocblas_zhpr_strided_batched(rocblas_handle       
                                                            rocblas_double_complex*       AP,
                                                            rocblas_stride                stride_A,
                                                            rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_chpr2(rocblas_handle               handle,
+                                            rocblas_fill                 uplo,
+                                            rocblas_int                  n,
+                                            const rocblas_float_complex* alpha,
+                                            const rocblas_float_complex* x,
+                                            rocblas_int                  incx,
+                                            const rocblas_float_complex* y,
+                                            rocblas_int                  incy,
+                                            rocblas_float_complex*       AP);
 
 /*! \brief BLAS Level 2 API
 
@@ -5030,16 +4994,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zhpr_strided_batched(rocblas_handle       
             Note that the imaginary part of the diagonal elements are not accessed and are assumed
             to be 0.
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_chpr2(rocblas_handle               handle,
-                                            rocblas_fill                 uplo,
-                                            rocblas_int                  n,
-                                            const rocblas_float_complex* alpha,
-                                            const rocblas_float_complex* x,
-                                            rocblas_int                  incx,
-                                            const rocblas_float_complex* y,
-                                            rocblas_int                  incy,
-                                            rocblas_float_complex*       AP);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zhpr2(rocblas_handle                handle,
                                             rocblas_fill                  uplo,
                                             rocblas_int                   n,
@@ -5049,6 +5003,17 @@ ROCBLAS_EXPORT rocblas_status rocblas_zhpr2(rocblas_handle                handle
                                             const rocblas_double_complex* y,
                                             rocblas_int                   incy,
                                             rocblas_double_complex*       AP);
+
+ROCBLAS_EXPORT rocblas_status rocblas_chpr2_batched(rocblas_handle                     handle,
+                                                    rocblas_fill                       uplo,
+                                                    rocblas_int                        n,
+                                                    const rocblas_float_complex*       alpha,
+                                                    const rocblas_float_complex* const x[],
+                                                    rocblas_int                        incx,
+                                                    const rocblas_float_complex* const y[],
+                                                    rocblas_int                        incy,
+                                                    rocblas_float_complex* const       AP[],
+                                                    rocblas_int                        batch_count);
 
 /*! \brief BLAS Level 2 API
 
@@ -5115,17 +5080,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zhpr2(rocblas_handle                handle
     batch_count [rocblas_int]
                 number of instances in the batch.
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_chpr2_batched(rocblas_handle                     handle,
-                                                    rocblas_fill                       uplo,
-                                                    rocblas_int                        n,
-                                                    const rocblas_float_complex*       alpha,
-                                                    const rocblas_float_complex* const x[],
-                                                    rocblas_int                        incx,
-                                                    const rocblas_float_complex* const y[],
-                                                    rocblas_int                        incy,
-                                                    rocblas_float_complex* const       AP[],
-                                                    rocblas_int                        batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zhpr2_batched(rocblas_handle                      handle,
                                                     rocblas_fill                        uplo,
                                                     rocblas_int                         n,
@@ -5137,6 +5091,19 @@ ROCBLAS_EXPORT rocblas_status rocblas_zhpr2_batched(rocblas_handle              
                                                     rocblas_double_complex* const       AP[],
                                                     rocblas_int batch_count);
 
+ROCBLAS_EXPORT rocblas_status rocblas_chpr2_strided_batched(rocblas_handle               handle,
+                                                            rocblas_fill                 uplo,
+                                                            rocblas_int                  n,
+                                                            const rocblas_float_complex* alpha,
+                                                            const rocblas_float_complex* x,
+                                                            rocblas_int                  incx,
+                                                            rocblas_stride               stride_x,
+                                                            const rocblas_float_complex* y,
+                                                            rocblas_int                  incy,
+                                                            rocblas_stride               stride_y,
+                                                            rocblas_float_complex*       AP,
+                                                            rocblas_stride               stride_A,
+                                                            rocblas_int batch_count);
 /*! \brief BLAS Level 2 API
 
     \details
@@ -5211,20 +5178,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zhpr2_batched(rocblas_handle              
     batch_count [rocblas_int]
                 number of instances in the batch.
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_chpr2_strided_batched(rocblas_handle               handle,
-                                                            rocblas_fill                 uplo,
-                                                            rocblas_int                  n,
-                                                            const rocblas_float_complex* alpha,
-                                                            const rocblas_float_complex* x,
-                                                            rocblas_int                  incx,
-                                                            rocblas_stride               stride_x,
-                                                            const rocblas_float_complex* y,
-                                                            rocblas_int                  incy,
-                                                            rocblas_stride               stride_y,
-                                                            rocblas_float_complex*       AP,
-                                                            rocblas_stride               stride_A,
-                                                            rocblas_int batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zhpr2_strided_batched(rocblas_handle                handle,
                                                             rocblas_fill                  uplo,
                                                             rocblas_int                   n,
@@ -5238,6 +5191,36 @@ ROCBLAS_EXPORT rocblas_status rocblas_zhpr2_strided_batched(rocblas_handle      
                                                             rocblas_double_complex*       AP,
                                                             rocblas_stride                stride_A,
                                                             rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_strmv(rocblas_handle    handle,
+                                            rocblas_fill      uplo,
+                                            rocblas_operation transA,
+                                            rocblas_diagonal  diag,
+                                            rocblas_int       m,
+                                            const float*      A,
+                                            rocblas_int       lda,
+                                            float*            x,
+                                            rocblas_int       incx);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dtrmv(rocblas_handle    handle,
+                                            rocblas_fill      uplo,
+                                            rocblas_operation transA,
+                                            rocblas_diagonal  diag,
+                                            rocblas_int       m,
+                                            const double*     A,
+                                            rocblas_int       lda,
+                                            double*           x,
+                                            rocblas_int       incx);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ctrmv(rocblas_handle               handle,
+                                            rocblas_fill                 uplo,
+                                            rocblas_operation            transA,
+                                            rocblas_diagonal             diag,
+                                            rocblas_int                  m,
+                                            const rocblas_float_complex* A,
+                                            rocblas_int                  lda,
+                                            rocblas_float_complex*       x,
+                                            rocblas_int                  incx);
 
 /*! \brief BLAS Level 2 API
 
@@ -5288,36 +5271,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zhpr2_strided_batched(rocblas_handle      
               specifies the increment for the elements of x.
 
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_strmv(rocblas_handle    handle,
-                                            rocblas_fill      uplo,
-                                            rocblas_operation transA,
-                                            rocblas_diagonal  diag,
-                                            rocblas_int       m,
-                                            const float*      A,
-                                            rocblas_int       lda,
-                                            float*            x,
-                                            rocblas_int       incx);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dtrmv(rocblas_handle    handle,
-                                            rocblas_fill      uplo,
-                                            rocblas_operation transA,
-                                            rocblas_diagonal  diag,
-                                            rocblas_int       m,
-                                            const double*     A,
-                                            rocblas_int       lda,
-                                            double*           x,
-                                            rocblas_int       incx);
-
-ROCBLAS_EXPORT rocblas_status rocblas_ctrmv(rocblas_handle               handle,
-                                            rocblas_fill                 uplo,
-                                            rocblas_operation            transA,
-                                            rocblas_diagonal             diag,
-                                            rocblas_int                  m,
-                                            const rocblas_float_complex* A,
-                                            rocblas_int                  lda,
-                                            rocblas_float_complex*       x,
-                                            rocblas_int                  incx);
-
 ROCBLAS_EXPORT rocblas_status rocblas_ztrmv(rocblas_handle                handle,
                                             rocblas_fill                  uplo,
                                             rocblas_operation             transA,
@@ -5327,6 +5280,39 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrmv(rocblas_handle                handle
                                             rocblas_int                   lda,
                                             rocblas_double_complex*       x,
                                             rocblas_int                   incx);
+
+ROCBLAS_EXPORT rocblas_status rocblas_strmv_batched(rocblas_handle      handle,
+                                                    rocblas_fill        uplo,
+                                                    rocblas_operation   transA,
+                                                    rocblas_diagonal    diag,
+                                                    rocblas_int         m,
+                                                    const float* const* A,
+                                                    rocblas_int         lda,
+                                                    float* const*       x,
+                                                    rocblas_int         incx,
+                                                    rocblas_int         batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dtrmv_batched(rocblas_handle       handle,
+                                                    rocblas_fill         uplo,
+                                                    rocblas_operation    transA,
+                                                    rocblas_diagonal     diag,
+                                                    rocblas_int          m,
+                                                    const double* const* A,
+                                                    rocblas_int          lda,
+                                                    double* const*       x,
+                                                    rocblas_int          incx,
+                                                    rocblas_int          batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ctrmv_batched(rocblas_handle                      handle,
+                                                    rocblas_fill                        uplo,
+                                                    rocblas_operation                   transA,
+                                                    rocblas_diagonal                    diag,
+                                                    rocblas_int                         m,
+                                                    const rocblas_float_complex* const* A,
+                                                    rocblas_int                         lda,
+                                                    rocblas_float_complex* const*       x,
+                                                    rocblas_int                         incx,
+                                                    rocblas_int batch_count);
 
 /*! \brief BLAS Level 2 API
 
@@ -5382,39 +5368,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrmv(rocblas_handle                handle
 
 
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_strmv_batched(rocblas_handle      handle,
-                                                    rocblas_fill        uplo,
-                                                    rocblas_operation   transA,
-                                                    rocblas_diagonal    diag,
-                                                    rocblas_int         m,
-                                                    const float* const* A,
-                                                    rocblas_int         lda,
-                                                    float* const*       x,
-                                                    rocblas_int         incx,
-                                                    rocblas_int         batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dtrmv_batched(rocblas_handle       handle,
-                                                    rocblas_fill         uplo,
-                                                    rocblas_operation    transA,
-                                                    rocblas_diagonal     diag,
-                                                    rocblas_int          m,
-                                                    const double* const* A,
-                                                    rocblas_int          lda,
-                                                    double* const*       x,
-                                                    rocblas_int          incx,
-                                                    rocblas_int          batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_ctrmv_batched(rocblas_handle                      handle,
-                                                    rocblas_fill                        uplo,
-                                                    rocblas_operation                   transA,
-                                                    rocblas_diagonal                    diag,
-                                                    rocblas_int                         m,
-                                                    const rocblas_float_complex* const* A,
-                                                    rocblas_int                         lda,
-                                                    rocblas_float_complex* const*       x,
-                                                    rocblas_int                         incx,
-                                                    rocblas_int batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_ztrmv_batched(rocblas_handle                       handle,
                                                     rocblas_fill                         uplo,
                                                     rocblas_operation                    transA,
@@ -5425,6 +5378,45 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrmv_batched(rocblas_handle              
                                                     rocblas_double_complex* const*       x,
                                                     rocblas_int                          incx,
                                                     rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_strmv_strided_batched(rocblas_handle    handle,
+                                                            rocblas_fill      uplo,
+                                                            rocblas_operation transA,
+                                                            rocblas_diagonal  diag,
+                                                            rocblas_int       m,
+                                                            const float*      A,
+                                                            rocblas_int       lda,
+                                                            rocblas_stride    stridea,
+                                                            float*            x,
+                                                            rocblas_int       incx,
+                                                            rocblas_stride    stridex,
+                                                            rocblas_int       batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dtrmv_strided_batched(rocblas_handle    handle,
+                                                            rocblas_fill      uplo,
+                                                            rocblas_operation transA,
+                                                            rocblas_diagonal  diag,
+                                                            rocblas_int       m,
+                                                            const double*     A,
+                                                            rocblas_int       lda,
+                                                            rocblas_stride    stridea,
+                                                            double*           x,
+                                                            rocblas_int       incx,
+                                                            rocblas_stride    stridex,
+                                                            rocblas_int       batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ctrmv_strided_batched(rocblas_handle               handle,
+                                                            rocblas_fill                 uplo,
+                                                            rocblas_operation            transA,
+                                                            rocblas_diagonal             diag,
+                                                            rocblas_int                  m,
+                                                            const rocblas_float_complex* A,
+                                                            rocblas_int                  lda,
+                                                            rocblas_stride               stridea,
+                                                            rocblas_float_complex*       x,
+                                                            rocblas_int                  incx,
+                                                            rocblas_stride               stridex,
+                                                            rocblas_int batch_count);
 
 /*! \brief BLAS Level 2 API
 
@@ -5489,45 +5481,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrmv_batched(rocblas_handle              
 
 
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_strmv_strided_batched(rocblas_handle    handle,
-                                                            rocblas_fill      uplo,
-                                                            rocblas_operation transA,
-                                                            rocblas_diagonal  diag,
-                                                            rocblas_int       m,
-                                                            const float*      A,
-                                                            rocblas_int       lda,
-                                                            rocblas_stride    stridea,
-                                                            float*            x,
-                                                            rocblas_int       incx,
-                                                            rocblas_stride    stridex,
-                                                            rocblas_int       batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dtrmv_strided_batched(rocblas_handle    handle,
-                                                            rocblas_fill      uplo,
-                                                            rocblas_operation transA,
-                                                            rocblas_diagonal  diag,
-                                                            rocblas_int       m,
-                                                            const double*     A,
-                                                            rocblas_int       lda,
-                                                            rocblas_stride    stridea,
-                                                            double*           x,
-                                                            rocblas_int       incx,
-                                                            rocblas_stride    stridex,
-                                                            rocblas_int       batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_ctrmv_strided_batched(rocblas_handle               handle,
-                                                            rocblas_fill                 uplo,
-                                                            rocblas_operation            transA,
-                                                            rocblas_diagonal             diag,
-                                                            rocblas_int                  m,
-                                                            const rocblas_float_complex* A,
-                                                            rocblas_int                  lda,
-                                                            rocblas_stride               stridea,
-                                                            rocblas_float_complex*       x,
-                                                            rocblas_int                  incx,
-                                                            rocblas_stride               stridex,
-                                                            rocblas_int batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_ztrmv_strided_batched(rocblas_handle                handle,
                                                             rocblas_fill                  uplo,
                                                             rocblas_operation             transA,
@@ -5541,6 +5494,32 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrmv_strided_batched(rocblas_handle      
                                                             rocblas_stride                stridex,
                                                             rocblas_int batch_count);
 
+ROCBLAS_EXPORT rocblas_status rocblas_stpmv(rocblas_handle    handle,
+                                            rocblas_fill      uplo,
+                                            rocblas_operation transA,
+                                            rocblas_diagonal  diag,
+                                            rocblas_int       m,
+                                            const float*      A,
+                                            float*            x,
+                                            rocblas_int       incx);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dtpmv(rocblas_handle    handle,
+                                            rocblas_fill      uplo,
+                                            rocblas_operation transA,
+                                            rocblas_diagonal  diag,
+                                            rocblas_int       m,
+                                            const double*     A,
+                                            double*           x,
+                                            rocblas_int       incx);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ctpmv(rocblas_handle               handle,
+                                            rocblas_fill                 uplo,
+                                            rocblas_operation            transA,
+                                            rocblas_diagonal             diag,
+                                            rocblas_int                  m,
+                                            const rocblas_float_complex* A,
+                                            rocblas_float_complex*       x,
+                                            rocblas_int                  incx);
 /*! \brief BLAS Level 2 API
 
     \details
@@ -5595,32 +5574,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrmv_strided_batched(rocblas_handle      
             specifies the increment for the elements of x. incx must not be zero.
 
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_stpmv(rocblas_handle    handle,
-                                            rocblas_fill      uplo,
-                                            rocblas_operation transA,
-                                            rocblas_diagonal  diag,
-                                            rocblas_int       m,
-                                            const float*      A,
-                                            float*            x,
-                                            rocblas_int       incx);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dtpmv(rocblas_handle    handle,
-                                            rocblas_fill      uplo,
-                                            rocblas_operation transA,
-                                            rocblas_diagonal  diag,
-                                            rocblas_int       m,
-                                            const double*     A,
-                                            double*           x,
-                                            rocblas_int       incx);
-
-ROCBLAS_EXPORT rocblas_status rocblas_ctpmv(rocblas_handle               handle,
-                                            rocblas_fill                 uplo,
-                                            rocblas_operation            transA,
-                                            rocblas_diagonal             diag,
-                                            rocblas_int                  m,
-                                            const rocblas_float_complex* A,
-                                            rocblas_float_complex*       x,
-                                            rocblas_int                  incx);
 
 ROCBLAS_EXPORT rocblas_status rocblas_ztpmv(rocblas_handle                handle,
                                             rocblas_fill                  uplo,
@@ -5630,6 +5583,36 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztpmv(rocblas_handle                handle
                                             const rocblas_double_complex* A,
                                             rocblas_double_complex*       x,
                                             rocblas_int                   incx);
+
+ROCBLAS_EXPORT rocblas_status rocblas_stpmv_batched(rocblas_handle      handle,
+                                                    rocblas_fill        uplo,
+                                                    rocblas_operation   transA,
+                                                    rocblas_diagonal    diag,
+                                                    rocblas_int         m,
+                                                    const float* const* A,
+                                                    float* const*       x,
+                                                    rocblas_int         incx,
+                                                    rocblas_int         batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dtpmv_batched(rocblas_handle       handle,
+                                                    rocblas_fill         uplo,
+                                                    rocblas_operation    transA,
+                                                    rocblas_diagonal     diag,
+                                                    rocblas_int          m,
+                                                    const double* const* A,
+                                                    double* const*       x,
+                                                    rocblas_int          incx,
+                                                    rocblas_int          batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ctpmv_batched(rocblas_handle                      handle,
+                                                    rocblas_fill                        uplo,
+                                                    rocblas_operation                   transA,
+                                                    rocblas_diagonal                    diag,
+                                                    rocblas_int                         m,
+                                                    const rocblas_float_complex* const* A,
+                                                    rocblas_float_complex* const*       x,
+                                                    rocblas_int                         incx,
+                                                    rocblas_int batch_count);
 
 /*! \brief BLAS Level 2 API
 
@@ -5680,36 +5663,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztpmv(rocblas_handle                handle
 
 
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_stpmv_batched(rocblas_handle      handle,
-                                                    rocblas_fill        uplo,
-                                                    rocblas_operation   transA,
-                                                    rocblas_diagonal    diag,
-                                                    rocblas_int         m,
-                                                    const float* const* A,
-                                                    float* const*       x,
-                                                    rocblas_int         incx,
-                                                    rocblas_int         batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dtpmv_batched(rocblas_handle       handle,
-                                                    rocblas_fill         uplo,
-                                                    rocblas_operation    transA,
-                                                    rocblas_diagonal     diag,
-                                                    rocblas_int          m,
-                                                    const double* const* A,
-                                                    double* const*       x,
-                                                    rocblas_int          incx,
-                                                    rocblas_int          batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_ctpmv_batched(rocblas_handle                      handle,
-                                                    rocblas_fill                        uplo,
-                                                    rocblas_operation                   transA,
-                                                    rocblas_diagonal                    diag,
-                                                    rocblas_int                         m,
-                                                    const rocblas_float_complex* const* A,
-                                                    rocblas_float_complex* const*       x,
-                                                    rocblas_int                         incx,
-                                                    rocblas_int batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_ztpmv_batched(rocblas_handle                       handle,
                                                     rocblas_fill                         uplo,
                                                     rocblas_operation                    transA,
@@ -5720,6 +5673,41 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztpmv_batched(rocblas_handle              
                                                     rocblas_int                          incx,
                                                     rocblas_int batch_count);
 
+ROCBLAS_EXPORT rocblas_status rocblas_stpmv_strided_batched(rocblas_handle    handle,
+                                                            rocblas_fill      uplo,
+                                                            rocblas_operation transA,
+                                                            rocblas_diagonal  diag,
+                                                            rocblas_int       m,
+                                                            const float*      A,
+                                                            rocblas_stride    stridea,
+                                                            float*            x,
+                                                            rocblas_int       incx,
+                                                            rocblas_stride    stridex,
+                                                            rocblas_int       batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dtpmv_strided_batched(rocblas_handle    handle,
+                                                            rocblas_fill      uplo,
+                                                            rocblas_operation transA,
+                                                            rocblas_diagonal  diag,
+                                                            rocblas_int       m,
+                                                            const double*     A,
+                                                            rocblas_stride    stridea,
+                                                            double*           x,
+                                                            rocblas_int       incx,
+                                                            rocblas_stride    stridex,
+                                                            rocblas_int       batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ctpmv_strided_batched(rocblas_handle               handle,
+                                                            rocblas_fill                 uplo,
+                                                            rocblas_operation            transA,
+                                                            rocblas_diagonal             diag,
+                                                            rocblas_int                  m,
+                                                            const rocblas_float_complex* A,
+                                                            rocblas_stride               stridea,
+                                                            rocblas_float_complex*       x,
+                                                            rocblas_int                  incx,
+                                                            rocblas_stride               stridex,
+                                                            rocblas_int batch_count);
 /*! \brief BLAS Level 2 API
 
     \details
@@ -5778,41 +5766,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztpmv_batched(rocblas_handle              
 
 
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_stpmv_strided_batched(rocblas_handle    handle,
-                                                            rocblas_fill      uplo,
-                                                            rocblas_operation transA,
-                                                            rocblas_diagonal  diag,
-                                                            rocblas_int       m,
-                                                            const float*      A,
-                                                            rocblas_stride    stridea,
-                                                            float*            x,
-                                                            rocblas_int       incx,
-                                                            rocblas_stride    stridex,
-                                                            rocblas_int       batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dtpmv_strided_batched(rocblas_handle    handle,
-                                                            rocblas_fill      uplo,
-                                                            rocblas_operation transA,
-                                                            rocblas_diagonal  diag,
-                                                            rocblas_int       m,
-                                                            const double*     A,
-                                                            rocblas_stride    stridea,
-                                                            double*           x,
-                                                            rocblas_int       incx,
-                                                            rocblas_stride    stridex,
-                                                            rocblas_int       batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_ctpmv_strided_batched(rocblas_handle               handle,
-                                                            rocblas_fill                 uplo,
-                                                            rocblas_operation            transA,
-                                                            rocblas_diagonal             diag,
-                                                            rocblas_int                  m,
-                                                            const rocblas_float_complex* A,
-                                                            rocblas_stride               stridea,
-                                                            rocblas_float_complex*       x,
-                                                            rocblas_int                  incx,
-                                                            rocblas_stride               stridex,
-                                                            rocblas_int batch_count);
 
 ROCBLAS_EXPORT rocblas_status rocblas_ztpmv_strided_batched(rocblas_handle                handle,
                                                             rocblas_fill                  uplo,
@@ -5825,6 +5778,39 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztpmv_strided_batched(rocblas_handle      
                                                             rocblas_int                   incx,
                                                             rocblas_stride                stridex,
                                                             rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_stbmv(rocblas_handle    handle,
+                                            rocblas_fill      uplo,
+                                            rocblas_operation trans,
+                                            rocblas_diagonal  diag,
+                                            rocblas_int       m,
+                                            rocblas_int       k,
+                                            const float*      A,
+                                            rocblas_int       lda,
+                                            float*            x,
+                                            rocblas_int       incx);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dtbmv(rocblas_handle    handle,
+                                            rocblas_fill      uplo,
+                                            rocblas_operation trans,
+                                            rocblas_diagonal  diag,
+                                            rocblas_int       m,
+                                            rocblas_int       k,
+                                            const double*     A,
+                                            rocblas_int       lda,
+                                            double*           x,
+                                            rocblas_int       incx);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ctbmv(rocblas_handle               handle,
+                                            rocblas_fill                 uplo,
+                                            rocblas_operation            trans,
+                                            rocblas_diagonal             diag,
+                                            rocblas_int                  m,
+                                            rocblas_int                  k,
+                                            const rocblas_float_complex* A,
+                                            rocblas_int                  lda,
+                                            rocblas_float_complex*       x,
+                                            rocblas_int                  incx);
 
 /*! \brief BLAS Level 2 API
 
@@ -5899,39 +5885,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztpmv_strided_batched(rocblas_handle      
               specifies the increment for the elements of x.
 
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_stbmv(rocblas_handle    handle,
-                                            rocblas_fill      uplo,
-                                            rocblas_operation trans,
-                                            rocblas_diagonal  diag,
-                                            rocblas_int       m,
-                                            rocblas_int       k,
-                                            const float*      A,
-                                            rocblas_int       lda,
-                                            float*            x,
-                                            rocblas_int       incx);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dtbmv(rocblas_handle    handle,
-                                            rocblas_fill      uplo,
-                                            rocblas_operation trans,
-                                            rocblas_diagonal  diag,
-                                            rocblas_int       m,
-                                            rocblas_int       k,
-                                            const double*     A,
-                                            rocblas_int       lda,
-                                            double*           x,
-                                            rocblas_int       incx);
-
-ROCBLAS_EXPORT rocblas_status rocblas_ctbmv(rocblas_handle               handle,
-                                            rocblas_fill                 uplo,
-                                            rocblas_operation            trans,
-                                            rocblas_diagonal             diag,
-                                            rocblas_int                  m,
-                                            rocblas_int                  k,
-                                            const rocblas_float_complex* A,
-                                            rocblas_int                  lda,
-                                            rocblas_float_complex*       x,
-                                            rocblas_int                  incx);
-
 ROCBLAS_EXPORT rocblas_status rocblas_ztbmv(rocblas_handle                handle,
                                             rocblas_fill                  uplo,
                                             rocblas_operation             trans,
@@ -5943,6 +5896,41 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztbmv(rocblas_handle                handle
                                             rocblas_double_complex*       x,
                                             rocblas_int                   incx);
 
+ROCBLAS_EXPORT rocblas_status rocblas_stbmv_batched(rocblas_handle     handle,
+                                                    rocblas_fill       uplo,
+                                                    rocblas_operation  trans,
+                                                    rocblas_diagonal   diag,
+                                                    rocblas_int        m,
+                                                    rocblas_int        k,
+                                                    const float* const A[],
+                                                    rocblas_int        lda,
+                                                    float* const       x[],
+                                                    rocblas_int        incx,
+                                                    rocblas_int        batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dtbmv_batched(rocblas_handle      handle,
+                                                    rocblas_fill        uplo,
+                                                    rocblas_operation   trans,
+                                                    rocblas_diagonal    diag,
+                                                    rocblas_int         m,
+                                                    rocblas_int         k,
+                                                    const double* const A[],
+                                                    rocblas_int         lda,
+                                                    double* const       x[],
+                                                    rocblas_int         incx,
+                                                    rocblas_int         batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ctbmv_batched(rocblas_handle                     handle,
+                                                    rocblas_fill                       uplo,
+                                                    rocblas_operation                  trans,
+                                                    rocblas_diagonal                   diag,
+                                                    rocblas_int                        m,
+                                                    rocblas_int                        k,
+                                                    const rocblas_float_complex* const A[],
+                                                    rocblas_int                        da,
+                                                    rocblas_float_complex* const       x[],
+                                                    rocblas_int                        incx,
+                                                    rocblas_int                        batch_count);
 /*! \brief BLAS Level 2 API
 
     \details
@@ -6020,41 +6008,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztbmv(rocblas_handle                handle
                 number of instances in the batch.
 
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_stbmv_batched(rocblas_handle     handle,
-                                                    rocblas_fill       uplo,
-                                                    rocblas_operation  trans,
-                                                    rocblas_diagonal   diag,
-                                                    rocblas_int        m,
-                                                    rocblas_int        k,
-                                                    const float* const A[],
-                                                    rocblas_int        lda,
-                                                    float* const       x[],
-                                                    rocblas_int        incx,
-                                                    rocblas_int        batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dtbmv_batched(rocblas_handle      handle,
-                                                    rocblas_fill        uplo,
-                                                    rocblas_operation   trans,
-                                                    rocblas_diagonal    diag,
-                                                    rocblas_int         m,
-                                                    rocblas_int         k,
-                                                    const double* const A[],
-                                                    rocblas_int         lda,
-                                                    double* const       x[],
-                                                    rocblas_int         incx,
-                                                    rocblas_int         batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_ctbmv_batched(rocblas_handle                     handle,
-                                                    rocblas_fill                       uplo,
-                                                    rocblas_operation                  trans,
-                                                    rocblas_diagonal                   diag,
-                                                    rocblas_int                        m,
-                                                    rocblas_int                        k,
-                                                    const rocblas_float_complex* const A[],
-                                                    rocblas_int                        da,
-                                                    rocblas_float_complex* const       x[],
-                                                    rocblas_int                        incx,
-                                                    rocblas_int                        batch_count);
 
 ROCBLAS_EXPORT rocblas_status rocblas_ztbmv_batched(rocblas_handle                      handle,
                                                     rocblas_fill                        uplo,
@@ -6068,6 +6021,47 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztbmv_batched(rocblas_handle              
                                                     rocblas_int                         incx,
                                                     rocblas_int batch_count);
 
+ROCBLAS_EXPORT rocblas_status rocblas_stbmv_strided_batched(rocblas_handle    handle,
+                                                            rocblas_fill      uplo,
+                                                            rocblas_operation trans,
+                                                            rocblas_diagonal  diag,
+                                                            rocblas_int       m,
+                                                            rocblas_int       k,
+                                                            const float*      A,
+                                                            rocblas_int       lda,
+                                                            rocblas_stride    stride_A,
+                                                            float*            x,
+                                                            rocblas_int       incx,
+                                                            rocblas_stride    stride_x,
+                                                            rocblas_int       batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dtbmv_strided_batched(rocblas_handle    handle,
+                                                            rocblas_fill      uplo,
+                                                            rocblas_operation trans,
+                                                            rocblas_diagonal  diag,
+                                                            rocblas_int       m,
+                                                            rocblas_int       k,
+                                                            const double*     A,
+                                                            rocblas_int       lda,
+                                                            rocblas_stride    stride_A,
+                                                            double*           x,
+                                                            rocblas_int       incx,
+                                                            rocblas_stride    stride_x,
+                                                            rocblas_int       batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ctbmv_strided_batched(rocblas_handle               handle,
+                                                            rocblas_fill                 uplo,
+                                                            rocblas_operation            trans,
+                                                            rocblas_diagonal             diag,
+                                                            rocblas_int                  m,
+                                                            rocblas_int                  k,
+                                                            const rocblas_float_complex* A,
+                                                            rocblas_int                  lda,
+                                                            rocblas_stride               stride_A,
+                                                            rocblas_float_complex*       x,
+                                                            rocblas_int                  incx,
+                                                            rocblas_stride               stride_x,
+                                                            rocblas_int batch_count);
 /*! \brief BLAS Level 2 API
 
     \details
@@ -6151,47 +6145,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztbmv_batched(rocblas_handle              
                 number of instances in the batch.
 
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_stbmv_strided_batched(rocblas_handle    handle,
-                                                            rocblas_fill      uplo,
-                                                            rocblas_operation trans,
-                                                            rocblas_diagonal  diag,
-                                                            rocblas_int       m,
-                                                            rocblas_int       k,
-                                                            const float*      A,
-                                                            rocblas_int       lda,
-                                                            rocblas_stride    stride_A,
-                                                            float*            x,
-                                                            rocblas_int       incx,
-                                                            rocblas_stride    stride_x,
-                                                            rocblas_int       batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dtbmv_strided_batched(rocblas_handle    handle,
-                                                            rocblas_fill      uplo,
-                                                            rocblas_operation trans,
-                                                            rocblas_diagonal  diag,
-                                                            rocblas_int       m,
-                                                            rocblas_int       k,
-                                                            const double*     A,
-                                                            rocblas_int       lda,
-                                                            rocblas_stride    stride_A,
-                                                            double*           x,
-                                                            rocblas_int       incx,
-                                                            rocblas_stride    stride_x,
-                                                            rocblas_int       batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_ctbmv_strided_batched(rocblas_handle               handle,
-                                                            rocblas_fill                 uplo,
-                                                            rocblas_operation            trans,
-                                                            rocblas_diagonal             diag,
-                                                            rocblas_int                  m,
-                                                            rocblas_int                  k,
-                                                            const rocblas_float_complex* A,
-                                                            rocblas_int                  lda,
-                                                            rocblas_stride               stride_A,
-                                                            rocblas_float_complex*       x,
-                                                            rocblas_int                  incx,
-                                                            rocblas_stride               stride_x,
-                                                            rocblas_int batch_count);
 
 ROCBLAS_EXPORT rocblas_status rocblas_ztbmv_strided_batched(rocblas_handle                handle,
                                                             rocblas_fill                  uplo,
@@ -6207,6 +6160,38 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztbmv_strided_batched(rocblas_handle      
                                                             rocblas_stride                stride_x,
                                                             rocblas_int batch_count);
 
+ROCBLAS_EXPORT rocblas_status rocblas_stbsv(rocblas_handle    handle,
+                                            rocblas_fill      uplo,
+                                            rocblas_operation transA,
+                                            rocblas_diagonal  diag,
+                                            rocblas_int       n,
+                                            rocblas_int       k,
+                                            const float*      A,
+                                            rocblas_int       lda,
+                                            float*            x,
+                                            rocblas_int       incx);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dtbsv(rocblas_handle    handle,
+                                            rocblas_fill      uplo,
+                                            rocblas_operation transA,
+                                            rocblas_diagonal  diag,
+                                            rocblas_int       n,
+                                            rocblas_int       k,
+                                            const double*     A,
+                                            rocblas_int       lda,
+                                            double*           x,
+                                            rocblas_int       incx);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ctbsv(rocblas_handle               handle,
+                                            rocblas_fill                 uplo,
+                                            rocblas_operation            transA,
+                                            rocblas_diagonal             diag,
+                                            rocblas_int                  n,
+                                            rocblas_int                  k,
+                                            const rocblas_float_complex* A,
+                                            rocblas_int                  lda,
+                                            rocblas_float_complex*       x,
+                                            rocblas_int                  incx);
 /*! \brief BLAS Level 2 API
 
     \details
@@ -6264,38 +6249,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztbmv_strided_batched(rocblas_handle      
               specifies the increment for the elements of x.
 
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_stbsv(rocblas_handle    handle,
-                                            rocblas_fill      uplo,
-                                            rocblas_operation transA,
-                                            rocblas_diagonal  diag,
-                                            rocblas_int       n,
-                                            rocblas_int       k,
-                                            const float*      A,
-                                            rocblas_int       lda,
-                                            float*            x,
-                                            rocblas_int       incx);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dtbsv(rocblas_handle    handle,
-                                            rocblas_fill      uplo,
-                                            rocblas_operation transA,
-                                            rocblas_diagonal  diag,
-                                            rocblas_int       n,
-                                            rocblas_int       k,
-                                            const double*     A,
-                                            rocblas_int       lda,
-                                            double*           x,
-                                            rocblas_int       incx);
-
-ROCBLAS_EXPORT rocblas_status rocblas_ctbsv(rocblas_handle               handle,
-                                            rocblas_fill                 uplo,
-                                            rocblas_operation            transA,
-                                            rocblas_diagonal             diag,
-                                            rocblas_int                  n,
-                                            rocblas_int                  k,
-                                            const rocblas_float_complex* A,
-                                            rocblas_int                  lda,
-                                            rocblas_float_complex*       x,
-                                            rocblas_int                  incx);
 
 ROCBLAS_EXPORT rocblas_status rocblas_ztbsv(rocblas_handle                handle,
                                             rocblas_fill                  uplo,
@@ -6308,6 +6261,41 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztbsv(rocblas_handle                handle
                                             rocblas_double_complex*       x,
                                             rocblas_int                   incx);
 
+ROCBLAS_EXPORT rocblas_status rocblas_stbsv_batched(rocblas_handle     handle,
+                                                    rocblas_fill       uplo,
+                                                    rocblas_operation  transA,
+                                                    rocblas_diagonal   diag,
+                                                    rocblas_int        n,
+                                                    rocblas_int        k,
+                                                    const float* const A[],
+                                                    rocblas_int        lda,
+                                                    float* const       x[],
+                                                    rocblas_int        incx,
+                                                    rocblas_int        batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dtbsv_batched(rocblas_handle      handle,
+                                                    rocblas_fill        uplo,
+                                                    rocblas_operation   transA,
+                                                    rocblas_diagonal    diag,
+                                                    rocblas_int         n,
+                                                    rocblas_int         k,
+                                                    const double* const A[],
+                                                    rocblas_int         lda,
+                                                    double* const       x[],
+                                                    rocblas_int         incx,
+                                                    rocblas_int         batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ctbsv_batched(rocblas_handle                     handle,
+                                                    rocblas_fill                       uplo,
+                                                    rocblas_operation                  transA,
+                                                    rocblas_diagonal                   diag,
+                                                    rocblas_int                        n,
+                                                    rocblas_int                        k,
+                                                    const rocblas_float_complex* const A[],
+                                                    rocblas_int                        lda,
+                                                    rocblas_float_complex* const       x[],
+                                                    rocblas_int                        incx,
+                                                    rocblas_int                        batch_count);
 /*! \brief BLAS Level 2 API
 
     \details
@@ -6371,41 +6359,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztbsv(rocblas_handle                handle
                 number of instances in the batch.
 
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_stbsv_batched(rocblas_handle     handle,
-                                                    rocblas_fill       uplo,
-                                                    rocblas_operation  transA,
-                                                    rocblas_diagonal   diag,
-                                                    rocblas_int        n,
-                                                    rocblas_int        k,
-                                                    const float* const A[],
-                                                    rocblas_int        lda,
-                                                    float* const       x[],
-                                                    rocblas_int        incx,
-                                                    rocblas_int        batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dtbsv_batched(rocblas_handle      handle,
-                                                    rocblas_fill        uplo,
-                                                    rocblas_operation   transA,
-                                                    rocblas_diagonal    diag,
-                                                    rocblas_int         n,
-                                                    rocblas_int         k,
-                                                    const double* const A[],
-                                                    rocblas_int         lda,
-                                                    double* const       x[],
-                                                    rocblas_int         incx,
-                                                    rocblas_int         batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_ctbsv_batched(rocblas_handle                     handle,
-                                                    rocblas_fill                       uplo,
-                                                    rocblas_operation                  transA,
-                                                    rocblas_diagonal                   diag,
-                                                    rocblas_int                        n,
-                                                    rocblas_int                        k,
-                                                    const rocblas_float_complex* const A[],
-                                                    rocblas_int                        lda,
-                                                    rocblas_float_complex* const       x[],
-                                                    rocblas_int                        incx,
-                                                    rocblas_int                        batch_count);
 
 ROCBLAS_EXPORT rocblas_status rocblas_ztbsv_batched(rocblas_handle                      handle,
                                                     rocblas_fill                        uplo,
@@ -6418,6 +6371,48 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztbsv_batched(rocblas_handle              
                                                     rocblas_double_complex* const       x[],
                                                     rocblas_int                         incx,
                                                     rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_stbsv_strided_batched(rocblas_handle    handle,
+                                                            rocblas_fill      uplo,
+                                                            rocblas_operation transA,
+                                                            rocblas_diagonal  diag,
+                                                            rocblas_int       n,
+                                                            rocblas_int       k,
+                                                            const float*      A,
+                                                            rocblas_int       lda,
+                                                            rocblas_stride    stride_A,
+                                                            float*            x,
+                                                            rocblas_int       incx,
+                                                            rocblas_stride    stride_x,
+                                                            rocblas_int       batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dtbsv_strided_batched(rocblas_handle    handle,
+                                                            rocblas_fill      uplo,
+                                                            rocblas_operation transA,
+                                                            rocblas_diagonal  diag,
+                                                            rocblas_int       n,
+                                                            rocblas_int       k,
+                                                            const double*     A,
+                                                            rocblas_int       lda,
+                                                            rocblas_stride    stride_A,
+                                                            double*           x,
+                                                            rocblas_int       incx,
+                                                            rocblas_stride    stride_x,
+                                                            rocblas_int       batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ctbsv_strided_batched(rocblas_handle               handle,
+                                                            rocblas_fill                 uplo,
+                                                            rocblas_operation            transA,
+                                                            rocblas_diagonal             diag,
+                                                            rocblas_int                  n,
+                                                            rocblas_int                  k,
+                                                            const rocblas_float_complex* A,
+                                                            rocblas_int                  lda,
+                                                            rocblas_stride               stride_A,
+                                                            rocblas_float_complex*       x,
+                                                            rocblas_int                  incx,
+                                                            rocblas_stride               stride_x,
+                                                            rocblas_int batch_count);
 
 /*! \brief BLAS Level 2 API
 
@@ -6487,48 +6482,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztbsv_batched(rocblas_handle              
                 number of instances in the batch.
 
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_stbsv_strided_batched(rocblas_handle    handle,
-                                                            rocblas_fill      uplo,
-                                                            rocblas_operation transA,
-                                                            rocblas_diagonal  diag,
-                                                            rocblas_int       n,
-                                                            rocblas_int       k,
-                                                            const float*      A,
-                                                            rocblas_int       lda,
-                                                            rocblas_stride    stride_A,
-                                                            float*            x,
-                                                            rocblas_int       incx,
-                                                            rocblas_stride    stride_x,
-                                                            rocblas_int       batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dtbsv_strided_batched(rocblas_handle    handle,
-                                                            rocblas_fill      uplo,
-                                                            rocblas_operation transA,
-                                                            rocblas_diagonal  diag,
-                                                            rocblas_int       n,
-                                                            rocblas_int       k,
-                                                            const double*     A,
-                                                            rocblas_int       lda,
-                                                            rocblas_stride    stride_A,
-                                                            double*           x,
-                                                            rocblas_int       incx,
-                                                            rocblas_stride    stride_x,
-                                                            rocblas_int       batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_ctbsv_strided_batched(rocblas_handle               handle,
-                                                            rocblas_fill                 uplo,
-                                                            rocblas_operation            transA,
-                                                            rocblas_diagonal             diag,
-                                                            rocblas_int                  n,
-                                                            rocblas_int                  k,
-                                                            const rocblas_float_complex* A,
-                                                            rocblas_int                  lda,
-                                                            rocblas_stride               stride_A,
-                                                            rocblas_float_complex*       x,
-                                                            rocblas_int                  incx,
-                                                            rocblas_stride               stride_x,
-                                                            rocblas_int batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_ztbsv_strided_batched(rocblas_handle                handle,
                                                             rocblas_fill                  uplo,
                                                             rocblas_operation             transA,
@@ -6542,6 +6495,36 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztbsv_strided_batched(rocblas_handle      
                                                             rocblas_int                   incx,
                                                             rocblas_stride                stride_x,
                                                             rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_strsv(rocblas_handle    handle,
+                                            rocblas_fill      uplo,
+                                            rocblas_operation transA,
+                                            rocblas_diagonal  diag,
+                                            rocblas_int       m,
+                                            const float*      A,
+                                            rocblas_int       lda,
+                                            float*            x,
+                                            rocblas_int       incx);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dtrsv(rocblas_handle    handle,
+                                            rocblas_fill      uplo,
+                                            rocblas_operation transA,
+                                            rocblas_diagonal  diag,
+                                            rocblas_int       m,
+                                            const double*     A,
+                                            rocblas_int       lda,
+                                            double*           x,
+                                            rocblas_int       incx);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ctrsv(rocblas_handle               handle,
+                                            rocblas_fill                 uplo,
+                                            rocblas_operation            transA,
+                                            rocblas_diagonal             diag,
+                                            rocblas_int                  m,
+                                            const rocblas_float_complex* A,
+                                            rocblas_int                  lda,
+                                            rocblas_float_complex*       x,
+                                            rocblas_int                  incx);
 
 /*! \brief BLAS Level 2 API
 
@@ -6592,36 +6575,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztbsv_strided_batched(rocblas_handle      
               specifies the increment for the elements of x.
 
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_strsv(rocblas_handle    handle,
-                                            rocblas_fill      uplo,
-                                            rocblas_operation transA,
-                                            rocblas_diagonal  diag,
-                                            rocblas_int       m,
-                                            const float*      A,
-                                            rocblas_int       lda,
-                                            float*            x,
-                                            rocblas_int       incx);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dtrsv(rocblas_handle    handle,
-                                            rocblas_fill      uplo,
-                                            rocblas_operation transA,
-                                            rocblas_diagonal  diag,
-                                            rocblas_int       m,
-                                            const double*     A,
-                                            rocblas_int       lda,
-                                            double*           x,
-                                            rocblas_int       incx);
-
-ROCBLAS_EXPORT rocblas_status rocblas_ctrsv(rocblas_handle               handle,
-                                            rocblas_fill                 uplo,
-                                            rocblas_operation            transA,
-                                            rocblas_diagonal             diag,
-                                            rocblas_int                  m,
-                                            const rocblas_float_complex* A,
-                                            rocblas_int                  lda,
-                                            rocblas_float_complex*       x,
-                                            rocblas_int                  incx);
-
 ROCBLAS_EXPORT rocblas_status rocblas_ztrsv(rocblas_handle                handle,
                                             rocblas_fill                  uplo,
                                             rocblas_operation             transA,
@@ -6632,6 +6585,38 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrsv(rocblas_handle                handle
                                             rocblas_double_complex*       x,
                                             rocblas_int                   incx);
 
+ROCBLAS_EXPORT rocblas_status rocblas_strsv_batched(rocblas_handle     handle,
+                                                    rocblas_fill       uplo,
+                                                    rocblas_operation  transA,
+                                                    rocblas_diagonal   diag,
+                                                    rocblas_int        m,
+                                                    const float* const A[],
+                                                    rocblas_int        lda,
+                                                    float* const       x[],
+                                                    rocblas_int        incx,
+                                                    rocblas_int        batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dtrsv_batched(rocblas_handle      handle,
+                                                    rocblas_fill        uplo,
+                                                    rocblas_operation   transA,
+                                                    rocblas_diagonal    diag,
+                                                    rocblas_int         m,
+                                                    const double* const A[],
+                                                    rocblas_int         lda,
+                                                    double* const       x[],
+                                                    rocblas_int         incx,
+                                                    rocblas_int         batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ctrsv_batched(rocblas_handle                     handle,
+                                                    rocblas_fill                       uplo,
+                                                    rocblas_operation                  transA,
+                                                    rocblas_diagonal                   diag,
+                                                    rocblas_int                        m,
+                                                    const rocblas_float_complex* const A[],
+                                                    rocblas_int                        lda,
+                                                    rocblas_float_complex* const       x[],
+                                                    rocblas_int                        incx,
+                                                    rocblas_int                        batch_count);
 /*! \brief BLAS Level 2 API
 
     \details
@@ -6686,38 +6671,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrsv(rocblas_handle                handle
                 number of instances in the batch
 
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_strsv_batched(rocblas_handle     handle,
-                                                    rocblas_fill       uplo,
-                                                    rocblas_operation  transA,
-                                                    rocblas_diagonal   diag,
-                                                    rocblas_int        m,
-                                                    const float* const A[],
-                                                    rocblas_int        lda,
-                                                    float* const       x[],
-                                                    rocblas_int        incx,
-                                                    rocblas_int        batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dtrsv_batched(rocblas_handle      handle,
-                                                    rocblas_fill        uplo,
-                                                    rocblas_operation   transA,
-                                                    rocblas_diagonal    diag,
-                                                    rocblas_int         m,
-                                                    const double* const A[],
-                                                    rocblas_int         lda,
-                                                    double* const       x[],
-                                                    rocblas_int         incx,
-                                                    rocblas_int         batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_ctrsv_batched(rocblas_handle                     handle,
-                                                    rocblas_fill                       uplo,
-                                                    rocblas_operation                  transA,
-                                                    rocblas_diagonal                   diag,
-                                                    rocblas_int                        m,
-                                                    const rocblas_float_complex* const A[],
-                                                    rocblas_int                        lda,
-                                                    rocblas_float_complex* const       x[],
-                                                    rocblas_int                        incx,
-                                                    rocblas_int                        batch_count);
 
 ROCBLAS_EXPORT rocblas_status rocblas_ztrsv_batched(rocblas_handle                      handle,
                                                     rocblas_fill                        uplo,
@@ -6729,6 +6682,45 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrsv_batched(rocblas_handle              
                                                     rocblas_double_complex* const       x[],
                                                     rocblas_int                         incx,
                                                     rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_strsv_strided_batched(rocblas_handle    handle,
+                                                            rocblas_fill      uplo,
+                                                            rocblas_operation transA,
+                                                            rocblas_diagonal  diag,
+                                                            rocblas_int       m,
+                                                            const float*      A,
+                                                            rocblas_int       lda,
+                                                            rocblas_stride    stride_A,
+                                                            float*            x,
+                                                            rocblas_int       incx,
+                                                            rocblas_stride    stride_x,
+                                                            rocblas_int       batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dtrsv_strided_batched(rocblas_handle    handle,
+                                                            rocblas_fill      uplo,
+                                                            rocblas_operation transA,
+                                                            rocblas_diagonal  diag,
+                                                            rocblas_int       m,
+                                                            const double*     A,
+                                                            rocblas_int       lda,
+                                                            rocblas_stride    stride_A,
+                                                            double*           x,
+                                                            rocblas_int       incx,
+                                                            rocblas_stride    stride_x,
+                                                            rocblas_int       batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ctrsv_strided_batched(rocblas_handle               handle,
+                                                            rocblas_fill                 uplo,
+                                                            rocblas_operation            transA,
+                                                            rocblas_diagonal             diag,
+                                                            rocblas_int                  m,
+                                                            const rocblas_float_complex* A,
+                                                            rocblas_int                  lda,
+                                                            rocblas_stride               stride_A,
+                                                            rocblas_float_complex*       x,
+                                                            rocblas_int                  incx,
+                                                            rocblas_stride               stride_x,
+                                                            rocblas_int batch_count);
 
 /*! \brief BLAS Level 2 API
 
@@ -6791,45 +6783,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrsv_batched(rocblas_handle              
                 number of instances in the batch
 
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_strsv_strided_batched(rocblas_handle    handle,
-                                                            rocblas_fill      uplo,
-                                                            rocblas_operation transA,
-                                                            rocblas_diagonal  diag,
-                                                            rocblas_int       m,
-                                                            const float*      A,
-                                                            rocblas_int       lda,
-                                                            rocblas_stride    stride_A,
-                                                            float*            x,
-                                                            rocblas_int       incx,
-                                                            rocblas_stride    stride_x,
-                                                            rocblas_int       batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dtrsv_strided_batched(rocblas_handle    handle,
-                                                            rocblas_fill      uplo,
-                                                            rocblas_operation transA,
-                                                            rocblas_diagonal  diag,
-                                                            rocblas_int       m,
-                                                            const double*     A,
-                                                            rocblas_int       lda,
-                                                            rocblas_stride    stride_A,
-                                                            double*           x,
-                                                            rocblas_int       incx,
-                                                            rocblas_stride    stride_x,
-                                                            rocblas_int       batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_ctrsv_strided_batched(rocblas_handle               handle,
-                                                            rocblas_fill                 uplo,
-                                                            rocblas_operation            transA,
-                                                            rocblas_diagonal             diag,
-                                                            rocblas_int                  m,
-                                                            const rocblas_float_complex* A,
-                                                            rocblas_int                  lda,
-                                                            rocblas_stride               stride_A,
-                                                            rocblas_float_complex*       x,
-                                                            rocblas_int                  incx,
-                                                            rocblas_stride               stride_x,
-                                                            rocblas_int batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_ztrsv_strided_batched(rocblas_handle                handle,
                                                             rocblas_fill                  uplo,
                                                             rocblas_operation             transA,
@@ -6842,6 +6795,33 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrsv_strided_batched(rocblas_handle      
                                                             rocblas_int                   incx,
                                                             rocblas_stride                stride_x,
                                                             rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_stpsv(rocblas_handle    handle,
+                                            rocblas_fill      uplo,
+                                            rocblas_operation transA,
+                                            rocblas_diagonal  diag,
+                                            rocblas_int       n,
+                                            const float*      AP,
+                                            float*            x,
+                                            rocblas_int       incx);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dtpsv(rocblas_handle    handle,
+                                            rocblas_fill      uplo,
+                                            rocblas_operation transA,
+                                            rocblas_diagonal  diag,
+                                            rocblas_int       n,
+                                            const double*     AP,
+                                            double*           x,
+                                            rocblas_int       incx);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ctpsv(rocblas_handle               handle,
+                                            rocblas_fill                 uplo,
+                                            rocblas_operation            transA,
+                                            rocblas_diagonal             diag,
+                                            rocblas_int                  n,
+                                            const rocblas_float_complex* AP,
+                                            rocblas_float_complex*       x,
+                                            rocblas_int                  incx);
 
 /*! \brief BLAS Level 2 API
 
@@ -6891,33 +6871,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrsv_strided_batched(rocblas_handle      
               specifies the increment for the elements of x.
 
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_stpsv(rocblas_handle    handle,
-                                            rocblas_fill      uplo,
-                                            rocblas_operation transA,
-                                            rocblas_diagonal  diag,
-                                            rocblas_int       n,
-                                            const float*      AP,
-                                            float*            x,
-                                            rocblas_int       incx);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dtpsv(rocblas_handle    handle,
-                                            rocblas_fill      uplo,
-                                            rocblas_operation transA,
-                                            rocblas_diagonal  diag,
-                                            rocblas_int       n,
-                                            const double*     AP,
-                                            double*           x,
-                                            rocblas_int       incx);
-
-ROCBLAS_EXPORT rocblas_status rocblas_ctpsv(rocblas_handle               handle,
-                                            rocblas_fill                 uplo,
-                                            rocblas_operation            transA,
-                                            rocblas_diagonal             diag,
-                                            rocblas_int                  n,
-                                            const rocblas_float_complex* AP,
-                                            rocblas_float_complex*       x,
-                                            rocblas_int                  incx);
-
 ROCBLAS_EXPORT rocblas_status rocblas_ztpsv(rocblas_handle                handle,
                                             rocblas_fill                  uplo,
                                             rocblas_operation             transA,
@@ -6927,6 +6880,35 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztpsv(rocblas_handle                handle
                                             rocblas_double_complex*       x,
                                             rocblas_int                   incx);
 
+ROCBLAS_EXPORT rocblas_status rocblas_stpsv_batched(rocblas_handle     handle,
+                                                    rocblas_fill       uplo,
+                                                    rocblas_operation  transA,
+                                                    rocblas_diagonal   diag,
+                                                    rocblas_int        n,
+                                                    const float* const AP[],
+                                                    float* const       x[],
+                                                    rocblas_int        incx,
+                                                    rocblas_int        batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dtpsv_batched(rocblas_handle      handle,
+                                                    rocblas_fill        uplo,
+                                                    rocblas_operation   transA,
+                                                    rocblas_diagonal    diag,
+                                                    rocblas_int         n,
+                                                    const double* const AP[],
+                                                    double* const       x[],
+                                                    rocblas_int         incx,
+                                                    rocblas_int         batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ctpsv_batched(rocblas_handle                     handle,
+                                                    rocblas_fill                       uplo,
+                                                    rocblas_operation                  transA,
+                                                    rocblas_diagonal                   diag,
+                                                    rocblas_int                        n,
+                                                    const rocblas_float_complex* const AP[],
+                                                    rocblas_float_complex* const       x[],
+                                                    rocblas_int                        incx,
+                                                    rocblas_int                        batch_count);
 /*! \brief BLAS Level 2 API
 
     \details
@@ -6979,35 +6961,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztpsv(rocblas_handle                handle
                 specifies the number of instances in the batch.
 
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_stpsv_batched(rocblas_handle     handle,
-                                                    rocblas_fill       uplo,
-                                                    rocblas_operation  transA,
-                                                    rocblas_diagonal   diag,
-                                                    rocblas_int        n,
-                                                    const float* const AP[],
-                                                    float* const       x[],
-                                                    rocblas_int        incx,
-                                                    rocblas_int        batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dtpsv_batched(rocblas_handle      handle,
-                                                    rocblas_fill        uplo,
-                                                    rocblas_operation   transA,
-                                                    rocblas_diagonal    diag,
-                                                    rocblas_int         n,
-                                                    const double* const AP[],
-                                                    double* const       x[],
-                                                    rocblas_int         incx,
-                                                    rocblas_int         batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_ctpsv_batched(rocblas_handle                     handle,
-                                                    rocblas_fill                       uplo,
-                                                    rocblas_operation                  transA,
-                                                    rocblas_diagonal                   diag,
-                                                    rocblas_int                        n,
-                                                    const rocblas_float_complex* const AP[],
-                                                    rocblas_float_complex* const       x[],
-                                                    rocblas_int                        incx,
-                                                    rocblas_int                        batch_count);
 
 ROCBLAS_EXPORT rocblas_status rocblas_ztpsv_batched(rocblas_handle                      handle,
                                                     rocblas_fill                        uplo,
@@ -7018,6 +6971,42 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztpsv_batched(rocblas_handle              
                                                     rocblas_double_complex* const       x[],
                                                     rocblas_int                         incx,
                                                     rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_stpsv_strided_batched(rocblas_handle    handle,
+                                                            rocblas_fill      uplo,
+                                                            rocblas_operation transA,
+                                                            rocblas_diagonal  diag,
+                                                            rocblas_int       n,
+                                                            const float*      AP,
+                                                            rocblas_stride    stride_A,
+                                                            float*            x,
+                                                            rocblas_int       incx,
+                                                            rocblas_stride    stride_x,
+                                                            rocblas_int       batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dtpsv_strided_batched(rocblas_handle    handle,
+                                                            rocblas_fill      uplo,
+                                                            rocblas_operation transA,
+                                                            rocblas_diagonal  diag,
+                                                            rocblas_int       n,
+                                                            const double*     AP,
+                                                            rocblas_stride    stride_A,
+                                                            double*           x,
+                                                            rocblas_int       incx,
+                                                            rocblas_stride    stride_x,
+                                                            rocblas_int       batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ctpsv_strided_batched(rocblas_handle               handle,
+                                                            rocblas_fill                 uplo,
+                                                            rocblas_operation            transA,
+                                                            rocblas_diagonal             diag,
+                                                            rocblas_int                  n,
+                                                            const rocblas_float_complex* AP,
+                                                            rocblas_stride               stride_A,
+                                                            rocblas_float_complex*       x,
+                                                            rocblas_int                  incx,
+                                                            rocblas_stride               stride_x,
+                                                            rocblas_int batch_count);
 
 /*! \brief BLAS Level 2 API
 
@@ -7078,42 +7067,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztpsv_batched(rocblas_handle              
                 specifies the number of instances in the batch.
 
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_stpsv_strided_batched(rocblas_handle    handle,
-                                                            rocblas_fill      uplo,
-                                                            rocblas_operation transA,
-                                                            rocblas_diagonal  diag,
-                                                            rocblas_int       n,
-                                                            const float*      AP,
-                                                            rocblas_stride    stride_A,
-                                                            float*            x,
-                                                            rocblas_int       incx,
-                                                            rocblas_stride    stride_x,
-                                                            rocblas_int       batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dtpsv_strided_batched(rocblas_handle    handle,
-                                                            rocblas_fill      uplo,
-                                                            rocblas_operation transA,
-                                                            rocblas_diagonal  diag,
-                                                            rocblas_int       n,
-                                                            const double*     AP,
-                                                            rocblas_stride    stride_A,
-                                                            double*           x,
-                                                            rocblas_int       incx,
-                                                            rocblas_stride    stride_x,
-                                                            rocblas_int       batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_ctpsv_strided_batched(rocblas_handle               handle,
-                                                            rocblas_fill                 uplo,
-                                                            rocblas_operation            transA,
-                                                            rocblas_diagonal             diag,
-                                                            rocblas_int                  n,
-                                                            const rocblas_float_complex* AP,
-                                                            rocblas_stride               stride_A,
-                                                            rocblas_float_complex*       x,
-                                                            rocblas_int                  incx,
-                                                            rocblas_stride               stride_x,
-                                                            rocblas_int batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_ztpsv_strided_batched(rocblas_handle                handle,
                                                             rocblas_fill                  uplo,
                                                             rocblas_operation             transA,
@@ -7125,6 +7078,42 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztpsv_strided_batched(rocblas_handle      
                                                             rocblas_int                   incx,
                                                             rocblas_stride                stride_x,
                                                             rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ssymv(rocblas_handle handle,
+                                            rocblas_fill   uplo,
+                                            rocblas_int    n,
+                                            const float*   alpha,
+                                            const float*   A,
+                                            rocblas_int    lda,
+                                            const float*   x,
+                                            rocblas_int    incx,
+                                            const float*   beta,
+                                            float*         y,
+                                            rocblas_int    incy);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dsymv(rocblas_handle handle,
+                                            rocblas_fill   uplo,
+                                            rocblas_int    n,
+                                            const double*  alpha,
+                                            const double*  A,
+                                            rocblas_int    lda,
+                                            const double*  x,
+                                            rocblas_int    incx,
+                                            const double*  beta,
+                                            double*        y,
+                                            rocblas_int    incy);
+
+ROCBLAS_EXPORT rocblas_status rocblas_csymv(rocblas_handle               handle,
+                                            rocblas_fill                 uplo,
+                                            rocblas_int                  n,
+                                            const rocblas_float_complex* alpha,
+                                            const rocblas_float_complex* A,
+                                            rocblas_int                  lda,
+                                            const rocblas_float_complex* x,
+                                            rocblas_int                  incx,
+                                            const rocblas_float_complex* beta,
+                                            rocblas_float_complex*       y,
+                                            rocblas_int                  incy);
 
 /*! \brief BLAS Level 2 API
 
@@ -7169,42 +7158,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztpsv_strided_batched(rocblas_handle      
 
     ********************************************************************/
 
-ROCBLAS_EXPORT rocblas_status rocblas_ssymv(rocblas_handle handle,
-                                            rocblas_fill   uplo,
-                                            rocblas_int    n,
-                                            const float*   alpha,
-                                            const float*   A,
-                                            rocblas_int    lda,
-                                            const float*   x,
-                                            rocblas_int    incx,
-                                            const float*   beta,
-                                            float*         y,
-                                            rocblas_int    incy);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dsymv(rocblas_handle handle,
-                                            rocblas_fill   uplo,
-                                            rocblas_int    n,
-                                            const double*  alpha,
-                                            const double*  A,
-                                            rocblas_int    lda,
-                                            const double*  x,
-                                            rocblas_int    incx,
-                                            const double*  beta,
-                                            double*        y,
-                                            rocblas_int    incy);
-
-ROCBLAS_EXPORT rocblas_status rocblas_csymv(rocblas_handle               handle,
-                                            rocblas_fill                 uplo,
-                                            rocblas_int                  n,
-                                            const rocblas_float_complex* alpha,
-                                            const rocblas_float_complex* A,
-                                            rocblas_int                  lda,
-                                            const rocblas_float_complex* x,
-                                            rocblas_int                  incx,
-                                            const rocblas_float_complex* beta,
-                                            rocblas_float_complex*       y,
-                                            rocblas_int                  incy);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zsymv(rocblas_handle                handle,
                                             rocblas_fill                  uplo,
                                             rocblas_int                   n,
@@ -7216,6 +7169,45 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsymv(rocblas_handle                handle
                                             const rocblas_double_complex* beta,
                                             rocblas_double_complex*       y,
                                             rocblas_int                   incy);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ssymv_batched(rocblas_handle     handle,
+                                                    rocblas_fill       uplo,
+                                                    rocblas_int        n,
+                                                    const float*       alpha,
+                                                    const float* const A[],
+                                                    rocblas_int        lda,
+                                                    const float* const x[],
+                                                    rocblas_int        incx,
+                                                    const float*       beta,
+                                                    float*             y[],
+                                                    rocblas_int        incy,
+                                                    rocblas_int        batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dsymv_batched(rocblas_handle      handle,
+                                                    rocblas_fill        uplo,
+                                                    rocblas_int         n,
+                                                    const double*       alpha,
+                                                    const double* const A[],
+                                                    rocblas_int         lda,
+                                                    const double* const x[],
+                                                    rocblas_int         incx,
+                                                    const double*       beta,
+                                                    double*             y[],
+                                                    rocblas_int         incy,
+                                                    rocblas_int         batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_csymv_batched(rocblas_handle                     handle,
+                                                    rocblas_fill                       uplo,
+                                                    rocblas_int                        n,
+                                                    const rocblas_float_complex*       alpha,
+                                                    const rocblas_float_complex* const A[],
+                                                    rocblas_int                        lda,
+                                                    const rocblas_float_complex* const x[],
+                                                    rocblas_int                        incx,
+                                                    const rocblas_float_complex*       beta,
+                                                    rocblas_float_complex*             y[],
+                                                    rocblas_int                        incy,
+                                                    rocblas_int                        batch_count);
 
 /*! \brief BLAS Level 2 API
 
@@ -7267,45 +7259,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsymv(rocblas_handle                handle
 
     ********************************************************************/
 
-ROCBLAS_EXPORT rocblas_status rocblas_ssymv_batched(rocblas_handle     handle,
-                                                    rocblas_fill       uplo,
-                                                    rocblas_int        n,
-                                                    const float*       alpha,
-                                                    const float* const A[],
-                                                    rocblas_int        lda,
-                                                    const float* const x[],
-                                                    rocblas_int        incx,
-                                                    const float*       beta,
-                                                    float*             y[],
-                                                    rocblas_int        incy,
-                                                    rocblas_int        batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dsymv_batched(rocblas_handle      handle,
-                                                    rocblas_fill        uplo,
-                                                    rocblas_int         n,
-                                                    const double*       alpha,
-                                                    const double* const A[],
-                                                    rocblas_int         lda,
-                                                    const double* const x[],
-                                                    rocblas_int         incx,
-                                                    const double*       beta,
-                                                    double*             y[],
-                                                    rocblas_int         incy,
-                                                    rocblas_int         batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_csymv_batched(rocblas_handle                     handle,
-                                                    rocblas_fill                       uplo,
-                                                    rocblas_int                        n,
-                                                    const rocblas_float_complex*       alpha,
-                                                    const rocblas_float_complex* const A[],
-                                                    rocblas_int                        lda,
-                                                    const rocblas_float_complex* const x[],
-                                                    rocblas_int                        incx,
-                                                    const rocblas_float_complex*       beta,
-                                                    rocblas_float_complex*             y[],
-                                                    rocblas_int                        incy,
-                                                    rocblas_int                        batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zsymv_batched(rocblas_handle                      handle,
                                                     rocblas_fill                        uplo,
                                                     rocblas_int                         n,
@@ -7319,6 +7272,53 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsymv_batched(rocblas_handle              
                                                     rocblas_int                         incy,
                                                     rocblas_int batch_count);
 
+ROCBLAS_EXPORT rocblas_status rocblas_ssymv_strided_batched(rocblas_handle handle,
+                                                            rocblas_fill   uplo,
+                                                            rocblas_int    n,
+                                                            const float*   alpha,
+                                                            const float*   A,
+                                                            rocblas_int    lda,
+                                                            rocblas_stride strideA,
+                                                            const float*   x,
+                                                            rocblas_int    incx,
+                                                            rocblas_stride stridex,
+                                                            const float*   beta,
+                                                            float*         y,
+                                                            rocblas_int    incy,
+                                                            rocblas_stride stridey,
+                                                            rocblas_int    batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dsymv_strided_batched(rocblas_handle handle,
+                                                            rocblas_fill   uplo,
+                                                            rocblas_int    n,
+                                                            const double*  alpha,
+                                                            const double*  A,
+                                                            rocblas_int    lda,
+                                                            rocblas_stride strideA,
+                                                            const double*  x,
+                                                            rocblas_int    incx,
+                                                            rocblas_stride stridex,
+                                                            const double*  beta,
+                                                            double*        y,
+                                                            rocblas_int    incy,
+                                                            rocblas_stride stridey,
+                                                            rocblas_int    batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_csymv_strided_batched(rocblas_handle               handle,
+                                                            rocblas_fill                 uplo,
+                                                            rocblas_int                  n,
+                                                            const rocblas_float_complex* alpha,
+                                                            const rocblas_float_complex* A,
+                                                            rocblas_int                  lda,
+                                                            rocblas_stride               strideA,
+                                                            const rocblas_float_complex* x,
+                                                            rocblas_int                  incx,
+                                                            rocblas_stride               stridex,
+                                                            const rocblas_float_complex* beta,
+                                                            rocblas_float_complex*       y,
+                                                            rocblas_int                  incy,
+                                                            rocblas_stride               stridey,
+                                                            rocblas_int batch_count);
 /*! \brief BLAS Level 2 API
 
     \details
@@ -7384,54 +7384,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsymv_batched(rocblas_handle              
 
     ********************************************************************/
 
-ROCBLAS_EXPORT rocblas_status rocblas_ssymv_strided_batched(rocblas_handle handle,
-                                                            rocblas_fill   uplo,
-                                                            rocblas_int    n,
-                                                            const float*   alpha,
-                                                            const float*   A,
-                                                            rocblas_int    lda,
-                                                            rocblas_stride strideA,
-                                                            const float*   x,
-                                                            rocblas_int    incx,
-                                                            rocblas_stride stridex,
-                                                            const float*   beta,
-                                                            float*         y,
-                                                            rocblas_int    incy,
-                                                            rocblas_stride stridey,
-                                                            rocblas_int    batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dsymv_strided_batched(rocblas_handle handle,
-                                                            rocblas_fill   uplo,
-                                                            rocblas_int    n,
-                                                            const double*  alpha,
-                                                            const double*  A,
-                                                            rocblas_int    lda,
-                                                            rocblas_stride strideA,
-                                                            const double*  x,
-                                                            rocblas_int    incx,
-                                                            rocblas_stride stridex,
-                                                            const double*  beta,
-                                                            double*        y,
-                                                            rocblas_int    incy,
-                                                            rocblas_stride stridey,
-                                                            rocblas_int    batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_csymv_strided_batched(rocblas_handle               handle,
-                                                            rocblas_fill                 uplo,
-                                                            rocblas_int                  n,
-                                                            const rocblas_float_complex* alpha,
-                                                            const rocblas_float_complex* A,
-                                                            rocblas_int                  lda,
-                                                            rocblas_stride               strideA,
-                                                            const rocblas_float_complex* x,
-                                                            rocblas_int                  incx,
-                                                            rocblas_stride               stridex,
-                                                            const rocblas_float_complex* beta,
-                                                            rocblas_float_complex*       y,
-                                                            rocblas_int                  incy,
-                                                            rocblas_stride               stridey,
-                                                            rocblas_int batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zsymv_strided_batched(rocblas_handle                handle,
                                                             rocblas_fill                  uplo,
                                                             rocblas_int                   n,
@@ -7448,6 +7400,16 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsymv_strided_batched(rocblas_handle      
                                                             rocblas_stride                stridey,
                                                             rocblas_int batch_count);
 
+ROCBLAS_EXPORT rocblas_status rocblas_sspmv(rocblas_handle handle,
+                                            rocblas_fill   uplo,
+                                            rocblas_int    n,
+                                            const float*   alpha,
+                                            const float*   A,
+                                            const float*   x,
+                                            rocblas_int    incx,
+                                            const float*   beta,
+                                            float*         y,
+                                            rocblas_int    incy);
 /*! \brief BLAS Level 2 API
 
     \details
@@ -7488,17 +7450,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsymv_strided_batched(rocblas_handle      
 
     ********************************************************************/
 
-ROCBLAS_EXPORT rocblas_status rocblas_sspmv(rocblas_handle handle,
-                                            rocblas_fill   uplo,
-                                            rocblas_int    n,
-                                            const float*   alpha,
-                                            const float*   A,
-                                            const float*   x,
-                                            rocblas_int    incx,
-                                            const float*   beta,
-                                            float*         y,
-                                            rocblas_int    incy);
-
 ROCBLAS_EXPORT rocblas_status rocblas_dspmv(rocblas_handle handle,
                                             rocblas_fill   uplo,
                                             rocblas_int    n,
@@ -7510,6 +7461,17 @@ ROCBLAS_EXPORT rocblas_status rocblas_dspmv(rocblas_handle handle,
                                             double*        y,
                                             rocblas_int    incy);
 
+ROCBLAS_EXPORT rocblas_status rocblas_sspmv_batched(rocblas_handle     handle,
+                                                    rocblas_fill       uplo,
+                                                    rocblas_int        n,
+                                                    const float*       alpha,
+                                                    const float* const A[],
+                                                    const float* const x[],
+                                                    rocblas_int        incx,
+                                                    const float*       beta,
+                                                    float*             y[],
+                                                    rocblas_int        incy,
+                                                    rocblas_int        batch_count);
 /*! \brief BLAS Level 2 API
 
     \details
@@ -7556,18 +7518,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_dspmv(rocblas_handle handle,
 
     ********************************************************************/
 
-ROCBLAS_EXPORT rocblas_status rocblas_sspmv_batched(rocblas_handle     handle,
-                                                    rocblas_fill       uplo,
-                                                    rocblas_int        n,
-                                                    const float*       alpha,
-                                                    const float* const A[],
-                                                    const float* const x[],
-                                                    rocblas_int        incx,
-                                                    const float*       beta,
-                                                    float*             y[],
-                                                    rocblas_int        incy,
-                                                    rocblas_int        batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_dspmv_batched(rocblas_handle      handle,
                                                     rocblas_fill        uplo,
                                                     rocblas_int         n,
@@ -7580,6 +7530,20 @@ ROCBLAS_EXPORT rocblas_status rocblas_dspmv_batched(rocblas_handle      handle,
                                                     rocblas_int         incy,
                                                     rocblas_int         batch_count);
 
+ROCBLAS_EXPORT rocblas_status rocblas_sspmv_strided_batched(rocblas_handle handle,
+                                                            rocblas_fill   uplo,
+                                                            rocblas_int    n,
+                                                            const float*   alpha,
+                                                            const float*   A,
+                                                            rocblas_stride strideA,
+                                                            const float*   x,
+                                                            rocblas_int    incx,
+                                                            rocblas_stride stridex,
+                                                            const float*   beta,
+                                                            float*         y,
+                                                            rocblas_int    incy,
+                                                            rocblas_stride stridey,
+                                                            rocblas_int    batch_count);
 /*! \brief BLAS Level 2 API
 
     \details
@@ -7641,21 +7605,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_dspmv_batched(rocblas_handle      handle,
 
     ********************************************************************/
 
-ROCBLAS_EXPORT rocblas_status rocblas_sspmv_strided_batched(rocblas_handle handle,
-                                                            rocblas_fill   uplo,
-                                                            rocblas_int    n,
-                                                            const float*   alpha,
-                                                            const float*   A,
-                                                            rocblas_stride strideA,
-                                                            const float*   x,
-                                                            rocblas_int    incx,
-                                                            rocblas_stride stridex,
-                                                            const float*   beta,
-                                                            float*         y,
-                                                            rocblas_int    incy,
-                                                            rocblas_stride stridey,
-                                                            rocblas_int    batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_dspmv_strided_batched(rocblas_handle handle,
                                                             rocblas_fill   uplo,
                                                             rocblas_int    n,
@@ -7670,6 +7619,19 @@ ROCBLAS_EXPORT rocblas_status rocblas_dspmv_strided_batched(rocblas_handle handl
                                                             rocblas_int    incy,
                                                             rocblas_stride stridey,
                                                             rocblas_int    batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ssbmv(rocblas_handle handle,
+                                            rocblas_fill   uplo,
+                                            rocblas_int    n,
+                                            rocblas_int    k,
+                                            const float*   alpha,
+                                            const float*   A,
+                                            rocblas_int    lda,
+                                            const float*   x,
+                                            rocblas_int    incx,
+                                            const float*   beta,
+                                            float*         y,
+                                            rocblas_int    incy);
 
 /*! \brief BLAS Level 2 API
 
@@ -7717,19 +7679,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_dspmv_strided_batched(rocblas_handle handl
 
     ********************************************************************/
 
-ROCBLAS_EXPORT rocblas_status rocblas_ssbmv(rocblas_handle handle,
-                                            rocblas_fill   uplo,
-                                            rocblas_int    n,
-                                            rocblas_int    k,
-                                            const float*   alpha,
-                                            const float*   A,
-                                            rocblas_int    lda,
-                                            const float*   x,
-                                            rocblas_int    incx,
-                                            const float*   beta,
-                                            float*         y,
-                                            rocblas_int    incy);
-
 ROCBLAS_EXPORT rocblas_status rocblas_dsbmv(rocblas_handle handle,
                                             rocblas_fill   uplo,
                                             rocblas_int    n,
@@ -7743,6 +7692,19 @@ ROCBLAS_EXPORT rocblas_status rocblas_dsbmv(rocblas_handle handle,
                                             double*        y,
                                             rocblas_int    incy);
 
+ROCBLAS_EXPORT rocblas_status rocblas_dsbmv_batched(rocblas_handle      handle,
+                                                    rocblas_fill        uplo,
+                                                    rocblas_int         n,
+                                                    rocblas_int         k,
+                                                    const double*       alpha,
+                                                    const double* const A[],
+                                                    rocblas_int         lda,
+                                                    const double* const x[],
+                                                    rocblas_int         incx,
+                                                    const double*       beta,
+                                                    double*             y[],
+                                                    rocblas_int         incy,
+                                                    rocblas_int         batch_count);
 /*! \brief BLAS Level 2 API
 
     \details
@@ -7809,19 +7771,22 @@ ROCBLAS_EXPORT rocblas_status rocblas_ssbmv_batched(rocblas_handle     handle,
                                                     rocblas_int        incy,
                                                     rocblas_int        batch_count);
 
-ROCBLAS_EXPORT rocblas_status rocblas_dsbmv_batched(rocblas_handle      handle,
-                                                    rocblas_fill        uplo,
-                                                    rocblas_int         n,
-                                                    rocblas_int         k,
-                                                    const double*       alpha,
-                                                    const double* const A[],
-                                                    rocblas_int         lda,
-                                                    const double* const x[],
-                                                    rocblas_int         incx,
-                                                    const double*       beta,
-                                                    double*             y[],
-                                                    rocblas_int         incy,
-                                                    rocblas_int         batch_count);
+ROCBLAS_EXPORT rocblas_status rocblas_ssbmv_strided_batched(rocblas_handle handle,
+                                                            rocblas_fill   uplo,
+                                                            rocblas_int    n,
+                                                            rocblas_int    k,
+                                                            const float*   alpha,
+                                                            const float*   A,
+                                                            rocblas_int    lda,
+                                                            rocblas_stride strideA,
+                                                            const float*   x,
+                                                            rocblas_int    incx,
+                                                            rocblas_stride stridex,
+                                                            const float*   beta,
+                                                            float*         y,
+                                                            rocblas_int    incy,
+                                                            rocblas_stride stridey,
+                                                            rocblas_int    batch_count);
 
 /*! \brief BLAS Level 2 API
 
@@ -7890,23 +7855,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_dsbmv_batched(rocblas_handle      handle,
 
     ********************************************************************/
 
-ROCBLAS_EXPORT rocblas_status rocblas_ssbmv_strided_batched(rocblas_handle handle,
-                                                            rocblas_fill   uplo,
-                                                            rocblas_int    n,
-                                                            rocblas_int    k,
-                                                            const float*   alpha,
-                                                            const float*   A,
-                                                            rocblas_int    lda,
-                                                            rocblas_stride strideA,
-                                                            const float*   x,
-                                                            rocblas_int    incx,
-                                                            rocblas_stride stridex,
-                                                            const float*   beta,
-                                                            float*         y,
-                                                            rocblas_int    incy,
-                                                            rocblas_stride stridey,
-                                                            rocblas_int    batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_dsbmv_strided_batched(rocblas_handle handle,
                                                             rocblas_fill   uplo,
                                                             rocblas_int    n,
@@ -7923,47 +7871,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_dsbmv_strided_batched(rocblas_handle handl
                                                             rocblas_int    incy,
                                                             rocblas_stride stridey,
                                                             rocblas_int    batch_count);
-
-/*! \brief BLAS Level 2 API
-
-    \details
-    xGER,xGERU,xGERC performs the matrix-vector operations
-
-        A := A + alpha*x*y**T , OR
-        A := A + alpha*x*y**H for xGERC
-
-    where alpha is a scalar, x and y are vectors, and A is an
-    m by n matrix.
-
-    @param[in]
-    handle    [rocblas_handle]
-              handle to the rocblas library context queue.
-    @param[in]
-    m         [rocblas_int]
-              the number of rows of the matrix A.
-    @param[in]
-    n         [rocblas_int]
-              the number of columns of the matrix A.
-    @param[in]
-    alpha
-              device pointer or host pointer to scalar alpha.
-    @param[in]
-    x         device pointer storing vector x.
-    @param[in]
-    incx      [rocblas_int]
-              specifies the increment for the elements of x.
-    @param[in]
-    y         device pointer storing vector y.
-    @param[in]
-    incy      [rocblas_int]
-              specifies the increment for the elements of y.
-    @param[inout]
-    A         device pointer storing matrix A.
-    @param[in]
-    lda       [rocblas_int]
-              specifies the leading dimension of A.
-
-    ********************************************************************/
 
 ROCBLAS_EXPORT rocblas_status rocblas_sger(rocblas_handle handle,
                                            rocblas_int    m,
@@ -8019,6 +7926,46 @@ ROCBLAS_EXPORT rocblas_status rocblas_cgerc(rocblas_handle               handle,
                                             rocblas_int                  incy,
                                             rocblas_float_complex*       A,
                                             rocblas_int                  lda);
+/*! \brief BLAS Level 2 API
+
+    \details
+    xGER,xGERU,xGERC performs the matrix-vector operations
+
+        A := A + alpha*x*y**T , OR
+        A := A + alpha*x*y**H for xGERC
+
+    where alpha is a scalar, x and y are vectors, and A is an
+    m by n matrix.
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+    @param[in]
+    m         [rocblas_int]
+              the number of rows of the matrix A.
+    @param[in]
+    n         [rocblas_int]
+              the number of columns of the matrix A.
+    @param[in]
+    alpha
+              device pointer or host pointer to scalar alpha.
+    @param[in]
+    x         device pointer storing vector x.
+    @param[in]
+    incx      [rocblas_int]
+              specifies the increment for the elements of x.
+    @param[in]
+    y         device pointer storing vector y.
+    @param[in]
+    incy      [rocblas_int]
+              specifies the increment for the elements of y.
+    @param[inout]
+    A         device pointer storing matrix A.
+    @param[in]
+    lda       [rocblas_int]
+              specifies the leading dimension of A.
+
+    ********************************************************************/
 
 ROCBLAS_EXPORT rocblas_status rocblas_zgerc(rocblas_handle                handle,
                                             rocblas_int                   m,
@@ -8030,51 +7977,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgerc(rocblas_handle                handle
                                             rocblas_int                   incy,
                                             rocblas_double_complex*       A,
                                             rocblas_int                   lda);
-
-/*! \brief BLAS Level 2 API
-
-    \details
-    xGER,xGERU,xGERC_BATCHED performs a batch of the matrix-vector operations
-
-        A := A + alpha*x*y**T , OR
-        A := A + alpha*x*y**H for xGERC
-
-    where (A_i, x_i, y_i) is the i-th instance of the batch.
-    alpha is a scalar, x_i and y_i are vectors and A_i is an
-    m by n matrix, for i = 1, ..., batch_count.
-
-    @param[in]
-    handle    [rocblas_handle]
-              handle to the rocblas library context queue.
-    @param[in]
-    m         [rocblas_int]
-              the number of rows of each matrix A_i.
-    @param[in]
-    n         [rocblas_int]
-              the number of columns of eaceh matrix A_i.
-    @param[in]
-    alpha
-              device pointer or host pointer to scalar alpha.
-    @param[in]
-    x         device array of device pointers storing each vector x_i.
-    @param[in]
-    incx      [rocblas_int]
-              specifies the increment for the elements of each vector x_i.
-    @param[in]
-    y         device array of device pointers storing each vector y_i.
-    @param[in]
-    incy      [rocblas_int]
-              specifies the increment for the elements of each vector y_i.
-    @param[inout]
-    A         device array of device pointers storing each matrix A_i.
-    @param[in]
-    lda       [rocblas_int]
-              specifies the leading dimension of each A_i.
-    @param[in]
-    batch_count [rocblas_int]
-                number of instances in the batch
-
-    ********************************************************************/
 
 ROCBLAS_EXPORT rocblas_status rocblas_sger_batched(rocblas_handle     handle,
                                                    rocblas_int        m,
@@ -8135,26 +8037,13 @@ ROCBLAS_EXPORT rocblas_status rocblas_cgerc_batched(rocblas_handle              
                                                     rocblas_float_complex* const       A[],
                                                     rocblas_int                        lda,
                                                     rocblas_int                        batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_zgerc_batched(rocblas_handle                      handle,
-                                                    rocblas_int                         m,
-                                                    rocblas_int                         n,
-                                                    const rocblas_double_complex*       alpha,
-                                                    const rocblas_double_complex* const x[],
-                                                    rocblas_int                         incx,
-                                                    const rocblas_double_complex* const y[],
-                                                    rocblas_int                         incy,
-                                                    rocblas_double_complex* const       A[],
-                                                    rocblas_int                         lda,
-                                                    rocblas_int batch_count);
-
 /*! \brief BLAS Level 2 API
 
     \details
-    xGERC,xGERU,xGERC_STRIDED_BATCHED performs the matrix-vector operations
+    xGER,xGERU,xGERC_BATCHED performs a batch of the matrix-vector operations
 
-        A_i := A_i + alpha*x_i*y_i**T, OR
-        A_i := A_i + alpha*x_i*y_i**H  for xGERC
+        A := A + alpha*x*y**T , OR
+        A := A + alpha*x*y**H for xGERC
 
     where (A_i, x_i, y_i) is the i-th instance of the batch.
     alpha is a scalar, x_i and y_i are vectors and A_i is an
@@ -8168,45 +8057,42 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgerc_batched(rocblas_handle              
               the number of rows of each matrix A_i.
     @param[in]
     n         [rocblas_int]
-              the number of columns of each matrix A_i.
+              the number of columns of eaceh matrix A_i.
     @param[in]
     alpha
               device pointer or host pointer to scalar alpha.
     @param[in]
-    x         device pointer to the first vector (x_1) in the batch.
+    x         device array of device pointers storing each vector x_i.
     @param[in]
     incx      [rocblas_int]
-              specifies the increments for the elements of each vector x_i.
+              specifies the increment for the elements of each vector x_i.
     @param[in]
-    stridex   [rocblas_stride]
-              stride from the start of one vector (x_i) and the next one (x_i+1).
-              There are no restrictions placed on stride_x, however the user should
-              take care to ensure that stride_x is of appropriate size, for a typical
-              case this means stride_x >= m * incx.
-    @param[inout]
-    y         device pointer to the first vector (y_1) in the batch.
+    y         device array of device pointers storing each vector y_i.
     @param[in]
     incy      [rocblas_int]
               specifies the increment for the elements of each vector y_i.
-    @param[in]
-    stridey   [rocblas_stride]
-              stride from the start of one vector (y_i) and the next one (y_i+1).
-              There are no restrictions placed on stride_y, however the user should
-              take care to ensure that stride_y is of appropriate size, for a typical
-              case this means stride_y >= n * incy.
     @param[inout]
-    A         device pointer to the first matrix (A_1) in the batch.
+    A         device array of device pointers storing each matrix A_i.
     @param[in]
     lda       [rocblas_int]
               specifies the leading dimension of each A_i.
-    @param[in]
-    strideA     [rocblas_stride]
-                stride from the start of one matrix (A_i) and the next one (A_i+1)
     @param[in]
     batch_count [rocblas_int]
                 number of instances in the batch
 
     ********************************************************************/
+
+ROCBLAS_EXPORT rocblas_status rocblas_zgerc_batched(rocblas_handle                      handle,
+                                                    rocblas_int                         m,
+                                                    rocblas_int                         n,
+                                                    const rocblas_double_complex*       alpha,
+                                                    const rocblas_double_complex* const x[],
+                                                    rocblas_int                         incx,
+                                                    const rocblas_double_complex* const y[],
+                                                    rocblas_int                         incy,
+                                                    rocblas_double_complex* const       A[],
+                                                    rocblas_int                         lda,
+                                                    rocblas_int batch_count);
 
 ROCBLAS_EXPORT rocblas_status rocblas_sger_strided_batched(rocblas_handle handle,
                                                            rocblas_int    m,
@@ -8282,6 +8168,65 @@ ROCBLAS_EXPORT rocblas_status rocblas_cgerc_strided_batched(rocblas_handle      
                                                             rocblas_int                  lda,
                                                             rocblas_stride               strideA,
                                                             rocblas_int batch_count);
+/*! \brief BLAS Level 2 API
+
+    \details
+    xGERC,xGERU,xGERC_STRIDED_BATCHED performs the matrix-vector operations
+
+        A_i := A_i + alpha*x_i*y_i**T, OR
+        A_i := A_i + alpha*x_i*y_i**H  for xGERC
+
+    where (A_i, x_i, y_i) is the i-th instance of the batch.
+    alpha is a scalar, x_i and y_i are vectors and A_i is an
+    m by n matrix, for i = 1, ..., batch_count.
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+    @param[in]
+    m         [rocblas_int]
+              the number of rows of each matrix A_i.
+    @param[in]
+    n         [rocblas_int]
+              the number of columns of each matrix A_i.
+    @param[in]
+    alpha
+              device pointer or host pointer to scalar alpha.
+    @param[in]
+    x         device pointer to the first vector (x_1) in the batch.
+    @param[in]
+    incx      [rocblas_int]
+              specifies the increments for the elements of each vector x_i.
+    @param[in]
+    stridex   [rocblas_stride]
+              stride from the start of one vector (x_i) and the next one (x_i+1).
+              There are no restrictions placed on stride_x, however the user should
+              take care to ensure that stride_x is of appropriate size, for a typical
+              case this means stride_x >= m * incx.
+    @param[inout]
+    y         device pointer to the first vector (y_1) in the batch.
+    @param[in]
+    incy      [rocblas_int]
+              specifies the increment for the elements of each vector y_i.
+    @param[in]
+    stridey   [rocblas_stride]
+              stride from the start of one vector (y_i) and the next one (y_i+1).
+              There are no restrictions placed on stride_y, however the user should
+              take care to ensure that stride_y is of appropriate size, for a typical
+              case this means stride_y >= n * incy.
+    @param[inout]
+    A         device pointer to the first matrix (A_1) in the batch.
+    @param[in]
+    lda       [rocblas_int]
+              specifies the leading dimension of each A_i.
+    @param[in]
+    strideA     [rocblas_stride]
+                stride from the start of one matrix (A_i) and the next one (A_i+1)
+    @param[in]
+    batch_count [rocblas_int]
+                number of instances in the batch
+
+    ********************************************************************/
 
 ROCBLAS_EXPORT rocblas_status rocblas_zgerc_strided_batched(rocblas_handle                handle,
                                                             rocblas_int                   m,
@@ -8298,6 +8243,29 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgerc_strided_batched(rocblas_handle      
                                                             rocblas_stride                strideA,
                                                             rocblas_int batch_count);
 
+ROCBLAS_EXPORT rocblas_status rocblas_sspr(rocblas_handle handle,
+                                           rocblas_fill   uplo,
+                                           rocblas_int    n,
+                                           const float*   alpha,
+                                           const float*   x,
+                                           rocblas_int    incx,
+                                           float*         AP);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dspr(rocblas_handle handle,
+                                           rocblas_fill   uplo,
+                                           rocblas_int    n,
+                                           const double*  alpha,
+                                           const double*  x,
+                                           rocblas_int    incx,
+                                           double*        AP);
+
+ROCBLAS_EXPORT rocblas_status rocblas_cspr(rocblas_handle               handle,
+                                           rocblas_fill                 uplo,
+                                           rocblas_int                  n,
+                                           const rocblas_float_complex* alpha,
+                                           const rocblas_float_complex* x,
+                                           rocblas_int                  incx,
+                                           rocblas_float_complex*       AP);
 /*! \brief BLAS Level 2 API
 
     \details
@@ -8355,29 +8323,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgerc_strided_batched(rocblas_handle      
                         3 6 8 9
                         4 7 9 0
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_sspr(rocblas_handle handle,
-                                           rocblas_fill   uplo,
-                                           rocblas_int    n,
-                                           const float*   alpha,
-                                           const float*   x,
-                                           rocblas_int    incx,
-                                           float*         AP);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dspr(rocblas_handle handle,
-                                           rocblas_fill   uplo,
-                                           rocblas_int    n,
-                                           const double*  alpha,
-                                           const double*  x,
-                                           rocblas_int    incx,
-                                           double*        AP);
-
-ROCBLAS_EXPORT rocblas_status rocblas_cspr(rocblas_handle               handle,
-                                           rocblas_fill                 uplo,
-                                           rocblas_int                  n,
-                                           const rocblas_float_complex* alpha,
-                                           const rocblas_float_complex* x,
-                                           rocblas_int                  incx,
-                                           rocblas_float_complex*       AP);
 
 ROCBLAS_EXPORT rocblas_status rocblas_zspr(rocblas_handle                handle,
                                            rocblas_fill                  uplo,
@@ -8387,6 +8332,32 @@ ROCBLAS_EXPORT rocblas_status rocblas_zspr(rocblas_handle                handle,
                                            rocblas_int                   incx,
                                            rocblas_double_complex*       AP);
 
+ROCBLAS_EXPORT rocblas_status rocblas_sspr_batched(rocblas_handle     handle,
+                                                   rocblas_fill       uplo,
+                                                   rocblas_int        n,
+                                                   const float*       alpha,
+                                                   const float* const x[],
+                                                   rocblas_int        incx,
+                                                   float* const       AP[],
+                                                   rocblas_int        batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dspr_batched(rocblas_handle      handle,
+                                                   rocblas_fill        uplo,
+                                                   rocblas_int         n,
+                                                   const double*       alpha,
+                                                   const double* const x[],
+                                                   rocblas_int         incx,
+                                                   double* const       AP[],
+                                                   rocblas_int         batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_cspr_batched(rocblas_handle                     handle,
+                                                   rocblas_fill                       uplo,
+                                                   rocblas_int                        n,
+                                                   const rocblas_float_complex*       alpha,
+                                                   const rocblas_float_complex* const x[],
+                                                   rocblas_int                        incx,
+                                                   rocblas_float_complex* const       AP[],
+                                                   rocblas_int                        batch_count);
 /*! \brief BLAS Level 2 API
 
     \details
@@ -8447,32 +8418,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zspr(rocblas_handle                handle,
     batch_count [rocblas_int]
                 number of instances in the batch.
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_sspr_batched(rocblas_handle     handle,
-                                                   rocblas_fill       uplo,
-                                                   rocblas_int        n,
-                                                   const float*       alpha,
-                                                   const float* const x[],
-                                                   rocblas_int        incx,
-                                                   float* const       AP[],
-                                                   rocblas_int        batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dspr_batched(rocblas_handle      handle,
-                                                   rocblas_fill        uplo,
-                                                   rocblas_int         n,
-                                                   const double*       alpha,
-                                                   const double* const x[],
-                                                   rocblas_int         incx,
-                                                   double* const       AP[],
-                                                   rocblas_int         batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_cspr_batched(rocblas_handle                     handle,
-                                                   rocblas_fill                       uplo,
-                                                   rocblas_int                        n,
-                                                   const rocblas_float_complex*       alpha,
-                                                   const rocblas_float_complex* const x[],
-                                                   rocblas_int                        incx,
-                                                   rocblas_float_complex* const       AP[],
-                                                   rocblas_int                        batch_count);
 
 ROCBLAS_EXPORT rocblas_status rocblas_zspr_batched(rocblas_handle                      handle,
                                                    rocblas_fill                        uplo,
@@ -8483,6 +8428,38 @@ ROCBLAS_EXPORT rocblas_status rocblas_zspr_batched(rocblas_handle               
                                                    rocblas_double_complex* const       AP[],
                                                    rocblas_int                         batch_count);
 
+ROCBLAS_EXPORT rocblas_status rocblas_sspr_strided_batched(rocblas_handle handle,
+                                                           rocblas_fill   uplo,
+                                                           rocblas_int    n,
+                                                           const float*   alpha,
+                                                           const float*   x,
+                                                           rocblas_int    incx,
+                                                           rocblas_stride stride_x,
+                                                           float*         AP,
+                                                           rocblas_stride stride_A,
+                                                           rocblas_int    batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dspr_strided_batched(rocblas_handle handle,
+                                                           rocblas_fill   uplo,
+                                                           rocblas_int    n,
+                                                           const double*  alpha,
+                                                           const double*  x,
+                                                           rocblas_int    incx,
+                                                           rocblas_stride stride_x,
+                                                           double*        AP,
+                                                           rocblas_stride stride_A,
+                                                           rocblas_int    batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_cspr_strided_batched(rocblas_handle               handle,
+                                                           rocblas_fill                 uplo,
+                                                           rocblas_int                  n,
+                                                           const rocblas_float_complex* alpha,
+                                                           const rocblas_float_complex* x,
+                                                           rocblas_int                  incx,
+                                                           rocblas_stride               stride_x,
+                                                           rocblas_float_complex*       AP,
+                                                           rocblas_stride               stride_A,
+                                                           rocblas_int batch_count);
 /*! \brief BLAS Level 2 API
 
     \details
@@ -8549,38 +8526,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zspr_batched(rocblas_handle               
     batch_count [rocblas_int]
                 number of instances in the batch.
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_sspr_strided_batched(rocblas_handle handle,
-                                                           rocblas_fill   uplo,
-                                                           rocblas_int    n,
-                                                           const float*   alpha,
-                                                           const float*   x,
-                                                           rocblas_int    incx,
-                                                           rocblas_stride stride_x,
-                                                           float*         AP,
-                                                           rocblas_stride stride_A,
-                                                           rocblas_int    batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dspr_strided_batched(rocblas_handle handle,
-                                                           rocblas_fill   uplo,
-                                                           rocblas_int    n,
-                                                           const double*  alpha,
-                                                           const double*  x,
-                                                           rocblas_int    incx,
-                                                           rocblas_stride stride_x,
-                                                           double*        AP,
-                                                           rocblas_stride stride_A,
-                                                           rocblas_int    batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_cspr_strided_batched(rocblas_handle               handle,
-                                                           rocblas_fill                 uplo,
-                                                           rocblas_int                  n,
-                                                           const rocblas_float_complex* alpha,
-                                                           const rocblas_float_complex* x,
-                                                           rocblas_int                  incx,
-                                                           rocblas_stride               stride_x,
-                                                           rocblas_float_complex*       AP,
-                                                           rocblas_stride               stride_A,
-                                                           rocblas_int batch_count);
 
 ROCBLAS_EXPORT rocblas_status rocblas_zspr_strided_batched(rocblas_handle                handle,
                                                            rocblas_fill                  uplo,
@@ -8593,6 +8538,15 @@ ROCBLAS_EXPORT rocblas_status rocblas_zspr_strided_batched(rocblas_handle       
                                                            rocblas_stride                stride_A,
                                                            rocblas_int batch_count);
 
+ROCBLAS_EXPORT rocblas_status rocblas_sspr2(rocblas_handle handle,
+                                            rocblas_fill   uplo,
+                                            rocblas_int    n,
+                                            const float*   alpha,
+                                            const float*   x,
+                                            rocblas_int    incx,
+                                            const float*   y,
+                                            rocblas_int    incy,
+                                            float*         AP);
 /*! \brief BLAS Level 2 API
 
     \details
@@ -8655,15 +8609,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zspr_strided_batched(rocblas_handle       
                         3 6 8 9
                         4 7 9 0
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_sspr2(rocblas_handle handle,
-                                            rocblas_fill   uplo,
-                                            rocblas_int    n,
-                                            const float*   alpha,
-                                            const float*   x,
-                                            rocblas_int    incx,
-                                            const float*   y,
-                                            rocblas_int    incy,
-                                            float*         AP);
 
 ROCBLAS_EXPORT rocblas_status rocblas_dspr2(rocblas_handle handle,
                                             rocblas_fill   uplo,
@@ -8675,6 +8620,16 @@ ROCBLAS_EXPORT rocblas_status rocblas_dspr2(rocblas_handle handle,
                                             rocblas_int    incy,
                                             double*        AP);
 
+ROCBLAS_EXPORT rocblas_status rocblas_sspr2_batched(rocblas_handle     handle,
+                                                    rocblas_fill       uplo,
+                                                    rocblas_int        n,
+                                                    const float*       alpha,
+                                                    const float* const x[],
+                                                    rocblas_int        incx,
+                                                    const float* const y[],
+                                                    rocblas_int        incy,
+                                                    float* const       AP[],
+                                                    rocblas_int        batch_count);
 /*! \brief BLAS Level 2 API
 
     \details
@@ -8740,16 +8695,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_dspr2(rocblas_handle handle,
     batch_count [rocblas_int]
                 number of instances in the batch.
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_sspr2_batched(rocblas_handle     handle,
-                                                    rocblas_fill       uplo,
-                                                    rocblas_int        n,
-                                                    const float*       alpha,
-                                                    const float* const x[],
-                                                    rocblas_int        incx,
-                                                    const float* const y[],
-                                                    rocblas_int        incy,
-                                                    float* const       AP[],
-                                                    rocblas_int        batch_count);
 
 ROCBLAS_EXPORT rocblas_status rocblas_dspr2_batched(rocblas_handle      handle,
                                                     rocblas_fill        uplo,
@@ -8762,6 +8707,19 @@ ROCBLAS_EXPORT rocblas_status rocblas_dspr2_batched(rocblas_handle      handle,
                                                     double* const       AP[],
                                                     rocblas_int         batch_count);
 
+ROCBLAS_EXPORT rocblas_status rocblas_sspr2_strided_batched(rocblas_handle handle,
+                                                            rocblas_fill   uplo,
+                                                            rocblas_int    n,
+                                                            const float*   alpha,
+                                                            const float*   x,
+                                                            rocblas_int    incx,
+                                                            rocblas_stride stride_x,
+                                                            const float*   y,
+                                                            rocblas_int    incy,
+                                                            rocblas_stride stride_y,
+                                                            float*         AP,
+                                                            rocblas_stride stride_A,
+                                                            rocblas_int    batch_count);
 /*! \brief BLAS Level 2 API
 
     \details
@@ -8836,19 +8794,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_dspr2_batched(rocblas_handle      handle,
     batch_count [rocblas_int]
                 number of instances in the batch.
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_sspr2_strided_batched(rocblas_handle handle,
-                                                            rocblas_fill   uplo,
-                                                            rocblas_int    n,
-                                                            const float*   alpha,
-                                                            const float*   x,
-                                                            rocblas_int    incx,
-                                                            rocblas_stride stride_x,
-                                                            const float*   y,
-                                                            rocblas_int    incy,
-                                                            rocblas_stride stride_y,
-                                                            float*         AP,
-                                                            rocblas_stride stride_A,
-                                                            rocblas_int    batch_count);
 
 ROCBLAS_EXPORT rocblas_status rocblas_dspr2_strided_batched(rocblas_handle handle,
                                                             rocblas_fill   uplo,
@@ -8864,6 +8809,32 @@ ROCBLAS_EXPORT rocblas_status rocblas_dspr2_strided_batched(rocblas_handle handl
                                                             rocblas_stride stride_A,
                                                             rocblas_int    batch_count);
 
+ROCBLAS_EXPORT rocblas_status rocblas_ssyr(rocblas_handle handle,
+                                           rocblas_fill   uplo,
+                                           rocblas_int    n,
+                                           const float*   alpha,
+                                           const float*   x,
+                                           rocblas_int    incx,
+                                           float*         A,
+                                           rocblas_int    lda);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dsyr(rocblas_handle handle,
+                                           rocblas_fill   uplo,
+                                           rocblas_int    n,
+                                           const double*  alpha,
+                                           const double*  x,
+                                           rocblas_int    incx,
+                                           double*        A,
+                                           rocblas_int    lda);
+
+ROCBLAS_EXPORT rocblas_status rocblas_csyr(rocblas_handle               handle,
+                                           rocblas_fill                 uplo,
+                                           rocblas_int                  n,
+                                           const rocblas_float_complex* alpha,
+                                           const rocblas_float_complex* x,
+                                           rocblas_int                  incx,
+                                           rocblas_float_complex*       A,
+                                           rocblas_int                  lda);
 /*! \brief BLAS Level 2 API
 
     \details
@@ -8902,33 +8873,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_dspr2_strided_batched(rocblas_handle handl
 
     ********************************************************************/
 
-ROCBLAS_EXPORT rocblas_status rocblas_ssyr(rocblas_handle handle,
-                                           rocblas_fill   uplo,
-                                           rocblas_int    n,
-                                           const float*   alpha,
-                                           const float*   x,
-                                           rocblas_int    incx,
-                                           float*         A,
-                                           rocblas_int    lda);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dsyr(rocblas_handle handle,
-                                           rocblas_fill   uplo,
-                                           rocblas_int    n,
-                                           const double*  alpha,
-                                           const double*  x,
-                                           rocblas_int    incx,
-                                           double*        A,
-                                           rocblas_int    lda);
-
-ROCBLAS_EXPORT rocblas_status rocblas_csyr(rocblas_handle               handle,
-                                           rocblas_fill                 uplo,
-                                           rocblas_int                  n,
-                                           const rocblas_float_complex* alpha,
-                                           const rocblas_float_complex* x,
-                                           rocblas_int                  incx,
-                                           rocblas_float_complex*       A,
-                                           rocblas_int                  lda);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zsyr(rocblas_handle                handle,
                                            rocblas_fill                  uplo,
                                            rocblas_int                   n,
@@ -8938,6 +8882,35 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyr(rocblas_handle                handle,
                                            rocblas_double_complex*       A,
                                            rocblas_int                   lda);
 
+ROCBLAS_EXPORT rocblas_status rocblas_ssyr_batched(rocblas_handle     handle,
+                                                   rocblas_fill       uplo,
+                                                   rocblas_int        n,
+                                                   const float*       alpha,
+                                                   const float* const x[],
+                                                   rocblas_int        incx,
+                                                   float* const       A[],
+                                                   rocblas_int        lda,
+                                                   rocblas_int        batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dsyr_batched(rocblas_handle      handle,
+                                                   rocblas_fill        uplo,
+                                                   rocblas_int         n,
+                                                   const double*       alpha,
+                                                   const double* const x[],
+                                                   rocblas_int         incx,
+                                                   double* const       A[],
+                                                   rocblas_int         lda,
+                                                   rocblas_int         batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_csyr_batched(rocblas_handle                     handle,
+                                                   rocblas_fill                       uplo,
+                                                   rocblas_int                        n,
+                                                   const rocblas_float_complex*       alpha,
+                                                   const rocblas_float_complex* const x[],
+                                                   rocblas_int                        incx,
+                                                   rocblas_float_complex* const       A[],
+                                                   rocblas_int                        lda,
+                                                   rocblas_int                        batch_count);
 /*! \brief BLAS Level 2 API
 
     \details
@@ -8978,36 +8951,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyr(rocblas_handle                handle,
 
     ********************************************************************/
 
-ROCBLAS_EXPORT rocblas_status rocblas_ssyr_batched(rocblas_handle     handle,
-                                                   rocblas_fill       uplo,
-                                                   rocblas_int        n,
-                                                   const float*       alpha,
-                                                   const float* const x[],
-                                                   rocblas_int        incx,
-                                                   float* const       A[],
-                                                   rocblas_int        lda,
-                                                   rocblas_int        batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dsyr_batched(rocblas_handle      handle,
-                                                   rocblas_fill        uplo,
-                                                   rocblas_int         n,
-                                                   const double*       alpha,
-                                                   const double* const x[],
-                                                   rocblas_int         incx,
-                                                   double* const       A[],
-                                                   rocblas_int         lda,
-                                                   rocblas_int         batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_csyr_batched(rocblas_handle                     handle,
-                                                   rocblas_fill                       uplo,
-                                                   rocblas_int                        n,
-                                                   const rocblas_float_complex*       alpha,
-                                                   const rocblas_float_complex* const x[],
-                                                   rocblas_int                        incx,
-                                                   rocblas_float_complex* const       A[],
-                                                   rocblas_int                        lda,
-                                                   rocblas_int                        batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zsyr_batched(rocblas_handle                      handle,
                                                    rocblas_fill                        uplo,
                                                    rocblas_int                         n,
@@ -9018,6 +8961,41 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyr_batched(rocblas_handle               
                                                    rocblas_int                         lda,
                                                    rocblas_int                         batch_count);
 
+ROCBLAS_EXPORT rocblas_status rocblas_ssyr_strided_batched(rocblas_handle handle,
+                                                           rocblas_fill   uplo,
+                                                           rocblas_int    n,
+                                                           const float*   alpha,
+                                                           const float*   x,
+                                                           rocblas_int    incx,
+                                                           rocblas_stride stridex,
+                                                           float*         A,
+                                                           rocblas_int    lda,
+                                                           rocblas_stride strideA,
+                                                           rocblas_int    batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dsyr_strided_batched(rocblas_handle handle,
+                                                           rocblas_fill   uplo,
+                                                           rocblas_int    n,
+                                                           const double*  alpha,
+                                                           const double*  x,
+                                                           rocblas_int    incx,
+                                                           rocblas_stride stridex,
+                                                           double*        A,
+                                                           rocblas_int    lda,
+                                                           rocblas_stride strideA,
+                                                           rocblas_int    batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_csyr_strided_batched(rocblas_handle               handle,
+                                                           rocblas_fill                 uplo,
+                                                           rocblas_int                  n,
+                                                           const rocblas_float_complex* alpha,
+                                                           const rocblas_float_complex* x,
+                                                           rocblas_int                  incx,
+                                                           rocblas_stride               stridex,
+                                                           rocblas_float_complex*       A,
+                                                           rocblas_int                  lda,
+                                                           rocblas_stride               strideA,
+                                                           rocblas_int batch_count);
 /*! \brief BLAS Level 2 API
 
     \details
@@ -9064,42 +9042,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyr_batched(rocblas_handle               
 
     ********************************************************************/
 
-ROCBLAS_EXPORT rocblas_status rocblas_ssyr_strided_batched(rocblas_handle handle,
-                                                           rocblas_fill   uplo,
-                                                           rocblas_int    n,
-                                                           const float*   alpha,
-                                                           const float*   x,
-                                                           rocblas_int    incx,
-                                                           rocblas_stride stridex,
-                                                           float*         A,
-                                                           rocblas_int    lda,
-                                                           rocblas_stride strideA,
-                                                           rocblas_int    batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dsyr_strided_batched(rocblas_handle handle,
-                                                           rocblas_fill   uplo,
-                                                           rocblas_int    n,
-                                                           const double*  alpha,
-                                                           const double*  x,
-                                                           rocblas_int    incx,
-                                                           rocblas_stride stridex,
-                                                           double*        A,
-                                                           rocblas_int    lda,
-                                                           rocblas_stride strideA,
-                                                           rocblas_int    batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_csyr_strided_batched(rocblas_handle               handle,
-                                                           rocblas_fill                 uplo,
-                                                           rocblas_int                  n,
-                                                           const rocblas_float_complex* alpha,
-                                                           const rocblas_float_complex* x,
-                                                           rocblas_int                  incx,
-                                                           rocblas_stride               stridex,
-                                                           rocblas_float_complex*       A,
-                                                           rocblas_int                  lda,
-                                                           rocblas_stride               strideA,
-                                                           rocblas_int batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zsyr_strided_batched(rocblas_handle                handle,
                                                            rocblas_fill                  uplo,
                                                            rocblas_int                   n,
@@ -9112,6 +9054,38 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyr_strided_batched(rocblas_handle       
                                                            rocblas_stride                strideA,
                                                            rocblas_int batch_count);
 
+ROCBLAS_EXPORT rocblas_status rocblas_ssyr2(rocblas_handle handle,
+                                            rocblas_fill   uplo,
+                                            rocblas_int    n,
+                                            const float*   alpha,
+                                            const float*   x,
+                                            rocblas_int    incx,
+                                            const float*   y,
+                                            rocblas_int    incy,
+                                            float*         A,
+                                            rocblas_int    lda);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dsyr2(rocblas_handle handle,
+                                            rocblas_fill   uplo,
+                                            rocblas_int    n,
+                                            const double*  alpha,
+                                            const double*  x,
+                                            rocblas_int    incx,
+                                            const double*  y,
+                                            rocblas_int    incy,
+                                            double*        A,
+                                            rocblas_int    lda);
+
+ROCBLAS_EXPORT rocblas_status rocblas_csyr2(rocblas_handle               handle,
+                                            rocblas_fill                 uplo,
+                                            rocblas_int                  n,
+                                            const rocblas_float_complex* alpha,
+                                            const rocblas_float_complex* x,
+                                            rocblas_int                  incx,
+                                            const rocblas_float_complex* y,
+                                            rocblas_int                  incy,
+                                            rocblas_float_complex*       A,
+                                            rocblas_int                  lda);
 /*! \brief BLAS Level 2 API
 
     \details
@@ -9155,39 +9129,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyr_strided_batched(rocblas_handle       
 
     ********************************************************************/
 
-ROCBLAS_EXPORT rocblas_status rocblas_ssyr2(rocblas_handle handle,
-                                            rocblas_fill   uplo,
-                                            rocblas_int    n,
-                                            const float*   alpha,
-                                            const float*   x,
-                                            rocblas_int    incx,
-                                            const float*   y,
-                                            rocblas_int    incy,
-                                            float*         A,
-                                            rocblas_int    lda);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dsyr2(rocblas_handle handle,
-                                            rocblas_fill   uplo,
-                                            rocblas_int    n,
-                                            const double*  alpha,
-                                            const double*  x,
-                                            rocblas_int    incx,
-                                            const double*  y,
-                                            rocblas_int    incy,
-                                            double*        A,
-                                            rocblas_int    lda);
-
-ROCBLAS_EXPORT rocblas_status rocblas_csyr2(rocblas_handle               handle,
-                                            rocblas_fill                 uplo,
-                                            rocblas_int                  n,
-                                            const rocblas_float_complex* alpha,
-                                            const rocblas_float_complex* x,
-                                            rocblas_int                  incx,
-                                            const rocblas_float_complex* y,
-                                            rocblas_int                  incy,
-                                            rocblas_float_complex*       A,
-                                            rocblas_int                  lda);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zsyr2(rocblas_handle                handle,
                                             rocblas_fill                  uplo,
                                             rocblas_int                   n,
@@ -9199,6 +9140,41 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyr2(rocblas_handle                handle
                                             rocblas_double_complex*       A,
                                             rocblas_int                   lda);
 
+ROCBLAS_EXPORT rocblas_status rocblas_ssyr2_batched(rocblas_handle     handle,
+                                                    rocblas_fill       uplo,
+                                                    rocblas_int        n,
+                                                    const float*       alpha,
+                                                    const float* const x[],
+                                                    rocblas_int        incx,
+                                                    const float* const y[],
+                                                    rocblas_int        incy,
+                                                    float* const       A[],
+                                                    rocblas_int        lda,
+                                                    rocblas_int        batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dsyr2_batched(rocblas_handle      handle,
+                                                    rocblas_fill        uplo,
+                                                    rocblas_int         n,
+                                                    const double*       alpha,
+                                                    const double* const x[],
+                                                    rocblas_int         incx,
+                                                    const double* const y[],
+                                                    rocblas_int         incy,
+                                                    double* const       A[],
+                                                    rocblas_int         lda,
+                                                    rocblas_int         batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_csyr2_batched(rocblas_handle                     handle,
+                                                    rocblas_fill                       uplo,
+                                                    rocblas_int                        n,
+                                                    const rocblas_float_complex*       alpha,
+                                                    const rocblas_float_complex* const x[],
+                                                    rocblas_int                        incx,
+                                                    const rocblas_float_complex* const y[],
+                                                    rocblas_int                        incy,
+                                                    rocblas_float_complex* const       A[],
+                                                    rocblas_int                        lda,
+                                                    rocblas_int                        batch_count);
 /*! \brief BLAS Level 2 API
 
     \details
@@ -9244,42 +9220,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyr2(rocblas_handle                handle
 
     ********************************************************************/
 
-ROCBLAS_EXPORT rocblas_status rocblas_ssyr2_batched(rocblas_handle     handle,
-                                                    rocblas_fill       uplo,
-                                                    rocblas_int        n,
-                                                    const float*       alpha,
-                                                    const float* const x[],
-                                                    rocblas_int        incx,
-                                                    const float* const y[],
-                                                    rocblas_int        incy,
-                                                    float* const       A[],
-                                                    rocblas_int        lda,
-                                                    rocblas_int        batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dsyr2_batched(rocblas_handle      handle,
-                                                    rocblas_fill        uplo,
-                                                    rocblas_int         n,
-                                                    const double*       alpha,
-                                                    const double* const x[],
-                                                    rocblas_int         incx,
-                                                    const double* const y[],
-                                                    rocblas_int         incy,
-                                                    double* const       A[],
-                                                    rocblas_int         lda,
-                                                    rocblas_int         batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_csyr2_batched(rocblas_handle                     handle,
-                                                    rocblas_fill                       uplo,
-                                                    rocblas_int                        n,
-                                                    const rocblas_float_complex*       alpha,
-                                                    const rocblas_float_complex* const x[],
-                                                    rocblas_int                        incx,
-                                                    const rocblas_float_complex* const y[],
-                                                    rocblas_int                        incy,
-                                                    rocblas_float_complex* const       A[],
-                                                    rocblas_int                        lda,
-                                                    rocblas_int                        batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zsyr2_batched(rocblas_handle                      handle,
                                                     rocblas_fill                        uplo,
                                                     rocblas_int                         n,
@@ -9292,6 +9232,50 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyr2_batched(rocblas_handle              
                                                     rocblas_int                         lda,
                                                     rocblas_int batch_count);
 
+ROCBLAS_EXPORT rocblas_status rocblas_ssyr2_strided_batched(rocblas_handle handle,
+                                                            rocblas_fill   uplo,
+                                                            rocblas_int    n,
+                                                            const float*   alpha,
+                                                            const float*   x,
+                                                            rocblas_int    incx,
+                                                            rocblas_stride stridex,
+                                                            const float*   y,
+                                                            rocblas_int    incy,
+                                                            rocblas_stride stridey,
+                                                            float*         A,
+                                                            rocblas_int    lda,
+                                                            rocblas_stride strideA,
+                                                            rocblas_int    batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dsyr2_strided_batched(rocblas_handle handle,
+                                                            rocblas_fill   uplo,
+                                                            rocblas_int    n,
+                                                            const double*  alpha,
+                                                            const double*  x,
+                                                            rocblas_int    incx,
+                                                            rocblas_stride stridex,
+                                                            const double*  y,
+                                                            rocblas_int    incy,
+                                                            rocblas_stride stridey,
+                                                            double*        A,
+                                                            rocblas_int    lda,
+                                                            rocblas_stride strideA,
+                                                            rocblas_int    batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_csyr2_strided_batched(rocblas_handle               handle,
+                                                            rocblas_fill                 uplo,
+                                                            rocblas_int                  n,
+                                                            const rocblas_float_complex* alpha,
+                                                            const rocblas_float_complex* x,
+                                                            rocblas_int                  incx,
+                                                            rocblas_stride               stridex,
+                                                            const rocblas_float_complex* y,
+                                                            rocblas_int                  incy,
+                                                            rocblas_stride               stridey,
+                                                            rocblas_float_complex*       A,
+                                                            rocblas_int                  lda,
+                                                            rocblas_stride               strideA,
+                                                            rocblas_int batch_count);
 /*! \brief BLAS Level 2 API
 
     \details
@@ -9346,51 +9330,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyr2_batched(rocblas_handle              
 
     ********************************************************************/
 
-ROCBLAS_EXPORT rocblas_status rocblas_ssyr2_strided_batched(rocblas_handle handle,
-                                                            rocblas_fill   uplo,
-                                                            rocblas_int    n,
-                                                            const float*   alpha,
-                                                            const float*   x,
-                                                            rocblas_int    incx,
-                                                            rocblas_stride stridex,
-                                                            const float*   y,
-                                                            rocblas_int    incy,
-                                                            rocblas_stride stridey,
-                                                            float*         A,
-                                                            rocblas_int    lda,
-                                                            rocblas_stride strideA,
-                                                            rocblas_int    batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dsyr2_strided_batched(rocblas_handle handle,
-                                                            rocblas_fill   uplo,
-                                                            rocblas_int    n,
-                                                            const double*  alpha,
-                                                            const double*  x,
-                                                            rocblas_int    incx,
-                                                            rocblas_stride stridex,
-                                                            const double*  y,
-                                                            rocblas_int    incy,
-                                                            rocblas_stride stridey,
-                                                            double*        A,
-                                                            rocblas_int    lda,
-                                                            rocblas_stride strideA,
-                                                            rocblas_int    batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_csyr2_strided_batched(rocblas_handle               handle,
-                                                            rocblas_fill                 uplo,
-                                                            rocblas_int                  n,
-                                                            const rocblas_float_complex* alpha,
-                                                            const rocblas_float_complex* x,
-                                                            rocblas_int                  incx,
-                                                            rocblas_stride               stridex,
-                                                            const rocblas_float_complex* y,
-                                                            rocblas_int                  incy,
-                                                            rocblas_stride               stridey,
-                                                            rocblas_float_complex*       A,
-                                                            rocblas_int                  lda,
-                                                            rocblas_stride               strideA,
-                                                            rocblas_int batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zsyr2_strided_batched(rocblas_handle                handle,
                                                             rocblas_fill                  uplo,
                                                             rocblas_int                   n,
@@ -9411,6 +9350,20 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyr2_strided_batched(rocblas_handle      
  *    level 3 BLAS
  * ===========================================================================
  */
+
+ROCBLAS_EXPORT rocblas_status rocblas_chemm(rocblas_handle               handle,
+                                            rocblas_side                 side,
+                                            rocblas_fill                 uplo,
+                                            rocblas_int                  n,
+                                            rocblas_int                  k,
+                                            const rocblas_float_complex* alpha,
+                                            const rocblas_float_complex* A,
+                                            rocblas_int                  lda,
+                                            const rocblas_float_complex* B,
+                                            rocblas_int                  ldb,
+                                            const rocblas_float_complex* beta,
+                                            rocblas_float_complex*       C,
+                                            rocblas_int                  ldc);
 
 /*! \brief BLAS Level 3 API
 
@@ -9486,21 +9439,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyr2_strided_batched(rocblas_handle      
            ldc specifies the first dimension of C. ldc >= max( 1, m )
 
     ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_chemm(rocblas_handle               handle,
-                                            rocblas_side                 side,
-                                            rocblas_fill                 uplo,
-                                            rocblas_int                  n,
-                                            rocblas_int                  k,
-                                            const rocblas_float_complex* alpha,
-                                            const rocblas_float_complex* A,
-                                            rocblas_int                  lda,
-                                            const rocblas_float_complex* B,
-                                            rocblas_int                  ldb,
-                                            const rocblas_float_complex* beta,
-                                            rocblas_float_complex*       C,
-                                            rocblas_int                  ldc);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zhemm(rocblas_handle                handle,
                                             rocblas_side                  side,
                                             rocblas_fill                  uplo,
@@ -9514,6 +9452,21 @@ ROCBLAS_EXPORT rocblas_status rocblas_zhemm(rocblas_handle                handle
                                             const rocblas_double_complex* beta,
                                             rocblas_double_complex*       C,
                                             rocblas_int                   ldc);
+
+ROCBLAS_EXPORT rocblas_status rocblas_chemm_batched(rocblas_handle                     handle,
+                                                    rocblas_side                       side,
+                                                    rocblas_fill                       uplo,
+                                                    rocblas_int                        m,
+                                                    rocblas_int                        n,
+                                                    const rocblas_float_complex*       alpha,
+                                                    const rocblas_float_complex* const A[],
+                                                    rocblas_int                        lda,
+                                                    const rocblas_float_complex* const B[],
+                                                    rocblas_int                        ldb,
+                                                    const rocblas_float_complex*       beta,
+                                                    rocblas_float_complex* const       C[],
+                                                    rocblas_int                        ldc,
+                                                    rocblas_int                        batch_count);
 
 /*! \brief BLAS Level 3 API
 
@@ -9593,22 +9546,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zhemm(rocblas_handle                handle
                 number of instances in the batch.
 
     ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_chemm_batched(rocblas_handle                     handle,
-                                                    rocblas_side                       side,
-                                                    rocblas_fill                       uplo,
-                                                    rocblas_int                        m,
-                                                    rocblas_int                        n,
-                                                    const rocblas_float_complex*       alpha,
-                                                    const rocblas_float_complex* const A[],
-                                                    rocblas_int                        lda,
-                                                    const rocblas_float_complex* const B[],
-                                                    rocblas_int                        ldb,
-                                                    const rocblas_float_complex*       beta,
-                                                    rocblas_float_complex* const       C[],
-                                                    rocblas_int                        ldc,
-                                                    rocblas_int                        batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zhemm_batched(rocblas_handle                      handle,
                                                     rocblas_side                        side,
                                                     rocblas_fill                        uplo,
@@ -9623,6 +9560,24 @@ ROCBLAS_EXPORT rocblas_status rocblas_zhemm_batched(rocblas_handle              
                                                     rocblas_double_complex* const       C[],
                                                     rocblas_int                         ldc,
                                                     rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_chemm_strided_batched(rocblas_handle               handle,
+                                                            rocblas_side                 side,
+                                                            rocblas_fill                 uplo,
+                                                            rocblas_int                  m,
+                                                            rocblas_int                  n,
+                                                            const rocblas_float_complex* alpha,
+                                                            const rocblas_float_complex* A,
+                                                            rocblas_int                  lda,
+                                                            rocblas_stride               stride_A,
+                                                            const rocblas_float_complex* B,
+                                                            rocblas_int                  ldb,
+                                                            rocblas_stride               stride_B,
+                                                            const rocblas_float_complex* beta,
+                                                            rocblas_float_complex*       C,
+                                                            rocblas_int                  ldc,
+                                                            rocblas_stride               stride_C,
+                                                            rocblas_int batch_count);
 
 /*! \brief BLAS Level 3 API
 
@@ -9714,25 +9669,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zhemm_batched(rocblas_handle              
                 number of instances in the batch
 
     ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_chemm_strided_batched(rocblas_handle               handle,
-                                                            rocblas_side                 side,
-                                                            rocblas_fill                 uplo,
-                                                            rocblas_int                  m,
-                                                            rocblas_int                  n,
-                                                            const rocblas_float_complex* alpha,
-                                                            const rocblas_float_complex* A,
-                                                            rocblas_int                  lda,
-                                                            rocblas_stride               stride_A,
-                                                            const rocblas_float_complex* B,
-                                                            rocblas_int                  ldb,
-                                                            rocblas_stride               stride_B,
-                                                            const rocblas_float_complex* beta,
-                                                            rocblas_float_complex*       C,
-                                                            rocblas_int                  ldc,
-                                                            rocblas_stride               stride_C,
-                                                            rocblas_int batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zhemm_strided_batched(rocblas_handle                handle,
                                                             rocblas_side                  side,
                                                             rocblas_fill                  uplo,
@@ -9750,6 +9686,18 @@ ROCBLAS_EXPORT rocblas_status rocblas_zhemm_strided_batched(rocblas_handle      
                                                             rocblas_int                   ldc,
                                                             rocblas_stride                stride_C,
                                                             rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_cherk(rocblas_handle               handle,
+                                            rocblas_fill                 uplo,
+                                            rocblas_operation            transA,
+                                            rocblas_int                  n,
+                                            rocblas_int                  k,
+                                            const float*                 alpha,
+                                            const rocblas_float_complex* A,
+                                            rocblas_int                  lda,
+                                            const float*                 beta,
+                                            rocblas_float_complex*       C,
+                                            rocblas_int                  ldc);
 
 /*! \brief BLAS Level 3 API
 
@@ -9818,19 +9766,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zhemm_strided_batched(rocblas_handle      
            ldc specifies the first dimension of C. ldc >= max( 1, n ).
 
     ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_cherk(rocblas_handle               handle,
-                                            rocblas_fill                 uplo,
-                                            rocblas_operation            transA,
-                                            rocblas_int                  n,
-                                            rocblas_int                  k,
-                                            const float*                 alpha,
-                                            const rocblas_float_complex* A,
-                                            rocblas_int                  lda,
-                                            const float*                 beta,
-                                            rocblas_float_complex*       C,
-                                            rocblas_int                  ldc);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zherk(rocblas_handle                handle,
                                             rocblas_fill                  uplo,
                                             rocblas_operation             transA,
@@ -9842,6 +9777,19 @@ ROCBLAS_EXPORT rocblas_status rocblas_zherk(rocblas_handle                handle
                                             const double*                 beta,
                                             rocblas_double_complex*       C,
                                             rocblas_int                   ldc);
+
+ROCBLAS_EXPORT rocblas_status rocblas_cherk_batched(rocblas_handle                     handle,
+                                                    rocblas_fill                       uplo,
+                                                    rocblas_operation                  transA,
+                                                    rocblas_int                        n,
+                                                    rocblas_int                        k,
+                                                    const float*                       alpha,
+                                                    const rocblas_float_complex* const A[],
+                                                    rocblas_int                        lda,
+                                                    const float*                       beta,
+                                                    rocblas_float_complex* const       C[],
+                                                    rocblas_int                        ldc,
+                                                    rocblas_int                        batch_count);
 
 /*! \brief BLAS Level 3 API
 
@@ -9912,20 +9860,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zherk(rocblas_handle                handle
                 number of instances in the batch.
 
     ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_cherk_batched(rocblas_handle                     handle,
-                                                    rocblas_fill                       uplo,
-                                                    rocblas_operation                  transA,
-                                                    rocblas_int                        n,
-                                                    rocblas_int                        k,
-                                                    const float*                       alpha,
-                                                    const rocblas_float_complex* const A[],
-                                                    rocblas_int                        lda,
-                                                    const float*                       beta,
-                                                    rocblas_float_complex* const       C[],
-                                                    rocblas_int                        ldc,
-                                                    rocblas_int                        batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zherk_batched(rocblas_handle                      handle,
                                                     rocblas_fill                        uplo,
                                                     rocblas_operation                   transA,
@@ -9938,6 +9872,21 @@ ROCBLAS_EXPORT rocblas_status rocblas_zherk_batched(rocblas_handle              
                                                     rocblas_double_complex* const       C[],
                                                     rocblas_int                         ldc,
                                                     rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_cherk_strided_batched(rocblas_handle               handle,
+                                                            rocblas_fill                 uplo,
+                                                            rocblas_operation            transA,
+                                                            rocblas_int                  n,
+                                                            rocblas_int                  k,
+                                                            const float*                 alpha,
+                                                            const rocblas_float_complex* A,
+                                                            rocblas_int                  lda,
+                                                            rocblas_stride               stride_A,
+                                                            const float*                 beta,
+                                                            rocblas_float_complex*       C,
+                                                            rocblas_int                  ldc,
+                                                            rocblas_stride               stride_C,
+                                                            rocblas_int batch_count);
 
 /*! \brief BLAS Level 3 API
 
@@ -10018,22 +9967,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zherk_batched(rocblas_handle              
                 number of instances in the batch.
 
     ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_cherk_strided_batched(rocblas_handle               handle,
-                                                            rocblas_fill                 uplo,
-                                                            rocblas_operation            transA,
-                                                            rocblas_int                  n,
-                                                            rocblas_int                  k,
-                                                            const float*                 alpha,
-                                                            const rocblas_float_complex* A,
-                                                            rocblas_int                  lda,
-                                                            rocblas_stride               stride_A,
-                                                            const float*                 beta,
-                                                            rocblas_float_complex*       C,
-                                                            rocblas_int                  ldc,
-                                                            rocblas_stride               stride_C,
-                                                            rocblas_int batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zherk_strided_batched(rocblas_handle                handle,
                                                             rocblas_fill                  uplo,
                                                             rocblas_operation             transA,
@@ -10048,6 +9981,20 @@ ROCBLAS_EXPORT rocblas_status rocblas_zherk_strided_batched(rocblas_handle      
                                                             rocblas_int                   ldc,
                                                             rocblas_stride                stride_C,
                                                             rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_cher2k(rocblas_handle               handle,
+                                             rocblas_fill                 uplo,
+                                             rocblas_operation            trans,
+                                             rocblas_int                  n,
+                                             rocblas_int                  k,
+                                             const rocblas_float_complex* alpha,
+                                             const rocblas_float_complex* A,
+                                             rocblas_int                  lda,
+                                             const rocblas_float_complex* B,
+                                             rocblas_int                  ldb,
+                                             const float*                 beta,
+                                             rocblas_float_complex*       C,
+                                             rocblas_int                  ldc);
 
 /*! \brief BLAS Level 3 API
 
@@ -10125,21 +10072,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zherk_strided_batched(rocblas_handle      
            ldc specifies the first dimension of C. ldc >= max( 1, n ).
 
     ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_cher2k(rocblas_handle               handle,
-                                             rocblas_fill                 uplo,
-                                             rocblas_operation            trans,
-                                             rocblas_int                  n,
-                                             rocblas_int                  k,
-                                             const rocblas_float_complex* alpha,
-                                             const rocblas_float_complex* A,
-                                             rocblas_int                  lda,
-                                             const rocblas_float_complex* B,
-                                             rocblas_int                  ldb,
-                                             const float*                 beta,
-                                             rocblas_float_complex*       C,
-                                             rocblas_int                  ldc);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zher2k(rocblas_handle                handle,
                                              rocblas_fill                  uplo,
                                              rocblas_operation             trans,
@@ -10153,6 +10085,21 @@ ROCBLAS_EXPORT rocblas_status rocblas_zher2k(rocblas_handle                handl
                                              const double*                 beta,
                                              rocblas_double_complex*       C,
                                              rocblas_int                   ldc);
+
+ROCBLAS_EXPORT rocblas_status rocblas_cher2k_batched(rocblas_handle                     handle,
+                                                     rocblas_fill                       uplo,
+                                                     rocblas_operation                  trans,
+                                                     rocblas_int                        n,
+                                                     rocblas_int                        k,
+                                                     const rocblas_float_complex*       alpha,
+                                                     const rocblas_float_complex* const A[],
+                                                     rocblas_int                        lda,
+                                                     const rocblas_float_complex* const B[],
+                                                     rocblas_int                        ldb,
+                                                     const float*                       beta,
+                                                     rocblas_float_complex* const       C[],
+                                                     rocblas_int                        ldc,
+                                                     rocblas_int batch_count);
 
 /*! \brief BLAS Level 3 API
 
@@ -10231,22 +10178,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zher2k(rocblas_handle                handl
                 number of instances in the batch.
 
     ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_cher2k_batched(rocblas_handle                     handle,
-                                                     rocblas_fill                       uplo,
-                                                     rocblas_operation                  trans,
-                                                     rocblas_int                        n,
-                                                     rocblas_int                        k,
-                                                     const rocblas_float_complex*       alpha,
-                                                     const rocblas_float_complex* const A[],
-                                                     rocblas_int                        lda,
-                                                     const rocblas_float_complex* const B[],
-                                                     rocblas_int                        ldb,
-                                                     const float*                       beta,
-                                                     rocblas_float_complex* const       C[],
-                                                     rocblas_int                        ldc,
-                                                     rocblas_int batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zher2k_batched(rocblas_handle                      handle,
                                                      rocblas_fill                        uplo,
                                                      rocblas_operation                   trans,
@@ -10261,6 +10192,24 @@ ROCBLAS_EXPORT rocblas_status rocblas_zher2k_batched(rocblas_handle             
                                                      rocblas_double_complex* const       C[],
                                                      rocblas_int                         ldc,
                                                      rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_cher2k_strided_batched(rocblas_handle               handle,
+                                                             rocblas_fill                 uplo,
+                                                             rocblas_operation            trans,
+                                                             rocblas_int                  n,
+                                                             rocblas_int                  k,
+                                                             const rocblas_float_complex* alpha,
+                                                             const rocblas_float_complex* A,
+                                                             rocblas_int                  lda,
+                                                             rocblas_stride               stride_A,
+                                                             const rocblas_float_complex* B,
+                                                             rocblas_int                  ldb,
+                                                             rocblas_stride               stride_B,
+                                                             const float*                 beta,
+                                                             rocblas_float_complex*       C,
+                                                             rocblas_int                  ldc,
+                                                             rocblas_stride               stride_C,
+                                                             rocblas_int batch_count);
 
 /*! \brief BLAS Level 3 API
 
@@ -10354,25 +10303,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zher2k_batched(rocblas_handle             
                 number of instances in the batch.
 
     ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_cher2k_strided_batched(rocblas_handle               handle,
-                                                             rocblas_fill                 uplo,
-                                                             rocblas_operation            trans,
-                                                             rocblas_int                  n,
-                                                             rocblas_int                  k,
-                                                             const rocblas_float_complex* alpha,
-                                                             const rocblas_float_complex* A,
-                                                             rocblas_int                  lda,
-                                                             rocblas_stride               stride_A,
-                                                             const rocblas_float_complex* B,
-                                                             rocblas_int                  ldb,
-                                                             rocblas_stride               stride_B,
-                                                             const float*                 beta,
-                                                             rocblas_float_complex*       C,
-                                                             rocblas_int                  ldc,
-                                                             rocblas_stride               stride_C,
-                                                             rocblas_int batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zher2k_strided_batched(rocblas_handle                handle,
                                                              rocblas_fill                  uplo,
                                                              rocblas_operation             trans,
@@ -10390,6 +10320,20 @@ ROCBLAS_EXPORT rocblas_status rocblas_zher2k_strided_batched(rocblas_handle     
                                                              rocblas_int                   ldc,
                                                              rocblas_stride                stride_C,
                                                              rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_cherkx(rocblas_handle               handle,
+                                             rocblas_fill                 uplo,
+                                             rocblas_operation            trans,
+                                             rocblas_int                  n,
+                                             rocblas_int                  k,
+                                             const rocblas_float_complex* alpha,
+                                             const rocblas_float_complex* A,
+                                             rocblas_int                  lda,
+                                             const rocblas_float_complex* B,
+                                             rocblas_int                  ldb,
+                                             const float*                 beta,
+                                             rocblas_float_complex*       C,
+                                             rocblas_int                  ldc);
 
 /*! \brief BLAS Level 3 API
 
@@ -10469,21 +10413,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zher2k_strided_batched(rocblas_handle     
            ldc specifies the first dimension of C. ldc >= max( 1, n ).
 
     ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_cherkx(rocblas_handle               handle,
-                                             rocblas_fill                 uplo,
-                                             rocblas_operation            trans,
-                                             rocblas_int                  n,
-                                             rocblas_int                  k,
-                                             const rocblas_float_complex* alpha,
-                                             const rocblas_float_complex* A,
-                                             rocblas_int                  lda,
-                                             const rocblas_float_complex* B,
-                                             rocblas_int                  ldb,
-                                             const float*                 beta,
-                                             rocblas_float_complex*       C,
-                                             rocblas_int                  ldc);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zherkx(rocblas_handle                handle,
                                              rocblas_fill                  uplo,
                                              rocblas_operation             trans,
@@ -10497,6 +10426,21 @@ ROCBLAS_EXPORT rocblas_status rocblas_zherkx(rocblas_handle                handl
                                              const double*                 beta,
                                              rocblas_double_complex*       C,
                                              rocblas_int                   ldc);
+
+ROCBLAS_EXPORT rocblas_status rocblas_cherkx_batched(rocblas_handle                     handle,
+                                                     rocblas_fill                       uplo,
+                                                     rocblas_operation                  trans,
+                                                     rocblas_int                        n,
+                                                     rocblas_int                        k,
+                                                     const rocblas_float_complex*       alpha,
+                                                     const rocblas_float_complex* const A[],
+                                                     rocblas_int                        lda,
+                                                     const rocblas_float_complex* const B[],
+                                                     rocblas_int                        ldb,
+                                                     const float*                       beta,
+                                                     rocblas_float_complex* const       C[],
+                                                     rocblas_int                        ldc,
+                                                     rocblas_int batch_count);
 
 /*! \brief BLAS Level 3 API
 
@@ -10579,22 +10523,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zherkx(rocblas_handle                handl
                 number of instances in the batch.
 
     ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_cherkx_batched(rocblas_handle                     handle,
-                                                     rocblas_fill                       uplo,
-                                                     rocblas_operation                  trans,
-                                                     rocblas_int                        n,
-                                                     rocblas_int                        k,
-                                                     const rocblas_float_complex*       alpha,
-                                                     const rocblas_float_complex* const A[],
-                                                     rocblas_int                        lda,
-                                                     const rocblas_float_complex* const B[],
-                                                     rocblas_int                        ldb,
-                                                     const float*                       beta,
-                                                     rocblas_float_complex* const       C[],
-                                                     rocblas_int                        ldc,
-                                                     rocblas_int batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zherkx_batched(rocblas_handle                      handle,
                                                      rocblas_fill                        uplo,
                                                      rocblas_operation                   trans,
@@ -10609,6 +10537,24 @@ ROCBLAS_EXPORT rocblas_status rocblas_zherkx_batched(rocblas_handle             
                                                      rocblas_double_complex* const       C[],
                                                      rocblas_int                         ldc,
                                                      rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_cherkx_strided_batched(rocblas_handle               handle,
+                                                             rocblas_fill                 uplo,
+                                                             rocblas_operation            trans,
+                                                             rocblas_int                  n,
+                                                             rocblas_int                  k,
+                                                             const rocblas_float_complex* alpha,
+                                                             const rocblas_float_complex* A,
+                                                             rocblas_int                  lda,
+                                                             rocblas_stride               stride_A,
+                                                             const rocblas_float_complex* B,
+                                                             rocblas_int                  ldb,
+                                                             rocblas_stride               stride_B,
+                                                             const float*                 beta,
+                                                             rocblas_float_complex*       C,
+                                                             rocblas_int                  ldc,
+                                                             rocblas_stride               stride_C,
+                                                             rocblas_int batch_count);
 
 /*! \brief BLAS Level 3 API
 
@@ -10703,25 +10649,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zherkx_batched(rocblas_handle             
                 number of instances in the batch.
 
     ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_cherkx_strided_batched(rocblas_handle               handle,
-                                                             rocblas_fill                 uplo,
-                                                             rocblas_operation            trans,
-                                                             rocblas_int                  n,
-                                                             rocblas_int                  k,
-                                                             const rocblas_float_complex* alpha,
-                                                             const rocblas_float_complex* A,
-                                                             rocblas_int                  lda,
-                                                             rocblas_stride               stride_A,
-                                                             const rocblas_float_complex* B,
-                                                             rocblas_int                  ldb,
-                                                             rocblas_stride               stride_B,
-                                                             const float*                 beta,
-                                                             rocblas_float_complex*       C,
-                                                             rocblas_int                  ldc,
-                                                             rocblas_stride               stride_C,
-                                                             rocblas_int batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zherkx_strided_batched(rocblas_handle                handle,
                                                              rocblas_fill                  uplo,
                                                              rocblas_operation             trans,
@@ -10739,6 +10666,48 @@ ROCBLAS_EXPORT rocblas_status rocblas_zherkx_strided_batched(rocblas_handle     
                                                              rocblas_int                   ldc,
                                                              rocblas_stride                stride_C,
                                                              rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ssymm(rocblas_handle handle,
+                                            rocblas_side   side,
+                                            rocblas_fill   uplo,
+                                            rocblas_int    m,
+                                            rocblas_int    n,
+                                            const float*   alpha,
+                                            const float*   A,
+                                            rocblas_int    lda,
+                                            const float*   B,
+                                            rocblas_int    ldb,
+                                            const float*   beta,
+                                            float*         C,
+                                            rocblas_int    ldc);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dsymm(rocblas_handle handle,
+                                            rocblas_side   side,
+                                            rocblas_fill   uplo,
+                                            rocblas_int    m,
+                                            rocblas_int    n,
+                                            const double*  alpha,
+                                            const double*  A,
+                                            rocblas_int    lda,
+                                            const double*  B,
+                                            rocblas_int    ldb,
+                                            const double*  beta,
+                                            double*        C,
+                                            rocblas_int    ldc);
+
+ROCBLAS_EXPORT rocblas_status rocblas_csymm(rocblas_handle               handle,
+                                            rocblas_side                 side,
+                                            rocblas_fill                 uplo,
+                                            rocblas_int                  m,
+                                            rocblas_int                  n,
+                                            const rocblas_float_complex* alpha,
+                                            const rocblas_float_complex* A,
+                                            rocblas_int                  lda,
+                                            const rocblas_float_complex* B,
+                                            rocblas_int                  ldb,
+                                            const rocblas_float_complex* beta,
+                                            rocblas_float_complex*       C,
+                                            rocblas_int                  ldc);
 
 /*! \brief BLAS Level 3 API
 
@@ -10813,49 +10782,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zherkx_strided_batched(rocblas_handle     
            ldc specifies the first dimension of C. ldc >= max( 1, m )
 
     ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_ssymm(rocblas_handle handle,
-                                            rocblas_side   side,
-                                            rocblas_fill   uplo,
-                                            rocblas_int    m,
-                                            rocblas_int    n,
-                                            const float*   alpha,
-                                            const float*   A,
-                                            rocblas_int    lda,
-                                            const float*   B,
-                                            rocblas_int    ldb,
-                                            const float*   beta,
-                                            float*         C,
-                                            rocblas_int    ldc);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dsymm(rocblas_handle handle,
-                                            rocblas_side   side,
-                                            rocblas_fill   uplo,
-                                            rocblas_int    m,
-                                            rocblas_int    n,
-                                            const double*  alpha,
-                                            const double*  A,
-                                            rocblas_int    lda,
-                                            const double*  B,
-                                            rocblas_int    ldb,
-                                            const double*  beta,
-                                            double*        C,
-                                            rocblas_int    ldc);
-
-ROCBLAS_EXPORT rocblas_status rocblas_csymm(rocblas_handle               handle,
-                                            rocblas_side                 side,
-                                            rocblas_fill                 uplo,
-                                            rocblas_int                  m,
-                                            rocblas_int                  n,
-                                            const rocblas_float_complex* alpha,
-                                            const rocblas_float_complex* A,
-                                            rocblas_int                  lda,
-                                            const rocblas_float_complex* B,
-                                            rocblas_int                  ldb,
-                                            const rocblas_float_complex* beta,
-                                            rocblas_float_complex*       C,
-                                            rocblas_int                  ldc);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zsymm(rocblas_handle                handle,
                                             rocblas_side                  side,
                                             rocblas_fill                  uplo,
@@ -10869,6 +10795,51 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsymm(rocblas_handle                handle
                                             const rocblas_double_complex* beta,
                                             rocblas_double_complex*       C,
                                             rocblas_int                   ldc);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ssymm_batched(rocblas_handle     handle,
+                                                    rocblas_side       side,
+                                                    rocblas_fill       uplo,
+                                                    rocblas_int        m,
+                                                    rocblas_int        n,
+                                                    const float*       alpha,
+                                                    const float* const A[],
+                                                    rocblas_int        lda,
+                                                    const float* const B[],
+                                                    rocblas_int        ldb,
+                                                    const float*       beta,
+                                                    float* const       C[],
+                                                    rocblas_int        ldc,
+                                                    rocblas_int        batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dsymm_batched(rocblas_handle      handle,
+                                                    rocblas_side        side,
+                                                    rocblas_fill        uplo,
+                                                    rocblas_int         m,
+                                                    rocblas_int         n,
+                                                    const double*       alpha,
+                                                    const double* const A[],
+                                                    rocblas_int         lda,
+                                                    const double* const B[],
+                                                    rocblas_int         ldb,
+                                                    const double*       beta,
+                                                    double* const       C[],
+                                                    rocblas_int         ldc,
+                                                    rocblas_int         batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_csymm_batched(rocblas_handle                     handle,
+                                                    rocblas_side                       side,
+                                                    rocblas_fill                       uplo,
+                                                    rocblas_int                        m,
+                                                    rocblas_int                        n,
+                                                    const rocblas_float_complex*       alpha,
+                                                    const rocblas_float_complex* const A[],
+                                                    rocblas_int                        lda,
+                                                    const rocblas_float_complex* const B[],
+                                                    rocblas_int                        ldb,
+                                                    const rocblas_float_complex*       beta,
+                                                    rocblas_float_complex* const       C[],
+                                                    rocblas_int                        ldc,
+                                                    rocblas_int                        batch_count);
 
 /*! \brief BLAS Level 3 API
 
@@ -10947,52 +10918,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsymm(rocblas_handle                handle
                 number of instances in the batch.
 
     ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_ssymm_batched(rocblas_handle     handle,
-                                                    rocblas_side       side,
-                                                    rocblas_fill       uplo,
-                                                    rocblas_int        m,
-                                                    rocblas_int        n,
-                                                    const float*       alpha,
-                                                    const float* const A[],
-                                                    rocblas_int        lda,
-                                                    const float* const B[],
-                                                    rocblas_int        ldb,
-                                                    const float*       beta,
-                                                    float* const       C[],
-                                                    rocblas_int        ldc,
-                                                    rocblas_int        batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dsymm_batched(rocblas_handle      handle,
-                                                    rocblas_side        side,
-                                                    rocblas_fill        uplo,
-                                                    rocblas_int         m,
-                                                    rocblas_int         n,
-                                                    const double*       alpha,
-                                                    const double* const A[],
-                                                    rocblas_int         lda,
-                                                    const double* const B[],
-                                                    rocblas_int         ldb,
-                                                    const double*       beta,
-                                                    double* const       C[],
-                                                    rocblas_int         ldc,
-                                                    rocblas_int         batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_csymm_batched(rocblas_handle                     handle,
-                                                    rocblas_side                       side,
-                                                    rocblas_fill                       uplo,
-                                                    rocblas_int                        m,
-                                                    rocblas_int                        n,
-                                                    const rocblas_float_complex*       alpha,
-                                                    const rocblas_float_complex* const A[],
-                                                    rocblas_int                        lda,
-                                                    const rocblas_float_complex* const B[],
-                                                    rocblas_int                        ldb,
-                                                    const rocblas_float_complex*       beta,
-                                                    rocblas_float_complex* const       C[],
-                                                    rocblas_int                        ldc,
-                                                    rocblas_int                        batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zsymm_batched(rocblas_handle                      handle,
                                                     rocblas_side                        side,
                                                     rocblas_fill                        uplo,
@@ -11007,6 +10932,60 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsymm_batched(rocblas_handle              
                                                     rocblas_double_complex* const       C[],
                                                     rocblas_int                         ldc,
                                                     rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ssymm_strided_batched(rocblas_handle handle,
+                                                            rocblas_side   side,
+                                                            rocblas_fill   uplo,
+                                                            rocblas_int    m,
+                                                            rocblas_int    n,
+                                                            const float*   alpha,
+                                                            const float*   A,
+                                                            rocblas_int    lda,
+                                                            rocblas_stride stride_A,
+                                                            const float*   B,
+                                                            rocblas_int    ldb,
+                                                            rocblas_stride stride_B,
+                                                            const float*   beta,
+                                                            float*         C,
+                                                            rocblas_int    ldc,
+                                                            rocblas_stride stride_C,
+                                                            rocblas_int    batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dsymm_strided_batched(rocblas_handle handle,
+                                                            rocblas_side   side,
+                                                            rocblas_fill   uplo,
+                                                            rocblas_int    m,
+                                                            rocblas_int    n,
+                                                            const double*  alpha,
+                                                            const double*  A,
+                                                            rocblas_int    lda,
+                                                            rocblas_stride stride_A,
+                                                            const double*  B,
+                                                            rocblas_int    ldb,
+                                                            rocblas_stride stride_B,
+                                                            const double*  beta,
+                                                            double*        C,
+                                                            rocblas_int    ldc,
+                                                            rocblas_stride stride_C,
+                                                            rocblas_int    batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_csymm_strided_batched(rocblas_handle               handle,
+                                                            rocblas_side                 side,
+                                                            rocblas_fill                 uplo,
+                                                            rocblas_int                  m,
+                                                            rocblas_int                  n,
+                                                            const rocblas_float_complex* alpha,
+                                                            const rocblas_float_complex* A,
+                                                            rocblas_int                  lda,
+                                                            rocblas_stride               stride_A,
+                                                            const rocblas_float_complex* B,
+                                                            rocblas_int                  ldb,
+                                                            rocblas_stride               stride_B,
+                                                            const rocblas_float_complex* beta,
+                                                            rocblas_float_complex*       C,
+                                                            rocblas_int                  ldc,
+                                                            rocblas_stride               stride_C,
+                                                            rocblas_int batch_count);
 
 /*! \brief BLAS Level 3 API
 
@@ -11094,61 +11073,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsymm_batched(rocblas_handle              
                 number of instances in the batch.
 
     ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_ssymm_strided_batched(rocblas_handle handle,
-                                                            rocblas_side   side,
-                                                            rocblas_fill   uplo,
-                                                            rocblas_int    m,
-                                                            rocblas_int    n,
-                                                            const float*   alpha,
-                                                            const float*   A,
-                                                            rocblas_int    lda,
-                                                            rocblas_stride stride_A,
-                                                            const float*   B,
-                                                            rocblas_int    ldb,
-                                                            rocblas_stride stride_B,
-                                                            const float*   beta,
-                                                            float*         C,
-                                                            rocblas_int    ldc,
-                                                            rocblas_stride stride_C,
-                                                            rocblas_int    batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dsymm_strided_batched(rocblas_handle handle,
-                                                            rocblas_side   side,
-                                                            rocblas_fill   uplo,
-                                                            rocblas_int    m,
-                                                            rocblas_int    n,
-                                                            const double*  alpha,
-                                                            const double*  A,
-                                                            rocblas_int    lda,
-                                                            rocblas_stride stride_A,
-                                                            const double*  B,
-                                                            rocblas_int    ldb,
-                                                            rocblas_stride stride_B,
-                                                            const double*  beta,
-                                                            double*        C,
-                                                            rocblas_int    ldc,
-                                                            rocblas_stride stride_C,
-                                                            rocblas_int    batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_csymm_strided_batched(rocblas_handle               handle,
-                                                            rocblas_side                 side,
-                                                            rocblas_fill                 uplo,
-                                                            rocblas_int                  m,
-                                                            rocblas_int                  n,
-                                                            const rocblas_float_complex* alpha,
-                                                            const rocblas_float_complex* A,
-                                                            rocblas_int                  lda,
-                                                            rocblas_stride               stride_A,
-                                                            const rocblas_float_complex* B,
-                                                            rocblas_int                  ldb,
-                                                            rocblas_stride               stride_B,
-                                                            const rocblas_float_complex* beta,
-                                                            rocblas_float_complex*       C,
-                                                            rocblas_int                  ldc,
-                                                            rocblas_stride               stride_C,
-                                                            rocblas_int batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zsymm_strided_batched(rocblas_handle                handle,
                                                             rocblas_side                  side,
                                                             rocblas_fill                  uplo,
@@ -11167,6 +11091,41 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsymm_strided_batched(rocblas_handle      
                                                             rocblas_stride                stride_C,
                                                             rocblas_int batch_count);
 
+ROCBLAS_EXPORT rocblas_status rocblas_ssyrk(rocblas_handle    handle,
+                                            rocblas_fill      uplo,
+                                            rocblas_operation transA,
+                                            rocblas_int       n,
+                                            rocblas_int       k,
+                                            const float*      alpha,
+                                            const float*      A,
+                                            rocblas_int       lda,
+                                            const float*      beta,
+                                            float*            C,
+                                            rocblas_int       ldc);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dsyrk(rocblas_handle    handle,
+                                            rocblas_fill      uplo,
+                                            rocblas_operation transA,
+                                            rocblas_int       n,
+                                            rocblas_int       k,
+                                            const double*     alpha,
+                                            const double*     A,
+                                            rocblas_int       lda,
+                                            const double*     beta,
+                                            double*           C,
+                                            rocblas_int       ldc);
+
+ROCBLAS_EXPORT rocblas_status rocblas_csyrk(rocblas_handle               handle,
+                                            rocblas_fill                 uplo,
+                                            rocblas_operation            transA,
+                                            rocblas_int                  n,
+                                            rocblas_int                  k,
+                                            const rocblas_float_complex* alpha,
+                                            const rocblas_float_complex* A,
+                                            rocblas_int                  lda,
+                                            const rocblas_float_complex* beta,
+                                            rocblas_float_complex*       C,
+                                            rocblas_int                  ldc);
 /*! \brief BLAS Level 3 API
 
     \details
@@ -11234,42 +11193,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsymm_strided_batched(rocblas_handle      
 
     ********************************************************************/
 
-ROCBLAS_EXPORT rocblas_status rocblas_ssyrk(rocblas_handle    handle,
-                                            rocblas_fill      uplo,
-                                            rocblas_operation transA,
-                                            rocblas_int       n,
-                                            rocblas_int       k,
-                                            const float*      alpha,
-                                            const float*      A,
-                                            rocblas_int       lda,
-                                            const float*      beta,
-                                            float*            C,
-                                            rocblas_int       ldc);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dsyrk(rocblas_handle    handle,
-                                            rocblas_fill      uplo,
-                                            rocblas_operation transA,
-                                            rocblas_int       n,
-                                            rocblas_int       k,
-                                            const double*     alpha,
-                                            const double*     A,
-                                            rocblas_int       lda,
-                                            const double*     beta,
-                                            double*           C,
-                                            rocblas_int       ldc);
-
-ROCBLAS_EXPORT rocblas_status rocblas_csyrk(rocblas_handle               handle,
-                                            rocblas_fill                 uplo,
-                                            rocblas_operation            transA,
-                                            rocblas_int                  n,
-                                            rocblas_int                  k,
-                                            const rocblas_float_complex* alpha,
-                                            const rocblas_float_complex* A,
-                                            rocblas_int                  lda,
-                                            const rocblas_float_complex* beta,
-                                            rocblas_float_complex*       C,
-                                            rocblas_int                  ldc);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zsyrk(rocblas_handle                handle,
                                             rocblas_fill                  uplo,
                                             rocblas_operation             transA,
@@ -11281,6 +11204,45 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyrk(rocblas_handle                handle
                                             const rocblas_double_complex* beta,
                                             rocblas_double_complex*       C,
                                             rocblas_int                   ldc);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ssyrk_batched(rocblas_handle     handle,
+                                                    rocblas_fill       uplo,
+                                                    rocblas_operation  transA,
+                                                    rocblas_int        n,
+                                                    rocblas_int        k,
+                                                    const float*       alpha,
+                                                    const float* const A[],
+                                                    rocblas_int        lda,
+                                                    const float*       beta,
+                                                    float* const       C[],
+                                                    rocblas_int        ldc,
+                                                    rocblas_int        batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dsyrk_batched(rocblas_handle      handle,
+                                                    rocblas_fill        uplo,
+                                                    rocblas_operation   transA,
+                                                    rocblas_int         n,
+                                                    rocblas_int         k,
+                                                    const double*       alpha,
+                                                    const double* const A[],
+                                                    rocblas_int         lda,
+                                                    const double*       beta,
+                                                    double* const       C[],
+                                                    rocblas_int         ldc,
+                                                    rocblas_int         batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_csyrk_batched(rocblas_handle                     handle,
+                                                    rocblas_fill                       uplo,
+                                                    rocblas_operation                  transA,
+                                                    rocblas_int                        n,
+                                                    rocblas_int                        k,
+                                                    const rocblas_float_complex*       alpha,
+                                                    const rocblas_float_complex* const A[],
+                                                    rocblas_int                        lda,
+                                                    const rocblas_float_complex*       beta,
+                                                    rocblas_float_complex* const       C[],
+                                                    rocblas_int                        ldc,
+                                                    rocblas_int                        batch_count);
 
 /*! \brief BLAS Level 3 API
 
@@ -11350,46 +11312,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyrk(rocblas_handle                handle
                 number of instances in the batch.
 
     ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_ssyrk_batched(rocblas_handle     handle,
-                                                    rocblas_fill       uplo,
-                                                    rocblas_operation  transA,
-                                                    rocblas_int        n,
-                                                    rocblas_int        k,
-                                                    const float*       alpha,
-                                                    const float* const A[],
-                                                    rocblas_int        lda,
-                                                    const float*       beta,
-                                                    float* const       C[],
-                                                    rocblas_int        ldc,
-                                                    rocblas_int        batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dsyrk_batched(rocblas_handle      handle,
-                                                    rocblas_fill        uplo,
-                                                    rocblas_operation   transA,
-                                                    rocblas_int         n,
-                                                    rocblas_int         k,
-                                                    const double*       alpha,
-                                                    const double* const A[],
-                                                    rocblas_int         lda,
-                                                    const double*       beta,
-                                                    double* const       C[],
-                                                    rocblas_int         ldc,
-                                                    rocblas_int         batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_csyrk_batched(rocblas_handle                     handle,
-                                                    rocblas_fill                       uplo,
-                                                    rocblas_operation                  transA,
-                                                    rocblas_int                        n,
-                                                    rocblas_int                        k,
-                                                    const rocblas_float_complex*       alpha,
-                                                    const rocblas_float_complex* const A[],
-                                                    rocblas_int                        lda,
-                                                    const rocblas_float_complex*       beta,
-                                                    rocblas_float_complex* const       C[],
-                                                    rocblas_int                        ldc,
-                                                    rocblas_int                        batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zsyrk_batched(rocblas_handle                      handle,
                                                     rocblas_fill                        uplo,
                                                     rocblas_operation                   transA,
@@ -11402,6 +11324,51 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyrk_batched(rocblas_handle              
                                                     rocblas_double_complex* const       C[],
                                                     rocblas_int                         ldc,
                                                     rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ssyrk_strided_batched(rocblas_handle    handle,
+                                                            rocblas_fill      uplo,
+                                                            rocblas_operation transA,
+                                                            rocblas_int       n,
+                                                            rocblas_int       k,
+                                                            const float*      alpha,
+                                                            const float*      A,
+                                                            rocblas_int       lda,
+                                                            rocblas_stride    stride_A,
+                                                            const float*      beta,
+                                                            float*            C,
+                                                            rocblas_int       ldc,
+                                                            rocblas_stride    stride_C,
+                                                            rocblas_int       batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dsyrk_strided_batched(rocblas_handle    handle,
+                                                            rocblas_fill      uplo,
+                                                            rocblas_operation transA,
+                                                            rocblas_int       n,
+                                                            rocblas_int       k,
+                                                            const double*     alpha,
+                                                            const double*     A,
+                                                            rocblas_int       lda,
+                                                            rocblas_stride    stride_A,
+                                                            const double*     beta,
+                                                            double*           C,
+                                                            rocblas_int       ldc,
+                                                            rocblas_stride    stride_C,
+                                                            rocblas_int       batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_csyrk_strided_batched(rocblas_handle               handle,
+                                                            rocblas_fill                 uplo,
+                                                            rocblas_operation            transA,
+                                                            rocblas_int                  n,
+                                                            rocblas_int                  k,
+                                                            const rocblas_float_complex* alpha,
+                                                            const rocblas_float_complex* A,
+                                                            rocblas_int                  lda,
+                                                            rocblas_stride               stride_A,
+                                                            const rocblas_float_complex* beta,
+                                                            rocblas_float_complex*       C,
+                                                            rocblas_int                  ldc,
+                                                            rocblas_stride               stride_C,
+                                                            rocblas_int batch_count);
 
 /*! \brief BLAS Level 3 API
 
@@ -11480,52 +11447,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyrk_batched(rocblas_handle              
                 number of instances in the batch.
 
     ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_ssyrk_strided_batched(rocblas_handle    handle,
-                                                            rocblas_fill      uplo,
-                                                            rocblas_operation transA,
-                                                            rocblas_int       n,
-                                                            rocblas_int       k,
-                                                            const float*      alpha,
-                                                            const float*      A,
-                                                            rocblas_int       lda,
-                                                            rocblas_stride    stride_A,
-                                                            const float*      beta,
-                                                            float*            C,
-                                                            rocblas_int       ldc,
-                                                            rocblas_stride    stride_C,
-                                                            rocblas_int       batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dsyrk_strided_batched(rocblas_handle    handle,
-                                                            rocblas_fill      uplo,
-                                                            rocblas_operation transA,
-                                                            rocblas_int       n,
-                                                            rocblas_int       k,
-                                                            const double*     alpha,
-                                                            const double*     A,
-                                                            rocblas_int       lda,
-                                                            rocblas_stride    stride_A,
-                                                            const double*     beta,
-                                                            double*           C,
-                                                            rocblas_int       ldc,
-                                                            rocblas_stride    stride_C,
-                                                            rocblas_int       batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_csyrk_strided_batched(rocblas_handle               handle,
-                                                            rocblas_fill                 uplo,
-                                                            rocblas_operation            transA,
-                                                            rocblas_int                  n,
-                                                            rocblas_int                  k,
-                                                            const rocblas_float_complex* alpha,
-                                                            const rocblas_float_complex* A,
-                                                            rocblas_int                  lda,
-                                                            rocblas_stride               stride_A,
-                                                            const rocblas_float_complex* beta,
-                                                            rocblas_float_complex*       C,
-                                                            rocblas_int                  ldc,
-                                                            rocblas_stride               stride_C,
-                                                            rocblas_int batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zsyrk_strided_batched(rocblas_handle                handle,
                                                             rocblas_fill                  uplo,
                                                             rocblas_operation             transA,
@@ -11540,6 +11461,48 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyrk_strided_batched(rocblas_handle      
                                                             rocblas_int                   ldc,
                                                             rocblas_stride                stride_C,
                                                             rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ssyr2k(rocblas_handle    handle,
+                                             rocblas_fill      uplo,
+                                             rocblas_operation trans,
+                                             rocblas_int       n,
+                                             rocblas_int       k,
+                                             const float*      alpha,
+                                             const float*      A,
+                                             rocblas_int       lda,
+                                             const float*      B,
+                                             rocblas_int       ldb,
+                                             const float*      beta,
+                                             float*            C,
+                                             rocblas_int       ldc);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dsyr2k(rocblas_handle    handle,
+                                             rocblas_fill      uplo,
+                                             rocblas_operation trans,
+                                             rocblas_int       n,
+                                             rocblas_int       k,
+                                             const double*     alpha,
+                                             const double*     A,
+                                             rocblas_int       lda,
+                                             const double*     B,
+                                             rocblas_int       ldb,
+                                             const double*     beta,
+                                             double*           C,
+                                             rocblas_int       ldc);
+
+ROCBLAS_EXPORT rocblas_status rocblas_csyr2k(rocblas_handle               handle,
+                                             rocblas_fill                 uplo,
+                                             rocblas_operation            trans,
+                                             rocblas_int                  n,
+                                             rocblas_int                  k,
+                                             const rocblas_float_complex* alpha,
+                                             const rocblas_float_complex* A,
+                                             rocblas_int                  lda,
+                                             const rocblas_float_complex* B,
+                                             rocblas_int                  ldb,
+                                             const rocblas_float_complex* beta,
+                                             rocblas_float_complex*       C,
+                                             rocblas_int                  ldc);
 
 /*! \brief BLAS Level 3 API
 
@@ -11616,49 +11579,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyrk_strided_batched(rocblas_handle      
            ldc specifies the first dimension of C. ldc >= max( 1, n ).
 
     ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_ssyr2k(rocblas_handle    handle,
-                                             rocblas_fill      uplo,
-                                             rocblas_operation trans,
-                                             rocblas_int       n,
-                                             rocblas_int       k,
-                                             const float*      alpha,
-                                             const float*      A,
-                                             rocblas_int       lda,
-                                             const float*      B,
-                                             rocblas_int       ldb,
-                                             const float*      beta,
-                                             float*            C,
-                                             rocblas_int       ldc);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dsyr2k(rocblas_handle    handle,
-                                             rocblas_fill      uplo,
-                                             rocblas_operation trans,
-                                             rocblas_int       n,
-                                             rocblas_int       k,
-                                             const double*     alpha,
-                                             const double*     A,
-                                             rocblas_int       lda,
-                                             const double*     B,
-                                             rocblas_int       ldb,
-                                             const double*     beta,
-                                             double*           C,
-                                             rocblas_int       ldc);
-
-ROCBLAS_EXPORT rocblas_status rocblas_csyr2k(rocblas_handle               handle,
-                                             rocblas_fill                 uplo,
-                                             rocblas_operation            trans,
-                                             rocblas_int                  n,
-                                             rocblas_int                  k,
-                                             const rocblas_float_complex* alpha,
-                                             const rocblas_float_complex* A,
-                                             rocblas_int                  lda,
-                                             const rocblas_float_complex* B,
-                                             rocblas_int                  ldb,
-                                             const rocblas_float_complex* beta,
-                                             rocblas_float_complex*       C,
-                                             rocblas_int                  ldc);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zsyr2k(rocblas_handle                handle,
                                              rocblas_fill                  uplo,
                                              rocblas_operation             trans,
@@ -11672,6 +11592,51 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyr2k(rocblas_handle                handl
                                              const rocblas_double_complex* beta,
                                              rocblas_double_complex*       C,
                                              rocblas_int                   ldc);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ssyr2k_batched(rocblas_handle     handle,
+                                                     rocblas_fill       uplo,
+                                                     rocblas_operation  trans,
+                                                     rocblas_int        n,
+                                                     rocblas_int        k,
+                                                     const float*       alpha,
+                                                     const float* const A[],
+                                                     rocblas_int        lda,
+                                                     const float* const B[],
+                                                     rocblas_int        ldb,
+                                                     const float*       beta,
+                                                     float* const       C[],
+                                                     rocblas_int        ldc,
+                                                     rocblas_int        batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dsyr2k_batched(rocblas_handle      handle,
+                                                     rocblas_fill        uplo,
+                                                     rocblas_operation   trans,
+                                                     rocblas_int         n,
+                                                     rocblas_int         k,
+                                                     const double*       alpha,
+                                                     const double* const A[],
+                                                     rocblas_int         lda,
+                                                     const double* const B[],
+                                                     rocblas_int         ldb,
+                                                     const double*       beta,
+                                                     double* const       C[],
+                                                     rocblas_int         ldc,
+                                                     rocblas_int         batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_csyr2k_batched(rocblas_handle                     handle,
+                                                     rocblas_fill                       uplo,
+                                                     rocblas_operation                  trans,
+                                                     rocblas_int                        n,
+                                                     rocblas_int                        k,
+                                                     const rocblas_float_complex*       alpha,
+                                                     const rocblas_float_complex* const A[],
+                                                     rocblas_int                        lda,
+                                                     const rocblas_float_complex* const B[],
+                                                     rocblas_int                        ldb,
+                                                     const rocblas_float_complex*       beta,
+                                                     rocblas_float_complex* const       C[],
+                                                     rocblas_int                        ldc,
+                                                     rocblas_int batch_count);
 
 /*! \brief BLAS Level 3 API
 
@@ -11748,52 +11713,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyr2k(rocblas_handle                handl
                 number of instances in the batch.
 
     ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_ssyr2k_batched(rocblas_handle     handle,
-                                                     rocblas_fill       uplo,
-                                                     rocblas_operation  trans,
-                                                     rocblas_int        n,
-                                                     rocblas_int        k,
-                                                     const float*       alpha,
-                                                     const float* const A[],
-                                                     rocblas_int        lda,
-                                                     const float* const B[],
-                                                     rocblas_int        ldb,
-                                                     const float*       beta,
-                                                     float* const       C[],
-                                                     rocblas_int        ldc,
-                                                     rocblas_int        batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dsyr2k_batched(rocblas_handle      handle,
-                                                     rocblas_fill        uplo,
-                                                     rocblas_operation   trans,
-                                                     rocblas_int         n,
-                                                     rocblas_int         k,
-                                                     const double*       alpha,
-                                                     const double* const A[],
-                                                     rocblas_int         lda,
-                                                     const double* const B[],
-                                                     rocblas_int         ldb,
-                                                     const double*       beta,
-                                                     double* const       C[],
-                                                     rocblas_int         ldc,
-                                                     rocblas_int         batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_csyr2k_batched(rocblas_handle                     handle,
-                                                     rocblas_fill                       uplo,
-                                                     rocblas_operation                  trans,
-                                                     rocblas_int                        n,
-                                                     rocblas_int                        k,
-                                                     const rocblas_float_complex*       alpha,
-                                                     const rocblas_float_complex* const A[],
-                                                     rocblas_int                        lda,
-                                                     const rocblas_float_complex* const B[],
-                                                     rocblas_int                        ldb,
-                                                     const rocblas_float_complex*       beta,
-                                                     rocblas_float_complex* const       C[],
-                                                     rocblas_int                        ldc,
-                                                     rocblas_int batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zsyr2k_batched(rocblas_handle                      handle,
                                                      rocblas_fill                        uplo,
                                                      rocblas_operation                   trans,
@@ -11808,6 +11727,60 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyr2k_batched(rocblas_handle             
                                                      rocblas_double_complex* const       C[],
                                                      rocblas_int                         ldc,
                                                      rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ssyr2k_strided_batched(rocblas_handle    handle,
+                                                             rocblas_fill      uplo,
+                                                             rocblas_operation trans,
+                                                             rocblas_int       n,
+                                                             rocblas_int       k,
+                                                             const float*      alpha,
+                                                             const float*      A,
+                                                             rocblas_int       lda,
+                                                             rocblas_stride    stride_A,
+                                                             const float*      B,
+                                                             rocblas_int       ldb,
+                                                             rocblas_stride    stride_B,
+                                                             const float*      beta,
+                                                             float*            C,
+                                                             rocblas_int       ldc,
+                                                             rocblas_stride    stride_C,
+                                                             rocblas_int       batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dsyr2k_strided_batched(rocblas_handle    handle,
+                                                             rocblas_fill      uplo,
+                                                             rocblas_operation trans,
+                                                             rocblas_int       n,
+                                                             rocblas_int       k,
+                                                             const double*     alpha,
+                                                             const double*     A,
+                                                             rocblas_int       lda,
+                                                             rocblas_stride    stride_A,
+                                                             const double*     B,
+                                                             rocblas_int       ldb,
+                                                             rocblas_stride    stride_B,
+                                                             const double*     beta,
+                                                             double*           C,
+                                                             rocblas_int       ldc,
+                                                             rocblas_stride    stride_C,
+                                                             rocblas_int       batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_csyr2k_strided_batched(rocblas_handle               handle,
+                                                             rocblas_fill                 uplo,
+                                                             rocblas_operation            trans,
+                                                             rocblas_int                  n,
+                                                             rocblas_int                  k,
+                                                             const rocblas_float_complex* alpha,
+                                                             const rocblas_float_complex* A,
+                                                             rocblas_int                  lda,
+                                                             rocblas_stride               stride_A,
+                                                             const rocblas_float_complex* B,
+                                                             rocblas_int                  ldb,
+                                                             rocblas_stride               stride_B,
+                                                             const rocblas_float_complex* beta,
+                                                             rocblas_float_complex*       C,
+                                                             rocblas_int                  ldc,
+                                                             rocblas_stride               stride_C,
+                                                             rocblas_int batch_count);
 
 /*! \brief BLAS Level 3 API
 
@@ -11900,61 +11873,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyr2k_batched(rocblas_handle             
                 number of instances in the batch.
 
     ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_ssyr2k_strided_batched(rocblas_handle    handle,
-                                                             rocblas_fill      uplo,
-                                                             rocblas_operation trans,
-                                                             rocblas_int       n,
-                                                             rocblas_int       k,
-                                                             const float*      alpha,
-                                                             const float*      A,
-                                                             rocblas_int       lda,
-                                                             rocblas_stride    stride_A,
-                                                             const float*      B,
-                                                             rocblas_int       ldb,
-                                                             rocblas_stride    stride_B,
-                                                             const float*      beta,
-                                                             float*            C,
-                                                             rocblas_int       ldc,
-                                                             rocblas_stride    stride_C,
-                                                             rocblas_int       batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dsyr2k_strided_batched(rocblas_handle    handle,
-                                                             rocblas_fill      uplo,
-                                                             rocblas_operation trans,
-                                                             rocblas_int       n,
-                                                             rocblas_int       k,
-                                                             const double*     alpha,
-                                                             const double*     A,
-                                                             rocblas_int       lda,
-                                                             rocblas_stride    stride_A,
-                                                             const double*     B,
-                                                             rocblas_int       ldb,
-                                                             rocblas_stride    stride_B,
-                                                             const double*     beta,
-                                                             double*           C,
-                                                             rocblas_int       ldc,
-                                                             rocblas_stride    stride_C,
-                                                             rocblas_int       batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_csyr2k_strided_batched(rocblas_handle               handle,
-                                                             rocblas_fill                 uplo,
-                                                             rocblas_operation            trans,
-                                                             rocblas_int                  n,
-                                                             rocblas_int                  k,
-                                                             const rocblas_float_complex* alpha,
-                                                             const rocblas_float_complex* A,
-                                                             rocblas_int                  lda,
-                                                             rocblas_stride               stride_A,
-                                                             const rocblas_float_complex* B,
-                                                             rocblas_int                  ldb,
-                                                             rocblas_stride               stride_B,
-                                                             const rocblas_float_complex* beta,
-                                                             rocblas_float_complex*       C,
-                                                             rocblas_int                  ldc,
-                                                             rocblas_stride               stride_C,
-                                                             rocblas_int batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zsyr2k_strided_batched(rocblas_handle                handle,
                                                              rocblas_fill                  uplo,
                                                              rocblas_operation             trans,
@@ -11972,6 +11890,48 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyr2k_strided_batched(rocblas_handle     
                                                              rocblas_int                   ldc,
                                                              rocblas_stride                stride_C,
                                                              rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ssyrkx(rocblas_handle    handle,
+                                             rocblas_fill      uplo,
+                                             rocblas_operation trans,
+                                             rocblas_int       n,
+                                             rocblas_int       k,
+                                             const float*      alpha,
+                                             const float*      A,
+                                             rocblas_int       lda,
+                                             const float*      B,
+                                             rocblas_int       ldb,
+                                             const float*      beta,
+                                             float*            C,
+                                             rocblas_int       ldc);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dsyrkx(rocblas_handle    handle,
+                                             rocblas_fill      uplo,
+                                             rocblas_operation trans,
+                                             rocblas_int       n,
+                                             rocblas_int       k,
+                                             const double*     alpha,
+                                             const double*     A,
+                                             rocblas_int       lda,
+                                             const double*     B,
+                                             rocblas_int       ldb,
+                                             const double*     beta,
+                                             double*           C,
+                                             rocblas_int       ldc);
+
+ROCBLAS_EXPORT rocblas_status rocblas_csyrkx(rocblas_handle               handle,
+                                             rocblas_fill                 uplo,
+                                             rocblas_operation            trans,
+                                             rocblas_int                  n,
+                                             rocblas_int                  k,
+                                             const rocblas_float_complex* alpha,
+                                             const rocblas_float_complex* A,
+                                             rocblas_int                  lda,
+                                             const rocblas_float_complex* B,
+                                             rocblas_int                  ldb,
+                                             const rocblas_float_complex* beta,
+                                             rocblas_float_complex*       C,
+                                             rocblas_int                  ldc);
 
 /*! \brief BLAS Level 3 API
 
@@ -12051,49 +12011,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyr2k_strided_batched(rocblas_handle     
            ldc specifies the first dimension of C. ldc >= max( 1, n ).
 
     ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_ssyrkx(rocblas_handle    handle,
-                                             rocblas_fill      uplo,
-                                             rocblas_operation trans,
-                                             rocblas_int       n,
-                                             rocblas_int       k,
-                                             const float*      alpha,
-                                             const float*      A,
-                                             rocblas_int       lda,
-                                             const float*      B,
-                                             rocblas_int       ldb,
-                                             const float*      beta,
-                                             float*            C,
-                                             rocblas_int       ldc);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dsyrkx(rocblas_handle    handle,
-                                             rocblas_fill      uplo,
-                                             rocblas_operation trans,
-                                             rocblas_int       n,
-                                             rocblas_int       k,
-                                             const double*     alpha,
-                                             const double*     A,
-                                             rocblas_int       lda,
-                                             const double*     B,
-                                             rocblas_int       ldb,
-                                             const double*     beta,
-                                             double*           C,
-                                             rocblas_int       ldc);
-
-ROCBLAS_EXPORT rocblas_status rocblas_csyrkx(rocblas_handle               handle,
-                                             rocblas_fill                 uplo,
-                                             rocblas_operation            trans,
-                                             rocblas_int                  n,
-                                             rocblas_int                  k,
-                                             const rocblas_float_complex* alpha,
-                                             const rocblas_float_complex* A,
-                                             rocblas_int                  lda,
-                                             const rocblas_float_complex* B,
-                                             rocblas_int                  ldb,
-                                             const rocblas_float_complex* beta,
-                                             rocblas_float_complex*       C,
-                                             rocblas_int                  ldc);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zsyrkx(rocblas_handle                handle,
                                              rocblas_fill                  uplo,
                                              rocblas_operation             trans,
@@ -12107,6 +12024,51 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyrkx(rocblas_handle                handl
                                              const rocblas_double_complex* beta,
                                              rocblas_double_complex*       C,
                                              rocblas_int                   ldc);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ssyrkx_batched(rocblas_handle     handle,
+                                                     rocblas_fill       uplo,
+                                                     rocblas_operation  trans,
+                                                     rocblas_int        n,
+                                                     rocblas_int        k,
+                                                     const float*       alpha,
+                                                     const float* const A[],
+                                                     rocblas_int        lda,
+                                                     const float* const B[],
+                                                     rocblas_int        ldb,
+                                                     const float*       beta,
+                                                     float* const       C[],
+                                                     rocblas_int        ldc,
+                                                     rocblas_int        batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dsyrkx_batched(rocblas_handle      handle,
+                                                     rocblas_fill        uplo,
+                                                     rocblas_operation   trans,
+                                                     rocblas_int         n,
+                                                     rocblas_int         k,
+                                                     const double*       alpha,
+                                                     const double* const A[],
+                                                     rocblas_int         lda,
+                                                     const double* const B[],
+                                                     rocblas_int         ldb,
+                                                     const double*       beta,
+                                                     double* const       C[],
+                                                     rocblas_int         ldc,
+                                                     rocblas_int         batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_csyrkx_batched(rocblas_handle                     handle,
+                                                     rocblas_fill                       uplo,
+                                                     rocblas_operation                  trans,
+                                                     rocblas_int                        n,
+                                                     rocblas_int                        k,
+                                                     const rocblas_float_complex*       alpha,
+                                                     const rocblas_float_complex* const A[],
+                                                     rocblas_int                        lda,
+                                                     const rocblas_float_complex* const B[],
+                                                     rocblas_int                        ldb,
+                                                     const rocblas_float_complex*       beta,
+                                                     rocblas_float_complex* const       C[],
+                                                     rocblas_int                        ldc,
+                                                     rocblas_int batch_count);
 
 /*! \brief BLAS Level 3 API
 
@@ -12188,52 +12150,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyrkx(rocblas_handle                handl
             number of instances in the batch.
 
     ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_ssyrkx_batched(rocblas_handle     handle,
-                                                     rocblas_fill       uplo,
-                                                     rocblas_operation  trans,
-                                                     rocblas_int        n,
-                                                     rocblas_int        k,
-                                                     const float*       alpha,
-                                                     const float* const A[],
-                                                     rocblas_int        lda,
-                                                     const float* const B[],
-                                                     rocblas_int        ldb,
-                                                     const float*       beta,
-                                                     float* const       C[],
-                                                     rocblas_int        ldc,
-                                                     rocblas_int        batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dsyrkx_batched(rocblas_handle      handle,
-                                                     rocblas_fill        uplo,
-                                                     rocblas_operation   trans,
-                                                     rocblas_int         n,
-                                                     rocblas_int         k,
-                                                     const double*       alpha,
-                                                     const double* const A[],
-                                                     rocblas_int         lda,
-                                                     const double* const B[],
-                                                     rocblas_int         ldb,
-                                                     const double*       beta,
-                                                     double* const       C[],
-                                                     rocblas_int         ldc,
-                                                     rocblas_int         batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_csyrkx_batched(rocblas_handle                     handle,
-                                                     rocblas_fill                       uplo,
-                                                     rocblas_operation                  trans,
-                                                     rocblas_int                        n,
-                                                     rocblas_int                        k,
-                                                     const rocblas_float_complex*       alpha,
-                                                     const rocblas_float_complex* const A[],
-                                                     rocblas_int                        lda,
-                                                     const rocblas_float_complex* const B[],
-                                                     rocblas_int                        ldb,
-                                                     const rocblas_float_complex*       beta,
-                                                     rocblas_float_complex* const       C[],
-                                                     rocblas_int                        ldc,
-                                                     rocblas_int batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zsyrkx_batched(rocblas_handle                      handle,
                                                      rocblas_fill                        uplo,
                                                      rocblas_operation                   trans,
@@ -12248,6 +12164,60 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyrkx_batched(rocblas_handle             
                                                      rocblas_double_complex* const       C[],
                                                      rocblas_int                         ldc,
                                                      rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ssyrkx_strided_batched(rocblas_handle    handle,
+                                                             rocblas_fill      uplo,
+                                                             rocblas_operation trans,
+                                                             rocblas_int       n,
+                                                             rocblas_int       k,
+                                                             const float*      alpha,
+                                                             const float*      A,
+                                                             rocblas_int       lda,
+                                                             rocblas_stride    stride_A,
+                                                             const float*      B,
+                                                             rocblas_int       ldb,
+                                                             rocblas_stride    stride_B,
+                                                             const float*      beta,
+                                                             float*            C,
+                                                             rocblas_int       ldc,
+                                                             rocblas_stride    stride_C,
+                                                             rocblas_int       batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dsyrkx_strided_batched(rocblas_handle    handle,
+                                                             rocblas_fill      uplo,
+                                                             rocblas_operation trans,
+                                                             rocblas_int       n,
+                                                             rocblas_int       k,
+                                                             const double*     alpha,
+                                                             const double*     A,
+                                                             rocblas_int       lda,
+                                                             rocblas_stride    stride_A,
+                                                             const double*     B,
+                                                             rocblas_int       ldb,
+                                                             rocblas_stride    stride_B,
+                                                             const double*     beta,
+                                                             double*           C,
+                                                             rocblas_int       ldc,
+                                                             rocblas_stride    stride_C,
+                                                             rocblas_int       batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_csyrkx_strided_batched(rocblas_handle               handle,
+                                                             rocblas_fill                 uplo,
+                                                             rocblas_operation            trans,
+                                                             rocblas_int                  n,
+                                                             rocblas_int                  k,
+                                                             const rocblas_float_complex* alpha,
+                                                             const rocblas_float_complex* A,
+                                                             rocblas_int                  lda,
+                                                             rocblas_stride               stride_A,
+                                                             const rocblas_float_complex* B,
+                                                             rocblas_int                  ldb,
+                                                             rocblas_stride               stride_B,
+                                                             const rocblas_float_complex* beta,
+                                                             rocblas_float_complex*       C,
+                                                             rocblas_int                  ldc,
+                                                             rocblas_stride               stride_C,
+                                                             rocblas_int batch_count);
 
 /*! \brief BLAS Level 3 API
 
@@ -12341,61 +12311,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyrkx_batched(rocblas_handle             
                 number of instances in the batch.
 
     ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_ssyrkx_strided_batched(rocblas_handle    handle,
-                                                             rocblas_fill      uplo,
-                                                             rocblas_operation trans,
-                                                             rocblas_int       n,
-                                                             rocblas_int       k,
-                                                             const float*      alpha,
-                                                             const float*      A,
-                                                             rocblas_int       lda,
-                                                             rocblas_stride    stride_A,
-                                                             const float*      B,
-                                                             rocblas_int       ldb,
-                                                             rocblas_stride    stride_B,
-                                                             const float*      beta,
-                                                             float*            C,
-                                                             rocblas_int       ldc,
-                                                             rocblas_stride    stride_C,
-                                                             rocblas_int       batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dsyrkx_strided_batched(rocblas_handle    handle,
-                                                             rocblas_fill      uplo,
-                                                             rocblas_operation trans,
-                                                             rocblas_int       n,
-                                                             rocblas_int       k,
-                                                             const double*     alpha,
-                                                             const double*     A,
-                                                             rocblas_int       lda,
-                                                             rocblas_stride    stride_A,
-                                                             const double*     B,
-                                                             rocblas_int       ldb,
-                                                             rocblas_stride    stride_B,
-                                                             const double*     beta,
-                                                             double*           C,
-                                                             rocblas_int       ldc,
-                                                             rocblas_stride    stride_C,
-                                                             rocblas_int       batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_csyrkx_strided_batched(rocblas_handle               handle,
-                                                             rocblas_fill                 uplo,
-                                                             rocblas_operation            trans,
-                                                             rocblas_int                  n,
-                                                             rocblas_int                  k,
-                                                             const rocblas_float_complex* alpha,
-                                                             const rocblas_float_complex* A,
-                                                             rocblas_int                  lda,
-                                                             rocblas_stride               stride_A,
-                                                             const rocblas_float_complex* B,
-                                                             rocblas_int                  ldb,
-                                                             rocblas_stride               stride_B,
-                                                             const rocblas_float_complex* beta,
-                                                             rocblas_float_complex*       C,
-                                                             rocblas_int                  ldc,
-                                                             rocblas_stride               stride_C,
-                                                             rocblas_int batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zsyrkx_strided_batched(rocblas_handle                handle,
                                                              rocblas_fill                  uplo,
                                                              rocblas_operation             trans,
@@ -12413,6 +12328,45 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyrkx_strided_batched(rocblas_handle     
                                                              rocblas_int                   ldc,
                                                              rocblas_stride                stride_C,
                                                              rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_strmm(rocblas_handle    handle,
+                                            rocblas_side      side,
+                                            rocblas_fill      uplo,
+                                            rocblas_operation transA,
+                                            rocblas_diagonal  diag,
+                                            rocblas_int       m,
+                                            rocblas_int       n,
+                                            const float*      alpha,
+                                            const float*      A,
+                                            rocblas_int       lda,
+                                            float*            B,
+                                            rocblas_int       ldb);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dtrmm(rocblas_handle    handle,
+                                            rocblas_side      side,
+                                            rocblas_fill      uplo,
+                                            rocblas_operation transA,
+                                            rocblas_diagonal  diag,
+                                            rocblas_int       m,
+                                            rocblas_int       n,
+                                            const double*     alpha,
+                                            const double*     A,
+                                            rocblas_int       lda,
+                                            double*           B,
+                                            rocblas_int       ldb);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ctrmm(rocblas_handle               handle,
+                                            rocblas_side                 side,
+                                            rocblas_fill                 uplo,
+                                            rocblas_operation            transA,
+                                            rocblas_diagonal             diag,
+                                            rocblas_int                  m,
+                                            rocblas_int                  n,
+                                            const rocblas_float_complex* alpha,
+                                            const rocblas_float_complex* A,
+                                            rocblas_int                  lda,
+                                            rocblas_float_complex*       B,
+                                            rocblas_int                  ldb);
 
 /*! \brief BLAS Level 3 API
 
@@ -12506,46 +12460,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsyrkx_strided_batched(rocblas_handle     
            ldb specifies the first dimension of B. ldb >= max( 1, m ).
 
     ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_strmm(rocblas_handle    handle,
-                                            rocblas_side      side,
-                                            rocblas_fill      uplo,
-                                            rocblas_operation transA,
-                                            rocblas_diagonal  diag,
-                                            rocblas_int       m,
-                                            rocblas_int       n,
-                                            const float*      alpha,
-                                            const float*      A,
-                                            rocblas_int       lda,
-                                            float*            B,
-                                            rocblas_int       ldb);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dtrmm(rocblas_handle    handle,
-                                            rocblas_side      side,
-                                            rocblas_fill      uplo,
-                                            rocblas_operation transA,
-                                            rocblas_diagonal  diag,
-                                            rocblas_int       m,
-                                            rocblas_int       n,
-                                            const double*     alpha,
-                                            const double*     A,
-                                            rocblas_int       lda,
-                                            double*           B,
-                                            rocblas_int       ldb);
-
-ROCBLAS_EXPORT rocblas_status rocblas_ctrmm(rocblas_handle               handle,
-                                            rocblas_side                 side,
-                                            rocblas_fill                 uplo,
-                                            rocblas_operation            transA,
-                                            rocblas_diagonal             diag,
-                                            rocblas_int                  m,
-                                            rocblas_int                  n,
-                                            const rocblas_float_complex* alpha,
-                                            const rocblas_float_complex* A,
-                                            rocblas_int                  lda,
-                                            rocblas_float_complex*       B,
-                                            rocblas_int                  ldb);
-
 ROCBLAS_EXPORT rocblas_status rocblas_ztrmm(rocblas_handle                handle,
                                             rocblas_side                  side,
                                             rocblas_fill                  uplo,
@@ -12558,6 +12472,48 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrmm(rocblas_handle                handle
                                             rocblas_int                   lda,
                                             rocblas_double_complex*       B,
                                             rocblas_int                   ldb);
+
+ROCBLAS_EXPORT rocblas_status rocblas_strmm_batched(rocblas_handle     handle,
+                                                    rocblas_side       side,
+                                                    rocblas_fill       uplo,
+                                                    rocblas_operation  transa,
+                                                    rocblas_diagonal   diag,
+                                                    rocblas_int        m,
+                                                    rocblas_int        n,
+                                                    const float*       alpha,
+                                                    const float* const a[],
+                                                    rocblas_int        lda,
+                                                    float* const       c[],
+                                                    rocblas_int        ldc,
+                                                    rocblas_int        batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dtrmm_batched(rocblas_handle      handle,
+                                                    rocblas_side        side,
+                                                    rocblas_fill        uplo,
+                                                    rocblas_operation   transa,
+                                                    rocblas_diagonal    diag,
+                                                    rocblas_int         m,
+                                                    rocblas_int         n,
+                                                    const double*       alpha,
+                                                    const double* const a[],
+                                                    rocblas_int         lda,
+                                                    double* const       c[],
+                                                    rocblas_int         ldc,
+                                                    rocblas_int         batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ctrmm_batched(rocblas_handle                     handle,
+                                                    rocblas_side                       side,
+                                                    rocblas_fill                       uplo,
+                                                    rocblas_operation                  transa,
+                                                    rocblas_diagonal                   diag,
+                                                    rocblas_int                        m,
+                                                    rocblas_int                        n,
+                                                    const rocblas_float_complex*       alpha,
+                                                    const rocblas_float_complex* const a[],
+                                                    rocblas_int                        lda,
+                                                    rocblas_float_complex* const       c[],
+                                                    rocblas_int                        ldc,
+                                                    rocblas_int                        batch_count);
 
 /*! \brief BLAS Level 3 API
 
@@ -12654,49 +12610,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrmm(rocblas_handle                handle
     batch_count [rocblas_int]
                 number of instances i in the batch.
     ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_strmm_batched(rocblas_handle     handle,
-                                                    rocblas_side       side,
-                                                    rocblas_fill       uplo,
-                                                    rocblas_operation  transa,
-                                                    rocblas_diagonal   diag,
-                                                    rocblas_int        m,
-                                                    rocblas_int        n,
-                                                    const float*       alpha,
-                                                    const float* const a[],
-                                                    rocblas_int        lda,
-                                                    float* const       c[],
-                                                    rocblas_int        ldc,
-                                                    rocblas_int        batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dtrmm_batched(rocblas_handle      handle,
-                                                    rocblas_side        side,
-                                                    rocblas_fill        uplo,
-                                                    rocblas_operation   transa,
-                                                    rocblas_diagonal    diag,
-                                                    rocblas_int         m,
-                                                    rocblas_int         n,
-                                                    const double*       alpha,
-                                                    const double* const a[],
-                                                    rocblas_int         lda,
-                                                    double* const       c[],
-                                                    rocblas_int         ldc,
-                                                    rocblas_int         batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_ctrmm_batched(rocblas_handle                     handle,
-                                                    rocblas_side                       side,
-                                                    rocblas_fill                       uplo,
-                                                    rocblas_operation                  transa,
-                                                    rocblas_diagonal                   diag,
-                                                    rocblas_int                        m,
-                                                    rocblas_int                        n,
-                                                    const rocblas_float_complex*       alpha,
-                                                    const rocblas_float_complex* const a[],
-                                                    rocblas_int                        lda,
-                                                    rocblas_float_complex* const       c[],
-                                                    rocblas_int                        ldc,
-                                                    rocblas_int                        batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_ztrmm_batched(rocblas_handle                      handle,
                                                     rocblas_side                        side,
                                                     rocblas_fill                        uplo,
@@ -12710,6 +12623,54 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrmm_batched(rocblas_handle              
                                                     rocblas_double_complex* const       c[],
                                                     rocblas_int                         ldc,
                                                     rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_strmm_strided_batched(rocblas_handle    handle,
+                                                            rocblas_side      side,
+                                                            rocblas_fill      uplo,
+                                                            rocblas_operation transa,
+                                                            rocblas_diagonal  diag,
+                                                            rocblas_int       m,
+                                                            rocblas_int       n,
+                                                            const float*      alpha,
+                                                            const float*      a,
+                                                            rocblas_int       lda,
+                                                            rocblas_stride    stride_a,
+                                                            float*            c,
+                                                            rocblas_int       ldc,
+                                                            rocblas_stride    stride_c,
+                                                            rocblas_int       batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dtrmm_strided_batched(rocblas_handle    handle,
+                                                            rocblas_side      side,
+                                                            rocblas_fill      uplo,
+                                                            rocblas_operation transa,
+                                                            rocblas_diagonal  diag,
+                                                            rocblas_int       m,
+                                                            rocblas_int       n,
+                                                            const double*     alpha,
+                                                            const double*     a,
+                                                            rocblas_int       lda,
+                                                            rocblas_stride    stride_a,
+                                                            double*           c,
+                                                            rocblas_int       ldc,
+                                                            rocblas_stride    stride_c,
+                                                            rocblas_int       batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ctrmm_strided_batched(rocblas_handle               handle,
+                                                            rocblas_side                 side,
+                                                            rocblas_fill                 uplo,
+                                                            rocblas_operation            transa,
+                                                            rocblas_diagonal             diag,
+                                                            rocblas_int                  m,
+                                                            rocblas_int                  n,
+                                                            const rocblas_float_complex* alpha,
+                                                            const rocblas_float_complex* a,
+                                                            rocblas_int                  lda,
+                                                            rocblas_stride               stride_a,
+                                                            rocblas_float_complex*       c,
+                                                            rocblas_int                  ldc,
+                                                            rocblas_stride               stride_c,
+                                                            rocblas_int batch_count);
 
 /*! \brief BLAS Level 3 API
 
@@ -12813,55 +12774,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrmm_batched(rocblas_handle              
     batch_count [rocblas_int]
                 number of instances i in the batch.
     ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_strmm_strided_batched(rocblas_handle    handle,
-                                                            rocblas_side      side,
-                                                            rocblas_fill      uplo,
-                                                            rocblas_operation transa,
-                                                            rocblas_diagonal  diag,
-                                                            rocblas_int       m,
-                                                            rocblas_int       n,
-                                                            const float*      alpha,
-                                                            const float*      a,
-                                                            rocblas_int       lda,
-                                                            rocblas_stride    stride_a,
-                                                            float*            c,
-                                                            rocblas_int       ldc,
-                                                            rocblas_stride    stride_c,
-                                                            rocblas_int       batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dtrmm_strided_batched(rocblas_handle    handle,
-                                                            rocblas_side      side,
-                                                            rocblas_fill      uplo,
-                                                            rocblas_operation transa,
-                                                            rocblas_diagonal  diag,
-                                                            rocblas_int       m,
-                                                            rocblas_int       n,
-                                                            const double*     alpha,
-                                                            const double*     a,
-                                                            rocblas_int       lda,
-                                                            rocblas_stride    stride_a,
-                                                            double*           c,
-                                                            rocblas_int       ldc,
-                                                            rocblas_stride    stride_c,
-                                                            rocblas_int       batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_ctrmm_strided_batched(rocblas_handle               handle,
-                                                            rocblas_side                 side,
-                                                            rocblas_fill                 uplo,
-                                                            rocblas_operation            transa,
-                                                            rocblas_diagonal             diag,
-                                                            rocblas_int                  m,
-                                                            rocblas_int                  n,
-                                                            const rocblas_float_complex* alpha,
-                                                            const rocblas_float_complex* a,
-                                                            rocblas_int                  lda,
-                                                            rocblas_stride               stride_a,
-                                                            rocblas_float_complex*       c,
-                                                            rocblas_int                  ldc,
-                                                            rocblas_stride               stride_c,
-                                                            rocblas_int batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_ztrmm_strided_batched(rocblas_handle                handle,
                                                             rocblas_side                  side,
                                                             rocblas_fill                  uplo,
@@ -12878,7 +12790,32 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrmm_strided_batched(rocblas_handle      
                                                             rocblas_stride                stride_c,
                                                             rocblas_int batch_count);
 
-//--------------------------------------------------------------------------------------------------------------
+ROCBLAS_EXPORT rocblas_status rocblas_strtri(rocblas_handle   handle,
+                                             rocblas_fill     uplo,
+                                             rocblas_diagonal diag,
+                                             rocblas_int      n,
+                                             const float*     A,
+                                             rocblas_int      lda,
+                                             float*           invA,
+                                             rocblas_int      ldinvA);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dtrtri(rocblas_handle   handle,
+                                             rocblas_fill     uplo,
+                                             rocblas_diagonal diag,
+                                             rocblas_int      n,
+                                             const double*    A,
+                                             rocblas_int      lda,
+                                             double*          invA,
+                                             rocblas_int      ldinvA);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ctrtri(rocblas_handle               handle,
+                                             rocblas_fill                 uplo,
+                                             rocblas_diagonal             diag,
+                                             rocblas_int                  n,
+                                             const rocblas_float_complex* A,
+                                             rocblas_int                  lda,
+                                             rocblas_float_complex*       invA,
+                                             rocblas_int                  ldinvA);
 
 /*! \brief BLAS Level 3 API
 
@@ -12914,34 +12851,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrmm_strided_batched(rocblas_handle      
               specifies the leading dimension of invA.
 
 ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_strtri(rocblas_handle   handle,
-                                             rocblas_fill     uplo,
-                                             rocblas_diagonal diag,
-                                             rocblas_int      n,
-                                             const float*     A,
-                                             rocblas_int      lda,
-                                             float*           invA,
-                                             rocblas_int      ldinvA);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dtrtri(rocblas_handle   handle,
-                                             rocblas_fill     uplo,
-                                             rocblas_diagonal diag,
-                                             rocblas_int      n,
-                                             const double*    A,
-                                             rocblas_int      lda,
-                                             double*          invA,
-                                             rocblas_int      ldinvA);
-
-ROCBLAS_EXPORT rocblas_status rocblas_ctrtri(rocblas_handle               handle,
-                                             rocblas_fill                 uplo,
-                                             rocblas_diagonal             diag,
-                                             rocblas_int                  n,
-                                             const rocblas_float_complex* A,
-                                             rocblas_int                  lda,
-                                             rocblas_float_complex*       invA,
-                                             rocblas_int                  ldinvA);
-
 ROCBLAS_EXPORT rocblas_status rocblas_ztrtri(rocblas_handle                handle,
                                              rocblas_fill                  uplo,
                                              rocblas_diagonal              diag,
@@ -12950,6 +12859,36 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrtri(rocblas_handle                handl
                                              rocblas_int                   lda,
                                              rocblas_double_complex*       invA,
                                              rocblas_int                   ldinvA);
+
+ROCBLAS_EXPORT rocblas_status rocblas_strtri_batched(rocblas_handle     handle,
+                                                     rocblas_fill       uplo,
+                                                     rocblas_diagonal   diag,
+                                                     rocblas_int        n,
+                                                     const float* const A[],
+                                                     rocblas_int        lda,
+                                                     float*             invA[],
+                                                     rocblas_int        ldinvA,
+                                                     rocblas_int        batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dtrtri_batched(rocblas_handle      handle,
+                                                     rocblas_fill        uplo,
+                                                     rocblas_diagonal    diag,
+                                                     rocblas_int         n,
+                                                     const double* const A[],
+                                                     rocblas_int         lda,
+                                                     double*             invA[],
+                                                     rocblas_int         ldinvA,
+                                                     rocblas_int         batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ctrtri_batched(rocblas_handle                     handle,
+                                                     rocblas_fill                       uplo,
+                                                     rocblas_diagonal                   diag,
+                                                     rocblas_int                        n,
+                                                     const rocblas_float_complex* const A[],
+                                                     rocblas_int                        lda,
+                                                     rocblas_float_complex*             invA[],
+                                                     rocblas_int                        ldinvA,
+                                                     rocblas_int batch_count);
 
 /*! \brief BLAS Level 3 API
 
@@ -12991,37 +12930,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrtri(rocblas_handle                handl
     batch_count [rocblas_int]
               numbers of matrices in the batch
     ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_strtri_batched(rocblas_handle     handle,
-                                                     rocblas_fill       uplo,
-                                                     rocblas_diagonal   diag,
-                                                     rocblas_int        n,
-                                                     const float* const A[],
-                                                     rocblas_int        lda,
-                                                     float*             invA[],
-                                                     rocblas_int        ldinvA,
-                                                     rocblas_int        batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dtrtri_batched(rocblas_handle      handle,
-                                                     rocblas_fill        uplo,
-                                                     rocblas_diagonal    diag,
-                                                     rocblas_int         n,
-                                                     const double* const A[],
-                                                     rocblas_int         lda,
-                                                     double*             invA[],
-                                                     rocblas_int         ldinvA,
-                                                     rocblas_int         batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_ctrtri_batched(rocblas_handle                     handle,
-                                                     rocblas_fill                       uplo,
-                                                     rocblas_diagonal                   diag,
-                                                     rocblas_int                        n,
-                                                     const rocblas_float_complex* const A[],
-                                                     rocblas_int                        lda,
-                                                     rocblas_float_complex*             invA[],
-                                                     rocblas_int                        ldinvA,
-                                                     rocblas_int batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_ztrtri_batched(rocblas_handle                      handle,
                                                      rocblas_fill                        uplo,
                                                      rocblas_diagonal                    diag,
@@ -13031,6 +12939,42 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrtri_batched(rocblas_handle             
                                                      rocblas_double_complex*             invA[],
                                                      rocblas_int                         ldinvA,
                                                      rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_strtri_strided_batched(rocblas_handle   handle,
+                                                             rocblas_fill     uplo,
+                                                             rocblas_diagonal diag,
+                                                             rocblas_int      n,
+                                                             const float*     A,
+                                                             rocblas_int      lda,
+                                                             rocblas_stride   stride_a,
+                                                             float*           invA,
+                                                             rocblas_int      ldinvA,
+                                                             rocblas_stride   stride_invA,
+                                                             rocblas_int      batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dtrtri_strided_batched(rocblas_handle   handle,
+                                                             rocblas_fill     uplo,
+                                                             rocblas_diagonal diag,
+                                                             rocblas_int      n,
+                                                             const double*    A,
+                                                             rocblas_int      lda,
+                                                             rocblas_stride   stride_a,
+                                                             double*          invA,
+                                                             rocblas_int      ldinvA,
+                                                             rocblas_stride   stride_invA,
+                                                             rocblas_int      batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ctrtri_strided_batched(rocblas_handle               handle,
+                                                             rocblas_fill                 uplo,
+                                                             rocblas_diagonal             diag,
+                                                             rocblas_int                  n,
+                                                             const rocblas_float_complex* A,
+                                                             rocblas_int                  lda,
+                                                             rocblas_stride               stride_a,
+                                                             rocblas_float_complex*       invA,
+                                                             rocblas_int                  ldinvA,
+                                                             rocblas_stride stride_invA,
+                                                             rocblas_int    batch_count);
 
 /*! \brief BLAS Level 3 API
 
@@ -13078,43 +13022,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrtri_batched(rocblas_handle             
     batch_count  [rocblas_int]
                  numbers of matrices in the batch
     ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_strtri_strided_batched(rocblas_handle   handle,
-                                                             rocblas_fill     uplo,
-                                                             rocblas_diagonal diag,
-                                                             rocblas_int      n,
-                                                             const float*     A,
-                                                             rocblas_int      lda,
-                                                             rocblas_stride   stride_a,
-                                                             float*           invA,
-                                                             rocblas_int      ldinvA,
-                                                             rocblas_stride   stride_invA,
-                                                             rocblas_int      batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dtrtri_strided_batched(rocblas_handle   handle,
-                                                             rocblas_fill     uplo,
-                                                             rocblas_diagonal diag,
-                                                             rocblas_int      n,
-                                                             const double*    A,
-                                                             rocblas_int      lda,
-                                                             rocblas_stride   stride_a,
-                                                             double*          invA,
-                                                             rocblas_int      ldinvA,
-                                                             rocblas_stride   stride_invA,
-                                                             rocblas_int      batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_ctrtri_strided_batched(rocblas_handle               handle,
-                                                             rocblas_fill                 uplo,
-                                                             rocblas_diagonal             diag,
-                                                             rocblas_int                  n,
-                                                             const rocblas_float_complex* A,
-                                                             rocblas_int                  lda,
-                                                             rocblas_stride               stride_a,
-                                                             rocblas_float_complex*       invA,
-                                                             rocblas_int                  ldinvA,
-                                                             rocblas_stride stride_invA,
-                                                             rocblas_int    batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_ztrtri_strided_batched(rocblas_handle                handle,
                                                              rocblas_fill                  uplo,
                                                              rocblas_diagonal              diag,
@@ -13126,6 +13033,45 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrtri_strided_batched(rocblas_handle     
                                                              rocblas_int                   ldinvA,
                                                              rocblas_stride stride_invA,
                                                              rocblas_int    batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_strsm(rocblas_handle    handle,
+                                            rocblas_side      side,
+                                            rocblas_fill      uplo,
+                                            rocblas_operation transA,
+                                            rocblas_diagonal  diag,
+                                            rocblas_int       m,
+                                            rocblas_int       n,
+                                            const float*      alpha,
+                                            const float*      A,
+                                            rocblas_int       lda,
+                                            float*            B,
+                                            rocblas_int       ldb);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dtrsm(rocblas_handle    handle,
+                                            rocblas_side      side,
+                                            rocblas_fill      uplo,
+                                            rocblas_operation transA,
+                                            rocblas_diagonal  diag,
+                                            rocblas_int       m,
+                                            rocblas_int       n,
+                                            const double*     alpha,
+                                            const double*     A,
+                                            rocblas_int       lda,
+                                            double*           B,
+                                            rocblas_int       ldb);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ctrsm(rocblas_handle               handle,
+                                            rocblas_side                 side,
+                                            rocblas_fill                 uplo,
+                                            rocblas_operation            transA,
+                                            rocblas_diagonal             diag,
+                                            rocblas_int                  m,
+                                            rocblas_int                  n,
+                                            const rocblas_float_complex* alpha,
+                                            const rocblas_float_complex* A,
+                                            rocblas_int                  lda,
+                                            rocblas_float_complex*       B,
+                                            rocblas_int                  ldb);
 
 /*! \brief BLAS Level 3 API
 
@@ -13213,46 +13159,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrtri_strided_batched(rocblas_handle     
            ldb specifies the first dimension of B. ldb >= max( 1, m ).
 
     ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_strsm(rocblas_handle    handle,
-                                            rocblas_side      side,
-                                            rocblas_fill      uplo,
-                                            rocblas_operation transA,
-                                            rocblas_diagonal  diag,
-                                            rocblas_int       m,
-                                            rocblas_int       n,
-                                            const float*      alpha,
-                                            const float*      A,
-                                            rocblas_int       lda,
-                                            float*            B,
-                                            rocblas_int       ldb);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dtrsm(rocblas_handle    handle,
-                                            rocblas_side      side,
-                                            rocblas_fill      uplo,
-                                            rocblas_operation transA,
-                                            rocblas_diagonal  diag,
-                                            rocblas_int       m,
-                                            rocblas_int       n,
-                                            const double*     alpha,
-                                            const double*     A,
-                                            rocblas_int       lda,
-                                            double*           B,
-                                            rocblas_int       ldb);
-
-ROCBLAS_EXPORT rocblas_status rocblas_ctrsm(rocblas_handle               handle,
-                                            rocblas_side                 side,
-                                            rocblas_fill                 uplo,
-                                            rocblas_operation            transA,
-                                            rocblas_diagonal             diag,
-                                            rocblas_int                  m,
-                                            rocblas_int                  n,
-                                            const rocblas_float_complex* alpha,
-                                            const rocblas_float_complex* A,
-                                            rocblas_int                  lda,
-                                            rocblas_float_complex*       B,
-                                            rocblas_int                  ldb);
-
 ROCBLAS_EXPORT rocblas_status rocblas_ztrsm(rocblas_handle                handle,
                                             rocblas_side                  side,
                                             rocblas_fill                  uplo,
@@ -13265,6 +13171,48 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrsm(rocblas_handle                handle
                                             rocblas_int                   lda,
                                             rocblas_double_complex*       B,
                                             rocblas_int                   ldb);
+
+ROCBLAS_EXPORT rocblas_status rocblas_strsm_batched(rocblas_handle     handle,
+                                                    rocblas_side       side,
+                                                    rocblas_fill       uplo,
+                                                    rocblas_operation  transA,
+                                                    rocblas_diagonal   diag,
+                                                    rocblas_int        m,
+                                                    rocblas_int        n,
+                                                    const float*       alpha,
+                                                    const float* const A[],
+                                                    rocblas_int        lda,
+                                                    float*             B[],
+                                                    rocblas_int        ldb,
+                                                    rocblas_int        batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dtrsm_batched(rocblas_handle      handle,
+                                                    rocblas_side        side,
+                                                    rocblas_fill        uplo,
+                                                    rocblas_operation   transA,
+                                                    rocblas_diagonal    diag,
+                                                    rocblas_int         m,
+                                                    rocblas_int         n,
+                                                    const double*       alpha,
+                                                    const double* const A[],
+                                                    rocblas_int         lda,
+                                                    double*             B[],
+                                                    rocblas_int         ldb,
+                                                    rocblas_int         batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ctrsm_batched(rocblas_handle                     handle,
+                                                    rocblas_side                       side,
+                                                    rocblas_fill                       uplo,
+                                                    rocblas_operation                  transA,
+                                                    rocblas_diagonal                   diag,
+                                                    rocblas_int                        m,
+                                                    rocblas_int                        n,
+                                                    const rocblas_float_complex*       alpha,
+                                                    const rocblas_float_complex* const A[],
+                                                    rocblas_int                        lda,
+                                                    rocblas_float_complex*             B[],
+                                                    rocblas_int                        ldb,
+                                                    rocblas_int                        batch_count);
 
 /*! \brief BLAS Level 3 API
     \details
@@ -13339,49 +13287,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrsm(rocblas_handle                handle
     batch_count [rocblas_int]
                 number of trsm operatons in the batch.
     ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_strsm_batched(rocblas_handle     handle,
-                                                    rocblas_side       side,
-                                                    rocblas_fill       uplo,
-                                                    rocblas_operation  transA,
-                                                    rocblas_diagonal   diag,
-                                                    rocblas_int        m,
-                                                    rocblas_int        n,
-                                                    const float*       alpha,
-                                                    const float* const A[],
-                                                    rocblas_int        lda,
-                                                    float*             B[],
-                                                    rocblas_int        ldb,
-                                                    rocblas_int        batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dtrsm_batched(rocblas_handle      handle,
-                                                    rocblas_side        side,
-                                                    rocblas_fill        uplo,
-                                                    rocblas_operation   transA,
-                                                    rocblas_diagonal    diag,
-                                                    rocblas_int         m,
-                                                    rocblas_int         n,
-                                                    const double*       alpha,
-                                                    const double* const A[],
-                                                    rocblas_int         lda,
-                                                    double*             B[],
-                                                    rocblas_int         ldb,
-                                                    rocblas_int         batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_ctrsm_batched(rocblas_handle                     handle,
-                                                    rocblas_side                       side,
-                                                    rocblas_fill                       uplo,
-                                                    rocblas_operation                  transA,
-                                                    rocblas_diagonal                   diag,
-                                                    rocblas_int                        m,
-                                                    rocblas_int                        n,
-                                                    const rocblas_float_complex*       alpha,
-                                                    const rocblas_float_complex* const A[],
-                                                    rocblas_int                        lda,
-                                                    rocblas_float_complex*             B[],
-                                                    rocblas_int                        ldb,
-                                                    rocblas_int                        batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_ztrsm_batched(rocblas_handle                      handle,
                                                     rocblas_side                        side,
                                                     rocblas_fill                        uplo,
@@ -13395,6 +13300,54 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrsm_batched(rocblas_handle              
                                                     rocblas_double_complex*             B[],
                                                     rocblas_int                         ldb,
                                                     rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_strsm_strided_batched(rocblas_handle    handle,
+                                                            rocblas_side      side,
+                                                            rocblas_fill      uplo,
+                                                            rocblas_operation transA,
+                                                            rocblas_diagonal  diag,
+                                                            rocblas_int       m,
+                                                            rocblas_int       n,
+                                                            const float*      alpha,
+                                                            const float*      A,
+                                                            rocblas_int       lda,
+                                                            rocblas_stride    stride_a,
+                                                            float*            B,
+                                                            rocblas_int       ldb,
+                                                            rocblas_stride    stride_b,
+                                                            rocblas_int       batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dtrsm_strided_batched(rocblas_handle    handle,
+                                                            rocblas_side      side,
+                                                            rocblas_fill      uplo,
+                                                            rocblas_operation transA,
+                                                            rocblas_diagonal  diag,
+                                                            rocblas_int       m,
+                                                            rocblas_int       n,
+                                                            const double*     alpha,
+                                                            const double*     A,
+                                                            rocblas_int       lda,
+                                                            rocblas_stride    stride_a,
+                                                            double*           B,
+                                                            rocblas_int       ldb,
+                                                            rocblas_stride    stride_b,
+                                                            rocblas_int       batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ctrsm_strided_batched(rocblas_handle               handle,
+                                                            rocblas_side                 side,
+                                                            rocblas_fill                 uplo,
+                                                            rocblas_operation            transA,
+                                                            rocblas_diagonal             diag,
+                                                            rocblas_int                  m,
+                                                            rocblas_int                  n,
+                                                            const rocblas_float_complex* alpha,
+                                                            const rocblas_float_complex* A,
+                                                            rocblas_int                  lda,
+                                                            rocblas_stride               stride_a,
+                                                            rocblas_float_complex*       B,
+                                                            rocblas_int                  ldb,
+                                                            rocblas_stride               stride_b,
+                                                            rocblas_int batch_count);
 
 /*! \brief BLAS Level 3 API
     \details
@@ -13475,55 +13428,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrsm_batched(rocblas_handle              
     batch_count [rocblas_int]
                 number of trsm operatons in the batch.
     ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_strsm_strided_batched(rocblas_handle    handle,
-                                                            rocblas_side      side,
-                                                            rocblas_fill      uplo,
-                                                            rocblas_operation transA,
-                                                            rocblas_diagonal  diag,
-                                                            rocblas_int       m,
-                                                            rocblas_int       n,
-                                                            const float*      alpha,
-                                                            const float*      A,
-                                                            rocblas_int       lda,
-                                                            rocblas_stride    stride_a,
-                                                            float*            B,
-                                                            rocblas_int       ldb,
-                                                            rocblas_stride    stride_b,
-                                                            rocblas_int       batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dtrsm_strided_batched(rocblas_handle    handle,
-                                                            rocblas_side      side,
-                                                            rocblas_fill      uplo,
-                                                            rocblas_operation transA,
-                                                            rocblas_diagonal  diag,
-                                                            rocblas_int       m,
-                                                            rocblas_int       n,
-                                                            const double*     alpha,
-                                                            const double*     A,
-                                                            rocblas_int       lda,
-                                                            rocblas_stride    stride_a,
-                                                            double*           B,
-                                                            rocblas_int       ldb,
-                                                            rocblas_stride    stride_b,
-                                                            rocblas_int       batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_ctrsm_strided_batched(rocblas_handle               handle,
-                                                            rocblas_side                 side,
-                                                            rocblas_fill                 uplo,
-                                                            rocblas_operation            transA,
-                                                            rocblas_diagonal             diag,
-                                                            rocblas_int                  m,
-                                                            rocblas_int                  n,
-                                                            const rocblas_float_complex* alpha,
-                                                            const rocblas_float_complex* A,
-                                                            rocblas_int                  lda,
-                                                            rocblas_stride               stride_a,
-                                                            rocblas_float_complex*       B,
-                                                            rocblas_int                  ldb,
-                                                            rocblas_stride               stride_b,
-                                                            rocblas_int batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_ztrsm_strided_batched(rocblas_handle                handle,
                                                             rocblas_side                  side,
                                                             rocblas_fill                  uplo,
@@ -13539,6 +13443,66 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrsm_strided_batched(rocblas_handle      
                                                             rocblas_int                   ldb,
                                                             rocblas_stride                stride_b,
                                                             rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_sgemm(rocblas_handle    handle,
+                                            rocblas_operation transA,
+                                            rocblas_operation transB,
+                                            rocblas_int       m,
+                                            rocblas_int       n,
+                                            rocblas_int       k,
+                                            const float*      alpha,
+                                            const float*      A,
+                                            rocblas_int       lda,
+                                            const float*      B,
+                                            rocblas_int       ldb,
+                                            const float*      beta,
+                                            float*            C,
+                                            rocblas_int       ldc);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dgemm(rocblas_handle    handle,
+                                            rocblas_operation transA,
+                                            rocblas_operation transB,
+                                            rocblas_int       m,
+                                            rocblas_int       n,
+                                            rocblas_int       k,
+                                            const double*     alpha,
+                                            const double*     A,
+                                            rocblas_int       lda,
+                                            const double*     B,
+                                            rocblas_int       ldb,
+                                            const double*     beta,
+                                            double*           C,
+                                            rocblas_int       ldc);
+
+ROCBLAS_EXPORT rocblas_status rocblas_hgemm(rocblas_handle      handle,
+                                            rocblas_operation   transA,
+                                            rocblas_operation   transB,
+                                            rocblas_int         m,
+                                            rocblas_int         n,
+                                            rocblas_int         k,
+                                            const rocblas_half* alpha,
+                                            const rocblas_half* A,
+                                            rocblas_int         lda,
+                                            const rocblas_half* B,
+                                            rocblas_int         ldb,
+                                            const rocblas_half* beta,
+                                            rocblas_half*       C,
+                                            rocblas_int         ldc);
+
+ROCBLAS_EXPORT rocblas_status rocblas_cgemm(rocblas_handle               handle,
+                                            rocblas_operation            transA,
+                                            rocblas_operation            transB,
+                                            rocblas_int                  m,
+                                            rocblas_int                  n,
+                                            rocblas_int                  k,
+                                            const rocblas_float_complex* alpha,
+                                            const rocblas_float_complex* A,
+                                            rocblas_int                  lda,
+                                            const rocblas_float_complex* B,
+                                            rocblas_int                  ldb,
+                                            const rocblas_float_complex* beta,
+                                            rocblas_float_complex*       C,
+                                            rocblas_int                  ldc);
 
 /*! \brief BLAS Level 3 API
 
@@ -13595,80 +13559,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrsm_strided_batched(rocblas_handle      
               specifies the leading dimension of C.
 
     ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_sgemm(rocblas_handle    handle,
-                                            rocblas_operation transA,
-                                            rocblas_operation transB,
-                                            rocblas_int       m,
-                                            rocblas_int       n,
-                                            rocblas_int       k,
-                                            const float*      alpha,
-                                            const float*      A,
-                                            rocblas_int       lda,
-                                            const float*      B,
-                                            rocblas_int       ldb,
-                                            const float*      beta,
-                                            float*            C,
-                                            rocblas_int       ldc);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dgemm(rocblas_handle    handle,
-                                            rocblas_operation transA,
-                                            rocblas_operation transB,
-                                            rocblas_int       m,
-                                            rocblas_int       n,
-                                            rocblas_int       k,
-                                            const double*     alpha,
-                                            const double*     A,
-                                            rocblas_int       lda,
-                                            const double*     B,
-                                            rocblas_int       ldb,
-                                            const double*     beta,
-                                            double*           C,
-                                            rocblas_int       ldc);
-
-ROCBLAS_EXPORT rocblas_status rocblas_hgemm(rocblas_handle      handle,
-                                            rocblas_operation   transA,
-                                            rocblas_operation   transB,
-                                            rocblas_int         m,
-                                            rocblas_int         n,
-                                            rocblas_int         k,
-                                            const rocblas_half* alpha,
-                                            const rocblas_half* A,
-                                            rocblas_int         lda,
-                                            const rocblas_half* B,
-                                            rocblas_int         ldb,
-                                            const rocblas_half* beta,
-                                            rocblas_half*       C,
-                                            rocblas_int         ldc);
-
-/* not implemented
-ROCBLAS_EXPORT rocblas_status
-rocblas_qgemm(
-    rocblas_handle handle,
-    rocblas_operation transA, rocblas_operation transB,
-    rocblas_int m, rocblas_int n, rocblas_int k,
-    const rocblas_half_complex *alpha,
-    const rocblas_half_complex *A, rocblas_int lda,
-    const rocblas_half_complex *B, rocblas_int ldb,
-    const rocblas_half_complex *beta,
-          rocblas_half_complex *C, rocblas_int ldc);
-*/
-
-ROCBLAS_EXPORT rocblas_status rocblas_cgemm(rocblas_handle               handle,
-                                            rocblas_operation            transA,
-                                            rocblas_operation            transB,
-                                            rocblas_int                  m,
-                                            rocblas_int                  n,
-                                            rocblas_int                  k,
-                                            const rocblas_float_complex* alpha,
-                                            const rocblas_float_complex* A,
-                                            rocblas_int                  lda,
-                                            const rocblas_float_complex* B,
-                                            rocblas_int                  ldb,
-                                            const rocblas_float_complex* beta,
-                                            rocblas_float_complex*       C,
-                                            rocblas_int                  ldc);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zgemm(rocblas_handle                handle,
                                             rocblas_operation             transA,
                                             rocblas_operation             transB,
@@ -13683,61 +13573,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgemm(rocblas_handle                handle
                                             const rocblas_double_complex* beta,
                                             rocblas_double_complex*       C,
                                             rocblas_int                   ldc);
-
-/*! \brief BLAS Level 3 API
-     \details
-    xGEMM_BATCHED performs one of the batched matrix-matrix operations
-         C_i = alpha*op( A_i )*op( B_i ) + beta*C_i, for i = 1, ..., batch_count.
-     where op( X ) is one of
-         op( X ) = X      or
-        op( X ) = X**T   or
-        op( X ) = X**H,
-     alpha and beta are scalars, and A, B and C are strided batched matrices, with
-    op( A ) an m by k by batch_count strided_batched matrix,
-    op( B ) an k by n by batch_count strided_batched matrix and
-    C an m by n by batch_count strided_batched matrix.
-    @param[in]
-    handle    [rocblas_handle
-              handle to the rocblas library context queue.
-    @param[in]
-    transA    [rocblas_operation]
-              specifies the form of op( A )
-    @param[in]
-    transB    [rocblas_operation]
-              specifies the form of op( B )
-    @param[in]
-    m         [rocblas_int]
-              matrix dimention m.
-    @param[in]
-    n         [rocblas_int]
-              matrix dimention n.
-    @param[in]
-    k         [rocblas_int]
-              matrix dimention k.
-    @param[in]
-    alpha     device pointer or host pointer specifying the scalar alpha.
-    @param[in]
-    A         device array of device pointers storing each matrix A_i.
-    @param[in]
-    lda       [rocblas_int]
-              specifies the leading dimension of each A_i.
-    @param[in]
-    B         device array of device pointers storing each matrix B_i.
-    @param[in]
-    ldb       [rocblas_int]
-              specifies the leading dimension of each B_i.
-    @param[in]
-    beta      device pointer or host pointer specifying the scalar beta.
-    @param[in, out]
-    C         device array of device pointers storing each matrix C_i.
-    @param[in]
-    ldc       [rocblas_int]
-              specifies the leading dimension of each C_i.
-    @param[in]
-    batch_count
-              [rocblas_int]
-              number of gemm operations in the batch
-     ********************************************************************/
 
 ROCBLAS_EXPORT rocblas_status rocblas_sgemm_batched(rocblas_handle     handle,
                                                     rocblas_operation  transA,
@@ -13803,50 +13638,20 @@ ROCBLAS_EXPORT rocblas_status rocblas_cgemm_batched(rocblas_handle              
                                                     rocblas_int                        ldc,
                                                     rocblas_int                        batch_count);
 
-ROCBLAS_EXPORT rocblas_status rocblas_zgemm_batched(rocblas_handle                      handle,
-                                                    rocblas_operation                   transa,
-                                                    rocblas_operation                   transb,
-                                                    rocblas_int                         m,
-                                                    rocblas_int                         n,
-                                                    rocblas_int                         k,
-                                                    const rocblas_double_complex*       alpha,
-                                                    const rocblas_double_complex* const A[],
-                                                    rocblas_int                         lda,
-                                                    const rocblas_double_complex* const B[],
-                                                    rocblas_int                         ldb,
-                                                    const rocblas_double_complex*       beta,
-                                                    rocblas_double_complex* const       C[],
-                                                    rocblas_int                         ldc,
-                                                    rocblas_int batch_count);
-
-/***************************************************************************
- * batched
- * stride_a - "batch stride a": stride from the start of one "A" matrix to the next
- * stride_b
- * stride_c
- * batch_count - numbers of gemm's in the batch
- **************************************************************************/
-
 /*! \brief BLAS Level 3 API
-
-    \details
-    xGEMM_STRIDED_BATCHED performs one of the strided batched matrix-matrix operations
-
-        C_i = alpha*op( A_i )*op( B_i ) + beta*C_i, for i = 1, ..., batch_count.
-
-    where op( X ) is one of
-
-        op( X ) = X      or
+     \details
+    xGEMM_BATCHED performs one of the batched matrix-matrix operations
+         C_i = alpha*op( A_i )*op( B_i ) + beta*C_i, for i = 1, ..., batch_count.
+     where op( X ) is one of
+         op( X ) = X      or
         op( X ) = X**T   or
         op( X ) = X**H,
-
-    alpha and beta are scalars, and A, B and C are strided batched matrices, with
+     alpha and beta are scalars, and A, B and C are strided batched matrices, with
     op( A ) an m by k by batch_count strided_batched matrix,
     op( B ) an k by n by batch_count strided_batched matrix and
     C an m by n by batch_count strided_batched matrix.
-
     @param[in]
-    handle    [rocblas_handle]
+    handle    [rocblas_handle
               handle to the rocblas library context queue.
     @param[in]
     transA    [rocblas_operation]
@@ -13866,37 +13671,42 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgemm_batched(rocblas_handle              
     @param[in]
     alpha     device pointer or host pointer specifying the scalar alpha.
     @param[in]
-    A         device pointer pointing to the first matrix A_1.
+    A         device array of device pointers storing each matrix A_i.
     @param[in]
     lda       [rocblas_int]
               specifies the leading dimension of each A_i.
     @param[in]
-    stride_a  [rocblas_stride]
-              stride from the start of one A_i matrix to the next A_(i + 1).
-    @param[in]
-    B         device pointer pointing to the first matrix B_1.
+    B         device array of device pointers storing each matrix B_i.
     @param[in]
     ldb       [rocblas_int]
               specifies the leading dimension of each B_i.
     @param[in]
-    stride_b  [rocblas_stride]
-              stride from the start of one B_i matrix to the next B_(i + 1).
-    @param[in]
     beta      device pointer or host pointer specifying the scalar beta.
     @param[in, out]
-    C         device pointer pointing to the first matrix C_1.
+    C         device array of device pointers storing each matrix C_i.
     @param[in]
     ldc       [rocblas_int]
               specifies the leading dimension of each C_i.
     @param[in]
-    stride_c  [rocblas_stride]
-              stride from the start of one C_i matrix to the next C_(i + 1).
-    @param[in]
     batch_count
               [rocblas_int]
-              number of gemm operatons in the batch
-
-    ********************************************************************/
+              number of gemm operations in the batch
+     ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_zgemm_batched(rocblas_handle                      handle,
+                                                    rocblas_operation                   transa,
+                                                    rocblas_operation                   transb,
+                                                    rocblas_int                         m,
+                                                    rocblas_int                         n,
+                                                    rocblas_int                         k,
+                                                    const rocblas_double_complex*       alpha,
+                                                    const rocblas_double_complex* const A[],
+                                                    rocblas_int                         lda,
+                                                    const rocblas_double_complex* const B[],
+                                                    rocblas_int                         ldb,
+                                                    const rocblas_double_complex*       beta,
+                                                    rocblas_double_complex* const       C[],
+                                                    rocblas_int                         ldc,
+                                                    rocblas_int batch_count);
 
 ROCBLAS_EXPORT rocblas_status rocblas_sgemm_strided_batched(rocblas_handle    handle,
                                                             rocblas_operation transA,
@@ -14012,20 +13822,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_dgemm_kernel_name(rocblas_handle    handle
                                                         rocblas_stride    stride_c,
                                                         rocblas_int       batch_count);
 
-/* not implemented
-ROCBLAS_EXPORT rocblas_status
-rocblas_qgemm_strided_batched(
-    rocblas_handle handle,
-    rocblas_operation transa, rocblas_operation transb,
-    rocblas_int m, rocblas_int n, rocblas_int k,
-    const rocblas_half_complex *alpha,
-    const rocblas_half_complex *A, rocblas_int lda, rocblas_stride stride_a,
-    const rocblas_half_complex *B, rocblas_int ldb, rocblas_stride stride_b,
-    const rocblas_half_complex *beta,
-          rocblas_half_complex *C, rocblas_int ldc, rocblas_stride stride_c,
-    rocblas_int batch_count );
-*/
-
 ROCBLAS_EXPORT rocblas_status rocblas_cgemm_strided_batched(rocblas_handle               handle,
                                                             rocblas_operation            transa,
                                                             rocblas_operation            transb,
@@ -14045,6 +13841,76 @@ ROCBLAS_EXPORT rocblas_status rocblas_cgemm_strided_batched(rocblas_handle      
                                                             rocblas_stride               stride_c,
                                                             rocblas_int batch_count);
 
+/*! \brief BLAS Level 3 API
+
+    \details
+    xGEMM_STRIDED_BATCHED performs one of the strided batched matrix-matrix operations
+
+        C_i = alpha*op( A_i )*op( B_i ) + beta*C_i, for i = 1, ..., batch_count.
+
+    where op( X ) is one of
+
+        op( X ) = X      or
+        op( X ) = X**T   or
+        op( X ) = X**H,
+
+    alpha and beta are scalars, and A, B and C are strided batched matrices, with
+    op( A ) an m by k by batch_count strided_batched matrix,
+    op( B ) an k by n by batch_count strided_batched matrix and
+    C an m by n by batch_count strided_batched matrix.
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+    @param[in]
+    transA    [rocblas_operation]
+              specifies the form of op( A )
+    @param[in]
+    transB    [rocblas_operation]
+              specifies the form of op( B )
+    @param[in]
+    m         [rocblas_int]
+              matrix dimention m.
+    @param[in]
+    n         [rocblas_int]
+              matrix dimention n.
+    @param[in]
+    k         [rocblas_int]
+              matrix dimention k.
+    @param[in]
+    alpha     device pointer or host pointer specifying the scalar alpha.
+    @param[in]
+    A         device pointer pointing to the first matrix A_1.
+    @param[in]
+    lda       [rocblas_int]
+              specifies the leading dimension of each A_i.
+    @param[in]
+    stride_a  [rocblas_stride]
+              stride from the start of one A_i matrix to the next A_(i + 1).
+    @param[in]
+    B         device pointer pointing to the first matrix B_1.
+    @param[in]
+    ldb       [rocblas_int]
+              specifies the leading dimension of each B_i.
+    @param[in]
+    stride_b  [rocblas_stride]
+              stride from the start of one B_i matrix to the next B_(i + 1).
+    @param[in]
+    beta      device pointer or host pointer specifying the scalar beta.
+    @param[in, out]
+    C         device pointer pointing to the first matrix C_1.
+    @param[in]
+    ldc       [rocblas_int]
+              specifies the leading dimension of each C_i.
+    @param[in]
+    stride_c  [rocblas_stride]
+              stride from the start of one C_i matrix to the next C_(i + 1).
+    @param[in]
+    batch_count
+              [rocblas_int]
+              number of gemm operatons in the batch
+
+    ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_zgemm_strided_batched(rocblas_handle                handle,
                                                             rocblas_operation             transa,
                                                             rocblas_operation             transb,
@@ -14063,6 +13929,39 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgemm_strided_batched(rocblas_handle      
                                                             rocblas_int                   ldc,
                                                             rocblas_stride                stride_c,
                                                             rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_sdgmm(rocblas_handle handle,
+                                            rocblas_side   side,
+                                            rocblas_int    m,
+                                            rocblas_int    n,
+                                            const float*   A,
+                                            rocblas_int    lda,
+                                            const float*   x,
+                                            rocblas_int    incx,
+                                            float*         C,
+                                            rocblas_int    ldc);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ddgmm(rocblas_handle handle,
+                                            rocblas_side   side,
+                                            rocblas_int    m,
+                                            rocblas_int    n,
+                                            const double*  A,
+                                            rocblas_int    lda,
+                                            const double*  x,
+                                            rocblas_int    incx,
+                                            double*        C,
+                                            rocblas_int    ldc);
+
+ROCBLAS_EXPORT rocblas_status rocblas_cdgmm(rocblas_handle               handle,
+                                            rocblas_side                 side,
+                                            rocblas_int                  m,
+                                            rocblas_int                  n,
+                                            const rocblas_float_complex* A,
+                                            rocblas_int                  lda,
+                                            const rocblas_float_complex* x,
+                                            rocblas_int                  incx,
+                                            rocblas_float_complex*       C,
+                                            rocblas_int                  ldc);
 
 /*! \brief BLAS Level 3 API
 
@@ -14106,40 +14005,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgemm_strided_batched(rocblas_handle      
               specifies the leading dimension of C.
 
     ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_sdgmm(rocblas_handle handle,
-                                            rocblas_side   side,
-                                            rocblas_int    m,
-                                            rocblas_int    n,
-                                            const float*   A,
-                                            rocblas_int    lda,
-                                            const float*   x,
-                                            rocblas_int    incx,
-                                            float*         C,
-                                            rocblas_int    ldc);
-
-ROCBLAS_EXPORT rocblas_status rocblas_ddgmm(rocblas_handle handle,
-                                            rocblas_side   side,
-                                            rocblas_int    m,
-                                            rocblas_int    n,
-                                            const double*  A,
-                                            rocblas_int    lda,
-                                            const double*  x,
-                                            rocblas_int    incx,
-                                            double*        C,
-                                            rocblas_int    ldc);
-
-ROCBLAS_EXPORT rocblas_status rocblas_cdgmm(rocblas_handle               handle,
-                                            rocblas_side                 side,
-                                            rocblas_int                  m,
-                                            rocblas_int                  n,
-                                            const rocblas_float_complex* A,
-                                            rocblas_int                  lda,
-                                            const rocblas_float_complex* x,
-                                            rocblas_int                  incx,
-                                            rocblas_float_complex*       C,
-                                            rocblas_int                  ldc);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zdgmm(rocblas_handle                handle,
                                             rocblas_side                  side,
                                             rocblas_int                   m,
@@ -14150,6 +14015,42 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdgmm(rocblas_handle                handle
                                             rocblas_int                   incx,
                                             rocblas_double_complex*       C,
                                             rocblas_int                   ldc);
+
+ROCBLAS_EXPORT rocblas_status rocblas_sdgmm_batched(rocblas_handle     handle,
+                                                    rocblas_side       side,
+                                                    rocblas_int        m,
+                                                    rocblas_int        n,
+                                                    const float* const A[],
+                                                    rocblas_int        lda,
+                                                    const float* const x[],
+                                                    rocblas_int        incx,
+                                                    float* const       C[],
+                                                    rocblas_int        ldc,
+                                                    rocblas_int        batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ddgmm_batched(rocblas_handle      handle,
+                                                    rocblas_side        side,
+                                                    rocblas_int         m,
+                                                    rocblas_int         n,
+                                                    const double* const A[],
+                                                    rocblas_int         lda,
+                                                    const double* const x[],
+                                                    rocblas_int         incx,
+                                                    double* const       C[],
+                                                    rocblas_int         ldc,
+                                                    rocblas_int         batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_cdgmm_batched(rocblas_handle                     handle,
+                                                    rocblas_side                       side,
+                                                    rocblas_int                        m,
+                                                    rocblas_int                        n,
+                                                    const rocblas_float_complex* const A[],
+                                                    rocblas_int                        lda,
+                                                    const rocblas_float_complex* const x[],
+                                                    rocblas_int                        incx,
+                                                    rocblas_float_complex* const       C[],
+                                                    rocblas_int                        ldc,
+                                                    rocblas_int                        batch_count);
 
 /*! \brief BLAS Level 3 API
 
@@ -14199,43 +14100,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdgmm(rocblas_handle                handle
                 number of instances in the batch.
 
     ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_sdgmm_batched(rocblas_handle     handle,
-                                                    rocblas_side       side,
-                                                    rocblas_int        m,
-                                                    rocblas_int        n,
-                                                    const float* const A[],
-                                                    rocblas_int        lda,
-                                                    const float* const x[],
-                                                    rocblas_int        incx,
-                                                    float* const       C[],
-                                                    rocblas_int        ldc,
-                                                    rocblas_int        batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_ddgmm_batched(rocblas_handle      handle,
-                                                    rocblas_side        side,
-                                                    rocblas_int         m,
-                                                    rocblas_int         n,
-                                                    const double* const A[],
-                                                    rocblas_int         lda,
-                                                    const double* const x[],
-                                                    rocblas_int         incx,
-                                                    double* const       C[],
-                                                    rocblas_int         ldc,
-                                                    rocblas_int         batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_cdgmm_batched(rocblas_handle                     handle,
-                                                    rocblas_side                       side,
-                                                    rocblas_int                        m,
-                                                    rocblas_int                        n,
-                                                    const rocblas_float_complex* const A[],
-                                                    rocblas_int                        lda,
-                                                    const rocblas_float_complex* const x[],
-                                                    rocblas_int                        incx,
-                                                    rocblas_float_complex* const       C[],
-                                                    rocblas_int                        ldc,
-                                                    rocblas_int                        batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zdgmm_batched(rocblas_handle                      handle,
                                                     rocblas_side                        side,
                                                     rocblas_int                         m,
@@ -14247,6 +14111,51 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdgmm_batched(rocblas_handle              
                                                     rocblas_double_complex* const       C[],
                                                     rocblas_int                         ldc,
                                                     rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_sdgmm_strided_batched(rocblas_handle handle,
+                                                            rocblas_side   side,
+                                                            rocblas_int    m,
+                                                            rocblas_int    n,
+                                                            const float*   A,
+                                                            rocblas_int    lda,
+                                                            rocblas_stride stride_a,
+                                                            const float*   x,
+                                                            rocblas_int    incx,
+                                                            rocblas_stride stride_x,
+                                                            float*         C,
+                                                            rocblas_int    ldc,
+                                                            rocblas_stride stride_c,
+                                                            rocblas_int    batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_ddgmm_strided_batched(rocblas_handle handle,
+                                                            rocblas_side   side,
+                                                            rocblas_int    m,
+                                                            rocblas_int    n,
+                                                            const double*  A,
+                                                            rocblas_int    lda,
+                                                            rocblas_stride stride_a,
+                                                            const double*  x,
+                                                            rocblas_int    incx,
+                                                            rocblas_stride stride_x,
+                                                            double*        C,
+                                                            rocblas_int    ldc,
+                                                            rocblas_stride stride_c,
+                                                            rocblas_int    batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_cdgmm_strided_batched(rocblas_handle               handle,
+                                                            rocblas_side                 side,
+                                                            rocblas_int                  m,
+                                                            rocblas_int                  n,
+                                                            const rocblas_float_complex* A,
+                                                            rocblas_int                  lda,
+                                                            rocblas_stride               stride_a,
+                                                            const rocblas_float_complex* x,
+                                                            rocblas_int                  incx,
+                                                            rocblas_stride               stride_x,
+                                                            rocblas_float_complex*       C,
+                                                            rocblas_int                  ldc,
+                                                            rocblas_stride               stride_c,
+                                                            rocblas_int batch_count);
 
 /*! \brief BLAS Level 3 API
 
@@ -14305,52 +14214,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdgmm_batched(rocblas_handle              
                 number of instances i in the batch.
 
     ********************************************************************/
-
-ROCBLAS_EXPORT rocblas_status rocblas_sdgmm_strided_batched(rocblas_handle handle,
-                                                            rocblas_side   side,
-                                                            rocblas_int    m,
-                                                            rocblas_int    n,
-                                                            const float*   A,
-                                                            rocblas_int    lda,
-                                                            rocblas_stride stride_a,
-                                                            const float*   x,
-                                                            rocblas_int    incx,
-                                                            rocblas_stride stride_x,
-                                                            float*         C,
-                                                            rocblas_int    ldc,
-                                                            rocblas_stride stride_c,
-                                                            rocblas_int    batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_ddgmm_strided_batched(rocblas_handle handle,
-                                                            rocblas_side   side,
-                                                            rocblas_int    m,
-                                                            rocblas_int    n,
-                                                            const double*  A,
-                                                            rocblas_int    lda,
-                                                            rocblas_stride stride_a,
-                                                            const double*  x,
-                                                            rocblas_int    incx,
-                                                            rocblas_stride stride_x,
-                                                            double*        C,
-                                                            rocblas_int    ldc,
-                                                            rocblas_stride stride_c,
-                                                            rocblas_int    batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_cdgmm_strided_batched(rocblas_handle               handle,
-                                                            rocblas_side                 side,
-                                                            rocblas_int                  m,
-                                                            rocblas_int                  n,
-                                                            const rocblas_float_complex* A,
-                                                            rocblas_int                  lda,
-                                                            rocblas_stride               stride_a,
-                                                            const rocblas_float_complex* x,
-                                                            rocblas_int                  incx,
-                                                            rocblas_stride               stride_x,
-                                                            rocblas_float_complex*       C,
-                                                            rocblas_int                  ldc,
-                                                            rocblas_stride               stride_c,
-                                                            rocblas_int batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zdgmm_strided_batched(rocblas_handle                handle,
                                                             rocblas_side                  side,
                                                             rocblas_int                   m,
@@ -14365,6 +14228,48 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdgmm_strided_batched(rocblas_handle      
                                                             rocblas_int                   ldc,
                                                             rocblas_stride                stride_c,
                                                             rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_sgeam(rocblas_handle    handle,
+                                            rocblas_operation transA,
+                                            rocblas_operation transB,
+                                            rocblas_int       m,
+                                            rocblas_int       n,
+                                            const float*      alpha,
+                                            const float*      A,
+                                            rocblas_int       lda,
+                                            const float*      beta,
+                                            const float*      B,
+                                            rocblas_int       ldb,
+                                            float*            C,
+                                            rocblas_int       ldc);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dgeam(rocblas_handle    handle,
+                                            rocblas_operation transA,
+                                            rocblas_operation transB,
+                                            rocblas_int       m,
+                                            rocblas_int       n,
+                                            const double*     alpha,
+                                            const double*     A,
+                                            rocblas_int       lda,
+                                            const double*     beta,
+                                            const double*     B,
+                                            rocblas_int       ldb,
+                                            double*           C,
+                                            rocblas_int       ldc);
+
+ROCBLAS_EXPORT rocblas_status rocblas_cgeam(rocblas_handle               handle,
+                                            rocblas_operation            transA,
+                                            rocblas_operation            transB,
+                                            rocblas_int                  m,
+                                            rocblas_int                  n,
+                                            const rocblas_float_complex* alpha,
+                                            const rocblas_float_complex* A,
+                                            rocblas_int                  lda,
+                                            const rocblas_float_complex* beta,
+                                            const rocblas_float_complex* B,
+                                            rocblas_int                  ldb,
+                                            rocblas_float_complex*       C,
+                                            rocblas_int                  ldc);
 
 /*! \brief BLAS Level 3 API
 
@@ -14418,48 +14323,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zdgmm_strided_batched(rocblas_handle      
               specifies the leading dimension of C.
 
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_sgeam(rocblas_handle    handle,
-                                            rocblas_operation transA,
-                                            rocblas_operation transB,
-                                            rocblas_int       m,
-                                            rocblas_int       n,
-                                            const float*      alpha,
-                                            const float*      A,
-                                            rocblas_int       lda,
-                                            const float*      beta,
-                                            const float*      B,
-                                            rocblas_int       ldb,
-                                            float*            C,
-                                            rocblas_int       ldc);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dgeam(rocblas_handle    handle,
-                                            rocblas_operation transA,
-                                            rocblas_operation transB,
-                                            rocblas_int       m,
-                                            rocblas_int       n,
-                                            const double*     alpha,
-                                            const double*     A,
-                                            rocblas_int       lda,
-                                            const double*     beta,
-                                            const double*     B,
-                                            rocblas_int       ldb,
-                                            double*           C,
-                                            rocblas_int       ldc);
-
-ROCBLAS_EXPORT rocblas_status rocblas_cgeam(rocblas_handle               handle,
-                                            rocblas_operation            transA,
-                                            rocblas_operation            transB,
-                                            rocblas_int                  m,
-                                            rocblas_int                  n,
-                                            const rocblas_float_complex* alpha,
-                                            const rocblas_float_complex* A,
-                                            rocblas_int                  lda,
-                                            const rocblas_float_complex* beta,
-                                            const rocblas_float_complex* B,
-                                            rocblas_int                  ldb,
-                                            rocblas_float_complex*       C,
-                                            rocblas_int                  ldc);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zgeam(rocblas_handle                handle,
                                             rocblas_operation             transA,
                                             rocblas_operation             transB,
@@ -14473,6 +14336,51 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgeam(rocblas_handle                handle
                                             rocblas_int                   ldb,
                                             rocblas_double_complex*       C,
                                             rocblas_int                   ldc);
+
+ROCBLAS_EXPORT rocblas_status rocblas_sgeam_batched(rocblas_handle     handle,
+                                                    rocblas_operation  transA,
+                                                    rocblas_operation  transB,
+                                                    rocblas_int        m,
+                                                    rocblas_int        n,
+                                                    const float*       alpha,
+                                                    const float* const A[],
+                                                    rocblas_int        lda,
+                                                    const float*       beta,
+                                                    const float* const B[],
+                                                    rocblas_int        ldb,
+                                                    float* const       C[],
+                                                    rocblas_int        ldc,
+                                                    rocblas_int        batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dgeam_batched(rocblas_handle      handle,
+                                                    rocblas_operation   transA,
+                                                    rocblas_operation   transB,
+                                                    rocblas_int         m,
+                                                    rocblas_int         n,
+                                                    const double*       alpha,
+                                                    const double* const A[],
+                                                    rocblas_int         lda,
+                                                    const double*       beta,
+                                                    const double* const B[],
+                                                    rocblas_int         ldb,
+                                                    double* const       C[],
+                                                    rocblas_int         ldc,
+                                                    rocblas_int         batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_cgeam_batched(rocblas_handle                     handle,
+                                                    rocblas_operation                  transA,
+                                                    rocblas_operation                  transB,
+                                                    rocblas_int                        m,
+                                                    rocblas_int                        n,
+                                                    const rocblas_float_complex*       alpha,
+                                                    const rocblas_float_complex* const A[],
+                                                    rocblas_int                        lda,
+                                                    const rocblas_float_complex*       beta,
+                                                    const rocblas_float_complex* const B[],
+                                                    rocblas_int                        ldb,
+                                                    rocblas_float_complex* const       C[],
+                                                    rocblas_int                        ldc,
+                                                    rocblas_int                        batch_count);
 
 /*! \brief BLAS Level 3 API
 
@@ -14534,51 +14442,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgeam(rocblas_handle                handle
                 number of instances i in the batch.
 
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_sgeam_batched(rocblas_handle     handle,
-                                                    rocblas_operation  transA,
-                                                    rocblas_operation  transB,
-                                                    rocblas_int        m,
-                                                    rocblas_int        n,
-                                                    const float*       alpha,
-                                                    const float* const A[],
-                                                    rocblas_int        lda,
-                                                    const float*       beta,
-                                                    const float* const B[],
-                                                    rocblas_int        ldb,
-                                                    float* const       C[],
-                                                    rocblas_int        ldc,
-                                                    rocblas_int        batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dgeam_batched(rocblas_handle      handle,
-                                                    rocblas_operation   transA,
-                                                    rocblas_operation   transB,
-                                                    rocblas_int         m,
-                                                    rocblas_int         n,
-                                                    const double*       alpha,
-                                                    const double* const A[],
-                                                    rocblas_int         lda,
-                                                    const double*       beta,
-                                                    const double* const B[],
-                                                    rocblas_int         ldb,
-                                                    double* const       C[],
-                                                    rocblas_int         ldc,
-                                                    rocblas_int         batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_cgeam_batched(rocblas_handle                     handle,
-                                                    rocblas_operation                  transA,
-                                                    rocblas_operation                  transB,
-                                                    rocblas_int                        m,
-                                                    rocblas_int                        n,
-                                                    const rocblas_float_complex*       alpha,
-                                                    const rocblas_float_complex* const A[],
-                                                    rocblas_int                        lda,
-                                                    const rocblas_float_complex*       beta,
-                                                    const rocblas_float_complex* const B[],
-                                                    rocblas_int                        ldb,
-                                                    rocblas_float_complex* const       C[],
-                                                    rocblas_int                        ldc,
-                                                    rocblas_int                        batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zgeam_batched(rocblas_handle                      handle,
                                                     rocblas_operation                   transA,
                                                     rocblas_operation                   transB,
@@ -14593,6 +14456,60 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgeam_batched(rocblas_handle              
                                                     rocblas_double_complex* const       C[],
                                                     rocblas_int                         ldc,
                                                     rocblas_int batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_sgeam_strided_batched(rocblas_handle    handle,
+                                                            rocblas_operation transA,
+                                                            rocblas_operation transB,
+                                                            rocblas_int       m,
+                                                            rocblas_int       n,
+                                                            const float*      alpha,
+                                                            const float*      A,
+                                                            rocblas_int       lda,
+                                                            rocblas_stride    stride_a,
+                                                            const float*      beta,
+                                                            const float*      B,
+                                                            rocblas_int       ldb,
+                                                            rocblas_stride    stride_b,
+                                                            float*            C,
+                                                            rocblas_int       ldc,
+                                                            rocblas_stride    stride_c,
+                                                            rocblas_int       batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dgeam_strided_batched(rocblas_handle    handle,
+                                                            rocblas_operation transA,
+                                                            rocblas_operation transB,
+                                                            rocblas_int       m,
+                                                            rocblas_int       n,
+                                                            const double*     alpha,
+                                                            const double*     A,
+                                                            rocblas_int       lda,
+                                                            rocblas_stride    stride_a,
+                                                            const double*     beta,
+                                                            const double*     B,
+                                                            rocblas_int       ldb,
+                                                            rocblas_stride    stride_b,
+                                                            double*           C,
+                                                            rocblas_int       ldc,
+                                                            rocblas_stride    stride_c,
+                                                            rocblas_int       batch_count);
+
+ROCBLAS_EXPORT rocblas_status rocblas_cgeam_strided_batched(rocblas_handle               handle,
+                                                            rocblas_operation            transA,
+                                                            rocblas_operation            transB,
+                                                            rocblas_int                  m,
+                                                            rocblas_int                  n,
+                                                            const rocblas_float_complex* alpha,
+                                                            const rocblas_float_complex* A,
+                                                            rocblas_int                  lda,
+                                                            rocblas_stride               stride_a,
+                                                            const rocblas_float_complex* beta,
+                                                            const rocblas_float_complex* B,
+                                                            rocblas_int                  ldb,
+                                                            rocblas_stride               stride_b,
+                                                            rocblas_float_complex*       C,
+                                                            rocblas_int                  ldc,
+                                                            rocblas_stride               stride_c,
+                                                            rocblas_int batch_count);
 
 /*! \brief BLAS Level 3 API
 
@@ -14678,60 +14595,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgeam_batched(rocblas_handle              
                 number of instances i in the batch.
 
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_sgeam_strided_batched(rocblas_handle    handle,
-                                                            rocblas_operation transA,
-                                                            rocblas_operation transB,
-                                                            rocblas_int       m,
-                                                            rocblas_int       n,
-                                                            const float*      alpha,
-                                                            const float*      A,
-                                                            rocblas_int       lda,
-                                                            rocblas_stride    stride_a,
-                                                            const float*      beta,
-                                                            const float*      B,
-                                                            rocblas_int       ldb,
-                                                            rocblas_stride    stride_b,
-                                                            float*            C,
-                                                            rocblas_int       ldc,
-                                                            rocblas_stride    stride_c,
-                                                            rocblas_int       batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_dgeam_strided_batched(rocblas_handle    handle,
-                                                            rocblas_operation transA,
-                                                            rocblas_operation transB,
-                                                            rocblas_int       m,
-                                                            rocblas_int       n,
-                                                            const double*     alpha,
-                                                            const double*     A,
-                                                            rocblas_int       lda,
-                                                            rocblas_stride    stride_a,
-                                                            const double*     beta,
-                                                            const double*     B,
-                                                            rocblas_int       ldb,
-                                                            rocblas_stride    stride_b,
-                                                            double*           C,
-                                                            rocblas_int       ldc,
-                                                            rocblas_stride    stride_c,
-                                                            rocblas_int       batch_count);
-
-ROCBLAS_EXPORT rocblas_status rocblas_cgeam_strided_batched(rocblas_handle               handle,
-                                                            rocblas_operation            transA,
-                                                            rocblas_operation            transB,
-                                                            rocblas_int                  m,
-                                                            rocblas_int                  n,
-                                                            const rocblas_float_complex* alpha,
-                                                            const rocblas_float_complex* A,
-                                                            rocblas_int                  lda,
-                                                            rocblas_stride               stride_a,
-                                                            const rocblas_float_complex* beta,
-                                                            const rocblas_float_complex* B,
-                                                            rocblas_int                  ldb,
-                                                            rocblas_stride               stride_b,
-                                                            rocblas_float_complex*       C,
-                                                            rocblas_int                  ldc,
-                                                            rocblas_stride               stride_c,
-                                                            rocblas_int batch_count);
-
 ROCBLAS_EXPORT rocblas_status rocblas_zgeam_strided_batched(rocblas_handle                handle,
                                                             rocblas_operation             transA,
                                                             rocblas_operation             transB,

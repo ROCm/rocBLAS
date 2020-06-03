@@ -2,7 +2,9 @@
  * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+#include "bytes.hpp"
 #include "cblas_interface.hpp"
+#include "flops.hpp"
 #include "norm.hpp"
 #include "rocblas.hpp"
 #include "rocblas_init.hpp"
@@ -16,6 +18,10 @@
 template <typename T>
 void testing_copy_batched_bad_arg(const Arguments& arg)
 {
+    const bool FORTRAN = arg.fortran;
+    auto       rocblas_copy_batched_fn
+        = FORTRAN ? rocblas_copy_batched<T, true> : rocblas_copy_batched<T, false>;
+
     rocblas_int       N           = 100;
     rocblas_int       incx        = 1;
     rocblas_int       incy        = 1;
@@ -30,13 +36,13 @@ void testing_copy_batched_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     EXPECT_ROCBLAS_STATUS(
-        rocblas_copy_batched<T>(handle, N, nullptr, incx, dy.ptr_on_device(), incy, batch_count),
+        rocblas_copy_batched_fn(handle, N, nullptr, incx, dy.ptr_on_device(), incy, batch_count),
         rocblas_status_invalid_pointer);
     EXPECT_ROCBLAS_STATUS(
-        rocblas_copy_batched<T>(handle, N, dx.ptr_on_device(), incx, nullptr, incy, batch_count),
+        rocblas_copy_batched_fn(handle, N, dx.ptr_on_device(), incx, nullptr, incy, batch_count),
         rocblas_status_invalid_pointer);
     EXPECT_ROCBLAS_STATUS(
-        rocblas_copy_batched<T>(
+        rocblas_copy_batched_fn(
             nullptr, N, dx.ptr_on_device(), incx, dy.ptr_on_device(), incy, batch_count),
         rocblas_status_invalid_handle);
 }
@@ -44,6 +50,10 @@ void testing_copy_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_copy_batched(const Arguments& arg)
 {
+    const bool FORTRAN = arg.fortran;
+    auto       rocblas_copy_batched_fn
+        = FORTRAN ? rocblas_copy_batched<T, true> : rocblas_copy_batched<T, false>;
+
     rocblas_int          N    = arg.N;
     rocblas_int          incx = arg.incx;
     rocblas_int          incy = arg.incy;
@@ -54,7 +64,7 @@ void testing_copy_batched(const Arguments& arg)
     if(N <= 0 || batch_count <= 0)
     {
         EXPECT_ROCBLAS_STATUS(
-            rocblas_copy_batched<T>(handle, N, nullptr, incx, nullptr, incy, batch_count),
+            rocblas_copy_batched_fn(handle, N, nullptr, incx, nullptr, incy, batch_count),
             rocblas_status_success);
         return;
     }
@@ -86,7 +96,7 @@ void testing_copy_batched(const Arguments& arg)
     if(arg.unit_check || arg.norm_check)
     {
         // GPU BLAS
-        CHECK_ROCBLAS_ERROR(rocblas_copy_batched<T>(
+        CHECK_ROCBLAS_ERROR(rocblas_copy_batched_fn(
             handle, N, dx.ptr_on_device(), incx, dy.ptr_on_device(), incy, batch_count));
 
         CHECK_HIP_ERROR(hy.transfer_from(dy));
@@ -117,7 +127,7 @@ void testing_copy_batched(const Arguments& arg)
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            rocblas_copy_batched<T>(
+            rocblas_copy_batched_fn(
                 handle, N, dx.ptr_on_device(), incx, dy.ptr_on_device(), incy, batch_count);
         }
 
@@ -125,25 +135,18 @@ void testing_copy_batched(const Arguments& arg)
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            rocblas_copy_batched<T>(
+            rocblas_copy_batched_fn(
                 handle, N, dx.ptr_on_device(), incx, dy.ptr_on_device(), incy, batch_count);
         }
 
-        gpu_time_used = (get_time_us() - gpu_time_used) / number_hot_calls;
+        gpu_time_used = get_time_us() - gpu_time_used;
 
-        rocblas_cout << "N,incx,incy,batch_count,rocblas-us";
-
-        if(arg.norm_check)
-            rocblas_cout << ",CPU-us,error";
-
-        rocblas_cout << std::endl;
-
-        rocblas_cout << N << "," << incx << "," << incy << "," << batch_count << ","
-                     << gpu_time_used;
-
-        if(arg.norm_check)
-            rocblas_cout << "," << cpu_time_used << "," << rocblas_error;
-
-        rocblas_cout << std::endl;
+        ArgumentModel<e_N, e_incx, e_incy, e_batch_count>{}.log_args<T>(rocblas_cout,
+                                                                        arg,
+                                                                        gpu_time_used,
+                                                                        copy_gflop_count<T>(N),
+                                                                        copy_gbyte_count<T>(N),
+                                                                        cpu_time_used,
+                                                                        rocblas_error);
     }
 }

@@ -110,6 +110,11 @@ namespace
             if(TPSV_TYPE != TPSV)
                 name << '_' << arg.batch_count;
 
+            if(arg.fortran)
+            {
+                name << "_F";
+            }
+
             return std::move(name);
         }
     };

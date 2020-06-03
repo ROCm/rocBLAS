@@ -30,6 +30,7 @@ Tests:
   uplo: [ U, L ]
   diag: [ N, U ]
   matrix_size: *small_matrix_size_range
+  fortran: [ false, true ]
 
 - name: trtri_batched
   category: quick
@@ -39,6 +40,7 @@ Tests:
   diag: [ N, U ]
   matrix_size: *small_matrix_size_range
   batch_count: [ -1, 0, 1, 25 ]
+  fortran: [ false, true ]
 
 - name: trtri_strided_batched
   category: quick
@@ -48,6 +50,7 @@ Tests:
   diag: [ N, U ]
   matrix_size: *small_matrix_size_range
   batch_count: [ -1, 0, 1, 25 ]
+  fortran: [ false, true ]
 
 - name: trtri_batched
   category: pre_checkin

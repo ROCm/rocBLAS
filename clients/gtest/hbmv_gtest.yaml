@@ -66,6 +66,7 @@ Tests:
   - hbmv_strided_batched_bad_arg
   precision: *single_double_precisions_complex
   uplo: N
+  fortran: [ false, true ]
 
 - name: hbmv_arg_check
   category: quick
@@ -87,6 +88,16 @@ Tests:
   incx_incy: *incx_incy_range
   alpha: [ -1.0, 0, 1.0, 2.0 ]
   beta: .NaN  # converted to 0.0 in test code
+
+- name: hbmv_fortran
+  category: quick
+  function: hbmv
+  precision: *single_double_precisions_complex
+  uplo: [ U, L ]
+  matrix_size: *small_matrix_size_range
+  incx_incy: *incx_incy_range_small
+  alpha_beta: *alpha_beta_range_small
+  fortran: true
 
 - name: hbmv_small
   category: quick
@@ -126,6 +137,17 @@ Tests:
   alpha: [ -1.0, 0, 1.0, 2.0 ]
   beta: .NaN  # converted to 0.0 in test code
   batch_count: [ -1, 0, 1, 3 ]
+
+- name: hbmv_batched_fortran
+  category: quick
+  function: hbmv_batched
+  precision: *single_double_precisions_complex
+  uplo: [ U, L ]
+  matrix_size: *small_matrix_size_range
+  incx_incy: *incx_incy_range_small
+  alpha_beta: *alpha_beta_range_small
+  batch_count: [ -1, 0, 3 ]
+  fortran: true
 
 - name: hbmv_batched_small
   category: quick
@@ -169,6 +191,18 @@ Tests:
   beta: .NaN  # converted to 0.0 in test code
   batch_count: [ -1, 0, 1, 3 ]
   stride_scale: [ 1.5 ]
+
+- name: hbmv_strided_batched_fortran
+  category: quick
+  function: hbmv_strided_batched
+  precision: *single_double_precisions_complex
+  uplo: [ U, L ]
+  matrix_size: *small_matrix_size_range
+  incx_incy: *incx_incy_range_small
+  alpha_beta: *alpha_beta_range_small
+  batch_count: [ -1, 0, 3 ]
+  stride_scale: [ 2 ]
+  fortran: true
 
 - name: hbmv_strided_batched_small
   category: quick
