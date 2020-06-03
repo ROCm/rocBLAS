@@ -8396,7 +8396,7 @@ module rocblas
         function rocblas_cherk_strided_batched(handle, uplo, transA, n, k, alpha, &
                 A, lda, stride_A, beta, C, ldc, stride_C, batch_count) &
                 result(c_int) &
-                bind(c, name = 'rocblas_cherk_batched')
+                bind(c, name = 'rocblas_cherk_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
@@ -8421,7 +8421,7 @@ module rocblas
         function rocblas_zherk_strided_batched(handle, uplo, transA, n, k, alpha, &
                 A, lda, stride_A, beta, C, ldc, stride_C, batch_count) &
                 result(c_int) &
-                bind(c, name = 'rocblas_zherk_batched')
+                bind(c, name = 'rocblas_zherk_strided_batched')
             use iso_c_binding
             use rocblas_enums
             implicit none
