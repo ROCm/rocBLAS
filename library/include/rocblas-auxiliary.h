@@ -23,11 +23,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_create_handle(rocblas_handle* handle);
  */
 ROCBLAS_EXPORT rocblas_status rocblas_destroy_handle(rocblas_handle handle);
 
-/*! \brief add stream to handle
- */
-ROCBLAS_EXPORT rocblas_status rocblas_add_stream(rocblas_handle handle, hipStream_t stream);
-
-/*! \brief remove any streams from handle, and add one
+/*! \brief set stream for handle
  */
 ROCBLAS_EXPORT rocblas_status rocblas_set_stream(rocblas_handle handle, hipStream_t stream);
 
