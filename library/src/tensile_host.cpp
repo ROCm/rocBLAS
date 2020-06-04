@@ -440,15 +440,15 @@ rocblas_status runContractionProblem(const RocblasContractionProblem<Ti, To, Tc>
             auto result = solution->solve(tensile_prob, inputs, *host.hardware);
             auto handle = prob.handle;
 
+            hipStream_t stream;
+            rocblas_get_stream(handle, &stream);
             if(handle->startEvent && handle->stopEvent)
             {
-                hipStream_t stream;
-                rocblas_get_stream(handle, &stream);
                 host.adapter.launchKernels(result, stream, handle->startEvent, handle->stopEvent);
             }
             else
             {
-                host.adapter.launchKernels(result);
+                host.adapter.launchKernels(result, stream, nullptr, nullptr);
             }
 
             status = rocblas_status_success;
