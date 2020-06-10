@@ -16,7 +16,7 @@ def runCI =
 
     def prj = new rocProject('rocBLAS', 'Debug')
     // customize for project
-    prj.paths.build_command = './install.sh -lasm_ci -c -g'
+    prj.paths.build_command = './install.sh -c -g'
 
     // Define test architectures, optional rocm version argument is available
     def nodes = new dockerNodes(nodeDetails, jobName, prj)
