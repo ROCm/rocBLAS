@@ -139,7 +139,16 @@ public:
     // Temporarily change pointer mode, returning object which restores old mode when destroyed
     auto push_pointer_mode(rocblas_pointer_mode mode)
     {
-        return _pushed_pointer_mode(this, mode);
+        return _pushed_state<rocblas_pointer_mode>(pointer_mode, mode);
+    }
+
+    // Whether to use any_order scheduling in Tensile calls
+    bool any_order = false;
+
+    // Temporarily change any_order flag
+    auto push_any_order(bool new_any_order)
+    {
+        return _pushed_state<bool>(any_order, new_any_order);
     }
 
 private:
@@ -268,37 +277,39 @@ private:
         return deviceProperties.gcnArch;
     }
 
-    // Temporarily change the pointer mode
-    class _pushed_pointer_mode
+private:
+    // Class for temporarily modifying a state, restoring it on destruction
+    template <typename STATE>
+    class _pushed_state
     {
-        const rocblas_handle       handle;
-        const rocblas_pointer_mode old_mode;
+        STATE&      state;
+        const STATE old_state;
 
     public:
         // Constructor
-        _pushed_pointer_mode(rocblas_handle handle, rocblas_pointer_mode mode)
-            : handle(handle)
-            , old_mode(handle->pointer_mode)
+        _pushed_state(STATE& state, STATE new_state)
+            : state(state)
+            , old_state(state)
         {
-            handle->pointer_mode = mode;
+            state = new_state;
         }
 
-        // Temporary object implicitly converts to old pointer mode
-        operator rocblas_pointer_mode() const
+        // Temporary object implicitly converts to old state
+        operator STATE() const
         {
-            return old_mode;
+            return old_state;
         }
 
-        // Old pointer mode is restored on destruction
-        ~_pushed_pointer_mode()
+        // Old state is restored on destruction
+        ~_pushed_state()
         {
-            handle->pointer_mode = old_mode;
+            state = old_state;
         }
 
-        _pushed_pointer_mode(const _pushed_pointer_mode&) = default;
-        _pushed_pointer_mode(_pushed_pointer_mode&&)      = default;
-        _pushed_pointer_mode& operator=(const _pushed_pointer_mode&) = delete;
-        _pushed_pointer_mode& operator=(_pushed_pointer_mode&&) = delete;
+        _pushed_state(const _pushed_state&) = delete;
+        _pushed_state(_pushed_state&&)      = default;
+        _pushed_state& operator=(const _pushed_state&) = delete;
+        _pushed_state& operator=(_pushed_state&&) = delete;
     };
 };
 
