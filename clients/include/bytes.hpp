@@ -73,6 +73,13 @@ inline size_t tri_count(rocblas_int n)
     return size_t(n) * (1 + n) / 2;
 }
 
+/* \brief byte counts of GEMV */
+template <typename T>
+constexpr double gemv_gbyte_count(rocblas_operation transA, rocblas_int m, rocblas_int n)
+{
+    return (sizeof(T) * (m * n + 2 * (transA == rocblas_operation_none ? n : m))) / 1e9;
+}
+
 /* \brief byte counts of GER */
 template <typename T>
 constexpr double ger_gbyte_count(rocblas_int m, rocblas_int n)
