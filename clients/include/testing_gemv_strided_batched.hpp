@@ -3,6 +3,7 @@
  *
  * ************************************************************************ */
 
+#include "bytes.hpp"
 #include "cblas_interface.hpp"
 #include "flops.hpp"
 #include "norm.hpp"
@@ -271,7 +272,6 @@ void testing_gemv_strided_batched(const Arguments& arg)
     CHECK_HIP_ERROR(hipMemcpy(dy_1, hy_1, sizeof(T) * size_y, hipMemcpyHostToDevice));
 
     double gpu_time_used, cpu_time_used;
-    double rocblas_gflops, cblas_gflops, rocblas_bandwidth;
     double rocblas_error_1;
     double rocblas_error_2;
 
@@ -341,7 +341,6 @@ void testing_gemv_strided_batched(const Arguments& arg)
                           incy);
         }
         cpu_time_used = get_time_us() - cpu_time_used;
-        cblas_gflops  = batch_count * gemv_gflop_count<T>(transA, M, N) / cpu_time_used * 1e6;
 
         if(arg.unit_check)
         {
@@ -362,7 +361,7 @@ void testing_gemv_strided_batched(const Arguments& arg)
     {
         int number_cold_calls = arg.cold_iters;
         int number_hot_calls  = arg.iters;
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
@@ -370,14 +369,14 @@ void testing_gemv_strided_batched(const Arguments& arg)
                                             transA,
                                             M,
                                             N,
-                                            &h_alpha,
+                                            d_alpha,
                                             dA,
                                             lda,
                                             stride_a,
                                             dx,
                                             incx,
                                             stride_x,
-                                            &h_beta,
+                                            d_beta,
                                             dy_1,
                                             incy,
                                             stride_y,
@@ -392,45 +391,41 @@ void testing_gemv_strided_batched(const Arguments& arg)
                                             transA,
                                             M,
                                             N,
-                                            &h_alpha,
+                                            d_alpha,
                                             dA,
                                             lda,
                                             stride_a,
                                             dx,
                                             incx,
                                             stride_x,
-                                            &h_beta,
+                                            d_beta,
                                             dy_1,
                                             incy,
                                             stride_y,
                                             batch_count);
         }
 
-        gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;
-        rocblas_gflops    = batch_count * gemv_gflop_count<T>(transA, M, N) / gpu_time_used * 1e6;
-        rocblas_bandwidth = batch_count * (1.0 * M * N) * sizeof(T) / gpu_time_used / 1e3;
+        gpu_time_used = get_time_us() - gpu_time_used;
 
-        // only norm_check return an norm error, unit check won't return anything
-        rocblas_cout
-            << "M,N,alpha,lda,stride_a,incx,stride_x,beta,incy,stride_y,batch_count,rocblas-"
-               "Gflops,rocblas-GB/s,";
-        if(arg.norm_check)
-        {
-            rocblas_cout << "CPU-Gflops,norm_error_host_ptr,norm_error_device_ptr";
-        }
-        rocblas_cout << std::endl;
-
-        rocblas_cout << M << "," << N << "," << h_alpha << "," << lda << "," << stride_a << ","
-                     << incx << "," << stride_x << "," << h_beta << "," << incy << "," << stride_y
-                     << "," << batch_count << "," << rocblas_gflops << "," << rocblas_bandwidth
-                     << ",";
-
-        if(arg.norm_check)
-        {
-            rocblas_cout << cblas_gflops << ',';
-            rocblas_cout << rocblas_error_1 << ',' << rocblas_error_2;
-        }
-
-        rocblas_cout << std::endl;
+        ArgumentModel<e_transA,
+                      e_M,
+                      e_N,
+                      e_alpha,
+                      e_lda,
+                      e_stride_a,
+                      e_incx,
+                      e_stride_x,
+                      e_beta,
+                      e_incy,
+                      e_stride_y,
+                      e_batch_count>{}
+            .log_args<T>(rocblas_cout,
+                         arg,
+                         gpu_time_used,
+                         gemv_gflop_count<T>(transA, M, N),
+                         gemv_gbyte_count<T>(transA, M, N),
+                         cpu_time_used,
+                         rocblas_error_1,
+                         rocblas_error_2);
     }
 }
