@@ -73,9 +73,9 @@ void testing_rotg(const Arguments& arg)
         host_vector<T> cb = b;
         host_vector<U> cc = c;
         host_vector<T> cs = s;
-        cpu_time_used     = get_time_us();
+        cpu_time_used     = get_time_us_no_sync();
         cblas_rotg<T, U>(ca, cb, cc, cs);
-        cpu_time_used = get_time_us() - cpu_time_used;
+        cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         // Test rocblas_pointer_mode_host
         {
@@ -161,7 +161,9 @@ void testing_rotg(const Arguments& arg)
             rocblas_rotg_fn(handle, ha, hb, hc, hs);
         }
 
-        gpu_time_used = get_time_us();
+        hipStream_t stream;
+        CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
+        gpu_time_used = get_time_us_sync(stream); // in microseconds
         for(int iter = 0; iter < number_hot_calls; ++iter)
         {
             ha = a;
@@ -170,7 +172,7 @@ void testing_rotg(const Arguments& arg)
             hs = s;
             rocblas_rotg_fn(handle, ha, hb, hc, hs);
         }
-        gpu_time_used = (get_time_us() - gpu_time_used) / number_hot_calls;
+        gpu_time_used = (get_time_us_sync(stream) - gpu_time_used) / number_hot_calls;
 
         rocblas_cout << "rocblas-us,CPU-us";
         if(arg.norm_check)

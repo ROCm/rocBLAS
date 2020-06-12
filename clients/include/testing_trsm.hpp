@@ -232,7 +232,9 @@ void testing_trsm(const Arguments& arg)
                 handle, side, uplo, transA, diag, M, N, &alpha_h, dA, lda, dXorB, ldb));
         }
 
-        gpu_time_used = get_time_us(); // in microseconds
+        hipStream_t stream;
+        CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
+        gpu_time_used = get_time_us_sync(stream); // in microseconds
 
         for(int i = 0; i < number_hot_calls; i++)
         {
@@ -240,15 +242,15 @@ void testing_trsm(const Arguments& arg)
                 handle, side, uplo, transA, diag, M, N, &alpha_h, dA, lda, dXorB, ldb));
         }
 
-        gpu_time_used  = get_time_us() - gpu_time_used;
+        gpu_time_used  = get_time_us_sync(stream) - gpu_time_used;
         rocblas_gflops = trsm_gflop_count<T>(M, N, K) * number_hot_calls / gpu_time_used * 1e6;
 
         // CPU cblas
-        cpu_time_used = get_time_us();
+        cpu_time_used = get_time_us_no_sync();
 
         cblas_trsm<T>(side, uplo, transA, diag, M, N, alpha_h, hA, lda, cpuXorB, ldb);
 
-        cpu_time_used = get_time_us() - cpu_time_used;
+        cpu_time_used = get_time_us_no_sync() - cpu_time_used;
         cblas_gflops  = trsm_gflop_count<T>(M, N, K) / cpu_time_used * 1e6;
 
         // only norm_check return an norm error, unit check won't return anything

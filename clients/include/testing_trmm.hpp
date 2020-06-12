@@ -178,14 +178,14 @@ void testing_trmm(const Arguments& arg)
         // CPU BLAS
         if(arg.timing)
         {
-            cpu_time_used = get_time_us();
+            cpu_time_used = get_time_us_no_sync();
         }
 
         cblas_trmm<T>(side, uplo, transA, diag, M, N, h_alpha_T, hA, lda, cpuB, ldb);
 
         if(arg.timing)
         {
-            cpu_time_used = get_time_us() - cpu_time_used;
+            cpu_time_used = get_time_us_no_sync() - cpu_time_used;
             cblas_gflops  = trmm_gflop_count<T>(M, N, side) / cpu_time_used * 1e6;
         }
 
@@ -227,12 +227,14 @@ void testing_trmm(const Arguments& arg)
                 handle, side, uplo, transA, diag, M, N, &h_alpha_T, dA, lda, dB, ldb));
         }
 
-        gpu_time_used = get_time_us(); // in microseconds
+        hipStream_t stream;
+        CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
+        gpu_time_used = get_time_us_sync(stream); // in microseconds
         for(int i = 0; i < number_hot_calls; i++)
         {
             rocblas_trmm_fn(handle, side, uplo, transA, diag, M, N, &h_alpha_T, dA, lda, dB, ldb);
         }
-        gpu_time_used  = get_time_us() - gpu_time_used;
+        gpu_time_used  = get_time_us_sync(stream) - gpu_time_used;
         rocblas_gflops = trmm_gflop_count<T>(M, N, side) * number_hot_calls / gpu_time_used * 1e6;
 
         rocblas_cout << "M,N,alpha,lda,ldb,side,uplo,transA,diag,rocblas-Gflops,us";

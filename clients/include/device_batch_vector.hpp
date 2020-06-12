@@ -156,7 +156,7 @@ public:
     //!
     //! @brief Const cast of the data on host.
     //!
-    operator const T* const*() const
+    operator const T* const *() const
     {
         return this->m_data;
     }
@@ -164,7 +164,7 @@ public:
     //!
     //! @brief Cast of the data on host.
     //!
-    operator T**()
+    operator T* *()
     {
         return this->m_data;
     }

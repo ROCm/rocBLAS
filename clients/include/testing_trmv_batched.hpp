@@ -154,13 +154,13 @@ void testing_trmv_batched(const Arguments& arg)
         // CPU BLAS
         //
         {
-            cpu_time_used = get_time_us();
+            cpu_time_used = get_time_us_no_sync();
             for(rocblas_int batch_index = 0; batch_index < batch_count; ++batch_index)
             {
                 cblas_trmv<T>(uplo, transA, diag, M, hA[batch_index], lda, hx[batch_index], incx);
             }
 
-            cpu_time_used = get_time_us() - cpu_time_used;
+            cpu_time_used = get_time_us_no_sync() - cpu_time_used;
             cblas_gflops  = (double(batch_count) * trmv_gflop_count<T>(M)) / cpu_time_used * 1e6;
         }
 
@@ -208,7 +208,9 @@ void testing_trmv_batched(const Arguments& arg)
         // Go !
         //
         {
-            gpu_time_used        = get_time_us(); // in microseconds
+            hipStream_t stream;
+            CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
+            gpu_time_used        = get_time_us_sync(stream); // in microseconds
             int number_hot_calls = arg.iters;
             for(int iter = 0; iter < number_hot_calls; iter++)
             {
@@ -223,7 +225,7 @@ void testing_trmv_batched(const Arguments& arg)
                                         incx,
                                         batch_count);
             }
-            gpu_time_used = (get_time_us() - gpu_time_used) / number_hot_calls;
+            gpu_time_used = (get_time_us_sync(stream) - gpu_time_used) / number_hot_calls;
         }
 
         //

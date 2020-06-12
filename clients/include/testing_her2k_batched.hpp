@@ -293,7 +293,7 @@ void testing_her2k_batched(const Arguments& arg)
         // CPU BLAS
         if(arg.timing)
         {
-            cpu_time_used = get_time_us();
+            cpu_time_used = get_time_us_no_sync();
         }
 
         // cpu reference
@@ -316,7 +316,7 @@ void testing_her2k_batched(const Arguments& arg)
 
         if(arg.timing)
         {
-            cpu_time_used = get_time_us() - cpu_time_used;
+            cpu_time_used = get_time_us_no_sync() - cpu_time_used;
             cblas_gflops  = batch_count * herXX_gflop_count_fn(N, K) / cpu_time_used * 1e6;
         }
 
@@ -360,7 +360,9 @@ void testing_her2k_batched(const Arguments& arg)
                                      batch_count);
         }
 
-        gpu_time_used = get_time_us(); // in microseconds
+        hipStream_t stream;
+        CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
+        gpu_time_used = get_time_us_sync(stream); // in microseconds
         for(int i = 0; i < number_hot_calls; i++)
         {
             rocblas_herXX_batched_fn(handle,
@@ -378,7 +380,7 @@ void testing_her2k_batched(const Arguments& arg)
                                      ldc,
                                      batch_count);
         }
-        gpu_time_used = get_time_us() - gpu_time_used;
+        gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
         rocblas_gflops
             = batch_count * herXX_gflop_count_fn(N, K) * number_hot_calls / gpu_time_used * 1e6;
 

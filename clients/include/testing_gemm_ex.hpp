@@ -539,12 +539,12 @@ void testing_gemm_ex(const Arguments& arg)
             for(int i1 = 0; i1 < M; i1++)
                 hD_gold[i1 + i2 * ldd] = hC[i1 + i2 * ldc];
 
-        cpu_time_used = get_time_us();
+        cpu_time_used = get_time_us_no_sync();
 
         cblas_gemm<Ti, To_hpa, Tc>(
             transA, transB, M, N, K, h_alpha_Tc, hA, lda, hB, ldb, h_beta_Tc, hD_gold, ldd);
 
-        cpu_time_used = get_time_us() - cpu_time_used;
+        cpu_time_used = get_time_us_no_sync() - cpu_time_used;
         cblas_gflops  = gemm_gflop_count<To>(M, N, K) / cpu_time_used * 1e6;
 
         if(arg.unit_check)
@@ -607,7 +607,9 @@ void testing_gemm_ex(const Arguments& arg)
                                                    flags));
         }
 
-        gpu_time_used = get_time_us(); // in microseconds
+        hipStream_t stream;
+        CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
+        gpu_time_used = get_time_us_sync(stream); // in microseconds
         for(int i = 0; i < number_hot_calls; i++)
         {
             rocblas_gemm_ex_fn(handle,
@@ -635,7 +637,7 @@ void testing_gemm_ex(const Arguments& arg)
                                solution_index,
                                flags);
         }
-        gpu_time_used  = get_time_us() - gpu_time_used;
+        gpu_time_used  = get_time_us_sync(stream) - gpu_time_used;
         rocblas_gflops = gemm_gflop_count<Ti>(M, N, K) * number_hot_calls / gpu_time_used * 1e6;
 
         rocblas_cout << "transA,transB,M,N,K,alpha,lda,ldb,beta,ldc,rocblas-Gflops,us";

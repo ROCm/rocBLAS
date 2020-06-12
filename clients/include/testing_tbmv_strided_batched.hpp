@@ -176,12 +176,12 @@ void testing_tbmv_strided_batched(const Arguments& arg)
         CHECK_HIP_ERROR(hx_1.transfer_from(dx));
 
         // CPU BLAS
-        cpu_time_used = get_time_us();
+        cpu_time_used = get_time_us_no_sync();
         for(int b = 0; b < batch_count; b++)
             cblas_tbmv<T>(
                 uplo, transA, diag, M, K, hA + b * stride_A, lda, hx_gold + b * stride_x, incx);
 
-        cpu_time_used = get_time_us() - cpu_time_used;
+        cpu_time_used = get_time_us_no_sync() - cpu_time_used;
         cblas_gflops  = batch_count * tbmv_gflop_count<T>(M, K) / cpu_time_used * 1e6;
 
         if(arg.unit_check)
@@ -218,7 +218,9 @@ void testing_tbmv_strided_batched(const Arguments& arg)
                                             batch_count);
         }
 
-        gpu_time_used = get_time_us(); // in microseconds
+        hipStream_t stream;
+        CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
+        gpu_time_used = get_time_us_sync(stream); // in microseconds
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
@@ -237,7 +239,7 @@ void testing_tbmv_strided_batched(const Arguments& arg)
                                             batch_count);
         }
 
-        gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;
+        gpu_time_used     = (get_time_us_sync(stream) - gpu_time_used) / number_hot_calls;
         rocblas_gflops    = batch_count * tbmv_gflop_count<T>(M, K) / gpu_time_used * 1e6;
         rocblas_int k1    = K < M ? K : M;
         rocblas_bandwidth = batch_count * (M * k1 - ((k1 * (k1 + 1)) / 2.0) + 3 * M) * sizeof(T)

@@ -120,13 +120,13 @@ void testing_rotg_strided_batched(const Arguments& arg)
         host_vector<T> cb = hb;
         host_vector<U> cc = hc;
         host_vector<T> cs = hs;
-        cpu_time_used     = get_time_us();
+        cpu_time_used     = get_time_us_no_sync();
         for(int b = 0; b < batch_count; b++)
         {
             cblas_rotg<T, U>(
                 ca + b * stride_a, cb + b * stride_b, cc + b * stride_c, cs + b * stride_s);
         }
-        cpu_time_used = get_time_us() - cpu_time_used;
+        cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         // Test rocblas_pointer_mode_host
         {
@@ -233,13 +233,15 @@ void testing_rotg_strided_batched(const Arguments& arg)
             rocblas_rotg_strided_batched_fn(
                 handle, da, stride_a, db, stride_b, dc, stride_c, ds, stride_s, batch_count);
         }
-        gpu_time_used = get_time_us(); // in microseconds
+        hipStream_t stream;
+        CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
+        gpu_time_used = get_time_us_sync(stream); // in microseconds
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
             rocblas_rotg_strided_batched_fn(
                 handle, da, stride_a, db, stride_b, dc, stride_c, ds, stride_s, batch_count);
         }
-        gpu_time_used = (get_time_us() - gpu_time_used) / number_hot_calls;
+        gpu_time_used = (get_time_us_sync(stream) - gpu_time_used) / number_hot_calls;
 
         rocblas_cout << "rocblas-us,CPU-us";
         if(arg.norm_check)

@@ -133,12 +133,12 @@ void testing_rotm_batched(const Arguments& arg)
         host_batch_vector<T> cy(N, incy, batch_count);
         cx.copy_from(hx);
         cy.copy_from(hy);
-        cpu_time_used = get_time_us();
+        cpu_time_used = get_time_us_no_sync();
         for(int b = 0; b < batch_count; b++)
         {
             cblas_rotm<T>(N, cx[b], incx, cy[b], incy, hparam[b]);
         }
-        cpu_time_used = get_time_us() - cpu_time_used;
+        cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         if(arg.unit_check || arg.norm_check)
         {
@@ -240,7 +240,9 @@ void testing_rotm_batched(const Arguments& arg)
                                         dparam.ptr_on_device(),
                                         batch_count);
             }
-            gpu_time_used = get_time_us(); // in microseconds
+            hipStream_t stream;
+            CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
+            gpu_time_used = get_time_us_sync(stream); // in microseconds
             for(int iter = 0; iter < number_hot_calls; iter++)
             {
                 rocblas_rotm_batched_fn(handle,
@@ -252,7 +254,7 @@ void testing_rotm_batched(const Arguments& arg)
                                         dparam.ptr_on_device(),
                                         batch_count);
             }
-            gpu_time_used = (get_time_us() - gpu_time_used) / number_hot_calls;
+            gpu_time_used = (get_time_us_sync(stream) - gpu_time_used) / number_hot_calls;
 
             rocblas_cout << "N,incx,incy,rocblas(us),cpu(us)";
             if(arg.norm_check)

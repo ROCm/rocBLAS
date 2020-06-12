@@ -130,9 +130,9 @@ void testing_tpmv(const Arguments& arg)
         // CPU BLAS
         //
         {
-            cpu_time_used = get_time_us();
+            cpu_time_used = get_time_us_no_sync();
             cblas_tpmv<T>(uplo, transA, diag, M, hA, hx, incx);
-            cpu_time_used = get_time_us() - cpu_time_used;
+            cpu_time_used = get_time_us_no_sync() - cpu_time_used;
             cblas_gflops  = tpmv_gflop_count<T>(M) / cpu_time_used * 1e6;
         }
 
@@ -170,13 +170,15 @@ void testing_tpmv(const Arguments& arg)
         // Go !
         //
         {
-            gpu_time_used        = get_time_us(); // in microseconds
+            hipStream_t stream;
+            CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
+            gpu_time_used        = get_time_us_sync(stream); // in microseconds
             int number_hot_calls = arg.iters;
             for(int iter = 0; iter < number_hot_calls; iter++)
             {
                 rocblas_tpmv_fn(handle, uplo, transA, diag, M, dA, dx, incx);
             }
-            gpu_time_used = (get_time_us() - gpu_time_used) / number_hot_calls;
+            gpu_time_used = (get_time_us_sync(stream) - gpu_time_used) / number_hot_calls;
         }
 
         //
