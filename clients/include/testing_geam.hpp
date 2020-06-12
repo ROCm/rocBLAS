@@ -230,7 +230,7 @@ void testing_geam(const Arguments& arg)
         CHECK_HIP_ERROR(hC_2.transfer_from(dC));
 
         // reference calculation for golden result
-        cpu_time_used = get_time_us();
+        cpu_time_used = get_time_us_no_sync();
 
         cblas_geam(transA,
                    transB,
@@ -245,7 +245,7 @@ void testing_geam(const Arguments& arg)
                    (T*)hC_gold,
                    ldc);
 
-        cpu_time_used = get_time_us() - cpu_time_used;
+        cpu_time_used = get_time_us_no_sync() - cpu_time_used;
         cblas_gflops  = geam_gflop_count<T>(M, N) / cpu_time_used * 1e6;
 
         if(arg.unit_check)
@@ -363,12 +363,14 @@ void testing_geam(const Arguments& arg)
             rocblas_geam_fn(handle, transA, transB, M, N, &alpha, dA, lda, &beta, dB, ldb, dC, ldc);
         }
 
-        gpu_time_used = get_time_us(); // in microseconds
+        hipStream_t stream;
+        CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
+        gpu_time_used = get_time_us_sync(stream); // in microseconds
         for(int i = 0; i < number_hot_calls; i++)
         {
             rocblas_geam_fn(handle, transA, transB, M, N, &alpha, dA, lda, &beta, dB, ldb, dC, ldc);
         }
-        gpu_time_used  = get_time_us() - gpu_time_used;
+        gpu_time_used  = get_time_us_sync(stream) - gpu_time_used;
         rocblas_gflops = geam_gflop_count<T>(M, N) * number_hot_calls / gpu_time_used * 1e6;
 
         rocblas_cout << "transA,transB,M,N,alpha,lda,beta,ldb,ldc,rocblas-Gflops,us";

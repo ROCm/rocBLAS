@@ -74,11 +74,7 @@ void testing_set_get_vector_async(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(rocblas_set_vector_async(M, sizeof(T), hp_x, incx, db, incb, stream));
         CHECK_ROCBLAS_ERROR(rocblas_get_vector_async(M, sizeof(T), db, incb, hp_y, incy, stream));
 
-        hipStreamSynchronize(stream);
-
-        cpu_time_used = get_time_us();
-
-        hy.assign(&hp_y[0], &hp_y[0] + M * incy); // copy to host_vector for _check_ compatibility
+        cpu_time_used = get_time_us_no_sync();
 
         // reference calculation
         for(int i = 0; i < M; i++)
@@ -86,8 +82,11 @@ void testing_set_get_vector_async(const Arguments& arg)
             hy_gold[i * incy] = hp_x[i * incx];
         }
 
-        cpu_time_used = get_time_us() - cpu_time_used;
+        cpu_time_used = get_time_us_no_sync() - cpu_time_used;
         cpu_bandwidth = (M * sizeof(T)) / cpu_time_used / 1e3;
+
+        hipStreamSynchronize(stream);
+        hy.assign(&hp_y[0], &hp_y[0] + M * incy); // copy to host_vector for _check_ compatibility
 
         if(arg.unit_check)
         {
@@ -102,17 +101,18 @@ void testing_set_get_vector_async(const Arguments& arg)
 
     if(arg.timing)
     {
-        int number_timing_iterations = arg.iters;
-        gpu_time_used                = get_time_us(); // in microseconds
+        int         number_timing_iterations = arg.iters;
+        hipStream_t stream;
+        CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
+        gpu_time_used = get_time_us_sync(stream); // in microseconds
 
         for(int iter = 0; iter < number_timing_iterations; iter++)
         {
             rocblas_set_vector_async(M, sizeof(T), hp_x, incx, db, incb, stream);
             rocblas_get_vector_async(M, sizeof(T), db, incb, hp_y, incy, stream);
         }
-        hipStreamSynchronize(stream);
 
-        gpu_time_used     = get_time_us() - gpu_time_used;
+        gpu_time_used     = get_time_us_sync(stream) - gpu_time_used;
         rocblas_bandwidth = (M * sizeof(T)) / gpu_time_used / 1e3 / number_timing_iterations;
 
         rocblas_cout << "M,incx,incy,incb,rocblas-GB/s";

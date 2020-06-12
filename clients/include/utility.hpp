@@ -108,10 +108,13 @@ void set_device(rocblas_int device_id);
             rocblas sync CPU and device and use more accurate CPU timer*/
 
 /*! \brief  CPU Timer(in microsecond): synchronize with the default device and return wall time */
-double get_time_us(void);
+double get_time_us_sync_device(void);
 
 /*! \brief  CPU Timer(in microsecond): synchronize with given queue/stream and return wall time */
 double get_time_us_sync(hipStream_t stream);
+
+/*! \brief  CPU Timer(in microsecond): no GPU synchronization and return wall time */
+double get_time_us_no_sync();
 
 /* ============================================================================================ */
 // Return path of this executable

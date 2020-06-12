@@ -110,10 +110,10 @@ void testing_iamax_iamin(const Arguments& arg, rocblas_iamax_iamin_t<T> func)
             &h_rocblas_result_2, d_rocblas_result, sizeof(rocblas_int), hipMemcpyDeviceToHost));
 
         // CPU BLAS
-        cpu_time_used = get_time_us();
+        cpu_time_used = get_time_us_no_sync();
         rocblas_int cpu_result;
         REFBLAS_FUNC(N, hx, incx, &cpu_result);
-        cpu_time_used = get_time_us() - cpu_time_used;
+        cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         if(arg.unit_check)
         {
@@ -139,14 +139,16 @@ void testing_iamax_iamin(const Arguments& arg, rocblas_iamax_iamin_t<T> func)
             func(handle, N, dx, incx, d_rocblas_result);
         }
 
-        gpu_time_used = get_time_us(); // in microseconds
+        hipStream_t stream;
+        CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
+        gpu_time_used = get_time_us_sync(stream); // in microseconds
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
             func(handle, N, dx, incx, d_rocblas_result);
         }
 
-        gpu_time_used = (get_time_us() - gpu_time_used) / number_hot_calls;
+        gpu_time_used = (get_time_us_sync(stream) - gpu_time_used) / number_hot_calls;
 
         rocblas_cout << "N,incx,rocblas-us";
 

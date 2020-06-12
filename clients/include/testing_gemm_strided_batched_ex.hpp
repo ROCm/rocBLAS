@@ -682,7 +682,7 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
                         hD_gold[i1 + (i2 * ldd) + (i3 * stride_d)]
                             = hC[i1 + (i2 * ldc) + (i3 * stride_c)];
                     }
-        cpu_time_used = get_time_us();
+        cpu_time_used = get_time_us_no_sync();
 
         for(rocblas_int i = 0; i < batch_count; i++)
         {
@@ -701,7 +701,7 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
                                    ldd);
         }
 
-        cpu_time_used = get_time_us() - cpu_time_used;
+        cpu_time_used = get_time_us_no_sync() - cpu_time_used;
         cblas_gflops  = gemm_gflop_count<To>(M, N, K) * batch_count / cpu_time_used * 1e6;
 
 #if DEBUG_PRINT
@@ -813,8 +813,10 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
                                                    flags));
         }
 
-        int number_hot_calls = arg.iters;
-        gpu_time_used        = get_time_us(); // in microseconds
+        int         number_hot_calls = arg.iters;
+        hipStream_t stream;
+        CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
+        gpu_time_used = get_time_us_sync(stream); // in microseconds
         for(int i = 0; i < number_hot_calls; i++)
         {
             rocblas_gemm_strided_batched_ex_fn(handle,
@@ -847,7 +849,7 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
                                                solution_index,
                                                flags);
         }
-        gpu_time_used = get_time_us() - gpu_time_used;
+        gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
         rocblas_gflops
             = gemm_gflop_count<To>(M, N, K) * batch_count * number_hot_calls / gpu_time_used * 1e6;
 

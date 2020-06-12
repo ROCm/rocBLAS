@@ -233,11 +233,11 @@ void testing_gbmv(const Arguments& arg)
         hy_2.transfer_from(dy_2);
 
         // CPU BLAS
-        cpu_time_used = get_time_us();
+        cpu_time_used = get_time_us_no_sync();
 
         cblas_gbmv<T>(transA, M, N, KL, KU, h_alpha, hA, lda, hx, incx, h_beta, hy_gold, incy);
 
-        cpu_time_used = get_time_us() - cpu_time_used;
+        cpu_time_used = get_time_us_no_sync() - cpu_time_used;
         cblas_gflops  = gbmv_gflop_count<T>(transA, M, N, KL, KU) / cpu_time_used * 1e6;
 
         if(arg.unit_check)
@@ -265,7 +265,9 @@ void testing_gbmv(const Arguments& arg)
                 handle, transA, M, N, KL, KU, &h_alpha, dA, lda, dx, incx, &h_beta, dy_1, incy);
         }
 
-        gpu_time_used = get_time_us(); // in microseconds
+        hipStream_t stream;
+        CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
+        gpu_time_used = get_time_us_sync(stream); // in microseconds
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
@@ -273,7 +275,7 @@ void testing_gbmv(const Arguments& arg)
                 handle, transA, M, N, KL, KU, &h_alpha, dA, lda, dx, incx, &h_beta, dy_1, incy);
         }
 
-        gpu_time_used  = (get_time_us() - gpu_time_used) / number_hot_calls;
+        gpu_time_used  = (get_time_us_sync(stream) - gpu_time_used) / number_hot_calls;
         rocblas_gflops = gbmv_gflop_count<T>(transA, M, N, KL, KU) / gpu_time_used * 1e6;
 
         rocblas_int k1      = dim_x < KL ? dim_x : KL;

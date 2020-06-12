@@ -126,11 +126,11 @@ void testing_axpy(const Arguments& arg)
         CHECK_HIP_ERROR(hipMemcpy(hy_2, dy_2, sizeof(T) * size_y, hipMemcpyDeviceToHost));
 
         // CPU BLAS
-        cpu_time_used = get_time_us();
+        cpu_time_used = get_time_us_no_sync();
 
         cblas_axpy<T>(N, h_alpha, hx, incx, hy_gold, incy);
 
-        cpu_time_used = get_time_us() - cpu_time_used;
+        cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         if(arg.unit_check)
         {
@@ -156,14 +156,16 @@ void testing_axpy(const Arguments& arg)
             rocblas_axpy_fn(handle, N, &h_alpha, dx, incx, dy_1, incy);
         }
 
-        gpu_time_used = get_time_us(); // in microseconds
+        hipStream_t stream;
+        CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
+        gpu_time_used = get_time_us_sync(stream); // in microseconds
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
             rocblas_axpy_fn(handle, N, &h_alpha, dx, incx, dy_1, incy);
         }
 
-        gpu_time_used = get_time_us() - gpu_time_used;
+        gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
 
         ArgumentModel<e_N, e_alpha, e_incx, e_incy>{}.log_args<T>(rocblas_cout,
                                                                   arg,

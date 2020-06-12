@@ -243,7 +243,9 @@ void testing_trsv_batched(const Arguments& arg)
                                     incx,
                                     batch_count);
 
-        gpu_time_used = get_time_us(); // in microseconds
+        hipStream_t stream;
+        CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
+        gpu_time_used = get_time_us_sync(stream); // in microseconds
 
         for(int i = 0; i < number_hot_calls; i++)
             rocblas_trsv_batched_fn(handle,
@@ -257,18 +259,18 @@ void testing_trsv_batched(const Arguments& arg)
                                     incx,
                                     batch_count);
 
-        gpu_time_used = get_time_us() - gpu_time_used;
+        gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
         rocblas_gflops
             = batch_count * trsv_gflop_count<T>(M) * number_hot_calls / gpu_time_used * 1e6;
 
         // CPU cblas
-        cpu_time_used = get_time_us();
+        cpu_time_used = get_time_us_no_sync();
 
         if(arg.norm_check)
             for(int b = 0; b < batch_count; b++)
                 cblas_trsv<T>(uplo, transA, diag, M, hA[b], lda, cpu_x_or_b[b], incx);
 
-        cpu_time_used = get_time_us() - cpu_time_used;
+        cpu_time_used = get_time_us_no_sync() - cpu_time_used;
         cblas_gflops  = batch_count * trsv_gflop_count<T>(M) / cpu_time_used * 1e6;
 
         // only norm_check return an norm error, unit check won't return anything

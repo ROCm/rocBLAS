@@ -119,12 +119,12 @@ void testing_copy_strided_batched(const Arguments& arg)
         CHECK_HIP_ERROR(hipMemcpy(hy, dy, sizeof(T) * size_y, hipMemcpyDeviceToHost));
 
         // CPU BLAS
-        cpu_time_used = get_time_us();
+        cpu_time_used = get_time_us_no_sync();
         for(int b = 0; b < batch_count; ++b)
         {
             cblas_copy<T>(N, hx + b * stride_x, incx, hy_gold + b * stride_y, incy);
         }
-        cpu_time_used = get_time_us() - cpu_time_used;
+        cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         if(arg.unit_check)
         {
@@ -149,7 +149,9 @@ void testing_copy_strided_batched(const Arguments& arg)
                 handle, N, dx, incx, stride_x, dy, incy, stride_y, batch_count);
         }
 
-        gpu_time_used = get_time_us(); // in microseconds
+        hipStream_t stream;
+        CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
+        gpu_time_used = get_time_us_sync(stream); // in microseconds
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
@@ -157,7 +159,7 @@ void testing_copy_strided_batched(const Arguments& arg)
                 handle, N, dx, incx, stride_x, dy, incy, stride_y, batch_count);
         }
 
-        gpu_time_used = get_time_us() - gpu_time_used;
+        gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
 
         ArgumentModel<e_N, e_incx, e_incy, e_stride_x, e_stride_y, e_batch_count>{}.log_args<T>(
             rocblas_cout,

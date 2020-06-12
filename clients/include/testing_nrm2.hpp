@@ -103,9 +103,9 @@ void testing_nrm2(const Arguments& arg)
             &rocblas_result_2, d_rocblas_result_2, sizeof(real_t<T>), hipMemcpyDeviceToHost));
 
         // CPU BLAS
-        cpu_time_used = get_time_us();
+        cpu_time_used = get_time_us_no_sync();
         cblas_nrm2<T>(N, hx, incx, &cpu_result);
-        cpu_time_used = get_time_us() - cpu_time_used;
+        cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         //      allowable error is sqrt of precision. This is based on nrm2 calculating the
         //      square root of a sum. It is assumed that the sum will have accuracy =approx=
@@ -143,14 +143,16 @@ void testing_nrm2(const Arguments& arg)
             rocblas_nrm2_fn(handle, N, dx, incx, d_rocblas_result_2);
         }
 
-        gpu_time_used = get_time_us(); // in microseconds
+        hipStream_t stream;
+        CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
+        gpu_time_used = get_time_us_sync(stream); // in microseconds
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
             rocblas_nrm2_fn(handle, N, dx, incx, d_rocblas_result_2);
         }
 
-        gpu_time_used = (get_time_us() - gpu_time_used) / number_hot_calls;
+        gpu_time_used = (get_time_us_sync(stream) - gpu_time_used) / number_hot_calls;
 
         ArgumentModel<e_N, e_incx>{}.log_args<T>(rocblas_cout,
                                                  arg,

@@ -174,13 +174,13 @@ void testing_gemm_batched(const Arguments& arg)
         CHECK_HIP_ERROR(hC_2.transfer_from(dC));
 
         // CPU BLAS
-        cpu_time_used = get_time_us();
+        cpu_time_used = get_time_us_no_sync();
         for(rocblas_int i = 0; i < batch_count; i++)
         {
             cblas_gemm<T>(
                 transA, transB, M, N, K, h_alpha, hA[i], lda, hB[i], ldb, h_beta, hC_gold[i], ldc);
         }
-        cpu_time_used = get_time_us() - cpu_time_used;
+        cpu_time_used = get_time_us_no_sync() - cpu_time_used;
         cblas_gflops  = gemm_gflop_count<T>(M, N, K) * batch_count / cpu_time_used * 1e6;
 
         if(arg.unit_check)
@@ -236,7 +236,9 @@ void testing_gemm_batched(const Arguments& arg)
                                                          batch_count)));
         }
 
-        gpu_time_used = get_time_us(); // in microseconds
+        hipStream_t stream;
+        CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
+        gpu_time_used = get_time_us_sync(stream); // in microseconds
 
         for(int i = 0; i < number_hot_calls; i++)
         {
@@ -257,7 +259,7 @@ void testing_gemm_batched(const Arguments& arg)
                                     batch_count);
         }
 
-        gpu_time_used  = (get_time_us() - gpu_time_used) / number_hot_calls;
+        gpu_time_used  = (get_time_us_sync(stream) - gpu_time_used) / number_hot_calls;
         rocblas_gflops = gemm_gflop_count<T>(M, N, K) * batch_count / gpu_time_used * 1e6;
 
         rocblas_cout << "transA,transB,M,N,K,alpha,lda,ldb,beta,ldc,Batch_Count,"

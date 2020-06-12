@@ -161,7 +161,7 @@ void testing_dgmm_batched(const Arguments& arg)
 
         // reference calculation for golden result
         ptrdiff_t shift_x = incx < 0 ? -ptrdiff_t(incx) * (N - 1) : 0;
-        cpu_time_used     = get_time_us();
+        cpu_time_used     = get_time_us_no_sync();
 
         for(int i3 = 0; i3 < batch_count; i3++)
         {
@@ -188,7 +188,7 @@ void testing_dgmm_batched(const Arguments& arg)
             }
         }
 
-        cpu_time_used = get_time_us() - cpu_time_used;
+        cpu_time_used = get_time_us_no_sync() - cpu_time_used;
         cblas_gflops  = dgmm_gflop_count<T>(M, N) * batch_count / cpu_time_used * 1e6;
 
         if(arg.unit_check)
@@ -223,7 +223,9 @@ void testing_dgmm_batched(const Arguments& arg)
                                     batch_count);
         }
 
-        gpu_time_used = get_time_us(); // in microseconds
+        hipStream_t stream;
+        CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
+        gpu_time_used = get_time_us_sync(stream); // in microseconds
         for(int i = 0; i < number_hot_calls; i++)
         {
             rocblas_dgmm_batched_fn(handle,
@@ -238,7 +240,7 @@ void testing_dgmm_batched(const Arguments& arg)
                                     ldc,
                                     batch_count);
         }
-        gpu_time_used = get_time_us() - gpu_time_used;
+        gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
         rocblas_gflops
             = dgmm_gflop_count<T>(M, N) * number_hot_calls * batch_count / gpu_time_used * 1e6;
 

@@ -116,12 +116,12 @@ void testing_swap_batched(const Arguments& arg)
         CHECK_HIP_ERROR(hy.transfer_from(dy));
 
         // CPU BLAS
-        cpu_time_used = get_time_us();
+        cpu_time_used = get_time_us_no_sync();
         for(int i = 0; i < batch_count; i++)
         {
             cblas_swap<T>(N, hx_gold[i], incx, hy_gold[i], incy);
         }
-        cpu_time_used = get_time_us() - cpu_time_used;
+        cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         if(arg.unit_check)
         {
@@ -148,7 +148,9 @@ void testing_swap_batched(const Arguments& arg)
                 handle, N, dx.ptr_on_device(), incx, dy.ptr_on_device(), incy, batch_count);
         }
 
-        gpu_time_used = get_time_us(); // in microseconds
+        hipStream_t stream;
+        CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
+        gpu_time_used = get_time_us_sync(stream); // in microseconds
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
@@ -156,7 +158,7 @@ void testing_swap_batched(const Arguments& arg)
                 handle, N, dx.ptr_on_device(), incx, dy.ptr_on_device(), incy, batch_count);
         }
 
-        gpu_time_used = (get_time_us() - gpu_time_used) / number_hot_calls;
+        gpu_time_used = (get_time_us_sync(stream) - gpu_time_used) / number_hot_calls;
 
         rocblas_cout << "N,incx,incy,batch_count,rocblas-us" << std::endl;
         rocblas_cout << N << "," << incx << "," << incy << "," << batch_count << ","

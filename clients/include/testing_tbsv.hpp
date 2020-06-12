@@ -195,21 +195,23 @@ void testing_tbsv(const Arguments& arg)
         for(int i = 0; i < number_cold_calls; i++)
             rocblas_tbsv_fn(handle, uplo, transA, diag, N, K, dAB, lda, dx_or_b, incx);
 
-        gpu_time_used = get_time_us(); // in microseconds
+        hipStream_t stream;
+        CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
+        gpu_time_used = get_time_us_sync(stream); // in microseconds
 
         for(int i = 0; i < number_hot_calls; i++)
             rocblas_tbsv_fn(handle, uplo, transA, diag, N, K, dAB, lda, dx_or_b, incx);
 
-        gpu_time_used  = get_time_us() - gpu_time_used;
+        gpu_time_used  = get_time_us_sync(stream) - gpu_time_used;
         rocblas_gflops = tbsv_gflop_count<T>(N, K) * number_hot_calls / gpu_time_used * 1e6;
 
         // CPU cblas
-        cpu_time_used = get_time_us();
+        cpu_time_used = get_time_us_no_sync();
 
         if(arg.norm_check)
             cblas_tbsv<T>(uplo, transA, diag, N, K, hAB, lda, cpu_x_or_b, incx);
 
-        cpu_time_used = get_time_us() - cpu_time_used;
+        cpu_time_used = get_time_us_no_sync() - cpu_time_used;
         cblas_gflops  = tbsv_gflop_count<T>(N, K) / cpu_time_used * 1e6;
 
         // only norm_check return an norm error, unit check won't return anything

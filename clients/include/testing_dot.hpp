@@ -137,9 +137,9 @@ void testing_dot(const Arguments& arg)
             hipMemcpy(&rocblas_result_2, d_rocblas_result_2, sizeof(T), hipMemcpyDeviceToHost));
 
         // CPU BLAS
-        cpu_time_used = get_time_us();
+        cpu_time_used = get_time_us_no_sync();
         (CONJ ? cblas_dotc<T> : cblas_dot<T>)(N, hx, incx, hy_ptr, incy, &cpu_result);
-        cpu_time_used = get_time_us() - cpu_time_used;
+        cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         if(arg.unit_check)
         {
@@ -168,14 +168,16 @@ void testing_dot(const Arguments& arg)
             (rocblas_dot_fn)(handle, N, dx, incx, dy_ptr, incy, d_rocblas_result_2);
         }
 
-        gpu_time_used = get_time_us(); // in microseconds
+        hipStream_t stream;
+        CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
+        gpu_time_used = get_time_us_sync(stream); // in microseconds
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
             (rocblas_dot_fn)(handle, N, dx, incx, dy_ptr, incy, d_rocblas_result_2);
         }
 
-        gpu_time_used = get_time_us() - gpu_time_used;
+        gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
 
         ArgumentModel<e_N, e_incx, e_incy, e_algo>{}.log_args<T>(rocblas_cout,
                                                                  arg,

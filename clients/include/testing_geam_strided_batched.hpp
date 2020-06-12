@@ -370,7 +370,7 @@ void testing_geam_strided_batched(const Arguments& arg)
         CHECK_HIP_ERROR(hC_2.transfer_from(dC));
 
         // reference calculation for golden result
-        cpu_time_used = get_time_us();
+        cpu_time_used = get_time_us_no_sync();
 
         for(size_t b = 0; b < batch_count; b++)
         {
@@ -388,7 +388,7 @@ void testing_geam_strided_batched(const Arguments& arg)
                        ldc);
         }
 
-        cpu_time_used = get_time_us() - cpu_time_used;
+        cpu_time_used = get_time_us_no_sync() - cpu_time_used;
         cblas_gflops  = geam_gflop_count<T>(M, N) / cpu_time_used * 1e6;
 
         if(arg.unit_check)
@@ -563,7 +563,9 @@ void testing_geam_strided_batched(const Arguments& arg)
                                             batch_count);
         }
 
-        gpu_time_used = get_time_us(); // in microseconds
+        hipStream_t stream;
+        CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
+        gpu_time_used = get_time_us_sync(stream); // in microseconds
         for(int i = 0; i < number_hot_calls; i++)
         {
             rocblas_geam_strided_batched_fn(handle,
@@ -584,7 +586,7 @@ void testing_geam_strided_batched(const Arguments& arg)
                                             stride_c,
                                             batch_count);
         }
-        gpu_time_used = get_time_us() - gpu_time_used;
+        gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
         rocblas_gflops
             = geam_gflop_count<T>(M, N) * batch_count * number_hot_calls / gpu_time_used * 1e6;
 

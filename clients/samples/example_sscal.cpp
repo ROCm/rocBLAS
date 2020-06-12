@@ -44,7 +44,7 @@ int main()
 
     printf("N        rocblas(us)     \n");
 
-    gpu_time_used = get_time_us(); // in microseconds
+    gpu_time_used = get_time_us_sync_device(); // in microseconds
 
     /* =====================================================================
          ROCBLAS  C interface
@@ -56,7 +56,7 @@ int main()
         return status;
     }
 
-    gpu_time_used = get_time_us() - gpu_time_used;
+    gpu_time_used = get_time_us_sync_device() - gpu_time_used;
 
     // copy output from device to CPU
     hipMemcpy(hx.data(), dx, sizeof(float) * N, hipMemcpyDeviceToHost);

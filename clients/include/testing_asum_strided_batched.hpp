@@ -119,12 +119,12 @@ void testing_asum_strided_batched(const Arguments& arg)
         // CPU BLAS
         real_t<T> cpu_result[batch_count];
 
-        cpu_time_used = get_time_us();
+        cpu_time_used = get_time_us_no_sync();
         for(int i = 0; i < batch_count; i++)
         {
             cblas_asum<T>(N, hx + i * stridex, incx, cpu_result + i);
         }
-        cpu_time_used = get_time_us() - cpu_time_used;
+        cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         if(arg.unit_check)
         {
@@ -153,14 +153,16 @@ void testing_asum_strided_batched(const Arguments& arg)
             rocblas_asum_strided_batched_fn(handle, N, dx, incx, stridex, batch_count, dr);
         }
 
-        gpu_time_used = get_time_us(); // in microseconds
+        hipStream_t stream;
+        CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
+        gpu_time_used = get_time_us_sync(stream); // in microseconds
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
             rocblas_asum_strided_batched_fn(handle, N, dx, incx, stridex, batch_count, dr);
         }
 
-        gpu_time_used = get_time_us() - gpu_time_used;
+        gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
 
         ArgumentModel<e_N, e_incx, e_stride_x, e_batch_count>{}.log_args<T>(rocblas_cout,
                                                                             arg,

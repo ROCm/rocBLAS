@@ -140,12 +140,12 @@ void testing_spmv(const Arguments& arg)
     if(arg.unit_check || arg.norm_check)
     {
         // cpu ref
-        cpu_time_used = get_time_us();
+        cpu_time_used = get_time_us_no_sync();
 
         // cpu reference
         cblas_spmv<T>(uplo, N, alpha[0], hA, hx, incx, beta[0], hg, incy);
 
-        cpu_time_used = get_time_us() - cpu_time_used;
+        cpu_time_used = get_time_us_no_sync() - cpu_time_used;
         cblas_gflops  = spmv_gflop_count<T>(N) / cpu_time_used * 1e6;
     }
 
@@ -208,7 +208,9 @@ void testing_spmv(const Arguments& arg)
                 rocblas_spmv_fn(handle, uplo, N, alpha, dA, dx, incx, beta, dy, incy));
         }
 
-        gpu_time_used = get_time_us(); // in microseconds
+        hipStream_t stream;
+        CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
+        gpu_time_used = get_time_us_sync(stream); // in microseconds
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
@@ -216,7 +218,7 @@ void testing_spmv(const Arguments& arg)
                 rocblas_spmv_fn(handle, uplo, N, alpha, dA, dx, incx, beta, dy, incy));
         }
 
-        gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;
+        gpu_time_used     = (get_time_us_sync(stream) - gpu_time_used) / number_hot_calls;
         rocblas_gflops    = spmv_gflop_count<T>(N) / gpu_time_used * 1e6;
         rocblas_bandwidth = spmv_gbyte_count<T>(N) / gpu_time_used * 1e6;
 

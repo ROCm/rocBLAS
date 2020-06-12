@@ -117,12 +117,12 @@ void testing_rotg_batched(const Arguments& arg)
         cc.copy_from(hc);
         cs.copy_from(hs);
 
-        cpu_time_used = get_time_us();
+        cpu_time_used = get_time_us_no_sync();
         for(int b = 0; b < batch_count; b++)
         {
             cblas_rotg<T, U>(ca[b], cb[b], cc[b], cs[b]);
         }
-        cpu_time_used = get_time_us() - cpu_time_used;
+        cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         // Test rocblas_pointer_mode_host
         {
@@ -229,7 +229,9 @@ void testing_rotg_batched(const Arguments& arg)
                                     ds.ptr_on_device(),
                                     batch_count);
         }
-        gpu_time_used = get_time_us(); // in microseconds
+        hipStream_t stream;
+        CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
+        gpu_time_used = get_time_us_sync(stream); // in microseconds
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
             rocblas_rotg_batched_fn(handle,
@@ -239,7 +241,7 @@ void testing_rotg_batched(const Arguments& arg)
                                     ds.ptr_on_device(),
                                     batch_count);
         }
-        gpu_time_used = (get_time_us() - gpu_time_used) / number_hot_calls;
+        gpu_time_used = (get_time_us_sync(stream) - gpu_time_used) / number_hot_calls;
 
         rocblas_cout << "rocblas-us,CPU-us";
         if(arg.norm_check)

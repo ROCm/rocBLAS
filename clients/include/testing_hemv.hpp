@@ -175,11 +175,11 @@ void testing_hemv(const Arguments& arg)
         CHECK_HIP_ERROR(hy_2.transfer_from(dy_2));
 
         // CPU BLAS
-        cpu_time_used = get_time_us();
+        cpu_time_used = get_time_us_no_sync();
 
         cblas_hemv<T>(uplo, N, h_alpha, hA, lda, hx, incx, h_beta, hy_gold, incy);
 
-        cpu_time_used = get_time_us() - cpu_time_used;
+        cpu_time_used = get_time_us_no_sync() - cpu_time_used;
         cblas_gflops  = hemv_gflop_count<T>(N) / cpu_time_used * 1e6;
 
         if(arg.unit_check)
@@ -206,14 +206,16 @@ void testing_hemv(const Arguments& arg)
             rocblas_hemv_fn(handle, uplo, N, &h_alpha, dA, lda, dx, incx, &h_beta, dy_1, incy);
         }
 
-        gpu_time_used = get_time_us(); // in microseconds
+        hipStream_t stream;
+        CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
+        gpu_time_used = get_time_us_sync(stream); // in microseconds
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
             rocblas_hemv_fn(handle, uplo, N, &h_alpha, dA, lda, dx, incx, &h_beta, dy_1, incy);
         }
 
-        gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;
+        gpu_time_used     = (get_time_us_sync(stream) - gpu_time_used) / number_hot_calls;
         rocblas_gflops    = hemv_gflop_count<T>(N) / gpu_time_used * 1e6;
         rocblas_bandwidth = (((N * (N + 1.0)) / 2.0) + 3.0 * N) * sizeof(T) / gpu_time_used / 1e3;
 

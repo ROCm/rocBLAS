@@ -178,7 +178,7 @@ void testing_axpy_strided_batched(const Arguments& arg)
             // CPU BLAS
             //
             {
-                cpu_time_used = get_time_us();
+                cpu_time_used = get_time_us_no_sync();
 
                 //
                 // Compute the host solution.
@@ -187,7 +187,7 @@ void testing_axpy_strided_batched(const Arguments& arg)
                 {
                     cblas_axpy<T>(N, h_alpha, hx[batch_index], incx, hy[batch_index], incy);
                 }
-                cpu_time_used = get_time_us() - cpu_time_used;
+                cpu_time_used = get_time_us_no_sync() - cpu_time_used;
             }
 
             //
@@ -234,13 +234,15 @@ void testing_axpy_strided_batched(const Arguments& arg)
         //
         CHECK_HIP_ERROR(dy.transfer_from(hy));
 
-        gpu_time_used = get_time_us(); // in microseconds
+        hipStream_t stream;
+        CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
+        gpu_time_used = get_time_us_sync(stream); // in microseconds
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
             rocblas_axpy_strided_batched_fn(
                 handle, N, &h_alpha, dx, incx, stridex, dy, incy, stridey, batch_count);
         }
-        gpu_time_used = get_time_us() - gpu_time_used;
+        gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
 
         ArgumentModel<e_N, e_alpha, e_incx, e_incy, e_stride_x, e_stride_y, e_batch_count>{}
             .log_args<T>(rocblas_cout,

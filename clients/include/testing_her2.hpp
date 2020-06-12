@@ -160,9 +160,9 @@ void testing_her2(const Arguments& arg)
         CHECK_HIP_ERROR(hA_2.transfer_from(dA_2));
 
         // CPU BLAS
-        cpu_time_used = get_time_us();
+        cpu_time_used = get_time_us_no_sync();
         cblas_her2<T>(uplo, N, h_alpha, hx, incx, hy, incy, hA_gold, lda);
-        cpu_time_used = get_time_us() - cpu_time_used;
+        cpu_time_used = get_time_us_no_sync() - cpu_time_used;
         cblas_gflops  = her2_gflop_count<T>(N) / cpu_time_used * 1e6;
 
         if(arg.unit_check)
@@ -190,14 +190,16 @@ void testing_her2(const Arguments& arg)
             rocblas_her2<T>(handle, uplo, N, &h_alpha, dx, incx, dy, incy, dA_1, lda);
         }
 
-        gpu_time_used = get_time_us(); // in microseconds
+        hipStream_t stream;
+        CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
+        gpu_time_used = get_time_us_sync(stream); // in microseconds
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
             rocblas_her2<T>(handle, uplo, N, &h_alpha, dx, incx, dy, incy, dA_1, lda);
         }
 
-        gpu_time_used     = (get_time_us() - gpu_time_used) / number_hot_calls;
+        gpu_time_used     = (get_time_us_sync(stream) - gpu_time_used) / number_hot_calls;
         rocblas_gflops    = her2_gflop_count<T>(N) / gpu_time_used * 1e6;
         rocblas_bandwidth = her2_gbyte_count<T>(N) / gpu_time_used * 1e6;
 
