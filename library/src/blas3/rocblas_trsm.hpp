@@ -1048,12 +1048,11 @@ rocblas_status special_trsm_template(rocblas_handle    handle,
                                      V                 x_temp,
                                      rocblas_stride    stride_X)
 {
-    bool   parity     = (transA == rocblas_operation_none) ^ (uplo == rocblas_fill_upper);
-    size_t k          = side == rocblas_side_left ? m : n;
-    size_t R          = k / BLOCK;
-    size_t bsize      = side == rocblas_side_left ? n : m;
-    size_t W          = 1 + (bsize - 1) / B_chunk_size;
-    bool   arch_lt906 = handle->device_arch_id() < 906;
+    bool   parity = (transA == rocblas_operation_none) ^ (uplo == rocblas_fill_upper);
+    size_t k      = side == rocblas_side_left ? m : n;
+    size_t R      = k / BLOCK;
+    size_t bsize  = side == rocblas_side_left ? n : m;
+    size_t W      = 1 + (bsize - 1) / B_chunk_size;
 
     for(size_t w = 0; w < W; w++)
     {
@@ -1067,7 +1066,7 @@ rocblas_status special_trsm_template(rocblas_handle    handle,
                 size_t j = parity ? r : q;
 
                 // copy a BLOCK*n piece we are solving at a time
-                if(!r || arch_lt906)
+                if(!r || !tensile_supports_ldc_ne_ldd())
                     copy_block_unit<T>(handle,
                                        BLOCK,
                                        width,
@@ -1092,7 +1091,7 @@ rocblas_status special_trsm_template(rocblas_handle    handle,
                     else
                         offsetA = parity ? r * BLOCK * lda : BLOCK * (q * lda + q + 1);
 
-                    if(arch_lt906)
+                    if(!tensile_supports_ldc_ne_ldd())
                     {
                         rocblas_gemm_template<BATCHED, !BATCHED>(handle,
                                                                  transA,
@@ -1189,7 +1188,7 @@ rocblas_status special_trsm_template(rocblas_handle    handle,
                 size_t j = parity ? q : r;
 
                 // copy a m*BLOCK piece we are solving at a time
-                if(!r || arch_lt906)
+                if(!r || !tensile_supports_ldc_ne_ldd())
                     copy_block_unit<T>(handle,
                                        width,
                                        BLOCK,
@@ -1213,7 +1212,7 @@ rocblas_status special_trsm_template(rocblas_handle    handle,
                     else
                         offsetA = parity ? BLOCK * (q * lda + q + lda) : r * BLOCK;
 
-                    if(arch_lt906)
+                    if(!tensile_supports_ldc_ne_ldd())
                     {
                         rocblas_gemm_template<BATCHED, !BATCHED>(handle,
                                                                  rocblas_operation_none,

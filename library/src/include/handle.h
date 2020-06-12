@@ -61,7 +61,7 @@ public:
         return rocblas_status_success;
     }
 
-    rocblas_int     device;
+    int             device;
     hipDeviceProp_t device_properties;
 
     // rocblas by default take the system default stream 0 users cannot create
@@ -82,12 +82,6 @@ public:
     std::unique_ptr<rocblas_ostream> log_bench_os;
     std::unique_ptr<rocblas_ostream> log_profile_os;
     void                             init_logging();
-
-    static int device_arch_id()
-    {
-        static int id = get_device_arch_id();
-        return id;
-    }
 
     // C interfaces for manipulating device memory
     friend rocblas_status(::rocblas_start_device_memory_size_query)(_rocblas_handle*);
@@ -267,15 +261,6 @@ private:
         _device_malloc& operator=(const _device_malloc&) = default;
         _device_malloc& operator=(_device_malloc&&) = default;
     };
-
-    static int get_device_arch_id()
-    {
-        int deviceId;
-        hipGetDevice(&deviceId);
-        hipDeviceProp_t deviceProperties;
-        hipGetDeviceProperties(&deviceProperties, deviceId);
-        return deviceProperties.gcnArch;
-    }
 
 private:
     // Class for temporarily modifying a state, restoring it on destruction

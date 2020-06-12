@@ -152,8 +152,7 @@ bool match_test_category(const Arguments& arg, const char* category)
         static const std::regex regex{"[:, \\f\\n\\r\\t\\v]+", std::regex_constants::optimize};
 
         // The name of the current GPU platform
-        static const std::string platform
-            = "gfx" + std::to_string(_rocblas_handle::device_arch_id());
+        static const std::string platform = rocblas_get_arch_name();
 
         // Token iterator
         std::cregex_token_iterator iter{arg.known_bug_platforms,
