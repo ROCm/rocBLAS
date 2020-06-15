@@ -424,4 +424,7 @@ catch(...)
     return rocblas_status_internal_error;
 }
 
+extern "C" ROCBLAS_EXPORT const char* rocblas_get_arch_name();
+extern "C" bool                       tensile_supports_ldc_ne_ldd();
+
 #endif

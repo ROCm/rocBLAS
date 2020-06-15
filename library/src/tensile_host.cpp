@@ -314,10 +314,8 @@ namespace
             std::string path;
             path.reserve(PATH_MAX);
 
-            auto pAMDGPU = std::dynamic_pointer_cast<Tensile::AMDGPU>(hardware);
-
             // The name of the current GPU platform
-            std::string processor = "gfx" + std::to_string(_rocblas_handle::device_arch_id());
+            std::string processor = rocblas_get_arch_name();
 
             const char* env = getenv("ROCBLAS_TENSILE_LIBPATH");
             if(env)
