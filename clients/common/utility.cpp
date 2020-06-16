@@ -111,12 +111,14 @@ rocblas_int query_device_property()
                 buf,
                 sizeof(buf),
                 "Device ID %d : %s\n"
-                "with %3.1f GB memory, clock rate %d MHz @ computing capability %d.%d \n"
+                "with %3.1f GB memory, max. SCLK %d MHz, max. MCLK %d MHz, compute capability "
+                "%d.%d\n"
                 "maxGridDimX %d, sharedMemPerBlock %3.1f KB, maxThreadsPerBlock %d, warpSize %d\n",
                 i,
                 props.name,
                 props.totalGlobalMem / 1e9,
                 (int)(props.clockRate / 1000),
+                (int)(props.memoryClockRate / 1000),
                 props.major,
                 props.minor,
                 props.maxGridSize[0],
