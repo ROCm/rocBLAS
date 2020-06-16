@@ -8,6 +8,7 @@ Design Documentation
    :maxdepth: 3
    :caption: Contents:
 
+   disclaimer
    orga
    contributing
    addtest
