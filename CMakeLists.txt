@@ -178,6 +178,8 @@ if( BUILD_WITH_TENSILE )
   set_property( CACHE Tensile_CODE_OBJECT_VERSION PROPERTY STRINGS V2 V3 )
   set_property( CACHE Tensile_COMPILER PROPERTY STRINGS hcc hipcc)
 
+  option( Tensile_YAML "Use YAML backend" ON )
+
   include(virtualenv)
   if (Tensile_TEST_LOCAL_PATH)
     virtualenv_install(${Tensile_TEST_LOCAL_PATH})
