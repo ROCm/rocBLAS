@@ -400,7 +400,7 @@ generate_export_header( rocblas EXPORT_FILE_NAME ${PROJECT_BINARY_DIR}/include/r
 # generate header with prototypes for export reuse
 set( ROCBLAS_PROTO_TEMPLATES "${PROJECT_BINARY_DIR}/include/rocblas-exported-proto.hpp" )
 add_custom_command( TARGET rocblas PRE_BUILD
-  COMMAND python template-proto.py ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/*.hpp ${CMAKE_CURRENT_SOURCE_DIR}/blas3/*.hpp ${CMAKE_CURRENT_SOURCE_DIR}/blas2/*.hpp ${CMAKE_CURRENT_SOURCE_DIR}/blas1/*.hpp > ${ROCBLAS_PROTO_TEMPLATES}
+  COMMAND python3 template-proto.py ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/*.hpp ${CMAKE_CURRENT_SOURCE_DIR}/blas3/*.hpp ${CMAKE_CURRENT_SOURCE_DIR}/blas2/*.hpp ${CMAKE_CURRENT_SOURCE_DIR}/blas1/*.hpp > ${ROCBLAS_PROTO_TEMPLATES}
   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}
   COMMENT "Generating prototypes from ${CMAKE_CURRENT_SOURCE_DIR}."
   WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
