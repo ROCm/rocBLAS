@@ -438,21 +438,12 @@ rocblas_status runContractionProblem(const RocblasContractionProblem<Ti, To, Tc>
         }
         else
         {
-            auto inputs = GetTensileInputs(prob);
-            auto result = solution->solve(tensile_prob, inputs, *host.hardware);
             auto handle = prob.handle;
-
-            hipStream_t stream;
-            rocblas_get_stream(handle, &stream);
-            if(handle->startEvent && handle->stopEvent)
-            {
-                host.adapter.launchKernels(result, stream, handle->startEvent, handle->stopEvent);
-            }
-            else
-            {
-                host.adapter.launchKernels(result, stream, nullptr, nullptr);
-            }
-
+            host.adapter.launchKernels(
+                solution->solve(tensile_prob, GetTensileInputs(prob), *host.hardware),
+                handle->rocblas_stream,
+                handle->startEvent,
+                handle->stopEvent);
             status = rocblas_status_success;
         }
     }
