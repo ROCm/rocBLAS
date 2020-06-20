@@ -158,7 +158,7 @@ install_packages( )
                                       "python34" "PyYAML" "python3*-PyYAML" "python3*-distutils-extra" "python3-virtualenv"
                                       "gcc-c++" "libcxx-devel" "zlib-devel" "wget" "llvm7.0-devel" "llvm7.0-static"
                                       "msgpack-devel" "msgpack" )
-  local library_dependencies_sles=(   "make" "cmake" "python3-PyYAM" "python3-distutils-extra" "python3-virtualenv"
+  local library_dependencies_sles=(   "make" "cmake" "python3-PyYAML" "python3-virtualenv"
                                       "gcc-c++" "libcxxtools9" "rpm-build" "wget" "llvm7-devel"
                                       "msgpack-devel" "libmsgpackc2" )
 
@@ -170,12 +170,11 @@ install_packages( )
 
   if [[ ("${ID}" == "ubuntu") && ("${VERSION_ID}" == "16.04") ]]; then
     # On Ubuntu 16.04, the version of msgpack provided in the repository is outdated, so a newer version
-    # must be manually downloaded and installed
-    dpkg -s "libmsgpackc2" &> /dev/null
-    if [ $? -ne 0 ]; then
-      wget -nv -P ./ "http://ftp.us.debian.org/debian/pool/main/m/msgpack-c/libmsgpack-dev_3.0.1-3_amd64.deb"
+    # must be manually downloaded and installed.  Trying to match or exceed Ubuntu 18 default
+    if ! $(dpkg -s "libmsgpackc2" &> /dev/null) || $(dpkg --compare-versions $(dpkg-query -f='${Version}' --show libmsgpackc2) lt 2.1.5-1); then
       wget -nv -P ./ "http://ftp.us.debian.org/debian/pool/main/m/msgpack-c/libmsgpackc2_3.0.1-3_amd64.deb"
-      elevate_if_not_root dpkg -i ./libmsgpack-dev_3.0.1-3_amd64.deb ./libmsgpackc2_3.0.1-3_amd64.deb
+      wget -nv -P ./ "http://ftp.us.debian.org/debian/pool/main/m/msgpack-c/libmsgpack-dev_3.0.1-3_amd64.deb"
+      elevate_if_not_root dpkg -i ./libmsgpackc2_3.0.1-3_amd64.deb ./libmsgpack-dev_3.0.1-3_amd64.deb
       rm libmsgpack-dev_3.0.1-3_amd64.deb libmsgpackc2_3.0.1-3_amd64.deb
     fi
   fi
@@ -245,7 +244,7 @@ install_packages( )
       ;;
 
     sles|opensuse-leap)
-       install_zypper_packages "${client_dependencies_sles[@]}"
+       install_zypper_packages "${library_dependencies_sles[@]}"
 
         if [[ "${build_clients}" == true ]]; then
             install_zypper_packages "${client_dependencies_sles[@]}"
@@ -590,6 +589,8 @@ pushd .
 
   if [[ "${tensile_msgpack_backend}" == true ]]; then
     tensile_opt="${tensile_opt} -DTensile_YAML=OFF"
+  else
+    tensile_opt="${tensile_opt} -DTensile_YAML=ON"
   fi
 
   cmake_common_options="${cmake_common_options} ${tensile_opt}"
