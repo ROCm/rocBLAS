@@ -58,6 +58,7 @@ if( BUILD_WITH_TENSILE )
       ${Tensile_COMPILER}
       ${Tensile_CODE_OBJECT_VERSION}
       ${Tensile_ARCHITECTURE}
+      ${Tensile_LIBRARY_FORMAT}
       ${Tensile_MERGE_FILES}
       ${Tensile_SHORT_FILENAMES}
       ${Tensile_PRINT_DEBUG}
