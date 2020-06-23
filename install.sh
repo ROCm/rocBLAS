@@ -588,9 +588,9 @@ pushd .
   fi
 
   if [[ "${tensile_msgpack_backend}" == true ]]; then
-    tensile_opt="${tensile_opt} -DTensile_YAML=OFF"
+    tensile_opt="${tensile_opt} -DTensile_LIBRARY_FORMAT=msgpack"
   else
-    tensile_opt="${tensile_opt} -DTensile_YAML=ON"
+    tensile_opt="${tensile_opt} -DTensile_LIBRARY_FORMAT=yaml"
   fi
 
   cmake_common_options="${cmake_common_options} ${tensile_opt}"
