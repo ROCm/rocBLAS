@@ -156,20 +156,21 @@ void testing_rotm(const Arguments& arg)
     {
         int number_cold_calls = arg.cold_iters;
         int number_hot_calls  = arg.iters;
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T) * size_x, hipMemcpyHostToDevice));
         CHECK_HIP_ERROR(hipMemcpy(dy, hy, sizeof(T) * size_y, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(hipMemcpy(dparam, hparam, sizeof(T) * 5, hipMemcpyHostToDevice));
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            rocblas_rotm_fn(handle, N, dx, incx, dy, incy, hparam);
+            rocblas_rotm_fn(handle, N, dx, incx, dy, incy, dparam);
         }
         hipStream_t stream;
         CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
         gpu_time_used = get_time_us_sync(stream); // in microseconds
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            rocblas_rotm_fn(handle, N, dx, incx, dy, incy, hparam);
+            rocblas_rotm_fn(handle, N, dx, incx, dy, incy, dparam);
         }
         gpu_time_used = (get_time_us_sync(stream) - gpu_time_used) / number_hot_calls;
 
