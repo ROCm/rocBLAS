@@ -11,7 +11,7 @@ User Guide
    disclaimer
    intro
    install
-   api     
+   api
    logging
    streams
    device_memory
