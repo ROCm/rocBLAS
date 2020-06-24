@@ -862,7 +862,7 @@ inline rocblas_status validateArgs(rocblas_handle    handle,
        || ld_b < (trans_b == rocblas_operation_none ? k : n))
         return rocblas_status_invalid_size;
 
-    // quick return 0 is valid in BLAS
+    // quick return
     // Note: k==0 is not a quick return, because C must still be multiplied by beta
     if(!m || !n || !batch_count)
         return rocblas_status_success;
