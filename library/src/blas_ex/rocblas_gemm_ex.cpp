@@ -234,11 +234,11 @@ rocblas_status rocblas_gemm_ex_impl(rocblas_handle    handle,
     if(validArgs != rocblas_status_continue)
         return validArgs;
 
-    auto stride_a    = rocblas_stride(lda) * (trans_a == rocblas_operation_none ? k : m);
-    auto stride_b    = rocblas_stride(ldb) * (trans_b == rocblas_operation_none ? n : k);
-    auto stride_c    = rocblas_stride(ldc) * n;
-    auto stride_d    = rocblas_stride(ldd) * n;
-    auto batch_count = 1;
+    rocblas_stride stride_a    = 0;
+    rocblas_stride stride_b    = 0;
+    rocblas_stride stride_c    = 0;
+    rocblas_stride stride_d    = 0;
+    rocblas_int    batch_count = 1;
 
     return rocblas_gemm_ex_template<false>(handle,
                                            trans_a,
