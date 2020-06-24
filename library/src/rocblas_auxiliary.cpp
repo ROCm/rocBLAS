@@ -120,7 +120,8 @@ try
         return rocblas_status_invalid_handle;
     if(handle->layer_mode & rocblas_layer_mode_log_trace)
         log_trace(handle, "rocblas_set_stream", stream_id);
-    return handle->set_stream(stream_id);
+    handle->rocblas_stream = stream_id;
+    return rocblas_status_success;
 }
 catch(...)
 {
@@ -137,9 +138,12 @@ try
     // if handle not valid
     if(!handle)
         return rocblas_status_invalid_handle;
+    if(!stream_id)
+        return rocblas_status_invalid_pointer;
     if(handle->layer_mode & rocblas_layer_mode_log_trace)
         log_trace(handle, "rocblas_get_stream", *stream_id);
-    return handle->get_stream(stream_id);
+    *stream_id = handle->rocblas_stream;
+    return rocblas_status_success;
 }
 catch(...)
 {
