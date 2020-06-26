@@ -40,27 +40,6 @@ public:
     _rocblas_handle();
     ~_rocblas_handle();
 
-    /*******************************************************************************
-     * set stream:
-        This API assumes user has already created a valid stream
-        Associate the following rocblas API call with this user provided stream
-     ******************************************************************************/
-    rocblas_status set_stream(hipStream_t user_stream)
-    {
-        // TODO: check the user_stream valid or not
-        rocblas_stream = user_stream;
-        return rocblas_status_success;
-    }
-
-    /*******************************************************************************
-     * get stream
-     ******************************************************************************/
-    rocblas_status get_stream(hipStream_t* stream) const
-    {
-        *stream = rocblas_stream;
-        return rocblas_status_success;
-    }
-
     int             device;
     hipDeviceProp_t device_properties;
 
