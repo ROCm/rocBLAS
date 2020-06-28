@@ -553,6 +553,8 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_gemm_template(rocblas_handle    h
         return rocblas_status_success;
 
     rocblas_status status = rocblas_status_success;
+
+    // TODO: Use C++17 constexpr if
     if(BATCHED)
     {
         // We cannot do this with a device array, so array of pointers must be on host for now
@@ -595,14 +597,9 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_gemm_template(rocblas_handle    h
     }
     else
     {
-        // If STRIDED == false, compute the strides from the sizes of the arrays
-        // so that they are interpreted as consecutive matrices in memory
-        if(!STRIDED)
-        {
-            stride_a = ld_a * (trans_a == rocblas_operation_none ? k : m);
-            stride_b = ld_b * (trans_b == rocblas_operation_none ? n : k);
-            stride_c = ld_c * n;
-        }
+        // TODO: Remove as unnecessary once Tensile is fixed to ignore strides when batch_count == 1
+        if(batch_count == 1)
+            stride_a = stride_b = stride_c = 1;
 
         // The (T*) casts are to prevent template deduction errors when BATCHED==true and the A, B, C
         // pointers are pointers to arrays of pointers. constexpr if(BATCHED) above could avoid this.
