@@ -234,10 +234,8 @@ rocblas_status rocblas_gemm_ex_impl(rocblas_handle    handle,
     if(validArgs != rocblas_status_continue)
         return validArgs;
 
-    rocblas_stride stride_a    = 0;
-    rocblas_stride stride_b    = 0;
-    rocblas_stride stride_c    = 0;
-    rocblas_stride stride_d    = 0;
+    // TODO: Replace strides with 0 when Tensile is fixed to ignore strides when batch_count == 1
+    rocblas_stride stride_a = 1, stride_b = 1, stride_c = 1, stride_d = 1;
     rocblas_int    batch_count = 1;
 
     return rocblas_gemm_ex_template<false>(handle,
