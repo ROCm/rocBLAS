@@ -7,7 +7,7 @@
 // This functionality is only availble when using the new Tensile client
 #ifdef USE_TENSILE_HOST
 
-#include "gemm.hpp"
+#include "rocblas_gemm_ex.hpp"
 #include "handle.h"
 #include "logging.h"
 #include "rocblas.h"
@@ -104,17 +104,7 @@ rocblas_status gemm_ext2_typecasting(rocblas_handle handle,
                                      rocblas_int    batch_count)
 {
     Tc alpha_h, beta_h;
-
-    // Right now Tensile requires alpha and beta to be passed by value on host.
-    // If in device pointer mode, copy alpha and beta to host.
-    // TODO: Make this asynchronous, putting synchronization in closer to Tensile call.
-    if(handle->pointer_mode == rocblas_pointer_mode_device)
-    {
-        RETURN_IF_HIP_ERROR(hipMemcpy(&alpha_h, alpha, sizeof(Tc), hipMemcpyDeviceToHost));
-        RETURN_IF_HIP_ERROR(hipMemcpy(&beta_h, beta, sizeof(Tc), hipMemcpyDeviceToHost));
-        alpha = &alpha_h;
-        beta  = &beta_h;
-    }
+    RETURN_IF_ROCBLAS_ERROR(copy_alpha_beta_to_host_if_device(handle, alpha, beta, alpha_h, beta_h, k));
 
     // check alignment of pointers before casting
     if(!isAligned(a, sizeof(Ti)) || !isAligned(b, sizeof(Ti)) || !isAligned(c, sizeof(To))

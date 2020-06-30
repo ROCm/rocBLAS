@@ -43,6 +43,13 @@ rocblas_status rocblas_gemm_ext2_impl(rocblas_handle    handle,
 
     RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
+    // Copy alpha and beta to host if on device
+    rocblas_union_t alpha_h, beta_h;
+    RETURN_IF_ROCBLAS_ERROR(
+        copy_alpha_beta_to_host_if_device(handle, alpha, beta, alpha_h, beta_h, k, compute_type));
+    auto saved_pointer_mode = handle->push_pointer_mode(rocblas_pointer_mode_host);
+
+    // Perform logging
     auto layer_mode = handle->layer_mode;
     if(layer_mode
        & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
@@ -54,127 +61,90 @@ rocblas_status rocblas_gemm_ext2_impl(rocblas_handle    handle,
         auto d_type_string       = rocblas_datatype_string(d_type);
         auto compute_type_string = rocblas_datatype_string(compute_type);
 
-        if(layer_mode & (rocblas_layer_mode_log_bench | rocblas_layer_mode_log_trace))
+        if(layer_mode & rocblas_layer_mode_log_trace)
         {
-            if(handle->pointer_mode == rocblas_pointer_mode_host)
+            rocblas_ostream alphass, betass;
+            if(log_trace_alpha_beta_ex(compute_type, alpha, beta, alphass, betass)
+               == rocblas_status_success)
             {
-                if(layer_mode & rocblas_layer_mode_log_trace)
-                {
-                    rocblas_ostream alphass, betass;
-                    if(log_trace_alpha_beta_ex(compute_type, alpha, beta, alphass, betass)
-                       == rocblas_status_success)
-                    {
-                        log_trace(handle,
-                                  "rocblas_gemm_ext2",
-                                  m,
-                                  n,
-                                  k,
-                                  alphass.str(),
-                                  a,
-                                  a_type_string,
-                                  row_stride_a,
-                                  col_stride_a,
-                                  b,
-                                  b_type_string,
-                                  row_stride_b,
-                                  col_stride_b,
-                                  betass.str(),
-                                  c,
-                                  c_type_string,
-                                  row_stride_c,
-                                  col_stride_c,
-                                  d,
-                                  d_type_string,
-                                  row_stride_d,
-                                  col_stride_d,
-                                  compute_type_string,
-                                  algo,
-                                  solution_index,
-                                  flags);
-                    }
-                }
-
-                if(layer_mode & rocblas_layer_mode_log_bench)
-                {
-                    std::string alphas, betas;
-                    if(log_bench_alpha_beta_ex(compute_type, alpha, beta, alphas, betas)
-                       == rocblas_status_success)
-                    {
-                        log_bench(handle,
-                                  "./rocblas-bench -f gemm_ex",
-                                  "-m",
-                                  m,
-                                  "-n",
-                                  n,
-                                  "-k",
-                                  k,
-                                  alphas,
-                                  "--a_type",
-                                  a_type_string,
-                                  "--row_stride_a",
-                                  row_stride_a,
-                                  "--col_stride_a",
-                                  col_stride_a,
-                                  "--b_type",
-                                  b_type_string,
-                                  "--row_stride_b",
-                                  row_stride_b,
-                                  "--col_stride_b",
-                                  col_stride_b,
-                                  betas,
-                                  "--c_type",
-                                  c_type_string,
-                                  "--row_stride_c",
-                                  row_stride_c,
-                                  "--col_stride_c",
-                                  col_stride_c,
-                                  "--d_type",
-                                  d_type_string,
-                                  "--row_stride_d",
-                                  row_stride_d,
-                                  "--col_stride_d",
-                                  col_stride_d,
-                                  "--compute_type",
-                                  compute_type_string,
-                                  "--algo",
-                                  algo,
-                                  "--solution_index",
-                                  solution_index,
-                                  "--flags",
-                                  flags);
-                    }
-                }
+                log_trace(handle,
+                          "rocblas_gemm_ext2",
+                          m,
+                          n,
+                          k,
+                          alphass.str(),
+                          a,
+                          a_type_string,
+                          row_stride_a,
+                          col_stride_a,
+                          b,
+                          b_type_string,
+                          row_stride_b,
+                          col_stride_b,
+                          betass.str(),
+                          c,
+                          c_type_string,
+                          row_stride_c,
+                          col_stride_c,
+                          d,
+                          d_type_string,
+                          row_stride_d,
+                          col_stride_d,
+                          compute_type_string,
+                          algo,
+                          solution_index,
+                          flags);
             }
-            else
+        }
+
+        if(layer_mode & rocblas_layer_mode_log_bench)
+        {
+            std::string alphas, betas;
+            if(log_bench_alpha_beta_ex(compute_type, alpha, beta, alphas, betas)
+               == rocblas_status_success)
             {
-                if(layer_mode & rocblas_layer_mode_log_trace)
-                    log_trace(handle,
-                              "rocblas_gemm_ex",
-                              m,
-                              n,
-                              k,
-                              alpha,
-                              a,
-                              a_type_string,
-                              row_stride_a,
-                              col_stride_a,
-                              b,
-                              b_type_string,
-                              row_stride_b,
-                              col_stride_b,
-                              beta,
-                              c,
-                              c_type_string,
-                              row_stride_c,
-                              col_stride_c,
-                              d,
-                              d_type_string,
-                              row_stride_d,
-                              col_stride_d,
-                              compute_type_string,
-                              algo,
-                              solution_index,
-                              flags);
+                log_bench(handle,
+                          "./rocblas-bench -f gemm_ex",
+                          "-m",
+                          m,
+                          "-n",
+                          n,
+                          "-k",
+                          k,
+                          alphas,
+                          "--a_type",
+                          a_type_string,
+                          "--row_stride_a",
+                          row_stride_a,
+                          "--col_stride_a",
+                          col_stride_a,
+                          "--b_type",
+                          b_type_string,
+                          "--row_stride_b",
+                          row_stride_b,
+                          "--col_stride_b",
+                          col_stride_b,
+                          betas,
+                          "--c_type",
+                          c_type_string,
+                          "--row_stride_c",
+                          row_stride_c,
+                          "--col_stride_c",
+                          col_stride_c,
+                          "--d_type",
+                          d_type_string,
+                          "--row_stride_d",
+                          row_stride_d,
+                          "--col_stride_d",
+                          col_stride_d,
+                          "--compute_type",
+                          compute_type_string,
+                          "--algo",
+                          algo,
+                          "--solution_index",
+                          solution_index,
+                          "--flags",
+                          flags);
             }
         }
 
@@ -198,6 +168,8 @@ rocblas_status rocblas_gemm_ext2_impl(rocblas_handle    handle,
                         n,
                         "K",
                         k,
+                        "alpha",
+                        alpha_beta_value_category(alpha, compute_type),
                         "row_stride_a",
                         row_stride_a,
                         "col_stride_a",
@@ -206,6 +178,8 @@ rocblas_status rocblas_gemm_ext2_impl(rocblas_handle    handle,
                         row_stride_b,
                         "col_stride_b",
                         col_stride_b,
+                        "beta",
+                        alpha_beta_value_category(beta, compute_type),
                         "row_stride_c",
                         row_stride_c,
                         "col_stride_c",
