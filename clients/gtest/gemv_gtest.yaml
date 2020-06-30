@@ -7,6 +7,12 @@ Definitions:
     - { M:    10, N:    10, lda:    2, stride_a:        1 }
     - { M:   100, N:   200, lda:  200, stride_a:    40000 }
 
+  - &qmcpack_matrix_size_range
+    - { M:    2 , N:    32, lda:    2, stride_a:       64 }
+    - { M:    32, N:    32, lda:   32, stride_a:     1024 }
+    - { M:    15, N:    33, lda:   16, stride_a:     1024 }
+    - { M:    32, N:  1536, lda:   32, stride_a:    49152 }
+
   - &special_case_range
     # Quick return
     - { M:    0, N:    1, lda:    1, incx: 1, incy: 1, batch_count: 1 }
@@ -158,6 +164,17 @@ Tests:
   alpha_beta: *alpha_beta_range
   batch_count: [ -1, 0, 1, 3 ]
 
+- name: gemv_batched_qmcpack
+  category: quick
+  function: gemv_batched
+  precision: *single_double_precisions_complex_real
+  transA: [ T, C ]
+  matrix_size: *qmcpack_matrix_size_range
+  incx: [ 2 ]
+  incy: [ 2 ]
+  alpha_beta: *alpha_beta_range
+  batch_count: [ 100, 1000 ]
+
 - name: gemv_batched_medium
   category: pre_checkin
   function: gemv_batched
@@ -222,6 +239,18 @@ Tests:
   incx_incy: *incx_incy_range
   alpha_beta: *alpha_beta_range
   batch_count: [ -1, 0, 1, 3 ]
+
+- name: gemv_strided_batched_qmcpack
+  category: quick
+  function: gemv_strided_batched
+  precision: *single_double_precisions_complex_real
+  transA: [ T, C ]
+  matrix_size: *qmcpack_matrix_size_range
+  incx: [ 2 ]
+  incy: [ 2 ]
+  stride_scale: 1
+  alpha_beta: *alpha_beta_range
+  batch_count: [ 64, 512 ]
 
 - name: gemv_strided_batched_medium
   category: pre_checkin

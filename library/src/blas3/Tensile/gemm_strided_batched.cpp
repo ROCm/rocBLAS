@@ -55,6 +55,12 @@ namespace
             return rocblas_status_invalid_handle;
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
+        // Copy alpha and beta to host if on device
+        T alpha_h, beta_h;
+        RETURN_IF_ROCBLAS_ERROR(
+            copy_alpha_beta_to_host_if_device(handle, alpha, beta, alpha_h, beta_h, k));
+        auto saved_pointer_mode = handle->push_pointer_mode(rocblas_pointer_mode_host);
+
         auto layer_mode = handle->layer_mode;
 
         if(layer_mode
@@ -64,86 +70,58 @@ namespace
             auto trans_a_letter = rocblas_transpose_letter(trans_a);
             auto trans_b_letter = rocblas_transpose_letter(trans_b);
 
-            if(handle->pointer_mode == rocblas_pointer_mode_host)
-            {
-                if(layer_mode & rocblas_layer_mode_log_trace)
-                    log_trace(handle,
-                              rocblas_gemm_strided_batched_name<T>,
-                              trans_a,
-                              trans_b,
-                              m,
-                              n,
-                              k,
-                              log_trace_scalar_value(alpha),
-                              A,
-                              ld_a,
-                              stride_a,
-                              B,
-                              ld_b,
-                              stride_b,
-                              log_trace_scalar_value(beta),
-                              C,
-                              ld_c,
-                              stride_c,
-                              batch_count);
+            if(layer_mode & rocblas_layer_mode_log_trace)
+                log_trace(handle,
+                          rocblas_gemm_strided_batched_name<T>,
+                          trans_a,
+                          trans_b,
+                          m,
+                          n,
+                          k,
+                          log_trace_scalar_value(alpha),
+                          A,
+                          ld_a,
+                          stride_a,
+                          B,
+                          ld_b,
+                          stride_b,
+                          log_trace_scalar_value(beta),
+                          C,
+                          ld_c,
+                          stride_c,
+                          batch_count);
 
-                if(layer_mode & rocblas_layer_mode_log_bench)
-                {
-                    log_bench(handle,
-                              "./rocblas-bench -f gemm_strided_batched -r",
-                              rocblas_precision_string<T>,
-                              "--transposeA",
-                              trans_a_letter,
-                              "--transposeB",
-                              trans_b_letter,
-                              "-m",
-                              m,
-                              "-n",
-                              n,
-                              "-k",
-                              k,
-                              LOG_BENCH_SCALAR_VALUE(alpha),
-                              "--lda",
-                              ld_a,
-                              "--stride_a",
-                              stride_a,
-                              "--ldb",
-                              ld_b,
-                              "--stride_b",
-                              stride_b,
-                              LOG_BENCH_SCALAR_VALUE(beta),
-                              "--ldc",
-                              ld_c,
-                              "--stride_c",
-                              stride_c,
-                              "--batch_count",
-                              batch_count);
-                }
-            }
-            else
+            if(layer_mode & rocblas_layer_mode_log_bench)
             {
-                if(layer_mode & rocblas_layer_mode_log_trace)
-                {
-                    log_trace(handle,
-                              rocblas_gemm_strided_batched_name<T>,
-                              trans_a,
-                              trans_b,
-                              m,
-                              n,
-                              k,
-                              alpha,
-                              A,
-                              ld_a,
-                              stride_a,
-                              B,
-                              ld_b,
-                              stride_b,
-                              beta,
-                              C,
-                              ld_c,
-                              stride_c,
-                              batch_count);
-                }
+                log_bench(handle,
+                          "./rocblas-bench -f gemm_strided_batched -r",
+                          rocblas_precision_string<T>,
+                          "--transposeA",
+                          trans_a_letter,
+                          "--transposeB",
+                          trans_b_letter,
+                          "-m",
+                          m,
+                          "-n",
+                          n,
+                          "-k",
+                          k,
+                          LOG_BENCH_SCALAR_VALUE(alpha),
+                          "--lda",
+                          ld_a,
+                          "--stride_a",
+                          stride_a,
+                          "--ldb",
+                          ld_b,
+                          "--stride_b",
+                          stride_b,
+                          LOG_BENCH_SCALAR_VALUE(beta),
+                          "--ldc",
+                          ld_c,
+                          "--stride_c",
+                          stride_c,
+                          "--batch_count",
+                          batch_count);
             }
 
             if(layer_mode & rocblas_layer_mode_log_profile)
@@ -160,6 +138,8 @@ namespace
                             n,
                             "K",
                             k,
+                            "alpha",
+                            value_category(*alpha),
                             "lda",
                             ld_a,
                             "stride_a",
@@ -168,6 +148,8 @@ namespace
                             ld_b,
                             "stride_b",
                             stride_b,
+                            "beta",
+                            value_category(*beta),
                             "ldc",
                             ld_c,
                             "stride_c",
