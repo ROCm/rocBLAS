@@ -45,8 +45,8 @@ try
 
     // Copy alpha and beta to host if on device
     rocblas_union_t alpha_h, beta_h;
-    RETURN_IF_ROCBLAS_ERROR(
-        copy_alpha_beta_to_host_if_device(handle, alpha, beta, alpha_h, beta_h, k, compute_type));
+    RETURN_IF_ROCBLAS_ERROR(copy_alpha_beta_to_host_if_on_device(
+        handle, alpha, beta, alpha_h, beta_h, k, compute_type));
     auto saved_pointer_mode = handle->push_pointer_mode(rocblas_pointer_mode_host);
 
     // Perform logging
@@ -189,7 +189,7 @@ try
                         "K",
                         k,
                         "alpha",
-                        alpha_beta_value_category(alpha, compute_type),
+                        value_category(alpha, compute_type),
                         "lda",
                         lda,
                         "stride_a",
@@ -199,7 +199,7 @@ try
                         "stride_b",
                         stride_b,
                         "beta",
-                        alpha_beta_value_category(beta, compute_type),
+                        value_category(beta, compute_type),
                         "ldc",
                         ldc,
                         "stride_c",

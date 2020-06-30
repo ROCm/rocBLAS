@@ -303,22 +303,22 @@ inline rocblas_status log_bench_alpha_beta_ex(rocblas_datatype compute_type,
 }
 
 template <typename T>
-auto alpha_beta_value_category(const T* alpha_beta, rocblas_datatype compute_type)
+auto value_category(const T* beta, rocblas_datatype compute_type)
 {
     switch(compute_type)
     {
     case rocblas_datatype_f16_r:
-        return value_category(*reinterpret_cast<const rocblas_half*>(alpha_beta));
+        return value_category(*reinterpret_cast<const rocblas_half*>(beta));
     case rocblas_datatype_f32_r:
-        return value_category(*reinterpret_cast<const float*>(alpha_beta));
+        return value_category(*reinterpret_cast<const float*>(beta));
     case rocblas_datatype_f64_r:
-        return value_category(*reinterpret_cast<const double*>(alpha_beta));
+        return value_category(*reinterpret_cast<const double*>(beta));
     case rocblas_datatype_i32_r:
-        return value_category(*reinterpret_cast<const int32_t*>(alpha_beta));
+        return value_category(*reinterpret_cast<const int32_t*>(beta));
     case rocblas_datatype_f32_c:
-        return value_category(*reinterpret_cast<const rocblas_float_complex*>(alpha_beta));
+        return value_category(*reinterpret_cast<const rocblas_float_complex*>(beta));
     case rocblas_datatype_f64_c:
-        return value_category(*reinterpret_cast<const rocblas_double_complex*>(alpha_beta));
+        return value_category(*reinterpret_cast<const rocblas_double_complex*>(beta));
     default:
         throw rocblas_status_internal_error;
     }
