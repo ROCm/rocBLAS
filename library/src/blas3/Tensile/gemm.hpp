@@ -364,6 +364,29 @@ inline rocblas_status tensile_helper(const rocblas_double_complex& alpha_h,
 
 #endif // USE_TENSILE_HOST
 
+/*********************************************************************************
+ * Right now Tensile requires alpha and beta to be passed by value on host.      *
+ * If in device pointer mode, copy alpha and beta to host.                       *
+ * If k == 0, we set alpha = 0 instead of copying from device.                   *
+ * TODO: Make this asynchronous, putting synchronization closer to Tensile call. *
+ *********************************************************************************/
+template <typename T, typename Tc>
+rocblas_status copy_alpha_beta_to_host_if_device(
+    rocblas_handle handle, const T*& alpha, const T*& beta, Tc& alpha_h, Tc& beta_h, rocblas_int k)
+{
+    if(handle->pointer_mode == rocblas_pointer_mode_device)
+    {
+        if(k == 0)
+            alpha_h = 0;
+        else
+            RETURN_IF_HIP_ERROR(hipMemcpy(&alpha_h, alpha, sizeof(Tc), hipMemcpyDeviceToHost));
+        RETURN_IF_HIP_ERROR(hipMemcpy(&beta_h, beta, sizeof(Tc), hipMemcpyDeviceToHost));
+        alpha = &alpha_h;
+        beta  = &beta_h;
+    }
+    return rocblas_status_success;
+}
+
 /*******************************************************************************
  * Tensile Function call
  ******************************************************************************/
@@ -533,20 +556,8 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_gemm_template(rocblas_handle    h
         return rocblas_status_success;
 
     T alpha_h, beta_h;
-
-    // Right now Tensile requires alpha and beta to be passed by value on host.
-    // If in device pointer mode, copy alpha and beta to host.
-    // TODO: Make this asynchronous, putting synchronization in closer to Tensile call.
-    if(handle->pointer_mode == rocblas_pointer_mode_device)
-    {
-        if(k)
-            RETURN_IF_HIP_ERROR(hipMemcpy(&alpha_h, alpha, sizeof(T), hipMemcpyDeviceToHost));
-        else
-            alpha_h = 0;
-        alpha = &alpha_h;
-        RETURN_IF_HIP_ERROR(hipMemcpy(&beta_h, beta, sizeof(T), hipMemcpyDeviceToHost));
-        beta = &beta_h;
-    }
+    RETURN_IF_ROCBLAS_ERROR(
+        copy_alpha_beta_to_host_if_device(handle, alpha, beta, alpha_h, beta_h, k));
 
     // When beta == 1 and either k == 0 or alpha == 0, the operation is a no-op
     if(*beta == 1 && (k == 0 || *alpha == 0))
