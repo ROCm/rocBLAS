@@ -748,7 +748,7 @@ rocblas_status gemm_ex_typecasting(rocblas_handle    handle,
 {
     Tc alpha_h, beta_h;
     RETURN_IF_ROCBLAS_ERROR(
-        copy_alpha_beta_to_host_if_device(handle, alpha, beta, alpha_h, beta_h, k));
+        copy_alpha_beta_to_host_if_on_device(handle, alpha, beta, alpha_h, beta_h, k));
 
     // check alignment of pointers before casting
     if(BATCHED)
@@ -1031,28 +1031,28 @@ typedef union rocblas_union_u
 
 // Copy alpha and beta to host if on device
 template <typename T>
-rocblas_status copy_alpha_beta_to_host_if_device(rocblas_handle   handle,
-                                                 const T*&        alpha,
-                                                 const T*&        beta,
-                                                 rocblas_union_t& alpha_h,
-                                                 rocblas_union_t& beta_h,
-                                                 rocblas_int      k,
-                                                 rocblas_datatype compute_type)
+rocblas_status copy_alpha_beta_to_host_if_on_device(rocblas_handle   handle,
+                                                    const T*&        alpha,
+                                                    const T*&        beta,
+                                                    rocblas_union_t& alpha_h,
+                                                    rocblas_union_t& beta_h,
+                                                    rocblas_int      k,
+                                                    rocblas_datatype compute_type)
 {
     switch(compute_type)
     {
     case rocblas_datatype_f16_r:
-        return copy_alpha_beta_to_host_if_device(handle, alpha, beta, alpha_h.h, beta_h.h, k);
+        return copy_alpha_beta_to_host_if_on_device(handle, alpha, beta, alpha_h.h, beta_h.h, k);
     case rocblas_datatype_f32_r:
-        return copy_alpha_beta_to_host_if_device(handle, alpha, beta, alpha_h.s, beta_h.s, k);
+        return copy_alpha_beta_to_host_if_on_device(handle, alpha, beta, alpha_h.s, beta_h.s, k);
     case rocblas_datatype_f64_r:
-        return copy_alpha_beta_to_host_if_device(handle, alpha, beta, alpha_h.d, beta_h.d, k);
+        return copy_alpha_beta_to_host_if_on_device(handle, alpha, beta, alpha_h.d, beta_h.d, k);
     case rocblas_datatype_i32_r:
-        return copy_alpha_beta_to_host_if_device(handle, alpha, beta, alpha_h.i, beta_h.i, k);
+        return copy_alpha_beta_to_host_if_on_device(handle, alpha, beta, alpha_h.i, beta_h.i, k);
     case rocblas_datatype_f32_c:
-        return copy_alpha_beta_to_host_if_device(handle, alpha, beta, alpha_h.c, beta_h.c, k);
+        return copy_alpha_beta_to_host_if_on_device(handle, alpha, beta, alpha_h.c, beta_h.c, k);
     case rocblas_datatype_f64_c:
-        return copy_alpha_beta_to_host_if_device(handle, alpha, beta, alpha_h.z, beta_h.z, k);
+        return copy_alpha_beta_to_host_if_on_device(handle, alpha, beta, alpha_h.z, beta_h.z, k);
     default:
         return rocblas_status_not_implemented;
     }

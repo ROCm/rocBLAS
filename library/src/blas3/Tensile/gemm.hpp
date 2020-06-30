@@ -371,7 +371,7 @@ inline rocblas_status tensile_helper(const rocblas_double_complex& alpha_h,
  * TODO: Make this asynchronous, putting synchronization closer to Tensile call. *
  *********************************************************************************/
 template <typename T, typename Tc>
-rocblas_status copy_alpha_beta_to_host_if_device(
+rocblas_status copy_alpha_beta_to_host_if_on_device(
     rocblas_handle handle, const T*& alpha, const T*& beta, Tc& alpha_h, Tc& beta_h, rocblas_int k)
 {
     if(handle->pointer_mode == rocblas_pointer_mode_device)
@@ -557,7 +557,7 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_gemm_template(rocblas_handle    h
 
     T alpha_h, beta_h;
     RETURN_IF_ROCBLAS_ERROR(
-        copy_alpha_beta_to_host_if_device(handle, alpha, beta, alpha_h, beta_h, k));
+        copy_alpha_beta_to_host_if_on_device(handle, alpha, beta, alpha_h, beta_h, k));
 
     // When beta == 1 and either k == 0 or alpha == 0, the operation is a no-op
     if(*beta == 1 && (k == 0 || *alpha == 0))

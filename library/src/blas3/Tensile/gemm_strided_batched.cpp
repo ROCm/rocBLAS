@@ -58,7 +58,7 @@ namespace
         // Copy alpha and beta to host if on device
         T alpha_h, beta_h;
         RETURN_IF_ROCBLAS_ERROR(
-            copy_alpha_beta_to_host_if_device(handle, alpha, beta, alpha_h, beta_h, k));
+            copy_alpha_beta_to_host_if_on_device(handle, alpha, beta, alpha_h, beta_h, k));
         auto saved_pointer_mode = handle->push_pointer_mode(rocblas_pointer_mode_host);
 
         auto layer_mode = handle->layer_mode;
