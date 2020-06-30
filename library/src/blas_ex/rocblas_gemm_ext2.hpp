@@ -7,10 +7,10 @@
 // This functionality is only availble when using the new Tensile client
 #ifdef USE_TENSILE_HOST
 
-#include "rocblas_gemm_ex.hpp"
 #include "handle.h"
 #include "logging.h"
 #include "rocblas.h"
+#include "rocblas_gemm_ex.hpp"
 #include "utility.h"
 
 template <typename Ti, typename To, typename Tc>
@@ -104,7 +104,8 @@ rocblas_status gemm_ext2_typecasting(rocblas_handle handle,
                                      rocblas_int    batch_count)
 {
     Tc alpha_h, beta_h;
-    RETURN_IF_ROCBLAS_ERROR(copy_alpha_beta_to_host_if_device(handle, alpha, beta, alpha_h, beta_h, k));
+    RETURN_IF_ROCBLAS_ERROR(
+        copy_alpha_beta_to_host_if_on_device(handle, alpha, beta, alpha_h, beta_h, k));
 
     // check alignment of pointers before casting
     if(!isAligned(a, sizeof(Ti)) || !isAligned(b, sizeof(Ti)) || !isAligned(c, sizeof(To))
