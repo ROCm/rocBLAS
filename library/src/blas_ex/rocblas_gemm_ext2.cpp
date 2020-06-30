@@ -46,7 +46,7 @@ rocblas_status rocblas_gemm_ext2_impl(rocblas_handle    handle,
     // Copy alpha and beta to host if on device
     rocblas_union_t alpha_h, beta_h;
     RETURN_IF_ROCBLAS_ERROR(
-        copy_alpha_beta_to_host_if_device(handle, alpha, beta, alpha_h, beta_h, k, compute_type));
+        copy_alpha_beta_to_host_if_on_device(handle, alpha, beta, alpha_h, beta_h, k, compute_type));
     auto saved_pointer_mode = handle->push_pointer_mode(rocblas_pointer_mode_host);
 
     // Perform logging
@@ -169,7 +169,7 @@ rocblas_status rocblas_gemm_ext2_impl(rocblas_handle    handle,
                         "K",
                         k,
                         "alpha",
-                        alpha_beta_value_category(alpha, compute_type),
+                        value_category(alpha, compute_type),
                         "row_stride_a",
                         row_stride_a,
                         "col_stride_a",
@@ -179,7 +179,7 @@ rocblas_status rocblas_gemm_ext2_impl(rocblas_handle    handle,
                         "col_stride_b",
                         col_stride_b,
                         "beta",
-                        alpha_beta_value_category(beta, compute_type),
+                        value_category(beta, compute_type),
                         "row_stride_c",
                         row_stride_c,
                         "col_stride_c",
