@@ -505,7 +505,7 @@ inline rocblas_status validateArgs(rocblas_handle    handle,
  * ===========================================================================
  */
 
-template <bool BATCHED, bool STRIDED, typename T, typename U, typename V>
+template <bool BATCHED, typename T, typename U, typename V>
 ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_gemm_template(rocblas_handle    handle,
                                                              rocblas_operation trans_a,
                                                              rocblas_operation trans_b,
@@ -597,10 +597,6 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_gemm_template(rocblas_handle    h
     }
     else
     {
-        // TODO: Remove as unnecessary once Tensile is fixed to ignore strides when batch_count == 1
-        if(batch_count == 1)
-            stride_a = stride_b = stride_c = 1;
-
         // The (T*) casts are to prevent template deduction errors when BATCHED==true and the A, B, C
         // pointers are pointers to arrays of pointers. constexpr if(BATCHED) above could avoid this.
         status = call_tensile(handle,

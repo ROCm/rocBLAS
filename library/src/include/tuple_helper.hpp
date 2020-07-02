@@ -38,7 +38,7 @@ public:
         static_assert(std::tuple_size<TUP>{} % 2 == 0, "Tuple size must be even");
         apply_pairs_impl(std::forward<FUNC>(func),
                          tuple,
-                         std::make_index_sequence<std::tuple_size<TUP>{} / 2>{});
+                         std::make_index_sequence<std::tuple_size<TUP>::value / 2>{});
     }
 
     // Print a tuple which is expected to be (name1, value1, name2, value2, ...)

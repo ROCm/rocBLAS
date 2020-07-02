@@ -8,14 +8,14 @@
 #include "rocblas.h"
 #include <string>
 
-typedef enum rocblas_initialization_ : int
+enum rocblas_initialization : int
 {
     rocblas_initialization_random_int = 111,
     rocblas_initialization_trig_float = 222,
     rocblas_initialization_hpl        = 333,
-} rocblas_initialization;
+};
 
-inline rocblas_ostream& operator<<(rocblas_ostream& os, rocblas_initialization init)
+inline rocblas_ostream& operator<<(rocblas_ostream& os, const rocblas_initialization& init)
 {
 #define CASE(x) \
     case x:     \
