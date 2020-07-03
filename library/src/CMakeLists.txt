@@ -438,12 +438,23 @@ endif()
 
 #         PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ WORLD_EXECUTE WORLD_READ
 
-rocm_export_targets(
-  TARGETS roc::rocblas
-  PREFIX rocblas
-  DEPENDS PACKAGE hip
-  NAMESPACE roc::
- )
+if( BUILD_SHARED_LIBS )
+  rocm_export_targets(
+    TARGETS roc::rocblas
+    PREFIX rocblas
+    DEPENDS PACKAGE hip
+    NAMESPACE roc::
+    )
+else()
+  rocm_export_targets(
+    TARGETS roc::rocblas
+    PREFIX rocblas
+    DEPENDS PACKAGE hip
+    STATIC_DEPENDS PACKAGE msgpack
+    NAMESPACE roc::
+    )
+endif()
+
 
 rocm_install_symlink_subdir( rocblas )
 
