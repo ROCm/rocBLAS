@@ -275,6 +275,9 @@ void testing_trsm_batched(const Arguments& arg)
 
     if(arg.timing)
     {
+        int number_cold_calls = arg.cold_iters;
+        int number_hot_calls  = arg.iters;
+
         // GPU rocBLAS
         CHECK_HIP_ERROR(dXorB.transfer_from(hXorB_1));
 
@@ -284,22 +287,45 @@ void testing_trsm_batched(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
         gpu_time_used = get_time_us_sync(stream); // in microseconds
 
-        CHECK_ROCBLAS_ERROR(rocblas_trsm_batched_fn(handle,
-                                                    side,
-                                                    uplo,
-                                                    transA,
-                                                    diag,
-                                                    M,
-                                                    N,
-                                                    &alpha_h,
-                                                    dA.ptr_on_device(),
-                                                    lda,
-                                                    dXorB.ptr_on_device(),
-                                                    ldb,
-                                                    batch_count));
+        for(int i = 0; i < number_cold_calls; i++)
+        {
+            CHECK_ROCBLAS_ERROR(rocblas_trsm_batched_fn(handle,
+                                                        side,
+                                                        uplo,
+                                                        transA,
+                                                        diag,
+                                                        M,
+                                                        N,
+                                                        &alpha_h,
+                                                        dA.ptr_on_device(),
+                                                        lda,
+                                                        dXorB.ptr_on_device(),
+                                                        ldb,
+                                                        batch_count));
+        }
 
-        gpu_time_used  = get_time_us_sync(stream) - gpu_time_used;
-        rocblas_gflops = batch_count * trsm_gflop_count<T>(M, N, K) / gpu_time_used * 1e6;
+        gpu_time_used = get_time_us_sync(stream);
+
+        for(int i = 0; i < number_hot_calls; i++)
+        {
+            CHECK_ROCBLAS_ERROR(rocblas_trsm_batched_fn(handle,
+                                                        side,
+                                                        uplo,
+                                                        transA,
+                                                        diag,
+                                                        M,
+                                                        N,
+                                                        &alpha_h,
+                                                        dA.ptr_on_device(),
+                                                        lda,
+                                                        dXorB.ptr_on_device(),
+                                                        ldb,
+                                                        batch_count));
+        }
+
+        gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
+        rocblas_gflops
+            = batch_count * trsm_gflop_count<T>(M, N, K) * number_hot_calls / gpu_time_used * 1e6;
 
         // CPU cblas
         cpu_time_used = get_time_us_no_sync();
