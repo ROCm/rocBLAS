@@ -7,10 +7,44 @@ Definitions:
     - { M:    -1, N:    -1, lda:     1, ldb:     1 }
     - { M:    10, N:    10, lda:    20, ldb:   100 }
 
+    # These were previously failing for trsm_ex
+    - { M:    24, N:    33, lda:    33, ldb:    33 }
+    - { M:    32, N:    33, lda:    33, ldb:    33 }
+    - { M:    33, N:    32, lda:    33, ldb:    33 }
+
+    - { M:    64, N: 65, lda: 65, ldb: 65 }
+    - { M:    65, N: 64, lda: 64, ldb: 65 }
+
   - &medium_matrix_size_range
     - { M:   192, N:   192, lda:   192, ldb:   192 }
     - { M:   600, N:   500, lda:   600, ldb:   600 }
     - { M:   800, N:   700, lda:   801, ldb:   701 }
+
+  # - &substitution_size_range
+    - { M: 2, N: 1, lda: 30, ldb: 30 }
+    - { M: 2, N: 12, lda: 30, ldb: 30 }
+    - { M: 1, N: 2, lda: 30, ldb: 30 }
+    - { M: 12, N: 2, lda: 30, ldb: 30 }
+
+    - { M: 3, N: 32, lda: 32, ldb: 32 }
+    - { M: 32, N: 3, lda: 32, ldb: 32 }
+    - { M: 8, N: 16, lda: 32, ldb: 32 }
+    - { M: 16, N: 8, lda: 32, ldb: 32 }
+    - { M: 17, N: 20, lda: 32, ldb: 32 }
+    - { M: 32, N: 32, lda: 32, ldb: 32 }
+    - { M: 32, N: 31, lda: 32, ldb: 32 }
+    - { M: 31, N: 31, lda: 32, ldb: 32 }
+
+    - { M: 33, N: 35, lda:  62, ldb:  61 }
+    - { M: 35, N: 33, lda:  61, ldb:  62 }
+    - { M: 64, N: 51, lda:  64, ldb:  64 }
+    - { M: 51, N: 64, lda:  64, ldb:  64 }
+    - { M:  7, N: 58, lda:  59, ldb: 130 }
+    - { M: 58, N:  7, lda: 130, ldb: 129 }
+
+    # not small
+    - { M: 8, N: 128, lda: 200, ldb: 200 }
+    - { M: 128, N: 8, lda: 200, ldb: 200 }
 
   - &medium_matrix_size_extra
     - { M:   256, N:   14848, lda:   256, ldb:   256 }
@@ -20,6 +54,48 @@ Definitions:
     - { M:  1000, N:  1000, lda:  1000, ldb:  1000 }
     - { M:  1024, N:  1024, lda:  1024, ldb:  1024 }
     - { M:  2000, N:  2000, lda:  2000, ldb:  2000 }
+
+  - &substitution_size_range_thorough
+    - { M:   1, N:  1, lda: 100, ldb: 100 }
+    - { M:   1, N: 7, lda: 100, ldb: 100 }
+    - { M:   1, N: 16, lda: 100, ldb: 100 }
+    - { M:   1, N: 32, lda: 100, ldb: 100 }
+    - { M:   1, N: 64, lda: 100, ldb: 100 }
+    - { M:   2, N:  1, lda: 100, ldb: 100 }
+    - { M:   2, N: 7, lda: 100, ldb: 100 }
+    - { M:   2, N: 16, lda: 100, ldb: 100 }
+    - { M:   2, N: 32, lda: 100, ldb: 100 }
+    - { M:   2, N: 64, lda: 100, ldb: 100 }
+    - { M:   4, N:  1, lda: 100, ldb: 100 }
+    - { M:   4, N:  7, lda: 100, ldb: 100 }
+    - { M:   4, N: 16, lda: 100, ldb: 100 }
+    - { M:   4, N: 32, lda: 100, ldb: 100 }
+    - { M:   4, N: 64, lda: 100, ldb: 100 }
+    - { M:   7, N:  1, lda: 100, ldb: 100 }
+    - { M:   7, N: 7, lda: 100, ldb: 100 }
+    - { M:   7, N: 16, lda: 100, ldb: 100 }
+    - { M:   7, N: 32, lda: 100, ldb: 100 }
+    - { M:   7, N: 64, lda: 100, ldb: 100 }
+    - { M:  16, N:  1, lda: 100, ldb: 100 }
+    - { M:  16, N:  7, lda: 100, ldb: 100 }
+    - { M:  16, N: 16, lda: 100, ldb: 100 }
+    - { M:  16, N: 32, lda: 100, ldb: 100 }
+    - { M:  16, N: 64, lda: 100, ldb: 100 }
+    - { M:  32, N:  1, lda: 100, ldb: 100 }
+    - { M:  32, N:  7, lda: 100, ldb: 100 }
+    - { M:  32, N: 16, lda: 100, ldb: 100 }
+    - { M:  32, N: 32, lda: 100, ldb: 100 }
+    - { M:  32, N: 64, lda: 100, ldb: 100 }
+    - { M:  64, N:  1, lda: 100, ldb: 100 }
+    - { M:  64, N:  7, lda: 100, ldb: 100 }
+    - { M:  64, N: 16, lda: 100, ldb: 100 }
+    - { M:  64, N: 32, lda: 100, ldb: 100 }
+    - { M:  64, N: 64, lda: 100, ldb: 100 }
+    - { M:  35, N:  7, lda:  48, ldb:  52 }
+    - { M:   3, N: 61, lda:  62, ldb:  63 }
+
+  - &alpha_range_sub
+    - { alpha: 2.0, alphai: -1.5 }
 
   - &alpha_range [ 1.0, -5.0 ]
 
@@ -437,7 +513,78 @@ Tests:
   stride_scale: [ 1 ]
   batch_count: [8192]
 
+# nightly - substitution method
+- name: trsm_small
+  category: nightly
+  function: trsm
+  precision: *single_double_precisions
+  side: [L, R]
+  uplo: [L, U]
+  transA: [N, C]
+  diag: [N, U]
+  matrix_size: *substitution_size_range_thorough
+  alpha_beta: *alpha_range_sub
 
+- name: trsm_small_complex
+  category: nightly
+  function: trsm
+  precision: *single_double_precisions_complex_real
+  side: [L, R]
+  uplo: [L, U]
+  transA: [N, C]
+  diag: [N, U]
+  matrix_size: *substitution_size_range_thorough
+  alpha_beta: *alpha_range_sub
+
+- name: trsm_batched_small
+  category: nightly
+  function: trsm_batched
+  precision: *single_double_precisions
+  side: [L, R]
+  uplo: [L, U]
+  transA: [N, C]
+  diag: [N, U]
+  matrix_size: *substitution_size_range_thorough
+  alpha_beta: *alpha_range_sub
+  batch_count: [ 1, 128 ]
+
+- name: trsm_batched_small_complex
+  category: nightly
+  function: trsm_batched
+  precision: *single_double_precisions_complex_real
+  side: [L, R]
+  uplo: [L, U]
+  transA: [N, C]
+  diag: [N, U]
+  matrix_size: *substitution_size_range_thorough
+  alpha_beta: *alpha_range_sub
+  batch_count: [ 1, 128 ]
+
+- name: trsm_strided_batched_small
+  category: nightly
+  function: trsm_strided_batched
+  precision: *single_double_precisions
+  side: [L, R]
+  uplo: [L, U]
+  transA: [N, C]
+  diag: [N, U]
+  matrix_size: *substitution_size_range_thorough
+  alpha_beta: *alpha_range_sub
+  stride_scale: [ 1.5]
+  batch_count: [ 1, 128 ]
+
+- name: trsm_strided_batched_small_complex
+  category: nightly
+  function: trsm_strided_batched
+  precision: *single_double_precisions_complex_real
+  side: [L, R]
+  uplo: [L, U]
+  transA: [N, C]
+  diag: [N, U]
+  matrix_size: *substitution_size_range_thorough
+  alpha_beta: *alpha_range_sub
+  stride_scale: [ 1.5 ]
+  batch_count: [ 1, 128 ]
 
 #############
 ## trsm_ex ##
