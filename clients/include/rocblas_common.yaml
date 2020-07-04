@@ -26,9 +26,9 @@ Datatypes:
   - rocblas_initialization:
       bases: [ c_int ]
       attr:
-        rocblas_initialization_random_int: 111
-        rocblas_initialization_trig_float: 222
-        rocblas_initialization_hpl: 333
+        rand_int: 111
+        trig_float: 222
+        hpl: 333
 
 Real precisions: &real_precisions
   - &half_precision
@@ -336,7 +336,7 @@ Defaults:
   solution_index: 0
   flags: 0
   workspace_size: 0
-  initialization: rocblas_initialization_random_int
+  initialization: rand_int
   category: nightly
   known_bug_platforms: ''
   name: '*'
