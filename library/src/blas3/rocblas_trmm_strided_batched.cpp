@@ -187,23 +187,23 @@ namespace
 
         rocblas_stride stride_mem = size_dt1 + size_dt2;
 
-        return rocblas_trmm_template<false, true, RB, CB, T>(handle,
-                                                             side,
-                                                             uplo,
-                                                             transa,
-                                                             diag,
-                                                             m,
-                                                             n,
-                                                             alpha,
-                                                             a,
-                                                             lda,
-                                                             stride_a,
-                                                             b,
-                                                             ldb,
-                                                             stride_b,
-                                                             batch_count,
-                                                             (T*)mem,
-                                                             stride_mem);
+        return rocblas_trmm_template<false, RB, CB, T>(handle,
+                                                       side,
+                                                       uplo,
+                                                       transa,
+                                                       diag,
+                                                       m,
+                                                       n,
+                                                       alpha,
+                                                       a,
+                                                       lda,
+                                                       stride_a,
+                                                       b,
+                                                       ldb,
+                                                       stride_b,
+                                                       batch_count,
+                                                       (T*)mem,
+                                                       stride_mem);
     }
 
 } // namespace

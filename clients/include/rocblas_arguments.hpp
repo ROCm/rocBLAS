@@ -231,7 +231,7 @@ enum rocblas_argument : int
 // specialization for each line in the CPP macro FOR_EACH_ARGUMENT. For example,
 // the first lambda is:  apply<e_M> = [](auto&& func, const Arguments& arg, auto){func("M", arg.m)}
 // This lambda can be used to print "M" and arg.m
-struct ArgumentsHelper
+namespace ArgumentsHelper
 {
     template <rocblas_argument>
     static constexpr auto apply = nullptr;
@@ -267,7 +267,7 @@ struct ArgumentsHelper
 
 // C++14. TODO: Remove when C++17 is used
 // clang-format off
-struct ArgumentsHelper
+namespace ArgumentsHelper
 {
 #define APPLY(NAME)                                             \
     template <>                                                 \

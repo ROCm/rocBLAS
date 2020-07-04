@@ -180,23 +180,23 @@ namespace
         setup_device_pointer_array(
             handle->rocblas_stream, mem, mem_stride, d_workspace_batch_vector, batch_count);
 
-        return rocblas_trmm_template<true, false, RB, CB, T>(handle,
-                                                             side,
-                                                             uplo,
-                                                             transa,
-                                                             diag,
-                                                             m,
-                                                             n,
-                                                             alpha,
-                                                             a,
-                                                             lda,
-                                                             stride_a,
-                                                             b,
-                                                             ldb,
-                                                             stride_b,
-                                                             batch_count,
-                                                             (T* const*)d_workspace_batch_vector,
-                                                             stride_w);
+        return rocblas_trmm_template<true, RB, CB, T>(handle,
+                                                      side,
+                                                      uplo,
+                                                      transa,
+                                                      diag,
+                                                      m,
+                                                      n,
+                                                      alpha,
+                                                      a,
+                                                      lda,
+                                                      stride_a,
+                                                      b,
+                                                      ldb,
+                                                      stride_b,
+                                                      batch_count,
+                                                      (T* const*)d_workspace_batch_vector,
+                                                      stride_w);
     }
 
 } // namespace
