@@ -131,27 +131,27 @@ namespace
         if(validArgs != rocblas_status_continue)
             return validArgs;
 
-        return rocblas_gemm_template<false, false>(handle,
-                                                   trans_a,
-                                                   trans_b,
-                                                   m,
-                                                   n,
-                                                   k,
-                                                   alpha,
-                                                   A,
-                                                   0,
-                                                   ld_a,
-                                                   0,
-                                                   B,
-                                                   0,
-                                                   ld_b,
-                                                   0,
-                                                   beta,
-                                                   C,
-                                                   0,
-                                                   ld_c,
-                                                   0,
-                                                   1);
+        return rocblas_gemm_template<false>(handle,
+                                            trans_a,
+                                            trans_b,
+                                            m,
+                                            n,
+                                            k,
+                                            alpha,
+                                            A,
+                                            0,
+                                            ld_a,
+                                            0,
+                                            B,
+                                            0,
+                                            ld_b,
+                                            0,
+                                            beta,
+                                            C,
+                                            0,
+                                            ld_c,
+                                            0,
+                                            1);
     }
 }
 

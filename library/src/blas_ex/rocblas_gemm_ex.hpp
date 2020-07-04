@@ -965,8 +965,8 @@ rocblas_status rocblas_gemm_ex_template(rocblas_handle    handle,
     {
         // For now, K must be a multiple of 4
         if(k % 4 != 0 || ((trans_a == rocblas_operation_transpose) && (lda % 4 != 0))
-           || ((trans_b == rocblas_operation_none) && (ldb % 4 != 0)) || stride_a % 4 != 0
-           || stride_b % 4 != 0)
+           || ((trans_b == rocblas_operation_none) && (ldb % 4 != 0))
+           || (batch_count > 1 && (stride_a % 4 != 0 || stride_b % 4 != 0)))
         {
             rb_status = rocblas_status_invalid_size;
         }
