@@ -34,6 +34,9 @@
 #define rocblas_cout (rocblas_ostream::cout())
 #define rocblas_cerr (rocblas_ostream::cerr())
 
+// Incomplete enum defined elsewhere
+enum rocblas_initialization : int;
+
 /***************************************************************************
  * The rocblas_ostream class performs atomic IO on log files, and provides *
  * consistent formatting                                                   *
@@ -369,8 +372,7 @@ public:
         return os;
     }
 
-    enum rocblas_initialization : int;
-    friend rocblas_ostream& operator<<(rocblas_ostream& os, rocblas_initialization init);
+    friend rocblas_ostream& operator<<(rocblas_ostream& os, const rocblas_initialization& init);
 
     // Transfer rocblas_ostream to std::ostream
     friend std::ostream& operator<<(std::ostream& os, const rocblas_ostream& str)

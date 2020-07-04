@@ -24,7 +24,7 @@
 ! This file interfaces between the unit test infrastructure and the Fortran
 ! rocblas module.
 
-module rocblas_interface
+module rocblas_interface_tensile
     use iso_c_binding
     use rocblas
 
@@ -1818,4 +1818,4 @@ module rocblas_interface
             A, lda, stride_A, B, ldb, stride_B, batch_count, invA, invA_size, stride_invA, compute_type)
     end function rocblas_trsm_strided_batched_ex_fortran
 
-end module rocblas_interface
+end module rocblas_interface_tensile
