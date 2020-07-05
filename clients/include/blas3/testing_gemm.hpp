@@ -161,7 +161,7 @@ void testing_gemm(const Arguments& arg)
     host_vector<T> hC_gold(size_C_copy);
 
     // Initial Data on CPU
-    if(arg.initialization == rocblas_initialization_random_int)
+    if(arg.initialization == rocblas_initialization::rand_int)
     {
         rocblas_seedrand();
         rocblas_init<T>(hA, A_row, A_col, lda);
@@ -171,7 +171,7 @@ void testing_gemm(const Arguments& arg)
         else
             rocblas_init<T>(hC_1, M, N, ldc);
     }
-    else if(arg.initialization == rocblas_initialization_trig_float)
+    else if(arg.initialization == rocblas_initialization::trig_float)
     {
         rocblas_init_sin<T>(hA, A_row, A_col, lda);
         rocblas_init_cos<T>(hB, B_row, B_col, ldb);
@@ -180,7 +180,7 @@ void testing_gemm(const Arguments& arg)
         else
             rocblas_init_sin<T>(hC_1, M, N, ldc);
     }
-    else if(arg.initialization == rocblas_initialization_hpl)
+    else if(arg.initialization == rocblas_initialization::hpl)
     {
         rocblas_seedrand();
         rocblas_init_hpl<T>(hA, A_row, A_col, lda);
