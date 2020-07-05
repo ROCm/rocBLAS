@@ -54,8 +54,11 @@ environment variables can set the full path name for a log file:
 * ``ROCBLAS_LOG_BENCH_PATH`` sets the full path name for bench logging
 * ``ROCBLAS_LOG_PROFILE_PATH`` sets the full path name for profile logging
 
-If a path name cannot be opened, then the corresponding logging output
-is streamed to standard error.
+If one of these environment variables is not set, then ``ROCBLAS_LOG_PATH``
+sets the full path for the corresponding logging, if it is set.
+
+If neither the above nor ``ROCBLAS_LOG_PATH`` are set, then the
+corresponding logging output is streamed to standard error.
 
 When profile logging is enabled, memory usage will increase. If the
 program exits abnormally, then it is possible that profile logging will
