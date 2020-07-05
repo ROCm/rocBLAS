@@ -38,7 +38,14 @@ function with the same arguments.
 
 Profile logging, at the end of program execution, outputs a YAML
 description of each rocBLAS function called, the values of its
-arguments, and the number of times it was called with those arguments.
+performance-critical arguments, and the number of times it was called
+with those arguments (the ``call_count``). Some arguments, such as
+``alpha`` and ``beta`` in GEMM, are recorded with a value representing
+the category that the argument falls in, such as ``-1``, ``0``, ``1``,
+or ``2``. The number of categories, and the values representing them,
+may change over time, depending on how many categories are needed to
+adequately represent all of the values which can affect the performance
+of the function.
 
 The default stream for logging output is standard error. Three
 environment variables can set the full path name for a log file:

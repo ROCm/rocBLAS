@@ -747,17 +747,8 @@ rocblas_status gemm_ex_typecasting(rocblas_handle    handle,
                                    rocblas_int       batch_count)
 {
     Tc alpha_h, beta_h;
-
-    // Right now Tensile requires alpha and beta to be passed by value on host.
-    // If in device pointer mode, copy alpha and beta to host.
-    // TODO: Make this asynchronous, putting synchronization in closer to Tensile call.
-    if(handle->pointer_mode == rocblas_pointer_mode_device)
-    {
-        RETURN_IF_HIP_ERROR(hipMemcpy(&alpha_h, alpha, sizeof(Tc), hipMemcpyDeviceToHost));
-        RETURN_IF_HIP_ERROR(hipMemcpy(&beta_h, beta, sizeof(Tc), hipMemcpyDeviceToHost));
-        alpha = &alpha_h;
-        beta  = &beta_h;
-    }
+    RETURN_IF_ROCBLAS_ERROR(
+        copy_alpha_beta_to_host_if_on_device(handle, alpha, beta, alpha_h, beta_h, k));
 
     // check alignment of pointers before casting
     if(BATCHED)
@@ -1026,5 +1017,45 @@ rocblas_status rocblas_gemm_ex_template(rocblas_handle    handle,
 }
 
 #undef EX_TYPECASTING_PARM
+
+// Union for representing scalar values
+typedef union rocblas_union_u
+{
+    rocblas_half           h;
+    float                  s;
+    double                 d;
+    int32_t                i;
+    rocblas_float_complex  c;
+    rocblas_double_complex z;
+} rocblas_union_t;
+
+// Copy alpha and beta to host if on device
+template <typename T>
+rocblas_status copy_alpha_beta_to_host_if_on_device(rocblas_handle   handle,
+                                                    const T*&        alpha,
+                                                    const T*&        beta,
+                                                    rocblas_union_t& alpha_h,
+                                                    rocblas_union_t& beta_h,
+                                                    rocblas_int      k,
+                                                    rocblas_datatype compute_type)
+{
+    switch(compute_type)
+    {
+    case rocblas_datatype_f16_r:
+        return copy_alpha_beta_to_host_if_on_device(handle, alpha, beta, alpha_h.h, beta_h.h, k);
+    case rocblas_datatype_f32_r:
+        return copy_alpha_beta_to_host_if_on_device(handle, alpha, beta, alpha_h.s, beta_h.s, k);
+    case rocblas_datatype_f64_r:
+        return copy_alpha_beta_to_host_if_on_device(handle, alpha, beta, alpha_h.d, beta_h.d, k);
+    case rocblas_datatype_i32_r:
+        return copy_alpha_beta_to_host_if_on_device(handle, alpha, beta, alpha_h.i, beta_h.i, k);
+    case rocblas_datatype_f32_c:
+        return copy_alpha_beta_to_host_if_on_device(handle, alpha, beta, alpha_h.c, beta_h.c, k);
+    case rocblas_datatype_f64_c:
+        return copy_alpha_beta_to_host_if_on_device(handle, alpha, beta, alpha_h.z, beta_h.z, k);
+    default:
+        return rocblas_status_not_implemented;
+    }
+}
 
 #endif
