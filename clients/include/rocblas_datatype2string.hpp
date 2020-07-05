@@ -8,27 +8,12 @@
 #include "rocblas.h"
 #include <string>
 
-enum rocblas_initialization : int
+enum class rocblas_initialization
 {
-    rocblas_initialization_random_int = 111,
-    rocblas_initialization_trig_float = 222,
-    rocblas_initialization_hpl        = 333,
+    rand_int   = 111,
+    trig_float = 222,
+    hpl        = 333,
 };
-
-inline rocblas_ostream& operator<<(rocblas_ostream& os, const rocblas_initialization& init)
-{
-#define CASE(x) \
-    case x:     \
-        return os << #x
-    switch(init)
-    {
-        CASE(rocblas_initialization_random_int);
-        CASE(rocblas_initialization_trig_float);
-        CASE(rocblas_initialization_hpl);
-    }
-    return os << "unknown";
-}
-#undef CASE
 
 /* ============================================================================================ */
 /*  Convert rocblas constants to lapack char. */
@@ -132,14 +117,19 @@ constexpr auto rocblas_initialization2string(rocblas_initialization init)
 {
     switch(init)
     {
-    case rocblas_initialization_random_int:
+    case rocblas_initialization::rand_int:
         return "rand_int";
-    case rocblas_initialization_trig_float:
+    case rocblas_initialization::trig_float:
         return "trig_float";
-    case rocblas_initialization_hpl:
+    case rocblas_initialization::hpl:
         return "hpl";
     }
     return "invalid";
+}
+
+inline rocblas_ostream& operator<<(rocblas_ostream& os, rocblas_initialization init)
+{
+    return os << rocblas_initialization2string(init);
 }
 
 /* ============================================================================================ */
@@ -212,9 +202,9 @@ constexpr rocblas_side char2rocblas_side(char value)
 inline rocblas_initialization string2rocblas_initialization(const std::string& value)
 {
     return
-        value == "rand_int"   ? rocblas_initialization_random_int :
-        value == "trig_float" ? rocblas_initialization_trig_float :
-        value == "hpl"        ? rocblas_initialization_hpl        :
+        value == "rand_int"   ? rocblas_initialization::rand_int   :
+        value == "trig_float" ? rocblas_initialization::trig_float :
+        value == "hpl"        ? rocblas_initialization::hpl        :
         static_cast<rocblas_initialization>(-1);
 }
 
