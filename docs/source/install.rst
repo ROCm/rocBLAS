@@ -37,9 +37,14 @@ rocBLAS can be installed on SLES using
     sudo dnf install rocblas
 
 Once installed, rocBLAS can be used just like any other library with a C API.
-The header file will need to be included in the user code in order to make calls
+The rocblas.h header file will need to be included in the user code in order to make calls
 into rocBLAS, and the rocBLAS shared library will become link-time and run-time
 dependent for the user applciation.
+
+Once installed, rocblas.h and rocblas_module.f90 can be found in the /opt/rocm/include
+directory. Only these two installed files should be used when needed in user code.
+Other header files are for internal use and should not be directly included. All other
+rocBLAS header files will soon be moved out of /opt/rocm/include in a future realease.
 
 
 Building from source using install.sh
