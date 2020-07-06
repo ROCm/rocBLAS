@@ -127,6 +127,21 @@ install_zypper_packages( )
     done
 }
 
+install_msgpack_from_source( )
+{
+    if [[ ! -d "${build_dir}/deps/msgpack-c" ]]; then
+      pushd .
+      mkdir -p ${build_dir}/deps
+      cd ${build_dir}/deps
+      git clone -b cpp-3.0.1 https://github.com/msgpack/msgpack-c.git
+      cd msgpack-c
+      ${cmake_executable} .
+      make
+      elevate_if_not_root make install
+      popd
+    fi
+}
+
 # Take an array of packages as input, and delegate the work to the appropriate distro installer
 # prereq: ${ID} must be defined before calling
 # prereq: ${build_clients} must be defined before calling
@@ -149,18 +164,17 @@ install_packages( )
   local library_dependencies_centos_rhel=( "epel-release"
                                       "make" "cmake3" "rpm-build"
                                       "python34" "PyYAML" "python3*-PyYAML" "python3*-distutils-extra" "python3-virtualenv"
-                                      "gcc-c++" "zlib-devel" "wget" "msgpack-devel" "msgpack" )
+                                      "gcc-c++" "zlib-devel" "wget" )
   local library_dependencies_centos_rhel_8=( "epel-release"
                                       "make" "cmake3" "rpm-build"
                                       "python3" "python3*-PyYAML" "python3-virtualenv"
-                                      "gcc-c++" "zlib-devel" "wget" "llvm-devel" "llvm-static" "msgpack-devel" "msgpack" )
+                                      "gcc-c++" "zlib-devel" "wget" "llvm-devel" "llvm-static" )
   local library_dependencies_fedora=( "make" "cmake" "rpm-build"
                                       "python34" "PyYAML" "python3*-PyYAML" "python3*-distutils-extra" "python3-virtualenv"
                                       "gcc-c++" "libcxx-devel" "zlib-devel" "wget" "llvm7.0-devel" "llvm7.0-static"
                                       "msgpack-devel" "msgpack" )
   local library_dependencies_sles=(   "make" "cmake" "python3-PyYAML" "python3-virtualenv"
-                                      "gcc-c++" "libcxxtools9" "rpm-build" "wget" "llvm7-devel"
-                                      "msgpack-devel" "libmsgpackc2" )
+                                      "gcc-c++" "libcxxtools9" "rpm-build" "wget" "llvm7-devel" )
 
   if [[ ( "${ID}" != "centos" ) || ( "${VERSION_ID}" -ge 7 ) ]]; then
     # On CentOS-7 and greater, RPM packages for LLVM-7.0 are available. For earlier CentOS versions,
@@ -197,6 +211,12 @@ install_packages( )
       library_dependencies_sles+=( "${custom_rocm_dev}" )
     fi
   fi
+
+  case "${ID}" in
+    centos|rhel|sles|opensuse-leap)
+      install_msgpack_from_source
+      ;;
+  esac
 
   # dependencies to build the client
   local client_dependencies_ubuntu=( "gfortran" "libomp-dev" "libboost-program-options-dev")
