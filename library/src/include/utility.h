@@ -424,6 +424,16 @@ catch(...)
     return rocblas_status_internal_error;
 }
 
+// Return the value category for a value, as a double precision value, such
+// such as whether it's 0, 1, -1 or some other value. Tensile uses a double
+// precision value to express the category of beta. This function is to
+// convert complex or other types to a double representing the category.
+template <typename T>
+constexpr double value_category(const T& beta)
+{
+    return beta == T(0) ? 0.0 : beta == T(1) ? 1.0 : beta == T(-1) ? -1.0 : 2.0;
+}
+
 extern "C" ROCBLAS_EXPORT const char* rocblas_get_arch_name();
 extern "C" bool                       tensile_supports_ldc_ne_ldd();
 
