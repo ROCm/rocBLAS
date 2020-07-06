@@ -45,8 +45,8 @@ rocblas_status rocblas_gemm_ext2_impl(rocblas_handle    handle,
 
     // Copy alpha and beta to host if on device
     rocblas_union_t alpha_h, beta_h;
-    RETURN_IF_ROCBLAS_ERROR(
-        copy_alpha_beta_to_host_if_on_device(handle, alpha, beta, alpha_h, beta_h, k, compute_type));
+    RETURN_IF_ROCBLAS_ERROR(copy_alpha_beta_to_host_if_on_device(
+        handle, alpha, beta, alpha_h, beta_h, k, compute_type));
     auto saved_pointer_mode = handle->push_pointer_mode(rocblas_pointer_mode_host);
 
     // Perform logging
@@ -213,7 +213,7 @@ rocblas_status rocblas_gemm_ext2_impl(rocblas_handle    handle,
     if(!a || !b || !c || !d || !alpha || !beta)
         return rocblas_status_invalid_pointer;
 
-    rocblas_stride batch_stride = 0;
+    rocblas_stride batch_stride = 1; // can be changed to 0 when Tensile bug is fixed
     rocblas_int    offset       = 0;
     rocblas_int    batch_count  = 1;
 
