@@ -329,7 +329,7 @@ build_hip_clang=true
 build_dir=./build
 skip_ld_conf_entry=false
 static_lib=false
-tensile_msgpack_backend=true
+tensile_msgpack_backend=false
 
 rocm_path=/opt/rocm
 if ! [ -z ${ROCM_PATH+x} ]; then
