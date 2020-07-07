@@ -15308,6 +15308,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    
     matrtix, B a k by n matrix, and C and D are m by n matrices. Each matrix A, B, C, D
     has independent row and column strides.
 
+    This is a beta feature.
+
     @param[in]
     handle    [rocblas_handle]
               handle to the rocblas library context queue.
