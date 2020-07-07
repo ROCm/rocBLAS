@@ -1647,7 +1647,7 @@ static __global__ void rocblas_trsm_small_64_right_device(rocblas_fill      uplo
                 sB[i * NB + tx] -= sB[j * NB + tx] * valA;
             }
             if(diag != rocblas_diagonal_unit)
-                sB[i * NB + tx] /= A[i * lda + i];
+                sB[i * NB + tx] /= CONJ ? conj(A[i * lda + i]) : A[i * lda + i];
         }
     }
     else // lower (conjugate-)transpose
@@ -1660,7 +1660,7 @@ static __global__ void rocblas_trsm_small_64_right_device(rocblas_fill      uplo
                 sB[i * NB + tx] -= sB[j * NB + tx] * valA;
             }
             if(diag != rocblas_diagonal_unit)
-                sB[i * NB + tx] /= A[i * lda + i];
+                sB[i * NB + tx] /= CONJ ? conj(A[i * lda + i]) : A[i * lda + i];
         }
     }
 
@@ -1870,7 +1870,7 @@ static __global__ void rocblas_trsm_small_64_left_device(rocblas_fill      uplo,
                 sB[tx * NB + i] -= sB[tx * NB + j] * valA;
             }
             if(diag != rocblas_diagonal_unit)
-                sB[tx * NB + i] /= A[i * lda + i];
+                sB[tx * NB + i] /= (CONJ) ? conj(A[i * lda + i]) : A[i * lda + i];
         }
     }
     else if(!LOWER)
@@ -1883,7 +1883,7 @@ static __global__ void rocblas_trsm_small_64_left_device(rocblas_fill      uplo,
                 sB[tx * NB + i] -= sB[tx * NB + j] * valA;
             }
             if(diag != rocblas_diagonal_unit)
-                sB[tx * NB + i] /= A[i * lda + i];
+                sB[tx * NB + i] /= (CONJ) ? conj(A[i * lda + i]) : A[i * lda + i];
         }
     }
 
