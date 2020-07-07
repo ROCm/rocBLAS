@@ -254,7 +254,7 @@ namespace
                                rocblas_int    batch_count,
                                hipStream_t    stream)
     {
-        if((!(m & 0b111111)) && (!(n & 0b111111)) && (!(k & 0b11)))
+        if((m % 64 == 0) && (n % 64 == 0) && (k % 4 == 0))
         {
             //m is mult of 64, n is mult of 64, k is mult of 4
             const int dim_m = 16;
@@ -410,7 +410,7 @@ namespace
                                    batch_count);
             }
         }
-        else if((!(m & 0b11111)) && (!(n & 0b11111)) && (!(k & 0b111)))
+        else if((m % 32 == 0) && (n % 32 == 0) && (k % 8 == 0))
         {
             // m is mult of 32, n is mult of 32, k is mult of 8
             const int dim_m = 16;
@@ -696,15 +696,21 @@ namespace
         if(validArgs != rocblas_status_continue)
             return validArgs;
 
-        hipStream_t rocblas_stream = handle->rocblas_stream;
-
+        // call rocBLAS source code if
+        //     (NN)
+        // and
+        //     ((m is mult of 64 and n is mult of 64 and k is mult of 4)
+        //     or
+        //     (m is mult of 32 and n is mult of 32 and k is mult of 8))
+        // and
+        //     (m*n*k is small enough)
         if((trans_a == rocblas_operation_none) && (trans_b == rocblas_operation_none)
-           && ((!(m & 0b111111)) && (!(n & 0b111111)) && (!(k & 0b11))
-               || (!(m & 0b11111)) && (!(n & 0b11111)) && (!(k & 0b111)))
-           && (m * n * k < 1024 * 1024 * 1024)
-
-        )
+           && (((m % 64 == 0) && (n % 64 == 0) && (k % 4 == 0))
+               || ((m % 32 == 0) && (n % 32 == 0) && (k % 8 == 0)))
+           && (size_t(m) * size_t(n) * size_t(k) < 1024 * 1024 * 1024))
         {
+            hipStream_t rocblas_stream = handle->rocblas_stream;
+
             gemm_batched_solution(
                 m, n, k, *alpha, A, ld_a, B, ld_b, *beta, C, ld_c, b_c, rocblas_stream);
 
