@@ -46,49 +46,94 @@ namespace
         const T* dB = dB_array[blz];
         T*       dC = dC_array[blz];
 
-        __shared__ T sA[BLK_K][BLK_M]; // shared memory for A
-        __shared__ T sB[BLK_N][BLK_K]; // shared memory for B
-        T            rC[BLK_N / DIM_N][BLK_M / DIM_M]; // registers for C
-
-        int coord_A = (blx * BLK_M + thyA * lda) + thxA;
-        int coord_B = (bly * BLK_N * ldb + thyB * ldb) + thxB;
-
-        for(int n = 0; n < BLK_N / DIM_N; ++n)
-            for(int m = 0; m < BLK_M / DIM_M; ++m)
-                rC[n][m] = 0.0;
-
-        int kk = 0;
-        for(; kk < K; kk += BLK_K)
+        if(alpha == 0 || K == 0)
         {
-            for(int n = 0; n < BLK_K; n += DIM_N_A)
-                for(int m = 0; m < BLK_M; m += DIM_M_A)
-                    sA[n + thyA][m + thxA] = dA[coord_A + (n * lda + m)];
-
-            for(int n = 0; n < BLK_N; n += DIM_N_B)
-                for(int m = 0; m < BLK_K; m += DIM_M_B)
-                    sB[n + thyB][m + thxB] = dB[coord_B + (n * ldb + m)];
-
-            __syncthreads();
-
-            for(int k = 0; k < BLK_K; ++k)
-                for(int n = 0; n < BLK_N / DIM_N; ++n)
-                    for(int m = 0; m < BLK_M / DIM_M; ++m)
-                        rC[n][m] += sA[k][m * DIM_M + thx] * sB[n * DIM_N + thy][k];
-
-            __syncthreads();
-
-            coord_A += BLK_K * lda;
-            coord_B += BLK_K;
-        }
-
-        for(int n = 0; n < BLK_N / DIM_N; ++n)
-        {
-            for(int m = 0; m < BLK_M / DIM_M; ++m)
+            if(beta == 0)
             {
-                int coord_dCm = blx * BLK_M + m * DIM_M + thx;
-                int coord_dCn = bly * BLK_N + n * DIM_N + thy;
-                dC[coord_dCn * ldc + coord_dCm]
-                    = alpha * rC[n][m] + beta * dC[coord_dCn * ldc + coord_dCm];
+                for(int n = 0; n < BLK_N / DIM_N; ++n)
+                {
+                    for(int m = 0; m < BLK_M / DIM_M; ++m)
+                    {
+                        int coord_dCm                   = blx * BLK_M + m * DIM_M + thx;
+                        int coord_dCn                   = bly * BLK_N + n * DIM_N + thy;
+                        dC[coord_dCn * ldc + coord_dCm] = 0.0;
+                    }
+                }
+            }
+            else
+            {
+                for(int n = 0; n < BLK_N / DIM_N; ++n)
+                {
+                    for(int m = 0; m < BLK_M / DIM_M; ++m)
+                    {
+                        int coord_dCm                   = blx * BLK_M + m * DIM_M + thx;
+                        int coord_dCn                   = bly * BLK_N + n * DIM_N + thy;
+                        dC[coord_dCn * ldc + coord_dCm] = beta * dC[coord_dCn * ldc + coord_dCm];
+                    }
+                }
+            }
+        }
+        else
+        {
+            __shared__ T sA[BLK_K][BLK_M]; // shared memory for A
+            __shared__ T sB[BLK_N][BLK_K]; // shared memory for B
+            T            rC[BLK_N / DIM_N][BLK_M / DIM_M]; // registers for C
+
+            int coord_A = (blx * BLK_M + thyA * lda) + thxA;
+            int coord_B = (bly * BLK_N * ldb + thyB * ldb) + thxB;
+
+            for(int n = 0; n < BLK_N / DIM_N; ++n)
+                for(int m = 0; m < BLK_M / DIM_M; ++m)
+                    rC[n][m] = 0.0;
+
+            int kk = 0;
+            for(; kk < K; kk += BLK_K)
+            {
+                for(int n = 0; n < BLK_K; n += DIM_N_A)
+                    for(int m = 0; m < BLK_M; m += DIM_M_A)
+                        sA[n + thyA][m + thxA] = dA[coord_A + (n * lda + m)];
+
+                for(int n = 0; n < BLK_N; n += DIM_N_B)
+                    for(int m = 0; m < BLK_K; m += DIM_M_B)
+                        sB[n + thyB][m + thxB] = dB[coord_B + (n * ldb + m)];
+
+                __syncthreads();
+
+                for(int k = 0; k < BLK_K; ++k)
+                    for(int n = 0; n < BLK_N / DIM_N; ++n)
+                        for(int m = 0; m < BLK_M / DIM_M; ++m)
+                            rC[n][m] += sA[k][m * DIM_M + thx] * sB[n * DIM_N + thy][k];
+
+                __syncthreads();
+
+                coord_A += BLK_K * lda;
+                coord_B += BLK_K;
+            }
+
+            if(beta == 0)
+            {
+                for(int n = 0; n < BLK_N / DIM_N; ++n)
+                {
+                    for(int m = 0; m < BLK_M / DIM_M; ++m)
+                    {
+                        int coord_dCm                   = blx * BLK_M + m * DIM_M + thx;
+                        int coord_dCn                   = bly * BLK_N + n * DIM_N + thy;
+                        dC[coord_dCn * ldc + coord_dCm] = alpha * rC[n][m];
+                    }
+                }
+            }
+            else
+            {
+                for(int n = 0; n < BLK_N / DIM_N; ++n)
+                {
+                    for(int m = 0; m < BLK_M / DIM_M; ++m)
+                    {
+                        int coord_dCm = blx * BLK_M + m * DIM_M + thx;
+                        int coord_dCn = bly * BLK_N + n * DIM_N + thy;
+                        dC[coord_dCn * ldc + coord_dCm]
+                            = alpha * rC[n][m] + beta * dC[coord_dCn * ldc + coord_dCm];
+                    }
+                }
             }
         }
     }
