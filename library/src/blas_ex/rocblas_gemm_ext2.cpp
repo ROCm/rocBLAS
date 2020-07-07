@@ -104,7 +104,7 @@ rocblas_status rocblas_gemm_ext2_impl(rocblas_handle    handle,
                == rocblas_status_success)
             {
                 log_bench(handle,
-                          "./rocblas-bench -f gemm_ex",
+                          "./rocblas-bench -f gemm_ext2",
                           "-m",
                           m,
                           "-n",
@@ -151,7 +151,7 @@ rocblas_status rocblas_gemm_ext2_impl(rocblas_handle    handle,
         if(layer_mode & rocblas_layer_mode_log_profile)
         {
             log_profile(handle,
-                        "rocblas_gemm_ex",
+                        "rocblas_gemm_ext2",
                         "a_type",
                         a_type_string,
                         "b_type",
