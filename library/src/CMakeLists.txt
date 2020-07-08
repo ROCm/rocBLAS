@@ -141,6 +141,7 @@ if( BUILD_WITH_TENSILE )
     blas_ex/rocblas_gemm_ex.cpp
     blas_ex/rocblas_gemm_batched_ex.cpp
     blas_ex/rocblas_gemm_strided_batched_ex.cpp
+    blas_ex/rocblas_gemm_ext2.cpp
   )
 
   set( rocblas_blas3_source
