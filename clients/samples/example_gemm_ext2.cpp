@@ -4,7 +4,6 @@
 
 #include "rocblas.h"
 #include "utility.hpp"
-#include <cmath>
 #include <cstdint>
 #include <hip/hip_runtime.h>
 #include <iostream>
@@ -187,7 +186,7 @@ int main()
 
     auto eps       = std::numeric_limits<d_t>::epsilon();
     auto tolerance = 10.0;
-    if(isnan(max_relative_error) || max_relative_error > eps * tolerance)
+    if(max_relative_error != max_relative_error || max_relative_error > eps * tolerance)
         std::cout << "FAIL: ";
     else
         std::cout << "PASS: ";
