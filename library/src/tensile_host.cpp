@@ -351,16 +351,19 @@ namespace
             }
             else
             {
+#ifndef ROCBLAS_STATIC_LIB
                 Dl_info info;
 
                 // Find the location of librocblas.so
                 // Fall back on hard-coded path if static library or not found
+
                 if(dladdr((void*)rocblas_initialize, &info))
                 {
                     path = info.dli_fname;
                     path = std::string{dirname(&path[0])};
                 }
                 else
+#endif
                 {
                     path = "/opt/rocm/rocblas/lib";
                 }
