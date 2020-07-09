@@ -161,7 +161,7 @@ namespace
             a = {
                     Tensile_Ti,
                     {prob.m, k, prob.batch_count},
-                    {prob.row_stride_b, prob.col_stride_a, prob.batch_stride_a}
+                    {prob.row_stride_a, prob.col_stride_a, prob.batch_stride_a}
                 };
             freeIndex[0].i  = 0;
             boundIndex[0].a = 1;
