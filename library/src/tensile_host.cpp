@@ -13,6 +13,11 @@ extern "C" void rocblas_initialize() {}
 
 #else
 
+/*****************************************************************************
+ * This is the only file in rocBLAS which should #include Tensile headers    *
+ * or reference Tensile identifiers. tensile_host.hpp defines the interface. *
+ *****************************************************************************/
+
 #include "tensile_host.hpp"
 //#include <Tensile/AMDGPU.hpp>
 #include <Tensile/Contractions.hpp>
@@ -138,16 +143,26 @@ namespace
         // we pass k = 1 and set alpha == 0, since alpha == 0 has the same effect as k == 0.
         auto k = prob.k == 0 ? 1 : prob.k;
 
+        // clang-format off
+
         // If A is transposed, swap the free and bound dimensions and their ranks
         if(prob.trans_a != rocblas_operation_none)
         {
-            a = {Tensile_Ti, {k, prob.m, prob.batch_count}, {1, prob.ld_a, prob.stride_a}};
+            a = {
+                    Tensile_Ti,
+                    {k, prob.m, prob.batch_count},
+                    {prob.row_stride_a, prob.col_stride_a, prob.batch_stride_a}
+                };
             freeIndex[0].i  = 1;
             boundIndex[0].a = 0;
         }
         else
         {
-            a = {Tensile_Ti, {prob.m, k, prob.batch_count}, {1, prob.ld_a, prob.stride_a}};
+            a = {
+                    Tensile_Ti,
+                    {prob.m, k, prob.batch_count},
+                    {prob.row_stride_b, prob.col_stride_a, prob.batch_stride_a}
+                };
             freeIndex[0].i  = 0;
             boundIndex[0].a = 1;
         }
@@ -159,28 +174,40 @@ namespace
         // If B is transposed, swap the free and bound dimensions and their ranks
         if(prob.trans_b != rocblas_operation_none)
         {
-            b = {Tensile_Ti, {prob.n, k, prob.batch_count}, {1, prob.ld_b, prob.stride_b}};
+            b = {
+                    Tensile_Ti,
+                    {prob.n, k, prob.batch_count},
+                    {prob.row_stride_b, prob.col_stride_b, prob.batch_stride_b}
+                };
             freeIndex[1].i  = 0;
             boundIndex[0].b = 1;
         }
         else
         {
-            b = {Tensile_Ti, {k, prob.n, prob.batch_count}, {1, prob.ld_b, prob.stride_b}};
+            b = {
+                    Tensile_Ti,
+                    {k, prob.n, prob.batch_count},
+                    {prob.row_stride_b, prob.col_stride_b, prob.batch_stride_b}
+                };
             freeIndex[1].i  = 1;
             boundIndex[0].b = 0;
         }
+
+        // clang-format on
 
         // If B is complex and conjugated, add a ComplexConjugate op to bops
         if(is_complex<Ti> && prob.trans_b == rocblas_operation_conjugate_transpose)
             bops.push_back(Tensile::TensorOp::Type::ComplexConjugate);
 
         // Descriptor for input matrix C
-        Tensile::TensorDescriptor c{
-            Tensile_To, {prob.m, prob.n, prob.batch_count}, {1, prob.ld_c, prob.stride_c}};
+        Tensile::TensorDescriptor c{Tensile_To,
+                                    {prob.m, prob.n, prob.batch_count},
+                                    {prob.row_stride_c, prob.col_stride_c, prob.batch_stride_c}};
 
         // Descriptor for output matrix D
-        Tensile::TensorDescriptor d{
-            Tensile_To, {prob.m, prob.n, prob.batch_count}, {1, prob.ld_d, prob.stride_d}};
+        Tensile::TensorDescriptor d{Tensile_To,
+                                    {prob.m, prob.n, prob.batch_count},
+                                    {prob.row_stride_c, prob.col_stride_d, prob.batch_stride_d}};
 
         // The ContractionProblem
         Tensile::ContractionProblem tensileProblem{a,
@@ -240,7 +267,7 @@ namespace
      * Construct the inputs to a Tensile ContractionProblem        *
      ***************************************************************/
     template <typename Ti, typename To, typename Tc>
-    inline auto GetTensileInputs(const RocblasContractionProblem<Ti, To, Tc>& problem)
+    inline auto GetTensileInputs(const RocblasContractionProblem<Ti, To, Tc>& prob)
     {
         // Tensile types corresponding to Ti, To, Tc
         using Tensile_Ti          = typename rocblas_to_tensile_type<Ti>::tensile_type;
@@ -267,19 +294,19 @@ namespace
             inputs;
 
         // Set the A, B, C, D matrices pointers in Tensile
-        inputs.a = reinterpret_cast<const Tensile_Ti*>(problem.A);
-        inputs.b = reinterpret_cast<const Tensile_Ti*>(problem.B);
-        inputs.c = reinterpret_cast<const Tensile_To*>(problem.C);
-        inputs.d = reinterpret_cast<Tensile_To*>(problem.D);
+        inputs.a = reinterpret_cast<const Tensile_Ti*>(prob.A);
+        inputs.b = reinterpret_cast<const Tensile_Ti*>(prob.B);
+        inputs.c = reinterpret_cast<const Tensile_To*>(prob.C);
+        inputs.d = reinterpret_cast<Tensile_To*>(prob.D);
 
         // alpha and beta are stored by value in Tensile::TypedContractionInputs
         // alpha and beta are copied from host to Tensile::TypedContractionInputs
         // We set alpha = 0 if k == 0 (see above)
-        if(problem.k == 0)
+        if(prob.k == 0)
             memset(&inputs.alpha, 0, sizeof(inputs.alpha));
         else
-            AlphaBeta<Ti, To, Tc>::copy(&inputs.alpha, problem.alpha);
-        AlphaBeta<Ti, To, Tc>::copy(&inputs.beta, problem.beta);
+            AlphaBeta<Ti, To, Tc>::copy(&inputs.alpha, prob.alpha);
+        AlphaBeta<Ti, To, Tc>::copy(&inputs.beta, prob.beta);
 
         return inputs;
     }
@@ -314,10 +341,8 @@ namespace
             std::string path;
             path.reserve(PATH_MAX);
 
-            auto pAMDGPU = std::dynamic_pointer_cast<Tensile::AMDGPU>(hardware);
-
             // The name of the current GPU platform
-            std::string processor = "gfx" + std::to_string(_rocblas_handle::device_arch_id());
+            std::string processor = rocblas_get_arch_name();
 
             const char* env = getenv("ROCBLAS_TENSILE_LIBPATH");
             if(env)
@@ -326,16 +351,19 @@ namespace
             }
             else
             {
+#ifndef ROCBLAS_STATIC_LIB
                 Dl_info info;
 
                 // Find the location of librocblas.so
                 // Fall back on hard-coded path if static library or not found
+
                 if(dladdr((void*)rocblas_initialize, &info))
                 {
                     path = info.dli_fname;
                     path = std::string{dirname(&path[0])};
                 }
                 else
+#endif
                 {
                     path = "/opt/rocm/rocblas/lib";
                 }
@@ -375,7 +403,11 @@ namespace
             }
             globfree(&glob_result);
 
+#ifdef TENSILE_YAML
             path += "/TensileLibrary.yaml";
+#else
+            path += "/TensileLibrary.dat";
+#endif
             if(!TestPath(path))
             {
                 rocblas_cerr << "\nrocBLAS error: Cannot read " << path << ": " << strerror(errno)
@@ -400,12 +432,12 @@ namespace
     }
     catch(const std::exception& e)
     {
-        rocblas_cerr << "\nCould not initialize Tensile host: " << e.what() << std::endl;
+        rocblas_cerr << "\nCould not initialize Tensile host:\n" << e.what() << std::endl;
         rocblas_abort();
     }
     catch(...)
     {
-        rocblas_cerr << "\nCould not initialize Tensile host: Unknown exception thrown"
+        rocblas_cerr << "\nCould not initialize Tensile host:\nUnknown exception thrown"
                      << std::endl;
         rocblas_abort();
     }
@@ -418,10 +450,9 @@ namespace
 template <typename Ti, typename To, typename Tc>
 rocblas_status runContractionProblem(const RocblasContractionProblem<Ti, To, Tc>& prob)
 {
-    TensileHost&   host   = getTensileHost();
-    rocblas_status status = rocblas_status_internal_error;
-
+    rocblas_status                                status = rocblas_status_internal_error;
     std::shared_ptr<Tensile::ContractionSolution> solution;
+    TensileHost&                                  host = getTensileHost();
 
     try
     {
@@ -436,29 +467,20 @@ rocblas_status runContractionProblem(const RocblasContractionProblem<Ti, To, Tc>
         }
         else
         {
-            auto inputs = GetTensileInputs(prob);
-            auto result = solution->solve(tensile_prob, inputs, *host.hardware);
             auto handle = prob.handle;
-
-            if(handle->startEvent && handle->stopEvent)
-            {
-                hipStream_t stream;
-                rocblas_get_stream(handle, &stream);
-                host.adapter.launchKernels(result, stream, handle->startEvent, handle->stopEvent);
-            }
-            else
-            {
-                host.adapter.launchKernels(result);
-            }
-
+            host.adapter.launchKernels(
+                solution->solve(tensile_prob, GetTensileInputs(prob), *host.hardware),
+                handle->rocblas_stream,
+                handle->startEvent,
+                handle->stopEvent);
             status = rocblas_status_success;
         }
     }
     catch(const std::exception& e)
     {
         static int once = (rocblas_cerr << "Error: " << (solution ? "" : "No ")
-                                        << "Tensile solution found, but " << e.what()
-                                        << " exception thown for " << prob << std::endl,
+                                        << "Tensile solution found, but exception thown for "
+                                        << prob << e.what() << std::endl,
                            0);
     }
     catch(...)

@@ -75,12 +75,12 @@ void testing_set_get_matrix(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(rocblas_get_matrix(rows, cols, sizeof(T), dc, ldc, hb, ldb));
 
         // reference calculation
-        cpu_time_used = get_time_us();
+        cpu_time_used = get_time_us_no_sync();
         for(int i1 = 0; i1 < rows; i1++)
             for(int i2 = 0; i2 < cols; i2++)
                 hb_gold[i1 + i2 * ldb] = ha[i1 + i2 * lda];
 
-        cpu_time_used = get_time_us() - cpu_time_used;
+        cpu_time_used = get_time_us_no_sync() - cpu_time_used;
         cpu_bandwidth = (rows * cols * sizeof(T)) / cpu_time_used / 1e3;
 
         if(arg.unit_check)
@@ -97,7 +97,7 @@ void testing_set_get_matrix(const Arguments& arg)
     if(arg.timing)
     {
         int number_timing_iterations = arg.iters;
-        gpu_time_used                = get_time_us(); // in microseconds
+        gpu_time_used                = get_time_us_sync_device(); // in microseconds
 
         for(int iter = 0; iter < number_timing_iterations; iter++)
         {
@@ -105,7 +105,7 @@ void testing_set_get_matrix(const Arguments& arg)
             rocblas_get_matrix(rows, cols, sizeof(T), dc, ldc, hb, ldb);
         }
 
-        gpu_time_used = get_time_us() - gpu_time_used;
+        gpu_time_used = get_time_us_sync_device() - gpu_time_used;
         rocblas_bandwidth
             = (rows * cols * sizeof(T)) / gpu_time_used / 1e3 / number_timing_iterations;
 

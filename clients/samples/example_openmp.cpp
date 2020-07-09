@@ -73,7 +73,7 @@ int main()
 
     printf("N        rocblas(us)     \n");
 
-    gpu_time_used = get_time_us(); // in microseconds
+    gpu_time_used = get_time_us_sync_device(); // in microseconds
 
 // 1st parallel rocblas routine call : scal x
 // spawn openmp threads
@@ -111,7 +111,7 @@ int main()
         hipStreamSynchronize(streams[thread_id]);
     }
 
-    gpu_time_used = get_time_us() - gpu_time_used;
+    gpu_time_used = get_time_us_sync_device() - gpu_time_used;
 
     // copy output from device to CPU
     hipMemcpy(hx.data(), dy, sizeof(float) * N * NUM_THREADS, hipMemcpyDeviceToHost);

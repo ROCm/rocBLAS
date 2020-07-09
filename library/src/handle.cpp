@@ -225,11 +225,13 @@ extern "C" bool rocblas_is_managing_device_memory(rocblas_handle handle)
  *  @brief Logging function
  *
  *  @details
- *  open_log_stream Open stream log_os for logging.
+ *  open_log_stream Return a stream opened for logging.
  *                  If the environment variable with name environment_variable_name
- *                  is not set, then stream log_os to standard error.
- *                  Else open a file at the full logfile path contained in
- *                  the environment variable.
+ *                  is set, then it indicates the name of the file to be opened.
+ *                  If the environment variable with name environment_variable_name
+ *                  is not set, and the environment variable ROCBLAS_LOG_PATH is set,
+ *                  then ROCBLAS_LOG_PATH indicates the name of the file to open.
+ *                  Otherwise open the stream to stderr.
  *
  *  @param[in]
  *  environment_variable_name   const char*
@@ -239,12 +241,11 @@ extern "C" bool rocblas_is_managing_device_memory(rocblas_handle handle)
 
 static auto open_log_stream(const char* environment_variable_name)
 {
-    // if environment variable is set, open file at logfile_pathname contained in the
-    // environment variable; else use standard error
-    const char* logfile_pathname = getenv(environment_variable_name);
-
-    return logfile_pathname ? std::make_unique<rocblas_ostream>(logfile_pathname)
-                            : std::make_unique<rocblas_ostream>(STDERR_FILENO);
+    const char* logfile;
+    return (logfile = getenv(environment_variable_name)) != nullptr
+                   || (logfile = getenv("ROCBLAS_LOG_PATH")) != nullptr
+               ? std::make_unique<rocblas_ostream>(logfile)
+               : std::make_unique<rocblas_ostream>(STDERR_FILENO);
 }
 
 /*******************************************************************************

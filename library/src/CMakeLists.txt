@@ -33,9 +33,9 @@ if( BUILD_WITH_TENSILE )
     set( ROCBLAS_SHARED_LIBS ON )
     set( BUILD_SHARED_LIBS OFF )
   else( )
+    set( ROCBLAS_SHARED_LIBS OFF )
     if( BUILD_WITH_TENSILE_HOST )
-        #list( APPEND package_targets Tensile TensileHost )
-      list( APPEND package_targets TensileHost )
+      #list( APPEND package_targets Tensile TensileHost )
     else()
       list( APPEND package_targets Tensile )
     endif()
@@ -58,6 +58,7 @@ if( BUILD_WITH_TENSILE )
       ${Tensile_COMPILER}
       ${Tensile_CODE_OBJECT_VERSION}
       ${Tensile_ARCHITECTURE}
+      ${Tensile_LIBRARY_FORMAT}
       ${Tensile_MERGE_FILES}
       ${Tensile_SHORT_FILENAMES}
       ${Tensile_PRINT_DEBUG}
@@ -65,15 +66,11 @@ if( BUILD_WITH_TENSILE )
       ${USE_LEGACY_CODE}
    )
 
-  ## Create a unique name for Tensile compiled for rocBLAS
-  #  set_target_properties( Tensile PROPERTIES OUTPUT_NAME rocblas-tensile CXX_EXTENSIONS NO )
   # build gemm with Tensile Host library
   if( BUILD_WITH_TENSILE_HOST )
-      # Create a unique name for Tensile compiled for rocBLAS
-      set_target_properties( TensileHost PROPERTIES OUTPUT_NAME rocblas-tensile CXX_EXTENSIONS NO )
-      #target_compile_definitions( Tensile PUBLIC USE_TENSILE_HOST )
-      target_compile_definitions( TensileHost PUBLIC USE_TENSILE_HOST )
-      #endif()
+    # Create a unique name for TensileHost compiled for rocBLAS
+    set_target_properties( TensileHost PROPERTIES OUTPUT_NAME rocblas-tensile CXX_EXTENSIONS NO )
+    target_compile_definitions( TensileHost PUBLIC USE_TENSILE_HOST )
   else()
     # Create a unique name for Tensile compiled for rocBLAS
     set_target_properties( Tensile PROPERTIES OUTPUT_NAME rocblas-tensile CXX_EXTENSIONS NO )
@@ -140,6 +137,7 @@ if( BUILD_WITH_TENSILE )
     blas_ex/rocblas_gemm_ex.cpp
     blas_ex/rocblas_gemm_batched_ex.cpp
     blas_ex/rocblas_gemm_strided_batched_ex.cpp
+    blas_ex/rocblas_gemm_ext2.cpp
   )
 
   set( rocblas_blas3_source
@@ -376,7 +374,50 @@ target_include_directories( rocblas
 if( BUILD_WITH_TENSILE )
   if( BUILD_WITH_TENSILE_HOST )
       #target_link_libraries( rocblas PRIVATE Tensile TensileHost )
-    target_link_libraries( rocblas PRIVATE TensileHost )
+      if( BUILD_SHARED_LIBS )
+        target_link_libraries( rocblas PRIVATE TensileHost )
+      else()
+        target_compile_definitions( rocblas PRIVATE ROCBLAS_STATIC_LIB )
+
+        # bypassing cmake dependencies chain for static link as it won't allow target from different directory
+
+        # including tensile headers into rocblas tensileHost client so get compile properties
+        get_target_property(TensileHost_INCLUDES TensileHost INCLUDE_DIRECTORIES)
+        target_include_directories( rocblas PRIVATE ${TensileHost_INCLUDES} )
+        get_target_property(TensileHost_DEFINES TensileHost COMPILE_DEFINITIONS)
+        target_compile_definitions( rocblas PRIVATE ${TensileHost_DEFINES} )
+
+        get_target_property( TensileHost_LIBDIR TensileHost BINARY_DIR )
+
+        message (STATUS "TensileHost_INCLUDES == ${TensileHost_INCLUDES}")
+        message (STATUS "TensileHost_DEFINES == ${TensileHost_DEFINES}")
+        message (STATUS "TensileHost_LIBDIR == ${TensileHost_LIBDIR}")
+
+        # recreate LLVM static dependencies
+        if (${Tensile_LIBRARY_FORMAT} STREQUAL "yaml")
+          find_package(LLVM 6.0 QUIET CONFIG)
+          if(NOT LLVM_FOUND)
+              find_package(LLVM 7.0 QUIET CONFIG)
+              if(NOT LLVM_FOUND)
+                  find_package(LLVM 9.0 QUIET CONFIG)
+                  if(NOT LLVM_FOUND)
+                      find_package(LLVM REQUIRED CONFIG)
+                  endif()
+              endif()
+          endif()
+          find_library(LLVMObjectYAML_LIBRARY
+            NAMES LLVMObjectYAML
+            PATHS ${LLVM_LIBRARY_DIR})
+          message("LLVMObjectYAML_LIBRARY: ${LLVMObjectYAML_LIBRARY}")
+
+          target_link_libraries(rocblas PRIVATE LLVMObjectYAML )  # match tensile
+        endif()
+
+        # to get TensileHost built first, not to link target
+        # as dependency chain can not be created
+        add_dependencies(rocblas TensileHost)
+
+      endif()
   else()
     target_link_libraries( rocblas PRIVATE Tensile )
   endif()
@@ -406,9 +447,27 @@ add_custom_command( TARGET rocblas PRE_BUILD
   WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
 )
 
-# Following Boost conventions of prefixing 'lib' on static built libraries, across all platforms
+
 if( NOT BUILD_SHARED_LIBS )
+  # Following Boost conventions of prefixing 'lib' on static built libraries, across all platforms
   set_target_properties( rocblas PROPERTIES PREFIX "lib" )
+
+  if( BUILD_WITH_TENSILE AND BUILD_WITH_TENSILE_HOST )
+    add_custom_command( TARGET rocblas POST_BUILD
+      COMMAND
+        python3 ${CMAKE_CURRENT_SOURCE_DIR}/merge_archives.py
+      ARGS
+        -v
+        -o "$<TARGET_LINKER_FILE:rocblas>"
+        --ar "${CMAKE_AR}"
+        -L "${TensileHost_LIBDIR}"
+        "$<TARGET_LINKER_FILE:rocblas>"
+        "librocblas-tensile.a"
+      WORKING_DIRECTORY "${PROJECT_BINARY_DIR}"
+      COMMENT "Merging rocblas-tensile library into rocblas"
+      )
+  endif()
+
 endif( )
 
 ############################################################
@@ -436,12 +495,33 @@ endif()
 
 #         PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ WORLD_EXECUTE WORLD_READ
 
-rocm_export_targets(
-  TARGETS roc::rocblas
-  PREFIX rocblas
-  DEPENDS PACKAGE hip
-  NAMESPACE roc::
- )
+if( BUILD_SHARED_LIBS )
+  rocm_export_targets(
+    TARGETS roc::rocblas
+    PREFIX rocblas
+    DEPENDS PACKAGE hip
+    NAMESPACE roc::
+    )
+else()
+  if (${Tensile_LIBRARY_FORMAT} STREQUAL "msgpack")
+    rocm_export_targets(
+      TARGETS roc::rocblas
+      PREFIX rocblas
+      DEPENDS PACKAGE hip
+      STATIC_DEPENDS PACKAGE msgpack
+      NAMESPACE roc::
+      )
+  else()
+    rocm_export_targets(
+      TARGETS roc::rocblas
+      PREFIX rocblas
+      DEPENDS PACKAGE hip
+      STATIC_DEPENDS PACKAGE LLVM
+      NAMESPACE roc::
+      )
+  endif()
+endif()
+
 
 rocm_install_symlink_subdir( rocblas )
 

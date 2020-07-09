@@ -126,7 +126,7 @@ public:
     //!
     //! @brief Cast to a double pointer.
     //!
-    operator T**()
+    operator T* *()
     {
         return this->m_data;
     }
@@ -134,7 +134,7 @@ public:
     //!
     //! @brief Constant cast to a double pointer.
     //!
-    operator const T* const*()
+    operator const T* const *()
     {
         return this->m_data;
     }

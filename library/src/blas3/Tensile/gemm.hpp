@@ -364,6 +364,29 @@ inline rocblas_status tensile_helper(const rocblas_double_complex& alpha_h,
 
 #endif // USE_TENSILE_HOST
 
+/*********************************************************************************
+ * Right now Tensile requires alpha and beta to be passed by value on host.      *
+ * If in device pointer mode, copy alpha and beta to host.                       *
+ * If k == 0, we set alpha = 0 instead of copying from device.                   *
+ * TODO: Make this asynchronous, putting synchronization closer to Tensile call. *
+ *********************************************************************************/
+template <typename T, typename Tc>
+rocblas_status copy_alpha_beta_to_host_if_on_device(
+    rocblas_handle handle, const T*& alpha, const T*& beta, Tc& alpha_h, Tc& beta_h, rocblas_int k)
+{
+    if(handle->pointer_mode == rocblas_pointer_mode_device)
+    {
+        if(k == 0)
+            alpha_h = 0;
+        else
+            RETURN_IF_HIP_ERROR(hipMemcpy(&alpha_h, alpha, sizeof(Tc), hipMemcpyDeviceToHost));
+        RETURN_IF_HIP_ERROR(hipMemcpy(&beta_h, beta, sizeof(Tc), hipMemcpyDeviceToHost));
+        alpha = &alpha_h;
+        beta  = &beta_h;
+    }
+    return rocblas_status_success;
+}
+
 /*******************************************************************************
  * Tensile Function call
  ******************************************************************************/
@@ -505,7 +528,7 @@ inline rocblas_status validateArgs(rocblas_handle    handle,
  * ===========================================================================
  */
 
-template <bool BATCHED, bool STRIDED, typename T, typename U, typename V>
+template <bool BATCHED, typename T, typename U, typename V>
 ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_gemm_template(rocblas_handle    handle,
                                                              rocblas_operation trans_a,
                                                              rocblas_operation trans_b,
@@ -533,26 +556,16 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_gemm_template(rocblas_handle    h
         return rocblas_status_success;
 
     T alpha_h, beta_h;
-
-    // Right now Tensile requires alpha and beta to be passed by value on host.
-    // If in device pointer mode, copy alpha and beta to host.
-    // TODO: Make this asynchronous, putting synchronization in closer to Tensile call.
-    if(handle->pointer_mode == rocblas_pointer_mode_device)
-    {
-        if(k)
-            RETURN_IF_HIP_ERROR(hipMemcpy(&alpha_h, alpha, sizeof(T), hipMemcpyDeviceToHost));
-        else
-            alpha_h = 0;
-        alpha = &alpha_h;
-        RETURN_IF_HIP_ERROR(hipMemcpy(&beta_h, beta, sizeof(T), hipMemcpyDeviceToHost));
-        beta = &beta_h;
-    }
+    RETURN_IF_ROCBLAS_ERROR(
+        copy_alpha_beta_to_host_if_on_device(handle, alpha, beta, alpha_h, beta_h, k));
 
     // When beta == 1 and either k == 0 or alpha == 0, the operation is a no-op
     if(*beta == 1 && (k == 0 || *alpha == 0))
         return rocblas_status_success;
 
     rocblas_status status = rocblas_status_success;
+
+    // TODO: Use C++17 constexpr if
     if(BATCHED)
     {
         // We cannot do this with a device array, so array of pointers must be on host for now
@@ -595,15 +608,6 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_gemm_template(rocblas_handle    h
     }
     else
     {
-        // If STRIDED == false, compute the strides from the sizes of the arrays
-        // so that they are interpreted as consecutive matrices in memory
-        if(!STRIDED)
-        {
-            stride_a = ld_a * (trans_a == rocblas_operation_none ? k : m);
-            stride_b = ld_b * (trans_b == rocblas_operation_none ? n : k);
-            stride_c = ld_c * n;
-        }
-
         // The (T*) casts are to prevent template deduction errors when BATCHED==true and the A, B, C
         // pointers are pointers to arrays of pointers. constexpr if(BATCHED) above could avoid this.
         status = call_tensile(handle,

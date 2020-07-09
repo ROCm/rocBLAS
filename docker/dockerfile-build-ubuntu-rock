@@ -59,3 +59,9 @@ RUN mkdir -p ${ROCBLAS_SRC_ROOT} && cd ${ROCBLAS_SRC_ROOT} && \
     cmake -DBUILD_BOOST=OFF ${ROCBLAS_SRC_ROOT}/deps && \
     make -j $(nproc) install && \
     rm -rf ${ROCBLAS_SRC_ROOT}
+
+# Install msgpack
+RUN wget -nv -P ./ "http://ftp.us.debian.org/debian/pool/main/m/msgpack-c/libmsgpack-dev_3.0.1-3_amd64.deb" && \
+    wget -nv -P ./ "http://ftp.us.debian.org/debian/pool/main/m/msgpack-c/libmsgpackc2_3.0.1-3_amd64.deb" && \
+    dpkg -i ./libmsgpack-dev_3.0.1-3_amd64.deb ./libmsgpackc2_3.0.1-3_amd64.deb && \
+    rm libmsgpack-dev_3.0.1-3_amd64.deb libmsgpackc2_3.0.1-3_amd64.deb

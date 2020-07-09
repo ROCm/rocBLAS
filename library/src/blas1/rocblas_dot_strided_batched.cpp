@@ -53,6 +53,8 @@ namespace
                                                            rocblas_int    batch_count,
                                                            T*             results)
     {
+        static constexpr int WIN = rocblas_dot_WIN<T>();
+
         if(!handle)
             return rocblas_status_invalid_handle;
 

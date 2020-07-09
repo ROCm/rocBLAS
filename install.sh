@@ -33,6 +33,7 @@ rocBLAS build & installation helper script
            --skipldconf          Skip ld.so.conf entry
            --static              Create static library instead of shared library
       -v | --rocm-dev            Set specific rocm-dev version
+           --[no-]msgpack        Set Tensile backend to use MessagePack
 EOF
 #           --prefix              Specify an alternate CMAKE_INSTALL_PREFIX for cmake
 }
@@ -126,6 +127,21 @@ install_zypper_packages( )
     done
 }
 
+install_msgpack_from_source( )
+{
+    if [[ ! -d "${build_dir}/deps/msgpack-c" ]]; then
+      pushd .
+      mkdir -p ${build_dir}/deps
+      cd ${build_dir}/deps
+      git clone -b cpp-3.0.1 https://github.com/msgpack/msgpack-c.git
+      cd msgpack-c
+      ${cmake_executable} .
+      make
+      elevate_if_not_root make install
+      popd
+    fi
+}
+
 # Take an array of packages as input, and delegate the work to the appropriate distro installer
 # prereq: ${ID} must be defined before calling
 # prereq: ${build_clients} must be defined before calling
@@ -144,7 +160,7 @@ install_packages( )
   # dependencies needed to build the rocblas library
   local library_dependencies_ubuntu=( "make" "cmake-curses-gui" "pkg-config"
                                       "python2.7" "python3" "python-yaml" "python3-yaml" "python3*-distutils" "python3-venv" "python3*-pip"
-                                      "llvm-6.0-dev" "zlib1g-dev" "wget")
+                                      "llvm-6.0-dev" "zlib1g-dev" "wget" "libmsgpack-dev" "libmsgpackc2" )
   local library_dependencies_centos_rhel=( "epel-release"
                                       "make" "cmake3" "rpm-build"
                                       "python34" "PyYAML" "python3*-PyYAML" "python3*-distutils-extra" "python3-virtualenv"
@@ -155,14 +171,26 @@ install_packages( )
                                       "gcc-c++" "zlib-devel" "wget" "llvm-devel" "llvm-static" )
   local library_dependencies_fedora=( "make" "cmake" "rpm-build"
                                       "python34" "PyYAML" "python3*-PyYAML" "python3*-distutils-extra" "python3-virtualenv"
-                                      "gcc-c++" "libcxx-devel" "zlib-devel" "wget" "llvm7.0-devel" "llvm7.0-static" )
-  local library_dependencies_sles=(   "make" "cmake" "python3-PyYAM" "python3-distutils-extra" "python3-virtualenv"
+                                      "gcc-c++" "libcxx-devel" "zlib-devel" "wget" "llvm7.0-devel" "llvm7.0-static"
+                                      "msgpack-devel" "msgpack" )
+  local library_dependencies_sles=(   "make" "cmake" "python3-PyYAML" "python3-virtualenv"
                                       "gcc-c++" "libcxxtools9" "rpm-build" "wget" "llvm7-devel" )
 
   if [[ ( "${ID}" != "centos" ) || ( "${VERSION_ID}" -ge 7 ) ]]; then
     # On CentOS-7 and greater, RPM packages for LLVM-7.0 are available. For earlier CentOS versions,
     # we must build modern LLVM versions from src.
     library_dependencies_centos_rhel+=( "llvm7.0-devel" "llvm7.0-static" )
+  fi
+
+  if [[ ("${ID}" == "ubuntu") && ("${VERSION_ID}" == "16.04") ]]; then
+    # On Ubuntu 16.04, the version of msgpack provided in the repository is outdated, so a newer version
+    # must be manually downloaded and installed.  Trying to match or exceed Ubuntu 18 default
+    if ! $(dpkg -s "libmsgpackc2" &> /dev/null) || $(dpkg --compare-versions $(dpkg-query -f='${Version}' --show libmsgpackc2) lt 2.1.5-1); then
+      wget -nv -P ./ "http://ftp.us.debian.org/debian/pool/main/m/msgpack-c/libmsgpackc2_3.0.1-3_amd64.deb"
+      wget -nv -P ./ "http://ftp.us.debian.org/debian/pool/main/m/msgpack-c/libmsgpack-dev_3.0.1-3_amd64.deb"
+      elevate_if_not_root dpkg -i ./libmsgpackc2_3.0.1-3_amd64.deb ./libmsgpack-dev_3.0.1-3_amd64.deb
+      rm libmsgpack-dev_3.0.1-3_amd64.deb libmsgpackc2_3.0.1-3_amd64.deb
+    fi
   fi
 
   if [[ "${build_hip_clang}" == false ]]; then
@@ -183,6 +211,12 @@ install_packages( )
       library_dependencies_sles+=( "${custom_rocm_dev}" )
     fi
   fi
+
+  case "${ID}" in
+    centos|rhel|sles|opensuse-leap)
+      install_msgpack_from_source
+      ;;
+  esac
 
   # dependencies to build the client
   local client_dependencies_ubuntu=( "gfortran" "libomp-dev" "libboost-program-options-dev")
@@ -230,7 +264,7 @@ install_packages( )
       ;;
 
     sles|opensuse-leap)
-       install_zypper_packages "${client_dependencies_sles[@]}"
+       install_zypper_packages "${library_dependencies_sles[@]}"
 
         if [[ "${build_clients}" == true ]]; then
             install_zypper_packages "${client_dependencies_sles[@]}"
@@ -288,13 +322,14 @@ tensile_version=
 build_clients=false
 ignore_cuda=false
 build_tensile=true
-build_tensile_host=false
+build_tensile_host=true
 cpu_ref_lib=blis
 build_release=true
 build_hip_clang=true
 build_dir=./build
 skip_ld_conf_entry=false
 static_lib=false
+tensile_msgpack_backend=false
 
 rocm_path=/opt/rocm
 if ! [ -z ${ROCM_PATH+x} ]; then
@@ -308,7 +343,7 @@ fi
 # check if we have a modern version of getopt that can handle whitespace and long parameters
 getopt -T
 if [[ $? -eq 4 ]]; then
-  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,no-hip-clang,merge-files,no-merge-files,no_tensile,no-tensile,tensile-host,no-tensile-host,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,static,ignore-cuda,rocm-dev: --options nsrhicdgl:a:o:f:b:t:u:v: -- "$@")
+  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,no-hip-clang,merge-files,no-merge-files,no_tensile,no-tensile,tensile-host,no-tensile-host,msgpack,no-msgpack,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,static,ignore-cuda,rocm-dev: --options nsrhicdgl:a:o:f:b:t:u:v: -- "$@")
 else
   echo "Need a new version of getopt"
   exit 1
@@ -402,6 +437,12 @@ while true; do
     --prefix)
         install_prefix=${2}
         shift 2 ;;
+    --msgpack)
+        tensile_msgpack_backend=true
+        shift ;;
+    --no-msgpack)
+        tensile_msgpack_backend=false
+        shift ;;
     --) shift ; break ;;
     *)  echo "Unexpected command line parameter received; aborting";
         exit 1
@@ -564,6 +605,12 @@ pushd .
   fi
   if [[ "${tensile_merge_files}" == false ]]; then
     tensile_opt="${tensile_opt} -DTensile_MERGE_FILES=OFF"
+  fi
+
+  if [[ "${tensile_msgpack_backend}" == true ]]; then
+    tensile_opt="${tensile_opt} -DTensile_LIBRARY_FORMAT=msgpack"
+  else
+    tensile_opt="${tensile_opt} -DTensile_LIBRARY_FORMAT=yaml"
   fi
 
   cmake_common_options="${cmake_common_options} ${tensile_opt}"

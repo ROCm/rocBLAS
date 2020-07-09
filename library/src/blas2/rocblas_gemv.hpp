@@ -113,129 +113,261 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_gemv_template(rocblas_handle    h
     else if(transA == rocblas_operation_transpose)
     {
         // transpose
-        // number of columns on the y-dim of the grid
-        static constexpr int NB = 256;
-        dim3                 gemvt_grid(n, batch_count);
-        dim3                 gemvt_threads(NB);
-
-        if(handle->pointer_mode == rocblas_pointer_mode_device)
+        static constexpr bool CONJ = false;
+        if(m <= 64 && batch_count > 8) // few rows, e.g. qmcpack
         {
-            hipLaunchKernelGGL((gemvt_kernel<NB, T>),
-                               gemvt_grid,
-                               gemvt_threads,
-                               0,
-                               rocblas_stream,
-                               m,
-                               n,
-                               alpha,
-                               stride_alpha,
-                               A,
-                               offseta,
-                               lda,
-                               strideA,
-                               x,
-                               shiftx,
-                               incx,
-                               stridex,
-                               beta,
-                               stride_beta,
-                               y,
-                               shifty,
-                               incy,
-                               stridey);
+            // number of columns on the y-dim of the grid
+            static constexpr int NB = 256;
+            dim3                 gemvtsm_grid(batch_count);
+            dim3                 gemvtsm_threads(NB);
+            if(handle->pointer_mode == rocblas_pointer_mode_device)
+            {
+                hipLaunchKernelGGL((gemvtsm_kernel<CONJ, NB, T>),
+                                   gemvtsm_grid,
+                                   gemvtsm_threads,
+                                   0,
+                                   rocblas_stream,
+                                   m,
+                                   n,
+                                   alpha,
+                                   stride_alpha,
+                                   A,
+                                   offseta,
+                                   lda,
+                                   strideA,
+                                   x,
+                                   shiftx,
+                                   incx,
+                                   stridex,
+                                   beta,
+                                   stride_beta,
+                                   y,
+                                   shifty,
+                                   incy,
+                                   stridey);
+            }
+            else
+            {
+                if(!*alpha && *beta == 1)
+                    return rocblas_status_success;
+
+                hipLaunchKernelGGL((gemvtsm_kernel<CONJ, NB, T>),
+                                   gemvtsm_grid,
+                                   gemvtsm_threads,
+                                   0,
+                                   rocblas_stream,
+                                   m,
+                                   n,
+                                   *alpha,
+                                   stride_alpha,
+                                   A,
+                                   offseta,
+                                   lda,
+                                   strideA,
+                                   x,
+                                   shiftx,
+                                   incx,
+                                   stridex,
+                                   *beta,
+                                   stride_beta,
+                                   y,
+                                   shifty,
+                                   incy,
+                                   stridey);
+            }
         }
         else
         {
-            if(!*alpha && *beta == 1)
-                return rocblas_status_success;
+            // number of columns on the y-dim of the grid
+            static constexpr int NB = 256;
+            dim3                 gemvt_grid(n, batch_count);
+            dim3                 gemvt_threads(NB);
+            if(handle->pointer_mode == rocblas_pointer_mode_device)
+            {
+                hipLaunchKernelGGL((gemvt_kernel<CONJ, NB, T>),
+                                   gemvt_grid,
+                                   gemvt_threads,
+                                   0,
+                                   rocblas_stream,
+                                   m,
+                                   n,
+                                   alpha,
+                                   stride_alpha,
+                                   A,
+                                   offseta,
+                                   lda,
+                                   strideA,
+                                   x,
+                                   shiftx,
+                                   incx,
+                                   stridex,
+                                   beta,
+                                   stride_beta,
+                                   y,
+                                   shifty,
+                                   incy,
+                                   stridey);
+            }
+            else
+            {
+                if(!*alpha && *beta == 1)
+                    return rocblas_status_success;
 
-            hipLaunchKernelGGL((gemvt_kernel<NB, T>),
-                               gemvt_grid,
-                               gemvt_threads,
-                               0,
-                               rocblas_stream,
-                               m,
-                               n,
-                               *alpha,
-                               stride_alpha,
-                               A,
-                               offseta,
-                               lda,
-                               strideA,
-                               x,
-                               shiftx,
-                               incx,
-                               stridex,
-                               *beta,
-                               stride_beta,
-                               y,
-                               shifty,
-                               incy,
-                               stridey);
+                hipLaunchKernelGGL((gemvt_kernel<CONJ, NB, T>),
+                                   gemvt_grid,
+                                   gemvt_threads,
+                                   0,
+                                   rocblas_stream,
+                                   m,
+                                   n,
+                                   *alpha,
+                                   stride_alpha,
+                                   A,
+                                   offseta,
+                                   lda,
+                                   strideA,
+                                   x,
+                                   shiftx,
+                                   incx,
+                                   stridex,
+                                   *beta,
+                                   stride_beta,
+                                   y,
+                                   shifty,
+                                   incy,
+                                   stridey);
+            }
         }
     }
     else // conjugate transpose
     {
+        static constexpr bool CONJ = true;
         // conjugate transpose
-        // number of columns on the y-dim of the grid
-        static constexpr int NB = 256;
-        dim3                 gemvc_grid(n, batch_count);
-        dim3                 gemvc_threads(NB);
 
-        if(handle->pointer_mode == rocblas_pointer_mode_device)
+        if(m <= 64 && batch_count > 8) // few rows, e.g. qmcpack
         {
-            hipLaunchKernelGGL((gemvc_kernel<NB, T>),
-                               gemvc_grid,
-                               gemvc_threads,
-                               0,
-                               rocblas_stream,
-                               m,
-                               n,
-                               alpha,
-                               stride_alpha,
-                               A,
-                               offseta,
-                               lda,
-                               strideA,
-                               x,
-                               shiftx,
-                               incx,
-                               stridex,
-                               beta,
-                               stride_beta,
-                               y,
-                               shifty,
-                               incy,
-                               stridey);
+            // number of columns on the y-dim of the grid
+            static constexpr int NB = 256;
+            dim3                 gemvtsm_grid(batch_count);
+            dim3                 gemvtsm_threads(NB);
+            if(handle->pointer_mode == rocblas_pointer_mode_device)
+            {
+                hipLaunchKernelGGL((gemvtsm_kernel<CONJ, NB, T>),
+                                   gemvtsm_grid,
+                                   gemvtsm_threads,
+                                   0,
+                                   rocblas_stream,
+                                   m,
+                                   n,
+                                   alpha,
+                                   stride_alpha,
+                                   A,
+                                   offseta,
+                                   lda,
+                                   strideA,
+                                   x,
+                                   shiftx,
+                                   incx,
+                                   stridex,
+                                   beta,
+                                   stride_beta,
+                                   y,
+                                   shifty,
+                                   incy,
+                                   stridey);
+            }
+            else
+            {
+                if(!*alpha && *beta == 1)
+                    return rocblas_status_success;
+
+                hipLaunchKernelGGL((gemvtsm_kernel<CONJ, NB, T>),
+                                   gemvtsm_grid,
+                                   gemvtsm_threads,
+                                   0,
+                                   rocblas_stream,
+                                   m,
+                                   n,
+                                   *alpha,
+                                   stride_alpha,
+                                   A,
+                                   offseta,
+                                   lda,
+                                   strideA,
+                                   x,
+                                   shiftx,
+                                   incx,
+                                   stridex,
+                                   *beta,
+                                   stride_beta,
+                                   y,
+                                   shifty,
+                                   incy,
+                                   stridey);
+            }
         }
         else
         {
-            if(!*alpha && *beta == 1)
-                return rocblas_status_success;
+            // number of columns on the y-dim of the grid
+            static constexpr int NB = 256;
+            dim3                 gemvt_grid(n, batch_count);
+            dim3                 gemvt_threads(NB);
 
-            hipLaunchKernelGGL((gemvc_kernel<NB, T>),
-                               gemvc_grid,
-                               gemvc_threads,
-                               0,
-                               rocblas_stream,
-                               m,
-                               n,
-                               *alpha,
-                               stride_alpha,
-                               A,
-                               offseta,
-                               lda,
-                               strideA,
-                               x,
-                               shiftx,
-                               incx,
-                               stridex,
-                               *beta,
-                               stride_beta,
-                               y,
-                               shifty,
-                               incy,
-                               stridey);
+            if(handle->pointer_mode == rocblas_pointer_mode_device)
+            {
+                hipLaunchKernelGGL((gemvt_kernel<CONJ, NB, T>),
+                                   gemvt_grid,
+                                   gemvt_threads,
+                                   0,
+                                   rocblas_stream,
+                                   m,
+                                   n,
+                                   alpha,
+                                   stride_alpha,
+                                   A,
+                                   offseta,
+                                   lda,
+                                   strideA,
+                                   x,
+                                   shiftx,
+                                   incx,
+                                   stridex,
+                                   beta,
+                                   stride_beta,
+                                   y,
+                                   shifty,
+                                   incy,
+                                   stridey);
+            }
+            else
+            {
+                if(!*alpha && *beta == 1)
+                    return rocblas_status_success;
+
+                hipLaunchKernelGGL((gemvt_kernel<CONJ, NB, T>),
+                                   gemvt_grid,
+                                   gemvt_threads,
+                                   0,
+                                   rocblas_stream,
+                                   m,
+                                   n,
+                                   *alpha,
+                                   stride_alpha,
+                                   A,
+                                   offseta,
+                                   lda,
+                                   strideA,
+                                   x,
+                                   shiftx,
+                                   incx,
+                                   stridex,
+                                   *beta,
+                                   stride_beta,
+                                   y,
+                                   shifty,
+                                   incy,
+                                   stridey);
+            }
         }
     }
     return rocblas_status_success;

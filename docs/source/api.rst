@@ -71,7 +71,7 @@ rocblas_pointer_mode_host then scalar parameters must be allocated on
 the host. If rocblas_pointer_mode == rocblas_pointer_mode_device, then
 scalar parameters must be allocated on the device.
 
-There are two types of scalar parameter: 
+There are two types of scalar parameter:
 
 * scaling parameters like alpha and beta used in functions like axpy, gemv, gemm 2
 
@@ -101,9 +101,9 @@ rocBLAS functions will be asynchronous unless:
 * the function returns a scalar result from GPU to CPU
 
 The order of operations in the asynchronous functions is as in the figure
-below. The argument checking, calculation of process grid, and kernel 
-launch take very little time. The asynchronous kernel running on the GPU 
-does not block the CPU. After the kernel launch the CPU keeps processing 
+below. The argument checking, calculation of process grid, and kernel
+launch take very little time. The asynchronous kernel running on the GPU
+does not block the CPU. After the kernel launch the CPU keeps processing
 the next instructions.
 
 .. asynch_blocks
@@ -115,7 +115,7 @@ the next instructions.
 
 
 The above order of operations will change if there is logging, or if the
-function is synchronous. Logging requires system calls, and the program 
+function is synchronous. Logging requires system calls, and the program
 will need to wait for them to complete before executing the next instruction.
 See the Logging section for more information.
 
@@ -129,8 +129,8 @@ executing the next instruction. See the Device Memory Allocation section for mor
 The following functions copy a scalar result from GPU to CPU if
 rocblas_pointer_mode == rocblas_pointer_mode_host: asum, dot, max, min, nrm2.
 
-This makes the function synchronous, as the program will need to wait 
-for the copy before executing the next instruction. See the section on 
+This makes the function synchronous, as the program will need to wait
+for the copy before executing the next instruction. See the section on
 Pointer Mode for more information
 
 .. note:: Set rocblas_pointer_mode to rocblas_pointer_mode_device make the function asynchronous by keeping the result on the GPU.

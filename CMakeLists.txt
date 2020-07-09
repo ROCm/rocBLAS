@@ -138,7 +138,7 @@ get_os_id(OS_ID)
 message (STATUS "OS detected is ${OS_ID}")
 
 # Versioning via rocm-cmake
-set ( VERSION_STRING "2.24.0" )
+set ( VERSION_STRING "2.26.0" )
 rocm_setup_version( VERSION ${VERSION_STRING} )
 
 # Append our library helper cmake path and the cmake path for hip (for convenience)
@@ -177,6 +177,7 @@ if( BUILD_WITH_TENSILE )
   set_property( CACHE Tensile_LOGIC PROPERTY STRINGS asm_full asm_lite asm_miopen hip_lite other )
   set_property( CACHE Tensile_CODE_OBJECT_VERSION PROPERTY STRINGS V2 V3 )
   set_property( CACHE Tensile_COMPILER PROPERTY STRINGS hcc hipcc)
+  set_property( CACHE Tensile_LIBRARY_FORMAT PROPERTY STRINGS msgpack yaml)
 
   include(virtualenv)
   if (Tensile_TEST_LOCAL_PATH)
@@ -195,7 +196,7 @@ if( BUILD_WITH_TENSILE )
   if (TENSILE_VERSION)
     find_package(Tensile ${TENSILE_VERSION} EXACT REQUIRED HIP LLVM OpenMP PATHS "${INSTALLED_TENSILE_PATH}")
   else()
-    find_package(Tensile 4.20.0 EXACT REQUIRED HIP LLVM OpenMP PATHS "${INSTALLED_TENSILE_PATH}")
+    find_package(Tensile 4.21.0 EXACT REQUIRED HIP LLVM OpenMP PATHS "${INSTALLED_TENSILE_PATH}")
   endif()
 endif()
 

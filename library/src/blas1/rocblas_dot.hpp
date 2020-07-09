@@ -102,7 +102,7 @@ __inline__ __device__ rocblas_half wavefront_reduce(rocblas_half val)
 }
 
 template <rocblas_int NB, typename T>
-__inline__ __device__ T block_reduce(T val)
+__inline__ __device__ T rocblas_dot_block_reduce(T val)
 {
     __shared__ T psums[warpSize];
 
@@ -129,17 +129,65 @@ __inline__ __device__ T block_reduce(T val)
 }
 
 template <rocblas_int NB, rocblas_int WIN, bool CONJ, typename T, typename U, typename V = T>
-__global__ void deviceReduceKernelDot(rocblas_int n,
-                                      const U __restrict__ xa,
-                                      ptrdiff_t      shiftx,
-                                      rocblas_int    incx,
-                                      rocblas_stride stridex,
-                                      const U __restrict__ ya,
-                                      ptrdiff_t   shifty,
-                                      rocblas_int incy,
-                                      rocblas_int stridey,
-                                      V* __restrict__ workspace,
-                                      T* __restrict__ out)
+__global__ __launch_bounds__(NB) void rocblas_dot_kernel_inc1(rocblas_int n,
+                                                              const U __restrict__ xa,
+                                                              ptrdiff_t      shiftx,
+                                                              rocblas_stride stridex,
+                                                              const U __restrict__ ya,
+                                                              ptrdiff_t   shifty,
+                                                              rocblas_int stridey,
+                                                              V* __restrict__ workspace,
+                                                              T* __restrict__ out)
+{
+    const T* x = load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex);
+    const T* y = load_ptr_batch(ya, hipBlockIdx_y, shifty, stridey);
+
+    V sum = 0;
+
+    int inc = hipBlockDim_x * hipGridDim_x * WIN;
+
+    int i = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * WIN;
+
+    int remainder = n % WIN;
+    int end       = n - remainder;
+    for(; i < end; i += inc)
+    {
+        const T* xvec = x + i;
+        const T* yvec = y + i;
+        for(int j = 0; j < WIN; j++)
+        {
+            sum += V(yvec[j]) * V(CONJ ? conj(xvec[j]) : xvec[j]);
+        }
+    }
+
+    if(hipBlockIdx_x == 0 && hipThreadIdx_x < remainder)
+    {
+        int idx = n - 1 - hipThreadIdx_x;
+        sum += V(y[idx]) * V(CONJ ? conj(x[idx]) : x[idx]);
+    }
+
+    sum = rocblas_dot_block_reduce<NB>(sum);
+
+    if(hipThreadIdx_x == 0)
+    {
+        workspace[hipBlockIdx_x + hipBlockIdx_y * hipGridDim_x] = sum;
+        if(hipGridDim_x == 1) // small N avoid second kernel
+            out[hipBlockIdx_y] = T(sum);
+    }
+}
+
+template <rocblas_int NB, rocblas_int WIN, bool CONJ, typename T, typename U, typename V = T>
+__global__ __launch_bounds__(NB, 1) void rocblas_dot_kernel(rocblas_int n,
+                                                            const U __restrict__ xa,
+                                                            ptrdiff_t      shiftx,
+                                                            rocblas_int    incx,
+                                                            rocblas_stride stridex,
+                                                            const U __restrict__ ya,
+                                                            ptrdiff_t   shifty,
+                                                            rocblas_int incy,
+                                                            rocblas_int stridey,
+                                                            V* __restrict__ workspace,
+                                                            T* __restrict__ out)
 {
     const T* x = load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex);
     const T* y = load_ptr_batch(ya, hipBlockIdx_y, shifty, stridey);
@@ -154,7 +202,7 @@ __global__ void deviceReduceKernelDot(rocblas_int n,
     {
         sum += V(y[i * incy]) * V(CONJ ? conj(x[i * incx]) : x[i * incx]);
     }
-    sum = block_reduce<NB>(sum);
+    sum = rocblas_dot_block_reduce<NB>(sum);
 
     if(hipThreadIdx_x == 0)
     {
@@ -165,13 +213,13 @@ __global__ void deviceReduceKernelDot(rocblas_int n,
 }
 
 template <rocblas_int NB, rocblas_int WIN, bool CONJ, typename T, typename U, typename V = T>
-__global__ void deviceReduceKernelDotMagSq(rocblas_int n,
-                                           const U __restrict__ xa,
-                                           ptrdiff_t      shiftx,
-                                           rocblas_int    incx,
-                                           rocblas_stride stridex,
-                                           V* __restrict__ workspace,
-                                           T* __restrict__ out)
+__global__ void __launch_bounds__(NB) rocblas_dot_kernel_magsq(rocblas_int n,
+                                                               const U __restrict__ xa,
+                                                               ptrdiff_t      shiftx,
+                                                               rocblas_int    incx,
+                                                               rocblas_stride stridex,
+                                                               V* __restrict__ workspace,
+                                                               T* __restrict__ out)
 {
     const T* x = load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex);
 
@@ -185,7 +233,7 @@ __global__ void deviceReduceKernelDotMagSq(rocblas_int n,
     {
         sum += V(x[i * incx]) * V(CONJ ? conj(x[i * incx]) : x[i * incx]);
     }
-    sum = block_reduce<NB>(sum);
+    sum = rocblas_dot_block_reduce<NB>(sum);
 
     if(hipThreadIdx_x == 0)
     {
@@ -195,21 +243,32 @@ __global__ void deviceReduceKernelDotMagSq(rocblas_int n,
     }
 }
 
-template <rocblas_int NB, typename V, typename T = V>
-__global__ void deviceReduceKernel(rocblas_int n_sums, V* __restrict__ in, T* __restrict__ out)
+template <rocblas_int NB, rocblas_int WIN, typename V, typename T = V>
+__global__ __launch_bounds__(NB) void rocblas_dot_kernel_reduce(rocblas_int n_sums,
+                                                                V* __restrict__ in,
+                                                                T* __restrict__ out)
 {
     V sum = 0;
 
-    // reduce multiple elements per thread
     int offset = hipBlockIdx_y * n_sums;
     in += offset;
-    for(int i = hipThreadIdx_x; i < n_sums;
-        i += hipBlockDim_x * hipGridDim_x) // cover all sums as 1 block
+
+    int inc = hipBlockDim_x * hipGridDim_x * WIN;
+
+    int i         = hipThreadIdx_x * WIN;
+    int remainder = n_sums % WIN;
+    int end       = n_sums - remainder;
+    for(; i < end; i += inc) // cover all sums as 1 block
     {
-        sum += in[i];
+        for(int j = 0; j < WIN; j++)
+            sum += in[i + j];
+    }
+    if(hipThreadIdx_x < remainder)
+    {
+        sum += in[n_sums - 1 - hipThreadIdx_x];
     }
 
-    sum = block_reduce<NB>(sum);
+    sum = rocblas_dot_block_reduce<NB>(sum);
     if(hipThreadIdx_x == 0)
         out[hipBlockIdx_y] = T(sum);
 }
@@ -234,8 +293,20 @@ size_t rocblas_dot_kernel_workspace_size(rocblas_int n, rocblas_int batch_count 
 }
 */
 
-// work item N. number of elements to process
-static constexpr int WIN = 8;
+// work item number (WIN) of elements to process
+template <typename T>
+constexpr int rocblas_dot_WIN()
+{
+    size_t nb = sizeof(T);
+
+    int n = 8;
+    if(nb >= 8)
+        n = 2;
+    else if(nb >= 4)
+        n = 4;
+
+    return n;
+}
 
 // assume workspace has already been allocated, recommened for repeated calling of dot_strided_batched product
 // routine
@@ -257,6 +328,8 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_dot_template(rocblas_handle __res
     // One or two kernels are used to finish the reduction
     // kernel 1 write partial results per thread block in workspace, number of partial results is blocks
     // kernel 2 if blocks > 1 the partial results in workspace are reduced to output
+
+    static constexpr int WIN = rocblas_dot_WIN<T>();
 
     // Quick return if possible.
     if(n <= 0 || batch_count == 0)
@@ -295,26 +368,46 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_dot_template(rocblas_handle __res
 
     if(x != y || incx != incy || offsetx != offsety || stridex != stridey)
     {
-        hipLaunchKernelGGL((deviceReduceKernelDot<NB, WIN, CONJ, T>),
-                           grid,
-                           threads,
-                           0,
-                           handle->rocblas_stream,
-                           n,
-                           x,
-                           shiftx,
-                           incx,
-                           stridex,
-                           y,
-                           shifty,
-                           incy,
-                           stridey,
-                           workspace,
-                           output);
+        if(incx == 1 && incy == 1 && sizeof(T) >= 8)
+        {
+            hipLaunchKernelGGL((rocblas_dot_kernel_inc1<NB, WIN, CONJ, T>),
+                               grid,
+                               threads,
+                               0,
+                               handle->rocblas_stream,
+                               n,
+                               x,
+                               shiftx,
+                               stridex,
+                               y,
+                               shifty,
+                               stridey,
+                               workspace,
+                               output);
+        }
+        else
+        {
+            hipLaunchKernelGGL((rocblas_dot_kernel<NB, WIN, CONJ, T>),
+                               grid,
+                               threads,
+                               0,
+                               handle->rocblas_stream,
+                               n,
+                               x,
+                               shiftx,
+                               incx,
+                               stridex,
+                               y,
+                               shifty,
+                               incy,
+                               stridey,
+                               workspace,
+                               output);
+        }
     }
     else // x dot x
     {
-        hipLaunchKernelGGL((deviceReduceKernelDotMagSq<NB, WIN, CONJ, T>),
+        hipLaunchKernelGGL((rocblas_dot_kernel_magsq<NB, WIN, CONJ, T>),
                            grid,
                            threads,
                            0,
@@ -328,12 +421,11 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_dot_template(rocblas_handle __res
                            output);
     }
 
-    int reduction_blocks = (blocks - 1) / (NB * WIN) + 1;
     if(handle->pointer_mode == rocblas_pointer_mode_device)
     {
         if(blocks > 1) // if single block first kernel did all work
-            hipLaunchKernelGGL(deviceReduceKernel<NB>,
-                               dim3(reduction_blocks, batch_count),
+            hipLaunchKernelGGL((rocblas_dot_kernel_reduce<NB, WIN>),
+                               dim3(1, batch_count),
                                threads,
                                0,
                                handle->rocblas_stream,
@@ -345,8 +437,8 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_dot_template(rocblas_handle __res
     {
 
         if(blocks > 1) // if single block first kernel did all work
-            hipLaunchKernelGGL(deviceReduceKernel<NB>,
-                               dim3(reduction_blocks, batch_count),
+            hipLaunchKernelGGL((rocblas_dot_kernel_reduce<NB, WIN>),
+                               dim3(1, batch_count),
                                threads,
                                0,
                                handle->rocblas_stream,

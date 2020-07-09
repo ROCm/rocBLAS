@@ -40,28 +40,7 @@ public:
     _rocblas_handle();
     ~_rocblas_handle();
 
-    /*******************************************************************************
-     * set stream:
-        This API assumes user has already created a valid stream
-        Associate the following rocblas API call with this user provided stream
-     ******************************************************************************/
-    rocblas_status set_stream(hipStream_t user_stream)
-    {
-        // TODO: check the user_stream valid or not
-        rocblas_stream = user_stream;
-        return rocblas_status_success;
-    }
-
-    /*******************************************************************************
-     * get stream
-     ******************************************************************************/
-    rocblas_status get_stream(hipStream_t* stream) const
-    {
-        *stream = rocblas_stream;
-        return rocblas_status_success;
-    }
-
-    rocblas_int     device;
+    int             device;
     hipDeviceProp_t device_properties;
 
     // rocblas by default take the system default stream 0 users cannot create
@@ -82,12 +61,6 @@ public:
     std::unique_ptr<rocblas_ostream> log_bench_os;
     std::unique_ptr<rocblas_ostream> log_profile_os;
     void                             init_logging();
-
-    static int device_arch_id()
-    {
-        static int id = get_device_arch_id();
-        return id;
-    }
 
     // C interfaces for manipulating device memory
     friend rocblas_status(::rocblas_start_device_memory_size_query)(_rocblas_handle*);
@@ -139,7 +112,16 @@ public:
     // Temporarily change pointer mode, returning object which restores old mode when destroyed
     auto push_pointer_mode(rocblas_pointer_mode mode)
     {
-        return _pushed_pointer_mode(this, mode);
+        return _pushed_state<rocblas_pointer_mode>(pointer_mode, mode);
+    }
+
+    // Whether to use any_order scheduling in Tensile calls
+    bool any_order = false;
+
+    // Temporarily change any_order flag
+    auto push_any_order(bool new_any_order)
+    {
+        return _pushed_state<bool>(any_order, new_any_order);
     }
 
 private:
@@ -259,46 +241,39 @@ private:
         _device_malloc& operator=(_device_malloc&&) = default;
     };
 
-    static int get_device_arch_id()
+private:
+    // Class for temporarily modifying a state, restoring it on destruction
+    template <typename STATE>
+    class _pushed_state
     {
-        int deviceId;
-        hipGetDevice(&deviceId);
-        hipDeviceProp_t deviceProperties;
-        hipGetDeviceProperties(&deviceProperties, deviceId);
-        return deviceProperties.gcnArch;
-    }
-
-    // Temporarily change the pointer mode
-    class _pushed_pointer_mode
-    {
-        const rocblas_handle       handle;
-        const rocblas_pointer_mode old_mode;
+        STATE&      state;
+        const STATE old_state;
 
     public:
         // Constructor
-        _pushed_pointer_mode(rocblas_handle handle, rocblas_pointer_mode mode)
-            : handle(handle)
-            , old_mode(handle->pointer_mode)
+        _pushed_state(STATE& state, STATE new_state)
+            : state(state)
+            , old_state(state)
         {
-            handle->pointer_mode = mode;
+            state = new_state;
         }
 
-        // Temporary object implicitly converts to old pointer mode
-        operator rocblas_pointer_mode() const
+        // Temporary object implicitly converts to old state
+        operator STATE() const
         {
-            return old_mode;
+            return old_state;
         }
 
-        // Old pointer mode is restored on destruction
-        ~_pushed_pointer_mode()
+        // Old state is restored on destruction
+        ~_pushed_state()
         {
-            handle->pointer_mode = old_mode;
+            state = old_state;
         }
 
-        _pushed_pointer_mode(const _pushed_pointer_mode&) = default;
-        _pushed_pointer_mode(_pushed_pointer_mode&&)      = default;
-        _pushed_pointer_mode& operator=(const _pushed_pointer_mode&) = delete;
-        _pushed_pointer_mode& operator=(_pushed_pointer_mode&&) = delete;
+        _pushed_state(const _pushed_state&) = delete;
+        _pushed_state(_pushed_state&&)      = default;
+        _pushed_state& operator=(const _pushed_state&) = delete;
+        _pushed_state& operator=(_pushed_state&&) = delete;
     };
 };
 
