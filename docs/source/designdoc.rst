@@ -9,9 +9,6 @@ Design Documentation
    :caption: Contents:
 
    disclaimer
-   orga
-   contributing
-   addtest
    clients
    device_memory_design
    thread_safe_logging
