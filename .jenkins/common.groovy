@@ -19,6 +19,16 @@ def runCompileCommand(platform, project, jobName)
             hipccCompileFlags = "export HIPCC_COMPILE_FLAGS_APPEND='-O3 -Wno-format-nonliteral -parallel-jobs=2'"
         }
     }
+    if (env.BRANCH_NAME ==~ /PR-\d+/)
+    {
+        pullRequest.labels.each
+        {
+            if (it == "noTensile")
+            {
+                project.paths.build_command = "./install.sh -cn"
+            }
+        }
+    }
 
     def command = """#!/usr/bin/env bash
                 set -x

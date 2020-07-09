@@ -9,6 +9,7 @@ find_package( Threads REQUIRED )
 
 add_executable( example-sscal example_sscal.cpp ${rocblas_samples_common} )
 add_executable( example-scal-template example_scal_template.cpp ${rocblas_samples_common} )
+set( sample_list_base example-sscal example-scal-template)
 
 # Fortran example
 add_executable( example-fortran-axpy example_fortran_axpy.f90 )
@@ -18,13 +19,12 @@ add_executable( example-fortran-gemv example_fortran_gemv.f90 )
 if( BUILD_WITH_TENSILE )
   add_executable( example-sgemm example_sgemm.cpp ${rocblas_samples_common} )
   add_executable( example-sgemm-strided-batched example_sgemm_strided_batched.cpp ${rocblas_samples_common} )
+  add_executable( example-gemm-ext2 example_gemm_ext2.cpp ${rocblas_samples_common} )
+  set( sample_list_tensile example-sgemm example-sgemm-strided-batched example-gemm-ext2 )
 endif( )
 
 set( sample_list_fortran example-fortran-axpy example-fortran-scal example-fortran-gemv )
 set( sample_list_base example-sscal example-scal-template )
-if( BUILD_WITH_TENSILE )
-  set( sample_list_tensile example-sgemm example-sgemm-strided-batched )
-endif( )
 set( sample_list_all ${sample_list_base} ${sample_list_tensile} ${sample_list_fortran} )
 set( sample_list_no_fortran ${sample_list_base} ${sample_list_tensile} )
 foreach( exe ${sample_list_all} )

@@ -369,9 +369,6 @@ public:
         return os;
     }
 
-    enum rocblas_initialization : int;
-    friend rocblas_ostream& operator<<(rocblas_ostream& os, rocblas_initialization init);
-
     // Transfer rocblas_ostream to std::ostream
     friend std::ostream& operator<<(std::ostream& os, const rocblas_ostream& str)
     {

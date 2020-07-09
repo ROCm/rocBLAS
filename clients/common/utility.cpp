@@ -46,7 +46,7 @@ std::string rocblas_exepath()
 /*  timing:*/
 
 /*! \brief  CPU Timer(in microsecond): synchronize with the default device and return wall time */
-double get_time_us(void)
+double get_time_us_sync_device(void)
 {
     hipDeviceSynchronize();
     struct timespec tv;
@@ -58,6 +58,14 @@ double get_time_us(void)
 double get_time_us_sync(hipStream_t stream)
 {
     hipStreamSynchronize(stream);
+    struct timespec tv;
+    clock_gettime(CLOCK_MONOTONIC, &tv);
+    return tv.tv_sec * 1'000'000llu + (tv.tv_nsec + 500llu) / 1000;
+};
+
+/*! \brief  CPU Timer(in microsecond): no GPU synchronization */
+double get_time_us_no_sync(void)
+{
     struct timespec tv;
     clock_gettime(CLOCK_MONOTONIC, &tv);
     return tv.tv_sec * 1'000'000llu + (tv.tv_nsec + 500llu) / 1000;
@@ -103,12 +111,14 @@ rocblas_int query_device_property()
                 buf,
                 sizeof(buf),
                 "Device ID %d : %s\n"
-                "with %3.1f GB memory, clock rate %d MHz @ computing capability %d.%d \n"
+                "with %3.1f GB memory, max. SCLK %d MHz, max. MCLK %d MHz, compute capability "
+                "%d.%d\n"
                 "maxGridDimX %d, sharedMemPerBlock %3.1f KB, maxThreadsPerBlock %d, warpSize %d\n",
                 i,
                 props.name,
                 props.totalGlobalMem / 1e9,
                 (int)(props.clockRate / 1000),
+                (int)(props.memoryClockRate / 1000),
                 props.major,
                 props.minor,
                 props.maxGridSize[0],
@@ -144,8 +154,7 @@ bool match_test_category(const Arguments& arg, const char* category)
         static const std::regex regex{"[:, \\f\\n\\r\\t\\v]+", std::regex_constants::optimize};
 
         // The name of the current GPU platform
-        static const std::string platform
-            = "gfx" + std::to_string(_rocblas_handle::device_arch_id());
+        static const std::string platform = rocblas_get_arch_name();
 
         // Token iterator
         std::cregex_token_iterator iter{arg.known_bug_platforms,

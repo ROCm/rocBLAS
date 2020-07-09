@@ -72,7 +72,7 @@ void testing_set_get_vector(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(rocblas_set_vector(M, sizeof(T), hx, incx, db, incb));
         CHECK_ROCBLAS_ERROR(rocblas_get_vector(M, sizeof(T), db, incb, hy, incy));
 
-        cpu_time_used = get_time_us();
+        cpu_time_used = get_time_us_no_sync();
 
         // reference calculation
         for(int i = 0; i < M; i++)
@@ -80,7 +80,7 @@ void testing_set_get_vector(const Arguments& arg)
             hy_gold[i * incy] = hx[i * incx];
         }
 
-        cpu_time_used = get_time_us() - cpu_time_used;
+        cpu_time_used = get_time_us_no_sync() - cpu_time_used;
         cpu_bandwidth = (M * sizeof(T)) / cpu_time_used / 1e3;
 
         if(arg.unit_check)
@@ -96,8 +96,10 @@ void testing_set_get_vector(const Arguments& arg)
 
     if(arg.timing)
     {
-        int number_timing_iterations = arg.iters;
-        gpu_time_used                = get_time_us(); // in microseconds
+        int         number_timing_iterations = arg.iters;
+        hipStream_t stream;
+        CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
+        gpu_time_used = get_time_us_sync(stream); // in microseconds
 
         for(int iter = 0; iter < number_timing_iterations; iter++)
         {
@@ -105,7 +107,7 @@ void testing_set_get_vector(const Arguments& arg)
             rocblas_get_vector(M, sizeof(T), db, incb, hy, incy);
         }
 
-        gpu_time_used     = get_time_us() - gpu_time_used;
+        gpu_time_used     = get_time_us_sync(stream) - gpu_time_used;
         rocblas_bandwidth = (M * sizeof(T)) / gpu_time_used / 1e3 / number_timing_iterations;
 
         rocblas_cout << "M,incx,incy,incb,rocblas-GB/s";

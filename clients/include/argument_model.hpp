@@ -38,21 +38,22 @@ public:
 
         // per/us to per/sec *10^6
         double rocblas_gflops = gflops * batch_count * hot_calls / gpu_us * 1e6;
-        double cblas_gflops   = gflops * batch_count / cpu_us * 1e6;
-        double rocblas_GBps   = gbytes * batch_count / gpu_us * 1e6;
+        double rocblas_GBps   = gbytes * batch_count * hot_calls / gpu_us * 1e6;
+
+        double cblas_gflops = gflops * batch_count / cpu_us * 1e6;
 
         // append performance fields
         name_line << ",rocblas-Gflops,rocblas-GB/s,rocblas-us,";
-        val_line << "," << rocblas_gflops << "," << rocblas_GBps << "," << gpu_us << ",";
+        val_line << ", " << rocblas_gflops << ", " << rocblas_GBps << ", " << gpu_us << ", ";
 
         if(arg.unit_check || arg.norm_check)
         {
             name_line << "CPU-Gflops,CPU-us,";
-            val_line << cblas_gflops << "," << cpu_us << ",";
+            val_line << cblas_gflops << ", " << cpu_us << ", ";
             if(arg.norm_check)
             {
                 name_line << "norm_error_host_ptr,norm_error_device_ptr,";
-                val_line << norm1 << "," << norm2 << ",";
+                val_line << norm1 << ", " << norm2 << ", ";
             }
         }
     }

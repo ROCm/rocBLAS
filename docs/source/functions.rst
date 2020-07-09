@@ -921,10 +921,6 @@ rocblas_destroy_handle
 ----------------------
 .. doxygenfunction:: rocblas_destroy_handle
 
-rocblas_add_stream
-------------------
-.. doxygenfunction:: rocblas_add_stream
-
 rocblas_set_stream
 ------------------
 .. doxygenfunction:: rocblas_set_stream
@@ -1004,4 +1000,3 @@ Build Information
 rocblas_get_version_string
 ----------------------------
 .. doxygenfunction:: rocblas_get_version_string
-

@@ -124,17 +124,6 @@ module rocblas
     end interface
 
     interface
-        function rocblas_add_stream(handle, stream) &
-                result(c_int) &
-                bind(c, name = 'rocblas_add_stream')
-            use iso_c_binding
-            implicit none
-            type(c_ptr), value :: handle
-            type(c_ptr), value :: stream
-        end function rocblas_add_stream
-    end interface
-
-    interface
         function rocblas_set_stream(handle, stream) &
                 result(c_int) &
                 bind(c, name = 'rocblas_set_stream')

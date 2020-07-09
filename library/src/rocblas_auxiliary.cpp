@@ -5,7 +5,10 @@
 #include "handle.h"
 #include "logging.h"
 #include "rocblas-auxiliary.h"
+#include <cctype>
+#include <cstdlib>
 #include <memory>
+#include <string>
 
 /* ============================================================================================ */
 
@@ -71,7 +74,7 @@ try
         return rocblas_status_invalid_handle;
 
     // allocate on heap
-    *handle = new _rocblas_handle();
+    *handle = new _rocblas_handle;
 
     if((*handle)->layer_mode & rocblas_layer_mode_log_trace)
         log_trace(*handle, "rocblas_create_handle");
@@ -117,7 +120,8 @@ try
         return rocblas_status_invalid_handle;
     if(handle->layer_mode & rocblas_layer_mode_log_trace)
         log_trace(handle, "rocblas_set_stream", stream_id);
-    return handle->set_stream(stream_id);
+    handle->rocblas_stream = stream_id;
+    return rocblas_status_success;
 }
 catch(...)
 {
@@ -134,9 +138,12 @@ try
     // if handle not valid
     if(!handle)
         return rocblas_status_invalid_handle;
+    if(!stream_id)
+        return rocblas_status_invalid_pointer;
     if(handle->layer_mode & rocblas_layer_mode_log_trace)
         log_trace(handle, "rocblas_get_stream", *stream_id);
-    return handle->get_stream(stream_id);
+    *stream_id = handle->rocblas_stream;
+    return rocblas_status_success;
 }
 catch(...)
 {
@@ -989,4 +996,63 @@ extern "C" rocblas_status rocblas_set_start_stop_events(rocblas_handle handle,
     handle->startEvent = startEvent;
     handle->stopEvent  = stopEvent;
     return rocblas_status_success;
+}
+
+/*******************************************************************************
+ * GPU architecture-related functions
+ ******************************************************************************/
+
+// Emulate C++17 std::void_t
+template <typename...>
+using void_t = void;
+
+// By default, use gcnArch converted to a string prepended by gfx
+template <typename PROP, typename = void>
+struct ArchName
+{
+    std::string operator()(const PROP& prop)
+    {
+        return "gfx" + std::to_string(prop.gcnArch);
+    }
+};
+
+// If gcnArchName exists as a member, use it instead
+template <typename PROP>
+struct ArchName<PROP, void_t<decltype(PROP::gcnArchName)>>
+{
+    std::string operator()(const PROP& prop)
+    {
+        return prop.gcnArchName;
+    }
+};
+
+// Get architecture name
+extern "C" const char* rocblas_get_arch_name()
+{
+    static std::string arch_name = ArchName<hipDeviceProp_t>{}([] {
+        int deviceId;
+        hipGetDevice(&deviceId);
+        hipDeviceProp_t deviceProperties;
+        hipGetDeviceProperties(&deviceProperties, deviceId);
+        return deviceProperties;
+    }());
+    return arch_name.c_str();
+}
+
+// Whether Tensile supports ldc != ldd
+// We parse the GPU architecture name, skipping any initial letters (e.g., "gfx")
+// If there are not three or more characters after the initial letters, we assume false
+// If there are more than 3 characters or any non-digits after the initial letters, we assume true
+// Otherwise we assume true iff the value is greater than or equal to 906
+extern "C" bool tensile_supports_ldc_ne_ldd()
+{
+    static bool tensile_supports_ldc_ne_ldd = [] {
+        const char* name = rocblas_get_arch_name();
+        while(isalpha(*name))
+            ++name;
+        return name[0] && name[1] && name[2]
+               && (name[3] || !isdigit(name[0]) || !isdigit(name[1]) || !isdigit(name[2])
+                   || atoi(name) >= 906);
+    }();
+    return tensile_supports_ldc_ne_ldd;
 }

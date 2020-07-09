@@ -43,6 +43,12 @@ namespace
 
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
+        // Copy alpha and beta to host if on device
+        T alpha_h, beta_h;
+        RETURN_IF_ROCBLAS_ERROR(
+            copy_alpha_beta_to_host_if_on_device(handle, alpha, beta, alpha_h, beta_h, k));
+        auto saved_pointer_mode = handle->push_pointer_mode(rocblas_pointer_mode_host);
+
         // Perform logging
         auto layer_mode = handle->layer_mode;
         if(layer_mode
@@ -52,68 +58,46 @@ namespace
             auto trans_a_letter = rocblas_transpose_letter(trans_a);
             auto trans_b_letter = rocblas_transpose_letter(trans_b);
 
-            if(handle->pointer_mode == rocblas_pointer_mode_host)
-            {
-                if(layer_mode & rocblas_layer_mode_log_trace)
-                    log_trace(handle,
-                              rocblas_gemm_name<T>,
-                              trans_a,
-                              trans_b,
-                              m,
-                              n,
-                              k,
-                              log_trace_scalar_value(alpha),
-                              A,
-                              ld_a,
-                              B,
-                              ld_b,
-                              log_trace_scalar_value(beta),
-                              C,
-                              ld_c);
+            if(layer_mode & rocblas_layer_mode_log_trace)
+                log_trace(handle,
+                          rocblas_gemm_name<T>,
+                          trans_a,
+                          trans_b,
+                          m,
+                          n,
+                          k,
+                          log_trace_scalar_value(alpha),
+                          A,
+                          ld_a,
+                          B,
+                          ld_b,
+                          log_trace_scalar_value(beta),
+                          C,
+                          ld_c);
 
-                if(layer_mode & rocblas_layer_mode_log_bench)
-                {
-                    log_bench(handle,
-                              "./rocblas-bench -f gemm -r",
-                              rocblas_precision_string<T>,
-                              "--transposeA",
-                              trans_a_letter,
-                              "--transposeB",
-                              trans_b_letter,
-                              "-m",
-                              m,
-                              "-n",
-                              n,
-                              "-k",
-                              k,
-                              LOG_BENCH_SCALAR_VALUE(alpha),
-                              "--lda",
-                              ld_a,
-                              "--ldb",
-                              ld_b,
-                              LOG_BENCH_SCALAR_VALUE(beta),
-                              "--ldc",
-                              ld_c);
-                }
-            }
-            else
+            if(layer_mode & rocblas_layer_mode_log_bench)
             {
-                if(layer_mode & rocblas_layer_mode_log_trace)
-                    log_trace(handle,
-                              rocblas_gemm_name<T>,
-                              trans_a,
-                              trans_b,
-                              m,
-                              n,
-                              k,
-                              alpha,
-                              A,
-                              ld_a,
-                              B,
-                              ld_b,
-                              beta,
-                              C,
-                              ld_c);
+                log_bench(handle,
+                          "./rocblas-bench -f gemm -r",
+                          rocblas_precision_string<T>,
+                          "--transposeA",
+                          trans_a_letter,
+                          "--transposeB",
+                          trans_b_letter,
+                          "-m",
+                          m,
+                          "-n",
+                          n,
+                          "-k",
+                          k,
+                          LOG_BENCH_SCALAR_VALUE(alpha),
+                          "--lda",
+                          ld_a,
+                          "--ldb",
+                          ld_b,
+                          LOG_BENCH_SCALAR_VALUE(beta),
+                          "--ldc",
+                          ld_c);
             }
 
             if(layer_mode & rocblas_layer_mode_log_profile)
@@ -129,10 +113,14 @@ namespace
                             n,
                             "K",
                             k,
+                            "alpha",
+                            value_category(*alpha),
                             "lda",
                             ld_a,
                             "ldb",
                             ld_b,
+                            "beta",
+                            value_category(*beta),
                             "ldc",
                             ld_c);
         }
@@ -143,27 +131,27 @@ namespace
         if(validArgs != rocblas_status_continue)
             return validArgs;
 
-        return rocblas_gemm_template<false, false>(handle,
-                                                   trans_a,
-                                                   trans_b,
-                                                   m,
-                                                   n,
-                                                   k,
-                                                   alpha,
-                                                   A,
-                                                   0,
-                                                   ld_a,
-                                                   0,
-                                                   B,
-                                                   0,
-                                                   ld_b,
-                                                   0,
-                                                   beta,
-                                                   C,
-                                                   0,
-                                                   ld_c,
-                                                   0,
-                                                   1);
+        return rocblas_gemm_template<false>(handle,
+                                            trans_a,
+                                            trans_b,
+                                            m,
+                                            n,
+                                            k,
+                                            alpha,
+                                            A,
+                                            0,
+                                            ld_a,
+                                            0,
+                                            B,
+                                            0,
+                                            ld_b,
+                                            0,
+                                            beta,
+                                            C,
+                                            0,
+                                            ld_c,
+                                            0,
+                                            1);
     }
 }
 

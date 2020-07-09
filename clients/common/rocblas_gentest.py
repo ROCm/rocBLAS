@@ -555,7 +555,7 @@ def generate(test, function):
         if func in param['Functions']:
             test.update(param['Functions'][func])
         else:
-            test['function'] = func
+            test['function'] = func.rpartition('rocblas_')[2]
         generate(test, function)
         return
 
