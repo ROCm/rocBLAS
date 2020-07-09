@@ -128,14 +128,21 @@ add_subdirectory( src )
 # endif( )
 
 # Package specific CPACK vars
-if( NOT CXX_VERSION_STRING MATCHES "clang" )
-    set( RPM_REQUIREMENTS "rocm-dev >= 2.5.27" )
-    if( OS_ID_sles )
-      set( RPM_REQUIREMENTS "${RPM_REQUIREMENTS}, libLLVM7 >= 7.0.1")
-    endif()
-    set( CPACK_RPM_PACKAGE_REQUIRES ${RPM_REQUIREMENTS} )
-    set( CPACK_DEBIAN_PACKAGE_DEPENDS "rocm-dev (>= 2.5.27)" )
+if( HIP_RUNTIME STREQUAL "ROCclr")
+  set( RPM_REQUIREMENTS "hip-rocclr >= 3.5.0" )
+  set( CPACK_DEBIAN_PACKAGE_DEPENDS "hip-rocclr >= 3.5.0" )
+elseif( HIP_RUNTIME STREQUAL "cuda")
+  set( RPM_REQUIREMENTS "hip-nvcc >= 3.5.0" )
+  set( CPACK_DEBIAN_PACKAGE_DEPENDS "hip-nvcc >= 3.5.0" )
+else()
+  set( RPM_REQUIREMENTS "rocm-dev >= 2.5.27" )
+  set( CPACK_DEBIAN_PACKAGE_DEPENDS "rocm-dev >= 2.5.27" )
 endif()
+
+if( OS_ID_sles )
+  set( RPM_REQUIREMENTS "${RPM_REQUIREMENTS}, libLLVM7 >= 7.0.1")
+endif()
+set( CPACK_RPM_PACKAGE_REQUIRES ${RPM_REQUIREMENTS} )
 
 set( CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/../LICENSE.md" )
 
