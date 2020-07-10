@@ -179,6 +179,15 @@ if( BUILD_WITH_TENSILE )
   set_property( CACHE Tensile_COMPILER PROPERTY STRINGS hcc hipcc)
   set_property( CACHE Tensile_LIBRARY_FORMAT PROPERTY STRINGS msgpack yaml)
 
+  if(Tensile_LIBRARY_FORMAT MATCHES "yaml")
+    option(TENSILE_USE_LLVM      "Use LLVM for parsing config files." ON)
+    option(TENSILE_USE_MSGPACK   "Use msgpack for parsing config files." OFF)
+  else()
+    option(TENSILE_USE_LLVM      "Use LLVM for parsing config files." OFF)
+    option(TENSILE_USE_MSGPACK   "Use msgpack for parsing config files." ON)
+  endif()
+
+
   include(virtualenv)
   if (Tensile_TEST_LOCAL_PATH)
     virtualenv_install(${Tensile_TEST_LOCAL_PATH})
