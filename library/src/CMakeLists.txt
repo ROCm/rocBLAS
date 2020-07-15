@@ -335,6 +335,7 @@ if( DEFINED ENV{ROCM_RPATH} )
   set ( CMAKE_SHARED_LINKER_FLAGS " -Wl,--enable-new-dtags -Wl,--rpath,$ENV{ROCM_RPATH}" )
 endif( )
 
+target_link_libraries( rocblas INTERFACE hip::host )
 target_link_libraries( rocblas PRIVATE hip::device )
 
 set_target_properties( rocblas PROPERTIES CXX_STANDARD 14 CXX_STANDARD_REQUIRED ON )

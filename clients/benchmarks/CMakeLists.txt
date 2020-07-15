@@ -153,7 +153,7 @@ if( CUDA_FOUND )
 else( )
   # auto set in hip_common.h
   #target_compile_definitions( rocblas-bench PRIVATE __HIP_PLATFORM_HCC__ )
-  target_link_libraries( rocblas-bench PRIVATE hip::device )
+  target_link_libraries( rocblas-bench PRIVATE hip::host hip::device )
 endif( )
 
 if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
