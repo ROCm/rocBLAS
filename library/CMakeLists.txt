@@ -9,28 +9,25 @@
 # ########################################################################
 
 # ########################################################################
-# target_compile_features() override
+# target_compile_features() override for CUDA
 # ########################################################################
 function( target_compile_features target_name )
   # With Cmake v3.5, hipcc (with nvcc backend) does not work with target_compile_features
   # Turn on -std=c++14 manually
-  if( CMAKE_CXX_COMPILER MATCHES ".*/hipcc$|.*/nvcc$" )
+  if( CUDA_FOUND AND CMAKE_CXX_COMPILER MATCHES ".*/hipcc$|.*/nvcc$" )
     set_target_properties( ${target_name} PROPERTIES CXX_STANDARD 14 CXX_STANDARD_REQUIRED ON )
   else( )
     _target_compile_features( ${target_name} ${ARGN} )
   endif( )
 endfunction( )
 
-set(THREADS_PREFER_PTHREAD_FLAG ON)
-find_package(Threads REQUIRED)
-
 # ########################################################################
-# target_link_libraries() override
+# target_link_libraries() override for CUDA
 # ########################################################################
 function( target_link_libraries target_name )
   # hipcc takes care of finding hip library dependencies internally; remove
   # explicit mentions of them so cmake doesn't complain on nvcc path
-  if( CMAKE_CXX_COMPILER MATCHES ".*/hipcc$" )
+  if( CUDA_FOUND AND CMAKE_CXX_COMPILER MATCHES ".*/hipcc$|.*/nvcc$" )
     foreach( link_library ${ARGN} )
       if( (link_library MATCHES "^hip::|^hcc::") )
       else( )
@@ -50,6 +47,10 @@ endfunction( )
 # ########################################################################
 # Main
 # ########################################################################
+
+
+set(THREADS_PREFER_PTHREAD_FLAG ON)
+find_package(Threads REQUIRED)
 
 # This is incremented when the ABI to the library changes
 set( rocblas_SOVERSION 0.1 )
@@ -128,14 +129,21 @@ add_subdirectory( src )
 # endif( )
 
 # Package specific CPACK vars
-if( NOT CXX_VERSION_STRING MATCHES "clang" )
-    set( RPM_REQUIREMENTS "rocm-dev >= 2.5.27" )
-    if( OS_ID_sles )
-      set( RPM_REQUIREMENTS "${RPM_REQUIREMENTS}, libLLVM7 >= 7.0.1")
-    endif()
-    set( CPACK_RPM_PACKAGE_REQUIRES ${RPM_REQUIREMENTS} )
-    set( CPACK_DEBIAN_PACKAGE_DEPENDS "rocm-dev (>= 2.5.27)" )
+if( HIP_RUNTIME STREQUAL "ROCclr")
+  set( RPM_REQUIREMENTS "hip-rocclr >= 3.5.0" )
+  set( CPACK_DEBIAN_PACKAGE_DEPENDS "hip-rocclr (>= 3.5.0)" )
+elseif( HIP_RUNTIME STREQUAL "cuda")
+  set( RPM_REQUIREMENTS "hip-nvcc >= 3.5.0" )
+  set( CPACK_DEBIAN_PACKAGE_DEPENDS "hip-nvcc (>= 3.5.0)" )
+else()
+  set( RPM_REQUIREMENTS "rocm-dev >= 2.5.27" )
+  set( CPACK_DEBIAN_PACKAGE_DEPENDS "rocm-dev (>= 2.5.27)" )
 endif()
+
+if( OS_ID_sles )
+  set( RPM_REQUIREMENTS "${RPM_REQUIREMENTS}, libLLVM7 >= 7.0.1")
+endif()
+set( CPACK_RPM_PACKAGE_REQUIRES ${RPM_REQUIREMENTS} )
 
 set( CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/../LICENSE.md" )
 

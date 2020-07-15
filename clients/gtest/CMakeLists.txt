@@ -228,7 +228,7 @@ if( CUDA_FOUND )
 else( )
   # auto set in hip_common.h
   #target_compile_definitions( rocblas-test PRIVATE __HIP_PLATFORM_HCC__ )
-  target_link_libraries( rocblas-test PRIVATE hip::device )
+  target_link_libraries( rocblas-test PRIVATE hip::host hip::device )
 endif( )
 
 set( ROCBLAS_TEST_DATA "${PROJECT_BINARY_DIR}/staging/rocblas_gtest.data")
