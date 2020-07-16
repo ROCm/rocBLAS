@@ -29,7 +29,6 @@ set( sample_list_all ${sample_list_base} ${sample_list_tensile} ${sample_list_fo
 set( sample_list_no_fortran ${sample_list_base} ${sample_list_tensile} )
 foreach( exe ${sample_list_all} )
   target_link_libraries( ${exe} PRIVATE roc::rocblas )
-  target_link_libraries( ${exe} PRIVATE ${ROCM_PATH}/hip/lib/libhip_hcc.so )
 
   set_target_properties( ${exe} PROPERTIES CXX_EXTENSIONS NO )
   set_target_properties( ${exe} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )
@@ -71,12 +70,16 @@ foreach( exe ${sample_list_all} )
     # GCC or hip-clang needs specific flags to turn on f16c intrinsics
     target_compile_options( ${exe} PRIVATE -mf16c )
   endif( )
+
+  if( NOT CUDA_FOUND )
+    target_link_libraries( ${exe} PRIVATE hip::host )
+  endif()
 endforeach( )
 
 foreach( exe ${sample_list_no_fortran} )
   if( NOT CUDA_FOUND )
     target_link_libraries( ${exe} PRIVATE hip::device )
-  endif( )
+  endif()
 endforeach( )
 
 if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
