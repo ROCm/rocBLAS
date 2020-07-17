@@ -14,7 +14,7 @@ if( NOT DEFINED CMAKE_CONFIGURATION_TYPES AND NOT DEFINED CMAKE_BUILD_TYPE )
 endif()
 
 # This project may compile dependencies for clients
-project( rocblas-clients LANGUAGES CXX Fortran )
+project( rocblas-clients LANGUAGES CXX C Fortran )
 
 set(rocblas_f90_source_clients
     include/rocblas_fortran.f90
