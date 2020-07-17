@@ -1027,16 +1027,13 @@ struct ArchName<PROP, void_t<decltype(PROP::gcnArchName)>>
 };
 
 // Get architecture name
-extern "C" const char* rocblas_get_arch_name()
+std::string rocblas_get_arch_name()
 {
-    static std::string arch_name = ArchName<hipDeviceProp_t>{}([] {
-        int deviceId;
-        hipGetDevice(&deviceId);
-        hipDeviceProp_t deviceProperties;
-        hipGetDeviceProperties(&deviceProperties, deviceId);
-        return deviceProperties;
-    }());
-    return arch_name.c_str();
+    int deviceId;
+    hipGetDevice(&deviceId);
+    hipDeviceProp_t deviceProperties;
+    hipGetDeviceProperties(&deviceProperties, deviceId);
+    return ArchName<hipDeviceProp_t>{}(deviceProperties);
 }
 
 // Whether Tensile supports ldc != ldd
@@ -1044,15 +1041,14 @@ extern "C" const char* rocblas_get_arch_name()
 // If there are not three or more characters after the initial letters, we assume false
 // If there are more than 3 characters or any non-digits after the initial letters, we assume true
 // Otherwise we assume true iff the value is greater than or equal to 906
-extern "C" bool tensile_supports_ldc_ne_ldd()
+
+bool tensile_supports_ldc_ne_ldd()
 {
-    static bool tensile_supports_ldc_ne_ldd = [] {
-        const char* name = rocblas_get_arch_name();
-        while(isalpha(*name))
-            ++name;
-        return name[0] && name[1] && name[2]
-               && (name[3] || !isdigit(name[0]) || !isdigit(name[1]) || !isdigit(name[2])
-                   || atoi(name) >= 906);
-    }();
-    return tensile_supports_ldc_ne_ldd;
+    std::string arch_name = rocblas_get_arch_name();
+    const char* name      = arch_name.c_str();
+    while(isalpha(*name))
+        ++name;
+    return name[0] && name[1] && name[2]
+           && (name[3] || !isdigit(name[0]) || !isdigit(name[1]) || !isdigit(name[2])
+               || atoi(name) >= 906);
 }
