@@ -81,8 +81,7 @@ The device that is associated with a stream is whatever device was set at the ti
 ``hipStreamCreate()`` is called, or if no device was set, the default device.
 
 Users cannot switch the device in a handle between ``hipStreamCreate()`` and ``hipStreamDestroy()``. 
-If users want to change device, they must destroy the current handle, and create another
-handle.
+If users want to use another device, they should create another handle.
 
 rocBLAS never sets a device, it only queries using ``hipGetDevice()``). 
 If rocBLAS does not see a valid device, it returns an error message to 
