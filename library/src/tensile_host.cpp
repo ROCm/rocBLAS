@@ -29,6 +29,7 @@ extern "C" void rocblas_initialize() {}
 #include <Tensile/hip/HipHardware.hpp>
 #include <Tensile/hip/HipSolutionAdapter.hpp>
 #include <Tensile/hip/HipUtils.hpp>
+#include <atomic>
 #include <complex>
 #include <dlfcn.h>
 #include <exception>
@@ -36,6 +37,7 @@ extern "C" void rocblas_initialize() {}
 #include <iomanip>
 #include <libgen.h>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <type_traits>
 #include <unistd.h>
@@ -161,7 +163,7 @@ namespace
             a = {
                     Tensile_Ti,
                     {prob.m, k, prob.batch_count},
-                    {prob.row_stride_b, prob.col_stride_a, prob.batch_stride_a}
+                    {prob.row_stride_a, prob.col_stride_a, prob.batch_stride_a}
                 };
             freeIndex[0].i  = 0;
             boundIndex[0].a = 1;
@@ -312,16 +314,39 @@ namespace
     }
 
     /*************************************************
-     * The TensileHost class interfaces with Tensile *
+     * The TensileHost struct interfaces with Tensile *
      *************************************************/
     struct TensileHost
     {
-        /*******************
-         * Class variables *
-         *******************/
         std::shared_ptr<Tensile::MasterSolutionLibrary<Tensile::ContractionProblem>> library;
-        std::shared_ptr<Tensile::Hardware>                                           hardware;
-        Tensile::hip::SolutionAdapter                                                adapter;
+
+        struct adapter_s
+        {
+            std::atomic<Tensile::hip::SolutionAdapter*> adapter{nullptr};
+            std::mutex                                  mutex;
+        };
+
+        adapter_s* adapters = nullptr;
+        int        count    = 0;
+
+        TensileHost()
+        {
+            if(hipGetDeviceCount(&count) != hipSuccess)
+            {
+                rocblas_cerr
+                    << "\nrocBLAS error: Could not initialize Tensile host: No devices found"
+                    << std::endl;
+                rocblas_abort();
+            }
+            adapters = new adapter_s[count];
+        }
+
+        ~TensileHost()
+        {
+            for(int i = 0; i < count; ++i)
+                delete adapters[i].adapter;
+            delete[] adapters;
+        }
 
         /*******************************************************
          * Testpath() tests that a path exists and is readable *
@@ -331,12 +356,11 @@ namespace
             return access(path.c_str(), R_OK) == 0;
         }
 
-        /*************************************************************
-         * Constructor loads host according to environment variables *
-         * and default paths based on librocblas.so location and GPU *
-         *************************************************************/
-        TensileHost()
-            : hardware{Tensile::hip::GetCurrentDevice()}
+        /*********************************************************************
+         * Initialize adapter and library according to environment variables *
+         * and default paths based on librocblas.so location and GPU         *
+         *********************************************************************/
+        void initialize(Tensile::hip::SolutionAdapter& adapter)
         {
             std::string path;
             path.reserve(PATH_MAX);
@@ -391,54 +415,110 @@ namespace
             else
             {
                 if(g == GLOB_NOMATCH)
-                    rocblas_cerr << "\nrocBLAS warning: No paths matched " << dir
-                                 << ". Make sure that ROCBLAS_TENSILE_LIBPATH is set correctly."
-                                 << std::endl;
+                {
+                    static auto& once
+                        = rocblas_cerr
+                          << "\nrocBLAS warning: No paths matched " << dir
+                          << ". Make sure that ROCBLAS_TENSILE_LIBPATH is set correctly."
+                          << std::endl;
+                }
                 else
-                    rocblas_cerr << "rocBLAS warning: glob(\"" << dir << "\", ...) returned "
-                                 << (g == GLOB_ABORTED
-                                         ? "GLOB_ABORTED"
-                                         : g == GLOB_NOSPACE ? "GLOB_NOSPACE" : "an unknown error")
-                                 << "." << std::endl;
+                {
+                    static auto& once
+                        = rocblas_cerr
+                          << "\nrocBLAS warning: glob(\"" << dir << "\", ...) returned "
+                          << (g == GLOB_ABORTED
+                                  ? "GLOB_ABORTED"
+                                  : g == GLOB_NOSPACE ? "GLOB_NOSPACE" : "an unknown error")
+                          << "." << std::endl;
+                }
             }
             globfree(&glob_result);
 
+            // We initialize a local static variable with a lambda function call to avoid
+            // race conditions when multiple threads with different device IDs try to
+            // initialize library. This ensures that only one thread initializes library,
+            // and other threads trying to initialize library wait for it to complete.
+
+            static auto once = [&] {
 #ifdef TENSILE_YAML
-            path += "/TensileLibrary.yaml";
+                path += "/TensileLibrary.yaml";
 #else
-            path += "/TensileLibrary.dat";
+                path += "/TensileLibrary.dat";
 #endif
-            if(!TestPath(path))
+                if(!TestPath(path))
+                {
+                    rocblas_cerr << "\nrocBLAS error: Cannot read " << path << ": "
+                                 << strerror(errno) << std::endl;
+                    rocblas_abort();
+                }
+
+                library = std::dynamic_pointer_cast<
+                    Tensile::MasterSolutionLibrary<Tensile::ContractionProblem>>(
+                    Tensile::LoadLibraryFile<Tensile::ContractionProblem>(path));
+
+                return 0;
+            }();
+
+            if(!library)
             {
-                rocblas_cerr << "\nrocBLAS error: Cannot read " << path << ": " << strerror(errno)
+                rocblas_cerr << "\nrocBLAS error: Could not initialize Tensile library"
                              << std::endl;
                 rocblas_abort();
             }
-
-            library = std::dynamic_pointer_cast<
-                Tensile::MasterSolutionLibrary<Tensile::ContractionProblem>>(
-                Tensile::LoadLibraryFile<Tensile::ContractionProblem>(path));
         }
     };
 
-    /*****************************************************************************
-     * getTensileHost returns a TensileHost, initializing it on the first call   *
-     *****************************************************************************/
-    TensileHost& getTensileHost()
+    // Return the library and adapter for the current HIP device
+    Tensile::hip::SolutionAdapter& get_library_and_adapter(
+        std::shared_ptr<Tensile::MasterSolutionLibrary<Tensile::ContractionProblem>>& library)
     try
     {
-        static TensileHost host; // Create host on first call, caching it on later calls
-        return host;
+        // TensileHost is initialized on the first call
+        static TensileHost host;
+
+        int device;
+        hipGetDevice(&device);
+
+        // Adapter entry for the current HIP device ID
+        auto& a       = host.adapters[device];
+        auto* adapter = a.adapter.load(std::memory_order_acquire);
+
+        // Once set, a.adapter contains the adapter for the current HIP device ID
+        if(!adapter)
+        {
+            // Lock so that only one thread performs initialization of the adapter
+            std::lock_guard<std::mutex> lock(a.mutex);
+
+            adapter = a.adapter.load(std::memory_order_relaxed);
+            if(!adapter)
+            {
+                // Allocate a new adapter using the current HIP device
+                adapter = new Tensile::hip::SolutionAdapter;
+
+                // Initialize the adapter and possibly the library
+                host.initialize(*adapter);
+
+                // Atomically change the adapter stored for this device ID
+                a.adapter.store(adapter, std::memory_order_release);
+            }
+        }
+
+        // If an adapter is found, it is assumed that the library is initialized
+        library = host.library;
+        return *adapter;
     }
     catch(const std::exception& e)
     {
-        rocblas_cerr << "\nCould not initialize Tensile host:\n" << e.what() << std::endl;
+        rocblas_cerr << "\nrocBLAS error: Could not initialize Tensile host:\n"
+                     << e.what() << std::endl;
         rocblas_abort();
     }
     catch(...)
     {
-        rocblas_cerr << "\nCould not initialize Tensile host:\nUnknown exception thrown"
-                     << std::endl;
+        rocblas_cerr
+            << "\nrocBLAS error: Could not initialize Tensile host:\nUnknown exception thrown"
+            << std::endl;
         rocblas_abort();
     }
 } // namespace
@@ -452,55 +532,57 @@ rocblas_status runContractionProblem(const RocblasContractionProblem<Ti, To, Tc>
 {
     rocblas_status                                status = rocblas_status_internal_error;
     std::shared_ptr<Tensile::ContractionSolution> solution;
-    TensileHost&                                  host = getTensileHost();
 
     try
     {
-        auto tensile_prob = ConstructTensileProblem(prob);
-        solution          = host.library->findBestSolution(tensile_prob, *host.hardware);
+        std::shared_ptr<Tensile::MasterSolutionLibrary<Tensile::ContractionProblem>> library;
+        auto& adapter      = get_library_and_adapter(library);
+        auto  hardware     = Tensile::hip::GetCurrentDevice();
+        auto  tensile_prob = ConstructTensileProblem(prob);
+        solution           = library->findBestSolution(tensile_prob, *hardware);
 
         if(!solution)
         {
             // We print the error message only once, to avoid excessive logging
-            static int once = (rocblas_cerr << "Error: No Tensile solution found for " << prob, 0);
-            status          = rocblas_status_not_implemented;
+            static auto& once = rocblas_cerr << "\nrocBLAS error: No Tensile solution found for "
+                                             << prob;
+            status = rocblas_status_not_implemented;
         }
         else
         {
             auto handle = prob.handle;
-            host.adapter.launchKernels(
-                solution->solve(tensile_prob, GetTensileInputs(prob), *host.hardware),
-                handle->rocblas_stream,
-                handle->startEvent,
-                handle->stopEvent);
+            adapter.launchKernels(solution->solve(tensile_prob, GetTensileInputs(prob), *hardware),
+                                  handle->rocblas_stream,
+                                  handle->startEvent,
+                                  handle->stopEvent);
             status = rocblas_status_success;
         }
     }
     catch(const std::exception& e)
     {
-        static int once = (rocblas_cerr << "Error: " << (solution ? "" : "No ")
-                                        << "Tensile solution found, but exception thown for "
-                                        << prob << e.what() << std::endl,
-                           0);
+        static auto& once = rocblas_cerr << "\nrocBLAS error: " << (solution ? "" : "No ")
+                                         << "Tensile solution found, but exception thown for "
+                                         << prob << e.what() << std::endl;
     }
     catch(...)
     {
-        static int once
-            = (rocblas_cerr << "Error: " << (solution ? "" : "No ")
+        static auto& once = rocblas_cerr
+                            << "\nrocBLAS error: " << (solution ? "" : "No ")
                             << "Tensile solution found, but unknown exception thown for " << prob
-                            << std::endl,
-               0);
+                            << std::endl;
     }
 
     return status;
 }
 
-/*******************************************************************************
- * ! \brief  Initialize rocBLAS, to avoid costly startup time at the first call.
- ******************************************************************************/
+/***************************************************************
+ * ! \brief  Initialize rocBLAS for the current HIP device, to *
+ * avoid costly startup time at the first call on that device. *
+ ***************************************************************/
 extern "C" void rocblas_initialize()
 {
-    getTensileHost();
+    std::shared_ptr<Tensile::MasterSolutionLibrary<Tensile::ContractionProblem>> library;
+    get_library_and_adapter(library);
 }
 
 /******************************************************************************

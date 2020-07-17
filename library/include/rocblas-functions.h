@@ -15909,7 +15909,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_trsm_strided_batched_ex(rocblas_handle    
 
 ROCBLAS_EXPORT const char* rocblas_status_to_string(rocblas_status status);
 
-/* \brief Initialize rocBLAS, to avoid costly startup time at the first call.
+/* \brief Initialize rocBLAS on the current HIP device, to avoid costly startup time at the first call on that device.
 */
 
 ROCBLAS_EXPORT void rocblas_initialize(void);
