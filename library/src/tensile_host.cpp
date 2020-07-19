@@ -41,6 +41,7 @@ extern "C" void rocblas_initialize() {}
 #include <string>
 #include <type_traits>
 #include <unistd.h>
+#include <vector>
 
 namespace
 {
@@ -322,15 +323,20 @@ namespace
 
         struct adapter_s
         {
-            std::atomic<Tensile::hip::SolutionAdapter*> adapter{nullptr};
-            std::mutex                                  mutex;
+            mutable std::atomic<Tensile::hip::SolutionAdapter*> adapter{nullptr};
+            mutable std::mutex                                  mutex;
         };
 
-        adapter_s* adapters = nullptr;
-        int        count    = 0;
+        std::vector<adapter_s> const adapters;
 
         TensileHost()
+            : adapters(GetDeviceCount())
         {
+        }
+
+        static int GetDeviceCount()
+        {
+            int count;
             if(hipGetDeviceCount(&count) != hipSuccess)
             {
                 rocblas_cerr
@@ -338,14 +344,13 @@ namespace
                     << std::endl;
                 rocblas_abort();
             }
-            adapters = new adapter_s[count];
+            return count;
         }
 
         ~TensileHost()
         {
-            for(int i = 0; i < count; ++i)
-                delete adapters[i].adapter;
-            delete[] adapters;
+            for(auto& a : adapters)
+                delete a.adapter;
         }
 
         /*******************************************************
@@ -481,7 +486,7 @@ namespace
         hipGetDevice(&device);
 
         // Adapter entry for the current HIP device ID
-        auto& a       = host.adapters[device];
+        auto& a       = host.adapters.at(device);
         auto* adapter = a.adapter.load(std::memory_order_acquire);
 
         // Once set, a.adapter contains the adapter for the current HIP device ID
