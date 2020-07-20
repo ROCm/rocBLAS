@@ -57,7 +57,7 @@ The rocBLAS handle stores the following:
 
 Creating the handle will incur a startup cost. There is an additional startup cost for
 calling gemm functions. You can call ``rocblas_initialize()`` immediately after calling
-``rocblas_create_handle()`` to incur the cost of initializing gemm immediately after the
+``rocblas_create_handle()`` in order to incur the cost of initializing gemm immediately after the
 handle is created. If ``rocblas_initialize()`` is not called, then the gemm startup cost 
 will occur with the first gemm call. 
 
@@ -80,8 +80,8 @@ HIP has device management functions ``hipSetDevice()`` and ``hipGetDevice()``.
 The device that is associated with a stream is whatever device was set at the time that 
 ``hipStreamCreate()`` is called, or if no device was set, the default device.
 
-Users cannot switch the device in a handle between ``hipStreamCreate()`` and ``hipStreamDestroy()``. 
-If users want to use another device, they should create another handle.
+Users cannot switch the device in a stream between ``hipStreamCreate()`` and ``hipStreamDestroy()``. 
+If users want to use another device, they should create another stream.
 
 rocBLAS never sets a device, it only queries using ``hipGetDevice()``). 
 If rocBLAS does not see a valid device, it returns an error message to 
@@ -93,5 +93,5 @@ Multiple streams and multiple devices
 If a machine has num devices, they will have deviceID numbers 0, 1, 2, ... (num - 1). The 
 default device has deviceID == 0. Users can run ``num`` rocBLAS handles 
 on ``num`` devices concurrently but can not span a single rocBLAS 
-handle on ``num`` devices. Each handle is associated with a one and only one device, 
-and a new handle should be created if you want to run on a new device.
+handle on ``num`` devices. Each handle is associated with a one and only one device.
+
