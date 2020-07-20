@@ -46,6 +46,7 @@ find_package( Threads REQUIRED )
 
 if( BUILD_WITH_TENSILE )
   set(Tensile_TEST_SRC
+      multiheaded_gtest.cpp
       gemm_gtest.cpp
       trmm_gtest.cpp
       trsm_gtest.cpp
@@ -61,7 +62,6 @@ endif( )
 set(rocblas_no_tensile_test_source
     rocblas_gtest_main.cpp
     rocblas_test.cpp
-    multiheaded_gtest.cpp
     set_get_pointer_mode_gtest.cpp
     logging_mode_gtest.cpp
     ostream_threadsafety_gtest.cpp
