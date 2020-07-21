@@ -267,6 +267,18 @@ constexpr size_t rocblas_sizeof_datatype(rocblas_datatype type)
     return 0;
 }
 
+// Convert atomics mode to string
+constexpr const char* rocblas_atomics_mode_to_string(rocblas_atomics_mode mode)
+{
+    return mode != rocblas_atomics_not_allowed ? "atomics_allowed" : "atomics_not_allowed";
+}
+
+// Convert gemm flags to string
+constexpr const char* rocblas_gemm_flags_to_string(rocblas_gemm_flags)
+{
+    return "none";
+}
+
 // return rocblas_datatype from type
 template <typename> static constexpr rocblas_datatype rocblas_datatype_from_type     = rocblas_datatype(-1);
 template <> ROCBLAS_CLANG_STATIC constexpr auto rocblas_datatype_from_type<rocblas_half>           = rocblas_datatype_f16_r;

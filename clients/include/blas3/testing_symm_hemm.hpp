@@ -23,7 +23,7 @@ void testing_symm_hemm_bad_arg(const Arguments& arg)
     auto       rocblas_fn = HERM ? (FORTRAN ? rocblas_hemm<T, true> : rocblas_hemm<T, false>)
                            : (FORTRAN ? rocblas_symm<T, true> : rocblas_symm<T, false>);
 
-    rocblas_local_handle handle;
+    rocblas_local_handle handle(arg.atomics_mode);
     const rocblas_side   side  = rocblas_side_left;
     const rocblas_fill   uplo  = rocblas_fill_upper;
     const rocblas_int    M     = 100;
@@ -90,7 +90,7 @@ void testing_symm_hemm(const Arguments& arg)
                            : (FORTRAN ? rocblas_symm<T, true> : rocblas_symm<T, false>);
     auto gflop_count_fn = HERM ? hemm_gflop_count<T> : symm_gflop_count<T>;
 
-    rocblas_local_handle handle;
+    rocblas_local_handle handle(arg.atomics_mode);
     rocblas_side         side  = char2rocblas_side(arg.side);
     rocblas_fill         uplo  = char2rocblas_fill(arg.uplo);
     rocblas_int          M     = arg.M;

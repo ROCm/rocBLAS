@@ -2916,4 +2916,14 @@ Tests:
     - { M:  512, N:  100 }
     - { M:  63,  N:  512 }
 
+- name: atomics_mode
+  category: quick
+  atomics_mode: atomics_not_allowed
+  function:
+    gemm: *single_double_precisions_complex
+    gemm_ex: *single_double_precisions_complex
+  matrix_size: *small_matrix_size_range
+  transA_transB: *transA_transB_range
+  alpha_beta: *complex_alpha_beta_range
+
 ...

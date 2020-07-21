@@ -74,7 +74,7 @@ public:
     template <typename T, std::enable_if_t<std::is_enum<T>{}, int> = 0>
     static size_t hash(const T& x)
     {
-        return std::hash<typename std::underlying_type<T>::type>{}(x);
+        return std::hash<std::underlying_type_t<T>>{}(std::underlying_type_t<T>(x));
     }
 
     // C-style string hash since std::hash does not hash them

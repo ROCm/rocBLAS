@@ -22,7 +22,7 @@ void testing_gemm_batched(const Arguments& arg)
     auto       rocblas_gemm_batched_fn
         = FORTRAN ? rocblas_gemm_batched<T, true> : rocblas_gemm_batched<T, false>;
 
-    rocblas_local_handle handle;
+    rocblas_local_handle handle(arg.atomics_mode);
     rocblas_int          M           = arg.M;
     rocblas_int          N           = arg.N;
     rocblas_int          K           = arg.K;
@@ -306,7 +306,7 @@ void testing_gemm_batched_bad_arg(const Arguments& arg)
     const rocblas_operation transA = rocblas_operation_none;
     const rocblas_operation transB = rocblas_operation_none;
 
-    rocblas_local_handle handle;
+    rocblas_local_handle handle(arg.atomics_mode);
     rocblas_int          batch_count = 5;
 
     // allocate memory on device

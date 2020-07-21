@@ -32,7 +32,7 @@ void testing_hemv_bad_arg(const Arguments& arg)
     alpha = beta = 1.0;
 
     const rocblas_fill   uplo = rocblas_fill_upper;
-    rocblas_local_handle handle;
+    rocblas_local_handle handle(arg.atomics_mode);
 
     size_t size_A = lda * size_t(N);
     size_t size_x = N * size_t(incx);
@@ -85,7 +85,7 @@ void testing_hemv(const Arguments& arg)
     T            h_beta  = arg.get_beta<T>();
     rocblas_fill uplo    = char2rocblas_fill(arg.uplo);
 
-    rocblas_local_handle handle;
+    rocblas_local_handle handle(arg.atomics_mode);
 
     // argument sanity check before allocating invalid memory
     if(N < 0 || lda < N || lda < 1 || !incx || !incy)

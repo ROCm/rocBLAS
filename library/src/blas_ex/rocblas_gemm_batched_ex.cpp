@@ -96,7 +96,7 @@ try
                           compute_type_string,
                           algo,
                           solution_index,
-                          flags);
+                          rocblas_gemm_flags(flags));
             }
         }
 
@@ -192,7 +192,7 @@ try
                         "solution_index",
                         solution_index,
                         "flags",
-                        flags);
+                        rocblas_gemm_flags(flags));
         }
     }
 

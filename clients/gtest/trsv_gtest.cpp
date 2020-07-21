@@ -80,7 +80,7 @@ namespace
         // Google Test name suffix based on parameters
         static std::string name_suffix(const Arguments& arg)
         {
-            RocBLAS_TestName<trsv_template> name;
+            RocBLAS_TestName<trsv_template> name(arg.name);
             name << rocblas_datatype2string(arg.a_type) << '_' << (char)std::toupper(arg.uplo)
                  << (char)std::toupper(arg.transA) << (char)std::toupper(arg.diag) << '_' << arg.M
                  << '_' << arg.lda;

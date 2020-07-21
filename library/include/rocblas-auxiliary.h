@@ -41,6 +41,16 @@ ROCBLAS_EXPORT rocblas_status rocblas_set_pointer_mode(rocblas_handle       hand
 ROCBLAS_EXPORT rocblas_status rocblas_get_pointer_mode(rocblas_handle        handle,
                                                        rocblas_pointer_mode* pointer_mode);
 
+/*! \brief set rocblas_atomics_mode
+ */
+ROCBLAS_EXPORT rocblas_status rocblas_set_atomics_mode(rocblas_handle       handle,
+                                                       rocblas_atomics_mode atomics_mode);
+
+/*! \brief get rocblas_atomics_mode
+ */
+ROCBLAS_EXPORT rocblas_status rocblas_get_atomics_mode(rocblas_handle        handle,
+                                                       rocblas_atomics_mode* atomics_mode);
+
 /*! \brief  Indicates whether the pointer is on the host or device.
  */
 ROCBLAS_EXPORT rocblas_pointer_mode rocblas_pointer_to_mode(void* ptr);

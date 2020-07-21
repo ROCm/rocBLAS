@@ -14769,7 +14769,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgeam_strided_batched(rocblas_handle      
               reserved for future use.
     @param[in]
     flags     [uint32_t]
-              reserved for future use.
+              optional gemm flags.
 
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex(rocblas_handle    handle,
@@ -15000,7 +15000,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex(rocblas_handle    handle,
               reserved for future use.
     @param[in]
     flags     [uint32_t]
-              reserved for future use.
+              optional gemm flags.
+
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_gemm_batched_ex(rocblas_handle    handle,
                                                       rocblas_operation transA,
@@ -15199,7 +15200,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_batched_ex(rocblas_handle    handle,
               reserved for future use.
     @param[in]
     flags     [uint32_t]
-              reserved for future use.
+              optional gemm flags.
 
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    handle,
@@ -15389,7 +15390,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    
               reserved for future use.
     @param[in]
     flags     [uint32_t]
-              reserved for future use.
+              optional gemm flags.
 
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_gemm_ext2(rocblas_handle    handle,

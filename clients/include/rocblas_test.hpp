@@ -151,6 +151,11 @@ class RocBLAS_TestName
     }
 
 public:
+    explicit RocBLAS_TestName(const char* name)
+    {
+        str << name << '_';
+    }
+
     // Convert stream to normalized Google Test name
     // rvalue reference qualified so that it can only be called once
     // The name should only be generated once before the stream is destroyed
@@ -160,7 +165,12 @@ public:
         auto&       table = get_table();
         std::string name(str.str());
 
-        if(name == "")
+        // Remove trailing underscore
+        if(!name.empty() && name.back() == '_')
+            name.pop_back();
+
+        // If name is empty, make it 1
+        if(name.empty())
             name = "1";
 
         // Warn about unset letter parameters
@@ -263,6 +273,8 @@ struct rocblas_test_valid
 
     // Require derived class to define functor which takes (const Arguments &)
     virtual void operator()(const Arguments&) = 0;
+
+    virtual ~rocblas_test_valid() = default;
 };
 
 // ----------------------------------------------------------------------------
@@ -290,6 +302,8 @@ struct rocblas_test_invalid
         rocblas_abort();
 #endif
     }
+
+    virtual ~rocblas_test_invalid() = default;
 };
 
 #endif
