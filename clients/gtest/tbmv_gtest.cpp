@@ -53,7 +53,7 @@ namespace
         // Google Test name suffix based on parameters
         static std::string name_suffix(const Arguments& arg)
         {
-            RocBLAS_TestName<tbmv_template> name;
+            RocBLAS_TestName<tbmv_template> name(arg.name);
 
             if(strstr(arg.function, "_bad_arg") != nullptr)
             {

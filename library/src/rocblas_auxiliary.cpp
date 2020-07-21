@@ -64,6 +64,45 @@ catch(...)
 }
 
 /*******************************************************************************
+ * ! \brief get atomics mode
+ ******************************************************************************/
+extern "C" rocblas_status rocblas_get_atomics_mode(rocblas_handle        handle,
+                                                   rocblas_atomics_mode* mode)
+try
+{
+    // if handle not valid
+    if(!handle)
+        return rocblas_status_invalid_handle;
+    *mode = handle->atomics_mode;
+    if(handle->layer_mode & rocblas_layer_mode_log_trace)
+        log_trace(handle, "rocblas_get_atomics_mode", *mode);
+    return rocblas_status_success;
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
+}
+
+/*******************************************************************************
+ * ! \brief set atomics mode
+ ******************************************************************************/
+extern "C" rocblas_status rocblas_set_atomics_mode(rocblas_handle handle, rocblas_atomics_mode mode)
+try
+{
+    // if handle not valid
+    if(!handle)
+        return rocblas_status_invalid_handle;
+    if(handle->layer_mode & rocblas_layer_mode_log_trace)
+        log_trace(handle, "rocblas_set_atomics_mode", mode);
+    handle->atomics_mode = mode;
+    return rocblas_status_success;
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
+}
+
+/*******************************************************************************
  * ! \brief create rocblas handle called before any rocblas library routines
  ******************************************************************************/
 extern "C" rocblas_status rocblas_create_handle(rocblas_handle* handle)

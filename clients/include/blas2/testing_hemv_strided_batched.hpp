@@ -36,7 +36,7 @@ void testing_hemv_strided_batched_bad_arg(const Arguments& arg)
     T                    beta        = 1.0;
 
     const rocblas_fill   uplo = rocblas_fill_upper;
-    rocblas_local_handle handle;
+    rocblas_local_handle handle(arg.atomics_mode);
 
     size_t size_A = lda * size_t(N);
     size_t size_x = N * size_t(incx);
@@ -189,7 +189,7 @@ void testing_hemv_strided_batched(const Arguments& arg)
     rocblas_stride stride_y    = arg.stride_y;
     rocblas_int    batch_count = arg.batch_count;
 
-    rocblas_local_handle handle;
+    rocblas_local_handle handle(arg.atomics_mode);
 
     // argument sanity check before allocating invalid memory
     bool invalid_size = N < 0 || lda < N || lda < 1 || !incx || !incy || batch_count < 0;

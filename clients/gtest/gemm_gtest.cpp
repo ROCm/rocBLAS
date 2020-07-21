@@ -86,7 +86,7 @@ namespace
         // Google Test name suffix based on parameters
         static std::string name_suffix(const Arguments& arg)
         {
-            RocBLAS_TestName<gemm_test_template> name;
+            RocBLAS_TestName<gemm_test_template> name(arg.name);
             name << rocblas_datatype2string(arg.a_type);
             bool isEx = (GEMM_TYPE == GEMM_EX || GEMM_TYPE == GEMM_BATCHED_EX
                          || GEMM_TYPE == GEMM_STRIDED_BATCHED_EX);

@@ -54,7 +54,7 @@ void testing_gemm_batched_ex_bad_arg(const Arguments& arg)
     const rocblas_operation transA = rocblas_operation_none;
     const rocblas_operation transB = rocblas_operation_none;
 
-    rocblas_local_handle handle;
+    rocblas_local_handle handle(arg.atomics_mode);
 
     // allocate memory on device
     device_vector<float> dA(safe_size);
@@ -274,7 +274,7 @@ void testing_gemm_batched_ex(const Arguments& arg)
     double               gpu_time_used, cpu_time_used;
     double               rocblas_gflops, cblas_gflops;
     double               rocblas_error = 0.0;
-    rocblas_local_handle handle;
+    rocblas_local_handle handle(arg.atomics_mode);
     auto                 transA = char2rocblas_operation(arg.transA);
     auto                 transB = char2rocblas_operation(arg.transB);
     auto                 M = arg.M, N = arg.N, K = arg.K;

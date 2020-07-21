@@ -38,7 +38,7 @@ namespace
         // Google Test name suffix based on parameters
         static std::string name_suffix(const Arguments& arg)
         {
-            return RocBLAS_TestName<ostream_threadsafety>{};
+            return RocBLAS_TestName<ostream_threadsafety>(arg.name);
         }
     };
 

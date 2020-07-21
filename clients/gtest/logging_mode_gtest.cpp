@@ -30,7 +30,7 @@ namespace
         void operator()(const Arguments& arg)
         {
             if(!strcmp(arg.function, "logging"))
-                testing_logging<T>();
+                testing_logging<T>(arg);
             else
                 FAIL() << "Internal error: Test called with unknown function: " << arg.function;
         }
@@ -53,7 +53,7 @@ namespace
         // Google Test name suffix based on parameters
         static std::string name_suffix(const Arguments& arg)
         {
-            return RocBLAS_TestName<logging>{} << rocblas_datatype2string(arg.a_type);
+            return RocBLAS_TestName<logging>(arg.name) << rocblas_datatype2string(arg.a_type);
         }
     };
 

@@ -23,7 +23,7 @@ void testing_axpy_strided_batched_bad_arg(const Arguments& arg)
     auto       rocblas_axpy_strided_batched_fn
         = FORTRAN ? rocblas_axpy_strided_batched<T, true> : rocblas_axpy_strided_batched<T, false>;
 
-    rocblas_local_handle handle;
+    rocblas_local_handle handle(arg.atomics_mode);
     rocblas_int          N = 100, incx = 1, incy = 1, batch_count = arg.batch_count;
 
     rocblas_stride stridex = arg.stride_x, stridey = arg.stride_y;
@@ -70,7 +70,7 @@ void testing_axpy_strided_batched(const Arguments& arg)
         stridey = N;
 
     T                    h_alpha = arg.get_alpha<T>();
-    rocblas_local_handle handle;
+    rocblas_local_handle handle(arg.atomics_mode);
 
     // argument sanity check before allocating invalid memory
     if(N <= 0 || batch_count <= 0)
