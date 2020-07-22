@@ -32,6 +32,9 @@ stream and device, then call:
     int deviceId = non_default_device_id;
     if(hipSetDevice(deviceId) != hipSuccess) return EXIT_FAILURE;
 
+    //optional call to rocblas_initialize
+    rocblas_initialize();
+
     // note the order, call hipSetDevice before hipStreamCreate
     hipStream_t stream;
     if(hipStreamCreate(&stream) != hipSuccess) return EXIT_FAILURE;
@@ -48,18 +51,20 @@ you have completed using it with:
 
     if(hipStreamDestroy(stream) != hipSuccess) return EXIT_FAILURE;
 
+Creating the handle will incur a startup cost. There is an additional startup cost for
+gemm functions to load kernels for a specific device. You can call 
+``rocblas_initialize()`` after calling ``hipSetDevice()`` in order to incur the cost of 
+initializing gemm after setting the device. This needs to be done once for each device.
+If you have two rocBLAS handles using the same device, you only need to call ``rocblas_initialize()``
+once. If ``rocblas_initialize()`` is not called, then the first gemm call will have
+the startup cost. 
+
 The rocBLAS handle stores the following:
 
 - stream
 - logging mode
 - pointer mode
 - atomics mode
-
-Creating the handle will incur a startup cost. There is an additional startup cost for
-calling gemm functions. You can call ``rocblas_initialize()`` immediately after calling
-``rocblas_create_handle()`` in order to incur the cost of initializing gemm immediately after the
-handle is created. If ``rocblas_initialize()`` is not called, then the gemm startup cost 
-will occur with the first gemm call. 
 
 Stream and device management
 ============================
