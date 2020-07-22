@@ -212,10 +212,10 @@ endif()
 # Find HCC/HIP dependencies
 if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
   find_package( hcc REQUIRED CONFIG PATHS ${ROCM_PATH} /opt/rocm )
-  find_package( hip REQUIRED CONFIG PATHS ${ROCM_PATH} /opt/rocm )
+  find_package( HIP REQUIRED CONFIG PATHS ${ROCM_PATH} /opt/rocm )
 endif( )
 if( CMAKE_CXX_COMPILER MATCHES ".*/hipcc$" )
-  find_package( hip REQUIRED CONFIG PATHS ${ROCM_PATH} /opt/rocm )
+  find_package( HIP REQUIRED CONFIG PATHS ${ROCM_PATH} /opt/rocm )
 endif( )
 
 # CMake list of machine targets
