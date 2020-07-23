@@ -500,7 +500,7 @@ if( BUILD_SHARED_LIBS )
   rocm_export_targets(
     TARGETS roc::rocblas
     PREFIX rocblas
-    DEPENDS PACKAGE hip
+    DEPENDS PACKAGE HIP
     NAMESPACE roc::
     )
 else()
@@ -508,7 +508,7 @@ else()
     rocm_export_targets(
       TARGETS roc::rocblas
       PREFIX rocblas
-      DEPENDS PACKAGE hip
+      DEPENDS PACKAGE HIP
       STATIC_DEPENDS PACKAGE msgpack
       NAMESPACE roc::
       )
@@ -516,7 +516,7 @@ else()
     rocm_export_targets(
       TARGETS roc::rocblas
       PREFIX rocblas
-      DEPENDS PACKAGE hip
+      DEPENDS PACKAGE HIP
       STATIC_DEPENDS PACKAGE LLVM
       NAMESPACE roc::
       )
