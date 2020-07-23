@@ -110,16 +110,16 @@ bool match_test_category(const Arguments& arg, const char* category);
 // The tests are instantiated by filtering through the RocBLAS_Data stream
 // The filter is by category and by the type_filter() and function_filter()
 // functions in the testclass
-#define INSTANTIATE_TEST_CATEGORY(testclass, category)                                           \
-    INSTANTIATE_TEST_CASE_P(category,                                                            \
-                            testclass,                                                           \
-                            testing::ValuesIn(RocBLAS_TestData::begin([](const Arguments& arg) { \
-                                                  return testclass::type_filter(arg)             \
-                                                         && testclass::function_filter(arg)      \
-                                                         && match_test_category(arg, #category); \
-                                              }),                                                \
-                                              RocBLAS_TestData::end()),                          \
-                            testclass::PrintToStringParamName());
+#define INSTANTIATE_TEST_CATEGORY(testclass, category)                                            \
+    INSTANTIATE_TEST_SUITE_P(category,                                                            \
+                             testclass,                                                           \
+                             testing::ValuesIn(RocBLAS_TestData::begin([](const Arguments& arg) { \
+                                                   return testclass::type_filter(arg)             \
+                                                          && testclass::function_filter(arg)      \
+                                                          && match_test_category(arg, #category); \
+                                               }),                                                \
+                                               RocBLAS_TestData::end()),                          \
+                             testclass::PrintToStringParamName());
 
 // Instantiate all test categories
 #define INSTANTIATE_TEST_CATEGORIES(testclass)        \
