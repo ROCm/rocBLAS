@@ -102,11 +102,58 @@ void testing_atomics_mode(const Arguments& arg)
 
     // ROCBLAS rocblas_pointer_mode_host
     CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-    CHECK_ROCBLAS_ERROR(rocblas_set_atomics_mode(handle, rocblas_atomics_not_allowed));
 
     // copy data from CPU to device
     CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(T) * size_A, hipMemcpyHostToDevice));
     CHECK_HIP_ERROR(hipMemcpy(dB, hB, sizeof(T) * size_B, hipMemcpyHostToDevice));
+
+    //  From kernel selection file /library/src/blas3/Tensile/Logic/asm_full/vega20_Cijk_Ailk_Bljk_SB.yaml
+    //  we know that for gchArch == 906 and [m,n,batch_count,k] = [1024, 16, 1, 500000] an
+    //  algorithm with globalSplitU == 32  will be called. For this architecture and size result
+    //  should not be deterministic.
+    //  If this test fails, check to see if kernel selection file listed above has changed.
+
+    int             deviceId;
+    hipDeviceProp_t prop;
+    CHECK_HIP_ERROR(hipGetDevice(&deviceId));
+    CHECK_HIP_ERROR(hipGetDeviceProperties(&prop, deviceId));
+    int gcnArch = prop.gcnArch;
+    if(gcnArch == 906)
+    {
+        CHECK_ROCBLAS_ERROR(rocblas_set_atomics_mode(handle, rocblas_atomics_allowed));
+
+        // calculate reference result
+        CHECK_HIP_ERROR(hipMemcpy(dC, hC_input, sizeof(T) * size_C, hipMemcpyHostToDevice));
+
+        CHECK_ROCBLAS_ERROR(rocblas_gemm_fn(
+            handle, transA, transB, M, N, K, &h_alpha, dA, lda, dB, ldb, &h_beta, dC, ldc));
+
+        CHECK_HIP_ERROR(hipMemcpy(hC_gold, dC, sizeof(T) * size_C, hipMemcpyDeviceToHost));
+
+        // verify arbitary number of tests are not deterministic
+        double err1                     = 0;
+        int    arbitary_number_of_tests = 10;
+        for(int i = 0; i < arbitary_number_of_tests; i++)
+        {
+            CHECK_HIP_ERROR(hipMemcpy(dC, hC_input, sizeof(T) * size_C, hipMemcpyHostToDevice));
+
+            CHECK_ROCBLAS_ERROR(rocblas_gemm_fn(
+                handle, transA, transB, M, N, K, &h_alpha, dA, lda, dB, ldb, &h_beta, dC, ldc));
+
+            CHECK_HIP_ERROR(hipMemcpy(hC_1, dC, sizeof(T) * size_C, hipMemcpyDeviceToHost));
+
+            // compare hC_1 and hC_gold
+            err1 = std::abs(norm_check_general<T>('F', M, N, ldc, hC_gold, hC_1));
+            if(err1 != 0)
+                break;
+        }
+        EXPECT_NE(err1, 0);
+    }
+
+    //  Verify that result is deterministic for size [m,n,batch_count,k] = [1024, 16, 1, 500000].
+    //  We know that for this size gcnArch == 906 will use globalSplitU == 32. For other architecures
+    //  we suspect globalSplitU > 32 will be used
+    CHECK_ROCBLAS_ERROR(rocblas_set_atomics_mode(handle, rocblas_atomics_not_allowed));
 
     // calculate reference result
     CHECK_HIP_ERROR(hipMemcpy(dC, hC_input, sizeof(T) * size_C, hipMemcpyHostToDevice));
@@ -117,8 +164,8 @@ void testing_atomics_mode(const Arguments& arg)
     CHECK_HIP_ERROR(hipMemcpy(hC_gold, dC, sizeof(T) * size_C, hipMemcpyDeviceToHost));
 
     // verify arbitary number of tests are deterministic
-    double err1                     = 0;
-    int    arbitary_number_of_tests = 100;
+    double err2                     = 0;
+    int    arbitary_number_of_tests = 10;
     for(int i = 0; i < arbitary_number_of_tests; i++)
     {
         CHECK_HIP_ERROR(hipMemcpy(dC, hC_input, sizeof(T) * size_C, hipMemcpyHostToDevice));
@@ -129,10 +176,10 @@ void testing_atomics_mode(const Arguments& arg)
         CHECK_HIP_ERROR(hipMemcpy(hC_1, dC, sizeof(T) * size_C, hipMemcpyDeviceToHost));
 
         // compare hC_1 and hC_gold
-        err1 = std::abs(norm_check_general<T>('F', M, N, ldc, hC_gold, hC_1));
-        if(err1 > 0)
+        err2 = std::abs(norm_check_general<T>('F', M, N, ldc, hC_gold, hC_1));
+        if(err2 != 0)
             break;
     }
 
-    EXPECT_EQ(err1, 0);
+    EXPECT_EQ(err2, 0);
 }
