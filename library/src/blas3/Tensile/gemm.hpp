@@ -376,13 +376,19 @@ rocblas_status copy_alpha_beta_to_host_if_on_device(
 {
     if(handle->pointer_mode == rocblas_pointer_mode_device)
     {
-        if(k == 0)
-            alpha_h = 0;
-        else
-            RETURN_IF_HIP_ERROR(hipMemcpy(&alpha_h, alpha, sizeof(Tc), hipMemcpyDeviceToHost));
-        RETURN_IF_HIP_ERROR(hipMemcpy(&beta_h, beta, sizeof(Tc), hipMemcpyDeviceToHost));
-        alpha = &alpha_h;
-        beta  = &beta_h;
+        if(alpha)
+        {
+            if(k == 0)
+                alpha_h = 0;
+            else
+                RETURN_IF_HIP_ERROR(hipMemcpy(&alpha_h, alpha, sizeof(Tc), hipMemcpyDeviceToHost));
+            alpha = &alpha_h;
+        }
+        if(beta)
+        {
+            RETURN_IF_HIP_ERROR(hipMemcpy(&beta_h, beta, sizeof(Tc), hipMemcpyDeviceToHost));
+            beta = &beta_h;
+        }
     }
     return rocblas_status_success;
 }
