@@ -21,239 +21,243 @@
 template <typename Ti, typename To, typename Tc>
 void testing_gemm_batched_ex_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_gemm_batched_ex_fn
-        = FORTRAN ? rocblas_gemm_batched_ex_fortran : rocblas_gemm_batched_ex;
+    for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
+    {
+        const bool FORTRAN = arg.fortran;
+        auto       rocblas_gemm_batched_ex_fn
+            = FORTRAN ? rocblas_gemm_batched_ex_fortran : rocblas_gemm_batched_ex;
 
-    const rocblas_int M = 100;
-    const rocblas_int N = 100;
-    const rocblas_int K = 100;
+        const rocblas_int M = 100;
+        const rocblas_int N = 100;
+        const rocblas_int K = 100;
 
-    const rocblas_int lda = 100;
-    const rocblas_int ldb = 100;
-    const rocblas_int ldc = 100;
-    const rocblas_int ldd = 100;
+        const rocblas_int lda = 100;
+        const rocblas_int ldb = 100;
+        const rocblas_int ldc = 100;
+        const rocblas_int ldd = 100;
 
-    const rocblas_int batch_count = 1;
+        const rocblas_int batch_count = 1;
 
-    rocblas_datatype a_type       = rocblas_datatype_f32_r;
-    rocblas_datatype b_type       = rocblas_datatype_f32_r;
-    rocblas_datatype c_type       = rocblas_datatype_f32_r;
-    rocblas_datatype d_type       = rocblas_datatype_f32_r;
-    rocblas_datatype compute_type = rocblas_datatype_f32_r;
+        rocblas_datatype a_type       = rocblas_datatype_f32_r;
+        rocblas_datatype b_type       = rocblas_datatype_f32_r;
+        rocblas_datatype c_type       = rocblas_datatype_f32_r;
+        rocblas_datatype d_type       = rocblas_datatype_f32_r;
+        rocblas_datatype compute_type = rocblas_datatype_f32_r;
 
-    const float alpha_float = 1.0;
-    const float beta_float  = 1.0;
+        const float alpha_float = 1.0;
+        const float beta_float  = 1.0;
 
-    rocblas_gemm_algo algo           = rocblas_gemm_algo_standard;
-    int32_t           solution_index = 0;
-    rocblas_int       flags          = 0;
+        rocblas_gemm_algo algo           = rocblas_gemm_algo_standard;
+        int32_t           solution_index = 0;
+        rocblas_int       flags          = 0;
 
-    const size_t safe_size = 100;
+        const size_t safe_size = 100;
 
-    const rocblas_operation transA = rocblas_operation_none;
-    const rocblas_operation transB = rocblas_operation_none;
+        const rocblas_operation transA = rocblas_operation_none;
+        const rocblas_operation transB = rocblas_operation_none;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+        rocblas_local_handle handle(arg.atomics_mode);
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
 
-    // allocate memory on device
-    device_vector<float> dA(safe_size);
-    device_vector<float> dB(safe_size);
-    device_vector<float> dC(safe_size);
-    device_vector<float> dD(safe_size);
-    CHECK_DEVICE_ALLOCATION(dA.memcheck());
-    CHECK_DEVICE_ALLOCATION(dB.memcheck());
-    CHECK_DEVICE_ALLOCATION(dC.memcheck());
-    CHECK_DEVICE_ALLOCATION(dD.memcheck());
+        // allocate memory on device
+        device_vector<float> dA(safe_size);
+        device_vector<float> dB(safe_size);
+        device_vector<float> dC(safe_size);
+        device_vector<float> dD(safe_size);
+        CHECK_DEVICE_ALLOCATION(dA.memcheck());
+        CHECK_DEVICE_ALLOCATION(dB.memcheck());
+        CHECK_DEVICE_ALLOCATION(dC.memcheck());
+        CHECK_DEVICE_ALLOCATION(dD.memcheck());
 
-    EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle,
-                                                     transA,
-                                                     transB,
-                                                     M,
-                                                     N,
-                                                     K,
-                                                     &alpha_float,
-                                                     nullptr,
-                                                     a_type,
-                                                     lda,
-                                                     dB,
-                                                     b_type,
-                                                     ldb,
-                                                     &beta_float,
-                                                     dC,
-                                                     c_type,
-                                                     ldc,
-                                                     dD,
-                                                     d_type,
-                                                     ldd,
-                                                     batch_count,
-                                                     compute_type,
-                                                     algo,
-                                                     solution_index,
-                                                     flags),
-                          rocblas_status_invalid_pointer);
+        EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle,
+                                                         transA,
+                                                         transB,
+                                                         M,
+                                                         N,
+                                                         K,
+                                                         &alpha_float,
+                                                         nullptr,
+                                                         a_type,
+                                                         lda,
+                                                         dB,
+                                                         b_type,
+                                                         ldb,
+                                                         &beta_float,
+                                                         dC,
+                                                         c_type,
+                                                         ldc,
+                                                         dD,
+                                                         d_type,
+                                                         ldd,
+                                                         batch_count,
+                                                         compute_type,
+                                                         algo,
+                                                         solution_index,
+                                                         flags),
+                              rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle,
-                                                     transA,
-                                                     transB,
-                                                     M,
-                                                     N,
-                                                     K,
-                                                     &alpha_float,
-                                                     dA,
-                                                     a_type,
-                                                     lda,
-                                                     nullptr,
-                                                     b_type,
-                                                     ldb,
-                                                     &beta_float,
-                                                     dC,
-                                                     c_type,
-                                                     ldc,
-                                                     dD,
-                                                     d_type,
-                                                     ldd,
-                                                     batch_count,
-                                                     compute_type,
-                                                     algo,
-                                                     solution_index,
-                                                     flags),
-                          rocblas_status_invalid_pointer);
+        EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle,
+                                                         transA,
+                                                         transB,
+                                                         M,
+                                                         N,
+                                                         K,
+                                                         &alpha_float,
+                                                         dA,
+                                                         a_type,
+                                                         lda,
+                                                         nullptr,
+                                                         b_type,
+                                                         ldb,
+                                                         &beta_float,
+                                                         dC,
+                                                         c_type,
+                                                         ldc,
+                                                         dD,
+                                                         d_type,
+                                                         ldd,
+                                                         batch_count,
+                                                         compute_type,
+                                                         algo,
+                                                         solution_index,
+                                                         flags),
+                              rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle,
-                                                     transA,
-                                                     transB,
-                                                     M,
-                                                     N,
-                                                     K,
-                                                     &alpha_float,
-                                                     dA,
-                                                     a_type,
-                                                     lda,
-                                                     dB,
-                                                     b_type,
-                                                     ldb,
-                                                     &beta_float,
-                                                     nullptr,
-                                                     c_type,
-                                                     ldc,
-                                                     dD,
-                                                     d_type,
-                                                     ldd,
-                                                     batch_count,
-                                                     compute_type,
-                                                     algo,
-                                                     solution_index,
-                                                     flags),
-                          rocblas_status_invalid_pointer);
+        EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle,
+                                                         transA,
+                                                         transB,
+                                                         M,
+                                                         N,
+                                                         K,
+                                                         &alpha_float,
+                                                         dA,
+                                                         a_type,
+                                                         lda,
+                                                         dB,
+                                                         b_type,
+                                                         ldb,
+                                                         &beta_float,
+                                                         nullptr,
+                                                         c_type,
+                                                         ldc,
+                                                         dD,
+                                                         d_type,
+                                                         ldd,
+                                                         batch_count,
+                                                         compute_type,
+                                                         algo,
+                                                         solution_index,
+                                                         flags),
+                              rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle,
-                                                     transA,
-                                                     transB,
-                                                     M,
-                                                     N,
-                                                     K,
-                                                     &alpha_float,
-                                                     dA,
-                                                     a_type,
-                                                     lda,
-                                                     dB,
-                                                     b_type,
-                                                     ldb,
-                                                     &beta_float,
-                                                     dC,
-                                                     c_type,
-                                                     ldc,
-                                                     nullptr,
-                                                     d_type,
-                                                     ldd,
-                                                     batch_count,
-                                                     compute_type,
-                                                     algo,
-                                                     solution_index,
-                                                     flags),
-                          rocblas_status_invalid_pointer);
+        EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle,
+                                                         transA,
+                                                         transB,
+                                                         M,
+                                                         N,
+                                                         K,
+                                                         &alpha_float,
+                                                         dA,
+                                                         a_type,
+                                                         lda,
+                                                         dB,
+                                                         b_type,
+                                                         ldb,
+                                                         &beta_float,
+                                                         dC,
+                                                         c_type,
+                                                         ldc,
+                                                         nullptr,
+                                                         d_type,
+                                                         ldd,
+                                                         batch_count,
+                                                         compute_type,
+                                                         algo,
+                                                         solution_index,
+                                                         flags),
+                              rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle,
-                                                     transA,
-                                                     transB,
-                                                     M,
-                                                     N,
-                                                     K,
-                                                     nullptr,
-                                                     dA,
-                                                     a_type,
-                                                     lda,
-                                                     dB,
-                                                     b_type,
-                                                     ldb,
-                                                     &beta_float,
-                                                     dC,
-                                                     c_type,
-                                                     ldc,
-                                                     dD,
-                                                     d_type,
-                                                     ldd,
-                                                     batch_count,
-                                                     compute_type,
-                                                     algo,
-                                                     solution_index,
-                                                     flags),
-                          rocblas_status_invalid_pointer);
+        EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle,
+                                                         transA,
+                                                         transB,
+                                                         M,
+                                                         N,
+                                                         K,
+                                                         nullptr,
+                                                         dA,
+                                                         a_type,
+                                                         lda,
+                                                         dB,
+                                                         b_type,
+                                                         ldb,
+                                                         &beta_float,
+                                                         dC,
+                                                         c_type,
+                                                         ldc,
+                                                         dD,
+                                                         d_type,
+                                                         ldd,
+                                                         batch_count,
+                                                         compute_type,
+                                                         algo,
+                                                         solution_index,
+                                                         flags),
+                              rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle,
-                                                     transA,
-                                                     transB,
-                                                     M,
-                                                     N,
-                                                     K,
-                                                     &alpha_float,
-                                                     dA,
-                                                     a_type,
-                                                     lda,
-                                                     dB,
-                                                     b_type,
-                                                     ldb,
-                                                     nullptr,
-                                                     dC,
-                                                     c_type,
-                                                     ldc,
-                                                     dD,
-                                                     d_type,
-                                                     ldd,
-                                                     batch_count,
-                                                     compute_type,
-                                                     algo,
-                                                     solution_index,
-                                                     flags),
-                          rocblas_status_invalid_pointer);
+        EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(handle,
+                                                         transA,
+                                                         transB,
+                                                         M,
+                                                         N,
+                                                         K,
+                                                         &alpha_float,
+                                                         dA,
+                                                         a_type,
+                                                         lda,
+                                                         dB,
+                                                         b_type,
+                                                         ldb,
+                                                         nullptr,
+                                                         dC,
+                                                         c_type,
+                                                         ldc,
+                                                         dD,
+                                                         d_type,
+                                                         ldd,
+                                                         batch_count,
+                                                         compute_type,
+                                                         algo,
+                                                         solution_index,
+                                                         flags),
+                              rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(nullptr,
-                                                     transA,
-                                                     transB,
-                                                     M,
-                                                     N,
-                                                     K,
-                                                     &alpha_float,
-                                                     dA,
-                                                     a_type,
-                                                     lda,
-                                                     dB,
-                                                     b_type,
-                                                     ldb,
-                                                     &beta_float,
-                                                     dC,
-                                                     c_type,
-                                                     ldc,
-                                                     dD,
-                                                     d_type,
-                                                     ldd,
-                                                     batch_count,
-                                                     compute_type,
-                                                     algo,
-                                                     solution_index,
-                                                     flags),
-                          rocblas_status_invalid_handle);
+        EXPECT_ROCBLAS_STATUS(rocblas_gemm_batched_ex_fn(nullptr,
+                                                         transA,
+                                                         transB,
+                                                         M,
+                                                         N,
+                                                         K,
+                                                         &alpha_float,
+                                                         dA,
+                                                         a_type,
+                                                         lda,
+                                                         dB,
+                                                         b_type,
+                                                         ldb,
+                                                         &beta_float,
+                                                         dC,
+                                                         c_type,
+                                                         ldc,
+                                                         dD,
+                                                         d_type,
+                                                         ldd,
+                                                         batch_count,
+                                                         compute_type,
+                                                         algo,
+                                                         solution_index,
+                                                         flags),
+                              rocblas_status_invalid_handle);
+    }
 }
 
 template <typename Ti, typename To, typename Tc>
