@@ -113,12 +113,8 @@ void testing_atomics_mode(const Arguments& arg)
     //  should not be deterministic.
     //  If this test fails, check to see if kernel selection file listed above has changed.
 
-    int             deviceId;
-    hipDeviceProp_t prop;
-    CHECK_HIP_ERROR(hipGetDevice(&deviceId));
-    CHECK_HIP_ERROR(hipGetDeviceProperties(&prop, deviceId));
-    int gcnArch = prop.gcnArch;
-    if(gcnArch == 906)
+    std::string arch_name = rocblas_get_arch_name();
+    if(arch_name == "gfx906")
     {
         CHECK_ROCBLAS_ERROR(rocblas_set_atomics_mode(handle, rocblas_atomics_allowed));
 
