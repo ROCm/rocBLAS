@@ -21,7 +21,7 @@ kIdx        = 3
 rangeLogicIdx           = 8
 tileSelectionLogicIdx   = 9       #Only if tile aware selection is enabled
 
-helpMessage = """Script for determining if a problem size has been benchmarked for.
+helpMessage = """Script for determining which problem sizes in a log file have been benchmarked for.
 Usage: 
 python3 check-for-optimized-sizes.py -f logfilePath 
                                       [-a architecture] [-c] [-u] [-i] [--help]
