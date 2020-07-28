@@ -335,8 +335,9 @@ if( DEFINED ENV{ROCM_RPATH} )
   set ( CMAKE_SHARED_LINKER_FLAGS " -Wl,--enable-new-dtags -Wl,--rpath,$ENV{ROCM_RPATH}" )
 endif( )
 
+
 target_link_libraries( rocblas INTERFACE hip::host )
-target_link_libraries( rocblas PRIVATE hip::device )
+target_link_libraries( rocblas PRIVATE hip::device -rtlib=compiler-rt )
 
 set_target_properties( rocblas PROPERTIES CXX_STANDARD 14 CXX_STANDARD_REQUIRED ON )
 
@@ -350,6 +351,8 @@ if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
 endif( )
 
 if( CMAKE_CXX_COMPILER MATCHES ".*/hipcc$" )
+  # GCC or hip-clang needs specific flags to turn on f16c intrinsics
+  target_compile_options( rocblas PRIVATE -mf16c )
   foreach( target ${ROCBLAS_GPUS} )
     message( STATUS "TARGET: " ${target} )
     target_compile_options( rocblas PRIVATE --cuda-gpu-arch=${target} )
