@@ -24,7 +24,7 @@ tileSelectionLogicIdx   = 9       #Only if tile aware selection is enabled
 helpMessage = """Script for determining which problem sizes in a log file have been benchmarked for.
 Usage: 
 python3 check-for-optimized-sizes.py -f logfilePath 
-                                      [-a architecture] [-c] [-u] [-i] [--help]
+                                      [-a architecture] [-c] [-u] [--help]
 Options:
 -f       Log file containing benchmark tests.
 -a       Architecture. Matches any problem containing this argument. 
@@ -36,7 +36,7 @@ Options:
 
 usageMessage = """Usage: 
 python3 check-for-optimized-sizes.py -f logfilePath 
-                                      [-a architecture] [-c] [-u] [-i] [--help]"""
+                                      [-a architecture] [-c] [-u] [--help]"""
 
 
 def removeChar(text, removedChar):
