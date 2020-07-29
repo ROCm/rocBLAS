@@ -243,7 +243,7 @@
     Use64bShadowLimit: 1
     UseInstOffsetForGRO: 0
     UseSgprForGRO: -1
-    Valid: false
+    Valid: true
     VectorAtomicWidth: 1
     VectorStore: -1
     VectorWidth: 4
@@ -451,7 +451,7 @@
     Use64bShadowLimit: 1
     UseInstOffsetForGRO: 0
     UseSgprForGRO: -1
-    Valid: false
+    Valid: true
     VectorAtomicWidth: 1
     VectorStore: -1
     VectorWidth: 4
@@ -467,9 +467,11 @@
     fractionalPerpOverhangB: 0
 - [2, 3, 0, 1]
 - - - [512, 512, 1, 512]
-    - [0, 4232.0]
+    - [0, 12.683]
+  - - [960, 1024, 1, 1024]
+    - [0, 37.647]
   - - [1024, 1024, 1, 1024]
-    - [0, 9103.0]
+    - [0, 27.243]
   - - [4096, 4096, 1, 4096]
-    - [1, 14885.0]
+    - [1, 44.58]
 - null
