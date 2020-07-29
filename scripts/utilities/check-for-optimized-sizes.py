@@ -31,7 +31,6 @@ Options:
          ex: vega10
 -c       Deletes cloned directory after completion.
 -u       Searches most recent commit for the problem sizes as well.
--i       Use rocBLAS-internal instead of rocBLAS
 --help   Displays this message.
 """
 
@@ -116,12 +115,9 @@ def getInstalledRocBLASCommitHash():
         return ""
 
 
-def cloneRepository(destinationPath, cloneInternal):
+def cloneRepository(destinationPath):
     print("Cloning repository...")
-    if cloneInternal:
-        shellCmd("git clone https://github.com/ROCmSoftwarePlatform/rocBLAS-internal.git %s" % destinationPath)
-    else:
-        shellCmd("git clone https://github.com/ROCmSoftwarePlatform/rocBLAS.git %s" % destinationPath)
+    shellCmd("git clone https://github.com/ROCmSoftwarePlatform/rocBLAS.git %s" % destinationPath)
 
 
 def checkoutInstalledBranch(destinationPath):
@@ -177,8 +173,9 @@ def loadBenchmarkDescriptions(logfilePath):
     benchmarkList = []
 
     for line in lines:
-        benchmarkList.append(ProblemDescription(line))
-        b = benchmarkList[-1]
+        if len(line) > 0 and "rocblas-bench" in line.split()[0]:
+            benchmarkList.append(ProblemDescription(line))
+            b = benchmarkList[-1]
     return benchmarkList
 
 
@@ -228,8 +225,6 @@ def findMatchingKernel(benchDescriptions, architecture, directoryPath):
                     if foundMatchingKernel: break
 
                 if foundMatchingKernel:
-                    #print("Match found for %s with speed of %s GFLOPS" % \
-                    #    (                  bench,           winningKernelInfo[1]))
                     print("Match found for %s in file %s" % \
                         (                  bench,      filename))
                     foundMatch[i] = True
@@ -241,11 +236,8 @@ def findBenchmarkInFile(problemDescriptions):
 
 def main(argv):
 
-    #print(parseOptions("-h -c 1 -a 2 --help --doobeedoo 7".split(), "ha:b:c:", ["help", "doobeedoo="]))
-    #return 
-
     try:
-        optdict = parseOptions(argv, "f:a:cui", ["help"])
+        optdict = parseOptions(argv, "f:a:cu", ["help"])
         if 'help' in optdict.keys():
             print(helpMessage)
             sys.exit()
@@ -263,21 +255,23 @@ def main(argv):
     if 'a' in optdict.keys():
         architecture = optdict['a']
 
-    cloneInternal = True if 'i' in optdict.keys() else False
-
     directoryPath="./rocBLASTemp"     #Default path
     libraryPathExtension="/library/src/blas3/Tensile/Logic/asm_full/"
     if not os.path.isdir(directoryPath):
         if not os.path.isfile(directoryPath):
             print("Created temporary directory %s" % directoryPath)
             shellCmd("mkdir %s" % directoryPath)
-            cloneRepository(directoryPath, cloneInternal)
+            cloneRepository(directoryPath)
         else:
             sys.exit("Directory %s is a file" % directoryPath)
 
     #Benchmarked problem sizes in log file
     benchDescriptions = loadBenchmarkDescriptions(logpath)
 
+    print("\
+-------------------------------------------------------------\n\
+-- Finding pre-tuned sizes in installed version of rocblas --\n\
+-------------------------------------------------------------")
     checkoutInstalledBranch(directoryPath)
     localMatches = findMatchingKernel( \
         benchDescriptions,             \
@@ -285,6 +279,10 @@ def main(argv):
         directoryPath+libraryPathExtension)
 
     if 'u' in optdict.keys():
+        print("\
+---------------------------------------------------------------\n\
+-- Finding pre-tuned sizes in most recent version of rocblas --\n\
+---------------------------------------------------------------")
         checkoutMostRecentBranch(directoryPath)
         recentMatches = findMatchingKernel( \
             benchDescriptions,              \
