@@ -23,22 +23,21 @@ struct rocblas_reduce_amin
     }
 };
 
-template <rocblas_int NB, typename T, typename S>
-rocblas_status rocblas_iamin_template(rocblas_handle            handle,
-                                      rocblas_int               n,
-                                      const T*                  x,
-                                      rocblas_int               shiftx,
-                                      rocblas_int               incx,
-                                      rocblas_int*              result,
-                                      rocblas_index_value_t<S>* workspace)
+template <rocblas_int NB, bool ISBATCHED, typename T, typename S>
+ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_iamin_template(rocblas_handle            handle,
+                                                              rocblas_int               n,
+                                                              const T                   x,
+                                                              rocblas_int               shiftx,
+                                                              rocblas_int               incx,
+                                                              rocblas_stride            stridex,
+                                                              rocblas_int               batch_count,
+                                                              rocblas_int*              result,
+                                                              rocblas_index_value_t<S>* workspace)
 {
-    static constexpr bool           isbatched     = false;
-    static constexpr rocblas_stride stridex_0     = 0;
-    static constexpr rocblas_int    batch_count_1 = 1;
     return rocblas_reduction_template<NB,
-                                      isbatched,
+                                      ISBATCHED,
                                       rocblas_fetch_amax_amin<S>,
                                       rocblas_reduce_amin,
                                       rocblas_finalize_amax_amin>(
-        handle, n, x, shiftx, incx, stridex_0, batch_count_1, result, workspace);
+        handle, n, x, shiftx, incx, stridex, batch_count, result, workspace);
 }
