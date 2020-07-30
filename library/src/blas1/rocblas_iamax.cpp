@@ -37,7 +37,7 @@ namespace
                                                                               stridex_0,
                                                                               batch_count_1,
                                                                               result,
-                                                                              rocblas_iamax_name<S>,
+                                                                              rocblas_iamax_name<T>,
                                                                               "iamax",
                                                                               mem);
         if(checks_status != rocblas_status_continue)

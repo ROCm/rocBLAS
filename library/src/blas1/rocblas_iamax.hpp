@@ -26,7 +26,7 @@ struct rocblas_reduce_amax
 template <rocblas_int NB, bool ISBATCHED, typename T, typename S>
 ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_iamax_template(rocblas_handle            handle,
                                                               rocblas_int               n,
-                                                              const T*                  x,
+                                                              const T                   x,
                                                               rocblas_int               shiftx,
                                                               rocblas_int               incx,
                                                               rocblas_stride            stridex,

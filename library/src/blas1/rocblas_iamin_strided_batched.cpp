@@ -30,24 +30,29 @@ namespace
                                                       rocblas_int    batch_count,
                                                       rocblas_int*   result)
     {
-        static constexpr bool isbatched = true;
-        static constexpr int  NB        = 1024;
+        static constexpr bool        isbatched = true;
+        static constexpr rocblas_int shiftx_0  = 0;
+        static constexpr int         NB        = 1024;
 
-        return rocblas_reduction_impl<NB,
-                                      isbatched,
-                                      rocblas_fetch_amax_amin<S>,
-                                      rocblas_reduce_amin,
-                                      rocblas_finalize_amax_amin,
-                                      rocblas_index_value_t<S>>(
-            handle,
-            n,
-            x,
-            incx,
-            stridex,
-            batch_count,
-            result,
-            rocblas_iamin_strided_batched_name<T>,
-            "iamin_strided_batched");
+        rocblas_index_value_t<S>* mem = nullptr;
+        rocblas_status            checks_status
+            = rocblas_reduction_setup<NB, isbatched>(handle,
+                                                     n,
+                                                     x,
+                                                     incx,
+                                                     stridex,
+                                                     batch_count,
+                                                     result,
+                                                     rocblas_iamin_strided_batched_name<T>,
+                                                     "iamin_strided_batched",
+                                                     mem);
+        if(checks_status != rocblas_status_continue)
+        {
+            return checks_status;
+        }
+
+        return rocblas_iamin_template<NB, isbatched>(
+            handle, n, x, shiftx_0, incx, stridex, batch_count, result, mem);
     }
 
 }
