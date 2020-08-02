@@ -2911,10 +2911,11 @@ Tests:
   alpha_beta: *alpha_beta_range
   K: 0
   matrix_size:
-    - { M:  1,   N:  2 }
-    - { M:  3,   N:  5 }
+    - { M:  1,   N:    2 }
+    - { M:  3,   N:    5 }
     - { M:  512, N:  100 }
     - { M:  63,  N:  512 }
+    - { M: 100,  N: 1000 }
 
 - name: atomics_mode
   category: quick
