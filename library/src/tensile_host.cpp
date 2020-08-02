@@ -141,11 +141,6 @@ namespace
         freeIndex[0].c = freeIndex[0].d = 0;
         freeIndex[1].c = freeIndex[1].d = 1;
 
-        // Tensile does not support 0-sized dimensions. For when k == 0, we still need to
-        // multiply C by beta, but not add any of the rank-0 dot products. As a workaround,
-        // we pass k = 1 and set alpha == 0, since alpha == 0 has the same effect as k == 0.
-        auto k = prob.k == 0 ? 1 : prob.k;
-
         // clang-format off
 
         // If A is transposed, swap the free and bound dimensions and their ranks
@@ -153,7 +148,7 @@ namespace
         {
             a = {
                     Tensile_Ti,
-                    {k, prob.m, prob.batch_count},
+                    {prob.k, prob.m, prob.batch_count},
                     {prob.row_stride_a, prob.col_stride_a, prob.batch_stride_a}
                 };
             freeIndex[0].i  = 1;
@@ -163,7 +158,7 @@ namespace
         {
             a = {
                     Tensile_Ti,
-                    {prob.m, k, prob.batch_count},
+                    {prob.m, prob.k, prob.batch_count},
                     {prob.row_stride_a, prob.col_stride_a, prob.batch_stride_a}
                 };
             freeIndex[0].i  = 0;
@@ -179,7 +174,7 @@ namespace
         {
             b = {
                     Tensile_Ti,
-                    {prob.n, k, prob.batch_count},
+                    {prob.n, prob.k, prob.batch_count},
                     {prob.row_stride_b, prob.col_stride_b, prob.batch_stride_b}
                 };
             freeIndex[1].i  = 0;
@@ -189,7 +184,7 @@ namespace
         {
             b = {
                     Tensile_Ti,
-                    {k, prob.n, prob.batch_count},
+                    {prob.k, prob.n, prob.batch_count},
                     {prob.row_stride_b, prob.col_stride_b, prob.batch_stride_b}
                 };
             freeIndex[1].i  = 1;
@@ -308,11 +303,7 @@ namespace
 
         // alpha and beta are stored by value in Tensile::TypedContractionInputs
         // alpha and beta are copied from host to Tensile::TypedContractionInputs
-        // We set alpha = 0 if k == 0 (see above)
-        if(prob.k == 0)
-            memset(&inputs.alpha, 0, sizeof(inputs.alpha));
-        else
-            AlphaBeta<Ti, To, Tc>::copy(&inputs.alpha, prob.alpha);
+        AlphaBeta<Ti, To, Tc>::copy(&inputs.alpha, prob.alpha);
         AlphaBeta<Ti, To, Tc>::copy(&inputs.beta, prob.beta);
 
         return inputs;
