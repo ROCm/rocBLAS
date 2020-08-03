@@ -350,4 +350,5 @@ Defaults:
   initialization: rand_int
   category: nightly
   known_bug_platforms: ''
+  name: rocblas-bench
   c_noalias_d: false
