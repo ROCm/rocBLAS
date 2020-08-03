@@ -740,7 +740,7 @@ int run_bench_test(Arguments& arg)
         //          arg.transA == 'N' ? arg.K * arg.lda : arg.M * arg.lda;
         //      rocblas_int min_stride_b =
         //          arg.transB == 'N' ? arg.N * arg.ldb : arg.K * arg.ldb;
-        rocblas_int min_stride_c = arg.ldc * arg.N;
+        rocblas_int min_stride_c = arg.M * arg.N;
         //      if (arg.stride_a < min_stride_a)
         //      {
         //          rocblas_cout << "rocblas-bench INFO: stride_a < min_stride_a, set stride_a = " <<
@@ -818,7 +818,7 @@ int run_bench_test(Arguments& arg)
             rocblas_cout << "rocblas-bench INFO: ldd < min_ldd, set ldd = " << min_ldc << std::endl;
             arg.ldd = min_ldd;
         }
-        rocblas_int min_stride_c = arg.ldc * arg.N;
+        rocblas_int min_stride_c = arg.M * arg.N;
         if(arg.stride_c < min_stride_c)
         {
             rocblas_cout << "rocblas-bench INFO: stride_c < min_stride_c, set stride_c = "
