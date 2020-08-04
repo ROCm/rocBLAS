@@ -52,9 +52,9 @@ you have completed using it with:
     if(hipStreamDestroy(stream) != hipSuccess) return EXIT_FAILURE;
 
 Creating the handle will incur a startup cost. There is an additional startup cost for
-gemm functions to load kernels for a specific device. You can call 
-``rocblas_initialize()`` after calling ``hipSetDevice()`` in order to incur the cost of 
-initializing gemm after setting the device. This needs to be done once for each device.
+gemm functions. This is to load gemm kernels for a specific device. You can shift the 
+gemm startup cost to occur after setting the device by calling ``rocblas_initialize()``
+after calling ``hipSetDevice()``. This needs to be done once for each device.
 If you have two rocBLAS handles using the same device, you only need to call ``rocblas_initialize()``
 once. If ``rocblas_initialize()`` is not called, then the first gemm call will have
 the startup cost. 
@@ -88,9 +88,8 @@ The device that is associated with a stream is whatever device was set at the ti
 Users cannot switch the device in a stream between ``hipStreamCreate()`` and ``hipStreamDestroy()``. 
 If users want to use another device, they should create another stream.
 
-rocBLAS never sets a device, it only queries using ``hipGetDevice()``). 
-If rocBLAS does not see a valid device, it returns an error message to 
-users.
+rocBLAS never sets a device, it only queries using ``hipGetDevice()``). If rocBLAS does not see a 
+valid device, it returns an error message to users.
 
 Multiple streams and multiple devices
 =====================================
@@ -98,5 +97,5 @@ Multiple streams and multiple devices
 If a machine has num devices, they will have deviceID numbers 0, 1, 2, ... (num - 1). The 
 default device has deviceID == 0. Users can run ``num`` rocBLAS handles 
 on ``num`` devices concurrently but can not span a single rocBLAS 
-handle on ``num`` devices. Each handle is associated with a one and only one device.
+handle on ``num`` devices. Each handle is associated with one and only one device.
 
