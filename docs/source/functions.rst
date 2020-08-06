@@ -70,6 +70,10 @@ rocblas_pointer_mode
 --------------------
 .. doxygenenum:: rocblas_pointer_mode
 
+rocblas_atomics_mode
+--------------------
+.. doxygenenum:: rocblas_atomics_mode
+
 rocblas_layer_mode
 ------------------
 .. doxygenenum:: rocblas_layer_mode
@@ -864,6 +868,10 @@ rocblas_gemm_ex + batched, strided_batched
 .. doxygenfunction:: rocblas_gemm_batched_ex
 .. doxygenfunction:: rocblas_gemm_strided_batched_ex
 
+rocblas_gemm_ext2
+-----------------
+.. doxygenfunction:: rocblas_gemm_ext2
+
 rocblas_trsm_ex + batched, strided_batched
 ------------------------------------------
 .. doxygenfunction:: rocblas_trsm_ex
@@ -936,6 +944,14 @@ rocblas_set_pointer_mode
 rocblas_get_pointer_mode
 ------------------------
 .. doxygenfunction:: rocblas_get_pointer_mode
+
+rocblas_set_atomics_mode
+------------------------
+.. doxygenfunction:: rocblas_set_atomics_mode
+
+rocblas_get_atomics_mode
+------------------------
+.. doxygenfunction:: rocblas_get_atomics_mode
 
 rocblas_set_vector
 ------------------
