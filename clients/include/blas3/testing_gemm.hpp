@@ -18,68 +18,85 @@
 template <typename T>
 void testing_gemm_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN         = arg.fortran;
-    auto       rocblas_gemm_fn = FORTRAN ? rocblas_gemm<T, true> : rocblas_gemm<T, false>;
+    for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
+    {
+        const bool FORTRAN         = arg.fortran;
+        auto       rocblas_gemm_fn = FORTRAN ? rocblas_gemm<T, true> : rocblas_gemm<T, false>;
 
-    const rocblas_int M = 100;
-    const rocblas_int N = 100;
-    const rocblas_int K = 100;
+        const rocblas_int M = 100;
+        const rocblas_int N = 100;
+        const rocblas_int K = 100;
 
-    const rocblas_int lda = 100;
-    const rocblas_int ldb = 100;
-    const rocblas_int ldc = 100;
+        const rocblas_int lda = 100;
+        const rocblas_int ldb = 100;
+        const rocblas_int ldc = 100;
 
-    const T alpha = 1.0;
-    const T beta  = 1.0;
+        const T alpha = 1.0;
+        const T beta  = 1.0;
 
-    const size_t safe_size = 100;
+        const size_t safe_size = 100;
 
-    const rocblas_operation transA = rocblas_operation_none;
-    const rocblas_operation transB = rocblas_operation_none;
+        const rocblas_operation transA = rocblas_operation_none;
+        const rocblas_operation transB = rocblas_operation_none;
 
-    rocblas_local_handle handle;
+        rocblas_local_handle handle(arg.atomics_mode);
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
 
-    // allocate memory on device
-    device_vector<T> dA(safe_size);
-    device_vector<T> dB(safe_size);
-    device_vector<T> dC(safe_size);
-    CHECK_DEVICE_ALLOCATION(dA.memcheck());
-    CHECK_DEVICE_ALLOCATION(dB.memcheck());
-    CHECK_DEVICE_ALLOCATION(dC.memcheck());
+        // allocate memory on device
+        device_vector<T> dA(safe_size);
+        device_vector<T> dB(safe_size);
+        device_vector<T> dC(safe_size);
+        CHECK_DEVICE_ALLOCATION(dA.memcheck());
+        CHECK_DEVICE_ALLOCATION(dB.memcheck());
+        CHECK_DEVICE_ALLOCATION(dC.memcheck());
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_gemm_fn(
-            handle, transA, transB, M, N, K, &alpha, nullptr, lda, dB, ldb, &beta, dC, ldc),
-        rocblas_status_invalid_pointer);
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_gemm_fn(
+                handle, transA, transB, M, N, K, &alpha, nullptr, lda, dB, ldb, &beta, dC, ldc),
+            rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_gemm_fn(
-            handle, transA, transB, M, N, K, &alpha, dA, lda, nullptr, ldb, &beta, dC, ldc),
-        rocblas_status_invalid_pointer);
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_gemm_fn(
+                handle, transA, transB, M, N, K, &alpha, dA, lda, nullptr, ldb, &beta, dC, ldc),
+            rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_gemm_fn(
-            handle, transA, transB, M, N, K, &alpha, dA, lda, dB, ldb, &beta, nullptr, ldc),
-        rocblas_status_invalid_pointer);
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_gemm_fn(
+                handle, transA, transB, M, N, K, &alpha, dA, lda, dB, ldb, &beta, nullptr, ldc),
+            rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_gemm_fn(handle, transA, transB, M, N, K, nullptr, dA, lda, dB, ldb, &beta, dC, ldc),
-        rocblas_status_invalid_pointer);
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_gemm_fn(
+                handle, transA, transB, M, N, K, nullptr, dA, lda, dB, ldb, &beta, dC, ldc),
+            rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_gemm_fn(
-            handle, transA, transB, M, N, K, &alpha, dA, lda, dB, ldb, nullptr, dC, ldc),
-        rocblas_status_invalid_pointer);
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_gemm_fn(
+                handle, transA, transB, M, N, K, &alpha, dA, lda, dB, ldb, nullptr, dC, ldc),
+            rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_gemm_fn(nullptr, transA, transB, M, N, K, &alpha, dA, lda, dB, ldb, &beta, dC, ldc),
-        rocblas_status_invalid_handle);
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_gemm_fn(
+                nullptr, transA, transB, M, N, K, &alpha, dA, lda, dB, ldb, &beta, dC, ldc),
+            rocblas_status_invalid_handle);
 
-    // if k == 0 we can test that A and B can both be nullptr without issue.
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_gemm_fn(
-            handle, transA, transB, M, N, 0, &alpha, nullptr, lda, nullptr, ldb, &beta, dC, ldc),
-        rocblas_status_success);
+        // if k == 0 we can test that A and B can both be nullptr without issue.
+        EXPECT_ROCBLAS_STATUS(rocblas_gemm_fn(handle,
+                                              transA,
+                                              transB,
+                                              M,
+                                              N,
+                                              0,
+                                              &alpha,
+                                              nullptr,
+                                              lda,
+                                              nullptr,
+                                              ldb,
+                                              &beta,
+                                              dC,
+                                              ldc),
+                              rocblas_status_success);
+    }
 }
 
 template <typename T>
@@ -105,7 +122,7 @@ void testing_gemm(const Arguments& arg)
     double               gpu_time_used, cpu_time_used;
     double               rocblas_gflops, cblas_gflops;
     double               rocblas_error = 0.0;
-    rocblas_local_handle handle;
+    rocblas_local_handle handle(arg.atomics_mode);
 
     rocblas_int A_row = transA == rocblas_operation_none ? M : K;
     rocblas_int A_col = transA == rocblas_operation_none ? K : M;

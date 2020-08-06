@@ -208,15 +208,6 @@ ROCBLAS_EXPORT rocblas_ostream& operator<<(rocblas_ostream& os, const char* s)
     return os;
 }
 
-ROCBLAS_EXPORT rocblas_ostream& operator<<(rocblas_ostream& os, const std::string& s)
-{
-    if(os.yaml)
-        os << std::quoted(s.c_str());
-    else
-        os << s;
-    return os;
-}
-
 // YAML Manipulators (only used for their addresses now)
 ROCBLAS_EXPORT std::ostream& rocblas_ostream::yaml_on(std::ostream& os)
 {

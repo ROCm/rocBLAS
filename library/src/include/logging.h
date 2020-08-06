@@ -95,7 +95,6 @@ public:
             os << "- ";
             tuple_helper::print_tuple_pairs(
                 os, std::tuple_cat(p.first, std::make_tuple("call_count", p.second)));
-            os << "\n";
         }
 
         // Flush out the dump
@@ -119,10 +118,11 @@ public:
 // log_profile will call argument_profile to profile actual arguments,
 // keeping count of the number of times each set of arguments is used
 template <typename... Ts>
-inline void log_profile(rocblas_handle handle, const char* func, Ts&&... xs)
+void log_profile(rocblas_handle handle, const char* func, Ts&&... xs)
 {
     // Make a tuple with the arguments
-    auto tup = std::make_tuple("rocblas_function", func, std::forward<Ts>(xs)...);
+    auto tup = std::make_tuple(
+        "rocblas_function", func, "atomics_mode", handle->atomics_mode, std::forward<Ts>(xs)...);
 
     // Set up profile
     static argument_profile<decltype(tup)> profile(*handle->log_profile_os);
@@ -151,9 +151,9 @@ void log_arguments(rocblas_ostream& os, const char* sep, H&& head, Ts&&... xs)
 // (handle->layer_mode & rocblas_layer_mode_log_trace) != 0
 // log_function will call log_arguments to log arguments with a comma separator
 template <typename... Ts>
-inline void log_trace(rocblas_handle handle, Ts&&... xs)
+void log_trace(rocblas_handle handle, Ts&&... xs)
 {
-    log_arguments(*handle->log_trace_os, ",", std::forward<Ts>(xs)...);
+    log_arguments(*handle->log_trace_os, ",", std::forward<Ts>(xs)..., handle->atomics_mode);
 }
 
 // if bench logging is turned on with
@@ -161,9 +161,12 @@ inline void log_trace(rocblas_handle handle, Ts&&... xs)
 // log_bench will call log_arguments to log a string that
 // can be input to the executable rocblas-bench.
 template <typename... Ts>
-inline void log_bench(rocblas_handle handle, Ts&&... xs)
+void log_bench(rocblas_handle handle, Ts&&... xs)
 {
-    log_arguments(*handle->log_bench_os, " ", std::forward<Ts>(xs)...);
+    if(handle->atomics_mode == rocblas_atomics_not_allowed)
+        log_arguments(*handle->log_bench_os, " ", std::forward<Ts>(xs)..., "--atomics_not_allowed");
+    else
+        log_arguments(*handle->log_bench_os, " ", std::forward<Ts>(xs)...);
 }
 
 /*************************************************

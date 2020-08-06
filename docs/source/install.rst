@@ -43,8 +43,8 @@ dependent for the user applciation.
 
 Once installed, rocblas.h and rocblas_module.f90 can be found in the /opt/rocm/include
 directory. Only these two installed files should be used when needed in user code.
-Other header files are for internal use and should not be directly included. All other
-rocBLAS header files will soon be moved out of /opt/rocm/include in a future realease.
+Other rocBLAS files can be found in /opt/rocm/include/internal, however these files
+should not be directly included.
 
 
 Building from source using install.sh

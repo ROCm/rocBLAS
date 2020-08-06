@@ -229,6 +229,8 @@ Since ``RocBLAS_Test`` is a dependent base class if this test implementation cla
 
 The ``RocBLAS_TestName`` helper class template should be used to create the name. It accepts ostream output (like ``std::cout``\ ), and can be automatically converted to ``std::string`` after all of the text of the name has been streamed to it.
 
+The ``RocBLAS_TestName`` helper class constructor accepts a string argument which will be included in the test name. It is generally passed the ``Arguments`` structure's ``name`` member.
+
 The ``RocBLAS_TestName`` helper class template should be passed the name of this test implementation class (including any implicit template arguments) as a template argument, so that every instantiation of this test implementation class creates a unique instantiation of ``RocBLAS_TestName``. ``RocBLAS_TestName`` has some static data which needs to be kept local to each test.
 
  ``RocBLAS_TestName`` converts non-alphanumeric characters into suitable replacements, and disambiguates test names when the same arguments appear more than once.

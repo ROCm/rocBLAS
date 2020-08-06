@@ -99,9 +99,9 @@ if( BUILD_WITH_TENSILE )
   if( CMAKE_CXX_COMPILER MATCHES ".*/hipcc$" )
     foreach( target ${ROCBLAS_GPUS} )
       if( BUILD_WITH_TENSILE_HOST )
-        target_compile_options( TensileHost PRIVATE --amdgpu-target=${target} )
+        target_compile_options( TensileHost PRIVATE --cuda-gpu-arch=${target} )
       else()
-        target_compile_options( Tensile PRIVATE --amdgpu-target=${target} )
+        target_compile_options( Tensile PRIVATE --cuda-gpu-arch=${target} )
       endif()
     endforeach( )
   endif( )
@@ -355,8 +355,8 @@ if( CMAKE_CXX_COMPILER MATCHES ".*/hipcc$" )
   target_compile_options( rocblas PRIVATE -mf16c )
   foreach( target ${ROCBLAS_GPUS} )
     message( STATUS "TARGET: " ${target} )
-    target_compile_options( rocblas PRIVATE --amdgpu-target=${target} )
-    target_link_libraries( rocblas PRIVATE --amdgpu-target=${target} )
+    target_compile_options( rocblas PRIVATE --cuda-gpu-arch=${target} )
+    target_link_libraries( rocblas PRIVATE --cuda-gpu-arch=${target} )
   endforeach( )
 endif( )
 
@@ -365,8 +365,9 @@ target_compile_options( rocblas PRIVATE -Werror=vla )
 
 target_include_directories( rocblas
   PUBLIC  $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/library/include>
+          $<BUILD_INTERFACE:${CMAKE_SOURCE_DIR}/library/include/internal>
           $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-          $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include>
+          $<BUILD_INTERFACE:${PROJECT_BINARY_DIR}/include/internal>
           $<BUILD_INTERFACE:${Tensile_INC}>
           $<INSTALL_INTERFACE:include>
           )
@@ -440,10 +441,10 @@ set_target_properties( rocblas PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BI
 # Package that helps me set visibility for function names exported from shared library
 include( GenerateExportHeader )
 set_target_properties( rocblas PROPERTIES CXX_VISIBILITY_PRESET "hidden" VISIBILITY_INLINES_HIDDEN ON )
-generate_export_header( rocblas EXPORT_FILE_NAME ${PROJECT_BINARY_DIR}/include/rocblas-export.h )
+generate_export_header( rocblas EXPORT_FILE_NAME ${PROJECT_BINARY_DIR}/include/internal/rocblas-export.h )
 
 # generate header with prototypes for export reuse
-set( ROCBLAS_PROTO_TEMPLATES "${PROJECT_BINARY_DIR}/include/rocblas-exported-proto.hpp" )
+set( ROCBLAS_PROTO_TEMPLATES "${PROJECT_BINARY_DIR}/include/internal/rocblas-exported-proto.hpp" )
 add_custom_command( TARGET rocblas PRE_BUILD
   COMMAND python3 template-proto.py ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/*.hpp ${CMAKE_CURRENT_SOURCE_DIR}/blas3/*.hpp ${CMAKE_CURRENT_SOURCE_DIR}/blas2/*.hpp ${CMAKE_CURRENT_SOURCE_DIR}/blas1/*.hpp > ${ROCBLAS_PROTO_TEMPLATES}
   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}

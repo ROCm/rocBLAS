@@ -44,8 +44,19 @@ def runCompileCommand(platform, project, jobName)
 def runTestCommand (platform, project, gfilter)
 {
     String sudo = auxiliary.sudo(platform.jenkinsLabel)
+    String installPackage = ""
+    if (platform.jenkinsLabel.contains('centos') || platform.jenkinsLabel.contains('sles'))
+    {
+        installPackage = 'sudo rpm -i rocblas*.rpm'
+    } else
+    {
+        installPackage = 'sudo dpkg -i rocblas*.deb'
+    }
     def command = """#!/usr/bin/env bash
                     set -x
+                    pushd ${project.paths.project_build_prefix}/build/release/package
+                    ${installPackage}
+                    popd
                     cd ${project.paths.project_build_prefix}/build/release/clients/staging
                     ${sudo} GTEST_LISTENER=NO_PASS_LINE_IN_LOG ./rocblas-test --gtest_output=xml --gtest_color=yes --gtest_filter=${gfilter}-*known_bug*
                 """

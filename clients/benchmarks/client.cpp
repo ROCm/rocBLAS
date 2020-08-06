@@ -887,7 +887,8 @@ try
     std::string compute_type;
     std::string initialization;
     rocblas_int device_id;
-    bool        datafile = rocblas_parse_data(argc, argv);
+    bool        datafile            = rocblas_parse_data(argc, argv);
+    bool        atomics_not_allowed = false;
 
     options_description desc("rocblas-bench command line options");
     desc.add_options()
@@ -1061,8 +1062,12 @@ try
          "extended precision gemm solution index")
 
         ("flags",
-         value<uint32_t>(&arg.flags)->default_value(10),
-         "extended precision gemm flags")
+         value<uint32_t>(&arg.flags)->default_value(rocblas_gemm_flags_none),
+         "gemm_ex flags")
+
+        ("atomics_not_allowed",
+         value<bool>(&atomics_not_allowed)->default_value(false),
+         "Atomic operations with non-determinism in results are not allowed")
 
         ("device",
          value<rocblas_int>(&device_id)->default_value(0),
@@ -1080,6 +1085,8 @@ try
 
         ("version", "Prints the version number");
     // clang-format on
+
+    arg.atomics_mode = atomics_not_allowed ? rocblas_atomics_not_allowed : rocblas_atomics_allowed;
 
     // Initialize rocBLAS; TODO: Remove this after it is determined why rocblas-bench
     // returns lower performance if this is executed after Boost parse_command_line().

@@ -75,7 +75,7 @@ namespace
         // Google Test name suffix based on parameters
         static std::string name_suffix(const Arguments& arg)
         {
-            RocBLAS_TestName<trtri_template> name;
+            RocBLAS_TestName<trtri_template> name(arg.name);
             name << rocblas_datatype2string(arg.a_type) << '_' << (char)std::toupper(arg.uplo)
                  << (char)std::toupper(arg.diag) << '_' << arg.N << '_' << arg.lda;
             if(K != trtri_k)

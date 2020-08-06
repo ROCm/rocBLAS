@@ -138,7 +138,7 @@ get_os_id(OS_ID)
 message (STATUS "OS detected is ${OS_ID}")
 
 # Versioning via rocm-cmake
-set ( VERSION_STRING "2.26.0" )
+set ( VERSION_STRING "2.28.0" )
 rocm_setup_version( VERSION ${VERSION_STRING} )
 
 # Append our library helper cmake path and the cmake path for hip (for convenience)
@@ -179,6 +179,15 @@ if( BUILD_WITH_TENSILE )
   set_property( CACHE Tensile_COMPILER PROPERTY STRINGS hcc hipcc)
   set_property( CACHE Tensile_LIBRARY_FORMAT PROPERTY STRINGS msgpack yaml)
 
+  if(Tensile_LIBRARY_FORMAT MATCHES "yaml")
+    option(TENSILE_USE_LLVM      "Use LLVM for parsing config files." ON)
+    option(TENSILE_USE_MSGPACK   "Use msgpack for parsing config files." OFF)
+  else()
+    option(TENSILE_USE_LLVM      "Use LLVM for parsing config files." OFF)
+    option(TENSILE_USE_MSGPACK   "Use msgpack for parsing config files." ON)
+  endif()
+
+
   include(virtualenv)
   if (Tensile_TEST_LOCAL_PATH)
     virtualenv_install(${Tensile_TEST_LOCAL_PATH})
@@ -196,7 +205,7 @@ if( BUILD_WITH_TENSILE )
   if (TENSILE_VERSION)
     find_package(Tensile ${TENSILE_VERSION} EXACT REQUIRED HIP LLVM OpenMP PATHS "${INSTALLED_TENSILE_PATH}")
   else()
-    find_package(Tensile 4.21.0 EXACT REQUIRED HIP LLVM OpenMP PATHS "${INSTALLED_TENSILE_PATH}")
+    find_package(Tensile 4.22.0 EXACT REQUIRED HIP LLVM OpenMP PATHS "${INSTALLED_TENSILE_PATH}")
   endif()
 endif()
 
