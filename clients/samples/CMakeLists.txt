@@ -7,11 +7,16 @@ set( rocblas_samples_common ../common/utility.cpp )
 set( THREADS_PREFER_PTHREAD_FLAG ON )
 find_package( Threads REQUIRED )
 
+# C example
+add_executable( example-c-dgeam example_c_dgeam.c )
+target_compile_definitions( example-c-dgeam PRIVATE __HIP_PLATFORM_HCC__ )
+target_compile_options( example-c-dgeam PRIVATE -std=c11 )
+
+# C++ examples
 add_executable( example-sscal example_sscal.cpp ${rocblas_samples_common} )
 add_executable( example-scal-template example_scal_template.cpp ${rocblas_samples_common} )
-set( sample_list_base example-sscal example-scal-template)
 
-# Fortran example
+# Fortran examples
 add_executable( example-fortran-axpy example_fortran_axpy.f90 )
 add_executable( example-fortran-scal example_fortran_scal.f90 )
 add_executable( example-fortran-gemv example_fortran_gemv.f90 )
@@ -24,16 +29,21 @@ if( BUILD_WITH_TENSILE )
 endif( )
 
 set( sample_list_fortran example-fortran-axpy example-fortran-scal example-fortran-gemv )
+set( sample_list_c example-c-dgeam )
 set( sample_list_base example-sscal example-scal-template )
-set( sample_list_all ${sample_list_base} ${sample_list_tensile} ${sample_list_fortran} )
-set( sample_list_no_fortran ${sample_list_base} ${sample_list_tensile} )
+
+set( sample_list_all ${sample_list_base} ${sample_list_tensile} ${sample_list_fortran} ${sample_list_c} )
+set( sample_list_hip_device ${sample_list_base} ${sample_list_tensile} )
+
 foreach( exe ${sample_list_all} )
   target_link_libraries( ${exe} PRIVATE roc::rocblas )
 
   set_target_properties( ${exe} PROPERTIES CXX_EXTENSIONS NO )
   set_target_properties( ${exe} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )
 
-  target_compile_definitions( ${exe} PRIVATE ROCM_USE_FLOAT16 )
+  if (NOT ${exe} STREQUAL "example-c-dgeam")
+    target_compile_definitions( ${exe} PRIVATE ROCM_USE_FLOAT16 )
+  endif()
 
   target_include_directories( ${exe}
     PRIVATE
@@ -70,13 +80,9 @@ foreach( exe ${sample_list_all} )
     # GCC or hip-clang needs specific flags to turn on f16c intrinsics
     target_compile_options( ${exe} PRIVATE -mf16c )
   endif( )
-
-  if( NOT CUDA_FOUND )
-    target_link_libraries( ${exe} PRIVATE hip::host )
-  endif()
 endforeach( )
 
-foreach( exe ${sample_list_no_fortran} )
+foreach( exe ${sample_list_hip_device} )
   if( NOT CUDA_FOUND )
     target_link_libraries( ${exe} PRIVATE hip::device )
   endif()

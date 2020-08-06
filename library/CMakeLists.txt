@@ -93,15 +93,15 @@ if( BUILD_VERBOSE )
 endif( )
 
 # configure a header file to pass the CMake version settings to the source, and package the header files in the output archive
-configure_file( "${CMAKE_CURRENT_SOURCE_DIR}/include/rocblas-version.h.in" "${PROJECT_BINARY_DIR}/include/rocblas-version.h" )
+configure_file( "${CMAKE_CURRENT_SOURCE_DIR}/include/internal/rocblas-version.h.in" "${PROJECT_BINARY_DIR}/include/internal/rocblas-version.h" )
 
 set( rocblas_headers_public
   include/rocblas.h
-  include/rocblas-types.h
-  include/rocblas_bfloat16.h
-  include/rocblas-auxiliary.h
-  include/rocblas-functions.h
-  ${PROJECT_BINARY_DIR}/include/rocblas-version.h
+  include/internal/rocblas-types.h
+  include/internal/rocblas_bfloat16.h
+  include/internal/rocblas-auxiliary.h
+  include/internal/rocblas-functions.h
+  ${PROJECT_BINARY_DIR}/include/internal/rocblas-version.h
 )
 
 source_group( "Header Files\\Public" FILES ${rocblas_headers_public} )
@@ -113,7 +113,7 @@ set( LIB_INSTALL_DIR ${CMAKE_INSTALL_LIBDIR} )
 set( INCLUDE_INSTALL_DIR ${CMAKE_INSTALL_INCLUDEDIR} )
 
 # Set Fortran module output directory
-set(CMAKE_Fortran_MODULE_DIRECTORY ${PROJECT_BINARY_DIR}/include)
+set(CMAKE_Fortran_MODULE_DIRECTORY ${PROJECT_BINARY_DIR}/include/internal)
 
 # Build into subdirectories
 add_subdirectory( src )

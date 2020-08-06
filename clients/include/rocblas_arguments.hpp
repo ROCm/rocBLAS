@@ -90,6 +90,7 @@ struct Arguments
     rocblas_initialization initialization;
     char                   known_bug_platforms[64];
     bool                   c_noalias_d;
+    rocblas_atomics_mode   atomics_mode;
 
     /*************************************************************************
      *                     End Of Arguments                                  *
@@ -147,7 +148,8 @@ struct Arguments
     OPER(category) SEP               \
     OPER(initialization) SEP         \
     OPER(known_bug_platforms) SEP    \
-    OPER(c_noalias_d)
+    OPER(c_noalias_d) SEP            \
+    OPER(atomics_mode)
 
     // clang-format on
 

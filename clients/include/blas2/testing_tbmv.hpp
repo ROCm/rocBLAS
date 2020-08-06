@@ -32,7 +32,7 @@ void testing_tbmv_bad_arg(const Arguments& arg)
     const rocblas_operation transA = rocblas_operation_none;
     const rocblas_diagonal  diag   = rocblas_diagonal_non_unit;
 
-    rocblas_local_handle handle;
+    rocblas_local_handle handle(arg.atomics_mode);
 
     size_t size_A = lda * size_t(M);
     size_t size_x = M * size_t(incx);
@@ -69,7 +69,7 @@ void testing_tbmv(const Arguments& arg)
     rocblas_operation transA    = char2rocblas_operation(arg.transA);
     rocblas_diagonal  diag      = char2rocblas_diagonal(char_diag);
 
-    rocblas_local_handle handle;
+    rocblas_local_handle handle(arg.atomics_mode);
 
     // argument sanity check before allocating invalid memory
     bool invalid_size = M < 0 || K < 0 || lda < K + 1 || !incx;

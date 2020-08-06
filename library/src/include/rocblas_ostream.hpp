@@ -324,7 +324,11 @@ public:
 
     // String output
     friend rocblas_ostream& operator<<(rocblas_ostream& os, const char* s);
-    friend rocblas_ostream& operator<<(rocblas_ostream& os, const std::string& s);
+
+    friend rocblas_ostream& operator<<(rocblas_ostream& os, const std::string& s)
+    {
+        return os << s.c_str();
+    }
 
     // rocblas_datatype output
     friend rocblas_ostream& operator<<(rocblas_ostream& os, rocblas_datatype d)
@@ -363,9 +367,22 @@ public:
 
     // rocblas_status output
     friend rocblas_ostream& operator<<(rocblas_ostream& os, rocblas_status status)
-
     {
         os.os << rocblas_status_to_string(status);
+        return os;
+    }
+
+    // atomics mode output
+    friend rocblas_ostream& operator<<(rocblas_ostream& os, rocblas_atomics_mode mode)
+    {
+        os.os << rocblas_atomics_mode_to_string(mode);
+        return os;
+    }
+
+    // gemm flags output
+    friend rocblas_ostream& operator<<(rocblas_ostream& os, rocblas_gemm_flags flags)
+    {
+        os.os << rocblas_gemm_flags_to_string(flags);
         return os;
     }
 

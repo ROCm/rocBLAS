@@ -1,42 +1,16 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 
 # a timing script for FFTs and convolutions using OpenMP
 
-import sys, getopt
-import numpy as np
-from math import *
+import argparse
 import subprocess
 import os
 import re # regexp package
-import shutil
+import sys
 import tempfile
-import re
-
-usage = '''A timing script for rocblas
-
-Usage:
-\ttiming.py
-\t\t-I          make transform in-place
-\t\t-a <int>    number of samples used for median per problem size
-\t\t-i <int>    number of iterations averaged per sample
-\t\t-j <int>    number of cold/warmup iterations before timing iterations
-\t\t-o <string> name of output file
-\t\t-R          set transform to be real/complex or complex/real
-\t\t-w <string> set working directory for rocblas-bench
-\t\t-n <int>    minimum problem size in all directions for now
-\t\t-N <int>    maximum problem size in all directions for now
-\t\t-f <string> precision: float(default) or double
-\t\t-b <int>    batch size
-\t\t-g <int>    device number
-\t\t-t <string> data type: time or gflops (default: time)'''
-
-# \t\t-y <int>    minimum problem size in y direction
-# \t\t-Y <int>    maximum problem size in Y direction
-# \t\t-z <int>    minimum problem size in z direction
-# \t\t-Z <int>    maximum problem size in Z direction
 
 def runcase(workingdir, mval, nval, kval, ntrial, precision, nbatch,
-            devicenum, logfilename, function, side, uplo, diag, transA, transB, alpha, beta, incx, incy, lda, ldb, ldc, algo, iters, cold_iters):
+            devicenum, logfilename, function, side, uplo, diag, transA, transB, alpha, beta, incx, incy, lda, ldb, ldc, iters, cold_iters, algo):
     progname = "rocblas-bench"
     prog = os.path.join(workingdir, progname)
 
@@ -94,9 +68,8 @@ def runcase(workingdir, mval, nval, kval, ntrial, precision, nbatch,
     cmd.append("-i")
     cmd.append(str(iters))
 
-    if (cold_iters >= 0):
-        cmd.append("-j")
-        cmd.append(str(cold_iters))
+    cmd.append("-j")
+    cmd.append(str(cold_iters))
 
     cmd.append("-r")
     cmd.append(precision)
@@ -172,135 +145,84 @@ def incrementParam(cur, max, mul, step_size, done):
     return cur, done
 
 
-def main(argv):
-    workingdir = "."
-    nmin = 1
-    nmax = 1024
-    kmin = 1
-    kmax = 1
-    mmin = 1
-    mmax = 1
-    ntrial = 1
-    iters = 1
-    cold_iters = -1  # default to not set
-    outfilename = "timing.dat"
-    precision = "f32_r"
-    nbatch = 1
-    algo = 0
-    # datatype = "time"
-    radix = 2
-    step_size = 10
-    devicenum = 0
-    function = ""
-    alpha = 1
-    beta = 1
-    incx = 1
-    incy = 1
-    precision = ""
-    transA = "N"
-    transB = "N"
-    lda = 1
-    ldb = 1
-    ldc = 1
-    LDA = 1
-    LDB = 1
-    LDC = 1
-    initialization = ""
-    step_mult = 0
-    side = "L"
-    uplo = "L"
-    diag = "N"
+def main():
+    parser = argparse.ArgumentParser()
 
-    try:
-        print(argv)
-        opts, args = getopt.getopt(argv,"hb:d:I:i:j:o:Rt:w:m:n:k:M:N:K:y:Y:z:Z:f:r:g:p:s:a:x", ["side=", "uplo=", "diag=", "incx=", "incy=",
-         "alpha=", "beta=", "transA=", "transB=", "lda=", "ldb=", "ldc=", "LDA=", "LDB=", "LDC=", "algo=", "initialization="])
-    except getopt.GetoptError:
-        print("error in parsing arguments.")
-        print(usage)
-        sys.exit(2)
-    for opt, arg in opts:
-        if opt in ("-h"):
-            print(usage)
-            exit(0)
-        elif opt in ("-o"):
-            outfilename = arg
-        # elif opt in ("-t"):
-        #     if arg not in ["time", "gflops"]:
-        #         print("data type must be time or gflops")
-        #         print(usage)
-        #         sys.exit(1)
-        #     datatype = arg
-        elif opt in ("-R"):
-            rcfft = True
-        elif opt in ("-w"):
-            workingdir = arg
-        elif opt in ("-i"):
-            iters = int(arg)
-        elif opt in ("-j"):
-            cold_iters = int(arg)
-        elif opt in ("-a"):
-            ntrial = int(arg)
-        elif opt in ("-m"):
-            mmin = int(arg)
-        elif opt in ("-M"):
-            mmax = int(arg)
-        elif opt in ("-n"):
-            nmin = int(arg)
-        elif opt in ("-N"):
-            nmax = int(arg)
-        elif opt in ("-k"):
-            kmin = int(arg)
-        elif opt in ("-K"):
-            kmax = int(arg)
-        elif opt in ("-b"):
-            nbatch = int(arg)
-        elif opt in ("-r"):
-            radix = int(arg)
-        elif opt in ("-s"):
-            step_size = int(arg)
-        elif opt in ("-x"):
-            step_mult = 1
-        elif opt in ("-f"):
-            function = arg
-        elif opt in ("--incx"):
-            incx = int(float(arg))
-        elif opt in ("--side"):
-            side = arg
-        elif opt in ("--uplo"):
-            uplo = arg
-        elif opt in ("--diag"):
-            diag = arg
-        elif opt in ("--incy"):
-            incy = int(float(arg))
-        elif opt in ("--alpha"):
-            alpha = float(arg)
-        elif opt in ("--beta"):
-            beta = float(arg)
-        elif opt in ("--transA"):
-            transA = arg
-        elif opt in ("--transB"):
-            transB = arg
-        elif opt in ("--lda"):
-            lda = int(arg)
-        elif opt in ("--ldb"):
-            ldb = int(arg)
-        elif opt in ("--ldc"):
-            ldc = int(arg)
-        elif opt in ("--LDA"):
-            LDA = int(arg)
-        elif opt in ("--LDB"):
-            LDB = int(arg)
-        elif opt in ("--LDC"):
-            LDC = int(arg)
-        elif opt in ("--algo"):
-            algo = int(arg)
-        elif opt in ("--initialization"):
-            initialization = arg
-        elif opt in ("-p"):
-            precision = arg
-        elif opt in ("-g"):
-            devicenum = int(arg)
+    parser.add_argument('-w', '--workingdir',     required=False, default = '/home/marnauta/rocBLAS/build/release/clients/staging')
+    parser.add_argument('-n', '--nmin',           required=False, default = 1, type=int)
+    parser.add_argument('-N', '--nmax',           required=False, default = 1024, type=int)
+    parser.add_argument('-k', '--kmin',           required=False, default = 1, type=int)
+    parser.add_argument('-K', '--kmax',           required=False, default = 1, type=int)
+    parser.add_argument('-m', '--mmin',           required=False, default = 1, type=int)
+    parser.add_argument('-M', '--mmax',           required=False, default = 1, type=int)
+    parser.add_argument('-a', '--ntrial',         required=False, default = 1, type=int)
+    parser.add_argument('-i', '--iters',          required=False, default = 1, type=int)
+    parser.add_argument('-j', '--cold_iters',     required=False, default = 2, type=int)
+    parser.add_argument('-o', '--outfilename',    required=False, default = 'timing.dat')
+    parser.add_argument('-p', '--precision',      required=False, default = 'f32_r')
+    parser.add_argument('-b', '--nbatch',         required=False, default = 1, type=int)
+    parser.add_argument('-r', '--radix',          required=False, default = 2, type=int)
+    parser.add_argument('-s', '--step_size',      required=False, default = 10, type=int)
+    parser.add_argument('-g', '--devicenum',      required=False, default = 0, type=int)
+    parser.add_argument('-f', '--function',       required=False, default = '')
+    parser.add_argument(      '--alpha',          required=False, default = 1, type=float)
+    parser.add_argument(      '--beta',           required=False, default = 1, type=float)
+    parser.add_argument(      '--incx',           required=False, default = 1, type=int)
+    parser.add_argument(      '--incy',           required=False, default = 1, type=int)
+    parser.add_argument(      '--transA',         required=False, default = 'N')
+    parser.add_argument(      '--transB',         required=False, default = 'N')
+    parser.add_argument(      '--lda',            required=False, default = 1, type=int)
+    parser.add_argument(      '--ldb',            required=False, default = 1, type=int)
+    parser.add_argument(      '--ldc',            required=False, default = 1, type=int)
+    parser.add_argument(      '--LDA',            required=False, default = 1, type=int)
+    parser.add_argument(      '--LDB',            required=False, default = 1, type=int)
+    parser.add_argument(      '--LDC',            required=False, default = 1, type=int)
+    parser.add_argument(      '--initialization', required=False, default = '')
+    parser.add_argument('-x', '--step_mult',      required=False, default = False, action='store_true')
+    parser.add_argument(      '--side',           required=False, default = 'L')
+    parser.add_argument(      '--uplo',           required=False, default = 'L')
+    parser.add_argument(      '--diag',           required=False, default = 'N')
+    parser.add_argument(      '--algo',           required=False, default = 0, type=int)
+
+    user_args = parser.parse_args()
+
+    # de-namespace for backwards compatibility
+    workingdir     = user_args.workingdir
+    nmin           = user_args.nmin
+    nmax           = user_args.nmax
+    kmin           = user_args.kmin
+    kmax           = user_args.kmax
+    mmin           = user_args.mmin
+    mmax           = user_args.mmax
+    ntrial         = user_args.ntrial
+    iters          = user_args.iters
+    cold_iters     = user_args.cold_iters
+    outfilename    = user_args.outfilename
+    precision      = user_args.precision
+    nbatch         = user_args.nbatch
+    radix          = user_args.radix
+    step_size      = user_args.step_size
+    devicenum      = user_args.devicenum
+    function       = user_args.function
+    alpha          = user_args.alpha
+    beta           = user_args.beta
+    incx           = user_args.incx
+    incy           = user_args.incy
+    precision      = user_args.precision
+    transA         = user_args.transA
+    transB         = user_args.transB
+    lda            = user_args.lda
+    ldb            = user_args.ldb
+    ldc            = user_args.ldc
+    LDA            = user_args.LDA
+    LDB            = user_args.LDB
+    LDC            = user_args.LDC
+    initialization = user_args.initialization
+    step_mult      = 1 if user_args.step_mult else 0
+    side           = user_args.side
+    uplo           = user_args.uplo
+    diag           = user_args.diag
+    algo           = user_args.algo
 
     print("workingdir: "+ workingdir)
     print("outfilename: "+ outfilename)
@@ -333,7 +255,7 @@ def main(argv):
     done = False
     while(not done):
         us, gf, bw = runcase(workingdir, mval, nval, kval, ntrial,
-                          precision, nbatch, devicenum, logfilename, function, side, uplo, diag, transA, transB, alpha, beta, incx, incy, lda, ldb, ldc, algo, iters, cold_iters)
+                          precision, nbatch, devicenum, logfilename, function, side, uplo, diag, transA, transB, alpha, beta, incx, incy, lda, ldb, ldc, iters, cold_iters, algo)
         #print(seconds)
         with open(outfilename, 'a') as outfile:
             if function == 'trsm':
@@ -366,5 +288,5 @@ def main(argv):
 
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    main()
 

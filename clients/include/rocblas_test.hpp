@@ -110,16 +110,16 @@ bool match_test_category(const Arguments& arg, const char* category);
 // The tests are instantiated by filtering through the RocBLAS_Data stream
 // The filter is by category and by the type_filter() and function_filter()
 // functions in the testclass
-#define INSTANTIATE_TEST_CATEGORY(testclass, category)                                           \
-    INSTANTIATE_TEST_CASE_P(category,                                                            \
-                            testclass,                                                           \
-                            testing::ValuesIn(RocBLAS_TestData::begin([](const Arguments& arg) { \
-                                                  return testclass::type_filter(arg)             \
-                                                         && testclass::function_filter(arg)      \
-                                                         && match_test_category(arg, #category); \
-                                              }),                                                \
-                                              RocBLAS_TestData::end()),                          \
-                            testclass::PrintToStringParamName());
+#define INSTANTIATE_TEST_CATEGORY(testclass, category)                                            \
+    INSTANTIATE_TEST_SUITE_P(category,                                                            \
+                             testclass,                                                           \
+                             testing::ValuesIn(RocBLAS_TestData::begin([](const Arguments& arg) { \
+                                                   return testclass::type_filter(arg)             \
+                                                          && testclass::function_filter(arg)      \
+                                                          && match_test_category(arg, #category); \
+                                               }),                                                \
+                                               RocBLAS_TestData::end()),                          \
+                             testclass::PrintToStringParamName());
 
 // Instantiate all test categories
 #define INSTANTIATE_TEST_CATEGORIES(testclass)        \
@@ -151,6 +151,11 @@ class RocBLAS_TestName
     }
 
 public:
+    explicit RocBLAS_TestName(const char* name)
+    {
+        str << name << '_';
+    }
+
     // Convert stream to normalized Google Test name
     // rvalue reference qualified so that it can only be called once
     // The name should only be generated once before the stream is destroyed
@@ -160,7 +165,12 @@ public:
         auto&       table = get_table();
         std::string name(str.str());
 
-        if(name == "")
+        // Remove trailing underscore
+        if(!name.empty() && name.back() == '_')
+            name.pop_back();
+
+        // If name is empty, make it 1
+        if(name.empty())
             name = "1";
 
         // Warn about unset letter parameters
@@ -263,6 +273,8 @@ struct rocblas_test_valid
 
     // Require derived class to define functor which takes (const Arguments &)
     virtual void operator()(const Arguments&) = 0;
+
+    virtual ~rocblas_test_valid() = default;
 };
 
 // ----------------------------------------------------------------------------
@@ -290,6 +302,8 @@ struct rocblas_test_invalid
         rocblas_abort();
 #endif
     }
+
+    virtual ~rocblas_test_invalid() = default;
 };
 
 #endif

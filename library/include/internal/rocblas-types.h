@@ -135,9 +135,6 @@ typedef enum rocblas_status_
 
 /*! \brief Indicates the precision width of data stored in a blas type. */
 typedef enum rocblas_datatype_
-#if __cplusplus >= 201103L
-    : int
-#endif
 {
     rocblas_datatype_f16_r  = 150, /**< 16 bit floating point, real */
     rocblas_datatype_f32_r  = 151, /**< 32 bit floating point, real */
@@ -167,23 +164,41 @@ typedef enum rocblas_pointer_mode_
     rocblas_pointer_mode_device = 1
 } rocblas_pointer_mode;
 
+/*! \brief Indicates if atomics operations are allowed. Not allowing atomic operations
+*    may generally improve determinism and repeatability of results at a cost of performance */
+typedef enum rocblas_atomics_mode_
+{
+    /*! \brief Algorithms will take advantage of atomics where applicable */
+    rocblas_atomics_not_allowed = 0,
+    /*! \brief Algorithms will refrain from atomics where applicable */
+    rocblas_atomics_allowed = 1,
+} rocblas_atomics_mode;
+
 /*! \brief Indicates if layer is active with bitmask*/
 typedef enum rocblas_layer_mode_
 {
     /*! \brief No logging will take place. */
-    rocblas_layer_mode_none = 0b0000000000,
+    rocblas_layer_mode_none = 0x0,
     /*! \brief A line containing the function name and value of arguments passed will be printed with each rocBLAS function call. */
-    rocblas_layer_mode_log_trace = 0b0000000001,
+    rocblas_layer_mode_log_trace = 0x1,
     /*! \brief Outputs a line each time a rocBLAS function is called, this line can be used with rocblas-bench to make the same call again. */
-    rocblas_layer_mode_log_bench = 0b0000000010,
+    rocblas_layer_mode_log_bench = 0x2,
     /*! \brief Outputs a YAML description of each rocBLAS function called, along with its arguments and number of times it was called. */
-    rocblas_layer_mode_log_profile = 0b0000000100,
+    rocblas_layer_mode_log_profile = 0x4,
 } rocblas_layer_mode;
 
 /*! \brief Indicates if layer is active with bitmask*/
 typedef enum rocblas_gemm_algo_
 {
-    rocblas_gemm_algo_standard = 0b0000000000,
+    rocblas_gemm_algo_standard = 0x0,
 } rocblas_gemm_algo;
+
+/*! \brief Control flags passed into gemm algorithms invoked by Tensile Host */
+typedef enum rocblas_gemm_flags_
+{
+    /*! \brief Default empty flags */
+    rocblas_gemm_flags_none = 0x0,
+
+} rocblas_gemm_flags;
 
 #endif

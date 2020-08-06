@@ -14653,7 +14653,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgeam_strided_batched(rocblas_handle      
         - k must be a multiple of 4
         - lda must be a multiple of 4 if transA == rocblas_operation_transpose
         - ldb must be a multiple of 4 if transB == rocblas_operation_none
-        - for transA == rocblas_operation_transpose or transB == rocblas_operation_none the matrices
+        - for transA == rocblas_operation_none or transB == rocblas_operation_transpose the matrices
    A and B must
           have each 4 consecutive values in the k dimension packed. This packing can be achieved
    with the following
@@ -14769,7 +14769,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgeam_strided_batched(rocblas_handle      
               reserved for future use.
     @param[in]
     flags     [uint32_t]
-              reserved for future use.
+              optional gemm flags.
 
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex(rocblas_handle    handle,
@@ -14882,7 +14882,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex(rocblas_handle    handle,
         - k must be a multiple of 4
         - lda must be a multiple of 4 if transA == rocblas_operation_transpose
         - ldb must be a multiple of 4 if transB == rocblas_operation_none
-        - for transA == rocblas_operation_transpose or transB == rocblas_operation_none the matrices
+        - for transA == rocblas_operation_none or transB == rocblas_operation_transpose the matrices
    A and B must
           have each 4 consecutive values in the k dimension packed. This packing can be achieved
    with the following
@@ -15000,7 +15000,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex(rocblas_handle    handle,
               reserved for future use.
     @param[in]
     flags     [uint32_t]
-              reserved for future use.
+              optional gemm flags.
+
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_gemm_batched_ex(rocblas_handle    handle,
                                                       rocblas_operation transA,
@@ -15067,7 +15068,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_batched_ex(rocblas_handle    handle,
         - k must be a multiple of 4
         - lda must be a multiple of 4 if transA == rocblas_operation_transpose
         - ldb must be a multiple of 4 if transB == rocblas_operation_none
-        - for transA == rocblas_operation_transpose or transB == rocblas_operation_none the matrices
+        - for transA == rocblas_operation_none or transB == rocblas_operation_transpose the matrices
    A and B must
           have each 4 consecutive values in the k dimension packed. This packing can be achieved
    with the following
@@ -15199,7 +15200,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_batched_ex(rocblas_handle    handle,
               reserved for future use.
     @param[in]
     flags     [uint32_t]
-              reserved for future use.
+              optional gemm flags.
 
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    handle,
@@ -15389,7 +15390,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_strided_batched_ex(rocblas_handle    
               reserved for future use.
     @param[in]
     flags     [uint32_t]
-              reserved for future use.
+              optional gemm flags.
 
     ********************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_gemm_ext2(rocblas_handle    handle,

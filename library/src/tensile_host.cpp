@@ -41,6 +41,7 @@ extern "C" void rocblas_initialize() {}
 #include <string>
 #include <type_traits>
 #include <unistd.h>
+#include <vector>
 
 namespace
 {
@@ -140,11 +141,6 @@ namespace
         freeIndex[0].c = freeIndex[0].d = 0;
         freeIndex[1].c = freeIndex[1].d = 1;
 
-        // Tensile does not support 0-sized dimensions. For when k == 0, we still need to
-        // multiply C by beta, but not add any of the rank-0 dot products. As a workaround,
-        // we pass k = 1 and set alpha == 0, since alpha == 0 has the same effect as k == 0.
-        auto k = prob.k == 0 ? 1 : prob.k;
-
         // clang-format off
 
         // If A is transposed, swap the free and bound dimensions and their ranks
@@ -152,7 +148,7 @@ namespace
         {
             a = {
                     Tensile_Ti,
-                    {k, prob.m, prob.batch_count},
+                    {prob.k, prob.m, prob.batch_count},
                     {prob.row_stride_a, prob.col_stride_a, prob.batch_stride_a}
                 };
             freeIndex[0].i  = 1;
@@ -162,7 +158,7 @@ namespace
         {
             a = {
                     Tensile_Ti,
-                    {prob.m, k, prob.batch_count},
+                    {prob.m, prob.k, prob.batch_count},
                     {prob.row_stride_a, prob.col_stride_a, prob.batch_stride_a}
                 };
             freeIndex[0].i  = 0;
@@ -178,7 +174,7 @@ namespace
         {
             b = {
                     Tensile_Ti,
-                    {prob.n, k, prob.batch_count},
+                    {prob.n, prob.k, prob.batch_count},
                     {prob.row_stride_b, prob.col_stride_b, prob.batch_stride_b}
                 };
             freeIndex[1].i  = 0;
@@ -188,7 +184,7 @@ namespace
         {
             b = {
                     Tensile_Ti,
-                    {k, prob.n, prob.batch_count},
+                    {prob.k, prob.n, prob.batch_count},
                     {prob.row_stride_b, prob.col_stride_b, prob.batch_stride_b}
                 };
             freeIndex[1].i  = 1;
@@ -228,6 +224,10 @@ namespace
         // If HPA is active, mark it as true
         if(sizeof(Tc) > sizeof(Ti))
             tensileProblem.setHighPrecisionAccumulate(true);
+
+        // Pass atomics mode to Tensile interface
+        if(prob.handle->atomics_mode == rocblas_atomics_not_allowed)
+            tensileProblem.setDeterministicMode(true);
 
         return tensileProblem;
     }
@@ -303,11 +303,7 @@ namespace
 
         // alpha and beta are stored by value in Tensile::TypedContractionInputs
         // alpha and beta are copied from host to Tensile::TypedContractionInputs
-        // We set alpha = 0 if k == 0 (see above)
-        if(prob.k == 0)
-            memset(&inputs.alpha, 0, sizeof(inputs.alpha));
-        else
-            AlphaBeta<Ti, To, Tc>::copy(&inputs.alpha, prob.alpha);
+        AlphaBeta<Ti, To, Tc>::copy(&inputs.alpha, prob.alpha);
         AlphaBeta<Ti, To, Tc>::copy(&inputs.beta, prob.beta);
 
         return inputs;
@@ -322,15 +318,23 @@ namespace
 
         struct adapter_s
         {
-            std::atomic<Tensile::hip::SolutionAdapter*> adapter{nullptr};
-            std::mutex                                  mutex;
+            mutable std::atomic<Tensile::hip::SolutionAdapter*> adapter{nullptr};
+            mutable std::mutex                                  mutex;
         };
 
-        adapter_s* adapters = nullptr;
-        int        count    = 0;
+        std::vector<adapter_s> const adapters;
 
         TensileHost()
+            : adapters(GetDeviceCount())
         {
+        }
+
+        TensileHost(const TensileHost&) = delete;
+        TensileHost& operator=(const TensileHost&) = delete;
+
+        static int GetDeviceCount()
+        {
+            int count;
             if(hipGetDeviceCount(&count) != hipSuccess)
             {
                 rocblas_cerr
@@ -338,14 +342,13 @@ namespace
                     << std::endl;
                 rocblas_abort();
             }
-            adapters = new adapter_s[count];
+            return count;
         }
 
         ~TensileHost()
         {
-            for(int i = 0; i < count; ++i)
-                delete adapters[i].adapter;
-            delete[] adapters;
+            for(auto& a : adapters)
+                delete a.adapter;
         }
 
         /*******************************************************
@@ -412,26 +415,21 @@ namespace
                 for(size_t i = 0; i < glob_result.gl_pathc; ++i)
                     adapter.loadCodeObjectFile(glob_result.gl_pathv[i]);
             }
+            else if(g == GLOB_NOMATCH)
+            {
+                static auto& once = rocblas_cerr
+                                    << "\nrocBLAS warning: No paths matched " << dir
+                                    << ". Make sure that ROCBLAS_TENSILE_LIBPATH is set correctly."
+                                    << std::endl;
+            }
             else
             {
-                if(g == GLOB_NOMATCH)
-                {
-                    static auto& once
-                        = rocblas_cerr
-                          << "\nrocBLAS warning: No paths matched " << dir
-                          << ". Make sure that ROCBLAS_TENSILE_LIBPATH is set correctly."
-                          << std::endl;
-                }
-                else
-                {
-                    static auto& once
-                        = rocblas_cerr
-                          << "\nrocBLAS warning: glob(\"" << dir << "\", ...) returned "
-                          << (g == GLOB_ABORTED
-                                  ? "GLOB_ABORTED"
-                                  : g == GLOB_NOSPACE ? "GLOB_NOSPACE" : "an unknown error")
-                          << "." << std::endl;
-                }
+                static auto& once = rocblas_cerr
+                                    << "\nrocBLAS warning: glob(\"" << dir << "\", ...) returned "
+                                    << (g == GLOB_ABORTED ? "GLOB_ABORTED"
+                                                          : g == GLOB_NOSPACE ? "GLOB_NOSPACE"
+                                                                              : "an unknown error")
+                                    << "." << std::endl;
             }
             globfree(&glob_result);
 
@@ -439,8 +437,7 @@ namespace
             // race conditions when multiple threads with different device IDs try to
             // initialize library. This ensures that only one thread initializes library,
             // and other threads trying to initialize library wait for it to complete.
-
-            static auto once = [&] {
+            static int once = [&] {
 #ifdef TENSILE_YAML
                 path += "/TensileLibrary.yaml";
 #else
@@ -471,7 +468,8 @@ namespace
 
     // Return the library and adapter for the current HIP device
     Tensile::hip::SolutionAdapter& get_library_and_adapter(
-        std::shared_ptr<Tensile::MasterSolutionLibrary<Tensile::ContractionProblem>>& library)
+        std::shared_ptr<Tensile::MasterSolutionLibrary<Tensile::ContractionProblem>>* library
+        = nullptr)
     try
     {
         // TensileHost is initialized on the first call
@@ -481,7 +479,7 @@ namespace
         hipGetDevice(&device);
 
         // Adapter entry for the current HIP device ID
-        auto& a       = host.adapters[device];
+        auto& a       = host.adapters.at(device);
         auto* adapter = a.adapter.load(std::memory_order_acquire);
 
         // Once set, a.adapter contains the adapter for the current HIP device ID
@@ -505,7 +503,8 @@ namespace
         }
 
         // If an adapter is found, it is assumed that the library is initialized
-        library = host.library;
+        if(library)
+            *library = host.library;
         return *adapter;
     }
     catch(const std::exception& e)
@@ -536,7 +535,7 @@ rocblas_status runContractionProblem(const RocblasContractionProblem<Ti, To, Tc>
     try
     {
         std::shared_ptr<Tensile::MasterSolutionLibrary<Tensile::ContractionProblem>> library;
-        auto& adapter      = get_library_and_adapter(library);
+        auto& adapter      = get_library_and_adapter(&library);
         auto  hardware     = Tensile::hip::GetCurrentDevice();
         auto  tensile_prob = ConstructTensileProblem(prob);
         solution           = library->findBestSolution(tensile_prob, *hardware);
@@ -581,8 +580,7 @@ rocblas_status runContractionProblem(const RocblasContractionProblem<Ti, To, Tc>
  ***************************************************************/
 extern "C" void rocblas_initialize()
 {
-    std::shared_ptr<Tensile::MasterSolutionLibrary<Tensile::ContractionProblem>> library;
-    get_library_and_adapter(library);
+    get_library_and_adapter();
 }
 
 /******************************************************************************

@@ -19,7 +19,7 @@ namespace
         void operator()(const Arguments& arg)
         {
             rocblas_pointer_mode mode = rocblas_pointer_mode_device;
-            rocblas_local_handle handle;
+            rocblas_local_handle handle(arg.atomics_mode);
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
             CHECK_ROCBLAS_ERROR(rocblas_get_pointer_mode(handle, &mode));
             EXPECT_EQ(rocblas_pointer_mode_device, mode);
@@ -44,9 +44,9 @@ namespace
         }
 
         // Google Test name suffix based on parameters
-        static std::string name_suffix(const Arguments&)
+        static std::string name_suffix(const Arguments& arg)
         {
-            return RocBLAS_TestName<set_get_pointer_mode>{};
+            return RocBLAS_TestName<set_get_pointer_mode>(arg.name);
         }
     };
 

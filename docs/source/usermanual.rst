@@ -13,6 +13,6 @@ User Guide
    install
    api
    logging
-   streams
+   handle_stream_device
    device_memory
    functions

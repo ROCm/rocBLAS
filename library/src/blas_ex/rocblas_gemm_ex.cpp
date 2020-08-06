@@ -92,7 +92,7 @@ rocblas_status rocblas_gemm_ex_impl(rocblas_handle    handle,
                           compute_type_string,
                           algo,
                           solution_index,
-                          flags);
+                          rocblas_gemm_flags(flags));
             }
         }
 
@@ -185,7 +185,7 @@ rocblas_status rocblas_gemm_ex_impl(rocblas_handle    handle,
                         "solution_index",
                         solution_index,
                         "flags",
-                        flags);
+                        rocblas_gemm_flags(flags));
         }
     }
 

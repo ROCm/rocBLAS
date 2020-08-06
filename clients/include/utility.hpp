@@ -76,9 +76,10 @@ class rocblas_local_handle
     rocblas_handle handle;
 
 public:
-    rocblas_local_handle()
+    explicit rocblas_local_handle(rocblas_atomics_mode mode = rocblas_atomics_allowed)
     {
         rocblas_create_handle(&handle);
+        handle->atomics_mode = mode;
     }
     ~rocblas_local_handle()
     {

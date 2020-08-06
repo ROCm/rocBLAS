@@ -23,7 +23,7 @@ void testing_syr2k_bad_arg(const Arguments& arg)
     auto rocblas_syrXX_fn = TWOK ? (FORTRAN ? rocblas_syr2k<T, true> : rocblas_syr2k<T, false>)
                                  : (FORTRAN ? rocblas_syrkx<T, true> : rocblas_syrkx<T, false>);
 
-    rocblas_local_handle    handle;
+    rocblas_local_handle    handle(arg.atomics_mode);
     const rocblas_fill      uplo   = rocblas_fill_upper;
     const rocblas_operation transA = rocblas_operation_none;
     const rocblas_int       N      = 100;
@@ -103,7 +103,7 @@ void testing_syr2k(const Arguments& arg)
                                  : (FORTRAN ? rocblas_syrkx<T, true> : rocblas_syrkx<T, false>);
     auto syrXX_gflop_count_fn = TWOK ? syr2k_gflop_count<T> : syrkx_gflop_count<T>;
 
-    rocblas_local_handle handle;
+    rocblas_local_handle handle(arg.atomics_mode);
     rocblas_fill         uplo   = char2rocblas_fill(arg.uplo);
     rocblas_operation    transA = char2rocblas_operation(arg.transA);
     rocblas_int          N      = arg.N;

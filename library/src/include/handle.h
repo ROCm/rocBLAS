@@ -56,6 +56,9 @@ public:
     // default logging_mode is no logging
     rocblas_layer_mode layer_mode = rocblas_layer_mode_none;
 
+    // default atomics mode allows atomic operations
+    rocblas_atomics_mode atomics_mode = rocblas_atomics_allowed;
+
     // logging streams
     std::unique_ptr<rocblas_ostream> log_trace_os;
     std::unique_ptr<rocblas_ostream> log_bench_os;

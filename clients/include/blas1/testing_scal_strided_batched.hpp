@@ -28,7 +28,7 @@ void testing_scal_strided_batched(const Arguments& arg)
     rocblas_int batch_count = arg.batch_count;
     U           h_alpha     = arg.get_alpha<U>();
 
-    rocblas_local_handle handle;
+    rocblas_local_handle handle(arg.atomics_mode);
 
     // argument sanity check before allocating invalid memory
     // --- do no checking for stride_x ---
@@ -165,7 +165,7 @@ void testing_scal_strided_batched_bad_arg(const Arguments& arg)
     rocblas_int batch_count = 5;
     rocblas_int stridex     = 50;
 
-    rocblas_local_handle handle;
+    rocblas_local_handle handle(arg.atomics_mode);
 
     size_t size_x = N * size_t(incx);
 

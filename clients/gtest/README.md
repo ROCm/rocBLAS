@@ -192,6 +192,8 @@ static bool function_filter(const Arguments& arg)
 
 The `RocBLAS_TestName` helper class template should be used to create the name. It accepts ostream output, and can be automatically converted to `std::string` after all of the text of the name has been streamed to it.
 
+The `RocBLAS_TestName` helper class constructor accepts a string argument which will be included in the test name. It is generally passed the `Arguments` structure's `name` member.
+
 The `RocBLAS_TestName` helper class template should be passed the name of this test implementation class (including any implicit template arguments) as a template argument, so that every instantiation of this test implementation class creates a unique instantiation of `RocBLAS_TestName`. `RocBLAS_TestName` has some static data which needs to be kept local to each test.
 
  `RocBLAS_TestName` converts non-alphanumeric characters into suitable replacements, and disambiguates test names when the same arguments appear more than once.
@@ -201,14 +203,14 @@ The `RocBLAS_TestName` helper class template should be passed the name of this t
 static std::string name_suffix(const Arguments& arg)
 {
     // Okay: rvalue RocBLAS_TestName object streamed to and returned
-    return RocBLAS_TestName<syr>() << rocblas_datatype2string(arg.a_type)
+    return RocBLAS_TestName<syr>(arg.name) << rocblas_datatype2string(arg.a_type)
         << '_' << (char) std::toupper(arg.uplo) << '_' << arg.N
         << '_' << arg.alpha << '_' << arg.incx << '_' << arg.lda;
 }
 
 static std::string name_suffix(const Arguments& arg)
 {
-    RocBLAS_TestName<gemm_test_template> name;
+    RocBLAS_TestName<gemm_test_template> name(arg.name);
     name << rocblas_datatype2string(arg.a_type);
     if(GEMM_TYPE == GEMM_EX || GEMM_TYPE == GEMM_STRIDED_BATCHED_EX)
         name << rocblas_datatype2string(arg.b_type)
