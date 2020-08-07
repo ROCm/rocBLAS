@@ -45,19 +45,20 @@ set( THREADS_PREFER_PTHREAD_FLAG ON )
 find_package( Threads REQUIRED )
 
 if( BUILD_WITH_TENSILE )
-  set(Tensile_TEST_SRC
+  set(rocblas_tensile_test_source
+      # Keep multiheaded_gtest.cpp first as we want
+      # to allow it to create the first TensileHost !
+      # Current GTESTs are run in the linking order as added with global variables
       multiheaded_gtest.cpp
+      # use of tensile based functions (gemm)
+      atomics_mode_gtest.cpp
       gemm_gtest.cpp
       trmm_gtest.cpp
       trsm_gtest.cpp
       trsv_gtest.cpp
+      trtri_gtest.cpp
       )
-
-  set(rocblas_test_source
-    ${Tensile_TEST_SRC}
-    trtri_gtest.cpp
-    )
-endif( )
+endif()
 
 set(rocblas_no_tensile_test_source
     rocblas_gtest_main.cpp
@@ -65,7 +66,6 @@ set(rocblas_no_tensile_test_source
     set_get_pointer_mode_gtest.cpp
     set_get_atomics_mode_gtest.cpp
     logging_mode_gtest.cpp
-    atomics_mode_gtest.cpp
     ostream_threadsafety_gtest.cpp
     set_get_vector_gtest.cpp
     set_get_matrix_gtest.cpp
@@ -120,7 +120,7 @@ set( rocblas_benchmark_common
       ../common/rocblas_parse_data.cpp
     )
 
-add_executable( rocblas-test ${rocblas_f90_source} ${rocblas_no_tensile_test_source} ${rocblas_test_source} ${rocblas_benchmark_common} )
+add_executable( rocblas-test ${rocblas_f90_source} ${rocblas_no_tensile_test_source} ${rocblas_tensile_test_source} ${rocblas_benchmark_common} )
 
 if( BUILD_WITH_TENSILE )
     target_compile_definitions( rocblas-test PRIVATE BUILD_WITH_TENSILE=1 GOOGLE_TEST )
