@@ -618,7 +618,10 @@ rocblas_status gemm_ex_batched_template(rocblas_handle    handle,
                                           ldd,
                                           stride_d,
                                           1);
-        if(status != rocblas_status_success)
+
+        if(handle->is_device_memory_size_query()
+               ? status != rocblas_status_size_increased && status != rocblas_status_size_unchanged
+               : status != rocblas_status_success)
             break;
     }
     return status;
