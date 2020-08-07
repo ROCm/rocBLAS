@@ -377,6 +377,7 @@ if( BUILD_WITH_TENSILE )
       #target_link_libraries( rocblas PRIVATE Tensile TensileHost )
       if( BUILD_SHARED_LIBS )
         target_link_libraries( rocblas PRIVATE TensileHost )
+        target_link_libraries( rocblas PRIVATE "-Xlinker --exclude-lib=ALL" ) # HIDE symbols
       else()
         target_compile_definitions( rocblas PRIVATE ROCBLAS_STATIC_LIB )
 
