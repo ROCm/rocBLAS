@@ -297,8 +297,8 @@ void rocblas_ostream::worker::thread_function()
         // An empty message indicates the closing of the stream
         if(!task.size())
         {
-            // Tell future to wake up after thread exits
-            task.set_value_at_thread_exit();
+            // Tell future to wake up
+            task.set_value();
             break;
         }
 
@@ -310,8 +310,8 @@ void rocblas_ostream::worker::thread_function()
         {
             perror("Error writing log file");
 
-            // Tell future to wake up after thread exits
-            task.set_value_at_thread_exit();
+            // Tell future to wake up
+            task.set_value();
             break;
         }
 
