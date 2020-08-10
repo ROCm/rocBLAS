@@ -60,13 +60,7 @@ class rocblas_ostream
             {
             }
 
-            // Notify the future when the worker thread exits
-            void set_value_at_thread_exit()
-            {
-                promise.set_value_at_thread_exit();
-            }
-
-            // Notify the future immediately
+            // Notify the future to wake up
             void set_value()
             {
                 promise.set_value();
