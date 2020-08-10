@@ -114,9 +114,13 @@ namespace
     template <>
     constexpr auto tensile_datatype<rocblas_double_complex> = Tensile::DataType::ComplexDouble;
 
-    /***************************************************************
-     * Contruct a Tensile Problem from a RocblasContractionProblem *
-     ***************************************************************/
+    // The workspace sizes for Tensile are rounded to multiples of HPA_GSU_WORKSPACE_SIZE_GRANULARITY
+    // to reduce fragmentation in the Tensile Solution cache
+    constexpr size_t HPA_GSU_WORKSPACE_SIZE_GRANULARITY = 256;
+
+    /****************************************************************
+     * Construct a Tensile Problem from a RocblasContractionProblem *
+     ****************************************************************/
     template <typename Ti, typename To, typename Tc>
     auto ConstructTensileProblem(const RocblasContractionProblem<Ti, To, Tc>& prob)
     {
@@ -212,6 +216,13 @@ namespace
                                     {prob.m, prob.n, prob.batch_count},
                                     {prob.row_stride_c, prob.col_stride_d, prob.batch_stride_d}};
 
+        // Size of GSU workspace. We set it to max size_t if this is a size query.
+        size_t workspace_size
+            = prob.handle->is_device_memory_size_query()
+                  ? ~size_t(0)
+                  : (prob.handle->gsu_workspace_size / HPA_GSU_WORKSPACE_SIZE_GRANULARITY)
+                        * HPA_GSU_WORKSPACE_SIZE_GRANULARITY;
+
         // The ContractionProblem
         Tensile::ContractionProblem tensileProblem{a,
                                                    aops,
@@ -224,7 +235,8 @@ namespace
                                                    freeIndex,
                                                    batchIndex,
                                                    boundIndex,
-                                                   value_category(*prob.beta)};
+                                                   value_category(*prob.beta),
+                                                   workspace_size};
 
         // If HPA is active, mark it as true
         if(sizeof(Tc) > sizeof(Ti))
@@ -306,6 +318,9 @@ namespace
         inputs.c = reinterpret_cast<const Tensile_To*>(prob.C);
         inputs.d = reinterpret_cast<Tensile_To*>(prob.D);
 
+        // Set the GSU workspace
+        inputs.ws = prob.handle->gsu_workspace;
+
         // alpha and beta are stored by value in Tensile::TypedContractionInputs
         // alpha and beta are copied from host to Tensile::TypedContractionInputs
         // If k==0, we do not need to dereference prob.alpha and can set inputs.alpha=0
@@ -318,9 +333,9 @@ namespace
         return inputs;
     }
 
-    /*************************************************
+    /**************************************************
      * The TensileHost struct interfaces with Tensile *
-     *************************************************/
+     **************************************************/
     struct TensileHost
     {
         std::shared_ptr<Tensile::MasterSolutionLibrary<Tensile::ContractionProblem>> library;
@@ -514,6 +529,7 @@ namespace
         // If an adapter is found, it is assumed that the library is initialized
         if(library)
             *library = host.library;
+
         return *adapter;
     }
     catch(const std::exception& e)
@@ -559,11 +575,23 @@ rocblas_status runContractionProblem(const RocblasContractionProblem<Ti, To, Tc>
         else
         {
             auto handle = prob.handle;
-            adapter.launchKernels(solution->solve(tensile_prob, GetTensileInputs(prob), *hardware),
-                                  handle->rocblas_stream,
-                                  handle->startEvent,
-                                  handle->stopEvent);
-            status = rocblas_status_success;
+            if(handle->is_device_memory_size_query())
+            {
+                status = handle->set_optimal_device_memory_size(
+                    ((solution->requiredWorkspaceSize(tensile_prob)
+                      + HPA_GSU_WORKSPACE_SIZE_GRANULARITY - 1)
+                     / HPA_GSU_WORKSPACE_SIZE_GRANULARITY)
+                    * HPA_GSU_WORKSPACE_SIZE_GRANULARITY);
+            }
+            else
+            {
+                adapter.launchKernels(
+                    solution->solve(tensile_prob, GetTensileInputs(prob), *hardware),
+                    handle->rocblas_stream,
+                    handle->startEvent,
+                    handle->stopEvent);
+                status = rocblas_status_success;
+            }
         }
     }
     catch(const std::exception& e)
