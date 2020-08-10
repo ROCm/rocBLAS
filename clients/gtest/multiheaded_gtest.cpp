@@ -1,9 +1,11 @@
 /* ************************************************************************
  * Copyright 2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+#ifdef USE_TENSILE_HOST
 
 #include "rocblas_data.hpp"
 #include "rocblas_test.hpp"
+#include "tensile_host.hpp"
 #include "type_dispatch.hpp"
 
 namespace
@@ -99,9 +101,9 @@ namespace
 
         // allocate memory on device
         float *da, *db, *dc;
-        CHECK_HIP_ERROR(hipMalloc(&da, size_a * sizeof(float)));
-        CHECK_HIP_ERROR(hipMalloc(&db, size_b * sizeof(float)));
-        CHECK_HIP_ERROR(hipMalloc(&dc, size_c * sizeof(float)));
+        CHECK_HIP_ERROR((hipMalloc)(&da, size_a * sizeof(float)));
+        CHECK_HIP_ERROR((hipMalloc)(&db, size_b * sizeof(float)));
+        CHECK_HIP_ERROR((hipMalloc)(&dc, size_c * sizeof(float)));
 
         // copy matrices from host to device
         CHECK_HIP_ERROR(hipMemcpy(da, ha.data(), sizeof(float) * size_a, hipMemcpyHostToDevice));
@@ -148,9 +150,9 @@ namespace
         if(max_relative_error != max_relative_error || max_relative_error > eps * tolerance)
             FAIL() << "FAIL: max_relative_error = " << max_relative_error;
 
-        CHECK_HIP_ERROR(hipFree(da));
-        CHECK_HIP_ERROR(hipFree(db));
-        CHECK_HIP_ERROR(hipFree(dc));
+        CHECK_HIP_ERROR((hipFree)(da));
+        CHECK_HIP_ERROR((hipFree)(db));
+        CHECK_HIP_ERROR((hipFree)(dc));
         CHECK_ROCBLAS_ERROR(rocblas_destroy_handle(handle));
     }
 
@@ -159,6 +161,14 @@ namespace
         int count;
         CHECK_HIP_ERROR(hipGetDeviceCount(&count));
 
+        if(tensile_is_initialized())
+        {
+            FAIL() << "multiheaded test was not the first test to initialize Tensile.\n"
+                      "Make sure that multiheaded_gtest.cpp is the first *_gest.cpp file linked,\n"
+                      "so that it is the first test run which calls Tensile, if selected."
+                   << std::endl;
+            return;
+        }
         auto thread = std::make_unique<std::thread[]>(count);
 
         for(int id = 0; id < count; ++id)
@@ -209,3 +219,5 @@ namespace
     INSTANTIATE_TEST_CATEGORIES(multiheaded);
 
 } // namespace
+
+#endif

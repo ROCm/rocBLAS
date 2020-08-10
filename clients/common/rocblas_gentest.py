@@ -22,7 +22,7 @@ INT_RANGE_RE = re.compile(
     r'\s*(-?\d+)\s*\.\.\s*(-?\d+)\s*(?:\.\.\s*(-?\d+)\s*)?$')
 
 # Regex for include: YAML extension
-INCLUDE_RE = re.compile(r'include\s*:\s*(.*)')
+INCLUDE_RE = re.compile(r'include\s*:\s*([-.\w]+)')
 
 # Regex for complex types
 COMPLEX_RE = re.compile(r'f\d+_c$')
