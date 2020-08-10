@@ -120,7 +120,9 @@ set( rocblas_benchmark_common
       ../common/rocblas_parse_data.cpp
     )
 
-add_executable( rocblas-test ${rocblas_f90_source} ${rocblas_no_tensile_test_source} ${rocblas_tensile_test_source} ${rocblas_benchmark_common} )
+# Keep ${rocblas_tensile_test_source} first, so that multiheaded tests are the
+# first to initialize Tensile.
+add_executable( rocblas-test ${rocblas_tensile_test_source} ${rocblas_no_tensile_test_source} ${rocblas_f90_source} ${rocblas_benchmark_common} )
 
 if( BUILD_WITH_TENSILE )
     target_compile_definitions( rocblas-test PRIVATE BUILD_WITH_TENSILE=1 GOOGLE_TEST )

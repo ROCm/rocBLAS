@@ -351,6 +351,7 @@ namespace
         TensileHost()
             : adapters(GetDeviceCount())
         {
+            tensile_is_initialized() = true;
         }
 
         TensileHost(const TensileHost&) = delete;
@@ -649,4 +650,12 @@ template rocblas_status runContractionProblem(
 template rocblas_status
     runContractionProblem(const RocblasContractionProblem<int8_t, int32_t, int32_t>&);
 
+/***********************************************************************************
+ * Whether Tensile has been initialized for at least one device (used for testing) *
+ ***********************************************************************************/
+ROCBLAS_EXPORT std::atomic_bool& tensile_is_initialized()
+{
+    static std::atomic_bool init;
+    return init;
+}
 #endif
