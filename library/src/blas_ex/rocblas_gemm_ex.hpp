@@ -16,7 +16,8 @@
 // Device Side //
 /////////////////
 template <typename To>
-rocblas_status device_strided_batched_matrix_copy(const To*      src,
+rocblas_status device_strided_batched_matrix_copy(rocblas_handle handle,
+                                                  const To*      src,
                                                   rocblas_stride ld_src,
                                                   rocblas_stride stride_src,
                                                   To*            dst,
@@ -32,27 +33,32 @@ rocblas_status device_strided_batched_matrix_copy(const To*      src,
     if(n1 == ld_src && n1 == ld_dst && stride_src == n2 * ld_src && stride_dst == n2 * ld_dst)
     {
         // src and dst batch matrices are contiguous, use single copy
-        RETURN_IF_HIP_ERROR(
-            hipMemcpy(dst, src, sizeof(To) * n1 * n2 * batch_count, hipMemcpyDeviceToDevice));
+        RETURN_IF_HIP_ERROR(hipMemcpyAsync(dst,
+                                           src,
+                                           sizeof(To) * n1 * n2 * batch_count,
+                                           hipMemcpyDeviceToDevice,
+                                           handle->rocblas_stream));
     }
     else if(n1 == ld_src && n1 == ld_dst)
     {
         // individual matrices in batch matrix are contiguous, one copy for each matrix
         for(size_t i3 = 0; i3 < batch_count; i3++)
-            RETURN_IF_HIP_ERROR(hipMemcpy(dst + i3 * stride_dst,
-                                          src + i3 * stride_src,
-                                          sizeof(To) * n1 * n2,
-                                          hipMemcpyDeviceToDevice));
+            RETURN_IF_HIP_ERROR(hipMemcpyAsync(dst + i3 * stride_dst,
+                                               src + i3 * stride_src,
+                                               sizeof(To) * n1 * n2,
+                                               hipMemcpyDeviceToDevice,
+                                               handle->rocblas_stream));
     }
     else
     {
         // individual matrices not contiguous, one copy for each contiguous column
         for(int i3 = 0; i3 < batch_count; i3++)
             for(int i2 = 0; i2 < n2; i2++)
-                RETURN_IF_HIP_ERROR(hipMemcpy(dst + i2 * ld_dst + i3 * stride_dst,
-                                              src + i2 * ld_src + i3 * stride_src,
-                                              sizeof(To) * n1,
-                                              hipMemcpyDeviceToDevice));
+                RETURN_IF_HIP_ERROR(hipMemcpyAsync(dst + i2 * ld_dst + i3 * stride_dst,
+                                                   src + i2 * ld_src + i3 * stride_src,
+                                                   sizeof(To) * n1,
+                                                   hipMemcpyDeviceToDevice,
+                                                   handle->rocblas_stream));
     }
     return rocblas_status_success;
 }
@@ -673,7 +679,8 @@ rocblas_status gemm_ex_batched_template(rocblas_handle    handle,
     }
     else
     {
-        device_strided_batched_matrix_copy(c, ldc, stride_c, d, ldd, stride_d, m, n, batch_count);
+        device_strided_batched_matrix_copy(
+            handle, c, ldc, stride_c, d, ldd, stride_d, m, n, batch_count);
         c_in     = d;
         ldi      = ldd;
         stride_i = stride_d;
