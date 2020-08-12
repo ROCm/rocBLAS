@@ -76,6 +76,9 @@ rocblas_status rocblas_dgmm_template(rocblas_handle handle,
 {
     hipStream_t rocblas_stream = handle->rocblas_stream;
 
+    // Temporarily change the thread's default device ID to the handle's device ID
+    auto saved_device_id = handle->push_device_id();
+
     auto pointer_mode = handle->pointer_mode;
 
     {

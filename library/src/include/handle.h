@@ -36,12 +36,47 @@ private:
     {
     };
 
+    int device;
+
+    // Class for saving and restoring default device ID
+    class _rocblas_saved_device_id
+    {
+        int device_id;
+        int old_device_id;
+
+    public:
+        // Constructor
+        explicit _rocblas_saved_device_id(int device_id)
+            : device_id(device_id)
+            , old_device_id(-1)
+        {
+            hipGetDevice(&old_device_id);
+            if(device_id != old_device_id)
+                hipSetDevice(device_id);
+        }
+
+        // Old device ID is restored on destruction
+        ~_rocblas_saved_device_id()
+        {
+            if(device_id != old_device_id)
+                hipSetDevice(old_device_id);
+        }
+
+        _rocblas_saved_device_id(const _rocblas_saved_device_id&) = delete;
+        _rocblas_saved_device_id(_rocblas_saved_device_id&&)      = default;
+        _rocblas_saved_device_id& operator=(const _rocblas_saved_device_id&) = delete;
+        _rocblas_saved_device_id& operator=(_rocblas_saved_device_id&&) = delete;
+    };
+
 public:
     _rocblas_handle();
     ~_rocblas_handle();
 
-    int             device;
-    hipDeviceProp_t device_properties;
+    // Set the HIP default device ID to the handle's device ID, and restore on exit
+    auto push_device_id()
+    {
+        return _rocblas_saved_device_id(device);
+    }
 
     // rocblas by default take the system default stream 0 users cannot create
     hipStream_t rocblas_stream = 0;
@@ -170,7 +205,8 @@ private:
             // This creates a list of partial sums which are the offsets of each of the allocated
             // arrays. The sizes are rounded up to the next multiple of MIN_CHUNK_SIZE.
             // total contains the total of all sizes at the end of the calculation of offsets.
-            size_t old, offsets[] = {(old = total, total += roundup_device_memory_size(sizes), old)...};
+            size_t old,
+                offsets[] = {(old = total, total += roundup_device_memory_size(sizes), old)...};
 
             // If total size is 0, return an array of nullptr's, but leave it marked as successful
             if(!total)

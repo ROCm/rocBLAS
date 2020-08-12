@@ -103,6 +103,9 @@ rocblas_status rocblas_her2_template(rocblas_handle handle,
     dim3 her2_grid(blocksX, blocksY, batch_count);
     dim3 her2_threads(HER2_DIM_X, HER2_DIM_Y);
 
+    // Temporarily change the thread's default device ID to the handle's device ID
+    auto saved_device_id = handle->push_device_id();
+
     if(rocblas_pointer_mode_device == handle->pointer_mode)
     {
         hipLaunchKernelGGL((rocblas_her2_kernel<HER2_DIM_X, HER2_DIM_Y>),

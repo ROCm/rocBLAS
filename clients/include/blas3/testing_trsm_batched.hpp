@@ -143,7 +143,7 @@ void testing_trsm_batched(const Arguments& arg)
             hA[b][i + i * lda] = t;
         }
 
-        //  calculate Cholesky factorization of SPD (or hermitian if complex) matrix hA
+        //  calculate Cholesky factorization of SPD (or Hermitian if complex) matrix hA
         cblas_potrf<T>(char_uplo, K, hA[b], lda);
     }
 
