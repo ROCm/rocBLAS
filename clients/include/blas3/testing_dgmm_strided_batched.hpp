@@ -135,8 +135,10 @@ void testing_dgmm_strided_batched(const Arguments& arg)
     rocblas_int incx = arg.incx;
     rocblas_int ldc  = arg.ldc;
 
-    rocblas_int stride_a    = arg.stride_a;
-    rocblas_int stride_x    = arg.stride_x;
+    rocblas_int stride_a = arg.stride_a;
+    rocblas_int stride_x = arg.stride_x;
+    if(!stride_x)
+        stride_x = 1; // incx = 0 case
     rocblas_int stride_c    = arg.stride_c;
     rocblas_int batch_count = arg.batch_count;
 
@@ -162,7 +164,7 @@ void testing_dgmm_strided_batched(const Arguments& arg)
     rocblas_local_handle handle(arg.atomics_mode);
 
     // argument sanity check before allocating invalid memory
-    bool invalid_size = M < 0 || N < 0 || lda < M || ldc < M || batch_count < 0 || incx == 0;
+    bool invalid_size = M < 0 || N < 0 || lda < M || ldc < M || batch_count < 0;
     if(invalid_size || M == 0 || N == 0 || batch_count == 0)
     {
         EXPECT_ROCBLAS_STATUS(rocblas_dgmm_strided_batched_fn(handle,
@@ -252,13 +254,13 @@ void testing_dgmm_strided_batched(const Arguments& arg)
                     {
                         hC_gold[i1 + i2 * ldc + i3 * stride_c]
                             = hA_copy[i1 + i2 * lda + i3 * stride_a]
-                              + hX_copy[shift_x + i2 * incx + i3 * stride_x];
+                              * hX_copy[shift_x + i2 * incx + i3 * stride_x];
                     }
                     else
                     {
                         hC_gold[i1 + i2 * ldc + i3 * stride_c]
                             = hA_copy[i1 + i2 * lda + i3 * stride_a]
-                              + hX_copy[shift_x + i1 * incx + i3 * stride_x];
+                              * hX_copy[shift_x + i1 * incx + i3 * stride_x];
                     }
                 }
             }
