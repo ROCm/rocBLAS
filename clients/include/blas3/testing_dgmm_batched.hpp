@@ -95,9 +95,11 @@ void testing_dgmm_batched(const Arguments& arg)
     size_t size_A = size_t(lda) * size_t(N);
     size_t size_C = size_t(ldc) * size_t(N);
     size_t size_x = size_t(abs_incx) * (rocblas_side_right == side ? size_t(N) : size_t(M));
+    if(!size_x)
+        size_x = 1;
 
     // argument sanity check before allocating invalid memory
-    bool invalid_size = M < 0 || N < 0 || lda < M || ldc < M || batch_count < 0 || incx == 0;
+    bool invalid_size = M < 0 || N < 0 || lda < M || ldc < M || batch_count < 0;
     if(invalid_size || !M || !N || !batch_count)
     {
         EXPECT_ROCBLAS_STATUS(
@@ -177,12 +179,12 @@ void testing_dgmm_batched(const Arguments& arg)
                     if(rocblas_side_right == side)
                     {
                         hC_gold_p[i1 + i2 * ldc]
-                            = hA_copy_p[i1 + i2 * lda] + hX_copy_p[shift_x + i2 * incx];
+                            = hA_copy_p[i1 + i2 * lda] * hX_copy_p[shift_x + i2 * incx];
                     }
                     else
                     {
                         hC_gold_p[i1 + i2 * ldc]
-                            = hA_copy_p[i1 + i2 * lda] + hX_copy_p[shift_x + i1 * incx];
+                            = hA_copy_p[i1 + i2 * lda] * hX_copy_p[shift_x + i1 * incx];
                     }
                 }
             }

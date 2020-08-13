@@ -31,11 +31,11 @@ __global__ void dgmm_device(rocblas_int    m,
 
         if(side_right)
         {
-            C[tx + ldc * ty] = A[tx + lda * ty] + X[ty * incx];
+            C[tx + ldc * ty] = A[tx + lda * ty] * X[ty * incx];
         }
         else
         {
-            C[tx + ldc * ty] = A[tx + lda * ty] + X[tx * incx];
+            C[tx + ldc * ty] = A[tx + lda * ty] * X[tx * incx];
         }
     }
 }
