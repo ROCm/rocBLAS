@@ -660,6 +660,9 @@ rocblas_status gemm_ex_batched_template(rocblas_handle    handle,
                                         rocblas_stride    stride_d,
                                         rocblas_int       batch_count)
 {
+    // Temporarily change the thread's default device ID to the handle's device ID
+    auto saved_device_id = handle->push_device_id();
+
     a += offset_a;
     b += offset_b;
     c += offset_c;
@@ -917,6 +920,9 @@ rocblas_status rocblas_gemm_ex_template(rocblas_handle    handle,
     // Note: k==0 is not an early exit, since C still needs to be multiplied by beta
     if(!m || !n || !batch_count)
         return rocblas_status_success;
+
+    // Temporarily change the thread's default device ID to the handle's device ID
+    auto saved_device_id = handle->push_device_id();
 
     if(BATCHED)
     {

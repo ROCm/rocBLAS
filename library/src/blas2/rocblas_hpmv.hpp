@@ -165,6 +165,9 @@ rocblas_status rocblas_hpmv_template(rocblas_handle handle,
     dim3                 hpmv_grid(blocks, batch_count);
     dim3                 hpmv_threads(HPMV_DIM_X, HPMV_DIM_Y);
 
+    // Temporarily change the thread's default device ID to the handle's device ID
+    auto saved_device_id = handle->push_device_id();
+
     // Launch a modified gemv kernel for hpmv.
     if(handle->pointer_mode == rocblas_pointer_mode_device)
     {
