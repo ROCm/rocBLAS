@@ -276,6 +276,9 @@ rocblas_status rocblas_gbmv_template(rocblas_handle    handle,
     const bool           trans = transA == rocblas_operation_none;
     const bool           conj  = transA == rocblas_operation_conjugate_transpose;
 
+    // Temporarily change the thread's default device ID to the handle's device ID
+    auto saved_device_id = handle->push_device_id();
+
     // Launch a modified gemv kernel. The logic is similar to gemv just with modified
     // indices for the banded matrices.
     if(handle->pointer_mode == rocblas_pointer_mode_device)

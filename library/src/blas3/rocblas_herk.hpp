@@ -98,13 +98,16 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_herk_template(rocblas_handle    h
     dim3                 herk_scale_grid(gx, gy, batch_count);
     dim3                 herk_scale_threads(HERK_SCALE_DIM_X, HERK_SCALE_DIM_Y);
 
-    // Uses a syrk kernel in hermitian mode
+    // Uses a syrk kernel in Hermitian mode
     static constexpr int  SYRK_DIM_XY = 32;
     rocblas_int           bx          = (n - 1) / (SYRK_DIM_XY) + 1;
     rocblas_int           by          = (n - 1) / (SYRK_DIM_XY) + 1;
     dim3                  syrk_grid(bx, by, batch_count);
     dim3                  syrk_threads(SYRK_DIM_XY, SYRK_DIM_XY);
-    static constexpr bool hermetian = true;
+    static constexpr bool Hermitian = true;
+
+    // Temporarily change the thread's default device ID to the handle's device ID
+    auto saved_device_id = handle->push_device_id();
 
     if(handle->pointer_mode == rocblas_pointer_mode_device)
     {
@@ -126,7 +129,7 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_herk_template(rocblas_handle    h
 
         if(transA == rocblas_operation_none)
         {
-            hipLaunchKernelGGL((syrk_herk_kernel<hermetian, false, SYRK_DIM_XY>),
+            hipLaunchKernelGGL((syrk_herk_kernel<Hermitian, false, SYRK_DIM_XY>),
                                syrk_grid,
                                syrk_threads,
                                0,
@@ -147,7 +150,7 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_herk_template(rocblas_handle    h
         }
         else
         {
-            hipLaunchKernelGGL((syrk_herk_kernel<hermetian, true, SYRK_DIM_XY>),
+            hipLaunchKernelGGL((syrk_herk_kernel<Hermitian, true, SYRK_DIM_XY>),
                                syrk_grid,
                                syrk_threads,
                                0,
@@ -190,7 +193,7 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_herk_template(rocblas_handle    h
 
         if(transA == rocblas_operation_none)
         {
-            hipLaunchKernelGGL((syrk_herk_kernel<hermetian, false, SYRK_DIM_XY>),
+            hipLaunchKernelGGL((syrk_herk_kernel<Hermitian, false, SYRK_DIM_XY>),
                                syrk_grid,
                                syrk_threads,
                                0,
@@ -211,7 +214,7 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_herk_template(rocblas_handle    h
         }
         else
         {
-            hipLaunchKernelGGL((syrk_herk_kernel<hermetian, true, SYRK_DIM_XY>),
+            hipLaunchKernelGGL((syrk_herk_kernel<Hermitian, true, SYRK_DIM_XY>),
                                syrk_grid,
                                syrk_threads,
                                0,

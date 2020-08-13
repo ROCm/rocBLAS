@@ -26,7 +26,6 @@ _rocblas_handle::_rocblas_handle()
 
     // default device is active device
     THROW_IF_HIP_ERROR(hipGetDevice(&device));
-    THROW_IF_HIP_ERROR(hipGetDeviceProperties(&device_properties, device));
 
     // rocblas by default take the system default stream 0 users cannot create
 
@@ -80,8 +79,7 @@ _rocblas_handle::~_rocblas_handle()
             << std::endl;
         rocblas_abort();
     }
-    if(device_memory)
-        (hipFree)(device_memory);
+    (hipFree)(device_memory);
 }
 
 /*******************************************************************************
@@ -100,6 +98,10 @@ void* _rocblas_handle::device_allocator(size_t size)
     {
         if(!device_memory_is_rocblas_managed)
             return nullptr;
+
+        // Temporarily change the thread's default device ID to the handle's device ID
+        auto saved_device_id = push_device_id();
+
         if(device_memory)
         {
             (hipFree)(device_memory);

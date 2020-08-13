@@ -131,7 +131,7 @@ void testing_trsm(const Arguments& arg)
         hA[i + i * lda] = t;
     }
 
-    //  calculate Cholesky factorization of SPD (or hermitian if complex) matrix hA
+    //  calculate Cholesky factorization of SPD (or Hermitian if complex) matrix hA
     cblas_potrf<T>(char_uplo, K, hA, lda);
 
     //  make hA unit diagonal if diag == rocblas_diagonal_unit

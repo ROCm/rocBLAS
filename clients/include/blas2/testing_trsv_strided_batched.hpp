@@ -121,7 +121,7 @@ void testing_trsv_strided_batched(const Arguments& arg)
             hA[i + i * lda + b * stride_a] = t;
         }
 
-        //  calculate Cholesky factorization of SPD (or hermitian if complex) matrix hA
+        //  calculate Cholesky factorization of SPD (or Hermitian if complex) matrix hA
         cblas_potrf<T>(char_uplo, M, hA + stride_a * b, lda);
 
         //  make hA unit diagonal if diag == rocblas_diagonal_unit

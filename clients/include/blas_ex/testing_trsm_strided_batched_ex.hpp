@@ -158,7 +158,7 @@ void testing_trsm_strided_batched_ex(const Arguments& arg)
             hA[idx2] = t;
         }
 
-        //  calculate Cholesky factorization of SPD (or hermitian if complex) matrix hA
+        //  calculate Cholesky factorization of SPD (or Hermitian if complex) matrix hA
         cblas_potrf<T>(char_uplo, K, hA + b * stride_A, lda);
 
         //  make hA unit diagonal if diag == rocblas_diagonal_unit
