@@ -3,6 +3,9 @@ include: rocblas_common.yaml
 include: known_bugs.yaml
 
 Definitions:
+  - &small_matrix_size
+    - { M:    20, N:    30, lda:    40, ldb:   100 }
+
   - &small_matrix_size_range
     - { M:    -1, N:    -1, lda:     1, ldb:     1 }
     - { M:    10, N:    10, lda:    20, ldb:   100 }
@@ -13,12 +16,15 @@ Definitions:
     - { M:   800, N:   700, lda:   801, ldb:   701 }
 
   - &large_matrix_size_range
-    - { M:   640, N:   640, lda:   960, ldb:   960 }
-    - { M:  1000, N:  1000, lda:  1000, ldb:  1000 }
-    - { M:  1024, N:  1024, lda:  1024, ldb:  1024 }
-    - { M:  2000, N:  2000, lda:  2000, ldb:  2000 }
+    - { M:   641, N:   640, lda:   961, ldb:   960 }
+    - { M:  1000, N:  1001, lda:  1002, ldb:  1003 }
+#   - { M:  1024, N:  1024, lda:  1024, ldb:  1024 }
+#   - { M:  2000, N:  2000, lda:  2000, ldb:  2000 }
 
   - &alpha_range [ 1.0, -3.0 ]
+
+  - &complex_alpha
+    - { alpha:  2, alphai:  3 }
 
   - &complex_alpha_range
     - { alpha:  2, alphai:  0 }
@@ -67,35 +73,35 @@ Definitions:
     - { M:   128, N:    2048, lda:   128, ldb:   128 }
     - { M:   128, N:   16848, lda:   128, ldb:   128 }
     - { M:   128, N:   29696, lda:   128, ldb:   128 }
-    - { M:   128, N:   44544, lda:   128, ldb:   128 }
-    - { M:   128, N:   53632, lda:   128, ldb:   128 }
+#   - { M:   128, N:   44544, lda:   128, ldb:   128 }
+#   - { M:   128, N:   53632, lda:   128, ldb:   128 }
     - { M:   256, N:    2048, lda:   256, ldb:   256 }
     - { M:   256, N:   14848, lda:   256, ldb:   256 }
     - { M:   256, N:   29696, lda:   256, ldb:   256 }
-    - { M:   256, N:   44544, lda:   256, ldb:   256 }
-    - { M:   256, N:   53504, lda:   256, ldb:   256 }
+#   - { M:   256, N:   44544, lda:   256, ldb:   256 }
+#   - { M:   256, N:   53504, lda:   256, ldb:   256 }
     - { M:   384, N:    2048, lda:   384, ldb:   384 }
     - { M:   384, N:   14976, lda:   384, ldb:   384 }
     - { M:   384, N:   29952, lda:   384, ldb:   384 }
-    - { M:   384, N:   44928, lda:   384, ldb:   384 }
-    - { M:   384, N:   53376, lda:   384, ldb:   384 }
+#   - { M:   384, N:   44928, lda:   384, ldb:   384 }
+#   - { M:   384, N:   53376, lda:   384, ldb:   384 }
 
   - &testset2_matrix_size_range
     - { M:   2048,  N: 128,  lda:  2048, ldb:    2048 }
     - { M:  16848,  N: 128,  lda: 16848, ldb:   16848 }
     - { M:  29696,  N: 128,  lda: 29696, ldb:   29696 }
-    - { M:  44544,  N: 128,  lda: 44544, ldb:   44544 }
-    - { M:  53632,  N: 128,  lda: 53632, ldb:   53632 }
+#   - { M:  44544,  N: 128,  lda: 44544, ldb:   44544 }
+#   - { M:  53632,  N: 128,  lda: 53632, ldb:   53632 }
     - { M:   2048,  N: 256,  lda:  2048, ldb:    2048 }
     - { M:  14848,  N: 256,  lda: 14848, ldb:   14848 }
     - { M:  29696,  N: 256,  lda: 29696, ldb:   29696 }
-    - { M:  44544,  N: 256,  lda: 44544, ldb:   44544 }
-    - { M:  53504,  N: 256,  lda: 53504, ldb:   53504 }
+#   - { M:  44544,  N: 256,  lda: 44544, ldb:   44544 }
+#   - { M:  53504,  N: 256,  lda: 53504, ldb:   53504 }
     - { M:   2048,  N: 384,  lda:  2048, ldb:    2048 }
     - { M:  14976,  N: 384,  lda: 14976, ldb:   14976 }
     - { M:  29952,  N: 384,  lda: 29952, ldb:   29952 }
-    - { M:  44928,  N: 384,  lda: 44928, ldb:   44928 }
-    - { M:  53376,  N: 384,  lda: 53376, ldb:   53376 }
+#   - { M:  44928,  N: 384,  lda: 44928, ldb:   44928 }
+#   - { M:  53376,  N: 384,  lda: 53376, ldb:   53376 }
 
 Tests:
 - name: trmm_bad_arg
@@ -132,56 +138,93 @@ Tests:
   category: quick
   function: trmm_batched
   precision: *single_double_precisions_complex
-  side: [L, R]
-  uplo: [L, U]
-  transA: [N, T, C]
-  diag: [N, U]
+  side: [L   ]
+  uplo: [   U]
+  transA: [N      ]
+  diag: [   U]
   matrix_size: *small_matrix_size_range
   alpha_beta: *complex_alpha_range
   stride_scale: [ 1, 2       ]
   batch_count: [        1, 2  ]
 
+- name: trmm_fortran
+  category: quick
+  function: trmm
+  precision: *single_double_precisions
+  side: [L   ]
+  uplo: [   U]
+  transA: [   T   ]
+  diag: [N   ]
+  matrix_size: *small_matrix_size_range
+  alpha: *alpha_range
+  fortran: [ false, true ]
+
+- name: trmm_batched_fortran
+  category: quick
+  function: trmm_batched
+  precision: *single_double_precisions_complex
+  side: [   R]
+  uplo: [   U]
+  transA: [   T, C]
+  diag: [   U]
+  matrix_size: *small_matrix_size_range
+  alpha_beta: *complex_alpha
+  stride_scale: [    2       ]
+  batch_count: [           3  ]
+  fortran: [ false, true ]
+
+- name: trmm_strided_batched_fortran
+  category: quick
+  function: trmm_strided_batched
+  precision: *single_double_precisions_complex
+  side: [L]
+  uplo: [L]
+  transA: [N]
+  diag: [N]
+  matrix_size: *small_matrix_size_range
+  alpha_beta: *complex_alpha
+  stride_scale: [ 1         ]
+  batch_count: [         2 ]
+  fortran: [ false, true ]
+
 - name: trmm_strided_batched_small
   category: quick
   function: trmm_strided_batched
   precision: *single_double_precisions_complex
-  side: [L, R]
-  uplo: [L, U]
-  transA: [N, T, C]
-  diag: [N, U]
+  side: [L   ]
+  uplo: [L   ]
+  transA: [   T, C]
+  diag: [N   ]
   matrix_size: *small_matrix_size_range
-  alpha_beta: *complex_alpha_range
+  alpha_beta: *complex_alpha
   stride_scale: [ 1, 2      ]
   batch_count: [        1, 2 ]
-
 
 - name: trmm_batched_medium
   category: pre_checkin
   function: trmm_batched
   precision: *single_double_precisions_complex
-  side: [L, R]
-  uplo: [L, U]
-  transA: [N, T   ]
-  diag: [N, U]
+  side: [L   ]
+  uplo: [L   ]
+  transA: [   T   ]
+  diag: [N   ]
   matrix_size: *medium_matrix_size_range
-  alpha_beta: *complex_alpha_range
-  stride_scale: [ 1, 2      ]
-  batch_count: [        1, 2 ]
-  fortran: [ false, true ]
+  alpha_beta: *complex_alpha
+  stride_scale: [ 2         ]
+  batch_count: [           3 ]
 
 - name: trmm_strided_batched_medium
   category: pre_checkin
   function: trmm_strided_batched
   precision: *single_double_precisions_complex
-  side: [L, R]
-  uplo: [L, U]
-  transA: [N, T   ]
-  diag: [N, U]
+  side: [   R]
+  uplo: [   U]
+  transA: [N      ]
+  diag: [   U]
   matrix_size: *medium_matrix_size_range
-  alpha_beta: *complex_alpha_range
-  stride_scale: [ 1, 2      ]
-  batch_count: [        1, 2 ]
-  fortran: [ false, true ]
+  alpha_beta: *complex_alpha
+  stride_scale: [ 1         ]
+  batch_count: [           2 ]
 
 - name: trmm_small
   category: quick
@@ -191,7 +234,7 @@ Tests:
   uplo: [L, U]
   transA: [N, T, C]
   diag: [N, U]
-  matrix_size: *small_matrix_size_range
+  matrix_size: *small_matrix_size
   alpha_beta: *complex_alpha_range
 
 - name: trmm_small
@@ -215,7 +258,6 @@ Tests:
   diag: [N, U]
   matrix_size: *medium_matrix_size_range
   alpha: *alpha_range
-  fortran: [ false, true ]
 
 - name: trmm_medium
   category: pre_checkin
@@ -226,8 +268,7 @@ Tests:
   transA: [N, T, C]
   diag: [N, U]
   matrix_size: *medium_matrix_size_range
-  alpha_beta: *complex_alpha_range
-  fortran: [ false, true ]
+  alpha_beta: *complex_alpha
 
 - name: trmm_NaN
   category: pre_checkin
@@ -237,7 +278,7 @@ Tests:
   uplo: [L, U]
   transA: [N, C]
   diag: [N, U]
-  matrix_size: *medium_matrix_size_range
+  matrix_size: *small_matrix_size
   alpha: .NaN # converted to 0.0 in test code
   alphai: .NaN
 
@@ -283,5 +324,5 @@ Tests:
     - { side: R, uplo: L, transA: T, diag: N }
     - { side: L, uplo: U, transA: C, diag: N }
   matrix_size: *large_matrix_size_range
-  alpha_beta: *complex_alpha_range
+  alpha_beta: *complex_alpha
 ...
