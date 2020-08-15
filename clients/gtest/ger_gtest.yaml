@@ -126,9 +126,9 @@ Tests:
   function: ger_batched
   precision: *single_double_precisions
   matrix_size: *medium_matrix_size_range
-  incx_incy: *incx_incy_range
-  alpha: [ -0.5, 2.0, 0.0 ]
-  batch_count: [ 1, 5, 10 ]
+  incx_incy: *incx_incy_range_small
+  alpha: [ 2.0, 0.0 ]
+  batch_count: [ 1, 10 ]
 
 - name: ger_batched_large
   category: nightly
@@ -136,13 +136,13 @@ Tests:
   precision: *single_double_precisions
   matrix_size: *large_matrix_size_range
   incx_incy: *incx_incy_range_small
-  alpha: [ -0.5, 2.0, 0.0 ]
-  batch_count: [ 1, 3 ]
+  alpha: [ 2.0, 0.0 ]
+  batch_count: [ 3 ]
 
 # ger_strided_batched
-- name: ger_batched_fortran
+- name: ger_strided_batched_fortran
   category: quick
-  function: ger_batched
+  function: ger_strided_batched
   precision: *single_double_precisions
   matrix_size: *small_matrix_size_range
   incx_incy: *incx_incy_range_small
@@ -157,7 +157,7 @@ Tests:
   precision: *single_double_precisions
   matrix_size: *small_matrix_size_range
   incx_incy: *incx_incy_range
-  alpha: [ -0.5, 2.0, 0.0 ]
+  alpha: [ -0.5, 0.0 ]
   stride_scale: [ 1, 2 ]
   batch_count: [ -5, 0, 1, 5, 10 ]
 
@@ -166,10 +166,10 @@ Tests:
   function: ger_strided_batched
   precision: *single_double_precisions
   matrix_size: *medium_matrix_size_range
-  incx_incy: *incx_incy_range
-  alpha: [ -0.5, 2.0, 0.0 ]
-  stride_scale: [ 1, 2 ]
-  batch_count: [ 1, 5, 10 ]
+  incx_incy: *incx_incy_range_small
+  alpha: [ -0.5, 0.0 ]
+  stride_scale: [ 1 ]
+  batch_count: [ 1, 10 ]
 
 - name: ger_strided_batched_large
   category: nightly
@@ -177,7 +177,7 @@ Tests:
   precision: *single_double_precisions
   matrix_size: *large_matrix_size_range
   incx_incy: *incx_incy_range_small
-  alpha: [ -0.5, 2.0, 0.0 ]
+  alpha: [ -0.5, 0.0 ]
   stride_scale: [ 1 ]
-  batch_count: [ 1, 3 ]
+  batch_count: [ 3 ]
 ...
