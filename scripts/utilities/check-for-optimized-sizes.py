@@ -6,6 +6,7 @@ import os
 import subprocess
 from subprocess import PIPE
 from tempfile import mkdtemp
+from shutil import rmtree
 
 minimumVersionIdx       = 0
 prefixIdx               = 1
@@ -304,7 +305,9 @@ def findBenchmarkInFile(problemDescriptions):
 
 def main(argv):
 
-    print(convertArgumentTypesToKernelIdentifier('f16_r', 'f16_r', 'f16_r', 'f16_r', 'f16_r'))
+    print(convertArgumentTypesToKernelIdentifier('f32_r', 'f32_r', 'f32_r', 'f32_r', 'f32_r'))
+
+    return
 
     try:
         optdict = parseOptions(argv, "f:a:c:ul", ["help"])
@@ -325,15 +328,10 @@ def main(argv):
     if 'a' in optdict:
         architecture = optdict['a']
 
-    directoryPath="./rocBLASTemp"     #Default path
+    directoryPath = mkdtemp()   #"./rocBLASTemp"     #Default path
     libraryPathExtension="/library/src/blas3/Tensile/Logic/asm_full/"
-    if not os.path.isdir(directoryPath):
-        if not os.path.isfile(directoryPath):
-            print("Created temporary directory %s" % directoryPath)
-            shellCmd("mkdir %s" % directoryPath)
-            cloneRepository(directoryPath)
-        else:
-            sys.exit("Directory %s is a file" % directoryPath)
+    print("Created temporary directory %s" % directoryPath)
+    cloneRepository(directoryPath)
 
     #Benchmarked problem sizes in log file
     benchDescriptions = loadBenchmarkDescriptions(logpath)
@@ -370,9 +368,8 @@ def main(argv):
 
 
     #Remove temporary directory only if it wasn't provided by user
-    if 'c' in optdict:
-        print("Removing temporary directory")
-        shellCmd("rm -rf %s" % directoryPath)
+    print("Removing temporary directory")
+    rmtree(directoryPath) #shellCmd("rm -rf %s" % directoryPath)
 
 if __name__=="__main__":
     main(sys.argv[1:])
