@@ -23,7 +23,7 @@ kIdx        = 3
 rangeLogicIdx           = 8
 tileSelectionLogicIdx   = 9       #Only if tile aware selection is enabled
 
-helpMessage = """Script for determining which problem sizes in a log file have been pretuned for
+helpMessage = """Script for determining which problem sizes in a log file have been pre-tuned for
 by Tensile.
 Usage: 
 python3 check-for-pretuned-sizes.py -f logfilePath 
@@ -172,7 +172,9 @@ def convertArgumentTypesToKernelIdentifier(aType, bType, cType, dType, computeTy
         'double_precision': 'DB',
         'int8_precision': '4xibB',
         'bf16_precision': 'BB',
-        'hpa_bf16_precision': 'BBH'
+        'hpa_bf16_precision': 'BBH',
+        'single_precision_complex': 'CB'
+        'double_precision_complex': 'ZB'
     }
 
     try:
