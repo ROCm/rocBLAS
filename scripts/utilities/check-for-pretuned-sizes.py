@@ -228,7 +228,7 @@ class ProblemDescription:
         self.matrix_B = 'Bjlk' if transposeB else 'Bljk'
 
     def __str__(self):
-        return "(m=%d n=%d k=%d batch_count = %d transpose_A = %r transpose_B = %r kernel_flags= %s)" \
+        return "(m=%d n=%d k=%d batch_count=%d transpose_A=%r transpose_B=%r kernel_flags=%s)" \
         % (self.m, self.n, self.k, self.batch_count, self.matrix_A == 'Alik', self.matrix_B == 'Bljk', self.kernel_flags)
 
 def loadBenchmarkDescriptions(logfilePath):
