@@ -136,7 +136,7 @@ def cloneRepository(destinationPath):
 def checkoutSpecifiedCommit(destinationPath, commit):
     originalPath = shellCmd("pwd").rstrip('\n')
     os.chdir(destinationPath)
-    shellCmd("git checkout %s" % rocBLASCommitHash)
+    shellCmd("git checkout %s" % commit)
     os.chdir(originalPath)
 
 def checkoutInstalledBranch(destinationPath):
@@ -173,7 +173,7 @@ def convertArgumentTypesToKernelIdentifier(aType, bType, cType, dType, computeTy
         'int8_precision': '4xibB',
         'bf16_precision': 'BB',
         'hpa_bf16_precision': 'BBH',
-        'single_precision_complex': 'CB'
+        'single_precision_complex': 'CB',
         'double_precision_complex': 'ZB'
     }
 
@@ -306,11 +306,6 @@ def findBenchmarkInFile(problemDescriptions):
 
 
 def main(argv):
-
-    print(convertArgumentTypesToKernelIdentifier('f32_r', 'f32_r', 'f32_r', 'f32_r', 'f32_r'))
-
-    return
-
     try:
         optdict = parseOptions(argv, "f:a:c:ul", ["help"])
         if 'help' in optdict.keys():
