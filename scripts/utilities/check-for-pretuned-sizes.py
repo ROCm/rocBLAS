@@ -358,7 +358,7 @@ def main(argv):
             architecture,                   
             directoryPath+libraryPathExtension)
 
-        print("Matches in latest version of rocBLAS but not current:")
+        print("\nMatches in most recent version of rocBLAS but not specified version:")
         for i in range(len(benchDescriptions)):
             if recentMatches[i] and not localMatches[i]:
                 print("\t%s" % benchDescriptions[i])
