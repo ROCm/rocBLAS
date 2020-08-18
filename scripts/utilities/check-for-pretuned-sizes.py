@@ -25,15 +25,15 @@ tileSelectionLogicIdx   = 9       #Only if tile aware selection is enabled
 
 helpMessage = """Script for determining which problem sizes in a log file have been pre-tuned for
 by Tensile.
-Usage: 
-python3 check-for-pretuned-sizes.py -f logfilePath 
+Usage:
+python3 check-for-pretuned-sizes.py -f logfilePath
                                       [-c commit] [-a architecture] [-u] [-l] [--help]
 Options:
 -f       Log file containing benchmark tests.
--a       Architecture. Matches any problem containing this argument. 
+-a       Architecture. Matches any problem containing this argument.
          ex: vega10
 -c       Specify commit of rocBLAS to check. If unspecified, will use most recent master.
--l       Attempt to detect the installed version of rocBLAS 
+-l       Attempt to detect the installed version of rocBLAS
          (Currently just works when installing from cloned repository)
 -u       Compares detected problem sizes to those found in the most recent develop commit.
 --help   Displays this message.
@@ -41,8 +41,8 @@ NOTE: Flags cannot currently be combined together as in -lu, they must be specif
 separately in the form -l -u
 """
 
-usageMessage = """Usage: 
-python3 check-for-pretuned-sizes.py -f logfilePath 
+usageMessage = """Usage:
+python3 check-for-pretuned-sizes.py -f logfilePath
                                       [-c commit] [-a architecture] [-u] [-l] [--help]"""
 
 
@@ -61,7 +61,7 @@ def parseOptions(textList, shortArgs, longArgs=[]):
     for c in shortArgs:
         #':' indicates c takes an argument
         if c == ':':
-            if not lastChar.isalpha(): 
+            if not lastChar.isalpha():
                 raise ParseOptionError("Error: Colon must follow alphabetic character")
             hasArg[-1] = True
         else:
@@ -79,18 +79,18 @@ def parseOptions(textList, shortArgs, longArgs=[]):
             hasArg.append(False)
             optionList.append("--" + s)
 
-    hasArg = dict(zip(optionList, 
+    hasArg = dict(zip(optionList,
         hasArg))
 
     #Extract options from textList
     optionDict = dict([])
-    needsArg = None 
+    needsArg = None
     for item in textList:
         #If this is an argument of a previous option...
         if needsArg != None:
             #Store associated with it
             optionDict[needsArg] = item
-            needsArg = None   
+            needsArg = None
         #Otherwise check if it's a valid option
         elif item in optionList:
             optionDict[item] = None     #Set as none for now
@@ -117,7 +117,7 @@ def shellCmd(command):
 def getInstalledRocBLASCommitHash():
     versionString = shellCmd("dpkg -s rocblas | grep Version") #Format "Version X.XX.X.XXXX-CommitHash"
     spaceSplit = versionString.split()
-    if len(spaceSplit) > 1: 
+    if len(spaceSplit) > 1:
         dashSplit = spaceSplit[1].split('-')
         if len(dashSplit) > 1:
             return dashSplit[1]
@@ -143,7 +143,7 @@ def checkoutInstalledBranch(destinationPath):
     rocBLASCommitHash = getInstalledRocBLASCommitHash()
     checkoutSpecifiedCommit(destinationPath, rocBLASCommitHash)
 
-def checkoutMostRecentBranch(destinationPath, branchname): 
+def checkoutMostRecentBranch(destinationPath, branchname):
     originalPath = shellCmd("pwd").rstrip('\n')
     os.chdir(destinationPath)
     shellCmd("git checkout %s" % branchname)
@@ -170,7 +170,7 @@ def convertArgumentTypesToKernelIdentifier(aType, bType, cType, dType, computeTy
         'hpa_half_precision': 'HBH',
         'single_precision': 'SB',
         'double_precision': 'DB',
-        'int8_precision': '4xibB',
+        'int8_precision': '4xibBH',
         'bf16_precision': 'BB',
         'hpa_bf16_precision': 'BBH',
         'single_precision_complex': 'CB',
@@ -193,10 +193,10 @@ class ProblemDescription:
         self.n = 1
         self.k = 1
         self.batch_count = -1
- 
+
         try:
             optDict= parseOptions(
-                benchmarkText.split(), 
+                benchmarkText.split(),
                 "m:n:k:",
                 [
                     "batch_count=", "transposeA=", "transposeB=", \
@@ -270,9 +270,9 @@ def findMatchingKernel(benchDescriptions, architecture, directoryPath):
     for filename in os.listdir(directoryPath):
         if filename.endswith(".yaml") \
         and architecture in filename \
-        and matchBetween(problemSet, filename): 
+        and matchBetween(problemSet, filename):
             fileList.append(filename)
-    
+
     success = False
     #Find a kernel with a matching problem size in the file list
     for filename in fileList:
@@ -342,9 +342,9 @@ def main(argv):
         specifiedCommitHash = optdict['c'] if 'c' in optdict \
                               else getInstalledRocBLASCommitHash()
         checkoutSpecifiedCommit(directoryPath, specifiedCommitHash)
-    localMatches = findMatchingKernel( 
-        benchDescriptions,             
-        architecture,                  
+    localMatches = findMatchingKernel(
+        benchDescriptions,
+        architecture,
         directoryPath+libraryPathExtension)
 
     if 'u' in optdict:
@@ -353,9 +353,9 @@ def main(argv):
 -- Finding pre-tuned sizes in most recent version of rocblas --\n\
 ---------------------------------------------------------------")
         checkoutMostRecentBranch(directoryPath, "develop")
-        recentMatches = findMatchingKernel( 
-            benchDescriptions,              
-            architecture,                   
+        recentMatches = findMatchingKernel(
+            benchDescriptions,
+            architecture,
             directoryPath+libraryPathExtension)
 
         print("\nMatches in most recent version of rocBLAS but not specified version:")
