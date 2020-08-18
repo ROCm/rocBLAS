@@ -5,6 +5,8 @@ import sys
 import os
 import subprocess
 from subprocess import PIPE
+from tempfile import mkdtemp
+from shutil import rmtree
 
 minimumVersionIdx       = 0
 prefixIdx               = 1
@@ -21,22 +23,27 @@ kIdx        = 3
 rangeLogicIdx           = 8
 tileSelectionLogicIdx   = 9       #Only if tile aware selection is enabled
 
-helpMessage = """Script for determining which problem sizes in a log file have been benchmarked for.
-Usage: 
-python3 check-for-optimized-sizes.py -f logfilePath 
-                                      [-a architecture] [-c] [-u] [--help]
+helpMessage = """Script for determining which problem sizes in a log file have been pre-tuned for
+by Tensile.
+Usage:
+python3 check-for-pretuned-sizes.py -f logfilePath
+                                      [-c commit] [-a architecture] [-u] [-l] [--help]
 Options:
 -f       Log file containing benchmark tests.
--a       Architecture. Matches any problem containing this argument. 
+-a       Architecture. Matches any problem containing this argument.
          ex: vega10
--c       Deletes cloned directory after completion.
--u       Searches most recent commit for the problem sizes as well.
+-c       Specify commit of rocBLAS to check. If unspecified, will use most recent master.
+-l       Attempt to detect the installed version of rocBLAS
+         (Currently just works when installing from cloned repository)
+-u       Compares detected problem sizes to those found in the most recent develop commit.
 --help   Displays this message.
+NOTE: Flags cannot currently be combined together as in -lu, they must be specified
+separately in the form -l -u
 """
 
-usageMessage = """Usage: 
-python3 check-for-optimized-sizes.py -f logfilePath 
-                                      [-a architecture] [-c] [-u] [--help]"""
+usageMessage = """Usage:
+python3 check-for-pretuned-sizes.py -f logfilePath
+                                      [-c commit] [-a architecture] [-u] [-l] [--help]"""
 
 
 def removeChar(text, removedChar):
@@ -54,7 +61,7 @@ def parseOptions(textList, shortArgs, longArgs=[]):
     for c in shortArgs:
         #':' indicates c takes an argument
         if c == ':':
-            if not lastChar.isalpha(): 
+            if not lastChar.isalpha():
                 raise ParseOptionError("Error: Colon must follow alphabetic character")
             hasArg[-1] = True
         else:
@@ -72,18 +79,18 @@ def parseOptions(textList, shortArgs, longArgs=[]):
             hasArg.append(False)
             optionList.append("--" + s)
 
-    hasArg = dict(zip(optionList, 
+    hasArg = dict(zip(optionList,
         hasArg))
 
     #Extract options from textList
     optionDict = dict([])
-    needsArg = None 
+    needsArg = None
     for item in textList:
         #If this is an argument of a previous option...
         if needsArg != None:
             #Store associated with it
             optionDict[needsArg] = item
-            needsArg = None   
+            needsArg = None
         #Otherwise check if it's a valid option
         elif item in optionList:
             optionDict[item] = None     #Set as none for now
@@ -109,9 +116,16 @@ def shellCmd(command):
 
 def getInstalledRocBLASCommitHash():
     versionString = shellCmd("dpkg -s rocblas | grep Version") #Format "Version X.XX.X.XXXX-CommitHash"
-    if len(versionString) > 0:
-        return versionString.split()[1].split('-')[1]
+    spaceSplit = versionString.split()
+    if len(spaceSplit) > 1:
+        dashSplit = spaceSplit[1].split('-')
+        if len(dashSplit) > 1:
+            return dashSplit[1]
+        else:
+            print("Error: No commit hash found in \"dpkg -s rocblas | grep Version\" command")
+            return ""
     else:
+        print("Error: Could not parse output from \"dpkg -s rocblas | grep Version\" command")
         return ""
 
 
@@ -119,19 +133,58 @@ def cloneRepository(destinationPath):
     print("Cloning repository...")
     shellCmd("git clone https://github.com/ROCmSoftwarePlatform/rocBLAS.git %s" % destinationPath)
 
+def checkoutSpecifiedCommit(destinationPath, commit):
+    originalPath = shellCmd("pwd").rstrip('\n')
+    os.chdir(destinationPath)
+    shellCmd("git checkout %s" % commit)
+    os.chdir(originalPath)
 
 def checkoutInstalledBranch(destinationPath):
     rocBLASCommitHash = getInstalledRocBLASCommitHash()
+    checkoutSpecifiedCommit(destinationPath, rocBLASCommitHash)
+
+def checkoutMostRecentBranch(destinationPath, branchname):
     originalPath = shellCmd("pwd").rstrip('\n')
     os.chdir(destinationPath)
-    shellCmd("git checkout %s" % rocBLASCommitHash)
+    shellCmd("git checkout %s" % branchname)
     os.chdir(originalPath)
 
-def checkoutMostRecentBranch(destinationPath): 
-    originalPath = shellCmd("pwd").rstrip('\n')
-    os.chdir(destinationPath)
-    shellCmd("git checkout develop")
-    os.chdir(originalPath)
+def convertArgumentTypesToKernelIdentifier(aType, bType, cType, dType, computeType):
+    argumentsToRocblasType = {
+        ('f16_r', 'f16_r', 'f16_r', 'f16_r', 'f16_r'): 'half_precision',
+        ('f16_r', 'f16_r', 'f16_r', 'f16_r', 'f32_r'): 'hpa_half_precision',
+        ('f32_r', 'f32_r', 'f32_r', 'f32_r', 'f32_r'): 'single_precision',
+        ('f64_r', 'f64_r', 'f64_r', 'f64_r', 'f64_r'): 'double_precision',
+        ('i8_r', 'i8_r', 'i8_r', 'i8_r', 'i32_r'): 'int8_precision',
+        ('bf16_r', 'bf16_r', 'bf16_r', 'bf16_r', 'bf16_r'): 'bf16_precision',
+        ('bf16_r', 'bf16_r', 'bf16_r', 'bf16_r', 'f32_r'): 'hpa_bf16_precision',
+        ('f16_c', 'f16_c', 'f16_c', 'f16_c', 'f16_c'): 'half_precision_complex',
+        ('f16_c', 'f16_c', 'f16_c', 'f16_c', 'f32_c'): 'hpa_half_precision_complex',
+        ('f32_c', 'f32_c', 'f32_c', 'f32_c', 'f32_c'): 'single_precision_complex',
+        ('f64_c', 'f64_c', 'f64_c', 'f64_c', 'f64_c'): 'double_precision_complex',
+        ('i8_c', 'i8_c', 'i8_c', 'i8_c', 'i32_c'): 'int8_precision_complex',
+        ('bf16_c', 'bf16_c', 'bf16_c', 'bf16_c', 'bf16_c'): 'bf16_precision_complex',
+        ('bf16_c', 'bf16_c', 'bf16_c', 'bf16_c', 'f32_c'): 'hpa_bf16_precision_complex'}
+    rocblasTypeToKernelIdentifier = {
+        'half_precision': 'HB',
+        'hpa_half_precision': 'HBH',
+        'single_precision': 'SB',
+        'double_precision': 'DB',
+        'int8_precision': '4xibBH',
+        'bf16_precision': 'BB',
+        'hpa_bf16_precision': 'BBH',
+        'single_precision_complex': 'CB',
+        'double_precision_complex': 'ZB'
+    }
+
+    try:
+        rocblasType = argumentsToRocblasType[(aType, bType, cType, dType, computeType)]
+        kernelIdentifier = rocblasTypeToKernelIdentifier[rocblasType]
+    except KeyError:
+        print("Error: Unrecognized argument type combination (a_type %s b_type %s c_type %s d_type %s compute_type %s")
+        return 'NOT VALID'
+    return kernelIdentifier
+    #Comes from the roblas_common.yaml file
 
 
 class ProblemDescription:
@@ -139,41 +192,58 @@ class ProblemDescription:
         self.m = 1
         self.n = 1
         self.k = 1
-        self.batch_count = 1
- 
+        self.batch_count = -1
+
         try:
-            optDict= parseOptions(benchmarkText.split(), "m:n:k:", ["batch_count=", "transposeA=", "transposeB="])
-            self.m           = int(optDict['m'])
-            self.n           = int(optDict['n'])
-            self.k           = int(optDict['k'])
-            transposeA       =     optDict['transposeA'] == 'T'
-            transposeB       =     optDict['transposeB'] == 'T'
+            optDict= parseOptions(
+                benchmarkText.split(),
+                "m:n:k:",
+                [
+                    "batch_count=", "transposeA=", "transposeB=", \
+                    "a_type=", "b_type=", "c_type=", "d_type=", "compute_type="\
+                ]
+            )
+            self.m            = int(optDict['m'])
+            self.n            = int(optDict['n'])
+            self.k            = int(optDict['k'])
+            transposeA        =     optDict['transposeA'] == 'T'
+            transposeB        =     optDict['transposeB'] == 'T'
+            aType             =     optDict['a_type']
+            bType             =     optDict['b_type']
+            cType             =     optDict['c_type']
+            dType             =     optDict['d_type']
+            computeType       =     optDict['compute_type']
+            self.kernel_flags = convertArgumentTypesToKernelIdentifier(
+                aType, bType, cType, dType, computeType)
 
         except ValueError:
             print("Error: Problem description parameters have invalid type")
         except ParseOptionError:
             print("Error: Input arguments ill formed")
 
-        if 'batch_count' in optDict.keys():
+        if 'batch_count' in optDict:
             self.batch_count = int(optDict['batch_count'])
 
-        self.matrixA = 'Alik' if transposeA else 'Ailk'
-        self.matrixB = 'Bjlk' if transposeA else 'Bljk'
+        self.matrix_A = 'Alik' if transposeA else 'Ailk'
+        self.matrix_B = 'Bjlk' if transposeB else 'Bljk'
 
     def __str__(self):
-        return "(m=%d n=%d k=%d batch_count = %d transA = %r transB = %r)" \
-        % (self.m, self.n, self.k, self.batch_count, self.matrixA == 'Alik', self.matrixB == 'Bljk')
+        return "(m=%d n=%d k=%d batch_count=%d transpose_A=%r transpose_B=%r kernel_flags=%s)" \
+        % (self.m, self.n, self.k, self.batch_count, self.matrix_A == 'Alik', self.matrix_B == 'Bljk', self.kernel_flags)
 
 def loadBenchmarkDescriptions(logfilePath):
-    f = open(logfilePath)
-    if f.closed:
+    try:
+        f = open(logfilePath)
+    except OSError:
+        print("%s file not found." % logfilePath)
         return []
 
     lines = f.read().split('\n')
     benchmarkList = []
 
     for line in lines:
-        if len(line) > 0 and "rocblas-bench" in line.split()[0]:
+        pieces = line.split(maxsplit=1)
+        if pieces and "rocblas-bench" in pieces[0]:
             benchmarkList.append(ProblemDescription(line))
             b = benchmarkList[-1]
     return benchmarkList
@@ -181,7 +251,7 @@ def loadBenchmarkDescriptions(logfilePath):
 
 def matchBetween(matrixFormSet, filename):
     for matrixForm in matrixFormSet:
-        if matrixForm[0] in filename and matrixForm[1] in filename:
+        if matrixForm[0] in filename and matrixForm[1] in filename and matrixForm[2] in filename:
             return True
     return False
 
@@ -191,17 +261,18 @@ def findMatchingKernel(benchDescriptions, architecture, directoryPath):
     print("Searching %s for logic files..." % directoryPath)
     foundMatch = [False for x in range(len(benchDescriptions))]
 
-    matrixFormSet = set()
+    problemSet = set()
     for bench in benchDescriptions:
-        matrixFormSet.add((bench.matrixA, bench.matrixB))
+        problemSet.add((bench.matrix_A, bench.matrix_B, bench.kernel_flags))
 
+    #Filter files by problem types in benchmarks
     fileList = []
     for filename in os.listdir(directoryPath):
         if filename.endswith(".yaml") \
         and architecture in filename \
-        and matchBetween(matrixFormSet, filename): 
+        and matchBetween(problemSet, filename):
             fileList.append(filename)
-    
+
     success = False
     #Find a kernel with a matching problem size in the file list
     for filename in fileList:
@@ -214,7 +285,7 @@ def findMatchingKernel(benchDescriptions, architecture, directoryPath):
         logicList = libraryLogic[exactLogicListIdx]
         for i in range(len(benchDescriptions)):
             bench = benchDescriptions[i]
-            if bench.matrixA in filename and bench.matrixB in filename:
+            if bench.matrix_A in filename and bench.matrix_B in filename and bench.kernel_flags in filename:
                 #Iterate through kernels to find one with matching size
                 for [problemInfo, winningKernelInfo] in logicList:
                     foundMatchingKernel = \
@@ -235,9 +306,8 @@ def findBenchmarkInFile(problemDescriptions):
 
 
 def main(argv):
-
     try:
-        optdict = parseOptions(argv, "f:a:cu", ["help"])
+        optdict = parseOptions(argv, "f:a:c:ul", ["help"])
         if 'help' in optdict.keys():
             print(helpMessage)
             sys.exit()
@@ -247,60 +317,56 @@ def main(argv):
         sys.exit(usageMessage)
 
     logpath = ""
-    if 'f' in optdict.keys():
+    if 'f' in optdict:
         logpath = optdict['f']
     else:
         sys.exit(usageMessage)
     architecture = ""
-    if 'a' in optdict.keys():
+    if 'a' in optdict:
         architecture = optdict['a']
 
-    directoryPath="./rocBLASTemp"     #Default path
+    directoryPath = mkdtemp()   #"./rocBLASTemp"     #Default path
     libraryPathExtension="/library/src/blas3/Tensile/Logic/asm_full/"
-    if not os.path.isdir(directoryPath):
-        if not os.path.isfile(directoryPath):
-            print("Created temporary directory %s" % directoryPath)
-            shellCmd("mkdir %s" % directoryPath)
-            cloneRepository(directoryPath)
-        else:
-            sys.exit("Directory %s is a file" % directoryPath)
+    print("Created temporary directory %s" % directoryPath)
+    cloneRepository(directoryPath)
 
     #Benchmarked problem sizes in log file
     benchDescriptions = loadBenchmarkDescriptions(logpath)
-
     print("\
 -------------------------------------------------------------\n\
--- Finding pre-tuned sizes in installed version of rocblas --\n\
+-- Finding pre-tuned sizes in specified version of rocblas --\n\
 -------------------------------------------------------------")
-    checkoutInstalledBranch(directoryPath)
-    localMatches = findMatchingKernel( \
-        benchDescriptions,             \
-        architecture,                  \
+    if not ('c' in optdict or 'l' in optdict):
+        checkoutMostRecentBranch(directoryPath, "master")
+    else:
+        specifiedCommitHash = optdict['c'] if 'c' in optdict \
+                              else getInstalledRocBLASCommitHash()
+        checkoutSpecifiedCommit(directoryPath, specifiedCommitHash)
+    localMatches = findMatchingKernel(
+        benchDescriptions,
+        architecture,
         directoryPath+libraryPathExtension)
 
-    if 'u' in optdict.keys():
+    if 'u' in optdict:
         print("\
 ---------------------------------------------------------------\n\
 -- Finding pre-tuned sizes in most recent version of rocblas --\n\
 ---------------------------------------------------------------")
-        checkoutMostRecentBranch(directoryPath)
-        recentMatches = findMatchingKernel( \
-            benchDescriptions,              \
-            architecture,                   \
+        checkoutMostRecentBranch(directoryPath, "develop")
+        recentMatches = findMatchingKernel(
+            benchDescriptions,
+            architecture,
             directoryPath+libraryPathExtension)
 
-        print("Matches in latest version of rocBLAS but not current:")
+        print("\nMatches in most recent version of rocBLAS but not specified version:")
         for i in range(len(benchDescriptions)):
             if recentMatches[i] and not localMatches[i]:
-                b = benchDescriptions[i]
-                print("\tm = %d n = %d k = %d batch_count %d matrixA = %s matrixB = %s" \
-                    %(        b.m,   b.n,   b.k,           b.batch_count, b.matrixA, b.matrixB))
+                print("\t%s" % benchDescriptions[i])
 
 
     #Remove temporary directory only if it wasn't provided by user
-    if 'c' in optdict.keys():
-        print("Removing temporary directory")
-        shellCmd("rm -rf %s" % directoryPath)
+    print("Removing temporary directory")
+    rmtree(directoryPath) #shellCmd("rm -rf %s" % directoryPath)
 
 if __name__=="__main__":
     main(sys.argv[1:])
