@@ -170,7 +170,7 @@ def convertArgumentTypesToKernelIdentifier(aType, bType, cType, dType, computeTy
         'hpa_half_precision': 'HBH',
         'single_precision': 'SB',
         'double_precision': 'DB',
-        'int8_precision': '4xibBH',
+        'int8_precision': '4xi8BH',
         'bf16_precision': 'BB',
         'hpa_bf16_precision': 'BBH',
         'single_precision_complex': 'CB',
