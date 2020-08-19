@@ -385,6 +385,18 @@ __device__ __host__ inline rocblas_half rocblas_abs(rocblas_half x)
     return t.x;
 }
 
+// Is power of two
+__device__ __host__ constexpr bool rocblas_is_po2(rocblas_int x)
+{
+    return (x && !(x & (x - 1)));
+}
+
+// Return previous power of two
+__device__ __host__ constexpr rocblas_int rocblas_previous_po2(rocblas_int x)
+{
+    return x ? 1 << (8 * sizeof(x) - 1 - __builtin_clz(x)) : 0;
+}
+
 // Get base types from complex types.
 template <typename T, typename = void>
 struct rocblas_real_t_impl
