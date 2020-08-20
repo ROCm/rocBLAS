@@ -57,9 +57,9 @@ endif( )
 list( APPEND CMAKE_PREFIX_PATH ${ROCM_PATH} /opt/rocm )
 find_package( hip REQUIRED CONFIG PATHS ${ROCM_PATH} )
 
-# Quietly look for CUDA, but if not found it's not an error
-# The presense of hip is not sufficient to determine if we want a rocm or cuda backend
-if( NOT IGNORE_CUDA )
+# The presense of hip OR CUDA is not sufficient to determine if we want a rocm or cuda backend
+if( USE_CUDA )
+  # Quietly look for CUDA, but if not found it's not an error
   find_package( CUDA QUIET )
 endif( )
 

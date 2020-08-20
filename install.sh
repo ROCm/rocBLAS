@@ -29,7 +29,7 @@ rocBLAS build & installation helper script
       -s | --tensile-host        Build with Tensile host
       -r | --no-tensile-host     Do not build with Tensile host
       -u | --use-custom-version  Ignore Tensile version and just use the Tensile tag
-           --ignore-cuda         Ignores installed cuda version and builds with rocm stack instead
+           --use-cuda            Uses installed cuda version instead of rocm stack
            --skipldconf          Skip ld.so.conf entry
            --static              Create static library instead of shared library
       -v | --rocm-dev            Set specific rocm-dev version
@@ -320,7 +320,7 @@ tensile_tag=
 tensile_test_local_path=
 tensile_version=
 build_clients=false
-ignore_cuda=false
+use_cuda=false
 build_tensile=true
 build_tensile_host=true
 cpu_ref_lib=blis
@@ -343,7 +343,7 @@ fi
 # check if we have a modern version of getopt that can handle whitespace and long parameters
 getopt -T
 if [[ $? -eq 4 ]]; then
-  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,no-hip-clang,merge-files,no-merge-files,no_tensile,no-tensile,tensile-host,no-tensile-host,msgpack,no-msgpack,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,static,ignore-cuda,rocm-dev: --options nsrhicdgl:a:o:f:b:t:u:v: -- "$@")
+  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,no-hip-clang,merge-files,no-merge-files,no_tensile,no-tensile,tensile-host,no-tensile-host,msgpack,no-msgpack,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,static,use-cuda,rocm-dev: --options nsrhicdgl:a:o:f:b:t:u:v: -- "$@")
 else
   echo "Need a new version of getopt"
   exit 1
@@ -404,8 +404,8 @@ while true; do
     --build_dir)
         build_dir=${2}
         shift 2;;
-    --ignore-cuda)
-        ignore_cuda=true
+    --use-cuda)
+        use_cuda=true
         shift ;;
     --cpu_ref_lib)
         cpu_ref_lib=${2}
@@ -630,8 +630,8 @@ pushd .
     cmake_common_options="${cmake_common_options} -DTensile_COMPILER=hipcc"
   fi
 
-  if [[ "${ignore_cuda}" == true ]]; then
-    cmake_common_options="${cmake_common_options} -DIGNORE_CUDA=ON"
+  if [[ "${use_cuda}" == true ]]; then
+    cmake_common_options="${cmake_common_options} -DUSE_CUDA=ON"
   fi
 
   case "${ID}" in
