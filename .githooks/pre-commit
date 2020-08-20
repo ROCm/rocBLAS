@@ -4,9 +4,7 @@
 # are installed, and if so, uses the installed version to format
 # the staged changes.
 
-export PATH=/usr/bin:/bin:/opt/rocm/llvm/bin:/opt/rocm/hcc/bin
-
-set -x
+export PATH=/opt/rocm/llvm/bin:/opt/rocm/hcc/bin:/usr/bin:/bin
 
 # Redirect stdout to stderr.
 exec >&2
@@ -31,6 +29,7 @@ fi
 
 # Change the copyright date at the top of any text files
 for file in $files; do
+    echo "Processing copyright dates in $file"
     if [[ -e $file ]]; then
         /usr/bin/perl -pi -e 'INIT { exit 1 if !-f $ARGV[0] || -B $ARGV[0]; $year = (localtime)[5] + 1900 }
             s/^([*\/#[:space:]]*)Copyright\s+(?:\(C\)\s*)?(\d+)(?:\s*-\s*\d+)?/qq($1Copyright $2@{[$year != $2 ? "-$year" : ""]})/ie
@@ -40,9 +39,12 @@ done
 
 # do the formatting
 for file in $files; do
-    if [[ -e $file ]] && echo $file | grep -Eq '\.c$|\.h$|\.hpp$|\.cpp$|\.cl$|\.in$|\.txt$|\.yaml$|\.sh$|\.py$|\.pl$|\.cmake$|\.md$|\.rst$|\.groovy$'; then
+    if [[ -e $file ]] && echo $file | grep -Eq '\.c$|\.h$|\.hpp$|\.cpp$|\.cl$|\.in$|\.txt$|\.yaml$|\.yml$|\.sh$|\.py$|\.pl$|\.cmake$|\.md$|\.rst$|\.groovy$|\.ini$|\.awk$|\.csv$'; then
+        echo "Processing line endings in $file"
         sed -i -e 's/[[:space:]]*$//' "$file" # Remove whitespace at end of lines
         sed -i -e '$a\' "$file" # Add missing newline to end of file
+
+        echo "Converting non-ASCII characters to ASCII equivalents in $file"
         # Convert UTF8 non-ASCII to ASCII
         temp=$(mktemp)
         [[ -w $temp ]] || exit
