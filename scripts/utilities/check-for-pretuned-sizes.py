@@ -8,6 +8,7 @@ from subprocess import PIPE
 from tempfile import mkdtemp
 from shutil import rmtree
 
+#
 minimumVersionIdx       = 0
 prefixIdx               = 1
 architectureIdx         = 2
@@ -15,7 +16,7 @@ deviceNamesIdx          = 3
 problemTypeStateIdx     = 4
 solutionListIdx         = 5
 indexOrderIdx           = 6
-exactLogicListIdx       = 7       #[[m, n, batch_zie, k, ...], [kernelIdx, GFLOPS]]
+exactLogicListIdx       = 7       #[[m, n, batch_size, k, ...], [kernelIdx, GFLOPS]]
 mIdx        = 0
 nIdx        = 1
 batchIdx    = 2
@@ -149,70 +150,110 @@ def checkoutMostRecentBranch(destinationPath, branchname):
     shellCmd("git checkout %s" % branchname)
     os.chdir(originalPath)
 
+def convertToExplicitType(t):
+    typeMap = {
+        'h': 'f16_r',
+        's': 'f32_r',
+        'd': 'f64_r',
+        'c': 'f32_r',
+        'z': 'f64_r'}
+    if t in typeMap:
+        return typeMap[t]
+    else:
+        return t
+
 def convertArgumentTypesToKernelIdentifier(aType, bType, cType, dType, computeType):
+    aType       = convertToExplicitType(aType)
+    bType       = convertToExplicitType(bType)
+    cType       = convertToExplicitType(cType)
+    dType       = convertToExplicitType(dType)
+    computeType = convertToExplicitType(computeType)
+
     argumentsToRocblasType = {
-        ('f16_r', 'f16_r', 'f16_r', 'f16_r', 'f16_r'): 'half_precision',
-        ('f16_r', 'f16_r', 'f16_r', 'f16_r', 'f32_r'): 'hpa_half_precision',
-        ('f32_r', 'f32_r', 'f32_r', 'f32_r', 'f32_r'): 'single_precision',
-        ('f64_r', 'f64_r', 'f64_r', 'f64_r', 'f64_r'): 'double_precision',
-        ('i8_r', 'i8_r', 'i8_r', 'i8_r', 'i32_r'): 'int8_precision',
+        ('f16_r',  'f16_r',  'f16_r',  'f16_r',  'f16_r') : 'half_precision',
+        ('f16_r',  'f16_r',  'f16_r',  'f16_r',  'f32_r') : 'hpa_half_precision',
+        ('f32_r',  'f32_r',  'f32_r',  'f32_r',  'f32_r') : 'single_precision',
+        ('f64_r',  'f64_r',  'f64_r',  'f64_r',  'f64_r') : 'double_precision',
+        ('i8_r',   'i8_r',   'i8_r',   'i8_r',   'i32_r') : 'int8_precision',
         ('bf16_r', 'bf16_r', 'bf16_r', 'bf16_r', 'bf16_r'): 'bf16_precision',
-        ('bf16_r', 'bf16_r', 'bf16_r', 'bf16_r', 'f32_r'): 'hpa_bf16_precision',
-        ('f16_c', 'f16_c', 'f16_c', 'f16_c', 'f16_c'): 'half_precision_complex',
-        ('f16_c', 'f16_c', 'f16_c', 'f16_c', 'f32_c'): 'hpa_half_precision_complex',
-        ('f32_c', 'f32_c', 'f32_c', 'f32_c', 'f32_c'): 'single_precision_complex',
-        ('f64_c', 'f64_c', 'f64_c', 'f64_c', 'f64_c'): 'double_precision_complex',
-        ('i8_c', 'i8_c', 'i8_c', 'i8_c', 'i32_c'): 'int8_precision_complex',
+        ('bf16_r', 'bf16_r', 'bf16_r', 'bf16_r', 'f32_r') : 'hpa_bf16_precision',
+        ('f16_c',  'f16_c',  'f16_c',  'f16_c',  'f16_c') : 'half_precision_complex',
+        ('f16_c',  'f16_c',  'f16_c',  'f16_c',  'f32_c') : 'hpa_half_precision_complex',
+        ('f32_c',  'f32_c',  'f32_c',  'f32_c',  'f32_c') : 'single_precision_complex',
+        ('f64_c',  'f64_c',  'f64_c',  'f64_c',  'f64_c') : 'double_precision_complex',
+        ('i8_c',   'i8_c',   'i8_c',   'i8_c',   'i32_c') : 'int8_precision_complex',
         ('bf16_c', 'bf16_c', 'bf16_c', 'bf16_c', 'bf16_c'): 'bf16_precision_complex',
-        ('bf16_c', 'bf16_c', 'bf16_c', 'bf16_c', 'f32_c'): 'hpa_bf16_precision_complex'}
+        ('bf16_c', 'bf16_c', 'bf16_c', 'bf16_c', 'f32_c') : 'hpa_bf16_precision_complex'}
     rocblasTypeToKernelIdentifier = {
-        'half_precision': 'HB',
-        'hpa_half_precision': 'HBH',
-        'single_precision': 'SB',
-        'double_precision': 'DB',
-        'int8_precision': '4xi8BH',
-        'bf16_precision': 'BB',
-        'hpa_bf16_precision': 'BBH',
-        'single_precision_complex': 'CB',
-        'double_precision_complex': 'ZB'
-    }
+        'half_precision'          : 'HB.',
+        'hpa_half_precision'      : 'HBH.',
+        'single_precision'        : 'SB.',
+        'double_precision'        : 'DB.',
+        'int8_precision'          : '4xi8BH.',
+        'bf16_precision'          : 'BB.',
+        'hpa_bf16_precision'      : 'BBH.',
+        'single_precision_complex': 'CB.',
+        'double_precision_complex': 'ZB.'}
 
     try:
         rocblasType = argumentsToRocblasType[(aType, bType, cType, dType, computeType)]
         kernelIdentifier = rocblasTypeToKernelIdentifier[rocblasType]
     except KeyError:
-        print("Error: Unrecognized argument type combination (a_type %s b_type %s c_type %s d_type %s compute_type %s")
+        print("Error: Unrecognized argument type combination (a_type %s b_type %s c_type %s d_type %s compute_type %s)" %(aType, bType, cType, dType, computeType))
         return 'NOT VALID'
     return kernelIdentifier
     #Comes from the roblas_common.yaml file
 
+#Gets one of the first or second keys provided
+def getOne(d, key1, key2):
+    if key1 in d:
+        return d[key1]
+    else:
+        return d[key2]
+
+def supportedProblemType(problemType):
+    return 'gemm' in problemType
+
+
+#Bind as member variable to dict
 
 class ProblemDescription:
     def __init__(self, benchmarkText):
         self.m = 1
         self.n = 1
         self.k = 1
-        self.batch_count = -1
+        self.batch_count = 1
 
         try:
             optDict= parseOptions(
                 benchmarkText.split(),
-                "m:n:k:",
+                "m:n:k:f:r:",
                 [
                     "batch_count=", "transposeA=", "transposeB=", \
-                    "a_type=", "b_type=", "c_type=", "d_type=", "compute_type="\
+                    "a_type=", "b_type=", "c_type=", "d_type=", "compute_type=",\
+                    "precision=", "sizem=", "sizen=", "sizek="\
                 ]
             )
-            self.m            = int(optDict['m'])
-            self.n            = int(optDict['n'])
-            self.k            = int(optDict['k'])
-            transposeA        =     optDict['transposeA'] == 'T'
-            transposeB        =     optDict['transposeB'] == 'T'
-            aType             =     optDict['a_type']
-            bType             =     optDict['b_type']
-            cType             =     optDict['c_type']
-            dType             =     optDict['d_type']
-            computeType       =     optDict['compute_type']
+            self.gemmType     =     getOne(optDict, 'f','function')
+            if not supportedProblemType(self.gemmType):
+                return
+            self.m            = int(getOne(optDict, 'm', 'sizem'))
+            self.n            = int(getOne(optDict, 'n', 'sizen'))
+            self.k            = int(getOne(optDict, 'k', 'sizek'))
+            transposeA        =            optDict['transposeA'] == 'T'
+            transposeB        =            optDict['transposeB'] == 'T'
+            if 'ex' in self.gemmType:
+                aType         =            optDict['a_type']
+                bType         =            optDict['b_type']
+                cType         =            optDict['c_type']
+                dType         =            optDict['d_type']
+                computeType   =            optDict['compute_type']
+            else:
+                aType         =\
+                bType         =\
+                cType         =\
+                dType         =\
+                computeType   =     getOne(optDict, 'r', 'precision')
             self.kernel_flags = convertArgumentTypesToKernelIdentifier(
                 aType, bType, cType, dType, computeType)
 
@@ -229,7 +270,7 @@ class ProblemDescription:
 
     def __str__(self):
         return "(m=%d n=%d k=%d batch_count=%d transpose_A=%r transpose_B=%r kernel_flags=%s)" \
-        % (self.m, self.n, self.k, self.batch_count, self.matrix_A == 'Alik', self.matrix_B == 'Bljk', self.kernel_flags)
+        % (self.m, self.n, self.k, self.batch_count, self.matrix_A == 'Alik', self.matrix_B == 'Bjlk', self.kernel_flags)
 
 def loadBenchmarkDescriptions(logfilePath):
     try:
@@ -244,8 +285,12 @@ def loadBenchmarkDescriptions(logfilePath):
     for line in lines:
         pieces = line.split(maxsplit=1)
         if pieces and "rocblas-bench" in pieces[0]:
-            benchmarkList.append(ProblemDescription(line))
-            b = benchmarkList[-1]
+            try:
+                problem = ProblemDescription(line)
+            except KeyError:
+                raise KeyError(line)
+            if supportedProblemType(problem.gemmType):
+                benchmarkList.append(problem)
     return benchmarkList
 
 
