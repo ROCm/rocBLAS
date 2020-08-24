@@ -36,10 +36,8 @@ private:
     {
     };
 
-    int device;
-
     // Class for saving and restoring default device ID
-    class _rocblas_saved_device_id
+    class [[nodiscard]] _rocblas_saved_device_id
     {
         int device_id;
         int old_device_id;
@@ -62,10 +60,59 @@ private:
                 hipSetDevice(old_device_id);
         }
 
+        // Move constructor
+        _rocblas_saved_device_id(_rocblas_saved_device_id && other)
+            : device_id(other.device_id)
+            , old_device_id(other.old_device_id)
+        {
+            other.device_id = other.old_device_id;
+        }
+
         _rocblas_saved_device_id(const _rocblas_saved_device_id&) = delete;
-        _rocblas_saved_device_id(_rocblas_saved_device_id&&)      = default;
         _rocblas_saved_device_id& operator=(const _rocblas_saved_device_id&) = delete;
         _rocblas_saved_device_id& operator=(_rocblas_saved_device_id&&) = delete;
+    };
+
+    // Class for temporarily modifying a state, restoring it on destruction
+    template <typename STATE>
+    class [[nodiscard]] _pushed_state
+    {
+        STATE* statep;
+        STATE  old_state;
+
+    public:
+        // Constructor
+        _pushed_state(STATE & state, STATE new_state)
+            : statep(&state)
+            , old_state(std::move(state))
+        {
+            state = std::move(new_state);
+        }
+
+        // Temporary object implicitly converts to old state
+        operator const STATE&() const&
+        {
+            return old_state;
+        }
+
+        // Old state is restored on destruction
+        ~_pushed_state()
+        {
+            if(statep)
+                *statep = std::move(old_state);
+        }
+
+        // Move constructor
+        _pushed_state(_pushed_state && other)
+            : statep(other.statep)
+            , old_state(std::move(other.old_state))
+        {
+            other.statep = nullptr;
+        }
+
+        _pushed_state(const _pushed_state&) = delete;
+        _pushed_state& operator=(const _pushed_state&) = delete;
+        _pushed_state& operator=(_pushed_state&&) = delete;
     };
 
 public:
@@ -132,21 +179,9 @@ public:
         auto   dummy = {total += roundup_device_memory_size(size_t(sizes))...};
 #endif
 
-        if(total > device_memory_query_size)
-        {
-            device_memory_query_size = total;
-            return rocblas_status_size_increased;
-        }
-        return rocblas_status_size_unchanged;
-    }
-
-    // Allocate one or more sizes
-    template <typename... Ss,
-              std::enable_if_t<sizeof...(Ss) && conjunction<std::is_constructible<size_t, Ss>...>{},
-                               int> = 0>
-    auto device_malloc(Ss... sizes)
-    {
-        return _device_malloc<sizeof...(Ss)>(this, size_t(sizes)...);
+        return total > device_memory_query_size ? device_memory_query_size = total,
+                                                  rocblas_status_size_increased
+                                                : rocblas_status_size_unchanged;
     }
 
     // Temporarily change pointer mode, returning object which restores old mode when destroyed
@@ -172,31 +207,31 @@ private:
     // Round up size to the nearest MIN_CHUNK_SIZE
     static constexpr size_t roundup_device_memory_size(size_t size)
     {
-        static_assert(MIN_CHUNK_SIZE > 0 && !(MIN_CHUNK_SIZE & (MIN_CHUNK_SIZE - 1)),
-                      "MIN_CHUNK_SIZE must be a power of two");
-        return ((size - 1) | (MIN_CHUNK_SIZE - 1)) + 1;
+        return ((size + MIN_CHUNK_SIZE - 1) / MIN_CHUNK_SIZE) * MIN_CHUNK_SIZE;
     }
 
     // Variables holding state of device memory allocation
-    size_t device_memory_size = 0;
+    void*  device_memory            = nullptr;
+    size_t device_memory_size       = 0;
+    size_t device_memory_in_use     = 0;
+    bool   device_memory_size_query = false;
     size_t device_memory_query_size;
-    void*  device_memory                    = nullptr;
-    bool   device_memory_is_rocblas_managed = false;
-    bool   device_memory_in_use             = false;
-    bool   device_memory_size_query         = false;
 
-    // Helper for device memory allocator
-    void* device_allocator(size_t size);
+    // Device ID is created at handle creation time and remains in effect for the life of the handle.
+    const int device;
 
     // Opaque smart allocator class to perform device memory allocations
     template <size_t N = 1>
-    class _device_malloc
+    class [[nodiscard]] _device_malloc
     {
     protected:
-        rocblas_handle       handle;
-        bool                 success = true;
-        size_t               total   = 0;
-        std::array<void*, N> pointers; // Important: must come after handle, success and total
+        rocblas_handle handle;
+        size_t         prev_device_memory_in_use;
+        size_t         size;
+        bool           success;
+
+    private:
+        std::array<void*, N> pointers; // Important: must come last
 
         // Allocate one or more pointers to buffers of different sizes
         template <typename... Ss>
@@ -204,34 +239,30 @@ private:
         {
             // This creates a list of partial sums which are the offsets of each of the allocated
             // arrays. The sizes are rounded up to the next multiple of MIN_CHUNK_SIZE.
-            // total contains the total of all sizes at the end of the calculation of offsets.
-            size_t old,
-                offsets[] = {(old = total, total += roundup_device_memory_size(sizes), old)...};
+            // size contains the total of all sizes at the end of the calculation of offsets.
+            size = 0;
+            size_t old;
+            size_t offsets[] = {(old = size, size += roundup_device_memory_size(sizes), old)...};
 
+            // If allocation failed, return an array of nullptr's
             // If total size is 0, return an array of nullptr's, but leave it marked as successful
-            if(!total)
+            success = size <= handle->device_memory_size - handle->device_memory_in_use;
+            if(!success || !size)
                 return {};
 
-            // We allocate the total amount needed. This is a constant-time operation if the space is
-            // already available, or if an explicit size has been allocated.
-            void* ptr = handle->device_allocator(total);
-
-            // If allocation failed, return an array of nullptr's and mark allocation as failed
-            if(!ptr)
-            {
-                success = false;
-                return {};
-            }
+            // We allocate the total amount needed, taking it from the available device memory.
+            char* addr = static_cast<char*>(handle->device_memory) + handle->device_memory_in_use;
+            handle->device_memory_in_use += size;
 
             // An array of pointers to all of the allocated arrays is formed.
             // If a size is 0, the corresponding pointer is nullptr
             size_t i = 0;
-            return {!sizes ? i++, nullptr : (char*)ptr + offsets[i++]...};
+            return {!sizes ? i++, nullptr : addr + offsets[i++]...};
         }
 
         // Create a tuple of references to the pointers, to be assigned to std::tie(...)
         template <size_t... Is>
-        const auto tie_pointers(std::index_sequence<Is...>)
+        auto tie_pointers(std::index_sequence<Is...>)
         {
             return std::tie(pointers[Is]...);
         }
@@ -241,112 +272,132 @@ private:
         template <typename... Ss>
         explicit _device_malloc(rocblas_handle handle, Ss... sizes)
             : handle(handle)
+            , prev_device_memory_in_use(handle->device_memory_in_use)
+            , size(0)
+            , success(false)
             , pointers(allocate_pointers(sizes...))
         {
         }
 
+        // Move constructor
+        // Warning: This should only be used to move temporary expressions,
+        // such as the return values of functions and initialization with
+        // rvalues. If std::move() is used to move a _device_malloc object
+        // from a variable, then there must not be any alive allocations made
+        // between the initialization of the variable and the object that it
+        // moves to, or the LIFO ordering will be violated and flagged.
+        _device_malloc(_device_malloc && other) noexcept
+            : handle(other.handle)
+            , prev_device_memory_in_use(other.prev_device_memory_in_use)
+            , size(other.size)
+            , success(other.success)
+            , pointers(std::move(other.pointers))
+        {
+            other.success = false;
+        }
+
+        // Move assignment is allowed as long as the object being assigned to
+        // is 0-sized or an unsuccessful previous allocation.
+        _device_malloc& operator=(_device_malloc&& other)& noexcept
+        {
+            this->~_device_malloc();
+            return *new(this) _device_malloc(std::move(other));
+        }
+
+        // Copying and copy-assignment are deleted
+        _device_malloc(const _device_malloc&) = delete;
+        _device_malloc& operator=(const _device_malloc&) = delete;
+
+        // The destructor marks the device memory as no longer in use
+        ~_device_malloc()
+        {
+            // If success == false or size == 0, the destructor is a no-op
+            if(success && size)
+            {
+                // Subtract size from the handle's device_memory_in_use, making sure
+                // it matches the device_memory_in_use when this object was created.
+                if((handle->device_memory_in_use -= size) != prev_device_memory_in_use)
+                {
+                    rocblas_cerr
+                        << "rocBLAS internal error: device_malloc() RAII object not "
+                           "destroyed in LIFO order.\n"
+                           "Objects returned by device_malloc() must be 0-sized, "
+                           "unsuccessfully allocated,\n"
+                           "or destroyed in the reverse order that they are created.\n"
+                           "device_malloc() objects cannot be assigned to unless they are 0-sized\n"
+                           "or they were unsuccessfully allocated previously."
+                        << std::endl;
+                    rocblas_abort();
+                }
+            }
+        }
+
         // Conversion to bool to tell if the allocation succeeded
-        explicit operator bool() const
+        explicit operator bool() const&
         {
             return success;
         }
 
         // Conversion to std::tuple<void*&...> to be assigned to std::tie(ptr1, ptr2, ...)
-        operator auto()
+        operator auto()&
         {
             return tie_pointers(std::make_index_sequence<N>{});
         }
 
         // Conversion to any pointer type, but only if N == 1
-        template <typename T, typename = std::enable_if_t<std::is_pointer<T>{} && N == 1>>
-        operator T() const
+        // The trailing & prevents the conversion from applying to rvalue temporaries,
+        // to catch the common mistake of void *p = (void*) handle->device_malloc().
+        template <typename T, std::enable_if_t<std::is_pointer<T>{} && N == 1, int> = 0>
+        explicit operator T() const&
         {
-            return T(pointers[0]);
+            return static_cast<T>(pointers[0]);
         }
-
-        // Total size of allocation
-        size_t total_size() const
-        {
-            return total;
-        }
-
-        // The destructor marks the device memory as no longer in use
-        ~_device_malloc()
-        {
-            handle->device_memory_in_use = false;
-        }
-
-        _device_malloc(const _device_malloc&) = delete;
-        _device_malloc(_device_malloc&&)      = default;
-        _device_malloc& operator=(const _device_malloc&) = delete;
-        _device_malloc& operator=(_device_malloc&&) = default;
-    };
-
-    // Class for temporarily modifying a state, restoring it on destruction
-    template <typename STATE>
-    class _pushed_state
-    {
-        STATE&      state;
-        const STATE old_state;
-
-    public:
-        // Constructor
-        _pushed_state(STATE& state, STATE new_state)
-            : state(state)
-            , old_state(state)
-        {
-            state = new_state;
-        }
-
-        // Temporary object implicitly converts to old state
-        operator STATE() const
-        {
-            return old_state;
-        }
-
-        // Old state is restored on destruction
-        ~_pushed_state()
-        {
-            state = old_state;
-        }
-
-        _pushed_state(const _pushed_state&) = delete;
-        _pushed_state(_pushed_state&&)      = default;
-        _pushed_state& operator=(const _pushed_state&) = delete;
-        _pushed_state& operator=(_pushed_state&&) = delete;
     };
 
     // For HPA kernel calls, all available device memory is allocated and passed to Tensile
-    struct _gsu_malloc : _device_malloc<>
+    class [[nodiscard]] _gsu_malloc final : _device_malloc<>
     {
-        _gsu_malloc(rocblas_handle handle)
-            : _device_malloc<>(handle, handle->device_memory_size)
+    public:
+        explicit _gsu_malloc(rocblas_handle handle)
+            : _device_malloc<>(handle, handle->device_memory_size - handle->device_memory_in_use)
         {
-            handle->gsu_workspace_size = *this ? total_size() : 0;
-            handle->gsu_workspace      = *this;
+            handle->gsu_workspace_size = success ? size : 0;
+            handle->gsu_workspace      = static_cast<void*>(*this);
         }
 
         ~_gsu_malloc()
         {
-            handle->gsu_workspace_size = 0;
-            handle->gsu_workspace      = nullptr;
+            if(success)
+            {
+                handle->gsu_workspace_size = 0;
+                handle->gsu_workspace      = nullptr;
+            }
         }
 
-        _gsu_malloc(const _gsu_malloc&) = delete;
-        _gsu_malloc(_gsu_malloc&&)      = default;
-        _gsu_malloc& operator=(const _gsu_malloc&) = delete;
-        _gsu_malloc& operator=(_gsu_malloc&&) = default;
+        // Move constructor allows initialization by rvalues and returns from functions
+        _gsu_malloc(_gsu_malloc &&) = default;
     };
 
 public:
-    // gsu_malloc() returns a proxy object which manages GSU memory
-    _gsu_malloc gsu_malloc()
+    // Allocate one or more sizes
+    template <typename... Ss,
+              std::enable_if_t<sizeof...(Ss) && conjunction<std::is_constructible<size_t, Ss>...>{},
+                               int> = 0>
+    auto device_malloc(Ss... sizes)
     {
-        return this;
-    };
+        return _device_malloc<sizeof...(Ss)>(this, size_t(sizes)...);
+    }
 
+    // Variables holding state of GSU device memory allocation
     size_t gsu_workspace_size = 0;
     void*  gsu_workspace      = nullptr;
+
+    // gsu_malloc() returns a proxy object which manages GSU memory for the handle.
+    // The returned object needs to be kept alive for as long as the GSU memory is needed.
+    auto gsu_malloc()
+    {
+        return _gsu_malloc(this);
+    };
 };
 
 // For functions which don't use temporary device memory, and won't be likely
