@@ -1313,17 +1313,18 @@ rocblas_status special_trsm_template(rocblas_handle    handle,
  *  Note that for the batched version of trsm, we are also allocating memory to store the
  *  arrays of pointers for invA and x_temp (mem_x_temp_arr, mem_invA_arr).
  */
-template <rocblas_int BLOCK, bool BATCHED, typename T, typename U>
+template <rocblas_int BLOCK, bool BATCHED, typename T, typename U, typename MEM>
 ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_trsm_template_mem(rocblas_handle handle,
                                                                  rocblas_side   side,
                                                                  rocblas_int    m,
                                                                  rocblas_int    n,
                                                                  rocblas_int    batch_count,
+                                                                 MEM&           mem,
                                                                  void*&         mem_x_temp,
                                                                  void*&         mem_x_temp_arr,
                                                                  void*&         mem_invA,
                                                                  void*&         mem_invA_arr,
-                                                                 U supplied_invA = nullptr,
+                                                                 const U* supplied_invA = nullptr,
                                                                  rocblas_int supplied_invA_size = 0)
 {
     bool SUBSTITUTION_ENABLED = true;
@@ -1349,16 +1350,21 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_trsm_template_mem(rocblas_handle 
     size_t c_temp_els   = 0;
 
     // For user-supplied invA, check to make sure size is large enough
-    // If not large enough, indicate degraded performance and ignore supplied invA
+    // If not large enough, ignore supplied invA
     if(supplied_invA && supplied_invA_size / BLOCK < k)
     {
-        // One-time warning message
-        static int msg = (rocblas_cerr << "WARNING: TRSM invA_size argument is too small; invA "
-                                          "argument is being ignored; TRSM performance is degraded"
-                                       << std::endl,
-                          0);
-        perf_status    = rocblas_status_perf_degraded;
-        supplied_invA  = nullptr;
+        supplied_invA = nullptr;
+        if(!handle->is_device_memory_size_query())
+        {
+            // One-time warning message
+            static auto& once = rocblas_cerr
+                                << "WARNING: TRSM invA_size argument is too small; invA "
+                                   "argument is being ignored; TRSM performance is degraded"
+                                << std::endl;
+
+            // We only set perf_status if this is not a query
+            perf_status = rocblas_status_perf_degraded;
+        }
     }
 
     if(!supplied_invA)
@@ -1418,7 +1424,7 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_trsm_template_mem(rocblas_handle 
             x_c_temp_bytes, xarrBytes, invA_bytes, arrBytes);
 
     // Attempt to allocate optimal memory size
-    auto mem = handle->device_malloc(x_c_temp_bytes, xarrBytes, invA_bytes, arrBytes);
+    mem = handle->device_malloc(x_c_temp_bytes, xarrBytes, invA_bytes, arrBytes);
 
     if(!mem)
     {
@@ -1431,6 +1437,7 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_trsm_template_mem(rocblas_handle 
 
             mem = handle->device_malloc(x_c_temp_bytes, xarrBytes, invA_bytes, arrBytes);
         }
+
         if(!mem)
             return rocblas_status_memory_error;
 
@@ -1438,10 +1445,10 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_trsm_template_mem(rocblas_handle 
         perf_status = rocblas_status_perf_degraded;
 
         // One-time warning about degraded performance
-        static int msg = (rocblas_cerr << "WARNING: Device memory allocation size is too small for "
-                                          "TRSM; TRSM performance is degraded"
-                                       << std::endl,
-                          0);
+        static auto& once = rocblas_cerr
+                            << "WARNING: Device memory allocation size is too small for "
+                               "TRSM; TRSM performance is degraded"
+                            << std::endl;
     }
 
     std::tie(mem_x_temp, mem_x_temp_arr, mem_invA, mem_invA_arr) = mem;

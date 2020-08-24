@@ -25,6 +25,8 @@ if ( NOT DEFINED CMAKE_Fortran_COMPILER AND NOT DEFINED ENV{FC} )
   set( CMAKE_Fortran_COMPILER  "gfortran" )
 endif()
 
+add_compile_options( -Wno-unused-command-line-argument )
+
 unset(ENV{ROCM_BUILD_ID})
 project( rocblas LANGUAGES CXX Fortran )
 

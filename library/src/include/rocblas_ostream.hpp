@@ -176,7 +176,7 @@ public:
     rocblas_ostream(rocblas_ostream&&) = default;
 
     // Move assignment
-    rocblas_ostream& operator=(rocblas_ostream&&) = default;
+    rocblas_ostream& operator=(rocblas_ostream&&) & = default;
 
     // Copy assignment is deleted
     rocblas_ostream& operator=(const rocblas_ostream&) = delete;

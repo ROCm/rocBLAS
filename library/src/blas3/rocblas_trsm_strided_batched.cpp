@@ -53,13 +53,6 @@ namespace
         if(!handle)
             return rocblas_status_invalid_handle;
 
-        if(handle->is_device_memory_size_query())
-        {
-            if(!m || !n || !batch_count)
-                return rocblas_status_size_unchanged;
-            // Regular case is being handled after logging for now since logic is complex.
-        }
-
         /////////////
         // LOGGING //
         /////////////
@@ -187,24 +180,28 @@ namespace
 
         // quick return if possible.
         if(!m || !n || !batch_count)
-            return rocblas_status_success;
-
+            return handle->is_device_memory_size_query() ? rocblas_status_size_unchanged
+                                                         : rocblas_status_success;
         if(!alpha || !A || !B)
             return rocblas_status_invalid_pointer;
 
         //////////////////////
         // MEMORY MANAGEMENT//
         //////////////////////
-        void*          mem_x_temp;
-        void*          mem_x_temp_arr;
-        void*          mem_invA;
-        void*          mem_invA_arr;
-        bool           optimal_mem;
+
+        // Proxy object holds the allocation. It must stay alive as long as mem_* pointers below are alive.
+        auto  mem = handle->device_malloc(0, 0, 0, 0);
+        void* mem_x_temp;
+        void* mem_x_temp_arr;
+        void* mem_invA;
+        void* mem_invA_arr;
+
         rocblas_status perf_status = rocblas_trsm_template_mem<BLOCK, false, T>(handle,
                                                                                 side,
                                                                                 m,
                                                                                 n,
                                                                                 batch_count,
+                                                                                mem,
                                                                                 mem_x_temp,
                                                                                 mem_x_temp_arr,
                                                                                 mem_invA,
@@ -215,7 +212,7 @@ namespace
         if(perf_status != rocblas_status_success && perf_status != rocblas_status_perf_degraded)
             return perf_status;
 
-        optimal_mem = perf_status == rocblas_status_success;
+        bool optimal_mem = perf_status == rocblas_status_success;
 
         rocblas_status status = rocblas_trsm_template<BLOCK, false, T>(handle,
                                                                        side,

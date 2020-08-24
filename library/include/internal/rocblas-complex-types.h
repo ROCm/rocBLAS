@@ -91,10 +91,10 @@ public:
     __device__ __host__ rocblas_complex_num()                           = default;
     __device__ __host__ rocblas_complex_num(const rocblas_complex_num&) = default;
     __device__ __host__ rocblas_complex_num(rocblas_complex_num&&)      = default;
-    __device__ __host__ rocblas_complex_num& operator=(const rocblas_complex_num& rhs) = default;
-    __device__ __host__ rocblas_complex_num& operator=(rocblas_complex_num&& rhs) = default;
-    __device__                               __host__ ~rocblas_complex_num()      = default;
-    using value_type                                                              = T;
+    __device__ __host__ rocblas_complex_num& operator=(const rocblas_complex_num& rhs) & = default;
+    __device__ __host__ rocblas_complex_num& operator=(rocblas_complex_num&& rhs) & = default;
+    __device__                               __host__ ~rocblas_complex_num()        = default;
+    using value_type                                                                = T;
 
     // Constructor
     __device__ __host__ constexpr rocblas_complex_num(T r, T i)
