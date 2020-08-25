@@ -96,6 +96,31 @@ void testing_trtri_batched(const Arguments& arg)
     CHECK_HIP_ERROR(dA.transfer_from(hA));
     CHECK_HIP_ERROR(dinvA.transfer_from(hA));
 
+    {
+        // Compute size
+        CHECK_ROCBLAS_ERROR(rocblas_start_device_memory_size_query(handle));
+
+        CHECK_ALLOC_QUERY(rocblas_trtri_batched_fn(handle,
+                                                   uplo,
+                                                   diag,
+                                                   N,
+                                                   dA.ptr_on_device(),
+                                                   lda,
+                                                   dinvA.ptr_on_device(),
+                                                   lda,
+                                                   batch_count));
+
+        // Test in place
+        CHECK_ALLOC_QUERY(rocblas_trtri_batched_fn(
+            handle, uplo, diag, N, dA.ptr_on_device(), lda, dA.ptr_on_device(), lda, batch_count));
+
+        size_t size;
+        CHECK_ROCBLAS_ERROR(rocblas_stop_device_memory_size_query(handle, &size));
+
+        // Allocate memory
+        CHECK_ROCBLAS_ERROR(rocblas_set_device_memory_size(handle, size));
+    }
+
     /* =====================================================================
            ROCBLAS
     =================================================================== */
