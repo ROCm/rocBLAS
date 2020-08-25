@@ -55,7 +55,7 @@ namespace
             }
             else
             {
-                name << arg.M << '_' << arg.N << '_' << arg.lda << '_' << arg.ldb;
+                name << arg.M << '_' << arg.N << '_' << arg.lda << '_' << arg.ldb << '_' << arg.ldc;
             }
             return std::move(name);
         }
