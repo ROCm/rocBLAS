@@ -2,6 +2,7 @@
  * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #pragma once
+#include "bytes.hpp"
 #include "cblas_interface.hpp"
 #include "flops.hpp"
 #include "norm.hpp"
@@ -29,24 +30,20 @@ void testing_set_get_matrix_async(const Arguments& arg)
 
     // argument sanity check, quick return if input parameters are invalid before allocating invalid
     // memory
-    if(rows < 0 || lda <= 0 || lda < rows || cols < 0 || ldb <= 0 || ldb < rows || ldc <= 0
-       || ldc < rows)
+    bool invalidGPUMatrix = rows < 0 || cols < 0 || ldc <= 0 || ldc < rows;
+    bool invalidSet       = invalidGPUMatrix || lda <= 0 || lda < rows;
+    bool invalidGet       = invalidGPUMatrix || ldb <= 0 || ldb < rows;
+
+    if(invalidSet || invalidGet)
     {
-        static const size_t safe_size = 100; // arbritrarily set to 100
-
-        host_vector<T> ha(safe_size);
-        host_vector<T> hb(safe_size);
-        host_vector<T> hc(safe_size);
-
-        device_vector<T> dc(safe_size);
-        CHECK_DEVICE_ALLOCATION(dc.memcheck());
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_set_matrix_async(rows, cols, sizeof(T), nullptr, lda, nullptr, ldc, stream),
+            invalidSet ? rocblas_status_invalid_size : rocblas_status_invalid_pointer);
 
         EXPECT_ROCBLAS_STATUS(
-            rocblas_set_matrix_async(rows, cols, sizeof(T), ha, lda, dc, ldc, stream),
-            rocblas_status_invalid_size);
-        EXPECT_ROCBLAS_STATUS(
-            rocblas_get_matrix_async(rows, cols, sizeof(T), dc, ldc, hb, ldb, stream),
-            rocblas_status_invalid_size);
+            rocblas_get_matrix_async(rows, cols, sizeof(T), nullptr, ldc, nullptr, ldb, stream),
+            invalidGet ? rocblas_status_invalid_size : rocblas_status_invalid_pointer);
+
         return;
     }
 
@@ -57,7 +54,6 @@ void testing_set_get_matrix_async(const Arguments& arg)
     host_vector<T>        hb_gold(cols * size_t(ldb));
 
     double gpu_time_used, cpu_time_used;
-    double rocblas_bandwidth, cpu_bandwidth;
     double rocblas_error = 0.0;
 
     // allocate memory on device
@@ -89,7 +85,6 @@ void testing_set_get_matrix_async(const Arguments& arg)
                 hb_gold[i1 + i2 * ldb] = ha[i1 + i2 * lda];
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
-        cpu_bandwidth = (rows * cols * sizeof(T)) / cpu_time_used / 1e3;
 
         hipStreamSynchronize(stream);
 
@@ -106,33 +101,35 @@ void testing_set_get_matrix_async(const Arguments& arg)
 
     if(arg.timing)
     {
-        int         number_timing_iterations = arg.iters;
+        int number_cold_calls = arg.cold_iters;
+        int number_hot_calls  = arg.iters;
+
         hipStream_t stream;
         CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
+
+        for(int iter = 0; iter < number_cold_calls; iter++)
+        {
+            rocblas_set_matrix_async(rows, cols, sizeof(T), ha, lda, dc, ldc, stream);
+            rocblas_get_matrix_async(rows, cols, sizeof(T), dc, ldc, hb, ldb, stream);
+        }
+
         gpu_time_used = get_time_us_sync(stream); // in microseconds
 
-        for(int iter = 0; iter < number_timing_iterations; iter++)
+        for(int iter = 0; iter < number_hot_calls; iter++)
         {
             rocblas_set_matrix_async(rows, cols, sizeof(T), ha, lda, dc, ldc, stream);
             rocblas_get_matrix_async(rows, cols, sizeof(T), dc, ldc, hb, ldb, stream);
         }
 
         gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
-        rocblas_bandwidth
-            = (rows * cols * sizeof(T)) / gpu_time_used / 1e3 / number_timing_iterations;
 
-        rocblas_cout << "rows,cols,lda,ldb,rocblas-GB/s";
-
-        if(arg.norm_check)
-            rocblas_cout << ",CPU-GB/s,Frobenius_norm_error";
-
-        rocblas_cout << std::endl;
-
-        rocblas_cout << rows << "," << cols << "," << lda << "," << ldb << "," << rocblas_bandwidth;
-
-        if(arg.norm_check)
-            rocblas_cout << "," << cpu_bandwidth << "," << rocblas_error;
-
-        rocblas_cout << std::endl;
+        ArgumentModel<e_M, e_N, e_lda, e_ldb, e_ldc>{}.log_args<T>(
+            rocblas_cout,
+            arg,
+            gpu_time_used,
+            0,
+            set_get_matrix_gbyte_count<T>(rows, cols),
+            cpu_time_used,
+            rocblas_error);
     }
 }
