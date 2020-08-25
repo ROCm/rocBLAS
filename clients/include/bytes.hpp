@@ -16,6 +16,19 @@
 
 /*
  * ===========================================================================
+ *    Auxiliary
+ * ===========================================================================
+ */
+
+/* \brief byte counts of SET/GET_MATRIX/_ASYNC calls done in pairs for timing */
+template <typename T>
+constexpr double set_get_matrix_gbyte_count(rocblas_int m, rocblas_int n)
+{
+    return (sizeof(T) * m * n * 2.0) / 1e9;
+}
+
+/*
+ * ===========================================================================
  *    level 1 BLAS
  * ===========================================================================
  */

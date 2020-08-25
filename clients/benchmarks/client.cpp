@@ -271,6 +271,7 @@ struct perf_blas<T, U, std::enable_if_t<std::is_same<T, float>{} || std::is_same
         static const func_map map
             = { {"set_get_vector", testing_set_get_vector<T>},
                 {"set_get_matrix", testing_set_get_matrix<T>},
+                {"set_get_matrix_async", testing_set_get_matrix_async<T>},
                 // L1
                 {"asum", testing_asum<T>},
                 {"asum_batched", testing_asum_batched<T>},
