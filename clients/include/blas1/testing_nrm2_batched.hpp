@@ -163,7 +163,7 @@ void testing_nrm2_batched(const Arguments& arg)
                 handle, N, dx.ptr_on_device(), incx, batch_count, d_rocblas_result_2);
         }
 
-        gpu_time_used = (get_time_us_sync(stream) - gpu_time_used) / number_hot_calls;
+        gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
 
         ArgumentModel<e_N, e_incx, e_batch_count>{}.log_args<T>(rocblas_cout,
                                                                 arg,
