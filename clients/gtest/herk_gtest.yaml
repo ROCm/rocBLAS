@@ -11,6 +11,7 @@ Definitions:
     - { N:   3,  lda:   1,  K:  1,  ldc:  3 } # bad lda if not transpose
     - { N:   1,  lda:   1,  K:  3,  ldc:  3 } # bad lda if transpose
     - { N:   3,  lda:   3,  K:  3,  ldc:  1 } # bad ldc
+    - { N:   33, lda:  33,  K: 33,  ldc: 33 } # okay
 
   - &medium_matrix_size_range
     - { N:   199, lda:  199, K:  32,   ldc: 199 }
@@ -25,6 +26,9 @@ Definitions:
     - { alpha: -2.0, beta: -1.0 }
     - { alpha:  0.0, beta:  1.0 } # quick success
     - { alpha:  0.0, beta:  2.0 } # scale step only
+
+  - &alpha_beta_range_small
+    - { alpha:  0.5, beta:  1.0 }
 
 Tests:
 - name: herk_bad
@@ -57,10 +61,10 @@ Tests:
   category: nightly
   function: herk
   precision: *single_double_precisions_complex
-  uplo: [ U, L ]
+  uplo: [ U ]
   transA: [N, C]
   matrix_size: *large_matrix_size_range
-  alpha_beta: *alpha_beta_range
+  alpha_beta: *alpha_beta_range_small
 
   # batched
 - name: herk_batched_bad
@@ -95,10 +99,10 @@ Tests:
   category: nightly
   function: herk_batched
   precision: *single_double_precisions_complex
-  uplo: [ U, L ]
+  uplo: [ L ]
   transA: [N]
   matrix_size: *large_matrix_size_range
-  alpha_beta: *alpha_beta_range
+  alpha_beta: *alpha_beta_range_small
   batch_count: [ 2 ]
 
   # strided batched
@@ -127,18 +131,18 @@ Tests:
   transA: [N, C]
   matrix_size: *medium_matrix_size_range
   alpha_beta: *alpha_beta_range
-  batch_count: [ 1, 7 ]
+  batch_count: [ 2 ]
   fortran: [ false, true ]
 
 - name: herk_strided_batched_large
   category: nightly
   function: herk_strided_batched
   precision: *single_double_precisions_complex
-  uplo: [ U, L ]
+  uplo: [ U ]
   transA: [N]
   matrix_size: *large_matrix_size_range
-  alpha_beta: *alpha_beta_range
-  batch_count: [ 2 ]
+  alpha_beta: *alpha_beta_range_small
+  batch_count: [ 5 ]
 
 
 

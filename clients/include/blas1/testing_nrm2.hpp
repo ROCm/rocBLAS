@@ -152,7 +152,7 @@ void testing_nrm2(const Arguments& arg)
             rocblas_nrm2_fn(handle, N, dx, incx, d_rocblas_result_2);
         }
 
-        gpu_time_used = (get_time_us_sync(stream) - gpu_time_used) / number_hot_calls;
+        gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
 
         ArgumentModel<e_N, e_incx>{}.log_args<T>(rocblas_cout,
                                                  arg,

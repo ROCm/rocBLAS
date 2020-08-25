@@ -13,6 +13,7 @@ Definitions:
     - { N:   3,  K:  1,  lda:  3,  ldb: 1,  ldc:  3 } # bad ldb if not transpose
     - { N:   1,  K:  3,  lda:  3,  ldb: 1,  ldc:  3 } # bad ldb if transpose
     - { N:   3,  K:  3,  lda:  3,  ldb: 3,  ldc:  1 } # bad ldc
+    - { N:   33, K: 33,  lda: 33,  ldb: 33, ldc: 33 } # okay
 
   - &medium_matrix_size_range
     - { N:   199, K:   33,  lda:  199,  ldb: 199,  ldc: 199 }
@@ -29,6 +30,9 @@ Definitions:
     - { alpha: -2.0, alphai:  1.0, beta: -1.0 }
     - { alpha:  0.0, alphai:  0.0, beta:  1.0 } # quick success
     - { alpha:  0.0, alphai:  0.0, beta:  2.0 } # scale step only
+
+  - &alpha_beta_range_small
+    - { alpha:  0.5, beta:  1.0 }
 
 Tests:
 - name: her2k_bad
@@ -61,10 +65,10 @@ Tests:
   category: nightly
   function: her2k
   precision: *single_double_precisions_complex
-  uplo: [ U, L ]
+  uplo: [ U ]
   transA: [ N, C ]
   matrix_size: *large_matrix_size_range
-  alpha_beta: *alpha_beta_range
+  alpha_beta: *alpha_beta_range_small
 
   # batched
 - name: her2k_batched_bad
@@ -92,17 +96,17 @@ Tests:
   transA: [ N, C ]
   matrix_size: *medium_matrix_size_range
   alpha_beta: *alpha_beta_range
-  batch_count: [ 1, 7 ]
+  batch_count: [ 3 ]
   fortran: [ false, true ]
 
 - name: her2k_batched_large
   category: nightly
   function: her2k_batched
   precision: *single_double_precisions_complex
-  uplo: [ U, L ]
+  uplo: [ L ]
   transA: [ N ]
   matrix_size: *large_matrix_size_range
-  alpha_beta: *alpha_beta_range
+  alpha_beta: *alpha_beta_range_small
   batch_count: [ 2 ]
 
   # strided batched
@@ -128,20 +132,20 @@ Tests:
   function: her2k_strided_batched
   precision: *single_double_precisions_complex
   uplo: [ U, L ]
-  transA: [ N, C ]
+  transA: [ C ]
   matrix_size: *medium_matrix_size_range
   alpha_beta: *alpha_beta_range
-  batch_count: [ 1, 7 ]
+  batch_count: [ 3 ]
   fortran: [ false, true ]
 
 - name: her2k_strided_batched_large
   category: nightly
   function: her2k_strided_batched
   precision: *single_double_precisions_complex
-  uplo: [ U, L ]
+  uplo: [ L ]
   transA: [ N, C ]
   matrix_size: *large_matrix_size_range
-  alpha_beta: *alpha_beta_range
+  alpha_beta: *alpha_beta_range_small
   batch_count: [ 2 ]
 
 ...
