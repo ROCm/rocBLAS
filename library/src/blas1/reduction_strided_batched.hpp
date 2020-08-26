@@ -3,9 +3,9 @@
  * ************************************************************************ */
 
 #pragma once
-#include "handle.h"
+#include "handle.hpp"
 #include "rocblas.h"
-#include "utility.h"
+#include "utility.hpp"
 #include <type_traits>
 #include <utility>
 

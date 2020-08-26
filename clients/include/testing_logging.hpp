@@ -2,7 +2,7 @@
  * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#include "../../library/src/include/handle.h"
+#include "../../library/src/include/handle.hpp"
 #include "cblas_interface.hpp"
 #include "rocblas.hpp"
 #include "rocblas_math.hpp"

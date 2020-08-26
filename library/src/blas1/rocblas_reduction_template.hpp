@@ -3,8 +3,8 @@
  * ************************************************************************ */
 #pragma once
 
-#include "fetch_template.h"
-#include "handle.h"
+#include "fetch_template.hpp"
+#include "handle.hpp"
 #include "reduction_strided_batched.hpp"
 
 template <rocblas_int NB,

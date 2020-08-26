@@ -4,7 +4,7 @@
 #ifndef __ROCBLAS_GEMV_HPP__
 #define __ROCBLAS_GEMV_HPP__
 #include "gemv_device.hpp"
-#include "handle.h"
+#include "handle.hpp"
 
 template <typename T, typename U, typename V, typename W>
 ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_gemv_template(rocblas_handle    handle,

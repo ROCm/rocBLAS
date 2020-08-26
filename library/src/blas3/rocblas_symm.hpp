@@ -4,7 +4,7 @@
 #ifndef __ROCBLAS_SYMM_HPP__
 #define __ROCBLAS_SYMM_HPP__
 
-#include "handle.h"
+#include "handle.hpp"
 
 template <typename T>
 __device__ void symm_scale_device(rocblas_int m, rocblas_int n, T beta, T* C, rocblas_int ldc)

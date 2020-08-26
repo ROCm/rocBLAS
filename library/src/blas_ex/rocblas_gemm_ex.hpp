@@ -9,8 +9,8 @@
 #include "TensileTypes.h"
 #endif
 #include "gemm.hpp"
-#include "handle.h"
-#include "logging.h"
+#include "handle.hpp"
+#include "logging.hpp"
 
 /////////////////
 // Device Side //
