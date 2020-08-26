@@ -7,7 +7,7 @@
 
 #include "rocblas.h"
 #include "rocblas_ostream.hpp"
-#include "utility.h"
+#include "utility.hpp"
 #include <array>
 #include <cstddef>
 #include <hip/hip_runtime.h>

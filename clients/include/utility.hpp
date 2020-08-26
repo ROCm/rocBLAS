@@ -5,11 +5,11 @@
 #ifndef _TESTING_UTILITY_H_
 #define _TESTING_UTILITY_H_
 
+#include "../../library/src/include/utility.hpp"
 #include "cblas_interface.hpp"
-#include "logging.h"
+#include "logging.hpp"
 #include "rocblas.h"
 #include "rocblas_vector.hpp"
-#include "utility.h"
 #include <cstdio>
 #include <iostream>
 #include <string>

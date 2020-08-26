@@ -2,8 +2,8 @@
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #pragma once
-#include "handle.h"
-#include "logging.h"
+#include "handle.hpp"
+#include "logging.hpp"
 
 template <typename T, typename U>
 __device__ void rotm_kernel_calc(rocblas_int    n,

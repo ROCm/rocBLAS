@@ -2,7 +2,7 @@
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #pragma once
-#include "handle.h"
+#include "handle.hpp"
 
 template <typename T>
 __forceinline__ __device__ __host__ void rocblas_swap_vals(T* x, T* y)

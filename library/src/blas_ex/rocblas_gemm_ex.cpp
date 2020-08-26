@@ -3,10 +3,10 @@
  * ************************************************************************ */
 
 #include "rocblas_gemm_ex.hpp"
-#include "handle.h"
-#include "logging.h"
+#include "handle.hpp"
+#include "logging.hpp"
 #include "rocblas.h"
-#include "utility.h"
+#include "utility.hpp"
 
 rocblas_status rocblas_gemm_ex_impl(rocblas_handle    handle,
                                     rocblas_operation trans_a,

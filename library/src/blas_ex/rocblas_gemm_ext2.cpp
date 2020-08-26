@@ -3,10 +3,10 @@
  * ************************************************************************ */
 
 #include "rocblas_gemm_ext2.hpp"
-#include "handle.h"
-#include "logging.h"
+#include "handle.hpp"
+#include "logging.hpp"
 #include "rocblas.h"
-#include "utility.h"
+#include "utility.hpp"
 
 // This functionality is only availble when using the new Tensile client
 #ifdef USE_TENSILE_HOST

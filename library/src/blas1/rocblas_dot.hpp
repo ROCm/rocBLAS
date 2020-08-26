@@ -3,10 +3,10 @@
  * ************************************************************************ */
 #pragma once
 
-#include "handle.h"
-#include "logging.h"
+#include "handle.hpp"
+#include "logging.hpp"
 #include "reduction_strided_batched.hpp"
-#include "utility.h"
+#include "utility.hpp"
 #include <hip/hip_runtime.h>
 
 static constexpr int rocblas_log2ui(int x)
