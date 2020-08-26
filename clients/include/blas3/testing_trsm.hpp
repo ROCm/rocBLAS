@@ -174,6 +174,19 @@ void testing_trsm(const Arguments& arg)
     double max_err_1 = 0.0;
     double max_err_2 = 0.0;
 
+    {
+        // Compute size
+        CHECK_ROCBLAS_ERROR(rocblas_start_device_memory_size_query(handle));
+        CHECK_ALLOC_QUERY(
+            rocblas_trsm_fn(handle, side, uplo, transA, diag, M, N, &alpha_h, dA, lda, dXorB, ldb));
+
+        size_t size;
+        CHECK_ROCBLAS_ERROR(rocblas_stop_device_memory_size_query(handle, &size));
+
+        // Allocate memory
+        CHECK_ROCBLAS_ERROR(rocblas_set_device_memory_size(handle, size));
+    }
+
     if(arg.unit_check || arg.norm_check)
     {
         // calculate dXorB <- A^(-1) B   rocblas_device_pointer_host

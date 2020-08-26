@@ -156,6 +156,28 @@ void testing_trsv_batched(const Arguments& arg)
     double max_err_1 = 0.0;
     double max_err_2 = 0.0;
 
+    {
+        // Compute size
+        CHECK_ROCBLAS_ERROR(rocblas_start_device_memory_size_query(handle));
+
+        CHECK_ALLOC_QUERY(rocblas_trsv_batched_fn(handle,
+                                                  uplo,
+                                                  transA,
+                                                  diag,
+                                                  M,
+                                                  dA.ptr_on_device(),
+                                                  lda,
+                                                  dx_or_b.ptr_on_device(),
+                                                  incx,
+                                                  batch_count));
+
+        size_t size;
+        CHECK_ROCBLAS_ERROR(rocblas_stop_device_memory_size_query(handle, &size));
+
+        // Allocate memory
+        CHECK_ROCBLAS_ERROR(rocblas_set_device_memory_size(handle, size));
+    }
+
     if(arg.unit_check || arg.norm_check)
     {
         // calculate dxorb <- A^(-1) b   rocblas_device_pointer_host

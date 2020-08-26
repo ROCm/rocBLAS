@@ -103,6 +103,24 @@ void testing_trtri_strided_batched(const Arguments& arg)
     CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(T) * size_A, hipMemcpyHostToDevice));
     CHECK_HIP_ERROR(hipMemcpy(dinvA, hA, sizeof(T) * size_A, hipMemcpyHostToDevice));
 
+    {
+        // Compute size
+        CHECK_ROCBLAS_ERROR(rocblas_start_device_memory_size_query(handle));
+
+        CHECK_ALLOC_QUERY(rocblas_trtri_strided_batched_fn(
+            handle, uplo, diag, N, dA, lda, stride_a, dinvA, lda, stride_a, batch_count));
+
+        // Test in place
+        CHECK_ALLOC_QUERY(rocblas_trtri_strided_batched_fn(
+            handle, uplo, diag, N, dA, lda, stride_a, dA, lda, stride_a, batch_count));
+
+        size_t size;
+        CHECK_ROCBLAS_ERROR(rocblas_stop_device_memory_size_query(handle, &size));
+
+        // Allocate memory
+        CHECK_ROCBLAS_ERROR(rocblas_set_device_memory_size(handle, size));
+    }
+
     /* =====================================================================
            ROCBLAS
     =================================================================== */
