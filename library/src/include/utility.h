@@ -394,7 +394,7 @@ __device__ __host__ constexpr bool rocblas_is_po2(rocblas_int x)
 // Return previous power of two
 __device__ __host__ constexpr rocblas_int rocblas_previous_po2(rocblas_int x)
 {
-    return x ? 1 << (8 * sizeof(x) - 1 - __builtin_clz(x)) : 0;
+    return x ? decltype(x){1} << (8 * sizeof(x) - 1 - __builtin_clz(x)) : 0;
 }
 
 // Get base types from complex types.
