@@ -22,7 +22,7 @@ def runCI =
     def nodes = new dockerNodes(nodeDetails, jobName, prj)
     prj.timeout.compile = 240
 
-    boolean formatCheck = true
+    boolean formatCheck = false
 
     def compileCommand =
     {
@@ -44,9 +44,9 @@ ci: {
                         "rocm-docker":[]]
     propertyList = auxiliary.appendPropertyList(propertyList)
 
-    def jobNameList = ["compute-rocm-dkms-no-npi":([ubuntu18:['gfx900'],centos7:['gfx906'],sles15sp1:['gfx906']]),
-                       "compute-rocm-dkms-no-npi-hipclang":([ubuntu18:['gfx900'],centos7:['gfx906'],sles15sp1:['gfx906']]),
-                       "rocm-docker":([ubuntu18:['gfx900'],centos7:['gfx906'],sles15sp1:['gfx906']])]
+    def jobNameList = ["compute-rocm-dkms-no-npi":([ubuntu18:['gfx900']]),
+                       "compute-rocm-dkms-no-npi-hipclang":([ubuntu18:['gfx900']]),
+                       "rocm-docker":([ubuntu18:['gfx900']])]
     jobNameList = auxiliary.appendJobNameList(jobNameList, 'rocBLAS')
 
     propertyList.each
@@ -70,7 +70,7 @@ ci: {
     {
         properties(auxiliary.addCommonProperties([pipelineTriggers([cron('0 1 * * *')])]))
         stage(urlJobName) {
-            runCI([ubuntu16:['gfx906']], urlJobName)
+            runCI([ubuntu18:['gfx900']], urlJobName)
         }
     }
 }
