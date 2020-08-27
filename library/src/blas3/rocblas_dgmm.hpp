@@ -2,7 +2,7 @@
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #pragma once
-#include "handle.h"
+#include "handle.hpp"
 
 template <bool side_right, typename TConstPtr, typename TPtr>
 __global__ void dgmm_device(rocblas_int    m,

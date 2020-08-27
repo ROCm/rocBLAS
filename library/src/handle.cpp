@@ -1,7 +1,7 @@
 /* ************************************************************************
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include "handle.h"
+#include "handle.hpp"
 
 #if BUILD_WITH_TENSILE
 #ifndef USE_TENSILE_HOST

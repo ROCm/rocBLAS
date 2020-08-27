@@ -6,7 +6,7 @@
 #ifndef _GEMM_HOST_HPP_
 #define _GEMM_HOST_HPP_
 
-#include "handle.h"
+#include "handle.hpp"
 
 #ifdef USE_TENSILE_HOST
 

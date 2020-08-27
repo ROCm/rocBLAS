@@ -3,9 +3,9 @@
  *
  * ************************************************************************ */
 
-#include "logging.h"
+#include "logging.hpp"
 #include "rocblas_trtri.hpp"
-#include "utility.h"
+#include "utility.hpp"
 
 namespace
 {

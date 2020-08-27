@@ -4,7 +4,7 @@
 
 #ifndef UTILITY_H
 #define UTILITY_H
-#include "definitions.h"
+#include "definitions.hpp"
 #include "rocblas.h"
 #include <cmath>
 #include <complex>

@@ -5,7 +5,7 @@
 #ifndef _ROCBLAS_TUPLE_HPP_
 #define _ROCBLAS_TUPLE_HPP_
 
-#include "handle.h"
+#include "handle.hpp"
 #include "rocblas_ostream.hpp"
 #include <cstddef>
 #include <cstring>
