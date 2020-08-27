@@ -7,11 +7,11 @@
 // This functionality is only availble when using the new Tensile client
 #ifdef USE_TENSILE_HOST
 
-#include "handle.h"
-#include "logging.h"
+#include "handle.hpp"
+#include "logging.hpp"
 #include "rocblas.h"
 #include "rocblas_gemm_ex.hpp"
-#include "utility.h"
+#include "utility.hpp"
 
 template <typename Ti, typename To, typename Tc>
 rocblas_status gemm_ext2_batched_template(rocblas_handle handle,

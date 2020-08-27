@@ -2,7 +2,7 @@
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #pragma once
-#include "handle.h"
+#include "handle.hpp"
 #include "rocblas.h"
 
 template <typename T, typename U, typename V, typename W>

@@ -2,11 +2,11 @@
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #pragma once
-#include "handle.h"
-#include "logging.h"
+#include "handle.hpp"
+#include "logging.hpp"
 #include "rocblas.h"
 #include "rocblas_reduction_template.hpp"
-#include "utility.h"
+#include "utility.hpp"
 
 template <bool ISBATCHED, typename Ti>
 void reduction_log_bench(rocblas_handle handle,

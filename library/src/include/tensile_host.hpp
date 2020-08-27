@@ -20,7 +20,7 @@
  * in this file, without referencing any Tensile-specific identifiers here.  *
  *****************************************************************************/
 
-#include "handle.h"
+#include "handle.hpp"
 #include "tuple_helper.hpp"
 #include <atomic>
 

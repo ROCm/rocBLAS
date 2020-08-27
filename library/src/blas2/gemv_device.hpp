@@ -4,7 +4,7 @@
 #ifndef __GEMV_DEVICE_HPP__
 #define __GEMV_DEVICE_HPP__
 
-#include "../blas1/reduction.h"
+#include "../blas1/reduction.hpp"
 
 template <rocblas_int DIM_X,
           rocblas_int DIM_Y,

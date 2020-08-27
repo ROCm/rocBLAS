@@ -6,7 +6,7 @@
 #define _ROCBLAS_OSTREAM_HPP_
 
 #include "rocblas.h"
-#include "utility.h"
+#include "utility.hpp"
 #include <cmath>
 #include <complex>
 #include <condition_variable>

@@ -4,7 +4,7 @@
 
 #ifndef _ROCBLAS_LOGGING_H_
 #define _ROCBLAS_LOGGING_H_
-#include "handle.h"
+#include "handle.hpp"
 #include "rocblas_ostream.hpp"
 #include "tuple_helper.hpp"
 #include <cmath>
