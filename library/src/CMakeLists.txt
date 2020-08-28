@@ -376,12 +376,13 @@ target_include_directories( rocblas
 # 1.  rocblas header 'rocblas-types.h' exposes the hip header hip/hip_vector_types.h, requiring clients to find hip headers
 # target_include_directories( rocblas SYSTEM PUBLIC ${HIP_INCLUDE_DIRS} )
 
+target_link_libraries( rocblas PRIVATE "-Xlinker --exclude-libs=ALL" ) # HIDE symbols
+
 if( BUILD_WITH_TENSILE )
   if( BUILD_WITH_TENSILE_HOST )
       #target_link_libraries( rocblas PRIVATE Tensile TensileHost )
       if( BUILD_SHARED_LIBS )
         target_link_libraries( rocblas PRIVATE TensileHost )
-        target_link_libraries( rocblas PRIVATE "-Xlinker --exclude-libs=ALL" ) # HIDE symbols
       else()
         target_compile_definitions( rocblas PRIVATE ROCBLAS_STATIC_LIB )
 
@@ -441,7 +442,7 @@ set_target_properties( rocblas PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BI
 
 # Package that helps me set visibility for function names exported from shared library
 include( GenerateExportHeader )
-set_target_properties( rocblas PROPERTIES CXX_VISIBILITY_PRESET "hidden" VISIBILITY_INLINES_HIDDEN ON )
+set_target_properties( rocblas PROPERTIES CXX_VISIBILITY_PRESET "hidden" C_VISIBILITY_PRESET "hidden" VISIBILITY_INLINES_HIDDEN ON )
 generate_export_header( rocblas EXPORT_FILE_NAME ${PROJECT_BINARY_DIR}/include/internal/rocblas-export.h )
 
 # generate header with prototypes for export reuse

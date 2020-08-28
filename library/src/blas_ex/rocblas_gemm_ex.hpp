@@ -672,7 +672,8 @@ rocblas_status gemm_ex_batched_template(rocblas_handle    handle,
     rocblas_int    ldi;
     rocblas_stride stride_i;
 
-    if(tensile_supports_ldc_ne_ldd() && (std::is_same<Ti, float>{} || std::is_same<Ti, double>{})
+    if(rocblas_tensile_supports_ldc_ne_ldd()
+       && (std::is_same<Ti, float>{} || std::is_same<Ti, double>{})
        && ((ldc >= ldd && (stride_c >= stride_d || batch_count == 1) && m == ldd)
            || (ldc == ldd && (stride_c == stride_d || batch_count == 1))))
     {
