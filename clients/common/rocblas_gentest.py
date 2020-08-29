@@ -442,6 +442,9 @@ def instantiate(test):
 
         # If no enum arguments are complex, clear alphai and betai
         for typename in enum_args:
+            # avoid bug that detects disabled flags as being complex
+            if typename == "flags" and test[typename] == 0:
+                continue
             if COMPLEX_RE.match(test[typename]):
                 break
         else:
