@@ -35,6 +35,9 @@ typedef struct ihipStream_t* hipStream_t;
 // Forward declaration of hipEvent_t
 typedef struct ihipEvent_t* hipEvent_t;
 
+// Incomplete type for opaque pointers to the polymorphic device_malloc class
+struct rocblas_device_malloc_base;
+
 // integer types
 // /*! \brief To specify whether int32 is used for LP64 or int64 is used for ILP64
 //  */

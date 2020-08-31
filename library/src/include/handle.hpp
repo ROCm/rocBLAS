@@ -17,6 +17,12 @@
 #include <unistd.h>
 #include <utility>
 
+// Virtual base class for device_malloc objects
+struct rocblas_device_malloc_base
+{
+    virtual ~rocblas_device_malloc_base() = default;
+};
+
 /*******************************************************************************
  * \brief rocblas_handle is a structure holding the rocblas library context.
  * It must be initialized using rocblas_create_handle() and the returned handle mus
@@ -169,7 +175,7 @@ public:
     rocblas_status set_optimal_device_memory_size(Ss... sizes)
     {
         if(!device_memory_size_query)
-            return rocblas_status_internal_error;
+            return rocblas_status_size_query_mismatch;
 
 #if __cplusplus >= 201703L
         // Compute the total size, rounding up each size to multiples of MIN_CHUNK_SIZE
@@ -222,7 +228,7 @@ private:
 
     // Opaque smart allocator class to perform device memory allocations
     template <size_t N = 1>
-    class [[nodiscard]] _device_malloc
+    class [[nodiscard]] _device_malloc : public rocblas_device_malloc_base
     {
     protected:
         rocblas_handle handle;
@@ -333,7 +339,7 @@ private:
         }
 
         // Conversion to bool to tell if the allocation succeeded
-        explicit operator bool() const&
+        explicit operator bool()&
         {
             return success;
         }
@@ -348,7 +354,7 @@ private:
         // The trailing & prevents the conversion from applying to rvalue temporaries,
         // to catch the common mistake of void *p = (void*) handle->device_malloc().
         template <typename T, std::enable_if_t<std::is_pointer<T>{} && N == 1, int> = 0>
-        explicit operator T() const&
+        explicit operator T()&
         {
             return static_cast<T>(pointers[0]);
         }
@@ -386,6 +392,13 @@ public:
     auto device_malloc(Ss... sizes)
     {
         return _device_malloc<sizeof...(Ss)>(this, size_t(sizes)...);
+    }
+
+    // Allocate N zero-sized arrays
+    template <size_t N>
+    auto device_malloc()
+    {
+        return _device_malloc<N>(this);
     }
 
     // Variables holding state of GSU device memory allocation

@@ -101,12 +101,8 @@ namespace
             {
                 C_tmp_host[b] = (T*)C_tmp + b * els;
             }
-
-            RETURN_IF_HIP_ERROR(hipMemcpyAsync(C_tmp_arr,
-                                               &C_tmp_host[0],
-                                               batch_count * sizeof(T*),
-                                               hipMemcpyHostToDevice,
-                                               handle->rocblas_stream));
+            RETURN_IF_HIP_ERROR(hipMemcpy(
+                C_tmp_arr, &C_tmp_host[0], batch_count * sizeof(T*), hipMemcpyHostToDevice));
 
             status = rocblas_trtri_large<NB, true, false, T>(handle,
                                                              uplo,

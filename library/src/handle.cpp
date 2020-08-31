@@ -116,7 +116,7 @@ catch(...)
 }
 
 /*******************************************************************************
- * get the device memory size
+ * Get the device memory size
  ******************************************************************************/
 extern "C" rocblas_status rocblas_get_device_memory_size(rocblas_handle handle, size_t* size)
 try
@@ -134,7 +134,7 @@ catch(...)
 }
 
 /*******************************************************************************
- * set the device memory size
+ * Set the device memory size
  ******************************************************************************/
 extern "C" rocblas_status rocblas_set_device_memory_size(rocblas_handle handle, size_t size)
 try
@@ -178,6 +178,119 @@ catch(...)
 extern "C" bool rocblas_is_managing_device_memory(rocblas_handle)
 {
     return false;
+}
+
+/*******************************************************************************
+ * Whether the handle is a device_memory_size_query (C API)
+ ******************************************************************************/
+extern "C" bool rocblas_is_device_memory_size_query(rocblas_handle handle)
+{
+    return handle && handle->is_device_memory_size_query();
+}
+
+/*******************************************************************************
+ * Set optimal device memory size (C API)
+ ******************************************************************************/
+extern "C" rocblas_status rocblas_set_optimal_device_memory_size(rocblas_handle handle, size_t size)
+try
+{
+    return handle ? handle->set_optimal_device_memory_size(size) : rocblas_status_invalid_handle;
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
+}
+
+/*******************************************************************************
+ * Allocate device memory in the handle (C API)
+ ******************************************************************************/
+extern "C" rocblas_status rocblas_device_malloc_alloc(rocblas_handle               handle,
+                                                      size_t                       size,
+                                                      rocblas_device_malloc_base** res)
+try
+{
+    if(!handle)
+        return rocblas_status_invalid_handle;
+    if(!res)
+        return rocblas_status_invalid_pointer;
+    *res = new auto(handle->device_malloc(size));
+    return rocblas_status_success;
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
+}
+
+/*******************************************************************************
+ * Allocate a structure with count nullptrs in the handle (C API)
+ ******************************************************************************/
+extern "C" rocblas_status rocblas_device_malloc_nullptrs(rocblas_handle               handle,
+                                                         size_t                       count,
+                                                         rocblas_device_malloc_base** res)
+try
+{
+    if(!handle)
+        return rocblas_status_invalid_handle;
+    else if(!count)
+        return rocblas_status_invalid_size;
+    else if(!res)
+        return rocblas_status_invalid_pointer;
+    else if(count == 1)
+        *res = new auto(handle->device_malloc<1>());
+    else if(count == 2)
+        *res = new auto(handle->device_malloc<2>());
+    else if(count == 3)
+        *res = new auto(handle->device_malloc<3>());
+    else if(count == 4)
+        *res = new auto(handle->device_malloc<4>());
+    else
+    {
+        *res = nullptr;
+        return rocblas_status_not_implemented;
+    }
+    return rocblas_status_success;
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
+}
+
+/*******************************************************************************
+ * Return the pointer to memory allocated by rocblas_device_malloc()
+ ******************************************************************************/
+extern "C" rocblas_status
+    rocblas_device_malloc_get(rocblas_handle handle, rocblas_device_malloc_base* ptr, void** res)
+try
+{
+    if(!handle)
+        return rocblas_status_invalid_handle;
+    if(!ptr || !res)
+        return rocblas_status_invalid_pointer;
+    auto* dptr = dynamic_cast<decltype(handle->device_malloc(0))*>(ptr);
+    if(!dptr)
+        return rocblas_status_invalid_pointer;
+    *res = static_cast<void*>(*dptr);
+    return rocblas_status_success;
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
+}
+
+/*******************************************************************************
+ * Free device memory allocated by rocblas_device_malloc()
+ ******************************************************************************/
+extern "C" rocblas_status rocblas_device_free(rocblas_handle              handle,
+                                              rocblas_device_malloc_base* ptr)
+try
+{
+    // Right now handle is not used, but it might be needed in the future
+    delete ptr;
+    return rocblas_status_success;
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 /**
