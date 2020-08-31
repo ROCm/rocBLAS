@@ -10,8 +10,7 @@
 //
 // void* ptr = static_cast<void*>(mem);
 //
-// rocblas_device_malloc mem4 = rocblas_device_malloc::nullptrs(4);
-// rocblas_trsm_template_mem(..., mem4, ...)
+// rocblas_trsm_template_mem(..., mem, ...)
 //
 // This header should be included in other projects to use the C++
 // device memory allocation API. It is unlikely to change very often,
@@ -37,16 +36,6 @@ public:
         : rocblas_device_malloc(handle)
     {
         rocblas_device_malloc_alloc(handle, size, &dm_ptr);
-    }
-
-    // Allocate an object with count nullptrs, to be passed to rocBLAS
-    // This is used to construct objects to pass to rocblas_trsm_template_mem
-    // and other rocBLAS functions which expect multiple sizes to fill.
-    static rocblas_device_malloc nullptrs(rocblas_handle handle, size_t count)
-    {
-        rocblas_device_malloc nptr(handle);
-        rocblas_device_malloc_nullptrs(handle, count, &nptr.dm_ptr);
-        return nptr;
     }
 
     // Move constructor

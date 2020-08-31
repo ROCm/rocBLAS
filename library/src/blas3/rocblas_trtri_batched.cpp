@@ -92,9 +92,8 @@ namespace
             {
                 return rocblas_status_memory_error;
             }
-            void* C_tmp;
-            void* C_tmp_arr;
-            std::tie(C_tmp, C_tmp_arr) = mem;
+            void* C_tmp     = mem[0];
+            void* C_tmp_arr = mem[1];
 
             auto C_tmp_host = std::make_unique<T*[]>(batch_count);
             for(int b = 0; b < batch_count; b++)

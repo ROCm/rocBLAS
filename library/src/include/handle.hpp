@@ -17,10 +17,9 @@
 #include <unistd.h>
 #include <utility>
 
-// Virtual base class for device_malloc objects
+// Emtpy base class for device memory allocation
 struct rocblas_device_malloc_base
 {
-    virtual ~rocblas_device_malloc_base() = default;
 };
 
 /*******************************************************************************
@@ -227,17 +226,17 @@ private:
     const int device;
 
     // Opaque smart allocator class to perform device memory allocations
-    template <size_t N = 1>
     class [[nodiscard]] _device_malloc : public rocblas_device_malloc_base
     {
     protected:
         rocblas_handle handle;
+        size_t         npointer;
         size_t         prev_device_memory_in_use;
         size_t         size;
         bool           success;
 
     private:
-        std::array<void*, N> pointers; // Important: must come last
+        std::vector<void*> pointers; // Important: must come last
 
         // Allocate one or more pointers to buffers of different sizes
         template <typename... Ss>
@@ -254,7 +253,7 @@ private:
             // If total size is 0, return an array of nullptr's, but leave it marked as successful
             success = size <= handle->device_memory_size - handle->device_memory_in_use;
             if(!success || !size)
-                return {};
+                return decltype(pointers)(npointer);
 
             // We allocate the total amount needed, taking it from the available device memory.
             char* addr = static_cast<char*>(handle->device_memory) + handle->device_memory_in_use;
@@ -266,18 +265,12 @@ private:
             return {!sizes ? i++, nullptr : addr + offsets[i++]...};
         }
 
-        // Create a tuple of references to the pointers, to be assigned to std::tie(...)
-        template <size_t... Is>
-        auto tie_pointers(std::index_sequence<Is...>)
-        {
-            return std::tie(pointers[Is]...);
-        }
-
     public:
         // Constructor
         template <typename... Ss>
         explicit _device_malloc(rocblas_handle handle, Ss... sizes)
             : handle(handle)
+            , npointer(sizeof...(Ss))
             , prev_device_memory_in_use(handle->device_memory_in_use)
             , size(0)
             , success(false)
@@ -294,6 +287,7 @@ private:
         // moves to, or the LIFO ordering will be violated and flagged.
         _device_malloc(_device_malloc && other) noexcept
             : handle(other.handle)
+            , npointer(other.npointer)
             , prev_device_memory_in_use(other.prev_device_memory_in_use)
             , size(other.size)
             , success(other.success)
@@ -338,34 +332,38 @@ private:
             }
         }
 
+        // In the following functions, the trailing & prevents the functions from
+        // applying to rvalue temporaries, to catch common mistakes such as:
+        // void *p = (void*) handle->device_malloc(), which is a dangling pointer.
+
         // Conversion to bool to tell if the allocation succeeded
         explicit operator bool()&
         {
             return success;
         }
 
-        // Conversion to std::tuple<void*&...> to be assigned to std::tie(ptr1, ptr2, ...)
-        operator auto()&
+        // Return the ith pointer
+        void* operator[](size_t i)&
         {
-            return tie_pointers(std::make_index_sequence<N>{});
+            return pointers.at(i);
         }
 
-        // Conversion to any pointer type, but only if N == 1
-        // The trailing & prevents the conversion from applying to rvalue temporaries,
-        // to catch the common mistake of void *p = (void*) handle->device_malloc().
-        template <typename T, std::enable_if_t<std::is_pointer<T>{} && N == 1, int> = 0>
-        explicit operator T()&
+        // Conversion of first element to any pointer type (if npointer == 1)
+        template <typename T>
+        explicit operator T*()&
         {
-            return static_cast<T>(pointers[0]);
+            // Index 1 - npointer is used to make at() throw if npointer != 1,
+            // but to otherwise return the first element.
+            return static_cast<T*>(pointers.at(1 - npointer));
         }
     };
 
     // For HPA kernel calls, all available device memory is allocated and passed to Tensile
-    class [[nodiscard]] _gsu_malloc final : _device_malloc<>
+    class [[nodiscard]] _gsu_malloc final : _device_malloc
     {
     public:
         explicit _gsu_malloc(rocblas_handle handle)
-            : _device_malloc<>(handle, handle->device_memory_size - handle->device_memory_in_use)
+            : _device_malloc(handle, handle->device_memory_size - handle->device_memory_in_use)
         {
             handle->gsu_workspace_size = success ? size : 0;
             handle->gsu_workspace      = static_cast<void*>(*this);
@@ -391,14 +389,7 @@ public:
                                int> = 0>
     auto device_malloc(Ss... sizes)
     {
-        return _device_malloc<sizeof...(Ss)>(this, size_t(sizes)...);
-    }
-
-    // Allocate N zero-sized arrays
-    template <size_t N>
-    auto device_malloc()
-    {
-        return _device_malloc<N>(this);
+        return _device_malloc(this, size_t(sizes)...);
     }
 
     // Variables holding state of GSU device memory allocation

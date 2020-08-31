@@ -1327,9 +1327,8 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status
                               void*&                      mem_invA_arr,
                               const U*                    supplied_invA      = nullptr,
                               rocblas_int                 supplied_invA_size = 0)
-try
 {
-    auto& mem                  = dynamic_cast<decltype(handle->device_malloc<4>())&>(mem_base);
+    auto& mem                  = static_cast<decltype(handle->device_malloc(0))&>(mem_base);
     bool  SUBSTITUTION_ENABLED = true;
 
     rocblas_status perf_status = rocblas_status_success;
@@ -1454,12 +1453,11 @@ try
                             << std::endl;
     }
 
-    std::tie(mem_x_temp, mem_x_temp_arr, mem_invA, mem_invA_arr) = mem;
+    mem_x_temp     = mem[0];
+    mem_x_temp_arr = mem[1];
+    mem_invA       = mem[2];
+    mem_invA_arr   = mem[3];
     return perf_status;
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
 }
 
 /* T = float, double, etc.
