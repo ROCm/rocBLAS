@@ -57,7 +57,7 @@ int main()
 
         rocblas_device_malloc_base& ref = mem;
 
-        rocblas_device_malloc mem2 = rocblas_device_malloc::nullptrs(handle, 4);
+        rocblas_device_malloc mem2 = rocblas_device_malloc(handle, 0);
 
         rocblas_device_malloc_base& ref2 = mem2;
 

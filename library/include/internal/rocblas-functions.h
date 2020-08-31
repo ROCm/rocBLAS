@@ -16001,19 +16001,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_device_malloc_alloc(rocblas_handle handle,
 
 /*! \brief
     \details
-    Allocates count nullptr pointers in an object suitable to pass to rocBLAS
-    Returns rocblas_status_invalid_handle if handle is nullptr; rocblas_status_invalid_size if count==0; rocblas_status_invalid_pointer if res is nullptr; rocblas_status_not_implemented if count is not implemented; otherwise rocblas_statuc_success
-    @param[in]
-    handle          rocblas handle
-    count           number of nullptr pointers to allocate in object
-    @param[out]
-    res             pointer to pointer to struct rocblas_device_malloc_base
-*/
-ROCBLAS_EXPORT rocblas_status rocblas_device_malloc_nullptrs(
-    rocblas_handle handle, size_t count, struct rocblas_device_malloc_base** res);
-
-/*! \brief
-    \details
     Gets the pointer to device memory allocated by rocblas_device_malloc().
     Retuns rocblas_status_invalid_handle if handle is nullptr; rocblas_status_invalid_pointer if ptr or res is nullptr or the underyling object is not from rocblas_device_malloc(); rocblas_status_success otherwise
     @param[in]

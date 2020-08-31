@@ -35,7 +35,7 @@ typedef struct ihipStream_t* hipStream_t;
 // Forward declaration of hipEvent_t
 typedef struct ihipEvent_t* hipEvent_t;
 
-// Incomplete type for opaque pointers to the polymorphic device_malloc class
+// Opaque base class for device memory allocation
 struct rocblas_device_malloc_base;
 
 // integer types

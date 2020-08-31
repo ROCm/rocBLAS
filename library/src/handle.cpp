@@ -222,40 +222,6 @@ catch(...)
 }
 
 /*******************************************************************************
- * Allocate a structure with count nullptrs in the handle (C API)
- ******************************************************************************/
-extern "C" rocblas_status rocblas_device_malloc_nullptrs(rocblas_handle               handle,
-                                                         size_t                       count,
-                                                         rocblas_device_malloc_base** res)
-try
-{
-    if(!handle)
-        return rocblas_status_invalid_handle;
-    else if(!count)
-        return rocblas_status_invalid_size;
-    else if(!res)
-        return rocblas_status_invalid_pointer;
-    else if(count == 1)
-        *res = new auto(handle->device_malloc<1>());
-    else if(count == 2)
-        *res = new auto(handle->device_malloc<2>());
-    else if(count == 3)
-        *res = new auto(handle->device_malloc<3>());
-    else if(count == 4)
-        *res = new auto(handle->device_malloc<4>());
-    else
-    {
-        *res = nullptr;
-        return rocblas_status_not_implemented;
-    }
-    return rocblas_status_success;
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
-
-/*******************************************************************************
  * Return the pointer to memory allocated by rocblas_device_malloc()
  ******************************************************************************/
 extern "C" rocblas_status
@@ -266,10 +232,7 @@ try
         return rocblas_status_invalid_handle;
     if(!ptr || !res)
         return rocblas_status_invalid_pointer;
-    auto* dptr = dynamic_cast<decltype(handle->device_malloc(0))*>(ptr);
-    if(!dptr)
-        return rocblas_status_invalid_pointer;
-    *res = static_cast<void*>(*dptr);
+    *res = (*static_cast<decltype(handle->device_malloc(0))*>(ptr))[0];
     return rocblas_status_success;
 }
 catch(...)
@@ -285,7 +248,7 @@ extern "C" rocblas_status rocblas_device_free(rocblas_handle              handle
 try
 {
     // Right now handle is not used, but it might be needed in the future
-    delete ptr;
+    delete static_cast<decltype(handle->device_malloc(0))*>(ptr);
     return rocblas_status_success;
 }
 catch(...)

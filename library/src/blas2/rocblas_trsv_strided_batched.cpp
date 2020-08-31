@@ -135,7 +135,7 @@ namespace
             return rocblas_status_invalid_pointer;
 
         // Proxy object holds the allocation. It must stay alive as long as mem_* pointers below are alive.
-        auto  mem = handle->device_malloc<4>();
+        auto  mem = handle->device_malloc(0);
         void* mem_x_temp;
         void* mem_x_temp_arr;
         void* mem_invA;
