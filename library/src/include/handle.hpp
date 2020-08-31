@@ -169,19 +169,19 @@ public:
     // Maximum size is accumulated in device_memory_query_size
     // Returns rocblas_status_size_increased or rocblas_status_size_unchanged
     template <typename... Ss,
-              std::enable_if_t<sizeof...(Ss) && conjunction<std::is_constructible<size_t, Ss>...>{},
+              std::enable_if_t<sizeof...(Ss) && conjunction<std::is_convertible<Ss, size_t>...>{},
                                int> = 0>
-    rocblas_status set_optimal_device_memory_size(Ss... sizes)
+    rocblas_status set_optimal_device_memory_size(Ss&&... sizes)
     {
         if(!device_memory_size_query)
             return rocblas_status_size_query_mismatch;
 
 #if __cplusplus >= 201703L
         // Compute the total size, rounding up each size to multiples of MIN_CHUNK_SIZE
-        size_t total = (roundup_device_memory_size(size_t(sizes)) + ...);
+        size_t total = (roundup_device_memory_size(sizes) + ...);
 #else
         size_t total = 0;
-        auto   dummy = {total += roundup_device_memory_size(size_t(sizes))...};
+        auto   dummy = {total += roundup_device_memory_size(sizes)...};
 #endif
 
         return total > device_memory_query_size ? device_memory_query_size = total,
@@ -385,9 +385,9 @@ private:
 public:
     // Allocate one or more sizes
     template <typename... Ss,
-              std::enable_if_t<sizeof...(Ss) && conjunction<std::is_constructible<size_t, Ss>...>{},
+              std::enable_if_t<sizeof...(Ss) && conjunction<std::is_convertible<Ss, size_t>...>{},
                                int> = 0>
-    auto device_malloc(Ss... sizes)
+    auto device_malloc(Ss&&... sizes)
     {
         return _device_malloc(this, size_t(sizes)...);
     }
