@@ -17,7 +17,7 @@
 #include <unistd.h>
 #include <utility>
 
-// Emtpy base class for device memory allocation
+// Empty base class for device memory allocation
 struct rocblas_device_malloc_base
 {
 };
