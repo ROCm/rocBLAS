@@ -32,61 +32,62 @@ namespace
                                      rocblas_int       incx)
     {
         if(!handle)
-        {
             return rocblas_status_invalid_handle;
-        }
 
-        auto layer_mode = handle->layer_mode;
-        if(layer_mode
-           & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
-              | rocblas_layer_mode_log_profile))
+        if(!handle->is_device_memory_size_query())
         {
-            auto uplo_letter   = rocblas_fill_letter(uplo);
-            auto transA_letter = rocblas_transpose_letter(transA);
-            auto diag_letter   = rocblas_diag_letter(diag);
-            if(layer_mode & rocblas_layer_mode_log_trace)
+            auto layer_mode = handle->layer_mode;
+            if(layer_mode
+               & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
+                  | rocblas_layer_mode_log_profile))
             {
-                log_trace(handle, rocblas_trmv_name<T>, uplo, transA, diag, m, A, lda, x, incx);
-            }
+                auto uplo_letter   = rocblas_fill_letter(uplo);
+                auto transA_letter = rocblas_transpose_letter(transA);
+                auto diag_letter   = rocblas_diag_letter(diag);
+                if(layer_mode & rocblas_layer_mode_log_trace)
+                {
+                    log_trace(handle, rocblas_trmv_name<T>, uplo, transA, diag, m, A, lda, x, incx);
+                }
 
-            if(layer_mode & rocblas_layer_mode_log_bench)
-            {
-                log_bench(handle,
-                          "./rocblas-bench",
-                          "-f",
-                          "trmv",
-                          "-r",
-                          rocblas_precision_string<T>,
-                          "--uplo",
-                          uplo_letter,
-                          "--transposeA",
-                          transA_letter,
-                          "--diag",
-                          diag_letter,
-                          "-m",
-                          m,
-                          "--lda",
-                          lda,
-                          "--incx",
-                          incx);
-            }
+                if(layer_mode & rocblas_layer_mode_log_bench)
+                {
+                    log_bench(handle,
+                              "./rocblas-bench",
+                              "-f",
+                              "trmv",
+                              "-r",
+                              rocblas_precision_string<T>,
+                              "--uplo",
+                              uplo_letter,
+                              "--transposeA",
+                              transA_letter,
+                              "--diag",
+                              diag_letter,
+                              "-m",
+                              m,
+                              "--lda",
+                              lda,
+                              "--incx",
+                              incx);
+                }
 
-            if(layer_mode & rocblas_layer_mode_log_profile)
-            {
-                log_profile(handle,
-                            rocblas_trmv_name<T>,
-                            "uplo",
-                            uplo_letter,
-                            "transA",
-                            transA_letter,
-                            "diag",
-                            diag_letter,
-                            "M",
-                            m,
-                            "lda",
-                            lda,
-                            "incx",
-                            incx);
+                if(layer_mode & rocblas_layer_mode_log_profile)
+                {
+                    log_profile(handle,
+                                rocblas_trmv_name<T>,
+                                "uplo",
+                                uplo_letter,
+                                "transA",
+                                transA_letter,
+                                "diag",
+                                diag_letter,
+                                "M",
+                                m,
+                                "lda",
+                                lda,
+                                "incx",
+                                incx);
+                }
             }
         }
 
