@@ -1313,21 +1313,24 @@ rocblas_status special_trsm_template(rocblas_handle    handle,
  *  Note that for the batched version of trsm, we are also allocating memory to store the
  *  arrays of pointers for invA and x_temp (mem_x_temp_arr, mem_invA_arr).
  */
-template <rocblas_int BLOCK, bool BATCHED, typename T, typename U, typename MEM>
-ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_trsm_template_mem(rocblas_handle handle,
-                                                                 rocblas_side   side,
-                                                                 rocblas_int    m,
-                                                                 rocblas_int    n,
-                                                                 rocblas_int    batch_count,
-                                                                 MEM&           mem,
-                                                                 void*&         mem_x_temp,
-                                                                 void*&         mem_x_temp_arr,
-                                                                 void*&         mem_invA,
-                                                                 void*&         mem_invA_arr,
-                                                                 const U* supplied_invA = nullptr,
-                                                                 rocblas_int supplied_invA_size = 0)
+template <rocblas_int BLOCK, bool BATCHED, typename T, typename U>
+ROCBLAS_EXPORT_NOINLINE rocblas_status
+    rocblas_trsm_template_mem(rocblas_handle              handle,
+                              rocblas_side                side,
+                              rocblas_int                 m,
+                              rocblas_int                 n,
+                              rocblas_int                 batch_count,
+                              rocblas_device_malloc_base& mem_base,
+                              void*&                      mem_x_temp,
+                              void*&                      mem_x_temp_arr,
+                              void*&                      mem_invA,
+                              void*&                      mem_invA_arr,
+                              const U*                    supplied_invA      = nullptr,
+                              rocblas_int                 supplied_invA_size = 0)
+try
 {
-    bool SUBSTITUTION_ENABLED = true;
+    auto& mem                  = dynamic_cast<decltype(handle->device_malloc<4>())&>(mem_base);
+    bool  SUBSTITUTION_ENABLED = true;
 
     rocblas_status perf_status = rocblas_status_success;
     rocblas_int    k           = side == rocblas_side_left ? m : n;
@@ -1453,6 +1456,10 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_trsm_template_mem(rocblas_handle 
 
     std::tie(mem_x_temp, mem_x_temp_arr, mem_invA, mem_invA_arr) = mem;
     return perf_status;
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
 }
 
 /* T = float, double, etc.

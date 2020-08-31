@@ -15959,10 +15959,82 @@ ROCBLAS_EXPORT rocblas_status rocblas_start_device_memory_size_query(rocblas_han
     @param[in]
     handle          rocblas handle
     @param[out]
-    size             maximum of the optimal sizes collected
+    size            maximum of the optimal sizes collected
  ******************************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_stop_device_memory_size_query(rocblas_handle handle,
                                                                     size_t*        size);
+
+/* \brief
+   \details
+   Returns true if the handle is in device memory size query mode.
+   @param[in]
+   handle           rocblas handle
+ ******************************************************************************/
+ROCBLAS_EXPORT bool rocblas_is_device_memory_size_query(rocblas_handle handle);
+
+/* \brief
+   \details
+   Sets the optimal device memory size during a query
+   Returns rocblas_status_size_increased if the maximum size was increased,
+   rocblas_status_size_unchanged if the maximum size was unchanged, or
+   rocblas_status_size_query_mismatch if the handle is not in query mode.
+   @param[in]
+   handle           rocblas handle
+   size             size needed for optimal execution of the current kernel
+ ******************************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_set_optimal_device_memory_size(rocblas_handle handle,
+                                                                     size_t         size);
+
+/*! \brief
+    \details
+    Borrows size bytes from the device memory allocated in handle.
+    Returns rocblas_status_invalid_handle if handle is nullptr; rocblas_status_invalid_pointer if res is nullptr; otherwise rocblas_status_success
+    @param[in]
+    handle          rocblas handle
+    size            number of bytes to borrow from the handle's allocated device memory
+    @param[out]
+    res             pointer to pointer to struct rocblas_device_malloc_base
+ ******************************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_device_malloc_alloc(rocblas_handle handle,
+                                                          size_t         size,
+                                                          struct rocblas_device_malloc_base** res);
+
+/*! \brief
+    \details
+    Allocates count nullptr pointers in an object suitable to pass to rocBLAS
+    Returns rocblas_status_invalid_handle if handle is nullptr; rocblas_status_invalid_size if count==0; rocblas_status_invalid_pointer if res is nullptr; rocblas_status_not_implemented if count is not implemented; otherwise rocblas_statuc_success
+    @param[in]
+    handle          rocblas handle
+    count           number of nullptr pointers to allocate in object
+    @param[out]
+    res             pointer to pointer to struct rocblas_device_malloc_base
+*/
+ROCBLAS_EXPORT rocblas_status rocblas_device_malloc_nullptrs(
+    rocblas_handle handle, size_t count, struct rocblas_device_malloc_base** res);
+
+/*! \brief
+    \details
+    Gets the pointer to device memory allocated by rocblas_device_malloc().
+    Retuns rocblas_status_invalid_handle if handle is nullptr; rocblas_status_invalid_pointer if ptr or res is nullptr or the underyling object is not from rocblas_device_malloc(); rocblas_status_success otherwise
+    @param[in]
+    handle          rocblas handle
+    ptr             pointer to struct rocblas_device_malloc_base
+    @param[out]
+    res             pointer to pointer to void
+*/
+ROCBLAS_EXPORT rocblas_status rocblas_device_malloc_get(rocblas_handle                     handle,
+                                                        struct rocblas_device_malloc_base* ptr,
+                                                        void**                             res);
+
+/*! \brief
+    \details
+    Frees memory borrowed from the device memory allocated in handle.
+    @param[in]
+    handle          rocblas handle
+    ptr             pointer to struct rocblas_device_malloc_base
+*/
+ROCBLAS_EXPORT rocblas_status rocblas_device_free(rocblas_handle                     handle,
+                                                  struct rocblas_device_malloc_base* ptr);
 
 /*! \brief
     \details

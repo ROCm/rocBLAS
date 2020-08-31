@@ -169,16 +169,16 @@ namespace
         if(!a || !b || !alpha)
             return rocblas_status_invalid_pointer;
 
-        T* mem = (T*)handle->device_malloc(dev_bytes);
+        auto mem = handle->device_malloc(dev_bytes);
         if(!mem)
             return rocblas_status_memory_error;
 
-        T** d_workspace_batch_vector = (T**)(mem + (size_dt1 + size_dt2) * batch_count);
+        T** d_workspace_batch_vector = (T**)((T*)mem + (size_dt1 + size_dt2) * batch_count);
 
         rocblas_int mem_stride = size_dt1 + size_dt2;
 
         setup_device_pointer_array(
-            handle->rocblas_stream, mem, mem_stride, d_workspace_batch_vector, batch_count);
+            handle->rocblas_stream, (T*)mem, mem_stride, d_workspace_batch_vector, batch_count);
 
         return rocblas_trmm_template<true, RB, CB, T>(handle,
                                                       side,

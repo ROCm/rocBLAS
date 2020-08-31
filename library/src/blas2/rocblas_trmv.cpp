@@ -91,43 +91,32 @@ namespace
         }
 
         if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
-        {
             return rocblas_status_invalid_value;
-        }
 
         if(m < 0 || lda < m || lda < 1 || !incx)
-        {
             return rocblas_status_invalid_size;
-        }
 
         //
         // quick return if possible.
         // return rocblas_status_size_unchanged if device memory size query
         //
         if(!m)
-        {
             return handle->is_device_memory_size_query() ? rocblas_status_size_unchanged
                                                          : rocblas_status_success;
-        }
 
         size_t dev_bytes = m * sizeof(T);
         if(handle->is_device_memory_size_query())
-        {
             return handle->set_optimal_device_memory_size(dev_bytes);
-        }
 
         if(!A || !x)
-        {
             return rocblas_status_invalid_pointer;
-        }
 
-        T* w = (T*)handle->device_malloc(dev_bytes);
-        if(!w)
-        {
+        auto mem = handle->device_malloc(dev_bytes);
+        if(!mem)
             return rocblas_status_memory_error;
-        }
 
-        return rocblas_trmv_nobatch_template(handle, uplo, transA, diag, m, A, lda, x, incx, w);
+        return rocblas_trmv_nobatch_template(
+            handle, uplo, transA, diag, m, A, lda, x, incx, (T*)mem);
     }
 
 } // namespace

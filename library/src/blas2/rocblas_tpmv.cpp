@@ -31,98 +31,87 @@ namespace
                                      rocblas_int       incx)
     {
         if(!handle)
-        {
             return rocblas_status_invalid_handle;
-        }
 
-        auto layer_mode = handle->layer_mode;
-        if(layer_mode
-           & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
-              | rocblas_layer_mode_log_profile))
+        if(!handle->is_device_memory_size_query())
         {
-            auto uplo_letter   = rocblas_fill_letter(uplo);
-            auto transA_letter = rocblas_transpose_letter(transA);
-            auto diag_letter   = rocblas_diag_letter(diag);
-            if(layer_mode & rocblas_layer_mode_log_trace)
+            auto layer_mode = handle->layer_mode;
+            if(layer_mode
+               & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
+                  | rocblas_layer_mode_log_profile))
             {
-                log_trace(handle, rocblas_tpmv_name<T>, uplo, transA, diag, m, A, x, incx);
-            }
+                auto uplo_letter   = rocblas_fill_letter(uplo);
+                auto transA_letter = rocblas_transpose_letter(transA);
+                auto diag_letter   = rocblas_diag_letter(diag);
+                if(layer_mode & rocblas_layer_mode_log_trace)
+                {
+                    log_trace(handle, rocblas_tpmv_name<T>, uplo, transA, diag, m, A, x, incx);
+                }
 
-            if(layer_mode & rocblas_layer_mode_log_bench)
-            {
-                log_bench(handle,
-                          "./rocblas-bench",
-                          "-f",
-                          "tpmv",
-                          "-r",
-                          rocblas_precision_string<T>,
-                          "--uplo",
-                          uplo_letter,
-                          "--transposeA",
-                          transA_letter,
-                          "--diag",
-                          diag_letter,
-                          "-m",
-                          m,
-                          "--incx",
-                          incx);
-            }
+                if(layer_mode & rocblas_layer_mode_log_bench)
+                {
+                    log_bench(handle,
+                              "./rocblas-bench",
+                              "-f",
+                              "tpmv",
+                              "-r",
+                              rocblas_precision_string<T>,
+                              "--uplo",
+                              uplo_letter,
+                              "--transposeA",
+                              transA_letter,
+                              "--diag",
+                              diag_letter,
+                              "-m",
+                              m,
+                              "--incx",
+                              incx);
+                }
 
-            if(layer_mode & rocblas_layer_mode_log_profile)
-            {
-                log_profile(handle,
-                            rocblas_tpmv_name<T>,
-                            "uplo",
-                            uplo_letter,
-                            "transA",
-                            transA_letter,
-                            "diag",
-                            diag_letter,
-                            "M",
-                            m,
-                            "incx",
-                            incx);
+                if(layer_mode & rocblas_layer_mode_log_profile)
+                {
+                    log_profile(handle,
+                                rocblas_tpmv_name<T>,
+                                "uplo",
+                                uplo_letter,
+                                "transA",
+                                transA_letter,
+                                "diag",
+                                diag_letter,
+                                "M",
+                                m,
+                                "incx",
+                                incx);
+                }
             }
         }
 
         if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
-        {
             return rocblas_status_invalid_value;
-        }
 
         if(m < 0 || !incx)
-        {
             return rocblas_status_invalid_size;
-        }
 
         //
         // quick return if possible.
         // return rocblas_status_size_unchanged if device memory size query
         //
         if(!m)
-        {
             return handle->is_device_memory_size_query() ? rocblas_status_size_unchanged
                                                          : rocblas_status_success;
-        }
 
         size_t dev_bytes = m * sizeof(T);
         if(handle->is_device_memory_size_query())
-        {
             return handle->set_optimal_device_memory_size(dev_bytes);
-        }
 
         if(!A || !x)
-        {
             return rocblas_status_invalid_pointer;
-        }
 
-        T* w = (T*)handle->device_malloc(dev_bytes);
-        if(!w)
-        {
+        auto mem = handle->device_malloc(dev_bytes);
+        if(!mem)
             return rocblas_status_memory_error;
-        }
 
-        return rocblas_tpmv_template(handle, uplo, transA, diag, m, A, x, incx, w);
+        return rocblas_tpmv_template(handle, uplo, transA, diag, m, A, x, incx, (T*)mem);
     }
 
 } // namespace
