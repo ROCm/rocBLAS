@@ -454,6 +454,14 @@ add_custom_command( TARGET rocblas PRE_BUILD
   WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
 )
 
+# generate rocblas_device_malloc.hpp header for device memory allocation
+set( ROCBLAS_DEVICE_MALLOC "${PROJECT_BINARY_DIR}/include/internal/rocblas_device_malloc.hpp" )
+add_custom_command( TARGET rocblas PRE_BUILD
+  COMMAND cp -f ${CMAKE_CURRENT_SOURCE_DIR}/include/rocblas_device_malloc.hpp ${ROCBLAS_DEVICE_MALLOC}
+  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/include/rocblas_device_malloc.hpp
+  COMMENT "Generating ${ROCBLAS_DEVICE_MALLOC}"
+  WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
+)
 
 if( NOT BUILD_SHARED_LIBS )
   # Following Boost conventions of prefixing 'lib' on static built libraries, across all platforms
