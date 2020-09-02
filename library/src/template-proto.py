@@ -35,7 +35,7 @@ def parseForExportedTemplates(inputFileName):
                 body = []
             if (haveTemplate):
                 body.append(line)
-                if re.match(r'^\}', line) is None:
+                if re.match(r'^\}', line) is not None:
                     translateToProto(body)
                     haveTemplate = False
         if (haveTemplate):
