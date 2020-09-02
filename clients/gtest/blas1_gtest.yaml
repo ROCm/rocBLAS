@@ -99,6 +99,7 @@ Tests:
     fortran: true
     function:
       - axpy: *half_single_precisions_complex_real
+      - axpy_ex: *half_single_double_complex_real_precisions
 
   - name: blas1_batched_with_alpha
     category: quick
@@ -110,6 +111,7 @@ Tests:
     fortran: true
     function:
       - axpy_batched: *half_single_precisions_complex_real
+      - axpy_batched_ex: *half_single_double_complex_real_precisions
 
   - name: blas1_strided_batched_with_alpha
     category: quick
@@ -122,6 +124,7 @@ Tests:
     fortran: true
     function:
       - axpy_strided_batched: *half_single_precisions_complex_real
+      - axpy_strided_batched_ex: *half_single_double_complex_real_precisions
 
 # quick
   - name: blas1_with_alpha
@@ -132,6 +135,16 @@ Tests:
     alphai_betai: *alphai_betai_range
     function:
       - axpy:  *half_single_precisions_complex_real
+      - axpy_ex: *half_single_double_complex_real_precisions
+
+  - name: axpy_ex_compute_check
+    category: quick
+    N: [1]
+    incx: 1
+    incy: 1
+    alpha: -1.001
+    function:
+      - axpy_ex: *hpa_half_precision
 
   - name: blas1_batched_with_alpha
     category: quick
@@ -142,6 +155,7 @@ Tests:
     batch_count: [-1, 0, 5]
     function:
       - axpy_batched:  *half_single_precisions_complex_real
+      - axpy_batched_ex: *half_single_double_complex_real_precisions
 
   - name: blas1_strided_batched_with_alpha
     category: quick
@@ -153,6 +167,7 @@ Tests:
     alphai_betai: *alphai_betai_range
     function:
       - axpy_strided_batched: *half_single_precisions_complex_real
+      - axpy_strided_batched_ex: *half_single_double_complex_real_precisions
 
 # pre_checkin
   - name: blas1_with_alpha
@@ -162,7 +177,7 @@ Tests:
     alpha_beta: *alpha_beta_range
     alphai_betai: *alphai_betai_range
     function:
-      - axpy:  *half_single_precisions_complex_real
+      - axpy_ex: *half_single_double_complex_real_precisions
 
   - name: blas1_batched_with_alpha
     category: pre_checkin
@@ -172,8 +187,7 @@ Tests:
     alphai_betai: *alphai_betai_range
     batch_count: [2]
     function:
-      - axpy_batched:  *half_single_precisions_complex_real
-
+      - axpy_batched_ex: *half_single_double_complex_real_precisions
 
   - name: blas1_strided_batched_with_alpha
     category: pre_checkin
@@ -184,7 +198,7 @@ Tests:
     batch_count: [2]
     stride_scale: [ 2 ]
     function:
-      - axpy_strided_batched: *half_single_precisions_complex_real
+      - axpy_strided_batched_ex: *half_single_double_complex_real_precisions
 
 # nightly
   - name: blas1_with_alpha
@@ -194,7 +208,7 @@ Tests:
     alpha_beta: *alpha_beta_range
     alphai_betai: *alphai_betai_range
     function:
-      - axpy:  *half_single_precisions_complex_real
+      - axpy_ex: *half_single_double_complex_real_precisions
 
   - name: blas1_batched_with_alpha
     category: nightly
@@ -204,7 +218,7 @@ Tests:
     alphai_betai: *alphai_betai_range
     batch_count: [ 2, 4, 10, 12 ]
     function:
-      - axpy_batched:  *half_single_precisions_complex_real
+      - axpy_batched_ex: *half_single_double_complex_real_precisions
 
   - name: blas1_strided_batched_with_alpha
     category: nightly
@@ -215,7 +229,7 @@ Tests:
     batch_count: [ 2, 4, 10, 12 ]
     stride_scale: [ 1 ]
     function:
-      - axpy_strided_batched:  *half_single_precisions_complex_real
+      - axpy_strided_batched_ex: *half_single_double_complex_real_precisions
 
 # All functions with alpha and incx but no incy
 
@@ -744,6 +758,11 @@ Tests:
       - iamin_batched_bad_arg: *single_double_precisions_complex_real
       - iamin_strided_batched_bad_arg: *single_double_precisions_complex_real
       - axpy_bad_arg:  *half_single_precisions_complex_real
+      - axpy_batched_bad_arg: *half_single_precisions_complex_real
+      - axpy_strided_batched_bad_arg: *half_single_precisions_complex_real
+      - axpy_ex_bad_arg: *half_single_double_complex_real_precisions
+      - axpy_batched_ex_bad_arg: *half_single_double_complex_real_precisions
+      - axpy_strided_batched_ex_bad_arg: *half_single_double_complex_real_precisions
       - copy_bad_arg:  *single_double_precisions_complex_real
       - copy_batched_bad_arg:  *single_double_precisions_complex_real
       - copy_strided_batched_bad_arg:  *single_double_precisions_complex_real

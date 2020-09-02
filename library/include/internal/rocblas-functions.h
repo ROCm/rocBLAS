@@ -15896,6 +15896,222 @@ ROCBLAS_EXPORT rocblas_status rocblas_trsm_strided_batched_ex(rocblas_handle    
                                                               rocblas_stride    stride_invA,
                                                               rocblas_datatype  compute_type);
 
+/*! \brief BLAS EX API
+
+    \details
+    axpy_ex   computes constant alpha multiplied by vector x, plus vector y
+
+        y := alpha * x + y
+
+        Currently supported datatypes are as follows:
+
+        ---------------------------------------------
+        | alpha_type | x_type | y_type | execution_type |
+        |-----------|-------|-------|---------------|
+        |  f16_r    | f16_r | f16_r |     f16_r     |
+        |  f16_r    | f16_r | f16_r |     f32_r     |
+        |  f32_r    | f32_r | f32_r |     f32_r     |
+        |  f64_r    | f64_r | f64_r |     f64_r     |
+        |  f32_c    | f32_c | f32_c |     f32_c     |
+        |  f64_c    | f64_c | f64_c |     f64_c     |
+        ---------------------------------------------
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+    @param[in]
+    n         [rocblas_int]
+              the number of elements in x and y.
+    @param[in]
+    alpha     device pointer or host pointer to specify the scalar alpha.
+    @param[in]
+    alpha_type [rocblas_datatype]
+              specifies the datatype of alpha.
+    @param[in]
+    x         device pointer storing vector x.
+    @param[in]
+    x_type [rocblas_datatype]
+           specifies the datatype of vector x.
+    @param[in]
+    incx      [rocblas_int]
+              specifies the increment for the elements of x.
+    @param[inout]
+    y         device pointer storing vector y.
+    @param[in]
+    y_type [rocblas_datatype]
+          specifies the datatype of vector y.
+    @param[in]
+    incy      [rocblas_int]
+              specifies the increment for the elements of y.
+    @param[in]
+    execution_type [rocblas_datatype]
+                  specifies the datatype of computation.
+
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_axpy_ex(rocblas_handle   handle,
+                                              rocblas_int      n,
+                                              const void*      alpha,
+                                              rocblas_datatype alpha_type,
+                                              const void*      x,
+                                              rocblas_datatype x_type,
+                                              rocblas_int      incx,
+                                              void*            y,
+                                              rocblas_datatype y_type,
+                                              rocblas_int      incy,
+                                              rocblas_datatype execution_type);
+
+/*! \brief BLAS EX API
+
+    \details
+    axpy_batched_ex   computes constant alpha multiplied by vector x, plus vector y over
+                      a set of batched vectors.
+
+        y := alpha * x + y
+
+        Currently supported datatypes are as follows:
+
+        ---------------------------------------------
+        | alpha_type | x_type | y_type | execution_type |
+        |-----------|-------|-------|---------------|
+        |  f16_r    | f16_r | f16_r |     f16_r     |
+        |  f16_r    | f16_r | f16_r |     f32_r     |
+        |  f32_r    | f32_r | f32_r |     f32_r     |
+        |  f64_r    | f64_r | f64_r |     f64_r     |
+        |  f32_c    | f32_c | f32_c |     f32_c     |
+        |  f64_c    | f64_c | f64_c |     f64_c     |
+        ---------------------------------------------
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+    @param[in]
+    n         [rocblas_int]
+              the number of elements in each x_i and y_i.
+    @param[in]
+    alpha     device pointer or host pointer to specify the scalar alpha.
+    @param[in]
+    alpha_type [rocblas_datatype]
+              specifies the datatype of alpha.
+    @param[in]
+    x         device array of device pointers storing each vector x_i.
+    @param[in]
+    x_type [rocblas_datatype]
+           specifies the datatype of each vector x_i.
+    @param[in]
+    incx      [rocblas_int]
+              specifies the increment for the elements of each x_i.
+    @param[inout]
+    y         device array of device pointers storing each vector y_i.
+    @param[in]
+    y_type [rocblas_datatype]
+          specifies the datatype of each vector y_i.
+    @param[in]
+    incy      [rocblas_int]
+              specifies the increment for the elements of each y_i.
+    @param[in]
+    batch_count [rocblas_int]
+                number of instances in the batch.
+    @param[in]
+    execution_type [rocblas_datatype]
+                  specifies the datatype of computation.
+
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_axpy_batched_ex(rocblas_handle   handle,
+                                                      rocblas_int      n,
+                                                      const void*      alpha,
+                                                      rocblas_datatype alpha_type,
+                                                      const void*      x,
+                                                      rocblas_datatype x_type,
+                                                      rocblas_int      incx,
+                                                      void*            y,
+                                                      rocblas_datatype y_type,
+                                                      rocblas_int      incy,
+                                                      rocblas_int      batch_count,
+                                                      rocblas_datatype execution_type);
+
+/*! \brief BLAS EX API
+
+    \details
+    axpy_strided_batched_ex   computes constant alpha multiplied by vector x, plus vector y over
+                      a set of strided batched vectors.
+
+        y := alpha * x + y
+
+        Currently supported datatypes are as follows:
+
+        ---------------------------------------------
+        | alpha_type | x_type | y_type | execution_type |
+        |-----------|-------|-------|---------------|
+        |  f16_r    | f16_r | f16_r |     f16_r     |
+        |  f16_r    | f16_r | f16_r |     f32_r     |
+        |  f32_r    | f32_r | f32_r |     f32_r     |
+        |  f64_r    | f64_r | f64_r |     f64_r     |
+        |  f32_c    | f32_c | f32_c |     f32_c     |
+        |  f64_c    | f64_c | f64_c |     f64_c     |
+        ---------------------------------------------
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+    @param[in]
+    n         [rocblas_int]
+              the number of elements in each x_i and y_i.
+    @param[in]
+    alpha     device pointer or host pointer to specify the scalar alpha.
+    @param[in]
+    alpha_type [rocblas_datatype]
+              specifies the datatype of alpha.
+    @param[in]
+    x         device pointer to the first vector x_1.
+    @param[in]
+    x_type [rocblas_datatype]
+           specifies the datatype of each vector x_i.
+    @param[in]
+    incx      [rocblas_int]
+              specifies the increment for the elements of each x_i.
+    @param[in]
+    stridex   [rocblas_stride]
+              stride from the start of one vector (x_i) to the next one (x_i+1).
+              There are no restrictions placed on strideyx, however the user should
+              take care to ensure that strideyx is of appropriate size, for a typical
+              case this means stridex >= n * incx.
+    @param[inout]
+    y         device pointer to the first vector y_1.
+    @param[in]
+    y_type [rocblas_datatype]
+          specifies the datatype of each vector y_i.
+    @param[in]
+    incy      [rocblas_int]
+              specifies the increment for the elements of each y_i.
+    @param[in]
+    stridey   [rocblas_stride]
+              stride from the start of one vector (y_i) to the next one (y_i+1).
+              There are no restrictions placed on stridey, however the user should
+              take care to ensure that stridey is of appropriate size, for a typical
+              case this means stridey >= n * incy.
+    @param[in]
+    batch_count [rocblas_int]
+                number of instances in the batch.
+    @param[in]
+    execution_type [rocblas_datatype]
+                  specifies the datatype of computation.
+
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_axpy_strided_batched_ex(rocblas_handle   handle,
+                                                              rocblas_int      n,
+                                                              const void*      alpha,
+                                                              rocblas_datatype alpha_type,
+                                                              const void*      x,
+                                                              rocblas_datatype x_type,
+                                                              rocblas_int      incx,
+                                                              rocblas_stride   stridex,
+                                                              void*            y,
+                                                              rocblas_datatype y_type,
+                                                              rocblas_int      incy,
+                                                              rocblas_stride   stridey,
+                                                              rocblas_int      batch_count,
+                                                              rocblas_datatype execution_type);
+
 /*! BLAS Auxiliary API
 
     \details

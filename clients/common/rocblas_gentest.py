@@ -213,7 +213,8 @@ def setdefaults(test):
                             'copy_strided_batched', 'dot_strided_batched',
                             'dotc_strided_batched', 'rot_strided_batched',
                             'rotm_strided_batched', 'iamax_strided_batched',
-                            'iamin_strided_batched', 'axpy_strided_batched'):
+                            'iamin_strided_batched', 'axpy_strided_batched',
+                            'axpy_strided_batched_ex'):
         setkey_product(test, 'stride_x', ['N', 'incx', 'stride_scale'])
         setkey_product(test, 'stride_y', ['N', 'incy', 'stride_scale'])
         # we are using stride_c for param in rotm

@@ -8,14 +8,14 @@
 //!
 //! @brief Kernel for all the versions (batched, strided batched) of axpy.
 //!
-template <typename A, typename X, typename Y>
+template <typename Tex, typename Ta, typename Tx, typename Ty>
 __global__ void axpy_kernel(rocblas_int    n,
-                            A              alpha_device_host,
-                            X              x,
+                            Ta             alpha_device_host,
+                            Tx             x,
                             rocblas_int    incx,
                             ptrdiff_t      offsetx,
                             rocblas_stride stridex,
-                            Y              y,
+                            Ty             y,
                             rocblas_int    incy,
                             ptrdiff_t      offsety,
                             rocblas_stride stridey)
@@ -28,9 +28,10 @@ __global__ void axpy_kernel(rocblas_int    n,
     ptrdiff_t tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     if(tid < n)
     {
-        auto tx = load_ptr_batch(x, hipBlockIdx_y, offsetx + tid * incx, stridex);
-        auto ty = load_ptr_batch(y, hipBlockIdx_y, offsety + tid * incy, stridey);
-        *ty += alpha * (*tx);
+        auto tx  = load_ptr_batch(x, hipBlockIdx_y, offsetx + tid * incx, stridex);
+        auto ty  = load_ptr_batch(y, hipBlockIdx_y, offsety + tid * incy, stridey);
+        Tex  res = (*ty) + Tex(alpha) * (*tx);
+        *ty      = res;
     }
 }
 
@@ -38,13 +39,13 @@ __global__ void axpy_kernel(rocblas_int    n,
 //! @brief Optimized kernel for the remaning part of 8 half floating points.
 //! @remark Increment are required to be equal to one, that's why they are unspecified.
 //!
-template <typename A, typename X, typename Y>
+template <typename Ta, typename Tx, typename Ty>
 __global__ void haxpy_mod_8_kernel(rocblas_int    n_mod_8,
-                                   A              alpha_device_host,
-                                   X              x,
+                                   Ta             alpha_device_host,
+                                   Tx             x,
                                    ptrdiff_t      offsetx,
                                    rocblas_stride stridex,
-                                   Y              y,
+                                   Ty             y,
                                    ptrdiff_t      offsety,
                                    rocblas_stride stridey)
 {
@@ -61,12 +62,12 @@ __global__ void haxpy_mod_8_kernel(rocblas_int    n_mod_8,
 //!
 //! @brief Optimized kernel for the groups of 8 half floating points.
 //!
-template <typename A, typename X, typename Y>
+template <typename Ta, typename Tx, typename Ty>
 __global__ void haxpy_mlt_8_kernel(rocblas_int    n_mlt_8,
-                                   A              alpha_device_host,
-                                   X              x,
+                                   Ta             alpha_device_host,
+                                   Tx             x,
                                    rocblas_stride stridex,
-                                   Y              y,
+                                   Ty             y,
                                    rocblas_stride stridey)
 {
 
@@ -138,14 +139,14 @@ __global__ void haxpy_mlt_8_kernel(rocblas_int    n_mlt_8,
 //!
 //! @brief General template to compute y = a * x + y.
 //!
-template <int NB, typename A, typename X, typename Y>
+template <int NB, typename Tex, typename Ta, typename Tx, typename Ty>
 ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_axpy_template(rocblas_handle handle,
                                                              rocblas_int    n,
-                                                             const A*       alpha,
-                                                             X              x,
+                                                             const Ta*      alpha,
+                                                             Tx             x,
                                                              rocblas_int    incx,
                                                              rocblas_stride stridex,
-                                                             Y              y,
+                                                             Ty             y,
                                                              rocblas_int    incy,
                                                              rocblas_stride stridey,
                                                              rocblas_int    batch_count)
@@ -156,7 +157,8 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_axpy_template(rocblas_handle hand
     //
     // Using rocblas_half ?
     //
-    static constexpr bool using_rocblas_half = std::is_same<A, rocblas_half>::value;
+    static constexpr bool using_rocblas_half
+        = std::is_same<Ta, rocblas_half>::value && std::is_same<Tex, rocblas_half>::value;
 
     if(n <= 0 || batch_count <= 0) // Quick return if possible. Not Argument error
     {
@@ -176,7 +178,7 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_axpy_template(rocblas_handle hand
         dim3 threads(NB);
         if(handle->pointer_mode == rocblas_pointer_mode_device)
         {
-            hipLaunchKernelGGL(axpy_kernel,
+            hipLaunchKernelGGL(axpy_kernel<Tex>,
                                blocks,
                                threads,
                                0,
@@ -194,7 +196,7 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_axpy_template(rocblas_handle hand
         }
         else // it is using rocblas_half with increments equal to 1.
         {
-            hipLaunchKernelGGL(axpy_kernel,
+            hipLaunchKernelGGL(axpy_kernel<Tex>,
                                blocks,
                                threads,
                                0,
