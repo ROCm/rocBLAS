@@ -25,7 +25,7 @@ void testing_axpy_batched_bad_arg(const Arguments& arg)
 
     rocblas_local_handle handle(arg.atomics_mode);
 
-    rocblas_int N = 100, incx = 1, incy = 1, batch_count = arg.batch_count;
+    rocblas_int N = 100, incx = 1, incy = 1, batch_count = 2;
 
     T                      alpha = 0.6;
     device_batch_vector<T> dx(10, 1, 2);

@@ -862,6 +862,12 @@ rocblas_Xtrtri + batched, strided_batched
 BLAS Extensions
 ===============
 
+rocblas_axpy_ex + batched, strided_batched
+------------------------------------------
+.. doxygenfunction:: rocblas_axpy_ex
+.. doxygenfunction:: rocblas_axpy_batched_ex
+.. doxygenfunction:: rocblas_axpy_strided_batched_ex
+
 rocblas_gemm_ex + batched, strided_batched
 ------------------------------------------
 .. doxygenfunction:: rocblas_gemm_ex
