@@ -17,6 +17,13 @@
 #include <unistd.h>
 #include <utility>
 
+// Round up size to the nearest MIN_CHUNK_SIZE
+constexpr size_t roundup_device_memory_size(size_t size)
+{
+    size_t MIN_CHUNK_SIZE = 64;
+    return ((size + MIN_CHUNK_SIZE - 1) / MIN_CHUNK_SIZE) * MIN_CHUNK_SIZE;
+}
+
 // Empty base class for device memory allocation
 struct rocblas_device_malloc_base
 {
@@ -207,13 +214,6 @@ public:
 private:
     // device memory work buffer
     static constexpr size_t DEFAULT_DEVICE_MEMORY_SIZE = 4 * 1048576;
-    static constexpr size_t MIN_CHUNK_SIZE             = 64;
-
-    // Round up size to the nearest MIN_CHUNK_SIZE
-    static constexpr size_t roundup_device_memory_size(size_t size)
-    {
-        return ((size + MIN_CHUNK_SIZE - 1) / MIN_CHUNK_SIZE) * MIN_CHUNK_SIZE;
-    }
 
     // Variables holding state of device memory allocation
     void*  device_memory            = nullptr;
@@ -229,6 +229,7 @@ private:
     class [[nodiscard]] _device_malloc : public rocblas_device_malloc_base
     {
     protected:
+        // Order is important:
         rocblas_handle handle;
         size_t         npointer;
         size_t         prev_device_memory_in_use;
@@ -276,6 +277,22 @@ private:
             , success(false)
             , pointers(allocate_pointers(sizes...))
         {
+        }
+
+        // Constructor for allocating count pointers of a certain total size
+        explicit _device_malloc(rocblas_handle handle, std::nullptr_t, size_t count, size_t size)
+            : handle(handle)
+            , npointer(count)
+            , prev_device_memory_in_use(handle->device_memory_in_use)
+            , size(roundup_device_memory_size(size))
+            , success(this->size <= handle->device_memory_size - handle->device_memory_in_use)
+            , pointers(count,
+                       success ? static_cast<char*>(handle->device_memory)
+                                     + handle->device_memory_in_use
+                               : nullptr)
+        {
+            if(success)
+                handle->device_memory_in_use += this->size;
         }
 
         // Move constructor
@@ -343,7 +360,7 @@ private:
         }
 
         // Return the ith pointer
-        void* operator[](size_t i)&
+        void*& operator[](size_t i)&
         {
             return pointers.at(i);
         }
@@ -390,6 +407,12 @@ public:
     auto device_malloc(Ss&&... sizes)
     {
         return _device_malloc(this, size_t(sizes)...);
+    }
+
+    // Allocate count pointers, reserving "size" total bytes
+    auto device_malloc_count(size_t count, size_t size)
+    {
+        return _device_malloc(this, nullptr, count, size);
     }
 
     // Variables holding state of GSU device memory allocation

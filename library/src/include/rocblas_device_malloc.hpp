@@ -17,25 +17,36 @@
 // so it is safe to copy to other projects.
 
 #include "rocblas.h"
+#include <new>
+#include <type_traits>
 
 class [[nodiscard]] rocblas_device_malloc
 {
     rocblas_handle              handle;
     rocblas_device_malloc_base* dm_ptr;
 
-    // Private constructor for empty object
-    explicit rocblas_device_malloc(rocblas_handle handle)
-        : handle(handle)
-        , dm_ptr(nullptr)
+    // Emulate C++17 std::conjunction
+    template <class...>
+    struct conjunction : std::true_type
     {
-    }
+    };
+    template <class T, class... Ts>
+    struct conjunction<T, Ts...> : std::integral_constant<bool, T{} && conjunction<Ts...>{}>
+    {
+    };
 
 public:
     // Allocate memory in a RAII class
-    rocblas_device_malloc(rocblas_handle handle, size_t size)
-        : rocblas_device_malloc(handle)
+    template <typename... Ss,
+              std::enable_if_t<sizeof...(Ss) && conjunction<std::is_convertible<Ss, size_t>...>{},
+                               int> = 0>
+    rocblas_device_malloc(rocblas_handle handle, Ss && ... sizes)
+        : handle(handle)
+        , dm_ptr(nullptr)
     {
-        rocblas_device_malloc_alloc(handle, size, &dm_ptr);
+        if(rocblas_device_malloc_alloc(handle, &dm_ptr, sizeof...(sizes), size_t(sizes)...)
+           != rocblas_status_success)
+            throw std::bad_alloc();
     }
 
     // Move constructor
@@ -46,6 +57,16 @@ public:
         other.dm_ptr = nullptr;
     }
 
+    // Access a particular element
+    void* operator[](size_t index)&
+    {
+        void* res = nullptr;
+        if(dm_ptr
+           && rocblas_device_malloc_get(handle, dm_ptr, index, &res) != rocblas_status_success)
+            res = nullptr;
+        return res;
+    }
+
     // Conversion to a pointer type, to get the address of the device memory
     // It is lvalue-qualified to avoid the common mistake of writing:
     // void* ptr = (void*) rocblas_device_malloc(handle, size);
@@ -54,17 +75,14 @@ public:
     template <typename T>
     explicit operator T*()&
     {
-        void* res;
-        return dm_ptr && rocblas_device_malloc_get(handle, dm_ptr, &res) == rocblas_status_success
-                   ? static_cast<T*>(res)
-                   : nullptr;
+        return static_cast<T*>((*this)[0]);
     }
 
     // Conversion to bool indicates whether allocation succeeded
     // It is lvalue-qualified so that it cannot bind to temporaries
     explicit operator bool()&
     {
-        return static_cast<void*>(*this) != nullptr;
+        return rocblas_device_malloc_success(handle, dm_ptr);
     }
 
     // Conversion to rocblas_device_malloc_base reference, to pass to rocBLAS
@@ -86,3 +104,12 @@ public:
     rocblas_device_malloc& operator=(const rocblas_device_malloc&) = delete;
     rocblas_device_malloc& operator=(rocblas_device_malloc&&) = delete;
 };
+
+// Set optimal device memory size in handle
+template <
+    typename... Ss,
+    std::enable_if_t<sizeof...(Ss) && conjunction<std::is_convertible<Ss, size_t>...>{}, int> = 0>
+rocblas_status rocblas_set_optimal_device_memory_size(rocblas_handle handle, Ss&&... sizes)
+{
+    return rocblas_set_optimal_device_memory_size_impl(handle, sizeof...(sizes), size_t(sizes)...);
+}

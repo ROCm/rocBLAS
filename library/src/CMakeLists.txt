@@ -457,7 +457,7 @@ add_custom_command( TARGET rocblas PRE_BUILD
 # generate rocblas_device_malloc.hpp header for device memory allocation
 set( ROCBLAS_DEVICE_MALLOC "${PROJECT_BINARY_DIR}/include/internal/rocblas_device_malloc.hpp" )
 add_custom_command( TARGET rocblas PRE_BUILD
-  COMMAND cp -f ${CMAKE_CURRENT_SOURCE_DIR}/include/rocblas_device_malloc.hpp ${ROCBLAS_DEVICE_MALLOC}
+  COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/include/rocblas_device_malloc.hpp ${ROCBLAS_DEVICE_MALLOC}
   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/include/rocblas_device_malloc.hpp
   COMMENT "Generating ${ROCBLAS_DEVICE_MALLOC}"
   WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
