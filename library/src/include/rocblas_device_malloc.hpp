@@ -20,26 +20,28 @@
 #include <new>
 #include <type_traits>
 
+// Emulate C++17 std::conjunction
+template <class...>
+struct rocblas_conjunction : std::true_type
+{
+};
+template <class T, class... Ts>
+struct rocblas_conjunction<T, Ts...>
+    : std::integral_constant<bool, T{} && rocblas_conjunction<Ts...>{}>
+{
+};
+
 class [[nodiscard]] rocblas_device_malloc
 {
     rocblas_handle              handle;
     rocblas_device_malloc_base* dm_ptr;
 
-    // Emulate C++17 std::conjunction
-    template <class...>
-    struct conjunction : std::true_type
-    {
-    };
-    template <class T, class... Ts>
-    struct conjunction<T, Ts...> : std::integral_constant<bool, T{} && conjunction<Ts...>{}>
-    {
-    };
-
 public:
     // Allocate memory in a RAII class
-    template <typename... Ss,
-              std::enable_if_t<sizeof...(Ss) && conjunction<std::is_convertible<Ss, size_t>...>{},
-                               int> = 0>
+    template <
+        typename... Ss,
+        std::enable_if_t<sizeof...(Ss) && rocblas_conjunction<std::is_convertible<Ss, size_t>...>{},
+                         int> = 0>
     rocblas_device_malloc(rocblas_handle handle, Ss && ... sizes)
         : handle(handle)
         , dm_ptr(nullptr)
@@ -96,7 +98,7 @@ public:
     ~rocblas_device_malloc()
     {
         if(dm_ptr)
-            rocblas_device_free(handle, dm_ptr);
+            rocblas_device_malloc_free(handle, dm_ptr);
     }
 
     // Copying and assigning to rocblas_device_malloc are deleted
@@ -108,7 +110,8 @@ public:
 // Set optimal device memory size in handle
 template <
     typename... Ss,
-    std::enable_if_t<sizeof...(Ss) && conjunction<std::is_convertible<Ss, size_t>...>{}, int> = 0>
+    std::enable_if_t<sizeof...(Ss) && rocblas_conjunction<std::is_convertible<Ss, size_t>...>{},
+                     int> = 0>
 rocblas_status rocblas_set_optimal_device_memory_size(rocblas_handle handle, Ss&&... sizes)
 {
     return rocblas_set_optimal_device_memory_size_impl(handle, sizeof...(sizes), size_t(sizes)...);
