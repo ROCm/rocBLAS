@@ -11791,6 +11791,77 @@ module rocblas
     ! blas Extensions !
     !-----------------!
 
+    ! axpy_ex
+    interface
+        function rocblas_axpy_ex(handle, n, alpha, alpha_type, x, x_type, incx, &
+                y, y_type, incy, execution_type) &
+                result(c_int) &
+                bind(c, name = 'rocblas_axpy_ex')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            type(c_ptr), value :: handle
+            integer(c_int), value :: n
+            type(c_ptr), value :: alpha
+            integer(kind(rocblas_datatype_f16_r)), value :: alpha_type
+            type(c_ptr), value :: x
+            integer(kind(rocblas_datatype_f16_r)), value :: x_type
+            integer(c_int), value :: incx
+            type(c_ptr), value :: y
+            integer(kind(rocblas_datatype_f16_r)), value :: y_type
+            integer(c_int), value :: incy
+            integer(kind(rocblas_datatype_f16_r)), value :: execution_type
+        end function rocblas_axpy_ex
+    end interface
+
+    interface
+        function rocblas_axpy_batched_ex(handle, n, alpha, alpha_type, x, x_type, incx, &
+                y, y_type, incy, batch_count, execution_type) &
+                result(c_int) &
+                bind(c, name = 'rocblas_axpy_batched_ex')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            type(c_ptr), value :: handle
+            integer(c_int), value :: n
+            type(c_ptr), value :: alpha
+            integer(kind(rocblas_datatype_f16_r)), value :: alpha_type
+            type(c_ptr), value :: x
+            integer(kind(rocblas_datatype_f16_r)), value :: x_type
+            integer(c_int), value :: incx
+            type(c_ptr), value :: y
+            integer(kind(rocblas_datatype_f16_r)), value :: y_type
+            integer(c_int), value :: incy
+            integer(c_int), value :: batch_count
+            integer(kind(rocblas_datatype_f16_r)), value :: execution_type
+        end function rocblas_axpy_batched_ex
+    end interface
+
+    interface
+        function rocblas_axpy_strided_batched_ex(handle, n, alpha, alpha_type, x, x_type, incx, stridex, &
+                y, y_type, incy, stridey, batch_count, execution_type) &
+                result(c_int) &
+                bind(c, name = 'rocblas_axpy_strided_batched_ex')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            type(c_ptr), value :: handle
+            integer(c_int), value :: n
+            type(c_ptr), value :: alpha
+            integer(kind(rocblas_datatype_f16_r)), value :: alpha_type
+            type(c_ptr), value :: x
+            integer(kind(rocblas_datatype_f16_r)), value :: x_type
+            integer(c_int), value :: incx
+            integer(c_int64_t), value :: stridex
+            type(c_ptr), value :: y
+            integer(kind(rocblas_datatype_f16_r)), value :: y_type
+            integer(c_int), value :: incy
+            integer(c_int64_t), value :: stridey
+            integer(c_int), value :: batch_count
+            integer(kind(rocblas_datatype_f16_r)), value :: execution_type
+        end function rocblas_axpy_strided_batched_ex
+    end interface
+
     ! gemm_ex
     interface
         function rocblas_gemm_ex(handle, transA, transB, m, n, k, alpha, a, a_type, lda, &

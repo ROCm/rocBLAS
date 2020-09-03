@@ -1,6 +1,6 @@
 #!/usr/bin/python3
-"""Copyright 2018-2020 Advanced Micro Devices, Inc."""
-"""Expand rocBLAS YAML test data file into binary Arguments records"""
+"""Copyright 2018-2020 Advanced Micro Devices, Inc.
+Expand rocBLAS YAML test data file into binary Arguments records"""
 
 import re
 import sys
@@ -23,9 +23,6 @@ INT_RANGE_RE = re.compile(
 
 # Regex for include: YAML extension
 INCLUDE_RE = re.compile(r'include\s*:\s*([-.\w]+)')
-
-# Regex for complex types
-COMPLEX_RE = re.compile(r'f\d+_c$')
 
 args = {}
 testcases = set()
@@ -216,7 +213,8 @@ def setdefaults(test):
                             'copy_strided_batched', 'dot_strided_batched',
                             'dotc_strided_batched', 'rot_strided_batched',
                             'rotm_strided_batched', 'iamax_strided_batched',
-                            'iamin_strided_batched', 'axpy_strided_batched'):
+                            'iamin_strided_batched', 'axpy_strided_batched',
+                            'axpy_strided_batched_ex'):
         setkey_product(test, 'stride_x', ['N', 'incx', 'stride_scale'])
         setkey_product(test, 'stride_y', ['N', 'incy', 'stride_scale'])
         # we are using stride_c for param in rotm
@@ -292,7 +290,6 @@ def setdefaults(test):
             test.setdefault('stride_x', int(test['stride_scale']))
             test.setdefault('stride_y', int(test['stride_scale']))
 
-
     elif test['function'] in ('dgmm_strided_batched'):
         setkey_product(test, 'stride_c', ['N', 'ldc', 'stride_scale'])
         setkey_product(test, 'stride_a', ['N', 'lda', 'stride_scale'])
@@ -300,7 +297,6 @@ def setdefaults(test):
             setkey_product(test, 'stride_x', ['M', 'incx', 'stride_scale'])
         else:
             setkey_product(test, 'stride_x', ['N', 'incx', 'stride_scale'])
-
 
     elif test['function'] in ('geam_strided_batched'):
         setkey_product(test, 'stride_c', ['N', 'ldc', 'stride_scale'])
@@ -439,18 +435,6 @@ def instantiate(test):
                  if decl[1].__module__ == '__main__']
     try:
         setdefaults(test)
-
-        # If no enum arguments are complex, clear alphai and betai
-        for typename in enum_args:
-            # avoid bug that detects disabled flags as being complex
-            if typename == "flags" and test[typename] == 0:
-                continue
-            if COMPLEX_RE.match(test[typename]):
-                break
-        else:
-            for name in ('alphai', 'betai'):
-                if name in test:
-                    test[name] = 0.0
 
         # For enum arguments, replace name with value
         for typename in enum_args:

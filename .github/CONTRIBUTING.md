@@ -57,13 +57,13 @@ C and C++ code is formatted using `clang-format`. Use the clang-format version f
 To format a file, use:
 
 ```
-/opt/rocm/hcc/bin/clang-format -style=file -i <path-to-source-file>
+/opt/rocm/llvm/bin/clang-format -style=file -i <path-to-source-file>
 ```
 
 To format all files, run the following command in rocBLAS directory:
 
 ```
-git ls-files -z *.cc *.cpp *.h *.hpp *.cl *.h.in *.hpp.in *.cpp.in | xargs -0 /opt/rocm/hcc/bin/clang-format  -style=file -i
+git ls-files -z *.cc *.cpp *.h *.hpp *.cl *.h.in *.hpp.in *.cpp.in | xargs -0 /opt/rocm/llvm/bin/clang-format  -style=file -i
 ```
 
 For More extensive reformatting, such as removing redundant whitespace, run:
