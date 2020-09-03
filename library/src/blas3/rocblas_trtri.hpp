@@ -1001,8 +1001,7 @@ rocblas_status rocblas_trtri_large(rocblas_handle   handle,
 }
 
 template <rocblas_int NB>
-ROCBLAS_EXPORT_NOINLINE constexpr size_t rocblas_trtri_temp_size(rocblas_int n,
-                                                                 rocblas_int batch_count)
+ROCBLAS_EXPORT_NOINLINE size_t rocblas_trtri_temp_size(rocblas_int n, rocblas_int batch_count)
 {
     rocblas_int IB   = NB * 2;
     size_t      size = 0;

@@ -224,6 +224,16 @@ Half bfloat single double complex real: &half_bfloat_single_double_complex_real_
   - *single_precision_complex
   - *double_precision_complex
 
+#############################################
+#           Used for axpy_ex                #
+#############################################
+Hpa single double complex real: &half_single_double_complex_real_precisions
+  - *single_precision
+  - *double_precision
+  - *single_precision_complex
+  - *double_precision_complex
+  - *hpa_half_precision
+  - *half_precision
 
 # The Arguments struct passed directly to C++. See rocblas_arguments.hpp.
 # The order of the entries is significant, so it can't simply be a dictionary.

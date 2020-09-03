@@ -155,6 +155,12 @@ if( BUILD_WITH_TENSILE )
 
 endif( ) # BUILD_WITH_TENSILE
 
+set (rocblas_ex_source_no_tensile
+    blas_ex/rocblas_axpy_ex.cpp
+    blas_ex/rocblas_axpy_batched_ex.cpp
+    blas_ex/rocblas_axpy_strided_batched_ex.cpp
+)
+
 set( rocblas_blas3_source_no_tensile
     blas3/rocblas_dgmm.cpp
     blas3/rocblas_dgmm_batched.cpp
@@ -317,6 +323,7 @@ prepend_path( ".." rocblas_headers_public relative_rocblas_headers_public )
 
 add_library( rocblas
   ${rocblas_ex_source}
+  ${rocblas_ex_source_no_tensile}
   ${rocblas_blas3_source}
   ${rocblas_blas3_source_no_tensile}
   ${rocblas_blas2_source}
@@ -353,6 +360,15 @@ endif( )
 if( CMAKE_CXX_COMPILER MATCHES ".*/hipcc$" )
   # GCC or hip-clang needs specific flags to turn on f16c intrinsics
   target_compile_options( rocblas PRIVATE -mf16c )
+  # xnack compile option for library
+  target_compile_options(rocblas PRIVATE -mno-xnack)
+  set(gfx906_options "-Xarch_gfx906 -msram-ecc")
+  set(gfx908_options "-Xarch_gfx908 -msram-ecc")
+  if(CMAKE_VERSION VERSION_LESS 3.12)
+      set_target_properties(rocblas PROPERTIES COMPILE_FLAGS "${gfx906_options} ${gfx908_options}")
+  else()
+      target_compile_options(rocblas PRIVATE "SHELL:${gfx906_options}" "SHELL:${gfx908_options}")
+  endif()
   foreach( target ${ROCBLAS_GPUS} )
     message( STATUS "TARGET: " ${target} )
     target_compile_options( rocblas PRIVATE --cuda-gpu-arch=${target} )

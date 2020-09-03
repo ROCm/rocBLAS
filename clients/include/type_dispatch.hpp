@@ -74,6 +74,31 @@ auto rocblas_blas1_dispatch(const Arguments& arg)
     return TEST<void>{}(arg);
 }
 
+// BLAS1_ex functions
+template <template <typename...> class TEST>
+auto rocblas_blas1_ex_dispatch(const Arguments& arg)
+{
+    // For axpy there are 4 types, alpha_type, x_type, y_type, and execution_type.
+    // these currently correspond as follows:
+    // alpha_type = arg.a_type
+    // x_type     = arg.b_type
+    // y_type     = arg.c_type
+    // ex_type    = arg.compute_type
+    //
+    // Currently for axpy we're only supporting a limited number of variants,
+    // specifically alpha_type == x_type == y_type, however I'm trying to leave
+    // this open to expansion.
+    const auto Ta = arg.a_type, Tx = arg.b_type, Ty = arg.c_type, Tex = arg.compute_type;
+    if(Ta == Tx && Tx == Ty && Ty == Tex)
+    {
+        return rocblas_simple_dispatch<TEST>(arg); // Ta == Tx == Ty == Tex
+    }
+    else if(Ta == Tx && Tx == Ty && Ta == rocblas_datatype_f16_r && Tex == rocblas_datatype_f32_r)
+        return TEST<rocblas_half, rocblas_half, rocblas_half, float>{}(arg);
+
+    return TEST<void>{}(arg);
+}
+
 // gemm functions
 template <template <typename...> class TEST>
 auto rocblas_gemm_dispatch(const Arguments& arg)
