@@ -881,7 +881,7 @@ int run_bench_test(Arguments& arg)
                 || !strcmp(function, "rot_strided_batched"))
             rocblas_blas1_dispatch<perf_blas_rot>(arg);
         else if(!strcmp(function, "axpy_ex") || !strcmp(function, "axpy_batched_ex")
-                || strcmp(function, "axpy_strided_batched_ex"))
+                || !strcmp(function, "axpy_strided_batched_ex"))
             rocblas_blas1_ex_dispatch<perf_blas_axpy_ex>(arg);
         else
             rocblas_simple_dispatch<perf_blas>(arg);
