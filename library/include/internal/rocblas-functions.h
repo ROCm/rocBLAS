@@ -16189,14 +16189,13 @@ ROCBLAS_EXPORT rocblas_status rocblas_device_malloc_alloc(rocblas_handle handle,
                                                           struct rocblas_device_malloc_base** res,
                                                           size_t                              count,
                                                           ...);
-ROCBLAS_EXPORT bool           rocblas_device_malloc_success(rocblas_handle                     handle,
-                                                            struct rocblas_device_malloc_base* ptr);
-ROCBLAS_EXPORT rocblas_status rocblas_device_malloc_get(rocblas_handle                     handle,
-                                                        struct rocblas_device_malloc_base* ptr,
+ROCBLAS_EXPORT bool           rocblas_device_malloc_success(struct rocblas_device_malloc_base* ptr);
+ROCBLAS_EXPORT rocblas_status rocblas_device_malloc_ptr(struct rocblas_device_malloc_base* ptr,
+                                                        void**                             res);
+ROCBLAS_EXPORT rocblas_status rocblas_device_malloc_get(struct rocblas_device_malloc_base* ptr,
                                                         size_t                             index,
                                                         void**                             res);
-ROCBLAS_EXPORT rocblas_status rocblas_device_malloc_free(rocblas_handle                     handle,
-                                                         struct rocblas_device_malloc_base* ptr);
+ROCBLAS_EXPORT rocblas_status rocblas_device_malloc_free(struct rocblas_device_malloc_base* ptr);
 /*! \brief
     \details
     Gets the current device memory size for the handle
