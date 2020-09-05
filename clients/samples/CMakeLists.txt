@@ -15,6 +15,7 @@ target_compile_options( example-c-dgeam PRIVATE -std=c11 )
 # C++ examples
 add_executable( example-sscal example_sscal.cpp ${rocblas_samples_common} )
 add_executable( example-scal-template example_scal_template.cpp ${rocblas_samples_common} )
+add_executable( example-solver-rocblas example_solver_rocblas.cpp ${rocblas_samples_common} )
 
 # Fortran examples
 add_executable( example-fortran-axpy example_fortran_axpy.f90 )
@@ -30,7 +31,7 @@ endif( )
 
 set( sample_list_fortran example-fortran-axpy example-fortran-scal example-fortran-gemv )
 set( sample_list_c example-c-dgeam )
-set( sample_list_base example-sscal example-scal-template )
+set( sample_list_base example-sscal example-scal-template example-solver-rocblas )
 
 set( sample_list_all ${sample_list_base} ${sample_list_tensile} ${sample_list_fortran} ${sample_list_c} )
 set( sample_list_hip_device ${sample_list_base} ${sample_list_tensile} )

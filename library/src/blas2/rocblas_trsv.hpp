@@ -737,9 +737,11 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_trsv_template_mem(rocblas_handle 
         return rocblas_status_memory_error;
 
     // Get pointers to allocated device memory
-    // Note: Order of pointers in std::tie(...) must match order of sizes in handle->device_malloc(...)
 
-    std::tie(mem_x_temp, mem_x_temp_arr, mem_invA, mem_invA_arr) = mem;
+    mem_x_temp     = mem[0];
+    mem_x_temp_arr = mem[1];
+    mem_invA       = mem[2];
+    mem_invA_arr   = mem[3];
     return perf_status;
 }
 
