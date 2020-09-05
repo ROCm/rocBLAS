@@ -16175,11 +16175,27 @@ ROCBLAS_EXPORT rocblas_status rocblas_start_device_memory_size_query(rocblas_han
     @param[in]
     handle          rocblas handle
     @param[out]
-    size             maximum of the optimal sizes collected
+    size            maximum of the optimal sizes collected
  ******************************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_stop_device_memory_size_query(rocblas_handle handle,
                                                                     size_t*        size);
 
+// Internal functions for managing device memory
+ROCBLAS_EXPORT bool           rocblas_is_device_memory_size_query(rocblas_handle handle);
+ROCBLAS_EXPORT rocblas_status rocblas_set_optimal_device_memory_size_impl(rocblas_handle handle,
+                                                                          size_t         count,
+                                                                          ...);
+ROCBLAS_EXPORT rocblas_status rocblas_device_malloc_alloc(rocblas_handle handle,
+                                                          struct rocblas_device_malloc_base** res,
+                                                          size_t                              count,
+                                                          ...);
+ROCBLAS_EXPORT bool           rocblas_device_malloc_success(struct rocblas_device_malloc_base* ptr);
+ROCBLAS_EXPORT rocblas_status rocblas_device_malloc_ptr(struct rocblas_device_malloc_base* ptr,
+                                                        void**                             res);
+ROCBLAS_EXPORT rocblas_status rocblas_device_malloc_get(struct rocblas_device_malloc_base* ptr,
+                                                        size_t                             index,
+                                                        void**                             res);
+ROCBLAS_EXPORT rocblas_status rocblas_device_malloc_free(struct rocblas_device_malloc_base* ptr);
 /*! \brief
     \details
     Gets the current device memory size for the handle

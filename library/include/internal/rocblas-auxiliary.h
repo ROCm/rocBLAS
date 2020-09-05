@@ -237,11 +237,6 @@ ROCBLAS_EXPORT rocblas_status rocblas_set_start_stop_events(rocblas_handle handl
 
 #ifdef __cplusplus
 }
-
-namespace rocblas
-{
-    ROCBLAS_EXPORT void reinit_logs(); // For testing only
-}
 #endif
 
 #endif /* _ROCBLAS_AUXILIARY_H_ */

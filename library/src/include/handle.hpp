@@ -17,6 +17,18 @@
 #include <unistd.h>
 #include <utility>
 
+// Round up size to the nearest MIN_CHUNK_SIZE
+constexpr size_t roundup_device_memory_size(size_t size)
+{
+    size_t MIN_CHUNK_SIZE = 64;
+    return ((size + MIN_CHUNK_SIZE - 1) / MIN_CHUNK_SIZE) * MIN_CHUNK_SIZE;
+}
+
+// Empty base class for device memory allocation
+struct rocblas_device_malloc_base
+{
+};
+
 /*******************************************************************************
  * \brief rocblas_handle is a structure holding the rocblas library context.
  * It must be initialized using rocblas_create_handle() and the returned handle mus
@@ -164,19 +176,19 @@ public:
     // Maximum size is accumulated in device_memory_query_size
     // Returns rocblas_status_size_increased or rocblas_status_size_unchanged
     template <typename... Ss,
-              std::enable_if_t<sizeof...(Ss) && conjunction<std::is_constructible<size_t, Ss>...>{},
+              std::enable_if_t<sizeof...(Ss) && conjunction<std::is_convertible<Ss, size_t>...>{},
                                int> = 0>
     rocblas_status set_optimal_device_memory_size(Ss... sizes)
     {
         if(!device_memory_size_query)
-            return rocblas_status_internal_error;
+            return rocblas_status_size_query_mismatch;
 
 #if __cplusplus >= 201703L
         // Compute the total size, rounding up each size to multiples of MIN_CHUNK_SIZE
-        size_t total = (roundup_device_memory_size(size_t(sizes)) + ...);
+        size_t total = (roundup_device_memory_size(sizes) + ...);
 #else
         size_t total = 0;
-        auto   dummy = {total += roundup_device_memory_size(size_t(sizes))...};
+        auto   dummy = {total += roundup_device_memory_size(sizes)...};
 #endif
 
         return total > device_memory_query_size ? device_memory_query_size = total,
@@ -202,13 +214,6 @@ public:
 private:
     // device memory work buffer
     static constexpr size_t DEFAULT_DEVICE_MEMORY_SIZE = 4 * 1048576;
-    static constexpr size_t MIN_CHUNK_SIZE             = 64;
-
-    // Round up size to the nearest MIN_CHUNK_SIZE
-    static constexpr size_t roundup_device_memory_size(size_t size)
-    {
-        return ((size + MIN_CHUNK_SIZE - 1) / MIN_CHUNK_SIZE) * MIN_CHUNK_SIZE;
-    }
 
     // Variables holding state of device memory allocation
     void*  device_memory            = nullptr;
@@ -221,17 +226,17 @@ private:
     const int device;
 
     // Opaque smart allocator class to perform device memory allocations
-    template <size_t N = 1>
-    class [[nodiscard]] _device_malloc
+    class [[nodiscard]] _device_malloc : public rocblas_device_malloc_base
     {
-    protected:
+    public:
+        // Order is important:
         rocblas_handle handle;
         size_t         prev_device_memory_in_use;
         size_t         size;
         bool           success;
 
     private:
-        std::array<void*, N> pointers; // Important: must come last
+        std::vector<void*> pointers; // Important: must come last
 
         // Allocate one or more pointers to buffers of different sizes
         template <typename... Ss>
@@ -248,7 +253,7 @@ private:
             // If total size is 0, return an array of nullptr's, but leave it marked as successful
             success = size <= handle->device_memory_size - handle->device_memory_in_use;
             if(!success || !size)
-                return {};
+                return decltype(pointers)(sizeof...(sizes));
 
             // We allocate the total amount needed, taking it from the available device memory.
             char* addr = static_cast<char*>(handle->device_memory) + handle->device_memory_in_use;
@@ -260,13 +265,6 @@ private:
             return {!sizes ? i++, nullptr : addr + offsets[i++]...};
         }
 
-        // Create a tuple of references to the pointers, to be assigned to std::tie(...)
-        template <size_t... Is>
-        auto tie_pointers(std::index_sequence<Is...>)
-        {
-            return std::tie(pointers[Is]...);
-        }
-
     public:
         // Constructor
         template <typename... Ss>
@@ -275,8 +273,23 @@ private:
             , prev_device_memory_in_use(handle->device_memory_in_use)
             , size(0)
             , success(false)
-            , pointers(allocate_pointers(sizes...))
+            , pointers(allocate_pointers(size_t(sizes)...))
         {
+        }
+
+        // Constructor for allocating count pointers of a certain total size
+        explicit _device_malloc(rocblas_handle handle, std::nullptr_t, size_t count, size_t total)
+            : handle(handle)
+            , prev_device_memory_in_use(handle->device_memory_in_use)
+            , size(roundup_device_memory_size(total))
+            , success(size <= handle->device_memory_size - handle->device_memory_in_use)
+            , pointers(count,
+                       success ? static_cast<char*>(handle->device_memory)
+                                     + handle->device_memory_in_use
+                               : nullptr)
+        {
+            if(success)
+                handle->device_memory_in_use += size;
         }
 
         // Move constructor
@@ -332,34 +345,38 @@ private:
             }
         }
 
+        // In the following functions, the trailing & prevents the functions from
+        // applying to rvalue temporaries, to catch common mistakes such as:
+        // void *p = (void*) handle->device_malloc(), which is a dangling pointer.
+
         // Conversion to bool to tell if the allocation succeeded
-        explicit operator bool() const&
+        explicit operator bool()&
         {
             return success;
         }
 
-        // Conversion to std::tuple<void*&...> to be assigned to std::tie(ptr1, ptr2, ...)
-        operator auto()&
+        // Return the ith pointer
+        void*& operator[](size_t i)&
         {
-            return tie_pointers(std::make_index_sequence<N>{});
+            return pointers.at(i);
         }
 
-        // Conversion to any pointer type, but only if N == 1
-        // The trailing & prevents the conversion from applying to rvalue temporaries,
-        // to catch the common mistake of void *p = (void*) handle->device_malloc().
-        template <typename T, std::enable_if_t<std::is_pointer<T>{} && N == 1, int> = 0>
-        explicit operator T() const&
+        // Conversion to any pointer type (if pointers.size() == 1)
+        template <typename T>
+        explicit operator T*()&
         {
-            return static_cast<T>(pointers[0]);
+            // Index 1 - pointers.size() is used to make at() throw if size() != 1
+            // but to otherwise return the first element.
+            return static_cast<T*>(pointers.at(1 - pointers.size()));
         }
     };
 
     // For HPA kernel calls, all available device memory is allocated and passed to Tensile
-    class [[nodiscard]] _gsu_malloc final : _device_malloc<>
+    class [[nodiscard]] _gsu_malloc final : _device_malloc
     {
     public:
         explicit _gsu_malloc(rocblas_handle handle)
-            : _device_malloc<>(handle, handle->device_memory_size - handle->device_memory_in_use)
+            : _device_malloc(handle, handle->device_memory_size - handle->device_memory_in_use)
         {
             handle->gsu_workspace_size = success ? size : 0;
             handle->gsu_workspace      = static_cast<void*>(*this);
@@ -381,11 +398,17 @@ private:
 public:
     // Allocate one or more sizes
     template <typename... Ss,
-              std::enable_if_t<sizeof...(Ss) && conjunction<std::is_constructible<size_t, Ss>...>{},
+              std::enable_if_t<sizeof...(Ss) && conjunction<std::is_convertible<Ss, size_t>...>{},
                                int> = 0>
     auto device_malloc(Ss... sizes)
     {
-        return _device_malloc<sizeof...(Ss)>(this, size_t(sizes)...);
+        return _device_malloc(this, size_t(sizes)...);
+    }
+
+    // Allocate count pointers, reserving "size" total bytes
+    auto device_malloc_count(size_t count, size_t size)
+    {
+        return _device_malloc(this, nullptr, count, size);
     }
 
     // Variables holding state of GSU device memory allocation

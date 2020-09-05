@@ -2,6 +2,7 @@
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "handle.hpp"
+#include <cstdarg>
 
 #if BUILD_WITH_TENSILE
 #ifndef USE_TENSILE_HOST
@@ -116,7 +117,7 @@ catch(...)
 }
 
 /*******************************************************************************
- * get the device memory size
+ * Get the device memory size
  ******************************************************************************/
 extern "C" rocblas_status rocblas_get_device_memory_size(rocblas_handle handle, size_t* size)
 try
@@ -134,7 +135,7 @@ catch(...)
 }
 
 /*******************************************************************************
- * set the device memory size
+ * Set the device memory size
  ******************************************************************************/
 extern "C" rocblas_status rocblas_set_device_memory_size(rocblas_handle handle, size_t size)
 try
@@ -153,7 +154,7 @@ try
     handle->device_memory_size = 0;
 
     // Allocate size rounded up to MIN_CHUNK_SIZE
-    size           = handle->roundup_device_memory_size(size);
+    size           = roundup_device_memory_size(size);
     auto hipStatus = (hipMalloc)(&handle->device_memory, size);
     if(hipStatus != hipSuccess)
     {
@@ -178,6 +179,184 @@ catch(...)
 extern "C" bool rocblas_is_managing_device_memory(rocblas_handle)
 {
     return false;
+}
+
+/* \brief
+   \details
+   Returns true if the handle is in device memory size query mode.
+   @param[in]
+   handle           rocblas handle
+ ******************************************************************************/
+extern "C" bool rocblas_is_device_memory_size_query(rocblas_handle handle)
+{
+    return handle && handle->is_device_memory_size_query();
+}
+
+// Helper function to round up sizes and compute total size
+static inline size_t va_total_device_memory_size(size_t count, va_list ap)
+{
+    size_t total = 0;
+    while(count--)
+        total += roundup_device_memory_size(va_arg(ap, size_t));
+    return total;
+}
+
+/* \brief
+   \details
+   Sets the optimal device memory size during a query
+   Returns rocblas_status_size_increased if the maximum size was increased,
+   rocblas_status_size_unchanged if the maximum size was unchanged, or
+   rocblas_status_size_query_mismatch if the handle is not in query mode.
+   @param[in]
+   handle           rocblas handle
+   count            number of sizes
+   ...              sizes needed for optimal execution of the current kernel
+ ******************************************************************************/
+extern "C" rocblas_status
+    rocblas_set_optimal_device_memory_size_impl(rocblas_handle handle, size_t count, ...)
+{
+    if(!handle)
+        return rocblas_status_invalid_handle;
+    va_list ap;
+    va_start(ap, count);
+    size_t total = va_total_device_memory_size(count, ap);
+    va_end(ap);
+    return handle->set_optimal_device_memory_size(total);
+}
+
+/*! \brief
+    \details
+    Borrows size bytes from the device memory allocated in handle.
+    Returns rocblas_status_invalid_handle if handle is nullptr; rocblas_status_invalid_pointer if res is nullptr; otherwise rocblas_status_success
+    @param[in]
+    handle          rocblas handle
+    count           number of sizes
+    ...             sizes to allocate
+    @param[out]
+    res             pointer to pointer to struct rocblas_device_malloc_base
+ ******************************************************************************/
+extern "C" rocblas_status rocblas_device_malloc_alloc(rocblas_handle               handle,
+                                                      rocblas_device_malloc_base** res,
+                                                      size_t                       count,
+                                                      ...)
+try
+{
+    if(!handle)
+        return rocblas_status_invalid_handle;
+    if(!res)
+        return rocblas_status_invalid_pointer;
+    if(!count)
+        return rocblas_status_invalid_size;
+
+    *res = nullptr; // in case of exception
+
+    // Compute the total of the rounded up sizes
+    va_list ap;
+    va_start(ap, count);
+    size_t total = va_total_device_memory_size(count, ap);
+    va_end(ap);
+
+    // Borrow allocated memory from the handle
+    auto mem = handle->device_malloc_count(count, total);
+
+    // If unsuccessful
+    if(!mem)
+        return rocblas_status_memory_error;
+
+    // Get the base of the allocated pointers
+    char* addr = static_cast<char*>(mem[0]);
+
+    // Compute each pointer based on offsets
+    va_start(ap, count);
+    for(size_t i = 0; i < count; ++i)
+    {
+        size_t size = roundup_device_memory_size(va_arg(ap, size_t));
+        mem[i]      = size ? addr : nullptr;
+        addr += size;
+    }
+    va_end(ap);
+
+    // Move it to the heap
+    *res = new auto(std::move(mem));
+
+    return rocblas_status_success;
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
+}
+
+/*! \brief
+    \details
+    Tells whether an allocation succeeded
+    @param[in]
+    ptr             pointer to struct rocblas_device_malloc_base
+ ******************************************************************************/
+extern "C" bool rocblas_device_malloc_success(rocblas_device_malloc_base* ptr)
+{
+    using _device_malloc = decltype(rocblas_handle {}->device_malloc(0));
+    return ptr && *static_cast<_device_malloc*>(ptr);
+}
+
+/*! \brief
+    \details
+    Converts rocblas_device_malloc() to a pointer if it only has one pointer.
+    Retuns rocblas_status_invalid_pointer if ptr or res is nullptr, there is more than one pointer, or the underyling object is not from rocblas_device_malloc(); rocblas_status_success otherwise
+    @param[in]
+    ptr             pointer to struct rocblas_device_malloc_base
+    @param[out]
+    res             pointer to pointer to void
+*/
+extern "C" rocblas_status rocblas_device_malloc_ptr(rocblas_device_malloc_base* ptr, void** res)
+try
+{
+    using _device_malloc = decltype(rocblas_handle {}->device_malloc(0));
+    if(!ptr || !res)
+        return rocblas_status_invalid_pointer;
+    *res = static_cast<void*>(*static_cast<_device_malloc*>(ptr));
+    return rocblas_status_success;
+}
+catch(...)
+{
+    return rocblas_status_invalid_pointer;
+}
+
+/*! \brief
+    \details
+    Gets a pointer to device memory allocated by rocblas_device_malloc().
+    Returns rocblas_status_invalid_pointer if ptr or res is nullptr or the underyling object is not from rocblas_device_malloc(); rocblas_status_success otherwise
+    @param[in]
+    ptr             pointer to struct rocblas_device_malloc_base
+    index           index of the pointer to get
+    @param[out]
+    res             pointer to pointer to void
+*/
+extern "C" rocblas_status
+    rocblas_device_malloc_get(rocblas_device_malloc_base* ptr, size_t index, void** res)
+try
+{
+    using _device_malloc = decltype(rocblas_handle {}->device_malloc(0));
+    if(!ptr || !res)
+        return rocblas_status_invalid_pointer;
+    *res = (*static_cast<_device_malloc*>(ptr))[index];
+    return rocblas_status_success;
+}
+catch(...)
+{
+    return rocblas_status_invalid_pointer;
+}
+
+/*! \brief
+    \details
+    Frees memory borrowed from the device memory allocated in handle.
+    @param[in]
+    ptr             pointer to struct rocblas_device_malloc_base
+*/
+extern "C" rocblas_status rocblas_device_malloc_free(rocblas_device_malloc_base* ptr)
+{
+    using _device_malloc = decltype(rocblas_handle {}->device_malloc(0));
+    delete static_cast<_device_malloc*>(ptr);
+    return rocblas_status_success;
 }
 
 /**
