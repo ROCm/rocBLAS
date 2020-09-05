@@ -245,23 +245,40 @@ try
         return rocblas_status_invalid_handle;
     if(!res)
         return rocblas_status_invalid_pointer;
+    if(!count)
+        return rocblas_status_invalid_size;
+
+    *res = nullptr; // in case of exception
+
+    // Compute the total of the rounded up sizes
     va_list ap;
     va_start(ap, count);
     size_t total = va_total_device_memory_size(count, ap);
     va_end(ap);
-    *res       = nullptr; // in case of exception
-    *res       = new auto(handle->device_malloc_count(count, total));
-    char* addr = static_cast<char*>(*static_cast<decltype(handle->device_malloc(0))*>(*res));
-    if(!addr)
+
+    // Borrow allocated memory from the handle
+    auto mem = handle->device_malloc_count(count, total);
+
+    // If unsuccessful
+    if(!mem)
         return rocblas_status_memory_error;
+
+    // Get the base of the allocated pointers
+    char* addr = static_cast<char*>(mem[0]);
+
+    // Compute each pointer based on offsets
     va_start(ap, count);
     for(size_t i = 0; i < count; ++i)
     {
         size_t size = roundup_device_memory_size(va_arg(ap, size_t));
-        (*static_cast<decltype(handle->device_malloc(0))*>(*res))[i] = size ? addr : nullptr;
+        mem[i]      = size ? addr : nullptr;
         addr += size;
     }
     va_end(ap);
+
+    // Move it to the heap
+    *res = new auto(std::move(mem));
+
     return rocblas_status_success;
 }
 catch(...)
@@ -273,37 +290,55 @@ catch(...)
     \details
     Tells whether an allocation succeeded
     @param[in]
-    handle          rocblas handle
     ptr             pointer to struct rocblas_device_malloc_base
  ******************************************************************************/
-extern "C" bool rocblas_device_malloc_success(rocblas_handle              handle,
-                                              rocblas_device_malloc_base* ptr)
+extern "C" bool rocblas_device_malloc_success(rocblas_device_malloc_base* ptr)
 {
-    return ptr && *static_cast<decltype(handle->device_malloc(0))*>(ptr);
+    using _device_malloc = decltype(rocblas_handle {}->device_malloc(0));
+    return ptr && *static_cast<_device_malloc*>(ptr);
+}
+
+/*! \brief
+    \details
+    Converts rocblas_device_malloc() to a pointer if it only has one pointer.
+    Retuns rocblas_status_invalid_pointer if ptr or res is nullptr, there is more than one pointer, or the underyling object is not from rocblas_device_malloc(); rocblas_status_success otherwise
+    @param[in]
+    ptr             pointer to struct rocblas_device_malloc_base
+    @param[out]
+    res             pointer to pointer to void
+*/
+extern "C" rocblas_status rocblas_device_malloc_ptr(rocblas_device_malloc_base* ptr, void** res)
+try
+{
+    using _device_malloc = decltype(rocblas_handle {}->device_malloc(0));
+    if(!ptr || !res)
+        return rocblas_status_invalid_pointer;
+    *res = static_cast<void*>(*static_cast<_device_malloc*>(ptr));
+    return rocblas_status_success;
+}
+catch(...)
+{
+    return rocblas_status_invalid_pointer;
 }
 
 /*! \brief
     \details
     Gets a pointer to device memory allocated by rocblas_device_malloc().
-    Retuns rocblas_status_invalid_handle if handle is nullptr; rocblas_status_invalid_pointer if ptr or res is nullptr or the underyling object is not from rocblas_device_malloc(); rocblas_status_success otherwise
+    Returns rocblas_status_invalid_pointer if ptr or res is nullptr or the underyling object is not from rocblas_device_malloc(); rocblas_status_success otherwise
     @param[in]
-    handle          rocblas handle
     ptr             pointer to struct rocblas_device_malloc_base
     index           index of the pointer to get
     @param[out]
     res             pointer to pointer to void
 */
-extern "C" rocblas_status rocblas_device_malloc_get(rocblas_handle              handle,
-                                                    rocblas_device_malloc_base* ptr,
-                                                    size_t                      index,
-                                                    void**                      res)
+extern "C" rocblas_status
+    rocblas_device_malloc_get(rocblas_device_malloc_base* ptr, size_t index, void** res)
 try
 {
-    if(!handle)
-        return rocblas_status_invalid_handle;
+    using _device_malloc = decltype(rocblas_handle {}->device_malloc(0));
     if(!ptr || !res)
         return rocblas_status_invalid_pointer;
-    *res = (*static_cast<decltype(handle->device_malloc(0))*>(ptr))[index];
+    *res = (*static_cast<_device_malloc*>(ptr))[index];
     return rocblas_status_success;
 }
 catch(...)
@@ -315,20 +350,13 @@ catch(...)
     \details
     Frees memory borrowed from the device memory allocated in handle.
     @param[in]
-    handle          rocblas handle
     ptr             pointer to struct rocblas_device_malloc_base
 */
-extern "C" rocblas_status rocblas_device_malloc_free(rocblas_handle              handle,
-                                                     rocblas_device_malloc_base* ptr)
-try
+extern "C" rocblas_status rocblas_device_malloc_free(rocblas_device_malloc_base* ptr)
 {
-    // Right now handle is not used, but it might be needed in the future
-    delete static_cast<decltype(handle->device_malloc(0))*>(ptr);
+    using _device_malloc = decltype(rocblas_handle {}->device_malloc(0));
+    delete static_cast<_device_malloc*>(ptr);
     return rocblas_status_success;
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
 }
 
 /**

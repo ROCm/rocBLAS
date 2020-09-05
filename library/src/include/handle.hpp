@@ -178,7 +178,7 @@ public:
     template <typename... Ss,
               std::enable_if_t<sizeof...(Ss) && conjunction<std::is_convertible<Ss, size_t>...>{},
                                int> = 0>
-    rocblas_status set_optimal_device_memory_size(Ss&&... sizes)
+    rocblas_status set_optimal_device_memory_size(Ss... sizes)
     {
         if(!device_memory_size_query)
             return rocblas_status_size_query_mismatch;
@@ -228,10 +228,9 @@ private:
     // Opaque smart allocator class to perform device memory allocations
     class [[nodiscard]] _device_malloc : public rocblas_device_malloc_base
     {
-    protected:
+    public:
         // Order is important:
         rocblas_handle handle;
-        size_t         npointer;
         size_t         prev_device_memory_in_use;
         size_t         size;
         bool           success;
@@ -254,7 +253,7 @@ private:
             // If total size is 0, return an array of nullptr's, but leave it marked as successful
             success = size <= handle->device_memory_size - handle->device_memory_in_use;
             if(!success || !size)
-                return decltype(pointers)(npointer);
+                return decltype(pointers)(sizeof...(sizes));
 
             // We allocate the total amount needed, taking it from the available device memory.
             char* addr = static_cast<char*>(handle->device_memory) + handle->device_memory_in_use;
@@ -271,28 +270,26 @@ private:
         template <typename... Ss>
         explicit _device_malloc(rocblas_handle handle, Ss... sizes)
             : handle(handle)
-            , npointer(sizeof...(Ss))
             , prev_device_memory_in_use(handle->device_memory_in_use)
             , size(0)
             , success(false)
-            , pointers(allocate_pointers(sizes...))
+            , pointers(allocate_pointers(size_t(sizes)...))
         {
         }
 
         // Constructor for allocating count pointers of a certain total size
-        explicit _device_malloc(rocblas_handle handle, std::nullptr_t, size_t count, size_t size)
+        explicit _device_malloc(rocblas_handle handle, std::nullptr_t, size_t count, size_t total)
             : handle(handle)
-            , npointer(count)
             , prev_device_memory_in_use(handle->device_memory_in_use)
-            , size(roundup_device_memory_size(size))
-            , success(this->size <= handle->device_memory_size - handle->device_memory_in_use)
+            , size(roundup_device_memory_size(total))
+            , success(size <= handle->device_memory_size - handle->device_memory_in_use)
             , pointers(count,
                        success ? static_cast<char*>(handle->device_memory)
                                      + handle->device_memory_in_use
                                : nullptr)
         {
             if(success)
-                handle->device_memory_in_use += this->size;
+                handle->device_memory_in_use += size;
         }
 
         // Move constructor
@@ -304,7 +301,6 @@ private:
         // moves to, or the LIFO ordering will be violated and flagged.
         _device_malloc(_device_malloc && other) noexcept
             : handle(other.handle)
-            , npointer(other.npointer)
             , prev_device_memory_in_use(other.prev_device_memory_in_use)
             , size(other.size)
             , success(other.success)
@@ -365,13 +361,13 @@ private:
             return pointers.at(i);
         }
 
-        // Conversion of first element to any pointer type (if npointer == 1)
+        // Conversion to any pointer type (if pointers.size() == 1)
         template <typename T>
         explicit operator T*()&
         {
-            // Index 1 - npointer is used to make at() throw if npointer != 1,
+            // Index 1 - pointers.size() is used to make at() throw if size() != 1
             // but to otherwise return the first element.
-            return static_cast<T*>(pointers.at(1 - npointer));
+            return static_cast<T*>(pointers.at(1 - pointers.size()));
         }
     };
 
@@ -404,7 +400,7 @@ public:
     template <typename... Ss,
               std::enable_if_t<sizeof...(Ss) && conjunction<std::is_convertible<Ss, size_t>...>{},
                                int> = 0>
-    auto device_malloc(Ss&&... sizes)
+    auto device_malloc(Ss... sizes)
     {
         return _device_malloc(this, size_t(sizes)...);
     }
