@@ -278,7 +278,7 @@ struct RocblasContractionProblem
                             prob.batch_stride_c,
                             "stride_d",
                             prob.batch_stride_d,
-                            "atomics mode",
+                            "atomics_mode",
                             prob.handle->atomics_mode));
     };
 };

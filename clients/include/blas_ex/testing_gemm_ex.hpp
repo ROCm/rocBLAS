@@ -22,8 +22,7 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
 {
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
-        const bool FORTRAN            = arg.fortran;
-        auto       rocblas_gemm_ex_fn = FORTRAN ? rocblas_gemm_ex_fortran : rocblas_gemm_ex;
+        auto rocblas_gemm_ex_fn = arg.fortran ? rocblas_gemm_ex_fortran : rocblas_gemm_ex;
 
         const rocblas_operation transA = rocblas_operation_none;
         const rocblas_operation transB = rocblas_operation_none;
@@ -252,8 +251,7 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
 template <typename Ti, typename To, typename Tc>
 void testing_gemm_ex(const Arguments& arg)
 {
-    const bool FORTRAN            = arg.fortran;
-    auto       rocblas_gemm_ex_fn = FORTRAN ? rocblas_gemm_ex_fortran : rocblas_gemm_ex;
+    auto rocblas_gemm_ex_fn = arg.fortran ? rocblas_gemm_ex_fortran : rocblas_gemm_ex;
 
     rocblas_gemm_algo algo = rocblas_gemm_algo(arg.algo);
     int32_t           solution_index(arg.solution_index);
