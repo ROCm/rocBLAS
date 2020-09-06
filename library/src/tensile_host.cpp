@@ -475,9 +475,12 @@ namespace
                     rocblas_abort();
                 }
 
-                library = std::dynamic_pointer_cast<
-                    Tensile::MasterSolutionLibrary<Tensile::ContractionProblem>>(
-                    Tensile::LoadLibraryFile<Tensile::ContractionProblem>(path));
+                auto lib = Tensile::LoadLibraryFile<Tensile::ContractionProblem>(path);
+                if(!lib)
+                    rocblas_cerr << "\nrocBLAS error: Could not load " << path << std::endl;
+
+                using MSL = Tensile::MasterSolutionLibrary<Tensile::ContractionProblem>;
+                library   = std::dynamic_pointer_cast<MSL>(lib);
 
                 return 0;
             }();
@@ -492,7 +495,7 @@ namespace
     };
 
     // Return the library and adapter for the current HIP device
-    Tensile::hip::SolutionAdapter& get_library_and_adapter(
+    auto& get_library_and_adapter(
         std::shared_ptr<Tensile::MasterSolutionLibrary<Tensile::ContractionProblem>>* library
         = nullptr)
     try
@@ -546,6 +549,25 @@ namespace
             << std::endl;
         rocblas_abort();
     }
+
+    /**************************************************************************
+    * We normally print error messages only once, to avoid excessive logging *
+    **************************************************************************/
+    void print_once(rocblas_ostream& msg)
+    {
+        const char* const  varname = "ROCBLAS_VERBOSE_TENSILE_ERROR";
+        static const char* verbose = getenv(varname);
+        if(!verbose)
+        {
+            static auto& once = rocblas_cerr
+                                << msg
+                                << "\nThis message will be only be displayed once, unless the "
+                                << varname << " environment variable is set." << std::endl;
+        }
+        else
+            rocblas_cerr << msg << std::endl;
+    }
+
 } // namespace
 
 /******************************************************************************
@@ -568,9 +590,8 @@ rocblas_status runContractionProblem(const RocblasContractionProblem<Ti, To, Tc>
 
         if(!solution)
         {
-            // We print the error message only once, to avoid excessive logging
-            static auto& once = rocblas_cerr << "\nrocBLAS error: No Tensile solution found for "
-                                             << prob;
+            rocblas_ostream msg;
+            print_once(msg << "\nrocBLAS error: No Tensile solution found for " << prob);
             status = rocblas_status_not_implemented;
         }
         else
@@ -597,16 +618,15 @@ rocblas_status runContractionProblem(const RocblasContractionProblem<Ti, To, Tc>
     }
     catch(const std::exception& e)
     {
-        static auto& once = rocblas_cerr << "\nrocBLAS error: " << (solution ? "" : "No ")
-                                         << "Tensile solution found, but exception thown for "
-                                         << prob << e.what() << std::endl;
+        rocblas_ostream msg;
+        print_once(msg << "\nrocBLAS error: " << (solution ? "" : "No ")
+                       << "Tensile solution found, but exception thown for " << prob << e.what());
     }
     catch(...)
     {
-        static auto& once = rocblas_cerr
-                            << "\nrocBLAS error: " << (solution ? "" : "No ")
-                            << "Tensile solution found, but unknown exception thown for " << prob
-                            << std::endl;
+        rocblas_ostream msg;
+        print_once(msg << "\nrocBLAS error: " << (solution ? "" : "No ")
+                       << "Tensile solution found, but unknown exception thown for " << prob);
     }
 
     return status;
