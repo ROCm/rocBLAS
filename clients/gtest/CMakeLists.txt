@@ -203,9 +203,9 @@ if( OS_ID_rhel OR OS_ID_sles OR OS_ID_centos)
         )
 
     if(LINK_BLIS)
-      target_link_libraries( rocblas-test PRIVATE ${OPENMP_LIBRARY} ${BLIS_LIBRARY} ${Boost_LIBRARIES} ${GTEST_LIBRARIES} cblas lapack roc::rocblas rocblas_fortran_client )
+      target_link_libraries( rocblas-test PRIVATE rocblas_fortran_client roc::rocblas lapack cblas ${BLIS_LIBRARY} ${GTEST_LIBRARIES} ${Boost_LIBRARIES} ${OPENMP_LIBRARY} )
     else()
-      target_link_libraries( rocblas-test PRIVATE ${OPENMP_LIBRARY} ${Boost_LIBRARIES} ${GTEST_LIBRARIES} cblas lapack roc::rocblas rocblas_fortran_client )
+      target_link_libraries( rocblas-test PRIVATE rocblas_fortran_client roc::rocblas lapack cblas ${GTEST_LIBRARIES} ${Boost_LIBRARIES} ${OPENMP_LIBRARY} )
     endif()
 else()
     # External header includes included as system files
@@ -219,9 +219,9 @@ else()
         $<BUILD_INTERFACE:${BLIS_INCLUDE_DIR}>
     )
     if(LINK_BLIS)
-      target_link_libraries( rocblas-test PRIVATE ${GTEST_LIBRARIES} ${Boost_LIBRARIES} ${BLIS_LIBRARY} cblas lapack roc::rocblas rocblas_fortran_client )
+      target_link_libraries( rocblas-test PRIVATE rocblas_fortran_client roc::rocblas lapack cblas ${BLIS_LIBRARY} ${GTEST_LIBRARIES} ${Boost_LIBRARIES} )
     else()
-      target_link_libraries( rocblas-test PRIVATE ${GTEST_LIBRARIES} ${Boost_LIBRARIES} cblas lapack roc::rocblas rocblas_fortran_client )
+      target_link_libraries( rocblas-test PRIVATE rocblas_fortran_client roc::rocblas lapack cblas ${GTEST_LIBRARIES} ${Boost_LIBRARIES} )
     endif()
 endif()
 

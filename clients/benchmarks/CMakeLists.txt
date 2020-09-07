@@ -122,9 +122,9 @@ if( OS_ID_rhel OR OS_ID_sles OR OS_ID_centos)
         )
 
     if(LINK_BLIS)
-      target_link_libraries( rocblas-bench PRIVATE ${OPENMP_LIBRARY} ${BLIS_LIBRARY} ${Boost_LIBRARIES} cblas lapack roc::rocblas rocblas_fortran_client )
+      target_link_libraries( rocblas-bench PRIVATE rocblas_fortran_client roc::rocblas cblas lapack ${BLIS_LIBRARY} ${Boost_LIBRARIES} ${OPENMP_LIBRARY} )
     else()
-      target_link_libraries( rocblas-bench PRIVATE ${OPENMP_LIBRARY} ${Boost_LIBRARIES} cblas lapack roc::rocblas rocblas_fortran_client )
+      target_link_libraries( rocblas-bench PRIVATE rocblas_fortran_client roc::rocblas cblas lapack ${Boost_LIBRARIES} ${OPENMP_LIBRARY} )
     endif()
 else()
     # External header includes included as system files
@@ -138,9 +138,9 @@ else()
     )
 
     if(LINK_BLIS)
-      target_link_libraries( rocblas-bench PRIVATE ${Boost_LIBRARIES} ${BLIS_LIBRARY} cblas lapack roc::rocblas rocblas_fortran_client )
+      target_link_libraries( rocblas-bench PRIVATE rocblas_fortran_client roc::rocblas lapack cblas ${BLIS_LIBRARY} ${Boost_LIBRARIES} )
     else()
-      target_link_libraries( rocblas-bench PRIVATE ${Boost_LIBRARIES} cblas lapack roc::rocblas rocblas_fortran_client )
+      target_link_libraries( rocblas-bench PRIVATE rocblas_fortran_client roc::rocblas lapack cblas ${Boost_LIBRARIES} )
     endif()
 endif()
 
