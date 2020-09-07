@@ -8,6 +8,7 @@
 #include "testing_gemm_batched.hpp"
 #include "testing_gemm_batched_ex.hpp"
 #include "testing_gemm_ex.hpp"
+#include "testing_gemm_ext2.hpp"
 #include "testing_gemm_strided_batched.hpp"
 #include "testing_gemm_strided_batched_ex.hpp"
 #include "type_dispatch.hpp"
@@ -26,6 +27,7 @@ namespace
         GEMM_BATCHED_EX,
         GEMM_STRIDED_BATCHED,
         GEMM_STRIDED_BATCHED_EX,
+        GEMM_EXT2,
     };
 
     // ----------------------------------------------------------------------------
@@ -34,7 +36,7 @@ namespace
     // The first template parameter is a class template which determines which
     // combination of types applies to this test, and for those that do, instantiates
     // the test code based on the function named in the test Arguments. The second
-    // template parameter is an enum which allows the 4 different flavors of GEMM to
+    // template parameter is an enum which allows the different flavors of GEMM to
     // be differentiated.
     //
     // The RocBLAS_Test base class takes this class (CRTP) and the first template
@@ -78,6 +80,10 @@ namespace
             case GEMM_STRIDED_BATCHED_EX:
                 return !strcmp(arg.function, "gemm_strided_batched_ex")
                        || !strcmp(arg.function, "gemm_strided_batched_ex_bad_arg");
+
+            case GEMM_EXT2:
+                return !strcmp(arg.function, "gemm_ext2")
+                       || !strcmp(arg.function, "gemm_ext2_bad_arg");
             }
 
             return false;
@@ -88,9 +94,9 @@ namespace
         {
             RocBLAS_TestName<gemm_test_template> name(arg.name);
             name << rocblas_datatype2string(arg.a_type);
-            bool isEx = (GEMM_TYPE == GEMM_EX || GEMM_TYPE == GEMM_BATCHED_EX
-                         || GEMM_TYPE == GEMM_STRIDED_BATCHED_EX);
-            bool isBatched
+            constexpr bool isEx = GEMM_TYPE == GEMM_EX || GEMM_TYPE == GEMM_BATCHED_EX
+                                  || GEMM_TYPE == GEMM_STRIDED_BATCHED_EX || GEMM_TYPE == GEMM_EXT2;
+            constexpr bool isBatched
                 = (GEMM_TYPE == GEMM_STRIDED_BATCHED || GEMM_TYPE == GEMM_STRIDED_BATCHED_EX
                    || GEMM_TYPE == GEMM_BATCHED || GEMM_TYPE == GEMM_BATCHED_EX);
 
@@ -99,9 +105,10 @@ namespace
                      << rocblas_datatype2string(arg.d_type)
                      << rocblas_datatype2string(arg.compute_type);
 
-            name << '_' << (char)std::toupper(arg.transA) << (char)std::toupper(arg.transB) << '_'
-                 << arg.M << '_' << arg.N << '_' << arg.K << '_' << arg.alpha << '_' << arg.lda
-                 << '_' << arg.ldb << '_' << arg.beta << '_' << arg.ldc;
+            name << '_' << (char)std::toupper(arg.transA) << (char)std::toupper(arg.transB);
+
+            name << '_' << arg.M << '_' << arg.N << '_' << arg.K << '_' << arg.alpha << '_'
+                 << arg.lda << '_' << arg.ldb << '_' << arg.beta << '_' << arg.ldc;
 
             if(isEx)
                 name << '_' << arg.ldd;
@@ -113,9 +120,7 @@ namespace
                 name << '_' << arg.stride_a << '_' << arg.stride_b << '_' << arg.stride_c;
 
             if(arg.fortran)
-            {
                 name << "_F";
-            }
 
             return std::move(name);
         }
@@ -187,6 +192,7 @@ namespace
     // gemm_ex
     // gemm_batched_ex
     // gemm_strided_batched_ex
+    // gemm_ext2
     // ----------------------------------------------------------------------------
 
     // In the general case of <Ti, To, Tc>, these tests do not apply, and if this
@@ -222,6 +228,10 @@ namespace
                 testing_gemm_strided_batched_ex<Ti, To, Tc>(arg);
             else if(!strcmp(arg.function, "gemm_strided_batched_ex_bad_arg"))
                 testing_gemm_strided_batched_ex_bad_arg<Ti, To, Tc>(arg);
+            else if(!strcmp(arg.function, "gemm_ext2"))
+                testing_gemm_ext2<Ti, To, Tc>(arg);
+            else if(!strcmp(arg.function, "gemm_ext2_bad_arg"))
+                testing_gemm_ext2<Ti, To, Tc>(arg);
             else
                 FAIL() << "Internal error: Test called with unknown function: " << arg.function;
         }
@@ -250,5 +260,13 @@ namespace
             rocblas_gemm_dispatch<gemm_ex_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(gemm_strided_batched_ex);
+
+    using gemm_ext2 = gemm_test_template<gemm_ex_testing, GEMM_EXT2>;
+    TEST_P(gemm_ext2, blas3)
+    {
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(
+            rocblas_gemm_dispatch<gemm_ex_testing>(GetParam()));
+    }
+    INSTANTIATE_TEST_CATEGORIES(gemm_ext2);
 
 } // namespace
