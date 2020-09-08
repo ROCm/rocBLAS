@@ -106,6 +106,13 @@ inline T random_generator()
     return std::uniform_int_distribution<int>(1, 10)(rocblas_rng);
 }
 
+/*! \brief  generate a random NaN number */
+template <typename T>
+inline T random_nan_generator()
+{
+    return T(rocblas_nan_rng{});
+}
+
 // for rocblas_float_complex, generate two random ints (same behaviour as for floats)
 template <>
 inline rocblas_float_complex random_generator<rocblas_float_complex>()
