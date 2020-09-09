@@ -3,7 +3,7 @@
 # ########################################################################
 
 # The ROCm platform requires Ubuntu 16.04 or Fedora 24, which has cmake 3.5
-cmake_minimum_required( VERSION 3.5 )
+cmake_minimum_required( VERSION 3.8 )
 
 add_definitions(-D_ROCBLAS_INTERNAL_BFLOAT16_)
 
