@@ -37,9 +37,8 @@ Definitions:
 
   - &incx_incy_range
     - { incx:   1, incy:   1}
-    - { incx:  -1, incy:  -1}
+    - { incx:  -1, incy:   1}
     - { incx:   1, incy:  -1}
-    - { incx:   2, incy:   1}
     - { incx:  10, incy:  99}
 
   - &incx_incy_range_small
@@ -91,9 +90,9 @@ Tests:
   - gerc
   precision: *single_double_precisions_complex
   matrix_size: *small_matrix_size_range
-  incx_incy: *incx_incy_range
+  incx_incy: *incx_incy_range_small
   alpha: [ -0.5, 2.0, 0.0 ]
-  alphai: [ -0.5, 2.0 ]
+  alphai: [ -0.5, 0.0 ]
 
 - name: geruc_medium
   category: pre_checkin
@@ -102,9 +101,9 @@ Tests:
   - gerc
   precision: *single_double_precisions_complex
   matrix_size: *medium_matrix_size_range
-  incx_incy: *incx_incy_range_small
-  alpha: [ -0.5, 2.0, 0.0 ]
-  alphai: [ -0.5, 0.0 ]
+  incx_incy: *incx_incy_range
+  alpha: [ -0.5, 1.0 ]
+  alphai: [ -0.5 ]
 
 - name: geruc_large
   category: nightly
@@ -114,8 +113,8 @@ Tests:
   precision: *single_double_precisions_complex
   matrix_size: *large_matrix_size_range
   incx_incy: *incx_incy_range_small
-  alpha: [ -0.5, 2.0, 0.0 ]
-  alphai: [ -0.5, 0.1 ]
+  alpha: [ 2.0, 0.0 ]
+  alphai: [ -0.5, 0.0 ]
 
 # geruc_batched
 - name: geruc_batched_fortran
@@ -128,7 +127,7 @@ Tests:
   incx_incy: *incx_incy_range_small
   alpha: [ 2.0 ]
   alphai: [ -2.0 ]
-  batch_count: [ -1, 0, 3 ]
+  batch_count: [ 3 ]
   fortran: true
 
 - name: geruc_batched_small
@@ -138,10 +137,10 @@ Tests:
   - gerc_batched
   precision: *single_double_precisions_complex
   matrix_size: *small_matrix_size_range
-  incx_incy: *incx_incy_range
+  incx_incy: *incx_incy_range_small
   alpha: [ -0.5, 2.0, 0.0 ]
-  alphai: [ -0.5, 2.0 ]
-  batch_count: [ -5, 0, 1, 5, 10 ]
+  alphai: [ -0.5, 0.0 ]
+  batch_count: [ -5, 0, 3 ]
 
 - name: geruc_batched_medium
   category: pre_checkin
@@ -150,10 +149,10 @@ Tests:
   - gerc_batched
   precision: *single_double_precisions_complex
   matrix_size: *medium_matrix_size_range
-  incx_incy: *incx_incy_range_small
+  incx_incy: *incx_incy_range
   alpha: [ -0.5, 2.0, 0.0 ]
   alphai: [ -0.5, 0.0 ]
-  batch_count: [ 1, 5 ]
+  batch_count: [ 2 ]
 
 - name: geruc_batched_large
   category: nightly
@@ -163,9 +162,9 @@ Tests:
   precision: *single_double_precisions_complex
   matrix_size: *large_matrix_size_range
   incx_incy: *incx_incy_range_small
-  alpha: [ -0.5, 2.0, 0.0 ]
-  alphai: [ -0.5, 0.1 ]
-  batch_count: [ 1, 3 ]
+  alpha: [ -0.5 ]
+  alphai: [ -0.5 ]
+  batch_count: [ 5 ]
 
 # geruc_strided_batched
 - name: geruc_strided_batched_fortran
@@ -189,11 +188,11 @@ Tests:
   - gerc_strided_batched
   precision: *single_double_precisions_complex
   matrix_size: *small_matrix_size_range
-  incx_incy: *incx_incy_range
+  incx_incy: *incx_incy_range_small
   alpha: [ -0.5, 2.0, 0.0 ]
-  alphai: [ -0.5, 2.0 ]
+  alphai: [ -0.5, 0.0 ]
   stride_scale: [ 1 ]
-  batch_count: [ -5, 0, 1, 5, 10 ]
+  batch_count: [ -5, 0, 5 ]
 
 - name: geruc_strided_batched_medium
   category: pre_checkin
@@ -202,11 +201,11 @@ Tests:
   - gerc_strided_batched
   precision: *single_double_precisions_complex
   matrix_size: *medium_matrix_size_range
-  incx_incy: *incx_incy_range_small
+  incx_incy: *incx_incy_range
   alpha: [ -0.5, 2.0, 0.0 ]
-  alphai: [ -0.5, 1.0 ]
+  alphai: [ 1.0 ]
   stride_scale: [ 1 ]
-  batch_count: [ 1, 5 ]
+  batch_count: [ 3 ]
 
 - name: geruc_strided_batched_large
   category: nightly
@@ -216,8 +215,8 @@ Tests:
   precision: *single_double_precisions_complex
   matrix_size: *large_matrix_size_range
   incx_incy: *incx_incy_range_small
-  alpha: [ -0.5, 2.0, 0.0 ]
-  alphai: [ -0.5, 0.1 ]
+  alpha: [ 2.0 ]
+  alphai: [ 0.1 ]
   stride_scale: [ 1 ]
-  batch_count: [ 1, 3 ]
+  batch_count: [ 5 ]
 ...

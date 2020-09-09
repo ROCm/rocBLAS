@@ -9,14 +9,15 @@
 #include "TensileTypes.h"
 #endif
 #include "gemm.hpp"
-#include "handle.h"
-#include "logging.h"
+#include "handle.hpp"
+#include "logging.hpp"
 
 /////////////////
 // Device Side //
 /////////////////
 template <typename To>
-rocblas_status device_strided_batched_matrix_copy(const To*      src,
+rocblas_status device_strided_batched_matrix_copy(rocblas_handle handle,
+                                                  const To*      src,
                                                   rocblas_stride ld_src,
                                                   rocblas_stride stride_src,
                                                   To*            dst,
@@ -32,27 +33,32 @@ rocblas_status device_strided_batched_matrix_copy(const To*      src,
     if(n1 == ld_src && n1 == ld_dst && stride_src == n2 * ld_src && stride_dst == n2 * ld_dst)
     {
         // src and dst batch matrices are contiguous, use single copy
-        RETURN_IF_HIP_ERROR(
-            hipMemcpy(dst, src, sizeof(To) * n1 * n2 * batch_count, hipMemcpyDeviceToDevice));
+        RETURN_IF_HIP_ERROR(hipMemcpyAsync(dst,
+                                           src,
+                                           sizeof(To) * n1 * n2 * batch_count,
+                                           hipMemcpyDeviceToDevice,
+                                           handle->rocblas_stream));
     }
     else if(n1 == ld_src && n1 == ld_dst)
     {
         // individual matrices in batch matrix are contiguous, one copy for each matrix
         for(size_t i3 = 0; i3 < batch_count; i3++)
-            RETURN_IF_HIP_ERROR(hipMemcpy(dst + i3 * stride_dst,
-                                          src + i3 * stride_src,
-                                          sizeof(To) * n1 * n2,
-                                          hipMemcpyDeviceToDevice));
+            RETURN_IF_HIP_ERROR(hipMemcpyAsync(dst + i3 * stride_dst,
+                                               src + i3 * stride_src,
+                                               sizeof(To) * n1 * n2,
+                                               hipMemcpyDeviceToDevice,
+                                               handle->rocblas_stream));
     }
     else
     {
         // individual matrices not contiguous, one copy for each contiguous column
         for(int i3 = 0; i3 < batch_count; i3++)
             for(int i2 = 0; i2 < n2; i2++)
-                RETURN_IF_HIP_ERROR(hipMemcpy(dst + i2 * ld_dst + i3 * stride_dst,
-                                              src + i2 * ld_src + i3 * stride_src,
-                                              sizeof(To) * n1,
-                                              hipMemcpyDeviceToDevice));
+                RETURN_IF_HIP_ERROR(hipMemcpyAsync(dst + i2 * ld_dst + i3 * stride_dst,
+                                                   src + i2 * ld_src + i3 * stride_src,
+                                                   sizeof(To) * n1,
+                                                   hipMemcpyDeviceToDevice,
+                                                   handle->rocblas_stream));
     }
     return rocblas_status_success;
 }
@@ -618,7 +624,10 @@ rocblas_status gemm_ex_batched_template(rocblas_handle    handle,
                                           ldd,
                                           stride_d,
                                           1);
-        if(status != rocblas_status_success)
+
+        if(handle->is_device_memory_size_query()
+               ? status != rocblas_status_size_increased && status != rocblas_status_size_unchanged
+               : status != rocblas_status_success)
             break;
     }
     return status;
@@ -651,6 +660,9 @@ rocblas_status gemm_ex_batched_template(rocblas_handle    handle,
                                         rocblas_stride    stride_d,
                                         rocblas_int       batch_count)
 {
+    // Temporarily change the thread's default device ID to the handle's device ID
+    auto saved_device_id = handle->push_device_id();
+
     a += offset_a;
     b += offset_b;
     c += offset_c;
@@ -660,7 +672,8 @@ rocblas_status gemm_ex_batched_template(rocblas_handle    handle,
     rocblas_int    ldi;
     rocblas_stride stride_i;
 
-    if(tensile_supports_ldc_ne_ldd() && (std::is_same<Ti, float>{} || std::is_same<Ti, double>{})
+    if(rocblas_tensile_supports_ldc_ne_ldd()
+       && (std::is_same<Ti, float>{} || std::is_same<Ti, double>{})
        && ((ldc >= ldd && (stride_c >= stride_d || batch_count == 1) && m == ldd)
            || (ldc == ldd && (stride_c == stride_d || batch_count == 1))))
     {
@@ -670,7 +683,8 @@ rocblas_status gemm_ex_batched_template(rocblas_handle    handle,
     }
     else
     {
-        device_strided_batched_matrix_copy(c, ldc, stride_c, d, ldd, stride_d, m, n, batch_count);
+        device_strided_batched_matrix_copy(
+            handle, c, ldc, stride_c, d, ldd, stride_d, m, n, batch_count);
         c_in     = d;
         ldi      = ldd;
         stride_i = stride_d;
@@ -907,6 +921,9 @@ rocblas_status rocblas_gemm_ex_template(rocblas_handle    handle,
     // Note: k==0 is not an early exit, since C still needs to be multiplied by beta
     if(!m || !n || !batch_count)
         return rocblas_status_success;
+
+    // Temporarily change the thread's default device ID to the handle's device ID
+    auto saved_device_id = handle->push_device_id();
 
     if(BATCHED)
     {

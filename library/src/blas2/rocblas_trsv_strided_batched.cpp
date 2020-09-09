@@ -1,12 +1,12 @@
 /* ************************************************************************
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include "handle.h"
-#include "logging.h"
+#include "handle.hpp"
+#include "logging.hpp"
 #include "rocblas.h"
 #include "rocblas_gemv.hpp"
 #include "rocblas_trsv.hpp"
-#include "utility.h"
+#include "utility.hpp"
 
 namespace
 {
@@ -46,75 +46,78 @@ namespace
         if(!handle)
             return rocblas_status_invalid_handle;
 
-        auto layer_mode = handle->layer_mode;
-        if(layer_mode & rocblas_layer_mode_log_trace)
-            log_trace(handle,
-                      rocblas_trsv_strided_batched_name<T>,
-                      uplo,
-                      transA,
-                      diag,
-                      m,
-                      A,
-                      lda,
-                      stride_A,
-                      B,
-                      incx,
-                      stride_x,
-                      batch_count);
-
-        if(layer_mode & (rocblas_layer_mode_log_bench | rocblas_layer_mode_log_profile))
+        if(!handle->is_device_memory_size_query())
         {
-            auto uplo_letter   = rocblas_fill_letter(uplo);
-            auto transA_letter = rocblas_transpose_letter(transA);
-            auto diag_letter   = rocblas_diag_letter(diag);
+            auto layer_mode = handle->layer_mode;
+            if(layer_mode & rocblas_layer_mode_log_trace)
+                log_trace(handle,
+                          rocblas_trsv_strided_batched_name<T>,
+                          uplo,
+                          transA,
+                          diag,
+                          m,
+                          A,
+                          lda,
+                          stride_A,
+                          B,
+                          incx,
+                          stride_x,
+                          batch_count);
 
-            if(layer_mode & rocblas_layer_mode_log_bench)
+            if(layer_mode & (rocblas_layer_mode_log_bench | rocblas_layer_mode_log_profile))
             {
-                if(handle->pointer_mode == rocblas_pointer_mode_host)
-                    log_bench(handle,
-                              "./rocblas-bench -f trsv_strided_batched -r",
-                              rocblas_precision_string<T>,
-                              "--uplo",
-                              uplo_letter,
-                              "--transposeA",
-                              transA_letter,
-                              "--diag",
-                              diag_letter,
-                              "-m",
-                              m,
-                              "--lda",
-                              lda,
-                              "--stride_A",
-                              stride_A,
-                              "--incx",
-                              incx,
-                              "--stride_x",
-                              stride_x,
-                              "--batch_count",
-                              batch_count);
-            }
+                auto uplo_letter   = rocblas_fill_letter(uplo);
+                auto transA_letter = rocblas_transpose_letter(transA);
+                auto diag_letter   = rocblas_diag_letter(diag);
 
-            if(layer_mode & rocblas_layer_mode_log_profile)
-                log_profile(handle,
-                            rocblas_trsv_strided_batched_name<T>,
-                            "uplo",
-                            uplo_letter,
-                            "transA",
-                            transA_letter,
-                            "diag",
-                            diag_letter,
-                            "M",
-                            m,
-                            "lda",
-                            lda,
-                            "stride_A",
-                            stride_A,
-                            "incx",
-                            incx,
-                            "stride_x",
-                            stride_x,
-                            "batch_count",
-                            batch_count);
+                if(layer_mode & rocblas_layer_mode_log_bench)
+                {
+                    if(handle->pointer_mode == rocblas_pointer_mode_host)
+                        log_bench(handle,
+                                  "./rocblas-bench -f trsv_strided_batched -r",
+                                  rocblas_precision_string<T>,
+                                  "--uplo",
+                                  uplo_letter,
+                                  "--transposeA",
+                                  transA_letter,
+                                  "--diag",
+                                  diag_letter,
+                                  "-m",
+                                  m,
+                                  "--lda",
+                                  lda,
+                                  "--stride_A",
+                                  stride_A,
+                                  "--incx",
+                                  incx,
+                                  "--stride_x",
+                                  stride_x,
+                                  "--batch_count",
+                                  batch_count);
+                }
+
+                if(layer_mode & rocblas_layer_mode_log_profile)
+                    log_profile(handle,
+                                rocblas_trsv_strided_batched_name<T>,
+                                "uplo",
+                                uplo_letter,
+                                "transA",
+                                transA_letter,
+                                "diag",
+                                diag_letter,
+                                "M",
+                                m,
+                                "lda",
+                                lda,
+                                "stride_A",
+                                stride_A,
+                                "incx",
+                                incx,
+                                "stride_x",
+                                stride_x,
+                                "batch_count",
+                                batch_count);
+            }
         }
 
         if(uplo != rocblas_fill_lower && uplo != rocblas_fill_upper)
@@ -131,45 +134,52 @@ namespace
         if(!A || !B)
             return rocblas_status_invalid_pointer;
 
+        // Proxy object holds the allocation. It must stay alive as long as mem_* pointers below are alive.
+        auto  mem = handle->device_malloc(0);
         void* mem_x_temp;
         void* mem_x_temp_arr;
         void* mem_invA;
         void* mem_invA_arr;
 
-        rocblas_status status = rocblas_trsv_template_mem<BLOCK, false, T>(handle,
-                                                                           m,
-                                                                           batch_count,
-                                                                           &mem_x_temp,
-                                                                           &mem_x_temp_arr,
-                                                                           &mem_invA,
-                                                                           &mem_invA_arr,
-                                                                           supplied_invA,
-                                                                           supplied_invA_size);
+        rocblas_status perf_status = rocblas_trsv_template_mem<BLOCK, false, T>(handle,
+                                                                                m,
+                                                                                batch_count,
+                                                                                mem,
+                                                                                mem_x_temp,
+                                                                                mem_x_temp_arr,
+                                                                                mem_invA,
+                                                                                mem_invA_arr,
+                                                                                supplied_invA,
+                                                                                supplied_invA_size);
 
-        rocblas_status status2 = rocblas_trsv_template<BLOCK, false, T>(handle,
-                                                                        uplo,
-                                                                        transA,
-                                                                        diag,
-                                                                        m,
-                                                                        A,
-                                                                        0,
-                                                                        lda,
-                                                                        stride_A,
-                                                                        B,
-                                                                        0,
-                                                                        incx,
-                                                                        stride_x,
-                                                                        batch_count,
-                                                                        mem_x_temp,
-                                                                        mem_x_temp_arr,
-                                                                        mem_invA,
-                                                                        mem_invA_arr,
-                                                                        supplied_invA,
-                                                                        supplied_invA_size,
-                                                                        0,
-                                                                        stride_invA);
+        // If this was a device memory query or an error occurred, return status
+        if(perf_status != rocblas_status_success && perf_status != rocblas_status_perf_degraded)
+            return perf_status;
 
-        return (status2 == rocblas_status_success) ? status : status2;
+        rocblas_status status = rocblas_trsv_template<BLOCK, false, T>(handle,
+                                                                       uplo,
+                                                                       transA,
+                                                                       diag,
+                                                                       m,
+                                                                       A,
+                                                                       0,
+                                                                       lda,
+                                                                       stride_A,
+                                                                       B,
+                                                                       0,
+                                                                       incx,
+                                                                       stride_x,
+                                                                       batch_count,
+                                                                       mem_x_temp,
+                                                                       mem_x_temp_arr,
+                                                                       mem_invA,
+                                                                       mem_invA_arr,
+                                                                       supplied_invA,
+                                                                       supplied_invA_size,
+                                                                       0,
+                                                                       stride_invA);
+
+        return status != rocblas_status_success ? status : perf_status;
     }
 
 } // namespace

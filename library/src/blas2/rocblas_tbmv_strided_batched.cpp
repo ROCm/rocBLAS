@@ -1,11 +1,11 @@
 /* ************************************************************************
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include "handle.h"
-#include "logging.h"
+#include "handle.hpp"
+#include "logging.hpp"
 #include "rocblas.h"
 #include "rocblas_tbmv.hpp"
-#include "utility.h"
+#include "utility.hpp"
 
 namespace
 {
@@ -38,81 +38,84 @@ namespace
         if(!handle)
             return rocblas_status_invalid_handle;
 
-        auto layer_mode = handle->layer_mode;
-        if(layer_mode
-           & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
-              | rocblas_layer_mode_log_profile))
+        if(!handle->is_device_memory_size_query())
         {
-            auto uplo_letter   = rocblas_fill_letter(uplo);
-            auto transA_letter = rocblas_transpose_letter(transA);
-            auto diag_letter   = rocblas_diag_letter(diag);
-
-            if(layer_mode & rocblas_layer_mode_log_trace)
-                log_trace(handle,
-                          rocblas_tbmv_name<T>,
-                          uplo,
-                          transA,
-                          diag,
-                          m,
-                          k,
-                          A,
-                          lda,
-                          stride_A,
-                          x,
-                          incx,
-                          stride_x,
-                          batch_count);
-
-            if(layer_mode & rocblas_layer_mode_log_bench)
+            auto layer_mode = handle->layer_mode;
+            if(layer_mode
+               & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
+                  | rocblas_layer_mode_log_profile))
             {
-                log_bench(handle,
-                          "./rocblas-bench -f tbmv_strided_batched -r",
-                          rocblas_precision_string<T>,
-                          "--uplo",
-                          uplo_letter,
-                          "--transposeA",
-                          transA_letter,
-                          "--diag",
-                          diag_letter,
-                          "-m",
-                          m,
-                          "-k",
-                          k,
-                          "--lda",
-                          lda,
-                          "--stride_a",
-                          stride_A,
-                          "--incx",
-                          incx,
-                          "--stride_x",
-                          stride_x,
-                          "--batch_count",
-                          batch_count);
-            }
+                auto uplo_letter   = rocblas_fill_letter(uplo);
+                auto transA_letter = rocblas_transpose_letter(transA);
+                auto diag_letter   = rocblas_diag_letter(diag);
 
-            if(layer_mode & rocblas_layer_mode_log_profile)
-                log_profile(handle,
-                            rocblas_tbmv_name<T>,
-                            "uplo",
-                            uplo_letter,
-                            "transA",
-                            transA_letter,
-                            "diag",
-                            diag_letter,
-                            "M",
-                            m,
-                            "k",
-                            k,
-                            "lda",
-                            lda,
-                            "stride_a",
-                            stride_A,
-                            "incx",
-                            incx,
-                            "stride_x",
-                            stride_x,
-                            "batch_count",
-                            batch_count);
+                if(layer_mode & rocblas_layer_mode_log_trace)
+                    log_trace(handle,
+                              rocblas_tbmv_name<T>,
+                              uplo,
+                              transA,
+                              diag,
+                              m,
+                              k,
+                              A,
+                              lda,
+                              stride_A,
+                              x,
+                              incx,
+                              stride_x,
+                              batch_count);
+
+                if(layer_mode & rocblas_layer_mode_log_bench)
+                {
+                    log_bench(handle,
+                              "./rocblas-bench -f tbmv_strided_batched -r",
+                              rocblas_precision_string<T>,
+                              "--uplo",
+                              uplo_letter,
+                              "--transposeA",
+                              transA_letter,
+                              "--diag",
+                              diag_letter,
+                              "-m",
+                              m,
+                              "-k",
+                              k,
+                              "--lda",
+                              lda,
+                              "--stride_a",
+                              stride_A,
+                              "--incx",
+                              incx,
+                              "--stride_x",
+                              stride_x,
+                              "--batch_count",
+                              batch_count);
+                }
+
+                if(layer_mode & rocblas_layer_mode_log_profile)
+                    log_profile(handle,
+                                rocblas_tbmv_name<T>,
+                                "uplo",
+                                uplo_letter,
+                                "transA",
+                                transA_letter,
+                                "diag",
+                                diag_letter,
+                                "M",
+                                m,
+                                "k",
+                                k,
+                                "lda",
+                                lda,
+                                "stride_a",
+                                stride_A,
+                                "incx",
+                                incx,
+                                "stride_x",
+                                stride_x,
+                                "batch_count",
+                                batch_count);
+            }
         }
 
         if(m < 0 || k < 0 || lda < k + 1 || !incx || batch_count < 0)
@@ -127,6 +130,8 @@ namespace
             return handle->set_optimal_device_memory_size(sizeof(T) * m * batch_count);
 
         auto mem_x_copy = handle->device_malloc(sizeof(T) * m * batch_count);
+        if(!mem_x_copy)
+            return rocblas_status_memory_error;
 
         return rocblas_tbmv_template(handle,
                                      uplo,

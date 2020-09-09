@@ -4,7 +4,7 @@
 #ifndef __ROCBLAS_SYMM_HPP__
 #define __ROCBLAS_SYMM_HPP__
 
-#include "handle.h"
+#include "handle.hpp"
 
 template <typename T>
 __device__ void symm_scale_device(rocblas_int m, rocblas_int n, T beta, T* C, rocblas_int ldc)
@@ -289,6 +289,9 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_symm_template(rocblas_handle hand
     rocblas_int          by          = (n - 1) / (symm_DIM_XY) + 1;
     dim3                 symm_grid(bx, by, batch_count);
     dim3                 symm_threads(symm_DIM_XY, symm_DIM_XY);
+
+    // Temporarily change the thread's default device ID to the handle's device ID
+    auto saved_device_id = handle->push_device_id();
 
     // Launch a herk kernel for symm.
     if(handle->pointer_mode == rocblas_pointer_mode_device)

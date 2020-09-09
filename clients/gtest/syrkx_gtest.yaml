@@ -30,6 +30,9 @@ Definitions:
     - { alpha:  0.0, alphai:  0.0, beta:  1.0, betai: 0.0 } # quick success
     - { alpha:  0.0, alphai:  0.0, beta:  2.0, betai: 0.5 } # scale step only
 
+  - &alpha_beta
+    - { alpha: -2.0, alphai:  1.5, beta: -0.5, betai: 0.5 }
+
 Tests:
 - name: syrkx_bad
   category: pre_checkin
@@ -61,10 +64,10 @@ Tests:
   category: nightly
   function: syrkx
   precision: *single_double_precisions_complex_real
-  uplo: [ U, L ]
+  uplo: [ U ]
   transA: [ N, T ]
   matrix_size: *large_matrix_size_range
-  alpha_beta: *alpha_beta_range
+  alpha_beta: *alpha_beta
 
 # batched
 - name: syrkx_batched_bad
@@ -92,17 +95,17 @@ Tests:
   transA: [ N, T ]
   matrix_size: *medium_matrix_size_range
   alpha_beta: *alpha_beta_range
-  batch_count: [ 1, 7 ]
+  batch_count: [ 2 ]
   fortran: [ false, true ]
 
 - name: syrkx_batched_large
   category: nightly
   function: syrkx_batched
   precision: *single_double_precisions_complex_real
-  uplo: [ U, L ]
+  uplo: [ U ]
   transA: [ N, T ]
   matrix_size: *large_matrix_size_range
-  alpha_beta: *alpha_beta_range
+  alpha_beta: *alpha_beta
   batch_count: [ 2 ]
 
 # strided batched
@@ -131,17 +134,17 @@ Tests:
   transA: [ N, T ]
   matrix_size: *medium_matrix_size_range
   alpha_beta: *alpha_beta_range
-  batch_count: [ 1, 7 ]
+  batch_count: [ 2 ]
   fortran: [ false, true ]
 
 - name: syrkx_strided_batched_large
   category: nightly
   function: syrkx_strided_batched
   precision: *single_double_precisions_complex_real
-  uplo: [ U, L ]
+  uplo: [ L ]
   transA: [ N, T ]
   matrix_size: *large_matrix_size_range
-  alpha_beta: *alpha_beta_range
+  alpha_beta: *alpha_beta
   batch_count: [ 2 ]
 
 ...

@@ -4,7 +4,7 @@
 
 #ifndef UTILITY_H
 #define UTILITY_H
-#include "definitions.h"
+#include "definitions.hpp"
 #include "rocblas.h"
 #include <cmath>
 #include <complex>
@@ -385,6 +385,18 @@ __device__ __host__ inline rocblas_half rocblas_abs(rocblas_half x)
     return t.x;
 }
 
+// Is power of two
+__device__ __host__ constexpr bool rocblas_is_po2(rocblas_int x)
+{
+    return (x && !(x & (x - 1)));
+}
+
+// Return previous power of two
+__device__ __host__ constexpr rocblas_int rocblas_previous_po2(rocblas_int x)
+{
+    return x ? decltype(x){1} << (8 * sizeof(x) - 1 - __builtin_clz(x)) : 0;
+}
+
 // Get base types from complex types.
 template <typename T, typename = void>
 struct rocblas_real_t_impl
@@ -447,6 +459,6 @@ constexpr double value_category(const T& beta)
 }
 
 ROCBLAS_EXPORT std::string rocblas_get_arch_name();
-bool                       tensile_supports_ldc_ne_ldd();
+bool                       rocblas_tensile_supports_ldc_ne_ldd();
 
 #endif

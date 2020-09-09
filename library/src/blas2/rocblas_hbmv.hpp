@@ -3,7 +3,7 @@
  * ************************************************************************ */
 #ifndef __ROCBLAS_hbmv_HPP__
 #define __ROCBLAS_hbmv_HPP__
-#include "handle.h"
+#include "handle.hpp"
 
 /**
   *  Helper for the non-transpose case. Iterates through each diagonal
@@ -73,7 +73,7 @@ __device__ T hbmvn_kernel_helper(rocblas_int ty,
 }
 
 /**
-  *  Computes y := alpha*A*x + beta*y where A is a hermetian matrix.
+  *  Computes y := alpha*A*x + beta*y where A is a Hermitian matrix.
   *  If uplo == upper, the strictly lower part of A is not referenced,
   *  if uplo == lower, the strictly upper part of A is not referenced.
   *  The imaginary part of the main diagonal is assumed to always be == 0.
@@ -208,6 +208,9 @@ rocblas_status rocblas_hbmv_template(rocblas_handle handle,
     rocblas_int          blocks      = (n - 1) / (hbmvN_DIM_X) + 1;
     dim3                 hbmvn_grid(blocks, batch_count);
     dim3                 hbmvn_threads(hbmvN_DIM_X, hbmvN_DIM_Y);
+
+    // Temporarily change the thread's default device ID to the handle's device ID
+    auto saved_device_id = handle->push_device_id();
 
     if(handle->pointer_mode == rocblas_pointer_mode_device)
     {

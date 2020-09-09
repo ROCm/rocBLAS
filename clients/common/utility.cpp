@@ -3,7 +3,7 @@
  * ************************************************************************ */
 
 #include "utility.hpp"
-#include "../../library/src/include/handle.h"
+#include "../../library/src/include/handle.hpp"
 #include "rocblas_random.hpp"
 #include <cstdlib>
 #include <cstring>

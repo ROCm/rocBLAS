@@ -121,6 +121,8 @@ namespace
                     = (BLAS1 == blas1::dot || BLAS1 == blas1::dot_batched
                        || BLAS1 == blas1::dot_strided_batched || BLAS1 == blas1::dotc
                        || BLAS1 == blas1::dotc_batched || BLAS1 == blas1::dotc_strided_batched);
+                bool is_axpy  = (BLAS1 == blas1::axpy || BLAS1 == blas1::axpy_batched
+                                || BLAS1 == blas1::axpy_strided_batched);
                 bool is_scal  = (BLAS1 == blas1::scal || BLAS1 == blas1::scal_batched
                                 || BLAS1 == blas1::scal_strided_batched);
                 bool is_rot   = (BLAS1 == blas1::rot || BLAS1 == blas1::rot_batched
@@ -160,7 +162,7 @@ namespace
                 if(!is_rotg && !is_rotmg)
                     name << '_' << arg.N;
 
-                if(BLAS1 == blas1::axpy || is_scal)
+                if(is_axpy || is_scal)
                     name << '_' << arg.alpha << "_" << arg.alphai;
 
                 if(!is_rotg && !is_rotmg)
@@ -171,12 +173,11 @@ namespace
                     name << '_' << arg.stride_x;
                 }
 
-                if(BLAS1 == blas1::axpy || BLAS1 == blas1::axpy_batched
-                   || BLAS1 == blas1::axpy_strided_batched || BLAS1 == blas1::copy
-                   || BLAS1 == blas1::copy_strided_batched || BLAS1 == blas1::copy_batched || is_dot
-                   || BLAS1 == blas1::swap || BLAS1 == blas1::swap_batched
-                   || BLAS1 == blas1::swap_strided_batched || is_rot || BLAS1 == blas1::rotm
-                   || BLAS1 == blas1::rotm_batched || BLAS1 == blas1::rotm_strided_batched)
+                if(is_axpy || BLAS1 == blas1::copy || BLAS1 == blas1::copy_strided_batched
+                   || BLAS1 == blas1::copy_batched || is_dot || BLAS1 == blas1::swap
+                   || BLAS1 == blas1::swap_batched || BLAS1 == blas1::swap_strided_batched || is_rot
+                   || BLAS1 == blas1::rotm || BLAS1 == blas1::rotm_batched
+                   || BLAS1 == blas1::rotm_strided_batched)
                 {
                     name << '_' << arg.incy;
                 }

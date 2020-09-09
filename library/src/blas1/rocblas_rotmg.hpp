@@ -2,8 +2,8 @@
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #pragma once
-#include "handle.h"
-#include "logging.h"
+#include "handle.hpp"
+#include "logging.hpp"
 
 template <typename T>
 __device__ __host__ void rocblas_rotmg_calc(T& d1, T& d2, T& x1, const T& y1, T* param)
@@ -193,6 +193,9 @@ rocblas_status rocblas_rotmg_template(rocblas_handle handle,
 {
     if(batch_count <= 0)
         return rocblas_status_success;
+
+    // Temporarily change the thread's default device ID to the handle's device ID
+    auto saved_device_id = handle->push_device_id();
 
     hipStream_t rocblas_stream = handle->rocblas_stream;
     if(rocblas_pointer_mode_device == handle->pointer_mode)

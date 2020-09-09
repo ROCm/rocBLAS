@@ -11791,6 +11791,77 @@ module rocblas
     ! blas Extensions !
     !-----------------!
 
+    ! axpy_ex
+    interface
+        function rocblas_axpy_ex(handle, n, alpha, alpha_type, x, x_type, incx, &
+                y, y_type, incy, execution_type) &
+                result(c_int) &
+                bind(c, name = 'rocblas_axpy_ex')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            type(c_ptr), value :: handle
+            integer(c_int), value :: n
+            type(c_ptr), value :: alpha
+            integer(kind(rocblas_datatype_f16_r)), value :: alpha_type
+            type(c_ptr), value :: x
+            integer(kind(rocblas_datatype_f16_r)), value :: x_type
+            integer(c_int), value :: incx
+            type(c_ptr), value :: y
+            integer(kind(rocblas_datatype_f16_r)), value :: y_type
+            integer(c_int), value :: incy
+            integer(kind(rocblas_datatype_f16_r)), value :: execution_type
+        end function rocblas_axpy_ex
+    end interface
+
+    interface
+        function rocblas_axpy_batched_ex(handle, n, alpha, alpha_type, x, x_type, incx, &
+                y, y_type, incy, batch_count, execution_type) &
+                result(c_int) &
+                bind(c, name = 'rocblas_axpy_batched_ex')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            type(c_ptr), value :: handle
+            integer(c_int), value :: n
+            type(c_ptr), value :: alpha
+            integer(kind(rocblas_datatype_f16_r)), value :: alpha_type
+            type(c_ptr), value :: x
+            integer(kind(rocblas_datatype_f16_r)), value :: x_type
+            integer(c_int), value :: incx
+            type(c_ptr), value :: y
+            integer(kind(rocblas_datatype_f16_r)), value :: y_type
+            integer(c_int), value :: incy
+            integer(c_int), value :: batch_count
+            integer(kind(rocblas_datatype_f16_r)), value :: execution_type
+        end function rocblas_axpy_batched_ex
+    end interface
+
+    interface
+        function rocblas_axpy_strided_batched_ex(handle, n, alpha, alpha_type, x, x_type, incx, stridex, &
+                y, y_type, incy, stridey, batch_count, execution_type) &
+                result(c_int) &
+                bind(c, name = 'rocblas_axpy_strided_batched_ex')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            type(c_ptr), value :: handle
+            integer(c_int), value :: n
+            type(c_ptr), value :: alpha
+            integer(kind(rocblas_datatype_f16_r)), value :: alpha_type
+            type(c_ptr), value :: x
+            integer(kind(rocblas_datatype_f16_r)), value :: x_type
+            integer(c_int), value :: incx
+            integer(c_int64_t), value :: stridex
+            type(c_ptr), value :: y
+            integer(kind(rocblas_datatype_f16_r)), value :: y_type
+            integer(c_int), value :: incy
+            integer(c_int64_t), value :: stridey
+            integer(c_int), value :: batch_count
+            integer(kind(rocblas_datatype_f16_r)), value :: execution_type
+        end function rocblas_axpy_strided_batched_ex
+    end interface
+
     ! gemm_ex
     interface
         function rocblas_gemm_ex(handle, transA, transB, m, n, k, alpha, a, a_type, lda, &
@@ -11910,6 +11981,42 @@ module rocblas
             ! we will need a workaround.
             integer(c_int32_t), value :: flags
         end function rocblas_gemm_strided_batched_ex
+    end interface
+
+    interface
+        function rocblas_gemm_ext2(handle, m, n, k, alpha, a, a_type, row_stride_a, col_stride_a, &
+             b, b_type, row_stride_b, col_stride_b, beta, c, c_type, row_stride_c, col_stride_c, &
+             d, d_type, row_stride_d, col_stride_d, compute_type, algo, solution_index, flags) &
+                result(c_int) &
+                bind(c, name = 'rocblas_gemm_ext2')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            type(c_ptr), value :: handle
+            integer(c_int), value :: m
+            integer(c_int), value :: n
+            integer(c_int), value :: k
+            type(c_ptr), value :: alpha
+            type(c_ptr), value :: a
+            integer(kind(rocblas_datatype_f16_r)), value :: a_type
+            integer(c_int64_t), value :: row_stride_a, col_stride_a
+            type(c_ptr), value :: b
+            integer(kind(rocblas_datatype_f16_r)), value :: b_type
+            integer(c_int64_t), value :: row_stride_b, col_stride_b
+            type(c_ptr), value :: beta
+            type(c_ptr), value :: c
+            integer(kind(rocblas_datatype_f16_r)), value :: c_type
+            integer(c_int64_t), value :: row_stride_c, col_stride_c
+            type(c_ptr), value :: d
+            integer(kind(rocblas_datatype_f16_r)), value :: d_type
+            integer(c_int64_t), value :: row_stride_d, col_stride_d
+            integer(kind(rocblas_datatype_f16_r)), value :: compute_type
+            integer(kind(rocblas_gemm_algo_standard)), value :: algo
+            integer(c_int32_t), value :: solution_index
+            ! No unsigned types in fortran. If larger values are needed
+            ! we will need a workaround.
+            integer(c_int32_t), value :: flags
+        end function rocblas_gemm_ext2
     end interface
 
     ! trsm_ex

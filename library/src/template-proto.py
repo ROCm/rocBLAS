@@ -1,27 +1,27 @@
 # Copyright 2020 Advanced Micro Devices, Inc.
 
 import os
-import sys
 import argparse
 import glob
 import re
 
-################################################################################
+###############################################################################
 # Template to prototype translator
-################################################################################
+###############################################################################
 
 gPattern = re.compile(r'\{[^\{\}]*\}')
+
 
 def translateToProto(templateCode):
     global gPattern
     proto = ''.join(templateCode)
-    if (re.search("ROCBLAS_EXPORT_NOINLINE", proto) == None):
-         return
-    proto = re.sub("ROCBLAS_EXPORT_NOINLINE ","", proto )
+    if re.search("ROCBLAS_EXPORT_NOINLINE", proto) is None:
+        return
+    proto = re.sub("ROCBLAS_EXPORT_NOINLINE ", "", proto)
     n = 1
     while n:
         proto, n = re.subn(gPattern, '', proto)
-    print( proto.rstrip() + ";\n" )
+    print(proto.rstrip() + ";\n")
 
 
 def parseForExportedTemplates(inputFileName):
@@ -29,13 +29,13 @@ def parseForExportedTemplates(inputFileName):
         haveTemplate = False
         lines = f.readlines()
         for line in lines:
-            filter = re.match(r'^template',line)
+            filter = re.match(r'^template', line)
             if (filter):
                 haveTemplate = True
                 body = []
             if (haveTemplate):
                 body.append(line)
-                if (re.match(r'^\}',line) != None):
+                if re.match(r'^\}', line) is not None:
                     translateToProto(body)
                     haveTemplate = False
         if (haveTemplate):
@@ -43,18 +43,18 @@ def parseForExportedTemplates(inputFileName):
 
 
 def RunExporter():
+    print("""
+// Copyright (C) 2020 Advanced Micro Devices, Inc. All rights reserved.
 
-    print("")
-    print("// Copyright (C) 2020 Advanced Micro Devices, Inc. All rights reserved.")
-    print("")
-    print("// script generated file do not edit")
-    print("")
-    print("#pragma once")
-    print("")
+// Script-generated file -- do not edit
+
+#pragma once
+""")
 
     # Parse Command Line Arguments
     argParser = argparse.ArgumentParser()
-    argParser.add_argument('path', nargs='+', help='Path of a files or directory')
+    argParser.add_argument('path', nargs='+',
+                           help='Path of a files or directory')
     args = argParser.parse_args()
 
     # Parse paths
@@ -71,8 +71,8 @@ def RunExporter():
         parseForExportedTemplates(f)
 
 
-################################################################################
+###############################################################################
 # Main
-################################################################################
+###############################################################################
 if __name__ == "__main__":
     RunExporter()

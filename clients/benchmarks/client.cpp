@@ -31,7 +31,10 @@
 #include "testing_asum_strided_batched.hpp"
 #include "testing_axpy.hpp"
 #include "testing_axpy_batched.hpp"
+#include "testing_axpy_batched_ex.hpp"
+#include "testing_axpy_ex.hpp"
 #include "testing_axpy_strided_batched.hpp"
+#include "testing_axpy_strided_batched_ex.hpp"
 #include "testing_copy.hpp"
 #include "testing_copy_batched.hpp"
 #include "testing_copy_strided_batched.hpp"
@@ -271,6 +274,7 @@ struct perf_blas<T, U, std::enable_if_t<std::is_same<T, float>{} || std::is_same
         static const func_map map
             = { {"set_get_vector", testing_set_get_vector<T>},
                 {"set_get_matrix", testing_set_get_matrix<T>},
+                {"set_get_matrix_async", testing_set_get_matrix_async<T>},
                 // L1
                 {"asum", testing_asum<T>},
                 {"asum_batched", testing_asum_batched<T>},
@@ -581,6 +585,42 @@ struct perf_blas<T,
     }
 };
 
+template <typename Ta, typename Tx = Ta, typename Ty = Tx, typename Tex = Ty, typename = void>
+struct perf_blas_axpy_ex : rocblas_test_invalid
+{
+};
+
+template <typename Ta, typename Tx, typename Ty, typename Tex>
+struct perf_blas_axpy_ex<
+    Ta,
+    Tx,
+    Ty,
+    Tex,
+    std::enable_if_t<(std::is_same<Ta, float>{} && std::is_same<Ta, Tx>{} && std::is_same<Tx, Ty>{}
+                      && std::is_same<Ty, Tex>{})
+                     || (std::is_same<Ta, double>{} && std::is_same<Ta, Tx>{}
+                         && std::is_same<Tx, Ty>{} && std::is_same<Ty, Tex>{})
+                     || (std::is_same<Ta, rocblas_half>{} && std::is_same<Ta, Tx>{}
+                         && std::is_same<Tx, Ty>{} && std::is_same<Ty, Tex>{})
+                     || (std::is_same<Ta, rocblas_float_complex>{} && std::is_same<Ta, Tx>{}
+                         && std::is_same<Tx, Ty>{} && std::is_same<Ty, Tex>{})
+                     || (std::is_same<Ta, rocblas_double_complex>{} && std::is_same<Ta, Tx>{}
+                         && std::is_same<Tx, Ty>{} && std::is_same<Ty, Tex>{})
+                     || (std::is_same<Ta, rocblas_half>{} && std::is_same<Ta, Tx>{}
+                         && std::is_same<Tx, Ty>{} && std::is_same<Tex, float>{})>>
+    : rocblas_test_valid
+{
+    void operator()(const Arguments& arg)
+    {
+        static const func_map map = {
+            {"axpy_ex", testing_axpy_ex<Ta, Tx, Ty, Tex>},
+            {"axpy_batched_ex", testing_axpy_batched_ex<Ta, Tx, Ty, Tex>},
+            {"axpy_strided_batched_ex", testing_axpy_strided_batched_ex<Ta, Tx, Ty, Tex>},
+        };
+        run_function(map, arg);
+    }
+};
+
 template <typename Ti, typename To = Ti, typename Tc = To, typename = void>
 struct perf_blas_rot : rocblas_test_invalid
 {
@@ -840,6 +880,9 @@ int run_bench_test(Arguments& arg)
         else if(!strcmp(function, "rot") || !strcmp(function, "rot_batched")
                 || !strcmp(function, "rot_strided_batched"))
             rocblas_blas1_dispatch<perf_blas_rot>(arg);
+        else if(!strcmp(function, "axpy_ex") || !strcmp(function, "axpy_batched_ex")
+                || !strcmp(function, "axpy_strided_batched_ex"))
+            rocblas_blas1_ex_dispatch<perf_blas_axpy_ex>(arg);
         else
             rocblas_simple_dispatch<perf_blas>(arg);
     }

@@ -3418,7 +3418,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_chbmv(rocblas_handle               handle,
         y := alpha*A*x + beta*y
 
     where alpha and beta are scalars, x and y are n element vectors and A is an
-    n by n hermitian band matrix, with k super-diagonals.
+    n by n Hermitian band matrix, with k super-diagonals.
 
     @param[in]
     handle    [rocblas_handle]
@@ -3439,7 +3439,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_chbmv(rocblas_handle               handle,
     A         device pointer storing matrix A. Of dimension (lda, n).
               if uplo == rocblas_fill_upper:
                 The leading (k + 1) by n part of A must contain the upper
-                triangular band part of the hermitian matrix, with the leading
+                triangular band part of the Hermitian matrix, with the leading
                 diagonal in row (k + 1), the first super-diagonal on the RHS
                 of row k, etc.
                 The top left k by x triangle of A will not be referenced.
@@ -3452,7 +3452,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_chbmv(rocblas_handle               handle,
 
               if uplo == rocblas_fill_lower:
                 The leading (k + 1) by n part of A must contain the lower
-                triangular band part of the hermitian matrix, with the leading
+                triangular band part of the Hermitian matrix, with the leading
                 diagonal in row (1), the first sub-diagonal on the LHS of
                 row 2, etc.
                 The bottom right k by k triangle of A will not be referenced.
@@ -3463,7 +3463,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_chbmv(rocblas_handle               handle,
                                                     (0, 0) (6, 8) (3, 0) (7,-7)
                                                     (0, 0) (0, 0) (7, 7) (4, 0)
 
-              As a hermitian matrix, the imaginary part of the main diagonal
+              As a Hermitian matrix, the imaginary part of the main diagonal
               of A will not be referenced and is assumed to be == 0.
     @param[in]
     lda       [rocblas_int]
@@ -3517,7 +3517,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_chbmv_batched(rocblas_handle              
         y_i := alpha*A_i*x_i + beta*y_i
 
     where alpha and beta are scalars, x_i and y_i are n element vectors and A_i is an
-    n by n hermitian band matrix with k super-diagonals, for each batch in i = [1, batch_count].
+    n by n Hermitian band matrix with k super-diagonals, for each batch in i = [1, batch_count].
 
     @param[in]
     handle    [rocblas_handle]
@@ -3538,7 +3538,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_chbmv_batched(rocblas_handle              
     A         device array of device pointers storing each matrix_i A of dimension (lda, n).
               if uplo == rocblas_fill_upper:
                 The leading (k + 1) by n part of each A_i must contain the upper
-                triangular band part of the hermitian matrix, with the leading
+                triangular band part of the Hermitian matrix, with the leading
                 diagonal in row (k + 1), the first super-diagonal on the RHS
                 of row k, etc.
                 The top left k by x triangle of each A_i will not be referenced.
@@ -3551,7 +3551,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_chbmv_batched(rocblas_handle              
 
               if uplo == rocblas_fill_lower:
                 The leading (k + 1) by n part of each A_i must contain the lower
-                triangular band part of the hermitian matrix, with the leading
+                triangular band part of the Hermitian matrix, with the leading
                 diagonal in row (1), the first sub-diagonal on the LHS of
                 row 2, etc.
                 The bottom right k by k triangle of each A_i will not be referenced.
@@ -3562,7 +3562,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_chbmv_batched(rocblas_handle              
                                                     (0, 0) (6, 8) (3, 0) (7,-7)
                                                     (0, 0) (0, 0) (7, 7) (4, 0)
 
-              As a hermitian matrix, the imaginary part of the main diagonal
+              As a Hermitian matrix, the imaginary part of the main diagonal
               of each A_i will not be referenced and is assumed to be == 0.
     @param[in]
     lda       [rocblas_int]
@@ -3623,7 +3623,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_chbmv_strided_batched(rocblas_handle      
         y_i := alpha*A_i*x_i + beta*y_i
 
     where alpha and beta are scalars, x_i and y_i are n element vectors and A_i is an
-    n by n hermitian band matrix with k super-diagonals, for each batch in i = [1, batch_count].
+    n by n Hermitian band matrix with k super-diagonals, for each batch in i = [1, batch_count].
 
     @param[in]
     handle    [rocblas_handle]
@@ -3644,7 +3644,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_chbmv_strided_batched(rocblas_handle      
     A         device array pointing to the first matrix A_1. Each A_i is of dimension (lda, n).
               if uplo == rocblas_fill_upper:
                 The leading (k + 1) by n part of each A_i must contain the upper
-                triangular band part of the hermitian matrix, with the leading
+                triangular band part of the Hermitian matrix, with the leading
                 diagonal in row (k + 1), the first super-diagonal on the RHS
                 of row k, etc.
                 The top left k by x triangle of each A_i will not be referenced.
@@ -3657,7 +3657,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_chbmv_strided_batched(rocblas_handle      
 
               if uplo == rocblas_fill_lower:
                 The leading (k + 1) by n part of each A_i must contain the lower
-                triangular band part of the hermitian matrix, with the leading
+                triangular band part of the Hermitian matrix, with the leading
                 diagonal in row (1), the first sub-diagonal on the LHS of
                 row 2, etc.
                 The bottom right k by k triangle of each A_i will not be referenced.
@@ -3668,7 +3668,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_chbmv_strided_batched(rocblas_handle      
                                                     (0, 0) (6, 8) (3, 0) (7,-7)
                                                     (0, 0) (0, 0) (7, 7) (4, 0)
 
-              As a hermitian matrix, the imaginary part of the main diagonal
+              As a Hermitian matrix, the imaginary part of the main diagonal
               of each A_i will not be referenced and is assumed to be == 0.
     @param[in]
     lda       [rocblas_int]
@@ -3736,15 +3736,15 @@ ROCBLAS_EXPORT rocblas_status rocblas_chemv(rocblas_handle               handle,
         y := alpha*A*x + beta*y
 
     where alpha and beta are scalars, x and y are n element vectors and A is an
-    n by n hermitian matrix.
+    n by n Hermitian matrix.
 
     @param[in]
     handle    [rocblas_handle]
               handle to the rocblas library context queue.
     @param[in]
     uplo      [rocblas_fill]
-              rocblas_fill_upper: the upper triangular part of the hermitian matrix A is supplied.
-              rocblas_fill_lower: the lower triangular part of the hermitian matrix A is supplied.
+              rocblas_fill_upper: the upper triangular part of the Hermitian matrix A is supplied.
+              rocblas_fill_lower: the lower triangular part of the Hermitian matrix A is supplied.
     @param[in]
     n         [rocblas_int]
               the order of the matrix A.
@@ -3754,13 +3754,13 @@ ROCBLAS_EXPORT rocblas_status rocblas_chemv(rocblas_handle               handle,
     A         device pointer storing matrix A. Of dimension (lda, n).
               if uplo == rocblas_fill_upper:
                 The upper triangular part of A must contain
-                the upper triangular part of a hermitian matrix. The lower
+                the upper triangular part of a Hermitian matrix. The lower
                 triangular part of A will not be referenced.
               if uplo == rocblas_fill_lower:
                 The lower triangular part of A must contain
-                the lower triangular part of a hermitian matrix. The upper
+                the lower triangular part of a Hermitian matrix. The upper
                 triangular part of A will not be referenced.
-              As a hermitian matrix, the imaginary part of the main diagonal
+              As a Hermitian matrix, the imaginary part of the main diagonal
               of A will not be referenced and is assumed to be == 0.
     @param[in]
     lda       [rocblas_int]
@@ -3812,15 +3812,15 @@ ROCBLAS_EXPORT rocblas_status rocblas_chemv_batched(rocblas_handle              
         y_i := alpha*A_i*x_i + beta*y_i
 
     where alpha and beta are scalars, x_i and y_i are n element vectors and A_i is an
-    n by n hermitian matrix, for each batch in i = [1, batch_count].
+    n by n Hermitian matrix, for each batch in i = [1, batch_count].
 
     @param[in]
     handle    [rocblas_handle]
               handle to the rocblas library context queue.
     @param[in]
     uplo      [rocblas_fill]
-              rocblas_fill_upper: the upper triangular part of the hermitian matrix A is supplied.
-              rocblas_fill_lower: the lower triangular part of the hermitian matrix A is supplied.
+              rocblas_fill_upper: the upper triangular part of the Hermitian matrix A is supplied.
+              rocblas_fill_lower: the lower triangular part of the Hermitian matrix A is supplied.
     @param[in]
     n         [rocblas_int]
               the order of each matrix A_i.
@@ -3830,13 +3830,13 @@ ROCBLAS_EXPORT rocblas_status rocblas_chemv_batched(rocblas_handle              
     A         device array of device pointers storing each matrix A_i of dimension (lda, n).
               if uplo == rocblas_fill_upper:
                 The upper triangular part of each A_i must contain
-                the upper triangular part of a hermitian matrix. The lower
+                the upper triangular part of a Hermitian matrix. The lower
                 triangular part of each A_i will not be referenced.
               if uplo == rocblas_fill_lower:
                 The lower triangular part of each A_i must contain
-                the lower triangular part of a hermitian matrix. The upper
+                the lower triangular part of a Hermitian matrix. The upper
                 triangular part of each A_i will not be referenced.
-              As a hermitian matrix, the imaginary part of the main diagonal
+              As a Hermitian matrix, the imaginary part of the main diagonal
               of each A_i will not be referenced and is assumed to be == 0.
     @param[in]
     lda       [rocblas_int]
@@ -3895,15 +3895,15 @@ ROCBLAS_EXPORT rocblas_status rocblas_chemv_strided_batched(rocblas_handle      
         y_i := alpha*A_i*x_i + beta*y_i
 
     where alpha and beta are scalars, x_i and y_i are n element vectors and A_i is an
-    n by n hermitian matrix, for each batch in i = [1, batch_count].
+    n by n Hermitian matrix, for each batch in i = [1, batch_count].
 
     @param[in]
     handle    [rocblas_handle]
               handle to the rocblas library context queue.
     @param[in]
     uplo      [rocblas_fill]
-              rocblas_fill_upper: the upper triangular part of the hermitian matrix A is supplied.
-              rocblas_fill_lower: the lower triangular part of the hermitian matrix A is supplied.
+              rocblas_fill_upper: the upper triangular part of the Hermitian matrix A is supplied.
+              rocblas_fill_lower: the lower triangular part of the Hermitian matrix A is supplied.
     @param[in]
     n         [rocblas_int]
               the order of each matrix A_i.
@@ -3913,13 +3913,13 @@ ROCBLAS_EXPORT rocblas_status rocblas_chemv_strided_batched(rocblas_handle      
     A         device array of device pointers storing each matrix A_i of dimension (lda, n).
               if uplo == rocblas_fill_upper:
                 The upper triangular part of each A_i must contain
-                the upper triangular part of a hermitian matrix. The lower
+                the upper triangular part of a Hermitian matrix. The lower
                 triangular part of each A_i will not be referenced.
               if uplo == rocblas_fill_lower:
                 The lower triangular part of each A_i must contain
-                the lower triangular part of a hermitian matrix. The upper
+                the lower triangular part of a Hermitian matrix. The upper
                 triangular part of each A_i will not be referenced.
-              As a hermitian matrix, the imaginary part of the main diagonal
+              As a Hermitian matrix, the imaginary part of the main diagonal
               of each A_i will not be referenced and is assumed to be == 0.
     @param[in]
     lda       [rocblas_int]
@@ -3974,7 +3974,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_cher(rocblas_handle               handle,
         A := A + alpha*x*x**H
 
     where alpha is a real scalar, x is a vector, and A is an
-    n by n hermitian matrix.
+    n by n Hermitian matrix.
 
     @param[in]
     handle    [rocblas_handle]
@@ -3997,12 +3997,12 @@ ROCBLAS_EXPORT rocblas_status rocblas_cher(rocblas_handle               handle,
               specifies the increment for the elements of x.
     @param[inout]
     A         device pointer storing the specified triangular portion of
-              the hermitian matrix A. Of size (lda * n).
+              the Hermitian matrix A. Of size (lda * n).
               if uplo == rocblas_fill_upper:
-                The upper triangular portion of the hermitian matrix A is supplied. The lower
+                The upper triangular portion of the Hermitian matrix A is supplied. The lower
                 triangluar portion will not be touched.
             if uplo == rocblas_fill_lower:
-                The lower triangular portion of the hermitian matrix A is supplied. The upper
+                The lower triangular portion of the Hermitian matrix A is supplied. The upper
                 triangular portion will not be touched.
             Note that the imaginary part of the diagonal elements are not accessed and are assumed
             to be 0.
@@ -4060,12 +4060,12 @@ ROCBLAS_EXPORT rocblas_status rocblas_cher_batched(rocblas_handle               
               specifies the increment for the elements of each x_i.
     @param[inout]
     A         device array of device pointers storing the specified triangular portion of
-              each hermitian matrix A_i of at least size ((n * (n + 1)) / 2). Array is of at least size batch_count.
+              each Hermitian matrix A_i of at least size ((n * (n + 1)) / 2). Array is of at least size batch_count.
               if uplo == rocblas_fill_upper:
-                The upper triangular portion of each hermitian matrix A_i is supplied. The lower triangular portion
+                The upper triangular portion of each Hermitian matrix A_i is supplied. The lower triangular portion
                 of each A_i will not be touched.
             if uplo == rocblas_fill_lower:
-                The lower triangular portion of each hermitian matrix A_i is supplied. The upper triangular portion
+                The lower triangular portion of each Hermitian matrix A_i is supplied. The upper triangular portion
                 of each A_i will not be touched.
             Note that the imaginary part of the diagonal elements are not accessed and are assumed
             to be 0.
@@ -4106,7 +4106,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_cher_strided_batched(rocblas_handle       
         A_i := A_i + alpha*x_i*x_i**H
 
     where alpha is a real scalar, x_i is a vector, and A_i is an
-    n by n hermitian matrix, for i = 1, ..., batch_count.
+    n by n Hermitian matrix, for i = 1, ..., batch_count.
 
     @param[in]
     handle    [rocblas_handle]
@@ -4132,12 +4132,12 @@ ROCBLAS_EXPORT rocblas_status rocblas_cher_strided_batched(rocblas_handle       
               stride from the start of one vector (x_i) and the next one (x_i+1).
     @param[inout]
     A         device array of device pointers storing the specified triangular portion of
-              each hermitian matrix A_i. Points to the first matrix (A_1).
+              each Hermitian matrix A_i. Points to the first matrix (A_1).
               if uplo == rocblas_fill_upper:
-                The upper triangular portion of each hermitian matrix A_i is supplied. The lower triangular
+                The upper triangular portion of each Hermitian matrix A_i is supplied. The lower triangular
                 portion of each A_i will not be touched.
             if uplo == rocblas_fill_lower:
-                The lower triangular portion of each hermitian matrix A_i is supplied. The upper triangular
+                The lower triangular portion of each Hermitian matrix A_i is supplied. The upper triangular
                 portion of each A_i will not be touched.
             Note that the imaginary part of the diagonal elements are not accessed and are assumed
             to be 0.
@@ -4182,7 +4182,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_cher2(rocblas_handle               handle,
         A := A + alpha*x*y**H + conj(alpha)*y*x**H
 
     where alpha is a complex scalar, x and y are vectors, and A is an
-    n by n hermitian matrix.
+    n by n Hermitian matrix.
 
     @param[in]
     handle    [rocblas_handle]
@@ -4210,12 +4210,12 @@ ROCBLAS_EXPORT rocblas_status rocblas_cher2(rocblas_handle               handle,
               specifies the increment for the elements of y.
     @param[inout]
     A         device pointer storing the specified triangular portion of
-              the hermitian matrix A. Of size (lda, n).
+              the Hermitian matrix A. Of size (lda, n).
               if uplo == rocblas_fill_upper:
-                The upper triangular portion of the hermitian matrix A is supplied. The lower triangular
+                The upper triangular portion of the Hermitian matrix A is supplied. The lower triangular
                 portion of A will not be touched.
             if uplo == rocblas_fill_lower:
-                The lower triangular portion of the hermitian matrix A is supplied. The upper triangular
+                The lower triangular portion of the Hermitian matrix A is supplied. The upper triangular
                 portion of A will not be touched.
             Note that the imaginary part of the diagonal elements are not accessed and are assumed
             to be 0.
@@ -4254,7 +4254,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_cher2_batched(rocblas_handle              
         A_i := A_i + alpha*x_i*y_i**H + conj(alpha)*y_i*x_i**H
 
     where alpha is a complex scalar, x_i and y_i are vectors, and A_i is an
-    n by n hermitian matrix for each batch in i = [1, batch_count].
+    n by n Hermitian matrix for each batch in i = [1, batch_count].
 
     @param[in]
     handle    [rocblas_handle]
@@ -4282,12 +4282,12 @@ ROCBLAS_EXPORT rocblas_status rocblas_cher2_batched(rocblas_handle              
               specifies the increment for the elements of each y_i.
     @param[inout]
     A         device array of device pointers storing the specified triangular portion of
-              each hermitian matrix A_i of size (lda, n).
+              each Hermitian matrix A_i of size (lda, n).
               if uplo == rocblas_fill_upper:
-                The upper triangular portion of each hermitian matrix A_i is supplied. The lower triangular
+                The upper triangular portion of each Hermitian matrix A_i is supplied. The lower triangular
                 portion of each A_i will not be touched.
             if uplo == rocblas_fill_lower:
-                The lower triangular portion of each hermitian matrix A_i is supplied. The upper triangular
+                The lower triangular portion of each Hermitian matrix A_i is supplied. The upper triangular
                 portion of each A_i will not be touched.
             Note that the imaginary part of the diagonal elements are not accessed and are assumed
             to be 0.
@@ -4332,7 +4332,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_cher2_strided_batched(rocblas_handle      
         A_i := A_i + alpha*x_i*y_i**H + conj(alpha)*y_i*x_i**H
 
     where alpha is a complex scalar, x_i and y_i are vectors, and A_i is an
-    n by n hermitian matrix for each batch in i = [1, batch_count].
+    n by n Hermitian matrix for each batch in i = [1, batch_count].
 
     @param[in]
     handle    [rocblas_handle]
@@ -4366,12 +4366,12 @@ ROCBLAS_EXPORT rocblas_status rocblas_cher2_strided_batched(rocblas_handle      
               specifies the stride between the beginning of one vector (y_i) and the next (y_i+1).
     @param[inout]
     A         device pointer pointing to the first matrix (A_1). Stores the specified triangular portion of
-              each hermitian matrix A_i.
+              each Hermitian matrix A_i.
               if uplo == rocblas_fill_upper:
-                The upper triangular portion of each hermitian matrix A_i is supplied. The lower triangular
+                The upper triangular portion of each Hermitian matrix A_i is supplied. The lower triangular
                 portion of each A_i will not be touched.
             if uplo == rocblas_fill_lower:
-                The lower triangular portion of each hermitian matrix A_i is supplied. The upper triangular
+                The lower triangular portion of each Hermitian matrix A_i is supplied. The upper triangular
                 portion of each A_i will not be touched.
             Note that the imaginary part of the diagonal elements are not accessed and are assumed
             to be 0.
@@ -4420,15 +4420,15 @@ ROCBLAS_EXPORT rocblas_status rocblas_chpmv(rocblas_handle               handle,
         y := alpha*A*x + beta*y
 
     where alpha and beta are scalars, x and y are n element vectors and A is an
-    n by n hermitian matrix, supplied in packed form (see description below).
+    n by n Hermitian matrix, supplied in packed form (see description below).
 
     @param[in]
     handle    [rocblas_handle]
               handle to the rocblas library context queue.
     @param[in]
     uplo      [rocblas_fill]
-              rocblas_fill_upper: the upper triangular part of the hermitian matrix A is supplied in AP.
-              rocblas_fill_lower: the lower triangular part of the hermitian matrix A is supplied in AP.
+              rocblas_fill_upper: the upper triangular part of the Hermitian matrix A is supplied in AP.
+              rocblas_fill_lower: the lower triangular part of the Hermitian matrix A is supplied in AP.
     @param[in]
     n         [rocblas_int]
               the order of the matrix A, must be >= 0.
@@ -4436,9 +4436,9 @@ ROCBLAS_EXPORT rocblas_status rocblas_chpmv(rocblas_handle               handle,
     alpha     device pointer or host pointer to scalar alpha.
     @param[in]
     AP        device pointer storing the packed version of the specified triangular portion of
-              the hermitian matrix A. Of at least size ((n * (n + 1)) / 2).
+              the Hermitian matrix A. Of at least size ((n * (n + 1)) / 2).
               if uplo == rocblas_fill_upper:
-                The upper triangular portion of the hermitian matrix A is supplied.
+                The upper triangular portion of the Hermitian matrix A is supplied.
                 The matrix is compacted so that AP contains the triangular portion column-by-column
                 so that:
                 AP(0) = A(0,0)
@@ -4449,7 +4449,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_chpmv(rocblas_handle               handle,
                         (2,-1) (4, 0) (5,-1)    -----> [(1,0), (2,1), (4,0), (3,2), (5,-1), (6,0)]
                         (3,-2) (5, 1) (6, 0)
             if uplo == rocblas_fill_lower:
-                The lower triangular portion of the hermitian matrix A is supplied.
+                The lower triangular portion of the Hermitian matrix A is supplied.
                 The matrix is compacted so that AP contains the triangular portion column-by-column
                 so that:
                 AP(0) = A(0,0)
@@ -4506,7 +4506,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_chpmv_batched(rocblas_handle              
         y_i := alpha*A_i*x_i + beta*y_i
 
     where alpha and beta are scalars, x_i and y_i are n element vectors and A_i is an
-    n by n hermitian matrix, supplied in packed form (see description below),
+    n by n Hermitian matrix, supplied in packed form (see description below),
     for each batch in i = [1, batch_count].
 
     @param[in]
@@ -4514,8 +4514,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_chpmv_batched(rocblas_handle              
               handle to the rocblas library context queue.
     @param[in]
     uplo      [rocblas_fill]
-              rocblas_fill_upper: the upper triangular part of each hermitian matrix A_i is supplied in AP.
-              rocblas_fill_lower: the lower triangular part of each hermitian matrix A_i is supplied in AP.
+              rocblas_fill_upper: the upper triangular part of each Hermitian matrix A_i is supplied in AP.
+              rocblas_fill_lower: the lower triangular part of each Hermitian matrix A_i is supplied in AP.
     @param[in]
     n         [rocblas_int]
               the order of each matrix A_i.
@@ -4523,9 +4523,9 @@ ROCBLAS_EXPORT rocblas_status rocblas_chpmv_batched(rocblas_handle              
     alpha     device pointer or host pointer to scalar alpha.
     @param[in]
     AP      device pointer of device pointers storing the packed version of the specified triangular
-            portion of each hermitian matrix A_i. Each A_i is of at least size ((n * (n + 1)) / 2).
+            portion of each Hermitian matrix A_i. Each A_i is of at least size ((n * (n + 1)) / 2).
             if uplo == rocblas_fill_upper:
-            The upper triangular portion of each hermitian matrix A_i is supplied.
+            The upper triangular portion of each Hermitian matrix A_i is supplied.
             The matrix is compacted so that each AP_i contains the triangular portion column-by-column
             so that:
             AP(0) = A(0,0)
@@ -4536,7 +4536,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_chpmv_batched(rocblas_handle              
                     (2,-1) (4, 0) (5,-1)    -----> [(1,0), (2,1), (4,0), (3,2), (5,-1), (6,0)]
                     (3,-2) (5, 1) (6, 0)
         if uplo == rocblas_fill_lower:
-            The lower triangular portion of each hermitian matrix A_i is supplied.
+            The lower triangular portion of each Hermitian matrix A_i is supplied.
             The matrix is compacted so that each AP_i contains the triangular portion column-by-column
             so that:
             AP(0) = A(0,0)
@@ -4600,7 +4600,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_chpmv_strided_batched(rocblas_handle      
         y_i := alpha*A_i*x_i + beta*y_i
 
     where alpha and beta are scalars, x_i and y_i are n element vectors and A_i is an
-    n by n hermitian matrix, supplied in packed form (see description below),
+    n by n Hermitian matrix, supplied in packed form (see description below),
     for each batch in i = [1, batch_count].
 
     @param[in]
@@ -4608,8 +4608,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_chpmv_strided_batched(rocblas_handle      
               handle to the rocblas library context queue.
     @param[in]
     uplo      [rocblas_fill]
-              rocblas_fill_upper: the upper triangular part of each hermitian matrix A_i is supplied in AP.
-              rocblas_fill_lower: the lower triangular part of each hermitian matrix A_i is supplied in AP.
+              rocblas_fill_upper: the upper triangular part of each Hermitian matrix A_i is supplied in AP.
+              rocblas_fill_lower: the lower triangular part of each Hermitian matrix A_i is supplied in AP.
     @param[in]
     n         [rocblas_int]
               the order of each matrix A_i.
@@ -4617,9 +4617,9 @@ ROCBLAS_EXPORT rocblas_status rocblas_chpmv_strided_batched(rocblas_handle      
     alpha     device pointer or host pointer to scalar alpha.
     @param[in]
     AP        device pointer pointing to the beginning of the first matrix (AP_1). Stores the packed
-              version of the specified triangular portion of each hermitian matrix AP_i of size ((n * (n + 1)) / 2).
+              version of the specified triangular portion of each Hermitian matrix AP_i of size ((n * (n + 1)) / 2).
               if uplo == rocblas_fill_upper:
-                The upper triangular portion of each hermitian matrix A_i is supplied.
+                The upper triangular portion of each Hermitian matrix A_i is supplied.
                 The matrix is compacted so that each AP_i contains the triangular portion column-by-column
                 so that:
                 AP(0) = A(0,0)
@@ -4630,7 +4630,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_chpmv_strided_batched(rocblas_handle      
                         (2,-1) (4, 0) (5,-1)    -----> [(1,0), (2,1), (4,0), (3,2), (5,-1), (6,0)]
                         (3,-2) (5, 1) (6, 0)
             if uplo == rocblas_fill_lower:
-                The lower triangular portion of each hermitian matrix A_i is supplied.
+                The lower triangular portion of each Hermitian matrix A_i is supplied.
                 The matrix is compacted so that each AP_i contains the triangular portion column-by-column
                 so that:
                 AP(0) = A(0,0)
@@ -4699,7 +4699,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_chpr(rocblas_handle               handle,
         A := A + alpha*x*x**H
 
     where alpha is a real scalar, x is a vector, and A is an
-    n by n hermitian matrix, supplied in packed form.
+    n by n Hermitian matrix, supplied in packed form.
 
     @param[in]
     handle    [rocblas_handle]
@@ -4722,9 +4722,9 @@ ROCBLAS_EXPORT rocblas_status rocblas_chpr(rocblas_handle               handle,
               specifies the increment for the elements of x.
     @param[inout]
     AP        device pointer storing the packed version of the specified triangular portion of
-              the hermitian matrix A. Of at least size ((n * (n + 1)) / 2).
+              the Hermitian matrix A. Of at least size ((n * (n + 1)) / 2).
               if uplo == rocblas_fill_upper:
-                The upper triangular portion of the hermitian matrix A is supplied.
+                The upper triangular portion of the Hermitian matrix A is supplied.
                 The matrix is compacted so that AP contains the triangular portion column-by-column
                 so that:
                 AP(0) = A(0,0)
@@ -4735,7 +4735,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_chpr(rocblas_handle               handle,
                         (2,-1) (3, 0) (5,3)  -----> [(1,0), (2,1), (3,0), (4,9), (5,3), (6,0)]
                         (4,-9) (5,-3) (6,0)
             if uplo == rocblas_fill_lower:
-                The lower triangular portion of the hermitian matrix A is supplied.
+                The lower triangular portion of the Hermitian matrix A is supplied.
                 The matrix is compacted so that AP contains the triangular portion column-by-column
                 so that:
                 AP(0) = A(0,0)
@@ -4796,9 +4796,9 @@ ROCBLAS_EXPORT rocblas_status rocblas_chpr_batched(rocblas_handle               
               specifies the increment for the elements of each x_i.
     @param[inout]
     AP        device array of device pointers storing the packed version of the specified triangular portion of
-              each hermitian matrix A_i of at least size ((n * (n + 1)) / 2). Array is of at least size batch_count.
+              each Hermitian matrix A_i of at least size ((n * (n + 1)) / 2). Array is of at least size batch_count.
               if uplo == rocblas_fill_upper:
-                The upper triangular portion of each hermitian matrix A_i is supplied.
+                The upper triangular portion of each Hermitian matrix A_i is supplied.
                 The matrix is compacted so that AP contains the triangular portion column-by-column
                 so that:
                 AP(0) = A(0,0)
@@ -4809,7 +4809,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_chpr_batched(rocblas_handle               
                         (2,-1) (3, 0) (5,3)  -----> [(1,0), (2,1), (3,0), (4,9), (5,3), (6,0)]
                         (4,-9) (5,-3) (6,0)
             if uplo == rocblas_fill_lower:
-                The lower triangular portion of each hermitian matrix A_i is supplied.
+                The lower triangular portion of each Hermitian matrix A_i is supplied.
                 The matrix is compacted so that AP contains the triangular portion column-by-column
                 so that:
                 AP(0) = A(0,0)
@@ -4879,9 +4879,9 @@ ROCBLAS_EXPORT rocblas_status rocblas_chpr_strided_batched(rocblas_handle       
               stride from the start of one vector (x_i) and the next one (x_i+1).
     @param[inout]
     AP        device array of device pointers storing the packed version of the specified triangular portion of
-              each hermitian matrix A_i. Points to the first matrix (A_1).
+              each Hermitian matrix A_i. Points to the first matrix (A_1).
               if uplo == rocblas_fill_upper:
-                The upper triangular portion of each hermitian matrix A_i is supplied.
+                The upper triangular portion of each Hermitian matrix A_i is supplied.
                 The matrix is compacted so that AP contains the triangular portion column-by-column
                 so that:
                 AP(0) = A(0,0)
@@ -4892,7 +4892,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_chpr_strided_batched(rocblas_handle       
                         (2,-1) (3, 0) (5,3)  -----> [(1,0), (2,1), (3,0), (4,9), (5,3), (6,0)]
                         (4,-9) (5,-3) (6,0)
             if uplo == rocblas_fill_lower:
-                The lower triangular portion of each hermitian matrix A_i is supplied.
+                The lower triangular portion of each Hermitian matrix A_i is supplied.
                 The matrix is compacted so that AP contains the triangular portion column-by-column
                 so that:
                 AP(0) = A(0,0)
@@ -4940,7 +4940,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_chpr2(rocblas_handle               handle,
         A := A + alpha*x*y**H + conj(alpha)*y*x**H
 
     where alpha is a complex scalar, x and y are vectors, and A is an
-    n by n hermitian matrix, supplied in packed form.
+    n by n Hermitian matrix, supplied in packed form.
 
     @param[in]
     handle    [rocblas_handle]
@@ -4968,9 +4968,9 @@ ROCBLAS_EXPORT rocblas_status rocblas_chpr2(rocblas_handle               handle,
               specifies the increment for the elements of y.
     @param[inout]
     AP        device pointer storing the packed version of the specified triangular portion of
-              the hermitian matrix A. Of at least size ((n * (n + 1)) / 2).
+              the Hermitian matrix A. Of at least size ((n * (n + 1)) / 2).
               if uplo == rocblas_fill_upper:
-                The upper triangular portion of the hermitian matrix A is supplied.
+                The upper triangular portion of the Hermitian matrix A is supplied.
                 The matrix is compacted so that AP contains the triangular portion column-by-column
                 so that:
                 AP(0) = A(0,0)
@@ -4981,7 +4981,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_chpr2(rocblas_handle               handle,
                         (2,-1) (3, 0) (5,3)  -----> [(1,0), (2,1), (3,0), (4,9), (5,3), (6,0)]
                         (4,-9) (5,-3) (6,0)
             if uplo == rocblas_fill_lower:
-                The lower triangular portion of the hermitian matrix A is supplied.
+                The lower triangular portion of the Hermitian matrix A is supplied.
                 The matrix is compacted so that AP contains the triangular portion column-by-column
                 so that:
                 AP(0) = A(0,0)
@@ -5051,9 +5051,9 @@ ROCBLAS_EXPORT rocblas_status rocblas_chpr2_batched(rocblas_handle              
               specifies the increment for the elements of each y_i.
     @param[inout]
     AP        device array of device pointers storing the packed version of the specified triangular portion of
-              each hermitian matrix A_i of at least size ((n * (n + 1)) / 2). Array is of at least size batch_count.
+              each Hermitian matrix A_i of at least size ((n * (n + 1)) / 2). Array is of at least size batch_count.
               if uplo == rocblas_fill_upper:
-                The upper triangular portion of each hermitian matrix A_i is supplied.
+                The upper triangular portion of each Hermitian matrix A_i is supplied.
                 The matrix is compacted so that AP contains the triangular portion column-by-column
                 so that:
                 AP(0) = A(0,0)
@@ -5064,7 +5064,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_chpr2_batched(rocblas_handle              
                         (2,-1) (3, 0) (5,3)  -----> [(1,0), (2,1), (3,0), (4,9), (5,3), (6,0)]
                         (4,-9) (5,-3) (6,0)
             if uplo == rocblas_fill_lower:
-                The lower triangular portion of each hermitian matrix A_i is supplied.
+                The lower triangular portion of each Hermitian matrix A_i is supplied.
                 The matrix is compacted so that AP contains the triangular portion column-by-column
                 so that:
                 AP(0) = A(0,0)
@@ -5146,9 +5146,9 @@ ROCBLAS_EXPORT rocblas_status rocblas_chpr2_strided_batched(rocblas_handle      
               stride from the start of one vector (y_i) and the next one (y_i+1).
     @param[inout]
     AP        device array of device pointers storing the packed version of the specified triangular portion of
-              each hermitian matrix A_i. Points to the first matrix (A_1).
+              each Hermitian matrix A_i. Points to the first matrix (A_1).
               if uplo == rocblas_fill_upper:
-                The upper triangular portion of each hermitian matrix A_i is supplied.
+                The upper triangular portion of each Hermitian matrix A_i is supplied.
                 The matrix is compacted so that AP contains the triangular portion column-by-column
                 so that:
                 AP(0) = A(0,0)
@@ -5159,7 +5159,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_chpr2_strided_batched(rocblas_handle      
                         (2,-1) (3, 0) (5,3)  -----> [(1,0), (2,1), (3,0), (4,9), (5,3), (6,0)]
                         (4,-9) (5,-3) (6,0)
             if uplo == rocblas_fill_lower:
-                The lower triangular portion of each hermitian matrix A_i is supplied.
+                The lower triangular portion of each Hermitian matrix A_i is supplied.
                 The matrix is compacted so that AP contains the triangular portion column-by-column
                 so that:
                 AP(0) = A(0,0)
@@ -10345,7 +10345,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_cherkx(rocblas_handle               handle
 
     where  alpha and beta are scalars, op(A) and op(B) are n by k matrices, and
     C is a n x n Hermitian matrix stored as either upper or lower.
-    This routine should only be used when the caller can guarantee that the result of op( A )*op( B )^T will be Hermetian.
+    This routine should only be used when the caller can guarantee that the result of op( A )*op( B )^T will be Hermitian.
 
 
         op( A ) = A, op( B ) = B, and A and B are n by k if trans == rocblas_operation_none
@@ -10452,7 +10452,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_cherkx_batched(rocblas_handle             
 
     where  alpha and beta are scalars, op(A_i) and op(B_i) are n by k matrices, and
     C_i is a n x n Hermitian matrix stored as either upper or lower.
-    This routine should only be used when the caller can guarantee that the result of op( A )*op( B )^T will be Hermetian.
+    This routine should only be used when the caller can guarantee that the result of op( A )*op( B )^T will be Hermitian.
 
         op( A_i ) = A_i, op( B_i ) = B_i, and A_i and B_i are n by k if trans == rocblas_operation_none
         op( A_i ) = A_i^H, op( B_i ) = B_i^H,  and A_i and B_i are k by n if trans == rocblas_operation_conjugate_transpose
@@ -10566,7 +10566,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_cherkx_strided_batched(rocblas_handle     
 
     where  alpha and beta are scalars, op(A_i) and op(B_i) are n by k matrices, and
     C_i is a n x n Hermitian matrix stored as either upper or lower.
-    This routine should only be used when the caller can guarantee that the result of op( A )*op( B )^T will be Hermetian.
+    This routine should only be used when the caller can guarantee that the result of op( A )*op( B )^T will be Hermitian.
 
         op( A_i ) = A_i, op( B_i ) = B_i, and A_i and B_i are n by k if trans == rocblas_operation_none
         op( A_i ) = A_i^H, op( B_i ) = B_i^H,  and A_i and B_i are k by n if trans == rocblas_operation_conjugate_transpose
@@ -15896,6 +15896,222 @@ ROCBLAS_EXPORT rocblas_status rocblas_trsm_strided_batched_ex(rocblas_handle    
                                                               rocblas_stride    stride_invA,
                                                               rocblas_datatype  compute_type);
 
+/*! \brief BLAS EX API
+
+    \details
+    axpy_ex   computes constant alpha multiplied by vector x, plus vector y
+
+        y := alpha * x + y
+
+        Currently supported datatypes are as follows:
+
+        ---------------------------------------------
+        | alpha_type | x_type | y_type | execution_type |
+        |-----------|-------|-------|---------------|
+        |  f16_r    | f16_r | f16_r |     f16_r     |
+        |  f16_r    | f16_r | f16_r |     f32_r     |
+        |  f32_r    | f32_r | f32_r |     f32_r     |
+        |  f64_r    | f64_r | f64_r |     f64_r     |
+        |  f32_c    | f32_c | f32_c |     f32_c     |
+        |  f64_c    | f64_c | f64_c |     f64_c     |
+        ---------------------------------------------
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+    @param[in]
+    n         [rocblas_int]
+              the number of elements in x and y.
+    @param[in]
+    alpha     device pointer or host pointer to specify the scalar alpha.
+    @param[in]
+    alpha_type [rocblas_datatype]
+              specifies the datatype of alpha.
+    @param[in]
+    x         device pointer storing vector x.
+    @param[in]
+    x_type [rocblas_datatype]
+           specifies the datatype of vector x.
+    @param[in]
+    incx      [rocblas_int]
+              specifies the increment for the elements of x.
+    @param[inout]
+    y         device pointer storing vector y.
+    @param[in]
+    y_type [rocblas_datatype]
+          specifies the datatype of vector y.
+    @param[in]
+    incy      [rocblas_int]
+              specifies the increment for the elements of y.
+    @param[in]
+    execution_type [rocblas_datatype]
+                  specifies the datatype of computation.
+
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_axpy_ex(rocblas_handle   handle,
+                                              rocblas_int      n,
+                                              const void*      alpha,
+                                              rocblas_datatype alpha_type,
+                                              const void*      x,
+                                              rocblas_datatype x_type,
+                                              rocblas_int      incx,
+                                              void*            y,
+                                              rocblas_datatype y_type,
+                                              rocblas_int      incy,
+                                              rocblas_datatype execution_type);
+
+/*! \brief BLAS EX API
+
+    \details
+    axpy_batched_ex   computes constant alpha multiplied by vector x, plus vector y over
+                      a set of batched vectors.
+
+        y := alpha * x + y
+
+        Currently supported datatypes are as follows:
+
+        ---------------------------------------------
+        | alpha_type | x_type | y_type | execution_type |
+        |-----------|-------|-------|---------------|
+        |  f16_r    | f16_r | f16_r |     f16_r     |
+        |  f16_r    | f16_r | f16_r |     f32_r     |
+        |  f32_r    | f32_r | f32_r |     f32_r     |
+        |  f64_r    | f64_r | f64_r |     f64_r     |
+        |  f32_c    | f32_c | f32_c |     f32_c     |
+        |  f64_c    | f64_c | f64_c |     f64_c     |
+        ---------------------------------------------
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+    @param[in]
+    n         [rocblas_int]
+              the number of elements in each x_i and y_i.
+    @param[in]
+    alpha     device pointer or host pointer to specify the scalar alpha.
+    @param[in]
+    alpha_type [rocblas_datatype]
+              specifies the datatype of alpha.
+    @param[in]
+    x         device array of device pointers storing each vector x_i.
+    @param[in]
+    x_type [rocblas_datatype]
+           specifies the datatype of each vector x_i.
+    @param[in]
+    incx      [rocblas_int]
+              specifies the increment for the elements of each x_i.
+    @param[inout]
+    y         device array of device pointers storing each vector y_i.
+    @param[in]
+    y_type [rocblas_datatype]
+          specifies the datatype of each vector y_i.
+    @param[in]
+    incy      [rocblas_int]
+              specifies the increment for the elements of each y_i.
+    @param[in]
+    batch_count [rocblas_int]
+                number of instances in the batch.
+    @param[in]
+    execution_type [rocblas_datatype]
+                  specifies the datatype of computation.
+
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_axpy_batched_ex(rocblas_handle   handle,
+                                                      rocblas_int      n,
+                                                      const void*      alpha,
+                                                      rocblas_datatype alpha_type,
+                                                      const void*      x,
+                                                      rocblas_datatype x_type,
+                                                      rocblas_int      incx,
+                                                      void*            y,
+                                                      rocblas_datatype y_type,
+                                                      rocblas_int      incy,
+                                                      rocblas_int      batch_count,
+                                                      rocblas_datatype execution_type);
+
+/*! \brief BLAS EX API
+
+    \details
+    axpy_strided_batched_ex   computes constant alpha multiplied by vector x, plus vector y over
+                      a set of strided batched vectors.
+
+        y := alpha * x + y
+
+        Currently supported datatypes are as follows:
+
+        ---------------------------------------------
+        | alpha_type | x_type | y_type | execution_type |
+        |-----------|-------|-------|---------------|
+        |  f16_r    | f16_r | f16_r |     f16_r     |
+        |  f16_r    | f16_r | f16_r |     f32_r     |
+        |  f32_r    | f32_r | f32_r |     f32_r     |
+        |  f64_r    | f64_r | f64_r |     f64_r     |
+        |  f32_c    | f32_c | f32_c |     f32_c     |
+        |  f64_c    | f64_c | f64_c |     f64_c     |
+        ---------------------------------------------
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+    @param[in]
+    n         [rocblas_int]
+              the number of elements in each x_i and y_i.
+    @param[in]
+    alpha     device pointer or host pointer to specify the scalar alpha.
+    @param[in]
+    alpha_type [rocblas_datatype]
+              specifies the datatype of alpha.
+    @param[in]
+    x         device pointer to the first vector x_1.
+    @param[in]
+    x_type [rocblas_datatype]
+           specifies the datatype of each vector x_i.
+    @param[in]
+    incx      [rocblas_int]
+              specifies the increment for the elements of each x_i.
+    @param[in]
+    stridex   [rocblas_stride]
+              stride from the start of one vector (x_i) to the next one (x_i+1).
+              There are no restrictions placed on strideyx, however the user should
+              take care to ensure that strideyx is of appropriate size, for a typical
+              case this means stridex >= n * incx.
+    @param[inout]
+    y         device pointer to the first vector y_1.
+    @param[in]
+    y_type [rocblas_datatype]
+          specifies the datatype of each vector y_i.
+    @param[in]
+    incy      [rocblas_int]
+              specifies the increment for the elements of each y_i.
+    @param[in]
+    stridey   [rocblas_stride]
+              stride from the start of one vector (y_i) to the next one (y_i+1).
+              There are no restrictions placed on stridey, however the user should
+              take care to ensure that stridey is of appropriate size, for a typical
+              case this means stridey >= n * incy.
+    @param[in]
+    batch_count [rocblas_int]
+                number of instances in the batch.
+    @param[in]
+    execution_type [rocblas_datatype]
+                  specifies the datatype of computation.
+
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_axpy_strided_batched_ex(rocblas_handle   handle,
+                                                              rocblas_int      n,
+                                                              const void*      alpha,
+                                                              rocblas_datatype alpha_type,
+                                                              const void*      x,
+                                                              rocblas_datatype x_type,
+                                                              rocblas_int      incx,
+                                                              rocblas_stride   stridex,
+                                                              void*            y,
+                                                              rocblas_datatype y_type,
+                                                              rocblas_int      incy,
+                                                              rocblas_stride   stridey,
+                                                              rocblas_int      batch_count,
+                                                              rocblas_datatype execution_type);
+
 /*! BLAS Auxiliary API
 
     \details
@@ -15959,11 +16175,27 @@ ROCBLAS_EXPORT rocblas_status rocblas_start_device_memory_size_query(rocblas_han
     @param[in]
     handle          rocblas handle
     @param[out]
-    size             maximum of the optimal sizes collected
+    size            maximum of the optimal sizes collected
  ******************************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_stop_device_memory_size_query(rocblas_handle handle,
                                                                     size_t*        size);
 
+// Internal functions for managing device memory
+ROCBLAS_EXPORT bool           rocblas_is_device_memory_size_query(rocblas_handle handle);
+ROCBLAS_EXPORT rocblas_status rocblas_set_optimal_device_memory_size_impl(rocblas_handle handle,
+                                                                          size_t         count,
+                                                                          ...);
+ROCBLAS_EXPORT rocblas_status rocblas_device_malloc_alloc(rocblas_handle handle,
+                                                          struct rocblas_device_malloc_base** res,
+                                                          size_t                              count,
+                                                          ...);
+ROCBLAS_EXPORT bool           rocblas_device_malloc_success(struct rocblas_device_malloc_base* ptr);
+ROCBLAS_EXPORT rocblas_status rocblas_device_malloc_ptr(struct rocblas_device_malloc_base* ptr,
+                                                        void**                             res);
+ROCBLAS_EXPORT rocblas_status rocblas_device_malloc_get(struct rocblas_device_malloc_base* ptr,
+                                                        size_t                             index,
+                                                        void**                             res);
+ROCBLAS_EXPORT rocblas_status rocblas_device_malloc_free(struct rocblas_device_malloc_base* ptr);
 /*! \brief
     \details
     Gets the current device memory size for the handle

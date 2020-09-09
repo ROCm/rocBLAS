@@ -95,7 +95,7 @@ namespace
             return rocblas_status_invalid_pointer;
 
         static constexpr rocblas_stride stride_0 = 0;
-        return rocblas_axpy_template<NB>(
+        return rocblas_axpy_template<NB, T>(
             handle, n, alpha, x, incx, stride_0, y, incy, stride_0, batch_count);
     }
 

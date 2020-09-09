@@ -6,7 +6,7 @@
 #ifndef _GEMM_HOST_HPP_
 #define _GEMM_HOST_HPP_
 
-#include "handle.h"
+#include "handle.hpp"
 
 #ifdef USE_TENSILE_HOST
 
@@ -87,7 +87,7 @@ rocblas_status tensile_helper(const T&          alpha_h,
 #define TENSILE_ARGS(T)                                                                        \
     (T*)C, (const T*)C, (const T*)A, (const T*)B, *((const T*)&alpha_h), *((const T*)&beta_h), \
         strideC1, strideC2, strideC1, strideC2, strideA1, strideA2, strideB1, strideB2, sizeI, \
-        sizeJ, sizeK, sizeL, handle->rocblas_stream, 0, nullptr, nullptr
+        sizeJ, sizeK, sizeL, handle->rocblas_stream, 0, nullptr, nullptr, nullptr
 
 template <>
 inline rocblas_status tensile_helper(const rocblas_half& alpha_h,
@@ -560,6 +560,9 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_gemm_template(rocblas_handle    h
     // Early exit. Note: k==0 is not an early exit, since C still needs to be multiplied by beta.
     if(m == 0 || n == 0 || batch_count == 0)
         return rocblas_status_success;
+
+    // Temporarily change the thread's default device ID to the handle's device ID
+    auto saved_device_id = handle->push_device_id();
 
     T alpha_h, beta_h;
     RETURN_IF_ROCBLAS_ERROR(

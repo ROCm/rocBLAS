@@ -203,9 +203,6 @@ int main(int argc, char** argv)
     // Set Google Test listener
     rocblas_set_listener();
 
-    // Initialize rocBLAS (not explicitly needed; just included for testing)
-    rocblas_initialize();
-
     // Run the tests
     int status = RUN_ALL_TESTS();
 

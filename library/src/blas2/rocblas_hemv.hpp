@@ -3,10 +3,10 @@
  * ************************************************************************ */
 #ifndef __ROCBLAS_HEMV_HPP__
 #define __ROCBLAS_HEMV_HPP__
-#include "handle.h"
+#include "handle.hpp"
 
 /**
-  *  Computes y := alpha*A*x + beta*y where A is a hermetian matrix.
+  *  Computes y := alpha*A*x + beta*y where A is a Hermitian matrix.
   *  If uplo == upper, the strictly lower part of A is not referenced,
   *  if uplo == lower, the strictly upper part of A is not referenced.
   *  The imaginary part of the main diagonal is assumed to always be == 0.
@@ -156,6 +156,9 @@ rocblas_status rocblas_hemv_template(rocblas_handle handle,
     rocblas_int          blocks      = (n - 1) / (HEMVN_DIM_X) + 1;
     dim3                 hemvn_grid(blocks, batch_count);
     dim3                 hemvn_threads(HEMVN_DIM_X, HEMVN_DIM_Y);
+
+    // Temporarily change the thread's default device ID to the handle's device ID
+    auto saved_device_id = handle->push_device_id();
 
     if(handle->pointer_mode == rocblas_pointer_mode_device)
     {

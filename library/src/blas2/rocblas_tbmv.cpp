@@ -2,7 +2,7 @@
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "rocblas_tbmv.hpp"
-#include "logging.h"
+#include "logging.hpp"
 
 namespace
 {
@@ -32,56 +32,60 @@ namespace
         if(!handle)
             return rocblas_status_invalid_handle;
 
-        auto layer_mode = handle->layer_mode;
-        if(layer_mode
-           & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
-              | rocblas_layer_mode_log_profile))
+        if(!handle->is_device_memory_size_query())
         {
-            auto uplo_letter   = rocblas_fill_letter(uplo);
-            auto transA_letter = rocblas_transpose_letter(transA);
-            auto diag_letter   = rocblas_diag_letter(diag);
-
-            if(layer_mode & rocblas_layer_mode_log_trace)
-                log_trace(handle, rocblas_tbmv_name<T>, uplo, transA, diag, m, k, A, lda, x, incx);
-
-            if(layer_mode & rocblas_layer_mode_log_bench)
+            auto layer_mode = handle->layer_mode;
+            if(layer_mode
+               & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
+                  | rocblas_layer_mode_log_profile))
             {
-                log_bench(handle,
-                          "./rocblas-bench -f tbmv -r",
-                          rocblas_precision_string<T>,
-                          "--uplo",
-                          uplo_letter,
-                          "--transposeA",
-                          transA_letter,
-                          "--diag",
-                          diag_letter,
-                          "-m",
-                          m,
-                          "-k",
-                          k,
-                          "--lda",
-                          lda,
-                          "--incx",
-                          incx);
-            }
+                auto uplo_letter   = rocblas_fill_letter(uplo);
+                auto transA_letter = rocblas_transpose_letter(transA);
+                auto diag_letter   = rocblas_diag_letter(diag);
 
-            if(layer_mode & rocblas_layer_mode_log_profile)
-                log_profile(handle,
-                            rocblas_tbmv_name<T>,
-                            "uplo",
-                            uplo_letter,
-                            "transA",
-                            transA_letter,
-                            "diag",
-                            diag_letter,
-                            "M",
-                            m,
-                            "k",
-                            k,
-                            "lda",
-                            lda,
-                            "incx",
-                            incx);
+                if(layer_mode & rocblas_layer_mode_log_trace)
+                    log_trace(
+                        handle, rocblas_tbmv_name<T>, uplo, transA, diag, m, k, A, lda, x, incx);
+
+                if(layer_mode & rocblas_layer_mode_log_bench)
+                {
+                    log_bench(handle,
+                              "./rocblas-bench -f tbmv -r",
+                              rocblas_precision_string<T>,
+                              "--uplo",
+                              uplo_letter,
+                              "--transposeA",
+                              transA_letter,
+                              "--diag",
+                              diag_letter,
+                              "-m",
+                              m,
+                              "-k",
+                              k,
+                              "--lda",
+                              lda,
+                              "--incx",
+                              incx);
+                }
+
+                if(layer_mode & rocblas_layer_mode_log_profile)
+                    log_profile(handle,
+                                rocblas_tbmv_name<T>,
+                                "uplo",
+                                uplo_letter,
+                                "transA",
+                                transA_letter,
+                                "diag",
+                                diag_letter,
+                                "M",
+                                m,
+                                "k",
+                                k,
+                                "lda",
+                                lda,
+                                "incx",
+                                incx);
+            }
         }
 
         if(m < 0 || k < 0 || lda < k + 1 || !incx)
@@ -98,6 +102,8 @@ namespace
             return handle->set_optimal_device_memory_size(sizeof(T) * m);
 
         auto mem = handle->device_malloc(sizeof(T) * m);
+        if(!mem)
+            return rocblas_status_memory_error;
 
         return rocblas_tbmv_template(
             handle, uplo, transA, diag, m, k, A, 0, lda, 0, x, 0, incx, 0, 1, (T*)mem);

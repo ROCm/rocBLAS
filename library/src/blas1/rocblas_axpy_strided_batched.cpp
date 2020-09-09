@@ -1,7 +1,7 @@
 /* ************************************************************************
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include "logging.h"
+#include "logging.hpp"
 #include "rocblas_axpy.hpp"
 
 namespace
@@ -125,7 +125,7 @@ namespace
         if(!x || !y)
             return rocblas_status_invalid_pointer;
 
-        return rocblas_axpy_template<NB>(
+        return rocblas_axpy_template<NB, T>(
             handle, n, alpha, x, incx, stridex, y, incy, stridey, batch_count);
     }
 

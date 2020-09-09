@@ -1066,7 +1066,7 @@ rocblas_status special_trsm_template(rocblas_handle    handle,
                 size_t j = parity ? r : q;
 
                 // copy a BLOCK*n piece we are solving at a time
-                if(!r || !tensile_supports_ldc_ne_ldd())
+                if(!r || !rocblas_tensile_supports_ldc_ne_ldd())
                     copy_block_unit<T>(handle,
                                        BLOCK,
                                        width,
@@ -1091,7 +1091,7 @@ rocblas_status special_trsm_template(rocblas_handle    handle,
                     else
                         offsetA = parity ? r * BLOCK * lda : BLOCK * (q * lda + q + 1);
 
-                    if(!tensile_supports_ldc_ne_ldd())
+                    if(!rocblas_tensile_supports_ldc_ne_ldd())
                     {
                         rocblas_gemm_template<BATCHED>(handle,
                                                        transA,
@@ -1187,7 +1187,7 @@ rocblas_status special_trsm_template(rocblas_handle    handle,
                 size_t j = parity ? q : r;
 
                 // copy a m*BLOCK piece we are solving at a time
-                if(!r || !tensile_supports_ldc_ne_ldd())
+                if(!r || !rocblas_tensile_supports_ldc_ne_ldd())
                     copy_block_unit<T>(handle,
                                        width,
                                        BLOCK,
@@ -1211,7 +1211,7 @@ rocblas_status special_trsm_template(rocblas_handle    handle,
                     else
                         offsetA = parity ? BLOCK * (q * lda + q + lda) : r * BLOCK;
 
-                    if(!tensile_supports_ldc_ne_ldd())
+                    if(!rocblas_tensile_supports_ldc_ne_ldd())
                     {
                         rocblas_gemm_template<BATCHED>(handle,
                                                        rocblas_operation_none,
@@ -1314,19 +1314,22 @@ rocblas_status special_trsm_template(rocblas_handle    handle,
  *  arrays of pointers for invA and x_temp (mem_x_temp_arr, mem_invA_arr).
  */
 template <rocblas_int BLOCK, bool BATCHED, typename T, typename U>
-ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_trsm_template_mem(rocblas_handle handle,
-                                                                 rocblas_side   side,
-                                                                 rocblas_int    m,
-                                                                 rocblas_int    n,
-                                                                 rocblas_int    batch_count,
-                                                                 void*&         mem_x_temp,
-                                                                 void*&         mem_x_temp_arr,
-                                                                 void*&         mem_invA,
-                                                                 void*&         mem_invA_arr,
-                                                                 U supplied_invA = nullptr,
-                                                                 rocblas_int supplied_invA_size = 0)
+ROCBLAS_EXPORT_NOINLINE rocblas_status
+    rocblas_trsm_template_mem(rocblas_handle              handle,
+                              rocblas_side                side,
+                              rocblas_int                 m,
+                              rocblas_int                 n,
+                              rocblas_int                 batch_count,
+                              rocblas_device_malloc_base& mem_base,
+                              void*&                      mem_x_temp,
+                              void*&                      mem_x_temp_arr,
+                              void*&                      mem_invA,
+                              void*&                      mem_invA_arr,
+                              const U*                    supplied_invA      = nullptr,
+                              rocblas_int                 supplied_invA_size = 0)
 {
-    bool SUBSTITUTION_ENABLED = true;
+    auto& mem                  = static_cast<decltype(handle->device_malloc(0))&>(mem_base);
+    bool  SUBSTITUTION_ENABLED = true;
 
     rocblas_status perf_status = rocblas_status_success;
     rocblas_int    k           = side == rocblas_side_left ? m : n;
@@ -1349,16 +1352,21 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_trsm_template_mem(rocblas_handle 
     size_t c_temp_els   = 0;
 
     // For user-supplied invA, check to make sure size is large enough
-    // If not large enough, indicate degraded performance and ignore supplied invA
+    // If not large enough, ignore supplied invA
     if(supplied_invA && supplied_invA_size / BLOCK < k)
     {
-        // One-time warning message
-        static int msg = (rocblas_cerr << "WARNING: TRSM invA_size argument is too small; invA "
-                                          "argument is being ignored; TRSM performance is degraded"
-                                       << std::endl,
-                          0);
-        perf_status    = rocblas_status_perf_degraded;
-        supplied_invA  = nullptr;
+        supplied_invA = nullptr;
+        if(!handle->is_device_memory_size_query())
+        {
+            // One-time warning message
+            static auto& once = rocblas_cerr
+                                << "WARNING: TRSM invA_size argument is too small; invA "
+                                   "argument is being ignored; TRSM performance is degraded"
+                                << std::endl;
+
+            // We only set perf_status if this is not a query
+            perf_status = rocblas_status_perf_degraded;
+        }
     }
 
     if(!supplied_invA)
@@ -1418,7 +1426,7 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_trsm_template_mem(rocblas_handle 
             x_c_temp_bytes, xarrBytes, invA_bytes, arrBytes);
 
     // Attempt to allocate optimal memory size
-    auto mem = handle->device_malloc(x_c_temp_bytes, xarrBytes, invA_bytes, arrBytes);
+    mem = handle->device_malloc(x_c_temp_bytes, xarrBytes, invA_bytes, arrBytes);
 
     if(!mem)
     {
@@ -1431,6 +1439,7 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_trsm_template_mem(rocblas_handle 
 
             mem = handle->device_malloc(x_c_temp_bytes, xarrBytes, invA_bytes, arrBytes);
         }
+
         if(!mem)
             return rocblas_status_memory_error;
 
@@ -1438,13 +1447,16 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_trsm_template_mem(rocblas_handle 
         perf_status = rocblas_status_perf_degraded;
 
         // One-time warning about degraded performance
-        static int msg = (rocblas_cerr << "WARNING: Device memory allocation size is too small for "
-                                          "TRSM; TRSM performance is degraded"
-                                       << std::endl,
-                          0);
+        static auto& once = rocblas_cerr
+                            << "WARNING: Device memory allocation size is too small for "
+                               "TRSM; TRSM performance is degraded"
+                            << std::endl;
     }
 
-    std::tie(mem_x_temp, mem_x_temp_arr, mem_invA, mem_invA_arr) = mem;
+    mem_x_temp     = mem[0];
+    mem_x_temp_arr = mem[1];
+    mem_invA       = mem[2];
+    mem_invA_arr   = mem[3];
     return perf_status;
 }
 
@@ -2144,6 +2156,9 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_trsm_template(rocblas_handle    h
 
     // Temporarily switch to host pointer mode, saving current pointer mode, restored on return
     auto saved_pointer_mode = handle->push_pointer_mode(rocblas_pointer_mode_host);
+
+    // Temporarily change the thread's default device ID to the handle's device ID
+    auto saved_device_id = handle->push_device_id();
 
     // Get alpha - Check if zero for quick return
     T alpha_h;
