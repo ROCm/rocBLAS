@@ -344,7 +344,7 @@ endif( )
 
 
 target_link_libraries( rocblas INTERFACE hip::host )
-target_link_libraries( rocblas PRIVATE hip::device -rtlib=compiler-rt )
+target_link_libraries( rocblas PRIVATE hip::device --rtlib=compiler-rt --unwindlib=libgcc )
 
 set_target_properties( rocblas PROPERTIES CXX_STANDARD 14 CXX_STANDARD_REQUIRED ON )
 
