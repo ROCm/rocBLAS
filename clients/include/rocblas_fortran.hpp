@@ -6407,6 +6407,47 @@ rocblas_status rocblas_zgeam_strided_batched_fortran(rocblas_handle             
  *    Ext.
  * ========== */
 
+// axpy_ex
+rocblas_status rocblas_axpy_ex_fortran(rocblas_handle    handle,
+                                       const rocblas_int N,
+                                       const void*       alpha,
+                                       rocblas_datatype  alpha_type,
+                                       const void*       x,
+                                       rocblas_datatype  x_type,
+                                       const rocblas_int incx,
+                                       void*             y,
+                                       rocblas_datatype  y_type,
+                                       const rocblas_int incy,
+                                       rocblas_datatype  execution_type);
+
+rocblas_status rocblas_axpy_batched_ex_fortran(rocblas_handle    handle,
+                                               const rocblas_int N,
+                                               const void*       alpha,
+                                               rocblas_datatype  alpha_type,
+                                               const void*       x,
+                                               rocblas_datatype  x_type,
+                                               const rocblas_int incx,
+                                               void*             y,
+                                               rocblas_datatype  y_type,
+                                               const rocblas_int incy,
+                                               const rocblas_int batch_count,
+                                               rocblas_datatype  execution_type);
+
+rocblas_status rocblas_axpy_strided_batched_ex_fortran(rocblas_handle       handle,
+                                                       const rocblas_int    N,
+                                                       const void*          alpha,
+                                                       rocblas_datatype     alpha_type,
+                                                       const void*          x,
+                                                       rocblas_datatype     x_type,
+                                                       const rocblas_int    incx,
+                                                       const rocblas_stride stridex,
+                                                       void*                y,
+                                                       rocblas_datatype     y_type,
+                                                       const rocblas_int    incy,
+                                                       const rocblas_stride stridey,
+                                                       const rocblas_int    batch_count,
+                                                       rocblas_datatype     execution_type);
+
 // gemm_ex
 rocblas_status rocblas_gemm_ex_fortran(rocblas_handle    handle,
                                        rocblas_operation transA,
@@ -6488,6 +6529,33 @@ rocblas_status rocblas_gemm_strided_batched_ex_fortran(rocblas_handle    handle,
                                                        rocblas_gemm_algo algo,
                                                        int32_t           solution_index,
                                                        uint32_t          flags);
+
+rocblas_status rocblas_gemm_ext2_fortran(rocblas_handle    handle,
+                                         rocblas_int       m,
+                                         rocblas_int       n,
+                                         rocblas_int       k,
+                                         const void*       alpha,
+                                         const void*       a,
+                                         rocblas_datatype  a_type,
+                                         rocblas_stride    row_stride_a,
+                                         rocblas_stride    col_stride_a,
+                                         const void*       b,
+                                         rocblas_datatype  b_type,
+                                         rocblas_stride    row_stride_b,
+                                         rocblas_stride    col_stride_b,
+                                         const void*       beta,
+                                         const void*       c,
+                                         rocblas_datatype  c_type,
+                                         rocblas_stride    row_stride_c,
+                                         rocblas_stride    col_stride_c,
+                                         void*             d,
+                                         rocblas_datatype  d_type,
+                                         rocblas_stride    row_stride_d,
+                                         rocblas_stride    col_stride_d,
+                                         rocblas_datatype  compute_type,
+                                         rocblas_gemm_algo algo,
+                                         int32_t           solution_index,
+                                         uint32_t          flags);
 
 // trsm_ex
 rocblas_status rocblas_trsm_ex_fortran(rocblas_handle    handle,

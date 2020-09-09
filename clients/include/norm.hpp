@@ -317,7 +317,7 @@ double norm_check_general(char        norm_type,
 }
 
 /* ============== Norm Check for Symmetric Matrix ============= */
-/*! \brief compare the norm error of two hermitian/symmetric matrices hCPU & hGPU */
+/*! \brief compare the norm error of two Hermitian/symmetric matrices hCPU & hGPU */
 template <typename T, std::enable_if_t<!is_complex<T>, int> = 0>
 double norm_check_symmetric(
     char norm_type, char uplo, rocblas_int N, rocblas_int lda, T* hCPU, T* hGPU)

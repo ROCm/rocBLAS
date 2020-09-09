@@ -129,10 +129,13 @@ add_subdirectory( src )
 # endif( )
 
 # Package specific CPACK vars
-if( HIP_RUNTIME STREQUAL "ROCclr")
+# As of ROCm 3.8, HIP_RUNTIME has been changed from "ROCclr" to "rocclr"
+# As of ROCm 3.8, HIP_RUNTIME has been changed from "cuda" to "cudart"
+string( TOLOWER "${HIP_RUNTIME}" HIP_RUNTIME_LOWER )
+if( HIP_RUNTIME_LOWER STREQUAL "rocclr" )
   set( RPM_REQUIREMENTS "hip-rocclr >= 3.5.0" )
   set( CPACK_DEBIAN_PACKAGE_DEPENDS "hip-rocclr (>= 3.5.0)" )
-elseif( HIP_RUNTIME STREQUAL "cuda")
+elseif( HIP_RUNTIME MATCHES "*cuda*")
   set( RPM_REQUIREMENTS "hip-nvcc >= 3.5.0" )
   set( CPACK_DEBIAN_PACKAGE_DEPENDS "hip-nvcc (>= 3.5.0)" )
 else()

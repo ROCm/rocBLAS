@@ -2,9 +2,9 @@
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
-#include "logging.h"
+#include "logging.hpp"
 #include "rocblas_trtri.hpp"
-#include "utility.h"
+#include "utility.hpp"
 
 namespace
 {
@@ -33,6 +33,9 @@ namespace
     {
         if(!handle)
             return rocblas_status_invalid_handle;
+
+        // Temporarily change the thread's default device ID to the handle's device ID
+        auto saved_device_id = handle->push_device_id();
 
         // Compute the optimal size for temporary device memory
         size_t els   = rocblas_trtri_temp_size<NB>(n, 1);
@@ -89,17 +92,20 @@ namespace
             {
                 return rocblas_status_memory_error;
             }
-            void* C_tmp;
-            void* C_tmp_arr;
-            std::tie(C_tmp, C_tmp_arr) = mem;
+            void* C_tmp     = mem[0];
+            void* C_tmp_arr = mem[1];
 
             auto C_tmp_host = std::make_unique<T*[]>(batch_count);
             for(int b = 0; b < batch_count; b++)
             {
                 C_tmp_host[b] = (T*)C_tmp + b * els;
             }
-            RETURN_IF_HIP_ERROR(hipMemcpy(
-                C_tmp_arr, &C_tmp_host[0], batch_count * sizeof(T*), hipMemcpyHostToDevice));
+
+            RETURN_IF_HIP_ERROR(hipMemcpyAsync(C_tmp_arr,
+                                               &C_tmp_host[0],
+                                               batch_count * sizeof(T*),
+                                               hipMemcpyHostToDevice,
+                                               handle->rocblas_stream));
 
             status = rocblas_trtri_large<NB, true, false, T>(handle,
                                                              uplo,

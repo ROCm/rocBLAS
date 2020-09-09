@@ -2,7 +2,7 @@
  * Copyright 2019-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #pragma once
-#include "handle.h"
+#include "handle.hpp"
 
 /**
   *  Computes y := alpha*A*x + beta*y where A is a symmetric matrix.
@@ -178,6 +178,9 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_symv_template(rocblas_handle hand
         return rocblas_status_success;
 
     hipStream_t rocblas_stream = handle->rocblas_stream;
+
+    // Temporarily change the thread's default device ID to the handle's device ID
+    auto saved_device_id = handle->push_device_id();
 
     // in case of negative inc shift pointer to end of data for negative indexing tid*inc
     auto shiftx = incx < 0 ? offsetx - ptrdiff_t(incx) * (n - 1) : offsetx;

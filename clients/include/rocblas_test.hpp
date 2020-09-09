@@ -66,7 +66,29 @@
         }                                                    \
     } while(0)
 
+#define CHECK_ALLOC_QUERY(STATUS)                                  \
+    do                                                             \
+    {                                                              \
+        auto status__ = (STATUS);                                  \
+        ASSERT_TRUE(status__ == rocblas_status_size_increased      \
+                    || status__ == rocblas_status_size_unchanged); \
+    } while(0)
+
 #else // GOOGLE_TEST
+
+#define CHECK_ALLOC_QUERY(STATUS)                                                              \
+    do                                                                                         \
+    {                                                                                          \
+        auto status__ = (STATUS);                                                              \
+        if(!(status__ == rocblas_status_size_increased                                         \
+             || status__ == rocblas_status_size_unchanged))                                    \
+        {                                                                                      \
+            rocblas_cerr << "rocBLAS status error: Expected rocblas_status_size_unchanged or " \
+                            "rocblas_status_size_increase,\nreceived "                         \
+                         << rocblas_status_to_string(status__) << std::endl;                   \
+            rocblas_abort();                                                                   \
+        }                                                                                      \
+    } while(0)
 
 inline void rocblas_expect_status(rocblas_status status, rocblas_status expect)
 {

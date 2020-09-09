@@ -7,7 +7,7 @@
 #define _ROCBLAS_HPP_
 
 /* library headers */
-#include "../../library/src/include/utility.h"
+#include "../../library/src/include/utility.hpp"
 #include "rocblas.h"
 #include "rocblas_fortran.hpp"
 

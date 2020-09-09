@@ -2,8 +2,8 @@
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "rocblas_her.hpp"
-#include "logging.h"
-#include "utility.h"
+#include "logging.hpp"
+#include "utility.hpp"
 
 namespace
 {

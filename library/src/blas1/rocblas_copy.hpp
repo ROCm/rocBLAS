@@ -2,7 +2,7 @@
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #pragma once
-#include "handle.h"
+#include "handle.hpp"
 
 template <bool CONJ, typename U, typename V>
 __global__ void copy_kernel(rocblas_int    n,
@@ -53,6 +53,9 @@ rocblas_status rocblas_copy_template(rocblas_handle handle,
     dim3        grid(blocks, batch_count);
     dim3        threads(NB);
     hipStream_t my_stream = handle->rocblas_stream;
+
+    // Temporarily change the thread's default device ID to the handle's device ID
+    auto saved_device_id = handle->push_device_id();
 
     hipLaunchKernelGGL(copy_kernel<CONJ>,
                        grid,

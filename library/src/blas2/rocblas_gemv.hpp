@@ -4,7 +4,7 @@
 #ifndef __ROCBLAS_GEMV_HPP__
 #define __ROCBLAS_GEMV_HPP__
 #include "gemv_device.hpp"
-#include "handle.h"
+#include "handle.hpp"
 
 template <typename T, typename U, typename V, typename W>
 ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_gemv_template(rocblas_handle    handle,
@@ -34,6 +34,9 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_gemv_template(rocblas_handle    h
         return rocblas_status_success;
 
     hipStream_t rocblas_stream = handle->rocblas_stream;
+
+    // Temporarily change the thread's default device ID to the handle's device ID
+    auto saved_device_id = handle->push_device_id();
 
     // in case of negative inc shift pointer to end of data for negative indexing tid*inc
     auto shiftx

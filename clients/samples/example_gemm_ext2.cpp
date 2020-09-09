@@ -11,17 +11,17 @@
 #include <memory>
 
 template <typename Ti, typename To, typename Tc>
-void mat_mat_mult(Tc             alpha,
-                  Tc             beta,
-                  rocblas_int    M,
+void mat_mat_mult(rocblas_int    M,
                   rocblas_int    N,
                   rocblas_int    K,
+                  Tc             alpha,
                   const Ti*      A,
                   rocblas_stride row_stride_a,
                   rocblas_stride col_stride_a,
                   const Ti*      B,
                   rocblas_stride row_stride_b,
                   rocblas_stride col_stride_b,
+                  Tc             beta,
                   const To*      C,
                   rocblas_stride row_stride_c,
                   rocblas_stride col_stride_c,
@@ -30,7 +30,6 @@ void mat_mat_mult(Tc             alpha,
                   rocblas_stride col_stride_d)
 {
     for(rocblas_int row = 0; row < M; row++)
-    {
         for(rocblas_int col = 0; col < N; col++)
         {
             Tc t = 0;
@@ -41,7 +40,6 @@ void mat_mat_mult(Tc             alpha,
             D[row * row_stride_d + col * col_stride_d] = To(
                 beta ? beta * C[row * row_stride_c + col * col_stride_c] + alpha * t : alpha * t);
         }
-    }
 }
 
 int main()
@@ -148,27 +146,28 @@ int main()
     // copy output from device to CPU
     CHECK_HIP_ERROR(hipMemcpy(&hd[0], dd, sizeof(d_t) * size_d, hipMemcpyDeviceToHost));
 
-    std::cout
-        << "a_type, b_type, c_type, d_type, m, n, k, row_stride_a, col_stride_a, row_stride_b, "
-           "col_stride_b, row_stride_c, col_stride_c, row_stride_d, col_stride_d = "
-        << rocblas_datatype2string(a_type) << ", " << rocblas_datatype2string(b_type) << ", "
-        << rocblas_datatype2string(c_type) << ", " << rocblas_datatype2string(d_type) << ", " << m
-        << ", " << n << ", " << k << ", " << row_stride_a << ", " << col_stride_a << ", "
-        << row_stride_b << ", " << col_stride_b << ", " << row_stride_c << ", " << col_stride_c
-        << ", " << row_stride_d << ", " << col_stride_d << std::endl;
+    std::cout << "a_type, b_type, c_type, d_type, m, n, k, alpha, row_stride_a, col_stride_a, "
+                 "row_stride_b, "
+                 "col_stride_b, beta, row_stride_c, col_stride_c, row_stride_d, col_stride_d = "
+              << rocblas_datatype2string(a_type) << ", " << rocblas_datatype2string(b_type) << ", "
+              << rocblas_datatype2string(c_type) << ", " << rocblas_datatype2string(d_type) << ", "
+              << m << ", " << n << ", " << k << ", " << alpha << ", " << row_stride_a << ", "
+              << col_stride_a << ", " << row_stride_b << ", " << col_stride_b << ", " << beta
+              << ", " << row_stride_c << ", " << col_stride_c << ", " << row_stride_d << ", "
+              << col_stride_d << std::endl;
 
     // calculate golden or correct result
-    mat_mat_mult(alpha,
-                 beta,
-                 m,
+    mat_mat_mult(m,
                  n,
                  k,
+                 alpha,
                  &ha[0],
                  row_stride_a,
                  col_stride_a,
                  &hb[0],
                  row_stride_b,
                  col_stride_b,
+                 beta,
                  &hc[0],
                  row_stride_c,
                  col_stride_c,

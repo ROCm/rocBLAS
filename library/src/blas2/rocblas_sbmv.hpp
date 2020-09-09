@@ -2,7 +2,7 @@
  * Copyright 2019-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #pragma once
-#include "handle.h"
+#include "handle.hpp"
 
 /**
   *  create partial sums for each ty.
@@ -215,6 +215,9 @@ rocblas_status rocblas_sbmv_template(rocblas_handle handle,
     //quick return
     if(!n || !batch_count)
         return rocblas_status_success;
+
+    // Temporarily change the thread's default device ID to the handle's device ID
+    auto saved_device_id = handle->push_device_id();
 
     hipStream_t rocblas_stream = handle->rocblas_stream;
 

@@ -145,7 +145,7 @@ void rocblas_clear_symmetric(
     }
 }
 
-/*! \brief  hermitian matrix initialization: */
+/*! \brief  Hermitian matrix initialization: */
 // for complex matrix only, the real/imag part would be initialized with the same value
 // except the diagonal elment must be real
 template <typename T>

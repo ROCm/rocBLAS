@@ -2,7 +2,7 @@
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #pragma once
-#include "handle.h"
+#include "handle.hpp"
 
 template <typename T>
 __forceinline__ __device__ __host__ void rocblas_swap_vals(T* x, T* y)
@@ -57,6 +57,9 @@ rocblas_status rocblas_swap_template(rocblas_handle handle,
     // in case of negative inc shift pointer to end of data for negative indexing tid*inc
     ptrdiff_t shiftx = incx < 0 ? offsetx - ptrdiff_t(incx) * (n - 1) : offsetx;
     ptrdiff_t shifty = incy < 0 ? offsety - ptrdiff_t(incy) * (n - 1) : offsety;
+
+    // Temporarily change the thread's default device ID to the handle's device ID
+    auto saved_device_id = handle->push_device_id();
 
     hipLaunchKernelGGL(rocblas_swap_kernel,
                        blocks,

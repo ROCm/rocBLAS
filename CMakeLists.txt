@@ -25,6 +25,8 @@ if ( NOT DEFINED CMAKE_Fortran_COMPILER AND NOT DEFINED ENV{FC} )
   set( CMAKE_Fortran_COMPILER  "gfortran" )
 endif()
 
+add_compile_options( -Wno-unused-command-line-argument )
+
 unset(ENV{ROCM_BUILD_ID})
 project( rocblas LANGUAGES CXX Fortran )
 
@@ -138,7 +140,7 @@ get_os_id(OS_ID)
 message (STATUS "OS detected is ${OS_ID}")
 
 # Versioning via rocm-cmake
-set ( VERSION_STRING "2.28.0" )
+set ( VERSION_STRING "2.30.0" )
 rocm_setup_version( VERSION ${VERSION_STRING} )
 
 # Append our library helper cmake path and the cmake path for hip (for convenience)
@@ -167,6 +169,7 @@ if( BUILD_WITH_TENSILE )
   set( Tensile_ARCHITECTURE "all" CACHE STRING "Tensile to use which architecture?")
   set( Tensile_CODE_OBJECT_VERSION "V2" CACHE STRING "Tensile code_object_version")
   set( Tensile_COMPILER "hcc" CACHE STRING "Tensile compiler")
+  set( Tensile_LIBRARY_FORMAT "msgpack" CACHE STRING "Tensile library format")
 
   option( Tensile_MERGE_FILES "Tensile to merge kernels and solutions files?" ON )
   option( Tensile_SHORT_FILENAMES "Tensile to use short file names? Use if compiler complains they're too long." OFF )
@@ -205,7 +208,7 @@ if( BUILD_WITH_TENSILE )
   if (TENSILE_VERSION)
     find_package(Tensile ${TENSILE_VERSION} EXACT REQUIRED HIP LLVM OpenMP PATHS "${INSTALLED_TENSILE_PATH}")
   else()
-    find_package(Tensile 4.22.0 EXACT REQUIRED HIP LLVM OpenMP PATHS "${INSTALLED_TENSILE_PATH}")
+    find_package(Tensile 4.23.0 EXACT REQUIRED HIP LLVM OpenMP PATHS "${INSTALLED_TENSILE_PATH}")
   endif()
 endif()
 

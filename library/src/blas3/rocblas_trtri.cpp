@@ -3,8 +3,8 @@
  *  *
  *  * ************************************************************************ */
 #include "rocblas_trtri.hpp"
-#include "logging.h"
-#include "utility.h"
+#include "logging.hpp"
+#include "utility.hpp"
 
 namespace
 {

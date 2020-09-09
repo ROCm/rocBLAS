@@ -121,7 +121,7 @@ void testing_trsv_strided_batched(const Arguments& arg)
             hA[i + i * lda + b * stride_a] = t;
         }
 
-        //  calculate Cholesky factorization of SPD (or hermitian if complex) matrix hA
+        //  calculate Cholesky factorization of SPD (or Hermitian if complex) matrix hA
         cblas_potrf<T>(char_uplo, M, hA + stride_a * b, lda);
 
         //  make hA unit diagonal if diag == rocblas_diagonal_unit
@@ -167,6 +167,29 @@ void testing_trsv_strided_batched(const Arguments& arg)
 
     double max_err_1 = 0.0;
     double max_err_2 = 0.0;
+
+    {
+        // Compute size
+        CHECK_ROCBLAS_ERROR(rocblas_start_device_memory_size_query(handle));
+
+        CHECK_ALLOC_QUERY(rocblas_trsv_strided_batched_fn(handle,
+                                                          uplo,
+                                                          transA,
+                                                          diag,
+                                                          M,
+                                                          dA,
+                                                          lda,
+                                                          stride_a,
+                                                          dx_or_b,
+                                                          incx,
+                                                          stride_x,
+                                                          batch_count));
+        size_t size;
+        CHECK_ROCBLAS_ERROR(rocblas_stop_device_memory_size_query(handle, &size));
+
+        // Allocate memory
+        CHECK_ROCBLAS_ERROR(rocblas_set_device_memory_size(handle, size));
+    }
 
     if(arg.unit_check || arg.norm_check)
     {

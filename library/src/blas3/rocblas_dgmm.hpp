@@ -2,7 +2,7 @@
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #pragma once
-#include "handle.h"
+#include "handle.hpp"
 
 template <bool side_right, typename TConstPtr, typename TPtr>
 __global__ void dgmm_device(rocblas_int    m,
@@ -75,6 +75,9 @@ rocblas_status rocblas_dgmm_template(rocblas_handle handle,
 
 {
     hipStream_t rocblas_stream = handle->rocblas_stream;
+
+    // Temporarily change the thread's default device ID to the handle's device ID
+    auto saved_device_id = handle->push_device_id();
 
     auto pointer_mode = handle->pointer_mode;
 

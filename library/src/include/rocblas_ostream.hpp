@@ -6,7 +6,7 @@
 #define _ROCBLAS_OSTREAM_HPP_
 
 #include "rocblas.h"
-#include "utility.h"
+#include "utility.hpp"
 #include <cmath>
 #include <complex>
 #include <condition_variable>
@@ -60,13 +60,7 @@ class rocblas_ostream
             {
             }
 
-            // Notify the future when the worker thread exits
-            void set_value_at_thread_exit()
-            {
-                promise.set_value_at_thread_exit();
-            }
-
-            // Notify the future immediately
+            // Notify the future to wake up
             void set_value()
             {
                 promise.set_value();
@@ -182,7 +176,7 @@ public:
     rocblas_ostream(rocblas_ostream&&) = default;
 
     // Move assignment
-    rocblas_ostream& operator=(rocblas_ostream&&) = default;
+    rocblas_ostream& operator=(rocblas_ostream&&) & = default;
 
     // Copy assignment is deleted
     rocblas_ostream& operator=(const rocblas_ostream&) = delete;

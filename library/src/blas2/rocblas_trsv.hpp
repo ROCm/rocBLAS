@@ -661,18 +661,18 @@ rocblas_status special_trsv_template(rocblas_handle    handle,
     return rocblas_status_success;
 }
 
-template <rocblas_int BLOCK, bool BATCHED, typename T, typename U>
+template <rocblas_int BLOCK, bool BATCHED, typename T, typename U, typename MEM>
 ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_trsv_template_mem(rocblas_handle handle,
                                                                  rocblas_int    m,
                                                                  rocblas_int    batch_count,
-                                                                 void**         mem_x_temp,
-                                                                 void**         mem_x_temp_arr,
-                                                                 void**         mem_invA,
-                                                                 void**         mem_invA_arr,
-                                                                 U supplied_invA = nullptr,
+                                                                 MEM&           mem,
+                                                                 void*&         mem_x_temp,
+                                                                 void*&         mem_x_temp_arr,
+                                                                 void*&         mem_invA,
+                                                                 void*&         mem_invA_arr,
+                                                                 const U* supplied_invA = nullptr,
                                                                  rocblas_int supplied_invA_size = 0)
 {
-
     // Whether size is an exact multiple of blocksize
     const bool exact_blocks = (m % BLOCK) == 0;
 
@@ -686,13 +686,15 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_trsv_template_mem(rocblas_handle 
     // If not large enough, indicate degraded performance and ignore supplied invA
     if(supplied_invA && supplied_invA_size / BLOCK < m)
     {
-        static int msg
-            = (rocblas_cerr << "WARNING: TRSV invA_size argument is too small; invA argument "
-                               "is being ignored; TRSV performance is degraded"
-                            << std::endl,
-               0);
-        perf_status   = rocblas_status_perf_degraded;
         supplied_invA = nullptr;
+        if(!handle->is_device_memory_size_query())
+        {
+            static auto& once = rocblas_cerr
+                                << "WARNING: TRSV invA_size argument is too small; invA argument "
+                                   "is being ignored; TRSV performance is degraded"
+                                << std::endl;
+            perf_status = rocblas_status_perf_degraded;
+        }
     }
 
     if(!supplied_invA)
@@ -726,18 +728,20 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_trsv_template_mem(rocblas_handle 
 
     // If this is a device memory size query, set optimal size and return changed status
     if(handle->is_device_memory_size_query())
-        return handle->set_optimal_device_memory_size(x_c_temp_bytes, invA_bytes);
+        return handle->set_optimal_device_memory_size(
+            x_c_temp_bytes, xarrBytes, invA_bytes, arrBytes);
 
     // Attempt to allocate optimal memory size, returning error if failure
-    auto mem = handle->device_malloc(x_c_temp_bytes, xarrBytes, invA_bytes, arrBytes);
+    mem = handle->device_malloc(x_c_temp_bytes, xarrBytes, invA_bytes, arrBytes);
     if(!mem)
         return rocblas_status_memory_error;
 
     // Get pointers to allocated device memory
-    // Note: Order of pointers in std::tie(...) must match order of sizes in handle->device_malloc(...)
 
-    std::tie(*mem_x_temp, *mem_x_temp_arr, *mem_invA, *mem_invA_arr) = mem;
-
+    mem_x_temp     = mem[0];
+    mem_x_temp_arr = mem[1];
+    mem_invA       = mem[2];
+    mem_invA_arr   = mem[3];
     return perf_status;
 }
 
@@ -774,6 +778,9 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_trsv_template(rocblas_handle    h
 
     // Temporarily switch to host pointer mode, restoring on return
     auto saved_pointer_mode = handle->push_pointer_mode(rocblas_pointer_mode_host);
+
+    // Temporarily change the thread's default device ID to the handle's device ID
+    auto saved_device_id = handle->push_device_id();
 
     if(supplied_invA)
         invA = (U*)(supplied_invA);

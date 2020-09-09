@@ -2,7 +2,7 @@
  * Copyright 2018-2020 Advanced Micro Devices, Inc.
  ************************************************************************** */
 #include "gemm.hpp"
-#include "logging.h"
+#include "logging.hpp"
 
 namespace
 {

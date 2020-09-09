@@ -158,7 +158,7 @@ void testing_trsm_strided_batched_ex(const Arguments& arg)
             hA[idx2] = t;
         }
 
-        //  calculate Cholesky factorization of SPD (or hermitian if complex) matrix hA
+        //  calculate Cholesky factorization of SPD (or Hermitian if complex) matrix hA
         cblas_potrf<T>(char_uplo, K, hA + b * stride_A, lda);
 
         //  make hA unit diagonal if diag == rocblas_diagonal_unit
@@ -224,6 +224,74 @@ void testing_trsm_strided_batched_ex(const Arguments& arg)
     double max_err_1 = 0.0;
     double max_err_2 = 0.0;
 
+    {
+        // Compute size
+        CHECK_ROCBLAS_ERROR(rocblas_start_device_memory_size_query(handle));
+
+        if(arg.unit_check || arg.norm_check)
+        {
+            for(int b = 0; b < batch_count; b++)
+            {
+                if(blocks > 0)
+                {
+                    CHECK_ALLOC_QUERY(rocblas_trtri_strided_batched<T>(handle,
+                                                                       uplo,
+                                                                       diag,
+                                                                       TRSM_BLOCK,
+                                                                       dA + b * stride_A,
+                                                                       lda,
+                                                                       sub_stride_A,
+                                                                       dinvA + b * stride_invA,
+                                                                       TRSM_BLOCK,
+                                                                       sub_stride_invA,
+                                                                       blocks));
+                }
+
+                if(K % TRSM_BLOCK != 0 || blocks == 0)
+                {
+                    CHECK_ALLOC_QUERY(rocblas_trtri_strided_batched<T>(
+                        handle,
+                        uplo,
+                        diag,
+                        K - TRSM_BLOCK * blocks,
+                        dA + sub_stride_A * blocks + b * stride_A,
+                        lda,
+                        sub_stride_A,
+                        dinvA + sub_stride_invA * blocks + b * stride_invA,
+                        TRSM_BLOCK,
+                        sub_stride_invA,
+                        1));
+                }
+            }
+
+            CHECK_ALLOC_QUERY(rocblas_trsm_strided_batched_ex_fn(handle,
+                                                                 side,
+                                                                 uplo,
+                                                                 transA,
+                                                                 diag,
+                                                                 M,
+                                                                 N,
+                                                                 &alpha_h,
+                                                                 dA,
+                                                                 lda,
+                                                                 stride_A,
+                                                                 dXorB,
+                                                                 ldb,
+                                                                 stride_B,
+                                                                 batch_count,
+                                                                 dinvA,
+                                                                 size_invA,
+                                                                 stride_invA,
+                                                                 arg.compute_type));
+        }
+
+        size_t size;
+        CHECK_ROCBLAS_ERROR(rocblas_stop_device_memory_size_query(handle, &size));
+
+        // Allocate memory
+        CHECK_ROCBLAS_ERROR(rocblas_set_device_memory_size(handle, size));
+    }
+
     if(arg.unit_check || arg.norm_check)
     {
         // calculate dXorB <- A^(-1) B   rocblas_device_pointer_host
@@ -267,7 +335,6 @@ void testing_trsm_strided_batched_ex(const Arguments& arg)
             }
         }
 
-        size_t x_temp_size = M * N;
         CHECK_ROCBLAS_ERROR(rocblas_trsm_strided_batched_ex_fn(handle,
                                                                side,
                                                                uplo,

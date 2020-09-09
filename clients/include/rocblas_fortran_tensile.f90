@@ -1731,6 +1731,44 @@ module rocblas_interface_tensile
             batch_count, compute_type, algo, solution_index, flags)
     end function rocblas_gemm_strided_batched_ex_fortran
 
+    function rocblas_gemm_ext2_fortran(handle, m, n, k, alpha, a, a_type, row_stride_a, col_stride_a, &
+         b, b_type, row_stride_b, col_stride_b, beta, c, c_type, row_stride_c, col_stride_c, &
+         d, d_type, row_stride_d, col_stride_d, compute_type, algo, solution_index, flags) &
+            result(res) &
+            bind(c, name = 'rocblas_gemm_ext2_fortran')
+        use iso_c_binding
+        use rocblas_enums
+        implicit none
+        type(c_ptr), value :: handle
+        integer(c_int), value :: m
+        integer(c_int), value :: n
+        integer(c_int), value :: k
+        type(c_ptr), value :: alpha
+        type(c_ptr), value :: a
+        integer(kind(rocblas_datatype_f16_r)), value :: a_type
+        integer(c_int64_t), value :: row_stride_a, col_stride_a
+        type(c_ptr), value :: b
+        integer(kind(rocblas_datatype_f16_r)), value :: b_type
+        integer(c_int64_t), value :: row_stride_b, col_stride_b
+        type(c_ptr), value :: beta
+        type(c_ptr), value :: c
+        integer(kind(rocblas_datatype_f16_r)), value :: c_type
+        integer(c_int64_t), value :: row_stride_c, col_stride_c
+        type(c_ptr), value :: d
+        integer(kind(rocblas_datatype_f16_r)), value :: d_type
+        integer(c_int64_t), value :: row_stride_d, col_stride_d
+        integer(kind(rocblas_datatype_f16_r)), value :: compute_type
+        integer(kind(rocblas_gemm_algo_standard)), value :: algo
+        integer(c_int32_t), value :: solution_index
+        ! No unsigned types in fortran. If larger values are needed
+        ! we will need a workaround.
+        integer(c_int32_t), value :: flags
+        integer(c_int) :: res
+        res = rocblas_gemm_ext2(handle, m, n, k, alpha, a, a_type, row_stride_a, col_stride_a, &
+             b, b_type, row_stride_b, col_stride_b, beta, c, c_type, row_stride_c, col_stride_c, &
+             d, d_type, row_stride_d, col_stride_d, compute_type, algo, solution_index, flags)
+    end function rocblas_gemm_ext2_fortran
+
     ! trsm_ex
     function rocblas_trsm_ex_fortran(handle, side, uplo, transA, diag, m, n, alpha, A, lda, &
             B, ldb, invA, invA_size, compute_type) &

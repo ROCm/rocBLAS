@@ -20,8 +20,9 @@
  * in this file, without referencing any Tensile-specific identifiers here.  *
  *****************************************************************************/
 
-#include "handle.h"
+#include "handle.hpp"
 #include "tuple_helper.hpp"
+#include <atomic>
 
 /********************************************************************
  * RocblasContractionProblem captures the arguments for a GEMM-like *
@@ -277,7 +278,7 @@ struct RocblasContractionProblem
                             prob.batch_stride_c,
                             "stride_d",
                             prob.batch_stride_d,
-                            "atomics mode",
+                            "atomics_mode",
                             prob.handle->atomics_mode));
     };
 };
@@ -287,5 +288,10 @@ struct RocblasContractionProblem
  *******************************************************************************/
 template <typename Ti, typename To, typename Tc>
 rocblas_status runContractionProblem(RocblasContractionProblem<Ti, To, Tc> const& problem);
+
+/***********************************************************************************
+ * Whether Tensile has been initialized for at least one device (used for testing) *
+ ***********************************************************************************/
+std::atomic_bool& tensile_is_initialized();
 
 #endif // __TENSILE_HOST_HPP__

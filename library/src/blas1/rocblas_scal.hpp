@@ -2,7 +2,7 @@
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #pragma once
-#include "handle.h"
+#include "handle.hpp"
 #include "rocblas.h"
 
 template <typename T, typename U, typename V>
@@ -43,6 +43,9 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_scal_template(rocblas_handle hand
     dim3        blocks((n - 1) / NB + 1, batch_count);
     dim3        threads(NB);
     hipStream_t rocblas_stream = handle->rocblas_stream;
+
+    // Temporarily change the thread's default device ID to the handle's device ID
+    auto saved_device_id = handle->push_device_id();
 
     if(rocblas_pointer_mode_device == handle->pointer_mode)
         hipLaunchKernelGGL(rocblas_scal_kernel<T>,

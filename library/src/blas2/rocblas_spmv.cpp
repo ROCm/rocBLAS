@@ -3,8 +3,8 @@
  * ************************************************************************ */
 
 #include "rocblas_spmv.hpp"
-#include "logging.h"
-#include "utility.h"
+#include "logging.hpp"
+#include "utility.hpp"
 
 namespace
 {

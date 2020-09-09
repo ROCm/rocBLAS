@@ -2,8 +2,8 @@
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
-#include "handle.h"
-#include "logging.h"
+#include "handle.hpp"
+#include "logging.hpp"
 #include "rocblas-auxiliary.h"
 #include <cctype>
 #include <cstdlib>
@@ -159,6 +159,7 @@ try
         return rocblas_status_invalid_handle;
     if(handle->layer_mode & rocblas_layer_mode_log_trace)
         log_trace(handle, "rocblas_set_stream", stream_id);
+    RETURN_IF_HIP_ERROR(hipStreamSynchronize(handle->rocblas_stream));
     handle->rocblas_stream = stream_id;
     return rocblas_status_success;
 }
@@ -197,12 +198,12 @@ catch(...)
 constexpr size_t      VEC_BUFF_MAX_BYTES = 1048576;
 constexpr rocblas_int NB_X               = 256;
 
-__global__ void copy_void_ptr_vector_kernel(rocblas_int n,
-                                            rocblas_int elem_size,
-                                            const void* x,
-                                            rocblas_int incx,
-                                            void*       y,
-                                            rocblas_int incy)
+__global__ void rocblas_copy_void_ptr_vector_kernel(rocblas_int n,
+                                                    rocblas_int elem_size,
+                                                    const void* x,
+                                                    rocblas_int incx,
+                                                    void*       y,
+                                                    rocblas_int incy)
 {
     size_t tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     if(tid < n)
@@ -300,7 +301,7 @@ try
                 // host buffer -> device buffer
                 PRINT_IF_HIP_ERROR(hipMemcpy(t_d, t_h, contig_size, hipMemcpyHostToDevice));
                 // device buffer -> non-contiguous device vector
-                hipLaunchKernelGGL(copy_void_ptr_vector_kernel,
+                hipLaunchKernelGGL(rocblas_copy_void_ptr_vector_kernel,
                                    grid,
                                    threads,
                                    0,
@@ -322,7 +323,7 @@ try
                 // contiguous host vector -> device buffer
                 PRINT_IF_HIP_ERROR(hipMemcpy(t_d, x_h_start, contig_size, hipMemcpyHostToDevice));
                 // device buffer -> non-contiguous device vector
-                hipLaunchKernelGGL(copy_void_ptr_vector_kernel,
+                hipLaunchKernelGGL(rocblas_copy_void_ptr_vector_kernel,
                                    grid,
                                    threads,
                                    0,
@@ -419,7 +420,7 @@ try
                 if(!t_d)
                     return rocblas_status_memory_error;
                 // non-contiguous device vector -> device buffer
-                hipLaunchKernelGGL(copy_void_ptr_vector_kernel,
+                hipLaunchKernelGGL(rocblas_copy_void_ptr_vector_kernel,
                                    grid,
                                    threads,
                                    0,
@@ -466,7 +467,7 @@ try
                 if(!t_d)
                     return rocblas_status_memory_error;
                 // non-contiguous device vector -> device buffer
-                hipLaunchKernelGGL(copy_void_ptr_vector_kernel,
+                hipLaunchKernelGGL(rocblas_copy_void_ptr_vector_kernel,
                                    grid,
                                    threads,
                                    0,
@@ -584,13 +585,13 @@ constexpr size_t      MAT_BUFF_MAX_BYTES = 1048576;
 constexpr rocblas_int MATRIX_DIM_X       = 128;
 constexpr rocblas_int MATRIX_DIM_Y       = 8;
 
-__global__ void copy_void_ptr_matrix_kernel(rocblas_int rows,
-                                            rocblas_int cols,
-                                            size_t      elem_size,
-                                            const void* a,
-                                            rocblas_int lda,
-                                            void*       b,
-                                            rocblas_int ldb)
+__global__ void rocblas_copy_void_ptr_matrix_kernel(rocblas_int rows,
+                                                    rocblas_int cols,
+                                                    size_t      elem_size,
+                                                    const void* a,
+                                                    rocblas_int lda,
+                                                    void*       b,
+                                                    rocblas_int ldb)
 {
     rocblas_int tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     rocblas_int ty = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -690,7 +691,7 @@ try
                 // host buffer -> device buffer
                 PRINT_IF_HIP_ERROR(hipMemcpy(t_d, t_h, contig_size, hipMemcpyHostToDevice));
                 // device buffer -> non-contiguous device matrix
-                hipLaunchKernelGGL(copy_void_ptr_matrix_kernel,
+                hipLaunchKernelGGL(rocblas_copy_void_ptr_matrix_kernel,
                                    grid,
                                    threads,
                                    0,
@@ -713,7 +714,7 @@ try
                 // contiguous host matrix -> device buffer
                 PRINT_IF_HIP_ERROR(hipMemcpy(t_d, a_h_start, contig_size, hipMemcpyHostToDevice));
                 // device buffer -> non-contiguous device matrix
-                hipLaunchKernelGGL(copy_void_ptr_matrix_kernel,
+                hipLaunchKernelGGL(rocblas_copy_void_ptr_matrix_kernel,
                                    grid,
                                    threads,
                                    0,
@@ -829,7 +830,7 @@ try
                 if(!t_d)
                     return rocblas_status_memory_error;
                 // non-contiguous device matrix -> device buffer
-                hipLaunchKernelGGL(copy_void_ptr_matrix_kernel,
+                hipLaunchKernelGGL(rocblas_copy_void_ptr_matrix_kernel,
                                    grid,
                                    threads,
                                    0,
@@ -876,7 +877,7 @@ try
                 if(!t_d)
                     return rocblas_status_memory_error;
                 // non-contiguous device matrix -> device buffer
-                hipLaunchKernelGGL(copy_void_ptr_matrix_kernel,
+                hipLaunchKernelGGL(rocblas_copy_void_ptr_matrix_kernel,
                                    grid,
                                    threads,
                                    0,
@@ -1081,7 +1082,7 @@ std::string rocblas_get_arch_name()
 // If there are more than 3 characters or any non-digits after the initial letters, we assume true
 // Otherwise we assume true iff the value is greater than or equal to 906
 
-bool tensile_supports_ldc_ne_ldd()
+bool rocblas_tensile_supports_ldc_ne_ldd()
 {
     std::string arch_name = rocblas_get_arch_name();
     const char* name      = arch_name.c_str();

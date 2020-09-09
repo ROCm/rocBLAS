@@ -2,7 +2,7 @@
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "rocblas_hpmv.hpp"
-#include "logging.h"
+#include "logging.hpp"
 
 namespace
 {

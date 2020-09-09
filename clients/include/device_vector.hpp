@@ -15,7 +15,7 @@ class host_vector;
 //! @brief pseudo-vector subclass which uses device memory
 //!
 template <typename T, size_t PAD = 4096, typename U = T>
-class device_vector : private d_vector<T, PAD, U>
+class device_vector : d_vector<T, PAD, U>
 {
 
 public:
@@ -33,27 +33,13 @@ public:
     //! @brief Constructor.
     //! @param n The length of the vector.
     //! @param inc The increment.
-    //! @remark Must wrap constructor and destructor in functions to allow Google Test macros to work
     //!
-    explicit device_vector(rocblas_int n, rocblas_int inc)
-        : d_vector<T, PAD, U>(n * std::abs(inc))
-        , m_n(n)
-        , m_inc(inc)
+    explicit device_vector(size_t n, rocblas_int inc = 1)
+        : d_vector<T, PAD, U>{n * std::abs(inc)}
+        , m_n{n}
+        , m_inc{inc}
+        , m_data{this->device_vector_setup()}
     {
-        this->m_data = this->device_vector_setup();
-    }
-
-    //!
-    //! @brief Constructor (kept for backward compatibility)
-    //! @param s the size.
-    //! @remark Must wrap constructor and destructor in functions to allow Google Test macros to work
-    //!
-    explicit device_vector(size_t s)
-        : d_vector<T, PAD, U>(s)
-        , m_n(s)
-        , m_inc(1)
-    {
-        this->m_data = this->device_vector_setup();
     }
 
     //!
@@ -61,16 +47,16 @@ public:
     //!
     ~device_vector()
     {
-        this->device_vector_teardown(this->m_data);
-        this->m_data = nullptr;
+        this->device_vector_teardown(m_data);
+        m_data = nullptr;
     }
 
     //!
     //! @brief Returns the length of the vector.
     //!
-    rocblas_int n() const
+    size_t n() const
     {
-        return this->m_n;
+        return m_n;
     }
 
     //!
@@ -78,7 +64,7 @@ public:
     //!
     rocblas_int inc() const
     {
-        return this->m_inc;
+        return m_inc;
     }
 
     //!
@@ -102,7 +88,7 @@ public:
     //!
     operator T*()
     {
-        return this->m_data;
+        return m_data;
     }
 
     //!
@@ -110,15 +96,7 @@ public:
     //!
     operator const T*() const
     {
-        return this->m_data;
-    }
-
-    //!
-    //! @brief Tell whether malloc failed.
-    //!
-    explicit operator bool() const
-    {
-        return nullptr != this->m_data;
+        return m_data;
     }
 
     //!
@@ -128,21 +106,16 @@ public:
     //!
     hipError_t transfer_from(const host_vector<T>& that)
     {
-        return hipMemcpy(
-            this->m_data, (const T*)that, this->nmemb() * sizeof(T), hipMemcpyHostToDevice);
+        return hipMemcpy(m_data, (const T*)that, this->nmemb() * sizeof(T), hipMemcpyHostToDevice);
     }
 
     hipError_t memcheck() const
     {
-        if(*this)
-            return hipSuccess;
-        else
-            return hipErrorOutOfMemory;
+        return m_data ? hipSuccess : hipErrorOutOfMemory;
     }
 
 private:
-    size_t      m_size{};
-    rocblas_int m_n{};
+    size_t      m_n{};
     rocblas_int m_inc{};
     T*          m_data{};
 };

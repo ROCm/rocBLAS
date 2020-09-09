@@ -23,7 +23,7 @@ def runCI =
     // Define test architectures, optional rocm version argument is available
     def nodes = new dockerNodes(nodeDetails, jobName, prj)
 
-    boolean formatCheck = true
+    boolean formatCheck = false
 
     def compileCommand =
     {
@@ -62,7 +62,7 @@ ci: {
 
     def jobNameList = ["compute-rocm-dkms-no-npi":([ubuntu18:['gfx900'],centos7:['gfx906'],sles15sp1:['gfx906']]),
                        "compute-rocm-dkms-no-npi-hipclang":([ubuntu18:['gfx900'],centos7:['gfx906'],sles15sp1:['gfx908']]),
-                       "rocm-docker":([ubuntu18:['gfx900'],ubuntu18:['gfx900'],centos7:['gfx906'],sles15sp1:['gfx906']])]
+                       "rocm-docker":([ubuntu18:['gfx900'],centos7:['gfx906'],sles15sp1:['gfx906']])]
     jobNameList = auxiliary.appendJobNameList(jobNameList, 'rocBLAS')
 
     propertyList.each
@@ -86,7 +86,7 @@ ci: {
     {
         properties(auxiliary.addCommonProperties([pipelineTriggers([cron('0 1 * * *')])]))
         stage(urlJobName) {
-            runCI([ubuntu16:['gfx906']], urlJobName)
+            runCI([ubuntu18:['gfx900']], urlJobName)
         }
     }
 }

@@ -24,7 +24,7 @@ void testing_axpy_strided_batched_bad_arg(const Arguments& arg)
         = FORTRAN ? rocblas_axpy_strided_batched<T, true> : rocblas_axpy_strided_batched<T, false>;
 
     rocblas_local_handle handle(arg.atomics_mode);
-    rocblas_int          N = 100, incx = 1, incy = 1, batch_count = arg.batch_count;
+    rocblas_int          N = 100, incx = 1, incy = 1, batch_count = 2;
 
     rocblas_stride stridex = arg.stride_x, stridey = arg.stride_y;
 

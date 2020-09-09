@@ -3,7 +3,7 @@
  * ************************************************************************ */
 
 #pragma once
-#include "utility.h"
+#include "utility.hpp"
 
 #ifdef tmpv_calc_upperat
 #error tmpv_calc_upperat is already defined

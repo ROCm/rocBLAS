@@ -2,7 +2,7 @@
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #pragma once
-#include "handle.h"
+#include "handle.hpp"
 
 template <typename T, typename U>
 __device__ void her_kernel_calc(
@@ -85,6 +85,9 @@ rocblas_status rocblas_her_template(rocblas_handle handle,
 
     dim3 her_grid(blocksX, blocksY, batch_count);
     dim3 her_threads(HER_DIM_X, HER_DIM_Y);
+
+    // Temporarily change the thread's default device ID to the handle's device ID
+    auto saved_device_id = handle->push_device_id();
 
     if(rocblas_pointer_mode_device == handle->pointer_mode)
     {
