@@ -260,7 +260,7 @@ elseif( CMAKE_COMPILER_IS_GNUCXX OR CXX_VERSION_STRING MATCHES "clang" )
 endif( )
 
 if( CXX_VERSION_STRING MATCHES "clang" )
-  target_link_libraries( rocblas-test PRIVATE -lpthread -lstdc++ -lgcc_s -lm )
+  target_link_libraries( rocblas-test PRIVATE -lpthread -lstdc++ -lm )
   if(OS_ID_rhel OR OS_ID_centos)
     set(CMAKE_CXX_FLAGS "-isystem ${CLANG_INCLUDE_DIR} -isystem ${XXX_OPENMP_INCLUDE_DIR} ${CMAKE_CXX_FLAGS}")
   endif( )
