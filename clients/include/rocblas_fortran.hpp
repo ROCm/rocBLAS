@@ -6448,6 +6448,37 @@ rocblas_status rocblas_axpy_strided_batched_ex_fortran(rocblas_handle       hand
                                                        const rocblas_int    batch_count,
                                                        rocblas_datatype     execution_type);
 
+// scal_ex
+rocblas_status rocblas_scal_ex_fortran(rocblas_handle    handle,
+                                       const rocblas_int N,
+                                       const void*       alpha,
+                                       rocblas_datatype  alpha_type,
+                                       void*             x,
+                                       rocblas_datatype  x_type,
+                                       const rocblas_int incx,
+                                       rocblas_datatype  execution_type);
+
+rocblas_status rocblas_scal_batched_ex_fortran(rocblas_handle    handle,
+                                               const rocblas_int N,
+                                               const void*       alpha,
+                                               rocblas_datatype  alpha_type,
+                                               void*             x,
+                                               rocblas_datatype  x_type,
+                                               const rocblas_int incx,
+                                               const rocblas_int batch_count,
+                                               rocblas_datatype  execution_type);
+
+rocblas_status rocblas_scal_strided_batched_ex_fortran(rocblas_handle       handle,
+                                                       const rocblas_int    N,
+                                                       const void*          alpha,
+                                                       rocblas_datatype     alpha_type,
+                                                       void*                x,
+                                                       rocblas_datatype     x_type,
+                                                       const rocblas_int    incx,
+                                                       const rocblas_stride stridex,
+                                                       const rocblas_int    batch_count,
+                                                       rocblas_datatype     execution_type);
+
 // gemm_ex
 rocblas_status rocblas_gemm_ex_fortran(rocblas_handle    handle,
                                        rocblas_operation transA,

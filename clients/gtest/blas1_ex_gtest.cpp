@@ -6,6 +6,9 @@
 #include "testing_axpy_batched_ex.hpp"
 #include "testing_axpy_ex.hpp"
 #include "testing_axpy_strided_batched_ex.hpp"
+#include "testing_scal_batched_ex.hpp"
+#include "testing_scal_ex.hpp"
+#include "testing_scal_strided_batched_ex.hpp"
 #include "type_dispatch.hpp"
 #include "utility.hpp"
 
@@ -16,6 +19,9 @@ namespace
         axpy_ex,
         axpy_batched_ex,
         axpy_strided_batched_ex,
+        scal_ex,
+        scal_batched_ex,
+        scal_strided_batched_ex,
     };
 
     // ----------------------------------------------------------------------------
@@ -50,8 +56,14 @@ namespace
                     = (BLAS1_EX == blas1_ex::axpy_ex || BLAS1_EX == blas1_ex::axpy_batched_ex
                        || BLAS1_EX == blas1_ex::axpy_strided_batched_ex);
 
-                bool is_batched = (BLAS1_EX == blas1_ex::axpy_batched_ex);
-                bool is_strided = (BLAS1_EX == blas1_ex::axpy_strided_batched_ex);
+                bool is_scal
+                    = (BLAS1_EX == blas1_ex::scal_ex || BLAS1_EX == blas1_ex::scal_batched_ex
+                       || BLAS1_EX == blas1_ex::scal_strided_batched_ex);
+
+                bool is_batched = (BLAS1_EX == blas1_ex::axpy_batched_ex
+                                   || BLAS1_EX == blas1_ex::scal_batched_ex);
+                bool is_strided = (BLAS1_EX == blas1_ex::axpy_strided_batched_ex
+                                   || BLAS1_EX == blas1_ex::scal_strided_batched_ex);
 
                 name << rocblas_datatype2string(arg.a_type) << '_'
                      << rocblas_datatype2string(arg.b_type) << '_'
@@ -60,8 +72,11 @@ namespace
 
                 name << '_' << arg.N;
 
-                if(is_axpy)
+                if(is_axpy || is_scal)
                     name << '_' << arg.alpha << '_' << arg.alphai;
+
+                if(is_axpy || is_scal)
+                    name << '_' << arg.incx;
 
                 if(is_strided)
                     name << '_' << arg.stride_x;
@@ -69,7 +84,7 @@ namespace
                 if(is_axpy)
                     name << '_' << arg.incy;
 
-                if(is_strided)
+                if(is_strided && is_axpy)
                     name << '_' << arg.stride_y;
 
                 if(is_batched || is_strided)
@@ -85,20 +100,36 @@ namespace
 
     // This tells whether the BLAS1_EX tests are enabled
     // Appears that we will need up to 4 template variables (see dot)
-    template <blas1_ex BLAS1_EX, typename Ta, typename Tb, typename Tc, typename Tex>
+    template <blas1_ex BLAS1_EX, typename T1, typename T2, typename T3, typename T4>
     using blas1_ex_enabled = std::integral_constant<
         bool,
         // axpy_ex
-        // Ta is alpha_type Tb is x_type, Tc is y_type, Tex is execution_type
+        // T1 is alpha_type T2 is x_type, T3 is y_type, T4 is execution_type
         ((BLAS1_EX == blas1_ex::axpy_ex || BLAS1_EX == blas1_ex::axpy_batched_ex
           || BLAS1_EX == blas1_ex::axpy_strided_batched_ex)
-             && (std::is_same<Ta, Tb>{} && std::is_same<Tb, Tc>{} && std::is_same<Tc, Tex>{}
-                 && (std::is_same<Ta, float>{} || std::is_same<Ta, double>{}
-                     || std::is_same<Ta, rocblas_half>{}
-                     || std::is_same<Ta, rocblas_float_complex>{}
-                     || std::is_same<Ta, rocblas_double_complex>{}))
-         || (std::is_same<Ta, Tb>{} && std::is_same<Tb, Tc>{} && std::is_same<Ta, rocblas_half>{}
-             && std::is_same<Tex, float>{}))>;
+             && (std::is_same<T1, T2>{} && std::is_same<T2, T3>{} && std::is_same<T3, T4>{}
+                 && (std::is_same<T1, float>{} || std::is_same<T1, double>{}
+                     || std::is_same<T1, rocblas_half>{}
+                     || std::is_same<T1, rocblas_float_complex>{}
+                     || std::is_same<T1, rocblas_double_complex>{}))
+         || (std::is_same<T1, T2>{} && std::is_same<T2, T3>{} && std::is_same<T1, rocblas_half>{}
+             && std::is_same<T4, float>{}))
+
+            // scal_ex
+            // T1 is alpha_type T2 is x_type T3 is execution_type
+            || ((BLAS1_EX == blas1_ex::scal_ex || BLAS1_EX == blas1_ex::scal_batched_ex
+                 || BLAS1_EX == blas1_ex::scal_strided_batched_ex)
+                    && (std::is_same<T1, T2>{} && std::is_same<T2, T3>{}
+                        && (std::is_same<T1, float>{} || std::is_same<T1, double>{}
+                            || std::is_same<T1, rocblas_half>{}
+                            || std::is_same<T1, rocblas_float_complex>{}
+                            || std::is_same<T1, rocblas_double_complex>{}))
+                || (std::is_same<T1, T2>{} && std::is_same<T1, rocblas_half>{}
+                    && std::is_same<T3, float>{})
+                || (std::is_same<T2, T3>{} && std::is_same<T1, float>{}
+                    && std::is_same<T2, rocblas_float_complex>{})
+                || (std::is_same<T2, T3>{} && std::is_same<T1, double>{}
+                    && std::is_same<T2, rocblas_double_complex>{}))>;
 
 // Creates tests for one of the BLAS 1 functions
 // ARG passes 1-3 template arguments to the testing_* function
@@ -159,5 +190,8 @@ namespace
     BLAS1_EX_TESTING(axpy_ex, ARG4)
     BLAS1_EX_TESTING(axpy_batched_ex, ARG4)
     BLAS1_EX_TESTING(axpy_strided_batched_ex, ARG4)
+    BLAS1_EX_TESTING(scal_ex, ARG3)
+    BLAS1_EX_TESTING(scal_batched_ex, ARG3)
+    BLAS1_EX_TESTING(scal_strided_batched_ex, ARG3)
 
 } // namespace

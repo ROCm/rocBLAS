@@ -61,7 +61,10 @@
 #include "testing_rotmg_strided_batched.hpp"
 #include "testing_scal.hpp"
 #include "testing_scal_batched.hpp"
+#include "testing_scal_batched_ex.hpp"
+#include "testing_scal_ex.hpp"
 #include "testing_scal_strided_batched.hpp"
+#include "testing_scal_strided_batched_ex.hpp"
 #include "testing_swap.hpp"
 #include "testing_swap_batched.hpp"
 #include "testing_swap_strided_batched.hpp"
@@ -682,6 +685,42 @@ struct perf_blas_scal<
     }
 };
 
+template <typename Ta, typename Tx = Ta, typename Tex = Tx, typename = void>
+struct perf_blas_scal_ex : rocblas_test_invalid
+{
+};
+
+template <typename Ta, typename Tx, typename Tex>
+struct perf_blas_scal_ex<
+    Ta,
+    Tx,
+    Tex,
+    std::enable_if_t<
+        (std::is_same<Ta, float>{} && std::is_same<Ta, Tx>{} && std::is_same<Tx, Tex>{})
+        || (std::is_same<Ta, double>{} && std::is_same<Ta, Tx>{} && std::is_same<Tx, Tex>{})
+        || (std::is_same<Ta, rocblas_half>{} && std::is_same<Ta, Tx>{} && std::is_same<Tx, Tex>{})
+        || (std::is_same<Ta, rocblas_float_complex>{} && std::is_same<Ta, Tx>{}
+            && std::is_same<Tx, Tex>{})
+        || (std::is_same<Ta, rocblas_double_complex>{} && std::is_same<Ta, Tx>{}
+            && std::is_same<Tx, Tex>{})
+        || (std::is_same<Ta, rocblas_half>{} && std::is_same<Ta, Tx>{}
+            && std::is_same<Tex, float>{})
+        || (std::is_same<Ta, float>{} && std::is_same<Tx, rocblas_float_complex>{}
+            && std::is_same<Tx, Tex>{})
+        || (std::is_same<Ta, double>{} && std::is_same<Tx, rocblas_double_complex>{}
+            && std::is_same<Tx, Tex>{})>> : rocblas_test_valid
+{
+    void operator()(const Arguments& arg)
+    {
+        static const func_map map = {
+            {"scal_ex", testing_scal_ex<Ta, Tx, Tex>},
+            {"scal_batched_ex", testing_scal_batched_ex<Ta, Tx, Tex>},
+            {"scal_strided_batched_ex", testing_scal_strided_batched_ex<Ta, Tx, Tex>},
+        };
+        run_function(map, arg);
+    }
+};
+
 template <typename Ta, typename Tb = Ta, typename = void>
 struct perf_blas_rotg : rocblas_test_invalid
 {
@@ -883,6 +922,9 @@ int run_bench_test(Arguments& arg)
         else if(!strcmp(function, "axpy_ex") || !strcmp(function, "axpy_batched_ex")
                 || !strcmp(function, "axpy_strided_batched_ex"))
             rocblas_blas1_ex_dispatch<perf_blas_axpy_ex>(arg);
+        else if(!strcmp(function, "scal_ex") || !strcmp(function, "scal_batched_ex")
+                || !strcmp(function, "scal_strided_batched_ex"))
+            rocblas_blas1_ex_dispatch<perf_blas_scal_ex>(arg);
         else
             rocblas_simple_dispatch<perf_blas>(arg);
     }

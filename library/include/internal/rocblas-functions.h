@@ -16072,8 +16072,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_axpy_batched_ex(rocblas_handle   handle,
     @param[in]
     stridex   [rocblas_stride]
               stride from the start of one vector (x_i) to the next one (x_i+1).
-              There are no restrictions placed on strideyx, however the user should
-              take care to ensure that strideyx is of appropriate size, for a typical
+              There are no restrictions placed on stridex, however the user should
+              take care to ensure that stridex is of appropriate size, for a typical
               case this means stridex >= n * incx.
     @param[inout]
     y         device pointer to the first vector y_1.
@@ -16109,6 +16109,187 @@ ROCBLAS_EXPORT rocblas_status rocblas_axpy_strided_batched_ex(rocblas_handle   h
                                                               rocblas_datatype y_type,
                                                               rocblas_int      incy,
                                                               rocblas_stride   stridey,
+                                                              rocblas_int      batch_count,
+                                                              rocblas_datatype execution_type);
+
+/*! \brief BLAS EX API
+
+    \details
+    scal_ex  scales each element of vector x with scalar alpha.
+
+        x := alpha * x
+
+    Currently supported datatypes are as follows:
+
+        ----------------------------------------
+        | alpha_type | x_type | execution_type |
+        |------------|--------|----------------|
+        |  f16_r     | f16_r  |     f16_r      |
+        |  f16_r     | f16_r  |     f32_r      |
+        |  f32_r     | f32_r  |     f32_r      |
+        |  f64_r     | f64_r  |     f64_r      |
+        |  f32_c     | f32_c  |     f32_c      |
+        |  f64_c     | f64_c  |     f64_c      |
+        |  f32_r     | f32_c  |     f32_c      |
+        |  f64_r     | f64_c  |     f64_c      |
+        ----------------------------------------
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+    @param[in]
+    n         [rocblas_int]
+              the number of elements in x.
+    @param[in]
+    alpha     device pointer or host pointer for the scalar alpha.
+    @param[in]
+    alpha_type [rocblas_datatype]
+               specifies the datatype of alpha.
+    @param[inout]
+    x         device pointer storing vector x.
+    @param[in]
+    x_type [rocblas_datatype]
+           specifies the datatype of vector x.
+    @param[in]
+    incx      [rocblas_int]
+              specifies the increment for the elements of x.
+    @param[in]
+    execution_type [rocblas_datatype]
+                   specifies the datatype of computation.
+
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_scal_ex(rocblas_handle   handle,
+                                              rocblas_int      n,
+                                              const void*      alpha,
+                                              rocblas_datatype alpha_type,
+                                              void*            x,
+                                              rocblas_datatype x_type,
+                                              rocblas_int      incx,
+                                              rocblas_datatype execution_type);
+
+/*! \brief BLAS EX API
+
+    \details
+    scal_batched_ex  scales each element of each vector x_i with scalar alpha.
+
+        x_i := alpha * x_i
+
+    Currently supported datatypes are as follows:
+
+        ----------------------------------------
+        | alpha_type | x_type | execution_type |
+        |------------|--------|----------------|
+        |  f16_r     | f16_r  |     f16_r      |
+        |  f16_r     | f16_r  |     f32_r      |
+        |  f32_r     | f32_r  |     f32_r      |
+        |  f64_r     | f64_r  |     f64_r      |
+        |  f32_c     | f32_c  |     f32_c      |
+        |  f64_c     | f64_c  |     f64_c      |
+        |  f32_r     | f32_c  |     f32_c      |
+        |  f64_r     | f64_c  |     f64_c      |
+        ----------------------------------------
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+    @param[in]
+    n         [rocblas_int]
+              the number of elements in x.
+    @param[in]
+    alpha     device pointer or host pointer for the scalar alpha.
+    @param[in]
+    alpha_type [rocblas_datatype]
+               specifies the datatype of alpha.
+    @param[inout]
+    x         device array of device pointers storing each vector x_i.
+    @param[in]
+    x_type [rocblas_datatype]
+           specifies the datatype of each vector x_i.
+    @param[in]
+    incx      [rocblas_int]
+              specifies the increment for the elements of each x_i.
+    @param[in]
+    batch_count [rocblas_int]
+                number of instances in the batch.
+    @param[in]
+    execution_type [rocblas_datatype]
+                   specifies the datatype of computation.
+
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_scal_batched_ex(rocblas_handle   handle,
+                                                      rocblas_int      n,
+                                                      const void*      alpha,
+                                                      rocblas_datatype alpha_type,
+                                                      void*            x,
+                                                      rocblas_datatype x_type,
+                                                      rocblas_int      incx,
+                                                      rocblas_int      batch_count,
+                                                      rocblas_datatype execution_type);
+
+/*! \brief BLAS EX API
+
+    \details
+    scal_strided_batched_ex  scales each element of vector x with scalar alpha over a set
+                             of strided batched vectors.
+
+        x := alpha * x
+
+    Currently supported datatypes are as follows:
+
+        ----------------------------------------
+        | alpha_type | x_type | execution_type |
+        |------------|--------|----------------|
+        |  f16_r     | f16_r  |     f16_r      |
+        |  f16_r     | f16_r  |     f32_r      |
+        |  f32_r     | f32_r  |     f32_r      |
+        |  f64_r     | f64_r  |     f64_r      |
+        |  f32_c     | f32_c  |     f32_c      |
+        |  f64_c     | f64_c  |     f64_c      |
+        |  f32_r     | f32_c  |     f32_c      |
+        |  f64_r     | f64_c  |     f64_c      |
+        ----------------------------------------
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+    @param[in]
+    n         [rocblas_int]
+              the number of elements in x.
+    @param[in]
+    alpha     device pointer or host pointer for the scalar alpha.
+    @param[in]
+    alpha_type [rocblas_datatype]
+               specifies the datatype of alpha.
+    @param[inout]
+    x         device pointer to the first vector x_1.
+    @param[in]
+    x_type [rocblas_datatype]
+           specifies the datatype of each vector x_i.
+    @param[in]
+    incx      [rocblas_int]
+              specifies the increment for the elements of each x_i.
+    @param[in]
+    stridex   [rocblas_stride]
+              stride from the start of one vector (x_i) to the next one (x_i+1).
+              There are no restrictions placed on stridex, however the user should
+              take care to ensure that stridex is of appropriate size, for a typical
+              case this means stridex >= n * incx.
+    @param[in]
+    batch_count [rocblas_int]
+                number of instances in the batch.
+    @param[in]
+    execution_type [rocblas_datatype]
+                   specifies the datatype of computation.
+
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_scal_strided_batched_ex(rocblas_handle   handle,
+                                                              rocblas_int      n,
+                                                              const void*      alpha,
+                                                              rocblas_datatype alpha_type,
+                                                              void*            x,
+                                                              rocblas_datatype x_type,
+                                                              rocblas_int      incx,
+                                                              rocblas_stride   stridex,
                                                               rocblas_int      batch_count,
                                                               rocblas_datatype execution_type);
 
