@@ -5,30 +5,33 @@
 #include "handle.hpp"
 #include "rocblas.h"
 
-template <typename T, typename U, typename V>
+template <typename Tex, typename Ta, typename Tx>
 __global__ void rocblas_scal_kernel(rocblas_int    n,
-                                    V              alpha_device_host,
+                                    Ta             alpha_device_host,
                                     rocblas_stride stride_alpha,
-                                    U              xa,
+                                    Tx             xa,
                                     ptrdiff_t      offsetx,
                                     rocblas_int    incx,
                                     rocblas_stride stridex)
 {
-    T*        x     = load_ptr_batch(xa, hipBlockIdx_y, offsetx, stridex);
+    auto*     x     = load_ptr_batch(xa, hipBlockIdx_y, offsetx, stridex);
     auto      alpha = load_scalar(alpha_device_host, hipBlockIdx_y, stride_alpha);
     ptrdiff_t tid   = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
 
     // bound
     if(tid < n)
-        x[tid * incx] *= alpha;
+    {
+        Tex res       = (Tex)x[tid * incx] * alpha;
+        x[tid * incx] = res;
+    }
 }
 
-template <rocblas_int NB, typename T, typename U, typename V>
+template <rocblas_int NB, typename Tex, typename Ta, typename Tx>
 ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_scal_template(rocblas_handle handle,
                                                              rocblas_int    n,
-                                                             const V*       alpha,
+                                                             const Ta*      alpha,
                                                              rocblas_stride stride_alpha,
-                                                             U              x,
+                                                             Tx             x,
                                                              rocblas_int    offsetx,
                                                              rocblas_int    incx,
                                                              rocblas_stride stridex,
@@ -48,7 +51,7 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_scal_template(rocblas_handle hand
     auto saved_device_id = handle->push_device_id();
 
     if(rocblas_pointer_mode_device == handle->pointer_mode)
-        hipLaunchKernelGGL(rocblas_scal_kernel<T>,
+        hipLaunchKernelGGL(rocblas_scal_kernel<Tex>,
                            blocks,
                            threads,
                            0,
@@ -61,7 +64,7 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_scal_template(rocblas_handle hand
                            incx,
                            stridex);
     else // single alpha is on host
-        hipLaunchKernelGGL(rocblas_scal_kernel<T>,
+        hipLaunchKernelGGL(rocblas_scal_kernel<Tex>,
                            blocks,
                            threads,
                            0,
@@ -78,34 +81,34 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_scal_template(rocblas_handle hand
 }
 
 // alpha is entry in batched or strided_batched matrix
-template <typename T, typename U, typename V>
+template <typename Tex, typename Ta, typename Tx>
 __global__ void rocblas_scal_kernel(rocblas_int    n,
-                                    const U*       alphaa,
+                                    const Ta*      alphaa,
                                     ptrdiff_t      offset_alpha,
                                     rocblas_int    inc_alpha,
                                     rocblas_stride stride_alpha,
-                                    V*             xa,
+                                    Tx*            xa,
                                     ptrdiff_t      offsetx,
                                     rocblas_int    incx,
                                     rocblas_stride stridex)
 {
-    T*        x     = load_ptr_batch(xa, hipBlockIdx_y, offsetx, stridex);
-    const T*  alpha = load_ptr_batch(alphaa, hipBlockIdx_y, offset_alpha, stride_alpha);
-    ptrdiff_t tid   = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+    auto*       x     = load_ptr_batch(xa, hipBlockIdx_y, offsetx, stridex);
+    const auto* alpha = load_ptr_batch(alphaa, hipBlockIdx_y, offset_alpha, stride_alpha);
+    ptrdiff_t   tid   = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
 
     // bound
     if(tid < n)
         x[tid * incx] *= *alpha;
 }
 
-template <rocblas_int NB, typename T, typename U, typename V>
+template <rocblas_int NB, typename Tex, typename Ta, typename Tx>
 rocblas_status rocblas_scal_template(rocblas_handle handle,
                                      rocblas_int    n,
-                                     const U*       alpha,
+                                     const Ta*      alpha,
                                      rocblas_int    offset_alpha,
                                      rocblas_int    inc_alpha,
                                      rocblas_stride stride_alpha,
-                                     V*             x,
+                                     Tx*            x,
                                      rocblas_int    offsetx,
                                      rocblas_int    incx,
                                      rocblas_stride stridex,
@@ -121,7 +124,7 @@ rocblas_status rocblas_scal_template(rocblas_handle handle,
     dim3        threads(NB);
     hipStream_t rocblas_stream = handle->rocblas_stream;
 
-    hipLaunchKernelGGL(rocblas_scal_kernel<T>,
+    hipLaunchKernelGGL(rocblas_scal_kernel<Tex>,
                        blocks,
                        threads,
                        0,

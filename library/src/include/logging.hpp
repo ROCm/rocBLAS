@@ -222,6 +222,21 @@ inline std::string log_bench_scalar_value(const char* name, const T* value)
 
 #define LOG_BENCH_SCALAR_VALUE(name) log_bench_scalar_value(#name, name)
 
+/******************************************************
+ * Bench log precision for mixed precision scal calls *
+ ******************************************************/
+inline std::string log_bench_scal_precisions(rocblas_datatype a_type,
+                                             rocblas_datatype x_type,
+                                             rocblas_datatype ex_type)
+{
+    rocblas_ostream ss;
+    if(a_type == x_type && x_type == ex_type)
+        ss << "-r " << a_type;
+    else
+        ss << "--a_type " << a_type << " --b_type " << x_type << " --compute_type " << ex_type;
+    return ss.str();
+}
+
 /******************************************************************
  * Log alpha and beta with dynamic compute_type in *_ex functions *
  ******************************************************************/
