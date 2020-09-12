@@ -14,9 +14,15 @@
 extern "C" void rocblas_initialize() {}
 #endif
 
-/*******************************************************************************
- * constructor
- ******************************************************************************/
+// This variable can be set in hipBLAS or other libraries to change the default
+// device memory size
+static thread_local size_t rocblas_device_malloc_default_memory_size;
+
+extern "C" void rocblas_device_malloc_set_default_memory_size(size_t size)
+{
+    rocblas_device_malloc_default_memory_size = size;
+}
+
 static inline int getDevice()
 {
     int device;
@@ -24,6 +30,9 @@ static inline int getDevice()
     return device;
 }
 
+/*******************************************************************************
+ * constructor
+ ******************************************************************************/
 _rocblas_handle::_rocblas_handle()
     : device(getDevice()) // active device is handle device
 {
@@ -45,7 +54,15 @@ _rocblas_handle::_rocblas_handle()
     }
 
     if(!env || !device_memory_size)
-        device_memory_size = DEFAULT_DEVICE_MEMORY_SIZE;
+    {
+        if(rocblas_device_malloc_default_memory_size)
+        {
+            device_memory_size                        = rocblas_device_malloc_default_memory_size;
+            rocblas_device_malloc_default_memory_size = 0;
+        }
+        else
+            device_memory_size = DEFAULT_DEVICE_MEMORY_SIZE;
+    }
 
     // Allocate device memory
     THROW_IF_HIP_ERROR((hipMalloc)(&device_memory, device_memory_size));

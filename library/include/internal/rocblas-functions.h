@@ -16196,6 +16196,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_device_malloc_get(struct rocblas_device_ma
                                                         size_t                             index,
                                                         void**                             res);
 ROCBLAS_EXPORT rocblas_status rocblas_device_malloc_free(struct rocblas_device_malloc_base* ptr);
+ROCBLAS_EXPORT void           rocblas_device_malloc_set_default_memory_size(size_t size);
+
 /*! \brief
     \details
     Gets the current device memory size for the handle
