@@ -665,7 +665,7 @@ pushd .
 
     case "${ID}" in
       ubuntu)
-        elevate_if_not_root dpkg -i rocblas-*.deb
+        elevate_if_not_root dpkg -i rocblas[_\-]*.deb
       ;;
       centos|rhel)
         elevate_if_not_root yum -y localinstall rocblas-*.rpm
