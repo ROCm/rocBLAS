@@ -6,17 +6,16 @@ Definitions:
   - &small_matrix_size_range
     - { N:     5, lda:   4 }
     - { N:     1, lda:  10 }
-    - { N:     4, lda: 100 }
     - { N:    10, lda:  11 }
-    - { N:    11, lda:  11 }
     - { N:    16, lda:  20 }
     - { N:    33, lda:  33 }
     - { N:    65, lda:  65 }
 
   - &special_case_range
+    # Quick return
     - { N: 0, lda: 1, incx: 1, incy: 1, batch_count: 1 }
     - { N: 1, lda: 1, incx: 1, incy: 1, batch_count: 0 }
-
+    # invalid_arg checks
     - { N: -1, lda: 1, incx: 1, incy: 1, batch_count:  0 }
     - { N:  0, lda: 0, incx: 1, incy: 1, batch_count:  0 }
     - { N:  2, lda: 1, incx: 1, incy: 1, batch_count:  0 }
@@ -26,7 +25,7 @@ Definitions:
 
   - &medium_matrix_size_range
     - { N:  1000, lda: 1003 }
-    - { N:  2011, lda: 3000 }
+    - { N:  2011, lda: 2048 }
 
   - &large_matrix_size_range
     - { N:  3000, lda: 3000 }
@@ -34,18 +33,13 @@ Definitions:
 
   - &incx_incy_range
     - { incx:  1, incy:  1 }
-    - { incx:  1, incy:  2 }
-    - { incx:  2, incy:  1 }
-    - { incx:  1, incy: -1 }
-    - { incx: -1, incy:  1 }
-    - { incx: -1, incy: -1 }
+    - { incx:  1, incy: -2 }
+    - { incx: -2, incy:  1 }
 
   - &incx_incy_range_small
-    - { incx:  2, incy:  2 }
-    - { incx: -2, incy: -2 }
+    - { incx:  2, incy:  1 }
 
   - &alpha_range
-    - { alpha:  2.0, alphai: 1.5 }
     - { alpha:    0, alphai:   0 }
     - { alpha:    0, alphai: 2.0 }
     - { alpha:  1.0, alphai:   0 }
@@ -146,7 +140,7 @@ Tests:
   category: nightly
   function: syr2_batched
   precision: *single_double_precisions_complex_real
-  uplo: [ U, L ]
+  uplo: [ U ]
   matrix_size: *large_matrix_size_range
   incx_incy: *incx_incy_range_small
   alpha_beta: *alpha_range_small
@@ -191,7 +185,7 @@ Tests:
   category: nightly
   function: syr2_strided_batched
   precision: *single_double_precisions_complex_real
-  uplo: [ U, L ]
+  uplo: [ L ]
   matrix_size: *large_matrix_size_range
   incx_incy: *incx_incy_range_small
   alpha_beta: *alpha_range_small
