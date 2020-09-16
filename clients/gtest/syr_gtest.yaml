@@ -5,16 +5,16 @@ include: known_bugs.yaml
 Definitions:
   - &small_matrix_size_range
     - { N:     1, lda:     1 }
-    - { N:    10, lda:     9 }
     - { N:    11, lda:    12 }
     - { N:    16, lda:    16 }
     - { N:    33, lda:    32 }
     - { N:    65, lda:    66 }
 
   - &special_case_range
+    # Quick return
     - { N: 0, lda: 1, incx: 1, batch_count: 1 }
     - { N: 1, lda: 1, incx: 1, batch_count: 0 }
-
+    # invalid_arg checks
     - { N: -1, lda: 1, incx: 1, batch_count:  0 }
     - { N:  0, lda: 0, incx: 1, batch_count:  0 }
     - { N:  2, lda: 1, incx: 1, batch_count:  0 }
@@ -27,16 +27,13 @@ Definitions:
 
   - &large_matrix_size_range
     - { N:  3000, lda:  3000 }
-    - { N:  4011, lda:  4011 }
-    - { N:  6000, lda:  6000 }
+    - { N:  6001, lda:  6001 }
 
   - &alpha_range
     - { alpha: -0.5, alphai:  1.5 }
     - { alpha:  0.0, alphai:  0.0 }
     - { alpha:  0.0, alphai:  2.0 }
-    - { alpha:  2.0, alphai:  0.0 }
     - { alpha:  1.0, alphai:  0.0 }
-    - { alpha:  1.5, alphai: -2.0 }
 
   - &alpha_range_small
     - { alpha: 2.0, alphai: 0.5 }
@@ -76,7 +73,7 @@ Tests:
   precision: *single_double_precisions_complex_real
   uplo: [ U, L ]
   matrix_size: *small_matrix_size_range
-  incx: [ -1, 1, 2, -2, 10, 99 ]
+  incx: [ 1, -2, 10 ]
   alpha_beta: *alpha_range
 
 - name: syr_medium
@@ -115,7 +112,7 @@ Tests:
   precision: *single_double_precisions_complex_real
   uplo: [ U, L ]
   matrix_size: *small_matrix_size_range
-  incx: [ -1, 1, 2, -2, 10, 99 ]
+  incx: [ -1, 2, 10 ]
   alpha_beta: *alpha_range
   batch_count: [ 1, 5 ]
 
@@ -133,7 +130,7 @@ Tests:
   category: nightly
   function: syr_batched
   precision: *single_double_precisions_complex_real
-  uplo: [ U, L ]
+  uplo: [ U ]
   matrix_size: *large_matrix_size_range
   incx: [ 3 ]
   alpha_beta: *alpha_range_small
@@ -157,7 +154,7 @@ Tests:
   precision: *single_double_precisions_complex_real
   uplo: [ U, L ]
   matrix_size: *small_matrix_size_range
-  incx: [ -1, 1, 2, -2, 10, 99 ]
+  incx: [ 1, -2, 10 ]
   alpha_beta: *alpha_range
   batch_count: [ 1, 5 ]
 
@@ -175,7 +172,7 @@ Tests:
   category: nightly
   function: syr_strided_batched
   precision: *single_double_precisions_complex_real
-  uplo: [ U, L ]
+  uplo: [ L ]
   matrix_size: *large_matrix_size_range
   incx: [ 3 ]
   alpha_beta: *alpha_range_small
