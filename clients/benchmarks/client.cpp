@@ -712,7 +712,8 @@ int run_bench_test(Arguments& arg)
 {
     rocblas_initialize(); // Initialize rocBLAS
 
-    rocblas_cout << std::ios::fixed << std::setprecision(7); // Set precision to 7 digits
+    rocblas_cout << std::setiosflags(std::ios::fixed)
+                 << std::setprecision(7); // Set precision to 7 digits
 
     // disable unit_check in client benchmark, it is only used in gtest unit test
     arg.unit_check = 0;
