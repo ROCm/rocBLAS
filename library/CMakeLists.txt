@@ -133,14 +133,14 @@ add_subdirectory( src )
 # As of ROCm 3.8, HIP_RUNTIME has been changed from "cuda" to "cudart"
 string( TOLOWER "${HIP_RUNTIME}" HIP_RUNTIME_LOWER )
 if( HIP_RUNTIME_LOWER STREQUAL "rocclr" )
-  set( RPM_REQUIREMENTS "hip-rocclr >= 3.5.0" )
-  set( CPACK_DEBIAN_PACKAGE_DEPENDS "hip-rocclr (>= 3.5.0)" )
+  set( RPM_REQUIREMENTS "hip-rocclr >= 3.5.0, libc" )
+  set( CPACK_DEBIAN_PACKAGE_DEPENDS "hip-rocclr (>= 3.5.0), libc" )
 elseif( HIP_RUNTIME MATCHES "*cuda*")
-  set( RPM_REQUIREMENTS "hip-nvcc >= 3.5.0" )
-  set( CPACK_DEBIAN_PACKAGE_DEPENDS "hip-nvcc (>= 3.5.0)" )
+  set( RPM_REQUIREMENTS "hip-nvcc >= 3.5.0, libc" )
+  set( CPACK_DEBIAN_PACKAGE_DEPENDS "hip-nvcc (>= 3.5.0), libc" )
 else()
-  set( RPM_REQUIREMENTS "rocm-dev >= 2.5.27" )
-  set( CPACK_DEBIAN_PACKAGE_DEPENDS "rocm-dev (>= 2.5.27)" )
+  set( RPM_REQUIREMENTS "rocm-dev >= 2.5.27, libc" )
+  set( CPACK_DEBIAN_PACKAGE_DEPENDS "rocm-dev (>= 2.5.27), libc" )
 endif()
 
 if( OS_ID_sles )
@@ -167,8 +167,8 @@ set( ROCBLAS_CONFIG_DIR "\${CPACK_PACKAGING_INSTALL_PREFIX}/${CMAKE_INSTALL_LIBD
 
 rocm_create_package(
     NAME ${package_name}
-    DESCRIPTION "Radeon Open Compute BLAS library"
-    MAINTAINER "rocblas-maintainer@amd.com"
+    DESCRIPTION "rocBLAS is AMD's library for BLAS on ROCm (Radeon Open Compute platforM). It is implemented in HIP and optimized for AMD GPUs."
+    MAINTAINER "rocBLAS Maintainer <rocblas-maintainer@amd.com>"
     LDCONFIG
     LDCONFIG_DIR ${ROCBLAS_CONFIG_DIR}
 )
