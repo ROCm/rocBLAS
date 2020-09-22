@@ -106,7 +106,7 @@ bool _rocblas_handle::device_allocator(size_t size)
         if(device_memory_in_use)
         {
             rocblas_cerr << "rocBLAS internal error: Cannot reallocate device memory while it is "
-                            "already allocated.";
+                            "already in use.";
             rocblas_abort();
         }
 
