@@ -14,8 +14,8 @@ Requirements
 - Temporary device memory should be recycled across multiple rocBLAS function calls using the same rocblas_handle.
 - The following schemes need to be supported:
 
-  - **Default** 4 MB is allocated at handle creation time. There are no more synchronizing allocations or deallocations unless manually changed by the user.
-  - **Preallocate** The environment variable ROCBLAS_DEVICE_MEMORY_SIZE is used to preallocate device memory when a handle is created, and there are no more synchronizing allocations or deallocations unless manually changed by the user. This might require the user of helper functions to measure the maximum memory needed during the handle lifetime.
+  - **Default** Functions allocate required device memory automatically. This has the disadvantage that allocation is a synchronizing event.
+  - **Preallocate** Query all the functions called using a rocblas_handle to find out how much device memory is needed. Preallocate the required device memory when the rocblas_handle is created, and there are no more synchronizing allocations or deallocations.
   - **Manual** Query a function to find out how much device memory is required. Allocate and deallocate the device memory before and after function calls. This allows the user to control where the synchronizing allocation and deallocation occur.
 
 In all above schemes, temporary device memory needs to be held by the rocblas_handle and recycled if a subsequent function using the handle needs it.
@@ -39,8 +39,7 @@ Design
 
   - Functions are provided to answer device memory size queries
   - Functions are provided to allocate temporary device memory
-  - Opaque RAII objects are used to hold the temorary device memory, and allocated memory is returned to the handle automatically when the RAII objects are destroyed.
-  - Device memory RAII objects shall only be created on the stack, not on the heap.
+  - opaque RAII objects are used to hold the temorary device memory, and allocated memory is returned to the handle automatically when it is no longer needed.
 
 The functions for the rocBLAS user are described in the User Guide. The functions for the rocBLAS developer are described below.
 
@@ -158,11 +157,11 @@ To allocate multiple buffers
     size_t size1 = m * n;
     size_t size2 = m * k;
 
-    auto buf1 = handle->device_malloc(size1);
-    auto buf2 = handle->device_malloc(size2);
+    auto mem = handle->device_malloc(size1, size2);
+    if (!mem) return rocblas_status_memory_error;
 
-    if (!buf1 || !buf2)
-       return rocblas_status_memory_error;
+    void * buf1, * buf2;
+    std::tie(buf1, buf2) = mem;
 
 
 Function
@@ -176,7 +175,9 @@ Function
 - The object returned is convertible to void * or other pointer types if only one size is specified
 - The object can be assigned to std::tie(ptr1, ptr2, ...), if more than one size is specified
 - The lifetime of the returned object is the lifetime of the borrowed device memory (RAII)
-- No resizing or synchronization ever occurs
+- To simplify and optimize the code, only one successful allocation object can be alive at a time
+- If the handle's device memory is currently being managed by rocBLAS as in the default scheme, it is expanded in size as necessary
+- If the user allocated (or pre-allocated) an explicit size of device memory, then that size is used as the limit, and no resizing or synchronization ever occurs
 
 Parameters:
 
@@ -184,8 +185,8 @@ Parameters:
 
 return value:
 
-- **On success**, returns an opaque RAII object which evaluates to ``true`` when converted to ``bool``
-- **On failure**, returns an opaque RAII object which evaluates to ``false`` when converted to ``bool``
+- **On success**, returns an opaque RAII object
+- **On failure**, returns a null pointer
 
 
 Performance degrade
@@ -220,3 +221,4 @@ Example
         }
     }
     return ret;
+
