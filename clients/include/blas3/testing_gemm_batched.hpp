@@ -76,6 +76,38 @@ void testing_gemm_batched(const Arguments& arg)
         = transB == rocblas_operation_none ? size_t(N) * size_t(ldb) : size_t(K) * size_t(ldb);
     size_t size_one_c = N * ldc;
 
+    bool        debugSkipLaunch = false;
+    const char* db2             = std::getenv("TENSILE_DB2");
+    if(db2)
+    {
+        auto value      = strtol(db2, nullptr, 0);
+        debugSkipLaunch = value & 0x1;
+    }
+
+    if(debugSkipLaunch)
+    {
+        device_batch_vector<T> dA(1, 1, batch_count);
+        device_batch_vector<T> dB(1, 1, batch_count);
+        device_batch_vector<T> dC(1, 1, batch_count);
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+        CHECK_ROCBLAS_ERROR((rocblas_gemm_batched_fn(handle,
+                                                     transA,
+                                                     transB,
+                                                     M,
+                                                     N,
+                                                     K,
+                                                     &h_alpha,
+                                                     dA.ptr_on_device(),
+                                                     lda,
+                                                     dB.ptr_on_device(),
+                                                     ldb,
+                                                     &h_beta,
+                                                     dC.ptr_on_device(),
+                                                     ldc,
+                                                     batch_count)));
+        return;
+    }
+
     size_t     size_a      = size_one_a;
     size_t     size_b      = size_one_b;
     size_t     size_c      = size_one_c;

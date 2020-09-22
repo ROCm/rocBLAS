@@ -15,6 +15,9 @@
 #include "rocblas_vector.hpp"
 #include "unit.hpp"
 #include "utility.hpp"
+#ifdef USE_TENSILE_HOST
+#include "tensile_host.hpp"
+#endif
 
 /* ============================================================================================ */
 template <typename Ti, typename To, typename Tc>
@@ -352,6 +355,47 @@ void testing_gemm_ex(const Arguments& arg)
                                                  solution_index,
                                                  flags),
                               rocblas_status_invalid_size);
+        return;
+    }
+
+    bool        debugSkipLaunch = false;
+    const char* db2             = std::getenv("TENSILE_DB2");
+    if(db2)
+    {
+        auto value      = strtol(db2, nullptr, 0);
+        debugSkipLaunch = value & 0x1;
+    }
+
+    if(debugSkipLaunch)
+    {
+        device_vector<Ti> dA(1);
+        device_vector<Ti> dB(1);
+        device_vector<To> dC(1);
+        device_vector<To> dD(1);
+        CHECK_ROCBLAS_ERROR(rocblas_gemm_ex_fn(handle,
+                                               transA,
+                                               transB,
+                                               M,
+                                               N,
+                                               K,
+                                               &h_alpha_Tc,
+                                               dA,
+                                               arg.a_type,
+                                               lda,
+                                               dB,
+                                               arg.b_type,
+                                               ldb,
+                                               &h_beta_Tc,
+                                               dC,
+                                               arg.c_type,
+                                               ldc,
+                                               dD,
+                                               arg.d_type,
+                                               ldd,
+                                               arg.compute_type,
+                                               algo,
+                                               solution_index,
+                                               flags));
         return;
     }
 
