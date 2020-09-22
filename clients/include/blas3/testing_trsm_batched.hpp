@@ -203,6 +203,7 @@ void testing_trsm_batched(const Arguments& arg)
     double max_err_1 = 0.0;
     double max_err_2 = 0.0;
 
+    if(!ROCBLAS_REALLOC_ON_DEMAND)
     {
         // Compute size
         CHECK_ROCBLAS_ERROR(rocblas_start_device_memory_size_query(handle));
