@@ -367,6 +367,49 @@ void testing_gemm_batched_ex(const Arguments& arg)
         return;
     }
 
+    bool        debugSkipLaunch = false;
+    const char* db2             = std::getenv("TENSILE_DB2");
+    if(db2)
+    {
+        auto value      = strtol(db2, nullptr, 0);
+        debugSkipLaunch = value & 0x1;
+    }
+
+    if(debugSkipLaunch)
+    {
+        device_batch_vector<Ti> dA(1, 1, batch_count);
+        device_batch_vector<Ti> dB(1, 1, batch_count);
+        device_batch_vector<To> dC(1, 1, batch_count);
+        device_batch_vector<To> dD(1, 1, batch_count);
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
+        CHECK_ROCBLAS_ERROR(rocblas_gemm_batched_ex_fn(handle,
+                                                       transA,
+                                                       transB,
+                                                       M,
+                                                       N,
+                                                       K,
+                                                       &h_alpha_Tc,
+                                                       dA.ptr_on_device(),
+                                                       arg.a_type,
+                                                       lda,
+                                                       dB.ptr_on_device(),
+                                                       arg.b_type,
+                                                       ldb,
+                                                       &h_beta_Tc,
+                                                       dC.ptr_on_device(),
+                                                       arg.c_type,
+                                                       ldc,
+                                                       dD.ptr_on_device(),
+                                                       arg.d_type,
+                                                       ldd,
+                                                       batch_count,
+                                                       arg.compute_type,
+                                                       algo,
+                                                       solution_index,
+                                                       flags));
+        return;
+    }
+
     size_t size_one_a
         = transA == rocblas_operation_none ? size_t(K) * size_t(lda) : size_t(M) * size_t(lda);
     size_t size_one_b
