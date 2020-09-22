@@ -174,11 +174,11 @@ Function
     auto mem = handle->device_malloc(size...)
 
 - Returns an opaque RAII object lending allocated device memory to a particular rocBLAS function.
-- The object returned is convertible to void * or other pointer types if only one size is specified
-- The individual pointers can be accessed with the subscript operator[]
+- The object returned is convertible to ``void *`` or other pointer types if only one size is specified
+- The individual pointers can be accessed with the subscript ``operator[]``
 - The lifetime of the returned object is the lifetime of the borrowed device memory (RAII)
 - To simplify and optimize the code, only one successful allocation object can be alive at a time
-- If the handle's device memory is currently being managed by rocBLAS as in the default scheme, it is expanded in size as necessary
+- If the handle's device memory is currently being managed by rocBLAS, as in the default scheme, it is expanded in size as necessary
 - If the user allocated (or pre-allocated) an explicit size of device memory, then that size is used as the limit, and no resizing or synchronization ever occurs
 
 Parameters:
@@ -187,8 +187,8 @@ Parameters:
 
 return value:
 
-- **On success**, returns an opaque RAII object
-- **On failure**, returns a null pointer
+- **On success**, returns an opaque RAII object which evaluates to ``true`` when converted to ``bool``
+- **On failure**, returns an opaque RAII object which evaluates to ``false`` when converted to ``bool``
 
 
 Performance degrade
