@@ -355,15 +355,8 @@ void testing_gemm_ex(const Arguments& arg)
         return;
     }
 
-    bool        debugSkipLaunch = false;
-    const char* db2             = std::getenv("TENSILE_DB2");
-    if(db2)
-    {
-        auto value      = strtol(db2, nullptr, 0);
-        debugSkipLaunch = value & 0x1;
-    }
-
-    if(debugSkipLaunch)
+#ifdef ROCBLAS_BENCH
+    if(rocblas_tensile_debug_skip_launch())
     {
         device_vector<Ti> dA(1);
         device_vector<Ti> dB(1);
@@ -395,6 +388,7 @@ void testing_gemm_ex(const Arguments& arg)
                                                flags));
         return;
     }
+#endif
 
     const size_t size_A = size_t(lda) * size_t(A_col);
     const size_t size_B = size_t(ldb) * size_t(B_col);
