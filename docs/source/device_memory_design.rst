@@ -144,8 +144,9 @@ Device memory can be allocated for n floats using device_malloc as follows:
 
 ::
 
-     float* mem = (float*)handle->device_malloc(n * sizeof(float));
+     auto mem = handle->device_malloc(n * sizeof(float));
      if (!mem) return rocblas_status_memory_error;
+     float* ptr = static_cast<float*>(mem);
 
 Example
 -------
@@ -161,7 +162,8 @@ To allocate multiple buffers
     if (!mem) return rocblas_status_memory_error;
 
     void * buf1, * buf2;
-    std::tie(buf1, buf2) = mem;
+    buf1 = mem[0];
+    buf2 = mem[1];
 
 
 Function
@@ -173,7 +175,7 @@ Function
 
 - Returns an opaque RAII object lending allocated device memory to a particular rocBLAS function.
 - The object returned is convertible to void * or other pointer types if only one size is specified
-- The object can be assigned to std::tie(ptr1, ptr2, ...), if more than one size is specified
+- The individual pointers can be accessed with the subscript operator[]
 - The lifetime of the returned object is the lifetime of the borrowed device memory (RAII)
 - To simplify and optimize the code, only one successful allocation object can be alive at a time
 - If the handle's device memory is currently being managed by rocBLAS as in the default scheme, it is expanded in size as necessary
@@ -221,4 +223,3 @@ Example
         }
     }
     return ret;
-
