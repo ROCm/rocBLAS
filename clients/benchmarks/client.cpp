@@ -2,7 +2,7 @@
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#include <boost/program_options.hpp>
+#include "program_options.hpp"
 
 #include "rocblas.h"
 #include "rocblas.hpp"
@@ -751,7 +751,8 @@ int run_bench_test(Arguments& arg)
 {
     rocblas_initialize(); // Initialize rocBLAS
 
-    rocblas_cout << std::ios::fixed << std::setprecision(7); // Set precision to 7 digits
+    rocblas_cout << std::setiosflags(std::ios::fixed)
+                 << std::setprecision(7); // Set precision to 7 digits
 
     // disable unit_check in client benchmark, it is only used in gtest unit test
     arg.unit_check = 0;
@@ -956,8 +957,6 @@ void fix_batch(int argc, char* argv[])
         }
 }
 
-using namespace boost::program_options;
-
 int main(int argc, char* argv[])
 try
 {
@@ -1151,7 +1150,7 @@ try
          "gemm_ex flags")
 
         ("atomics_not_allowed",
-         value<bool>(&atomics_not_allowed)->default_value(false),
+         bool_switch(&atomics_not_allowed)->default_value(false),
          "Atomic operations with non-determinism in results are not allowed")
 
         ("device",
@@ -1173,17 +1172,11 @@ try
 
     arg.atomics_mode = atomics_not_allowed ? rocblas_atomics_not_allowed : rocblas_atomics_allowed;
 
-    // Initialize rocBLAS; TODO: Remove this after it is determined why rocblas-bench
-    // returns lower performance if this is executed after Boost parse_command_line().
-    // Right now this causes 5-10 seconds of delay before processing the CLI arguments.
-    rocblas_cerr << "Initializing rocBLAS..." << std::endl;
-    rocblas_initialize();
-
     variables_map vm;
     store(parse_command_line(argc, argv, desc), vm);
     notify(vm);
 
-    if(vm.count("help"))
+    if((argc <= 1 && !datafile) || vm.count("help"))
     {
         rocblas_cout << desc << std::endl;
         return 0;
