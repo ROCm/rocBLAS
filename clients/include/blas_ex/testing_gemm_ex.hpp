@@ -15,9 +15,6 @@
 #include "rocblas_vector.hpp"
 #include "unit.hpp"
 #include "utility.hpp"
-#ifdef USE_TENSILE_HOST
-#include "tensile_host.hpp"
-#endif
 
 /* ============================================================================================ */
 template <typename Ti, typename To, typename Tc>
