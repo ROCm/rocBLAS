@@ -27,17 +27,9 @@ rocblas_status device_strided_batched_matrix_copy(rocblas_handle handle,
                                                   rocblas_int    n2,
                                                   rocblas_int    batch_count)
 {
-#ifndef NDEBUG
-    bool        debugSkipLaunch = false;
-    const char* db2             = std::getenv("TENSILE_DB2");
-    if(db2)
-    {
-        auto value      = strtol(db2, nullptr, 0);
-        debugSkipLaunch = value & 0x1;
-        if(debugSkipLaunch)
-            return rocblas_status_success;
-    }
-#endif
+    if(rocblas_tensile_debug_skip_launch())
+        return rocblas_status_success;
+
     if(src == dst && ld_src == ld_dst && stride_src == stride_dst)
         return rocblas_status_success; // no copy if src matrix == dst matrix
 

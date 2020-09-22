@@ -410,21 +410,13 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
         return;
     }
 
-    bool        debugSkipLaunch = false;
-    const char* db2             = std::getenv("TENSILE_DB2");
-    if(db2)
-    {
-        auto value      = strtol(db2, nullptr, 0);
-        debugSkipLaunch = value & 0x1;
-    }
-
-    if(debugSkipLaunch)
+#ifdef ROCBLAS_BENCH
+    if(rocblas_tensile_debug_skip_launch())
     {
         device_vector<Ti> dA(1);
         device_vector<Ti> dB(1);
         device_vector<To> dC(1);
         device_vector<To> dD(1);
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         CHECK_ROCBLAS_ERROR(rocblas_gemm_strided_batched_ex_fn(handle,
                                                                transA,
                                                                transB,
@@ -456,6 +448,7 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
                                                                flags));
         return;
     }
+#endif
 
     size_t size_one_a
         = transA == rocblas_operation_none ? size_t(K) * size_t(lda) : size_t(M) * size_t(lda);

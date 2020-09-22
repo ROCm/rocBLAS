@@ -9,7 +9,7 @@ COPY *.deb /tmp/
 
 # Install the debian package, and print out contents of expected changed locations
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends --allow-unauthenticated -y \
-    /tmp/rocblas-*.deb \
+    /tmp/rocblas[_\-]*.deb \
   && rm -f /tmp/*.deb \
   && apt-get clean \
   && rm -rf /var/lib/apt/lists/* \
