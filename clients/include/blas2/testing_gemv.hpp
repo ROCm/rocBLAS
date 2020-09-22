@@ -230,11 +230,11 @@ void testing_gemv(const Arguments& arg)
     {
         int number_cold_calls = arg.cold_iters;
         int number_hot_calls  = arg.iters;
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            rocblas_gemv_fn(handle, transA, M, N, d_alpha, dA, lda, dx, incx, d_beta, dy_1, incy);
+            rocblas_gemv_fn(handle, transA, M, N, &h_alpha, dA, lda, dx, incx, &h_beta, dy_1, incy);
         }
 
         hipStream_t stream;
@@ -243,7 +243,7 @@ void testing_gemv(const Arguments& arg)
 
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
-            rocblas_gemv_fn(handle, transA, M, N, d_alpha, dA, lda, dx, incx, d_beta, dy_1, incy);
+            rocblas_gemv_fn(handle, transA, M, N, &h_alpha, dA, lda, dx, incx, &h_beta, dy_1, incy);
         }
 
         gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
