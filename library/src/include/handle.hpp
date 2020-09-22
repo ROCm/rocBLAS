@@ -17,6 +17,10 @@
 #include <unistd.h>
 #include <utility>
 
+// Whether rocBLAS can reallocate device memory on demand, at the cost of only
+// allowing one allocation at a time, and at the cost of potential synchronization
+#define ROCBLAS_REALLOC_ON_DEMAND 1
+
 // Round up size to the nearest MIN_CHUNK_SIZE
 constexpr size_t roundup_device_memory_size(size_t size)
 {
@@ -213,14 +217,20 @@ public:
 
 private:
     // device memory work buffer
-    static constexpr size_t DEFAULT_DEVICE_MEMORY_SIZE = 4 * 1048576;
+    static constexpr size_t DEFAULT_DEVICE_MEMORY_SIZE = 32 * 1024 * 1024;
 
     // Variables holding state of device memory allocation
-    void*  device_memory            = nullptr;
-    size_t device_memory_size       = 0;
-    size_t device_memory_in_use     = 0;
-    bool   device_memory_size_query = false;
+    void*  device_memory                    = nullptr;
+    size_t device_memory_size               = 0;
+    size_t device_memory_in_use             = 0;
+    bool   device_memory_size_query         = false;
+    bool   device_memory_is_rocblas_managed = false;
     size_t device_memory_query_size;
+
+#if ROCBLAS_REALLOC_ON_DEMAND
+    // Helper for device memory allocator
+    bool device_allocator(size_t size);
+#endif
 
     // Device ID is created at handle creation time and remains in effect for the life of the handle.
     const int device;
@@ -249,9 +259,14 @@ private:
             size_t old;
             size_t offsets[] = {(old = size, size += roundup_device_memory_size(sizes), old)...};
 
+#if ROCBLAS_REALLOC_ON_DEMAND
+            success = handle->device_allocator(size);
+#else
+            success = size <= handle->device_memory_size - handle->device_memory_in_use;
+#endif
+
             // If allocation failed, return an array of nullptr's
             // If total size is 0, return an array of nullptr's, but leave it marked as successful
-            success = size <= handle->device_memory_size - handle->device_memory_in_use;
             if(!success || !size)
                 return decltype(pointers)(sizeof...(sizes));
 
