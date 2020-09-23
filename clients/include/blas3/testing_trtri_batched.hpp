@@ -96,6 +96,7 @@ void testing_trtri_batched(const Arguments& arg)
     CHECK_HIP_ERROR(dA.transfer_from(hA));
     CHECK_HIP_ERROR(dinvA.transfer_from(hA));
 
+    if(!ROCBLAS_REALLOC_ON_DEMAND)
     {
         // Compute size
         CHECK_ROCBLAS_ERROR(rocblas_start_device_memory_size_query(handle));
