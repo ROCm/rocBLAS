@@ -53,7 +53,8 @@ _rocblas_handle::_rocblas_handle()
                                          << std::endl;
     }
 
-    if(!env || !device_memory_size)
+    device_memory_is_rocblas_managed = !env || !device_memory_size;
+    if(device_memory_is_rocblas_managed)
     {
         if(rocblas_device_malloc_default_memory_size)
         {
@@ -92,6 +93,39 @@ _rocblas_handle::~_rocblas_handle()
         rocblas_abort();
     };
 }
+
+/*******************************************************************************
+ * helper for allocating device memory
+ ******************************************************************************/
+#if ROCBLAS_REALLOC_ON_DEMAND
+bool _rocblas_handle::device_allocator(size_t size)
+{
+    bool success = size <= device_memory_size;
+    if(!success && device_memory_is_rocblas_managed)
+    {
+        if(device_memory_in_use)
+        {
+            rocblas_cerr << "rocBLAS internal error: Cannot reallocate device memory while it is "
+                            "already in use.";
+            rocblas_abort();
+        }
+
+        // Temporarily change the thread's default device ID to the handle's device ID
+        auto saved_device_id = push_device_id();
+
+        device_memory_size = 0;
+        if(!device_memory || (hipFree)(device_memory) == hipSuccess)
+        {
+            success = (hipMalloc)(&device_memory, size) == hipSuccess;
+            if(success)
+                device_memory_size = size;
+            else
+                device_memory = nullptr;
+        }
+    }
+    return success;
+}
+#endif
 
 /*******************************************************************************
  * start device memory size queries
@@ -191,11 +225,14 @@ catch(...)
 
 /*******************************************************************************
  * Returns whether device memory is rocblas-managed
- * (Returns always false now, since it is impractical to manage in rocBLAS.)
  ******************************************************************************/
-extern "C" bool rocblas_is_managing_device_memory(rocblas_handle)
+extern "C" bool rocblas_is_managing_device_memory(rocblas_handle handle)
 {
+#if ROCBLAS_REALLOC_ON_DEMAND
+    return handle && handle->device_memory_is_rocblas_managed;
+#else
     return false;
+#endif
 }
 
 /* \brief
