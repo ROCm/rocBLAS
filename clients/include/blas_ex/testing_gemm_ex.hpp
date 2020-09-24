@@ -42,8 +42,31 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
         const rocblas_datatype d_type       = rocblas_datatype_f32_r;
         const rocblas_datatype compute_type = rocblas_datatype_f32_r;
 
-        const float alpha_float = 1.0;
-        const float beta_float  = 1.0;
+        const T* alpha = nullptr;
+        const T* beta  = nullptr;
+
+        const T h_alpha = 1.0;
+        const T h_beta  = 1.0;
+
+        device_vector<T> d_alpha(1);
+        device_vector<T> d_beta(1);
+
+        CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
+        CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
+
+        CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(T), hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(hipMemcpy(d_beta, &h_beta, sizeof(T), hipMemcpyHostToDevice));
+
+        if(pointer_mode == rocblas_pointer_mode_host)
+        {
+            alpha = &h_alpha;
+            beta  = &h_beta;
+        }
+        else
+        {
+            alpha = d_alpha;
+            beta  = d_beta;
+        }
 
         const rocblas_gemm_algo algo      = rocblas_gemm_algo_standard;
         static const size_t     safe_size = 100;
@@ -70,14 +93,14 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
                                                  M,
                                                  N,
                                                  K,
-                                                 &alpha_float,
+                                                 alpha,
                                                  nullptr,
                                                  a_type,
                                                  lda,
                                                  dB,
                                                  b_type,
                                                  ldb,
-                                                 &beta_float,
+                                                 beta,
                                                  dC,
                                                  c_type,
                                                  ldc,
@@ -96,14 +119,14 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
                                                  M,
                                                  N,
                                                  K,
-                                                 &alpha_float,
+                                                 alpha,
                                                  dA,
                                                  a_type,
                                                  lda,
                                                  nullptr,
                                                  b_type,
                                                  ldb,
-                                                 &beta_float,
+                                                 beta,
                                                  dC,
                                                  c_type,
                                                  ldc,
@@ -122,14 +145,14 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
                                                  M,
                                                  N,
                                                  K,
-                                                 &alpha_float,
+                                                 alpha,
                                                  dA,
                                                  a_type,
                                                  lda,
                                                  dB,
                                                  b_type,
                                                  ldb,
-                                                 &beta_float,
+                                                 beta,
                                                  nullptr,
                                                  c_type,
                                                  ldc,
@@ -148,14 +171,14 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
                                                  M,
                                                  N,
                                                  K,
-                                                 &alpha_float,
+                                                 alpha,
                                                  dA,
                                                  a_type,
                                                  lda,
                                                  dB,
                                                  b_type,
                                                  ldb,
-                                                 &beta_float,
+                                                 beta,
                                                  dC,
                                                  c_type,
                                                  ldc,
@@ -181,7 +204,7 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
                                                  dB,
                                                  b_type,
                                                  ldb,
-                                                 &beta_float,
+                                                 beta,
                                                  dC,
                                                  c_type,
                                                  ldc,
@@ -200,7 +223,7 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
                                                  M,
                                                  N,
                                                  K,
-                                                 &alpha_float,
+                                                 alpha,
                                                  dA,
                                                  a_type,
                                                  lda,
@@ -226,14 +249,14 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
                                                  M,
                                                  N,
                                                  K,
-                                                 &alpha_float,
+                                                 alpha,
                                                  dA,
                                                  a_type,
                                                  lda,
                                                  dB,
                                                  b_type,
                                                  ldb,
-                                                 &beta_float,
+                                                 beta,
                                                  dC,
                                                  c_type,
                                                  ldc,

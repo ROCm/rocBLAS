@@ -31,8 +31,31 @@ void testing_gemm_bad_arg(const Arguments& arg)
         const rocblas_int ldb = 100;
         const rocblas_int ldc = 100;
 
-        const T alpha = 1.0;
-        const T beta  = 1.0;
+        const T* alpha = nullptr;
+        const T* beta  = nullptr;
+
+        const T h_alpha = 1.0;
+        const T h_beta  = 1.0;
+
+        device_vector<T> d_alpha(1);
+        device_vector<T> d_beta(1);
+
+        CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
+        CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
+
+        CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(T), hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(hipMemcpy(d_beta, &h_beta, sizeof(T), hipMemcpyHostToDevice));
+
+        if(pointer_mode == rocblas_pointer_mode_host)
+        {
+            alpha = &h_alpha;
+            beta  = &h_beta;
+        }
+        else
+        {
+            alpha = d_alpha;
+            beta  = d_beta;
+        }
 
         const size_t safe_size = 100;
 
@@ -52,50 +75,39 @@ void testing_gemm_bad_arg(const Arguments& arg)
 
         EXPECT_ROCBLAS_STATUS(
             rocblas_gemm_fn(
-                handle, transA, transB, M, N, K, &alpha, nullptr, lda, dB, ldb, &beta, dC, ldc),
+                handle, transA, transB, M, N, K, alpha, nullptr, lda, dB, ldb, beta, dC, ldc),
             rocblas_status_invalid_pointer);
 
         EXPECT_ROCBLAS_STATUS(
             rocblas_gemm_fn(
-                handle, transA, transB, M, N, K, &alpha, dA, lda, nullptr, ldb, &beta, dC, ldc),
+                handle, transA, transB, M, N, K, alpha, dA, lda, nullptr, ldb, beta, dC, ldc),
             rocblas_status_invalid_pointer);
 
         EXPECT_ROCBLAS_STATUS(
             rocblas_gemm_fn(
-                handle, transA, transB, M, N, K, &alpha, dA, lda, dB, ldb, &beta, nullptr, ldc),
+                handle, transA, transB, M, N, K, alpha, dA, lda, dB, ldb, beta, nullptr, ldc),
             rocblas_status_invalid_pointer);
 
         EXPECT_ROCBLAS_STATUS(
             rocblas_gemm_fn(
-                handle, transA, transB, M, N, K, nullptr, dA, lda, dB, ldb, &beta, dC, ldc),
+                handle, transA, transB, M, N, K, nullptr, dA, lda, dB, ldb, beta, dC, ldc),
             rocblas_status_invalid_pointer);
 
         EXPECT_ROCBLAS_STATUS(
             rocblas_gemm_fn(
-                handle, transA, transB, M, N, K, &alpha, dA, lda, dB, ldb, nullptr, dC, ldc),
+                handle, transA, transB, M, N, K, alpha, dA, lda, dB, ldb, nullptr, dC, ldc),
             rocblas_status_invalid_pointer);
 
         EXPECT_ROCBLAS_STATUS(
             rocblas_gemm_fn(
-                nullptr, transA, transB, M, N, K, &alpha, dA, lda, dB, ldb, &beta, dC, ldc),
+                nullptr, transA, transB, M, N, K, alpha, dA, lda, dB, ldb, beta, dC, ldc),
             rocblas_status_invalid_handle);
 
         // if k == 0 we can test that A and B can both be nullptr without issue.
-        EXPECT_ROCBLAS_STATUS(rocblas_gemm_fn(handle,
-                                              transA,
-                                              transB,
-                                              M,
-                                              N,
-                                              0,
-                                              &alpha,
-                                              nullptr,
-                                              lda,
-                                              nullptr,
-                                              ldb,
-                                              &beta,
-                                              dC,
-                                              ldc),
-                              rocblas_status_success);
+        EXPECT_ROCBLAS_STATUS(
+            rocblas_gemm_fn(
+                handle, transA, transB, M, N, 0, alpha, nullptr, lda, nullptr, ldb, beta, dC, ldc),
+            rocblas_status_success);
     }
 }
 
