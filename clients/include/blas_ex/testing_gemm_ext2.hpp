@@ -76,20 +76,20 @@ void testing_gemm_ext2_bad_arg(const Arguments& arg)
         const rocblas_datatype d_type       = rocblas_datatype_f32_r;
         const rocblas_datatype compute_type = rocblas_datatype_f32_r;
 
-        const T* alpha = nullptr;
-        const T* beta  = nullptr;
+        const Tc* alpha = nullptr;
+        const Tc* beta  = nullptr;
 
-        const T h_alpha = 1.0;
-        const T h_beta  = 1.0;
+        const Tc h_alpha = 1.0;
+        const Tc h_beta  = 1.0;
 
-        device_vector<T> d_alpha(1);
-        device_vector<T> d_beta(1);
+        device_vector<Tc> d_alpha(1);
+        device_vector<Tc> d_beta(1);
 
         CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
         CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
 
-        CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(T), hipMemcpyHostToDevice));
-        CHECK_HIP_ERROR(hipMemcpy(d_beta, &h_beta, sizeof(T), hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(Tc), hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(hipMemcpy(d_beta, &h_beta, sizeof(Tc), hipMemcpyHostToDevice));
 
         if(pointer_mode == rocblas_pointer_mode_host)
         {
