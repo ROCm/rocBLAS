@@ -159,6 +159,8 @@ try
         return rocblas_status_invalid_handle;
     if(handle->layer_mode & rocblas_layer_mode_log_trace)
         log_trace(handle, "rocblas_set_stream", stream_id);
+    if(stream_id == handle->rocblas_stream)
+        return rocblas_status_success;
     RETURN_IF_HIP_ERROR(hipStreamSynchronize(handle->rocblas_stream));
     handle->rocblas_stream = stream_id;
     return rocblas_status_success;
