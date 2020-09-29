@@ -61,58 +61,40 @@ namespace
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
         auto layer_mode = handle->layer_mode;
-        if(handle->pointer_mode == rocblas_pointer_mode_host)
-        {
-            if(layer_mode & rocblas_layer_mode_log_trace)
-                log_trace(handle,
-                          rocblas_ger_batched_name<CONJ, T>,
-                          m,
-                          n,
-                          log_trace_scalar_value(alpha),
-                          x,
-                          incx,
-                          y,
-                          incy,
-                          A,
-                          lda,
-                          batch_count);
 
-            if(layer_mode & rocblas_layer_mode_log_bench)
-                log_bench(handle,
-                          "./rocblas-bench -f",
-                          rocblas_ger_batched_fn_name<CONJ, T>,
-                          "-r",
-                          rocblas_precision_string<T>,
-                          "-m",
-                          m,
-                          "-n",
-                          n,
-                          LOG_BENCH_SCALAR_VALUE(alpha),
-                          "--incx",
-                          incx,
-                          "--incy",
-                          incy,
-                          "--lda",
-                          lda,
-                          "--batch_count",
-                          batch_count);
-        }
-        else
-        {
-            if(layer_mode & rocblas_layer_mode_log_trace)
-                log_trace(handle,
-                          rocblas_ger_batched_name<CONJ, T>,
-                          m,
-                          n,
-                          alpha,
-                          x,
-                          incx,
-                          y,
-                          incy,
-                          A,
-                          lda,
-                          batch_count);
-        }
+        if(layer_mode & rocblas_layer_mode_log_trace)
+            log_trace(handle,
+                      rocblas_ger_batched_name<CONJ, T>,
+                      m,
+                      n,
+                      LOG_TRACE_SCALAR_VALUE(handle, alpha),
+                      x,
+                      incx,
+                      y,
+                      incy,
+                      A,
+                      lda,
+                      batch_count);
+
+        if(layer_mode & rocblas_layer_mode_log_bench)
+            log_bench(handle,
+                      "./rocblas-bench -f",
+                      rocblas_ger_batched_fn_name<CONJ, T>,
+                      "-r",
+                      rocblas_precision_string<T>,
+                      "-m",
+                      m,
+                      "-n",
+                      n,
+                      LOG_BENCH_SCALAR_VALUE(handle, alpha),
+                      "--incx",
+                      incx,
+                      "--incy",
+                      incy,
+                      "--lda",
+                      lda,
+                      "--batch_count",
+                      batch_count);
 
         if(layer_mode & rocblas_layer_mode_log_profile)
             log_profile(handle,

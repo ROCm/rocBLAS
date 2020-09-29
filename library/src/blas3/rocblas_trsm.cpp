@@ -64,67 +64,44 @@ namespace
                 auto transA_letter = rocblas_transpose_letter(transA);
                 auto diag_letter   = rocblas_diag_letter(diag);
 
-                if(handle->pointer_mode == rocblas_pointer_mode_host)
-                {
-                    if(layer_mode & rocblas_layer_mode_log_trace)
-                        log_trace(handle,
-                                  rocblas_trsm_name<T>,
-                                  side,
-                                  uplo,
-                                  transA,
-                                  diag,
-                                  m,
-                                  n,
-                                  log_trace_scalar_value(alpha),
-                                  A,
-                                  lda,
-                                  B,
-                                  ldb);
+                if(layer_mode & rocblas_layer_mode_log_trace)
+                    log_trace(handle,
+                              rocblas_trsm_name<T>,
+                              side,
+                              uplo,
+                              transA,
+                              diag,
+                              m,
+                              n,
+                              LOG_TRACE_SCALAR_VALUE(handle, alpha),
+                              A,
+                              lda,
+                              B,
+                              ldb);
 
-                    if(layer_mode & rocblas_layer_mode_log_bench)
-                    {
-                        log_bench(handle,
-                                  "./rocblas-bench -f trsm -r",
-                                  rocblas_precision_string<T>,
-                                  "--side",
-                                  side_letter,
-                                  "--uplo",
-                                  uplo_letter,
-                                  "--transposeA",
-                                  transA_letter,
-                                  "--diag",
-                                  diag_letter,
-                                  "-m",
-                                  m,
-                                  "-n",
-                                  n,
-                                  LOG_BENCH_SCALAR_VALUE(alpha),
-                                  "--lda",
-                                  lda,
-                                  "--ldb",
-                                  ldb);
-                    }
-                }
-                else
-                {
-                    if(layer_mode & rocblas_layer_mode_log_trace)
-                        log_trace(handle,
-                                  rocblas_trsm_name<T>,
-                                  side,
-                                  uplo,
-                                  transA,
-                                  diag,
-                                  m,
-                                  n,
-                                  alpha,
-                                  A,
-                                  lda,
-                                  B,
-                                  ldb);
-                }
+                if(layer_mode & rocblas_layer_mode_log_bench)
+                    log_bench(handle,
+                              "./rocblas-bench -f trsm -r",
+                              rocblas_precision_string<T>,
+                              "--side",
+                              side_letter,
+                              "--uplo",
+                              uplo_letter,
+                              "--transposeA",
+                              transA_letter,
+                              "--diag",
+                              diag_letter,
+                              "-m",
+                              m,
+                              "-n",
+                              n,
+                              LOG_BENCH_SCALAR_VALUE(handle, alpha),
+                              "--lda",
+                              lda,
+                              "--ldb",
+                              ldb);
 
                 if(layer_mode & rocblas_layer_mode_log_profile)
-                {
                     log_profile(handle,
                                 rocblas_trsm_name<T>,
                                 "side",
@@ -143,7 +120,6 @@ namespace
                                 lda,
                                 "ldb",
                                 ldb);
-                }
             }
         }
 

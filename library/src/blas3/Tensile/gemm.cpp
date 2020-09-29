@@ -66,12 +66,12 @@ namespace
                           m,
                           n,
                           k,
-                          log_trace_scalar_value(alpha),
+                          LOG_TRACE_SCALAR_VALUE(handle, alpha),
                           A,
                           ld_a,
                           B,
                           ld_b,
-                          log_trace_scalar_value(beta),
+                          LOG_TRACE_SCALAR_VALUE(handle, beta),
                           C,
                           ld_c);
 
@@ -90,12 +90,12 @@ namespace
                           n,
                           "-k",
                           k,
-                          LOG_BENCH_SCALAR_VALUE(alpha),
+                          LOG_BENCH_SCALAR_VALUE(handle, alpha),
                           "--lda",
                           ld_a,
                           "--ldb",
                           ld_b,
-                          LOG_BENCH_SCALAR_VALUE(beta),
+                          LOG_BENCH_SCALAR_VALUE(handle, beta),
                           "--ldc",
                           ld_c);
             }

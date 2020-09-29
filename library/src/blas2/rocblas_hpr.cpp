@@ -35,42 +35,27 @@ namespace
         {
             auto uplo_letter = rocblas_fill_letter(uplo);
 
-            if(handle->pointer_mode == rocblas_pointer_mode_host)
-            {
-                if(layer_mode & rocblas_layer_mode_log_trace)
-                    log_trace(handle,
-                              rocblas_hpr_name<T>,
-                              uplo,
-                              n,
-                              log_trace_scalar_value(alpha),
-                              x,
-                              incx,
-                              AP);
+            if(layer_mode & rocblas_layer_mode_log_trace)
+                log_trace(handle,
+                          rocblas_hpr_name<T>,
+                          uplo,
+                          n,
+                          LOG_TRACE_SCALAR_VALUE(handle, alpha),
+                          x,
+                          incx,
+                          AP);
 
-                if(layer_mode & rocblas_layer_mode_log_bench)
-                    log_bench(handle,
-                              "./rocblas-bench -f hpr -r",
-                              rocblas_precision_string<T>,
-                              "--uplo",
-                              uplo_letter,
-                              "-n",
-                              n,
-                              LOG_BENCH_SCALAR_VALUE(alpha),
-                              "--incx",
-                              incx);
-            }
-            else
-            {
-                if(layer_mode & rocblas_layer_mode_log_trace)
-                    log_trace(handle,
-                              rocblas_hpr_name<T>,
-                              uplo,
-                              n,
-                              log_trace_scalar_value(alpha),
-                              x,
-                              incx,
-                              AP);
-            }
+            if(layer_mode & rocblas_layer_mode_log_bench)
+                log_bench(handle,
+                          "./rocblas-bench -f hpr -r",
+                          rocblas_precision_string<T>,
+                          "--uplo",
+                          uplo_letter,
+                          "-n",
+                          n,
+                          LOG_BENCH_SCALAR_VALUE(handle, alpha),
+                          "--incx",
+                          incx);
 
             if(layer_mode & rocblas_layer_mode_log_profile)
                 log_profile(handle, rocblas_hpr_name<T>, "uplo", uplo_letter, "N", n, "incx", incx);
