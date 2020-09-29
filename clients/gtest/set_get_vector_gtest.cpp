@@ -86,7 +86,7 @@ namespace
     };
 
     using set_get_vector_sync = vec_set_get_template<set_get_vector_testing, SET_GET_VECTOR_SYNC>;
-    TEST_P(set_get_vector_sync, auxilliary)
+    TEST_P(set_get_vector_sync, auxiliary)
     {
         CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(
             rocblas_simple_dispatch<set_get_vector_testing>(GetParam()));
@@ -94,7 +94,7 @@ namespace
     INSTANTIATE_TEST_CATEGORIES(set_get_vector_sync);
 
     using set_get_vector_async = vec_set_get_template<set_get_vector_testing, SET_GET_VECTOR_ASYNC>;
-    TEST_P(set_get_vector_async, auxilliary)
+    TEST_P(set_get_vector_async, auxiliary)
     {
         CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(
             rocblas_simple_dispatch<set_get_vector_testing>(GetParam()));

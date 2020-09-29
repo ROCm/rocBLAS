@@ -168,21 +168,21 @@ namespace
     };
 
     using gemm = gemm_test_template<gemm_testing, GEMM>;
-    TEST_P(gemm, blas3)
+    TEST_P(gemm, blas3_tensile)
     {
         CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_gemm_dispatch<gemm_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(gemm);
 
     using gemm_batched = gemm_test_template<gemm_testing, GEMM_BATCHED>;
-    TEST_P(gemm_batched, blas3)
+    TEST_P(gemm_batched, blas3_tensile)
     {
         CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_gemm_dispatch<gemm_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(gemm_batched);
 
     using gemm_strided_batched = gemm_test_template<gemm_testing, GEMM_STRIDED_BATCHED>;
-    TEST_P(gemm_strided_batched, blas3)
+    TEST_P(gemm_strided_batched, blas3_tensile)
     {
         CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_gemm_dispatch<gemm_testing>(GetParam()));
     }
@@ -238,7 +238,7 @@ namespace
     };
 
     using gemm_ex = gemm_test_template<gemm_ex_testing, GEMM_EX>;
-    TEST_P(gemm_ex, blas3)
+    TEST_P(gemm_ex, blas3_tensile)
     {
         CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(
             rocblas_gemm_dispatch<gemm_ex_testing>(GetParam()));
@@ -246,7 +246,7 @@ namespace
     INSTANTIATE_TEST_CATEGORIES(gemm_ex);
 
     using gemm_batched_ex = gemm_test_template<gemm_ex_testing, GEMM_BATCHED_EX>;
-    TEST_P(gemm_batched_ex, blas3)
+    TEST_P(gemm_batched_ex, blas3_tensile)
     {
         CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(
             rocblas_gemm_dispatch<gemm_ex_testing>(GetParam()));
@@ -254,7 +254,7 @@ namespace
     INSTANTIATE_TEST_CATEGORIES(gemm_batched_ex);
 
     using gemm_strided_batched_ex = gemm_test_template<gemm_ex_testing, GEMM_STRIDED_BATCHED_EX>;
-    TEST_P(gemm_strided_batched_ex, blas3)
+    TEST_P(gemm_strided_batched_ex, blas3_tensile)
     {
         CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(
             rocblas_gemm_dispatch<gemm_ex_testing>(GetParam()));
@@ -262,7 +262,7 @@ namespace
     INSTANTIATE_TEST_CATEGORIES(gemm_strided_batched_ex);
 
     using gemm_ext2 = gemm_test_template<gemm_ex_testing, GEMM_EXT2>;
-    TEST_P(gemm_ext2, blas3)
+    TEST_P(gemm_ext2, blas3_tensile)
     {
         CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(
             rocblas_gemm_dispatch<gemm_ex_testing>(GetParam()));

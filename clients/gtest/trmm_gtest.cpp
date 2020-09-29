@@ -133,21 +133,21 @@ namespace
     };
 
     using trmm = trmm_template<trmm_testing, TRMM>;
-    TEST_P(trmm, blas3)
+    TEST_P(trmm, blas3_tensile)
     {
         CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<trmm_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(trmm);
 
     using trmm_batched = trmm_template<trmm_testing, TRMM_BATCHED>;
-    TEST_P(trmm_batched, blas3)
+    TEST_P(trmm_batched, blas3_tensile)
     {
         CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<trmm_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(trmm_batched);
 
     using trmm_strided_batched = trmm_template<trmm_testing, TRMM_STRIDED_BATCHED>;
-    TEST_P(trmm_strided_batched, blas3)
+    TEST_P(trmm_strided_batched, blas3_tensile)
     {
         CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<trmm_testing>(GetParam()));
     }

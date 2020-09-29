@@ -211,7 +211,7 @@ namespace
         }
     };
 
-    TEST_P(multiheaded, auxilliary)
+    TEST_P(multiheaded, auxiliary_tensile)
     {
         CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(
             rocblas_simple_dispatch<multiheaded_testing>(GetParam()));

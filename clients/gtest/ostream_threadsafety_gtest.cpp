@@ -42,7 +42,7 @@ namespace
         }
     };
 
-    TEST_P(ostream_threadsafety, auxilliary)
+    TEST_P(ostream_threadsafety, auxiliary_tensile)
     {
         CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(
             rocblas_simple_dispatch<ostream_threadsafety_testing>(GetParam()));

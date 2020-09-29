@@ -58,7 +58,7 @@ namespace
         }
     };
 
-    TEST_P(set_get_atomics_mode, auxilliary)
+    TEST_P(set_get_atomics_mode, auxiliary_tensile)
     {
         CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(testing_set_get_atomics_mode<>{}(GetParam()));
     }
