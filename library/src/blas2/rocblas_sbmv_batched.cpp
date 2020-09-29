@@ -162,13 +162,13 @@ extern "C" {
                                  rocblas_fill    uplo,                               \
                                  rocblas_int     n,                                  \
                                  rocblas_int     k,                                  \
-                                 const T_* const alpha,                              \
+                                 const T_*       alpha,                              \
                                  const T_* const A[],                                \
                                  rocblas_int     lda,                                \
                                  const T_* const x[],                                \
                                  rocblas_int     incx,                               \
                                  const T_*       beta,                               \
-                                 T_*             y[],                                \
+                                 T_* const       y[],                                \
                                  rocblas_int     incy,                               \
                                  rocblas_int     batch_count)                        \
     try                                                                              \

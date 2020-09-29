@@ -157,13 +157,13 @@ extern "C" {
     rocblas_status routine_name_(rocblas_handle  handle,                          \
                                  rocblas_fill    uplo,                            \
                                  rocblas_int     n,                               \
-                                 const T_* const alpha,                           \
+                                 const T_*       alpha,                           \
                                  const T_* const A[],                             \
                                  rocblas_int     lda,                             \
                                  const T_* const x[],                             \
                                  rocblas_int     incx,                            \
                                  const T_*       beta,                            \
-                                 T_*             y[],                             \
+                                 T_* const       y[],                             \
                                  rocblas_int     incy,                            \
                                  rocblas_int     batch_count)                     \
     try                                                                           \
