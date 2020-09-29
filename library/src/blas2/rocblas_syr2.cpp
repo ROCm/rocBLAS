@@ -42,52 +42,34 @@ namespace
         {
             auto uplo_letter = rocblas_fill_letter(uplo);
 
-            if(handle->pointer_mode == rocblas_pointer_mode_host)
-            {
-                if(layer_mode & rocblas_layer_mode_log_trace)
-                    log_trace(handle,
-                              rocblas_syr2_name<T>,
-                              uplo,
-                              n,
-                              log_trace_scalar_value(alpha),
-                              x,
-                              incx,
-                              y,
-                              incy,
-                              A,
-                              lda);
+            if(layer_mode & rocblas_layer_mode_log_trace)
+                log_trace(handle,
+                          rocblas_syr2_name<T>,
+                          uplo,
+                          n,
+                          LOG_TRACE_SCALAR_VALUE(handle, alpha),
+                          x,
+                          incx,
+                          y,
+                          incy,
+                          A,
+                          lda);
 
-                if(layer_mode & rocblas_layer_mode_log_bench)
-                    log_bench(handle,
-                              "./rocblas-bench -f syr2 -r",
-                              rocblas_precision_string<T>,
-                              "--uplo",
-                              uplo_letter,
-                              "-n",
-                              n,
-                              LOG_BENCH_SCALAR_VALUE(alpha),
-                              "--lda",
-                              lda,
-                              "--incx",
-                              incx,
-                              "--incy",
-                              incy);
-            }
-            else
-            {
-                if(layer_mode & rocblas_layer_mode_log_trace)
-                    log_trace(handle,
-                              rocblas_syr2_name<T>,
-                              uplo,
-                              n,
-                              log_trace_scalar_value(alpha),
-                              x,
-                              incx,
-                              y,
-                              incy,
-                              A,
-                              lda);
-            }
+            if(layer_mode & rocblas_layer_mode_log_bench)
+                log_bench(handle,
+                          "./rocblas-bench -f syr2 -r",
+                          rocblas_precision_string<T>,
+                          "--uplo",
+                          uplo_letter,
+                          "-n",
+                          n,
+                          LOG_BENCH_SCALAR_VALUE(handle, alpha),
+                          "--lda",
+                          lda,
+                          "--incx",
+                          incx,
+                          "--incy",
+                          incy);
 
             if(layer_mode & rocblas_layer_mode_log_profile)
                 log_profile(handle,

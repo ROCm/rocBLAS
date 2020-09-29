@@ -47,67 +47,45 @@ namespace
             auto uplo_letter   = rocblas_fill_letter(uplo);
             auto transA_letter = rocblas_transpose_letter(transA);
 
-            if(handle->pointer_mode == rocblas_pointer_mode_host)
-            {
-                if(layer_mode & rocblas_layer_mode_log_trace)
-                    log_trace(handle,
-                              rocblas_syr2k_name<T>,
-                              uplo,
-                              transA,
-                              n,
-                              k,
-                              log_trace_scalar_value(alpha),
-                              A,
-                              lda,
-                              B,
-                              ldb,
-                              log_trace_scalar_value(beta),
-                              C,
-                              ldc,
-                              batch_count);
+            if(layer_mode & rocblas_layer_mode_log_trace)
+                log_trace(handle,
+                          rocblas_syr2k_name<T>,
+                          uplo,
+                          transA,
+                          n,
+                          k,
+                          LOG_TRACE_SCALAR_VALUE(handle, alpha),
+                          A,
+                          lda,
+                          B,
+                          ldb,
+                          LOG_TRACE_SCALAR_VALUE(handle, beta),
+                          C,
+                          ldc,
+                          batch_count);
 
-                if(layer_mode & rocblas_layer_mode_log_bench)
-                    log_bench(handle,
-                              "./rocblas-bench -f syr2k_batched -r",
-                              rocblas_precision_string<T>,
-                              "--uplo",
-                              uplo_letter,
-                              "--transposeA",
-                              transA_letter,
-                              "-n",
-                              n,
-                              "-k",
-                              k,
-                              LOG_BENCH_SCALAR_VALUE(alpha),
-                              "--lda",
-                              lda,
-                              "--ldb",
-                              ldb,
-                              LOG_BENCH_SCALAR_VALUE(beta),
-                              "--ldc",
-                              ldc,
-                              "--batch_count",
-                              batch_count);
-            }
-            else
-            {
-                if(layer_mode & rocblas_layer_mode_log_trace)
-                    log_trace(handle,
-                              rocblas_syr2k_name<T>,
-                              uplo,
-                              transA,
-                              n,
-                              k,
-                              log_trace_scalar_value(alpha),
-                              A,
-                              lda,
-                              B,
-                              ldb,
-                              log_trace_scalar_value(beta),
-                              C,
-                              ldc,
-                              batch_count);
-            }
+            if(layer_mode & rocblas_layer_mode_log_bench)
+                log_bench(handle,
+                          "./rocblas-bench -f syr2k_batched -r",
+                          rocblas_precision_string<T>,
+                          "--uplo",
+                          uplo_letter,
+                          "--transposeA",
+                          transA_letter,
+                          "-n",
+                          n,
+                          "-k",
+                          k,
+                          LOG_BENCH_SCALAR_VALUE(handle, alpha),
+                          "--lda",
+                          lda,
+                          "--ldb",
+                          ldb,
+                          LOG_BENCH_SCALAR_VALUE(handle, beta),
+                          "--ldc",
+                          ldc,
+                          "--batch_count",
+                          batch_count);
 
             if(layer_mode & rocblas_layer_mode_log_profile)
                 log_profile(handle,

@@ -191,6 +191,21 @@ inline T log_trace_scalar_value(const T* value)
                      std::numeric_limits<typename T::value_type>::quiet_NaN()};
 }
 
+// If pointer mode is host, we output the actual value
+// If pointer mode is device, we output the address
+template <typename T>
+std::string log_trace_scalar_value(rocblas_handle handle, const T* value)
+{
+    rocblas_ostream os;
+    if(handle->pointer_mode == rocblas_pointer_mode_host)
+        os << log_trace_scalar_value(value);
+    else
+        os << value;
+    return os.str();
+}
+
+#define LOG_TRACE_SCALAR_VALUE(handle, value) log_trace_scalar_value(handle, value)
+
 /*************************************************
  * Bench log scalar values pointed to by pointer *
  *************************************************/
@@ -220,7 +235,10 @@ inline std::string log_bench_scalar_value(const char* name, const T* value)
     return ss.str();
 }
 
-#define LOG_BENCH_SCALAR_VALUE(name) log_bench_scalar_value(#name, name)
+// If pointer mode is host, we output the actual value
+// If pointer mode is device, we output nothing
+#define LOG_BENCH_SCALAR_VALUE(handle, name) \
+    ((handle)->pointer_mode == rocblas_pointer_mode_host ? log_bench_scalar_value(#name, name) : "")
 
 /******************************************************
  * Bench log precision for mixed precision scal calls *
