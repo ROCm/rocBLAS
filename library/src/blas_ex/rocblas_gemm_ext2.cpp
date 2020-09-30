@@ -69,7 +69,6 @@ namespace
                                           rocblas_gemm_algo algo,
                                           int32_t           solution_index,
                                           uint32_t          flags)
-    try
     {
         if(!handle)
             return rocblas_status_invalid_handle;
@@ -234,137 +233,150 @@ namespace
             }
         }
 
-        // sizes must not be negative
-        if(m < 0 || n < 0 || k < 0)
-            return rocblas_status_invalid_size;
+        try
+        {
+            // sizes must not be negative
+            if(m < 0 || n < 0 || k < 0)
+                return rocblas_status_invalid_size;
 
-        // We do not check strides for validity like BLAS checks leading dimensions
-        // for validity, since we allow arbitrary strides including 0.
+            // We do not check strides for validity like BLAS checks leading dimensions
+            // for validity, since we allow arbitrary strides including 0.
 
-        // quick return
-        // Note: k==0 is not a quick return, because C still has to be multiplied by beta
-        if(!m || !n)
-            return handle->is_device_memory_size_query() ? rocblas_status_size_unchanged
-                                                         : rocblas_status_success;
+            // quick return
+            // Note: k==0 is not a quick return, because C still has to be multiplied by beta
+            if(!m || !n)
+                return handle->is_device_memory_size_query() ? rocblas_status_size_unchanged
+                                                             : rocblas_status_success;
 
-        // pointers must be valid
-        if(!d || (!c && beta))
-            return rocblas_status_invalid_pointer;
-        if(k && (!a || !b) && alpha)
-            return rocblas_status_invalid_pointer;
+            // pointers must be valid
+            if(!d || (!c && beta))
+                return rocblas_status_invalid_pointer;
+            if(k && (!a || !b) && alpha)
+                return rocblas_status_invalid_pointer;
 
-        rocblas_stride batch_stride = 1; // can be changed to 0 when Tensile bug is fixed
-        rocblas_int    offset       = 0;
-        rocblas_int    batch_count  = 1;
+            rocblas_stride batch_stride = 1; // can be changed to 0 when Tensile bug is fixed
+            rocblas_int    offset       = 0;
+            rocblas_int    batch_count  = 1;
 
-        rocblas_status status = rocblas_status_not_implemented;
+            rocblas_status status = rocblas_status_not_implemented;
 
 #ifdef USE_TENSILE_HOST
-        // This functionality is only available when using the new Tensile client
+            // This functionality is only available when using the new Tensile client
 
-        auto gemm_ext2 = [&] {
-            return rocblas_gemm_ext2_template(handle,
-                                              m,
-                                              n,
-                                              k,
-                                              alpha,
-                                              a,
-                                              a_type,
-                                              offset,
-                                              row_stride_a,
-                                              col_stride_a,
-                                              batch_stride,
-                                              b,
-                                              b_type,
-                                              offset,
-                                              row_stride_b,
-                                              col_stride_b,
-                                              batch_stride,
-                                              beta,
-                                              c,
-                                              c_type,
-                                              offset,
-                                              row_stride_c,
-                                              col_stride_c,
-                                              batch_stride,
-                                              d,
-                                              d_type,
-                                              offset,
-                                              row_stride_d,
-                                              col_stride_d,
-                                              batch_stride,
-                                              batch_count,
-                                              compute_type);
-        };
+            std::unique_ptr<void, void (*)(void*)> erase{
+                nullptr, [](auto) { rocblas_suppress_tensile_error_messages() = false; }};
+            rocblas_suppress_tensile_error_messages() = true;
 
-        if(HPA && !handle->is_device_memory_size_query())
-        {
-            // Allocate GSU workspace in handle
-            auto gsu_malloc = handle->gsu_malloc();
-            status          = gemm_ext2();
-        }
-        else
-        {
-            status = gemm_ext2();
-        }
-        if(status == rocblas_status_success || handle->is_device_memory_size_query())
-            return status;
+            auto gemm_ext2 = [&] {
+                return rocblas_gemm_ext2_template(handle,
+                                                  m,
+                                                  n,
+                                                  k,
+                                                  alpha,
+                                                  a,
+                                                  a_type,
+                                                  offset,
+                                                  row_stride_a,
+                                                  col_stride_a,
+                                                  batch_stride,
+                                                  b,
+                                                  b_type,
+                                                  offset,
+                                                  row_stride_b,
+                                                  col_stride_b,
+                                                  batch_stride,
+                                                  beta,
+                                                  c,
+                                                  c_type,
+                                                  offset,
+                                                  row_stride_c,
+                                                  col_stride_c,
+                                                  batch_stride,
+                                                  d,
+                                                  d_type,
+                                                  offset,
+                                                  row_stride_d,
+                                                  col_stride_d,
+                                                  batch_stride,
+                                                  batch_count,
+                                                  compute_type);
+            };
+
+            if(HPA && !handle->is_device_memory_size_query())
+            {
+                // Allocate GSU workspace in handle
+                auto gsu_malloc = handle->gsu_malloc();
+                status          = gemm_ext2();
+            }
+            else
+            {
+                status = gemm_ext2();
+            }
+            if(status == rocblas_status_success || handle->is_device_memory_size_query())
+                return status;
 #else
-        RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
+            RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 #endif
 
-        throw status;
-    }
-    catch(...)
-    {
-        // Fall back on slow, naive algorithm if not implemented in Tensile
-        if(a_type == rocblas_datatype_f32_r && b_type == rocblas_datatype_f32_r
-           && c_type == rocblas_datatype_f32_r && compute_type == rocblas_datatype_f32_r)
-        {
-            static auto& once = rocblas_cerr
-                                << "\nWarning: Using slow on-host algorithm, because it "
-                                   "is not implemented in Tensile yet."
-                                << std::endl;
-
-            auto ha = a ? std::make_unique<float[]>(k * size_t(col_stride_a)) : nullptr;
-            auto hb = b ? std::make_unique<float[]>(n * size_t(col_stride_b)) : nullptr;
-            auto hc = c ? std::make_unique<float[]>(n * size_t(col_stride_c)) : nullptr;
-            auto hd = std::make_unique<float[]>(n * size_t(col_stride_d));
-
-            if(a)
-                RETURN_IF_HIP_ERROR(hipMemcpy(
-                    &ha[0], a, sizeof(float) * k * size_t(col_stride_a), hipMemcpyDeviceToHost));
-            if(b)
-                RETURN_IF_HIP_ERROR(hipMemcpy(
-                    &hb[0], b, sizeof(float) * n * size_t(col_stride_b), hipMemcpyDeviceToHost));
-            if(c)
-                RETURN_IF_HIP_ERROR(hipMemcpy(
-                    &hc[0], c, sizeof(float) * n * size_t(col_stride_c), hipMemcpyDeviceToHost));
-
-            reference_gemm_ext2(m,
-                                n,
-                                k,
-                                *(const float*)alpha,
-                                ha.get(),
-                                row_stride_a,
-                                col_stride_a,
-                                hb.get(),
-                                row_stride_b,
-                                col_stride_b,
-                                *(const float*)beta,
-                                hc.get(),
-                                row_stride_c,
-                                col_stride_c,
-                                hd.get(),
-                                row_stride_d,
-                                col_stride_d);
-
-            RETURN_IF_HIP_ERROR(hipMemcpy(
-                d, &hd[0], sizeof(float) * n * size_t(col_stride_d), hipMemcpyHostToDevice));
-
-            return rocblas_status_success;
+            throw status;
         }
-        return rocblas_status_not_implemented;
+        catch(...)
+        {
+            // Fall back on slow, naive algorithm if not implemented in Tensile
+            if(a_type == rocblas_datatype_f32_r && b_type == rocblas_datatype_f32_r
+               && c_type == rocblas_datatype_f32_r && compute_type == rocblas_datatype_f32_r)
+            {
+                static auto& once = rocblas_cerr
+                                    << "\nWarning: Using slow on-host algorithm, because it "
+                                       "is not implemented in Tensile yet."
+                                    << std::endl;
+
+                auto ha = a ? std::make_unique<float[]>(k * size_t(col_stride_a)) : nullptr;
+                auto hb = b ? std::make_unique<float[]>(n * size_t(col_stride_b)) : nullptr;
+                auto hc = c ? std::make_unique<float[]>(n * size_t(col_stride_c)) : nullptr;
+                auto hd = std::make_unique<float[]>(n * size_t(col_stride_d));
+
+                if(a)
+                    RETURN_IF_HIP_ERROR(hipMemcpy(&ha[0],
+                                                  a,
+                                                  sizeof(float) * k * size_t(col_stride_a),
+                                                  hipMemcpyDeviceToHost));
+                if(b)
+                    RETURN_IF_HIP_ERROR(hipMemcpy(&hb[0],
+                                                  b,
+                                                  sizeof(float) * n * size_t(col_stride_b),
+                                                  hipMemcpyDeviceToHost));
+                if(c)
+                    RETURN_IF_HIP_ERROR(hipMemcpy(&hc[0],
+                                                  c,
+                                                  sizeof(float) * n * size_t(col_stride_c),
+                                                  hipMemcpyDeviceToHost));
+
+                reference_gemm_ext2(m,
+                                    n,
+                                    k,
+                                    *(const float*)alpha,
+                                    ha.get(),
+                                    row_stride_a,
+                                    col_stride_a,
+                                    hb.get(),
+                                    row_stride_b,
+                                    col_stride_b,
+                                    *(const float*)beta,
+                                    hc.get(),
+                                    row_stride_c,
+                                    col_stride_c,
+                                    hd.get(),
+                                    row_stride_d,
+                                    col_stride_d);
+
+                RETURN_IF_HIP_ERROR(hipMemcpy(
+                    d, &hd[0], sizeof(float) * n * size_t(col_stride_d), hipMemcpyHostToDevice));
+
+                return rocblas_status_success;
+            }
+            return rocblas_status_not_implemented;
+        }
     }
 } // namespace
 
