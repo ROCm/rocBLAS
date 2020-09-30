@@ -555,6 +555,8 @@ namespace
     **************************************************************************/
     void print_once(rocblas_ostream& msg)
     {
+        if(rocblas_suppress_tensile_error_messages())
+            return;
         const char* const  varname = "ROCBLAS_VERBOSE_TENSILE_ERROR";
         static const char* verbose = getenv(varname);
         if(!verbose)
