@@ -294,4 +294,13 @@ rocblas_status runContractionProblem(RocblasContractionProblem<Ti, To, Tc> const
  ***********************************************************************************/
 ROCBLAS_EXPORT std::atomic_bool& rocblas_tensile_is_initialized();
 
+/**********************************************
+ * Whether to suppress Tensile error messages *
+ **********************************************/
+inline bool& rocblas_suppress_tensile_error_messages()
+{
+    thread_local bool suppress = false;
+    return suppress;
+}
+
 #endif // __TENSILE_HOST_HPP__
