@@ -13,11 +13,7 @@ def runCompileCommand(platform, project, jobName)
     if (jobName.contains('hipclang'))
     {
         //default in the hipclang docker containers. May change later on
-        hipccCompileFlags = "export HIPCC_COMPILE_FLAGS_APPEND='-O3 -Wno-format-nonliteral'"
-        if (!platform.jenkinsLabel.contains('centos'))
-        {
-            hipccCompileFlags = "export HIPCC_COMPILE_FLAGS_APPEND='-O3 -Wno-format-nonliteral -parallel-jobs=2'"
-        }
+        hipccCompileFlags = "export HIPCC_COMPILE_FLAGS_APPEND='-O3 -Wno-format-nonliteral -parallel-jobs=2'"
     }
     if (env.BRANCH_NAME ==~ /PR-\d+/)
     {
