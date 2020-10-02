@@ -171,9 +171,9 @@ typedef enum rocblas_pointer_mode_
 *    may generally improve determinism and repeatability of results at a cost of performance */
 typedef enum rocblas_atomics_mode_
 {
-    /*! \brief Algorithms will take advantage of atomics where applicable */
-    rocblas_atomics_not_allowed = 0,
     /*! \brief Algorithms will refrain from atomics where applicable */
+    rocblas_atomics_not_allowed = 0,
+    /*! \brief Algorithms will take advantage of atomics where applicable */
     rocblas_atomics_allowed = 1,
 } rocblas_atomics_mode;
 
