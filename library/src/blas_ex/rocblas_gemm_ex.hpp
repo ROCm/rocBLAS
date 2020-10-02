@@ -27,6 +27,9 @@ rocblas_status device_strided_batched_matrix_copy(rocblas_handle handle,
                                                   rocblas_int    n2,
                                                   rocblas_int    batch_count)
 {
+    if(rocblas_tensile_debug_skip_launch())
+        return rocblas_status_success;
+
     if(src == dst && ld_src == ld_dst && stride_src == stride_dst)
         return rocblas_status_success; // no copy if src matrix == dst matrix
 

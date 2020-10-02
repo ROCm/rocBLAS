@@ -1094,3 +1094,15 @@ bool rocblas_tensile_supports_ldc_ne_ldd()
            && (name[3] || !isdigit(name[0]) || !isdigit(name[1]) || !isdigit(name[2])
                || atoi(name) >= 906);
 }
+
+/*******************************************************************************
+ * Whether to skip buffer alloc/init/copy when tracing kernel names in Tensile *
+ *******************************************************************************/
+bool rocblas_tensile_debug_skip_launch()
+{
+    static const bool skip_launch = [] {
+        const char* db2 = std::getenv("TENSILE_DB2");
+        return db2 && (strtol(db2, nullptr, 0) & 1) != 0;
+    }();
+    return skip_launch;
+}
