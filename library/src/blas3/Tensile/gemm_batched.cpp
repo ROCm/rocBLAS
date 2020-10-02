@@ -24,13 +24,13 @@ namespace
                                     rocblas_int    K,
                                     const T        alpha,
                                     const T* const dA_array[],
-                                    rocblas_int    lda,
+                                    ptrdiff_t      lda,
                                     const T* const dB_array[],
-                                    rocblas_int    ldb,
+                                    ptrdiff_t      ldb,
                                     const T        beta,
                                     T* const       dC_array[],
-                                    rocblas_int    ldc,
-                                    int            batch_count)
+                                    ptrdiff_t      ldc,
+                                    rocblas_int    batch_count)
     {
         int thx  = threadIdx.x; // thread's m position in C
         int thy  = threadIdx.y; // thread's n position in C
@@ -139,12 +139,12 @@ namespace
                             rocblas_int    K,
                             const T        alpha,
                             const T* const dA_array[],
-                            rocblas_int    lda,
+                            ptrdiff_t      lda,
                             const T* const dB_array[],
-                            rocblas_int    ldb,
+                            ptrdiff_t      ldb,
                             const T        beta,
                             T* const       dC_array[],
-                            rocblas_int    ldc,
+                            ptrdiff_t      ldc,
                             rocblas_int    batch_count)
     {
         int thx  = threadIdx.x; // thread's m position in C
@@ -235,11 +235,11 @@ namespace
                             rocblas_int    N,
                             rocblas_int    K,
                             const T* const dA_array[],
-                            rocblas_int    lda,
+                            ptrdiff_t      lda,
                             const T* const dB_array[],
-                            rocblas_int    ldb,
+                            ptrdiff_t      ldb,
                             T* const       dC_array[],
-                            rocblas_int    ldc,
+                            ptrdiff_t      ldc,
                             rocblas_int    batch_count)
     {
         int thx  = threadIdx.x; // thread's m position in C
@@ -813,12 +813,12 @@ namespace
                                              rocblas_int       k,
                                              const T*          alpha,
                                              const T* const    A[],
-                                             rocblas_int       ld_a,
+                                             ptrdiff_t         ld_a,
                                              const T* const    B[],
-                                             rocblas_int       ld_b,
+                                             ptrdiff_t         ld_b,
                                              const T*          beta,
                                              T* const          C[],
-                                             rocblas_int       ld_c,
+                                             ptrdiff_t         ld_c,
                                              rocblas_int       b_c)
     {
         if(!handle)
@@ -979,8 +979,21 @@ rocblas_status rocblas_hgemm_batched(rocblas_handle            handle,
                                      rocblas_int               b_c)
 try
 {
-    return rocblas_gemm_batched_impl<rocblas_half>(
-        handle, trans_a, trans_b, m, n, k, alpha, A, ld_a, B, ld_b, beta, C, ld_c, b_c);
+    return rocblas_gemm_batched_impl<rocblas_half>(handle,
+                                                   trans_a,
+                                                   trans_b,
+                                                   m,
+                                                   n,
+                                                   k,
+                                                   alpha,
+                                                   A,
+                                                   ptrdiff_t(ld_a),
+                                                   B,
+                                                   ptrdiff_t(ld_b),
+                                                   beta,
+                                                   C,
+                                                   ptrdiff_t(ld_c),
+                                                   b_c);
 }
 catch(...)
 {
@@ -1004,8 +1017,21 @@ rocblas_status rocblas_sgemm_batched(rocblas_handle     handle,
                                      rocblas_int        b_c)
 try
 {
-    return rocblas_gemm_batched_impl<float>(
-        handle, trans_a, trans_b, m, n, k, alpha, A, ld_a, B, ld_b, beta, C, ld_c, b_c);
+    return rocblas_gemm_batched_impl<float>(handle,
+                                            trans_a,
+                                            trans_b,
+                                            m,
+                                            n,
+                                            k,
+                                            alpha,
+                                            A,
+                                            ptrdiff_t(ld_a),
+                                            B,
+                                            ptrdiff_t(ld_b),
+                                            beta,
+                                            C,
+                                            ptrdiff_t(ld_c),
+                                            b_c);
 }
 catch(...)
 {
@@ -1029,8 +1055,21 @@ rocblas_status rocblas_dgemm_batched(rocblas_handle      handle,
                                      rocblas_int         b_c)
 try
 {
-    return rocblas_gemm_batched_impl<double>(
-        handle, trans_a, trans_b, m, n, k, alpha, A, ld_a, B, ld_b, beta, C, ld_c, b_c);
+    return rocblas_gemm_batched_impl<double>(handle,
+                                             trans_a,
+                                             trans_b,
+                                             m,
+                                             n,
+                                             k,
+                                             alpha,
+                                             A,
+                                             ptrdiff_t(ld_a),
+                                             B,
+                                             ptrdiff_t(ld_b),
+                                             beta,
+                                             C,
+                                             ptrdiff_t(ld_c),
+                                             b_c);
 }
 catch(...)
 {
@@ -1054,8 +1093,21 @@ rocblas_status rocblas_cgemm_batched(rocblas_handle                     handle,
                                      rocblas_int                        b_c)
 try
 {
-    return rocblas_gemm_batched_impl<rocblas_float_complex>(
-        handle, trans_a, trans_b, m, n, k, alpha, A, ld_a, B, ld_b, beta, C, ld_c, b_c);
+    return rocblas_gemm_batched_impl<rocblas_float_complex>(handle,
+                                                            trans_a,
+                                                            trans_b,
+                                                            m,
+                                                            n,
+                                                            k,
+                                                            alpha,
+                                                            A,
+                                                            ptrdiff_t(ld_a),
+                                                            B,
+                                                            ptrdiff_t(ld_b),
+                                                            beta,
+                                                            C,
+                                                            ptrdiff_t(ld_c),
+                                                            b_c);
 }
 catch(...)
 {
@@ -1079,8 +1131,21 @@ rocblas_status rocblas_zgemm_batched(rocblas_handle                      handle,
                                      rocblas_int                         b_c)
 try
 {
-    return rocblas_gemm_batched_impl<rocblas_double_complex>(
-        handle, trans_a, trans_b, m, n, k, alpha, A, ld_a, B, ld_b, beta, C, ld_c, b_c);
+    return rocblas_gemm_batched_impl<rocblas_double_complex>(handle,
+                                                             trans_a,
+                                                             trans_b,
+                                                             m,
+                                                             n,
+                                                             k,
+                                                             alpha,
+                                                             A,
+                                                             ptrdiff_t(ld_a),
+                                                             B,
+                                                             ptrdiff_t(ld_b),
+                                                             beta,
+                                                             C,
+                                                             ptrdiff_t(ld_c),
+                                                             b_c);
 }
 catch(...)
 {
