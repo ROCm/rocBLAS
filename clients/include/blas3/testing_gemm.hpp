@@ -165,6 +165,18 @@ void testing_gemm(const Arguments& arg)
         return;
     }
 
+#ifdef ROCBLAS_BENCH
+    if(rocblas_tensile_debug_skip_launch())
+    {
+        device_vector<T> dA(1);
+        device_vector<T> dB(1);
+        device_vector<T> dC(1);
+        CHECK_ROCBLAS_ERROR(rocblas_gemm_fn(
+            handle, transA, transB, M, N, K, &h_alpha, dA, lda, dB, ldb, &h_beta, dC, ldc));
+        return;
+    }
+#endif
+
     const auto size_A      = size_t(lda) * size_t(A_col);
     const auto size_B      = size_t(ldb) * size_t(B_col);
     const auto size_C      = size_t(ldc) * size_t(N);

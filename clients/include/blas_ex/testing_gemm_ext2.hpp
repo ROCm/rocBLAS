@@ -402,6 +402,43 @@ void testing_gemm_ext2(const Arguments& arg)
         return;
     }
 
+#ifdef ROCBLAS_BENCH
+    if(rocblas_tensile_debug_skip_launch())
+    {
+        device_vector<Ti> dA(1);
+        device_vector<Ti> dB(1);
+        device_vector<To> dC(1);
+        device_vector<To> dD(1);
+        CHECK_ROCBLAS_ERROR(rocblas_gemm_ext2_fn(handle,
+                                                 M,
+                                                 N,
+                                                 K,
+                                                 &h_alpha_Tc,
+                                                 dA,
+                                                 arg.a_type,
+                                                 row_stride_a,
+                                                 col_stride_a,
+                                                 dB,
+                                                 arg.b_type,
+                                                 row_stride_b,
+                                                 col_stride_b,
+                                                 &h_beta_Tc,
+                                                 dC,
+                                                 arg.c_type,
+                                                 row_stride_c,
+                                                 col_stride_c,
+                                                 dD,
+                                                 arg.d_type,
+                                                 row_stride_d,
+                                                 col_stride_d,
+                                                 arg.compute_type,
+                                                 algo,
+                                                 solution_index,
+                                                 flags));
+        return;
+    }
+#endif
+
     const size_t size_A = size_t(col_stride_a) * size_t(A_col);
     const size_t size_B = size_t(col_stride_b) * size_t(B_col);
     const size_t size_C = size_t(col_stride_c) * size_t(N);
