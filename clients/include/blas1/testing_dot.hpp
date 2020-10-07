@@ -19,9 +19,11 @@
 template <typename T, bool CONJ = false>
 void testing_dot_bad_arg(const Arguments& arg)
 {
+    // clang-format off
     const bool FORTRAN        = arg.fortran;
     auto       rocblas_dot_fn = FORTRAN ? (CONJ ? rocblas_dotc<T, true> : rocblas_dot<T, true>)
-                                  : (CONJ ? rocblas_dotc<T, false> : rocblas_dot<T, false>);
+                                        : (CONJ ? rocblas_dotc<T, false> : rocblas_dot<T, false>);
+    // clang-format on
 
     rocblas_int         N         = 100;
     rocblas_int         incx      = 1;
@@ -57,9 +59,11 @@ void testing_dotc_bad_arg(const Arguments& arg)
 template <typename T, bool CONJ = false>
 void testing_dot(const Arguments& arg)
 {
+    // clang-format off
     const bool FORTRAN        = arg.fortran;
     auto       rocblas_dot_fn = FORTRAN ? (CONJ ? rocblas_dotc<T, true> : rocblas_dot<T, true>)
-                                  : (CONJ ? rocblas_dotc<T, false> : rocblas_dot<T, false>);
+                                        : (CONJ ? rocblas_dotc<T, false> : rocblas_dot<T, false>);
+    // clang-format on
 
     rocblas_int N    = arg.N;
     rocblas_int incx = arg.incx;
