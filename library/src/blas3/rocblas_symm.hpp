@@ -94,10 +94,12 @@ __device__ void symm_hemm_mult_add_device(bool        upper,
             }
             else
             {
+                // clang-format off
                 T e = (r < m && c < m)
                           ? (from > to ? conj(A[c * lda + r])
                                        : (from == to ? std::real(A[c * lda + r]) : A[c * lda + r]))
                           : 0;
+                // clang-format on
                 atile[threadIdx.x][threadIdx.y] = e;
             }
 
@@ -139,10 +141,12 @@ __device__ void symm_hemm_mult_add_device(bool        upper,
             }
             else
             {
+                // clang-format off
                 T e = (r < n && c < n)
                           ? (from > to ? conj(A[c * lda + r])
                                        : (from == to ? std::real(A[c * lda + r]) : A[c * lda + r]))
                           : 0;
+                // clang-format on
                 btile[threadIdx.x][threadIdx.y] = e;
             }
 

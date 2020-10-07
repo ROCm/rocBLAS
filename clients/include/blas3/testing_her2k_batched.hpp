@@ -23,11 +23,13 @@
 template <typename T, bool TWOK = true>
 void testing_her2k_batched_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN            = arg.fortran;
+    const bool FORTRAN = arg.fortran;
+    // clang-format off
     auto rocblas_herXX_batched_fn = FORTRAN ? (TWOK ? rocblas_her2k_batched<T, real_t<T>, true>
                                                     : rocblas_herkx_batched<T, real_t<T>, true>)
                                             : (TWOK ? rocblas_her2k_batched<T, real_t<T>, false>
                                                     : rocblas_herkx_batched<T, real_t<T>, false>);
+    // clang-format on
 
     rocblas_local_handle    handle(arg.atomics_mode);
     const rocblas_fill      uplo   = rocblas_fill_upper;
@@ -134,13 +136,15 @@ void testing_her2k_batched_bad_arg(const Arguments& arg)
 template <typename T, bool TWOK = true>
 void testing_her2k_batched(const Arguments& arg)
 {
-    const bool FORTRAN            = arg.fortran;
+    const bool FORTRAN = arg.fortran;
+    // clang-format off
     auto rocblas_herXX_batched_fn = FORTRAN ? (TWOK ? rocblas_her2k_batched<T, real_t<T>, true>
                                                     : rocblas_herkx_batched<T, real_t<T>, true>)
                                             : (TWOK ? rocblas_her2k_batched<T, real_t<T>, false>
                                                     : rocblas_herkx_batched<T, real_t<T>, false>);
     auto herXX_gflop_count_fn = TWOK ? her2k_gflop_count<T> : herkx_gflop_count<T>;
     auto herXX_ref_fn         = TWOK ? cblas_her2k<T> : cblas_herkx<T>;
+    // clang-format on
 
     rocblas_local_handle handle(arg.atomics_mode);
     rocblas_fill         uplo   = char2rocblas_fill(arg.uplo);
