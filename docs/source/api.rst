@@ -144,3 +144,21 @@ result is as in the figure below:
    :align: center
 
    Code blocks in synchronous function call
+
+GFX908 Considerations
+=====================
+
+On nodes with gfx908, MFMA instructions are available to substantially
+speed up matrix operations.  This hardware feature is used only in matrix
+multiplications functions in rocBLAS, and supports only the three base types
+f16_r, bf16_r and f32_r.   To take full advantage of this hardware
+feature, a few usage guidelines are in order:
+
+1. For half precision (f16_r and bf16_r) GEMM, use the function
+   rocblas_gemm_ex, and set the compute_type parameter to f32_r.
+
+2. For single precision (f32_r) GEMM, use the function rocblas_sgemm.
+
+3. For single precision complex (f32_c) GEMM, use the function rocblas_cgemm.
+
+.. note:: Not all problem sizes may select MFMA based kernels; additional tuning may be needed to get good performance.
