@@ -58,9 +58,10 @@ __device__ void hpmv_kernel_calc(bool        upper,
             //                              i=0
             int index = upper ? ((ind_y * (ind_y + 1)) / 2) + ind_x
                               : ((ind_y * (2 * n - ind_y + 1)) / 2) + (ind_x - ind_y);
-
+            // clang-format off
             res_A += (ind_x == ind_y ? std::real(AP[index]) : CONJ ? conj(AP[index]) : (AP[index]))
                      * x[col * incx];
+            // clang-format on
         }
     }
 
