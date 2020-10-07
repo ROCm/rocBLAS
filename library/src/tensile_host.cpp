@@ -449,12 +449,14 @@ namespace
             }
             else
             {
+                // clang-format off
                 static auto& once = rocblas_cerr
                                     << "\nrocBLAS warning: glob(\"" << dir << "\", ...) returned "
                                     << (g == GLOB_ABORTED ? "GLOB_ABORTED"
                                                           : g == GLOB_NOSPACE ? "GLOB_NOSPACE"
                                                                               : "an unknown error")
                                     << "." << std::endl;
+                // clang-format on
             }
             globfree(&glob_result);
 

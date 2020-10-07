@@ -402,8 +402,10 @@ namespace std
     __device__ __host__ inline T abs(const rocblas_complex_num<T>& z)
     {
         T tr = rocblas_complex_num<T>::abs(z.x), ti = rocblas_complex_num<T>::abs(z.y);
+        // clang-format off
         return tr > ti ? (ti /= tr, tr * rocblas_complex_num<T>::sqrt(ti * ti + 1))
                        : ti ? (tr /= ti, ti * rocblas_complex_num<T>::sqrt(tr * tr + 1)) : 0;
+        // clang-format on
     }
 }
 

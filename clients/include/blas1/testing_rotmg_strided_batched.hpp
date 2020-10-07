@@ -16,9 +16,11 @@
 template <typename T, typename U = T>
 void testing_rotmg_strided_batched_bad_arg(const Arguments& arg)
 {
+    // clang-format off
     const bool FORTRAN                          = arg.fortran;
     auto       rocblas_rotgm_strided_batched_fn = FORTRAN ? rocblas_rotmg_strided_batched<T, true>
-                                                    : rocblas_rotmg_strided_batched<T, false>;
+                                                          : rocblas_rotmg_strided_batched<T, false>;
+    // clang-format on
 
     rocblas_int         batch_count = 5;
     static const size_t safe_size   = 5;
@@ -58,9 +60,11 @@ void testing_rotmg_strided_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_rotmg_strided_batched(const Arguments& arg)
 {
+    // clang-format off
     const bool FORTRAN                          = arg.fortran;
     auto       rocblas_rotgm_strided_batched_fn = FORTRAN ? rocblas_rotmg_strided_batched<T, true>
-                                                    : rocblas_rotmg_strided_batched<T, false>;
+                                                          : rocblas_rotmg_strided_batched<T, false>;
+    // clang-format on
 
     const int            TEST_COUNT   = 100;
     rocblas_int          batch_count  = arg.batch_count;

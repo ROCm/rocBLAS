@@ -19,9 +19,11 @@
 template <typename T, bool HERM>
 void testing_symm_hemm_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN    = arg.fortran;
+    const bool FORTRAN = arg.fortran;
+    // clang-format off
     auto       rocblas_fn = HERM ? (FORTRAN ? rocblas_hemm<T, true> : rocblas_hemm<T, false>)
                            : (FORTRAN ? rocblas_symm<T, true> : rocblas_symm<T, false>);
+    // clang-format on
 
     rocblas_local_handle handle(arg.atomics_mode);
     const rocblas_side   side  = rocblas_side_left;
@@ -85,10 +87,12 @@ void testing_symm_hemm_bad_arg(const Arguments& arg)
 template <typename T, bool HERM>
 void testing_symm_hemm(const Arguments& arg)
 {
+    // clang-format off
     const bool FORTRAN    = arg.fortran;
     auto       rocblas_fn = HERM ? (FORTRAN ? rocblas_hemm<T, true> : rocblas_hemm<T, false>)
                            : (FORTRAN ? rocblas_symm<T, true> : rocblas_symm<T, false>);
     auto gflop_count_fn = HERM ? hemm_gflop_count<T> : symm_gflop_count<T>;
+    // clang-format on
 
     rocblas_local_handle handle(arg.atomics_mode);
     rocblas_side         side  = char2rocblas_side(arg.side);

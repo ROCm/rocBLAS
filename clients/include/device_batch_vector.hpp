@@ -164,7 +164,9 @@ public:
     //!
     //! @brief Cast of the data on host.
     //!
-    operator T* *()
+    // clang-format off
+    operator T**()
+    // clang-format on
     {
         return this->m_data;
     }
