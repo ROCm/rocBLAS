@@ -2,12 +2,6 @@
 # Copyright 2016-2020 Advanced Micro Devices, Inc.
 # ########################################################################
 
-# set( Boost_DEBUG ON )
-set( Boost_USE_MULTITHREADED ON )
-set( Boost_DETAILED_FAILURE_MSG ON )
-set( Boost_ADDITIONAL_VERSIONS 1.65.1 1.65 )
-set( Boost_USE_STATIC_LIBS OFF )
-
 if(EXISTS /etc/redhat-release)
     if(CXX_VERSION_STRING MATCHES "clang")
         set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp=libgomp -pthread -stdlib=libstdc++ -std=c++14")
@@ -17,18 +11,6 @@ if(EXISTS /etc/redhat-release)
 else()
     set(CMAKE_CXX_FLAGS "-isystem /opt/rocm/include ${CMAKE_CXX_FLAGS} -fopenmp -pthread")
 endif()
-
-find_package( Boost COMPONENTS program_options )
-
-if( NOT Boost_FOUND )
-  message( STATUS "Dynamic boost libraries not found. Attempting to find static libraries " )
-  set( Boost_USE_STATIC_LIBS ON )
-  find_package( Boost COMPONENTS program_options )
-
-  if( NOT Boost_FOUND )
-    message( FATAL_ERROR "boost is a required dependency and is not found;  try adding boost path to CMAKE_PREFIX_PATH" )
-  endif( )
-endif( )
 
 set( THREADS_PREFER_PTHREAD_FLAG ON )
 find_package( Threads REQUIRED )
@@ -115,16 +97,15 @@ if( OS_ID_rhel OR OS_ID_sles OR OS_ID_centos)
         $<BUILD_INTERFACE:${CLANG_INCLUDE_DIR}>
         $<BUILD_INTERFACE:${OPENMP_INCLUDE_DIR}>
         $<BUILD_INTERFACE:${BLIS_INCLUDE_DIR}>
-        $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
         $<BUILD_INTERFACE:${HIP_INCLUDE_DIRS}>
         $<BUILD_INTERFACE:${HCC_INCLUDE_DIRS}>
         $<BUILD_INTERFACE:${CBLAS_INCLUDE_DIRS}>
         )
 
     if(LINK_BLIS)
-      target_link_libraries( rocblas-bench PRIVATE rocblas_fortran_client roc::rocblas cblas lapack ${BLIS_LIBRARY} ${Boost_LIBRARIES} ${OPENMP_LIBRARY} )
+      target_link_libraries( rocblas-bench PRIVATE rocblas_fortran_client roc::rocblas cblas lapack ${BLIS_LIBRARY} ${OPENMP_LIBRARY} )
     else()
-      target_link_libraries( rocblas-bench PRIVATE rocblas_fortran_client roc::rocblas cblas lapack ${Boost_LIBRARIES} ${OPENMP_LIBRARY} )
+      target_link_libraries( rocblas-bench PRIVATE rocblas_fortran_client roc::rocblas cblas lapack ${OPENMP_LIBRARY} )
     endif()
 else()
     # External header includes included as system files
@@ -132,15 +113,14 @@ else()
       SYSTEM PRIVATE
         $<BUILD_INTERFACE:${HIP_INCLUDE_DIRS}>
         $<BUILD_INTERFACE:${HCC_INCLUDE_DIRS}>
-        $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
         $<BUILD_INTERFACE:${CBLAS_INCLUDE_DIRS}>
         $<BUILD_INTERFACE:${BLIS_INCLUDE_DIR}>
     )
 
     if(LINK_BLIS)
-      target_link_libraries( rocblas-bench PRIVATE rocblas_fortran_client roc::rocblas lapack cblas ${BLIS_LIBRARY} ${Boost_LIBRARIES} )
+      target_link_libraries( rocblas-bench PRIVATE rocblas_fortran_client roc::rocblas lapack cblas ${BLIS_LIBRARY} )
     else()
-      target_link_libraries( rocblas-bench PRIVATE rocblas_fortran_client roc::rocblas lapack cblas ${Boost_LIBRARIES} )
+      target_link_libraries( rocblas-bench PRIVATE rocblas_fortran_client roc::rocblas lapack cblas )
     endif()
 endif()
 

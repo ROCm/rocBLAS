@@ -351,7 +351,7 @@ namespace
         TensileHost()
             : adapters(GetDeviceCount())
         {
-            tensile_is_initialized() = true;
+            rocblas_tensile_is_initialized() = true;
         }
 
         TensileHost(const TensileHost&) = delete;
@@ -449,12 +449,14 @@ namespace
             }
             else
             {
+                // clang-format off
                 static auto& once = rocblas_cerr
                                     << "\nrocBLAS warning: glob(\"" << dir << "\", ...) returned "
                                     << (g == GLOB_ABORTED ? "GLOB_ABORTED"
                                                           : g == GLOB_NOSPACE ? "GLOB_NOSPACE"
                                                                               : "an unknown error")
                                     << "." << std::endl;
+                // clang-format on
             }
             globfree(&glob_result);
 
@@ -555,6 +557,8 @@ namespace
     **************************************************************************/
     void print_once(rocblas_ostream& msg)
     {
+        if(rocblas_suppress_tensile_error_messages())
+            return;
         const char* const  varname = "ROCBLAS_VERBOSE_TENSILE_ERROR";
         static const char* verbose = getenv(varname);
         if(!verbose)
@@ -673,7 +677,7 @@ template rocblas_status
 /***********************************************************************************
  * Whether Tensile has been initialized for at least one device (used for testing) *
  ***********************************************************************************/
-ROCBLAS_EXPORT std::atomic_bool& tensile_is_initialized()
+ROCBLAS_EXPORT std::atomic_bool& rocblas_tensile_is_initialized()
 {
     static std::atomic_bool init;
     return init;

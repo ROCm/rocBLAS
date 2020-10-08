@@ -242,6 +242,7 @@ namespace ArgumentsHelper
 
     // Macro defining specializations for specific arguments
     // e_alpha and e_beta get turned into negative sentinel value specializations
+    // clang-format off
 #define APPLY(NAME)                                                                         \
     template <>                                                                             \
     ROCBLAS_CLANG_STATIC constexpr auto                                                     \
@@ -266,6 +267,7 @@ namespace ArgumentsHelper
             func("beta", arg.get_beta<decltype(T)>());
         };
 };
+    // clang-format on
 
 #else
 

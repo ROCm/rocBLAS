@@ -310,7 +310,7 @@ void testing_gemv_batched(const Arguments& arg)
     {
         int number_cold_calls = arg.cold_iters;
         int number_hot_calls  = arg.iters;
-        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
@@ -318,12 +318,12 @@ void testing_gemv_batched(const Arguments& arg)
                                     transA,
                                     M,
                                     N,
-                                    d_alpha,
+                                    &h_alpha,
                                     dA.ptr_on_device(),
                                     lda,
                                     dx.ptr_on_device(),
                                     incx,
-                                    d_beta,
+                                    &h_beta,
                                     dy_1.ptr_on_device(),
                                     incy,
                                     batch_count);
@@ -339,12 +339,12 @@ void testing_gemv_batched(const Arguments& arg)
                                     transA,
                                     M,
                                     N,
-                                    d_alpha,
+                                    &h_alpha,
                                     dA.ptr_on_device(),
                                     lda,
                                     dx.ptr_on_device(),
                                     incx,
-                                    d_beta,
+                                    &h_beta,
                                     dy_1.ptr_on_device(),
                                     incy,
                                     batch_count);

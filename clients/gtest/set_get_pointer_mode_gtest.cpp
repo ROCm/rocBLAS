@@ -50,7 +50,7 @@ namespace
         }
     };
 
-    TEST_P(set_get_pointer_mode, auxilliary)
+    TEST_P(set_get_pointer_mode, auxiliary)
     {
         CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(testing_set_get_pointer_mode<>{}(GetParam()));
     }

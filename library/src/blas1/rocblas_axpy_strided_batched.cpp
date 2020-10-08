@@ -38,60 +38,47 @@ namespace
                                                      const char*    bench_name)
     {
         if(!handle)
-        {
             return rocblas_status_invalid_handle;
-        }
 
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
         auto layer_mode = handle->layer_mode;
-        if(handle->pointer_mode == rocblas_pointer_mode_host)
-        {
-            if(layer_mode & rocblas_layer_mode_log_trace)
-            {
-                log_trace(handle,
-                          name,
-                          n,
-                          log_trace_scalar_value(alpha),
-                          x,
-                          incx,
-                          stridex,
-                          y,
-                          incy,
-                          stridey,
-                          batch_count);
-            }
 
-            if(layer_mode & rocblas_layer_mode_log_bench)
-            {
-                log_bench(handle,
-                          "./rocblas-bench",
-                          "-f",
-                          bench_name,
-                          "-r",
-                          rocblas_precision_string<T>,
-                          "-n",
-                          n,
-                          LOG_BENCH_SCALAR_VALUE(alpha),
-                          "--incx",
-                          incx,
-                          "--stride_x",
-                          stridex,
-                          "--incy",
-                          incy,
-                          "--stride_y",
-                          stridey,
-                          "--batch",
-                          batch_count);
-            }
-        }
-        else if(layer_mode & rocblas_layer_mode_log_trace)
-        {
-            log_trace(handle, name, n, alpha, x, incx, stridex, y, incy, stridey, batch_count);
-        }
+        if(layer_mode & rocblas_layer_mode_log_trace)
+            log_trace(handle,
+                      name,
+                      n,
+                      LOG_TRACE_SCALAR_VALUE(handle, alpha),
+                      x,
+                      incx,
+                      stridex,
+                      y,
+                      incy,
+                      stridey,
+                      batch_count);
+
+        if(layer_mode & rocblas_layer_mode_log_bench)
+            log_bench(handle,
+                      "./rocblas-bench",
+                      "-f",
+                      bench_name,
+                      "-r",
+                      rocblas_precision_string<T>,
+                      "-n",
+                      n,
+                      LOG_BENCH_SCALAR_VALUE(handle, alpha),
+                      "--incx",
+                      incx,
+                      "--stride_x",
+                      stridex,
+                      "--incy",
+                      incy,
+                      "--stride_y",
+                      stridey,
+                      "--batch",
+                      batch_count);
 
         if(layer_mode & rocblas_layer_mode_log_profile)
-        {
             log_profile(handle,
                         name,
                         "N",
@@ -106,12 +93,9 @@ namespace
                         stridey,
                         "batch",
                         batch_count);
-        }
 
         if(n <= 0 || batch_count <= 0) // Quick return if possible. Not Argument error
-        {
             return rocblas_status_success;
-        }
 
         if(!alpha)
             return rocblas_status_invalid_pointer;

@@ -44,69 +44,45 @@ namespace
         {
             auto transA_letter = rocblas_transpose_letter(transA);
 
-            if(handle->pointer_mode == rocblas_pointer_mode_host)
-            {
-                if(layer_mode & rocblas_layer_mode_log_trace)
-                    log_trace(handle,
-                              rocblas_gbmv_name<T>,
-                              transA,
-                              m,
-                              n,
-                              kl,
-                              ku,
-                              log_trace_scalar_value(alpha),
-                              A,
-                              lda,
-                              x,
-                              incx,
-                              log_trace_scalar_value(beta),
-                              y,
-                              incy);
+            if(layer_mode & rocblas_layer_mode_log_trace)
+                log_trace(handle,
+                          rocblas_gbmv_name<T>,
+                          transA,
+                          m,
+                          n,
+                          kl,
+                          ku,
+                          LOG_TRACE_SCALAR_VALUE(handle, alpha),
+                          A,
+                          lda,
+                          x,
+                          incx,
+                          LOG_TRACE_SCALAR_VALUE(handle, beta),
+                          y,
+                          incy);
 
-                if(layer_mode & rocblas_layer_mode_log_bench)
-                {
-                    log_bench(handle,
-                              "./rocblas-bench -f gbmv -r",
-                              rocblas_precision_string<T>,
-                              "--transposeA",
-                              transA_letter,
-                              "-m",
-                              m,
-                              "-n",
-                              n,
-                              "--kl",
-                              kl,
-                              "--ku",
-                              ku,
-                              LOG_BENCH_SCALAR_VALUE(alpha),
-                              "--lda",
-                              lda,
-                              "--incx",
-                              incx,
-                              LOG_BENCH_SCALAR_VALUE(beta),
-                              "--incy",
-                              incy);
-                }
-            }
-            else
-            {
-                if(layer_mode & rocblas_layer_mode_log_trace)
-                    log_trace(handle,
-                              rocblas_gbmv_name<T>,
-                              transA,
-                              m,
-                              n,
-                              kl,
-                              ku,
-                              alpha,
-                              A,
-                              lda,
-                              x,
-                              incx,
-                              beta,
-                              y,
-                              incy);
-            }
+            if(layer_mode & rocblas_layer_mode_log_bench)
+                log_bench(handle,
+                          "./rocblas-bench -f gbmv -r",
+                          rocblas_precision_string<T>,
+                          "--transposeA",
+                          transA_letter,
+                          "-m",
+                          m,
+                          "-n",
+                          n,
+                          "--kl",
+                          kl,
+                          "--ku",
+                          ku,
+                          LOG_BENCH_SCALAR_VALUE(handle, alpha),
+                          "--lda",
+                          lda,
+                          "--incx",
+                          incx,
+                          LOG_BENCH_SCALAR_VALUE(handle, beta),
+                          "--incy",
+                          incy);
 
             if(layer_mode & rocblas_layer_mode_log_profile)
                 log_profile(handle,

@@ -846,27 +846,27 @@ ROCBLAS_EXPORT rocblas_status rocblas_zswap(rocblas_handle          handle,
 
 ROCBLAS_EXPORT rocblas_status rocblas_sswap_batched(rocblas_handle handle,
                                                     rocblas_int    n,
-                                                    float*         x[],
+                                                    float* const   x[],
                                                     rocblas_int    incx,
-                                                    float*         y[],
+                                                    float* const   y[],
                                                     rocblas_int    incy,
                                                     rocblas_int    batch_count);
 
 ROCBLAS_EXPORT rocblas_status rocblas_dswap_batched(rocblas_handle handle,
                                                     rocblas_int    n,
-                                                    double*        x[],
+                                                    double* const  x[],
                                                     rocblas_int    incx,
-                                                    double*        y[],
+                                                    double* const  y[],
                                                     rocblas_int    incy,
                                                     rocblas_int    batch_count);
 
-ROCBLAS_EXPORT rocblas_status rocblas_cswap_batched(rocblas_handle         handle,
-                                                    rocblas_int            n,
-                                                    rocblas_float_complex* x[],
-                                                    rocblas_int            incx,
-                                                    rocblas_float_complex* y[],
-                                                    rocblas_int            incy,
-                                                    rocblas_int            batch_count);
+ROCBLAS_EXPORT rocblas_status rocblas_cswap_batched(rocblas_handle               handle,
+                                                    rocblas_int                  n,
+                                                    rocblas_float_complex* const x[],
+                                                    rocblas_int                  incx,
+                                                    rocblas_float_complex* const y[],
+                                                    rocblas_int                  incy,
+                                                    rocblas_int                  batch_count);
 
 /*! \brief BLAS Level 1 API
 
@@ -896,13 +896,13 @@ ROCBLAS_EXPORT rocblas_status rocblas_cswap_batched(rocblas_handle         handl
                 number of instances in the batch.
 
     ********************************************************************/
-ROCBLAS_EXPORT rocblas_status rocblas_zswap_batched(rocblas_handle          handle,
-                                                    rocblas_int             n,
-                                                    rocblas_double_complex* x[],
-                                                    rocblas_int             incx,
-                                                    rocblas_double_complex* y[],
-                                                    rocblas_int             incy,
-                                                    rocblas_int             batch_count);
+ROCBLAS_EXPORT rocblas_status rocblas_zswap_batched(rocblas_handle                handle,
+                                                    rocblas_int                   n,
+                                                    rocblas_double_complex* const x[],
+                                                    rocblas_int                   incx,
+                                                    rocblas_double_complex* const y[],
+                                                    rocblas_int                   incy,
+                                                    rocblas_int                   batch_count);
 
 ROCBLAS_EXPORT rocblas_status rocblas_sswap_strided_batched(rocblas_handle handle,
                                                             rocblas_int    n,
@@ -7179,7 +7179,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ssymv_batched(rocblas_handle     handle,
                                                     const float* const x[],
                                                     rocblas_int        incx,
                                                     const float*       beta,
-                                                    float*             y[],
+                                                    float* const       y[],
                                                     rocblas_int        incy,
                                                     rocblas_int        batch_count);
 
@@ -7192,7 +7192,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dsymv_batched(rocblas_handle      handle,
                                                     const double* const x[],
                                                     rocblas_int         incx,
                                                     const double*       beta,
-                                                    double*             y[],
+                                                    double* const       y[],
                                                     rocblas_int         incy,
                                                     rocblas_int         batch_count);
 
@@ -7205,7 +7205,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_csymv_batched(rocblas_handle              
                                                     const rocblas_float_complex* const x[],
                                                     rocblas_int                        incx,
                                                     const rocblas_float_complex*       beta,
-                                                    rocblas_float_complex*             y[],
+                                                    rocblas_float_complex* const       y[],
                                                     rocblas_int                        incy,
                                                     rocblas_int                        batch_count);
 
@@ -7268,7 +7268,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_zsymv_batched(rocblas_handle              
                                                     const rocblas_double_complex* const x[],
                                                     rocblas_int                         incx,
                                                     const rocblas_double_complex*       beta,
-                                                    rocblas_double_complex*             y[],
+                                                    rocblas_double_complex* const       y[],
                                                     rocblas_int                         incy,
                                                     rocblas_int batch_count);
 
@@ -7469,7 +7469,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_sspmv_batched(rocblas_handle     handle,
                                                     const float* const x[],
                                                     rocblas_int        incx,
                                                     const float*       beta,
-                                                    float*             y[],
+                                                    float* const       y[],
                                                     rocblas_int        incy,
                                                     rocblas_int        batch_count);
 /*! \brief BLAS Level 2 API
@@ -7526,7 +7526,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dspmv_batched(rocblas_handle      handle,
                                                     const double* const x[],
                                                     rocblas_int         incx,
                                                     const double*       beta,
-                                                    double*             y[],
+                                                    double* const       y[],
                                                     rocblas_int         incy,
                                                     rocblas_int         batch_count);
 
@@ -7702,7 +7702,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dsbmv_batched(rocblas_handle      handle,
                                                     const double* const x[],
                                                     rocblas_int         incx,
                                                     const double*       beta,
-                                                    double*             y[],
+                                                    double* const       y[],
                                                     rocblas_int         incy,
                                                     rocblas_int         batch_count);
 /*! \brief BLAS Level 2 API
@@ -7767,7 +7767,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ssbmv_batched(rocblas_handle     handle,
                                                     const float* const x[],
                                                     rocblas_int        incx,
                                                     const float*       beta,
-                                                    float*             y[],
+                                                    float* const       y[],
                                                     rocblas_int        incy,
                                                     rocblas_int        batch_count);
 
@@ -12866,7 +12866,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_strtri_batched(rocblas_handle     handle,
                                                      rocblas_int        n,
                                                      const float* const A[],
                                                      rocblas_int        lda,
-                                                     float*             invA[],
+                                                     float* const       invA[],
                                                      rocblas_int        ldinvA,
                                                      rocblas_int        batch_count);
 
@@ -12876,7 +12876,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrtri_batched(rocblas_handle      handle,
                                                      rocblas_int         n,
                                                      const double* const A[],
                                                      rocblas_int         lda,
-                                                     double*             invA[],
+                                                     double* const       invA[],
                                                      rocblas_int         ldinvA,
                                                      rocblas_int         batch_count);
 
@@ -12886,7 +12886,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ctrtri_batched(rocblas_handle             
                                                      rocblas_int                        n,
                                                      const rocblas_float_complex* const A[],
                                                      rocblas_int                        lda,
-                                                     rocblas_float_complex*             invA[],
+                                                     rocblas_float_complex* const       invA[],
                                                      rocblas_int                        ldinvA,
                                                      rocblas_int batch_count);
 
@@ -12936,7 +12936,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrtri_batched(rocblas_handle             
                                                      rocblas_int                         n,
                                                      const rocblas_double_complex* const A[],
                                                      rocblas_int                         lda,
-                                                     rocblas_double_complex*             invA[],
+                                                     rocblas_double_complex* const       invA[],
                                                      rocblas_int                         ldinvA,
                                                      rocblas_int batch_count);
 
@@ -13182,7 +13182,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_strsm_batched(rocblas_handle     handle,
                                                     const float*       alpha,
                                                     const float* const A[],
                                                     rocblas_int        lda,
-                                                    float*             B[],
+                                                    float* const       B[],
                                                     rocblas_int        ldb,
                                                     rocblas_int        batch_count);
 
@@ -13196,7 +13196,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_dtrsm_batched(rocblas_handle      handle,
                                                     const double*       alpha,
                                                     const double* const A[],
                                                     rocblas_int         lda,
-                                                    double*             B[],
+                                                    double* const       B[],
                                                     rocblas_int         ldb,
                                                     rocblas_int         batch_count);
 
@@ -13210,7 +13210,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ctrsm_batched(rocblas_handle              
                                                     const rocblas_float_complex*       alpha,
                                                     const rocblas_float_complex* const A[],
                                                     rocblas_int                        lda,
-                                                    rocblas_float_complex*             B[],
+                                                    rocblas_float_complex* const       B[],
                                                     rocblas_int                        ldb,
                                                     rocblas_int                        batch_count);
 
@@ -13297,7 +13297,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_ztrsm_batched(rocblas_handle              
                                                     const rocblas_double_complex*       alpha,
                                                     const rocblas_double_complex* const A[],
                                                     rocblas_int                         lda,
-                                                    rocblas_double_complex*             B[],
+                                                    rocblas_double_complex* const       B[],
                                                     rocblas_int                         ldb,
                                                     rocblas_int batch_count);
 
@@ -16072,8 +16072,8 @@ ROCBLAS_EXPORT rocblas_status rocblas_axpy_batched_ex(rocblas_handle   handle,
     @param[in]
     stridex   [rocblas_stride]
               stride from the start of one vector (x_i) to the next one (x_i+1).
-              There are no restrictions placed on strideyx, however the user should
-              take care to ensure that strideyx is of appropriate size, for a typical
+              There are no restrictions placed on stridex, however the user should
+              take care to ensure that stridex is of appropriate size, for a typical
               case this means stridex >= n * incx.
     @param[inout]
     y         device pointer to the first vector y_1.
@@ -16109,6 +16109,187 @@ ROCBLAS_EXPORT rocblas_status rocblas_axpy_strided_batched_ex(rocblas_handle   h
                                                               rocblas_datatype y_type,
                                                               rocblas_int      incy,
                                                               rocblas_stride   stridey,
+                                                              rocblas_int      batch_count,
+                                                              rocblas_datatype execution_type);
+
+/*! \brief BLAS EX API
+
+    \details
+    scal_ex  scales each element of vector x with scalar alpha.
+
+        x := alpha * x
+
+    Currently supported datatypes are as follows:
+
+        ----------------------------------------
+        | alpha_type | x_type | execution_type |
+        |------------|--------|----------------|
+        |  f16_r     | f16_r  |     f16_r      |
+        |  f16_r     | f16_r  |     f32_r      |
+        |  f32_r     | f32_r  |     f32_r      |
+        |  f64_r     | f64_r  |     f64_r      |
+        |  f32_c     | f32_c  |     f32_c      |
+        |  f64_c     | f64_c  |     f64_c      |
+        |  f32_r     | f32_c  |     f32_c      |
+        |  f64_r     | f64_c  |     f64_c      |
+        ----------------------------------------
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+    @param[in]
+    n         [rocblas_int]
+              the number of elements in x.
+    @param[in]
+    alpha     device pointer or host pointer for the scalar alpha.
+    @param[in]
+    alpha_type [rocblas_datatype]
+               specifies the datatype of alpha.
+    @param[inout]
+    x         device pointer storing vector x.
+    @param[in]
+    x_type [rocblas_datatype]
+           specifies the datatype of vector x.
+    @param[in]
+    incx      [rocblas_int]
+              specifies the increment for the elements of x.
+    @param[in]
+    execution_type [rocblas_datatype]
+                   specifies the datatype of computation.
+
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_scal_ex(rocblas_handle   handle,
+                                              rocblas_int      n,
+                                              const void*      alpha,
+                                              rocblas_datatype alpha_type,
+                                              void*            x,
+                                              rocblas_datatype x_type,
+                                              rocblas_int      incx,
+                                              rocblas_datatype execution_type);
+
+/*! \brief BLAS EX API
+
+    \details
+    scal_batched_ex  scales each element of each vector x_i with scalar alpha.
+
+        x_i := alpha * x_i
+
+    Currently supported datatypes are as follows:
+
+        ----------------------------------------
+        | alpha_type | x_type | execution_type |
+        |------------|--------|----------------|
+        |  f16_r     | f16_r  |     f16_r      |
+        |  f16_r     | f16_r  |     f32_r      |
+        |  f32_r     | f32_r  |     f32_r      |
+        |  f64_r     | f64_r  |     f64_r      |
+        |  f32_c     | f32_c  |     f32_c      |
+        |  f64_c     | f64_c  |     f64_c      |
+        |  f32_r     | f32_c  |     f32_c      |
+        |  f64_r     | f64_c  |     f64_c      |
+        ----------------------------------------
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+    @param[in]
+    n         [rocblas_int]
+              the number of elements in x.
+    @param[in]
+    alpha     device pointer or host pointer for the scalar alpha.
+    @param[in]
+    alpha_type [rocblas_datatype]
+               specifies the datatype of alpha.
+    @param[inout]
+    x         device array of device pointers storing each vector x_i.
+    @param[in]
+    x_type [rocblas_datatype]
+           specifies the datatype of each vector x_i.
+    @param[in]
+    incx      [rocblas_int]
+              specifies the increment for the elements of each x_i.
+    @param[in]
+    batch_count [rocblas_int]
+                number of instances in the batch.
+    @param[in]
+    execution_type [rocblas_datatype]
+                   specifies the datatype of computation.
+
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_scal_batched_ex(rocblas_handle   handle,
+                                                      rocblas_int      n,
+                                                      const void*      alpha,
+                                                      rocblas_datatype alpha_type,
+                                                      void*            x,
+                                                      rocblas_datatype x_type,
+                                                      rocblas_int      incx,
+                                                      rocblas_int      batch_count,
+                                                      rocblas_datatype execution_type);
+
+/*! \brief BLAS EX API
+
+    \details
+    scal_strided_batched_ex  scales each element of vector x with scalar alpha over a set
+                             of strided batched vectors.
+
+        x := alpha * x
+
+    Currently supported datatypes are as follows:
+
+        ----------------------------------------
+        | alpha_type | x_type | execution_type |
+        |------------|--------|----------------|
+        |  f16_r     | f16_r  |     f16_r      |
+        |  f16_r     | f16_r  |     f32_r      |
+        |  f32_r     | f32_r  |     f32_r      |
+        |  f64_r     | f64_r  |     f64_r      |
+        |  f32_c     | f32_c  |     f32_c      |
+        |  f64_c     | f64_c  |     f64_c      |
+        |  f32_r     | f32_c  |     f32_c      |
+        |  f64_r     | f64_c  |     f64_c      |
+        ----------------------------------------
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+    @param[in]
+    n         [rocblas_int]
+              the number of elements in x.
+    @param[in]
+    alpha     device pointer or host pointer for the scalar alpha.
+    @param[in]
+    alpha_type [rocblas_datatype]
+               specifies the datatype of alpha.
+    @param[inout]
+    x         device pointer to the first vector x_1.
+    @param[in]
+    x_type [rocblas_datatype]
+           specifies the datatype of each vector x_i.
+    @param[in]
+    incx      [rocblas_int]
+              specifies the increment for the elements of each x_i.
+    @param[in]
+    stridex   [rocblas_stride]
+              stride from the start of one vector (x_i) to the next one (x_i+1).
+              There are no restrictions placed on stridex, however the user should
+              take care to ensure that stridex is of appropriate size, for a typical
+              case this means stridex >= n * incx.
+    @param[in]
+    batch_count [rocblas_int]
+                number of instances in the batch.
+    @param[in]
+    execution_type [rocblas_datatype]
+                   specifies the datatype of computation.
+
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_scal_strided_batched_ex(rocblas_handle   handle,
+                                                              rocblas_int      n,
+                                                              const void*      alpha,
+                                                              rocblas_datatype alpha_type,
+                                                              void*            x,
+                                                              rocblas_datatype x_type,
+                                                              rocblas_int      incx,
+                                                              rocblas_stride   stridex,
                                                               rocblas_int      batch_count,
                                                               rocblas_datatype execution_type);
 

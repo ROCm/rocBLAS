@@ -127,42 +127,42 @@ namespace
     };
 
     using trsm = trsm_template<trsm_testing, TRSM>;
-    TEST_P(trsm, blas3)
+    TEST_P(trsm, blas3_tensile)
     {
         CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<trsm_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(trsm);
 
     using trsm_ex = trsm_template<trsm_testing, TRSM_EX>;
-    TEST_P(trsm_ex, blas3)
+    TEST_P(trsm_ex, blas3_tensile)
     {
         CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<trsm_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(trsm_ex);
 
     using trsm_batched = trsm_template<trsm_testing, TRSM_BATCHED>;
-    TEST_P(trsm_batched, blas3)
+    TEST_P(trsm_batched, blas3_tensile)
     {
         CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<trsm_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(trsm_batched);
 
     using trsm_batched_ex = trsm_template<trsm_testing, TRSM_BATCHED_EX>;
-    TEST_P(trsm_batched_ex, blas3)
+    TEST_P(trsm_batched_ex, blas3_tensile)
     {
         CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<trsm_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(trsm_batched_ex);
 
     using trsm_strided_batched = trsm_template<trsm_testing, TRSM_STRIDED_BATCHED>;
-    TEST_P(trsm_strided_batched, blas3)
+    TEST_P(trsm_strided_batched, blas3_tensile)
     {
         CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<trsm_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(trsm_strided_batched);
 
     using trsm_strided_batched_ex = trsm_template<trsm_testing, TRSM_STRIDED_BATCHED_EX>;
-    TEST_P(trsm_strided_batched_ex, blas3)
+    TEST_P(trsm_strided_batched_ex, blas3_tensile)
     {
         CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<trsm_testing>(GetParam()));
     }

@@ -27,7 +27,7 @@ namespace
                                               rocblas_int      n,
                                               const T* const   A[],
                                               rocblas_int      lda,
-                                              T*               invA[],
+                                              T* const         invA[],
                                               rocblas_int      ldinvA,
                                               rocblas_int      batch_count)
     {
@@ -123,7 +123,7 @@ namespace
                                                              0,
                                                              batch_count,
                                                              1,
-                                                             (T**)C_tmp_arr);
+                                                             (T* const*)C_tmp_arr);
         }
 
         return status;
@@ -138,7 +138,7 @@ rocblas_status rocblas_strtri_batched(rocblas_handle     handle,
                                       rocblas_int        n,
                                       const float* const A[],
                                       rocblas_int        lda,
-                                      float*             invA[],
+                                      float* const       invA[],
                                       rocblas_int        ldinvA,
                                       rocblas_int        batch_count)
 try
@@ -157,7 +157,7 @@ rocblas_status rocblas_dtrtri_batched(rocblas_handle      handle,
                                       rocblas_int         n,
                                       const double* const A[],
                                       rocblas_int         lda,
-                                      double*             invA[],
+                                      double* const       invA[],
                                       rocblas_int         ldinvA,
                                       rocblas_int         batch_count)
 try
@@ -176,7 +176,7 @@ rocblas_status rocblas_ctrtri_batched(rocblas_handle                     handle,
                                       rocblas_int                        n,
                                       const rocblas_float_complex* const A[],
                                       rocblas_int                        lda,
-                                      rocblas_float_complex*             invA[],
+                                      rocblas_float_complex* const       invA[],
                                       rocblas_int                        ldinvA,
                                       rocblas_int                        batch_count)
 try
@@ -195,7 +195,7 @@ rocblas_status rocblas_ztrtri_batched(rocblas_handle                      handle
                                       rocblas_int                         n,
                                       const rocblas_double_complex* const A[],
                                       rocblas_int                         lda,
-                                      rocblas_double_complex*             invA[],
+                                      rocblas_double_complex* const       invA[],
                                       rocblas_int                         ldinvA,
                                       rocblas_int                         batch_count)
 try

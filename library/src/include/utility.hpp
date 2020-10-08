@@ -89,9 +89,8 @@ __forceinline__ __device__ __host__ T load_scalar(T x, rocblas_int idx, rocblas_
 // Load a pointer from a batch. If the argument is a T**, use block to index it and
 // add the offset, if the argument is a T*, add block * stride to pointer and add offset.
 
-// For device array of device pointers
-
 // For device pointers
+// clang-format off
 template <typename T>
 __forceinline__ __device__ __host__ T*
                                     load_ptr_batch(T* p, rocblas_int block, ptrdiff_t offset, rocblas_stride stride)
@@ -113,6 +112,7 @@ __forceinline__ __device__ __host__ T*
 {
     return p[block] + offset;
 }
+// clang-format on
 
 // Helper for batched functions with temporary memory, currently just trsm and trsv.
 // Copys addresses to array of pointers for batched versions.
@@ -459,6 +459,7 @@ constexpr double value_category(const T& beta)
 }
 
 ROCBLAS_EXPORT std::string rocblas_get_arch_name();
-bool                       rocblas_tensile_supports_ldc_ne_ldd();
+ROCBLAS_EXPORT bool        rocblas_tensile_supports_ldc_ne_ldd();
+ROCBLAS_EXPORT bool        rocblas_tensile_debug_skip_launch();
 
 #endif

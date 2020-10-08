@@ -89,12 +89,32 @@ auto rocblas_blas1_ex_dispatch(const Arguments& arg)
     // specifically alpha_type == x_type == y_type, however I'm trying to leave
     // this open to expansion.
     const auto Ta = arg.a_type, Tx = arg.b_type, Ty = arg.c_type, Tex = arg.compute_type;
+
     if(Ta == Tx && Tx == Ty && Ty == Tex)
     {
         return rocblas_simple_dispatch<TEST>(arg); // Ta == Tx == Ty == Tex
     }
     else if(Ta == Tx && Tx == Ty && Ta == rocblas_datatype_f16_r && Tex == rocblas_datatype_f32_r)
+    {
         return TEST<rocblas_half, rocblas_half, rocblas_half, float>{}(arg);
+    }
+    else if(Ta == Tx && Ta == rocblas_datatype_f16_r && Tex == rocblas_datatype_f32_r)
+    {
+        // scal half
+        return TEST<rocblas_half, rocblas_half, float>{}(arg);
+    }
+    else if(Ta == rocblas_datatype_f32_r && Tx == rocblas_datatype_f32_c
+            && Tex == rocblas_datatype_f32_c)
+    {
+        // csscal
+        return TEST<float, rocblas_float_complex, rocblas_float_complex>{}(arg);
+    }
+    else if(Ta == rocblas_datatype_f64_r && Tx == rocblas_datatype_f64_c
+            && Tex == rocblas_datatype_f64_c)
+    {
+        // zdscal
+        return TEST<double, rocblas_double_complex, rocblas_double_complex>{}(arg);
+    }
 
     return TEST<void>{}(arg);
 }

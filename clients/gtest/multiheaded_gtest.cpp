@@ -161,7 +161,7 @@ namespace
         int count;
         CHECK_HIP_ERROR(hipGetDeviceCount(&count));
 
-        if(tensile_is_initialized())
+        if(rocblas_tensile_is_initialized())
         {
             FAIL() << "multiheaded test was not the first test to initialize Tensile.\n"
                       "Make sure that multiheaded_gtest.cpp is the first *_gest.cpp file linked,\n"
@@ -211,7 +211,7 @@ namespace
         }
     };
 
-    TEST_P(multiheaded, auxilliary)
+    TEST_P(multiheaded, auxiliary_tensile)
     {
         CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(
             rocblas_simple_dispatch<multiheaded_testing>(GetParam()));

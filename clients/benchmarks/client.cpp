@@ -2,7 +2,7 @@
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#include <boost/program_options.hpp>
+#include "program_options.hpp"
 
 #include "rocblas.h"
 #include "rocblas.hpp"
@@ -61,7 +61,10 @@
 #include "testing_rotmg_strided_batched.hpp"
 #include "testing_scal.hpp"
 #include "testing_scal_batched.hpp"
+#include "testing_scal_batched_ex.hpp"
+#include "testing_scal_ex.hpp"
 #include "testing_scal_strided_batched.hpp"
+#include "testing_scal_strided_batched_ex.hpp"
 #include "testing_swap.hpp"
 #include "testing_swap_batched.hpp"
 #include "testing_swap_strided_batched.hpp"
@@ -682,6 +685,42 @@ struct perf_blas_scal<
     }
 };
 
+template <typename Ta, typename Tx = Ta, typename Tex = Tx, typename = void>
+struct perf_blas_scal_ex : rocblas_test_invalid
+{
+};
+
+template <typename Ta, typename Tx, typename Tex>
+struct perf_blas_scal_ex<
+    Ta,
+    Tx,
+    Tex,
+    std::enable_if_t<
+        (std::is_same<Ta, float>{} && std::is_same<Ta, Tx>{} && std::is_same<Tx, Tex>{})
+        || (std::is_same<Ta, double>{} && std::is_same<Ta, Tx>{} && std::is_same<Tx, Tex>{})
+        || (std::is_same<Ta, rocblas_half>{} && std::is_same<Ta, Tx>{} && std::is_same<Tx, Tex>{})
+        || (std::is_same<Ta, rocblas_float_complex>{} && std::is_same<Ta, Tx>{}
+            && std::is_same<Tx, Tex>{})
+        || (std::is_same<Ta, rocblas_double_complex>{} && std::is_same<Ta, Tx>{}
+            && std::is_same<Tx, Tex>{})
+        || (std::is_same<Ta, rocblas_half>{} && std::is_same<Ta, Tx>{}
+            && std::is_same<Tex, float>{})
+        || (std::is_same<Ta, float>{} && std::is_same<Tx, rocblas_float_complex>{}
+            && std::is_same<Tx, Tex>{})
+        || (std::is_same<Ta, double>{} && std::is_same<Tx, rocblas_double_complex>{}
+            && std::is_same<Tx, Tex>{})>> : rocblas_test_valid
+{
+    void operator()(const Arguments& arg)
+    {
+        static const func_map map = {
+            {"scal_ex", testing_scal_ex<Ta, Tx, Tex>},
+            {"scal_batched_ex", testing_scal_batched_ex<Ta, Tx, Tex>},
+            {"scal_strided_batched_ex", testing_scal_strided_batched_ex<Ta, Tx, Tex>},
+        };
+        run_function(map, arg);
+    }
+};
+
 template <typename Ta, typename Tb = Ta, typename = void>
 struct perf_blas_rotg : rocblas_test_invalid
 {
@@ -884,6 +923,9 @@ int run_bench_test(Arguments& arg)
         else if(!strcmp(function, "axpy_ex") || !strcmp(function, "axpy_batched_ex")
                 || !strcmp(function, "axpy_strided_batched_ex"))
             rocblas_blas1_ex_dispatch<perf_blas_axpy_ex>(arg);
+        else if(!strcmp(function, "scal_ex") || !strcmp(function, "scal_batched_ex")
+                || !strcmp(function, "scal_strided_batched_ex"))
+            rocblas_blas1_ex_dispatch<perf_blas_scal_ex>(arg);
         else
             rocblas_simple_dispatch<perf_blas>(arg);
     }
@@ -914,8 +956,6 @@ void fix_batch(int argc, char* argv[])
             argv[i]         = b_c;
         }
 }
-
-using namespace boost::program_options;
 
 int main(int argc, char* argv[])
 try
@@ -1110,7 +1150,7 @@ try
          "gemm_ex flags")
 
         ("atomics_not_allowed",
-         value<bool>(&atomics_not_allowed)->default_value(false),
+         bool_switch(&atomics_not_allowed)->default_value(false),
          "Atomic operations with non-determinism in results are not allowed")
 
         ("device",
@@ -1132,17 +1172,11 @@ try
 
     arg.atomics_mode = atomics_not_allowed ? rocblas_atomics_not_allowed : rocblas_atomics_allowed;
 
-    // Initialize rocBLAS; TODO: Remove this after it is determined why rocblas-bench
-    // returns lower performance if this is executed after Boost parse_command_line().
-    // Right now this causes 5-10 seconds of delay before processing the CLI arguments.
-    rocblas_cerr << "Initializing rocBLAS..." << std::endl;
-    rocblas_initialize();
-
     variables_map vm;
     store(parse_command_line(argc, argv, desc), vm);
     notify(vm);
 
-    if(vm.count("help"))
+    if((argc <= 1 && !datafile) || vm.count("help"))
     {
         rocblas_cout << desc << std::endl;
         return 0;
