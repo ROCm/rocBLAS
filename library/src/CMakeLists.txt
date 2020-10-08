@@ -96,16 +96,6 @@ if( BUILD_WITH_TENSILE )
     endforeach( )
   endif( )
 
-  if( CMAKE_CXX_COMPILER MATCHES ".*/hipcc$" )
-    foreach( target ${ROCBLAS_GPUS} )
-      if( BUILD_WITH_TENSILE_HOST )
-        target_compile_options( TensileHost PRIVATE --cuda-gpu-arch=${target} )
-      else()
-        target_compile_options( Tensile PRIVATE --cuda-gpu-arch=${target} )
-      endif()
-    endforeach( )
-  endif( )
-
   if( ROCBLAS_SHARED_LIBS )
     set( BUILD_SHARED_LIBS ON )
     if( BUILD_WITH_TENSILE_HOST )
@@ -159,6 +149,9 @@ set (rocblas_ex_source_no_tensile
     blas_ex/rocblas_axpy_ex.cpp
     blas_ex/rocblas_axpy_batched_ex.cpp
     blas_ex/rocblas_axpy_strided_batched_ex.cpp
+    blas_ex/rocblas_scal_ex.cpp
+    blas_ex/rocblas_scal_batched_ex.cpp
+    blas_ex/rocblas_scal_strided_batched_ex.cpp
 )
 
 set( rocblas_blas3_source_no_tensile
@@ -369,11 +362,6 @@ if( CMAKE_CXX_COMPILER MATCHES ".*/hipcc$" )
   else()
       target_compile_options(rocblas PRIVATE "SHELL:${gfx906_options}" "SHELL:${gfx908_options}")
   endif()
-  foreach( target ${ROCBLAS_GPUS} )
-    message( STATUS "TARGET: " ${target} )
-    target_compile_options( rocblas PRIVATE --cuda-gpu-arch=${target} )
-    target_link_libraries( rocblas PRIVATE --cuda-gpu-arch=${target} )
-  endforeach( )
 endif( )
 
 # Do not allow Variable Length Arrays (use unique_ptr instead)

@@ -484,35 +484,35 @@ rocblas_status rocblas_zswap_fortran(rocblas_handle          handle,
 // swap_batched
 rocblas_status rocblas_sswap_batched_fortran(rocblas_handle handle,
                                              rocblas_int    n,
-                                             float*         x[],
+                                             float* const   x[],
                                              rocblas_int    incx,
-                                             float*         y[],
+                                             float* const   y[],
                                              rocblas_int    incy,
                                              rocblas_int    batch_count);
 
 rocblas_status rocblas_dswap_batched_fortran(rocblas_handle handle,
                                              rocblas_int    n,
-                                             double*        x[],
+                                             double* const  x[],
                                              rocblas_int    incx,
-                                             double*        y[],
+                                             double* const  y[],
                                              rocblas_int    incy,
                                              rocblas_int    batch_count);
 
-rocblas_status rocblas_cswap_batched_fortran(rocblas_handle         handle,
-                                             rocblas_int            n,
-                                             rocblas_float_complex* x[],
-                                             rocblas_int            incx,
-                                             rocblas_float_complex* y[],
-                                             rocblas_int            incy,
-                                             rocblas_int            batch_count);
+rocblas_status rocblas_cswap_batched_fortran(rocblas_handle               handle,
+                                             rocblas_int                  n,
+                                             rocblas_float_complex* const x[],
+                                             rocblas_int                  incx,
+                                             rocblas_float_complex* const y[],
+                                             rocblas_int                  incy,
+                                             rocblas_int                  batch_count);
 
-rocblas_status rocblas_zswap_batched_fortran(rocblas_handle          handle,
-                                             rocblas_int             n,
-                                             rocblas_double_complex* x[],
-                                             rocblas_int             incx,
-                                             rocblas_double_complex* y[],
-                                             rocblas_int             incy,
-                                             rocblas_int             batch_count);
+rocblas_status rocblas_zswap_batched_fortran(rocblas_handle                handle,
+                                             rocblas_int                   n,
+                                             rocblas_double_complex* const x[],
+                                             rocblas_int                   incx,
+                                             rocblas_double_complex* const y[],
+                                             rocblas_int                   incy,
+                                             rocblas_int                   batch_count);
 
 // swap_strided_batched
 rocblas_status rocblas_sswap_strided_batched_fortran(rocblas_handle handle,
@@ -3234,7 +3234,7 @@ rocblas_status rocblas_ssymv_batched_fortran(rocblas_handle     handle,
                                              const float* const x[],
                                              rocblas_int        incx,
                                              const float*       beta,
-                                             float*             y[],
+                                             float* const       y[],
                                              rocblas_int        incy,
                                              rocblas_int        batch_count);
 
@@ -3247,7 +3247,7 @@ rocblas_status rocblas_dsymv_batched_fortran(rocblas_handle      handle,
                                              const double* const x[],
                                              rocblas_int         incx,
                                              const double*       beta,
-                                             double*             y[],
+                                             double* const       y[],
                                              rocblas_int         incy,
                                              rocblas_int         batch_count);
 
@@ -3260,7 +3260,7 @@ rocblas_status rocblas_csymv_batched_fortran(rocblas_handle                     
                                              const rocblas_float_complex* const x[],
                                              rocblas_int                        incx,
                                              const rocblas_float_complex*       beta,
-                                             rocblas_float_complex*             y[],
+                                             rocblas_float_complex* const       y[],
                                              rocblas_int                        incy,
                                              rocblas_int                        batch_count);
 
@@ -3273,7 +3273,7 @@ rocblas_status rocblas_zsymv_batched_fortran(rocblas_handle                     
                                              const rocblas_double_complex* const x[],
                                              rocblas_int                         incx,
                                              const rocblas_double_complex*       beta,
-                                             rocblas_double_complex*             y[],
+                                             rocblas_double_complex* const       y[],
                                              rocblas_int                         incy,
                                              rocblas_int                         batch_count);
 
@@ -3374,7 +3374,7 @@ rocblas_status rocblas_sspmv_batched_fortran(rocblas_handle     handle,
                                              const float* const x[],
                                              rocblas_int        incx,
                                              const float*       beta,
-                                             float*             y[],
+                                             float* const       y[],
                                              rocblas_int        incy,
                                              rocblas_int        batch_count);
 
@@ -3386,7 +3386,7 @@ rocblas_status rocblas_dspmv_batched_fortran(rocblas_handle      handle,
                                              const double* const x[],
                                              rocblas_int         incx,
                                              const double*       beta,
-                                             double*             y[],
+                                             double* const       y[],
                                              rocblas_int         incy,
                                              rocblas_int         batch_count);
 
@@ -3459,7 +3459,7 @@ rocblas_status rocblas_dsbmv_batched_fortran(rocblas_handle      handle,
                                              const double* const x[],
                                              rocblas_int         incx,
                                              const double*       beta,
-                                             double*             y[],
+                                             double* const       y[],
                                              rocblas_int         incy,
                                              rocblas_int         batch_count);
 
@@ -3473,7 +3473,7 @@ rocblas_status rocblas_ssbmv_batched_fortran(rocblas_handle     handle,
                                              const float* const x[],
                                              rocblas_int        incx,
                                              const float*       beta,
-                                             float*             y[],
+                                             float* const       y[],
                                              rocblas_int        incy,
                                              rocblas_int        batch_count);
 
@@ -5546,7 +5546,7 @@ rocblas_status rocblas_strtri_batched_fortran(rocblas_handle     handle,
                                               rocblas_int        n,
                                               const float* const A[],
                                               rocblas_int        lda,
-                                              float*             invA[],
+                                              float* const       invA[],
                                               rocblas_int        ldinvA,
                                               rocblas_int        batch_count);
 
@@ -5556,7 +5556,7 @@ rocblas_status rocblas_dtrtri_batched_fortran(rocblas_handle      handle,
                                               rocblas_int         n,
                                               const double* const A[],
                                               rocblas_int         lda,
-                                              double*             invA[],
+                                              double* const       invA[],
                                               rocblas_int         ldinvA,
                                               rocblas_int         batch_count);
 
@@ -5566,7 +5566,7 @@ rocblas_status rocblas_ctrtri_batched_fortran(rocblas_handle                    
                                               rocblas_int                        n,
                                               const rocblas_float_complex* const A[],
                                               rocblas_int                        lda,
-                                              rocblas_float_complex*             invA[],
+                                              rocblas_float_complex* const       invA[],
                                               rocblas_int                        ldinvA,
                                               rocblas_int                        batch_count);
 
@@ -5576,7 +5576,7 @@ rocblas_status rocblas_ztrtri_batched_fortran(rocblas_handle                    
                                               rocblas_int                         n,
                                               const rocblas_double_complex* const A[],
                                               rocblas_int                         lda,
-                                              rocblas_double_complex*             invA[],
+                                              rocblas_double_complex* const       invA[],
                                               rocblas_int                         ldinvA,
                                               rocblas_int                         batch_count);
 
@@ -5693,7 +5693,7 @@ rocblas_status rocblas_strsm_batched_fortran(rocblas_handle     handle,
                                              const float*       alpha,
                                              const float* const A[],
                                              rocblas_int        lda,
-                                             float*             B[],
+                                             float* const       B[],
                                              rocblas_int        ldb,
                                              rocblas_int        batch_count);
 
@@ -5707,7 +5707,7 @@ rocblas_status rocblas_dtrsm_batched_fortran(rocblas_handle      handle,
                                              const double*       alpha,
                                              const double* const A[],
                                              rocblas_int         lda,
-                                             double*             B[],
+                                             double* const       B[],
                                              rocblas_int         ldb,
                                              rocblas_int         batch_count);
 
@@ -5721,7 +5721,7 @@ rocblas_status rocblas_ctrsm_batched_fortran(rocblas_handle                     
                                              const rocblas_float_complex*       alpha,
                                              const rocblas_float_complex* const A[],
                                              rocblas_int                        lda,
-                                             rocblas_float_complex*             B[],
+                                             rocblas_float_complex* const       B[],
                                              rocblas_int                        ldb,
                                              rocblas_int                        batch_count);
 
@@ -5735,7 +5735,7 @@ rocblas_status rocblas_ztrsm_batched_fortran(rocblas_handle                     
                                              const rocblas_double_complex*       alpha,
                                              const rocblas_double_complex* const A[],
                                              rocblas_int                         lda,
-                                             rocblas_double_complex*             B[],
+                                             rocblas_double_complex* const       B[],
                                              rocblas_int                         ldb,
                                              rocblas_int                         batch_count);
 
@@ -6445,6 +6445,37 @@ rocblas_status rocblas_axpy_strided_batched_ex_fortran(rocblas_handle       hand
                                                        rocblas_datatype     y_type,
                                                        const rocblas_int    incy,
                                                        const rocblas_stride stridey,
+                                                       const rocblas_int    batch_count,
+                                                       rocblas_datatype     execution_type);
+
+// scal_ex
+rocblas_status rocblas_scal_ex_fortran(rocblas_handle    handle,
+                                       const rocblas_int N,
+                                       const void*       alpha,
+                                       rocblas_datatype  alpha_type,
+                                       void*             x,
+                                       rocblas_datatype  x_type,
+                                       const rocblas_int incx,
+                                       rocblas_datatype  execution_type);
+
+rocblas_status rocblas_scal_batched_ex_fortran(rocblas_handle    handle,
+                                               const rocblas_int N,
+                                               const void*       alpha,
+                                               rocblas_datatype  alpha_type,
+                                               void*             x,
+                                               rocblas_datatype  x_type,
+                                               const rocblas_int incx,
+                                               const rocblas_int batch_count,
+                                               rocblas_datatype  execution_type);
+
+rocblas_status rocblas_scal_strided_batched_ex_fortran(rocblas_handle       handle,
+                                                       const rocblas_int    N,
+                                                       const void*          alpha,
+                                                       rocblas_datatype     alpha_type,
+                                                       void*                x,
+                                                       rocblas_datatype     x_type,
+                                                       const rocblas_int    incx,
+                                                       const rocblas_stride stridex,
                                                        const rocblas_int    batch_count,
                                                        rocblas_datatype     execution_type);
 

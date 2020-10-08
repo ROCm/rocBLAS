@@ -177,13 +177,20 @@ Simple precisions complex and real: &half_single_double_precisions_complex_real
 #############################################
 Joined precisions: &complex_real_in_complex_out
   - &single_precision_complex_real_in_complex_out
-    { a_type: f32_c, b_type: f32_r, c_type: f32_r, d_type: f32_c, compute_type: f32_r }
+    { a_type: f32_c, b_type: f32_r, c_type: f32_r, d_type: f32_c, compute_type: f32_c }
   - &double_precision_complex_real_in_complex_out
-    { a_type: f64_c, b_type: f64_r, c_type: f64_r, d_type: f64_c, compute_type: f64_r }
+    { a_type: f64_c, b_type: f64_r, c_type: f64_r, d_type: f64_c, compute_type: f64_c }
 
 Single double joined: &single_double_complex_real_in_complex_out
   - *single_precision_complex_real_in_complex_out
   - *double_precision_complex_real_in_complex_out
+
+#############################################
+#             Used for Scal_ex              #
+#############################################
+Hpa half and half: &hpa_half_half_precisions
+  - *hpa_half_precision
+  - *half_precision
 
 #############################################
 #               Used for rot*               #

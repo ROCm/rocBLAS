@@ -14,24 +14,6 @@ else()
     set(CMAKE_CXX_FLAGS "-isystem /opt/rocm/include ${CMAKE_CXX_FLAGS} -fopenmp -pthread")
 endif()
 
-# set( Boost_DEBUG ON )
-set( Boost_USE_MULTITHREADED ON )
-set( Boost_DETAILED_FAILURE_MSG ON )
-set( Boost_ADDITIONAL_VERSIONS 1.65.1 1.65 )
-set( Boost_USE_STATIC_LIBS OFF )
-
-find_package( Boost COMPONENTS program_options )
-
-if( NOT Boost_FOUND )
-  message( STATUS "Dynamic boost libraries not found. Attempting to find static libraries " )
-  set( Boost_USE_STATIC_LIBS ON )
-  find_package( Boost COMPONENTS program_options )
-
-  if( NOT Boost_FOUND )
-    message( FATAL_ERROR "boost is a required dependency and is not found;  try adding boost path to CMAKE_PREFIX_PATH" )
-  endif( )
-endif( )
-
 # Linking lapack library requires fortran flags
 enable_language( Fortran )
 find_package( cblas CONFIG REQUIRED )
@@ -147,7 +129,6 @@ target_include_directories( rocblas-test
   SYSTEM PRIVATE
     $<BUILD_INTERFACE:${HIP_INCLUDE_DIRS}>
     $<BUILD_INTERFACE:${HCC_INCLUDE_DIRS}>
-    $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
     $<BUILD_INTERFACE:${GTEST_INCLUDE_DIRS}>
     $<BUILD_INTERFACE:${CBLAS_INCLUDE_DIRS}>
     $<BUILD_INTERFACE:${BLIS_INCLUDE_DIR}>
@@ -195,7 +176,6 @@ if( OS_ID_rhel OR OS_ID_sles OR OS_ID_centos)
         $<BUILD_INTERFACE:${CLANG_INCLUDE_DIR}>
         $<BUILD_INTERFACE:${OPENMP_INCLUDE_DIR}>
         $<BUILD_INTERFACE:${BLIS_INCLUDE_DIR}>
-        $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
         $<BUILD_INTERFACE:${GTEST_INCLUDE_DIRS}>
         $<BUILD_INTERFACE:${HIP_INCLUDE_DIRS}>
         $<BUILD_INTERFACE:${HCC_INCLUDE_DIRS}>
@@ -203,9 +183,9 @@ if( OS_ID_rhel OR OS_ID_sles OR OS_ID_centos)
         )
 
     if(LINK_BLIS)
-      target_link_libraries( rocblas-test PRIVATE rocblas_fortran_client roc::rocblas lapack cblas ${BLIS_LIBRARY} ${GTEST_LIBRARIES} ${Boost_LIBRARIES} ${OPENMP_LIBRARY} )
+      target_link_libraries( rocblas-test PRIVATE rocblas_fortran_client roc::rocblas lapack cblas ${BLIS_LIBRARY} ${GTEST_LIBRARIES} ${OPENMP_LIBRARY} )
     else()
-      target_link_libraries( rocblas-test PRIVATE rocblas_fortran_client roc::rocblas lapack cblas ${GTEST_LIBRARIES} ${Boost_LIBRARIES} ${OPENMP_LIBRARY} )
+      target_link_libraries( rocblas-test PRIVATE rocblas_fortran_client roc::rocblas lapack cblas ${GTEST_LIBRARIES} ${OPENMP_LIBRARY} )
     endif()
 else()
     # External header includes included as system files
@@ -213,15 +193,14 @@ else()
       SYSTEM PRIVATE
         $<BUILD_INTERFACE:${HIP_INCLUDE_DIRS}>
         $<BUILD_INTERFACE:${HCC_INCLUDE_DIRS}>
-        $<BUILD_INTERFACE:${Boost_INCLUDE_DIRS}>
         $<BUILD_INTERFACE:${GTEST_INCLUDE_DIRS}>
         $<BUILD_INTERFACE:${CBLAS_INCLUDE_DIRS}>
         $<BUILD_INTERFACE:${BLIS_INCLUDE_DIR}>
     )
     if(LINK_BLIS)
-      target_link_libraries( rocblas-test PRIVATE rocblas_fortran_client roc::rocblas lapack cblas ${BLIS_LIBRARY} ${GTEST_LIBRARIES} ${Boost_LIBRARIES} )
+      target_link_libraries( rocblas-test PRIVATE rocblas_fortran_client roc::rocblas lapack cblas ${BLIS_LIBRARY} ${GTEST_LIBRARIES} )
     else()
-      target_link_libraries( rocblas-test PRIVATE rocblas_fortran_client roc::rocblas lapack cblas ${GTEST_LIBRARIES} ${Boost_LIBRARIES} )
+      target_link_libraries( rocblas-test PRIVATE rocblas_fortran_client roc::rocblas lapack cblas ${GTEST_LIBRARIES} )
     endif()
 endif()
 

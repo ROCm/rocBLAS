@@ -106,21 +106,21 @@ namespace
     };
 
     using trsv = trsv_template<trsv_testing, TRSV>;
-    TEST_P(trsv, blas2)
+    TEST_P(trsv, blas2_tensile)
     {
         CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<trsv_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(trsv);
 
     using trsv_batched = trsv_template<trsv_testing, TRSV_BATCHED>;
-    TEST_P(trsv_batched, blas2)
+    TEST_P(trsv_batched, blas2_tensile)
     {
         CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<trsv_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(trsv_batched);
 
     using trsv_strided_batched = trsv_template<trsv_testing, TRSV_STRIDED_BATCHED>;
-    TEST_P(trsv_strided_batched, blas2)
+    TEST_P(trsv_strided_batched, blas2_tensile)
     {
         CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<trsv_testing>(GetParam()));
     }

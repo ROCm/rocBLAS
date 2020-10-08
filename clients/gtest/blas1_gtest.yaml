@@ -59,6 +59,11 @@ Definitions:
     - { alphai: 1.0}
     - { alphai: 2.0 }
 
+  - &complex_alpha_range_small
+    - { alpha: 4.0, alphai:  0.0 }
+    - { alpha: 0.0, alphai:  4.0 }
+    - { alpha: 3.0, alphai: -2.0 }
+
 Tests:
 
 # All functions with no parameters to scan over
@@ -244,6 +249,9 @@ Tests:
     function:
       - scal:  *single_double_precisions_complex_real
       - scal:  *single_double_complex_real_in_complex_out
+      - scal_ex: *single_double_precisions_complex_real
+      - scal_ex: *single_double_complex_real_in_complex_out
+      - scal_ex: *hpa_half_half_precisions
 
   - name: blas1_batched_with_alpha
     category: quick
@@ -256,6 +264,9 @@ Tests:
     function:
       - scal_batched:  *single_double_precisions_complex_real
       - scal_batched:  *single_double_complex_real_in_complex_out
+      - scal_batched_ex: *single_double_precisions_complex_real
+      - scal_batched_ex: *single_double_complex_real_in_complex_out
+      - scal_batched_ex: *hpa_half_half_precisions
 
   - name: blas1_strided_batched_with_alpha
     category: quick
@@ -269,6 +280,9 @@ Tests:
     function:
       - scal_strided_batched:  *single_double_precisions_complex_real
       - scal_strided_batched:  *single_double_complex_real_in_complex_out
+      - scal_strided_batched_ex: *single_double_precisions_complex_real
+      - scal_strided_batched_ex: *single_double_complex_real_in_complex_out
+      - scal_strided_batched_ex: *hpa_half_half_precisions
 
 # quick
   - name: blas1_with_alpha
@@ -280,6 +294,9 @@ Tests:
     function:
       - scal:  *single_double_precisions_complex_real
       - scal:  *single_double_complex_real_in_complex_out
+      - scal_ex: *single_double_precisions_complex_real
+      - scal_ex: *single_double_complex_real_in_complex_out
+      - scal_ex: *hpa_half_half_precisions
 
   - name: blas1_batched
     category: quick
@@ -291,6 +308,9 @@ Tests:
     function:
       - scal_batched: *single_double_precisions_complex_real
       - scal_batched: *single_double_complex_real_in_complex_out
+      - scal_batched_ex: *single_double_precisions_complex_real
+      - scal_batched_ex: *single_double_complex_real_in_complex_out
+      - scal_batched_ex: *hpa_half_half_precisions
 
   - name: blas1_strided_batched
     category: quick
@@ -303,87 +323,90 @@ Tests:
     function:
       - scal_strided_batched: *single_double_precisions_complex_real
       - scal_strided_batched: *single_double_complex_real_in_complex_out
+      - scal_strided_batched_ex: *single_double_precisions_complex_real
+      - scal_strided_batched_ex: *single_double_complex_real_in_complex_out
+      - scal_strided_batched_ex: *hpa_half_half_precisions
 
 # pre_checkin
   - name: blas1
     category: pre_checkin
     N: [ 50000, 1049600 ]
     incx: *incx_range_small
-    alpha_beta: *alpha_beta_range
-    alphai_betai: *alphai_betai_range
+    alpha_beta: *complex_alpha_range_small
     function:
-      - scal:  *single_double_precisions_complex_real
-      - scal:  *single_double_complex_real_in_complex_out
+      - scal_ex: *single_double_precisions_complex_real
+      - scal_ex: *single_double_complex_real_in_complex_out
+      - scal_ex: *hpa_half_half_precisions
 
   - name: blas1_batched
     category: pre_checkin
     N: [ 1048576 ]
     incx: *incx_range_small
-    alpha_beta: *alpha_beta_range
-    alphai_betai: *alphai_betai_range
+    alpha_beta: *complex_alpha_range_small
     batch_count: [2]
     function:
-      - scal_batched: *single_double_precisions_complex_real
-      - scal_batched: *single_double_complex_real_in_complex_out
+      - scal_batched_ex: *single_double_precisions_complex_real
+      - scal_batched_ex: *single_double_complex_real_in_complex_out
+      - scal_batched_ex: *hpa_half_half_precisions
 
   - name: blas1_strided_batched
     category: pre_checkin
     N: [ 1048576 ]
     incx: *incx_range_small
-    alpha_beta: *alpha_beta_range
-    alphai_betai: *alphai_betai_range
+    alpha_beta: *complex_alpha_range_small
     batch_count: [2]
     stride_scale: [ 1.5 ]
     function:
-      - scal_strided_batched: *single_double_precisions_complex_real
-      - scal_strided_batched: *single_double_complex_real_in_complex_out
+      - scal_strided_batched_ex: *single_double_precisions_complex_real
+      - scal_strided_batched_ex: *single_double_complex_real_in_complex_out
+      - scal_strided_batched_ex: *hpa_half_half_precisions
 
 # nightly
   - name: blas1_batched
     category: nightly
     N: [ 4000000 ]
     incx: *incx_range_small
-    alpha_beta: *alpha_beta_range
-    alphai_betai: *alphai_betai_range
+    alpha_beta: *complex_alpha_range_small
     batch_count: [ 2 ]
     function:
-      - scal_batched: *single_double_precisions_complex_real
-      - scal_batched: *single_double_complex_real_in_complex_out
+      - scal_ex: *single_double_precisions_complex_real
+      - scal_ex: *single_double_complex_real_in_complex_out
+      - scal_ex: *hpa_half_half_precisions
 
   - name: blas1_batched
     category: nightly
     N: [ 10 ]
     incx: *incx_range_small
-    alpha_beta: *alpha_beta_range
-    alphai_betai: *alphai_betai_range
+    alpha_beta: *complex_alpha_range_small
     batch_count: [ 4000 ]
     function:
-      - scal_batched: *single_double_precisions_complex_real
-      - scal_batched:  *single_double_complex_real_in_complex_out
+      - scal_batched_ex: *single_double_precisions_complex_real
+      - scal_batched_ex: *single_double_complex_real_in_complex_out
+      - scal_batched_ex: *hpa_half_half_precisions
 
   - name: blas1_strided_batched
     category: nightly
     N: [ 4000000 ]
     incx: *incx_range_small
-    alpha_beta: *alpha_beta_range
-    alphai_betai: *alphai_betai_range
+    alpha_beta: *complex_alpha_range_small
     batch_count: [ 2 ]
     stride_scale: [ 1.2 ]
     function:
-      - scal_strided_batched: *single_double_precisions_complex_real
-      - scal_strided_batched: *single_double_complex_real_in_complex_out
+      - scal_strided_batched_ex: *single_double_precisions_complex_real
+      - scal_strided_batched_ex: *single_double_complex_real_in_complex_out
+      - scal_strided_batched_ex: *hpa_half_half_precisions
 
   - name: blas1_strided_batched
     category: nightly
     N: [ 10 ]
     incx: *incx_range_small
-    alpha_beta: *alpha_beta_range
-    alphai_betai: *alphai_betai_range
+    alpha_beta: *complex_alpha_range_small
     batch_count: [ 4000 ]
     stride_scale: [ 2 ]
     function:
-      - scal_strided_batched: *single_double_precisions_complex_real
-      - scal_strided_batched:  *single_double_complex_real_in_complex_out
+      - scal_strided_batched_ex: *single_double_precisions_complex_real
+      - scal_strided_batched_ex: *single_double_complex_real_in_complex_out
+      - scal_strided_batched_ex: *hpa_half_half_precisions
 
 # All functions with incx, no incy, no alpha
 # nrm2,asum,iamax,iamin all variants

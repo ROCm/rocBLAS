@@ -6,8 +6,6 @@ Definitions:
   - &small_matrix_size_range
     - { N:     1 }
     - { N:     4 }
-    - { N:    10 }
-    - { N:    11 }
     - { N:    16 }
     - { N:    33 }
     - { N:    65 }
@@ -15,7 +13,7 @@ Definitions:
   - &special_case_range
     - { N: 0, incx: 1, batch_count: 1 }
     - { N: 1, incx: 1, batch_count: 0 }
-
+    # invalid_arg checks
     - { N: -1, incx: 1, batch_count:  0 }
     - { N:  0, incx: 0, batch_count:  0 }
     - { N:  0, incx: 1, batch_count: -1 }
@@ -25,13 +23,11 @@ Definitions:
     - { N:  2011 }
 
   - &large_matrix_size_range
-    - { N:  3000 }
+    - { N:  2048 }
     - { N:  4011 }
 
   - &alpha_range
-    - { alpha:  2.0, alphai:  1.5 }
     - { alpha: -1.0, alphai:  0.5 }
-    - { alpha:  2.0, alphai: -1.5 }
     - { alpha:  0.0, alphai: -0.5 }
     - { alpha:  0.0, alphai:  0.0 }
 
@@ -73,7 +69,7 @@ Tests:
   precision: *single_double_precisions_complex
   uplo: [ U, L ]
   matrix_size: *small_matrix_size_range
-  incx: [ -1, 1, 2, -2, 99 ]
+  incx: [ 1, -2, 13 ]
   alpha_beta: *alpha_range
 
 - name: hpr_medium
@@ -112,7 +108,7 @@ Tests:
   precision: *single_double_precisions_complex
   uplo: [ U, L ]
   matrix_size: *small_matrix_size_range
-  incx: [ -1, 1, 2, -2, 99 ]
+  incx: [ 1, -2, 13 ]
   alpha_beta: *alpha_range
   batch_count: [ 1, 5 ]
 
@@ -130,7 +126,7 @@ Tests:
   category: nightly
   function: hpr_batched
   precision: *single_double_precisions_complex
-  uplo: [ U, L ]
+  uplo: [ U ]
   matrix_size: *large_matrix_size_range
   incx: [ 1 ]
   alpha_beta: *alpha_range_small
@@ -155,7 +151,7 @@ Tests:
   precision: *single_double_precisions_complex
   uplo: [ U, L ]
   matrix_size: *small_matrix_size_range
-  incx: [ -1, 1, 2, -2, 99 ]
+  incx: [ 1, -2, 13 ]
   alpha_beta: *alpha_range
   stride_scale: [ 1.0, 2.5 ]
   batch_count: [ 1, 5 ]
@@ -175,7 +171,7 @@ Tests:
   category: nightly
   function: hpr_strided_batched
   precision: *single_double_precisions_complex
-  uplo: [ U, L ]
+  uplo: [ L ]
   matrix_size: *large_matrix_size_range
   incx: [ 1 ]
   alpha_beta: *alpha_range_small

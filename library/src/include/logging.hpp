@@ -191,6 +191,21 @@ inline T log_trace_scalar_value(const T* value)
                      std::numeric_limits<typename T::value_type>::quiet_NaN()};
 }
 
+// If pointer mode is host, we output the actual value
+// If pointer mode is device, we output the address
+template <typename T>
+std::string log_trace_scalar_value(rocblas_handle handle, const T* value)
+{
+    rocblas_ostream os;
+    if(handle->pointer_mode == rocblas_pointer_mode_host)
+        os << log_trace_scalar_value(value);
+    else
+        os << value;
+    return os.str();
+}
+
+#define LOG_TRACE_SCALAR_VALUE(handle, value) log_trace_scalar_value(handle, value)
+
 /*************************************************
  * Bench log scalar values pointed to by pointer *
  *************************************************/
@@ -220,7 +235,25 @@ inline std::string log_bench_scalar_value(const char* name, const T* value)
     return ss.str();
 }
 
-#define LOG_BENCH_SCALAR_VALUE(name) log_bench_scalar_value(#name, name)
+// If pointer mode is host, we output the actual value
+// If pointer mode is device, we output nothing
+#define LOG_BENCH_SCALAR_VALUE(handle, name) \
+    ((handle)->pointer_mode == rocblas_pointer_mode_host ? log_bench_scalar_value(#name, name) : "")
+
+/******************************************************
+ * Bench log precision for mixed precision scal calls *
+ ******************************************************/
+inline std::string log_bench_scal_precisions(rocblas_datatype a_type,
+                                             rocblas_datatype x_type,
+                                             rocblas_datatype ex_type)
+{
+    rocblas_ostream ss;
+    if(a_type == x_type && x_type == ex_type)
+        ss << "-r " << a_type;
+    else
+        ss << "--a_type " << a_type << " --b_type " << x_type << " --compute_type " << ex_type;
+    return ss.str();
+}
 
 /******************************************************************
  * Log alpha and beta with dynamic compute_type in *_ex functions *

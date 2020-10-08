@@ -1146,7 +1146,7 @@ rocblas_status special_trsm_template(rocblas_handle    handle,
                                                               + offset_Bin,
                                                           ldb,
                                                           stride_B,
-                                                          x_temp,
+                                                          (void*)x_temp,
                                                           compute_type,
                                                           0,
                                                           BLOCK,
@@ -1266,7 +1266,7 @@ rocblas_status special_trsm_template(rocblas_handle    handle,
                                                               + offset_Bin,
                                                           ldb,
                                                           stride_B,
-                                                          x_temp,
+                                                          (void*)x_temp,
                                                           compute_type,
                                                           0,
                                                           width,
@@ -2309,8 +2309,8 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_trsm_template(rocblas_handle    h
 
         if(supplied_invA)
         {
-            invAarr = V(supplied_invA);
-            invA    = V(supplied_invA);
+            invAarr = (void*)(supplied_invA);
+            invA    = (void*)(supplied_invA);
         }
         else
         {

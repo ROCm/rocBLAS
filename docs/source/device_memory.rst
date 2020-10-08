@@ -22,7 +22,7 @@ The following computational functions use temporary device memory.
 | - rocblas_Xtrsm                    |                                          |
 | - rocblas_Xtrmm                    |                                          |
 +------------------------------------+------------------------------------------+
-|auxilliary                          |buffer to compress noncontiguous arrays   |
+|auxiliary                           |buffer to compress noncontiguous arrays   |
 | - rocblas_set_vector               |                                          |
 | - rocblas_get_vector               |                                          |
 | - rocblas_set_matrix               |                                          |

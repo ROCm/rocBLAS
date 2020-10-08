@@ -81,6 +81,34 @@ void testing_gemm_strided_batched(const Arguments& arg)
 
     double rocblas_error = 0.0;
 
+#ifdef ROCBLAS_BENCH
+    if(rocblas_tensile_debug_skip_launch())
+    {
+        device_vector<T> dA(1);
+        device_vector<T> dB(1);
+        device_vector<T> dC(1);
+        CHECK_ROCBLAS_ERROR(rocblas_gemm_strided_batched_fn(handle,
+                                                            transA,
+                                                            transB,
+                                                            M,
+                                                            N,
+                                                            K,
+                                                            &h_alpha,
+                                                            dA,
+                                                            lda,
+                                                            stride_a,
+                                                            dB,
+                                                            ldb,
+                                                            stride_b,
+                                                            &h_beta,
+                                                            dC,
+                                                            ldc,
+                                                            stride_c,
+                                                            batch_count));
+        return;
+    }
+#endif
+
     size_t size_one_a
         = transA == rocblas_operation_none ? size_t(K) * size_t(lda) : size_t(M) * size_t(lda);
     size_t size_one_b

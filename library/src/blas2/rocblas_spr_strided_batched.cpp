@@ -44,53 +44,36 @@ namespace
         {
             auto uplo_letter = rocblas_fill_letter(uplo);
 
-            if(handle->pointer_mode == rocblas_pointer_mode_host)
-            {
-                if(layer_mode & rocblas_layer_mode_log_trace)
-                    log_trace(handle,
-                              rocblas_spr_strided_batched_name<T>,
-                              uplo,
-                              n,
-                              log_trace_scalar_value(alpha),
-                              x,
-                              incx,
-                              stridex,
-                              AP,
-                              batch_count);
+            if(layer_mode & rocblas_layer_mode_log_trace)
+                log_trace(handle,
+                          rocblas_spr_strided_batched_name<T>,
+                          uplo,
+                          n,
+                          LOG_TRACE_SCALAR_VALUE(handle, alpha),
+                          x,
+                          incx,
+                          stridex,
+                          AP,
+                          strideA,
+                          batch_count);
 
-                if(layer_mode & rocblas_layer_mode_log_bench)
-                    log_bench(handle,
-                              "./rocblas-bench -f spr_strided_batched -r",
-                              rocblas_precision_string<T>,
-                              "--uplo",
-                              uplo_letter,
-                              "-n",
-                              n,
-                              LOG_BENCH_SCALAR_VALUE(alpha),
-                              "--incx",
-                              incx,
-                              "--stride_x",
-                              stridex,
-                              "--stride_a",
-                              strideA,
-                              "--batch_count",
-                              batch_count);
-            }
-            else
-            {
-                if(layer_mode & rocblas_layer_mode_log_trace)
-                    log_trace(handle,
-                              rocblas_spr_strided_batched_name<T>,
-                              uplo,
-                              n,
-                              log_trace_scalar_value(alpha),
-                              x,
-                              incx,
-                              stridex,
-                              AP,
-                              strideA,
-                              batch_count);
-            }
+            if(layer_mode & rocblas_layer_mode_log_bench)
+                log_bench(handle,
+                          "./rocblas-bench -f spr_strided_batched -r",
+                          rocblas_precision_string<T>,
+                          "--uplo",
+                          uplo_letter,
+                          "-n",
+                          n,
+                          LOG_BENCH_SCALAR_VALUE(handle, alpha),
+                          "--incx",
+                          incx,
+                          "--stride_x",
+                          stridex,
+                          "--stride_a",
+                          strideA,
+                          "--batch_count",
+                          batch_count);
 
             if(layer_mode & rocblas_layer_mode_log_profile)
                 log_profile(handle,

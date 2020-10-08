@@ -378,6 +378,41 @@ void testing_gemm_ex(const Arguments& arg)
         return;
     }
 
+#ifdef ROCBLAS_BENCH
+    if(rocblas_tensile_debug_skip_launch())
+    {
+        device_vector<Ti> dA(1);
+        device_vector<Ti> dB(1);
+        device_vector<To> dC(1);
+        device_vector<To> dD(1);
+        CHECK_ROCBLAS_ERROR(rocblas_gemm_ex_fn(handle,
+                                               transA,
+                                               transB,
+                                               M,
+                                               N,
+                                               K,
+                                               &h_alpha_Tc,
+                                               dA,
+                                               arg.a_type,
+                                               lda,
+                                               dB,
+                                               arg.b_type,
+                                               ldb,
+                                               &h_beta_Tc,
+                                               dC,
+                                               arg.c_type,
+                                               ldc,
+                                               dD,
+                                               arg.d_type,
+                                               ldd,
+                                               arg.compute_type,
+                                               algo,
+                                               solution_index,
+                                               flags));
+        return;
+    }
+#endif
+
     const size_t size_A = size_t(lda) * size_t(A_col);
     const size_t size_B = size_t(ldb) * size_t(B_col);
     const size_t size_C = size_t(ldc) * size_t(N);

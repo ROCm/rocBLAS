@@ -38,61 +38,39 @@ namespace
         {
             auto uplo_letter = rocblas_fill_letter(uplo);
 
-            if(handle->pointer_mode == rocblas_pointer_mode_host)
-            {
-                if(layer_mode & rocblas_layer_mode_log_trace)
-                    log_trace(handle,
-                              rocblas_hemv_name<T>,
-                              uplo,
-                              n,
-                              log_trace_scalar_value(alpha),
-                              A,
-                              lda,
-                              x,
-                              incx,
-                              log_trace_scalar_value(beta),
-                              y,
-                              incy,
-                              batch_count);
+            if(layer_mode & rocblas_layer_mode_log_trace)
+                log_trace(handle,
+                          rocblas_hemv_name<T>,
+                          uplo,
+                          n,
+                          LOG_TRACE_SCALAR_VALUE(handle, alpha),
+                          A,
+                          lda,
+                          x,
+                          incx,
+                          LOG_TRACE_SCALAR_VALUE(handle, beta),
+                          y,
+                          incy,
+                          batch_count);
 
-                if(layer_mode & rocblas_layer_mode_log_bench)
-                {
-                    log_bench(handle,
-                              "./rocblas-bench -f hemv_batched -r",
-                              rocblas_precision_string<T>,
-                              "--uplo",
-                              uplo_letter,
-                              "-n",
-                              n,
-                              LOG_BENCH_SCALAR_VALUE(alpha),
-                              "--lda",
-                              lda,
-                              "--incx",
-                              incx,
-                              LOG_BENCH_SCALAR_VALUE(beta),
-                              "--incy",
-                              incy,
-                              "--batch_count",
-                              batch_count);
-                }
-            }
-            else
-            {
-                if(layer_mode & rocblas_layer_mode_log_trace)
-                    log_trace(handle,
-                              rocblas_hemv_name<T>,
-                              uplo,
-                              n,
-                              alpha,
-                              A,
-                              lda,
-                              x,
-                              incx,
-                              beta,
-                              y,
-                              incy,
-                              batch_count);
-            }
+            if(layer_mode & rocblas_layer_mode_log_bench)
+                log_bench(handle,
+                          "./rocblas-bench -f hemv_batched -r",
+                          rocblas_precision_string<T>,
+                          "--uplo",
+                          uplo_letter,
+                          "-n",
+                          n,
+                          LOG_BENCH_SCALAR_VALUE(handle, alpha),
+                          "--lda",
+                          lda,
+                          "--incx",
+                          incx,
+                          LOG_BENCH_SCALAR_VALUE(handle, beta),
+                          "--incy",
+                          incy,
+                          "--batch_count",
+                          batch_count);
 
             if(layer_mode & rocblas_layer_mode_log_profile)
                 log_profile(handle,

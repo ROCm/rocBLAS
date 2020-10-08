@@ -135,7 +135,7 @@ install_msgpack_from_source( )
       cd ${build_dir}/deps
       git clone -b cpp-3.0.1 https://github.com/msgpack/msgpack-c.git
       cd msgpack-c
-      ${cmake_executable} -DMSGPACK_BUILD_TESTS=OFF .
+      CXX=${cxx} CC=${cc} ${cmake_executable} -DMSGPACK_BUILD_TESTS=OFF .
       make
       elevate_if_not_root make install
       popd
@@ -474,7 +474,7 @@ printf "\033[32mCreating project build directory in: \033[33m${build_dir}\033[0m
 install_blis()
 {
     #Download prebuilt AMD multithreaded blis
-    if [[ "${cpu_ref_lib}" == blis ]] && [[ ! -f "${build_dir}/deps/blis/lib/libblis.so" ]]; then
+    if [[ "${cpu_ref_lib}" == blis ]] && [[ ! -e "./blis/lib/libblis.so" ]]; then
       case "${ID}" in
           centos|rhel|sles|opensuse-leap)
               wget -nv -O blis.tar.gz https://github.com/amd/blis/releases/download/2.0/aocl-blis-mt-centos-2.0.tar.gz
@@ -516,6 +516,22 @@ case "${ID}" in
   ;;
 esac
 
+if [[ "${build_hip_clang}" == true ]]; then
+  cxx="hipcc"
+  cc="hipcc"
+else
+  cxx="hcc"
+  cc="hcc"
+fi
+
+# If user provides custom ${rocm_path} path for hcc it has lesser priority,
+# but with hip-clang existing path has lesser priority to avoid use of installed clang++ by tensile
+if [[ "${build_hip_clang}" == true ]]; then
+  export PATH=${rocm_path}/bin:${rocm_path}/hip/bin:${rocm_path}/llvm/bin:${PATH}
+else
+  export PATH=${PATH}:${rocm_path}/bin:${rocm_path}/hip/bin:${rocm_path}/hcc/bin
+fi
+
 # #################################################
 # dependencies
 # #################################################
@@ -528,7 +544,7 @@ if [[ "${install_dependencies}" == true ]]; then
     pushd .
     printf "\033[32mBuilding \033[33mgoogletest & lapack\033[32m from source; installing into \033[33m/usr/local\033[0m\n"
     mkdir -p ${build_dir}/deps && cd ${build_dir}/deps
-    ${cmake_executable} -lpthread -DBUILD_BOOST=OFF ../../deps
+    CXX=${cxx} CC=${cc} ${cmake_executable} -lpthread -DBUILD_BOOST=OFF ../../deps
     make -j$(nproc)
     elevate_if_not_root make install
     install_blis
@@ -539,14 +555,6 @@ elif [[ "${build_clients}" == true ]]; then
   mkdir -p ${build_dir}/deps && cd ${build_dir}/deps
   install_blis
   popd
-fi
-
-# If user provides custom ${rocm_path} path for hcc it has lesser priority,
-# but with hip-clang existing path has lesser priority to avoid use of installed clang++ by tensile
-if [[ "${build_hip_clang}" == true ]]; then
-  export PATH=${rocm_path}/bin:${rocm_path}/hip/bin:${rocm_path}/llvm/bin:${PATH}
-else
-  export PATH=${PATH}:${rocm_path}/bin:${rocm_path}/hip/bin:${rocm_path}/hcc/bin
 fi
 
 pushd .
@@ -624,9 +632,7 @@ pushd .
       cmake_common_options="${cmake_common_options} -DRUN_HEADER_TESTING=OFF"
   fi
 
-  compiler="hcc"
   if [[ "${build_hip_clang}" == true ]]; then
-    compiler="hipcc"
     cmake_common_options="${cmake_common_options} -DTensile_COMPILER=hipcc"
   fi
 
@@ -646,9 +652,9 @@ pushd .
 
   # Build library with AMD toolchain because of existense of device kernels
   if [[ "${build_clients}" == true ]]; then
-    CXX=${compiler} ${cmake_executable} ${cmake_common_options} ${cmake_client_options} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=${rocm_path} ../..
+    CXX=${cxx} CC=${cc} ${cmake_executable} ${cmake_common_options} ${cmake_client_options} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=${rocm_path} ../..
   else
-    CXX=${compiler} ${cmake_executable} ${cmake_common_options} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=${rocm_path} ../..
+    CXX=${cxx} CC=${cc} ${cmake_executable} ${cmake_common_options} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=${rocm_path} ../..
   fi
   check_exit_code "$?"
 
@@ -665,7 +671,7 @@ pushd .
 
     case "${ID}" in
       ubuntu)
-        elevate_if_not_root dpkg -i rocblas-*.deb
+        elevate_if_not_root dpkg -i rocblas[_\-]*.deb
       ;;
       centos|rhel)
         elevate_if_not_root yum -y localinstall rocblas-*.rpm
