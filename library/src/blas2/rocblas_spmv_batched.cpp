@@ -38,57 +38,36 @@ namespace
         {
             auto uplo_letter = rocblas_fill_letter(uplo);
 
-            if(handle->pointer_mode == rocblas_pointer_mode_host)
-            {
-                if(layer_mode & rocblas_layer_mode_log_trace)
-                    log_trace(handle,
-                              rocblas_spmv_batched_name<T>,
-                              uplo,
-                              n,
-                              log_trace_scalar_value(alpha),
-                              A,
-                              x,
-                              incx,
-                              log_trace_scalar_value(beta),
-                              y,
-                              incy,
-                              batch_count);
+            if(layer_mode & rocblas_layer_mode_log_trace)
+                log_trace(handle,
+                          rocblas_spmv_batched_name<T>,
+                          uplo,
+                          n,
+                          LOG_TRACE_SCALAR_VALUE(handle, alpha),
+                          A,
+                          x,
+                          incx,
+                          LOG_TRACE_SCALAR_VALUE(handle, beta),
+                          y,
+                          incy,
+                          batch_count);
 
-                if(layer_mode & rocblas_layer_mode_log_bench)
-                {
-                    log_bench(handle,
-                              "./rocblas-bench -f spmv_batched -r",
-                              rocblas_precision_string<T>,
-                              "--uplo",
-                              uplo_letter,
-                              "-n",
-                              n,
-                              LOG_BENCH_SCALAR_VALUE(alpha),
-                              "--incx",
-                              incx,
-                              LOG_BENCH_SCALAR_VALUE(beta),
-                              "--incy",
-                              incy,
-                              "--batch_count",
-                              batch_count);
-                }
-            }
-            else
-            {
-                if(layer_mode & rocblas_layer_mode_log_trace)
-                    log_trace(handle,
-                              rocblas_spmv_batched_name<T>,
-                              uplo,
-                              n,
-                              alpha,
-                              A,
-                              x,
-                              incx,
-                              beta,
-                              y,
-                              incy,
-                              batch_count);
-            }
+            if(layer_mode & rocblas_layer_mode_log_bench)
+                log_bench(handle,
+                          "./rocblas-bench -f spmv_batched -r",
+                          rocblas_precision_string<T>,
+                          "--uplo",
+                          uplo_letter,
+                          "-n",
+                          n,
+                          LOG_BENCH_SCALAR_VALUE(handle, alpha),
+                          "--incx",
+                          incx,
+                          LOG_BENCH_SCALAR_VALUE(handle, beta),
+                          "--incy",
+                          incy,
+                          "--batch_count",
+                          batch_count);
 
             if(layer_mode & rocblas_layer_mode_log_profile)
                 log_profile(handle,
@@ -132,12 +111,12 @@ extern "C" {
     rocblas_status routine_name_(rocblas_handle  handle,                     \
                                  rocblas_fill    uplo,                       \
                                  rocblas_int     n,                          \
-                                 const T_* const alpha,                      \
+                                 const T_*       alpha,                      \
                                  const T_* const A[],                        \
                                  const T_* const x[],                        \
                                  rocblas_int     incx,                       \
                                  const T_*       beta,                       \
-                                 T_*             y[],                        \
+                                 T_* const       y[],                        \
                                  rocblas_int     incy,                       \
                                  rocblas_int     batch_count)                \
     try                                                                      \

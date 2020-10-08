@@ -46,6 +46,23 @@ void cblas_axpy<rocblas_half>(rocblas_int   n,
 }
 
 template <>
+void cblas_scal<rocblas_half>(rocblas_int n, rocblas_half alpha, rocblas_half* x, rocblas_int incx)
+{
+    if(n <= 0 || incx <= 0)
+        return;
+
+    host_vector<float> x_float(n * incx);
+
+    for(size_t i = 0; i < n; i++)
+        x_float[i * incx] = x[i * incx];
+
+    cblas_sscal(n, alpha, x_float, incx);
+
+    for(size_t i = 0; i < n; i++)
+        x[i * incx] = rocblas_half(x_float[i * incx]);
+}
+
+template <>
 void cblas_dot<rocblas_half>(rocblas_int         n,
                              const rocblas_half* x,
                              rocblas_int         incx,

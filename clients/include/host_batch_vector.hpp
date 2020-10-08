@@ -126,7 +126,9 @@ public:
     //!
     //! @brief Cast to a double pointer.
     //!
-    operator T* *()
+    // clang-format off
+    operator T**()
+    // clang-format on
     {
         return this->m_data;
     }

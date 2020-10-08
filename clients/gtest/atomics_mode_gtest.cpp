@@ -58,7 +58,7 @@ namespace
         }
     };
 
-    TEST_P(atomics_mode, auxilliary)
+    TEST_P(atomics_mode, auxiliary_tensile)
     {
         CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(
             rocblas_simple_dispatch<atomics_mode_testing>(GetParam()));

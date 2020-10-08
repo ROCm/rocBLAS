@@ -77,7 +77,9 @@ private:
         }
 
         // Move constructor
-        _rocblas_saved_device_id(_rocblas_saved_device_id && other)
+        // clang-format off
+        _rocblas_saved_device_id(_rocblas_saved_device_id&& other)
+            // clang-format on
             : device_id(other.device_id)
             , old_device_id(other.old_device_id)
         {
@@ -98,7 +100,9 @@ private:
 
     public:
         // Constructor
-        _pushed_state(STATE & state, STATE new_state)
+        // clang-format off
+        _pushed_state(STATE& state, STATE new_state)
+            // clang-format on
             : statep(&state)
             , old_state(std::move(state))
         {
@@ -119,7 +123,9 @@ private:
         }
 
         // Move constructor
-        _pushed_state(_pushed_state && other)
+        // clang-format off
+        _pushed_state(_pushed_state&& other)
+            // clang-format on
             : statep(other.statep)
             , old_state(std::move(other.old_state))
         {
@@ -314,7 +320,9 @@ private:
         // from a variable, then there must not be any alive allocations made
         // between the initialization of the variable and the object that it
         // moves to, or the LIFO ordering will be violated and flagged.
-        _device_malloc(_device_malloc && other) noexcept
+        // clang-format off
+        _device_malloc(_device_malloc&& other) noexcept
+            // clang-format on
             : handle(other.handle)
             , prev_device_memory_in_use(other.prev_device_memory_in_use)
             , size(other.size)
@@ -326,7 +334,9 @@ private:
 
         // Move assignment is allowed as long as the object being assigned to
         // is 0-sized or an unsuccessful previous allocation.
-        _device_malloc& operator=(_device_malloc&& other)& noexcept
+        // clang-format off
+        _device_malloc& operator=(_device_malloc&& other) & noexcept
+        // clang-format on
         {
             this->~_device_malloc();
             return *new(this) _device_malloc(std::move(other));
@@ -365,20 +375,26 @@ private:
         // void *p = (void*) handle->device_malloc(), which is a dangling pointer.
 
         // Conversion to bool to tell if the allocation succeeded
-        explicit operator bool()&
+        // clang-format off
+        explicit operator bool() &
+        // clang-format on
         {
             return success;
         }
 
         // Return the ith pointer
-        void*& operator[](size_t i)&
+        // clang-format off
+        void*& operator[](size_t i) &
+        // clang-format on
         {
             return pointers.at(i);
         }
 
         // Conversion to any pointer type (if pointers.size() == 1)
         template <typename T>
-        explicit operator T*()&
+        // clang-format off
+        explicit operator T*() &
+        // clang-format on
         {
             // Index 1 - pointers.size() is used to make at() throw if size() != 1
             // but to otherwise return the first element.
@@ -407,7 +423,9 @@ private:
         }
 
         // Move constructor allows initialization by rvalues and returns from functions
-        _gsu_malloc(_gsu_malloc &&) = default;
+        // clang-format off
+        _gsu_malloc(_gsu_malloc&&) = default;
+        // clang-format on
     };
 
 public:

@@ -108,11 +108,9 @@ function(rocm_create_package_clients)
 
     set( PACKAGE_REQUIREMENTS "${PARSE_LIB_NAME} (>=${PARSE_VERSION})")
     if(CPACK_SYSTEM_NAME MATCHES "ubuntu-18.04")
-      set(PACKAGE_REQUIREMENTS "${PACKAGE_REQUIREMENTS}, libboost-program-options-dev (>=1.65.1)")
       set(PACKAGE_REQUIREMENTS "${PACKAGE_REQUIREMENTS}, libomp-dev (>=5.0.1)")
       set(PACKAGE_REQUIREMENTS "${PACKAGE_REQUIREMENTS}, gfortran (>=7.4.0)")
     elseif(CPACK_SYSTEM_NAME MATCHES "ubuntu-16.04")
-      set(PACKAGE_REQUIREMENTS "${PACKAGE_REQUIREMENTS}, libboost-program-options-dev (>=1.58.0)")
       set(PACKAGE_REQUIREMENTS "${PACKAGE_REQUIREMENTS}, libomp-dev (>=3.7.0)")
       set(PACKAGE_REQUIREMENTS "${PACKAGE_REQUIREMENTS}, gfortran (>=4.8.5)")
     endif()
@@ -153,8 +151,8 @@ endfunction(rocm_create_package_clients)
 if (BUILD_CLIENTS_SAMPLES OR  BUILD_CLIENTS_TESTS OR BUILD_CLIENTS_SELFTEST OR BUILD_CLIENTS_RIDER)
 
 rocm_create_package_clients(LIB_NAME rocblas
-                            DESCRIPTION "Radeon Open Compute BLAS library"
-                            MAINTAINER "rocblas-maintainer@amd.com>"
+                            DESCRIPTION "Client for rocBLAS, AMD's BLAS library on ROCm (Radeon Open Compute platforM). The client can be used to test or benchmark rocBLAS"
+                            MAINTAINER "Rocblas Maintainer <rocblas-maintainer@amd.com>"
                             SECTION "dev"
                             VERSION ${rocblas_VERSION})
 endif()

@@ -6,29 +6,145 @@
 
 namespace
 {
-
+    // general alpha, beta, m, n, k
     template <typename T,
-              int DIM_M,
-              int DIM_N,
-              int BLK_M,
-              int BLK_N,
-              int BLK_K,
-              int DIM_M_A,
-              int DIM_N_A,
-              int DIM_M_B,
-              int DIM_N_B>
+              int  DIM_M,
+              int  DIM_N,
+              int  BLK_M,
+              int  BLK_N,
+              int  BLK_K,
+              int  DIM_M_A,
+              int  DIM_N_A,
+              int  DIM_M_B,
+              int  DIM_N_B,
+              bool BETA_EQ_ZERO>
+    __attribute__((amdgpu_flat_work_group_size(DIM_M * DIM_N, DIM_M* DIM_N))) __global__ static void
+        gemm_batched_general_kernel(rocblas_int    M,
+                                    rocblas_int    N,
+                                    rocblas_int    K,
+                                    const T        alpha,
+                                    const T* const dA_array[],
+                                    ptrdiff_t      lda,
+                                    const T* const dB_array[],
+                                    ptrdiff_t      ldb,
+                                    const T        beta,
+                                    T* const       dC_array[],
+                                    ptrdiff_t      ldc,
+                                    rocblas_int    batch_count)
+    {
+        int thx  = threadIdx.x; // thread's m position in C
+        int thy  = threadIdx.y; // thread's n position in C
+        int idt  = DIM_M * thy + thx; // thread's number
+        int blx  = blockIdx.x; // block's m position
+        int bly  = blockIdx.y; // block's n position
+        int blz  = blockIdx.z; // block's matrix in the batch
+        int thxA = idt % DIM_M_A; // thread's m position for loading A
+        int thyA = idt / DIM_M_A; // thread's n position for loading A
+        int thxB = idt % DIM_M_B; // thread's m position for loading B
+        int thyB = idt / DIM_M_B; // thread's n position for loading B
+
+        const T* dA = dA_array[blz];
+        const T* dB = dB_array[blz];
+        T*       dC = dC_array[blz];
+
+        __shared__ T sA[BLK_K][BLK_M]; // shared memory for A
+        __shared__ T sB[BLK_N][BLK_K]; // shared memory for B
+        T            rC[BLK_N / DIM_N][BLK_M / DIM_M]; // registers for C
+
+        int a_i_offset = thxA + BLK_M * blx;
+        int a_j_offset = thyA;
+        int b_i_offset = thxB;
+        int b_j_offset = thyB + BLK_N * bly;
+
+        for(int n = 0; n < BLK_N / DIM_N; ++n)
+            for(int m = 0; m < BLK_M / DIM_M; ++m)
+                rC[n][m] = 0.0;
+
+        int kk = 0;
+        for(; kk < K; kk += BLK_K)
+        {
+            for(int n = 0; n < BLK_K; n += DIM_N_A)
+            {
+                for(int m = 0; m < BLK_M; m += DIM_M_A)
+                {
+                    int i = m + a_i_offset;
+                    int j = n + kk + a_j_offset;
+                    if(i < M && j < K)
+                        sA[n + thyA][m + thxA] = dA[i + j * lda];
+                    else
+                        sA[n + thyA][m + thxA] = 0.0;
+                }
+            }
+
+            for(int n = 0; n < BLK_N; n += DIM_N_B)
+            {
+                for(int m = 0; m < BLK_K; m += DIM_M_B)
+                {
+                    int i = m + kk + b_i_offset;
+                    int j = n + b_j_offset;
+                    if(i < K && j < N)
+                        sB[n + thyB][m + thxB] = dB[i + j * ldb];
+                    else
+                        sB[n + thyB][m + thxB] = 0;
+                }
+            }
+
+            __syncthreads();
+
+            for(int k = 0; k < BLK_K; ++k)
+                for(int n = 0; n < BLK_N / DIM_N; ++n)
+                    for(int m = 0; m < BLK_M / DIM_M; ++m)
+                        rC[n][m] += sA[k][m * DIM_M + thx] * sB[n * DIM_N + thy][k];
+
+            __syncthreads();
+        }
+
+        for(int n = 0; n < BLK_N / DIM_N; ++n)
+        {
+            for(int m = 0; m < BLK_M / DIM_M; ++m)
+            {
+                int coord_dCm = blx * BLK_M + m * DIM_M + thx;
+                int coord_dCn = bly * BLK_N + n * DIM_N + thy;
+                if(coord_dCn < N && coord_dCm < M)
+                {
+                    if(BETA_EQ_ZERO)
+                    {
+                        dC[coord_dCn * ldc + coord_dCm] = alpha * rC[n][m];
+                    }
+                    else
+                    {
+                        dC[coord_dCn * ldc + coord_dCm]
+                            = alpha * rC[n][m] + beta * dC[coord_dCn * ldc + coord_dCm];
+                    }
+                }
+            }
+        }
+    }
+
+    // general alpha, beta, restricted m, n, k
+    template <typename T,
+              int  DIM_M,
+              int  DIM_N,
+              int  BLK_M,
+              int  BLK_N,
+              int  BLK_K,
+              int  DIM_M_A,
+              int  DIM_N_A,
+              int  DIM_M_B,
+              int  DIM_N_B,
+              bool BETA_EQ_ZERO>
     __attribute__((amdgpu_flat_work_group_size(DIM_M * DIM_N, DIM_M* DIM_N))) __global__ static void
         gemm_batched_kernel(rocblas_int    M,
                             rocblas_int    N,
                             rocblas_int    K,
                             const T        alpha,
                             const T* const dA_array[],
-                            rocblas_int    lda,
+                            ptrdiff_t      lda,
                             const T* const dB_array[],
-                            rocblas_int    ldb,
+                            ptrdiff_t      ldb,
                             const T        beta,
                             T* const       dC_array[],
-                            rocblas_int    ldc,
+                            ptrdiff_t      ldc,
                             rocblas_int    batch_count)
     {
         int thx  = threadIdx.x; // thread's m position in C
@@ -46,98 +162,62 @@ namespace
         const T* dB = dB_array[blz];
         T*       dC = dC_array[blz];
 
-        if(alpha == 0 || K == 0)
+        __shared__ T sA[BLK_K][BLK_M]; // shared memory for A
+        __shared__ T sB[BLK_N][BLK_K]; // shared memory for B
+        T            rC[BLK_N / DIM_N][BLK_M / DIM_M]; // registers for C
+
+        int coord_A = (blx * BLK_M + thyA * lda) + thxA;
+        int coord_B = (bly * BLK_N * ldb + thyB * ldb) + thxB;
+
+        for(int n = 0; n < BLK_N / DIM_N; ++n)
+            for(int m = 0; m < BLK_M / DIM_M; ++m)
+                rC[n][m] = 0.0;
+
+        int kk = 0;
+        for(; kk < K; kk += BLK_K)
         {
-            if(beta == 0)
-            {
+            for(int n = 0; n < BLK_K; n += DIM_N_A)
+                for(int m = 0; m < BLK_M; m += DIM_M_A)
+                    sA[n + thyA][m + thxA] = dA[coord_A + (n * lda + m)];
+
+            for(int n = 0; n < BLK_N; n += DIM_N_B)
+                for(int m = 0; m < BLK_K; m += DIM_M_B)
+                    sB[n + thyB][m + thxB] = dB[coord_B + (n * ldb + m)];
+
+            __syncthreads();
+
+            for(int k = 0; k < BLK_K; ++k)
                 for(int n = 0; n < BLK_N / DIM_N; ++n)
-                {
                     for(int m = 0; m < BLK_M / DIM_M; ++m)
-                    {
-                        int coord_dCm                   = blx * BLK_M + m * DIM_M + thx;
-                        int coord_dCn                   = bly * BLK_N + n * DIM_N + thy;
-                        dC[coord_dCn * ldc + coord_dCm] = 0.0;
-                    }
-                }
-            }
-            else
-            {
-                for(int n = 0; n < BLK_N / DIM_N; ++n)
-                {
-                    for(int m = 0; m < BLK_M / DIM_M; ++m)
-                    {
-                        int coord_dCm                   = blx * BLK_M + m * DIM_M + thx;
-                        int coord_dCn                   = bly * BLK_N + n * DIM_N + thy;
-                        dC[coord_dCn * ldc + coord_dCm] = beta * dC[coord_dCn * ldc + coord_dCm];
-                    }
-                }
-            }
+                        rC[n][m] += sA[k][m * DIM_M + thx] * sB[n * DIM_N + thy][k];
+
+            __syncthreads();
+
+            coord_A += BLK_K * lda;
+            coord_B += BLK_K;
         }
-        else
+
+        for(int n = 0; n < BLK_N / DIM_N; ++n)
         {
-            __shared__ T sA[BLK_K][BLK_M]; // shared memory for A
-            __shared__ T sB[BLK_N][BLK_K]; // shared memory for B
-            T            rC[BLK_N / DIM_N][BLK_M / DIM_M]; // registers for C
-
-            int coord_A = (blx * BLK_M + thyA * lda) + thxA;
-            int coord_B = (bly * BLK_N * ldb + thyB * ldb) + thxB;
-
-            for(int n = 0; n < BLK_N / DIM_N; ++n)
-                for(int m = 0; m < BLK_M / DIM_M; ++m)
-                    rC[n][m] = 0.0;
-
-            int kk = 0;
-            for(; kk < K; kk += BLK_K)
+            for(int m = 0; m < BLK_M / DIM_M; ++m)
             {
-                for(int n = 0; n < BLK_K; n += DIM_N_A)
-                    for(int m = 0; m < BLK_M; m += DIM_M_A)
-                        sA[n + thyA][m + thxA] = dA[coord_A + (n * lda + m)];
+                int coord_dCm = blx * BLK_M + m * DIM_M + thx;
+                int coord_dCn = bly * BLK_N + n * DIM_N + thy;
 
-                for(int n = 0; n < BLK_N; n += DIM_N_B)
-                    for(int m = 0; m < BLK_K; m += DIM_M_B)
-                        sB[n + thyB][m + thxB] = dB[coord_B + (n * ldb + m)];
-
-                __syncthreads();
-
-                for(int k = 0; k < BLK_K; ++k)
-                    for(int n = 0; n < BLK_N / DIM_N; ++n)
-                        for(int m = 0; m < BLK_M / DIM_M; ++m)
-                            rC[n][m] += sA[k][m * DIM_M + thx] * sB[n * DIM_N + thy][k];
-
-                __syncthreads();
-
-                coord_A += BLK_K * lda;
-                coord_B += BLK_K;
-            }
-
-            if(beta == 0)
-            {
-                for(int n = 0; n < BLK_N / DIM_N; ++n)
+                if(BETA_EQ_ZERO)
                 {
-                    for(int m = 0; m < BLK_M / DIM_M; ++m)
-                    {
-                        int coord_dCm                   = blx * BLK_M + m * DIM_M + thx;
-                        int coord_dCn                   = bly * BLK_N + n * DIM_N + thy;
-                        dC[coord_dCn * ldc + coord_dCm] = alpha * rC[n][m];
-                    }
+                    dC[coord_dCn * ldc + coord_dCm] = alpha * rC[n][m];
                 }
-            }
-            else
-            {
-                for(int n = 0; n < BLK_N / DIM_N; ++n)
+                else
                 {
-                    for(int m = 0; m < BLK_M / DIM_M; ++m)
-                    {
-                        int coord_dCm = blx * BLK_M + m * DIM_M + thx;
-                        int coord_dCn = bly * BLK_N + n * DIM_N + thy;
-                        dC[coord_dCn * ldc + coord_dCm]
-                            = alpha * rC[n][m] + beta * dC[coord_dCn * ldc + coord_dCm];
-                    }
+                    dC[coord_dCn * ldc + coord_dCm]
+                        = alpha * rC[n][m] + beta * dC[coord_dCn * ldc + coord_dCm];
                 }
             }
         }
     }
 
+    // templated alpha, beta, restricted m, n, k
     template <typename T,
               int DIM_M,
               int DIM_N,
@@ -155,11 +235,11 @@ namespace
                             rocblas_int    N,
                             rocblas_int    K,
                             const T* const dA_array[],
-                            rocblas_int    lda,
+                            ptrdiff_t      lda,
                             const T* const dB_array[],
-                            rocblas_int    ldb,
+                            ptrdiff_t      ldb,
                             T* const       dC_array[],
-                            rocblas_int    ldc,
+                            ptrdiff_t      ldc,
                             rocblas_int    batch_count)
     {
         int thx  = threadIdx.x; // thread's m position in C
@@ -254,6 +334,8 @@ namespace
                                rocblas_int    batch_count,
                                hipStream_t    stream)
     {
+        if(alpha == 0)
+            k = 0; // gemm has same behavior for alpha == 0 and k == 0
         if((m % 64 == 0) && (n % 64 == 0) && (k % 4 == 0))
         {
             //m is mult of 64, n is mult of 64, k is mult of 4
@@ -266,18 +348,18 @@ namespace
             dim3      dimGrid(m / blk_m, n / blk_n, batch_count);
             if(alpha == T(1.0) && beta == T(1.0))
             {
-                hipLaunchKernelGGL(HIP_KERNEL_NAME(gemm_batched_kernel<T,
-                                                                       dim_m,
-                                                                       dim_n,
-                                                                       blk_m,
-                                                                       blk_n,
-                                                                       blk_k,
-                                                                       blk_m,
-                                                                       blk_k,
-                                                                       blk_k,
-                                                                       blk_n,
-                                                                       1,
-                                                                       1>),
+                hipLaunchKernelGGL((gemm_batched_kernel<T,
+                                                        dim_m,
+                                                        dim_n,
+                                                        blk_m,
+                                                        blk_n,
+                                                        blk_k,
+                                                        blk_m,
+                                                        blk_k,
+                                                        blk_k,
+                                                        blk_n,
+                                                        1,
+                                                        1>),
                                    dimGrid,
                                    dimBlock,
                                    0,
@@ -295,18 +377,18 @@ namespace
             }
             else if(alpha == 1.0 && beta == -1.0)
             {
-                hipLaunchKernelGGL(HIP_KERNEL_NAME(gemm_batched_kernel<T,
-                                                                       dim_m,
-                                                                       dim_n,
-                                                                       blk_m,
-                                                                       blk_n,
-                                                                       blk_k,
-                                                                       blk_m,
-                                                                       blk_k,
-                                                                       blk_k,
-                                                                       blk_n,
-                                                                       1,
-                                                                       -1>),
+                hipLaunchKernelGGL((gemm_batched_kernel<T,
+                                                        dim_m,
+                                                        dim_n,
+                                                        blk_m,
+                                                        blk_n,
+                                                        blk_k,
+                                                        blk_m,
+                                                        blk_k,
+                                                        blk_k,
+                                                        blk_n,
+                                                        1,
+                                                        -1>),
                                    dimGrid,
                                    dimBlock,
                                    0,
@@ -324,18 +406,18 @@ namespace
             }
             else if(alpha == 1.0 && beta == 0.0)
             {
-                hipLaunchKernelGGL(HIP_KERNEL_NAME(gemm_batched_kernel<T,
-                                                                       dim_m,
-                                                                       dim_n,
-                                                                       blk_m,
-                                                                       blk_n,
-                                                                       blk_k,
-                                                                       blk_m,
-                                                                       blk_k,
-                                                                       blk_k,
-                                                                       blk_n,
-                                                                       1,
-                                                                       0>),
+                hipLaunchKernelGGL((gemm_batched_kernel<T,
+                                                        dim_m,
+                                                        dim_n,
+                                                        blk_m,
+                                                        blk_n,
+                                                        blk_k,
+                                                        blk_m,
+                                                        blk_k,
+                                                        blk_k,
+                                                        blk_n,
+                                                        1,
+                                                        0>),
                                    dimGrid,
                                    dimBlock,
                                    0,
@@ -353,18 +435,18 @@ namespace
             }
             else if(alpha == -1.0 && beta == 0.0)
             {
-                hipLaunchKernelGGL(HIP_KERNEL_NAME(gemm_batched_kernel<T,
-                                                                       dim_m,
-                                                                       dim_n,
-                                                                       blk_m,
-                                                                       blk_n,
-                                                                       blk_k,
-                                                                       blk_m,
-                                                                       blk_k,
-                                                                       blk_k,
-                                                                       blk_n,
-                                                                       -1,
-                                                                       0>),
+                hipLaunchKernelGGL((gemm_batched_kernel<T,
+                                                        dim_m,
+                                                        dim_n,
+                                                        blk_m,
+                                                        blk_n,
+                                                        blk_k,
+                                                        blk_m,
+                                                        blk_k,
+                                                        blk_k,
+                                                        blk_n,
+                                                        -1,
+                                                        0>),
                                    dimGrid,
                                    dimBlock,
                                    0,
@@ -382,16 +464,280 @@ namespace
             }
             else
             {
-                hipLaunchKernelGGL(HIP_KERNEL_NAME(gemm_batched_kernel<T,
-                                                                       dim_m,
-                                                                       dim_n,
-                                                                       blk_m,
-                                                                       blk_n,
-                                                                       blk_k,
-                                                                       blk_m,
-                                                                       blk_k,
-                                                                       blk_k,
-                                                                       blk_n>),
+                if(beta == 0)
+                {
+                    hipLaunchKernelGGL((gemm_batched_kernel<T,
+                                                            dim_m,
+                                                            dim_n,
+                                                            blk_m,
+                                                            blk_n,
+                                                            blk_k,
+                                                            blk_m,
+                                                            blk_k,
+                                                            blk_k,
+                                                            blk_n,
+                                                            true>),
+                                       dimGrid,
+                                       dimBlock,
+                                       0,
+                                       stream,
+                                       m,
+                                       n,
+                                       k,
+                                       alpha,
+                                       dA_array,
+                                       lda,
+                                       dB_array,
+                                       ldb,
+                                       beta,
+                                       dC_array,
+                                       ldc,
+                                       batch_count);
+                }
+                else
+                {
+                    hipLaunchKernelGGL((gemm_batched_kernel<T,
+                                                            dim_m,
+                                                            dim_n,
+                                                            blk_m,
+                                                            blk_n,
+                                                            blk_k,
+                                                            blk_m,
+                                                            blk_k,
+                                                            blk_k,
+                                                            blk_n,
+                                                            false>),
+                                       dimGrid,
+                                       dimBlock,
+                                       0,
+                                       stream,
+                                       m,
+                                       n,
+                                       k,
+                                       alpha,
+                                       dA_array,
+                                       lda,
+                                       dB_array,
+                                       ldb,
+                                       beta,
+                                       dC_array,
+                                       ldc,
+                                       batch_count);
+                }
+            }
+        }
+        else if((m % 32 == 0) && (n % 32 == 0) && (k % 8 == 0))
+        {
+            // m is mult of 32, n is mult of 32, k is mult of 8
+            const int dim_m = 16;
+            const int dim_n = 16;
+            const int blk_m = 32;
+            const int blk_n = 32;
+            const int blk_k = 8;
+            dim3      dimBlock(dim_m, dim_n, 1);
+            dim3      dimGrid(m / blk_m, n / blk_n, batch_count);
+            if(alpha == 1.0 && beta == 1.0)
+            {
+                hipLaunchKernelGGL((gemm_batched_kernel<T,
+                                                        dim_m,
+                                                        dim_n,
+                                                        blk_m,
+                                                        blk_n,
+                                                        blk_k,
+                                                        blk_m,
+                                                        blk_k,
+                                                        blk_k,
+                                                        blk_n,
+                                                        1,
+                                                        1>),
+                                   dimGrid,
+                                   dimBlock,
+                                   0,
+                                   stream,
+                                   m,
+                                   n,
+                                   k,
+                                   dA_array,
+                                   lda,
+                                   dB_array,
+                                   ldb,
+                                   dC_array,
+                                   ldc,
+                                   batch_count);
+            }
+            else if(alpha == 1.0 && beta == -1.0)
+            {
+                hipLaunchKernelGGL((gemm_batched_kernel<T,
+                                                        dim_m,
+                                                        dim_n,
+                                                        blk_m,
+                                                        blk_n,
+                                                        blk_k,
+                                                        blk_m,
+                                                        blk_k,
+                                                        blk_k,
+                                                        blk_n,
+                                                        1,
+                                                        -1>),
+                                   dimGrid,
+                                   dimBlock,
+                                   0,
+                                   stream,
+                                   m,
+                                   n,
+                                   k,
+                                   dA_array,
+                                   lda,
+                                   dB_array,
+                                   ldb,
+                                   dC_array,
+                                   ldc,
+                                   batch_count);
+            }
+            else if(alpha == 1.0 && beta == 0.0)
+            {
+                hipLaunchKernelGGL((gemm_batched_kernel<T,
+                                                        dim_m,
+                                                        dim_n,
+                                                        blk_m,
+                                                        blk_n,
+                                                        blk_k,
+                                                        blk_m,
+                                                        blk_k,
+                                                        blk_k,
+                                                        blk_n,
+                                                        1,
+                                                        0>),
+                                   dimGrid,
+                                   dimBlock,
+                                   0,
+                                   stream,
+                                   m,
+                                   n,
+                                   k,
+                                   dA_array,
+                                   lda,
+                                   dB_array,
+                                   ldb,
+                                   dC_array,
+                                   ldc,
+                                   batch_count);
+            }
+            else if(alpha == -1.0 && beta == 0.0)
+            {
+                hipLaunchKernelGGL((gemm_batched_kernel<T,
+                                                        dim_m,
+                                                        dim_n,
+                                                        blk_m,
+                                                        blk_n,
+                                                        blk_k,
+                                                        blk_m,
+                                                        blk_k,
+                                                        blk_k,
+                                                        blk_n,
+                                                        -1,
+                                                        0>),
+                                   dimGrid,
+                                   dimBlock,
+                                   0,
+                                   stream,
+                                   m,
+                                   n,
+                                   k,
+                                   dA_array,
+                                   lda,
+                                   dB_array,
+                                   ldb,
+                                   dC_array,
+                                   ldc,
+                                   batch_count);
+            }
+            else
+            {
+                if(beta == 0)
+                {
+                    hipLaunchKernelGGL((gemm_batched_kernel<T,
+                                                            dim_m,
+                                                            dim_n,
+                                                            blk_m,
+                                                            blk_n,
+                                                            blk_k,
+                                                            blk_m,
+                                                            blk_k,
+                                                            blk_k,
+                                                            blk_n,
+                                                            true>),
+                                       dimGrid,
+                                       dimBlock,
+                                       0,
+                                       stream,
+                                       m,
+                                       n,
+                                       k,
+                                       alpha,
+                                       dA_array,
+                                       lda,
+                                       dB_array,
+                                       ldb,
+                                       beta,
+                                       dC_array,
+                                       ldc,
+                                       batch_count);
+                }
+                else
+                {
+                    hipLaunchKernelGGL((gemm_batched_kernel<T,
+                                                            dim_m,
+                                                            dim_n,
+                                                            blk_m,
+                                                            blk_n,
+                                                            blk_k,
+                                                            blk_m,
+                                                            blk_k,
+                                                            blk_k,
+                                                            blk_n,
+                                                            false>),
+                                       dimGrid,
+                                       dimBlock,
+                                       0,
+                                       stream,
+                                       m,
+                                       n,
+                                       k,
+                                       alpha,
+                                       dA_array,
+                                       lda,
+                                       dB_array,
+                                       ldb,
+                                       beta,
+                                       dC_array,
+                                       ldc,
+                                       batch_count);
+                }
+            }
+        }
+        else
+        {
+            const int dim_m = 16;
+            const int dim_n = 16;
+            const int blk_m = 32;
+            const int blk_n = 32;
+            const int blk_k = 8;
+            dim3      dimBlock(dim_m, dim_n, 1);
+            dim3      dimGrid(((m - 1) / blk_m) + 1, ((n - 1) / blk_n) + 1, batch_count);
+            if(beta == 0)
+            {
+                hipLaunchKernelGGL((gemm_batched_general_kernel<T,
+                                                                dim_m,
+                                                                dim_n,
+                                                                blk_m,
+                                                                blk_n,
+                                                                blk_k,
+                                                                blk_m,
+                                                                blk_k,
+                                                                blk_k,
+                                                                blk_n,
+                                                                true>),
                                    dimGrid,
                                    dimBlock,
                                    0,
@@ -409,145 +755,19 @@ namespace
                                    ldc,
                                    batch_count);
             }
-        }
-        else if((m % 32 == 0) && (n % 32 == 0) && (k % 8 == 0))
-        {
-            // m is mult of 32, n is mult of 32, k is mult of 8
-            const int dim_m = 16;
-            const int dim_n = 16;
-            const int blk_m = 32;
-            const int blk_n = 32;
-            const int blk_k = 8;
-            dim3      dimBlock(dim_m, dim_n, 1);
-            dim3      dimGrid(m / blk_m, n / blk_n, batch_count);
-            if(alpha == 1.0 && beta == 1.0)
-            {
-                hipLaunchKernelGGL(HIP_KERNEL_NAME(gemm_batched_kernel<T,
-                                                                       dim_m,
-                                                                       dim_n,
-                                                                       blk_m,
-                                                                       blk_n,
-                                                                       blk_k,
-                                                                       blk_m,
-                                                                       blk_k,
-                                                                       blk_k,
-                                                                       blk_n,
-                                                                       1,
-                                                                       1>),
-                                   dimGrid,
-                                   dimBlock,
-                                   0,
-                                   stream,
-                                   m,
-                                   n,
-                                   k,
-                                   dA_array,
-                                   lda,
-                                   dB_array,
-                                   ldb,
-                                   dC_array,
-                                   ldc,
-                                   batch_count);
-            }
-            else if(alpha == 1.0 && beta == -1.0)
-            {
-                hipLaunchKernelGGL(HIP_KERNEL_NAME(gemm_batched_kernel<T,
-                                                                       dim_m,
-                                                                       dim_n,
-                                                                       blk_m,
-                                                                       blk_n,
-                                                                       blk_k,
-                                                                       blk_m,
-                                                                       blk_k,
-                                                                       blk_k,
-                                                                       blk_n,
-                                                                       1,
-                                                                       -1>),
-                                   dimGrid,
-                                   dimBlock,
-                                   0,
-                                   stream,
-                                   m,
-                                   n,
-                                   k,
-                                   dA_array,
-                                   lda,
-                                   dB_array,
-                                   ldb,
-                                   dC_array,
-                                   ldc,
-                                   batch_count);
-            }
-            else if(alpha == 1.0 && beta == 0.0)
-            {
-                hipLaunchKernelGGL(HIP_KERNEL_NAME(gemm_batched_kernel<T,
-                                                                       dim_m,
-                                                                       dim_n,
-                                                                       blk_m,
-                                                                       blk_n,
-                                                                       blk_k,
-                                                                       blk_m,
-                                                                       blk_k,
-                                                                       blk_k,
-                                                                       blk_n,
-                                                                       1,
-                                                                       0>),
-                                   dimGrid,
-                                   dimBlock,
-                                   0,
-                                   stream,
-                                   m,
-                                   n,
-                                   k,
-                                   dA_array,
-                                   lda,
-                                   dB_array,
-                                   ldb,
-                                   dC_array,
-                                   ldc,
-                                   batch_count);
-            }
-            else if(alpha == -1.0 && beta == 0.0)
-            {
-                hipLaunchKernelGGL(HIP_KERNEL_NAME(gemm_batched_kernel<T,
-                                                                       dim_m,
-                                                                       dim_n,
-                                                                       blk_m,
-                                                                       blk_n,
-                                                                       blk_k,
-                                                                       blk_m,
-                                                                       blk_k,
-                                                                       blk_k,
-                                                                       blk_n,
-                                                                       -1,
-                                                                       0>),
-                                   dimGrid,
-                                   dimBlock,
-                                   0,
-                                   stream,
-                                   m,
-                                   n,
-                                   k,
-                                   dA_array,
-                                   lda,
-                                   dB_array,
-                                   ldb,
-                                   dC_array,
-                                   ldc,
-                                   batch_count);
-            }
             else
             {
-                hipLaunchKernelGGL(HIP_KERNEL_NAME(gemm_batched_kernel<T,
-                                                                       dim_m,
-                                                                       dim_n,
-                                                                       blk_m,
-                                                                       blk_n,
-                                                                       blk_k,
-                                                                       blk_m,
-                                                                       blk_k,
-                                                                       blk_k,
-                                                                       blk_n>),
+                hipLaunchKernelGGL((gemm_batched_general_kernel<T,
+                                                                dim_m,
+                                                                dim_n,
+                                                                blk_m,
+                                                                blk_n,
+                                                                blk_k,
+                                                                blk_m,
+                                                                blk_k,
+                                                                blk_k,
+                                                                blk_n,
+                                                                false>),
                                    dimGrid,
                                    dimBlock,
                                    0,
@@ -593,12 +813,12 @@ namespace
                                              rocblas_int       k,
                                              const T*          alpha,
                                              const T* const    A[],
-                                             rocblas_int       ld_a,
+                                             ptrdiff_t         ld_a,
                                              const T* const    B[],
-                                             rocblas_int       ld_b,
+                                             ptrdiff_t         ld_b,
                                              const T*          beta,
                                              T* const          C[],
-                                             rocblas_int       ld_c,
+                                             ptrdiff_t         ld_c,
                                              rocblas_int       b_c)
     {
         if(!handle)
@@ -631,12 +851,12 @@ namespace
                           m,
                           n,
                           k,
-                          log_trace_scalar_value(alpha),
+                          LOG_TRACE_SCALAR_VALUE(handle, alpha),
                           A,
                           ld_a,
                           B,
                           ld_b,
-                          log_trace_scalar_value(beta),
+                          LOG_TRACE_SCALAR_VALUE(handle, beta),
                           C,
                           ld_c,
                           b_c);
@@ -655,12 +875,12 @@ namespace
                           n,
                           "-k",
                           k,
-                          LOG_BENCH_SCALAR_VALUE(alpha),
+                          LOG_BENCH_SCALAR_VALUE(handle, alpha),
                           "--lda",
                           ld_a,
                           "--ldb",
                           ld_b,
-                          LOG_BENCH_SCALAR_VALUE(beta),
+                          LOG_BENCH_SCALAR_VALUE(handle, beta),
                           "--ldc",
                           ld_c,
                           "--batch_count",
@@ -699,17 +919,8 @@ namespace
         if(validArgs != rocblas_status_continue)
             return validArgs;
 
-        // call rocBLAS source code if
-        //     (NN)
-        // and
-        //     ((m is mult of 64 and n is mult of 64 and k is mult of 4)
-        //     or
-        //     (m is mult of 32 and n is mult of 32 and k is mult of 8))
-        // and
-        //     (m*n*k is small enough)
+        // call rocBLAS source code if (NN) and (m*n*k is small enough)
         if((trans_a == rocblas_operation_none) && (trans_b == rocblas_operation_none)
-           && (((m % 64 == 0) && (n % 64 == 0) && (k % 4 == 0))
-               || ((m % 32 == 0) && (n % 32 == 0) && (k % 8 == 0)))
            && (size_t(m) * size_t(n) * size_t(k) < 1024 * 1024 * 1024))
         {
             hipStream_t rocblas_stream = handle->rocblas_stream;
@@ -768,8 +979,21 @@ rocblas_status rocblas_hgemm_batched(rocblas_handle            handle,
                                      rocblas_int               b_c)
 try
 {
-    return rocblas_gemm_batched_impl<rocblas_half>(
-        handle, trans_a, trans_b, m, n, k, alpha, A, ld_a, B, ld_b, beta, C, ld_c, b_c);
+    return rocblas_gemm_batched_impl<rocblas_half>(handle,
+                                                   trans_a,
+                                                   trans_b,
+                                                   m,
+                                                   n,
+                                                   k,
+                                                   alpha,
+                                                   A,
+                                                   ptrdiff_t(ld_a),
+                                                   B,
+                                                   ptrdiff_t(ld_b),
+                                                   beta,
+                                                   C,
+                                                   ptrdiff_t(ld_c),
+                                                   b_c);
 }
 catch(...)
 {
@@ -793,8 +1017,21 @@ rocblas_status rocblas_sgemm_batched(rocblas_handle     handle,
                                      rocblas_int        b_c)
 try
 {
-    return rocblas_gemm_batched_impl<float>(
-        handle, trans_a, trans_b, m, n, k, alpha, A, ld_a, B, ld_b, beta, C, ld_c, b_c);
+    return rocblas_gemm_batched_impl<float>(handle,
+                                            trans_a,
+                                            trans_b,
+                                            m,
+                                            n,
+                                            k,
+                                            alpha,
+                                            A,
+                                            ptrdiff_t(ld_a),
+                                            B,
+                                            ptrdiff_t(ld_b),
+                                            beta,
+                                            C,
+                                            ptrdiff_t(ld_c),
+                                            b_c);
 }
 catch(...)
 {
@@ -818,8 +1055,21 @@ rocblas_status rocblas_dgemm_batched(rocblas_handle      handle,
                                      rocblas_int         b_c)
 try
 {
-    return rocblas_gemm_batched_impl<double>(
-        handle, trans_a, trans_b, m, n, k, alpha, A, ld_a, B, ld_b, beta, C, ld_c, b_c);
+    return rocblas_gemm_batched_impl<double>(handle,
+                                             trans_a,
+                                             trans_b,
+                                             m,
+                                             n,
+                                             k,
+                                             alpha,
+                                             A,
+                                             ptrdiff_t(ld_a),
+                                             B,
+                                             ptrdiff_t(ld_b),
+                                             beta,
+                                             C,
+                                             ptrdiff_t(ld_c),
+                                             b_c);
 }
 catch(...)
 {
@@ -843,8 +1093,21 @@ rocblas_status rocblas_cgemm_batched(rocblas_handle                     handle,
                                      rocblas_int                        b_c)
 try
 {
-    return rocblas_gemm_batched_impl<rocblas_float_complex>(
-        handle, trans_a, trans_b, m, n, k, alpha, A, ld_a, B, ld_b, beta, C, ld_c, b_c);
+    return rocblas_gemm_batched_impl<rocblas_float_complex>(handle,
+                                                            trans_a,
+                                                            trans_b,
+                                                            m,
+                                                            n,
+                                                            k,
+                                                            alpha,
+                                                            A,
+                                                            ptrdiff_t(ld_a),
+                                                            B,
+                                                            ptrdiff_t(ld_b),
+                                                            beta,
+                                                            C,
+                                                            ptrdiff_t(ld_c),
+                                                            b_c);
 }
 catch(...)
 {
@@ -868,8 +1131,21 @@ rocblas_status rocblas_zgemm_batched(rocblas_handle                      handle,
                                      rocblas_int                         b_c)
 try
 {
-    return rocblas_gemm_batched_impl<rocblas_double_complex>(
-        handle, trans_a, trans_b, m, n, k, alpha, A, ld_a, B, ld_b, beta, C, ld_c, b_c);
+    return rocblas_gemm_batched_impl<rocblas_double_complex>(handle,
+                                                             trans_a,
+                                                             trans_b,
+                                                             m,
+                                                             n,
+                                                             k,
+                                                             alpha,
+                                                             A,
+                                                             ptrdiff_t(ld_a),
+                                                             B,
+                                                             ptrdiff_t(ld_b),
+                                                             beta,
+                                                             C,
+                                                             ptrdiff_t(ld_c),
+                                                             b_c);
 }
 catch(...)
 {

@@ -57,7 +57,7 @@ namespace
         }
     };
 
-    TEST_P(logging, auxilliary)
+    TEST_P(logging, auxiliary_tensile)
     {
         CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(
             rocblas_simple_dispatch<logging_testing>(GetParam()));

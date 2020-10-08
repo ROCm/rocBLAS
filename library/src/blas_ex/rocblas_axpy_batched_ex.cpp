@@ -66,7 +66,7 @@ namespace
                 if(layer_mode & rocblas_layer_mode_log_bench)
                 {
                     std::string alphas, betas;
-                    if(log_bench_alpha_beta_ex(execution_type, alpha, nullptr, alphas, betas)
+                    if(log_bench_alpha_beta_ex(alpha_type, alpha, nullptr, alphas, betas)
                        == rocblas_status_success)
                     {
                         log_bench(handle,

@@ -390,6 +390,42 @@ void testing_gemm_batched_ex(const Arguments& arg)
         return;
     }
 
+#ifdef ROCBLAS_BENCH
+    if(rocblas_tensile_debug_skip_launch())
+    {
+        device_batch_vector<Ti> dA(1, 1, batch_count);
+        device_batch_vector<Ti> dB(1, 1, batch_count);
+        device_batch_vector<To> dC(1, 1, batch_count);
+        device_batch_vector<To> dD(1, 1, batch_count);
+        CHECK_ROCBLAS_ERROR(rocblas_gemm_batched_ex_fn(handle,
+                                                       transA,
+                                                       transB,
+                                                       M,
+                                                       N,
+                                                       K,
+                                                       &h_alpha_Tc,
+                                                       dA.ptr_on_device(),
+                                                       arg.a_type,
+                                                       lda,
+                                                       dB.ptr_on_device(),
+                                                       arg.b_type,
+                                                       ldb,
+                                                       &h_beta_Tc,
+                                                       dC.ptr_on_device(),
+                                                       arg.c_type,
+                                                       ldc,
+                                                       dD.ptr_on_device(),
+                                                       arg.d_type,
+                                                       ldd,
+                                                       batch_count,
+                                                       arg.compute_type,
+                                                       algo,
+                                                       solution_index,
+                                                       flags));
+        return;
+    }
+#endif
+
     size_t size_one_a
         = transA == rocblas_operation_none ? size_t(K) * size_t(lda) : size_t(M) * size_t(lda);
     size_t size_one_b

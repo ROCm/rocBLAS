@@ -89,7 +89,7 @@ namespace
 
     using set_get_matrix_sync
         = matrix_set_get_template<set_get_matrix_testing, SET_GET_MATRIX_SYNC>;
-    TEST_P(set_get_matrix_sync, auxilliary)
+    TEST_P(set_get_matrix_sync, auxiliary)
     {
         CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(
             rocblas_simple_dispatch<set_get_matrix_testing>(GetParam()));
@@ -98,7 +98,7 @@ namespace
 
     using set_get_matrix_async
         = matrix_set_get_template<set_get_matrix_testing, SET_GET_MATRIX_ASYNC>;
-    TEST_P(set_get_matrix_async, auxilliary)
+    TEST_P(set_get_matrix_async, auxiliary)
     {
         CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(
             rocblas_simple_dispatch<set_get_matrix_testing>(GetParam()));

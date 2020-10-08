@@ -19,9 +19,11 @@
 template <typename T>
 void testing_herk_batched_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN                 = arg.fortran;
+    const bool FORTRAN = arg.fortran;
+    // clang-format off
     auto       rocblas_herk_batched_fn = FORTRAN ? rocblas_herk_batched<T, real_t<T>, true>
-                                           : rocblas_herk_batched<T, real_t<T>, false>;
+                                                 : rocblas_herk_batched<T, real_t<T>, false>;
+    // clang-format on
 
     rocblas_local_handle    handle(arg.atomics_mode);
     const rocblas_fill      uplo   = rocblas_fill_upper;
@@ -96,9 +98,11 @@ void testing_herk_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_herk_batched(const Arguments& arg)
 {
+    // clang-format off
     const bool FORTRAN                 = arg.fortran;
     auto       rocblas_herk_batched_fn = FORTRAN ? rocblas_herk_batched<T, real_t<T>, true>
-                                           : rocblas_herk_batched<T, real_t<T>, false>;
+                                                 : rocblas_herk_batched<T, real_t<T>, false>;
+    // clang-format on
 
     rocblas_local_handle handle(arg.atomics_mode);
     rocblas_fill         uplo   = char2rocblas_fill(arg.uplo);
