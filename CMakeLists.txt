@@ -155,7 +155,7 @@ set(CMAKE_INSTALL_LIBDIR "lib" CACHE INTERNAL "Installation directory for librar
 
 if(NOT SKIP_LIBRARY)
   set( Tensile_ARCHITECTURE "all" CACHE STRING "Tensile to use which architecture?")
-  set_property( CACHE Tensile_ARCHITECTURE PROPERTY STRINGS all gfx803 gfx900 gfx906:xnack- gfx908:xnack- gfx90a:xnack+ gfx90a:xnack-)
+  set_property( CACHE Tensile_ARCHITECTURE PROPERTY STRINGS all gfx803 gfx900 gfx906:xnack- gfx908:xnack- gfx90a:xnack+ gfx90a:xnack- gfx1010 gfx1011 gfx1012 gfx1030)
   # -DTensile_ARCHITECTURE= set by install.sh for builds with and without tensile
 
   # Detect if target ID syntax if supported for default all AMDGPU_TARGETS list
@@ -168,9 +168,9 @@ if(NOT SKIP_LIBRARY)
   endif()
   if(TARGET_ID_SUPPORT)
     if(Tensile_LOGIC STREQUAL "aldebaran")
-      set(target_list "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-")
+      set(target_list "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx1010;gfx1011;gfx1012;gfx1030")
     else()
-      set(target_list "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-")
+      set(target_list "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx1010;gfx1011;gfx1012;gfx1030")
     endif()
   else()
     set(target_list "gfx803;gfx900;gfx906;gfx908")
