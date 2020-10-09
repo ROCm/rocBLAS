@@ -164,13 +164,13 @@ set(CMAKE_INSTALL_LIBDIR "lib" CACHE INTERNAL "Installation directory for librar
 
 
 set( Tensile_ARCHITECTURE "all" CACHE STRING "Tensile to use which architecture?")
-set_property( CACHE Tensile_ARCHITECTURE PROPERTY STRINGS all gfx803 gfx900 gfx906 gfx908)
+set_property( CACHE Tensile_ARCHITECTURE PROPERTY STRINGS all gfx803 gfx900 gfx906 gfx908 gfx1030)
 # -DTensile_ARCHITECTURE= set by install.sh for builds with and without tensile
 
 # gpu architectures to build for
 if (Tensile_ARCHITECTURE)
   if( Tensile_ARCHITECTURE STREQUAL "all" )
-    set( gpus "gfx803;gfx900;gfx906;gfx908")
+    set( gpus "gfx803;gfx900;gfx906;gfx908;gfx1030")
   else()
     set( gpus ${Tensile_ARCHITECTURE})
   endif()
