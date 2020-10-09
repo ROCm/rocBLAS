@@ -135,7 +135,7 @@ install_msgpack_from_source( )
       cd ${build_dir}/deps
       git clone -b cpp-3.0.1 https://github.com/msgpack/msgpack-c.git
       cd msgpack-c
-      CXX=${cxx} CC=${cc} ${cmake_executable} -DMSGPACK_BUILD_TESTS=OFF -DMSGPACK_BUILD_EXAMPLES=OFF.
+      CXX=${cxx} CC=${cc} ${cmake_executable} -DMSGPACK_BUILD_TESTS=OFF -DMSGPACK_BUILD_EXAMPLES=OFF .
       make
       elevate_if_not_root make install
       popd
