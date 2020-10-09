@@ -1,34 +1,32 @@
 # rocBLAS
-rocBLAS is AMD's library for [BLAS](http://www.netlib.org/blas/) on [ROCm](https://rocm.github.io/install.html).
-It is implemented in the [HIP](https://github.com/ROCm-Developer-Tools/HIP)
-programming language and optimized for AMD's GPUs.
+rocBLAS is the AMD library for [BLAS][1] on the [ROCm platform][2]. It is
+implemented in the [HIP programming language][3] and optimized for AMD GPUs.
 
 |Acronym      | Expansion                                                   |
 |-------------|-------------------------------------------------------------|
 |**BLAS**     | **B**asic **L**inear **A**lgebra **S**ubprograms            |
-|**ROCm**     | **R**adeon **O**pen **C**ompute platfor**m**                |
+|**ROCm**     | **R**adeon **O**pen E**C**osyste**m**                       |
 |**HIP**      | **H**eterogeneous-Compute **I**nterface for **P**ortability |
 
 ## Documentation
-The latest rocBLAS documentation and API description can be found [here](https://rocblas.readthedocs.io/en/latest/).
+Information about the library API and other user topics can be found in the
+[rocBLAS documentation][4]. Additional information on building from source,
+exported functions and other such topics are covered in the [rocBLAS wiki][5].
 
 ## Prerequisites
-* A ROCm enabled platform, more information at [https://rocm.github.io/install.html](https://rocm.github.io/install.html).
-* Base software stack, which includes
-  * [HIP](https://github.com/ROCm-Developer-Tools/HIP)
+The [AMD ROCm install guide][6] describes how to set up the ROCm repositories
+and install the required platform dependencies.
 
 ## Installing pre-built packages
-rocBLAS can be installed on Ubuntu using
-```
-sudo apt-get update
-sudo apt-get install rocblas
-```
+With the AMD ROCm package repositories installed, the `rocblas` package can be
+retrieved from the system package manager. For example, on Ubuntu:
 
-rocBLAS Debian packages can also be downloaded from the
-[rocBLAS releases tag](https://github.com/ROCmSoftwarePlatform/rocBLAS/releases).
-These may be newer than the package from apt-get.
+    sudo apt-get update
+    sudo apt-get install rocblas
 
-## Building rocBLAS from source, exported functions, and additional information
-
-For additional information, please consult the
-[wiki](https://github.com/ROCmSoftwarePlatform/rocBLAS/wiki)
+[1]: https://www.netlib.org/blas/
+[2]: https://rocmdocs.amd.com/en/latest/
+[3]: https://github.com/ROCm-Developer-Tools/HIP
+[4]: https://rocblas.readthedocs.io/en/latest/
+[5]: https://github.com/ROCmSoftwarePlatform/rocBLAS/wiki
+[6]: https://rocmdocs.amd.com/en/latest/Installation_Guide/Installation-Guide.html
