@@ -10,11 +10,10 @@ implemented in the [HIP programming language][3] and optimized for AMD GPUs.
 
 ## Documentation
 Information about the library API and other user topics can be found in the
-[rocBLAS documentation][4]. Additional information on building from source,
-exported functions and other such topics are covered in the [rocBLAS wiki][5].
+[rocBLAS documentation][4].
 
 ## Prerequisites
-The [AMD ROCm install guide][6] describes how to set up the ROCm repositories
+The [AMD ROCm install guide][5] describes how to set up the ROCm repositories
 and install the required platform dependencies.
 
 ## Installing pre-built packages
@@ -28,5 +27,4 @@ retrieved from the system package manager. For example, on Ubuntu:
 [2]: https://rocmdocs.amd.com/en/latest/
 [3]: https://github.com/ROCm-Developer-Tools/HIP
 [4]: https://rocblas.readthedocs.io/en/latest/
-[5]: https://github.com/ROCmSoftwarePlatform/rocBLAS/wiki
-[6]: https://rocmdocs.amd.com/en/latest/Installation_Guide/Installation-Guide.html
+[5]: https://rocmdocs.amd.com/en/latest/Installation_Guide/Installation-Guide.html
