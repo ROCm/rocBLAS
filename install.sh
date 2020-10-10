@@ -135,7 +135,7 @@ install_msgpack_from_source( )
       cd ${build_dir}/deps
       git clone -b cpp-3.0.1 https://github.com/msgpack/msgpack-c.git
       cd msgpack-c
-      CXX=${cxx} CC=${cc} ${cmake_executable} -DMSGPACK_BUILD_TESTS=OFF .
+      CXX=${cxx} CC=${cc} ${cmake_executable} -DMSGPACK_BUILD_TESTS=OFF -DMSGPACK_BUILD_EXAMPLES=OFF .
       make
       elevate_if_not_root make install
       popd
@@ -519,9 +519,11 @@ esac
 if [[ "${build_hip_clang}" == true ]]; then
   cxx="hipcc"
   cc="hipcc"
+  fc="gfortran"
 else
   cxx="hcc"
   cc="hcc"
+  fc="gfortran"
 fi
 
 # If user provides custom ${rocm_path} path for hcc it has lesser priority,
@@ -544,7 +546,7 @@ if [[ "${install_dependencies}" == true ]]; then
     pushd .
     printf "\033[32mBuilding \033[33mgoogletest & lapack\033[32m from source; installing into \033[33m/usr/local\033[0m\n"
     mkdir -p ${build_dir}/deps && cd ${build_dir}/deps
-    CXX=${cxx} CC=${cc} ${cmake_executable} -lpthread -DBUILD_BOOST=OFF ../../deps
+    CXX=${cxx} CC=${cc} FC=${fc} ${cmake_executable} -lpthread -DBUILD_BOOST=OFF ../../deps
     make -j$(nproc)
     elevate_if_not_root make install
     install_blis
