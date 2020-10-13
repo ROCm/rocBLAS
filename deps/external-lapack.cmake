@@ -32,7 +32,7 @@ ExternalProject_Add(
   PREFIX ${CMAKE_BINARY_DIR}/lapack
   GIT_REPOSITORY ${lapack_git_repository}
   GIT_TAG ${lapack_git_tag}
-  CMAKE_ARGS ${lapack_cmake_args} -DCBLAS=ON -DLAPACKE=OFF -DBUILD_TESTING=OFF -DCMAKE_Fortran_FLAGS='-fno-optimize-sibling-calls'
+  CMAKE_ARGS ${lapack_cmake_args} -DCBLAS=ON -DLAPACKE=OFF -DBUILD_TESTING=OFF -DCMAKE_Fortran_COMPILER='gfortran' -DCMAKE_Fortran_FLAGS='-fno-optimize-sibling-calls'
   LOG_BUILD 1
   INSTALL_COMMAND ""
   LOG_INSTALL 1
