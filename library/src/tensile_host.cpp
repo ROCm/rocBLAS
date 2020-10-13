@@ -269,6 +269,9 @@ namespace
         tensileProblem.setDeterministicMode(prob.handle->atomics_mode
                                             == rocblas_atomics_not_allowed);
 
+        // set batch mode
+        tensileProblem.setStridedBatched(prob.strided_batch);
+
         return tensileProblem;
     }
 
@@ -341,6 +344,11 @@ namespace
         inputs.b = reinterpret_cast<const Tensile_Ti*>(prob.B);
         inputs.c = reinterpret_cast<const Tensile_To*>(prob.C);
         inputs.d = reinterpret_cast<Tensile_To*>(prob.D);
+
+        inputs.batchA = reinterpret_cast<Tensile_Ti const* const*>(prob.batch_A);
+        inputs.batchB = reinterpret_cast<Tensile_Ti const* const*>(prob.batch_B);
+        inputs.batchC = reinterpret_cast<Tensile_To const* const*>(prob.batch_C);
+        inputs.batchD = reinterpret_cast<Tensile_To* const*>(prob.batch_D);
 
         // Set the GSU workspace
         inputs.ws = prob.handle->gsu_workspace;

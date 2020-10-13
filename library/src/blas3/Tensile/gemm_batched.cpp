@@ -164,53 +164,29 @@ namespace
         }
 
         rocblas_status status = rocblas_status_success;
-        // call rocBLAS source code if m*n*k is small enough
-        if(size_t(m) * size_t(n) * size_t(k) < 1024 * 1024 * 1024)
-        {
-            hipStream_t rocblas_stream = handle->get_stream();
-
-            gemm_batched_solution(trans_a,
-                                  trans_b,
-                                  m,
-                                  n,
-                                  k,
-                                  *alpha,
-                                  A,
-                                  ld_a,
-                                  B,
-                                  ld_b,
-                                  *beta,
-                                  C,
-                                  ld_c,
-                                  b_c,
-                                  rocblas_stream);
-        }
-        else
-        {
-            status = rocblas_gemm_template<true>(handle,
-                                                 trans_a,
-                                                 trans_b,
-                                                 m,
-                                                 n,
-                                                 k,
-                                                 alpha,
-                                                 A,
-                                                 0,
-                                                 ld_a,
-                                                 0,
-                                                 B,
-                                                 0,
-                                                 ld_b,
-                                                 0,
-                                                 beta,
-                                                 C,
-                                                 0,
-                                                 ld_c,
-                                                 0,
-                                                 b_c);
-            if(status != rocblas_status_success)
-                return status;
-        }
+        status                = rocblas_gemm_template<true>(handle,
+                                             trans_a,
+                                             trans_b,
+                                             m,
+                                             n,
+                                             k,
+                                             alpha,
+                                             A,
+                                             0,
+                                             ld_a,
+                                             0,
+                                             B,
+                                             0,
+                                             ld_b,
+                                             0,
+                                             beta,
+                                             C,
+                                             0,
+                                             ld_c,
+                                             0,
+                                             b_c);
+        if(status != rocblas_status_success)
+            return status;
 
         if(check_numerics)
         {
