@@ -581,59 +581,12 @@ rocblas_status gemm_ex_batched_template(rocblas_handle    handle,
                                         rocblas_stride    stride_d,
                                         rocblas_int       batch_count)
 {
-    // BATCHED VERSION
-    // Host arrays of device pointers.
-    auto hostA = std::make_unique<Ti*[]>(batch_count);
-    auto hostB = std::make_unique<Ti*[]>(batch_count);
-    auto hostC = std::make_unique<To*[]>(batch_count);
-    auto hostD = std::make_unique<To*[]>(batch_count);
+    RocblasContractionProblem<Ti, To, Tc> problem{
+        handle,   trans_a, trans_b, m,   n,        k,        alpha,       nullptr, a, lda, stride_a,
+        offset_a, nullptr, b,       ldb, stride_b, offset_b, beta,        nullptr, c, ldc, stride_c,
+        offset_c, nullptr, d,       ldd, stride_d, offset_d, batch_count, false};
 
-    RETURN_IF_HIP_ERROR(hipMemcpy(&hostA[0], a, sizeof(Ti*) * batch_count, hipMemcpyDeviceToHost));
-    RETURN_IF_HIP_ERROR(hipMemcpy(&hostB[0], b, sizeof(Ti*) * batch_count, hipMemcpyDeviceToHost));
-    RETURN_IF_HIP_ERROR(hipMemcpy(&hostC[0], c, sizeof(To*) * batch_count, hipMemcpyDeviceToHost));
-    RETURN_IF_HIP_ERROR(hipMemcpy(&hostD[0], d, sizeof(To*) * batch_count, hipMemcpyDeviceToHost));
-
-    stride_a = rocblas_stride(lda) * (trans_a == rocblas_operation_none ? k : m);
-    stride_b = rocblas_stride(ldb) * (trans_b == rocblas_operation_none ? n : k);
-    stride_c = rocblas_stride(ldc) * n;
-    stride_d = rocblas_stride(ldd) * n;
-
-    rocblas_status status = rocblas_status_success;
-    for(rocblas_int bi = 0; bi < batch_count; bi++)
-    {
-        // Tensile does not support batched gemm_ex yet, must do naive version
-        status = gemm_ex_batched_template(handle,
-                                          trans_a,
-                                          trans_b,
-                                          m,
-                                          n,
-                                          k,
-                                          alpha,
-                                          hostA[bi],
-                                          offset_a,
-                                          lda,
-                                          stride_a,
-                                          hostB[bi],
-                                          offset_b,
-                                          ldb,
-                                          stride_b,
-                                          beta,
-                                          hostC[bi],
-                                          offset_c,
-                                          ldc,
-                                          stride_c,
-                                          hostD[bi],
-                                          offset_d,
-                                          ldd,
-                                          stride_d,
-                                          1);
-
-        if(handle->is_device_memory_size_query()
-               ? status != rocblas_status_size_increased && status != rocblas_status_size_unchanged
-               : status != rocblas_status_success)
-            break;
-    }
-    return status;
+    return runContractionProblem(problem);
 }
 
 template <typename Ti, typename To, typename Tc>
@@ -667,9 +620,10 @@ rocblas_status gemm_ex_batched_template(rocblas_handle    handle,
 #ifdef USE_TENSILE_HOST
 
     RocblasContractionProblem<Ti, To, Tc> problem{
-        handle,   trans_a,  trans_b, m,   n,        k,        alpha,      a, lda,
-        stride_a, offset_a, b,       ldb, stride_b, offset_b, beta,       c, ldc,
-        stride_c, offset_c, d,       ldd, stride_d, offset_d, batch_count};
+        handle,   trans_a, trans_b,  m,        n,           k,        alpha,    a,
+        nullptr,  lda,     stride_a, offset_a, b,           nullptr,  ldb,      stride_b,
+        offset_b, beta,    c,        nullptr,  ldc,         stride_c, offset_c, d,
+        nullptr,  ldd,     stride_d, offset_d, batch_count, true};
 
     return runContractionProblem(problem);
 

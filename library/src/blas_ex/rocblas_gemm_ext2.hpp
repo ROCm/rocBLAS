@@ -40,7 +40,8 @@ rocblas_status gemm_ext2_batched_template(rocblas_handle handle,
                                           rocblas_int    row_stride_d,
                                           rocblas_int    col_stride_d,
                                           rocblas_stride batch_stride_d,
-                                          rocblas_int    batch_count = 1)
+                                          rocblas_int    batch_count   = 1,
+                                          bool           strided_batch = true)
 {
     RocblasContractionProblem<Ti, To, Tc> problem{handle,
                                                   m,
@@ -48,27 +49,32 @@ rocblas_status gemm_ext2_batched_template(rocblas_handle handle,
                                                   k,
                                                   alpha,
                                                   a,
+                                                  nullptr,
                                                   row_stride_a,
                                                   col_stride_a,
                                                   batch_stride_a,
                                                   offset_a,
                                                   b,
+                                                  nullptr,
                                                   row_stride_b,
                                                   col_stride_b,
                                                   batch_stride_b,
                                                   offset_b,
                                                   beta,
                                                   c,
+                                                  nullptr,
                                                   row_stride_c,
                                                   col_stride_c,
                                                   batch_stride_c,
                                                   offset_c,
                                                   d,
+                                                  nullptr,
                                                   row_stride_d,
                                                   col_stride_d,
                                                   batch_stride_d,
                                                   offset_d,
-                                                  batch_count};
+                                                  batch_count,
+                                                  strided_batch};
 
     return runContractionProblem(problem);
 }
