@@ -243,8 +243,8 @@ namespace
             tensileProblem.setHighPrecisionAccumulate(true);
 
         // Pass atomics mode to Tensile interface
-        if(prob.handle->atomics_mode == rocblas_atomics_not_allowed)
-            tensileProblem.setDeterministicMode(true);
+        tensileProblem.setDeterministicMode(prob.handle->atomics_mode
+                                            == rocblas_atomics_not_allowed);
 
         return tensileProblem;
     }
