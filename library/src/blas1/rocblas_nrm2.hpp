@@ -23,7 +23,7 @@ struct rocblas_finalize_nrm2
     }
 };
 
-template <rocblas_int NB, bool ISBATCHED, typename Ti, typename To>
+template <rocblas_int NB, bool ISBATCHED, typename Ti, typename To, typename Tex = To>
 ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_nrm2_template(rocblas_handle handle,
                                                              rocblas_int    n,
                                                              const Ti*      x,
@@ -32,7 +32,7 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_nrm2_template(rocblas_handle hand
                                                              rocblas_stride stridex,
                                                              rocblas_int    batch_count,
                                                              To*            results,
-                                                             To*            workspace)
+                                                             Tex*           workspace)
 {
     return rocblas_reduction_template<NB,
                                       ISBATCHED,

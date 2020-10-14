@@ -11862,6 +11862,66 @@ module rocblas
         end function rocblas_axpy_strided_batched_ex
     end interface
 
+    ! nrm2_ex
+    interface
+        function rocblas_nrm2_ex(handle, n, x, x_type, incx, result, result_type, execution_type) &
+                result(c_int) &
+                bind(c, name = 'rocblas_nrm2_ex')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            type(c_ptr), value :: handle
+            integer(c_int), value :: n
+            type(c_ptr), value :: x
+            integer(kind(rocblas_datatype_f16_r)), value :: x_type
+            integer(c_int), value :: incx
+            type(c_ptr), value :: result
+            integer(kind(rocblas_datatype_f16_r)), value :: result_type
+            integer(kind(rocblas_datatype_f16_r)), value :: execution_type
+        end function rocblas_nrm2_ex
+    end interface
+
+    interface
+        function rocblas_nrm2_batched_ex(handle, n, x, x_type, incx, batch_count, &
+                    result, result_type, execution_type) &
+                result(c_int) &
+                bind(c, name = 'rocblas_nrm2_batched_ex')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            type(c_ptr), value :: handle
+            integer(c_int), value :: n
+            type(c_ptr), value :: x
+            integer(kind(rocblas_datatype_f16_r)), value :: x_type
+            integer(c_int), value :: incx
+            integer(c_int), value :: batch_count
+            type(c_ptr), value :: result
+            integer(kind(rocblas_datatype_f16_r)), value :: result_type
+            integer(kind(rocblas_datatype_f16_r)), value :: execution_type
+        end function rocblas_nrm2_batched_ex
+    end interface
+
+    interface
+        function rocblas_nrm2_strided_batched_ex(handle, n, x, x_type, incx, stride_x, batch_count, &
+                    result, result_type, execution_type) &
+                result(c_int) &
+                bind(c, name = 'rocblas_nrm2_strided_batched_ex')
+            use iso_c_binding
+            use rocblas_enums
+            implicit none
+            type(c_ptr), value :: handle
+            integer(c_int), value :: n
+            type(c_ptr), value :: x
+            integer(kind(rocblas_datatype_f16_r)), value :: x_type
+            integer(c_int), value :: incx
+            integer(c_int64_t), value :: stride_x
+            integer(c_int), value :: batch_count
+            type(c_ptr), value :: result
+            integer(kind(rocblas_datatype_f16_r)), value :: result_type
+            integer(kind(rocblas_datatype_f16_r)), value :: execution_type
+        end function rocblas_nrm2_strided_batched_ex
+    end interface
+
     ! scal_ex
     interface
         function rocblas_scal_ex(handle, n, alpha, alpha_type, x, x_type, incx, execution_type) &

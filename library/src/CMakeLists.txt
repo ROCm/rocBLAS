@@ -152,6 +152,9 @@ set (rocblas_ex_source_no_tensile
     blas_ex/rocblas_scal_ex.cpp
     blas_ex/rocblas_scal_batched_ex.cpp
     blas_ex/rocblas_scal_strided_batched_ex.cpp
+    blas_ex/rocblas_nrm2_ex.cpp
+    blas_ex/rocblas_nrm2_batched_ex.cpp
+    blas_ex/rocblas_nrm2_strided_batched_ex.cpp
 )
 
 set( rocblas_blas3_source_no_tensile
