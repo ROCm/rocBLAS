@@ -13,6 +13,23 @@
  */
 
 template <>
+void cblas_nrm2<rocblas_half>(rocblas_int         n,
+                              const rocblas_half* x,
+                              rocblas_int         incx,
+                              rocblas_half*       result)
+{
+    if(n <= 0 || incx <= 0)
+        return;
+
+    host_vector<float> x_float(n * incx);
+
+    for(size_t i = 0; i < n; i++)
+        x_float[i * incx] = x[i * incx];
+
+    *result = rocblas_half(cblas_snrm2(n, x_float, incx));
+}
+
+template <>
 void cblas_axpy<rocblas_half>(rocblas_int   n,
                               rocblas_half  alpha,
                               rocblas_half* x,

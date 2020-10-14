@@ -242,6 +242,21 @@ Hpa single double complex real: &half_single_double_complex_real_precisions
   - *hpa_half_precision
   - *half_precision
 
+#############################################
+#           Used for nrm2_ex                #
+#############################################
+nrm2_ex precisions: &nrm2_ex_precisions
+  - &half_precision_nrm2
+    { a_type: f16_r, b_type: f16_r, c_type: f32_r, d_type: f32_r, compute_type: f32_r }
+  - *single_precision
+  - *double_precision
+  - *single_precision_complex_real_in_real_compute
+  - *double_precision_complex_real_in_real_compute
+
+nrm2_ex precisions double: &nrm2_ex_precisions_double
+  - *double_precision
+  - *double_precision_complex_real_in_real_compute
+
 # The Arguments struct passed directly to C++. See rocblas_arguments.hpp.
 # The order of the entries is significant, so it can't simply be a dictionary.
 # The types on the RHS are eval'd for Python-recognized types including ctypes

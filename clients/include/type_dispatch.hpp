@@ -78,16 +78,6 @@ auto rocblas_blas1_dispatch(const Arguments& arg)
 template <template <typename...> class TEST>
 auto rocblas_blas1_ex_dispatch(const Arguments& arg)
 {
-    // For axpy there are 4 types, alpha_type, x_type, y_type, and execution_type.
-    // these currently correspond as follows:
-    // alpha_type = arg.a_type
-    // x_type     = arg.b_type
-    // y_type     = arg.c_type
-    // ex_type    = arg.compute_type
-    //
-    // Currently for axpy we're only supporting a limited number of variants,
-    // specifically alpha_type == x_type == y_type, however I'm trying to leave
-    // this open to expansion.
     const auto Ta = arg.a_type, Tx = arg.b_type, Ty = arg.c_type, Tex = arg.compute_type;
 
     if(Ta == Tx && Tx == Ty && Ty == Tex)
@@ -114,6 +104,24 @@ auto rocblas_blas1_ex_dispatch(const Arguments& arg)
     {
         // zdscal
         return TEST<double, rocblas_double_complex, rocblas_double_complex>{}(arg);
+    }
+    else if(Ta == rocblas_datatype_f32_c && Tx == rocblas_datatype_f32_r
+            && Tex == rocblas_datatype_f32_r)
+    {
+        // scnrm2
+        return TEST<rocblas_float_complex, float, float>{}(arg);
+    }
+    else if(Ta == rocblas_datatype_f64_c && Tx == rocblas_datatype_f64_r
+            && Tex == rocblas_datatype_f64_r)
+    {
+        // dznrm2
+        return TEST<rocblas_double_complex, double, double>{}(arg);
+    }
+    else if(Ta == rocblas_datatype_f16_r && Tx == rocblas_datatype_f16_r
+            && Tex == rocblas_datatype_f32_r)
+    {
+        // nrm2 half with float execution
+        return TEST<rocblas_half, rocblas_half, float>{}(arg);
     }
 
     return TEST<void>{}(arg);

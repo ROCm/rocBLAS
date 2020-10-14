@@ -195,6 +195,26 @@ size_t
     return rocblas_reduction_kernel_workspace_size<NB, To>(n, batch_count);
 }
 
+template <rocblas_int NB>
+size_t rocblas_reduction_kernel_workspace_size(rocblas_int      n,
+                                               rocblas_int      batch_count,
+                                               rocblas_datatype type)
+{
+    switch(type)
+    {
+    case rocblas_datatype_f32_r:
+        return rocblas_reduction_kernel_workspace_size<NB, float>(n, batch_count);
+    case rocblas_datatype_f64_r:
+        return rocblas_reduction_kernel_workspace_size<NB, double>(n, batch_count);
+    case rocblas_datatype_f32_c:
+        return rocblas_reduction_kernel_workspace_size<NB, rocblas_float_complex>(n, batch_count);
+    case rocblas_datatype_f64_c:
+        return rocblas_reduction_kernel_workspace_size<NB, rocblas_double_complex>(n, batch_count);
+    default:
+        return 0;
+    }
+}
+
 // kernel 1 writes partial results per thread block in workspace; number of partial results is
 // blocks
 template <rocblas_int NB,

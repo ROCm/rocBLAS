@@ -6448,6 +6448,37 @@ rocblas_status rocblas_axpy_strided_batched_ex_fortran(rocblas_handle       hand
                                                        const rocblas_int    batch_count,
                                                        rocblas_datatype     execution_type);
 
+// nrm2_ex
+rocblas_status rocblas_nrm2_ex_fortran(rocblas_handle   handle,
+                                       rocblas_int      n,
+                                       const void*      x,
+                                       rocblas_datatype x_type,
+                                       rocblas_int      incx,
+                                       void*            result,
+                                       rocblas_datatype result_type,
+                                       rocblas_datatype execution_type);
+
+rocblas_status rocblas_nrm2_batched_ex_fortran(rocblas_handle   handle,
+                                               rocblas_int      n,
+                                               const void*      x,
+                                               rocblas_datatype x_type,
+                                               rocblas_int      incx,
+                                               rocblas_int      batch_count,
+                                               void*            result,
+                                               rocblas_datatype result_type,
+                                               rocblas_datatype execution_type);
+
+rocblas_status rocblas_nrm2_strided_batched_ex_fortran(rocblas_handle   handle,
+                                                       rocblas_int      n,
+                                                       const void*      x,
+                                                       rocblas_datatype x_type,
+                                                       rocblas_int      incx,
+                                                       rocblas_stride   stride_x,
+                                                       rocblas_int      batch_count,
+                                                       void*            result,
+                                                       rocblas_datatype result_type,
+                                                       rocblas_datatype execution_type);
+
 // scal_ex
 rocblas_status rocblas_scal_ex_fortran(rocblas_handle    handle,
                                        const rocblas_int N,
