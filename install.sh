@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+ROCBLAS_SRC_PATH=`dirname "$(realpath $0)"`
+
 /bin/ln -fs ../../.githooks/pre-commit "$(dirname "$0")/.git/hooks/"
 
 # #################################################
@@ -326,7 +328,7 @@ build_tensile_host=true
 cpu_ref_lib=blis
 build_release=true
 build_hip_clang=true
-build_dir=./build
+build_dir=${ROCBLAS_SRC_PATH}/build
 skip_ld_conf_entry=false
 static_lib=false
 tensile_msgpack_backend=true
@@ -546,7 +548,7 @@ if [[ "${install_dependencies}" == true ]]; then
     pushd .
     printf "\033[32mBuilding \033[33mgoogletest & lapack\033[32m from source; installing into \033[33m/usr/local\033[0m\n"
     mkdir -p ${build_dir}/deps && cd ${build_dir}/deps
-    CXX=${cxx} CC=${cc} FC=${fc} ${cmake_executable} -lpthread -DBUILD_BOOST=OFF ../../deps
+    CXX=${cxx} CC=${cc} FC=${fc} ${cmake_executable} -lpthread -DBUILD_BOOST=OFF ${ROCBLAS_SRC_PATH}/deps
     make -j$(nproc)
     elevate_if_not_root make install
     install_blis
@@ -654,9 +656,9 @@ pushd .
 
   # Build library with AMD toolchain because of existense of device kernels
   if [[ "${build_clients}" == true ]]; then
-    CXX=${cxx} CC=${cc} ${cmake_executable} ${cmake_common_options} ${cmake_client_options} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=${rocm_path} ../..
+    CXX=${cxx} CC=${cc} ${cmake_executable} ${cmake_common_options} ${cmake_client_options} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=${rocm_path} ${ROCBLAS_SRC_PATH}
   else
-    CXX=${cxx} CC=${cc} ${cmake_executable} ${cmake_common_options} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=${rocm_path} ../..
+    CXX=${cxx} CC=${cc} ${cmake_executable} ${cmake_common_options} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=${rocm_path} ${ROCBLAS_SRC_PATH}
   fi
   check_exit_code "$?"
 
