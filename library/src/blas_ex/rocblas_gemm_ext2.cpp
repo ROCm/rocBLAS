@@ -10,7 +10,7 @@
 
 namespace
 {
-    template <typename Ti, typename To, typename Tc, typename To_hpa>
+    template <typename Ti, typename To, typename Tc>
     void reference_gemm_ext2(rocblas_int    M,
                              rocblas_int    N,
                              rocblas_int    K,
@@ -25,21 +25,21 @@ namespace
                              const To*      C,
                              rocblas_stride row_stride_c,
                              rocblas_stride col_stride_c,
-                             To_hpa*        D,
+                             To*            D,
                              rocblas_stride row_stride_d,
                              rocblas_stride col_stride_d)
     {
         for(rocblas_int row = 0; row < M; row++)
             for(rocblas_int col = 0; col < N; col++)
             {
-                Tc t(0);
+                Tc t{};
                 if(alpha)
                     for(rocblas_int k = 0; k < K; k++)
-                        t += Tc(A[row * row_stride_a + k * col_stride_a])
-                             * Tc(B[k * row_stride_b + col * col_stride_b]);
-                D[row * row_stride_d + col * col_stride_d]
-                    = beta ? beta * C[row * row_stride_c + col * col_stride_c] + alpha * t
-                           : alpha * t;
+                        t += Tc{A[row * row_stride_a + k * col_stride_a]}
+                             * Tc{B[k * row_stride_b + col * col_stride_b]};
+                D[row * row_stride_d + col * col_stride_d] = static_cast<To>(
+                    beta ? beta * C[row * row_stride_c + col * col_stride_c] + alpha * t
+                         : alpha * t);
             }
     }
 
@@ -331,47 +331,46 @@ namespace
                                        "is not implemented in Tensile yet."
                                     << std::endl;
 
-                auto ha = a ? std::make_unique<float[]>(k * size_t(col_stride_a)) : nullptr;
-                auto hb = b ? std::make_unique<float[]>(n * size_t(col_stride_b)) : nullptr;
-                auto hc = c ? std::make_unique<float[]>(n * size_t(col_stride_c)) : nullptr;
-                auto hd = std::make_unique<float[]>(n * size_t(col_stride_d));
+                size_t size_a = size_t(m - 1) * row_stride_a + size_t(k - 1) * col_stride_a + 1;
+                size_t size_b = size_t(k - 1) * row_stride_b + size_t(n - 1) * col_stride_b + 1;
+                size_t size_c = size_t(m - 1) * row_stride_c + size_t(n - 1) * col_stride_c + 1;
+                size_t size_d = size_t(m - 1) * row_stride_d + size_t(n - 1) * col_stride_d + 1;
+
+                auto ha = a ? std::make_unique<float[]>(size_a) : nullptr;
+                auto hb = b ? std::make_unique<float[]>(size_b) : nullptr;
+                auto hc = c ? std::make_unique<float[]>(size_c) : nullptr;
+                auto hd = std::make_unique<float[]>(size_d);
 
                 if(a)
-                    RETURN_IF_HIP_ERROR(hipMemcpy(&ha[0],
-                                                  a,
-                                                  sizeof(float) * k * size_t(col_stride_a),
-                                                  hipMemcpyDeviceToHost));
+                    RETURN_IF_HIP_ERROR(
+                        hipMemcpy(&ha[0], a, sizeof(float) * size_a, hipMemcpyDeviceToHost));
                 if(b)
-                    RETURN_IF_HIP_ERROR(hipMemcpy(&hb[0],
-                                                  b,
-                                                  sizeof(float) * n * size_t(col_stride_b),
-                                                  hipMemcpyDeviceToHost));
+                    RETURN_IF_HIP_ERROR(
+                        hipMemcpy(&hb[0], b, sizeof(float) * size_b, hipMemcpyDeviceToHost));
                 if(c)
-                    RETURN_IF_HIP_ERROR(hipMemcpy(&hc[0],
-                                                  c,
-                                                  sizeof(float) * n * size_t(col_stride_c),
-                                                  hipMemcpyDeviceToHost));
+                    RETURN_IF_HIP_ERROR(
+                        hipMemcpy(&hc[0], c, sizeof(float) * size_c, hipMemcpyDeviceToHost));
 
                 reference_gemm_ext2(m,
                                     n,
                                     k,
                                     *(const float*)alpha,
-                                    ha.get(),
+                                    &ha[0],
                                     row_stride_a,
                                     col_stride_a,
-                                    hb.get(),
+                                    &hb[0],
                                     row_stride_b,
                                     col_stride_b,
                                     *(const float*)beta,
-                                    hc.get(),
+                                    &hc[0],
                                     row_stride_c,
                                     col_stride_c,
-                                    hd.get(),
+                                    &hd[0],
                                     row_stride_d,
                                     col_stride_d);
 
-                RETURN_IF_HIP_ERROR(hipMemcpy(
-                    d, &hd[0], sizeof(float) * n * size_t(col_stride_d), hipMemcpyHostToDevice));
+                RETURN_IF_HIP_ERROR(
+                    hipMemcpy(d, &hd[0], sizeof(float) * size_d, hipMemcpyHostToDevice));
 
                 return rocblas_status_success;
             }
