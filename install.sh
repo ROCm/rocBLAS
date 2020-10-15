@@ -26,7 +26,7 @@ rocBLAS build & installation helper script
            --cpu_ref_lib         Specify library to use for CPU reference code in testing (blis or lapack)
            --[no-]hip-clang      Whether to build library for amdgpu backend using hip-clang
            --[no-]merge-files    Whether to enable Tensile_MERGE_FILES (default is enable)
-           --build_dir           Specify name of output directory (default is ./build)
+           --build_dir           Specify path of output directory relative to the current directory (default is ./build). Also supports absolute path to output directory.
       -n | --no-tensile          Build subset of library that does not require Tensile
       -s | --tensile-host        Build with Tensile host
       -r | --no-tensile-host     Do not build with Tensile host
@@ -328,7 +328,7 @@ build_tensile_host=true
 cpu_ref_lib=blis
 build_release=true
 build_hip_clang=true
-build_dir=${ROCBLAS_SRC_PATH}/build
+build_dir=$(realpath ./build)
 skip_ld_conf_entry=false
 static_lib=false
 tensile_msgpack_backend=true
@@ -404,7 +404,7 @@ while true; do
         build_tensile_host=false
         shift ;;
     --build_dir)
-        build_dir=${2}
+	build_dir=$(realpath -m ${2})
         shift 2;;
     --use-cuda)
         use_cuda=true
