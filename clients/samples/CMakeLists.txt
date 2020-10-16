@@ -18,9 +18,9 @@ add_executable( example-scal-template example_scal_template.cpp ${rocblas_sample
 add_executable( example-solver-rocblas example_solver_rocblas.cpp ${rocblas_samples_common} )
 
 # Fortran examples
-add_executable( example-fortran-axpy example_fortran_axpy.f90 )
-add_executable( example-fortran-scal example_fortran_scal.f90 )
-add_executable( example-fortran-gemv example_fortran_gemv.f90 )
+add_executable( example-fortran-axpy example_fortran_axpy.f90 $<TARGET_OBJECTS:rocblas_fortran>)
+add_executable( example-fortran-scal example_fortran_scal.f90 $<TARGET_OBJECTS:rocblas_fortran>)
+add_executable( example-fortran-gemv example_fortran_gemv.f90 $<TARGET_OBJECTS:rocblas_fortran>)
 
 if( BUILD_WITH_TENSILE )
   add_executable( example-sgemm example_sgemm.cpp ${rocblas_samples_common} )

@@ -13,22 +13,28 @@ if( NOT DEFINED CMAKE_CONFIGURATION_TYPES AND NOT DEFINED CMAKE_BUILD_TYPE )
   set( CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." )
 endif()
 
+if ( NOT DEFINED CMAKE_Fortran_COMPILER AND NOT DEFINED ENV{FC} )
+  set( CMAKE_Fortran_COMPILER "gfortran" )
+endif()
+
 # This project may compile dependencies for clients
 project( rocblas-clients LANGUAGES CXX C Fortran )
 
 set(rocblas_f90_source_clients
     include/rocblas_fortran.f90
 )
-set(rocblas_f90_source_clients_tensile
-    include/rocblas_fortran_tensile.f90
-)
+
+# Set Fortran module output directory
+set(CMAKE_Fortran_MODULE_DIRECTORY ${PROJECT_BINARY_DIR}/include/internal)
+
+# Create rocBLAS Fortran module
+add_library(rocblas_fortran OBJECT ../library/include/rocblas_module.f90)
 
 if( BUILD_WITH_TENSILE )
-  add_library(rocblas_fortran_client ${rocblas_f90_source_clients} ${rocblas_f90_source_clients_tensile})
-else()
-  add_library(rocblas_fortran_client ${rocblas_f90_source_clients})
+  list( APPEND rocblas_f90_source_clients include/rocblas_fortran_tensile.f90 )
 endif()
-add_dependencies(rocblas_fortran_client rocblas_fortran)
+
+add_library(rocblas_fortran_client ${rocblas_f90_source_clients} $<TARGET_OBJECTS:rocblas_fortran>)
 include_directories(${CMAKE_BINARY_DIR}/include)
 include_directories(${CMAKE_BINARY_DIR}/include/internal)
 
