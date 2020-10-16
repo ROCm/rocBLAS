@@ -615,9 +615,11 @@ Coding Guidelines
     of strings, in the interest of efficiency.
 
 16. For code brevity and readability, when converting to *numeric*
-    types, function-style casts are preferred to ``static_cast<>()`` or
-    C-style casts. For example, ``T(x)`` is preferred to
-    ``static_cast<T>(x)`` or ``(T)x``.
+    types, uniform initialization or function-style casts are preferred
+    to ``static_cast<>()`` or C-style casts. For example, ``T{x}`` or ``T(x)``
+    is preferred to ``static_cast<T>(x)`` or ``(T)x``. ``T{x}`` differs from
+    ``T(x)`` in that narrowing conversions, which reduce the precision of an
+    integer or floating-point, are not allowed.
 
     When writing general containers or templates which can accept
     *arbitrary* types as parameters, not just *numeric* types, then the
@@ -625,9 +627,9 @@ Coding Guidelines
     ``reinterpret_cast``) should be used, to avoid surprises.
 
     But when converting to *numeric* types, which have very
-    well-understood behavior and are *side-effect free*, ``type(x)`` is
-    more compact and clearer than ``static_cast<type>(x)``. For
-    pointers, C-style casts are okay, such as ``(T*)A``.
+    well-understood behavior and are *side-effect free*, ``type{x}`` or
+    ``type(x)`` are  more compact and clearer than ``static_cast<type>(x)``.
+    For pointers, C-style casts are okay, such as ``(T*)A``.
 
 17. For BLAS2 functions and BLAS1 functions with two vectors, the
     ``incx`` and/or ``incy`` arguments can be negative, which means the
