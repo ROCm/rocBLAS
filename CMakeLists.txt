@@ -21,14 +21,10 @@ if( POLICY CMP0066 )
   cmake_policy( SET CMP0066 NEW )
 endif( )
 
-if ( NOT DEFINED CMAKE_Fortran_COMPILER AND NOT DEFINED ENV{FC} )
-  set( CMAKE_Fortran_COMPILER  "gfortran" )
-endif()
-
 add_compile_options( -Wno-unused-command-line-argument )
 
 unset(ENV{ROCM_BUILD_ID})
-project( rocblas LANGUAGES CXX Fortran )
+project( rocblas LANGUAGES CXX )
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
