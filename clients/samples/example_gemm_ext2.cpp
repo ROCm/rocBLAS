@@ -32,12 +32,12 @@ void mat_mat_mult(rocblas_int    M,
     for(rocblas_int row = 0; row < M; row++)
         for(rocblas_int col = 0; col < N; col++)
         {
-            Tc t = 0;
+            Tc t{};
             if(alpha)
                 for(rocblas_int k = 0; k < K; k++)
-                    t += Tc(A[row * row_stride_a + k * col_stride_a])
-                         * Tc(B[k * row_stride_b + col * col_stride_b]);
-            D[row * row_stride_d + col * col_stride_d] = To(
+                    t += Tc{A[row * row_stride_a + k * col_stride_a]}
+                         * Tc{B[k * row_stride_b + col * col_stride_b]};
+            D[row * row_stride_d + col * col_stride_d] = static_cast<To>(
                 beta ? beta * C[row * row_stride_c + col * col_stride_c] + alpha * t : alpha * t);
         }
 }
@@ -69,10 +69,10 @@ int main()
 
     std::cout << "gemm_ext2 example" << std::endl;
 
-    size_t size_a = size_t(k) * size_t(col_stride_a);
-    size_t size_b = size_t(n) * size_t(col_stride_b);
-    size_t size_c = size_t(n) * size_t(col_stride_c);
-    size_t size_d = size_t(n) * size_t(col_stride_d);
+    size_t size_a = size_t(m - 1) * row_stride_a + size_t(k - 1) * col_stride_a + 1;
+    size_t size_b = size_t(k - 1) * row_stride_b + size_t(n - 1) * col_stride_b + 1;
+    size_t size_c = size_t(m - 1) * row_stride_c + size_t(n - 1) * col_stride_c + 1;
+    size_t size_d = size_t(m - 1) * row_stride_d + size_t(n - 1) * col_stride_d + 1;
 
     // Naming: da is in GPU (device) memory. ha is in CPU (host) memory
     auto ha      = std::make_unique<a_t[]>(size_a);
