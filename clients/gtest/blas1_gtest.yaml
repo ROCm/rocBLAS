@@ -571,6 +571,8 @@ Tests:
       - copy: *single_double_precisions_complex_real
       - dot:   *half_bfloat_single_double_complex_real_precisions
       - dotc:  *single_double_precisions_complex
+      - dot_ex: *half_bfloat_single_double_complex_real_precisions
+      - dotc_ex: *half_bfloat_single_double_complex_real_precisions
       - swap: *single_double_precisions_complex_real
       - rot:   *rot_precisions
       - rotm:  *single_double_precisions_complex_real
@@ -586,6 +588,8 @@ Tests:
       - copy_batched: *single_double_precisions_complex_real
       - dot_batched:   *half_bfloat_single_double_complex_real_precisions
       - dotc_batched:  *single_double_precisions_complex
+      - dot_batched_ex: *half_bfloat_single_double_complex_real_precisions
+      - dotc_batched_ex: *half_bfloat_single_double_complex_real_precisions
       - swap_batched: *single_double_precisions_complex_real
       - rot_batched:   *rot_precisions
       - rotm_batched:  *single_double_precisions_complex_real
@@ -601,6 +605,7 @@ Tests:
       - copy_strided_batched: *single_double_precisions_complex_real
       - dot_strided_batched:   *half_bfloat_single_double_complex_real_precisions
       - dotc_strided_batched:  *single_double_precisions_complex
+      - dotc_strided_batched_ex: *half_bfloat_single_double_complex_real_precisions
       - swap_strided_batched: *single_double_precisions_complex_real
       - rot_strided_batched:   *rot_precisions
       - rotm_strided_batched:  *single_double_precisions_complex_real
@@ -615,6 +620,8 @@ Tests:
       - copy: *single_double_precisions_complex_real
       - dot:   *half_bfloat_single_double_complex_real_precisions
       - dotc:  *single_double_precisions_complex
+      - dot_ex:   *half_bfloat_single_double_complex_real_precisions
+      - dotc_ex:   *half_bfloat_single_double_complex_real_precisions
 
   - name: blas1_batched
     category: quick
@@ -625,6 +632,8 @@ Tests:
       - copy_batched: *single_double_precisions_complex_real
       - dot_batched:   *half_bfloat_single_double_complex_real_precisions
       - dotc_batched:  *single_double_precisions_complex
+      - dot_batched_ex:   *half_bfloat_single_double_complex_real_precisions
+      - dotc_batched_ex:   *half_bfloat_single_double_complex_real_precisions
 
   - name: blas1_strided_batched
     category: quick
@@ -636,6 +645,8 @@ Tests:
       - copy_strided_batched:  *single_double_precisions_complex_real
       - dot_strided_batched:   *half_bfloat_single_double_complex_real_precisions
       - dotc_strided_batched:  *single_double_precisions_complex
+      - dot_strided_batched_ex:   *half_bfloat_single_double_complex_real_precisions
+      - dotc_strided_batched_ex:   *half_bfloat_single_double_complex_real_precisions
 
 # quick
 # dot alt algorithm, algo=1 forces x*x with incx=incy to test special case kernel
@@ -647,6 +658,8 @@ Tests:
     function:
       - dot:   *half_bfloat_single_double_complex_real_precisions
       - dotc:  *single_double_precisions_complex
+      - dot_ex:   *half_bfloat_single_double_complex_real_precisions
+      - dotc_ex:   *half_bfloat_single_double_complex_real_precisions
 
   - name: blas1_batched
     category: quick
@@ -657,6 +670,8 @@ Tests:
     function:
       - dot_batched:   *half_bfloat_single_double_complex_real_precisions
       - dotc_batched:  *single_double_precisions_complex
+      - dot_batched_ex:   *half_bfloat_single_double_complex_real_precisions
+      - dotc_batched_ex:   *half_bfloat_single_double_complex_real_precisions
 
   - name: blas1_strided_batched
     category: quick
@@ -668,6 +683,8 @@ Tests:
     function:
       - dot_strided_batched:   *half_bfloat_single_double_complex_real_precisions
       - dotc_strided_batched:  *single_double_precisions_complex
+      - dot_strided_batched_ex:   *half_bfloat_single_double_complex_real_precisions
+      - dotc_strided_batched_ex:   *half_bfloat_single_double_complex_real_precisions
 
 # pre_checkin
   - name: blas1
@@ -675,10 +692,12 @@ Tests:
     N: [ 5000, 800000 ]
     incx_incy: *incx_incy_range_small
     function:
+      # dot_ex uses dot code, so only testing superset code of dot_ex for pre-checkin and nightly.
+      # we should be sure to keep testing the dot API in quick tests as done above.
       - swap: *single_double_precisions_complex_real
       - copy: *single_double_precisions_complex_real
-      - dot:   *double_precision_complex_real
-      - dotc:  *double_precision_complex_real
+      - dot_ex:   *double_precision_complex_real
+      - dotc_ex:  *double_precision_complex_real
       - rot:   *rot_precisions
       - rotm:  *single_double_precisions_complex_real
 
@@ -691,8 +710,8 @@ Tests:
     function:
       - swap_batched: *single_double_precisions_complex_real
       - copy_batched: *single_double_precisions_complex_real
-      - dot_batched:   *double_precision_complex_real
-      - dotc_batched:  *double_precision_complex_real
+      - dot_batched_ex:   *double_precision_complex_real
+      - dotc_batched_ex:  *double_precision_complex_real
       - rot_batched:   *rot_precisions
       - rotm_batched:  *single_double_precisions_complex_real
 
@@ -705,8 +724,8 @@ Tests:
     function:
       - swap_strided_batched: *single_double_precisions_complex_real
       - copy_strided_batched:  *single_double_precisions_complex_real
-      - dot_strided_batched:   *double_precision_complex_real
-      - dotc_strided_batched:  *double_precision_complex_real
+      - dot_strided_batched_ex:   *double_precision_complex_real
+      - dotc_strided_batched_ex:  *double_precision_complex_real
       - rot_strided_batched:   *rot_precisions
       - rotm_strided_batched:  *single_double_precisions_complex_real
 
@@ -718,8 +737,8 @@ Tests:
     function:
       - swap: *single_double_precisions_complex_real
       - copy: *single_double_precisions_complex_real
-      - dot:  *double_precision_complex_real
-      - dotc: *double_precision_complex_real
+      - dot_ex:  *double_precision_complex_real
+      - dotc_ex: *double_precision_complex_real
       - rot:   *rot_precisions
       - rotm:  *single_double_precisions_complex_real
 
@@ -731,8 +750,8 @@ Tests:
     function:
       - swap_batched: *single_double_precisions_complex_real
       - copy_batched:  *single_double_precisions_complex_real
-      - dot_batched:   *double_precision_complex_real
-      - dotc_batched:  *double_precision_complex_real
+      - dot_batched_ex:   *double_precision_complex_real
+      - dotc_batched_ex:  *double_precision_complex_real
       - rot_batched:   *rot_precisions
       - rotm_batched:  *single_double_precisions_complex_real
 
@@ -745,8 +764,8 @@ Tests:
     function:
       - swap_strided_batched: *single_double_precisions_complex_real
       - copy_strided_batched:  *single_double_precisions_complex_real
-      - dot_strided_batched:   *double_precision_complex_real
-      - dotc_strided_batched:  *double_precision_complex_real
+      - dot_strided_batched_ex:   *double_precision_complex_real
+      - dotc_strided_batched_ex:  *double_precision_complex_real
       - rot_strided_batched:   *rot_precisions
       - rotm_strided_batched:  *single_double_precisions_complex_real
 

@@ -6,6 +6,9 @@
 #include "testing_axpy_batched_ex.hpp"
 #include "testing_axpy_ex.hpp"
 #include "testing_axpy_strided_batched_ex.hpp"
+#include "testing_dot_batched_ex.hpp"
+#include "testing_dot_ex.hpp"
+#include "testing_dot_strided_batched_ex.hpp"
 #include "testing_nrm2_batched_ex.hpp"
 #include "testing_nrm2_ex.hpp"
 #include "testing_nrm2_strided_batched_ex.hpp"
@@ -22,6 +25,12 @@ namespace
         axpy_ex,
         axpy_batched_ex,
         axpy_strided_batched_ex,
+        dot_ex,
+        dotc_ex,
+        dot_batched_ex,
+        dotc_batched_ex,
+        dot_strided_batched_ex,
+        dotc_strided_batched_ex,
         nrm2_ex,
         nrm2_batched_ex,
         nrm2_strided_batched_ex,
@@ -62,6 +71,12 @@ namespace
                     = (BLAS1_EX == blas1_ex::axpy_ex || BLAS1_EX == blas1_ex::axpy_batched_ex
                        || BLAS1_EX == blas1_ex::axpy_strided_batched_ex);
 
+                bool is_dot
+                    = (BLAS1_EX == blas1_ex::dot_ex || BLAS1_EX == blas1_ex::dot_batched_ex
+                       || BLAS1_EX == blas1_ex::dot_strided_batched_ex
+                       || BLAS1_EX == blas1_ex::dotc_ex || BLAS1_EX == blas1_ex::dotc_batched_ex
+                       || BLAS1_EX == blas1_ex::dotc_strided_batched_ex);
+
                 bool is_scal
                     = (BLAS1_EX == blas1_ex::scal_ex || BLAS1_EX == blas1_ex::scal_batched_ex
                        || BLAS1_EX == blas1_ex::scal_strided_batched_ex);
@@ -70,17 +85,19 @@ namespace
                     = (BLAS1_EX == blas1_ex::nrm2_ex || BLAS1_EX == blas1_ex::nrm2_batched_ex
                        || BLAS1_EX == blas1_ex::nrm2_strided_batched_ex);
 
-                bool is_batched = (BLAS1_EX == blas1_ex::axpy_batched_ex
-                                   || BLAS1_EX == blas1_ex::scal_batched_ex
-                                   || BLAS1_EX == blas1_ex::nrm2_batched_ex);
+                bool is_batched
+                    = (BLAS1_EX == blas1_ex::axpy_batched_ex || BLAS1_EX == blas1_ex::dot_batched_ex
+                       || BLAS1_EX == blas1_ex::scal_batched_ex
+                       || BLAS1_EX == blas1_ex::nrm2_batched_ex);
                 bool is_strided = (BLAS1_EX == blas1_ex::axpy_strided_batched_ex
+                                   || BLAS1_EX == blas1_ex::dot_strided_batched_ex
                                    || BLAS1_EX == blas1_ex::scal_strided_batched_ex
                                    || BLAS1_EX == blas1_ex::nrm2_strided_batched_ex);
 
                 name << rocblas_datatype2string(arg.a_type) << '_'
                      << rocblas_datatype2string(arg.b_type);
 
-                if(is_axpy)
+                if(is_axpy || is_dot)
                     name << '_' << rocblas_datatype2string(arg.c_type);
 
                 name << '_' << rocblas_datatype2string(arg.compute_type);
@@ -90,16 +107,16 @@ namespace
                 if(is_axpy || is_scal)
                     name << '_' << arg.alpha << '_' << arg.alphai;
 
-                if(is_axpy || is_scal || is_nrm2)
+                if(is_axpy || is_dot || is_scal || is_nrm2)
                     name << '_' << arg.incx;
 
                 if(is_strided)
                     name << '_' << arg.stride_x;
 
-                if(is_axpy)
+                if(is_axpy || is_dot)
                     name << '_' << arg.incy;
 
-                if(is_strided && is_axpy)
+                if(is_strided && (is_axpy || is_dot))
                     name << '_' << arg.stride_y;
 
                 if(is_batched || is_strided)
@@ -128,6 +145,22 @@ namespace
                   || std::is_same<T1, rocblas_double_complex>{}))
              || (std::is_same<T1, T2>{} && std::is_same<T2, T3>{}
                  && std::is_same<T1, rocblas_half>{} && std::is_same<T4, float>{})))
+
+            // dot_ex
+            // T1 is x_type, T2 is y_type, T3 is result_type, T4 is execution_type
+            || ((BLAS1_EX == blas1_ex::dot_ex || BLAS1_EX == blas1_ex::dot_batched_ex
+                 || BLAS1_EX == blas1_ex::dot_strided_batched_ex || BLAS1_EX == blas1_ex::dotc_ex
+                 || BLAS1_EX == blas1_ex::dotc_batched_ex
+                 || BLAS1_EX == blas1_ex::dotc_strided_batched_ex)
+                && ((std::is_same<T1, T2>{} && std::is_same<T2, T3>{} && std::is_same<T3, T4>{}
+                     && (std::is_same<T1, float>{} || std::is_same<T1, double>{}
+                         || std::is_same<T1, rocblas_half>{}
+                         || std::is_same<T1, rocblas_float_complex>{}
+                         || std::is_same<T1, rocblas_double_complex>{}))
+                    || (std::is_same<T1, T2>{} && std::is_same<T2, T3>{}
+                        && std::is_same<T1, rocblas_half>{} && std::is_same<T4, float>{})
+                    || (std::is_same<T1, T2>{} && std::is_same<T2, T3>{}
+                        && std::is_same<T1, rocblas_bfloat16>{} && std::is_same<T4, float>{})))
 
             // scal_ex
             // T1 is alpha_type T2 is x_type T3 is execution_type
@@ -217,6 +250,12 @@ namespace
     BLAS1_EX_TESTING(axpy_ex, ARG4)
     BLAS1_EX_TESTING(axpy_batched_ex, ARG4)
     BLAS1_EX_TESTING(axpy_strided_batched_ex, ARG4)
+    BLAS1_EX_TESTING(dot_ex, ARG4)
+    BLAS1_EX_TESTING(dot_batched_ex, ARG4)
+    BLAS1_EX_TESTING(dot_strided_batched_ex, ARG4)
+    BLAS1_EX_TESTING(dotc_ex, ARG4)
+    BLAS1_EX_TESTING(dotc_batched_ex, ARG4)
+    BLAS1_EX_TESTING(dotc_strided_batched_ex, ARG4)
     BLAS1_EX_TESTING(nrm2_ex, ARG2)
     BLAS1_EX_TESTING(nrm2_batched_ex, ARG2)
     BLAS1_EX_TESTING(nrm2_strided_batched_ex, ARG2)

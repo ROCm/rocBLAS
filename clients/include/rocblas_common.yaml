@@ -224,7 +224,7 @@ rotg precisions: &rotg_precisions
 #############################################
 Half bfloat single double complex real: &half_bfloat_single_double_complex_real_precisions
   - *half_precision
-  - *bf16_precision
+  - *hpa_bf16_precision
   - *single_precision
   - *double_precision
   - *half_precision_complex

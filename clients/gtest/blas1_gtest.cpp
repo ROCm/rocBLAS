@@ -240,11 +240,13 @@ namespace
 
             || ((BLAS1 == blas1::dot || BLAS1 == blas1::dot_batched
                  || BLAS1 == blas1::dot_strided_batched)
-                && std::is_same<Ti, To>{} && std::is_same<To, Tc>{}
-                && (std::is_same<Ti, rocblas_half>{} || std::is_same<Ti, rocblas_bfloat16>{}
-                    || std::is_same<Ti, rocblas_float_complex>{}
-                    || std::is_same<Ti, rocblas_double_complex>{} || std::is_same<Ti, float>{}
-                    || std::is_same<Ti, double>{}))
+                    && (std::is_same<Ti, To>{} && std::is_same<To, Tc>{}
+                        && (std::is_same<Ti, rocblas_half>{}
+                            || std::is_same<Ti, rocblas_float_complex>{}
+                            || std::is_same<Ti, rocblas_double_complex>{}
+                            || std::is_same<Ti, float>{} || std::is_same<Ti, double>{}))
+                || (std::is_same<Ti, To>{} && std::is_same<Ti, rocblas_bfloat16>{}
+                    && std::is_same<Tc, float>{}))
 
             || ((BLAS1 == blas1::dotc || BLAS1 == blas1::dotc_batched
                  || BLAS1 == blas1::dotc_strided_batched)

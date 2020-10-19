@@ -88,6 +88,10 @@ auto rocblas_blas1_ex_dispatch(const Arguments& arg)
     {
         return TEST<rocblas_half, rocblas_half, rocblas_half, float>{}(arg);
     }
+    else if(Ta == Tx && Tx == Ty && Ta == rocblas_datatype_bf16_r && Tex == rocblas_datatype_f32_r)
+    {
+        return TEST<rocblas_bfloat16, rocblas_bfloat16, rocblas_bfloat16, float>{}(arg);
+    }
     else if(Ta == Tx && Ta == rocblas_datatype_f16_r && Tex == rocblas_datatype_f32_r)
     {
         // scal half
