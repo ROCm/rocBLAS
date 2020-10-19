@@ -6448,6 +6448,87 @@ rocblas_status rocblas_axpy_strided_batched_ex_fortran(rocblas_handle       hand
                                                        const rocblas_int    batch_count,
                                                        rocblas_datatype     execution_type);
 
+// dot_ex
+rocblas_status rocblas_dot_ex_fortran(rocblas_handle   handle,
+                                      rocblas_int      n,
+                                      const void*      x,
+                                      rocblas_datatype x_type,
+                                      rocblas_int      incx,
+                                      const void*      y,
+                                      rocblas_datatype y_type,
+                                      rocblas_int      incy,
+                                      void*            result,
+                                      rocblas_datatype result_type,
+                                      rocblas_datatype execution_type);
+
+rocblas_status rocblas_dotc_ex_fortran(rocblas_handle   handle,
+                                       rocblas_int      n,
+                                       const void*      x,
+                                       rocblas_datatype x_type,
+                                       rocblas_int      incx,
+                                       const void*      y,
+                                       rocblas_datatype y_type,
+                                       rocblas_int      incy,
+                                       void*            result,
+                                       rocblas_datatype result_type,
+                                       rocblas_datatype execution_type);
+
+rocblas_status rocblas_dot_batched_ex_fortran(rocblas_handle   handle,
+                                              rocblas_int      n,
+                                              const void*      x,
+                                              rocblas_datatype x_type,
+                                              rocblas_int      incx,
+                                              const void*      y,
+                                              rocblas_datatype y_type,
+                                              rocblas_int      incy,
+                                              rocblas_int      batch_count,
+                                              void*            result,
+                                              rocblas_datatype result_type,
+                                              rocblas_datatype execution_type);
+
+rocblas_status rocblas_dotc_batched_ex_fortran(rocblas_handle   handle,
+                                               rocblas_int      n,
+                                               const void*      x,
+                                               rocblas_datatype x_type,
+                                               rocblas_int      incx,
+                                               const void*      y,
+                                               rocblas_datatype y_type,
+                                               rocblas_int      incy,
+                                               rocblas_int      batch_count,
+                                               void*            result,
+                                               rocblas_datatype result_type,
+                                               rocblas_datatype execution_type);
+
+rocblas_status rocblas_dot_strided_batched_ex_fortran(rocblas_handle   handle,
+                                                      rocblas_int      n,
+                                                      const void*      x,
+                                                      rocblas_datatype x_type,
+                                                      rocblas_int      incx,
+                                                      rocblas_stride   stride_x,
+                                                      const void*      y,
+                                                      rocblas_datatype y_type,
+                                                      rocblas_int      incy,
+                                                      rocblas_stride   stride_y,
+                                                      rocblas_int      batch_count,
+                                                      void*            result,
+                                                      rocblas_datatype result_type,
+                                                      rocblas_datatype execution_type);
+
+rocblas_status rocblas_dotc_strided_batched_ex_fortran(rocblas_handle   handle,
+                                                       rocblas_int      n,
+                                                       const void*      x,
+                                                       rocblas_datatype x_type,
+                                                       rocblas_int      incx,
+                                                       rocblas_stride   stride_x,
+                                                       const void*      y,
+                                                       rocblas_datatype y_type,
+                                                       rocblas_int      incy,
+                                                       rocblas_stride   stride_y,
+                                                       rocblas_int      batch_count,
+                                                       void*            result,
+                                                       rocblas_datatype result_type,
+                                                       rocblas_datatype execution_type);
+
 // nrm2_ex
 rocblas_status rocblas_nrm2_ex_fortran(rocblas_handle   handle,
                                        rocblas_int      n,

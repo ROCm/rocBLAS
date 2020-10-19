@@ -115,6 +115,15 @@ void testing_dot_strided_batched(const Arguments& arg)
                                                                batch_count,
                                                                d_rocblas_result),
                               rocblas_status_success);
+
+        if(batch_count > 0)
+        {
+            host_vector<T> cpu_0(batch_count);
+            host_vector<T> gpu_0(batch_count);
+            CHECK_HIP_ERROR(gpu_0.transfer_from(d_rocblas_result));
+            unit_check_general<T>(1, 1, 1, 1, cpu_0, gpu_0, batch_count);
+        }
+
         return;
     }
 

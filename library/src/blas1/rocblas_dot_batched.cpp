@@ -92,15 +92,20 @@ namespace
                         batch_count);
 
         // Quick return if possible.
-        if(n <= 0 || batch_count <= 0)
+        if(batch_count <= 0)
+        {
+            return rocblas_status_success;
+        }
+
+        if(n <= 0)
         {
             if(!results)
                 return rocblas_status_invalid_pointer;
             if(rocblas_pointer_mode_device == handle->pointer_mode)
-                RETURN_IF_HIP_ERROR(
-                    hipMemsetAsync(results, 0, sizeof(*results), handle->rocblas_stream));
+                RETURN_IF_HIP_ERROR(hipMemsetAsync(
+                    results, 0, sizeof(*results) * batch_count, handle->rocblas_stream));
             else
-                *results = T(0);
+                memset(results, 0, sizeof(*results) * batch_count);
             return rocblas_status_success;
         }
 

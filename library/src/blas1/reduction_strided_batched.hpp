@@ -202,6 +202,10 @@ size_t rocblas_reduction_kernel_workspace_size(rocblas_int      n,
 {
     switch(type)
     {
+    case rocblas_datatype_f16_r:
+        return rocblas_reduction_kernel_workspace_size<NB, rocblas_half>(n, batch_count);
+    case rocblas_datatype_bf16_r:
+        return rocblas_reduction_kernel_workspace_size<NB, rocblas_bfloat16>(n, batch_count);
     case rocblas_datatype_f32_r:
         return rocblas_reduction_kernel_workspace_size<NB, float>(n, batch_count);
     case rocblas_datatype_f64_r:

@@ -135,6 +135,50 @@ void cblas_dot<rocblas_bfloat16>(rocblas_int             n,
     *result = rocblas_bfloat16(cblas_sdot(n, x_float, incx, y_float, incy));
 }
 
+template <>
+void cblas_dotc<float>(rocblas_int  n,
+                       const float* x,
+                       rocblas_int  incx,
+                       const float* y,
+                       rocblas_int  incy,
+                       float*       result)
+{
+    cblas_dot(n, x, incx, y, incy, result);
+}
+
+template <>
+void cblas_dotc<double>(rocblas_int   n,
+                        const double* x,
+                        rocblas_int   incx,
+                        const double* y,
+                        rocblas_int   incy,
+                        double*       result)
+{
+    cblas_dot(n, x, incx, y, incy, result);
+}
+
+template <>
+void cblas_dotc<rocblas_half>(rocblas_int         n,
+                              const rocblas_half* x,
+                              rocblas_int         incx,
+                              const rocblas_half* y,
+                              rocblas_int         incy,
+                              rocblas_half*       result)
+{
+    cblas_dot(n, x, incx, y, incy, result);
+}
+
+template <>
+void cblas_dotc<rocblas_bfloat16>(rocblas_int             n,
+                                  const rocblas_bfloat16* x,
+                                  rocblas_int             incx,
+                                  const rocblas_bfloat16* y,
+                                  rocblas_int             incy,
+                                  rocblas_bfloat16*       result)
+{
+    cblas_dot(n, x, incx, y, incy, result);
+}
+
 /*
  * ===========================================================================
  *    level 2 BLAS
