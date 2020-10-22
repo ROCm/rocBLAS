@@ -40,7 +40,7 @@ rocblas_status device_strided_batched_matrix_copy(rocblas_handle handle,
                                            src,
                                            sizeof(To) * n1 * n2 * batch_count,
                                            hipMemcpyDeviceToDevice,
-                                           handle->rocblas_stream));
+                                           handle->get_stream()));
     }
     else if(n1 == ld_src && n1 == ld_dst)
     {
@@ -50,7 +50,7 @@ rocblas_status device_strided_batched_matrix_copy(rocblas_handle handle,
                                                src + i3 * stride_src,
                                                sizeof(To) * n1 * n2,
                                                hipMemcpyDeviceToDevice,
-                                               handle->rocblas_stream));
+                                               handle->get_stream()));
     }
     else
     {
@@ -61,7 +61,7 @@ rocblas_status device_strided_batched_matrix_copy(rocblas_handle handle,
                                                    src + i2 * ld_src + i3 * stride_src,
                                                    sizeof(To) * n1,
                                                    hipMemcpyDeviceToDevice,
-                                                   handle->rocblas_stream));
+                                                   handle->get_stream()));
     }
     return rocblas_status_success;
 }
@@ -724,7 +724,7 @@ rocblas_status gemm_ex_batched_template(rocblas_handle    handle,
                                            n,
                                            batch_count,
                                            k,
-                                           handle->rocblas_stream,
+                                           handle->get_stream(),
                                            GetTransposeMode(trans_a, trans_b),
                                            &handle->startEvent,
                                            &handle->stopEvent);

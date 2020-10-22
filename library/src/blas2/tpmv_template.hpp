@@ -30,7 +30,7 @@ rocblas_status tpmv_template(rocblas_handle    handle,
         return rocblas_status_success;
     }
 
-    hipStream_t rocblas_stream = handle->rocblas_stream;
+    hipStream_t rocblas_stream = handle->get_stream();
 
     ptrdiff_t shiftx = incx < 0 ? offsetx + ptrdiff_t(incx) * (1 - m) : offsetx;
 

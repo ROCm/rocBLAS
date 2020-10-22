@@ -144,7 +144,7 @@ rocblas_status rocblas_hemv_template(rocblas_handle handle,
     if(!n || batch_count < 0)
         return rocblas_status_success;
 
-    hipStream_t rocblas_stream = handle->rocblas_stream;
+    hipStream_t rocblas_stream = handle->get_stream();
 
     // in case of negative inc shift pointer to end of data for negative indexing tid*inc
     auto shiftx = incx < 0 ? offsetx - ptrdiff_t(incx) * (n - 1) : offsetx;
