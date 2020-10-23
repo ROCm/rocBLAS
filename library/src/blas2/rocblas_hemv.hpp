@@ -87,6 +87,7 @@ template <rocblas_int DIM_X, rocblas_int DIM_Y, typename U, typename V, typename
 __global__ void hemvn_kernel(rocblas_fill   uplo,
                              rocblas_int    n,
                              U              alpha_device_host,
+                             rocblas_stride stride_alpha,
                              V              Aa,
                              ptrdiff_t      shifta,
                              rocblas_int    lda,
@@ -96,6 +97,7 @@ __global__ void hemvn_kernel(rocblas_fill   uplo,
                              rocblas_int    incx,
                              rocblas_stride stridex,
                              U              beta_device_host,
+                             rocblas_stride stride_beta,
                              W              ya,
                              ptrdiff_t      shifty,
                              rocblas_int    incy,
@@ -109,36 +111,39 @@ __global__ void hemvn_kernel(rocblas_fill   uplo,
     const auto* x = load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex);
     auto*       y = load_ptr_batch(ya, hipBlockIdx_y, shifty, stridey);
 
-    auto alpha = load_scalar(alpha_device_host);
-    auto beta  = load_scalar(beta_device_host);
+    auto alpha = load_scalar(alpha_device_host, hipBlockIdx_y, stride_alpha);
+    auto beta  = load_scalar(beta_device_host, hipBlockIdx_y, stride_beta);
 
     hemvn_kernel_calc<DIM_X, DIM_Y>(uplo, n, alpha, A, lda, x, incx, beta, y, incy);
 }
 
 /**
-  *  U is always: const T* (either host or device)
   *  V is either: const T* OR const T* const*
   *  W is either:       T* OR       T* const*
+  *  Note stride_alpha and stride_beta are only used AND only tested by rocSOLVER
+  *  These strided scalar fetches are only supported for device_ptr mode
   */
 template <typename U, typename V, typename W>
-rocblas_status rocblas_hemv_template(rocblas_handle handle,
-                                     rocblas_fill   uplo,
-                                     rocblas_int    n,
-                                     U              alpha,
-                                     V              A,
-                                     rocblas_int    offseta,
-                                     rocblas_int    lda,
-                                     rocblas_stride strideA,
-                                     V              x,
-                                     rocblas_int    offsetx,
-                                     rocblas_int    incx,
-                                     rocblas_stride stridex,
-                                     U              beta,
-                                     W              y,
-                                     rocblas_int    offsety,
-                                     rocblas_int    incy,
-                                     rocblas_stride stridey,
-                                     rocblas_int    batch_count)
+ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_hemv_template(rocblas_handle handle,
+                                                             rocblas_fill   uplo,
+                                                             rocblas_int    n,
+                                                             const U*       alpha,
+                                                             rocblas_stride stride_alpha,
+                                                             V              A,
+                                                             rocblas_int    offseta,
+                                                             rocblas_int    lda,
+                                                             rocblas_stride strideA,
+                                                             V              x,
+                                                             rocblas_int    offsetx,
+                                                             rocblas_int    incx,
+                                                             rocblas_stride stridex,
+                                                             const U*       beta,
+                                                             rocblas_stride stride_beta,
+                                                             W              y,
+                                                             rocblas_int    offsety,
+                                                             rocblas_int    incy,
+                                                             rocblas_stride stridey,
+                                                             rocblas_int    batch_count)
 {
     //quick return
     if(!n || batch_count < 0)
@@ -170,6 +175,7 @@ rocblas_status rocblas_hemv_template(rocblas_handle handle,
                            uplo,
                            n,
                            alpha,
+                           stride_alpha,
                            A,
                            offseta,
                            lda,
@@ -179,6 +185,7 @@ rocblas_status rocblas_hemv_template(rocblas_handle handle,
                            incx,
                            stridex,
                            beta,
+                           stride_beta,
                            y,
                            shifty,
                            incy,
@@ -197,6 +204,7 @@ rocblas_status rocblas_hemv_template(rocblas_handle handle,
                            uplo,
                            n,
                            *alpha,
+                           stride_alpha,
                            A,
                            offseta,
                            lda,
@@ -206,6 +214,7 @@ rocblas_status rocblas_hemv_template(rocblas_handle handle,
                            incx,
                            stridex,
                            *beta,
+                           stride_beta,
                            y,
                            shifty,
                            incy,
