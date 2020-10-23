@@ -1,0 +1,21 @@
+---
+include: rocblas_common.yaml
+include: known_bugs.yaml
+
+
+Half bfloat: &half_bfloat_precisions
+  - *half_precision
+  - *bf16_precision
+
+Tests:
+- name: half_operators
+  category: quick
+  function: half_operators
+  precision: *half_bfloat_precisions
+
+- name: complex_operators
+  category: quick
+  function: complex_operators
+  precision: *single_double_precisions_complex
+
+...
