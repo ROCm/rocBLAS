@@ -151,6 +151,10 @@ inline rocblas_status rocblas_symv_arg_check(rocblas_handle handle,
     return rocblas_status_continue;
 }
 
+/**
+  *  Note stride_alpha and stride_beta are only used AND only tested by rocSOLVER
+  *  These strided scalar fetches are only supported for device_ptr mode
+  */
 template <typename T, typename U, typename V, typename W>
 ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_symv_template(rocblas_handle handle,
                                                              rocblas_fill   uplo,
