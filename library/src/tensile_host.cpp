@@ -671,8 +671,14 @@ template rocblas_status
 template rocblas_status
     runContractionProblem(const RocblasContractionProblem<rocblas_half, rocblas_half, float>&);
 
+template rocblas_status
+    runContractionProblem(const RocblasContractionProblem<rocblas_half, float, float>&);
+
 template rocblas_status runContractionProblem(
     const RocblasContractionProblem<rocblas_bfloat16, rocblas_bfloat16, float>&);
+
+template rocblas_status
+    runContractionProblem(const RocblasContractionProblem<rocblas_bfloat16, float, float>&);
 
 template rocblas_status
     runContractionProblem(const RocblasContractionProblem<int8_t, int32_t, int32_t>&);

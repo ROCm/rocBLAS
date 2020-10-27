@@ -967,6 +967,12 @@ rocblas_status rocblas_gemm_ex_template(rocblas_handle    handle,
         rb_status
             = gemm_ex_typecasting<BATCHED, rocblas_half, rocblas_half, float>(EX_TYPECASTING_PARM);
     }
+    else if(a_type == rocblas_datatype_f16_r && b_type == rocblas_datatype_f16_r
+            && c_type == rocblas_datatype_f32_r && d_type == rocblas_datatype_f32_r
+            && compute_type == rocblas_datatype_f32_r)
+    {
+        rb_status = gemm_ex_typecasting<BATCHED, rocblas_half, float, float>(EX_TYPECASTING_PARM);
+    }
     else if(a_type == rocblas_datatype_bf16_r && b_type == rocblas_datatype_bf16_r
             && c_type == rocblas_datatype_bf16_r && d_type == rocblas_datatype_bf16_r
             && compute_type == rocblas_datatype_f32_r)
@@ -977,6 +983,18 @@ rocblas_status rocblas_gemm_ex_template(rocblas_handle    handle,
 #else
         rb_status = gemm_ex_typecasting<BATCHED, tensile_bfloat16, tensile_bfloat16, float>(
             EX_TYPECASTING_PARM);
+#endif
+    }
+    else if(a_type == rocblas_datatype_bf16_r && b_type == rocblas_datatype_bf16_r
+            && c_type == rocblas_datatype_f32_r && d_type == rocblas_datatype_f32_r
+            && compute_type == rocblas_datatype_f32_r)
+    {
+#ifdef USE_TENSILE_HOST
+        rb_status
+            = gemm_ex_typecasting<BATCHED, rocblas_bfloat16, float, float>(EX_TYPECASTING_PARM);
+#else
+        rb_status
+            = gemm_ex_typecasting<BATCHED, tensile_bfloat16, float, float>(EX_TYPECASTING_PARM);
 #endif
     }
     else if(a_type == rocblas_datatype_i8_r && b_type == rocblas_datatype_i8_r
