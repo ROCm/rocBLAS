@@ -490,6 +490,53 @@ void cblas_gemm<rocblas_bfloat16, rocblas_bfloat16, float>(rocblas_operation tra
 }
 
 template <>
+void cblas_gemm<rocblas_half, float, float>(rocblas_operation transA,
+                                            rocblas_operation transB,
+                                            rocblas_int       m,
+                                            rocblas_int       n,
+                                            rocblas_int       k,
+                                            float             alpha,
+                                            rocblas_half*     A,
+                                            rocblas_int       lda,
+                                            rocblas_half*     B,
+                                            rocblas_int       ldb,
+                                            float             beta,
+                                            float*            C,
+                                            rocblas_int       ldc)
+{
+    // cblas does not support rocblas_half, so convert to higher precision float
+    // This will give more precise result which is acceptable for testing
+
+    size_t sizeA = (transA == rocblas_operation_none ? k : m) * size_t(lda);
+    size_t sizeB = (transB == rocblas_operation_none ? n : k) * size_t(ldb);
+    size_t sizeC = n * size_t(ldc);
+
+    host_vector<float> A_float(sizeA), B_float(sizeB), C_float(sizeC);
+
+    for(size_t i = 0; i < sizeA; i++)
+        A_float[i] = A[i];
+    for(size_t i = 0; i < sizeB; i++)
+        B_float[i] = B[i];
+
+    // just directly cast, since transA, transB are integers in the enum
+    // printf("transA: rocblas =%d, cblas=%d\n", transA, static_cast<CBLAS_TRANSPOSE>(transA) );
+    cblas_sgemm(CblasColMajor,
+                static_cast<CBLAS_TRANSPOSE>(transA),
+                static_cast<CBLAS_TRANSPOSE>(transB),
+                m,
+                n,
+                k,
+                alpha,
+                A_float,
+                lda,
+                B_float,
+                ldb,
+                beta,
+                C_float,
+                ldc);
+}
+
+template <>
 void cblas_gemm<rocblas_half, rocblas_half, float>(rocblas_operation transA,
                                                    rocblas_operation transB,
                                                    rocblas_int       m,
