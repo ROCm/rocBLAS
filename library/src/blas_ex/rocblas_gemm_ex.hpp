@@ -1038,17 +1038,6 @@ rocblas_status rocblas_gemm_ex_template(rocblas_handle    handle,
 
 #undef EX_TYPECASTING_PARM
 
-// Union for representing scalar values
-typedef union rocblas_union_u
-{
-    rocblas_half           h;
-    float                  s;
-    double                 d;
-    int32_t                i;
-    rocblas_float_complex  c;
-    rocblas_double_complex z;
-} rocblas_union_t;
-
 // Copy alpha and beta to host if on device
 template <typename T>
 rocblas_status copy_alpha_beta_to_host_if_on_device(rocblas_handle   handle,

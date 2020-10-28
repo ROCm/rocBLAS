@@ -172,6 +172,7 @@ public:
     // C interfaces for manipulating device memory
     friend rocblas_status(::rocblas_start_device_memory_size_query)(_rocblas_handle*);
     friend rocblas_status(::rocblas_stop_device_memory_size_query)(_rocblas_handle*, size_t*);
+    friend rocblas_status(::rocblas_set_solution_fitness_query)(_rocblas_handle*, double*);
     friend rocblas_status(::rocblas_get_device_memory_size)(_rocblas_handle*, size_t*);
     friend rocblas_status(::rocblas_set_device_memory_size)(_rocblas_handle*, size_t);
     friend bool(::rocblas_is_managing_device_memory)(_rocblas_handle*);
@@ -180,6 +181,12 @@ public:
     bool is_device_memory_size_query() const
     {
         return device_memory_size_query;
+    }
+
+    // Get the solution fitness query
+    auto* get_solution_fitness_query() const
+    {
+        return solution_fitness_query;
     }
 
     // Sets the optimal size(s) of device memory for a kernel call
@@ -232,6 +239,9 @@ private:
     bool   device_memory_size_query         = false;
     bool   device_memory_is_rocblas_managed = false;
     size_t device_memory_query_size;
+
+    // Solution fitness query (used for internal testing)
+    double* solution_fitness_query = nullptr;
 
 #if ROCBLAS_REALLOC_ON_DEMAND
     // Helper for device memory allocator

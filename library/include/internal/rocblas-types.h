@@ -204,4 +204,15 @@ typedef enum rocblas_gemm_flags_
 
 } rocblas_gemm_flags;
 
+/*! \brief Union for representing scalar values */
+typedef union rocblas_union_u
+{
+    rocblas_half           h;
+    float                  s;
+    double                 d;
+    int32_t                i;
+    rocblas_float_complex  c;
+    rocblas_double_complex z;
+} rocblas_union_t;
+
 #endif
