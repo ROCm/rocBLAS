@@ -152,6 +152,9 @@ set (rocblas_ex_source_no_tensile
     blas_ex/rocblas_dot_ex.cpp
     blas_ex/rocblas_dot_batched_ex.cpp
     blas_ex/rocblas_dot_strided_batched_ex.cpp
+    blas_ex/rocblas_rot_ex.cpp
+    blas_ex/rocblas_rot_batched_ex.cpp
+    blas_ex/rocblas_rot_strided_batched_ex.cpp
     blas_ex/rocblas_scal_ex.cpp
     blas_ex/rocblas_scal_batched_ex.cpp
     blas_ex/rocblas_scal_strided_batched_ex.cpp

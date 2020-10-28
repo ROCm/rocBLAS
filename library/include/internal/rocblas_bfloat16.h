@@ -123,6 +123,7 @@ private:
             // the bloat16's mantissa bits are all 0.
             u.int32 |= 0x10000; // Preserve signaling NaN
         }
+
         return uint16_t(u.int32 >> 16);
     }
 
@@ -266,6 +267,10 @@ namespace std
     inline rocblas_bfloat16 cos(rocblas_bfloat16 a)
     {
         return rocblas_bfloat16(cosf(float(a)));
+    }
+    __device__ __host__ constexpr rocblas_bfloat16 real(const rocblas_bfloat16& a)
+    {
+        return a;
     }
 }
 

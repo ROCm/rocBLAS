@@ -213,6 +213,7 @@ def setdefaults(test):
                             'copy_strided_batched', 'dot_strided_batched',
                             'dotc_strided_batched', 'dot_strided_batched_ex',
                             'dotc_strided_batched_ex', 'rot_strided_batched',
+                            'rot_strided_batched_ex',
                             'rotm_strided_batched', 'iamax_strided_batched',
                             'iamin_strided_batched', 'axpy_strided_batched',
                             'axpy_strided_batched_ex', 'nrm2_strided_batched_ex',

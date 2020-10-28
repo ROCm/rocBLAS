@@ -179,6 +179,83 @@ void cblas_dotc<rocblas_bfloat16>(rocblas_int             n,
     cblas_dot(n, x, incx, y, incy, result);
 }
 
+// rot
+template <>
+void cblas_rot<rocblas_half>(rocblas_int         n,
+                             rocblas_half*       x,
+                             rocblas_int         incx,
+                             rocblas_half*       y,
+                             rocblas_int         incy,
+                             const rocblas_half* c,
+                             const rocblas_half* s)
+{
+    size_t abs_incx = incx >= 0 ? incx : -incx;
+    size_t abs_incy = incy >= 0 ? incy : -incy;
+    size_t size_x   = n * abs_incx;
+    size_t size_y   = n * abs_incy;
+    if(!size_x)
+        size_x = 1;
+    if(!size_y)
+        size_y = 1;
+    host_vector<float> x_float(size_x);
+    host_vector<float> y_float(size_y);
+
+    for(size_t i = 0; i < n; i++)
+    {
+        x_float[i * abs_incx] = x[i * abs_incx];
+        y_float[i * abs_incy] = y[i * abs_incy];
+    }
+
+    const float c_float = float(*c);
+    const float s_float = float(*s);
+
+    cblas_srot(n, x_float, incx, y_float, incy, c_float, s_float);
+
+    for(size_t i = 0; i < n; i++)
+    {
+        x[i * abs_incx] = x_float[i * abs_incx];
+        y[i * abs_incy] = y_float[i * abs_incy];
+    }
+}
+
+template <>
+void cblas_rot<rocblas_bfloat16>(rocblas_int             n,
+                                 rocblas_bfloat16*       x,
+                                 rocblas_int             incx,
+                                 rocblas_bfloat16*       y,
+                                 rocblas_int             incy,
+                                 const rocblas_bfloat16* c,
+                                 const rocblas_bfloat16* s)
+{
+    size_t abs_incx = incx >= 0 ? incx : -incx;
+    size_t abs_incy = incy >= 0 ? incy : -incy;
+    size_t size_x   = n * abs_incx;
+    size_t size_y   = n * abs_incy;
+    if(!size_x)
+        size_x = 1;
+    if(!size_y)
+        size_y = 1;
+    host_vector<float> x_float(size_x);
+    host_vector<float> y_float(size_y);
+
+    for(size_t i = 0; i < n; i++)
+    {
+        x_float[i * abs_incx] = x[i * abs_incx];
+        y_float[i * abs_incy] = y[i * abs_incy];
+    }
+
+    const float c_float = rocblas_bfloat16(*c);
+    const float s_float = rocblas_bfloat16(*s);
+
+    cblas_srot(n, x_float, incx, y_float, incy, c_float, s_float);
+
+    for(size_t i = 0; i < n; i++)
+    {
+        x[i * abs_incx] = rocblas_bfloat16(x_float[i * abs_incx]);
+        y[i * abs_incy] = rocblas_bfloat16(y_float[i * abs_incy]);
+    }
+}
+
 /*
  * ===========================================================================
  *    level 2 BLAS

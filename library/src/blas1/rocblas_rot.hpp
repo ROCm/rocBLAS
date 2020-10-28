@@ -4,86 +4,87 @@
 #pragma once
 #include "handle.hpp"
 
-template <typename T,
-          typename T2,
-          typename U,
-          typename V,
-          std::enable_if_t<!is_complex<V>, int> = 0>
-__global__ void rot_kernel(rocblas_int    n,
-                           T2             x_in,
-                           rocblas_int    offset_x,
-                           rocblas_int    incx,
-                           rocblas_stride stride_x,
-                           T2             y_in,
-                           rocblas_int    offset_y,
-                           rocblas_int    incy,
-                           rocblas_stride stride_y,
-                           U              c_device_host,
-                           rocblas_stride c_stride,
-                           V              s_device_host,
-                           rocblas_stride s_stride)
+template <typename Tex,
+          typename Tx,
+          typename Ty,
+          typename Tc,
+          typename Ts,
+          std::enable_if_t<!is_complex<Ts>, int> = 0>
+__device__ void
+    rot_kernel_calc(rocblas_int n, Tx* x, rocblas_int incx, Ty* y, rocblas_int incy, Tc c, Ts s)
 {
-    auto      c   = load_scalar(c_device_host, hipBlockIdx_y, c_stride);
-    auto      s   = load_scalar(s_device_host, hipBlockIdx_y, s_stride);
-    auto      x   = load_ptr_batch(x_in, hipBlockIdx_y, offset_x, stride_x);
-    auto      y   = load_ptr_batch(y_in, hipBlockIdx_y, offset_y, stride_y);
     ptrdiff_t tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
 
     if(tid < n)
     {
-        auto ix   = tid * incx;
-        auto iy   = tid * incy;
-        auto temp = c * x[ix] + s * y[iy];
-        y[iy]     = c * y[iy] - s * x[ix];
-        x[ix]     = temp;
+        auto ix    = tid * incx;
+        auto iy    = tid * incy;
+        Tex  tempx = Tex(c * x[ix]) + Tex(s * y[iy]);
+        Tex  tempy = Tex(c * y[iy]) - Tex((s)*x[ix]);
+        y[iy]      = Ty(tempy);
+        x[ix]      = Tx(tempx);
     }
 }
 
-template <typename T, typename T2, typename U, typename V, std::enable_if_t<is_complex<V>, int> = 0>
-__global__ void rot_kernel(rocblas_int    n,
-                           T2             x_in,
-                           rocblas_int    offset_x,
-                           rocblas_int    incx,
-                           rocblas_stride stride_x,
-                           T2             y_in,
-                           rocblas_int    offset_y,
-                           rocblas_int    incy,
-                           rocblas_stride stride_y,
-                           U              c_device_host,
-                           rocblas_stride c_stride,
-                           V              s_device_host,
-                           rocblas_stride s_stride)
+template <typename Tex,
+          typename Tx,
+          typename Ty,
+          typename Tc,
+          typename Ts,
+          std::enable_if_t<is_complex<Ts>, int> = 0>
+__device__ void
+    rot_kernel_calc(rocblas_int n, Tx* x, rocblas_int incx, Ty* y, rocblas_int incy, Tc c, Ts s)
 {
-    auto      c   = load_scalar(c_device_host, hipBlockIdx_y, c_stride);
-    auto      s   = load_scalar(s_device_host, hipBlockIdx_y, s_stride);
-    auto      x   = load_ptr_batch(x_in, hipBlockIdx_y, offset_x, stride_x);
-    auto      y   = load_ptr_batch(y_in, hipBlockIdx_y, offset_y, stride_y);
     ptrdiff_t tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
 
     if(tid < n)
     {
-        auto ix   = tid * incx;
-        auto iy   = tid * incy;
-        auto temp = c * x[ix] + s * y[iy];
-        y[iy]     = c * y[iy] - conj(s) * x[ix];
-        x[ix]     = temp;
+        auto ix    = tid * incx;
+        auto iy    = tid * incy;
+        Tex  tempx = Tex(c * x[ix]) + Tex(s * y[iy]);
+        Tex  tempy = Tex(c * y[iy]) - Tex(conj(s) * x[ix]);
+        y[iy]      = Ty(tempy);
+        x[ix]      = Tx(tempx);
     }
 }
 
-template <rocblas_int NB, typename T, typename T2, typename U, typename V>
+template <typename Tex, typename Tx, typename Ty, typename Tc, typename Ts>
+__global__ void rot_kernel(rocblas_int    n,
+                           Tx             x_in,
+                           rocblas_int    offset_x,
+                           rocblas_int    incx,
+                           rocblas_stride stride_x,
+                           Ty             y_in,
+                           rocblas_int    offset_y,
+                           rocblas_int    incy,
+                           rocblas_stride stride_y,
+                           Tc             c_in,
+                           rocblas_stride c_stride,
+                           Ts             s_in,
+                           rocblas_stride s_stride)
+{
+    auto c = std::real(load_scalar(c_in, hipBlockIdx_y, c_stride));
+    auto s = load_scalar(s_in, hipBlockIdx_y, s_stride);
+    auto x = load_ptr_batch(x_in, hipBlockIdx_y, offset_x, stride_x);
+    auto y = load_ptr_batch(y_in, hipBlockIdx_y, offset_y, stride_y);
+
+    rot_kernel_calc<Tex>(n, x, incx, y, incy, c, s);
+}
+
+template <rocblas_int NB, typename Tex, typename Tx, typename Ty, typename Tc, typename Ts>
 rocblas_status rocblas_rot_template(rocblas_handle handle,
                                     rocblas_int    n,
-                                    T2             x,
+                                    Tx             x,
                                     rocblas_int    offset_x,
                                     rocblas_int    incx,
                                     rocblas_stride stride_x,
-                                    T2             y,
+                                    Ty             y,
                                     rocblas_int    offset_y,
                                     rocblas_int    incy,
                                     rocblas_stride stride_y,
-                                    U*             c,
+                                    Tc*            c,
                                     rocblas_stride c_stride,
-                                    V*             s,
+                                    Ts*            s,
                                     rocblas_stride s_stride,
                                     rocblas_int    batch_count)
 {
@@ -102,7 +103,7 @@ rocblas_status rocblas_rot_template(rocblas_handle handle,
     auto saved_device_id = handle->push_device_id();
 
     if(rocblas_pointer_mode_device == handle->pointer_mode)
-        hipLaunchKernelGGL(rot_kernel<T>,
+        hipLaunchKernelGGL(rot_kernel<Tex>,
                            blocks,
                            threads,
                            0,
@@ -121,7 +122,7 @@ rocblas_status rocblas_rot_template(rocblas_handle handle,
                            s,
                            s_stride);
     else // c and s are on host
-        hipLaunchKernelGGL(rot_kernel<T>,
+        hipLaunchKernelGGL(rot_kernel<Tex>,
                            blocks,
                            threads,
                            0,

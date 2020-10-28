@@ -10754,6 +10754,84 @@ module rocblas_interface
         return
     end function rocblas_nrm2_strided_batched_ex_fortran
 
+    ! rot_ex
+    function rocblas_rot_ex_fortran(handle, n, x, x_type, incx, y, y_type, incy, &
+            c, s, cs_type, execution_type) &
+            result(res) &
+            bind(c, name = 'rocblas_rot_ex_fortran')
+        use iso_c_binding
+        use rocblas_enums
+        implicit none
+        type(c_ptr), value :: handle
+        integer(c_int), value :: n
+        type(c_ptr), value :: x
+        integer(kind(rocblas_datatype_f16_r)), value :: x_type
+        integer(c_int), value :: incx
+        type(c_ptr), value :: y
+        integer(kind(rocblas_datatype_f16_r)), value :: y_type
+        integer(c_int), value :: incy
+        type(c_ptr), value :: c
+        type(c_ptr), value :: s
+        integer(kind(rocblas_datatype_f16_r)), value :: cs_type
+        integer(kind(rocblas_datatype_f16_r)), value :: execution_type
+        integer(c_int) :: res
+        res = rocblas_rot_ex(handle, n, x, x_type, incx, y, y_type, incy, c, s, cs_type, execution_type)
+        return
+    end function rocblas_rot_ex_fortran
+
+    function rocblas_rot_batched_ex_fortran(handle, n, x, x_type, incx, y, y_type, incy, &
+            c, s, cs_type, batch_count, execution_type) &
+            result(res) &
+            bind(c, name = 'rocblas_rot_batched_ex_fortran')
+        use iso_c_binding
+        use rocblas_enums
+        implicit none
+        type(c_ptr), value :: handle
+        integer(c_int), value :: n
+        type(c_ptr), value :: x
+        integer(kind(rocblas_datatype_f16_r)), value :: x_type
+        integer(c_int), value :: incx
+        type(c_ptr), value :: y
+        integer(kind(rocblas_datatype_f16_r)), value :: y_type
+        integer(c_int), value :: incy
+        type(c_ptr), value :: c
+        type(c_ptr), value :: s
+        integer(kind(rocblas_datatype_f16_r)), value :: cs_type
+        integer(c_int), value :: batch_count
+        integer(kind(rocblas_datatype_f16_r)), value :: execution_type
+        integer(c_int) :: res
+        res = rocblas_rot_batched_ex(handle, n, x, x_type, incx, y, y_type, incy, c, s, cs_type, batch_count, execution_type)
+        return
+    end function rocblas_rot_batched_ex_fortran
+
+    function rocblas_rot_strided_batched_ex_fortran(handle, n, x, x_type, incx, stride_x, y, y_type, incy, stride_y, &
+            c, s, cs_type, batch_count, execution_type) &
+            result(res) &
+            bind(c, name = 'rocblas_rot_strided_batched_ex_fortran')
+        use iso_c_binding
+        use rocblas_enums
+        implicit none
+        type(c_ptr), value :: handle
+        integer(c_int), value :: n
+        type(c_ptr), value :: x
+        integer(kind(rocblas_datatype_f16_r)), value :: x_type
+        integer(c_int), value :: incx
+        integer(c_int64_t), value :: stride_x
+        type(c_ptr), value :: y
+        integer(kind(rocblas_datatype_f16_r)), value :: y_type
+        integer(c_int), value :: incy
+        integer(c_int64_t), value :: stride_y
+        type(c_ptr), value :: c
+        type(c_ptr), value :: s
+        integer(kind(rocblas_datatype_f16_r)), value :: cs_type
+        integer(c_int), value :: batch_count
+        integer(kind(rocblas_datatype_f16_r)), value :: execution_type
+        integer(c_int) :: res
+        res = rocblas_rot_strided_batched_ex(handle, n, x, x_type, incx, stride_x, y, y_type, incy, stride_y, &
+                             c, s, cs_type, batch_count, execution_type)
+        return
+    end function rocblas_rot_strided_batched_ex_fortran
+
     ! scal_ex
     function rocblas_scal_ex_fortran(handle, n, alpha, alpha_type, x, x_type, incx, execution_type) &
             result(res) &

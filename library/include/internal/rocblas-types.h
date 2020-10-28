@@ -68,6 +68,18 @@ typedef struct rocblas_half
 } rocblas_half;
 #endif
 
+#if !(__cplusplus < 201402L || (!defined(__HCC__) && !defined(__HIPCC__)))
+
+namespace std
+{
+    __device__ __host__ constexpr rocblas_half real(const rocblas_half& a)
+    {
+        return a;
+    }
+}
+
+#endif
+
 // complex types
 #include "rocblas-complex-types.h"
 

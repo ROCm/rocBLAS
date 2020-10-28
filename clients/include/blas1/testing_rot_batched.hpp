@@ -85,7 +85,6 @@ void testing_rot_batched(const Arguments& arg)
     double               gpu_time_used, cpu_time_used;
     double norm_error_host_x = 0.0, norm_error_host_y = 0.0, norm_error_device_x = 0.0,
            norm_error_device_y = 0.0;
-    const U rel_error          = std::numeric_limits<U>::epsilon() * 1000;
 
     // check to prevent undefined memory allocation error
     if(N <= 0 || batch_count <= 0)
@@ -119,13 +118,8 @@ void testing_rot_batched(const Arguments& arg)
     rocblas_init(hx, true);
     rocblas_init(hy, false);
 
-    // Random alpha (0 - 10)
-    host_vector<rocblas_int> alpha(1);
-    rocblas_init<rocblas_int>(alpha, 1, 1, 1);
-
-    // cos and sin of alpha (in rads)
-    hc[0] = cos(alpha[0]);
-    hs[0] = sin(alpha[0]);
+    rocblas_init(hc, false);
+    rocblas_init(hs, false);
 
     // CPU BLAS reference data
     host_batch_vector<T> cx(N, incx, batch_count);
@@ -139,7 +133,7 @@ void testing_rot_batched(const Arguments& arg)
     cpu_time_used = get_time_us_no_sync();
     for(int b = 0; b < batch_count; b++)
     {
-        cblas_rot<T, U, V>(N, cx[b], incx, cy[b], incy, hc, hs);
+        cblas_rot<T, T, U, V>(N, cx[b], incx, cy[b], incy, hc, hs);
     }
     cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
@@ -169,8 +163,8 @@ void testing_rot_batched(const Arguments& arg)
 
             if(arg.unit_check)
             {
-                near_check_general<T>(1, N, abs_incx, cx, rx, batch_count, rel_error);
-                near_check_general<T>(1, N, abs_incy, cy, ry, batch_count, rel_error);
+                unit_check_general<T>(1, N, abs_incx, cx, rx, batch_count);
+                unit_check_general<T>(1, N, abs_incy, cy, ry, batch_count);
             }
             if(arg.norm_check)
             {
@@ -205,8 +199,8 @@ void testing_rot_batched(const Arguments& arg)
 
             if(arg.unit_check)
             {
-                near_check_general<T>(1, N, abs_incx, cx, rx, batch_count, rel_error);
-                near_check_general<T>(1, N, abs_incy, cy, ry, batch_count, rel_error);
+                unit_check_general<T>(1, N, abs_incx, cx, rx, batch_count);
+                unit_check_general<T>(1, N, abs_incy, cy, ry, batch_count);
             }
             if(arg.norm_check)
             {
