@@ -16569,6 +16569,250 @@ ROCBLAS_EXPORT rocblas_status rocblas_nrm2_strided_batched_ex(rocblas_handle   h
 /*! \brief BLAS EX API
 
     \details
+    rot_ex applies the Givens rotation matrix defined by c=cos(alpha) and s=sin(alpha) to vectors x and y.
+        Scalars c and s may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode.
+
+	In the case where cs_type is real:
+	    x := c * x + s * y
+            y := c * y - s * x
+
+	In the case where cs_type is complex, the imaginary part of c is ignored:
+	    x := real(c) * x + s * y
+            y := real(c) * y - conj(s) * x
+
+    Currently supported datatypes are as follows:
+
+        ------------------------------------------------
+        |  x_type | y_type  | cs_type | execution_type |
+        |---------|---------|---------|----------------|
+        |  bf16_r |  bf16_r | bf16_r  |  f32_r         |
+        |  f16_r  |  f16_r  | f16_r   |  f32_r         |
+        |  f32_r  |  f32_r  | f32_r   |  f32_r         |
+        |  f64_r  |  f64_r  | f64_r   |  f64_r         |
+        |  f32_c  |  f32_c  | f32_c   |  f32_c         |
+        |  f32_c  |  f32_c  | f32_r   |  f32_c         |
+        |  f64_c  |  f64_c  | f64_c   |  f64_c         |
+        |  f64_c  |  f64_c  | f64_r   |  f64_c         |
+        ------------------------------------------------
+
+    @param[in]
+    handle  [rocblas_handle]
+            handle to the rocblas library context queue.
+    @param[in]
+    n       [rocblas_int]
+            number of elements in the x and y vectors.
+    @param[inout]
+    x       device pointer storing vector x.
+    @param[in]
+    x_type [rocblas_datatype]
+           specifies the datatype of vector x.
+    @param[in]
+    incx    [rocblas_int]
+            specifies the increment between elements of x.
+    @param[inout]
+    y       device pointer storing vector y.
+    @param[in]
+    y_type [rocblas_datatype]
+           specifies the datatype of vector y.
+    @param[in]
+    incy    [rocblas_int]
+            specifies the increment between elements of y.
+    @param[in]
+    c       device pointer or host pointer storing scalar cosine component of the rotation matrix.
+    @param[in]
+    s       device pointer or host pointer storing scalar sine component of the rotation matrix.
+    @param[in]
+    cs_type [rocblas_datatype]
+            specifies the datatype of c and s.
+    @param[in]
+    execution_type [rocblas_datatype]
+                   specifies the datatype of computation.
+
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_rot_ex(rocblas_handle   handle,
+                                             rocblas_int      n,
+                                             void*            x,
+                                             rocblas_datatype x_type,
+                                             rocblas_int      incx,
+                                             void*            y,
+                                             rocblas_datatype y_type,
+                                             rocblas_int      incy,
+                                             const void*      c,
+                                             const void*      s,
+                                             rocblas_datatype cs_type,
+                                             rocblas_datatype execution_type);
+
+/*! \brief BLAS EX API
+
+    \details
+    rot_batched_ex applies the Givens rotation matrix defined by c=cos(alpha) and s=sin(alpha) to batched vectors x_i and y_i, for i = 1, ..., batch_count.
+        Scalars c and s may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode.
+
+	In the case where cs_type is real:
+            x := c * x + s * y
+            y := c * y - s * x
+
+        In the case where cs_type is complex, the imaginary part of c is ignored:
+            x := real(c) * x + s * y
+            y := real(c) * y - conj(s) * x
+
+    Currently supported datatypes are as follows:
+
+        ------------------------------------------------
+        |  x_type | y_type  | cs_type | execution_type |
+        |---------|---------|---------|----------------|
+        |  bf16_r |  bf16_r | bf16_r  |  f32_r         |
+        |  f16_r  |  f16_r  | f16_r   |  f32_r         |
+        |  f32_r  |  f32_r  | f32_r   |  f32_r         |
+        |  f64_r  |  f64_r  | f64_r   |  f64_r         |
+        |  f32_c  |  f32_c  | f32_c   |  f32_c         |
+        |  f32_c  |  f32_c  | f32_r   |  f32_c         |
+        |  f64_c  |  f64_c  | f64_c   |  f64_c         |
+        |  f64_c  |  f64_c  | f64_r   |  f64_c         |
+        ------------------------------------------------
+
+    @param[in]
+    handle  [rocblas_handle]
+            handle to the rocblas library context queue.
+    @param[in]
+    n       [rocblas_int]
+            number of elements in each x_i and y_i vectors.
+    @param[inout]
+    x       device array of deivce pointers storing each vector x_i.
+    @param[in]
+    x_type [rocblas_datatype]
+           specifies the datatype of each vector x_i.
+    @param[in]
+    incx    [rocblas_int]
+            specifies the increment between elements of each x_i.
+    @param[inout]
+    y       device array of device pointers storing each vector y_i.
+    @param[in]
+    y_type [rocblas_datatype]
+           specifies the datatype of each vector y_i.
+    @param[in]
+    incy    [rocblas_int]
+            specifies the increment between elements of each y_i.
+    @param[in]
+    c       device pointer or host pointer to scalar cosine component of the rotation matrix.
+    @param[in]
+    s       device pointer or host pointer to scalar sine component of the rotation matrix.
+    @param[in]
+    cs_type [rocblas_datatype]
+            specifies the datatype of c and s.
+    @param[in]
+    batch_count [rocblas_int]
+                the number of x and y arrays, i.e. the number of batches.
+    @param[in]
+    execution_type [rocblas_datatype]
+                   specifies the datatype of computation.
+
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_rot_batched_ex(rocblas_handle   handle,
+                                                     rocblas_int      n,
+                                                     void*            x,
+                                                     rocblas_datatype x_type,
+                                                     rocblas_int      incx,
+                                                     void*            y,
+                                                     rocblas_datatype y_type,
+                                                     rocblas_int      incy,
+                                                     const void*      c,
+                                                     const void*      s,
+                                                     rocblas_datatype cs_type,
+                                                     rocblas_int      batch_count,
+                                                     rocblas_datatype execution_type);
+
+/*! \brief BLAS Level 1 API
+
+    \details
+    rot_strided_batched_ex applies the Givens rotation matrix defined by c=cos(alpha) and s=sin(alpha) to strided batched vectors x_i and y_i, for i = 1, ..., batch_count.
+        Scalars c and s may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode.
+
+	In the case where cs_type is real:
+            x := c * x + s * y
+            y := c * y - s * x
+
+        In the case where cs_type is complex, the imaginary part of c is ignored:
+            x := real(c) * x + s * y
+            y := real(c) * y - conj(s) * x
+
+    Currently supported datatypes are as follows:
+
+        ------------------------------------------------
+        |  x_type | y_type  | cs_type | execution_type |
+        |---------|---------|---------|----------------|
+        |  bf16_r |  bf16_r | bf16_r  |  f32_r         |
+        |  f16_r  |  f16_r  | f16_r   |  f32_r         |
+        |  f32_r  |  f32_r  | f32_r   |  f32_r         |
+        |  f64_r  |  f64_r  | f64_r   |  f64_r         |
+        |  f32_c  |  f32_c  | f32_c   |  f32_c         |
+        |  f32_c  |  f32_c  | f32_r   |  f32_c         |
+        |  f64_c  |  f64_c  | f64_c   |  f64_c         |
+        |  f64_c  |  f64_c  | f64_r   |  f64_c         |
+        ------------------------------------------------
+
+    @param[in]
+    handle  [rocblas_handle]
+            handle to the rocblas library context queue.
+    @param[in]
+    n       [rocblas_int]
+            number of elements in each x_i and y_i vectors.
+    @param[inout]
+    x       device pointer to the first vector x_1.
+    @param[in]
+    x_type [rocblas_datatype]
+           specifies the datatype of each vector x_i.
+    @param[in]
+    incx    [rocblas_int]
+            specifies the increment between elements of each x_i.
+    @param[in]
+    stride_x [rocblas_stride]
+             specifies the increment from the beginning of x_i to the beginning of x_(i+1)
+    @param[inout]
+    y       device pointer to the first vector y_1.
+    @param[in]
+    y_type [rocblas_datatype]
+           specifies the datatype of each vector y_i.
+    @param[in]
+    incy    [rocblas_int]
+            specifies the increment between elements of each y_i.
+    @param[in]
+    stride_y [rocblas_stride]
+             specifies the increment from the beginning of y_i to the beginning of y_(i+1)
+    @param[in]
+    c       device pointer or host pointer to scalar cosine component of the rotation matrix.
+    @param[in]
+    s       device pointer or host pointer to scalar sine component of the rotation matrix.
+    @param[in]
+    cs_type [rocblas_datatype]
+            specifies the datatype of c and s.
+    @param[in]
+    batch_count [rocblas_int]
+            the number of x and y arrays, i.e. the number of batches.
+    @param[in]
+    execution_type [rocblas_datatype]
+                   specifies the datatype of computation.
+
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_rot_strided_batched_ex(rocblas_handle   handle,
+                                                             rocblas_int      n,
+                                                             void*            x,
+                                                             rocblas_datatype x_type,
+                                                             rocblas_int      incx,
+                                                             rocblas_stride   stride_x,
+                                                             void*            y,
+                                                             rocblas_datatype y_type,
+                                                             rocblas_int      incy,
+                                                             rocblas_stride   stride_y,
+                                                             const void*      c,
+                                                             const void*      s,
+                                                             rocblas_datatype cs_type,
+                                                             rocblas_int      batch_count,
+                                                             rocblas_datatype execution_type);
+
+/*! \brief BLAS EX API
+
+    \details
     scal_ex  scales each element of vector x with scalar alpha.
 
         x := alpha * x

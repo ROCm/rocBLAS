@@ -48,16 +48,25 @@ template <template <typename...> class TEST>
 auto rocblas_blas1_dispatch(const Arguments& arg)
 {
     const auto Ti = arg.a_type, Tb = arg.b_type, To = arg.d_type;
+    const auto Tc = arg.c_type;
     if(Ti == To)
     {
         if(Tb == Ti)
             return rocblas_simple_dispatch<TEST>(arg);
         else
-        { // for csscal and zdscal and complex rotg only
-            if(Ti == rocblas_datatype_f32_c && Tb == rocblas_datatype_f32_r)
+        { // for csscal and zdscal and complex rot/rotg only
+            if(Ti == rocblas_datatype_f32_c && Tb == rocblas_datatype_f32_r
+               && Tc == rocblas_datatype_f32_r)
                 return TEST<rocblas_float_complex, float>{}(arg);
-            else if(Ti == rocblas_datatype_f64_c && Tb == rocblas_datatype_f64_r)
+            else if(Ti == rocblas_datatype_f32_c && Tb == rocblas_datatype_f32_r
+                    && Tc == rocblas_datatype_f32_c)
+                return TEST<rocblas_float_complex, float, rocblas_float_complex>{}(arg);
+            else if(Ti == rocblas_datatype_f64_c && Tb == rocblas_datatype_f64_r
+                    && Tc == rocblas_datatype_f64_r)
                 return TEST<rocblas_double_complex, double>{}(arg);
+            else if(Ti == rocblas_datatype_f64_c && Tb == rocblas_datatype_f64_r
+                    && Tc == rocblas_datatype_f64_c)
+                return TEST<rocblas_double_complex, double, rocblas_double_complex>{}(arg);
         }
     }
     else if(Ti == rocblas_datatype_f32_c && Tb == rocblas_datatype_f32_r)
@@ -68,6 +77,7 @@ auto rocblas_blas1_dispatch(const Arguments& arg)
         return TEST<float, float>{}(arg);
     else if(Ti == rocblas_datatype_f64_r && Tb == rocblas_datatype_f64_r)
         return TEST<double, double>{}(arg);
+
     //  else if(Ti == rocblas_datatype_f16_c && To == rocblas_datatype_f16_r)
     //      return TEST<rocblas_half_complex, rocblas_half>{}(arg);
 
@@ -126,6 +136,22 @@ auto rocblas_blas1_ex_dispatch(const Arguments& arg)
     {
         // nrm2 half with float execution
         return TEST<rocblas_half, rocblas_half, float>{}(arg);
+    }
+    else if(Ta == rocblas_datatype_f32_c && Tx == rocblas_datatype_f32_c
+            && Ty == rocblas_datatype_f32_r && Tex == rocblas_datatype_f32_c)
+    {
+        // rot with complex x/y/compute and real cs
+        return TEST<rocblas_float_complex, rocblas_float_complex, float, rocblas_float_complex>{}(
+            arg);
+    }
+    else if(Ta == rocblas_datatype_f64_c && Tx == rocblas_datatype_f64_c
+            && Ty == rocblas_datatype_f64_r && Tex == rocblas_datatype_f64_c)
+    {
+        // rot with complex x/y/compute and real cs
+        return TEST<rocblas_double_complex,
+                    rocblas_double_complex,
+                    double,
+                    rocblas_double_complex>{}(arg);
     }
 
     return TEST<void>{}(arg);

@@ -886,6 +886,12 @@ rocblas_nrm2_ex + batched, strided_batched
 .. doxygenfunction:: rocblas_nrm2_batched_ex
 .. doxygenfunction:: rocblas_nrm2_strided_batched_ex
 
+rocblas_rot_ex + batched, strided_batched
+------------------------------------------
+.. doxygenfunction:: rocblas_rot_ex
+.. doxygenfunction:: rocblas_rot_batched_ex
+.. doxygenfunction:: rocblas_rot_strided_batched_ex
+
 rocblas_scal_ex + batched, strided_batched
 ------------------------------------------
 .. doxygenfunction:: rocblas_scal_ex
