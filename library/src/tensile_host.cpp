@@ -587,10 +587,12 @@ rocblas_status runContractionProblem(const RocblasContractionProblem<Ti, To, Tc>
     try
     {
         std::shared_ptr<Tensile::MasterSolutionLibrary<Tensile::ContractionProblem>> library;
-        auto& adapter      = get_library_and_adapter(&library);
-        auto  hardware     = Tensile::hip::GetCurrentDevice();
-        auto  tensile_prob = ConstructTensileProblem(prob);
-        solution           = library->findBestSolution(tensile_prob, *hardware);
+        auto& adapter       = get_library_and_adapter(&library);
+        auto  hardware      = Tensile::hip::GetCurrentDevice();
+        auto  tensile_prob  = ConstructTensileProblem(prob);
+        auto  handle        = prob.handle;
+        auto* fitness_query = handle->get_solution_fitness_query();
+        solution            = library->findBestSolution(tensile_prob, *hardware, fitness_query);
 
         if(!solution)
         {
@@ -600,8 +602,9 @@ rocblas_status runContractionProblem(const RocblasContractionProblem<Ti, To, Tc>
         }
         else
         {
-            auto handle = prob.handle;
-            if(handle->is_device_memory_size_query())
+            if(fitness_query)
+                status = rocblas_status_success;
+            else if(handle->is_device_memory_size_query())
             {
                 status = handle->set_optimal_device_memory_size(
                     ((solution->requiredWorkspaceSize(tensile_prob)

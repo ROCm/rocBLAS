@@ -3,6 +3,7 @@
  * ************************************************************************ */
 #include "handle.hpp"
 #include <cstdarg>
+#include <limits>
 
 #if BUILD_WITH_TENSILE
 #ifndef USE_TENSILE_HOST
@@ -463,4 +464,16 @@ void _rocblas_handle::init_logging()
         if(layer_mode & rocblas_layer_mode_log_profile)
             log_profile_os = open_log_stream("ROCBLAS_LOG_PROFILE_PATH");
     }
+}
+
+/*******************************************************************************
+ * Solution fitness query, for internal testing only
+ ******************************************************************************/
+extern "C" rocblas_status rocblas_set_solution_fitness_query(rocblas_handle handle, double* fitness)
+{
+    if(!handle)
+        return rocblas_status_invalid_handle;
+    if((handle->solution_fitness_query = fitness) != nullptr)
+        *fitness = std::numeric_limits<double>::lowest();
+    return rocblas_status_success;
 }

@@ -235,6 +235,10 @@ ROCBLAS_EXPORT rocblas_status rocblas_set_start_stop_events(rocblas_handle handl
         rocblas_set_start_stop_events(tmp_h, (hipEvent_t)0, (hipEvent_t)0);   \
     } while(0)
 
+// For testing solution selection fitness -- for internal testing only
+ROCBLAS_EXPORT rocblas_status rocblas_set_solution_fitness_query(rocblas_handle handle,
+                                                                 double*        fitness);
+
 #ifdef __cplusplus
 }
 #endif
