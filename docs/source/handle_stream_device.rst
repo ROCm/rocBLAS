@@ -51,6 +51,31 @@ you have completed using it with:
 
     if(hipStreamDestroy(stream) != hipSuccess) return EXIT_FAILURE;
 
+If you change the stream from one non-default stream to another non-default stream, it
+is your responsibility to synchronize the old stream before setting the new stream, and
+before optionally destroying the old stream:
+
+::
+
+    // Synchronize the old stream
+    if(hipStreamSynchronize(stream) != hipSuccess) return EXIT_FAILURE;
+
+    // Destroy the old stream (this step is optional but must come after synchronization)
+    if(hipStreamDestroy(stream) != hipSuccess) return EXIT_FAILURE;
+
+    // Create a new stream (this step can be done before the steps above)
+    if(hipStreamCreate(&stream) != hipSuccess) return EXIT_FAILURE;
+
+    // Set the handle to use the new stream (must come after synchronization)
+    if(rocblas_set_stream(handle, stream) != rocblas_status_success) return EXIT_FAILURE;
+
+This synchronization is necessary because the rocBLAS handle contains allocated device
+memory which must not be shared by multiple asynchronous streams at the same time.
+
+If either the old or new stream is the default (NULL) stream, it is not necessary to
+synchronize the old stream before destroying it, or before setting the new stream,
+because the synchronization is implicit.
+
 Creating the handle will incur a startup cost. There is an additional startup cost for
 gemm functions. This is to load gemm kernels for a specific device. You can shift the
 gemm startup cost to occur after setting the device by calling ``rocblas_initialize()``
@@ -70,16 +95,22 @@ Stream and device management
 ============================
 
 HIP kernels are launched in a queue, otherwise known as a stream. A stream is a queue of
-work for a particular device. A rocBLAS handle always has one and only one stream, and a stream
-is always associated with one and only one device. The rocBLAS handle is passed as an argument to all
-rocBLAS functions that launch kernels, and the kernels are launched in that handle's stream,
-to run on that stream's device.
+work for a particular device. A rocBLAS handle always has one and only one stream, and a
+stream is always associated with one and only one device. The rocBLAS handle is passed
+as an argument to all rocBLAS functions that launch kernels, and the kernels are
+launched in that handle's stream, to run on that stream's device.
 
-If the user does not create a stream, the rocBLAS handle uses the default stream, maintained
-by the system. Users cannot create or destroy the default stream. However, users can create
-a new stream and bind it to the rocBLAS handle with the two commands:``hipStreamCreate()``
-and ``rocblas_set_stream``.  If the user creates a stream, they are responsible for destroying
-it with ``hipStreamDestroy()``.
+If the user does not create a stream, then the rocBLAS handle uses the default (NULL)
+stream, maintained by the system. Users cannot create or destroy the default
+stream. However, users can create a new stream and bind it to the rocBLAS handle with
+the two commands: ``hipStreamCreate()`` and ``rocblas_set_stream()``. If the user creates
+a stream, they are responsible for destroying it with ``hipStreamDestroy()``. If the
+handle is switching from one non-default stream to another, then the old stream should
+be synchronized before calling `rocblas_set_stream()` with the new stream, and before
+optionally destroying the old stream. The order of calls would be:
+``hipStreamSynchronize()`` on the old stream first, and then optionally
+``hipStreamDestroy()`` on the old stream, and then for the new stream to be passed to
+``rocblas_set_stream()``.
 
 HIP has device management functions ``hipSetDevice()`` and ``hipGetDevice()``.
 The device that is associated with a stream is whatever device was set at the time that
@@ -98,4 +129,3 @@ If a machine has num devices, they will have deviceID numbers 0, 1, 2, ... (num 
 default device has deviceID == 0. Users can run ``num`` rocBLAS handles
 on ``num`` devices concurrently but can not span a single rocBLAS
 handle on ``num`` devices. Each handle is associated with one and only one device.
-

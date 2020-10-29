@@ -197,7 +197,7 @@ rocblas_status rocblas_rotmg_template(rocblas_handle handle,
     // Temporarily change the thread's default device ID to the handle's device ID
     auto saved_device_id = handle->push_device_id();
 
-    hipStream_t rocblas_stream = handle->rocblas_stream;
+    hipStream_t rocblas_stream = handle->get_stream();
     if(rocblas_pointer_mode_device == handle->pointer_mode)
     {
         hipLaunchKernelGGL(rocblas_rotmg_kernel,

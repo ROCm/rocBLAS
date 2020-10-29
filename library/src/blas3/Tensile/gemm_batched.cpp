@@ -923,7 +923,7 @@ namespace
         if((trans_a == rocblas_operation_none) && (trans_b == rocblas_operation_none)
            && (size_t(m) * size_t(n) * size_t(k) < 1024 * 1024 * 1024))
         {
-            hipStream_t rocblas_stream = handle->rocblas_stream;
+            hipStream_t rocblas_stream = handle->get_stream();
 
             gemm_batched_solution(
                 m, n, k, *alpha, A, ld_a, B, ld_b, *beta, C, ld_c, b_c, rocblas_stream);

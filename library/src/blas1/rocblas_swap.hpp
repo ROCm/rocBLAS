@@ -52,7 +52,7 @@ rocblas_status rocblas_swap_template(rocblas_handle handle,
 
     dim3        blocks((n - 1) / NB + 1, batch_count);
     dim3        threads(NB);
-    hipStream_t rocblas_stream = handle->rocblas_stream;
+    hipStream_t rocblas_stream = handle->get_stream();
 
     // in case of negative inc shift pointer to end of data for negative indexing tid*inc
     ptrdiff_t shiftx = incx < 0 ? offsetx - ptrdiff_t(incx) * (n - 1) : offsetx;

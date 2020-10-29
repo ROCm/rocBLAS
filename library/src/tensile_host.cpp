@@ -613,7 +613,7 @@ rocblas_status runContractionProblem(const RocblasContractionProblem<Ti, To, Tc>
             {
                 adapter.launchKernels(
                     solution->solve(tensile_prob, GetTensileInputs(prob), *hardware),
-                    handle->rocblas_stream,
+                    handle->get_stream(),
                     handle->startEvent,
                     handle->stopEvent);
                 status = rocblas_status_success;

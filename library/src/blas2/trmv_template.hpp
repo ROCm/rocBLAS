@@ -32,7 +32,7 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_trmv_template(rocblas_handle    h
         return rocblas_status_success;
     }
 
-    hipStream_t rocblas_stream = handle->rocblas_stream;
+    hipStream_t rocblas_stream = handle->get_stream();
 
     ptrdiff_t shiftx = incx < 0 ? offsetx + ptrdiff_t(incx) * (1 - m) : offsetx;
 
