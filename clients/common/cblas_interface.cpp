@@ -511,7 +511,7 @@ void cblas_gemm<rocblas_half, float, float>(rocblas_operation transA,
     size_t sizeB = (transB == rocblas_operation_none ? n : k) * size_t(ldb);
     size_t sizeC = n * size_t(ldc);
 
-    host_vector<float> A_float(sizeA), B_float(sizeB), C_float(sizeC);
+    host_vector<float> A_float(sizeA), B_float(sizeB);
 
     for(size_t i = 0; i < sizeA; i++)
         A_float[i] = A[i];
@@ -532,7 +532,7 @@ void cblas_gemm<rocblas_half, float, float>(rocblas_operation transA,
                 B_float,
                 ldb,
                 beta,
-                C_float,
+                C,
                 ldc);
 }
 
