@@ -195,25 +195,6 @@ install_packages( )
     fi
   fi
 
-  if [[ "${build_hip_clang}" == false ]]; then
-    # Installing rocm-dev installs hip-hcc, which overwrites the hip-vdi runtime
-
-    if [[ -z ${custom_rocm_dev+foo} ]]; then
-    # Install base rocm-dev package unless -v/--rocm-dev flag is passed
-      library_dependencies_ubuntu+=( "rocm-dev" )
-      library_dependencies_centos+=( "rocm-dev" )
-      library_dependencies_fedora+=( "rocm-dev" )
-      library_dependencies_sles+=( "rocm-dev" )
-
-    else
-    # Install rocm-specific rocm-dev package
-      library_dependencies_ubuntu+=( "${custom_rocm_dev}" )
-      library_dependencies_centos+=( "${custom_rocm_dev}" )
-      library_dependencies_fedora+=( "${custom_rocm_dev}" )
-      library_dependencies_sles+=( "${custom_rocm_dev}" )
-    fi
-  fi
-
   case "${ID}" in
     centos|rhel|sles|opensuse-leap)
       install_msgpack_from_source
@@ -523,17 +504,14 @@ if [[ "${build_hip_clang}" == true ]]; then
   cc="hipcc"
   fc="gfortran"
 else
-  cxx="hcc"
-  cc="hcc"
-  fc="gfortran"
+  echo "Currently the only suppported compiler is hip-clang."
+  exit 2
 fi
 
 # If user provides custom ${rocm_path} path for hcc it has lesser priority,
 # but with hip-clang existing path has lesser priority to avoid use of installed clang++ by tensile
 if [[ "${build_hip_clang}" == true ]]; then
   export PATH=${rocm_path}/bin:${rocm_path}/hip/bin:${rocm_path}/llvm/bin:${PATH}
-else
-  export PATH=${PATH}:${rocm_path}/bin:${rocm_path}/hip/bin:${rocm_path}/hcc/bin
 fi
 
 # #################################################
@@ -634,10 +612,6 @@ pushd .
 
   if [[ "${build_hip_clang}" == true ]]; then
       cmake_common_options="${cmake_common_options} -DRUN_HEADER_TESTING=OFF"
-  fi
-
-  if [[ "${build_hip_clang}" == true ]]; then
-    cmake_common_options="${cmake_common_options} -DTensile_COMPILER=hipcc"
   fi
 
   if [[ "${use_cuda}" == true ]]; then

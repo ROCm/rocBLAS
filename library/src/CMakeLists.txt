@@ -77,25 +77,6 @@ if( BUILD_WITH_TENSILE )
     target_link_libraries( Tensile PRIVATE hip::device )
   endif()
 
-  if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
-    # Remove following when hcc is fixed; hcc emits following spurious warning ROCm v1.6.1
-    # "clang-5.0: warning: argument unused during compilation: '-isystem /opt/rocm/include'"
-    # target_compile_options( Tensile PRIVATE -Wno-unused-command-line-argument -fno-gpu-rdc -Wno-deprecated-declarations)
-    foreach( target ${ROCBLAS_GPUS} )
-      if( BUILD_WITH_TENSILE_HOST )
-          # Remove following when hcc is fixed; hcc emits following spurious warning ROCm v1.6.1
-          # "clang-5.0: warning: argument unused during compilation: '-isystem /opt/rocm/include'"
-          target_compile_options( TensileHost PRIVATE -Wno-unused-command-line-argument -fno-gpu-rdc -Wno-deprecated-declarations)
-          target_compile_options( TensileHost PRIVATE --amdgpu-target=${target} )
-      else()
-          # Remove following when hcc is fixed; hcc emits following spurious warning ROCm v1.6.1
-          # "clang-5.0: warning: argument unused during compilation: '-isystem /opt/rocm/include'"
-          target_compile_options( Tensile PRIVATE -Wno-unused-command-line-argument -fno-gpu-rdc -Wno-deprecated-declarations)
-          target_compile_options( Tensile PRIVATE --amdgpu-target=${target} )
-      endif()
-    endforeach( )
-  endif( )
-
   if( ROCBLAS_SHARED_LIBS )
     set( BUILD_SHARED_LIBS ON )
     if( BUILD_WITH_TENSILE_HOST )
@@ -341,14 +322,8 @@ target_link_libraries( rocblas PRIVATE hip::device --rtlib=compiler-rt --unwindl
 
 set_target_properties( rocblas PROPERTIES CXX_STANDARD 14 CXX_STANDARD_REQUIRED ON )
 
-if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
-  # Remove following when hcc is fixed; hcc emits following spurious warning ROCm v1.6.1
-  # "clang-5.0: warning: argument unused during compilation: '-isystem /opt/rocm/include'"
-  target_compile_options( rocblas PRIVATE -Wno-unused-command-line-argument -fno-gpu-rdc )
-  foreach( target ${ROCBLAS_GPUS} )
-    target_compile_options( rocblas PRIVATE --amdgpu-target=${target} )
-  endforeach( )
-endif( )
+
+#  -fno-gpu-rdc compiler option was used with hcc, so revisit feature at some point
 
 if( CMAKE_CXX_COMPILER MATCHES ".*/hipcc$" )
   # GCC or hip-clang needs specific flags to turn on f16c intrinsics
