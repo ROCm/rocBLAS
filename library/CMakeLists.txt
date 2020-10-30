@@ -29,7 +29,7 @@ function( target_link_libraries target_name )
   # explicit mentions of them so cmake doesn't complain on nvcc path
   if( CUDA_FOUND AND CMAKE_CXX_COMPILER MATCHES ".*/hipcc$|.*/nvcc$" )
     foreach( link_library ${ARGN} )
-      if( (link_library MATCHES "^hip::|^hcc::") )
+      if( (link_library MATCHES "^hip::") )
       else( )
         if( TARGET ${link_library} )
           list( APPEND new_list -Xlinker ${link_library} )
@@ -154,7 +154,7 @@ endif( )
 set( CPACK_RPM_EXCLUDE_FROM_AUTO_FILELIST_ADDITION "\${CPACK_PACKAGING_INSTALL_PREFIX}" "\${CPACK_PACKAGING_INSTALL_PREFIX}/include" "\${CPACK_PACKAGING_INSTALL_PREFIX}/lib" )
 
 # Give rocblas compiled for CUDA backend a different name
-if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" OR CXX_VERSION_STRING MATCHES "clang" )
+if( CXX_VERSION_STRING MATCHES "clang" )
     set( package_name rocblas )
 else( )
     set( package_name rocblas-alt )

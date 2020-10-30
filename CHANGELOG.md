@@ -8,6 +8,7 @@ __anchor__ac
 - Add changelog
 
 __anchor__t
+- Removed support for legacy hcc compiler
 
 __anchor__w
 
