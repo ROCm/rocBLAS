@@ -73,27 +73,32 @@ static constexpr char LIMITED_MEMORY_STRING_GTEST[]
 /*! \brief  local handle which is automatically created and destroyed  */
 class rocblas_local_handle
 {
-    rocblas_handle handle;
+    rocblas_handle m_handle;
 
 public:
     explicit rocblas_local_handle(rocblas_atomics_mode mode = rocblas_atomics_allowed)
     {
-        rocblas_create_handle(&handle);
-        handle->atomics_mode = mode;
+        rocblas_create_handle(&m_handle);
+        m_handle->atomics_mode = mode;
     }
     ~rocblas_local_handle()
     {
-        rocblas_destroy_handle(handle);
+        rocblas_destroy_handle(m_handle);
     }
+
+    rocblas_local_handle(const rocblas_local_handle&) = delete;
+    rocblas_local_handle(rocblas_local_handle&&)      = delete;
+    rocblas_local_handle& operator=(const rocblas_local_handle&) = delete;
+    rocblas_local_handle& operator=(rocblas_local_handle&&) = delete;
 
     // Allow rocblas_local_handle to be used anywhere rocblas_handle is expected
     operator rocblas_handle&()
     {
-        return handle;
+        return m_handle;
     }
     operator const rocblas_handle&() const
     {
-        return handle;
+        return m_handle;
     }
 };
 
@@ -109,7 +114,7 @@ void set_device(rocblas_int device_id);
             rocblas sync CPU and device and use more accurate CPU timer*/
 
 /*! \brief  CPU Timer(in microsecond): synchronize with the default device and return wall time */
-double get_time_us_sync_device(void);
+double get_time_us_sync_device();
 
 /*! \brief  CPU Timer(in microsecond): synchronize with given queue/stream and return wall time */
 double get_time_us_sync(hipStream_t stream);

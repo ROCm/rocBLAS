@@ -106,6 +106,6 @@ struct host_vector : std::vector<T>
     }
 
 private:
-    size_t    m_n;
-    ptrdiff_t m_inc;
+    size_t    m_n   = 0;
+    ptrdiff_t m_inc = 0;
 };
