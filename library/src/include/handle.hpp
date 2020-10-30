@@ -141,6 +141,9 @@ public:
     _rocblas_handle();
     ~_rocblas_handle();
 
+    _rocblas_handle(const _rocblas_handle&) = delete;
+    _rocblas_handle& operator=(const _rocblas_handle&) = delete;
+
     // Set the HIP default device ID to the handle's device ID, and restore on exit
     auto push_device_id()
     {
