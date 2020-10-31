@@ -214,7 +214,7 @@ namespace
         // Descriptor for output matrix D
         Tensile::TensorDescriptor d{Tensile_To,
                                     {prob.m, prob.n, prob.batch_count},
-                                    {prob.row_stride_c, prob.col_stride_d, prob.batch_stride_d}};
+                                    {prob.row_stride_d, prob.col_stride_d, prob.batch_stride_d}};
 
         // Size of GSU workspace. We set it to max size_t if this is a size query.
         size_t workspace_size
