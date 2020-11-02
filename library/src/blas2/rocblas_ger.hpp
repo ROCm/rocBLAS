@@ -125,7 +125,7 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_ger_template(rocblas_handle handl
     if(!m || !n || !batch_count)
         return rocblas_status_success;
 
-    hipStream_t rocblas_stream = handle->rocblas_stream;
+    hipStream_t rocblas_stream = handle->get_stream();
 
     // in case of negative inc shift pointer to end of data for negative indexing tid*inc
     auto shiftx = incx < 0 ? offsetx - ptrdiff_t(incx) * (m - 1) : offsetx;

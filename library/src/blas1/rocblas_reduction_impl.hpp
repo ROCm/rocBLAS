@@ -195,7 +195,7 @@ inline rocblas_status rocblas_reduction_setup(rocblas_handle handle,
             if(batch_count > 0)
             {
                 RETURN_IF_HIP_ERROR(
-                    hipMemsetAsync(results, 0, batch_count * sizeof(Tr), handle->rocblas_stream));
+                    hipMemsetAsync(results, 0, batch_count * sizeof(Tr), handle->get_stream()));
             }
         }
         else

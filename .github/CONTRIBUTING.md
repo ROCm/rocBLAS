@@ -222,9 +222,9 @@ If its argument is a pointer, it is dereferenced on the device. If the argument 
     Here, `alpha_device_host` can either be a pointer to device memory, or a numeric value passed directly to the kernel from the host. The `load_scalar()` function dereferences it if it's a pointer to device memory, and simply returns its argument if it's numerical. The kernel is called from the host in one of two ways depending on the pointer mode:
     ```c++
     if(handle->pointer_mode == rocblas_pointer_mode_device)
-        hipLaunchKernelGGL(axpy_kernel, blocks, threads, 0, rocblas_stream, n, alpha, x, incx, y, incy);
+        hipLaunchKernelGGL(axpy_kernel, blocks, threads, 0, handle->get_stream(), n, alpha, x, incx, y, incy);
     else if(*alpha) // alpha is on host
-        hipLaunchKernelGGL(axpy_kernel, blocks, threads, 0, rocblas_stream, n, *alpha, x, incx, y, incy);
+        hipLaunchKernelGGL(axpy_kernel, blocks, threads, 0, handle->get_stream(), n, *alpha, x, incx, y, incy);
     ```
     When the pointer mode indicates `alpha` is on the host, the `alpha` pointer is dereferenced on the host and the numeric value it points to is passed to the kernel. When the pointer mode indicates `alpha` is on the device, the `alpha` pointer is passed to the kernel and dereferenced by the kernel on the device. This allows a single kernel to handle both cases, eliminating duplicate code.
 

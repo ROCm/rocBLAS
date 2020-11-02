@@ -87,7 +87,7 @@ rocblas_status tensile_helper(const T&          alpha_h,
 #define TENSILE_ARGS(T)                                                                        \
     (T*)C, (const T*)C, (const T*)A, (const T*)B, *((const T*)&alpha_h), *((const T*)&beta_h), \
         strideC1, strideC2, strideC1, strideC2, strideA1, strideA2, strideB1, strideB2, sizeI, \
-        sizeJ, sizeK, sizeL, handle->rocblas_stream, 0, nullptr, nullptr, nullptr
+        sizeJ, sizeK, sizeL, handle->get_stream(), 0, nullptr, nullptr, nullptr
 
 template <>
 inline rocblas_status tensile_helper(const rocblas_half& alpha_h,

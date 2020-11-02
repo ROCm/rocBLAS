@@ -275,8 +275,7 @@ void testing_trsm_ex(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
         CHECK_HIP_ERROR(hipMemcpy(dXorB, hXorB_1, sizeof(T) * size_B, hipMemcpyHostToDevice));
 
-        hipStream_t rocblas_stream;
-        rocblas_get_stream(handle, &rocblas_stream);
+        hipStream_t rocblas_stream = handle->get_stream();
 
         if(blocks > 0)
             CHECK_ROCBLAS_ERROR(rocblas_trtri_strided_batched<T>(handle,

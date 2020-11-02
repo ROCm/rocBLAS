@@ -115,7 +115,7 @@ namespace
                 return rocblas_status_invalid_pointer;
             if(rocblas_pointer_mode_device == handle->pointer_mode)
                 RETURN_IF_HIP_ERROR(hipMemsetAsync(
-                    result, 0, rocblas_sizeof_datatype(result_type), handle->rocblas_stream));
+                    result, 0, rocblas_sizeof_datatype(result_type), handle->get_stream()));
             else
                 memset(result, 0, rocblas_sizeof_datatype(result_type));
             return rocblas_status_success;

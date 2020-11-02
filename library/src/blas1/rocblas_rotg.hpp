@@ -97,7 +97,7 @@ rocblas_status rocblas_rotg_template(rocblas_handle handle,
     if(!batch_count)
         return rocblas_status_success;
 
-    hipStream_t rocblas_stream = handle->rocblas_stream;
+    hipStream_t rocblas_stream = handle->get_stream();
 
     // Temporarily change the thread's default device ID to the handle's device ID
     auto saved_device_id = handle->push_device_id();

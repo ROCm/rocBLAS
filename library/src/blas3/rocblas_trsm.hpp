@@ -61,7 +61,7 @@ void copy_block_unit(rocblas_handle handle,
                        grid,
                        threads,
                        0,
-                       handle->rocblas_stream,
+                       handle->get_stream(),
                        m,
                        n,
                        sizeof(T),
@@ -115,7 +115,7 @@ void set_block_unit(rocblas_handle handle,
                        grid,
                        threads,
                        0,
-                       handle->rocblas_stream,
+                       handle->get_stream(),
                        m,
                        n,
                        sizeof(T),
@@ -1948,7 +1948,7 @@ void rocblas_trsm_small(rocblas_handle    handle,
                            grid,
                            threads,
                            0,
-                           handle->rocblas_stream,
+                           handle->get_stream(),
                            uplo,
                            transA,
                            diag,
@@ -1971,7 +1971,7 @@ void rocblas_trsm_small(rocblas_handle    handle,
                            grid,
                            threads,
                            0,
-                           handle->rocblas_stream,
+                           handle->get_stream(),
                            uplo,
                            transA,
                            diag,
@@ -2077,7 +2077,7 @@ void rocblas_trsm_small_64(rocblas_handle    handle,
                            grid,
                            threads,
                            0,
-                           handle->rocblas_stream,
+                           handle->get_stream(),
                            uplo,
                            transA,
                            diag,
@@ -2100,7 +2100,7 @@ void rocblas_trsm_small_64(rocblas_handle    handle,
                            grid,
                            threads,
                            0,
-                           handle->rocblas_stream,
+                           handle->get_stream(),
                            uplo,
                            transA,
                            diag,
@@ -2322,9 +2322,9 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_trsm_template(rocblas_handle    h
                 // for c_temp, we currently can use the same memory from each batch since
                 // trtri_batched is naive (since gemm_batched is naive)
                 setup_batched_array<BLOCK>(
-                    handle->rocblas_stream, (T*)c_temp, 0, (T**)x_temparr, batch_count);
+                    handle->get_stream(), (T*)c_temp, 0, (T**)x_temparr, batch_count);
                 setup_batched_array<BLOCK>(
-                    handle->rocblas_stream, (T*)invA, stride_invA, (T**)invAarr, batch_count);
+                    handle->get_stream(), (T*)invA, stride_invA, (T**)invAarr, batch_count);
             }
 
             status = rocblas_trtri_trsm_template<BLOCK, BATCHED, T>(handle,
@@ -2350,7 +2350,7 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_trsm_template(rocblas_handle    h
         if(BATCHED)
         {
             setup_batched_array<BLOCK>(
-                handle->rocblas_stream, (T*)x_temp, x_temp_els, (T**)x_temparr, batch_count);
+                handle->get_stream(), (T*)x_temp, x_temp_els, (T**)x_temparr, batch_count);
         }
 
         if(exact_blocks)

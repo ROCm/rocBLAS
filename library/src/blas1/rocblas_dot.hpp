@@ -387,7 +387,7 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_dot_template(rocblas_handle __res
                                grid,
                                threads,
                                0,
-                               handle->rocblas_stream,
+                               handle->get_stream(),
                                n,
                                x,
                                shiftx,
@@ -404,7 +404,7 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_dot_template(rocblas_handle __res
                                grid,
                                threads,
                                0,
-                               handle->rocblas_stream,
+                               handle->get_stream(),
                                n,
                                x,
                                shiftx,
@@ -424,7 +424,7 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_dot_template(rocblas_handle __res
                            grid,
                            threads,
                            0,
-                           handle->rocblas_stream,
+                           handle->get_stream(),
                            n,
                            x,
                            shiftx,
@@ -441,7 +441,7 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_dot_template(rocblas_handle __res
                                dim3(1, batch_count),
                                threads,
                                0,
-                               handle->rocblas_stream,
+                               handle->get_stream(),
                                blocks,
                                workspace,
                                results);
@@ -453,7 +453,7 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_dot_template(rocblas_handle __res
                                dim3(1, batch_count),
                                threads,
                                0,
-                               handle->rocblas_stream,
+                               handle->get_stream(),
                                blocks,
                                workspace,
                                output);
@@ -462,7 +462,7 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_dot_template(rocblas_handle __res
                                            output,
                                            sizeof(T) * batch_count,
                                            hipMemcpyDeviceToHost,
-                                           handle->rocblas_stream));
+                                           handle->get_stream()));
     }
 
     return rocblas_status_success;

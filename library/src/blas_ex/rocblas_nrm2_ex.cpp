@@ -86,7 +86,7 @@ namespace
             if(rocblas_pointer_mode_device == handle->pointer_mode)
             {
                 RETURN_IF_HIP_ERROR(hipMemsetAsync(
-                    results, 0, rocblas_sizeof_datatype(result_type), handle->rocblas_stream));
+                    results, 0, rocblas_sizeof_datatype(result_type), handle->get_stream()));
             }
             else
             {

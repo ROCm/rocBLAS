@@ -30,7 +30,7 @@ rocblas_status tpmv_template(rocblas_handle    handle,
         return rocblas_status_success;
     }
 
-    hipStream_t rocblas_stream = handle->rocblas_stream;
+    hipStream_t rocblas_stream = handle->get_stream();
 
     ptrdiff_t shiftx = incx < 0 ? offsetx + ptrdiff_t(incx) * (1 - m) : offsetx;
 
@@ -44,7 +44,7 @@ rocblas_status tpmv_template(rocblas_handle    handle,
     {
     case rocblas_operation_none:
     {
-        hipLaunchKernelGGL((tpmvn_kernel<NB>),
+        hipLaunchKernelGGL(tpmvn_kernel<NB>,
                            tpmv_grid,
                            tpmv_threads,
                            0,
@@ -66,7 +66,7 @@ rocblas_status tpmv_template(rocblas_handle    handle,
 
     case rocblas_operation_transpose:
     {
-        hipLaunchKernelGGL((tpmvt_kernel<NB>),
+        hipLaunchKernelGGL(tpmvt_kernel<NB>,
                            tpmv_grid,
                            tpmv_threads,
                            0,
@@ -88,7 +88,7 @@ rocblas_status tpmv_template(rocblas_handle    handle,
 
     case rocblas_operation_conjugate_transpose:
     {
-        hipLaunchKernelGGL((tpmvc_kernel<NB>),
+        hipLaunchKernelGGL(tpmvc_kernel<NB>,
                            tpmv_grid,
                            tpmv_threads,
                            0,

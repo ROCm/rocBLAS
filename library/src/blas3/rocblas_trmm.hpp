@@ -48,7 +48,7 @@ rocblas_status set_matrix_zero_if_alpha_zero_template(rocblas_handle handle,
     if(!m || !n || !batch_count)
         return rocblas_status_success;
 
-    hipStream_t rocblas_stream = handle->rocblas_stream;
+    hipStream_t rocblas_stream = handle->get_stream();
 
     static constexpr int GEMV_DIM_X = 16;
     static constexpr int GEMV_DIM_Y = 16;

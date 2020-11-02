@@ -122,7 +122,7 @@ namespace
         void* mem_x_copy_arr = mem[1];
 
         setup_batched_array<256>(
-            handle->rocblas_stream, (T*)mem_x_copy, m, (T**)mem_x_copy_arr, batch_count);
+            handle->get_stream(), (T*)mem_x_copy, m, (T**)mem_x_copy_arr, batch_count);
 
         return rocblas_tbmv_template(handle,
                                      uplo,
