@@ -118,7 +118,7 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_gemv_template(rocblas_handle    h
     if(!m || !n || !batch_count)
         return rocblas_status_success;
 
-    hipStream_t rocblas_stream = handle->rocblas_stream;
+    hipStream_t rocblas_stream = handle->get_stream();
 
     // Temporarily change the thread's default device ID to the handle's device ID
     auto saved_device_id = handle->push_device_id();
@@ -297,7 +297,7 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_gemv_template(rocblas_handle    h
                                    dim3(1, n, batch_count),
                                    gemvt_threads,
                                    0,
-                                   handle->rocblas_stream,
+                                   rocblas_stream,
                                    blocks,
                                    beta,
                                    stride_beta,
@@ -335,7 +335,7 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_gemv_template(rocblas_handle    h
                                    dim3(1, n, batch_count),
                                    gemvt_threads,
                                    0,
-                                   handle->rocblas_stream,
+                                   rocblas_stream,
                                    blocks,
                                    *beta,
                                    stride_beta,

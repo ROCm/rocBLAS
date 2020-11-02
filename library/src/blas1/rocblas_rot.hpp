@@ -97,7 +97,7 @@ rocblas_status rocblas_rot_template(rocblas_handle handle,
 
     dim3        blocks((n - 1) / NB + 1, batch_count);
     dim3        threads(NB);
-    hipStream_t rocblas_stream = handle->rocblas_stream;
+    hipStream_t rocblas_stream = handle->get_stream();
 
     // Temporarily change the thread's default device ID to the handle's device ID
     auto saved_device_id = handle->push_device_id();

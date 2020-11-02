@@ -105,7 +105,7 @@ namespace
                                                &C_tmp_host[0],
                                                batch_count * sizeof(T*),
                                                hipMemcpyHostToDevice,
-                                               handle->rocblas_stream));
+                                               handle->get_stream()));
 
             status = rocblas_trtri_large<NB, true, false, T>(handle,
                                                              uplo,
