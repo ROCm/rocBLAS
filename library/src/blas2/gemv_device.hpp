@@ -4,7 +4,8 @@
 #ifndef __GEMV_DEVICE_HPP__
 #define __GEMV_DEVICE_HPP__
 
-#include "../blas1/reduction.hpp"
+// uses dot shuffle reductions
+#include "../blas1/rocblas_dot.hpp"
 
 template <rocblas_int DIM_X,
           rocblas_int DIM_Y,
@@ -266,7 +267,7 @@ __device__ void gemvt_kernel_calc(rocblas_int m,
         A += tx;
 
     rocblas_int col = hipBlockIdx_x;
-    A += col * lda;
+    A += col * size_t(lda);
 
     T res;
     res = 0.0;
@@ -311,6 +312,153 @@ __device__ void gemvt_kernel_calc(rocblas_int m,
         else
         {
             y[col * incy] = alpha * sdata[0];
+        }
+    }
+}
+
+template <bool CONJ, rocblas_int NB_X, rocblas_int WIN, typename T, typename U>
+__device__ void gemvt_sn_kernel_calc(rocblas_int m,
+                                     rocblas_int n,
+                                     U           alpha,
+                                     const T*    A,
+                                     rocblas_int lda,
+                                     const T*    x,
+                                     rocblas_int incx,
+                                     T*          work)
+{
+    // skinny n kernel
+
+    rocblas_int tx = hipThreadIdx_x;
+
+    int row = tx * WIN + hipBlockIdx_x * NB_X * WIN;
+    A += row;
+
+    // offset blocks * cols * batch
+    work += size_t(hipGridDim_x) * n * hipBlockIdx_y;
+
+    constexpr int NC = 4;
+
+    rocblas_int n_tail = n % NC;
+
+    rocblas_int m_tail = m % WIN;
+
+    T sum[NC];
+    T xvec[WIN];
+
+    int i = 0; // col
+    for(i = 0; i < n - n_tail; i += NC)
+    {
+        sum[0] = sum[1] = sum[2] = sum[3] = T{0};
+
+        if(row + WIN <= m)
+        {
+            for(int j = 0; j < WIN; j++)
+            {
+                xvec[j] = x[(row + j) * incx];
+            }
+            for(int j = 0; j < WIN; j++)
+            {
+                for(int k = 0; k < NC; k++)
+                    sum[k] += (CONJ ? conj(A[(i + k) * lda + j]) : A[(i + k) * lda + j]) * xvec[j];
+            }
+        }
+        else if(row + m_tail <= m)
+        {
+            for(int j = 0; j < m_tail; j++)
+            {
+                xvec[j] = x[(row + j) * incx];
+            }
+            for(int j = 0; j < m_tail; j++)
+            {
+                for(int k = 0; k < NC; k++)
+                    sum[k] += (CONJ ? conj(A[(i + k) * lda + j]) : A[(i + k) * lda + j]) * xvec[j];
+            }
+        }
+
+        for(int k = 0; k < NC; k++)
+            sum[k] = rocblas_dot_block_reduce<NB_X>(sum[k]);
+
+        if(tx == 0)
+        {
+            for(int k = 0; k < NC; k++)
+                work[hipBlockIdx_x + (k + i) * hipGridDim_x] = alpha * sum[k];
+        }
+    }
+    for(; i < n; i++)
+    {
+        sum[0] = T{0};
+
+        if(row + WIN <= m)
+        {
+            for(int j = 0; j < WIN; j++)
+            {
+                xvec[j] = x[(row + j) * incx];
+            }
+            for(int j = 0; j < WIN; j++)
+            {
+                sum[0] += (CONJ ? conj(A[(i + 0) * lda + j]) : A[(i + 0) * lda + j]) * xvec[j];
+            }
+        }
+        else if(row + m_tail <= m)
+        {
+            for(int j = 0; j < m_tail; j++)
+            {
+                xvec[j] = x[(row + j) * incx];
+            }
+            for(int j = 0; j < m_tail; j++)
+            {
+                sum[0] += (CONJ ? conj(A[(i + 0) * lda + j]) : A[(i + 0) * lda + j]) * xvec[j];
+            }
+        }
+        sum[0] = rocblas_dot_block_reduce<NB_X>(sum[0]);
+        if(tx == 0)
+            work[hipBlockIdx_x + (i)*hipGridDim_x] = alpha * sum[0];
+    }
+}
+
+template <rocblas_int NB, rocblas_int WIN, typename T, typename U, typename W>
+__global__ __launch_bounds__(NB) void rocblas_gemvt_sn_reduce(rocblas_int    n_sums,
+                                                              U              beta_device_host,
+                                                              rocblas_stride stride_beta,
+                                                              W* __restrict__ ya,
+                                                              ptrdiff_t      shifty,
+                                                              rocblas_int    incy,
+                                                              rocblas_stride stridey,
+                                                              T* __restrict__ work)
+{
+    T*   y    = load_ptr_batch(ya, hipBlockIdx_z, shifty, stridey);
+    auto beta = load_scalar(beta_device_host, hipBlockIdx_z, stride_beta);
+
+    T sum{0};
+
+    int offset = size_t(n_sums) * hipGridDim_y * hipBlockIdx_z + hipBlockIdx_y * n_sums;
+    work += offset;
+
+    int inc = hipBlockDim_x * WIN;
+
+    int i         = hipThreadIdx_x * WIN;
+    int remainder = n_sums % WIN;
+    int end       = n_sums - remainder;
+    for(; i < end; i += inc) // cover all sums as 1 block
+    {
+        for(int j = 0; j < WIN; j++)
+            sum += work[i + j];
+    }
+    if(hipThreadIdx_x < remainder)
+    {
+        sum += work[n_sums - 1 - hipThreadIdx_x];
+    }
+    sum = rocblas_dot_block_reduce<NB>(sum);
+
+    if(hipThreadIdx_x == 0)
+    {
+        if(beta != 0)
+        {
+            y[hipBlockIdx_y * incy] = (y[hipBlockIdx_y * incy] * beta) + sum;
+        }
+        else
+        {
+            y[hipBlockIdx_y * incy] = sum;
         }
     }
 }
@@ -387,24 +535,24 @@ __global__ void gemvn_kernel(rocblas_int    m,
 }
 
 template <bool CONJ, rocblas_int NB_X, typename T, typename U, typename V, typename W>
-__global__ void gemvt_kernel(rocblas_int    m,
-                             rocblas_int    n,
-                             U              alpha_device_host,
-                             rocblas_stride stride_alpha,
-                             const V*       Aa,
-                             ptrdiff_t      shifta,
-                             rocblas_int    lda,
-                             rocblas_stride strideA,
-                             const V*       xa,
-                             ptrdiff_t      shiftx,
-                             rocblas_int    incx,
-                             rocblas_stride stridex,
-                             U              beta_device_host,
-                             rocblas_stride stride_beta,
-                             W*             ya,
-                             ptrdiff_t      shifty,
-                             rocblas_int    incy,
-                             rocblas_stride stridey)
+__launch_bounds__(NB_X, 1) __global__ void gemvt_kernel(rocblas_int    m,
+                                                        rocblas_int    n,
+                                                        U              alpha_device_host,
+                                                        rocblas_stride stride_alpha,
+                                                        const V*       Aa,
+                                                        ptrdiff_t      shifta,
+                                                        rocblas_int    lda,
+                                                        rocblas_stride strideA,
+                                                        const V*       xa,
+                                                        ptrdiff_t      shiftx,
+                                                        rocblas_int    incx,
+                                                        rocblas_stride stridex,
+                                                        U              beta_device_host,
+                                                        rocblas_stride stride_beta,
+                                                        W*             ya,
+                                                        ptrdiff_t      shifty,
+                                                        rocblas_int    incy,
+                                                        rocblas_stride stridey)
 {
     const T* A = load_ptr_batch(Aa, hipBlockIdx_y, shifta, strideA);
     const T* x = load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex);
@@ -414,6 +562,29 @@ __global__ void gemvt_kernel(rocblas_int    m,
     auto beta  = load_scalar(beta_device_host, hipBlockIdx_y, stride_beta);
 
     gemvt_kernel_calc<CONJ, NB_X>(m, n, alpha, A, lda, x, incx, beta, y, incy);
+}
+
+template <bool CONJ, rocblas_int NB_X, rocblas_int WIN, typename T, typename U, typename V>
+__launch_bounds__(NB_X, 1) __global__ void gemvt_sn_kernel(rocblas_int    m,
+                                                           rocblas_int    n,
+                                                           U              alpha_device_host,
+                                                           rocblas_stride stride_alpha,
+                                                           const V*       Aa,
+                                                           ptrdiff_t      shifta,
+                                                           rocblas_int    lda,
+                                                           rocblas_stride strideA,
+                                                           const V*       xa,
+                                                           ptrdiff_t      shiftx,
+                                                           rocblas_int    incx,
+                                                           rocblas_stride stridex,
+                                                           T*             work)
+{
+    const T* A = load_ptr_batch(Aa, hipBlockIdx_y, shifta, strideA);
+    const T* x = load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex);
+
+    auto alpha = load_scalar(alpha_device_host, hipBlockIdx_y, stride_alpha);
+
+    gemvt_sn_kernel_calc<CONJ, NB_X, WIN>(m, n, alpha, A, lda, x, incx, work);
 }
 
 template <bool CONJ, rocblas_int NB_X, typename T, typename U, typename V, typename W>
