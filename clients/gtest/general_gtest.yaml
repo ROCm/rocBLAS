@@ -4,8 +4,8 @@ include: known_bugs.yaml
 
 
 Half bfloat: &half_bfloat_precisions
-  - *half_precision
-  - *bf16_precision
+- *half_precision
+- *bf16_precision
 
 Tests:
 - name: half_operators
@@ -17,5 +17,33 @@ Tests:
   category: quick
   function: complex_operators
   precision: *single_double_precisions_complex
+
+
+- name : check_numerics_vector
+  category : quick
+  function : check_numerics_vector
+  N : [ 5 ]
+  incx : [ 1 ]
+  batch_count : [ 1 ]
+  stride_x : [ 0 ]
+  precision : *single_double_precisions
+
+- name : check_numerics_vector
+  category : quick
+  function : check_numerics_vector
+  N : [ 5 ]
+  incx : [ 1 ]
+  batch_count : [ 1 ]
+  stride_x : [ 0 ]
+  precision : *single_double_precisions_complex
+
+- name : check_numerics_vector
+  category : quick
+  function : check_numerics_vector
+  N : [ 5 ]
+  incx : [ 1 ]
+  batch_count : [ 1 ]
+  stride_x : [ 0 ]
+  precision : *half_bfloat_precisions
 
 ...
