@@ -97,6 +97,57 @@ public:
 };
 
 /* ============================================================================================ */
+/*! \brief  Random number generator which generates Inf values */
+class rocblas_inf_rng
+{
+    // Generate random Inf values
+    static unsigned rand2()
+    {
+        return std::uniform_int_distribution<unsigned>(0, 1)(rocblas_rng);
+    }
+
+public:
+    // Random integer
+    template <typename T, std::enable_if_t<std::is_integral<T>{}, int> = 0>
+    explicit operator T()
+    {
+        return rand2() ? std::numeric_limits<T>::min : std::numeric_limits<T>::max;
+    }
+    // Random float
+    template <typename T, std::enable_if_t<!std::is_integral<T>{}, int> = 0>
+    explicit operator T()
+    {
+        return T(rand2() ? -std::numeric_limits<double>::infinity()
+                         : std::numeric_limits<double>::infinity());
+    }
+};
+
+/* ============================================================================================ */
+/*! \brief  Random number generator which generates zero values */
+class rocblas_zero_rng
+{
+    // Generate random zero values
+    static unsigned rand2()
+    {
+        return std::uniform_int_distribution<unsigned>(0, 1)(rocblas_rng);
+    }
+
+public:
+    // Random integer
+    template <typename T, std::enable_if_t<std::is_integral<T>{}, int> = 0>
+    explicit operator T()
+    {
+        return 0;
+    }
+    // Random float
+    template <typename T, std::enable_if_t<!std::is_integral<T>{}, int> = 0>
+    explicit operator T()
+    {
+        return T(rand2() ? -0.0 : 0.0);
+    }
+};
+
+/* ============================================================================================ */
 /* generate random number :*/
 
 /*! \brief  generate a random number in range [1,2,3,4,5,6,7,8,9,10] */
@@ -111,6 +162,20 @@ template <typename T>
 inline T random_nan_generator()
 {
     return T(rocblas_nan_rng{});
+}
+
+/*! \brief  generate a random Inf number */
+template <typename T>
+inline T random_inf_generator()
+{
+    return T(rocblas_inf_rng{});
+}
+
+/*! \brief  generate a random Inf number */
+template <typename T>
+inline T random_zero_generator()
+{
+    return T(rocblas_zero_rng{});
 }
 
 // for rocblas_float_complex, generate two random ints (same behaviour as for floats)

@@ -71,6 +71,9 @@ _rocblas_handle::_rocblas_handle()
 
     // Initialize logging
     init_logging();
+
+    // Initialize numerical checking
+    init_check_numerics();
 }
 
 /*******************************************************************************
@@ -476,4 +479,18 @@ extern "C" rocblas_status rocblas_set_solution_fitness_query(rocblas_handle hand
     if((handle->solution_fitness_query = fitness) != nullptr)
         *fitness = std::numeric_limits<double>::lowest();
     return rocblas_status_success;
+}
+
+/*******************************************************************************   
+ * Numeric_check initialization
+ ******************************************************************************/
+void _rocblas_handle::init_check_numerics()
+{
+    // set check_numerics from value of environment variable ROCBLAS_CHECK_NUMERICS
+    const char* str_check_numerics_mode = getenv("ROCBLAS_CHECK_NUMERICS");
+    if(str_check_numerics_mode)
+    {
+        check_numerics
+            = static_cast<rocblas_check_numerics_mode>(strtol(str_check_numerics_mode, 0, 0));
+    }
 }

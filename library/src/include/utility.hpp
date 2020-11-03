@@ -352,6 +352,94 @@ constexpr rocblas_status get_rocblas_status_for_hip_status(hipError_t status)
     }
 }
 
+/*********************************************************************************************************
+ * \brief The main structure for Numerical checking to detect numerical abnormalities such as NaN/zero/Inf
+ *********************************************************************************************************/
+typedef struct rocblas_check_numerics_s
+{
+    // Set to true if there is a NaN in the vector/matrix
+    bool has_NaN = false;
+
+    // Set to true if there is a zero in the vector/matrix
+    bool has_zero = false;
+
+    // Set to true if there is an Infinity in the vector/matrix
+    bool has_Inf = false;
+} rocblas_check_numerics_t;
+
+/*******************************************************************************
+* \brief  returns true if arg is NaN
+********************************************************************************/
+template <typename T, std::enable_if_t<std::is_integral<T>{}, int> = 0>
+__host__ __device__ inline bool rocblas_isnan(T)
+{
+    return false;
+}
+
+template <typename T, std::enable_if_t<!std::is_integral<T>{} && !is_complex<T>, int> = 0>
+__host__ __device__ inline bool rocblas_isnan(T arg)
+{
+    return std::isnan(arg);
+}
+
+template <typename T, std::enable_if_t<is_complex<T>, int> = 0>
+__host__ __device__ inline bool rocblas_isnan(const T& arg)
+{
+    return rocblas_isnan(std::real(arg)) || rocblas_isnan(std::imag(arg));
+}
+
+__host__ __device__ inline bool rocblas_isnan(rocblas_half arg)
+{
+    union
+    {
+        rocblas_half fp;
+        uint16_t     data;
+    } x = {arg};
+    return (~x.data & 0x7c00) == 0 && (x.data & 0x3ff) != 0;
+}
+
+/*******************************************************************************
+* \brief  returns true if arg is Infinity
+********************************************************************************/
+
+template <typename T, std::enable_if_t<std::is_integral<T>{}, int> = 0>
+__host__ __device__ inline bool rocblas_isinf(T)
+{
+    return false;
+}
+
+template <typename T, std::enable_if_t<!std::is_integral<T>{} && !is_complex<T>, int> = 0>
+__host__ __device__ inline bool rocblas_isinf(T arg)
+{
+    return std::isinf(arg);
+}
+
+template <typename T, std::enable_if_t<is_complex<T>, int> = 0>
+__host__ __device__ inline bool rocblas_isinf(const T& arg)
+{
+    return rocblas_isinf(std::real(arg)) || rocblas_isinf(std::imag(arg));
+}
+
+__host__ __device__ inline bool rocblas_isinf(rocblas_half arg)
+{
+    union
+    {
+        rocblas_half fp;
+        uint16_t     data;
+    } x = {arg};
+    return (~x.data & 0x7c00) == 0 && (x.data & 0x3ff) == 0;
+}
+
+/*******************************************************************************
+* \brief  returns true if arg is zero
+********************************************************************************/
+
+template <typename T>
+__host__ __device__ inline bool rocblas_iszero(T arg)
+{
+    return arg == 0;
+}
+
 // Absolute value
 template <typename T, std::enable_if_t<!is_complex<T>, int> = 0>
 __device__ __host__ inline T rocblas_abs(T x)

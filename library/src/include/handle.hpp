@@ -163,11 +163,15 @@ public:
     // default atomics mode allows atomic operations
     rocblas_atomics_mode atomics_mode = rocblas_atomics_allowed;
 
+    // default check_numerics_mode is no numeric_check
+    rocblas_check_numerics_mode check_numerics = rocblas_check_numerics_mode_no_check;
+
     // logging streams
     std::unique_ptr<rocblas_ostream> log_trace_os;
     std::unique_ptr<rocblas_ostream> log_bench_os;
     std::unique_ptr<rocblas_ostream> log_profile_os;
     void                             init_logging();
+    void                             init_check_numerics();
 
     // C interfaces for manipulating device memory
     friend rocblas_status(::rocblas_start_device_memory_size_query)(_rocblas_handle*);
