@@ -9,6 +9,7 @@
 
 namespace
 {
+    // large index support is not needed for lda, ldb, ldc as this kernel is only intended for small m, n, k
     // general alpha, beta, m, n, k
     template <typename T,
               int  DIM_M,
@@ -29,12 +30,12 @@ namespace
                                     rocblas_int    K,
                                     const T        alpha,
                                     const T* const dA_array[],
-                                    ptrdiff_t      lda,
+                                    rocblas_int      lda,
                                     const T* const dB_array[],
-                                    ptrdiff_t      ldb,
+                                    rocblas_int      ldb,
                                     const T        beta,
                                     T* const       dC_array[],
-                                    ptrdiff_t      ldc,
+                                    rocblas_int      ldc,
                                     rocblas_int    batch_count)
     {
         int thx  = threadIdx.x; // thread's m position in C
@@ -156,6 +157,7 @@ namespace
         }
     }
 
+    // large index support is not needed for lda, ldb, ldc as this kernel is only intended for small m, n, k
     // general alpha, beta, restricted m, n, k
     template <typename T,
               int  DIM_M,
@@ -176,12 +178,12 @@ namespace
                             rocblas_int    K,
                             const T        alpha,
                             const T* const dA_array[],
-                            ptrdiff_t      lda,
+                            rocblas_int      lda,
                             const T* const dB_array[],
-                            ptrdiff_t      ldb,
+                            rocblas_int      ldb,
                             const T        beta,
                             T* const       dC_array[],
-                            ptrdiff_t      ldc,
+                            rocblas_int      ldc,
                             rocblas_int    batch_count)
     {
         int thx  = threadIdx.x; // thread's m position in C
@@ -291,6 +293,7 @@ namespace
         }
     }
 
+    // large index support is not needed for lda, ldb, ldc as this kernel is only intended for small m, n, k
     // templated alpha, beta, restricted m, n, k
     template <typename T,
               int  DIM_M,
@@ -311,11 +314,11 @@ namespace
                             rocblas_int    N,
                             rocblas_int    K,
                             const T* const dA_array[],
-                            ptrdiff_t      lda,
+                            rocblas_int    lda,
                             const T* const dB_array[],
-                            ptrdiff_t      ldb,
+                            rocblas_int    ldb,
                             T* const       dC_array[],
-                            ptrdiff_t      ldc,
+                            rocblas_int    ldc,
                             rocblas_int    batch_count)
     {
         int thx  = threadIdx.x; // thread's m position in C
