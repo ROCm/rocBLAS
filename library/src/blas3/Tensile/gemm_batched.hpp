@@ -30,12 +30,12 @@ namespace
                                     rocblas_int    K,
                                     const T        alpha,
                                     const T* const dA_array[],
-                                    rocblas_int      lda,
+                                    rocblas_int    lda,
                                     const T* const dB_array[],
-                                    rocblas_int      ldb,
+                                    rocblas_int    ldb,
                                     const T        beta,
                                     T* const       dC_array[],
-                                    rocblas_int      ldc,
+                                    rocblas_int    ldc,
                                     rocblas_int    batch_count)
     {
         int thx  = threadIdx.x; // thread's m position in C
@@ -178,12 +178,12 @@ namespace
                             rocblas_int    K,
                             const T        alpha,
                             const T* const dA_array[],
-                            rocblas_int      lda,
+                            rocblas_int    lda,
                             const T* const dB_array[],
-                            rocblas_int      ldb,
+                            rocblas_int    ldb,
                             const T        beta,
                             T* const       dC_array[],
-                            rocblas_int      ldc,
+                            rocblas_int    ldc,
                             rocblas_int    batch_count)
     {
         int thx  = threadIdx.x; // thread's m position in C
