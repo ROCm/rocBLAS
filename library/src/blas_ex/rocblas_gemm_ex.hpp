@@ -673,33 +673,11 @@ rocblas_status gemm_ex_batched_template(rocblas_handle    handle,
     if(d)
         d += offset_d;
 
-    const To*      c_in;
-    rocblas_int    ldi;
-    rocblas_stride stride_i;
-    bool           tensile_supports_ldc_ne_ldd = rocblas_tensile_supports_ldc_ne_ldd(handle);
-
-    if(tensile_supports_ldc_ne_ldd && (std::is_same<Ti, float>{} || std::is_same<Ti, double>{})
-       && ((ldc >= ldd && (stride_c >= stride_d || batch_count == 1) && m == ldd)
-           || (ldc == ldd && (stride_c == stride_d || batch_count == 1))))
-    {
-        c_in     = c;
-        ldi      = ldc;
-        stride_i = stride_c;
-    }
-    else
-    {
-        device_strided_batched_matrix_copy(
-            handle, c, ldc, stride_c, d, ldd, stride_d, m, n, batch_count);
-        c_in     = d;
-        ldi      = ldd;
-        stride_i = stride_d;
-    }
-
 #ifdef USE_TENSILE_HOST
 
     RocblasContractionProblem<Ti, To, Tc> problem{
-        handle, trans_a,  trans_b, m,    n,   k,        alpha, a,   lda,      stride_a,   b,
-        ldb,    stride_b, beta,    c_in, ldi, stride_i, d,     ldd, stride_d, batch_count};
+        handle, trans_a,  trans_b, m, n,   k,        alpha, a,   lda,      stride_a,   b,
+        ldb,    stride_b, beta,    c, ldc, stride_c, d,     ldd, stride_d, batch_count};
 
     return runContractionProblem(problem);
 
@@ -709,15 +687,15 @@ rocblas_status gemm_ex_batched_template(rocblas_handle    handle,
     rocblas_status rb_status;
 
     t_status = call_tensile_ex<Ti, To, Tc>(d,
-                                           c_in,
+                                           c,
                                            a,
                                            b,
                                            *alpha,
                                            *beta,
                                            ldd,
                                            stride_d,
-                                           ldi,
-                                           stride_i,
+                                           ldc,
+                                           stride_c,
                                            lda,
                                            stride_a,
                                            ldb,
