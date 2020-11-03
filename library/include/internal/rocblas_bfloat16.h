@@ -36,7 +36,7 @@
 
 #include <stdint.h>
 /*! \brief Struct to represent a 16 bit Brain floating-point number. */
-typedef struct
+typedef struct ROCBLAS_EXPORT
 {
     uint16_t data;
 } rocblas_bfloat16;
@@ -50,7 +50,7 @@ typedef struct
 #include <ostream>
 #include <type_traits>
 
-struct rocblas_bfloat16
+struct ROCBLAS_EXPORT rocblas_bfloat16
 {
     uint16_t data;
 
