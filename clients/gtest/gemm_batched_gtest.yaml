@@ -4,9 +4,11 @@ include: known_bugs.yaml
 
 Definitions:
   - &algorithm_coverage_matrix_size_range
-    - { M:    64, N:    64, K:     4, lda:    64, ldb:    64, ldc:    64, ldd:    64 }
-    - { M:    32, N:    32, K:     8, lda:    32, ldb:    32, ldc:    32, ldd:    32 }
-    - { M:    25, N:    25, K:    25, lda:    25, ldb:    25, ldc:    25, ldd:    25 }
+    - { M:    64, N:   128, K:     4, lda:    64, ldb:    64, ldc:    64, ldd:    64 }
+    - { M:   128, N:    64, K:     8, lda:    64, ldb:    64, ldc:    64, ldd:    64 }
+    - { M:    64, N:    32, K:     8, lda:    64, ldb:    65, ldc:    66, ldd:    66 }
+    - { M:    32, N:    64, K:    16, lda:    65, ldb:    66, ldc:    67, ldd:    67 }
+    - { M:    25, N:    26, K:    27, lda:    28, ldb:    29, ldc:    30, ldd:    30 }
 
   - &small_matrix_size_range
     - { M:    -1, N:    -1, K:    -1, lda:    -1, ldb:     1, ldc:     1, ldd:     1 }
@@ -160,6 +162,17 @@ Definitions:
 
   - &algorithm_coverage_transA_transB_range
     - { transA: N, transB: N }
+    - { transA: N, transB: T }
+    - { transA: T, transB: N }
+    - { transA: T, transB: T }
+
+  - &algorithm_coverage_transA_transB_conj_range
+    - { transA: N, transB: C }
+    - { transA: C, transB: N }
+    - { transA: T, transB: C }
+    - { transA: C, transB: T }
+    - { transA: C, transB: C }
+
 
   - &algorithm_coverage_alpha_beta_range
     - { alpha:  1.0, beta:  1.0 }
@@ -167,6 +180,7 @@ Definitions:
     - { alpha:  1.0, beta:  0.0 }
     - { alpha: -1.0, beta:  0.0 }
     - { alpha:  2.0, beta:  0.0 }
+    - { alpha:  0.0, beta:  2.0 }
     - { alpha:  2.0, beta:  3.0 }
 
   - &alpha_beta_range
@@ -191,10 +205,30 @@ Tests:
   transB: N
   fortran: [ false, true ]
 
-- name: gemm_batched_algorithm_coverage
+- name: gemm_batched_algorithm_complex_coverage
   category: pre_checkin
   function:
     - gemm_batched: *single_double_precisions_complex
+  matrix_size: *algorithm_coverage_matrix_size_range
+  transA_transB: *algorithm_coverage_transA_transB_range
+  alpha_beta: *algorithm_coverage_alpha_beta_range
+  batch_count: [ 1, 3 ]
+  fortran: false
+
+- name: gemm_batched_algorithm_conj_coverage
+  category: pre_checkin
+  function:
+    - gemm_batched: *single_double_precisions_complex
+  matrix_size: *algorithm_coverage_matrix_size_range
+  transA_transB: *algorithm_coverage_transA_transB_conj_range
+  alpha_beta: *algorithm_coverage_alpha_beta_range
+  batch_count: [ 1, 3 ]
+  fortran: false
+
+- name: gemm_batched_algorithm_real_coverage
+  category: pre_checkin
+  function:
+    - gemm_batched: *single_double_precisions
   matrix_size: *algorithm_coverage_matrix_size_range
   transA_transB: *algorithm_coverage_transA_transB_range
   alpha_beta: *algorithm_coverage_alpha_beta_range
