@@ -44,7 +44,8 @@ public:
 
         // append performance fields
         name_line << ",rocblas-Gflops,rocblas-GB/s,rocblas-us,";
-        val_line << ", " << rocblas_gflops << ", " << rocblas_GBps << ", " << gpu_us << ", ";
+        val_line << ", " << rocblas_gflops << ", " << rocblas_GBps << ", " << gpu_us / hot_calls
+                 << ", ";
 
         if(arg.unit_check || arg.norm_check)
         {
