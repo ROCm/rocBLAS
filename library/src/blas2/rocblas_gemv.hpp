@@ -133,69 +133,140 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_gemv_template(rocblas_handle    h
 
     if(transA == rocblas_operation_none)
     {
-        // GEMVN_DIM_Y must be at least 4, 8 * 8 is very slow only 40Gflop/s
-        static constexpr int GEMVN_DIM_X = 64;
-        static constexpr int GEMVN_DIM_Y = 16;
-        rocblas_int          blocks      = (m - 1) / (GEMVN_DIM_X * 4) + 1;
-        if(std::is_same<T, rocblas_double_complex>{})
-            blocks = (m - 1) / (GEMVN_DIM_X) + 1;
-        dim3 gemvn_grid(blocks, batch_count);
-        dim3 gemvn_threads(GEMVN_DIM_X, GEMVN_DIM_Y);
-
-        if(handle->pointer_mode == rocblas_pointer_mode_device)
+        if(n <= 128 && m >= 2048 * n)
         {
-            hipLaunchKernelGGL((gemvn_kernel<GEMVN_DIM_X, GEMVN_DIM_Y, T>),
-                               gemvn_grid,
-                               gemvn_threads,
-                               0,
-                               rocblas_stream,
-                               m,
-                               n,
-                               alpha,
-                               stride_alpha,
-                               A,
-                               offseta,
-                               lda,
-                               strideA,
-                               x,
-                               shiftx,
-                               incx,
-                               stridex,
-                               beta,
-                               stride_beta,
-                               y,
-                               shifty,
-                               incy,
-                               stridey);
+            // skinny tuned block size
+
+            static constexpr int GEMVN_DIM_X = 64;
+            static constexpr int GEMVN_DIM_Y = 4;
+            rocblas_int          blocks      = (m - 1) / (GEMVN_DIM_X * 4) + 1;
+            if(std::is_same<T, rocblas_double_complex>{})
+                blocks = (m - 1) / (GEMVN_DIM_X) + 1;
+            dim3 gemvn_grid(blocks, batch_count);
+            dim3 gemvn_threads(GEMVN_DIM_X, GEMVN_DIM_Y);
+
+            if(handle->pointer_mode == rocblas_pointer_mode_device)
+            {
+                hipLaunchKernelGGL((gemvn_kernel<GEMVN_DIM_X, GEMVN_DIM_Y, T>),
+                                   gemvn_grid,
+                                   gemvn_threads,
+                                   0,
+                                   rocblas_stream,
+                                   m,
+                                   n,
+                                   alpha,
+                                   stride_alpha,
+                                   A,
+                                   offseta,
+                                   lda,
+                                   strideA,
+                                   x,
+                                   shiftx,
+                                   incx,
+                                   stridex,
+                                   beta,
+                                   stride_beta,
+                                   y,
+                                   shifty,
+                                   incy,
+                                   stridey);
+            }
+            else
+            {
+                if(!*alpha && *beta == 1)
+                    return rocblas_status_success;
+
+                hipLaunchKernelGGL((gemvn_kernel<GEMVN_DIM_X, GEMVN_DIM_Y, T>),
+                                   gemvn_grid,
+                                   gemvn_threads,
+                                   0,
+                                   rocblas_stream,
+                                   m,
+                                   n,
+                                   *alpha,
+                                   stride_alpha,
+                                   A,
+                                   offseta,
+                                   lda,
+                                   strideA,
+                                   x,
+                                   shiftx,
+                                   incx,
+                                   stridex,
+                                   *beta,
+                                   stride_beta,
+                                   y,
+                                   shifty,
+                                   incy,
+                                   stridey);
+            }
         }
-        else
+        else // non-skinny
         {
-            if(!*alpha && *beta == 1)
-                return rocblas_status_success;
+            // GEMVN_DIM_Y must be at least 4, 8 * 8 is very slow only 40Gflop/s
+            static constexpr int GEMVN_DIM_X = 64;
+            static constexpr int GEMVN_DIM_Y = 16;
+            rocblas_int          blocks      = (m - 1) / (GEMVN_DIM_X * 4) + 1;
+            if(std::is_same<T, rocblas_double_complex>{})
+                blocks = (m - 1) / (GEMVN_DIM_X) + 1;
+            dim3 gemvn_grid(blocks, batch_count);
+            dim3 gemvn_threads(GEMVN_DIM_X, GEMVN_DIM_Y);
 
-            hipLaunchKernelGGL((gemvn_kernel<GEMVN_DIM_X, GEMVN_DIM_Y, T>),
-                               gemvn_grid,
-                               gemvn_threads,
-                               0,
-                               rocblas_stream,
-                               m,
-                               n,
-                               *alpha,
-                               stride_alpha,
-                               A,
-                               offseta,
-                               lda,
-                               strideA,
-                               x,
-                               shiftx,
-                               incx,
-                               stridex,
-                               *beta,
-                               stride_beta,
-                               y,
-                               shifty,
-                               incy,
-                               stridey);
+            if(handle->pointer_mode == rocblas_pointer_mode_device)
+            {
+                hipLaunchKernelGGL((gemvn_kernel<GEMVN_DIM_X, GEMVN_DIM_Y, T>),
+                                   gemvn_grid,
+                                   gemvn_threads,
+                                   0,
+                                   rocblas_stream,
+                                   m,
+                                   n,
+                                   alpha,
+                                   stride_alpha,
+                                   A,
+                                   offseta,
+                                   lda,
+                                   strideA,
+                                   x,
+                                   shiftx,
+                                   incx,
+                                   stridex,
+                                   beta,
+                                   stride_beta,
+                                   y,
+                                   shifty,
+                                   incy,
+                                   stridey);
+            }
+            else
+            {
+                if(!*alpha && *beta == 1)
+                    return rocblas_status_success;
+
+                hipLaunchKernelGGL((gemvn_kernel<GEMVN_DIM_X, GEMVN_DIM_Y, T>),
+                                   gemvn_grid,
+                                   gemvn_threads,
+                                   0,
+                                   rocblas_stream,
+                                   m,
+                                   n,
+                                   *alpha,
+                                   stride_alpha,
+                                   A,
+                                   offseta,
+                                   lda,
+                                   strideA,
+                                   x,
+                                   shiftx,
+                                   incx,
+                                   stridex,
+                                   *beta,
+                                   stride_beta,
+                                   y,
+                                   shifty,
+                                   incy,
+                                   stridey);
+            }
         }
     }
     else if(transA == rocblas_operation_transpose)
