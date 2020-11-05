@@ -26,20 +26,17 @@ __device__ void gemvn_kernel_calc(rocblas_int m,
     rocblas_int thread_id = hipThreadIdx_x + hipThreadIdx_y * hipBlockDim_x;
 
     // threads are all configurated locally
-    rocblas_int tx = thread_id % DIM_X;
-    rocblas_int ty = thread_id / DIM_X;
+    rocblas_int tx = hipThreadIdx_x;
+    rocblas_int ty = hipThreadIdx_y;
 
     rocblas_int ind;
 
     __shared__ T sdata[DIM_X * 4 * DIM_Y];
 
-    T res_A[4]; // micor tile is 4 * 4
+    T res_A[4];
     T res_x[4];
 
-    res_A[0] = res_x[0] = 0.0;
-    res_A[1] = res_x[0] = 0.0;
-    res_A[2] = res_x[0] = 0.0;
-    res_A[3] = res_x[0] = 0.0;
+    res_A[0] = res_A[1] = res_A[2] = res_A[3] = T{0};
 
     ind = hipBlockIdx_x * DIM_X * 4 + tx;
 
@@ -59,55 +56,55 @@ __device__ void gemvn_kernel_calc(rocblas_int m,
             res_A[0] += A[ind + (col + 1) * lda] * res_x[1];
             res_A[0] += A[ind + (col + 2) * lda] * res_x[2];
             res_A[0] += A[ind + (col + 3) * lda] * res_x[3];
-        }
 
-        if(ind + DIM_X < m)
-        {
-            res_A[1] += A[ind + DIM_X + (col + 0) * lda] * res_x[0];
-            res_A[1] += A[ind + DIM_X + (col + 1) * lda] * res_x[1];
-            res_A[1] += A[ind + DIM_X + (col + 2) * lda] * res_x[2];
-            res_A[1] += A[ind + DIM_X + (col + 3) * lda] * res_x[3];
-        }
+            if(ind + DIM_X < m)
+            {
+                res_A[1] += A[ind + DIM_X + (col + 0) * lda] * res_x[0];
+                res_A[1] += A[ind + DIM_X + (col + 1) * lda] * res_x[1];
+                res_A[1] += A[ind + DIM_X + (col + 2) * lda] * res_x[2];
+                res_A[1] += A[ind + DIM_X + (col + 3) * lda] * res_x[3];
 
-        if(ind + 2 * DIM_X < m)
-        {
-            res_A[2] += A[ind + 2 * DIM_X + (col + 0) * lda] * res_x[0];
-            res_A[2] += A[ind + 2 * DIM_X + (col + 1) * lda] * res_x[1];
-            res_A[2] += A[ind + 2 * DIM_X + (col + 2) * lda] * res_x[2];
-            res_A[2] += A[ind + 2 * DIM_X + (col + 3) * lda] * res_x[3];
-        }
+                if(ind + 2 * DIM_X < m)
+                {
+                    res_A[2] += A[ind + 2 * DIM_X + (col + 0) * lda] * res_x[0];
+                    res_A[2] += A[ind + 2 * DIM_X + (col + 1) * lda] * res_x[1];
+                    res_A[2] += A[ind + 2 * DIM_X + (col + 2) * lda] * res_x[2];
+                    res_A[2] += A[ind + 2 * DIM_X + (col + 3) * lda] * res_x[3];
 
-        if(ind + 3 * DIM_X < m)
-        {
-            res_A[3] += A[ind + 3 * DIM_X + (col + 0) * lda] * res_x[0];
-            res_A[3] += A[ind + 3 * DIM_X + (col + 1) * lda] * res_x[1];
-            res_A[3] += A[ind + 3 * DIM_X + (col + 2) * lda] * res_x[2];
-            res_A[3] += A[ind + 3 * DIM_X + (col + 3) * lda] * res_x[3];
+                    if(ind + 3 * DIM_X < m)
+                    {
+                        res_A[3] += A[ind + 3 * DIM_X + (col + 0) * lda] * res_x[0];
+                        res_A[3] += A[ind + 3 * DIM_X + (col + 1) * lda] * res_x[1];
+                        res_A[3] += A[ind + 3 * DIM_X + (col + 2) * lda] * res_x[2];
+                        res_A[3] += A[ind + 3 * DIM_X + (col + 3) * lda] * res_x[3];
+                    }
+                }
+            }
         }
     }
 
-    // if n  is not multiple of (DIM_Y * 4)
+    // if n is not multiple of (DIM_Y * 4)
     if(n_tail > 0)
     {
+        res_x[0] = res_x[1] = res_x[2] = res_x[3] = T{0};
+
         if(col + 0 < n)
+        {
             res_x[0] = x[(col + 0) * incx];
-        else
-            res_x[0] = 0.0;
 
-        if(col + 1 < n)
-            res_x[1] = x[(col + 1) * incx];
-        else
-            res_x[1] = 0.0;
+            if(col + 1 < n)
+            {
+                res_x[1] = x[(col + 1) * incx];
 
-        if(col + 2 < n)
-            res_x[2] = x[(col + 2) * incx];
-        else
-            res_x[2] = 0.0;
+                if(col + 2 < n)
+                {
+                    res_x[2] = x[(col + 2) * incx];
 
-        if(col + 3 < n)
-            res_x[3] = x[(col + 3) * incx];
-        else
-            res_x[3] = 0.0;
+                    if(col + 3 < n)
+                        res_x[3] = x[(col + 3) * incx];
+                }
+            }
+        }
 
         if(ind < m)
         {
@@ -115,30 +112,30 @@ __device__ void gemvn_kernel_calc(rocblas_int m,
             res_A[0] += A[ind + (col + 1) * lda * (col + 1 < n)] * res_x[1];
             res_A[0] += A[ind + (col + 2) * lda * (col + 2 < n)] * res_x[2];
             res_A[0] += A[ind + (col + 3) * lda * (col + 3 < n)] * res_x[3];
-        }
 
-        if(ind + DIM_X < m)
-        {
-            res_A[1] += A[ind + DIM_X + (col + 0) * lda * (col + 0 < n)] * res_x[0];
-            res_A[1] += A[ind + DIM_X + (col + 1) * lda * (col + 1 < n)] * res_x[1];
-            res_A[1] += A[ind + DIM_X + (col + 2) * lda * (col + 2 < n)] * res_x[2];
-            res_A[1] += A[ind + DIM_X + (col + 3) * lda * (col + 3 < n)] * res_x[3];
-        }
+            if(ind + DIM_X < m)
+            {
+                res_A[1] += A[ind + DIM_X + (col + 0) * lda * (col + 0 < n)] * res_x[0];
+                res_A[1] += A[ind + DIM_X + (col + 1) * lda * (col + 1 < n)] * res_x[1];
+                res_A[1] += A[ind + DIM_X + (col + 2) * lda * (col + 2 < n)] * res_x[2];
+                res_A[1] += A[ind + DIM_X + (col + 3) * lda * (col + 3 < n)] * res_x[3];
 
-        if(ind + 2 * DIM_X < m)
-        {
-            res_A[2] += A[ind + 2 * DIM_X + (col + 0) * lda * (col + 0 < n)] * res_x[0];
-            res_A[2] += A[ind + 2 * DIM_X + (col + 1) * lda * (col + 1 < n)] * res_x[1];
-            res_A[2] += A[ind + 2 * DIM_X + (col + 2) * lda * (col + 2 < n)] * res_x[2];
-            res_A[2] += A[ind + 2 * DIM_X + (col + 3) * lda * (col + 3 < n)] * res_x[3];
-        }
+                if(ind + 2 * DIM_X < m)
+                {
+                    res_A[2] += A[ind + 2 * DIM_X + (col + 0) * lda * (col + 0 < n)] * res_x[0];
+                    res_A[2] += A[ind + 2 * DIM_X + (col + 1) * lda * (col + 1 < n)] * res_x[1];
+                    res_A[2] += A[ind + 2 * DIM_X + (col + 2) * lda * (col + 2 < n)] * res_x[2];
+                    res_A[2] += A[ind + 2 * DIM_X + (col + 3) * lda * (col + 3 < n)] * res_x[3];
 
-        if(ind + 3 * DIM_X < m)
-        {
-            res_A[3] += A[ind + 3 * DIM_X + (col + 0) * lda * (col + 0 < n)] * res_x[0];
-            res_A[3] += A[ind + 3 * DIM_X + (col + 1) * lda * (col + 1 < n)] * res_x[1];
-            res_A[3] += A[ind + 3 * DIM_X + (col + 2) * lda * (col + 2 < n)] * res_x[2];
-            res_A[3] += A[ind + 3 * DIM_X + (col + 3) * lda * (col + 3 < n)] * res_x[3];
+                    if(ind + 3 * DIM_X < m)
+                    {
+                        res_A[3] += A[ind + 3 * DIM_X + (col + 0) * lda * (col + 0 < n)] * res_x[0];
+                        res_A[3] += A[ind + 3 * DIM_X + (col + 1) * lda * (col + 1 < n)] * res_x[1];
+                        res_A[3] += A[ind + 3 * DIM_X + (col + 2) * lda * (col + 2 < n)] * res_x[2];
+                        res_A[3] += A[ind + 3 * DIM_X + (col + 3) * lda * (col + 3 < n)] * res_x[3];
+                    }
+                }
+            }
         }
     }
 

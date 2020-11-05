@@ -15,7 +15,7 @@ Definitions:
 
   - &skinny_n_matrix_size_range
     - { M:  32000, N:  11, lda:    32000, stride_a:   352000 }
-    - { M:  67650, N:  33, lda:    67650, stride_a:  2232450 }
+    - { M:  67650, N:  40, lda:    67650, stride_a:  2232450 }
     - { M:  20480, N:   7, lda:    20480, stride_a:   143360 }
     - { M: 131071, N:  63, lda:   131071, stride_a:  8257473 }
 
@@ -126,10 +126,10 @@ Tests:
   alpha_beta: *alpha_beta_range_small
 
 - name: gemv_skinny_n
-  category: quick
+  category: pre_checkin
   function: gemv
   precision: *single_double_precisions_complex_real
-  transA: [ T, C ]
+  transA: [ N, T, C ]
   matrix_size: *skinny_n_matrix_size_range
   incx_incy: *incx_incy_range_small
   alpha_beta: *alpha_beta_range
@@ -170,10 +170,10 @@ Tests:
   fortran: true
 
 - name: gemv_batched_skinny_n
-  category: quick
+  category: pre_checkin
   function: gemv_batched
   precision: *single_double_precisions_complex_real
-  transA: [ T, C ]
+  transA: [ N, T, C ]
   matrix_size: *skinny_n_matrix_size_range
   incx_incy: *incx_incy_range_small
   alpha_beta: *alpha_beta_range_small
@@ -266,10 +266,10 @@ Tests:
   batch_count: [ -1, 0, 1, 3 ]
 
 - name: gemv_strided_batched_skinny_n
-  category: quick
+  category: pre_checkin
   function: gemv_strided_batched
   precision: *single_double_precisions_complex_real
-  transA: [ T, C ]
+  transA: [ N, T, C ]
   matrix_size: *skinny_n_matrix_size_range
   incx_incy: *incx_incy_range_small
   alpha_beta: *alpha_beta_range_small

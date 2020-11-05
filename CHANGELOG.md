@@ -8,7 +8,7 @@ __anchor__ac
 - Add changelog
 
 __anchor__t
-- Improved performance of gemv, gemv_batched, gemv_strided_batched: transpose/conjugate transpose for small n large m
+- Improved performance of gemv, gemv_batched, gemv_strided_batched: small n large m
 - Removed support for legacy hcc compiler
 
 __anchor__w
