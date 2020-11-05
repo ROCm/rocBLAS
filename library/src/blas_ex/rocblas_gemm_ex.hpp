@@ -563,20 +563,20 @@ rocblas_status gemm_ex_batched_template(rocblas_handle    handle,
                                         rocblas_int       k,
                                         const Tc*         alpha,
                                         const Ti*         a[],
-                                        size_t            offset_a,
+                                        rocblas_int       offset_a,
                                         rocblas_int       lda,
                                         rocblas_stride    stride_a,
                                         const Ti*         b[],
-                                        size_t            offset_b,
+                                        rocblas_int       offset_b,
                                         rocblas_int       ldb,
                                         rocblas_stride    stride_b,
                                         const Tc*         beta,
                                         const To*         c[],
-                                        size_t            offset_c,
+                                        rocblas_int       offset_c,
                                         rocblas_int       ldc,
                                         rocblas_stride    stride_c,
                                         To*               d[],
-                                        size_t            offset_d,
+                                        rocblas_int       offset_d,
                                         rocblas_int       ldd,
                                         rocblas_stride    stride_d,
                                         rocblas_int       batch_count)
@@ -645,39 +645,31 @@ rocblas_status gemm_ex_batched_template(rocblas_handle    handle,
                                         rocblas_int       k,
                                         const Tc*         alpha,
                                         const Ti*         a,
-                                        size_t            offset_a,
+                                        rocblas_int       offset_a,
                                         rocblas_int       lda,
                                         rocblas_stride    stride_a,
                                         const Ti*         b,
-                                        size_t            offset_b,
+                                        rocblas_int       offset_b,
                                         rocblas_int       ldb,
                                         rocblas_stride    stride_b,
                                         const Tc*         beta,
                                         const To*         c,
-                                        size_t            offset_c,
+                                        rocblas_int       offset_c,
                                         rocblas_int       ldc,
                                         rocblas_stride    stride_c,
                                         To*               d,
-                                        size_t            offset_d,
+                                        rocblas_int       offset_d,
                                         rocblas_int       ldd,
                                         rocblas_stride    stride_d,
                                         rocblas_int       batch_count)
 {
 
-    if(a)
-        a += offset_a;
-    if(b)
-        b += offset_b;
-    if(c)
-        c += offset_c;
-    if(d)
-        d += offset_d;
-
 #ifdef USE_TENSILE_HOST
 
     RocblasContractionProblem<Ti, To, Tc> problem{
-        handle, trans_a,  trans_b, m, n,   k,        alpha, a,   lda,      stride_a,   b,
-        ldb,    stride_b, beta,    c, ldc, stride_c, d,     ldd, stride_d, batch_count};
+        handle,   trans_a,  trans_b, m,   n,        k,        alpha,      a, lda,
+        stride_a, offset_a, b,       ldb, stride_b, offset_b, beta,       c, ldc,
+        stride_c, offset_c, d,       ldd, stride_d, offset_d, batch_count};
 
     return runContractionProblem(problem);
 

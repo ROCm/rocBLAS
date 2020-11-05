@@ -49,11 +49,13 @@ struct RocblasContractionProblem
     size_t    row_stride_a;
     size_t    col_stride_a;
     size_t    batch_stride_a;
+    size_t    buffer_offset_a;
 
     const Ti* B;
     size_t    row_stride_b;
     size_t    col_stride_b;
     size_t    batch_stride_b;
+    size_t    buffer_offset_b;
 
     const Tc* beta;
 
@@ -61,11 +63,13 @@ struct RocblasContractionProblem
     size_t    row_stride_c;
     size_t    col_stride_c;
     size_t    batch_stride_c;
+    size_t    buffer_offset_c;
 
     To*    D;
     size_t row_stride_d;
     size_t col_stride_d;
     size_t batch_stride_d;
+    size_t buffer_offset_d;
 
     size_t batch_count;
 
@@ -81,13 +85,16 @@ struct RocblasContractionProblem
                               const Ti*         A,
                               rocblas_int       ld_a,
                               rocblas_stride    batch_stride_a,
+                              rocblas_int       offset_a,
                               const Ti*         B,
                               rocblas_int       ld_b,
                               rocblas_stride    batch_stride_b,
+                              rocblas_int       offset_b,
                               const Tc*         beta,
                               To*               C,
                               rocblas_int       ld_c,
                               rocblas_stride    batch_stride_c,
+                              rocblas_int       offset_c,
                               rocblas_int       batch_count)
         : handle(handle)
         , trans_a(trans_a)
@@ -100,19 +107,23 @@ struct RocblasContractionProblem
         , row_stride_a(1)
         , col_stride_a(ld_a)
         , batch_stride_a(batch_stride_a)
+        , buffer_offset_a(offset_a)
         , B(B)
         , row_stride_b(1)
         , col_stride_b(ld_b)
         , batch_stride_b(batch_stride_b)
+        , buffer_offset_b(offset_b)
         , beta(beta)
         , C(C)
         , row_stride_c(1)
         , col_stride_c(ld_c)
         , batch_stride_c(batch_stride_c)
+        , buffer_offset_c(offset_c)
         , D(C)
         , row_stride_d(1)
         , col_stride_d(ld_c)
         , batch_stride_d(batch_stride_c)
+        , buffer_offset_d(offset_c)
         , batch_count(batch_count)
     {
     }
@@ -129,16 +140,20 @@ struct RocblasContractionProblem
                               const Ti*         A,
                               rocblas_int       ld_a,
                               rocblas_stride    batch_stride_a,
+                              rocblas_int       offset_a,
                               const Ti*         B,
                               rocblas_int       ld_b,
                               rocblas_stride    batch_stride_b,
+                              rocblas_int       offset_b,
                               const Tc*         beta,
                               const To*         C,
                               rocblas_int       ld_c,
                               rocblas_stride    batch_stride_c,
+                              rocblas_int       offset_c,
                               To*               D,
                               rocblas_int       ld_d,
                               rocblas_stride    batch_stride_d,
+                              rocblas_int       offset_d,
                               rocblas_int       batch_count)
         : handle(handle)
         , trans_a(trans_a)
@@ -151,19 +166,23 @@ struct RocblasContractionProblem
         , row_stride_a(1)
         , col_stride_a(ld_a)
         , batch_stride_a(batch_stride_a)
+        , buffer_offset_a(offset_a)
         , B(B)
         , row_stride_b(1)
         , col_stride_b(ld_b)
         , batch_stride_b(batch_stride_b)
+        , buffer_offset_b(offset_b)
         , beta(beta)
         , C(C)
         , row_stride_c(1)
         , col_stride_c(ld_c)
         , batch_stride_c(batch_stride_c)
+        , buffer_offset_c(offset_c)
         , D(D)
         , row_stride_d(1)
         , col_stride_d(ld_d)
         , batch_stride_d(batch_stride_d)
+        , buffer_offset_d(offset_d)
         , batch_count(batch_count)
     {
     }
@@ -179,19 +198,23 @@ struct RocblasContractionProblem
                               rocblas_stride row_stride_a,
                               rocblas_stride col_stride_a,
                               rocblas_stride batch_stride_a,
+                              rocblas_int    offset_a,
                               const Ti*      B,
                               rocblas_stride row_stride_b,
                               rocblas_stride col_stride_b,
                               rocblas_stride batch_stride_b,
+                              rocblas_int    offset_b,
                               const Tc*      beta,
                               const To*      C,
                               rocblas_stride row_stride_c,
                               rocblas_stride col_stride_c,
                               rocblas_stride batch_stride_c,
+                              rocblas_int    offset_c,
                               To*            D,
                               rocblas_stride row_stride_d,
                               rocblas_stride col_stride_d,
                               rocblas_stride batch_stride_d,
+                              rocblas_int    offset_d,
                               rocblas_int    batch_count)
         : handle(handle)
         , trans_a(rocblas_operation_none)
@@ -204,19 +227,23 @@ struct RocblasContractionProblem
         , row_stride_a(row_stride_a)
         , col_stride_a(col_stride_a)
         , batch_stride_a(batch_stride_a)
+        , buffer_offset_a(offset_a)
         , B(B)
         , row_stride_b(row_stride_b)
         , col_stride_b(col_stride_b)
         , batch_stride_b(batch_stride_b)
+        , buffer_offset_b(offset_b)
         , beta(beta)
         , C(C)
         , row_stride_c(row_stride_c)
         , col_stride_c(col_stride_c)
         , batch_stride_c(batch_stride_c)
+        , buffer_offset_c(offset_c)
         , D(D)
         , row_stride_d(row_stride_d)
         , col_stride_d(col_stride_d)
         , batch_stride_d(batch_stride_d)
+        , buffer_offset_d(offset_d)
         , batch_count(batch_count)
     {
     }
