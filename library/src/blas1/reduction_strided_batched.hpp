@@ -364,7 +364,7 @@ rocblas_status rocblas_reduction_strided_batched_kernel(rocblas_handle __restric
                        dim3(blocks, batch_count),
                        NB,
                        0,
-                       handle->rocblas_stream,
+                       handle->get_stream(),
                        n,
                        blocks,
                        x,
@@ -379,7 +379,7 @@ rocblas_status rocblas_reduction_strided_batched_kernel(rocblas_handle __restric
                            dim3(1, batch_count),
                            NB,
                            0,
-                           handle->rocblas_stream,
+                           handle->get_stream(),
                            blocks,
                            workspace,
                            result);
@@ -399,7 +399,7 @@ rocblas_status rocblas_reduction_strided_batched_kernel(rocblas_handle __restric
                 dim3(1, batch_count),
                 NB,
                 0,
-                handle->rocblas_stream,
+                handle->get_stream(),
                 blocks,
                 workspace,
                 (Tr*)(workspace + size_t(batch_count) * blocks));
