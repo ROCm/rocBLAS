@@ -128,7 +128,7 @@ namespace
                     hipMemsetAsync(result,
                                    0,
                                    rocblas_sizeof_datatype(result_type) * batch_count,
-                                   handle->rocblas_stream));
+                                   handle->get_stream()));
             else
                 memset(result, 0, rocblas_sizeof_datatype(result_type) * batch_count);
             return rocblas_status_success;

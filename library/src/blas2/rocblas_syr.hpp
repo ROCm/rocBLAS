@@ -80,7 +80,7 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_syr_template(rocblas_handle handl
     if(!n || batch_count == 0)
         return rocblas_status_success;
 
-    hipStream_t rocblas_stream = handle->rocblas_stream;
+    hipStream_t rocblas_stream = handle->get_stream();
 
     static constexpr int GEMV_DIM_X = 128;
     static constexpr int GEMV_DIM_Y = 8;

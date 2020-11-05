@@ -141,7 +141,7 @@ namespace
         // call rocBLAS source code if m*n*k is small enough
         if(size_t(m) * size_t(n) * size_t(k) < 1024 * 1024 * 1024)
         {
-            hipStream_t rocblas_stream = handle->rocblas_stream;
+            hipStream_t rocblas_stream = handle->get_stream();
 
             gemm_batched_solution(trans_a,
                                   trans_b,

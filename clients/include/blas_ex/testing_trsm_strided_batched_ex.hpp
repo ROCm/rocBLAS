@@ -300,7 +300,7 @@ void testing_trsm_strided_batched_ex(const Arguments& arg)
         CHECK_HIP_ERROR(hipMemcpy(dXorB, hXorB_1, sizeof(T) * size_B, hipMemcpyHostToDevice));
 
         hipStream_t rocblas_stream;
-        rocblas_get_stream(handle, &rocblas_stream);
+        CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &rocblas_stream));
 
         for(int b = 0; b < batch_count; b++)
         {
