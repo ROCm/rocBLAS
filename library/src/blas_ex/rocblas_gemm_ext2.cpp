@@ -100,7 +100,19 @@ namespace
             {
                 if(a_type == rocblas_datatype_i8_r && d_type == rocblas_datatype_i32_r
                    && compute_type == rocblas_datatype_i32_r)
+                {
                     return GEMM<int8_t, int32_t, int32_t>{}(std::forward<Ts>(arg)...);
+                }
+                else if(a_type == rocblas_datatype_f16_r && d_type == rocblas_datatype_f32_r
+                        && compute_type == rocblas_datatype_f32_r)
+                {
+                    return GEMM<rocblas_half, float, float>{}(std::forward<Ts>(arg)...);
+                }
+                else if(a_type == rocblas_datatype_bf16_r && d_type == rocblas_datatype_f32_r
+                        && compute_type == rocblas_datatype_f32_r)
+                {
+                    return GEMM<rocblas_bfloat16, float, float>{}(std::forward<Ts>(arg)...);
+                }
             }
             else if(d_type != compute_type)
             {
