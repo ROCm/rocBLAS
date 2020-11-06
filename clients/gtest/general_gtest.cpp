@@ -210,11 +210,9 @@ namespace
 
         //Allocating memory for the host vector
         host_vector<T> h_x(size_x);
-
-        /* ============================================================================================ */
-        /**
- *   @brief Initializing random values into the host vector
- ============================================================================================== */
+        //==============================================================================================
+        // Initializing random values in the vector
+        //==============================================================================================
         rocblas_seedrand();
         rocblas_init<T>(h_x, 1, N, inc_x);
 
@@ -238,10 +236,9 @@ namespace
                                                         check_numerics,
                                                         is_input);
         EXPECT_EQ(status, rocblas_status_success);
-        /* ============================================================================================ */
-        /**
- *   @brief Initializing zero into the host vector
- ============================================================================================== */
+        //==============================================================================================
+        // Initializing and testing for zero in the vector
+        //==============================================================================================
         rocblas_init_zero<T>((T*)h_x, N - 1, N);
 
         // copy data from CPU to device
@@ -258,10 +255,9 @@ namespace
                                                         check_numerics,
                                                         is_input);
         EXPECT_EQ(status, rocblas_status_success);
-        /* ============================================================================================ */
-        /**
- *   @brief Initializing Inf into the host vector
- ============================================================================================== */
+        //==============================================================================================
+        // Initializing and testing for Inf in the vector
+        //==============================================================================================
         rocblas_seedrand();
         rocblas_init<T>(h_x, 1, N, inc_x);
         rocblas_init_inf<T>((T*)h_x, N - 3, N - 1);
@@ -281,10 +277,9 @@ namespace
                                                         is_input);
 
         EXPECT_EQ(status, rocblas_status_check_numerics_fail);
-        /* ============================================================================================ */
-        /**
- *   @brief Initializing Inf into the host vector
- ============================================================================================== */
+        //==============================================================================================
+        // Initializing and testing for NaN in the vector
+        //==============================================================================================
         rocblas_seedrand();
         rocblas_init<T>(h_x, 1, N, inc_x);
         rocblas_init_nan<T>((T*)h_x, 0, N - 3);
@@ -295,6 +290,112 @@ namespace
                                                         handle,
                                                         N,
                                                         (T*)d_x,
+                                                        offset_x,
+                                                        inc_x,
+                                                        stride_x,
+                                                        batch_count,
+                                                        check_numerics,
+                                                        is_input);
+
+        EXPECT_EQ(status, rocblas_status_check_numerics_fail);
+
+        //==============================================================================================
+        // Initializing random values in batched vectors
+        //==============================================================================================
+        batch_count = 5;
+        //Allocate device and host batched vectors
+        device_batch_vector<T> d_x_batch(N, inc_x, batch_count);
+        host_batch_vector<T>   h_x_batch(N, inc_x, batch_count);
+
+        //Initialize Data on CPU
+        rocblas_seedrand();
+        rocblas_init(h_x_batch, true);
+
+        //Transferring data from host to device
+        CHECK_HIP_ERROR(d_x_batch.transfer_from(h_x_batch));
+
+        status = rocblas_check_numerics_vector_template(function_name,
+                                                        handle,
+                                                        N,
+                                                        d_x_batch.const_batch_ptr(),
+                                                        offset_x,
+                                                        inc_x,
+                                                        stride_x,
+                                                        batch_count,
+                                                        check_numerics,
+                                                        is_input);
+
+        EXPECT_EQ(status, rocblas_status_success);
+
+        //==============================================================================================
+        // Initializing and testing for zero in batched vectors
+        //==============================================================================================
+        //Initialize Data on CPU
+        rocblas_seedrand();
+        rocblas_init(h_x_batch, true);
+        for(int i = 4; i < batch_count; i++)
+            for(size_t j = 0; j < N; j++)
+                h_x_batch[i][j * inc_x] = T(rocblas_zero_rng());
+
+        //Transferring data from host to device
+        CHECK_HIP_ERROR(d_x_batch.transfer_from(h_x_batch));
+
+        status = rocblas_check_numerics_vector_template(function_name,
+                                                        handle,
+                                                        N,
+                                                        d_x_batch.const_batch_ptr(),
+                                                        offset_x,
+                                                        inc_x,
+                                                        stride_x,
+                                                        batch_count,
+                                                        check_numerics,
+                                                        is_input);
+
+        EXPECT_EQ(status, rocblas_status_success);
+
+        //==============================================================================================
+        // Initializing and testing for Inf in batched vectors
+        //==============================================================================================
+        //Initialize Data on CPU
+        rocblas_seedrand();
+        rocblas_init(h_x_batch, true);
+        for(int i = 3; i < 4; i++)
+            for(size_t j = 0; j < N; j++)
+                h_x_batch[i][j * inc_x] = T(rocblas_inf_rng());
+
+        //Transferring data from host to device
+        CHECK_HIP_ERROR(d_x_batch.transfer_from(h_x_batch));
+
+        status = rocblas_check_numerics_vector_template(function_name,
+                                                        handle,
+                                                        N,
+                                                        d_x_batch.const_batch_ptr(),
+                                                        offset_x,
+                                                        inc_x,
+                                                        stride_x,
+                                                        batch_count,
+                                                        check_numerics,
+                                                        is_input);
+
+        EXPECT_EQ(status, rocblas_status_check_numerics_fail);
+
+        //==============================================================================================
+        // Initializing and testing for NaN in batched vectors
+        //==============================================================================================
+        //Initialize Data on CPU
+        rocblas_seedrand();
+        rocblas_init(h_x_batch, true);
+        for(int i = 2; i < 4; i++)
+            for(size_t j = 0; j < N; j++)
+                h_x_batch[i][j * inc_x] = T(rocblas_nan_rng());
+
+        //Transferring data from host to device
+        CHECK_HIP_ERROR(d_x_batch.transfer_from(h_x_batch));
+
+        status = rocblas_check_numerics_vector_template(function_name,
+                                                        handle,
+                                                        N,
+                                                        d_x_batch.const_batch_ptr(),
                                                         offset_x,
                                                         inc_x,
                                                         stride_x,

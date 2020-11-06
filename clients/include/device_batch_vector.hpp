@@ -132,6 +132,15 @@ public:
     }
 
     //!
+    //! @brief access to device data.
+    //! @return Const pointer to the device data.
+    //!
+    T* const* const_batch_ptr()
+    {
+        return this->m_device_data;
+    }
+
+    //!
     //! @brief Random access.
     //! @param batch_index The batch index.
     //! @return Pointer to the array on device.

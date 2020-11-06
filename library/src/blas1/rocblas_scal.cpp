@@ -77,25 +77,26 @@ namespace
 
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
-        rocblas_status status = rocblas_status_success;
         if(check_numerics)
         {
-            bool is_input = true;
-            status        = rocblas_check_numerics_vector_template(
+            bool           is_input              = true;
+            rocblas_status check_numerics_status = rocblas_check_numerics_vector_template(
                 rocblas_scal_name<T>, handle, n, x, 0, incx, 0, 1, check_numerics, is_input);
-            if(status != rocblas_status_success)
-                return status;
+            if(check_numerics_status != rocblas_status_success)
+                return check_numerics_status;
         }
 
-        status = rocblas_scal_template<NB, T>(handle, n, alpha, 0, x, 0, incx, 0, 1);
+        rocblas_status status = rocblas_scal_template<NB, T>(handle, n, alpha, 0, x, 0, incx, 0, 1);
         if(status != rocblas_status_success)
             return status;
 
         if(check_numerics)
         {
-            bool is_input = false;
-            return rocblas_check_numerics_vector_template(
+            bool           is_input              = false;
+            rocblas_status check_numerics_status = rocblas_check_numerics_vector_template(
                 rocblas_scal_name<T>, handle, n, x, 0, incx, 0, 1, check_numerics, is_input);
+            if(check_numerics_status != rocblas_status_success)
+                return check_numerics_status;
         }
 
         return status;
