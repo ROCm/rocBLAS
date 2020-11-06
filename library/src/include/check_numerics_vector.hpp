@@ -28,7 +28,7 @@
 
 template <typename T>
 __global__ void rocblas_check_numerics_vector_kernel(rocblas_int               n,
-                                                     T*                        xa,
+                                                     T                         xa,
                                                      ptrdiff_t                 offset_x,
                                                      rocblas_int               inc_x,
                                                      rocblas_stride            stride_x,
@@ -40,7 +40,7 @@ __global__ void rocblas_check_numerics_vector_kernel(rocblas_int               n
     //Check every element of the x vector for a NaN/zero/Inf
     if(tid < n)
     {
-        T value = (T)x[tid * inc_x];
+        auto value = x[tid * inc_x];
         if(!abnormal->has_zero && rocblas_iszero(value))
             abnormal->has_zero = true;
         if(!abnormal->has_NaN && rocblas_isnan(value))
@@ -55,7 +55,7 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status
     rocblas_check_numerics_vector_template(const char*    function_name,
                                            rocblas_handle handle,
                                            rocblas_int    n,
-                                           T*             x,
+                                           T              x,
                                            rocblas_int    offset_x,
                                            rocblas_int    inc_x,
                                            rocblas_stride stride_x,
