@@ -168,7 +168,20 @@ auto rocblas_gemm_dispatch(const Arguments& arg)
         if(Ti != To)
         {
             if(Ti == rocblas_datatype_i8_r && To == rocblas_datatype_i32_r && Tc == To)
+            {
                 return TEST<int8_t, int32_t, int32_t>{}(arg);
+            }
+            else if(To == rocblas_datatype_f32_r && Tc == rocblas_datatype_f32_r)
+            {
+                if(Ti == rocblas_datatype_f16_r)
+                {
+                    return TEST<rocblas_half, float, float>{}(arg);
+                }
+                else if(Ti == rocblas_datatype_bf16_r)
+                {
+                    return TEST<rocblas_bfloat16, float, float>{}(arg);
+                }
+            }
         }
         else if(Tc != To)
         {

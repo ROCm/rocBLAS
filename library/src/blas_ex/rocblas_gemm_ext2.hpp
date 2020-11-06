@@ -198,24 +198,38 @@ inline rocblas_status rocblas_gemm_ext2_template(rocblas_handle   handle,
     {
         rb_status = gemm_ext2_typecasting<float>(EX_TYPECASTING_PARM);
     }
-    else if(a_type == rocblas_datatype_f16_r && b_type == rocblas_datatype_f16_r
-            && c_type == rocblas_datatype_f16_r && d_type == rocblas_datatype_f16_r
-            && compute_type == rocblas_datatype_f16_r)
+    else if(a_type == rocblas_datatype_f16_r && b_type == rocblas_datatype_f16_r)
     {
-        rb_status = gemm_ext2_typecasting<rocblas_half>(EX_TYPECASTING_PARM);
-    }
-    else if(a_type == rocblas_datatype_f16_r && b_type == rocblas_datatype_f16_r
-            && c_type == rocblas_datatype_f16_r && d_type == rocblas_datatype_f16_r
-            && compute_type == rocblas_datatype_f32_r)
-    {
-        rb_status = gemm_ext2_typecasting<rocblas_half, rocblas_half, float>(EX_TYPECASTING_PARM);
+        if(c_type == rocblas_datatype_f16_r && d_type == rocblas_datatype_f16_r)
+        {
+            if(compute_type == rocblas_datatype_f16_r)
+            {
+                rb_status = gemm_ext2_typecasting<rocblas_half>(EX_TYPECASTING_PARM);
+            }
+            else if(compute_type == rocblas_datatype_f32_r)
+            {
+                rb_status
+                    = gemm_ext2_typecasting<rocblas_half, rocblas_half, float>(EX_TYPECASTING_PARM);
+            }
+        }
+        else if(c_type == rocblas_datatype_f32_r && d_type == rocblas_datatype_f32_r
+                && compute_type == rocblas_datatype_f32_r)
+        {
+            rb_status = gemm_ext2_typecasting<rocblas_half, float, float>(EX_TYPECASTING_PARM);
+        }
     }
     else if(a_type == rocblas_datatype_bf16_r && b_type == rocblas_datatype_bf16_r
-            && c_type == rocblas_datatype_bf16_r && d_type == rocblas_datatype_bf16_r
             && compute_type == rocblas_datatype_f32_r)
     {
-        rb_status
-            = gemm_ext2_typecasting<rocblas_bfloat16, rocblas_bfloat16, float>(EX_TYPECASTING_PARM);
+        if(c_type == rocblas_datatype_bf16_r && d_type == rocblas_datatype_bf16_r)
+        {
+            rb_status = gemm_ext2_typecasting<rocblas_bfloat16, rocblas_bfloat16, float>(
+                EX_TYPECASTING_PARM);
+        }
+        else if(c_type == rocblas_datatype_f32_r && d_type == rocblas_datatype_f32_r)
+        {
+            rb_status = gemm_ext2_typecasting<rocblas_bfloat16, float, float>(EX_TYPECASTING_PARM);
+        }
     }
     else if(a_type == rocblas_datatype_i8_r && b_type == rocblas_datatype_i8_r
             && c_type == rocblas_datatype_i32_r && d_type == rocblas_datatype_i32_r
