@@ -2,6 +2,7 @@
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "rocblas_axpy.hpp"
+#include "check_numerics_vector.hpp"
 #include "logging.hpp"
 
 namespace
@@ -36,7 +37,8 @@ namespace
 
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
-        auto layer_mode = handle->layer_mode;
+        auto layer_mode     = handle->layer_mode;
+        auto check_numerics = handle->check_numerics;
         if(layer_mode & rocblas_layer_mode_log_trace)
             log_trace(handle, name, n, LOG_TRACE_SCALAR_VALUE(handle, alpha), x, incx, y, incy);
 
@@ -75,8 +77,74 @@ namespace
 
         static constexpr rocblas_int    batch_count_1 = 1;
         static constexpr rocblas_stride stride_0      = 0;
-        return rocblas_axpy_template<NB, T>(
+
+        if(check_numerics)
+        {
+            bool           is_input = true;
+            rocblas_status check_numerics_status
+                = rocblas_check_numerics_vector_template(rocblas_axpy_name<T>,
+                                                         handle,
+                                                         n,
+                                                         x,
+                                                         0,
+                                                         incx,
+                                                         stride_0,
+                                                         batch_count_1,
+                                                         check_numerics,
+                                                         is_input);
+            if(check_numerics_status != rocblas_status_success)
+                return check_numerics_status;
+
+            check_numerics_status = rocblas_check_numerics_vector_template(rocblas_axpy_name<T>,
+                                                                           handle,
+                                                                           n,
+                                                                           y,
+                                                                           0,
+                                                                           incy,
+                                                                           stride_0,
+                                                                           batch_count_1,
+                                                                           check_numerics,
+                                                                           is_input);
+            if(check_numerics_status != rocblas_status_success)
+                return check_numerics_status;
+        }
+
+        rocblas_status status = rocblas_axpy_template<NB, T>(
             handle, n, alpha, x, incx, stride_0, y, incy, stride_0, batch_count_1);
+        if(status != rocblas_status_success)
+            return status;
+
+        if(check_numerics)
+        {
+            bool           is_input = false;
+            rocblas_status check_numerics_status
+                = rocblas_check_numerics_vector_template(rocblas_axpy_name<T>,
+                                                         handle,
+                                                         n,
+                                                         x,
+                                                         0,
+                                                         incx,
+                                                         stride_0,
+                                                         batch_count_1,
+                                                         check_numerics,
+                                                         is_input);
+            if(check_numerics_status != rocblas_status_success)
+                return check_numerics_status;
+
+            check_numerics_status = rocblas_check_numerics_vector_template(rocblas_axpy_name<T>,
+                                                                           handle,
+                                                                           n,
+                                                                           y,
+                                                                           0,
+                                                                           incy,
+                                                                           stride_0,
+                                                                           batch_count_1,
+                                                                           check_numerics,
+                                                                           is_input);
+            if(check_numerics_status != rocblas_status_success)
+                return check_numerics_status;
+        }
+        return status;
     }
 
 }

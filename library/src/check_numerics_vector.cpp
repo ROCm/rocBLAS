@@ -127,15 +127,26 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status
                                                                    bool           is_input)
 INST(float*);
 INST(double*);
-INST(rocblas_float_complex*);
-INST(rocblas_double_complex*);
-INST(rocblas_half*);
-INST(rocblas_bfloat16*);
 INST(float* const*);
 INST(double* const*);
+INST(float const*);
+INST(double const*);
+INST(const float* const*);
+INST(const double* const*);
+INST(rocblas_float_complex*);
+INST(rocblas_double_complex*);
 INST(rocblas_float_complex* const*);
 INST(rocblas_double_complex* const*);
+INST(const rocblas_float_complex* const*);
+INST(const rocblas_double_complex* const*);
+INST(rocblas_float_complex const*);
+INST(rocblas_double_complex const*);
+INST(rocblas_half*);
+INST(rocblas_bfloat16*);
 INST(rocblas_half* const*);
 INST(rocblas_bfloat16* const*);
-
+INST(const rocblas_half* const*);
+INST(const rocblas_bfloat16* const*);
+INST(rocblas_half const*);
+INST(rocblas_bfloat16 const*);
 #undef INST
