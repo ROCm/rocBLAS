@@ -11,23 +11,23 @@
 namespace
 {
     template <typename Ti, typename To, typename Tc>
-    auto reference_gemm_ext2(rocblas_int    M,
-                             rocblas_int    N,
-                             rocblas_int    K,
-                             const Tc*      alpha,
-                             const Ti*      A,
-                             rocblas_stride row_stride_a,
-                             rocblas_stride col_stride_a,
-                             const Ti*      B,
-                             rocblas_stride row_stride_b,
-                             rocblas_stride col_stride_b,
-                             const Tc*      beta,
-                             const To*      C,
-                             rocblas_stride row_stride_c,
-                             rocblas_stride col_stride_c,
-                             To*            D,
-                             rocblas_stride row_stride_d,
-                             rocblas_stride col_stride_d)
+    rocblas_status reference_gemm_ext2(rocblas_int    M,
+                                       rocblas_int    N,
+                                       rocblas_int    K,
+                                       const Tc*      alpha,
+                                       const Ti*      A,
+                                       rocblas_stride row_stride_a,
+                                       rocblas_stride col_stride_a,
+                                       const Ti*      B,
+                                       rocblas_stride row_stride_b,
+                                       rocblas_stride col_stride_b,
+                                       const Tc*      beta,
+                                       const To*      C,
+                                       rocblas_stride row_stride_c,
+                                       rocblas_stride col_stride_c,
+                                       To*            D,
+                                       rocblas_stride row_stride_d,
+                                       rocblas_stride col_stride_d)
     {
         for(rocblas_int row = 0; row < M; row++)
             for(rocblas_int col = 0; col < N; col++)
@@ -45,25 +45,25 @@ namespace
     }
 
     template <typename Ti, typename To = Ti, typename Tc = To>
-    struct reference_gemm_call
+    struct reference_gemm_ext2_call
     {
-        auto operator()(rocblas_int    M,
-                        rocblas_int    N,
-                        rocblas_int    K,
-                        const void*    alpha,
-                        const void*    A,
-                        rocblas_stride row_stride_a,
-                        rocblas_stride col_stride_a,
-                        const void*    B,
-                        rocblas_stride row_stride_b,
-                        rocblas_stride col_stride_b,
-                        const void*    beta,
-                        const void*    C,
-                        rocblas_stride row_stride_c,
-                        rocblas_stride col_stride_c,
-                        void*          D,
-                        rocblas_stride row_stride_d,
-                        rocblas_stride col_stride_d)
+        rocblas_status operator()(rocblas_int    M,
+                                  rocblas_int    N,
+                                  rocblas_int    K,
+                                  const void*    alpha,
+                                  const void*    A,
+                                  rocblas_stride row_stride_a,
+                                  rocblas_stride col_stride_a,
+                                  const void*    B,
+                                  rocblas_stride row_stride_b,
+                                  rocblas_stride col_stride_b,
+                                  const void*    beta,
+                                  const void*    C,
+                                  rocblas_stride row_stride_c,
+                                  rocblas_stride col_stride_c,
+                                  void*          D,
+                                  rocblas_stride row_stride_d,
+                                  rocblas_stride col_stride_d)
         {
             return reference_gemm_ext2(M,
                                        N,
@@ -436,16 +436,13 @@ namespace
             size_t size_c = size_t(m - 1) * row_stride_c + size_t(n - 1) * col_stride_c + 1;
             size_t size_d = size_t(m - 1) * row_stride_d + size_t(n - 1) * col_stride_d + 1;
 
-            auto freer = [](void* ptr) { free(ptr); };
-
-            auto ha = std::unique_ptr<void, decltype(freer)>(
-                a ? malloc(rocblas_sizeof_datatype(a_type) * size_a) : nullptr, freer);
-            auto hb = std::unique_ptr<void, decltype(freer)>(
-                b ? malloc(rocblas_sizeof_datatype(b_type) * size_b) : nullptr, freer);
-            auto hc = std::unique_ptr<void, decltype(freer)>(
-                c ? malloc(rocblas_sizeof_datatype(c_type) * size_c) : nullptr, freer);
-            auto hd = std::unique_ptr<void, decltype(freer)>(
-                malloc(rocblas_sizeof_datatype(d_type) * size_d), freer);
+            std::unique_ptr<char[]> ha{a ? new char[rocblas_sizeof_datatype(a_type) * size_a]
+                                         : nullptr};
+            std::unique_ptr<char[]> hb{b ? new char[rocblas_sizeof_datatype(b_type) * size_b]
+                                         : nullptr};
+            std::unique_ptr<char[]> hc{c ? new char[rocblas_sizeof_datatype(c_type) * size_c]
+                                         : nullptr};
+            std::unique_ptr<char[]> hd{new char[rocblas_sizeof_datatype(d_type) * size_d]};
 
             if(a)
                 RETURN_IF_HIP_ERROR(hipMemcpy(
@@ -457,28 +454,28 @@ namespace
                 RETURN_IF_HIP_ERROR(hipMemcpy(
                     hc.get(), c, rocblas_sizeof_datatype(c_type) * size_c, hipMemcpyDeviceToHost));
 
-            auto status = gemm_dispatch<reference_gemm_call>(a_type,
-                                                             b_type,
-                                                             c_type,
-                                                             d_type,
-                                                             compute_type,
-                                                             m,
-                                                             n,
-                                                             k,
-                                                             alpha,
-                                                             ha.get(),
-                                                             row_stride_a,
-                                                             col_stride_a,
-                                                             hb.get(),
-                                                             row_stride_b,
-                                                             col_stride_b,
-                                                             beta,
-                                                             hc.get(),
-                                                             row_stride_c,
-                                                             col_stride_c,
-                                                             hd.get(),
-                                                             row_stride_d,
-                                                             col_stride_d);
+            rocblas_status status = gemm_dispatch<reference_gemm_ext2_call>(a_type,
+                                                                            b_type,
+                                                                            c_type,
+                                                                            d_type,
+                                                                            compute_type,
+                                                                            m,
+                                                                            n,
+                                                                            k,
+                                                                            alpha,
+                                                                            ha.get(),
+                                                                            row_stride_a,
+                                                                            col_stride_a,
+                                                                            hb.get(),
+                                                                            row_stride_b,
+                                                                            col_stride_b,
+                                                                            beta,
+                                                                            hc.get(),
+                                                                            row_stride_c,
+                                                                            col_stride_c,
+                                                                            hd.get(),
+                                                                            row_stride_d,
+                                                                            col_stride_d);
 
             if(status == rocblas_status_success)
                 RETURN_IF_HIP_ERROR(hipMemcpy(
