@@ -109,7 +109,7 @@ Format
 ------
 
 C and C++ code is formatted using ``clang-format``. To run clang-format
-use the version in the ``/opt/rocm`` directory. Please do not use your
+use the version in the ``/opt/rocm/llvm/bin`` directory. Please do not use your
 system's built-in ``clang-format``, as this may be an older version that
 will result in different results.
 
@@ -117,14 +117,14 @@ To format a file, use:
 
 ::
 
-    /opt/rocm/hcc/bin/clang-format -style=file -i <path-to-source-file>
+    /opt/rocm/llvm/bin/clang-format -style=file -i <path-to-source-file>
 
 To format all files, run the following script in rocBLAS directory:
 
 ::
 
     #!/bin/bash
-    git ls-files -z *.cc *.cpp *.h *.hpp *.cl *.h.in *.hpp.in *.cpp.in | xargs -0 /opt/rocm/hcc/bin/clang-format  -style=file -i
+    git ls-files -z *.cc *.cpp *.h *.hpp *.cl *.h.in *.hpp.in *.cpp.in | xargs -0 /opt/rocm/llvm/bin/clang-format -style=file -i
 
 Also, githooks can be installed to format the code per-commit:
 
