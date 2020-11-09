@@ -16,11 +16,6 @@ if( NOT DEFINED CMAKE_CONFIGURATION_TYPES AND NOT DEFINED CMAKE_BUILD_TYPE )
   set( CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." )
 endif()
 
-# Honor per-config flags in try_compile() source-file signature. cmake v3.7 and up
-if( POLICY CMP0066 )
-  cmake_policy( SET CMP0066 NEW )
-endif( )
-
 add_compile_options( -Wno-unused-command-line-argument )
 
 unset(ENV{ROCM_BUILD_ID})
