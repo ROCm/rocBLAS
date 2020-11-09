@@ -80,13 +80,13 @@ __anchor__al
 - dependencies:
   - rocblas-tensile internal component requires msgpack instead of LLVM
 - Moved the following files from /opt/rocm/include to /opt/rocm/include/internal:
-  - rocblas-auxillary.h
+  - rocblas-auxiliary.h
   - rocblas-complex-types.h
   - rocblas-functions.h
   - rocblas-types.h
   - rocblas-version.h
   - rocblas_bfloat16.h
-  These files should NOT be included directly as this may lead to errors. Instead, /opt/rocm/include/rocblas.h should be included directly. /opt/rocm/include/rocblas_module.f90 can also be direcly used.
+  These files should NOT be included directly as this may lead to errors. Instead, /opt/rocm/include/rocblas.h should be included directly. /opt/rocm/include/rocblas_module.f90 can also be directly used.
 
 ## [rocBLAS 2.26.0 for ROCm 3.7.0]
 ### Added
