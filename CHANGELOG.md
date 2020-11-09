@@ -22,7 +22,9 @@ __anchor__l
 
 __anchor__al
 
-
+### Fixed
+- Removed `-DUSE_TENSILE_HOST` from `roc::rocblas` CMake usage requirements. This
+  is a rocblas internal variable, and does not need to be defined in user code.
 
 ## [(Unreleased) rocBLAS 2.32.0 for ROCm 3.10.0]
 ### Added

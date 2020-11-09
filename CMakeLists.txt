@@ -230,6 +230,16 @@ endif( )
 
 message(STATUS "Using AMDGPU_TARGETS: " ${AMDGPU_TARGETS})
 
+# setup rocblas defines used for both the library and clients
+if( BUILD_WITH_TENSILE )
+    list(APPEND TENSILE_DEFINES BUILD_WITH_TENSILE=1)
+    if ( BUILD_WITH_TENSILE_HOST )
+        list(APPEND TENSILE_DEFINES USE_TENSILE_HOST)
+    endif()
+else()
+    list(APPEND TENSILE_DEFINES BUILD_WITH_TENSILE=0)
+endif()
+
 add_subdirectory( library )
 
 # Build clients of the library

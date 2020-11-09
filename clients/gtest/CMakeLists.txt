@@ -108,11 +108,7 @@ set( rocblas_benchmark_common
 # first to initialize Tensile.
 add_executable( rocblas-test ${rocblas_tensile_test_source} ${rocblas_no_tensile_test_source} $<TARGET_OBJECTS:rocblas_fortran> ${rocblas_benchmark_common} )
 
-if( BUILD_WITH_TENSILE )
-    target_compile_definitions( rocblas-test PRIVATE BUILD_WITH_TENSILE=1 GOOGLE_TEST )
-else()
-    target_compile_definitions( rocblas-test PRIVATE BUILD_WITH_TENSILE=0 GOOGLE_TEST )
-endif()
+target_compile_definitions( rocblas-test PRIVATE ${TENSILE_DEFINES} GOOGLE_TEST )
 
 # Internal header includes
 target_include_directories( rocblas-test
