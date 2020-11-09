@@ -3,6 +3,7 @@
  * ************************************************************************ */
 
 #include "rocblas_asum.hpp"
+#include "check_numerics_vector.hpp"
 #include "rocblas_reduction_impl.hpp"
 
 namespace
@@ -23,17 +24,59 @@ namespace
     rocblas_status rocblas_asum_impl(
         rocblas_handle handle, rocblas_int n, const Ti* x, rocblas_int incx, To* results)
     {
-        static constexpr bool           isbatched     = false;
-        static constexpr rocblas_stride stridex_0     = 0;
-        static constexpr rocblas_int    batch_count_1 = 1;
+        if(!handle)
+            return rocblas_status_invalid_handle;
+        auto                            check_numerics = handle->check_numerics;
+        static constexpr bool           isbatched      = false;
+        static constexpr rocblas_stride stridex_0      = 0;
+        static constexpr rocblas_int    batch_count_1  = 1;
 
-        return rocblas_reduction_impl<NB,
-                                      isbatched,
-                                      rocblas_fetch_asum<To>,
-                                      rocblas_reduce_sum,
-                                      rocblas_finalize_identity,
-                                      To>(
+        if(check_numerics)
+        {
+            bool           is_input = true;
+            rocblas_status check_numerics_status
+                = rocblas_check_numerics_vector_template(rocblas_asum_name<Ti>,
+                                                         handle,
+                                                         n,
+                                                         x,
+                                                         0,
+                                                         incx,
+                                                         stridex_0,
+                                                         batch_count_1,
+                                                         check_numerics,
+                                                         is_input);
+            if(check_numerics_status != rocblas_status_success)
+                return check_numerics_status;
+        }
+
+        rocblas_status status = rocblas_reduction_impl<NB,
+                                                       isbatched,
+                                                       rocblas_fetch_asum<To>,
+                                                       rocblas_reduce_sum,
+                                                       rocblas_finalize_identity,
+                                                       To>(
             handle, n, x, incx, stridex_0, batch_count_1, results, rocblas_asum_name<Ti>, "asum");
+        if(status != rocblas_status_success)
+            return status;
+
+        if(check_numerics)
+        {
+            bool           is_input = false;
+            rocblas_status check_numerics_status
+                = rocblas_check_numerics_vector_template(rocblas_asum_name<Ti>,
+                                                         handle,
+                                                         n,
+                                                         x,
+                                                         0,
+                                                         incx,
+                                                         stridex_0,
+                                                         batch_count_1,
+                                                         check_numerics,
+                                                         is_input);
+            if(check_numerics_status != rocblas_status_success)
+                return check_numerics_status;
+        }
+        return status;
     }
 
 } // namespace

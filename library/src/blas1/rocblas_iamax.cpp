@@ -3,6 +3,7 @@
  * ************************************************************************ */
 
 #include "rocblas_iamax.hpp"
+#include "check_numerics_vector.hpp"
 #include "rocblas_reduction_impl.hpp"
 
 namespace
@@ -45,8 +46,49 @@ namespace
             return checks_status;
         }
 
-        return rocblas_iamax_template<NB, isbatched>(
+        auto check_numerics = handle->check_numerics;
+        if(check_numerics)
+        {
+            bool           is_input = true;
+            rocblas_status check_numerics_status
+                = rocblas_check_numerics_vector_template(rocblas_iamax_name<T>,
+                                                         handle,
+                                                         n,
+                                                         x,
+                                                         0,
+                                                         incx,
+                                                         stridex_0,
+                                                         batch_count_1,
+                                                         check_numerics,
+                                                         is_input);
+            if(check_numerics_status != rocblas_status_success)
+                return check_numerics_status;
+        }
+
+        rocblas_status status = rocblas_iamax_template<NB, isbatched>(
             handle, n, x, shiftx_0, incx, stridex_0, batch_count_1, result, mem);
+        if(status != rocblas_status_success)
+            return status;
+
+        if(check_numerics)
+        {
+            bool           is_input = false;
+            rocblas_status check_numerics_status
+                = rocblas_check_numerics_vector_template(rocblas_iamax_name<T>,
+                                                         handle,
+                                                         n,
+                                                         x,
+                                                         0,
+                                                         incx,
+                                                         stridex_0,
+                                                         batch_count_1,
+                                                         check_numerics,
+                                                         is_input);
+            if(check_numerics_status != rocblas_status_success)
+                return check_numerics_status;
+        }
+
+        return status;
     }
 
 }
