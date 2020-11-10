@@ -109,7 +109,7 @@ Format
 ------
 
 C and C++ code is formatted using ``clang-format``. To run clang-format
-use the version in the ``/opt/rocm`` directory. Please do not use your
+use the version in the ``/opt/rocm/llvm/bin`` directory. Please do not use your
 system's built-in ``clang-format``, as this may be an older version that
 will result in different results.
 
@@ -117,14 +117,14 @@ To format a file, use:
 
 ::
 
-    /opt/rocm/hcc/bin/clang-format -style=file -i <path-to-source-file>
+    /opt/rocm/llvm/bin/clang-format -style=file -i <path-to-source-file>
 
 To format all files, run the following script in rocBLAS directory:
 
 ::
 
     #!/bin/bash
-    git ls-files -z *.cc *.cpp *.h *.hpp *.cl *.h.in *.hpp.in *.cpp.in | xargs -0 /opt/rocm/hcc/bin/clang-format  -style=file -i
+    git ls-files -z *.cc *.cpp *.h *.hpp *.cl *.h.in *.hpp.in *.cpp.in | xargs -0 /opt/rocm/llvm/bin/clang-format -style=file -i
 
 Also, githooks can be installed to format the code per-commit:
 
@@ -378,9 +378,9 @@ Coding Guidelines
     .. code:: cpp
 
         if(handle->pointer_mode == rocblas_pointer_mode_device)
-            hipLaunchKernelGGL(axpy_kernel, blocks, threads, 0, rocblas_stream, n, alpha, x, incx, y, incy);
+            hipLaunchKernelGGL(axpy_kernel, blocks, threads, 0, handle->get_stream(), n, alpha, x, incx, y, incy);
         else if(*alpha) // alpha is on host
-            hipLaunchKernelGGL(axpy_kernel, blocks, threads, 0, rocblas_stream, n, *alpha, x, incx, y, incy);
+            hipLaunchKernelGGL(axpy_kernel, blocks, threads, 0, handle->get_stream(), n, *alpha, x, incx, y, incy);
 
     When the pointer mode indicates ``alpha`` is on the host, the
     ``alpha`` pointer is dereferenced on the host and the numeric value
@@ -615,9 +615,11 @@ Coding Guidelines
     of strings, in the interest of efficiency.
 
 16. For code brevity and readability, when converting to *numeric*
-    types, function-style casts are preferred to ``static_cast<>()`` or
-    C-style casts. For example, ``T(x)`` is preferred to
-    ``static_cast<T>(x)`` or ``(T)x``.
+    types, uniform initialization or function-style casts are preferred
+    to ``static_cast<>()`` or C-style casts. For example, ``T{x}`` or ``T(x)``
+    is preferred to ``static_cast<T>(x)`` or ``(T)x``. ``T{x}`` differs from
+    ``T(x)`` in that narrowing conversions, which reduce the precision of an
+    integer or floating-point, are not allowed.
 
     When writing general containers or templates which can accept
     *arbitrary* types as parameters, not just *numeric* types, then the
@@ -625,9 +627,9 @@ Coding Guidelines
     ``reinterpret_cast``) should be used, to avoid surprises.
 
     But when converting to *numeric* types, which have very
-    well-understood behavior and are *side-effect free*, ``type(x)`` is
-    more compact and clearer than ``static_cast<type>(x)``. For
-    pointers, C-style casts are okay, such as ``(T*)A``.
+    well-understood behavior and are *side-effect free*, ``type{x}`` or
+    ``type(x)`` are  more compact and clearer than ``static_cast<type>(x)``.
+    For pointers, C-style casts are okay, such as ``(T*)A``.
 
 17. For BLAS2 functions and BLAS1 functions with two vectors, the
     ``incx`` and/or ``incy`` arguments can be negative, which means the

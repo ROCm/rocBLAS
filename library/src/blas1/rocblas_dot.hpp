@@ -308,6 +308,17 @@ constexpr int rocblas_dot_WIN()
     return n;
 }
 
+constexpr int rocblas_dot_WIN(size_t nb)
+{
+    int n = 8;
+    if(nb >= 8)
+        n = 2;
+    else if(nb >= 4)
+        n = 4;
+
+    return n;
+}
+
 // assume workspace has already been allocated, recommened for repeated calling of dot_strided_batched product
 // routine
 template <rocblas_int NB, bool CONJ, typename T, typename U, typename V = T>
@@ -361,9 +372,8 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_dot_template(rocblas_handle __res
     rocblas_int blocks = rocblas_reduction_kernel_block_count(n, NB * WIN);
     dim3        grid(blocks, batch_count);
     dim3        threads(NB);
-
-    size_t offset = size_t(batch_count) * blocks;
-    T*     output = results;
+    size_t      offset = size_t(batch_count) * blocks;
+    T*          output = results;
     if(handle->pointer_mode != rocblas_pointer_mode_device)
     {
         output = (T*)(workspace + offset);
@@ -377,7 +387,7 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_dot_template(rocblas_handle __res
                                grid,
                                threads,
                                0,
-                               handle->rocblas_stream,
+                               handle->get_stream(),
                                n,
                                x,
                                shiftx,
@@ -394,7 +404,7 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_dot_template(rocblas_handle __res
                                grid,
                                threads,
                                0,
-                               handle->rocblas_stream,
+                               handle->get_stream(),
                                n,
                                x,
                                shiftx,
@@ -414,7 +424,7 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_dot_template(rocblas_handle __res
                            grid,
                            threads,
                            0,
-                           handle->rocblas_stream,
+                           handle->get_stream(),
                            n,
                            x,
                            shiftx,
@@ -431,20 +441,19 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_dot_template(rocblas_handle __res
                                dim3(1, batch_count),
                                threads,
                                0,
-                               handle->rocblas_stream,
+                               handle->get_stream(),
                                blocks,
                                workspace,
                                results);
     }
     else
     {
-
         if(blocks > 1) // if single block first kernel did all work
             hipLaunchKernelGGL((rocblas_dot_kernel_reduce<NB, WIN>),
                                dim3(1, batch_count),
                                threads,
                                0,
-                               handle->rocblas_stream,
+                               handle->get_stream(),
                                blocks,
                                workspace,
                                output);
@@ -453,7 +462,7 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_dot_template(rocblas_handle __res
                                            output,
                                            sizeof(T) * batch_count,
                                            hipMemcpyDeviceToHost,
-                                           handle->rocblas_stream));
+                                           handle->get_stream()));
     }
 
     return rocblas_status_success;

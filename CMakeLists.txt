@@ -21,14 +21,10 @@ if( POLICY CMP0066 )
   cmake_policy( SET CMP0066 NEW )
 endif( )
 
-if ( NOT DEFINED CMAKE_Fortran_COMPILER AND NOT DEFINED ENV{FC} )
-  set( CMAKE_Fortran_COMPILER  "gfortran" )
-endif()
-
 add_compile_options( -Wno-unused-command-line-argument )
 
 unset(ENV{ROCM_BUILD_ID})
-project( rocblas LANGUAGES CXX Fortran )
+project( rocblas LANGUAGES CXX )
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
@@ -57,15 +53,15 @@ find_package(Threads REQUIRED)
 
 # Hopefully, cost #2 is already paid.  All in all, I want to get rid of the
 # need for hipcc, and hope that at some point of time in the future we
-# can use the export config files from hip & hcc for both ROCm & nvcc backends.
+# can use the export config files from hip for both ROCm & nvcc backends.
 # ########################################################################
 
 # ########################################################################
 # Main
 # ########################################################################
 
-if( CMAKE_CXX_COMPILER MATCHES ".*/hipcc$" OR CMAKE_CXX_COMPILER MATCHES ".*/hcc$")
-  # Determine if CXX Compiler is hcc, hip-clang or nvcc
+if( CMAKE_CXX_COMPILER MATCHES ".*/hipcc$" )
+  # Determine if CXX Compiler is hip-clang or nvcc
   execute_process(COMMAND ${CMAKE_CXX_COMPILER} "--version" OUTPUT_VARIABLE CXX_OUTPUT
                   OUTPUT_STRIP_TRAILING_WHITESPACE
                   ERROR_STRIP_TRAILING_WHITESPACE)
@@ -94,10 +90,8 @@ elseif( CXX_VERSION_STRING MATCHES "nvcc" )
   set( CMAKE_CXX_COMPILE_OPTIONS_VISIBILITY "-Xcompiler ${CMAKE_CXX_COMPILE_OPTIONS_VISIBILITY}" )
   set( CMAKE_C_COMPILE_OPTIONS_VISIBILITY_INLINES_HIDDEN "-Xcompiler ${CMAKE_C_COMPILE_OPTIONS_VISIBILITY_INLINES_HIDDEN}" )
   set( CMAKE_CXX_COMPILE_OPTIONS_VISIBILITY_INLINES_HIDDEN "-Xcompiler ${CMAKE_CXX_COMPILE_OPTIONS_VISIBILITY_INLINES_HIDDEN}" )
-elseif( CXX_VERSION_STRING MATCHES "HCC" )
-  message( STATUS "HCC compiler set; ROCm backend selected [ CXX=/opt/rocm-<ver>/bin/hcc cmake ... ]" )
-  set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -hc")
-
+elseif( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
+  message( STATUS "ERROR: HCC compiler is no longer supported!" )
 endif( )
 
 # This finds the rocm-cmake project, and installs it if not found
@@ -140,15 +134,15 @@ get_os_id(OS_ID)
 message (STATUS "OS detected is ${OS_ID}")
 
 # Versioning via rocm-cmake
-set ( VERSION_STRING "2.32.0" )
+set ( VERSION_STRING "2.33.0" )
 rocm_setup_version( VERSION ${VERSION_STRING} )
 
 # Append our library helper cmake path and the cmake path for hip (for convenience)
 # Users may override HIP path by specifying their own in CMAKE_MODULE_PATH
 list( APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake )
 
-# NOTE:  workaround until hcc & hip cmake modules fixes symlink logic in their config files; remove when fixed
-list( APPEND CMAKE_PREFIX_PATH ${ROCM_PATH}/hcc ${ROCM_PATH}/hip /opt/rocm/hcc /opt/rocm/hip )
+# NOTE:  workaround until llvm & hip cmake modules fixes symlink logic in their config files; remove when fixed
+list( APPEND CMAKE_PREFIX_PATH ${ROCM_PATH}/llvm ${ROCM_PATH}/hip /opt/rocm/llvm /opt/rocm/hip )
 
 option( BUILD_VERBOSE "Output additional build information" OFF )
 
@@ -164,13 +158,13 @@ set(CMAKE_INSTALL_LIBDIR "lib" CACHE INTERNAL "Installation directory for librar
 
 
 set( Tensile_ARCHITECTURE "all" CACHE STRING "Tensile to use which architecture?")
-set_property( CACHE Tensile_ARCHITECTURE PROPERTY STRINGS all gfx803 gfx900 gfx906 gfx908)
+set_property( CACHE Tensile_ARCHITECTURE PROPERTY STRINGS all gfx803 gfx900 gfx906:xnack- gfx908:xnack-)
 # -DTensile_ARCHITECTURE= set by install.sh for builds with and without tensile
 
 # gpu architectures to build for
 if (Tensile_ARCHITECTURE)
   if( Tensile_ARCHITECTURE STREQUAL "all" )
-    set( gpus "gfx803;gfx900;gfx906;gfx908")
+    set( gpus "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-")
   else()
     set( gpus ${Tensile_ARCHITECTURE})
   endif()
@@ -186,7 +180,7 @@ option( BUILD_WITH_TENSILE_HOST "Use the new tensile client for gemm?" ON )
 if( BUILD_WITH_TENSILE )
   set( Tensile_LOGIC "asm_full" CACHE STRING "Tensile to use which logic?")
   set( Tensile_CODE_OBJECT_VERSION "V2" CACHE STRING "Tensile code_object_version")
-  set( Tensile_COMPILER "hcc" CACHE STRING "Tensile compiler")
+  set( Tensile_COMPILER "hipcc" CACHE STRING "Tensile compiler")
   set( Tensile_LIBRARY_FORMAT "msgpack" CACHE STRING "Tensile library format")
 
   option( Tensile_MERGE_FILES "Tensile to merge kernels and solutions files?" ON )
@@ -229,11 +223,7 @@ if( BUILD_WITH_TENSILE )
   endif()
 endif()
 
-# Find HCC/HIP dependencies
-if( CMAKE_CXX_COMPILER MATCHES ".*/hcc$" )
-  find_package( hcc REQUIRED CONFIG PATHS ${ROCM_PATH} /opt/rocm )
-  find_package( hip REQUIRED CONFIG PATHS ${ROCM_PATH} /opt/rocm )
-endif( )
+# Find HIP dependencies
 if( CMAKE_CXX_COMPILER MATCHES ".*/hipcc$" )
   find_package( hip REQUIRED CONFIG PATHS ${ROCM_PATH} /opt/rocm )
 endif( )

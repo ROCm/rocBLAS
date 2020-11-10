@@ -48,16 +48,25 @@ template <template <typename...> class TEST>
 auto rocblas_blas1_dispatch(const Arguments& arg)
 {
     const auto Ti = arg.a_type, Tb = arg.b_type, To = arg.d_type;
+    const auto Tc = arg.c_type;
     if(Ti == To)
     {
         if(Tb == Ti)
             return rocblas_simple_dispatch<TEST>(arg);
         else
-        { // for csscal and zdscal and complex rotg only
-            if(Ti == rocblas_datatype_f32_c && Tb == rocblas_datatype_f32_r)
+        { // for csscal and zdscal and complex rot/rotg only
+            if(Ti == rocblas_datatype_f32_c && Tb == rocblas_datatype_f32_r
+               && Tc == rocblas_datatype_f32_r)
                 return TEST<rocblas_float_complex, float>{}(arg);
-            else if(Ti == rocblas_datatype_f64_c && Tb == rocblas_datatype_f64_r)
+            else if(Ti == rocblas_datatype_f32_c && Tb == rocblas_datatype_f32_r
+                    && Tc == rocblas_datatype_f32_c)
+                return TEST<rocblas_float_complex, float, rocblas_float_complex>{}(arg);
+            else if(Ti == rocblas_datatype_f64_c && Tb == rocblas_datatype_f64_r
+                    && Tc == rocblas_datatype_f64_r)
                 return TEST<rocblas_double_complex, double>{}(arg);
+            else if(Ti == rocblas_datatype_f64_c && Tb == rocblas_datatype_f64_r
+                    && Tc == rocblas_datatype_f64_c)
+                return TEST<rocblas_double_complex, double, rocblas_double_complex>{}(arg);
         }
     }
     else if(Ti == rocblas_datatype_f32_c && Tb == rocblas_datatype_f32_r)
@@ -68,6 +77,7 @@ auto rocblas_blas1_dispatch(const Arguments& arg)
         return TEST<float, float>{}(arg);
     else if(Ti == rocblas_datatype_f64_r && Tb == rocblas_datatype_f64_r)
         return TEST<double, double>{}(arg);
+
     //  else if(Ti == rocblas_datatype_f16_c && To == rocblas_datatype_f16_r)
     //      return TEST<rocblas_half_complex, rocblas_half>{}(arg);
 
@@ -78,16 +88,6 @@ auto rocblas_blas1_dispatch(const Arguments& arg)
 template <template <typename...> class TEST>
 auto rocblas_blas1_ex_dispatch(const Arguments& arg)
 {
-    // For axpy there are 4 types, alpha_type, x_type, y_type, and execution_type.
-    // these currently correspond as follows:
-    // alpha_type = arg.a_type
-    // x_type     = arg.b_type
-    // y_type     = arg.c_type
-    // ex_type    = arg.compute_type
-    //
-    // Currently for axpy we're only supporting a limited number of variants,
-    // specifically alpha_type == x_type == y_type, however I'm trying to leave
-    // this open to expansion.
     const auto Ta = arg.a_type, Tx = arg.b_type, Ty = arg.c_type, Tex = arg.compute_type;
 
     if(Ta == Tx && Tx == Ty && Ty == Tex)
@@ -97,6 +97,10 @@ auto rocblas_blas1_ex_dispatch(const Arguments& arg)
     else if(Ta == Tx && Tx == Ty && Ta == rocblas_datatype_f16_r && Tex == rocblas_datatype_f32_r)
     {
         return TEST<rocblas_half, rocblas_half, rocblas_half, float>{}(arg);
+    }
+    else if(Ta == Tx && Tx == Ty && Ta == rocblas_datatype_bf16_r && Tex == rocblas_datatype_f32_r)
+    {
+        return TEST<rocblas_bfloat16, rocblas_bfloat16, rocblas_bfloat16, float>{}(arg);
     }
     else if(Ta == Tx && Ta == rocblas_datatype_f16_r && Tex == rocblas_datatype_f32_r)
     {
@@ -115,6 +119,40 @@ auto rocblas_blas1_ex_dispatch(const Arguments& arg)
         // zdscal
         return TEST<double, rocblas_double_complex, rocblas_double_complex>{}(arg);
     }
+    else if(Ta == rocblas_datatype_f32_c && Tx == rocblas_datatype_f32_r
+            && Tex == rocblas_datatype_f32_r)
+    {
+        // scnrm2
+        return TEST<rocblas_float_complex, float, float>{}(arg);
+    }
+    else if(Ta == rocblas_datatype_f64_c && Tx == rocblas_datatype_f64_r
+            && Tex == rocblas_datatype_f64_r)
+    {
+        // dznrm2
+        return TEST<rocblas_double_complex, double, double>{}(arg);
+    }
+    else if(Ta == rocblas_datatype_f16_r && Tx == rocblas_datatype_f16_r
+            && Tex == rocblas_datatype_f32_r)
+    {
+        // nrm2 half with float execution
+        return TEST<rocblas_half, rocblas_half, float>{}(arg);
+    }
+    else if(Ta == rocblas_datatype_f32_c && Tx == rocblas_datatype_f32_c
+            && Ty == rocblas_datatype_f32_r && Tex == rocblas_datatype_f32_c)
+    {
+        // rot with complex x/y/compute and real cs
+        return TEST<rocblas_float_complex, rocblas_float_complex, float, rocblas_float_complex>{}(
+            arg);
+    }
+    else if(Ta == rocblas_datatype_f64_c && Tx == rocblas_datatype_f64_c
+            && Ty == rocblas_datatype_f64_r && Tex == rocblas_datatype_f64_c)
+    {
+        // rot with complex x/y/compute and real cs
+        return TEST<rocblas_double_complex,
+                    rocblas_double_complex,
+                    double,
+                    rocblas_double_complex>{}(arg);
+    }
 
     return TEST<void>{}(arg);
 }
@@ -130,7 +168,20 @@ auto rocblas_gemm_dispatch(const Arguments& arg)
         if(Ti != To)
         {
             if(Ti == rocblas_datatype_i8_r && To == rocblas_datatype_i32_r && Tc == To)
+            {
                 return TEST<int8_t, int32_t, int32_t>{}(arg);
+            }
+            else if(To == rocblas_datatype_f32_r && Tc == rocblas_datatype_f32_r)
+            {
+                if(Ti == rocblas_datatype_f16_r)
+                {
+                    return TEST<rocblas_half, float, float>{}(arg);
+                }
+                else if(Ti == rocblas_datatype_bf16_r)
+                {
+                    return TEST<rocblas_bfloat16, float, float>{}(arg);
+                }
+            }
         }
         else if(Tc != To)
         {

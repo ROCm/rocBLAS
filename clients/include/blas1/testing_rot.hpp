@@ -60,7 +60,6 @@ void testing_rot(const Arguments& arg)
     double               gpu_time_used, cpu_time_used;
     double norm_error_host_x = 0.0, norm_error_host_y = 0.0, norm_error_device_x = 0.0,
            norm_error_device_y = 0.0;
-    const U rel_error          = std::numeric_limits<U>::epsilon() * 1000;
 
     // check to prevent undefined memory allocation error
     if(N <= 0)
@@ -94,13 +93,8 @@ void testing_rot(const Arguments& arg)
     rocblas_init<T>(hx, 1, N, abs_incx);
     rocblas_init<T>(hy, 1, N, abs_incy);
 
-    // Random alpha (0 - 10)
-    host_vector<rocblas_int> alpha(1);
-    rocblas_init<rocblas_int>(alpha, 1, 1, 1);
-
-    // cos and sin of alpha (in rads)
-    hc[0] = cos(alpha[0]);
-    hs[0] = sin(alpha[0]);
+    rocblas_init<U>(hc, 1, 1, 1);
+    rocblas_init<V>(hs, 1, 1, 1);
 
     // CPU BLAS reference data
     host_vector<T> cx = hx;
@@ -109,7 +103,7 @@ void testing_rot(const Arguments& arg)
     // cx[0] = hx[0];
     // cy[0] = hy[0];
     cpu_time_used = get_time_us_no_sync();
-    cblas_rot<T, U, V>(N, cx, incx, cy, incy, hc, hs);
+    cblas_rot<T, T, U, V>(N, cx, incx, cy, incy, hc, hs);
     cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
     if(arg.unit_check || arg.norm_check)
@@ -126,8 +120,8 @@ void testing_rot(const Arguments& arg)
             CHECK_HIP_ERROR(hipMemcpy(ry, dy, sizeof(T) * size_y, hipMemcpyDeviceToHost));
             if(arg.unit_check)
             {
-                near_check_general<T>(1, N, abs_incx, cx, rx, rel_error);
-                near_check_general<T>(1, N, abs_incy, cy, ry, rel_error);
+                unit_check_general<T>(1, N, abs_incx, cx, rx);
+                unit_check_general<T>(1, N, abs_incy, cy, ry);
             }
             if(arg.norm_check)
             {
@@ -150,8 +144,8 @@ void testing_rot(const Arguments& arg)
             CHECK_HIP_ERROR(hipMemcpy(ry, dy, sizeof(T) * size_y, hipMemcpyDeviceToHost));
             if(arg.unit_check)
             {
-                near_check_general<T>(1, N, abs_incx, cx, rx, rel_error);
-                near_check_general<T>(1, N, abs_incy, cy, ry, rel_error);
+                unit_check_general<T>(1, N, abs_incx, cx, rx);
+                unit_check_general<T>(1, N, abs_incy, cy, ry);
             }
             if(arg.norm_check)
             {

@@ -222,9 +222,9 @@ If its argument is a pointer, it is dereferenced on the device. If the argument 
     Here, `alpha_device_host` can either be a pointer to device memory, or a numeric value passed directly to the kernel from the host. The `load_scalar()` function dereferences it if it's a pointer to device memory, and simply returns its argument if it's numerical. The kernel is called from the host in one of two ways depending on the pointer mode:
     ```c++
     if(handle->pointer_mode == rocblas_pointer_mode_device)
-        hipLaunchKernelGGL(axpy_kernel, blocks, threads, 0, rocblas_stream, n, alpha, x, incx, y, incy);
+        hipLaunchKernelGGL(axpy_kernel, blocks, threads, 0, handle->get_stream(), n, alpha, x, incx, y, incy);
     else if(*alpha) // alpha is on host
-        hipLaunchKernelGGL(axpy_kernel, blocks, threads, 0, rocblas_stream, n, *alpha, x, incx, y, incy);
+        hipLaunchKernelGGL(axpy_kernel, blocks, threads, 0, handle->get_stream(), n, *alpha, x, incx, y, incy);
     ```
     When the pointer mode indicates `alpha` is on the host, the `alpha` pointer is dereferenced on the host and the numeric value it points to is passed to the kernel. When the pointer mode indicates `alpha` is on the device, the `alpha` pointer is passed to the kernel and dereferenced by the kernel on the device. This allows a single kernel to handle both cases, eliminating duplicate code.
 
@@ -354,11 +354,11 @@ If its argument is a pointer, it is dereferenced on the device. If the argument 
     `std::string` involves dynamic memory allocation and copying of temporaries, which can be slow. `std::string_view` is supposed to help alleviate that, but it's not available until C++17, and we're using C++14 now. `const char*` should be used for read-only views of strings, in the interest of efficiency.
 
 
-16. For code brevity and readability, when converting to *numeric* types, function-style casts are preferred to `static_cast<>()` or C-style casts. For example, `T(x)` is preferred to `static_cast<T>(x)` or `(T)x`.
+16. For code brevity and readability, when converting to *numeric* types, uniform initialization or function-style casts are preferred to `static_cast<>()` or C-style casts. For example, `T{x}` or `T(x)` is preferred to `static_cast<T>(x)` or `(T)x`. `T{x}` differs from `T(x)` in that narrowing conversions, which reduce the precision of an integer or floating-point, are not allowed.
 
     When writing general containers or templates which can accept *arbitrary* types as parameters, not just *numeric* types, then the specific cast (`static_cast`, `const_cast`, `reinterpret_cast`) should be used, to avoid surprises.
 
-    But when converting to *numeric* types, which have very well-understood behavior and are *side-effect free*, `type(x)` is more compact and clearer than `static_cast<type>(x)`. For pointers, C-style casts are okay, such as `(T*)A`.
+    But when converting to *numeric* types, which have very well-understood behavior and are *side-effect free*, `type{x}` or `type(x)` are more compact and clearer than `static_cast<type>(x)`. For pointers, C-style casts are okay, such as `(T*)A`.
 
 
 17. For BLAS2 functions and BLAS1 functions with two vectors, the `incx` and/or `incy` arguments can be negative, which means the vector is treated backwards from the end. A simple trick to handle this, is to adjust the pointer to the end of the vector if the increment is negative, as in:

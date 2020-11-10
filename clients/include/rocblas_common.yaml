@@ -44,6 +44,8 @@ Real precisions: &real_precisions
     { a_type: f16_r, b_type: f16_r, c_type: f16_r, d_type: f16_r, compute_type: f16_r }
   - &hpa_half_precision
     { a_type: f16_r, b_type: f16_r, c_type: f16_r, d_type: f16_r, compute_type: f32_r }
+  - &hpa_half_in_single_out_precision
+    { a_type: f16_r, b_type: f16_r, c_type: f32_r, d_type: f32_r, compute_type: f32_r }
   - &single_precision
     { a_type: f32_r, b_type: f32_r, c_type: f32_r, d_type: f32_r, compute_type: f32_r }
   - &double_precision
@@ -54,6 +56,8 @@ Real precisions: &real_precisions
     { a_type:  bf16_r, b_type:  bf16_r, c_type: bf16_r, d_type: bf16_r, compute_type: bf16_r }
   - &hpa_bf16_precision
     { a_type:  bf16_r, b_type:  bf16_r, c_type: bf16_r, d_type: bf16_r, compute_type: f32_r }
+  - &hpa_bf16_in_single_out_precision
+    { a_type:  bf16_r, b_type:  bf16_r, c_type: f32_r, d_type: f32_r, compute_type: f32_r }
 
 C precisions: &single_double_precisions
   - *single_precision
@@ -70,11 +74,13 @@ Short precisions: &int8_half_single_precisions
 
 ML precisions: &hpa_half_single_precisions
   - *hpa_half_precision
+  - *hpa_half_in_single_out_precision
   - *half_precision
   - *single_precision
 
 Non-int precisions: &hpa_half_single_double_precisions
   - *hpa_half_precision
+  - *hpa_half_in_single_out_precision
   - *half_precision
   - *single_precision
   - *double_precision
@@ -104,6 +110,7 @@ Half Precision complex and real: &half_precision_complex_real
 
 Hpa Half Precision complex and real: &hpa_half_precision_complex_real
   - *hpa_half_precision
+  - *hpa_half_in_single_out_precision
   - *hpa_half_precision_complex
 
 Single Precision complex and real: &single_precision_complex_real
@@ -120,6 +127,7 @@ int8 Precision complex and real: &int8_precision_complex_real
 
 hpabf16 Precision complex and real: &hpa_bf16_precision_complex_real
   - *hpa_bf16_precision
+  - *hpa_bf16_in_single_out_precision
   - *hpa_bf16_precision_complex
 
 C precisions complex: &single_double_precisions_complex
@@ -148,6 +156,7 @@ Short precisions complex and real: &int8_half_single_precisions_complex_real
 
 ML precisions complex and real: &hpa_half_single_precisions_complex_real
   - *hpa_half_precision
+  - *hpa_half_in_single_out_precision
   - *half_precision
   - *single_precision
   - *hpa_half_precision_complex
@@ -156,6 +165,7 @@ ML precisions complex and real: &hpa_half_single_precisions_complex_real
 
 Non-int precisions complex and real: &hpa_half_single_double_precisions_complex_real
   - *hpa_half_precision
+  - *hpa_half_in_single_out_precision
   - *half_precision
   - *single_precision
   - *double_precision
@@ -204,6 +214,12 @@ Complex real mixed: &complex_real_mixed
     { a_type: f32_c, b_type: f32_r, c_type: f32_c, d_type: f32_c, compute_type: f32_r }
   - &double_precision_complex_real_in_real_compute
     { a_type: f64_c, b_type: f64_r, c_type: f64_c, d_type: f64_c, compute_type: f64_r }
+  - &single_precision_complex_real_c
+    { a_type: f32_c, b_type: f32_c, c_type: f32_r, d_type: f32_c, compute_type: f32_c }
+  - &double_precision_complex_real_c
+    { a_type: f64_c, b_type: f64_c, c_type: f64_r, d_type: f64_c, compute_type: f64_c }
+
+
 
 rot precisions: &rot_precisions
   - *single_precision
@@ -212,6 +228,16 @@ rot precisions: &rot_precisions
   - *single_precision_complex_real_in_real_compute
   - *double_precision_complex_real_in_complex_compute
   - *double_precision_complex_real_in_real_compute
+
+rot_ex precisions: &rot_ex_precisions
+  - *single_precision
+  - *double_precision
+  - *single_precision_complex
+  - *double_precision_complex
+  - *hpa_half_precision
+  - *hpa_bf16_precision
+  - *single_precision_complex_real_c
+  - *double_precision_complex_real_c
 
 rotg precisions: &rotg_precisions
   - *single_precision
@@ -224,7 +250,8 @@ rotg precisions: &rotg_precisions
 #############################################
 Half bfloat single double complex real: &half_bfloat_single_double_complex_real_precisions
   - *half_precision
-  - *bf16_precision
+  - *hpa_bf16_precision
+  - *hpa_bf16_in_single_out_precision
   - *single_precision
   - *double_precision
   - *half_precision_complex
@@ -240,7 +267,23 @@ Hpa single double complex real: &half_single_double_complex_real_precisions
   - *single_precision_complex
   - *double_precision_complex
   - *hpa_half_precision
+  - *hpa_half_in_single_out_precision
   - *half_precision
+
+#############################################
+#           Used for nrm2_ex                #
+#############################################
+nrm2_ex precisions: &nrm2_ex_precisions
+  - &half_precision_nrm2
+    { a_type: f16_r, b_type: f16_r, c_type: f32_r, d_type: f32_r, compute_type: f32_r }
+  - *single_precision
+  - *double_precision
+  - *single_precision_complex_real_in_real_compute
+  - *double_precision_complex_real_in_real_compute
+
+nrm2_ex precisions double: &nrm2_ex_precisions_double
+  - *double_precision
+  - *double_precision_complex_real_in_real_compute
 
 # The Arguments struct passed directly to C++. See rocblas_arguments.hpp.
 # The order of the entries is significant, so it can't simply be a dictionary.

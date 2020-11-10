@@ -401,9 +401,9 @@ void zdrot_(const int*              n,
             const double*           s);
 }
 
-template <typename T, typename U, typename V>
-inline void cblas_rot(
-    rocblas_int n, T* x, rocblas_int incx, T* y, rocblas_int incy, const U* c, const V* s);
+template <typename Tx, typename Ty, typename Tc, typename Ts>
+void cblas_rot(
+    rocblas_int n, Tx* x, rocblas_int incx, Ty* y, rocblas_int incy, const Tc* c, const Ts* s);
 
 template <>
 inline void cblas_rot(rocblas_int  n,
@@ -438,7 +438,7 @@ inline void cblas_rot(rocblas_int                  n,
                       const float*                 c,
                       const rocblas_float_complex* s)
 {
-    crot_(&n, x, &incx, y, &incx, c, s);
+    crot_(&n, x, &incx, y, &incy, c, s);
 }
 
 template <>
@@ -475,6 +475,33 @@ inline void cblas_rot(rocblas_int             n,
                       const double*           s)
 {
     zdrot_(&n, x, &incx, y, &incy, c, s);
+}
+
+// for rot_ex
+template <>
+inline void cblas_rot(rocblas_int                  n,
+                      rocblas_float_complex*       x,
+                      rocblas_int                  incx,
+                      rocblas_float_complex*       y,
+                      rocblas_int                  incy,
+                      const rocblas_float_complex* c,
+                      const rocblas_float_complex* s)
+{
+    const float c_real = std::real(*c);
+    crot_(&n, x, &incx, y, &incy, &c_real, s);
+}
+
+template <>
+inline void cblas_rot(rocblas_int                   n,
+                      rocblas_double_complex*       x,
+                      rocblas_int                   incx,
+                      rocblas_double_complex*       y,
+                      rocblas_int                   incy,
+                      const rocblas_double_complex* c,
+                      const rocblas_double_complex* s)
+{
+    const double c_real = std::real(*c);
+    zrot_(&n, x, &incx, y, &incy, &c_real, s);
 }
 
 // rotg

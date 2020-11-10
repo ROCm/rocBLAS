@@ -66,7 +66,7 @@ namespace
                                   alphas,
                                   "--incx",
                                   incx,
-                                  log_bench_scal_precisions(alpha_type, x_type, execution_type));
+                                  log_bench_ex_precisions(alpha_type, x_type, execution_type));
                     }
                 }
             }

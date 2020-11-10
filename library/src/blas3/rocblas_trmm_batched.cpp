@@ -160,7 +160,10 @@ namespace
         rocblas_int mem_stride = size_dt1 + size_dt2;
 
         setup_device_pointer_array(
-            handle->rocblas_stream, (T*)mem, mem_stride, d_workspace_batch_vector, batch_count);
+            handle->get_stream(), (T*)mem, mem_stride, d_workspace_batch_vector, batch_count);
+
+        rocblas_int offset_a = 0;
+        rocblas_int offset_b = 0;
 
         return rocblas_trmm_template<true, RB, CB, T>(handle,
                                                       side,
@@ -171,9 +174,11 @@ namespace
                                                       n,
                                                       alpha,
                                                       a,
+                                                      offset_a,
                                                       lda,
                                                       stride_a,
                                                       b,
+                                                      offset_b,
                                                       ldb,
                                                       stride_b,
                                                       batch_count,

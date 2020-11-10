@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+ROCBLAS_SRC_PATH=`dirname "$(realpath $0)"`
+
 /bin/ln -fs ../../.githooks/pre-commit "$(dirname "$0")/.git/hooks/"
 
 # #################################################
@@ -24,7 +26,7 @@ rocBLAS build & installation helper script
            --cpu_ref_lib         Specify library to use for CPU reference code in testing (blis or lapack)
            --[no-]hip-clang      Whether to build library for amdgpu backend using hip-clang
            --[no-]merge-files    Whether to enable Tensile_MERGE_FILES (default is enable)
-           --build_dir           Specify name of output directory (default is ./build)
+           --build_dir           Specify path of output directory relative to the current directory (default is ./build). Also supports absolute path to output directory.
       -n | --no-tensile          Build subset of library that does not require Tensile
       -s | --tensile-host        Build with Tensile host
       -r | --no-tensile-host     Do not build with Tensile host
@@ -193,25 +195,6 @@ install_packages( )
     fi
   fi
 
-  if [[ "${build_hip_clang}" == false ]]; then
-    # Installing rocm-dev installs hip-hcc, which overwrites the hip-vdi runtime
-
-    if [[ -z ${custom_rocm_dev+foo} ]]; then
-    # Install base rocm-dev package unless -v/--rocm-dev flag is passed
-      library_dependencies_ubuntu+=( "rocm-dev" )
-      library_dependencies_centos+=( "rocm-dev" )
-      library_dependencies_fedora+=( "rocm-dev" )
-      library_dependencies_sles+=( "rocm-dev" )
-
-    else
-    # Install rocm-specific rocm-dev package
-      library_dependencies_ubuntu+=( "${custom_rocm_dev}" )
-      library_dependencies_centos+=( "${custom_rocm_dev}" )
-      library_dependencies_fedora+=( "${custom_rocm_dev}" )
-      library_dependencies_sles+=( "${custom_rocm_dev}" )
-    fi
-  fi
-
   case "${ID}" in
     centos|rhel|sles|opensuse-leap)
       install_msgpack_from_source
@@ -326,7 +309,7 @@ build_tensile_host=true
 cpu_ref_lib=blis
 build_release=true
 build_hip_clang=true
-build_dir=./build
+build_dir=$(realpath ./build)
 skip_ld_conf_entry=false
 static_lib=false
 tensile_msgpack_backend=true
@@ -402,7 +385,7 @@ while true; do
         build_tensile_host=false
         shift ;;
     --build_dir)
-        build_dir=${2}
+	build_dir=$(realpath -m ${2})
         shift 2;;
     --use-cuda)
         use_cuda=true
@@ -521,17 +504,14 @@ if [[ "${build_hip_clang}" == true ]]; then
   cc="hipcc"
   fc="gfortran"
 else
-  cxx="hcc"
-  cc="hcc"
-  fc="gfortran"
+  echo "Currently the only suppported compiler is hip-clang."
+  exit 2
 fi
 
 # If user provides custom ${rocm_path} path for hcc it has lesser priority,
 # but with hip-clang existing path has lesser priority to avoid use of installed clang++ by tensile
 if [[ "${build_hip_clang}" == true ]]; then
   export PATH=${rocm_path}/bin:${rocm_path}/hip/bin:${rocm_path}/llvm/bin:${PATH}
-else
-  export PATH=${PATH}:${rocm_path}/bin:${rocm_path}/hip/bin:${rocm_path}/hcc/bin
 fi
 
 # #################################################
@@ -546,7 +526,7 @@ if [[ "${install_dependencies}" == true ]]; then
     pushd .
     printf "\033[32mBuilding \033[33mgoogletest & lapack\033[32m from source; installing into \033[33m/usr/local\033[0m\n"
     mkdir -p ${build_dir}/deps && cd ${build_dir}/deps
-    CXX=${cxx} CC=${cc} FC=${fc} ${cmake_executable} -lpthread -DBUILD_BOOST=OFF ../../deps
+    CXX=${cxx} CC=${cc} FC=${fc} ${cmake_executable} -lpthread -DBUILD_BOOST=OFF ${ROCBLAS_SRC_PATH}/deps
     make -j$(nproc)
     elevate_if_not_root make install
     install_blis
@@ -634,10 +614,6 @@ pushd .
       cmake_common_options="${cmake_common_options} -DRUN_HEADER_TESTING=OFF"
   fi
 
-  if [[ "${build_hip_clang}" == true ]]; then
-    cmake_common_options="${cmake_common_options} -DTensile_COMPILER=hipcc"
-  fi
-
   if [[ "${use_cuda}" == true ]]; then
     cmake_common_options="${cmake_common_options} -DUSE_CUDA=ON"
   fi
@@ -654,9 +630,9 @@ pushd .
 
   # Build library with AMD toolchain because of existense of device kernels
   if [[ "${build_clients}" == true ]]; then
-    CXX=${cxx} CC=${cc} ${cmake_executable} ${cmake_common_options} ${cmake_client_options} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=${rocm_path} ../..
+    CXX=${cxx} CC=${cc} ${cmake_executable} ${cmake_common_options} ${cmake_client_options} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=${rocm_path} ${ROCBLAS_SRC_PATH}
   else
-    CXX=${cxx} CC=${cc} ${cmake_executable} ${cmake_common_options} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=${rocm_path} ../..
+    CXX=${cxx} CC=${cc} ${cmake_executable} ${cmake_common_options} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=${rocm_path} ${ROCBLAS_SRC_PATH}
   fi
   check_exit_code "$?"
 

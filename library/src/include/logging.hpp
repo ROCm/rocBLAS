@@ -191,16 +191,17 @@ inline T log_trace_scalar_value(const T* value)
                      std::numeric_limits<typename T::value_type>::quiet_NaN()};
 }
 
-// If pointer mode is host, we output the actual value
-// If pointer mode is device, we output the address
 template <typename T>
 std::string log_trace_scalar_value(rocblas_handle handle, const T* value)
 {
     rocblas_ostream os;
-    if(handle->pointer_mode == rocblas_pointer_mode_host)
-        os << log_trace_scalar_value(value);
-    else
-        os << value;
+    T               host;
+    if(value && handle->pointer_mode == rocblas_pointer_mode_device)
+    {
+        hipMemcpy(&host, value, sizeof(host), hipMemcpyDeviceToHost);
+        value = &host;
+    }
+    os << log_trace_scalar_value(value);
     return os.str();
 }
 
@@ -217,7 +218,7 @@ inline std::string log_bench_scalar_value(const char* name, const rocblas_half* 
 }
 
 template <typename T, std::enable_if_t<!is_complex<T>, int> = 0>
-inline std::string log_bench_scalar_value(const char* name, const T* value)
+std::string log_bench_scalar_value(const char* name, const T* value)
 {
     rocblas_ostream ss;
     ss << "--" << name << " " << (value ? *value : std::numeric_limits<T>::quiet_NaN());
@@ -225,7 +226,7 @@ inline std::string log_bench_scalar_value(const char* name, const T* value)
 }
 
 template <typename T, std::enable_if_t<+is_complex<T>, int> = 0>
-inline std::string log_bench_scalar_value(const char* name, const T* value)
+std::string log_bench_scalar_value(const char* name, const T* value)
 {
     rocblas_ostream ss;
     ss << "--" << name << " "
@@ -235,10 +236,19 @@ inline std::string log_bench_scalar_value(const char* name, const T* value)
     return ss.str();
 }
 
-// If pointer mode is host, we output the actual value
-// If pointer mode is device, we output nothing
-#define LOG_BENCH_SCALAR_VALUE(handle, name) \
-    ((handle)->pointer_mode == rocblas_pointer_mode_host ? log_bench_scalar_value(#name, name) : "")
+template <typename T>
+std::string log_bench_scalar_value(rocblas_handle handle, const char* name, const T* value)
+{
+    T host;
+    if(value && handle->pointer_mode == rocblas_pointer_mode_device)
+    {
+        hipMemcpy(&host, value, sizeof(host), hipMemcpyDeviceToHost);
+        value = &host;
+    }
+    return log_bench_scalar_value(name, value);
+}
+
+#define LOG_BENCH_SCALAR_VALUE(handle, name) log_bench_scalar_value(handle, #name, name)
 
 /******************************************************
  * Bench log precision for mixed precision scal calls *
@@ -246,6 +256,21 @@ inline std::string log_bench_scalar_value(const char* name, const T* value)
 inline std::string log_bench_scal_precisions(rocblas_datatype a_type,
                                              rocblas_datatype x_type,
                                              rocblas_datatype ex_type)
+{
+    rocblas_ostream ss;
+    if(a_type == x_type && x_type == ex_type)
+        ss << "-r " << a_type;
+    else
+        ss << "--a_type " << a_type << " --b_type " << x_type << " --compute_type " << ex_type;
+    return ss.str();
+}
+
+/*********************************************************************
+ * Bench log precision for mixed precision scal_ex and nrm2_ex calls *
+ *********************************************************************/
+inline std::string log_bench_ex_precisions(rocblas_datatype a_type,
+                                           rocblas_datatype x_type,
+                                           rocblas_datatype ex_type)
 {
     rocblas_ostream ss;
     if(a_type == x_type && x_type == ex_type)

@@ -16115,6 +16115,704 @@ ROCBLAS_EXPORT rocblas_status rocblas_axpy_strided_batched_ex(rocblas_handle   h
 /*! \brief BLAS EX API
 
     \details
+    dot_ex  performs the dot product of vectors x and y
+
+        result = x * y;
+
+    dotc_ex  performs the dot product of the conjugate of complex vector x and complex vector y
+
+        result = conjugate (x) * y;
+
+        Currently supported datatypes are as follows:
+
+        --------------------------------------------------
+        | x_type | y_type | result_type | execution_type |
+        |--------|--------|-------------|----------------|
+        | f16_r  | f16_r  |    f16_r    |     f16_r      |
+        | f16_r  | f16_r  |    f16_r    |     f32_r      |
+        | bf16_r | bf16_r |    bf16_r   |     f32_r      |
+        | f32_r  | f32_r  |    f32_r    |     f32_r      |
+        | f64_r  | f64_r  |    f64_r    |     f64_r      |
+        | f32_c  | f32_c  |    f32_c    |     f32_c      |
+        | f64_c  | f64_c  |    f64_c    |     f64_c      |
+        --------------------------------------------------
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+    @param[in]
+    n         [rocblas_int]
+              the number of elements in x and y.
+    @param[in]
+    x         device pointer storing vector x.
+    @param[in]
+    x_type [rocblas_datatype]
+           specifies the datatype of vector x.
+    @param[in]
+    incx      [rocblas_int]
+              specifies the increment for the elements of y.
+    @param[in]
+    y         device pointer storing vector y.
+    @param[in]
+    y_type [rocblas_datatype]
+          specifies the datatype of vector y.
+    @param[in]
+    incy      [rocblas_int]
+              specifies the increment for the elements of y.
+    @param[inout]
+    result
+              device pointer or host pointer to store the dot product.
+              return is 0.0 if n <= 0.
+    @param[in]
+    result_type [rocblas_datatype]
+                specifies the datatype of the result.
+    @param[in]
+    execution_type [rocblas_datatype]
+                  specifies the datatype of computation.
+
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_dot_ex(rocblas_handle   handle,
+                                             rocblas_int      n,
+                                             const void*      x,
+                                             rocblas_datatype x_type,
+                                             rocblas_int      incx,
+                                             const void*      y,
+                                             rocblas_datatype y_type,
+                                             rocblas_int      incy,
+                                             void*            result,
+                                             rocblas_datatype result_type,
+                                             rocblas_datatype execution_type);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dotc_ex(rocblas_handle   handle,
+                                              rocblas_int      n,
+                                              const void*      x,
+                                              rocblas_datatype x_type,
+                                              rocblas_int      incx,
+                                              const void*      y,
+                                              rocblas_datatype y_type,
+                                              rocblas_int      incy,
+                                              void*            result,
+                                              rocblas_datatype result_type,
+                                              rocblas_datatype execution_type);
+
+/*! \brief BLAS EX API
+
+    \details
+    dot_batched_ex performs a batch of dot products of vectors x and y
+
+        result_i = x_i * y_i;
+
+    dotc_batched_ex  performs a batch of dot products of the conjugate of complex vector x and complex vector y
+
+        result_i = conjugate (x_i) * y_i;
+
+    where (x_i, y_i) is the i-th instance of the batch.
+    x_i and y_i are vectors, for i = 1, ..., batch_count
+
+        Currently supported datatypes are as follows:
+
+        --------------------------------------------------
+        | x_type | y_type | result_type | execution_type |
+        |--------|--------|-------------|----------------|
+        | f16_r  | f16_r  |    f16_r    |     f16_r      |
+        | f16_r  | f16_r  |    f16_r    |     f32_r      |
+        | bf16_r | bf16_r |    bf16_r   |     f32_r      |
+        | f32_r  | f32_r  |    f32_r    |     f32_r      |
+        | f64_r  | f64_r  |    f64_r    |     f64_r      |
+        | f32_c  | f32_c  |    f32_c    |     f32_c      |
+        | f64_c  | f64_c  |    f64_c    |     f64_c      |
+        --------------------------------------------------
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+    @param[in]
+    n         [rocblas_int]
+              the number of elements in each x_i and y_i.
+    @param[in]
+    x         device array of device pointers storing each vector x_i.
+    @param[in]
+    x_type [rocblas_datatype]
+           specifies the datatype of each vector x_i.
+    @param[in]
+    incx      [rocblas_int]
+              specifies the increment for the elements of each x_i.
+    @param[in]
+    y         device array of device pointers storing each vector y_i.
+    @param[in]
+    y_type [rocblas_datatype]
+          specifies the datatype of each vector y_i.
+    @param[in]
+    incy      [rocblas_int]
+              specifies the increment for the elements of each y_i.
+    @param[in]
+    batch_count [rocblas_int]
+                number of instances in the batch
+    @param[inout]
+    result
+              device array or host array of batch_count size to store the dot products of each batch.
+              return 0.0 for each element if n <= 0.
+    @param[in]
+    result_type [rocblas_datatype]
+                specifies the datatype of the result.
+    @param[in]
+    execution_type [rocblas_datatype]
+                  specifies the datatype of computation.
+
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_dot_batched_ex(rocblas_handle   handle,
+                                                     rocblas_int      n,
+                                                     const void*      x,
+                                                     rocblas_datatype x_type,
+                                                     rocblas_int      incx,
+                                                     const void*      y,
+                                                     rocblas_datatype y_type,
+                                                     rocblas_int      incy,
+                                                     rocblas_int      batch_count,
+                                                     void*            result,
+                                                     rocblas_datatype result_type,
+                                                     rocblas_datatype execution_type);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dotc_batched_ex(rocblas_handle   handle,
+                                                      rocblas_int      n,
+                                                      const void*      x,
+                                                      rocblas_datatype x_type,
+                                                      rocblas_int      incx,
+                                                      const void*      y,
+                                                      rocblas_datatype y_type,
+                                                      rocblas_int      incy,
+                                                      rocblas_int      batch_count,
+                                                      void*            result,
+                                                      rocblas_datatype result_type,
+                                                      rocblas_datatype execution_type);
+
+/*! \brief BLAS EX API
+
+    \details
+    dot_strided_batched_ex  performs a batch of dot products of vectors x and y
+
+        result_i = x_i * y_i;
+
+    dotc_strided_batched_ex  performs a batch of dot products of the conjugate of complex vector x and complex vector y
+
+        result_i = conjugate (x_i) * y_i;
+
+    where (x_i, y_i) is the i-th instance of the batch.
+    x_i and y_i are vectors, for i = 1, ..., batch_count
+
+        Currently supported datatypes are as follows:
+
+        --------------------------------------------------
+        | x_type | y_type | result_type | execution_type |
+        |--------|--------|-------------|----------------|
+        | f16_r  | f16_r  |    f16_r    |     f16_r      |
+        | f16_r  | f16_r  |    f16_r    |     f32_r      |
+        | bf16_r | bf16_r |    bf16_r   |     f32_r      |
+        | f32_r  | f32_r  |    f32_r    |     f32_r      |
+        | f64_r  | f64_r  |    f64_r    |     f64_r      |
+        | f32_c  | f32_c  |    f32_c    |     f32_c      |
+        | f64_c  | f64_c  |    f64_c    |     f64_c      |
+        --------------------------------------------------
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+    @param[in]
+    n         [rocblas_int]
+              the number of elements in each x_i and y_i.
+    @param[in]
+    x         device pointer to the first vector (x_1) in the batch.
+    @param[in]
+    x_type [rocblas_datatype]
+           specifies the datatype of each vector x_i.
+    @param[in]
+    incx      [rocblas_int]
+              specifies the increment for the elements of each x_i.
+    @param[in]
+    stride_x    [rocblas_stride]
+                stride from the start of one vector (x_i) and the next one (x_i+1)
+    @param[in]
+    y         device pointer to the first vector (y_1) in the batch.
+    @param[in]
+    y_type [rocblas_datatype]
+          specifies the datatype of each vector y_i.
+    @param[in]
+    incy      [rocblas_int]
+              specifies the increment for the elements of each y_i.
+    @param[in]
+    stride_y    [rocblas_stride]
+                stride from the start of one vector (y_i) and the next one (y_i+1)
+    @param[in]
+    batch_count [rocblas_int]
+                number of instances in the batch
+    @param[inout]
+    result
+              device array or host array of batch_count size to store the dot products of each batch.
+              return 0.0 for each element if n <= 0.
+    @param[in]
+    result_type [rocblas_datatype]
+                specifies the datatype of the result.
+    @param[in]
+    execution_type [rocblas_datatype]
+                  specifies the datatype of computation.
+
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_dot_strided_batched_ex(rocblas_handle   handle,
+                                                             rocblas_int      n,
+                                                             const void*      x,
+                                                             rocblas_datatype x_type,
+                                                             rocblas_int      incx,
+                                                             rocblas_stride   stride_x,
+                                                             const void*      y,
+                                                             rocblas_datatype y_type,
+                                                             rocblas_int      incy,
+                                                             rocblas_stride   stride_y,
+                                                             rocblas_int      batch_count,
+                                                             void*            result,
+                                                             rocblas_datatype result_type,
+                                                             rocblas_datatype execution_type);
+
+ROCBLAS_EXPORT rocblas_status rocblas_dotc_strided_batched_ex(rocblas_handle   handle,
+                                                              rocblas_int      n,
+                                                              const void*      x,
+                                                              rocblas_datatype x_type,
+                                                              rocblas_int      incx,
+                                                              rocblas_stride   stride_x,
+                                                              const void*      y,
+                                                              rocblas_datatype y_type,
+                                                              rocblas_int      incy,
+                                                              rocblas_stride   stride_y,
+                                                              rocblas_int      batch_count,
+                                                              void*            result,
+                                                              rocblas_datatype result_type,
+                                                              rocblas_datatype execution_type);
+
+/*! \brief BLAS_EX API
+
+    \details
+    nrm2_ex computes the euclidean norm of a real or complex vector
+
+              result := sqrt( x'*x ) for real vectors
+              result := sqrt( x**H*x ) for complex vectors
+
+    Currently supported datatypes are as follows:
+
+        -------------------------------------
+        |  x_type | result | execution_type |
+        |---------|--------|----------------|
+        |  f16_r  |  f16_r |     f32_r      |
+        |  f32_r  |  f32_r |     f32_r      |
+        |  f64_r  |  f64_r |     f64_r      |
+        |  f32_c  |  f32_r |     f32_r      |
+        |  f64_c  |  f64_r |     f64_r      |
+        -------------------------------------
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+    @param[in]
+    n         [rocblas_int]
+              the number of elements in x.
+    @param[in]
+    x         device pointer storing vector x.
+    @param[in]
+    x_type [rocblas_datatype]
+           specifies the datatype of the vector x.
+    @param[in]
+    incx      [rocblas_int]
+              specifies the increment for the elements of y.
+    @param[inout]
+    result
+              device pointer or host pointer to store the nrm2 product.
+              return is 0.0 if n, incx<=0.
+    @param[in]
+    result_type [rocblas_datatype]
+                specifies the datatype of the result.
+    @param[in]
+    execution_type [rocblas_datatype]
+                  specifies the datatype of computation.
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_nrm2_ex(rocblas_handle   handle,
+                                              rocblas_int      n,
+                                              const void*      x,
+                                              rocblas_datatype x_type,
+                                              rocblas_int      incx,
+                                              void*            results,
+                                              rocblas_datatype result_type,
+                                              rocblas_datatype execution_type);
+
+/*! \brief BLAS_EX API
+
+    \details
+    nrm2_batched_ex computes the euclidean norm over a batch of real or complex vectors
+
+              result := sqrt( x_i'*x_i ) for real vectors x, for i = 1, ..., batch_count
+              result := sqrt( x_i**H*x_i ) for complex vectors x, for i = 1, ..., batch_count
+
+    Currently supported datatypes are as follows:
+
+        -------------------------------------
+        |  x_type | result | execution_type |
+        |---------|--------|----------------|
+        |  f16_r  |  f16_r |     f32_r      |
+        |  f32_r  |  f32_r |     f32_r      |
+        |  f64_r  |  f64_r |     f64_r      |
+        |  f32_c  |  f32_r |     f32_r      |
+        |  f64_c  |  f64_r |     f64_r      |
+        -------------------------------------
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+    @param[in]
+    n         [rocblas_int]
+              number of elements in each x_i.
+    @param[in]
+    x         device array of device pointers storing each vector x_i.
+    @param[in]
+    x_type [rocblas_datatype]
+           specifies the datatype of each vector x_i.
+    @param[in]
+    incx      [rocblas_int]
+              specifies the increment for the elements of each x_i. incx must be > 0.
+    @param[in]
+    batch_count [rocblas_int]
+              number of instances in the batch
+    @param[out]
+    results
+              device pointer or host pointer to array of batch_count size for nrm2 results.
+              return is 0.0 for each element if n <= 0, incx<=0.
+    @param[in]
+    result_type [rocblas_datatype]
+                specifies the datatype of the result.
+    @param[in]
+    execution_type [rocblas_datatype]
+                  specifies the datatype of computation.
+
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_nrm2_batched_ex(rocblas_handle   handle,
+                                                      rocblas_int      n,
+                                                      const void*      x,
+                                                      rocblas_datatype x_type,
+                                                      rocblas_int      incx,
+                                                      rocblas_int      batch_count,
+                                                      void*            results,
+                                                      rocblas_datatype result_type,
+                                                      rocblas_datatype execution_type);
+
+/*! \brief BLAS_EX API
+
+    \details
+    nrm2_strided_batched_ex computes the euclidean norm over a batch of real or complex vectors
+
+              := sqrt( x_i'*x_i ) for real vectors x, for i = 1, ..., batch_count
+              := sqrt( x_i**H*x_i ) for complex vectors, for i = 1, ..., batch_count
+
+    Currently supported datatypes are as follows:
+
+        -------------------------------------
+        |  x_type | result | execution_type |
+        |---------|--------|----------------|
+        |  f16_r  |  f16_r |     f32_r      |
+        |  f32_r  |  f32_r |     f32_r      |
+        |  f64_r  |  f64_r |     f64_r      |
+        |  f32_c  |  f32_r |     f32_r      |
+        |  f64_c  |  f64_r |     f64_r      |
+        -------------------------------------
+
+    @param[in]
+    handle    [rocblas_handle]
+              handle to the rocblas library context queue.
+    @param[in]
+    n         [rocblas_int]
+              number of elements in each x_i.
+    @param[in]
+    x         device pointer to the first vector x_1.
+    @param[in]
+    x_type [rocblas_datatype]
+           specifies the datatype of each vector x_i.
+    @param[in]
+    incx      [rocblas_int]
+              specifies the increment for the elements of each x_i. incx must be > 0.
+    @param[in]
+    stridex   [rocblas_stride]
+              stride from the start of one vector (x_i) and the next one (x_i+1).
+              There are no restrictions placed on stride_x, however the user should
+              take care to ensure that stride_x is of appropriate size, for a typical
+              case this means stride_x >= n * incx.
+    @param[in]
+    batch_count [rocblas_int]
+              number of instances in the batch
+    @param[out]
+    results
+              device pointer or host pointer to array for storing contiguous batch_count results.
+              return is 0.0 for each element if n <= 0, incx<=0.
+    @param[in]
+    result_type [rocblas_datatype]
+                specifies the datatype of the result.
+    @param[in]
+    execution_type [rocblas_datatype]
+                  specifies the datatype of computation.
+
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_nrm2_strided_batched_ex(rocblas_handle   handle,
+                                                              rocblas_int      n,
+                                                              const void*      x,
+                                                              rocblas_datatype x_type,
+                                                              rocblas_int      incx,
+                                                              rocblas_stride   stride_x,
+                                                              rocblas_int      batch_count,
+                                                              void*            results,
+                                                              rocblas_datatype result_type,
+                                                              rocblas_datatype execution_type);
+
+/*! \brief BLAS EX API
+
+    \details
+    rot_ex applies the Givens rotation matrix defined by c=cos(alpha) and s=sin(alpha) to vectors x and y.
+        Scalars c and s may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode.
+
+	In the case where cs_type is real:
+	    x := c * x + s * y
+            y := c * y - s * x
+
+	In the case where cs_type is complex, the imaginary part of c is ignored:
+	    x := real(c) * x + s * y
+            y := real(c) * y - conj(s) * x
+
+    Currently supported datatypes are as follows:
+
+        ------------------------------------------------
+        |  x_type | y_type  | cs_type | execution_type |
+        |---------|---------|---------|----------------|
+        |  bf16_r |  bf16_r | bf16_r  |  f32_r         |
+        |  f16_r  |  f16_r  | f16_r   |  f32_r         |
+        |  f32_r  |  f32_r  | f32_r   |  f32_r         |
+        |  f64_r  |  f64_r  | f64_r   |  f64_r         |
+        |  f32_c  |  f32_c  | f32_c   |  f32_c         |
+        |  f32_c  |  f32_c  | f32_r   |  f32_c         |
+        |  f64_c  |  f64_c  | f64_c   |  f64_c         |
+        |  f64_c  |  f64_c  | f64_r   |  f64_c         |
+        ------------------------------------------------
+
+    @param[in]
+    handle  [rocblas_handle]
+            handle to the rocblas library context queue.
+    @param[in]
+    n       [rocblas_int]
+            number of elements in the x and y vectors.
+    @param[inout]
+    x       device pointer storing vector x.
+    @param[in]
+    x_type [rocblas_datatype]
+           specifies the datatype of vector x.
+    @param[in]
+    incx    [rocblas_int]
+            specifies the increment between elements of x.
+    @param[inout]
+    y       device pointer storing vector y.
+    @param[in]
+    y_type [rocblas_datatype]
+           specifies the datatype of vector y.
+    @param[in]
+    incy    [rocblas_int]
+            specifies the increment between elements of y.
+    @param[in]
+    c       device pointer or host pointer storing scalar cosine component of the rotation matrix.
+    @param[in]
+    s       device pointer or host pointer storing scalar sine component of the rotation matrix.
+    @param[in]
+    cs_type [rocblas_datatype]
+            specifies the datatype of c and s.
+    @param[in]
+    execution_type [rocblas_datatype]
+                   specifies the datatype of computation.
+
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_rot_ex(rocblas_handle   handle,
+                                             rocblas_int      n,
+                                             void*            x,
+                                             rocblas_datatype x_type,
+                                             rocblas_int      incx,
+                                             void*            y,
+                                             rocblas_datatype y_type,
+                                             rocblas_int      incy,
+                                             const void*      c,
+                                             const void*      s,
+                                             rocblas_datatype cs_type,
+                                             rocblas_datatype execution_type);
+
+/*! \brief BLAS EX API
+
+    \details
+    rot_batched_ex applies the Givens rotation matrix defined by c=cos(alpha) and s=sin(alpha) to batched vectors x_i and y_i, for i = 1, ..., batch_count.
+        Scalars c and s may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode.
+
+	In the case where cs_type is real:
+            x := c * x + s * y
+            y := c * y - s * x
+
+        In the case where cs_type is complex, the imaginary part of c is ignored:
+            x := real(c) * x + s * y
+            y := real(c) * y - conj(s) * x
+
+    Currently supported datatypes are as follows:
+
+        ------------------------------------------------
+        |  x_type | y_type  | cs_type | execution_type |
+        |---------|---------|---------|----------------|
+        |  bf16_r |  bf16_r | bf16_r  |  f32_r         |
+        |  f16_r  |  f16_r  | f16_r   |  f32_r         |
+        |  f32_r  |  f32_r  | f32_r   |  f32_r         |
+        |  f64_r  |  f64_r  | f64_r   |  f64_r         |
+        |  f32_c  |  f32_c  | f32_c   |  f32_c         |
+        |  f32_c  |  f32_c  | f32_r   |  f32_c         |
+        |  f64_c  |  f64_c  | f64_c   |  f64_c         |
+        |  f64_c  |  f64_c  | f64_r   |  f64_c         |
+        ------------------------------------------------
+
+    @param[in]
+    handle  [rocblas_handle]
+            handle to the rocblas library context queue.
+    @param[in]
+    n       [rocblas_int]
+            number of elements in each x_i and y_i vectors.
+    @param[inout]
+    x       device array of deivce pointers storing each vector x_i.
+    @param[in]
+    x_type [rocblas_datatype]
+           specifies the datatype of each vector x_i.
+    @param[in]
+    incx    [rocblas_int]
+            specifies the increment between elements of each x_i.
+    @param[inout]
+    y       device array of device pointers storing each vector y_i.
+    @param[in]
+    y_type [rocblas_datatype]
+           specifies the datatype of each vector y_i.
+    @param[in]
+    incy    [rocblas_int]
+            specifies the increment between elements of each y_i.
+    @param[in]
+    c       device pointer or host pointer to scalar cosine component of the rotation matrix.
+    @param[in]
+    s       device pointer or host pointer to scalar sine component of the rotation matrix.
+    @param[in]
+    cs_type [rocblas_datatype]
+            specifies the datatype of c and s.
+    @param[in]
+    batch_count [rocblas_int]
+                the number of x and y arrays, i.e. the number of batches.
+    @param[in]
+    execution_type [rocblas_datatype]
+                   specifies the datatype of computation.
+
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_rot_batched_ex(rocblas_handle   handle,
+                                                     rocblas_int      n,
+                                                     void*            x,
+                                                     rocblas_datatype x_type,
+                                                     rocblas_int      incx,
+                                                     void*            y,
+                                                     rocblas_datatype y_type,
+                                                     rocblas_int      incy,
+                                                     const void*      c,
+                                                     const void*      s,
+                                                     rocblas_datatype cs_type,
+                                                     rocblas_int      batch_count,
+                                                     rocblas_datatype execution_type);
+
+/*! \brief BLAS Level 1 API
+
+    \details
+    rot_strided_batched_ex applies the Givens rotation matrix defined by c=cos(alpha) and s=sin(alpha) to strided batched vectors x_i and y_i, for i = 1, ..., batch_count.
+        Scalars c and s may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode.
+
+	In the case where cs_type is real:
+            x := c * x + s * y
+            y := c * y - s * x
+
+        In the case where cs_type is complex, the imaginary part of c is ignored:
+            x := real(c) * x + s * y
+            y := real(c) * y - conj(s) * x
+
+    Currently supported datatypes are as follows:
+
+        ------------------------------------------------
+        |  x_type | y_type  | cs_type | execution_type |
+        |---------|---------|---------|----------------|
+        |  bf16_r |  bf16_r | bf16_r  |  f32_r         |
+        |  f16_r  |  f16_r  | f16_r   |  f32_r         |
+        |  f32_r  |  f32_r  | f32_r   |  f32_r         |
+        |  f64_r  |  f64_r  | f64_r   |  f64_r         |
+        |  f32_c  |  f32_c  | f32_c   |  f32_c         |
+        |  f32_c  |  f32_c  | f32_r   |  f32_c         |
+        |  f64_c  |  f64_c  | f64_c   |  f64_c         |
+        |  f64_c  |  f64_c  | f64_r   |  f64_c         |
+        ------------------------------------------------
+
+    @param[in]
+    handle  [rocblas_handle]
+            handle to the rocblas library context queue.
+    @param[in]
+    n       [rocblas_int]
+            number of elements in each x_i and y_i vectors.
+    @param[inout]
+    x       device pointer to the first vector x_1.
+    @param[in]
+    x_type [rocblas_datatype]
+           specifies the datatype of each vector x_i.
+    @param[in]
+    incx    [rocblas_int]
+            specifies the increment between elements of each x_i.
+    @param[in]
+    stride_x [rocblas_stride]
+             specifies the increment from the beginning of x_i to the beginning of x_(i+1)
+    @param[inout]
+    y       device pointer to the first vector y_1.
+    @param[in]
+    y_type [rocblas_datatype]
+           specifies the datatype of each vector y_i.
+    @param[in]
+    incy    [rocblas_int]
+            specifies the increment between elements of each y_i.
+    @param[in]
+    stride_y [rocblas_stride]
+             specifies the increment from the beginning of y_i to the beginning of y_(i+1)
+    @param[in]
+    c       device pointer or host pointer to scalar cosine component of the rotation matrix.
+    @param[in]
+    s       device pointer or host pointer to scalar sine component of the rotation matrix.
+    @param[in]
+    cs_type [rocblas_datatype]
+            specifies the datatype of c and s.
+    @param[in]
+    batch_count [rocblas_int]
+            the number of x and y arrays, i.e. the number of batches.
+    @param[in]
+    execution_type [rocblas_datatype]
+                   specifies the datatype of computation.
+
+    ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_rot_strided_batched_ex(rocblas_handle   handle,
+                                                             rocblas_int      n,
+                                                             void*            x,
+                                                             rocblas_datatype x_type,
+                                                             rocblas_int      incx,
+                                                             rocblas_stride   stride_x,
+                                                             void*            y,
+                                                             rocblas_datatype y_type,
+                                                             rocblas_int      incy,
+                                                             rocblas_stride   stride_y,
+                                                             const void*      c,
+                                                             const void*      s,
+                                                             rocblas_datatype cs_type,
+                                                             rocblas_int      batch_count,
+                                                             rocblas_datatype execution_type);
+
+/*! \brief BLAS EX API
+
+    \details
     scal_ex  scales each element of vector x with scalar alpha.
 
         x := alpha * x

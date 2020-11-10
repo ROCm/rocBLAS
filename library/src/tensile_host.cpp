@@ -214,7 +214,7 @@ namespace
         // Descriptor for output matrix D
         Tensile::TensorDescriptor d{Tensile_To,
                                     {prob.m, prob.n, prob.batch_count},
-                                    {prob.row_stride_c, prob.col_stride_d, prob.batch_stride_d}};
+                                    {prob.row_stride_d, prob.col_stride_d, prob.batch_stride_d}};
 
         // Size of GSU workspace. We set it to max size_t if this is a size query.
         size_t workspace_size
@@ -243,8 +243,8 @@ namespace
             tensileProblem.setHighPrecisionAccumulate(true);
 
         // Pass atomics mode to Tensile interface
-        if(prob.handle->atomics_mode == rocblas_atomics_not_allowed)
-            tensileProblem.setDeterministicMode(true);
+        tensileProblem.setDeterministicMode(prob.handle->atomics_mode
+                                            == rocblas_atomics_not_allowed);
 
         return tensileProblem;
     }
@@ -587,10 +587,12 @@ rocblas_status runContractionProblem(const RocblasContractionProblem<Ti, To, Tc>
     try
     {
         std::shared_ptr<Tensile::MasterSolutionLibrary<Tensile::ContractionProblem>> library;
-        auto& adapter      = get_library_and_adapter(&library);
-        auto  hardware     = Tensile::hip::GetCurrentDevice();
-        auto  tensile_prob = ConstructTensileProblem(prob);
-        solution           = library->findBestSolution(tensile_prob, *hardware);
+        auto& adapter       = get_library_and_adapter(&library);
+        auto  hardware      = Tensile::hip::GetCurrentDevice();
+        auto  tensile_prob  = ConstructTensileProblem(prob);
+        auto  handle        = prob.handle;
+        auto* fitness_query = handle->get_solution_fitness_query();
+        solution            = library->findBestSolution(tensile_prob, *hardware, fitness_query);
 
         if(!solution)
         {
@@ -600,8 +602,9 @@ rocblas_status runContractionProblem(const RocblasContractionProblem<Ti, To, Tc>
         }
         else
         {
-            auto handle = prob.handle;
-            if(handle->is_device_memory_size_query())
+            if(fitness_query)
+                status = rocblas_status_success;
+            else if(handle->is_device_memory_size_query())
             {
                 status = handle->set_optimal_device_memory_size(
                     ((solution->requiredWorkspaceSize(tensile_prob)
@@ -613,7 +616,7 @@ rocblas_status runContractionProblem(const RocblasContractionProblem<Ti, To, Tc>
             {
                 adapter.launchKernels(
                     solution->solve(tensile_prob, GetTensileInputs(prob), *hardware),
-                    handle->rocblas_stream,
+                    handle->get_stream(),
                     handle->startEvent,
                     handle->stopEvent);
                 status = rocblas_status_success;
@@ -668,8 +671,14 @@ template rocblas_status
 template rocblas_status
     runContractionProblem(const RocblasContractionProblem<rocblas_half, rocblas_half, float>&);
 
+template rocblas_status
+    runContractionProblem(const RocblasContractionProblem<rocblas_half, float, float>&);
+
 template rocblas_status runContractionProblem(
     const RocblasContractionProblem<rocblas_bfloat16, rocblas_bfloat16, float>&);
+
+template rocblas_status
+    runContractionProblem(const RocblasContractionProblem<rocblas_bfloat16, float, float>&);
 
 template rocblas_status
     runContractionProblem(const RocblasContractionProblem<int8_t, int32_t, int32_t>&);

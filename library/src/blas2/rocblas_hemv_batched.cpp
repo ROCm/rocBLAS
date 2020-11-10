@@ -98,8 +98,26 @@ namespace
         if(!A || !x || !y || !alpha || !beta)
             return rocblas_status_invalid_pointer;
 
-        return rocblas_hemv_template(
-            handle, uplo, n, alpha, A, 0, lda, 0, x, 0, incx, 0, beta, y, 0, incy, 0, batch_count);
+        return rocblas_hemv_template(handle,
+                                     uplo,
+                                     n,
+                                     alpha,
+                                     0,
+                                     A,
+                                     0,
+                                     lda,
+                                     0,
+                                     x,
+                                     0,
+                                     incx,
+                                     0,
+                                     beta,
+                                     0,
+                                     y,
+                                     0,
+                                     incy,
+                                     0,
+                                     batch_count);
     }
 
 } // namespace

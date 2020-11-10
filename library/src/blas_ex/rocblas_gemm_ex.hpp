@@ -40,7 +40,7 @@ rocblas_status device_strided_batched_matrix_copy(rocblas_handle handle,
                                            src,
                                            sizeof(To) * n1 * n2 * batch_count,
                                            hipMemcpyDeviceToDevice,
-                                           handle->rocblas_stream));
+                                           handle->get_stream()));
     }
     else if(n1 == ld_src && n1 == ld_dst)
     {
@@ -50,7 +50,7 @@ rocblas_status device_strided_batched_matrix_copy(rocblas_handle handle,
                                                src + i3 * stride_src,
                                                sizeof(To) * n1 * n2,
                                                hipMemcpyDeviceToDevice,
-                                               handle->rocblas_stream));
+                                               handle->get_stream()));
     }
     else
     {
@@ -61,7 +61,7 @@ rocblas_status device_strided_batched_matrix_copy(rocblas_handle handle,
                                                    src + i2 * ld_src + i3 * stride_src,
                                                    sizeof(To) * n1,
                                                    hipMemcpyDeviceToDevice,
-                                                   handle->rocblas_stream));
+                                                   handle->get_stream()));
     }
     return rocblas_status_success;
 }
@@ -724,7 +724,7 @@ rocblas_status gemm_ex_batched_template(rocblas_handle    handle,
                                            n,
                                            batch_count,
                                            k,
-                                           handle->rocblas_stream,
+                                           handle->get_stream(),
                                            GetTransposeMode(trans_a, trans_b),
                                            &handle->startEvent,
                                            &handle->stopEvent);
@@ -954,30 +954,50 @@ rocblas_status rocblas_gemm_ex_template(rocblas_handle    handle,
     {
         rb_status = gemm_ex_typecasting<BATCHED, float>(EX_TYPECASTING_PARM);
     }
-    else if(a_type == rocblas_datatype_f16_r && b_type == rocblas_datatype_f16_r
-            && c_type == rocblas_datatype_f16_r && d_type == rocblas_datatype_f16_r
-            && compute_type == rocblas_datatype_f16_r)
+    else if(a_type == rocblas_datatype_f16_r && b_type == rocblas_datatype_f16_r)
     {
-        rb_status = gemm_ex_typecasting<BATCHED, rocblas_half>(EX_TYPECASTING_PARM);
-    }
-    else if(a_type == rocblas_datatype_f16_r && b_type == rocblas_datatype_f16_r
-            && c_type == rocblas_datatype_f16_r && d_type == rocblas_datatype_f16_r
-            && compute_type == rocblas_datatype_f32_r)
-    {
-        rb_status
-            = gemm_ex_typecasting<BATCHED, rocblas_half, rocblas_half, float>(EX_TYPECASTING_PARM);
+        if(c_type == rocblas_datatype_f16_r && d_type == rocblas_datatype_f16_r)
+        {
+            if(compute_type == rocblas_datatype_f16_r)
+            {
+                rb_status = gemm_ex_typecasting<BATCHED, rocblas_half>(EX_TYPECASTING_PARM);
+            }
+            else if(compute_type == rocblas_datatype_f32_r)
+            {
+                rb_status = gemm_ex_typecasting<BATCHED, rocblas_half, rocblas_half, float>(
+                    EX_TYPECASTING_PARM);
+            }
+        }
+        else if(c_type == rocblas_datatype_f32_r && d_type == rocblas_datatype_f32_r
+                && compute_type == rocblas_datatype_f32_r)
+        {
+            rb_status
+                = gemm_ex_typecasting<BATCHED, rocblas_half, float, float>(EX_TYPECASTING_PARM);
+        }
     }
     else if(a_type == rocblas_datatype_bf16_r && b_type == rocblas_datatype_bf16_r
-            && c_type == rocblas_datatype_bf16_r && d_type == rocblas_datatype_bf16_r
             && compute_type == rocblas_datatype_f32_r)
     {
+        if(c_type == rocblas_datatype_bf16_r && d_type == rocblas_datatype_bf16_r)
+        {
 #ifdef USE_TENSILE_HOST
-        rb_status = gemm_ex_typecasting<BATCHED, rocblas_bfloat16, rocblas_bfloat16, float>(
-            EX_TYPECASTING_PARM);
+            rb_status = gemm_ex_typecasting<BATCHED, rocblas_bfloat16, rocblas_bfloat16, float>(
+                EX_TYPECASTING_PARM);
 #else
-        rb_status = gemm_ex_typecasting<BATCHED, tensile_bfloat16, tensile_bfloat16, float>(
-            EX_TYPECASTING_PARM);
+            rb_status = gemm_ex_typecasting<BATCHED, tensile_bfloat16, tensile_bfloat16, float>(
+                EX_TYPECASTING_PARM);
 #endif
+        }
+        else if(c_type == rocblas_datatype_f32_r && d_type == rocblas_datatype_f32_r)
+        {
+#ifdef USE_TENSILE_HOST
+            rb_status
+                = gemm_ex_typecasting<BATCHED, rocblas_bfloat16, float, float>(EX_TYPECASTING_PARM);
+#else
+            rb_status
+                = gemm_ex_typecasting<BATCHED, tensile_bfloat16, float, float>(EX_TYPECASTING_PARM);
+#endif
+        }
     }
     else if(a_type == rocblas_datatype_i8_r && b_type == rocblas_datatype_i8_r
             && c_type == rocblas_datatype_i32_r && d_type == rocblas_datatype_i32_r
@@ -1037,17 +1057,6 @@ rocblas_status rocblas_gemm_ex_template(rocblas_handle    handle,
 }
 
 #undef EX_TYPECASTING_PARM
-
-// Union for representing scalar values
-typedef union rocblas_union_u
-{
-    rocblas_half           h;
-    float                  s;
-    double                 d;
-    int32_t                i;
-    rocblas_float_complex  c;
-    rocblas_double_complex z;
-} rocblas_union_t;
 
 // Copy alpha and beta to host if on device
 template <typename T>
