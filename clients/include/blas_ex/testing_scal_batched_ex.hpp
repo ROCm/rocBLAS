@@ -28,7 +28,7 @@ void testing_scal_batched_ex_bad_arg(const Arguments& arg)
 
     rocblas_int N           = 100;
     rocblas_int incx        = 1;
-    Ta          h_alpha     = Ta(1.0);
+    Ta          h_alpha     = Ta(0.6);
     rocblas_int batch_count = 5;
 
     rocblas_local_handle handle(arg.atomics_mode);

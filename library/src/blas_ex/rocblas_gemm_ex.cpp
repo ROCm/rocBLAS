@@ -50,6 +50,10 @@ namespace
             handle, alpha, beta, alpha_h, beta_h, k, compute_type));
         auto saved_pointer_mode = handle->push_pointer_mode(rocblas_pointer_mode_host);
 
+        // If this is a solution fitness query (internal testing), bypass logging and error checks
+        if(handle->get_solution_fitness_query())
+            goto solution_fitness_query;
+
         if(!handle->is_device_memory_size_query())
         {
             // Perform logging
@@ -198,31 +202,34 @@ namespace
             }
         }
 
-        auto validArgs = validateArgs(handle,
-                                      trans_a,
-                                      trans_b,
-                                      m,
-                                      n,
-                                      k,
-                                      alpha,
-                                      a,
-                                      lda,
-                                      b,
-                                      ldb,
-                                      beta,
-                                      c,
-                                      ldc,
-                                      d,
-                                      ldd,
-                                      compute_type);
-
-        if(validArgs != rocblas_status_continue)
         {
-            if(validArgs == rocblas_status_success)
-                RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
-            return validArgs;
+            auto validArgs = validateArgs(handle,
+                                          trans_a,
+                                          trans_b,
+                                          m,
+                                          n,
+                                          k,
+                                          alpha,
+                                          a,
+                                          lda,
+                                          b,
+                                          ldb,
+                                          beta,
+                                          c,
+                                          ldc,
+                                          d,
+                                          ldd,
+                                          compute_type);
+
+            if(validArgs != rocblas_status_continue)
+            {
+                if(validArgs == rocblas_status_success)
+                    RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
+                return validArgs;
+            }
         }
 
+    solution_fitness_query:
         rocblas_int batch_count = 1;
 
         // TODO: These strides could be 0 ( {} ) instead of 1 ( {1} ) once Tensile is fixed

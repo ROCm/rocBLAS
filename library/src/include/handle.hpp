@@ -141,14 +141,14 @@ public:
     _rocblas_handle();
     ~_rocblas_handle();
 
+    _rocblas_handle(const _rocblas_handle&) = delete;
+    _rocblas_handle& operator=(const _rocblas_handle&) = delete;
+
     // Set the HIP default device ID to the handle's device ID, and restore on exit
     auto push_device_id()
     {
         return _rocblas_saved_device_id(device);
     }
-
-    // rocblas by default take the system default stream 0 users cannot create
-    hipStream_t rocblas_stream = 0;
 
     // hipEvent_t pointers (for internal use only)
     hipEvent_t startEvent = nullptr;
@@ -163,23 +163,35 @@ public:
     // default atomics mode allows atomic operations
     rocblas_atomics_mode atomics_mode = rocblas_atomics_allowed;
 
+    // default check_numerics_mode is no numeric_check
+    rocblas_check_numerics_mode check_numerics = rocblas_check_numerics_mode_no_check;
+
     // logging streams
     std::unique_ptr<rocblas_ostream> log_trace_os;
     std::unique_ptr<rocblas_ostream> log_bench_os;
     std::unique_ptr<rocblas_ostream> log_profile_os;
     void                             init_logging();
+    void                             init_check_numerics();
 
     // C interfaces for manipulating device memory
     friend rocblas_status(::rocblas_start_device_memory_size_query)(_rocblas_handle*);
     friend rocblas_status(::rocblas_stop_device_memory_size_query)(_rocblas_handle*, size_t*);
+    friend rocblas_status(::rocblas_set_solution_fitness_query)(_rocblas_handle*, double*);
     friend rocblas_status(::rocblas_get_device_memory_size)(_rocblas_handle*, size_t*);
     friend rocblas_status(::rocblas_set_device_memory_size)(_rocblas_handle*, size_t);
     friend bool(::rocblas_is_managing_device_memory)(_rocblas_handle*);
+    friend rocblas_status(::rocblas_set_stream)(_rocblas_handle*, hipStream_t);
 
     // Returns whether the current kernel call is a device memory size query
     bool is_device_memory_size_query() const
     {
         return device_memory_size_query;
+    }
+
+    // Get the solution fitness query
+    auto* get_solution_fitness_query() const
+    {
+        return solution_fitness_query;
     }
 
     // Sets the optimal size(s) of device memory for a kernel call
@@ -221,6 +233,12 @@ public:
         return _pushed_state<bool>(any_order, new_any_order);
     }
 
+    // Return the current stream
+    hipStream_t get_stream() const
+    {
+        return stream;
+    }
+
 private:
     // device memory work buffer
     static constexpr size_t DEFAULT_DEVICE_MEMORY_SIZE = 32 * 1024 * 1024;
@@ -233,6 +251,12 @@ private:
     bool   device_memory_is_rocblas_managed = false;
     size_t device_memory_query_size;
 
+    // Solution fitness query (used for internal testing)
+    double* solution_fitness_query = nullptr;
+
+    // rocblas by default take the system default stream 0 users cannot create
+    hipStream_t stream = 0;
+
 #if ROCBLAS_REALLOC_ON_DEMAND
     // Helper for device memory allocator
     bool device_allocator(size_t size);
@@ -244,7 +268,7 @@ private:
     // Opaque smart allocator class to perform device memory allocations
     class [[nodiscard]] _device_malloc : public rocblas_device_malloc_base
     {
-    public:
+    protected:
         // Order is important:
         rocblas_handle handle;
         size_t         prev_device_memory_in_use;

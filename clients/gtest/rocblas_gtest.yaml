@@ -47,3 +47,4 @@ include: set_get_atomics_mode_gtest.yaml
 include: ostream_threadsafety_gtest.yaml
 include: multiheaded_gtest.yaml
 include: atomics_mode_gtest.yaml
+include: general_gtest.yaml

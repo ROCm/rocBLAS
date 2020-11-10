@@ -82,7 +82,6 @@ void testing_rot_strided_batched(const Arguments& arg)
     double               gpu_time_used, cpu_time_used;
     double norm_error_host_x = 0.0, norm_error_host_y = 0.0, norm_error_device_x = 0.0,
            norm_error_device_y = 0.0;
-    const U rel_error          = std::numeric_limits<U>::epsilon() * 1000;
 
     // check to prevent undefined memory allocation error
     if(N <= 0 || batch_count <= 0)
@@ -126,13 +125,8 @@ void testing_rot_strided_batched(const Arguments& arg)
     rocblas_init<T>(hx, 1, N, abs_incx, stride_x, batch_count);
     rocblas_init<T>(hy, 1, N, abs_incy, stride_y, batch_count);
 
-    // Random alpha (0 - 10)
-    host_vector<rocblas_int> alpha(1);
-    rocblas_init<rocblas_int>(alpha, 1, 1, 1);
-
-    // cos and sin of alpha (in rads)
-    hc[0] = cos(alpha[0]);
-    hs[0] = sin(alpha[0]);
+    rocblas_init<U>(hc, 1, 1, 1);
+    rocblas_init<V>(hs, 1, 1, 1);
 
     // CPU BLAS reference data
     host_vector<T> cx = hx;
@@ -143,7 +137,7 @@ void testing_rot_strided_batched(const Arguments& arg)
     cpu_time_used = get_time_us_no_sync();
     for(int b = 0; b < batch_count; b++)
     {
-        cblas_rot<T, U, V>(N, cx + b * stride_x, incx, cy + b * stride_y, incy, hc, hs);
+        cblas_rot<T, T, U, V>(N, cx + b * stride_x, incx, cy + b * stride_y, incy, hc, hs);
     }
     cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
@@ -162,8 +156,8 @@ void testing_rot_strided_batched(const Arguments& arg)
             CHECK_HIP_ERROR(hipMemcpy(ry, dy, sizeof(T) * size_y, hipMemcpyDeviceToHost));
             if(arg.unit_check)
             {
-                near_check_general<T>(1, N, abs_incx, stride_x, cx, rx, batch_count, rel_error);
-                near_check_general<T>(1, N, abs_incy, stride_y, cy, ry, batch_count, rel_error);
+                unit_check_general<T>(1, N, abs_incx, stride_x, cx, rx, batch_count);
+                unit_check_general<T>(1, N, abs_incy, stride_y, cy, ry, batch_count);
             }
             if(arg.norm_check)
             {
@@ -189,8 +183,8 @@ void testing_rot_strided_batched(const Arguments& arg)
             CHECK_HIP_ERROR(hipMemcpy(ry, dy, sizeof(T) * size_y, hipMemcpyDeviceToHost));
             if(arg.unit_check)
             {
-                near_check_general<T>(1, N, abs_incx, stride_x, cx, rx, batch_count, rel_error);
-                near_check_general<T>(1, N, abs_incy, stride_y, cy, ry, batch_count, rel_error);
+                unit_check_general<T>(1, N, abs_incx, stride_x, cx, rx, batch_count);
+                unit_check_general<T>(1, N, abs_incy, stride_y, cy, ry, batch_count);
             }
             if(arg.norm_check)
             {

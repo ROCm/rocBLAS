@@ -13,6 +13,23 @@
  */
 
 template <>
+void cblas_nrm2<rocblas_half>(rocblas_int         n,
+                              const rocblas_half* x,
+                              rocblas_int         incx,
+                              rocblas_half*       result)
+{
+    if(n <= 0 || incx <= 0)
+        return;
+
+    host_vector<float> x_float(n * incx);
+
+    for(size_t i = 0; i < n; i++)
+        x_float[i * incx] = x[i * incx];
+
+    *result = rocblas_half(cblas_snrm2(n, x_float, incx));
+}
+
+template <>
 void cblas_axpy<rocblas_half>(rocblas_int   n,
                               rocblas_half  alpha,
                               rocblas_half* x,
@@ -116,6 +133,127 @@ void cblas_dot<rocblas_bfloat16>(rocblas_int             n,
     }
 
     *result = rocblas_bfloat16(cblas_sdot(n, x_float, incx, y_float, incy));
+}
+
+template <>
+void cblas_dotc<float>(rocblas_int  n,
+                       const float* x,
+                       rocblas_int  incx,
+                       const float* y,
+                       rocblas_int  incy,
+                       float*       result)
+{
+    cblas_dot(n, x, incx, y, incy, result);
+}
+
+template <>
+void cblas_dotc<double>(rocblas_int   n,
+                        const double* x,
+                        rocblas_int   incx,
+                        const double* y,
+                        rocblas_int   incy,
+                        double*       result)
+{
+    cblas_dot(n, x, incx, y, incy, result);
+}
+
+template <>
+void cblas_dotc<rocblas_half>(rocblas_int         n,
+                              const rocblas_half* x,
+                              rocblas_int         incx,
+                              const rocblas_half* y,
+                              rocblas_int         incy,
+                              rocblas_half*       result)
+{
+    cblas_dot(n, x, incx, y, incy, result);
+}
+
+template <>
+void cblas_dotc<rocblas_bfloat16>(rocblas_int             n,
+                                  const rocblas_bfloat16* x,
+                                  rocblas_int             incx,
+                                  const rocblas_bfloat16* y,
+                                  rocblas_int             incy,
+                                  rocblas_bfloat16*       result)
+{
+    cblas_dot(n, x, incx, y, incy, result);
+}
+
+// rot
+template <>
+void cblas_rot<rocblas_half>(rocblas_int         n,
+                             rocblas_half*       x,
+                             rocblas_int         incx,
+                             rocblas_half*       y,
+                             rocblas_int         incy,
+                             const rocblas_half* c,
+                             const rocblas_half* s)
+{
+    size_t abs_incx = incx >= 0 ? incx : -incx;
+    size_t abs_incy = incy >= 0 ? incy : -incy;
+    size_t size_x   = n * abs_incx;
+    size_t size_y   = n * abs_incy;
+    if(!size_x)
+        size_x = 1;
+    if(!size_y)
+        size_y = 1;
+    host_vector<float> x_float(size_x);
+    host_vector<float> y_float(size_y);
+
+    for(size_t i = 0; i < n; i++)
+    {
+        x_float[i * abs_incx] = x[i * abs_incx];
+        y_float[i * abs_incy] = y[i * abs_incy];
+    }
+
+    const float c_float = float(*c);
+    const float s_float = float(*s);
+
+    cblas_srot(n, x_float, incx, y_float, incy, c_float, s_float);
+
+    for(size_t i = 0; i < n; i++)
+    {
+        x[i * abs_incx] = x_float[i * abs_incx];
+        y[i * abs_incy] = y_float[i * abs_incy];
+    }
+}
+
+template <>
+void cblas_rot<rocblas_bfloat16>(rocblas_int             n,
+                                 rocblas_bfloat16*       x,
+                                 rocblas_int             incx,
+                                 rocblas_bfloat16*       y,
+                                 rocblas_int             incy,
+                                 const rocblas_bfloat16* c,
+                                 const rocblas_bfloat16* s)
+{
+    size_t abs_incx = incx >= 0 ? incx : -incx;
+    size_t abs_incy = incy >= 0 ? incy : -incy;
+    size_t size_x   = n * abs_incx;
+    size_t size_y   = n * abs_incy;
+    if(!size_x)
+        size_x = 1;
+    if(!size_y)
+        size_y = 1;
+    host_vector<float> x_float(size_x);
+    host_vector<float> y_float(size_y);
+
+    for(size_t i = 0; i < n; i++)
+    {
+        x_float[i * abs_incx] = x[i * abs_incx];
+        y_float[i * abs_incy] = y[i * abs_incy];
+    }
+
+    const float c_float = rocblas_bfloat16(*c);
+    const float s_float = rocblas_bfloat16(*s);
+
+    cblas_srot(n, x_float, incx, y_float, incy, c_float, s_float);
+
+    for(size_t i = 0; i < n; i++)
+    {
+        x[i * abs_incx] = rocblas_bfloat16(x_float[i * abs_incx]);
+        y[i * abs_incy] = rocblas_bfloat16(y_float[i * abs_incy]);
+    }
 }
 
 /*
@@ -349,6 +487,53 @@ void cblas_gemm<rocblas_bfloat16, rocblas_bfloat16, float>(rocblas_operation tra
 
     for(size_t i = 0; i < sizeC; i++)
         C[i] = static_cast<rocblas_bfloat16>(C_float[i]);
+}
+
+template <>
+void cblas_gemm<rocblas_half, float, float>(rocblas_operation transA,
+                                            rocblas_operation transB,
+                                            rocblas_int       m,
+                                            rocblas_int       n,
+                                            rocblas_int       k,
+                                            float             alpha,
+                                            rocblas_half*     A,
+                                            rocblas_int       lda,
+                                            rocblas_half*     B,
+                                            rocblas_int       ldb,
+                                            float             beta,
+                                            float*            C,
+                                            rocblas_int       ldc)
+{
+    // cblas does not support rocblas_half, so convert to higher precision float
+    // This will give more precise result which is acceptable for testing
+
+    size_t sizeA = (transA == rocblas_operation_none ? k : m) * size_t(lda);
+    size_t sizeB = (transB == rocblas_operation_none ? n : k) * size_t(ldb);
+    size_t sizeC = n * size_t(ldc);
+
+    host_vector<float> A_float(sizeA), B_float(sizeB);
+
+    for(size_t i = 0; i < sizeA; i++)
+        A_float[i] = A[i];
+    for(size_t i = 0; i < sizeB; i++)
+        B_float[i] = B[i];
+
+    // just directly cast, since transA, transB are integers in the enum
+    // printf("transA: rocblas =%d, cblas=%d\n", transA, static_cast<CBLAS_TRANSPOSE>(transA) );
+    cblas_sgemm(CblasColMajor,
+                static_cast<CBLAS_TRANSPOSE>(transA),
+                static_cast<CBLAS_TRANSPOSE>(transB),
+                m,
+                n,
+                k,
+                alpha,
+                A_float,
+                lda,
+                B_float,
+                ldb,
+                beta,
+                C,
+                ldc);
 }
 
 template <>

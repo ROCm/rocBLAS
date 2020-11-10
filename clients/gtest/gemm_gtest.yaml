@@ -2933,7 +2933,7 @@ Tests:
   transA: N
   transB: N
   function:
-    - gemm_ext2: *single_precision
+    - gemm_ext2: *hpa_half_single_precisions
   matrix_size:
     - { M:  512, N:  512, K:  512 }
     - { M: 960,  N: 1024, K: 1024 }
@@ -2949,7 +2949,7 @@ Tests:
   transA: N
   transB: N
   function:
-    - gemm_ext2: *single_precision
+    - gemm_ext2: *hpa_half_single_precisions
   matrix_size:
     - { M: 4096, N: 4096, K: 4096 }
   alpha: [ 0.0, 0.5, 1.0 ]

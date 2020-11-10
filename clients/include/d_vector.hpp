@@ -7,8 +7,6 @@
 #include "rocblas_init.hpp"
 #include "rocblas_test.hpp"
 #include <cinttypes>
-#include <cstdio>
-#include <locale.h>
 
 /* ============================================================================================ */
 /*! \brief  base-class to allocate/deallocate device memory */
@@ -49,7 +47,6 @@ public:
         T* d;
         if((hipMalloc)(&d, bytes) != hipSuccess)
         {
-            static char* lc = setlocale(LC_NUMERIC, "");
             rocblas_cerr << "Error allocating " << bytes << " bytes (" << (bytes >> 30) << " GB)"
                          << std::endl;
 

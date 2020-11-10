@@ -33,7 +33,15 @@ namespace
     {
         if(!handle)
             return rocblas_status_invalid_handle;
-        RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
+
+        size_t dev_bytes = rocblas_gemv_kernel_workspace_size<T>(transA, m, n);
+        if(handle->is_device_memory_size_query())
+        {
+            if(dev_bytes <= 0)
+                return rocblas_status_size_unchanged;
+            else
+                return handle->set_optimal_device_memory_size(dev_bytes);
+        }
 
         auto layer_mode = handle->layer_mode;
         if(layer_mode
@@ -102,8 +110,35 @@ namespace
         if(!A || !x || !y || !alpha || !beta)
             return rocblas_status_invalid_pointer;
 
-        return rocblas_gemv_template<T>(
-            handle, transA, m, n, alpha, 0, A, 0, lda, 0, x, 0, incx, 0, beta, 0, y, 0, incy, 0, 1);
+        rocblas_status perf_status = rocblas_status_success;
+        auto           mem         = handle->device_malloc(dev_bytes);
+        if(!mem)
+            perf_status = rocblas_status_perf_degraded;
+
+        rocblas_status status = rocblas_gemv_template<T>(handle,
+                                                         transA,
+                                                         m,
+                                                         n,
+                                                         alpha,
+                                                         0,
+                                                         A,
+                                                         0,
+                                                         lda,
+                                                         0,
+                                                         x,
+                                                         0,
+                                                         incx,
+                                                         0,
+                                                         beta,
+                                                         0,
+                                                         y,
+                                                         0,
+                                                         incy,
+                                                         0,
+                                                         1,
+                                                         (T*)mem);
+
+        return status != rocblas_status_success ? status : perf_status;
     }
 
 } // namespace

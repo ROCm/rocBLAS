@@ -240,7 +240,7 @@ public:
     }
 
     // Parse an option at the current (argc, argv) position
-    void parse_option(int& argc, char**& argv, variables_map& vm) const
+    void parse_option(int& argc, char**& argv, variables_map& vm, bool ignoreUnknown = false) const
     {
         // Iterate across all options
         for(const auto& opt : m_optlist)
@@ -278,7 +278,13 @@ public:
         }
 
         // No options were matched
-        throw std::invalid_argument(*argv);
+        if(ignoreUnknown)
+        {
+            ++argv;
+            --argc;
+        }
+        else
+            throw std::invalid_argument(*argv);
     }
 
     // Formatted output of command-line arguments description
@@ -347,12 +353,15 @@ class parse_command_line
     variables_map m_vm;
 
 public:
-    parse_command_line(int argc, char** argv, const options_description& desc)
+    parse_command_line(int                        argc,
+                       char**                     argv,
+                       const options_description& desc,
+                       bool                       ignoreUnknown = false)
     {
         ++argv; // Skip argv[0]
         --argc;
         while(argc)
-            desc.parse_option(argc, argv, m_vm);
+            desc.parse_option(argc, argv, m_vm, ignoreUnknown);
     }
 
     // Copy the variables_map

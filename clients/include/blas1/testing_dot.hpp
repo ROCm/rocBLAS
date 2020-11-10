@@ -86,6 +86,12 @@ void testing_dot(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         CHECK_ROCBLAS_ERROR(
             (rocblas_dot_fn)(handle, N, nullptr, incx, nullptr, incy, d_rocblas_result));
+
+        T cpu_0 = T(0);
+        T gpu_0;
+        CHECK_HIP_ERROR(hipMemcpy(&gpu_0, d_rocblas_result, sizeof(T), hipMemcpyDeviceToHost));
+        unit_check_general<T>(1, 1, 1, &cpu_0, &gpu_0);
+
         return;
     }
 

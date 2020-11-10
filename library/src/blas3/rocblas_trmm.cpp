@@ -145,6 +145,8 @@ namespace
         if(!mem)
             return rocblas_status_memory_error;
 
+        rocblas_int    offset_a    = 0;
+        rocblas_int    offset_c    = 0;
         rocblas_stride stride_a    = 0;
         rocblas_stride stride_c    = 0;
         rocblas_stride stride_mem  = 0;
@@ -159,9 +161,11 @@ namespace
                                                        n,
                                                        alpha,
                                                        a,
+                                                       offset_a,
                                                        lda,
                                                        stride_a,
                                                        c,
+                                                       offset_c,
                                                        ldc,
                                                        stride_c,
                                                        batch_count,

@@ -68,6 +68,18 @@ typedef struct rocblas_half
 } rocblas_half;
 #endif
 
+#if !(__cplusplus < 201402L || (!defined(__HCC__) && !defined(__HIPCC__)))
+
+namespace std
+{
+    __device__ __host__ constexpr rocblas_half real(const rocblas_half& a)
+    {
+        return a;
+    }
+}
+
+#endif
+
 // complex types
 #include "rocblas-complex-types.h"
 
@@ -134,6 +146,8 @@ typedef enum rocblas_status_
     rocblas_status_size_unchanged      = 10, /**< queried device memory size unchanged */
     rocblas_status_invalid_value       = 11, /**< passed argument not valid */
     rocblas_status_continue            = 12, /**< nothing preventing function to proceed */
+    rocblas_status_check_numerics_fail
+    = 13, /**< will be set if the vector/matrix has a NaN or an Infinity */
 } rocblas_status;
 
 /*! \brief Indicates the precision width of data stored in a blas type. */
@@ -203,5 +217,35 @@ typedef enum rocblas_gemm_flags_
     rocblas_gemm_flags_none = 0x0,
 
 } rocblas_gemm_flags;
+
+/*! \brief Union for representing scalar values */
+typedef union rocblas_union_u
+{
+    rocblas_half           h;
+    float                  s;
+    double                 d;
+    int32_t                i;
+    rocblas_float_complex  c;
+    rocblas_double_complex z;
+} rocblas_union_t;
+
+/*****************************************************************************************************************************************
+* \brief Numerical checking for verifying the Input and Output vector/matrix of the rocBLAS functions for a NaN, zero and infinity
+******************************************************************************************************************************************/
+typedef enum rocblas_check_numerics_mode_
+{
+    //No numeric checks
+    rocblas_check_numerics_mode_no_check = 0x0,
+
+    //Fully informative, prints results from all checks to console
+    rocblas_check_numerics_mode_info = 0x1,
+
+    //Prints result only if has_NaN==true||has_Inf==true
+    rocblas_check_numerics_mode_warn = 0x2,
+
+    //Return 'rocblas_status_check_numeric_fail' status if there is NaN or Inf
+    rocblas_check_numerics_mode_fail = 0x4,
+
+} rocblas_check_numerics_mode;
 
 #endif

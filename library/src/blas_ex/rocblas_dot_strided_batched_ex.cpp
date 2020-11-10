@@ -1,0 +1,263 @@
+/* ************************************************************************
+ * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * ************************************************************************ */
+#include "logging.hpp"
+#include "rocblas_dot_ex.hpp"
+
+namespace
+{
+    // HIP support up to 1024 threads/work itemes per thread block/work group
+    // setting to 512 for gfx803.
+    constexpr int NB = 512;
+
+    template <bool CONJ>
+    rocblas_status rocblas_dot_strided_batched_ex_impl(rocblas_handle   handle,
+                                                       rocblas_int      n,
+                                                       const void*      x,
+                                                       rocblas_datatype x_type,
+                                                       rocblas_int      incx,
+                                                       rocblas_stride   stride_x,
+                                                       const void*      y,
+                                                       rocblas_datatype y_type,
+                                                       rocblas_int      incy,
+                                                       rocblas_stride   stride_y,
+                                                       rocblas_int      batch_count,
+                                                       void*            result,
+                                                       rocblas_datatype result_type,
+                                                       rocblas_datatype execution_type,
+                                                       const char*      name,
+                                                       const char*      bench_name)
+    {
+        static constexpr int WIN = rocblas_dot_WIN(sizeof(execution_type));
+
+        if(!handle)
+        {
+            return rocblas_status_invalid_handle;
+        }
+
+        size_t dev_bytes
+            = rocblas_reduction_kernel_workspace_size<NB * WIN>(n, batch_count, execution_type);
+        if(handle->is_device_memory_size_query())
+        {
+            if(n <= 0 || batch_count <= 0)
+                return rocblas_status_size_unchanged;
+            else
+                return handle->set_optimal_device_memory_size(dev_bytes);
+        }
+
+        auto layer_mode = handle->layer_mode;
+        if(layer_mode
+           & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
+              | rocblas_layer_mode_log_profile))
+        {
+            auto x_type_str      = rocblas_datatype_string(x_type);
+            auto y_type_str      = rocblas_datatype_string(y_type);
+            auto result_type_str = rocblas_datatype_string(result_type);
+            auto ex_type_str     = rocblas_datatype_string(execution_type);
+
+            if(layer_mode & rocblas_layer_mode_log_trace)
+            {
+                log_trace(handle,
+                          name,
+                          n,
+                          x,
+                          x_type_str,
+                          incx,
+                          stride_x,
+                          y,
+                          y_type_str,
+                          incy,
+                          stride_y,
+                          batch_count,
+                          result_type_str,
+                          ex_type_str);
+            }
+
+            if(layer_mode & rocblas_layer_mode_log_bench)
+            {
+                log_bench(handle,
+                          "./rocblas-bench",
+                          "-f",
+                          bench_name,
+                          "-n",
+                          n,
+                          "--a_type",
+                          x_type_str,
+                          "--incx",
+                          incx,
+                          "--stride_x",
+                          stride_x,
+                          "--b_type",
+                          y_type_str,
+                          "--incy",
+                          incy,
+                          "--stride_y",
+                          stride_y,
+                          "--batch_count",
+                          batch_count,
+                          "--c_type",
+                          result_type_str,
+                          "--compute_type",
+                          ex_type_str);
+            }
+
+            if(layer_mode & rocblas_layer_mode_log_profile)
+            {
+                log_profile(handle,
+                            name,
+                            "N",
+                            n,
+                            "a_type",
+                            x_type_str,
+                            "incx",
+                            incx,
+                            "stride_x",
+                            stride_x,
+                            "b_type",
+                            y_type_str,
+                            "incy",
+                            incy,
+                            "stride_y",
+                            stride_y,
+                            "batch_count",
+                            batch_count,
+                            "c_type",
+                            result_type_str,
+                            "compute_type",
+                            ex_type_str);
+            }
+        }
+
+        if(batch_count <= 0)
+            return rocblas_status_success;
+
+        if(n <= 0)
+        {
+            if(!result)
+                return rocblas_status_invalid_pointer;
+            if(rocblas_pointer_mode_device == handle->pointer_mode)
+                RETURN_IF_HIP_ERROR(
+                    hipMemsetAsync(result,
+                                   0,
+                                   rocblas_sizeof_datatype(result_type) * batch_count,
+                                   handle->get_stream()));
+            else
+                memset(result, 0, rocblas_sizeof_datatype(result_type) * batch_count);
+            return rocblas_status_success;
+        }
+
+        if(!x || !y || !result)
+            return rocblas_status_invalid_pointer;
+
+        auto mem = handle->device_malloc(dev_bytes);
+        if(!mem)
+            return rocblas_status_memory_error;
+
+        return rocblas_dot_ex_template<NB, false, CONJ>(handle,
+                                                        n,
+                                                        x,
+                                                        x_type,
+                                                        incx,
+                                                        stride_x,
+                                                        y,
+                                                        y_type,
+                                                        incy,
+                                                        stride_y,
+                                                        batch_count,
+                                                        result,
+                                                        result_type,
+                                                        execution_type,
+                                                        (void*)mem);
+    }
+
+}
+
+/*
+ * ===========================================================================
+ *    C wrapper
+ * ===========================================================================
+ */
+
+extern "C" {
+
+rocblas_status rocblas_dot_strided_batched_ex(rocblas_handle   handle,
+                                              rocblas_int      n,
+                                              const void*      x,
+                                              rocblas_datatype x_type,
+                                              rocblas_int      incx,
+                                              rocblas_stride   stride_x,
+                                              const void*      y,
+                                              rocblas_datatype y_type,
+                                              rocblas_int      incy,
+                                              rocblas_stride   stride_y,
+                                              rocblas_int      batch_count,
+                                              void*            result,
+                                              rocblas_datatype result_type,
+                                              rocblas_datatype execution_type)
+{
+    try
+    {
+        return rocblas_dot_strided_batched_ex_impl<false>(handle,
+                                                          n,
+                                                          x,
+                                                          x_type,
+                                                          incx,
+                                                          stride_x,
+                                                          y,
+                                                          y_type,
+                                                          incy,
+                                                          stride_y,
+                                                          batch_count,
+                                                          result,
+                                                          result_type,
+                                                          execution_type,
+                                                          "rocblas_dot_strided_batched_ex",
+                                                          "dot_strided_batched_ex");
+    }
+    catch(...)
+    {
+        return exception_to_rocblas_status();
+    }
+}
+
+rocblas_status rocblas_dotc_strided_batched_ex(rocblas_handle   handle,
+                                               rocblas_int      n,
+                                               const void*      x,
+                                               rocblas_datatype x_type,
+                                               rocblas_int      incx,
+                                               rocblas_stride   stride_x,
+                                               const void*      y,
+                                               rocblas_datatype y_type,
+                                               rocblas_int      incy,
+                                               rocblas_stride   stride_y,
+                                               rocblas_int      batch_count,
+                                               void*            result,
+                                               rocblas_datatype result_type,
+                                               rocblas_datatype execution_type)
+{
+    try
+    {
+        return rocblas_dot_strided_batched_ex_impl<true>(handle,
+                                                         n,
+                                                         x,
+                                                         x_type,
+                                                         incx,
+                                                         stride_x,
+                                                         y,
+                                                         y_type,
+                                                         incy,
+                                                         stride_y,
+                                                         batch_count,
+                                                         result,
+                                                         result_type,
+                                                         execution_type,
+                                                         "rocblas_dotc_strided_batched_ex",
+                                                         "dotc_strided_batched_ex");
+    }
+    catch(...)
+    {
+        return exception_to_rocblas_status();
+    }
+}
+
+} // extern "C"

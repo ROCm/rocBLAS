@@ -40,16 +40,25 @@
 #include "testing_copy_strided_batched.hpp"
 #include "testing_dot.hpp"
 #include "testing_dot_batched.hpp"
+#include "testing_dot_batched_ex.hpp"
+#include "testing_dot_ex.hpp"
 #include "testing_dot_strided_batched.hpp"
+#include "testing_dot_strided_batched_ex.hpp"
 #include "testing_iamax_iamin.hpp"
 #include "testing_iamax_iamin_batched.hpp"
 #include "testing_iamax_iamin_strided_batched.hpp"
 #include "testing_nrm2.hpp"
 #include "testing_nrm2_batched.hpp"
+#include "testing_nrm2_batched_ex.hpp"
+#include "testing_nrm2_ex.hpp"
 #include "testing_nrm2_strided_batched.hpp"
+#include "testing_nrm2_strided_batched_ex.hpp"
 #include "testing_rot.hpp"
 #include "testing_rot_batched.hpp"
+#include "testing_rot_batched_ex.hpp"
+#include "testing_rot_ex.hpp"
 #include "testing_rot_strided_batched.hpp"
+#include "testing_rot_strided_batched_ex.hpp"
 #include "testing_rotg.hpp"
 #include "testing_rotg_batched.hpp"
 #include "testing_rotg_strided_batched.hpp"
@@ -624,6 +633,78 @@ struct perf_blas_axpy_ex<
     }
 };
 
+template <typename Tx, typename Ty = Tx, typename Tr = Ty, typename Tex = Tr, typename = void>
+struct perf_blas_dot_ex : rocblas_test_invalid
+{
+};
+
+template <typename Tx, typename Ty, typename Tr, typename Tex>
+struct perf_blas_dot_ex<
+    Tx,
+    Ty,
+    Tr,
+    Tex,
+    std::enable_if_t<(std::is_same<Tx, float>{} && std::is_same<Tx, Ty>{} && std::is_same<Ty, Tr>{}
+                      && std::is_same<Tr, Tex>{})
+                     || (std::is_same<Tx, double>{} && std::is_same<Tx, Ty>{}
+                         && std::is_same<Ty, Tr>{} && std::is_same<Tr, Tex>{})
+                     || (std::is_same<Tx, rocblas_half>{} && std::is_same<Tx, Ty>{}
+                         && std::is_same<Ty, Tr>{} && std::is_same<Tr, Tex>{})
+                     || (std::is_same<Tx, rocblas_float_complex>{} && std::is_same<Tx, Ty>{}
+                         && std::is_same<Ty, Tr>{} && std::is_same<Tr, Tex>{})
+                     || (std::is_same<Tx, rocblas_double_complex>{} && std::is_same<Tx, Ty>{}
+                         && std::is_same<Ty, Tr>{} && std::is_same<Tr, Tex>{})
+                     || (std::is_same<Tx, rocblas_half>{} && std::is_same<Tx, Ty>{}
+                         && std::is_same<Ty, Tr>{} && std::is_same<Tex, float>{})
+                     || (std::is_same<Tx, rocblas_bfloat16>{} && std::is_same<Tx, Ty>{}
+                         && std::is_same<Ty, Tr>{} && std::is_same<Tex, float>{})>>
+    : rocblas_test_valid
+{
+    void operator()(const Arguments& arg)
+    {
+        static const func_map map = {
+            {"dot_ex", testing_dot_ex<Tx, Ty, Tr, Tex>},
+            {"dot_batched_ex", testing_dot_batched_ex<Tx, Ty, Tr, Tex>},
+            {"dot_strided_batched_ex", testing_dot_strided_batched_ex<Tx, Ty, Tr, Tex>},
+            {"dotc_ex", testing_dotc_ex<Tx, Ty, Tr, Tex>},
+            {"dotc_batched_ex", testing_dotc_batched_ex<Tx, Ty, Tr, Tex>},
+            {"dotc_strided_batched_ex", testing_dotc_strided_batched_ex<Tx, Ty, Tr, Tex>},
+        };
+        run_function(map, arg);
+    }
+};
+
+template <typename Tx, typename Tr = Tx, typename Tex = Tr, typename = void>
+struct perf_blas_nrm2_ex : rocblas_test_invalid
+{
+};
+
+template <typename Tx, typename Tr, typename Tex>
+struct perf_blas_nrm2_ex<
+    Tx,
+    Tr,
+    Tex,
+    std::enable_if_t<
+        (std::is_same<Tx, float>{} && std::is_same<Tx, Tr>{} && std::is_same<Tr, Tex>{})
+        || (std::is_same<Tx, double>{} && std::is_same<Tx, Tr>{} && std::is_same<Tr, Tex>{})
+        || (std::is_same<Tx, rocblas_float_complex>{} && std::is_same<Tr, float>{}
+            && std::is_same<Tr, Tex>{})
+        || (std::is_same<Tx, rocblas_double_complex>{} && std::is_same<Tr, double>{}
+            && std::is_same<Tr, Tex>{})
+        || (std::is_same<Tx, rocblas_half>{} && std::is_same<Tr, Tx>{}
+            && std::is_same<Tex, float>{})>> : rocblas_test_valid
+{
+    void operator()(const Arguments& arg)
+    {
+        static const func_map map = {
+            {"nrm2_ex", testing_nrm2_ex<Tx, Tr>},
+            {"nrm2_batched_ex", testing_nrm2_batched_ex<Tx, Tr>},
+            {"nrm2_strided_batched_ex", testing_nrm2_strided_batched_ex<Tx, Tr>},
+        };
+        run_function(map, arg);
+    }
+};
+
 template <typename Ti, typename To = Ti, typename Tc = To, typename = void>
 struct perf_blas_rot : rocblas_test_invalid
 {
@@ -652,6 +733,46 @@ struct perf_blas_rot<
             {"rot", testing_rot<Ti, To, Tc>},
             {"rot_batched", testing_rot_batched<Ti, To, Tc>},
             {"rot_strided_batched", testing_rot_strided_batched<Ti, To, Tc>},
+        };
+        run_function(map, arg);
+    }
+};
+
+template <typename Tx, typename Ty = Tx, typename Tcs = Ty, typename Tex = Tcs, typename = void>
+struct perf_blas_rot_ex : rocblas_test_invalid
+{
+};
+
+template <typename Tx, typename Ty, typename Tcs, typename Tex>
+struct perf_blas_rot_ex<
+    Tx,
+    Ty,
+    Tcs,
+    Tex,
+    std::enable_if_t<
+        (std::is_same<Tx, float>{} && std::is_same<Tx, Ty>{} && std::is_same<Ty, Tcs>{}
+         && std::is_same<Tcs, Tex>{})
+        || (std::is_same<Tx, double>{} && std::is_same<Ty, Tx>{} && std::is_same<Ty, Tcs>{}
+            && std::is_same<Tex, Tcs>{})
+        || (std::is_same<Tx, rocblas_float_complex>{} && std::is_same<Ty, Tx>{}
+            && std::is_same<Tcs, Ty>{} && std::is_same<Tcs, Tex>{})
+        || (std::is_same<Tx, rocblas_double_complex>{} && std::is_same<Tx, Ty>{}
+            && std::is_same<Tcs, Ty>{} && std::is_same<Tex, Tcs>{})
+        || (std::is_same<Tx, rocblas_float_complex>{} && std::is_same<Ty, Tx>{}
+            && std::is_same<Tcs, float>{} && std::is_same<Tex, rocblas_float_complex>{})
+        || (std::is_same<Tx, rocblas_double_complex>{} && std::is_same<Tx, Ty>{}
+            && std::is_same<Tcs, double>{} && std::is_same<Tex, rocblas_double_complex>{})
+        || (std::is_same<Tx, rocblas_half>{} && std::is_same<Ty, Tx>{} && std::is_same<Tcs, Ty>{}
+            && std::is_same<Tex, float>{})
+        || (std::is_same<Tx, rocblas_bfloat16>{} && std::is_same<Ty, Tx>{}
+            && std::is_same<Tcs, Ty>{} && std::is_same<Tex, float>{})>> : rocblas_test_valid
+{
+    void operator()(const Arguments& arg)
+    {
+        static const func_map map = {
+            {"rot_ex", testing_rot_ex<Tx, Ty, Tcs, Tex>},
+            {"rot_batched_ex", testing_rot_batched_ex<Tx, Ty, Tcs, Tex>},
+            {"rot_strided_batched_ex", testing_rot_strided_batched_ex<Tx, Ty, Tcs, Tex>},
         };
         run_function(map, arg);
     }
@@ -920,9 +1041,20 @@ int run_bench_test(Arguments& arg)
         else if(!strcmp(function, "rot") || !strcmp(function, "rot_batched")
                 || !strcmp(function, "rot_strided_batched"))
             rocblas_blas1_dispatch<perf_blas_rot>(arg);
+        else if(!strcmp(function, "rot_ex") || !strcmp(function, "rot_batched_ex")
+                || !strcmp(function, "rot_strided_batched_ex"))
+            rocblas_blas1_ex_dispatch<perf_blas_rot_ex>(arg);
         else if(!strcmp(function, "axpy_ex") || !strcmp(function, "axpy_batched_ex")
                 || !strcmp(function, "axpy_strided_batched_ex"))
             rocblas_blas1_ex_dispatch<perf_blas_axpy_ex>(arg);
+        else if(!strcmp(function, "dot_ex") || !strcmp(function, "dot_batched_ex")
+                || !strcmp(function, "dot_strided_batched_ex") || !strcmp(function, "dotc_ex")
+                || !strcmp(function, "dotc_batched_ex")
+                || !strcmp(function, "dotc_strided_batched_ex"))
+            rocblas_blas1_ex_dispatch<perf_blas_dot_ex>(arg);
+        else if(!strcmp(function, "nrm2_ex") || !strcmp(function, "nrm2_batched_ex")
+                || !strcmp(function, "nrm2_strided_batched_ex"))
+            rocblas_blas1_ex_dispatch<perf_blas_nrm2_ex>(arg);
         else if(!strcmp(function, "scal_ex") || !strcmp(function, "scal_batched_ex")
                 || !strcmp(function, "scal_strided_batched_ex"))
             rocblas_blas1_ex_dispatch<perf_blas_scal_ex>(arg);

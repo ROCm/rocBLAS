@@ -149,20 +149,29 @@ catch(...)
 /*******************************************************************************
  *! \brief   set rocblas stream used for all subsequent library function calls.
  *   If not set, all hip kernels will take the default NULL stream.
- *   stream_id must be created before this call
+ *   stream must be created before this call
  ******************************************************************************/
-extern "C" rocblas_status rocblas_set_stream(rocblas_handle handle, hipStream_t stream_id)
+extern "C" rocblas_status rocblas_set_stream(rocblas_handle handle, hipStream_t stream)
 try
 {
-    // if handle not valid
+    // If handle not valid
     if(!handle)
         return rocblas_status_invalid_handle;
+
+    // Log rocblas_set_stream
     if(handle->layer_mode & rocblas_layer_mode_log_trace)
-        log_trace(handle, "rocblas_set_stream", stream_id);
-    if(stream_id == handle->rocblas_stream)
+        log_trace(handle, "rocblas_set_stream", stream);
+
+    // If the stream is unchanged, return immediately
+    if(stream == handle->stream)
         return rocblas_status_success;
-    RETURN_IF_HIP_ERROR(hipStreamSynchronize(handle->rocblas_stream));
-    handle->rocblas_stream = stream_id;
+
+    // The new stream must be valid
+    if(stream != 0 && hipStreamQuery(stream) == hipErrorInvalidResourceHandle)
+        return rocblas_status_invalid_value;
+
+    // Set the new stream
+    handle->stream = stream;
     return rocblas_status_success;
 }
 catch(...)
@@ -184,7 +193,7 @@ try
         return rocblas_status_invalid_pointer;
     if(handle->layer_mode & rocblas_layer_mode_log_trace)
         log_trace(handle, "rocblas_get_stream", *stream_id);
-    *stream_id = handle->rocblas_stream;
+    *stream_id = handle->get_stream();
     return rocblas_status_success;
 }
 catch(...)
@@ -1019,6 +1028,7 @@ extern "C" const char* rocblas_status_to_string(rocblas_status status)
         CASE(rocblas_status_size_unchanged);
         CASE(rocblas_status_invalid_value);
         CASE(rocblas_status_continue);
+        CASE(rocblas_status_check_numerics_fail);
     }
 #undef CASE
     // We don't use default: so that the compiler warns us if any valid enums are missing
