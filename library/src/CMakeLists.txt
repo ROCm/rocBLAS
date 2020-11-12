@@ -415,24 +415,24 @@ generate_export_header( rocblas EXPORT_FILE_NAME ${PROJECT_BINARY_DIR}/include/i
 
 # generate header with prototypes for export reuse
 set( ROCBLAS_PROTO_TEMPLATES "${PROJECT_BINARY_DIR}/include/internal/rocblas-exported-proto.hpp" )
-add_custom_target( rocblas_proto_templates
-  BYPRODUCTS ${ROCBLAS_PROTO_TEMPLATES}
+add_custom_command(OUTPUT ${ROCBLAS_PROTO_TEMPLATES}
   COMMAND python3 template-proto.py ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/*.hpp ${CMAKE_CURRENT_SOURCE_DIR}/blas3/*.hpp ${CMAKE_CURRENT_SOURCE_DIR}/blas2/*.hpp ${CMAKE_CURRENT_SOURCE_DIR}/blas1/*.hpp > ${ROCBLAS_PROTO_TEMPLATES}
-  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}
+  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/*.hpp ${CMAKE_CURRENT_SOURCE_DIR}/blas3/*.hpp ${CMAKE_CURRENT_SOURCE_DIR}/blas2/*.hpp ${CMAKE_CURRENT_SOURCE_DIR}/blas1/*.hpp
   COMMENT "Generating prototypes from ${CMAKE_CURRENT_SOURCE_DIR}."
   WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
   )
+add_custom_target( rocblas_proto_templates DEPENDS ${ROCBLAS_PROTO_TEMPLATES} )
 add_dependencies( rocblas rocblas_proto_templates )
 
 # generate rocblas_device_malloc.hpp header for device memory allocation
 set( ROCBLAS_DEVICE_MALLOC "${PROJECT_BINARY_DIR}/include/internal/rocblas_device_malloc.hpp" )
-add_custom_target( rocblas_device_malloc
-  BYPRODUCTS ${ROCBLAS_DEVICE_MALLOC}
+add_custom_command( OUTPUT ${ROCBLAS_DEVICE_MALLOC}
   COMMAND ${CMAKE_COMMAND} -E copy ${CMAKE_CURRENT_SOURCE_DIR}/include/rocblas_device_malloc.hpp ${ROCBLAS_DEVICE_MALLOC}
   DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/include/rocblas_device_malloc.hpp
   COMMENT "Generating ${ROCBLAS_DEVICE_MALLOC}"
   WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
 )
+add_custom_target( rocblas_device_malloc DEPENDS ${ROCBLAS_DEVICE_MALLOC} )
 add_dependencies( rocblas rocblas_device_malloc )
 
 if( NOT BUILD_SHARED_LIBS )
