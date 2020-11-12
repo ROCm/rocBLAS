@@ -36,11 +36,7 @@ set( rocblas_benchmark_common
 
 add_executable( rocblas-bench client.cpp ${rocblas_benchmark_common} )
 
-if( BUILD_WITH_TENSILE )
-    target_compile_definitions( rocblas-bench PRIVATE BUILD_WITH_TENSILE=1 )
-else()
-    target_compile_definitions( rocblas-bench PRIVATE BUILD_WITH_TENSILE=0 )
-endif()
+target_compile_definitions( rocblas-bench PRIVATE ${TENSILE_DEFINES} )
 
 target_compile_features( rocblas-bench PRIVATE cxx_static_assert cxx_nullptr cxx_auto_type )
 
