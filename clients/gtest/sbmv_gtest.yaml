@@ -118,6 +118,7 @@ Tests:
   incx_incy: *incx_incy_range_small
   alpha_beta: *alpha_beta_range_small
   batch_count: [ -1, 0, 1, 257 ]
+  stride_scale: [1]
 
 - name: sbmv_strided_batched_large
   category: nightly
@@ -128,5 +129,7 @@ Tests:
   incx_incy: *incx_incy_range_small
   alpha_beta: *alpha_beta_range_small
   batch_count: [ 1, 3 ]
+  stride_scale: [1]
+
 
 ...

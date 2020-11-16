@@ -118,7 +118,6 @@ void testing_sbmv(const Arguments& arg)
     host_vector<T> hg(size_Y); // gold standard
 
     double gpu_time_used, cpu_time_used;
-    double rocblas_gflops, cblas_gflops, rocblas_bandwidth;
     double h_error, d_error;
 
     device_vector<T> dA(size_A);
@@ -148,7 +147,6 @@ void testing_sbmv(const Arguments& arg)
         cblas_sbmv<T>(uplo, N, K, alpha[0], hA, lda, hx, incx, beta[0], hg, incy);
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
-        cblas_gflops  = sbmv_gflop_count<T>(N, K) / cpu_time_used * 1e6;
     }
 
     // copy data from CPU to device
@@ -221,28 +219,16 @@ void testing_sbmv(const Arguments& arg)
                 rocblas_sbmv<T>(handle, uplo, N, K, alpha, dA, lda, dx, incx, beta, dy, incy));
         }
 
-        gpu_time_used     = (get_time_us_sync(stream) - gpu_time_used) / number_hot_calls;
-        rocblas_gflops    = sbmv_gflop_count<T>(N, K) / gpu_time_used * 1e6;
-        rocblas_bandwidth = sbmv_gbyte_count<T>(N, K) / gpu_time_used * 1e6;
+        gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
 
-        // only norm_check return an norm error, unit check won't return anything
-        rocblas_cout << "uplo, N, K, lda, incx, incy, rocblas-Gflops, rocblas-GB/s, (us) ";
-        if(arg.norm_check)
-        {
-            rocblas_cout << "CPU-Gflops (us),norm_error_host_ptr,norm_error_dev_ptr";
-        }
-        rocblas_cout << std::endl;
-
-        rocblas_cout << arg.uplo << ',' << N << ',' << K << ',' << lda << ',' << incx << "," << incy
-                     << "," << rocblas_gflops << "," << rocblas_bandwidth << ",(" << gpu_time_used
-                     << "),";
-
-        if(arg.norm_check)
-        {
-            rocblas_cout << cblas_gflops << "(" << cpu_time_used << "),";
-            rocblas_cout << h_error << "," << d_error;
-        }
-
-        rocblas_cout << std::endl;
+        ArgumentModel<e_uplo, e_N, e_K, e_alpha, e_lda, e_incx, e_beta, e_incy>{}.log_args<T>(
+            rocblas_cout,
+            arg,
+            gpu_time_used,
+            sbmv_gflop_count<T>(N, K),
+            sbmv_gbyte_count<T>(N, K),
+            cpu_time_used,
+            h_error,
+            d_error);
     }
 }

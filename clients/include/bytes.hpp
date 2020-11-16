@@ -86,6 +86,21 @@ inline size_t tri_count(rocblas_int n)
     return size_t(n) * (1 + n) / 2;
 }
 
+/* \brief byte counts of GBMV */
+template <typename T>
+constexpr double gbmv_gbyte_count(
+    rocblas_operation transA, rocblas_int m, rocblas_int n, rocblas_int kl, rocblas_int ku)
+{
+    size_t dim_x = transA == rocblas_operation_none ? n : m;
+
+    rocblas_int k1      = dim_x < kl ? dim_x : kl;
+    rocblas_int k2      = dim_x < ku ? dim_x : ku;
+    rocblas_int d1      = ((k1 * dim_x) - (k1 * (k1 + 1) / 2));
+    rocblas_int d2      = ((k2 * dim_x) - (k2 * (k2 + 1) / 2));
+    double      num_els = double(d1 + d2 + dim_x);
+    return (sizeof(T) * (num_els)) / 1e9;
+}
+
 /* \brief byte counts of GEMV */
 template <typename T>
 constexpr double gemv_gbyte_count(rocblas_operation transA, rocblas_int m, rocblas_int n)
@@ -98,6 +113,28 @@ template <typename T>
 constexpr double ger_gbyte_count(rocblas_int m, rocblas_int n)
 {
     return (sizeof(T) * (m * n + m + n)) / 1e9;
+}
+
+/* \brief byte counts of HEMV */
+template <typename T>
+constexpr double hemv_gbyte_count(rocblas_int n)
+{
+    return (sizeof(T) * (((n * (n + 1.0)) / 2.0) + 3.0 * n)) / 1e9;
+}
+
+/* \brief byte counts of HBMV */
+template <typename T>
+constexpr double hbmv_gbyte_count(rocblas_int n, rocblas_int k)
+{
+    rocblas_int k1 = k < n ? k : n;
+    return (sizeof(T) * (n * k1 - ((k1 * (k1 + 1)) / 2.0) + 3 * n)) / 1e9;
+}
+
+/* \brief byte counts of HPMV */
+template <typename T>
+constexpr double hpmv_gbyte_count(rocblas_int n)
+{
+    return (sizeof(T) * ((n * (n + 1.0)) / 2.0) + 3.0 * n) / 1e9;
 }
 
 /* \brief byte counts of HPR */

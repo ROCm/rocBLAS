@@ -202,16 +202,16 @@ void testing_gemv(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(
             rocblas_gemv_fn(handle, transA, M, N, d_alpha, dA, lda, dx, incx, d_beta, dy_2, incy));
 
-        // copy output from device to CPU
-        CHECK_HIP_ERROR(hipMemcpy(hy_1, dy_1, sizeof(T) * size_y, hipMemcpyDeviceToHost));
-        CHECK_HIP_ERROR(hipMemcpy(hy_2, dy_2, sizeof(T) * size_y, hipMemcpyDeviceToHost));
-
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
 
         cblas_gemv<T>(transA, M, N, h_alpha, hA, lda, hx, incx, h_beta, hy_gold, incy);
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
+
+        // copy output from device to CPU
+        CHECK_HIP_ERROR(hipMemcpy(hy_1, dy_1, sizeof(T) * size_y, hipMemcpyDeviceToHost));
+        CHECK_HIP_ERROR(hipMemcpy(hy_2, dy_2, sizeof(T) * size_y, hipMemcpyDeviceToHost));
 
         if(arg.unit_check)
         {

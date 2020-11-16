@@ -280,9 +280,6 @@ void testing_gemv_batched(const Arguments& arg)
                                                     incy,
                                                     batch_count));
 
-        CHECK_HIP_ERROR(hy_1.transfer_from(dy_1));
-        CHECK_HIP_ERROR(hy_2.transfer_from(dy_2));
-
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
         for(int b = 0; b < batch_count; ++b)
@@ -290,6 +287,10 @@ void testing_gemv_batched(const Arguments& arg)
             cblas_gemv<T>(transA, M, N, h_alpha, hA[b], lda, hx[b], incx, h_beta, hy_gold[b], incy);
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
+
+        // copy device to host
+        CHECK_HIP_ERROR(hy_1.transfer_from(dy_1));
+        CHECK_HIP_ERROR(hy_2.transfer_from(dy_2));
 
         if(arg.unit_check)
         {
