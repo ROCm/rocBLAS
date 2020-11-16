@@ -124,7 +124,6 @@ void testing_symv(const Arguments& arg)
     host_vector<T> hg(size_Y); // gold standard
 
     double gpu_time_used, cpu_time_used;
-    double rocblas_gflops, cblas_gflops, rocblas_bandwidth;
     double h_error, d_error;
 
     device_vector<T> dA(size_A);
@@ -143,17 +142,6 @@ void testing_symv(const Arguments& arg)
     // make copy in hg which will later be used with CPU BLAS
     hg  = hy;
     hy2 = hy; // device memory re-test
-
-    if(arg.unit_check || arg.norm_check)
-    {
-        cpu_time_used = get_time_us_no_sync();
-
-        // cpu reference
-        cblas_symv<T>(uplo, N, alpha[0], hA, lda, hx, incx, beta[0], hg, incy);
-
-        cpu_time_used = get_time_us_no_sync() - cpu_time_used;
-        cblas_gflops  = symv_gflop_count<T>(N) / cpu_time_used * 1e6;
-    }
 
     // copy data from CPU to device
     dx.transfer_from(hx);
@@ -184,6 +172,13 @@ void testing_symv(const Arguments& arg)
 
         CHECK_ROCBLAS_ERROR(
             rocblas_symv_fn(handle, uplo, N, d_alpha, dA, lda, dx, incx, d_beta, dy, incy));
+
+        cpu_time_used = get_time_us_no_sync();
+
+        // cpu reference
+        cblas_symv<T>(uplo, N, alpha[0], hA, lda, hx, incx, beta[0], hg, incy);
+
+        cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         // copy output from device to CPU
         CHECK_HIP_ERROR(hy2.transfer_from(dy));
@@ -234,27 +229,16 @@ void testing_symv(const Arguments& arg)
                 rocblas_symv_fn(handle, uplo, N, alpha, dA, lda, dx, incx, beta, dy, incy));
         }
 
-        gpu_time_used     = (get_time_us_sync(stream) - gpu_time_used) / number_hot_calls;
-        rocblas_gflops    = symv_gflop_count<T>(N) / gpu_time_used * 1e6;
-        rocblas_bandwidth = symv_gbyte_count<T>(N) / gpu_time_used * 1e6;
+        gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
 
-        // only norm_check return an norm error, unit check won't return anything
-        rocblas_cout << "uplo, N, lda, incx, incy, rocblas-Gflops, rocblas-GB/s, (us) ";
-        if(arg.norm_check)
-        {
-            rocblas_cout << "CPU-Gflops (us),norm_error_host_ptr,norm_error_dev_ptr";
-        }
-        rocblas_cout << std::endl;
-
-        rocblas_cout << arg.uplo << ',' << N << ',' << lda << ',' << incx << "," << incy << ","
-                     << rocblas_gflops << "," << rocblas_bandwidth << ",(" << gpu_time_used << "),";
-
-        if(arg.norm_check)
-        {
-            rocblas_cout << cblas_gflops << "(" << cpu_time_used << "),";
-            rocblas_cout << h_error << "," << d_error;
-        }
-
-        rocblas_cout << std::endl;
+        ArgumentModel<e_uplo, e_N, e_alpha, e_lda, e_incx, e_beta, e_incy>{}.log_args<T>(
+            rocblas_cout,
+            arg,
+            gpu_time_used,
+            symv_gflop_count<T>(N),
+            symv_gbyte_count<T>(N),
+            cpu_time_used,
+            h_error,
+            d_error);
     }
 }
