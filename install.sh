@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
-ROCBLAS_SRC_PATH=`dirname "$(realpath $0)"`
+#use readlink rather than realpath for CentOS 6.10 support
+ROCBLAS_SRC_PATH=`dirname "$(readlink -m $0)"`
 
 /bin/ln -fs ../../.githooks/pre-commit "$(dirname "$0")/.git/hooks/"
 
@@ -309,7 +310,8 @@ build_tensile_host=true
 cpu_ref_lib=blis
 build_release=true
 build_hip_clang=true
-build_dir=$(realpath ./build)
+#use readlink rather than realpath for CentOS 6.10 support
+build_dir=$(readlink -m ./build)
 skip_ld_conf_entry=false
 static_lib=false
 tensile_msgpack_backend=true
@@ -385,7 +387,8 @@ while true; do
         build_tensile_host=false
         shift ;;
     --build_dir)
-	build_dir=$(realpath -m ${2})
+#use readlink rather than realpath for CentOS 6.10 support
+	build_dir=$(readlink -m ${2})
         shift 2;;
     --use-cuda)
         use_cuda=true
