@@ -2,6 +2,7 @@
  * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+#include "bytes.hpp"
 #include "cblas_interface.hpp"
 #include "flops.hpp"
 #include "near.hpp"
@@ -106,7 +107,6 @@ void testing_spr_batched(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
 
     double gpu_time_used, cpu_time_used;
-    double rocblas_gflops, cblas_gflops, rocblas_bandwidth;
     double rocblas_error_1;
     double rocblas_error_2;
 
@@ -137,10 +137,6 @@ void testing_spr_batched(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(rocblas_spr_batched_fn(
             handle, uplo, N, d_alpha, dx.ptr_on_device(), incx, dA_2.ptr_on_device(), batch_count));
 
-        // copy output from device to CPU
-        CHECK_HIP_ERROR(hA_1.transfer_from(dA_1));
-        CHECK_HIP_ERROR(hA_2.transfer_from(dA_2));
-
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
         for(int i = 0; i < batch_count; i++)
@@ -148,7 +144,10 @@ void testing_spr_batched(const Arguments& arg)
             cblas_spr<T>(uplo, N, h_alpha, hx[i], incx, hA_gold[i]);
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
-        cblas_gflops  = batch_count * spr_gflop_count<T>(N) / cpu_time_used * 1e6;
+
+        // copy output from device to CPU
+        CHECK_HIP_ERROR(hA_1.transfer_from(dA_1));
+        CHECK_HIP_ERROR(hA_2.transfer_from(dA_2));
 
         if(arg.unit_check)
         {
@@ -207,24 +206,16 @@ void testing_spr_batched(const Arguments& arg)
                                    batch_count);
         }
 
-        gpu_time_used     = (get_time_us_sync(stream) - gpu_time_used) / number_hot_calls;
-        rocblas_gflops    = batch_count * spr_gflop_count<T>(N) / gpu_time_used * 1e6;
-        rocblas_bandwidth = batch_count * (2.0 * N * (N + 1)) / 2 * sizeof(T) / gpu_time_used / 1e3;
+        gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
 
-        // only norm_check return an norm error, unit check won't return anything
-        rocblas_cout << "N,alpha,incx,batch_count,rocblas-Gflops,rocblas-GB/s";
-
-        if(arg.norm_check)
-            rocblas_cout << ",CPU-Gflops,norm_error_host_ptr,norm_error_dev_ptr";
-
-        rocblas_cout << std::endl;
-
-        rocblas_cout << N << "," << h_alpha << "," << incx << "," << batch_count << ","
-                     << rocblas_gflops << "," << rocblas_bandwidth;
-
-        if(arg.norm_check)
-            rocblas_cout << "," << cblas_gflops << "," << rocblas_error_1 << "," << rocblas_error_2;
-
-        rocblas_cout << std::endl;
+        ArgumentModel<e_uplo, e_N, e_alpha, e_incx, e_batch_count>{}.log_args<T>(
+            rocblas_cout,
+            arg,
+            gpu_time_used,
+            spr_gflop_count<T>(N),
+            spr_gbyte_count<T>(N),
+            cpu_time_used,
+            rocblas_error_1,
+            rocblas_error_2);
     }
 }

@@ -102,8 +102,6 @@ void testing_tbsv(const Arguments& arg)
     host_vector<T> cpu_x_or_b(size_x);
 
     double gpu_time_used, cpu_time_used;
-    double rocblas_gflops, cblas_gflops;
-    double rocblas_error;
     double error_eps_multiplier    = 40.0;
     double residual_eps_multiplier = 40.0;
     double eps                     = std::numeric_limits<real_t<T>>::epsilon();
@@ -202,8 +200,7 @@ void testing_tbsv(const Arguments& arg)
         for(int i = 0; i < number_hot_calls; i++)
             rocblas_tbsv_fn(handle, uplo, transA, diag, N, K, dAB, lda, dx_or_b, incx);
 
-        gpu_time_used  = get_time_us_sync(stream) - gpu_time_used;
-        rocblas_gflops = tbsv_gflop_count<T>(N, K) * number_hot_calls / gpu_time_used * 1e6;
+        gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
 
         // CPU cblas
         cpu_time_used = get_time_us_no_sync();
@@ -212,24 +209,15 @@ void testing_tbsv(const Arguments& arg)
             cblas_tbsv<T>(uplo, transA, diag, N, K, hAB, lda, cpu_x_or_b, incx);
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
-        cblas_gflops  = tbsv_gflop_count<T>(N, K) / cpu_time_used * 1e6;
 
-        // only norm_check return an norm error, unit check won't return anything
-        rocblas_cout << "N,K,lda,incx,uplo,transA,diag,rocblas-Gflops,us";
-
-        if(arg.norm_check)
-            rocblas_cout << ",CPU-Gflops,us,norm_error_host_ptr,norm_error_dev_ptr";
-
-        rocblas_cout << std::endl;
-
-        rocblas_cout << N << ',' << K << ',' << lda << ',' << incx << ',' << char_uplo << ','
-                     << char_transA << ',' << char_diag << ',' << rocblas_gflops << ","
-                     << gpu_time_used / number_hot_calls;
-
-        if(arg.norm_check)
-            rocblas_cout << "," << cblas_gflops << "," << cpu_time_used << "," << max_err_1 << ","
-                         << max_err_2;
-
-        rocblas_cout << std::endl;
+        ArgumentModel<e_uplo, e_transA, e_diag, e_N, e_K, e_lda, e_incx>{}.log_args<T>(
+            rocblas_cout,
+            arg,
+            gpu_time_used,
+            tbsv_gflop_count<T>(N, K),
+            0.0,
+            cpu_time_used,
+            max_err_1,
+            max_err_2);
     }
 }

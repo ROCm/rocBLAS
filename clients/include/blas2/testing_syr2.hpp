@@ -119,7 +119,6 @@ void testing_syr2(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
 
     double gpu_time_used, cpu_time_used;
-    double rocblas_gflops, cblas_gflops, rocblas_bandwidth;
     double rocblas_error_1;
     double rocblas_error_2;
 
@@ -149,15 +148,14 @@ void testing_syr2(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(
             rocblas_syr2_fn(handle, uplo, N, d_alpha, dx, incx, dy, incy, dA_2, lda));
 
-        // copy output from device to CPU
-        CHECK_HIP_ERROR(hA_1.transfer_from(dA_1));
-        CHECK_HIP_ERROR(hA_2.transfer_from(dA_2));
-
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
         cblas_syr2<T>(uplo, N, h_alpha, hx, incx, hy, incy, hA_gold, lda);
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
-        cblas_gflops  = syr2_gflop_count<T>(N) / cpu_time_used * 1e6;
+
+        // copy output from device to CPU
+        CHECK_HIP_ERROR(hA_1.transfer_from(dA_1));
+        CHECK_HIP_ERROR(hA_2.transfer_from(dA_2));
 
         if(arg.unit_check)
         {
@@ -192,24 +190,16 @@ void testing_syr2(const Arguments& arg)
             rocblas_syr2_fn(handle, uplo, N, &h_alpha, dx, incx, dy, incy, dA_1, lda);
         }
 
-        gpu_time_used     = (get_time_us_sync(stream) - gpu_time_used) / number_hot_calls;
-        rocblas_gflops    = syr2_gflop_count<T>(N) / gpu_time_used * 1e6;
-        rocblas_bandwidth = syr2_gbyte_count<T>(N) / gpu_time_used * 1e6;
+        gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
 
-        // only norm_check return an norm error, unit check won't return anything
-        rocblas_cout << "N,alpha,incx,incy,lda,rocblas-Gflops,rocblas-GB/s";
-
-        if(arg.norm_check)
-            rocblas_cout << ",CPU-Gflops,norm_error_host_ptr,norm_error_dev_ptr";
-
-        rocblas_cout << std::endl;
-
-        rocblas_cout << N << "," << h_alpha << "," << incx << "," << incy << "," << lda << ","
-                     << rocblas_gflops << "," << rocblas_bandwidth;
-
-        if(arg.norm_check)
-            rocblas_cout << "," << cblas_gflops << "," << rocblas_error_1 << "," << rocblas_error_2;
-
-        rocblas_cout << std::endl;
+        ArgumentModel<e_uplo, e_N, e_alpha, e_lda, e_incx, e_incy>{}.log_args<T>(
+            rocblas_cout,
+            arg,
+            gpu_time_used,
+            syr2_gflop_count<T>(N),
+            syr2_gbyte_count<T>(N),
+            cpu_time_used,
+            rocblas_error_1,
+            rocblas_error_2);
     }
 }
