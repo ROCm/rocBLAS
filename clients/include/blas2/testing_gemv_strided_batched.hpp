@@ -320,10 +320,6 @@ void testing_gemv_strided_batched(const Arguments& arg)
                                                             stride_y,
                                                             batch_count));
 
-        // copy output from device to CPU
-        CHECK_HIP_ERROR(hipMemcpy(hy_1, dy_1, sizeof(T) * size_y, hipMemcpyDeviceToHost));
-        CHECK_HIP_ERROR(hipMemcpy(hy_2, dy_2, sizeof(T) * size_y, hipMemcpyDeviceToHost));
-
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
         for(int b = 0; b < batch_count; ++b)
@@ -341,6 +337,10 @@ void testing_gemv_strided_batched(const Arguments& arg)
                           incy);
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
+
+        // copy output from device to CPU
+        CHECK_HIP_ERROR(hipMemcpy(hy_1, dy_1, sizeof(T) * size_y, hipMemcpyDeviceToHost));
+        CHECK_HIP_ERROR(hipMemcpy(hy_2, dy_2, sizeof(T) * size_y, hipMemcpyDeviceToHost));
 
         if(arg.unit_check)
         {

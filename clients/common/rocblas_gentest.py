@@ -247,7 +247,8 @@ def setdefaults(test):
         if test['function'] in ('gbmv_strided_batched'):
             setkey_product(test, 'stride_a', ['lda', 'N', 'stride_scale'])
 
-    elif test['function'] in ('hemv_strided_batched', 'hbmv_strided_batched'):
+    elif test['function'] in ('hemv_strided_batched', 'hbmv_strided_batched',
+                              'sbmv_strided_batched'):
         if all([x in test for x in ('N', 'incx', 'incy', 'stride_scale')]):
             setkey_product(test, 'stride_x', ['N', 'incx', 'stride_scale'])
             setkey_product(test, 'stride_y', ['N', 'incy', 'stride_scale'])

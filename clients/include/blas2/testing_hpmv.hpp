@@ -3,6 +3,7 @@
  *
  * ************************************************************************ */
 
+#include "bytes.hpp"
 #include "cblas_interface.hpp"
 #include "flops.hpp"
 #include "near.hpp"
@@ -143,7 +144,6 @@ void testing_hpmv(const Arguments& arg)
     CHECK_HIP_ERROR(dy_1.transfer_from(hy_1));
 
     double gpu_time_used, cpu_time_used;
-    double rocblas_gflops, cblas_gflops, rocblas_bandwidth;
     double rocblas_error_1;
     double rocblas_error_2;
 
@@ -165,17 +165,16 @@ void testing_hpmv(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(
             rocblas_hpmv_fn(handle, uplo, N, d_alpha, dA, dx, incx, d_beta, dy_2, incy));
 
-        // copy output from device to CPU
-        CHECK_HIP_ERROR(hy_1.transfer_from(dy_1));
-        CHECK_HIP_ERROR(hy_2.transfer_from(dy_2));
-
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
 
         cblas_hpmv<T>(uplo, N, h_alpha, hA, hx, incx, h_beta, hy_gold, incy);
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
-        cblas_gflops  = hpmv_gflop_count<T>(N) / cpu_time_used * 1e6;
+
+        // copy output from device to CPU
+        CHECK_HIP_ERROR(hy_1.transfer_from(dy_1));
+        CHECK_HIP_ERROR(hy_2.transfer_from(dy_2));
 
         if(arg.unit_check)
         {
@@ -210,27 +209,16 @@ void testing_hpmv(const Arguments& arg)
             rocblas_hpmv_fn(handle, uplo, N, &h_alpha, dA, dx, incx, &h_beta, dy_1, incy);
         }
 
-        gpu_time_used     = (get_time_us_sync(stream) - gpu_time_used) / number_hot_calls;
-        rocblas_gflops    = hpmv_gflop_count<T>(N) / gpu_time_used * 1e6;
-        rocblas_bandwidth = (((N * (N + 1.0)) / 2.0) + 3.0 * N) * sizeof(T) / gpu_time_used / 1e3;
+        gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
 
-        // only norm_check return an norm error, unit check won't return anything
-        rocblas_cout << "N,alpha,incx,beta,incy,rocblas-Gflops,rocblas-GB/s,";
-        if(arg.norm_check)
-        {
-            rocblas_cout << "CPU-Gflops,norm_error_host_ptr,norm_error_device_ptr";
-        }
-        rocblas_cout << std::endl;
-
-        rocblas_cout << N << "," << h_alpha << "," << incx << "," << h_beta << "," << incy << ","
-                     << rocblas_gflops << "," << rocblas_bandwidth << ",";
-
-        if(arg.norm_check)
-        {
-            rocblas_cout << cblas_gflops << ',';
-            rocblas_cout << rocblas_error_1 << ',' << rocblas_error_2;
-        }
-
-        rocblas_cout << std::endl;
+        ArgumentModel<e_uplo, e_N, e_alpha, e_lda, e_incx, e_beta, e_incy>{}.log_args<T>(
+            rocblas_cout,
+            arg,
+            gpu_time_used,
+            hpmv_gflop_count<T>(N),
+            hpmv_gbyte_count<T>(N),
+            cpu_time_used,
+            rocblas_error_1,
+            rocblas_error_2);
     }
 }
