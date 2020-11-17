@@ -34,7 +34,7 @@ void testing_trmm_bad_arg(const Arguments& arg)
     const rocblas_operation transA = rocblas_operation_none;
     const rocblas_diagonal  diag   = rocblas_diagonal_non_unit;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     rocblas_int K      = side == rocblas_side_left ? M : N;
     size_t      size_A = lda * size_t(K);
@@ -95,7 +95,7 @@ void testing_trmm(const Arguments& arg)
     size_t      size_A = lda * size_t(K);
     size_t      size_B = ldb * size_t(N);
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // ensure invalid sizes and quick return checked before pointer check
     bool invalid_size = M < 0 || N < 0 || lda < K || ldb < M;

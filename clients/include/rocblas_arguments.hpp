@@ -94,6 +94,7 @@ struct Arguments
     char                   known_bug_platforms[64];
     bool                   c_noalias_d;
     rocblas_atomics_mode   atomics_mode;
+    size_t                 user_allocated_workspace;
 
     /*************************************************************************
      *                     End Of Arguments                                  *
@@ -155,7 +156,8 @@ struct Arguments
     OPER(initialization) SEP         \
     OPER(known_bug_platforms) SEP    \
     OPER(c_noalias_d) SEP            \
-    OPER(atomics_mode)
+    OPER(atomics_mode) SEP           \
+    OPER(user_allocated_workspace)
 
     // clang-format on
 

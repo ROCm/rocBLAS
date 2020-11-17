@@ -35,7 +35,7 @@ void testing_dgmm_batched_bad_arg(const Arguments& arg)
 
     const rocblas_side side = rocblas_side_right;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     size_t size_A = N * size_t(lda);
     size_t size_x = (rocblas_side_right == side ? N : M) * size_t(abs_incx);
@@ -90,7 +90,7 @@ void testing_dgmm_batched(const Arguments& arg)
 
     T rocblas_error = std::numeric_limits<T>::max();
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     size_t size_A = size_t(lda) * size_t(N);
     size_t size_C = size_t(ldc) * size_t(N);

@@ -23,7 +23,7 @@ void testing_rotmg_batched_bad_arg(const Arguments& arg)
     rocblas_int         batch_count = 5;
     static const size_t safe_size   = 5;
 
-    rocblas_local_handle   handle(arg.atomics_mode);
+    rocblas_local_handle   handle{arg};
     device_batch_vector<T> d1(safe_size, 1, batch_count);
     device_batch_vector<T> d2(safe_size, 1, batch_count);
     device_batch_vector<T> x1(safe_size, 1, batch_count);
@@ -94,7 +94,7 @@ void testing_rotmg_batched(const Arguments& arg)
 
     const int            TEST_COUNT  = 100;
     rocblas_int          batch_count = arg.batch_count;
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     double gpu_time_used, cpu_time_used;
     double norm_error_host = 0.0, norm_error_device = 0.0;

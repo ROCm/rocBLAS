@@ -23,7 +23,7 @@ void testing_set_get_matrix_async(const Arguments& arg)
     rocblas_int          lda  = arg.lda;
     rocblas_int          ldb  = arg.ldb;
     rocblas_int          ldc  = arg.ldc;
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     hipStream_t stream;
     rocblas_get_stream(handle, &stream);

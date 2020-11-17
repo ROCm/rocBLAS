@@ -39,7 +39,7 @@ void testing_gbmv_strided_batched_bad_arg(const Arguments& arg)
     const rocblas_int       batch_count = 5;
     const rocblas_operation transA      = rocblas_operation_none;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
     size_t               size_A = lda * size_t(N);
 
     // allocate memory on device
@@ -193,7 +193,7 @@ void testing_gbmv_strided_batched(const Arguments& arg)
     rocblas_int       stride_y    = arg.stride_y;
     rocblas_int       batch_count = arg.batch_count;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
     size_t               size_A = lda * size_t(N);
     size_t               dim_x;
     size_t               dim_y, abs_incy;

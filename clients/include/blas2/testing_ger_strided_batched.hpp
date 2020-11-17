@@ -38,7 +38,7 @@ void testing_ger_strided_batched_bad_arg(const Arguments& arg)
     rocblas_int stride_y    = abs_incy * N;
     rocblas_int batch_count = 5;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     size_t size_A = stride_a * batch_count;
     size_t size_x = stride_x * batch_count;
@@ -135,7 +135,7 @@ void testing_ger_strided_batched(const Arguments& arg)
     rocblas_int stride_a    = arg.stride_a;
     rocblas_int batch_count = arg.batch_count;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     size_t abs_incx = incx >= 0 ? incx : -incx;
     size_t abs_incy = incy >= 0 ? incy : -incy;

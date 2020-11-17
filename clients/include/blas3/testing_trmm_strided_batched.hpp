@@ -36,7 +36,7 @@ void testing_trmm_strided_batched_bad_arg(const Arguments& arg)
     const rocblas_operation transA = rocblas_operation_none;
     const rocblas_diagonal  diag   = rocblas_diagonal_non_unit;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     rocblas_int          K        = side == rocblas_side_left ? M : N;
     const rocblas_stride stride_a = lda * K;
@@ -160,7 +160,7 @@ void testing_trmm_strided_batched(const Arguments& arg)
     size_t size_A = batch_count * stride_a;
     size_t size_B = batch_count * stride_b;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // ensure invalid sizes and quick return checked before pointer check
     bool invalid_size = M < 0 || N < 0 || lda < K || ldb < M || batch_count < 0;

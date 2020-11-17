@@ -31,7 +31,7 @@ void testing_asum_strided_batched_bad_arg(const Arguments& arg)
     device_strided_batch_vector<T> dx(N, incx, stridex, batch_count);
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
     CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
 
     EXPECT_ROCBLAS_STATUS(rocblas_asum_strided_batched_fn(
@@ -60,7 +60,7 @@ void testing_asum_strided_batched(const Arguments& arg)
     double rocblas_error_1;
     double rocblas_error_2;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // check to prevent undefined memory allocation error
     if(N <= 0 || incx <= 0 || batch_count <= 0)

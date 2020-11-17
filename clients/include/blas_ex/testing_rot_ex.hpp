@@ -29,7 +29,7 @@ void testing_rot_ex_bad_arg(const Arguments& arg)
     rocblas_int         incy      = 1;
     static const size_t safe_size = 100;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
     device_vector<Tx>    dx(safe_size);
     device_vector<Ty>    dy(safe_size);
     device_vector<Tcs>   dc(1);
@@ -76,7 +76,7 @@ void testing_rot_ex(const Arguments& arg)
     rocblas_int incx = arg.incx;
     rocblas_int incy = arg.incy;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
     double               gpu_time_used, cpu_time_used;
     double norm_error_host_x = 0.0, norm_error_host_y = 0.0, norm_error_device_x = 0.0,
            norm_error_device_y = 0.0;

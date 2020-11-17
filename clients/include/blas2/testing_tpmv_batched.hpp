@@ -31,7 +31,7 @@ void testing_tpmv_batched_bad_arg(const Arguments& arg)
     const rocblas_fill      uplo        = rocblas_fill_lower;
     const rocblas_diagonal  diag        = rocblas_diagonal_non_unit;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     size_t size_A = (M * (M + 1)) / 2;
 
@@ -85,7 +85,7 @@ void testing_tpmv_batched(const Arguments& arg)
     rocblas_operation transA = char2rocblas_operation(char_transA);
     rocblas_diagonal  diag   = char2rocblas_diagonal(char_diag);
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     bool invalid_size = M < 0 || !incx || batch_count < 0;
     if(invalid_size || !M || !batch_count)

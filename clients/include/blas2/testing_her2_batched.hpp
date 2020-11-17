@@ -30,7 +30,7 @@ void testing_her2_batched_bad_arg(const Arguments& arg)
     rocblas_int          incy        = 1;
     T                    alpha       = 0.6;
     rocblas_int          batch_count = 2;
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     size_t size_A = size_t(N) * lda;
 
@@ -82,7 +82,7 @@ void testing_her2_batched(const Arguments& arg)
     rocblas_fill uplo        = char2rocblas_fill(arg.uplo);
     rocblas_int  batch_count = arg.batch_count;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // argument check before allocating invalid memory
     bool invalid_size = N < 0 || lda < 1 || lda < N || !incx || !incy || batch_count < 0;

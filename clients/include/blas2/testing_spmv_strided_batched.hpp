@@ -31,7 +31,7 @@ void testing_spmv_strided_batched_bad_arg(const Arguments& arg)
     T            beta        = 0.6;
     rocblas_int  batch_count = 2;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     size_t         abs_incx = incx >= 0 ? incx : -incx;
     size_t         abs_incy = incy >= 0 ? incy : -incy;
@@ -191,7 +191,7 @@ void testing_spmv_strided_batched(const Arguments& arg)
     size_t         size_X  = stridex * batch_count;
     size_t         size_Y  = stridey * batch_count;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // argument sanity check before allocating invalid memory
     bool invalid_size = N < 0 || !incx || !incy || batch_count < 0;

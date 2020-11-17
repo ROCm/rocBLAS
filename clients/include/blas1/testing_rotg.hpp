@@ -21,7 +21,7 @@ void testing_rotg_bad_arg(const Arguments& arg)
 
     static const size_t safe_size = 1;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
     device_vector<T>     a(safe_size);
     device_vector<T>     b(safe_size);
     device_vector<U>     c(safe_size);
@@ -50,7 +50,7 @@ void testing_rotg(const Arguments& arg)
 
     const int TEST_COUNT = 100;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
     double               gpu_time_used, cpu_time_used;
     double               error_host, error_device;
     const U              rel_error = std::numeric_limits<U>::epsilon() * 1000;

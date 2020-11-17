@@ -30,7 +30,7 @@ void testing_rot_batched_ex_bad_arg(const Arguments& arg)
     rocblas_int incy        = 1;
     rocblas_int batch_count = 5;
 
-    rocblas_local_handle    handle(arg.atomics_mode);
+    rocblas_local_handle    handle{arg};
     device_batch_vector<Tx> dx(N, incx, batch_count);
     device_batch_vector<Ty> dy(N, incy, batch_count);
     device_vector<Tcs>      dc(1);
@@ -129,7 +129,7 @@ void testing_rot_batched_ex(const Arguments& arg)
     rocblas_int incy        = arg.incy;
     rocblas_int batch_count = arg.batch_count;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
     double               gpu_time_used, cpu_time_used;
     double norm_error_host_x = 0.0, norm_error_host_y = 0.0, norm_error_device_x = 0.0,
            norm_error_device_y = 0.0;

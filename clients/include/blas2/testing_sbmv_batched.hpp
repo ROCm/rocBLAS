@@ -29,7 +29,7 @@ void testing_sbmv_batched_bad_arg(const Arguments& arg)
     T            beta        = 0.6;
     rocblas_int  batch_count = 2;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     size_t abs_incx = incx >= 0 ? incx : -incx;
     size_t abs_incy = incy >= 0 ? incy : -incy;
@@ -173,7 +173,7 @@ void testing_sbmv_batched(const Arguments& arg)
 
     size_t size_A = size_t(lda) * N;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // argument sanity check before allocating invalid memory
     bool invalid_size = N < 0 || lda < K + 1 || K < 0 || !incx || !incy || batch_count < 0;

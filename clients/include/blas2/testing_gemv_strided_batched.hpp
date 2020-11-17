@@ -38,7 +38,7 @@ void testing_gemv_strided_batched_bad_arg(const Arguments& arg)
 
     const rocblas_operation transA = rocblas_operation_none;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     size_t size_A = lda * static_cast<size_t>(N);
     size_t size_x = N * static_cast<size_t>(incx);
@@ -181,7 +181,7 @@ void testing_gemv_strided_batched(const Arguments& arg)
     rocblas_int       stride_y    = arg.stride_y;
     rocblas_int       batch_count = arg.batch_count;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
     size_t               size_A = lda * static_cast<size_t>(N);
     size_t               size_x, dim_x, abs_incx;
     size_t               size_y, dim_y, abs_incy;

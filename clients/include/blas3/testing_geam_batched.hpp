@@ -38,7 +38,7 @@ void testing_geam_batched_bad_arg(const Arguments& arg)
     const rocblas_operation transA = rocblas_operation_none;
     const rocblas_operation transB = rocblas_operation_none;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     size_t size_A = size_t(lda) * (transA == rocblas_operation_none ? N : M);
     size_t size_B = size_t(ldb) * (transB == rocblas_operation_none ? N : M);
@@ -169,7 +169,7 @@ void testing_geam_batched(const Arguments& arg)
     T rocblas_error_2 = std::numeric_limits<T>::max();
     T rocblas_error   = std::numeric_limits<T>::max();
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     if(transA == rocblas_operation_none)
     {
