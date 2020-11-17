@@ -84,7 +84,7 @@ void testing_gemm_strided_batched_ex_bad_arg(const Arguments& arg)
         const rocblas_operation transA = rocblas_operation_none;
         const rocblas_operation transB = rocblas_operation_none;
 
-        rocblas_local_handle handle(arg.atomics_mode);
+        rocblas_local_handle handle{arg};
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
 
         // allocate memory on device
@@ -334,7 +334,7 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
     double               gpu_time_used, cpu_time_used;
     double               rocblas_gflops, cblas_gflops;
     double               rocblas_error = 0.0;
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
     auto                 transA = char2rocblas_operation(arg.transA);
     auto                 transB = char2rocblas_operation(arg.transB);
     auto                 M = arg.M, N = arg.N, K = arg.K;

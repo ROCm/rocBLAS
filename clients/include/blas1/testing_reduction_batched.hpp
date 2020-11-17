@@ -27,7 +27,7 @@ void template_testing_reduction_batched_bad_arg(const Arguments&                
 {
     rocblas_int N = 100, incx = 1, batch_count = 5;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     //
     // allocate memory on device
@@ -56,7 +56,7 @@ void template_testing_reduction_batched(
     rocblas_int          N = arg.N, incx = arg.incx, batch_count = arg.batch_count;
     rocblas_stride       stride_x = arg.stride_x;
     double               rocblas_error_1, rocblas_error_2;
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     if(N <= 0 || incx <= 0 || batch_count <= 0)
     {

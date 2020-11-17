@@ -75,18 +75,38 @@ static constexpr char LIMITED_MEMORY_STRING_GTEST[]
 class rocblas_local_handle
 {
     rocblas_handle m_handle;
+    void*          m_memory = nullptr;
 
 public:
-    explicit rocblas_local_handle(rocblas_atomics_mode mode = rocblas_atomics_allowed)
+    rocblas_local_handle()
     {
         rocblas_create_handle(&m_handle);
-        m_handle->atomics_mode = mode;
 #ifdef GOOGLE_TEST
         rocblas_test_set_stream(m_handle);
 #endif
     }
+
+    explicit rocblas_local_handle(const Arguments& arg)
+        : rocblas_local_handle()
+    {
+        // Set the atomics mode
+        if(rocblas_set_atomics_mode(m_handle, arg.atomics_mode) != rocblas_status_success)
+            throw rocblas_status_internal_error;
+
+        // If the test specifies user allocated workspace, allocate and use it
+        if(arg.user_allocated_workspace)
+        {
+            if((hipMalloc)(&m_memory, arg.user_allocated_workspace) != hipSuccess
+               || rocblas_set_workspace(m_handle, m_memory, arg.user_allocated_workspace)
+                      != rocblas_status_success)
+                throw rocblas_status_memory_error;
+        }
+    }
+
     ~rocblas_local_handle()
     {
+        if(m_memory)
+            (hipFree)(m_memory);
         rocblas_destroy_handle(m_handle);
     }
 

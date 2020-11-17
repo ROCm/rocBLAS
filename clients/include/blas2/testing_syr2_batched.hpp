@@ -30,7 +30,7 @@ void testing_syr2_batched_bad_arg(const Arguments& arg)
     rocblas_int          lda         = 100;
     T                    alpha       = 0.6;
     rocblas_int          batch_count = 2;
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     size_t abs_incx = incx >= 0 ? incx : -incx;
     size_t abs_incy = incy >= 0 ? incy : -incy;
@@ -90,7 +90,7 @@ void testing_syr2_batched(const Arguments& arg)
     rocblas_fill uplo        = char2rocblas_fill(arg.uplo);
     rocblas_int  batch_count = arg.batch_count;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // argument check before allocating invalid memory
     bool invalid_size = N < 0 || lda < N || lda < 1 || !incx || !incy || batch_count < 0;

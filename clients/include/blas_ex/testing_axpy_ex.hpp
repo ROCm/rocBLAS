@@ -33,7 +33,7 @@ void testing_axpy_ex_bad_arg(const Arguments& arg)
     static const size_t safe_size = 100;
     Ta                  alpha     = 0.6;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
     device_vector<Tx>    dx(safe_size);
     device_vector<Ty>    dy(safe_size);
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
@@ -72,7 +72,7 @@ void testing_axpy_ex(const Arguments& arg)
     rocblas_int          incx    = arg.incx;
     rocblas_int          incy    = arg.incy;
     Ta                   h_alpha = arg.get_alpha<Ta>();
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     bool special_compute_test = N == 1 && h_alpha == -1.001;
 

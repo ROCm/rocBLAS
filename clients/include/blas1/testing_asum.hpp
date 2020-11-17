@@ -27,7 +27,7 @@ void testing_asum_bad_arg(const Arguments& arg)
     real_t<T>           rocblas_result   = 10;
     real_t<T>*          h_rocblas_result = &rocblas_result;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
     device_vector<T>     dx(safe_size);
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
@@ -53,7 +53,7 @@ void testing_asum(const Arguments& arg)
     real_t<T>            cpu_result;
     double               rocblas_error_1;
     double               rocblas_error_2;
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // check to prevent undefined memory allocation error
     if(N <= 0 || incx <= 0)

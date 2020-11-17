@@ -21,7 +21,7 @@ void testing_iamax_iamin_bad_arg(const Arguments& arg, rocblas_iamax_iamin_t<T> 
     rocblas_int         incx      = 1;
     static const size_t safe_size = 100;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
     device_vector<T>     dx(safe_size);
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
@@ -62,7 +62,7 @@ void testing_iamax_iamin(const Arguments& arg, rocblas_iamax_iamin_t<T> func)
     rocblas_int rocblas_error_1;
     rocblas_int rocblas_error_2;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // check to prevent undefined memory allocation error
     if(N <= 0 || incx <= 0)

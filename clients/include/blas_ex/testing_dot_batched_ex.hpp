@@ -35,7 +35,7 @@ void testing_dot_batched_ex_bad_arg(const Arguments& arg)
     rocblas_int stride_y    = incy * N;
     rocblas_int batch_count = 5;
 
-    rocblas_local_handle    handle(arg.atomics_mode);
+    rocblas_local_handle    handle{arg};
     device_batch_vector<Tx> dx(N, incx, batch_count);
     device_batch_vector<Ty> dy(N, incy, batch_count);
     device_vector<Tr>       d_rocblas_result(batch_count);
@@ -125,7 +125,7 @@ void testing_dot_batched_ex(const Arguments& arg)
 
     double               rocblas_error_1 = 0;
     double               rocblas_error_2 = 0;
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // check to prevent undefined memmory allocation error
     if(N <= 0 || batch_count <= 0)

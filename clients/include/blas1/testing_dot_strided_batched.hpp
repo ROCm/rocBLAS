@@ -34,7 +34,7 @@ void testing_dot_strided_batched_bad_arg(const Arguments& arg)
     size_t      size_x      = stride_x * batch_count;
     size_t      size_y      = stride_y * batch_count;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
     device_vector<T>     dx(size_x);
     device_vector<T>     dy(size_y);
     device_vector<T>     d_rocblas_result(1);
@@ -94,7 +94,7 @@ void testing_dot_strided_batched(const Arguments& arg)
 
     double               rocblas_error_1 = 0;
     double               rocblas_error_2 = 0;
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // check to prevent undefined memmory allocation error
     if(N <= 0 || batch_count <= 0)

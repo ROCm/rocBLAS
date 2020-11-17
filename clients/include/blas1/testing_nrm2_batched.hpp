@@ -27,7 +27,7 @@ void testing_nrm2_batched_bad_arg(const Arguments& arg)
     rocblas_int         batch_count = 1;
     static const size_t safe_size   = 100;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     device_batch_vector<T>   dx(N, incx, batch_count);
     device_vector<real_t<T>> d_rocblas_result(1);
@@ -61,7 +61,7 @@ void testing_nrm2_batched(const Arguments& arg)
     double rocblas_error_1;
     double rocblas_error_2;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // check to prevent undefined memory allocation error
     if(N <= 0 || incx <= 0 || batch_count <= 0)

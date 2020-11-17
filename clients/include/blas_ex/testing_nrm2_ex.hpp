@@ -29,7 +29,7 @@ void testing_nrm2_ex_bad_arg(const Arguments& arg)
     rocblas_int         incx      = 1;
     static const size_t safe_size = 100;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     device_vector<Tx> dx(safe_size);
     device_vector<Tr> d_rocblas_result(1);
@@ -71,7 +71,7 @@ void testing_nrm2_ex(const Arguments& arg)
     double rocblas_error_1;
     double rocblas_error_2;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // check to prevent undefined memory allocation error
     if(N <= 0 || incx <= 0)

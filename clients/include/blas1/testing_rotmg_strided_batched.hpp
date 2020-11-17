@@ -25,7 +25,7 @@ void testing_rotmg_strided_batched_bad_arg(const Arguments& arg)
     rocblas_int         batch_count = 5;
     static const size_t safe_size   = 5;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
     device_vector<T>     d1(safe_size);
     device_vector<T>     d2(safe_size);
     device_vector<T>     x1(safe_size);
@@ -73,7 +73,7 @@ void testing_rotmg_strided_batched(const Arguments& arg)
     rocblas_int          stride_x1    = arg.stride_x;
     rocblas_int          stride_y1    = arg.stride_y;
     rocblas_int          stride_param = arg.stride_c;
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     double  gpu_time_used, cpu_time_used;
     double  norm_error_host = 0.0, norm_error_device = 0.0;

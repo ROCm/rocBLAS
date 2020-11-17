@@ -32,7 +32,7 @@ void testing_ger_bad_arg(const Arguments& arg)
     rocblas_int lda   = 100;
     T           alpha = 0.6;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     rocblas_int abs_incx = incx >= 0 ? incx : -incx;
     rocblas_int abs_incy = incy >= 0 ? incy : -incy;
@@ -77,7 +77,7 @@ void testing_ger(const Arguments& arg)
     rocblas_int lda     = arg.lda;
     T           h_alpha = arg.get_alpha<T>();
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // argument check before allocating invalid memory
     if(M < 0 || N < 0 || lda < M || lda < 1 || !incx || !incy)

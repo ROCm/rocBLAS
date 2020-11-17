@@ -26,7 +26,7 @@ void testing_syr2k_strided_batched_bad_arg(const Arguments& arg)
                : (FORTRAN ? rocblas_syrkx_strided_batched<T, true>
                           : rocblas_syrkx_strided_batched<T, false>);
 
-    rocblas_local_handle    handle(arg.atomics_mode);
+    rocblas_local_handle    handle{arg};
     const rocblas_fill      uplo        = rocblas_fill_upper;
     const rocblas_operation transA      = rocblas_operation_none;
     const rocblas_int       N           = 100;
@@ -234,7 +234,7 @@ void testing_syr2k_strided_batched(const Arguments& arg)
                           : rocblas_syrkx_strided_batched<T, false>);
     auto syrXX_gflop_count_fn = TWOK ? syr2k_gflop_count<T> : syrkx_gflop_count<T>;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
     rocblas_fill         uplo        = char2rocblas_fill(arg.uplo);
     rocblas_operation    transA      = char2rocblas_operation(arg.transA);
     rocblas_int          N           = arg.N;

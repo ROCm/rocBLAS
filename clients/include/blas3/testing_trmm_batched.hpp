@@ -23,7 +23,7 @@ void testing_trmm_batched_bad_arg(const Arguments& arg)
     auto       rocblas_trmm_batched_fn
         = FORTRAN ? rocblas_trmm_batched<T, true> : rocblas_trmm_batched<T, false>;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
     const rocblas_int    M           = 100;
     const rocblas_int    N           = 100;
     const rocblas_int    lda         = 100;
@@ -77,7 +77,7 @@ void testing_trmm_batched(const Arguments& arg)
        && !is_complex<T> && nantest)
         return; // Exclude integers or other types which don't support NaN
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
     rocblas_int          M           = arg.M;
     rocblas_int          N           = arg.N;
     rocblas_int          lda         = arg.lda;
