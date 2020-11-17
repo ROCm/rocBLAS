@@ -39,6 +39,13 @@ Datatypes:
         atomics_not_allowed: 0
         atomics_allowed: 1
 
+Common threads and streams: &common_threads_streams
+  - { threads: 0,  streams: 0}
+  # - { threads: 0, streams: 1 }
+  # - { threads: 1, streams: 0 }
+  # - { threads: 3, streams: 3 }
+  # - { threads: 5, streams: 5 }
+
 Real precisions: &real_precisions
   - &half_precision
     { a_type: f16_r, b_type: f16_r, c_type: f16_r, d_type: f16_r, compute_type: f16_r }
@@ -318,6 +325,9 @@ Arguments:
   - uplo: c_char
   - diag: c_char
   - batch_count: rocblas_int
+  - threads: c_size_t
+  - streams: c_size_t
+  - devices: c_size_t
   - stride_a: rocblas_int
   - stride_b: rocblas_int
   - stride_c: rocblas_int
@@ -330,8 +340,8 @@ Arguments:
   - timing: rocblas_int
   - iters: rocblas_int
   - cold_iters: rocblas_int
-  - algo: c_uint
-  - solution_index: c_int
+  - algo: c_uint32
+  - solution_index: c_int32
   - flags: rocblas_gemm_flags
   - function: c_char*64
   - name: c_char*64
@@ -368,6 +378,7 @@ Dictionary lists to expand:
   - matrix_size
   - precision
   - function: precision
+  - threads_streams
 
 # In case an array argument needs to be passed directly to C as an array,
 # it needs to be listed here to avoid being expanded into multiple test
@@ -396,6 +407,9 @@ Defaults:
   uplo: '*'
   diag: '*'
   batch_count: -1
+  threads: 0
+  streams: 0
+  devices: 0
   fortran: false
   norm_check: 0
   unit_check: 1

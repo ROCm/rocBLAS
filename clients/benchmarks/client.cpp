@@ -881,6 +881,10 @@ int run_bench_test(Arguments& arg)
     // enable timing check,otherwise no performance data collected
     arg.timing = 1;
 
+    // One stream and one thread (0 indicates to use default behavior)
+    arg.streams = 0;
+    arg.threads = 0;
+
     // Skip past any testing_ prefix in function
     static constexpr char prefix[] = "testing_";
     const char*           function = arg.function;

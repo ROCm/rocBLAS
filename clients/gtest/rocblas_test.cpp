@@ -12,13 +12,10 @@
  *********************************************/
 
 // State of the signal handler
-static struct
+static thread_local struct
 {
     // Whether sigjmp_buf is set and catching signals is enabled
-    volatile sig_atomic_t enabled;
-
-    // Id of the thread which is catching signals
-    volatile pthread_t tid;
+    volatile sig_atomic_t enabled = false;
 
     // sigjmp_buf describing stack frame to go back to
     sigjmp_buf sigjmp_buf;
@@ -40,15 +37,6 @@ extern "C" void rocblas_test_signal_handler(int sig)
         signal(sig, SIG_DFL);
         errno = saved_errno;
         raise(sig);
-        return;
-    }
-
-    // If the thread receiving the signal is different from the thread
-    // catching signals, send the signal to the thread catching signals.
-    if(!pthread_equal(pthread_self(), handler.tid))
-    {
-        pthread_kill(handler.tid, sig);
-        errno = saved_errno;
         return;
     }
 
@@ -75,25 +63,23 @@ extern "C" void rocblas_test_signal_handler(int sig)
 // Set up signal handlers
 void rocblas_test_sigaction()
 {
-    // Set up a separate stack in case stack overflows occur
-    alignas(64) static char stack_memory[SIGSTKSZ];
-    stack_t                 stack = {stack_memory, 0, sizeof(stack_memory)};
-
     struct sigaction act;
+    act.sa_flags = 0;
     sigfillset(&act.sa_mask);
-
-    // Signal handler above
     act.sa_handler = rocblas_test_signal_handler;
 
-    // We use the stack if sigaltstack() returns success
-    act.sa_flags = !sigaltstack(&stack, nullptr) ? SA_ONSTACK : 0;
-
-    for(int sig : {SIGABRT, SIGBUS, SIGFPE, SIGILL, SIGALRM, SIGSEGV, SIGSYS, SIGUSR1, SIGUSR2})
+    // Catch SIGALRM and synchronous signals
+    for(int sig : {SIGALRM, SIGABRT, SIGBUS, SIGFPE, SIGILL, SIGSEGV})
         sigaction(sig, &act, nullptr);
 }
 
-// Number of seconds each test is allowed to take before all testing is killed.
-constexpr unsigned TEST_TIMEOUT = 600;
+static const unsigned test_timeout = [] {
+    // Number of seconds each test is allowed to take before all testing is killed.
+    constexpr unsigned TEST_TIMEOUT = 600;
+    unsigned           timeout;
+    const char*        env = getenv("ROCBLAS_TEST_TIMEOUT");
+    return env && sscanf(env, "%u", &timeout) == 1 ? timeout : TEST_TIMEOUT;
+}();
 
 // Lambda wrapper which detects signals and exceptions in an invokable function
 void catch_signals_and_exceptions_as_failures(std::function<void()> test, bool set_alarm)
@@ -104,23 +90,13 @@ void catch_signals_and_exceptions_as_failures(std::function<void()> test, bool s
     // Set up the return point, and handle siglongjmp returning back to here
     if(sigsetjmp(handler.sigjmp_buf, true))
     {
-        FAIL() << "Received " << strsignal(handler.signal) << " signal";
+        FAIL() << "Received " << sys_siglist[handler.signal] << " signal";
     }
     else
     {
-        // Test timeout can be overriden by the ROCBLAS_TEST_TIMEOUT environment variable
-        static const unsigned test_timeout = []() {
-            unsigned    timeout;
-            const char* env = getenv("ROCBLAS_TEST_TIMEOUT");
-            return env && sscanf(env, "%u", &timeout) == 1 ? timeout : TEST_TIMEOUT;
-        }();
-
         // Alarm to detect deadlocks or hangs
         if(set_alarm)
             alarm(test_timeout);
-
-        // Save this thread's id, to detect signals in different threads
-        handler.tid = pthread_self();
 
         // Enable the signal handler
         handler.enabled = true;
@@ -146,4 +122,42 @@ void catch_signals_and_exceptions_as_failures(std::function<void()> test, bool s
 
     // Restore the previous handler
     handler = old_handler;
+}
+
+void launch_test_on_streams(std::function<void()> test, size_t numStreams, size_t numDevices)
+{
+    size_t devices = numDevices > 1 ? numDevices : 1;
+    size_t streams = numStreams > 1 ? numStreams : 1;
+    for(size_t i = 0; i < devices; ++i)
+    {
+        if(numDevices)
+            hipSetDevice(i);
+        for(size_t j = 0; j < streams; ++j)
+        {
+            if(numStreams)
+                rocblas_set_stream_callback.reset(
+                    new std::function<void(rocblas_handle&)>([=](rocblas_handle& handle) {
+                        rocblas_set_stream(handle, g_stream_pool.get_stream_pointer(i)[j]);
+                    }));
+            catch_signals_and_exceptions_as_failures(test, true);
+        }
+    }
+}
+
+void launch_test_on_threads(std::function<void()> test,
+                            size_t                numThreads,
+                            size_t                numStreams,
+                            size_t                numDevices)
+{
+    auto promise = std::make_unique<std::promise<void>[]>(numThreads);
+    auto future  = std::make_unique<std::future<void>[]>(numThreads);
+
+    for(size_t i = 0; i < numThreads; ++i)
+        future[i] = promise[i].get_future();
+
+    for(size_t i = 0; i < numThreads; ++i)
+        g_thread_pool.submit([&] { launch_test_on_streams(test, numStreams, numDevices); },
+                             std::move(promise[i]));
+    for(size_t i = 0; i < numThreads; ++i)
+        future[i].get(); //Wait for tasks to complete
 }

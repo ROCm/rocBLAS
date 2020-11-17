@@ -2451,6 +2451,29 @@ Tests:
   transA_transB: *transA_transB_range
   alpha_beta: *alpha_beta_range
 
+- name: gemm_multi_gpu
+  category: multi_gpu
+  function:
+    gemm_ex: *real_precisions
+  matrix_size: *medium_matrix_size_range
+  transA: [ N, T ]
+  transB: [ N, T ]
+  alpha: 1
+  beta: 3
+  threads_streams: *common_threads_streams
+  devices: [0, 2, 4]
+
+# - name: gemm_multi_threads_streams
+#   category: nightly
+#   function:
+#     gemm_ex: *real_precisions
+#   matrix_size: *medium_matrix_size_range
+#   transA: [ N, T ]
+#   transB: [ N, T ]
+#   alpha: 1
+#   beta: 3
+#   threads_streams: *common_threads_streams
+
 - name: gemm_medium_complex
   category: pre_checkin
   function:
