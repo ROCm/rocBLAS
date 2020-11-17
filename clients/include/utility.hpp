@@ -40,6 +40,7 @@
 // puts, putchar, fputs, printf, fprintf, vprintf, vfprintf: Use rocblas_cout or rocblas_cerr
 // sprintf, vsprintf: Possible buffer overflows; us snprintf or vsnprintf instead
 // strerror: Thread-unsafe; use snprintf / dprintf with %m or strerror_* alternatives
+// strsignal: Thread-unsafe; use sys_siglist[signal] instead
 // strtok: Thread-unsafe; use strtok_r
 // gmtime, ctime, asctime, localtime: Thread-unsafe
 // tmpnam: Thread-unsafe; use mkstemp or related functions instead
@@ -53,7 +54,7 @@
 #undef stderr
 #pragma GCC poison cout cerr clog stdout stderr gets puts putchar fputs fprintf printf sprintf    \
     vfprintf vprintf vsprintf perror strerror strtok gmtime ctime asctime localtime tmpnam putenv \
-        clearenv fcloseall ecvt fcvt sleep abort
+        clearenv fcloseall ecvt fcvt sleep abort strsignal
 #else
 // Suppress warnings about hipMalloc(), hipFree() except in rocblas-test and rocblas-bench
 #undef hipMalloc
@@ -80,6 +81,9 @@ public:
     {
         rocblas_create_handle(&m_handle);
         m_handle->atomics_mode = mode;
+#ifdef GOOGLE_TEST
+        rocblas_test_set_stream(m_handle);
+#endif
     }
     ~rocblas_local_handle()
     {

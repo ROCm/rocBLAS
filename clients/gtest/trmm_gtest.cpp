@@ -135,7 +135,7 @@ namespace
     using trmm = trmm_template<trmm_testing, TRMM>;
     TEST_P(trmm, blas3_tensile)
     {
-        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<trmm_testing>(GetParam()));
+        RUN_TEST_ON_THREADS_STREAMS(rocblas_simple_dispatch<trmm_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(trmm);
 

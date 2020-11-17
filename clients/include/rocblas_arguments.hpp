@@ -63,6 +63,9 @@ struct Arguments
     char diag;
 
     rocblas_int batch_count;
+    size_t      threads;
+    size_t      streams;
+    size_t      devices;
 
     rocblas_int stride_a; //  stride_a > transA == 'N' ? lda * K : lda * M
     rocblas_int stride_b; //  stride_b > transB == 'N' ? ldb * N : ldb * K
@@ -128,6 +131,9 @@ struct Arguments
     OPER(uplo) SEP                   \
     OPER(diag) SEP                   \
     OPER(batch_count) SEP            \
+    OPER(threads) SEP                \
+    OPER(streams) SEP                \
+    OPER(devices) SEP                \
     OPER(stride_a) SEP               \
     OPER(stride_b) SEP               \
     OPER(stride_c) SEP               \

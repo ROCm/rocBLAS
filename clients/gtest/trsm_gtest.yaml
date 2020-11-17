@@ -343,6 +343,31 @@ Tests:
   batch_count: [ 1, 3 ]
 
 # nightly
+- name: trsm_medium_multi_gpu
+  category: multi_gpu
+  function: trsm
+  precision: *single_double_precisions
+  side: [L, R]
+  uplo: [L, U]
+  transA: [N]
+  diag: [N]
+  threads_streams: *common_threads_streams
+  matrix_size: *medium_matrix_size_range
+  alpha: 1
+  devices: [0, 2, 4]
+
+# - name: trsm_medium_multi_threads_streams
+#   category: nightly
+#   function: trsm
+#   precision: *single_double_precisions
+#   side: [L, R]
+#   uplo: [L, U]
+#   transA: [N, C]
+#   diag: [N, U]
+#   threads_streams: *common_threads_streams
+#   matrix_size: *medium_matrix_size_range
+#   alpha: *alpha_range
+
 - name: trsm_testset1
   category: nightly
   function: trsm

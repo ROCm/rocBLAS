@@ -15,15 +15,21 @@
 #include "rocblas_arguments.hpp"
 #include "test_cleanup.hpp"
 #include <algorithm>
+#include <condition_variable>
 #include <cstdio>
 #include <cstring>
 #include <functional>
+#include <future>
 #include <iostream>
+#include <mutex>
+#include <queue>
 #include <sstream>
 #include <string>
+#include <thread>
 #include <type_traits>
 #include <unordered_map>
 #include <utility>
+#include <vector>
 
 #ifdef GOOGLE_TEST
 
@@ -149,6 +155,7 @@ bool match_test_category(const Arguments& arg, const char* category);
     INSTANTIATE_TEST_CATEGORY(testclass, quick)       \
     INSTANTIATE_TEST_CATEGORY(testclass, pre_checkin) \
     INSTANTIATE_TEST_CATEGORY(testclass, nightly)     \
+    INSTANTIATE_TEST_CATEGORY(testclass, multi_gpu)   \
     INSTANTIATE_TEST_CATEGORY(testclass, known_bug)
 
 // Function to catch signals and exceptions as failures
@@ -157,6 +164,153 @@ void catch_signals_and_exceptions_as_failures(std::function<void()> test, bool s
 // Macro to call catch_signals_and_exceptions_as_failures() with a lambda expression
 #define CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(test) \
     catch_signals_and_exceptions_as_failures([&] { test; }, true)
+
+// Function to catch signals and exceptions as failures
+void launch_test_on_threads(std::function<void()> test,
+                            size_t                numThreads,
+                            size_t                numStreams,
+                            size_t                numDevices);
+
+// Macro to call catch_signals_and_exceptions_as_failures() with a lambda expression
+#define LAUNCH_TEST_ON_THREADS(test, threads, streams, devices) \
+    launch_test_on_threads([&] { test; }, threads, streams, devices)
+
+// Function to catch signals and exceptions as failures
+void launch_test_on_streams(std::function<void()> test, size_t numStreams, size_t numDevices);
+
+// Macro to call catch_signals_and_exceptions_as_failures() with a lambda expression
+#define LAUNCH_TEST_ON_STREAMS(test, streams, devices) \
+    launch_test_on_streams([&] { test; }, streams, devices)
+
+// Macro to run test across threads
+#define RUN_TEST_ON_THREADS_STREAMS(test)                            \
+    do                                                               \
+    {                                                                \
+        const auto& arg          = GetParam();                       \
+        auto        threads      = arg.threads;                      \
+        auto        streams      = arg.streams;                      \
+        auto        devices      = arg.devices;                      \
+        int         availDevices = 0;                                \
+        hipGetDeviceCount(&availDevices);                            \
+        if(devices > availDevices)                                   \
+            FAIL() << "Too many devices requested";                  \
+        g_stream_pool.reset(devices, streams);                       \
+        if(threads)                                                  \
+            LAUNCH_TEST_ON_THREADS(test, threads, streams, devices); \
+        else                                                         \
+            LAUNCH_TEST_ON_STREAMS(test, streams, devices);          \
+    } while(0)
+
+// Thread worker class
+class thread_pool
+{
+    std::atomic_bool                                                 m_done{false};
+    std::queue<std::pair<std::function<void()>, std::promise<void>>> m_work_queue;
+    std::vector<std::thread>                                         m_threads;
+    std::mutex                                                       m_mutex;
+    std::condition_variable                                          m_cond;
+
+    void worker_thread()
+    {
+        std::unique_lock<std::mutex> lock(m_mutex);
+        while(!m_done)
+        {
+            m_cond.wait(lock, [&] { return m_done || !m_work_queue.empty(); });
+            if(m_done)
+                break;
+            auto task    = std::move(m_work_queue.front().first);
+            auto promise = std::move(m_work_queue.front().second);
+            m_work_queue.pop();
+            lock.unlock();
+            task();
+            promise.set_value();
+            lock.lock();
+        }
+    }
+
+public:
+    thread_pool()
+    {
+        auto thread_count = std::thread::hardware_concurrency();
+        do
+            m_threads.push_back(std::thread([&] { worker_thread(); }));
+        while(thread_count-- > 1);
+    }
+
+    ~thread_pool()
+    {
+        m_done = true;
+        m_cond.notify_all();
+        for(auto& thread : m_threads)
+            thread.join();
+    }
+
+    template <typename FUNC>
+    void submit(FUNC&& func, std::promise<void> promise)
+    {
+        {
+            std::lock_guard<std::mutex> lock(m_mutex);
+            m_work_queue.push(std::make_pair(std::forward<FUNC>(func), std::move(promise)));
+        }
+        m_cond.notify_one();
+    }
+};
+
+class stream_pool
+{
+    std::vector<std::vector<hipStream_t>> m_streams;
+
+public:
+    stream_pool() = default;
+
+    void reset(size_t numDevices = 0, size_t numStreams = 0)
+    {
+        for(size_t i = 0; i < m_streams.size(); ++i)
+            for(size_t j = 0; j < m_streams[i].size(); ++j)
+                hipStreamDestroy(m_streams[i][j]);
+
+        m_streams.clear();
+
+        for(size_t i = 0; i < (numDevices > 1 ? numDevices : 1); ++i)
+        {
+            if(numDevices)
+                hipSetDevice(i);
+            std::vector<hipStream_t> temp;
+            for(size_t j = 0; j < numStreams; ++j)
+            {
+                hipStream_t stream;
+                if(hipStreamCreate(&stream) == hipSuccess)
+                    temp.push_back(stream);
+            }
+            m_streams.push_back(temp);
+        }
+    }
+
+    ~stream_pool()
+    {
+        reset();
+    }
+
+    hipStream_t* get_stream_pointer(size_t deviceId)
+    {
+        return m_streams[deviceId].data();
+    }
+};
+
+extern thread_local std::shared_ptr<std::function<void(rocblas_handle&)>>
+    rocblas_set_stream_callback;
+
+inline void rocblas_test_set_stream(rocblas_handle& handle)
+{
+    if(rocblas_set_stream_callback)
+    {
+        (*rocblas_set_stream_callback)(handle);
+        rocblas_set_stream_callback.reset();
+    }
+}
+
+extern stream_pool g_stream_pool;
+extern thread_pool g_thread_pool;
 
 /* ============================================================================================ */
 /*! \brief  Normalized test name to conform to Google Tests */
