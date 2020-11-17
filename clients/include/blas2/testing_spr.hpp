@@ -26,7 +26,7 @@ void testing_spr_bad_arg(const Arguments& arg)
     rocblas_int          N     = 100;
     rocblas_int          incx  = 1;
     T                    alpha = 0.6;
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     size_t abs_incx = incx >= 0 ? incx : -incx;
     size_t size_A   = size_t(N) * (N + 1) / 2;
@@ -61,7 +61,7 @@ void testing_spr(const Arguments& arg)
     rocblas_int          incx    = arg.incx;
     T                    h_alpha = arg.get_alpha<T>();
     rocblas_fill         uplo    = char2rocblas_fill(arg.uplo);
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // argument check before allocating invalid memory
     if(N < 0 || !incx)

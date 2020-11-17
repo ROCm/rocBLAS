@@ -34,7 +34,7 @@ void testing_hpmv_batched_bad_arg(const Arguments& arg)
     alpha = beta = 1.0;
 
     const rocblas_fill   uplo = rocblas_fill_upper;
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     size_t size_A = size_t(N);
     size_t size_x = N * size_t(incx);
@@ -147,7 +147,7 @@ void testing_hpmv_batched(const Arguments& arg)
     T            h_beta      = arg.get_beta<T>();
     rocblas_fill uplo        = char2rocblas_fill(arg.uplo);
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // argument sanity check before allocating invalid memory
     bool invalid_size = N < 0 || !incx || !incy || batch_count < 0;

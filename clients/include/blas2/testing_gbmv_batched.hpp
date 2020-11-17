@@ -38,7 +38,7 @@ void testing_gbmv_batched_bad_arg(const Arguments& arg)
 
     const rocblas_operation transA = rocblas_operation_none;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // allocate memory on device
     device_batch_vector<T> dA(batch_count, safe_size);
@@ -174,7 +174,7 @@ void testing_gbmv_batched(const Arguments& arg)
     rocblas_operation transA      = char2rocblas_operation(arg.transA);
     rocblas_int       batch_count = arg.batch_count;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // argument sanity check before allocating invalid memory
     bool invalid_size = M < 0 || N < 0 || lda < KL + KU + 1 || !incx || !incy || batch_count < 0

@@ -191,6 +191,7 @@ Tests:
   matrix_size: *small_matrix_size_range
   alpha: *alpha_range
   fortran: [ false, true ]
+  user_allocated_workspace: [0, 1000000]
 
 - name: trsm_small_complex
   category: quick
@@ -203,6 +204,7 @@ Tests:
   matrix_size: *small_matrix_size_range
   alpha_beta: *complex_alpha_range
   fortran: [ false, true ]
+  user_allocated_workspace: [0, 1000000]
 
 - name: trsm_batched_small
   category: quick
@@ -216,6 +218,7 @@ Tests:
   alpha: *alpha_range
   batch_count: [-1, 0, 1, 3]
   fortran: [ false, true ]
+  user_allocated_workspace: [0, 1000000]
 
 - name: trsm_batched_small_complex
   category: quick
@@ -229,6 +232,7 @@ Tests:
   alpha_beta: *complex_alpha_range
   batch_count: [-1, 0, 1, 3]
   fortran: [ false, true ]
+  user_allocated_workspace: [0, 1000000]
 
 - name: trsm_strided_batched_small
   category: quick
@@ -243,6 +247,7 @@ Tests:
   stride_scale: [ 1, 1.5, 3 ]
   batch_count: [ -1, 0, 1, 3 ]
   fortran: [ false, true ]
+  user_allocated_workspace: [0, 1000000]
 
 - name: trsm_strided_batched_small_complex
   category: quick
@@ -257,6 +262,7 @@ Tests:
   stride_scale: [ 1, 1.5, 3 ]
   batch_count: [ -1, 0, 1, 3 ]
   fortran: [ false, true ]
+  user_allocated_workspace: [0, 1000000]
 
 # Medium - pre_checkin
 - name: trsm_medium
@@ -269,6 +275,7 @@ Tests:
   diag: [N, U]
   matrix_size: *medium_matrix_size_range
   alpha: *alpha_range
+  user_allocated_workspace: [0, 20000000]
 
 - name: trsm_medium_extra
   category: pre_checkin
@@ -280,6 +287,7 @@ Tests:
   diag: [U]
   matrix_size: *medium_matrix_size_extra
   alpha: [ 1 ]
+  user_allocated_workspace: [0, 20000000]
 
 - name: trsm_medium_complex
   category: pre_checkin
@@ -291,6 +299,7 @@ Tests:
   diag: [N, U]
   matrix_size: *medium_matrix_size_range
   alpha_beta: *complex_alpha_range
+  user_allocated_workspace: [0, 20000000]
 
 - name: trsm_batched_medium
   category: pre_checkin
@@ -303,6 +312,7 @@ Tests:
   matrix_size: *medium_matrix_size_range
   alpha: *alpha_range
   batch_count: [1, 3]
+  user_allocated_workspace: [0, 20000000]
 
 - name: trsm_batched_medium_complex
   category: pre_checkin
@@ -315,6 +325,7 @@ Tests:
   matrix_size: *medium_matrix_size_range
   alpha_beta: *complex_alpha_range
   batch_count: [1, 3]
+  user_allocated_workspace: [0, 20000000]
 
 - name: trsm_strided_batched_medium
   category: pre_checkin
@@ -328,6 +339,7 @@ Tests:
   alpha: *alpha_range
   stride_scale: [ 1, 1.5, 3 ]
   batch_count: [ 1, 3 ]
+  user_allocated_workspace: [0, 20000000]
 
 - name: trsm_strided_batched_medium_complex
   category: pre_checkin
@@ -341,6 +353,7 @@ Tests:
   alpha_beta: *complex_alpha_range
   stride_scale: [ 1, 1.5, 3 ]
   batch_count: [ 1, 3 ]
+  user_allocated_workspace: [0, 20000000]
 
 # nightly
 - name: trsm_medium_multi_gpu

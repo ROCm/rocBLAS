@@ -38,7 +38,7 @@ void testing_trtri_strided_batched(const Arguments& arg)
     rocblas_fill     uplo = char2rocblas_fill(char_uplo);
     rocblas_diagonal diag = char2rocblas_diagonal(char_diag);
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // argument sanity check, quick return if input parameters are invalid before allocating invalid
     // memory

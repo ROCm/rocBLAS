@@ -27,7 +27,7 @@ void testing_spmv_bad_arg(const Arguments& arg)
     rocblas_int          incy  = 1;
     T                    alpha = 0.6;
     T                    beta  = 0.6;
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     size_t abs_incx = incx >= 0 ? incx : -incx;
     size_t abs_incy = incy >= 0 ? incy : -incy;
@@ -93,7 +93,7 @@ void testing_spmv(const Arguments& arg)
     size_t size_X = size_t(N) * abs_incx;
     size_t size_Y = size_t(N) * abs_incy;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // argument sanity check before allocating invalid memory
     bool invalid_size = N < 0 || !incx || !incy;

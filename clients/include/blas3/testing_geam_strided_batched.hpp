@@ -42,7 +42,7 @@ void testing_geam_strided_batched_bad_arg(const Arguments& arg)
     const rocblas_stride stride_b = size_t(ldb) * (transB == rocblas_operation_none ? N : M);
     const rocblas_stride stride_c = size_t(ldc) * N;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     size_t size_A = size_t(batch_count) * size_t(stride_a);
     size_t size_B = size_t(batch_count) * size_t(stride_b);
@@ -207,7 +207,7 @@ void testing_geam_strided_batched(const Arguments& arg)
     T rocblas_error_2 = std::numeric_limits<T>::max();
     T rocblas_error   = std::numeric_limits<T>::max();
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     if(transA == rocblas_operation_none)
     {

@@ -51,7 +51,7 @@ void testing_trsm_strided_batched_ex(const Arguments& arg)
     rocblas_int stride_invA = TRSM_BLOCK * K;
     size_t      size_invA   = stride_invA * batch_count;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // check here to prevent undefined memory allocation error
     bool invalid_size = M < 0 || N < 0 || lda < K || ldb < M || batch_count < 0;

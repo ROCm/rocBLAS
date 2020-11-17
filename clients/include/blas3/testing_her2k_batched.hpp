@@ -31,7 +31,7 @@ void testing_her2k_batched_bad_arg(const Arguments& arg)
                                                     : rocblas_herkx_batched<T, real_t<T>, false>);
     // clang-format on
 
-    rocblas_local_handle    handle(arg.atomics_mode);
+    rocblas_local_handle    handle{arg};
     const rocblas_fill      uplo   = rocblas_fill_upper;
     const rocblas_operation transA = rocblas_operation_none;
     const rocblas_int       N      = 100;
@@ -146,7 +146,7 @@ void testing_her2k_batched(const Arguments& arg)
     auto herXX_ref_fn         = TWOK ? cblas_her2k<T> : cblas_herkx<T>;
     // clang-format on
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
     rocblas_fill         uplo   = char2rocblas_fill(arg.uplo);
     rocblas_operation    transA = char2rocblas_operation(arg.transA);
     rocblas_int          N      = arg.N;

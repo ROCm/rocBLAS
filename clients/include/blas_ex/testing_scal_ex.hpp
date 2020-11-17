@@ -29,7 +29,7 @@ void testing_scal_ex_bad_arg(const Arguments& arg)
     rocblas_int incx  = 1;
     Ta          alpha = (Ta)0.6;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     size_t size_x = N * size_t(incx);
 
@@ -71,7 +71,7 @@ void testing_scal_ex(const Arguments& arg)
     rocblas_int incx    = arg.incx;
     Ta          h_alpha = arg.get_alpha<Ta>();
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // argument sanity check before allocating invalid memory
     if(N <= 0 || incx <= 0)

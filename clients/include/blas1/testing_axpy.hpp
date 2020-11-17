@@ -28,7 +28,7 @@ void testing_axpy_bad_arg(const Arguments& arg)
     static const size_t safe_size = 100;
     T                   alpha     = 0.6;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
     device_vector<T>     dx(safe_size);
     device_vector<T>     dy(safe_size);
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
@@ -54,7 +54,7 @@ void testing_axpy(const Arguments& arg)
     rocblas_int          incx    = arg.incx;
     rocblas_int          incy    = arg.incy;
     T                    h_alpha = arg.get_alpha<T>();
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // argument sanity check before allocating invalid memory
     if(N <= 0)

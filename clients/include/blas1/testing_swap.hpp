@@ -24,7 +24,7 @@ void testing_swap_bad_arg(const Arguments& arg)
     rocblas_int         incy      = 1;
     static const size_t safe_size = 100; //  arbitrarily set to 100
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // allocate memory on device
     device_vector<T> dx(safe_size);
@@ -49,7 +49,7 @@ void testing_swap(const Arguments& arg)
     rocblas_int          N    = arg.N;
     rocblas_int          incx = arg.incx;
     rocblas_int          incy = arg.incy;
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // argument sanity check before allocating invalid memory
     if(N <= 0)

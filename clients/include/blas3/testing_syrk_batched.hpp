@@ -23,7 +23,7 @@ void testing_syrk_batched_bad_arg(const Arguments& arg)
     auto       rocblas_syrk_batched_fn
         = FORTRAN ? rocblas_syrk_batched<T, true> : rocblas_syrk_batched<T, false>;
 
-    rocblas_local_handle    handle(arg.atomics_mode);
+    rocblas_local_handle    handle{arg};
     const rocblas_fill      uplo        = rocblas_fill_upper;
     const rocblas_operation transA      = rocblas_operation_none;
     const rocblas_int       N           = 100;
@@ -99,7 +99,7 @@ void testing_syrk_batched(const Arguments& arg)
     auto       rocblas_syrk_batched_fn
         = FORTRAN ? rocblas_syrk_batched<T, true> : rocblas_syrk_batched<T, false>;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
     rocblas_fill         uplo        = char2rocblas_fill(arg.uplo);
     rocblas_operation    transA      = char2rocblas_operation(arg.transA);
     rocblas_int          N           = arg.N;

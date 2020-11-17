@@ -23,7 +23,7 @@ void testing_herk_bad_arg(const Arguments& arg)
     auto       rocblas_herk_fn
         = FORTRAN ? rocblas_herk<T, real_t<T>, true> : rocblas_herk<T, real_t<T>, false>;
 
-    rocblas_local_handle    handle(arg.atomics_mode);
+    rocblas_local_handle    handle{arg};
     const rocblas_fill      uplo   = rocblas_fill_upper;
     const rocblas_operation transA = rocblas_operation_none;
     const rocblas_int       N      = 100;
@@ -83,7 +83,7 @@ void testing_herk(const Arguments& arg)
     auto       rocblas_herk_fn
         = FORTRAN ? rocblas_herk<T, real_t<T>, true> : rocblas_herk<T, real_t<T>, false>;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
     rocblas_fill         uplo   = char2rocblas_fill(arg.uplo);
     rocblas_operation    transA = char2rocblas_operation(arg.transA);
     rocblas_int          N      = arg.N;

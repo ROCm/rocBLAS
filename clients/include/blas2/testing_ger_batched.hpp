@@ -34,7 +34,7 @@ void testing_ger_batched_bad_arg(const Arguments& arg)
 
     size_t size_A = lda * size_t(N);
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // allocate memory on device
     device_batch_vector<T> dA(size_A, 1, batch_count);
@@ -111,7 +111,7 @@ void testing_ger_batched(const Arguments& arg)
     T           h_alpha     = arg.get_alpha<T>();
     rocblas_int batch_count = arg.batch_count;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // argument check before allocating invalid memory
     bool invalid_size = M < 0 || N < 0 || lda < M || lda < 1 || !incx || !incy || batch_count < 0;

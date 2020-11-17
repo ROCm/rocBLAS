@@ -35,7 +35,7 @@ void testing_gemv_bad_arg(const Arguments& arg)
 
     const rocblas_operation transA = rocblas_operation_none;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     size_t size_A = lda * size_t(N);
     size_t size_x = N * size_t(incx);
@@ -105,7 +105,7 @@ void testing_gemv(const Arguments& arg)
     T                 h_beta  = arg.get_beta<T>();
     rocblas_operation transA  = char2rocblas_operation(arg.transA);
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // argument sanity check before allocating invalid memory
     bool invalid_size = M < 0 || N < 0 || lda < M || lda < 1 || !incx || !incy;
