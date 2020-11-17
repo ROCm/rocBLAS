@@ -21,7 +21,7 @@ void testing_set_get_vector_async(const Arguments& arg)
     rocblas_int          incx = arg.incx;
     rocblas_int          incy = arg.incy;
     rocblas_int          incb = arg.incb;
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     hipStream_t stream;
     rocblas_get_stream(handle, &stream);

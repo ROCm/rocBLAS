@@ -32,7 +32,7 @@ void testing_her_strided_batched_bad_arg(const Arguments& arg)
     rocblas_stride stride_x    = 100;
     rocblas_stride stride_A    = 100;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     size_t size_A = size_t(N) * lda;
 
@@ -87,7 +87,7 @@ void testing_her_strided_batched(const Arguments& arg)
     rocblas_stride stride_A    = arg.stride_a;
     rocblas_int    batch_count = arg.batch_count;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // argument check before allocating invalid memory
     bool invalid_size = N < 0 || lda < 1 || lda < N || !incx || batch_count < 0;

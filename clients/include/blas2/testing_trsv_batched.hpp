@@ -38,7 +38,7 @@ void testing_trsv_batched(const Arguments& arg)
     rocblas_diagonal  diag   = char2rocblas_diagonal(char_diag);
 
     rocblas_status       status;
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // check here to prevent undefined memory allocation error
     bool invalid_size = M < 0 || lda < M || lda < 1 || !incx || batch_count < 0;

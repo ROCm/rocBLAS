@@ -28,7 +28,7 @@ void testing_axpy_batched_ex_bad_arg(const Arguments& arg)
     rocblas_datatype y_type         = rocblas_datatype_f32_r;
     rocblas_datatype execution_type = rocblas_datatype_f32_r;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     rocblas_int N = 100, incx = 1, incy = 1, batch_count = 2;
 
@@ -105,7 +105,7 @@ void testing_axpy_batched_ex(const Arguments& arg)
     rocblas_datatype y_type         = arg.c_type;
     rocblas_datatype execution_type = arg.compute_type;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
     rocblas_int          N = arg.N, incx = arg.incx, incy = arg.incy, batch_count = arg.batch_count;
 
     Ta  h_alpha    = arg.get_alpha<Ta>();

@@ -21,7 +21,7 @@ void testing_rotmg_bad_arg(const Arguments& arg)
 
     static const size_t safe_size = 5;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
     device_vector<T>     d1(safe_size);
     device_vector<T>     d2(safe_size);
     device_vector<T>     x1(safe_size);
@@ -55,7 +55,7 @@ void testing_rotmg(const Arguments& arg)
 
     const int TEST_COUNT = 100;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
     double               gpu_time_used, cpu_time_used;
     double               error_host, error_device;
     const T              rel_error = std::numeric_limits<T>::epsilon() * 1000;

@@ -27,7 +27,7 @@ void testing_symm_hemm_strided_batched_bad_arg(const Arguments& arg)
                                       : rocblas_symm_strided_batched<T, false>);
     // clang-format on
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
     const rocblas_side   side        = rocblas_side_left;
     const rocblas_fill   uplo        = rocblas_fill_upper;
     const rocblas_int    M           = 100;
@@ -230,7 +230,7 @@ void testing_symm_hemm_strided_batched(const Arguments& arg)
     auto rocblas_fn     = HERM ? rocblas_hemm_strided_batched<T> : rocblas_symm_strided_batched<T>;
     auto gflop_count_fn = HERM ? hemm_gflop_count<T> : symm_gflop_count<T>;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
     rocblas_side         side        = char2rocblas_side(arg.side);
     rocblas_fill         uplo        = char2rocblas_fill(arg.uplo);
     rocblas_int          M           = arg.M;

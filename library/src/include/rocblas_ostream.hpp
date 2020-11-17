@@ -245,11 +245,19 @@ public:
      * Non-member friend functions for formatted output                      *
      *************************************************************************/
 
-    // Default output
-    template <typename T>
+    // Default output for non-enumeration types
+    template <typename T, std::enable_if_t<!std::is_enum<std::decay_t<T>>{}, int> = 0>
     friend rocblas_ostream& operator<<(rocblas_ostream& os, T&& x)
     {
         os.os << std::forward<T>(x);
+        return os;
+    }
+
+    // Default output for enumeration types
+    template <typename T, std::enable_if_t<std::is_enum<std::decay_t<T>>{}, int> = 0>
+    friend rocblas_ostream& operator<<(rocblas_ostream& os, T&& x)
+    {
+        os.os << std::underlying_type_t<std::decay_t<T>>(x);
         return os;
     }
 

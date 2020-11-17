@@ -29,7 +29,7 @@ void testing_tbsv_bad_arg(const Arguments& arg)
     const rocblas_fill      uplo   = rocblas_fill_lower;
     const rocblas_diagonal  diag   = rocblas_diagonal_non_unit;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     size_t size_A = lda * size_t(N);
     size_t size_x = N * size_t(incx);
@@ -72,7 +72,7 @@ void testing_tbsv(const Arguments& arg)
     rocblas_diagonal  diag   = char2rocblas_diagonal(char_diag);
 
     rocblas_status       status;
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // check here to prevent undefined memory allocation error
     bool invalid_size = N < 0 || K < 0 || lda < K + 1 || !incx;

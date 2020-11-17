@@ -30,7 +30,7 @@ void testing_tpmv_bad_arg(const Arguments& arg)
     const rocblas_fill      uplo   = rocblas_fill_lower;
     const rocblas_diagonal  diag   = rocblas_diagonal_non_unit;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     size_t size_A = (M * (M + 1)) / 2;
     size_t size_x = M * size_t(incx);
@@ -70,7 +70,7 @@ void testing_tpmv(const Arguments& arg)
     rocblas_fill         uplo   = char2rocblas_fill(char_uplo);
     rocblas_operation    transA = char2rocblas_operation(char_transA);
     rocblas_diagonal     diag   = char2rocblas_diagonal(char_diag);
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     bool invalid_size = M < 0 || !incx;
     if(invalid_size || !M)

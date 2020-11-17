@@ -58,7 +58,7 @@ void testing_trsm_ex(const Arguments& arg)
     size_t      size_A = lda * size_t(K);
     size_t      size_B = ldb * size_t(N);
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // check here to prevent undefined memory allocation error
     bool invalid_size = M < 0 || N < 0 || lda < K || ldb < M;

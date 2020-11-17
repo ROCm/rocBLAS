@@ -16572,12 +16572,12 @@ ROCBLAS_EXPORT rocblas_status rocblas_nrm2_strided_batched_ex(rocblas_handle   h
     rot_ex applies the Givens rotation matrix defined by c=cos(alpha) and s=sin(alpha) to vectors x and y.
         Scalars c and s may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode.
 
-	In the case where cs_type is real:
-	    x := c * x + s * y
+    In the case where cs_type is real:
+        x := c * x + s * y
             y := c * y - s * x
 
-	In the case where cs_type is complex, the imaginary part of c is ignored:
-	    x := real(c) * x + s * y
+    In the case where cs_type is complex, the imaginary part of c is ignored:
+        x := real(c) * x + s * y
             y := real(c) * y - conj(s) * x
 
     Currently supported datatypes are as follows:
@@ -16648,7 +16648,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_rot_ex(rocblas_handle   handle,
     rot_batched_ex applies the Givens rotation matrix defined by c=cos(alpha) and s=sin(alpha) to batched vectors x_i and y_i, for i = 1, ..., batch_count.
         Scalars c and s may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode.
 
-	In the case where cs_type is real:
+    In the case where cs_type is real:
             x := c * x + s * y
             y := c * y - s * x
 
@@ -16728,7 +16728,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_rot_batched_ex(rocblas_handle   handle,
     rot_strided_batched_ex applies the Givens rotation matrix defined by c=cos(alpha) and s=sin(alpha) to strided batched vectors x_i and y_i, for i = 1, ..., batch_count.
         Scalars c and s may be stored in either host or device memory, location is specified by calling rocblas_set_pointer_mode.
 
-	In the case where cs_type is real:
+    In the case where cs_type is real:
             x := c * x + s * y
             y := c * y - s * x
 
@@ -17084,7 +17084,7 @@ ROCBLAS_EXPORT void           rocblas_device_malloc_set_default_memory_size(size
     @param[in]
     handle          rocblas handle
     @param[out]
-    size             current device memory size for the handle
+    size            current device memory size for the handle
  ******************************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_get_device_memory_size(rocblas_handle handle, size_t* size);
 
@@ -17092,7 +17092,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_get_device_memory_size(rocblas_handle hand
     \details
     Changes the size of allocated device memory at runtime.
 
-    Any previously allocated device memory is freed.
+    Any previously allocated device memory managed by the handle is freed.
 
     If size > 0 sets the device memory size to the specified size (in bytes)
     If size == 0 frees the memory allocated so far, and lets rocBLAS manage device memory in the future, expanding it when necessary
@@ -17100,9 +17100,26 @@ ROCBLAS_EXPORT rocblas_status rocblas_get_device_memory_size(rocblas_handle hand
     @param[in]
     handle          rocblas handle
     @param[in]
-    size             size of allocated device memory
+    size            size of allocated device memory
  ******************************************************************************/
 ROCBLAS_EXPORT rocblas_status rocblas_set_device_memory_size(rocblas_handle handle, size_t size);
+
+/*! \brief
+    \details
+    Sets the device workspace for the handle to use.
+
+    Any previously allocated device memory managed by the handle is freed.
+
+    Returns rocblas_status_invalid_handle if handle is nullptr; rocblas_status_success otherwise
+    @param[in]
+    handle          rocblas handle
+    @param[in]
+    addr            address of workspace memory
+    @param[in]
+    size            size of workspace memory
+
+ ******************************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_set_workspace(rocblas_handle handle, void* addr, size_t size);
 
 /*! \brief
     \details

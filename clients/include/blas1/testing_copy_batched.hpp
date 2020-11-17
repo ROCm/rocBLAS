@@ -27,7 +27,7 @@ void testing_copy_batched_bad_arg(const Arguments& arg)
     rocblas_int       incy        = 1;
     const rocblas_int batch_count = 5;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // allocate memory on device
     device_batch_vector<T> dx(N, incx, batch_count);
@@ -57,7 +57,7 @@ void testing_copy_batched(const Arguments& arg)
     rocblas_int          N    = arg.N;
     rocblas_int          incx = arg.incx;
     rocblas_int          incy = arg.incy;
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
     rocblas_int          batch_count = arg.batch_count;
 
     // argument sanity check before allocating invalid memory

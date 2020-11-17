@@ -28,7 +28,7 @@ void testing_axpy_strided_batched_ex_bad_arg(const Arguments& arg)
     rocblas_datatype y_type         = rocblas_datatype_f32_r;
     rocblas_datatype execution_type = rocblas_datatype_f32_r;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
     rocblas_int          N = 100, incx = 1, incy = 1, batch_count = 2;
 
     rocblas_stride stridex = arg.stride_x, stridey = arg.stride_y;
@@ -125,7 +125,7 @@ void testing_axpy_strided_batched_ex(const Arguments& arg)
 
     Ta                   h_alpha    = arg.get_alpha<Ta>();
     Tex                  h_alpha_ex = (Tex)h_alpha;
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // argument sanity check before allocating invalid memory
     if(N <= 0 || batch_count <= 0)

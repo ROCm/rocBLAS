@@ -27,7 +27,7 @@ void testing_her_bad_arg(const Arguments& arg)
     rocblas_int          lda   = 100;
     rocblas_int          incx  = 1;
     real_t<T>            alpha = 0.6;
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     size_t abs_incx = incx >= 0 ? incx : -incx;
     size_t size_A   = size_t(N) * lda;
@@ -63,7 +63,7 @@ void testing_her(const Arguments& arg)
     rocblas_int          lda     = arg.lda;
     real_t<T>            h_alpha = arg.get_alpha<real_t<T>>();
     rocblas_fill         uplo    = char2rocblas_fill(arg.uplo);
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // argument check before allocating invalid memory
     if(N < 0 || !incx || lda < 1 || lda < N)

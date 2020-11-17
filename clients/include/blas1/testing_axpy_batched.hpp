@@ -23,7 +23,7 @@ void testing_axpy_batched_bad_arg(const Arguments& arg)
     auto       rocblas_axpy_batched_fn
         = FORTRAN ? rocblas_axpy_batched<T, true> : rocblas_axpy_batched<T, false>;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     rocblas_int N = 100, incx = 1, incy = 1, batch_count = 2;
 
@@ -59,7 +59,7 @@ void testing_axpy_batched(const Arguments& arg)
     auto       rocblas_axpy_batched_fn
         = FORTRAN ? rocblas_axpy_batched<T, true> : rocblas_axpy_batched<T, false>;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
     rocblas_int          N = arg.N, incx = arg.incx, incy = arg.incy, batch_count = arg.batch_count;
 
     T h_alpha = arg.get_alpha<T>();

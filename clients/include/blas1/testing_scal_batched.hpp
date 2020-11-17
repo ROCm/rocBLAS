@@ -27,7 +27,7 @@ void testing_scal_batched(const Arguments& arg)
     U           h_alpha     = arg.get_alpha<U>();
     rocblas_int batch_count = arg.batch_count;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // argument sanity check before allocating invalid memory
     if(N < 0 || incx <= 0 || batch_count <= 0)
@@ -157,7 +157,7 @@ void testing_scal_batched_bad_arg(const Arguments& arg)
     U           h_alpha     = U(1.0);
     rocblas_int batch_count = 5;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     size_t size_x = N * size_t(incx);
 

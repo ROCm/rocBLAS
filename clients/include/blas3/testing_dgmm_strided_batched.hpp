@@ -36,7 +36,7 @@ void testing_dgmm_strided_batched_bad_arg(const Arguments& arg)
 
     const rocblas_side side = rocblas_side_right;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     const rocblas_stride stride_a = N * size_t(lda);
     const rocblas_stride stride_x = (rocblas_side_right == side ? N : M) * size_t(abs_incx);
@@ -161,7 +161,7 @@ void testing_dgmm_strided_batched(const Arguments& arg)
     size_t size_x = batch_count * stride_x;
     size_t size_C = batch_count * stride_c;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // argument sanity check before allocating invalid memory
     bool invalid_size = M < 0 || N < 0 || lda < M || ldc < M || batch_count < 0;

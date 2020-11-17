@@ -35,7 +35,7 @@ void testing_dot_ex_bad_arg(const Arguments& arg)
     rocblas_int         incy      = 1;
     static const size_t safe_size = 100; //  arbitrarily set to 100
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
     device_vector<Tx>    dx(safe_size);
     device_vector<Ty>    dy(safe_size);
     device_vector<Tr>    d_rocblas_result(1);
@@ -117,7 +117,7 @@ void testing_dot_ex(const Arguments& arg)
 
     double               rocblas_error_1;
     double               rocblas_error_2;
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // check to prevent undefined memmory allocation error
     if(N <= 0)

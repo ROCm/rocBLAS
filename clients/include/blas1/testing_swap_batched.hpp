@@ -26,7 +26,7 @@ void testing_swap_batched_bad_arg(const Arguments& arg)
     rocblas_int incy        = 1;
     rocblas_int batch_count = 1;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     device_batch_vector<T> dxt(N, incx, batch_count);
     device_batch_vector<T> dyt(N, incy, batch_count);
@@ -57,7 +57,7 @@ void testing_swap_batched(const Arguments& arg)
     rocblas_int incy        = arg.incy;
     rocblas_int batch_count = arg.batch_count;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // argument sanity check before allocating invalid memory
     if(N <= 0 || batch_count <= 0)
