@@ -1301,6 +1301,10 @@ try
          bool_switch(&arg.fortran)->default_value(false),
          "Run using Fortran interface")
 
+        ("workspace",
+         value<size_t>(&arg.user_allocated_workspace)->default_value(0),
+         "Set fixed workspace memory size instead of using rocblas managed memory")
+
         ("help,h", "produces this help message")
 
         ("version", "Prints the version number");
