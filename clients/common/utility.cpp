@@ -7,7 +7,9 @@
 #include "rocblas_random.hpp"
 #include <cstdlib>
 #include <cstring>
+#include <new>
 #include <regex>
+#include <stdexcept>
 #include <sys/time.h>
 
 // Random number generator
@@ -21,7 +23,7 @@ const std::thread::id main_thread_id = std::this_thread::get_id();
 
 // For the main thread, we use rocblas_seed; for other threads, we start with a different seed but
 // deterministically based on the thread id's hash function.
-thread_local rocblas_rng_t rocblas_rng = get_seed();
+thread_local rocblas_rng_t t_rocblas_rng = get_seed();
 
 /* ============================================================================================ */
 // Return path of this executable
@@ -177,4 +179,51 @@ bool match_test_category(const Arguments& arg, const char* category)
 
     // Return whether arg.category matches the requested category
     return !strcmp(arg.category, category);
+}
+
+/*****************
+ * local handles *
+ *****************/
+
+rocblas_local_handle::rocblas_local_handle()
+{
+    auto status = rocblas_create_handle(&m_handle);
+    if(status != rocblas_status_success)
+        throw std::runtime_error(rocblas_status_to_string(status));
+
+#ifdef GOOGLE_TEST
+    if(t_set_stream_callback)
+    {
+        (*t_set_stream_callback)(m_handle);
+        t_set_stream_callback.reset();
+    }
+#endif
+}
+
+rocblas_local_handle::rocblas_local_handle(const Arguments& arg)
+    : rocblas_local_handle()
+{
+    // Set the atomics mode
+    auto status = rocblas_set_atomics_mode(m_handle, arg.atomics_mode);
+
+    if(status == rocblas_status_success)
+    {
+        // If the test specifies user allocated workspace, allocate and use it
+        if(arg.user_allocated_workspace)
+        {
+            if((hipMalloc)(&m_memory, arg.user_allocated_workspace) != hipSuccess)
+                throw std::bad_alloc();
+            status = rocblas_set_workspace(m_handle, m_memory, arg.user_allocated_workspace);
+        }
+    }
+
+    if(status != rocblas_status_success)
+        throw std::runtime_error(rocblas_status_to_string(status));
+}
+
+rocblas_local_handle::~rocblas_local_handle()
+{
+    if(m_memory)
+        (hipFree)(m_memory);
+    rocblas_destroy_handle(m_handle);
 }

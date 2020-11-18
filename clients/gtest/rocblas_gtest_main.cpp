@@ -177,10 +177,6 @@ static void rocblas_set_test_device()
     set_device(device_id);
 }
 
-thread_pool                                                        g_thread_pool;
-stream_pool                                                        g_stream_pool;
-thread_local std::shared_ptr<std::function<void(rocblas_handle&)>> rocblas_set_stream_callback;
-
 /*****************
  * Main function *
  *****************/

@@ -183,22 +183,25 @@ void launch_test_on_streams(std::function<void()> test, size_t numStreams, size_
     launch_test_on_streams([&] { test; }, streams, devices)
 
 // Macro to run test across threads
-#define RUN_TEST_ON_THREADS_STREAMS(test)                            \
-    do                                                               \
-    {                                                                \
-        const auto& arg          = GetParam();                       \
-        auto        threads      = arg.threads;                      \
-        auto        streams      = arg.streams;                      \
-        auto        devices      = arg.devices;                      \
-        int         availDevices = 0;                                \
-        hipGetDeviceCount(&availDevices);                            \
-        if(devices > availDevices)                                   \
-            FAIL() << "Too many devices requested";                  \
-        g_stream_pool.reset(devices, streams);                       \
-        if(threads)                                                  \
-            LAUNCH_TEST_ON_THREADS(test, threads, streams, devices); \
-        else                                                         \
-            LAUNCH_TEST_ON_STREAMS(test, streams, devices);          \
+#define RUN_TEST_ON_THREADS_STREAMS(test)                                \
+    do                                                                   \
+    {                                                                    \
+        const auto& arg          = GetParam();                           \
+        auto        threads      = arg.threads;                          \
+        auto        streams      = arg.streams;                          \
+        auto        devices      = arg.devices;                          \
+        int         availDevices = 0;                                    \
+        hipGetDeviceCount(&availDevices);                                \
+        if(devices > availDevices)                                       \
+            FAIL() << "Too many devices requested";                      \
+        else                                                             \
+        {                                                                \
+            g_stream_pool.reset(devices, streams);                       \
+            if(threads)                                                  \
+                LAUNCH_TEST_ON_THREADS(test, threads, streams, devices); \
+            else                                                         \
+                LAUNCH_TEST_ON_STREAMS(test, streams, devices);          \
+        }                                                                \
     } while(0)
 
 // Thread worker class
@@ -210,50 +213,12 @@ class thread_pool
     std::mutex                                                       m_mutex;
     std::condition_variable                                          m_cond;
 
-    void worker_thread()
-    {
-        std::unique_lock<std::mutex> lock(m_mutex);
-        while(!m_done)
-        {
-            m_cond.wait(lock, [&] { return m_done || !m_work_queue.empty(); });
-            if(m_done)
-                break;
-            auto task    = std::move(m_work_queue.front().first);
-            auto promise = std::move(m_work_queue.front().second);
-            m_work_queue.pop();
-            lock.unlock();
-            task();
-            promise.set_value();
-            lock.lock();
-        }
-    }
+    void worker_thread();
 
 public:
-    thread_pool()
-    {
-        auto thread_count = std::thread::hardware_concurrency();
-        do
-            m_threads.push_back(std::thread([&] { worker_thread(); }));
-        while(thread_count-- > 1);
-    }
-
-    ~thread_pool()
-    {
-        m_done = true;
-        m_cond.notify_all();
-        for(auto& thread : m_threads)
-            thread.join();
-    }
-
-    template <typename FUNC>
-    void submit(FUNC&& func, std::promise<void> promise)
-    {
-        {
-            std::lock_guard<std::mutex> lock(m_mutex);
-            m_work_queue.push(std::make_pair(std::forward<FUNC>(func), std::move(promise)));
-        }
-        m_cond.notify_one();
-    }
+    thread_pool();
+    ~thread_pool();
+    void submit(std::function<void()> func, std::promise<void> promise);
 };
 
 class stream_pool
@@ -263,74 +228,36 @@ class stream_pool
 public:
     stream_pool() = default;
 
-    void reset(size_t numDevices = 0, size_t numStreams = 0)
-    {
-        for(size_t i = 0; i < m_streams.size(); ++i)
-            for(size_t j = 0; j < m_streams[i].size(); ++j)
-                hipStreamDestroy(m_streams[i][j]);
-
-        m_streams.clear();
-
-        for(size_t i = 0; i < (numDevices > 1 ? numDevices : 1); ++i)
-        {
-            if(numDevices)
-                hipSetDevice(i);
-            std::vector<hipStream_t> temp;
-            for(size_t j = 0; j < numStreams; ++j)
-            {
-                hipStream_t stream;
-                if(hipStreamCreate(&stream) == hipSuccess)
-                    temp.push_back(stream);
-            }
-            m_streams.push_back(temp);
-        }
-    }
+    void reset(size_t numDevices = 0, size_t numStreams = 0);
 
     ~stream_pool()
     {
         reset();
     }
 
-    hipStream_t* get_stream_pointer(size_t deviceId)
+    auto& operator[](size_t deviceId)
     {
-        return m_streams[deviceId].data();
+        return m_streams.at(deviceId);
     }
 };
-
-extern thread_local std::shared_ptr<std::function<void(rocblas_handle&)>>
-    rocblas_set_stream_callback;
-
-inline void rocblas_test_set_stream(rocblas_handle& handle)
-{
-    if(rocblas_set_stream_callback)
-    {
-        (*rocblas_set_stream_callback)(handle);
-        rocblas_set_stream_callback.reset();
-    }
-}
 
 extern stream_pool g_stream_pool;
 extern thread_pool g_thread_pool;
 
+extern thread_local std::unique_ptr<std::function<void(rocblas_handle)>> t_set_stream_callback;
+
 /* ============================================================================================ */
 /*! \brief  Normalized test name to conform to Google Tests */
-// Template parameter is used to generate multiple instantiations
+// The template parameter is only used to generate multiple instantiations with distinct static local variables
 template <typename>
 class RocBLAS_TestName
 {
-    std::ostringstream str;
-
-    static auto& get_table()
-    {
-        // Placed inside function to avoid dependency on initialization order
-        static std::unordered_map<std::string, size_t>* table = test_cleanup::allocate(&table);
-        return *table;
-    }
+    std::ostringstream m_str;
 
 public:
     explicit RocBLAS_TestName(const char* name)
     {
-        str << name << '_';
+        m_str << name << '_';
     }
 
     // Convert stream to normalized Google Test name
@@ -339,60 +266,25 @@ public:
     operator std::string() &&
     {
         // This table is private to each instantation of RocBLAS_TestName
-        auto&       table = get_table();
-        std::string name(str.str());
-
-        // Remove trailing underscore
-        if(!name.empty() && name.back() == '_')
-            name.pop_back();
-
-        // If name is empty, make it 1
-        if(name.empty())
-            name = "1";
-
-        // Warn about unset letter parameters
-        if(name.find('*') != name.npos)
-            rocblas_cerr << "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-                            "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!\n"
-                            "Warning: Character * found in name."
-                            " This means a required letter parameter\n"
-                            "(e.g., transA, diag, etc.) has not been set in the YAML file."
-                            " Check the YAML file.\n"
-                            "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-                            "!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!"
-                         << std::endl;
-
-        // Replace non-alphanumeric characters with letters
-        std::replace(name.begin(), name.end(), '-', 'n'); // minus
-        std::replace(name.begin(), name.end(), '.', 'p'); // decimal point
-
-        // Complex (A,B) is replaced with ArBi
-        name.erase(std::remove(name.begin(), name.end(), '('), name.end());
-        std::replace(name.begin(), name.end(), ',', 'r');
-        std::replace(name.begin(), name.end(), ')', 'i');
-
-        // If parameters are repeated, append an incrementing suffix
-        auto p = table.find(name);
-        if(p != table.end())
-            name += "_t" + std::to_string(++p->second);
-        else
-            table[name] = 1;
-
-        return name;
+        // Placed inside function to avoid dependency on initialization order
+        static std::unordered_map<std::string, size_t>* table = test_cleanup::allocate(&table);
+        std::string RocBLAS_TestName_to_string(std::unordered_map<std::string, size_t>&,
+                                               std::ostringstream&);
+        return RocBLAS_TestName_to_string(*table, m_str);
     }
 
     // Stream output operations
     template <typename U> // Lvalue LHS
     friend RocBLAS_TestName& operator<<(RocBLAS_TestName& name, U&& obj)
     {
-        name.str << std::forward<U>(obj);
+        name.m_str << std::forward<U>(obj);
         return name;
     }
 
     template <typename U> // Rvalue LHS
     friend RocBLAS_TestName&& operator<<(RocBLAS_TestName&& name, U&& obj)
     {
-        name.str << std::forward<U>(obj);
+        name.m_str << std::forward<U>(obj);
         return std::move(name);
     }
 

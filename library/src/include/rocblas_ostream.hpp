@@ -227,15 +227,15 @@ public:
     // Implemented as singleton to avoid the static initialization order fiasco
     static rocblas_ostream& cout()
     {
-        thread_local rocblas_ostream cout{STDOUT_FILENO};
-        return cout;
+        thread_local rocblas_ostream t_cout{STDOUT_FILENO};
+        return t_cout;
     }
 
     // Implemented as singleton to avoid the static initialization order fiasco
     static rocblas_ostream& cerr()
     {
-        thread_local rocblas_ostream cerr{STDERR_FILENO};
-        return cerr;
+        thread_local rocblas_ostream t_cerr{STDERR_FILENO};
+        return t_cerr;
     }
 
     // Abort function which safely flushes all IO

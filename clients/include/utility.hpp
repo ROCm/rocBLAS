@@ -78,37 +78,11 @@ class rocblas_local_handle
     void*          m_memory = nullptr;
 
 public:
-    rocblas_local_handle()
-    {
-        rocblas_create_handle(&m_handle);
-#ifdef GOOGLE_TEST
-        rocblas_test_set_stream(m_handle);
-#endif
-    }
+    rocblas_local_handle();
 
-    explicit rocblas_local_handle(const Arguments& arg)
-        : rocblas_local_handle()
-    {
-        // Set the atomics mode
-        if(rocblas_set_atomics_mode(m_handle, arg.atomics_mode) != rocblas_status_success)
-            throw rocblas_status_internal_error;
+    explicit rocblas_local_handle(const Arguments& arg);
 
-        // If the test specifies user allocated workspace, allocate and use it
-        if(arg.user_allocated_workspace)
-        {
-            if((hipMalloc)(&m_memory, arg.user_allocated_workspace) != hipSuccess
-               || rocblas_set_workspace(m_handle, m_memory, arg.user_allocated_workspace)
-                      != rocblas_status_success)
-                throw rocblas_status_memory_error;
-        }
-    }
-
-    ~rocblas_local_handle()
-    {
-        if(m_memory)
-            (hipFree)(m_memory);
-        rocblas_destroy_handle(m_handle);
-    }
+    ~rocblas_local_handle();
 
     rocblas_local_handle(const rocblas_local_handle&) = delete;
     rocblas_local_handle(rocblas_local_handle&&)      = delete;
