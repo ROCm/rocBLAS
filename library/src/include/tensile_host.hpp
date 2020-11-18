@@ -299,8 +299,8 @@ ROCBLAS_EXPORT std::atomic_bool& rocblas_tensile_is_initialized();
  **********************************************/
 inline bool& rocblas_suppress_tensile_error_messages()
 {
-    thread_local bool suppress = false;
-    return suppress;
+    thread_local bool t_suppress = false;
+    return t_suppress;
 }
 
 #endif // __TENSILE_HOST_HPP__
