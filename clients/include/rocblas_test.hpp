@@ -193,7 +193,7 @@ void launch_test_on_streams(std::function<void()> test, size_t numStreams, size_
         int         availDevices = 0;                                    \
         hipGetDeviceCount(&availDevices);                                \
         if(devices > availDevices)                                       \
-            FAIL() << "Too many devices requested";                      \
+            SUCCEED() << TOO_MANY_DEVICES_STRING;                        \
         else                                                             \
         {                                                                \
             g_stream_pool.reset(devices, streams);                       \
