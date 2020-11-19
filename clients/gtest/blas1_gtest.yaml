@@ -226,15 +226,15 @@ Tests:
     function:
       - axpy_ex: *half_single_double_complex_real_precisions
 
-  # - name: axpy_multi_threads_streams
-  #   category: nightly
-  #   N: [ 50007, 1049600 ]
-  #   incx_incy: *incx_incy_range_small
-  #   threads_streams: *common_threads_streams
-  #   alpha_beta: *alpha_beta_range
-  #   alphai_betai: *alphai_betai_range
-  #   function:
-  #     - axpy_ex: *half_single_double_complex_real_precisions
+  - name: axpy_multi_threads_streams
+    category: nightly
+    N: [ 50007, 1049600 ]
+    incx_incy: *incx_incy_range_small
+    threads_streams: *common_threads_streams
+    alpha_beta: *alpha_beta_range
+    alphai_betai: *alphai_betai_range
+    function:
+      - axpy_ex: *half_single_double_complex_real_precisions
 
   - name: blas1_batched_with_alpha
     category: nightly
@@ -775,13 +775,13 @@ Tests:
       - rot_ex: *rot_ex_precisions
       - rotm:  *single_double_precisions_complex_real
 
-  # - name: dot_multi_threads_stream
-  #   category: nightly
-  #   N: [ 5000, 800000 ]
-  #   incx_incy: *incx_incy_range_small
-  #   function:
-  #     - dot:   *double_precision_complex_real
-  #   threads_streams: *common_threads_streams
+  - name: dot_multi_threads_stream
+    category: nightly
+    N: [ 5000, 800000 ]
+    incx_incy: *incx_incy_range_small
+    function:
+      - dot:   *double_precision_complex_real
+    threads_streams: *common_threads_streams
 
   - name: blas1_batched
     category: nightly

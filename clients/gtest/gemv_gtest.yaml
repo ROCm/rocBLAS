@@ -128,16 +128,16 @@ Tests:
   threads_streams: *common_threads_streams
   devices: [0, 2, 4]
 
-# - name: gemv_medium_multi_threads_streams
-#   category: nightly
-#   function: gemv
-#   precision: *single_double_precisions_complex_real
-#   transA: [ N, T, C ]
-#   matrix_size: *medium_matrix_size_range
-#   incx: 2
-#   incy: 1
-#   alpha_beta: *alpha_beta_range
-#   threads_streams: *common_threads_streams
+- name: gemv_medium_multi_threads_streams
+  category: nightly
+  function: gemv
+  precision: *single_double_precisions_complex_real
+  transA: [ N, T, C ]
+  matrix_size: *medium_matrix_size_range
+  incx: 2
+  incy: 1
+  alpha_beta: *alpha_beta_range
+  threads_streams: *common_threads_streams
 
 - name: gemv_large
   category: nightly
