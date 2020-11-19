@@ -27,7 +27,7 @@ import subprocess
 read_the_docs_build = os.environ.get('READTHEDOCS', None) == 'True'
 
 if read_the_docs_build:
-    subprocess.call('cd ..; ./run_doxygen.sh; cd source', shell=True)
+    subprocess.call('../run_doxygen.sh')
 
 # -- General configuration ------------------------------------------------
 
@@ -56,7 +56,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'rocBLAS'
-copyright = u'2016-2018, Advanced Micro Devices'
+copyright = u'2016-2020, Advanced Micro Devices'
 author = u'Advanced Micro Devices'
 
 # The version info for the project you're documenting, acts as replacement for
