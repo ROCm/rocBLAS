@@ -12,26 +12,19 @@ using namespace testing;
 
 class ConfigurableEventListener : public TestEventListener
 {
-    TestEventListener* eventListener;
+    TestEventListener* const eventListener;
+    std::atomic_size_t       skipped_tests{0}; // Number of skipped tests.
 
 public:
-    bool showTestCases; // Show the names of each test case.
-    bool showTestNames; // Show the names of each test.
-    bool showSuccesses; // Show each success.
-    bool showInlineFailures; // Show each failure as it occurs.
-    bool showEnvironment; // Show the setup of the global environment.
-    bool showInlineSkips; // Show when we skip a test.
-    int  skipped_tests; // Number of skipped tests.
+    bool showTestCases      = true; // Show the names of each test case.
+    bool showTestNames      = true; // Show the names of each test.
+    bool showSuccesses      = true; // Show each success.
+    bool showInlineFailures = true; // Show each failure as it occurs.
+    bool showEnvironment    = true; // Show the setup of the global environment.
+    bool showInlineSkips    = true; // Show when we skip a test.
 
     explicit ConfigurableEventListener(TestEventListener* theEventListener)
         : eventListener(theEventListener)
-        , showTestCases(true)
-        , showTestNames(true)
-        , showSuccesses(true)
-        , showInlineFailures(true)
-        , showEnvironment(true)
-        , showInlineSkips(true)
-        , skipped_tests(0)
     {
     }
 
@@ -76,11 +69,17 @@ public:
 
     void OnTestPartResult(const TestPartResult& result) override
     {
-        if(strcmp(result.message(), LIMITED_MEMORY_STRING_GTEST) == 0)
+        if(!strcmp(result.message(), LIMITED_MEMORY_STRING_GTEST))
         {
-            skipped_tests++;
             if(showInlineSkips)
                 rocblas_cout << "Skipped test due to limited memory environment." << std::endl;
+            ++skipped_tests;
+        }
+        else if(!strcmp(result.message(), TOO_MANY_DEVICES_STRING_GTEST))
+        {
+            if(showInlineSkips)
+                rocblas_cout << "Skipped test due to too few GPUs." << std::endl;
+            ++skipped_tests;
         }
         eventListener->OnTestPartResult(result);
     }
