@@ -114,7 +114,7 @@ _rocblas_handle::~_rocblas_handle()
 #if ROCBLAS_REALLOC_ON_DEMAND
 bool _rocblas_handle::device_allocator(size_t size)
 {
-    bool success = size <= device_memory_size;
+    bool success = size <= device_memory_size - device_memory_in_use;
     if(!success && device_memory_owner == rocblas_device_memory_ownership::rocblas_managed)
     {
         if(device_memory_in_use)
