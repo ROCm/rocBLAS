@@ -135,7 +135,7 @@ void reduction_log_trace(rocblas_handle   handle,
     log_trace(handle, name, n, x, incx, batch_count);
 }
 
-template <rocblas_int NB, bool ISBATCHED, typename U, typename Tr, typename Tw>
+template <rocblas_int NB, bool ISBATCHED, typename Tw, typename U, typename Tr>
 inline rocblas_status rocblas_reduction_setup(rocblas_handle handle,
                                               rocblas_int    n,
                                               U              x,
@@ -145,7 +145,7 @@ inline rocblas_status rocblas_reduction_setup(rocblas_handle handle,
                                               Tr*            results,
                                               const char*    name,
                                               const char*    name_bench,
-                                              Tw*&           workspace)
+                                              size_t&        work_size)
 {
     if(!handle)
     {
@@ -211,12 +211,7 @@ inline rocblas_status rocblas_reduction_setup(rocblas_handle handle,
         return rocblas_status_invalid_pointer;
     }
 
-    auto mem = handle->device_malloc(dev_bytes);
-    if(!mem)
-    {
-        return rocblas_status_memory_error;
-    }
-    workspace = (Tw*)mem;
+    work_size = dev_bytes;
 
     return rocblas_status_continue;
 }
@@ -240,15 +235,21 @@ rocblas_status rocblas_reduction_impl(rocblas_handle handle,
                                       const char*    name,
                                       const char*    name_bench)
 {
-    Tw*            mem           = nullptr;
-    rocblas_status checks_status = rocblas_reduction_setup<NB, ISBATCHED>(
-        handle, n, x, incx, stridex, batch_count, results, name, name_bench, mem);
+    size_t         dev_bytes     = 0;
+    rocblas_status checks_status = rocblas_reduction_setup<NB, ISBATCHED, Tw>(
+        handle, n, x, incx, stridex, batch_count, results, name, name_bench, dev_bytes);
     if(checks_status != rocblas_status_continue)
     {
         return checks_status;
     }
 
+    auto mem = handle->device_malloc(dev_bytes);
+    if(!mem)
+    {
+        return rocblas_status_memory_error;
+    }
+
     static constexpr rocblas_int shiftx_0 = 0;
     return rocblas_reduction_template<NB, ISBATCHED, FETCH, REDUCE, FINALIZE>(
-        handle, n, x, shiftx_0, incx, stridex, batch_count, results, mem);
+        handle, n, x, shiftx_0, incx, stridex, batch_count, results, (Tw*)mem);
 }

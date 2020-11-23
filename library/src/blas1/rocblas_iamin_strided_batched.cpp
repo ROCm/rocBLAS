@@ -35,18 +35,19 @@ namespace
         static constexpr rocblas_int shiftx_0  = 0;
         static constexpr int         NB        = 1024;
 
-        rocblas_index_value_t<S>* mem = nullptr;
-        rocblas_status            checks_status
-            = rocblas_reduction_setup<NB, isbatched>(handle,
-                                                     n,
-                                                     x,
-                                                     incx,
-                                                     stridex,
-                                                     batch_count,
-                                                     result,
-                                                     rocblas_iamin_strided_batched_name<T>,
-                                                     "iamin_strided_batched",
-                                                     mem);
+        size_t         dev_bytes = 0;
+        rocblas_status checks_status
+            = rocblas_reduction_setup<NB, isbatched, rocblas_index_value_t<S>>(
+                handle,
+                n,
+                x,
+                incx,
+                stridex,
+                batch_count,
+                result,
+                rocblas_iamin_strided_batched_name<T>,
+                "iamin_strided_batched",
+                dev_bytes);
         if(checks_status != rocblas_status_continue)
         {
             return checks_status;
@@ -70,8 +71,22 @@ namespace
             if(check_numerics_status != rocblas_status_success)
                 return check_numerics_status;
         }
-        rocblas_status status = rocblas_iamin_template<NB, isbatched>(
-            handle, n, x, shiftx_0, incx, stridex, batch_count, result, mem);
+
+        auto mem = handle->device_malloc(dev_bytes);
+        if(!mem)
+        {
+            return rocblas_status_memory_error;
+        }
+        rocblas_status status
+            = rocblas_iamin_template<NB, isbatched>(handle,
+                                                    n,
+                                                    x,
+                                                    shiftx_0,
+                                                    incx,
+                                                    stridex,
+                                                    batch_count,
+                                                    result,
+                                                    (rocblas_index_value_t<S>*)mem);
         if(status != rocblas_status_success)
             return status;
 
