@@ -32,17 +32,18 @@ namespace
         static constexpr rocblas_int    batch_count_1 = 1;
         static constexpr rocblas_int    shiftx_0      = 0;
 
-        To*            mem           = nullptr;
-        rocblas_status checks_status = rocblas_reduction_setup<NB, isbatched>(handle,
-                                                                              n,
-                                                                              x,
-                                                                              incx,
-                                                                              stridex_0,
-                                                                              batch_count_1,
-                                                                              results,
-                                                                              rocblas_nrm2_name<Ti>,
-                                                                              "nrm2",
-                                                                              mem);
+        size_t         dev_bytes = 0;
+        rocblas_status checks_status
+            = rocblas_reduction_setup<NB, isbatched, To>(handle,
+                                                         n,
+                                                         x,
+                                                         incx,
+                                                         stridex_0,
+                                                         batch_count_1,
+                                                         results,
+                                                         rocblas_nrm2_name<Ti>,
+                                                         "nrm2",
+                                                         dev_bytes);
         if(checks_status != rocblas_status_continue)
         {
             return checks_status;
@@ -67,8 +68,13 @@ namespace
                 return check_numerics_status;
         }
 
+        auto mem = handle->device_malloc(dev_bytes);
+        if(!mem)
+        {
+            return rocblas_status_memory_error;
+        }
         rocblas_status status = rocblas_nrm2_template<NB, isbatched>(
-            handle, n, x, shiftx_0, incx, stridex_0, batch_count_1, results, mem);
+            handle, n, x, shiftx_0, incx, stridex_0, batch_count_1, results, (To*)mem);
         if(status != rocblas_status_success)
             return status;
 
