@@ -101,7 +101,6 @@ void testing_syrk(const Arguments& arg)
     T beta  = arg.get_beta<T>();
 
     double gpu_time_used, cpu_time_used;
-    double rocblas_gflops, cblas_gflops;
     double rocblas_error = 0.0;
 
     // Note: K==0 is not an early exit, since C still needs to be multiplied by beta
@@ -180,22 +179,15 @@ void testing_syrk(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(
             rocblas_syrk_fn(handle, uplo, transA, N, K, d_alpha, dA, lda, d_beta, dC, ldc));
 
-        // copy output from device to CPU
-        CHECK_HIP_ERROR(hC_2.transfer_from(dC));
-
         // CPU BLAS
-        if(arg.timing)
-        {
-            cpu_time_used = get_time_us_no_sync();
-        }
+        cpu_time_used = get_time_us_no_sync();
 
         cblas_syrk<T>(uplo, transA, N, K, h_alpha[0], hA, lda, h_beta[0], hC_gold, ldc);
 
-        if(arg.timing)
-        {
-            cpu_time_used = get_time_us_no_sync() - cpu_time_used;
-            cblas_gflops  = syrk_gflop_count<T>(N, K) / cpu_time_used * 1e6;
-        }
+        cpu_time_used = get_time_us_no_sync() - cpu_time_used;
+
+        // copy output from device to CPU
+        CHECK_HIP_ERROR(hC_2.transfer_from(dC));
 
         if(arg.unit_check)
         {
@@ -240,23 +232,15 @@ void testing_syrk(const Arguments& arg)
         {
             rocblas_syrk_fn(handle, uplo, transA, N, K, h_alpha, dA, lda, h_beta, dC, ldc);
         }
-        gpu_time_used  = get_time_us_sync(stream) - gpu_time_used;
-        rocblas_gflops = syrk_gflop_count<T>(N, K) * number_hot_calls / gpu_time_used * 1e6;
+        gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
 
-        rocblas_cout << "uplo,transA,N,K,alpha,lda,beta,ldc,rocblas-Gflops,us";
-
-        if(arg.norm_check)
-            rocblas_cout << ",CPU-Gflops,us,norm-error";
-
-        rocblas_cout << std::endl;
-
-        rocblas_cout << arg.uplo << "," << arg.transA << "," << N << "," << K << ","
-                     << arg.get_alpha<T>() << "," << lda << "," << arg.get_beta<T>() << "," << ldc
-                     << "," << rocblas_gflops << "," << gpu_time_used / number_hot_calls;
-
-        if(arg.norm_check)
-            rocblas_cout << "," << cblas_gflops << "," << cpu_time_used << "," << rocblas_error;
-
-        rocblas_cout << std::endl;
+        ArgumentModel<e_uplo, e_transA, e_N, e_K, e_alpha, e_lda, e_beta, e_ldc>{}.log_args<T>(
+            rocblas_cout,
+            arg,
+            gpu_time_used,
+            syrk_gflop_count<T>(N, K),
+            ArgumentLogging::NA_value,
+            cpu_time_used,
+            rocblas_error);
     }
 }

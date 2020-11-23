@@ -163,11 +163,11 @@ void testing_geam_batched(const Arguments& arg)
     rocblas_int inc1_A, inc2_A, inc1_B, inc2_B;
 
     double gpu_time_used, cpu_time_used;
-    double rocblas_gflops, cblas_gflops;
+    gpu_time_used = cpu_time_used = 0.0;
 
-    T rocblas_error_1 = std::numeric_limits<T>::max();
-    T rocblas_error_2 = std::numeric_limits<T>::max();
-    T rocblas_error   = std::numeric_limits<T>::max();
+    double rocblas_error_1 = std::numeric_limits<double>::max();
+    double rocblas_error_2 = std::numeric_limits<double>::max();
+    double rocblas_error   = std::numeric_limits<double>::max();
 
     rocblas_local_handle handle{arg};
 
@@ -312,8 +312,6 @@ void testing_geam_batched(const Arguments& arg)
                                                     ldc,
                                                     batch_count));
 
-        CHECK_HIP_ERROR(hC_2.transfer_from(dC));
-
         // reference calculation for golden result
         cpu_time_used = get_time_us_no_sync();
 
@@ -338,7 +336,9 @@ void testing_geam_batched(const Arguments& arg)
         }
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
-        cblas_gflops  = geam_gflop_count<T>(M, N) * batch_count / cpu_time_used * 1e6;
+
+        // fetch GPU
+        CHECK_HIP_ERROR(hC_2.transfer_from(dC));
 
         if(arg.unit_check)
         {
@@ -530,26 +530,24 @@ void testing_geam_batched(const Arguments& arg)
                                     batch_count);
         }
         gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
-        rocblas_gflops
-            = geam_gflop_count<T>(M, N) * number_hot_calls * batch_count / gpu_time_used * 1e6;
 
-        rocblas_cout << "transA,transB,M,N,alpha,lda,beta,ldb,ldc,batch_"
-                        "count,rocblas-Gflops,us";
-        if(arg.unit_check || arg.norm_check)
-        {
-            rocblas_cout << ",CPU-Gflops,us,norm_error_ptr_host,norm_error_ptr_dev";
-        }
-        rocblas_cout << std::endl;
-
-        rocblas_cout << arg.transA << arg.transB << "," << M << "," << N << "," << alpha << ","
-                     << lda << "," << beta << "," << ldb << "," << ldc << "," << batch_count << ","
-                     << rocblas_gflops << "," << gpu_time_used / number_hot_calls << ",";
-
-        if(arg.unit_check || arg.norm_check)
-        {
-            rocblas_cout << cblas_gflops << "," << cpu_time_used << ",";
-            rocblas_cout << rocblas_error_1 << "," << rocblas_error_2;
-        }
-        rocblas_cout << std::endl;
+        ArgumentModel<e_transA,
+                      e_transB,
+                      e_M,
+                      e_N,
+                      e_alpha,
+                      e_lda,
+                      e_beta,
+                      e_ldb,
+                      e_ldc,
+                      e_batch_count>{}
+            .log_args<T>(rocblas_cout,
+                         arg,
+                         gpu_time_used,
+                         geam_gflop_count<T>(M, N),
+                         ArgumentLogging::NA_value,
+                         cpu_time_used,
+                         rocblas_error_1,
+                         rocblas_error_2);
     }
 }

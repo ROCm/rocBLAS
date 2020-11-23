@@ -262,7 +262,7 @@ void testing_tpsv_batched(const Arguments& arg)
             arg,
             gpu_time_used,
             tpsv_gflop_count<T>(N),
-            0.0,
+            ArgumentLogging::NA_value,
             cpu_time_used,
             max_err_1,
             max_err_2);
