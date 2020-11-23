@@ -63,8 +63,6 @@ void testing_trsv(const Arguments& arg)
     host_vector<T> cpu_x_or_b(size_x);
 
     double gpu_time_used, cpu_time_used;
-    double rocblas_gflops, cblas_gflops;
-    double rocblas_error;
     double error_eps_multiplier    = ERROR_EPS_MULTIPLIER;
     double residual_eps_multiplier = RESIDUAL_EPS_MULTIPLIER;
     double eps                     = std::numeric_limits<real_t<T>>::epsilon();
@@ -210,8 +208,7 @@ void testing_trsv(const Arguments& arg)
         for(int i = 0; i < number_hot_calls; i++)
             rocblas_trsv_fn(handle, uplo, transA, diag, M, dA, lda, dx_or_b, incx);
 
-        gpu_time_used  = (get_time_us_sync(stream) - gpu_time_used) / number_hot_calls;
-        rocblas_gflops = trsv_gflop_count<T>(M) / gpu_time_used * 1e6;
+        gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
 
         // CPU cblas
         cpu_time_used = get_time_us_no_sync();
@@ -220,23 +217,15 @@ void testing_trsv(const Arguments& arg)
             cblas_trsv<T>(uplo, transA, diag, M, hA, lda, cpu_x_or_b, incx);
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
-        cblas_gflops  = trsv_gflop_count<T>(M) / cpu_time_used * 1e6;
 
-        // only norm_check return an norm error, unit check won't return anything
-        rocblas_cout << "M,lda,incx,uplo,transA,diag,rocblas-Gflops,us";
-
-        if(arg.norm_check)
-            rocblas_cout << ",CPU-Gflops,us,norm_error_host_ptr,norm_error_dev_ptr";
-
-        rocblas_cout << std::endl;
-
-        rocblas_cout << M << ',' << lda << ',' << incx << ',' << char_uplo << ',' << char_transA
-                     << ',' << char_diag << ',' << rocblas_gflops << "," << gpu_time_used;
-
-        if(arg.norm_check)
-            rocblas_cout << "," << cblas_gflops << "," << cpu_time_used << "," << max_err_1 << ","
-                         << max_err_2;
-
-        rocblas_cout << std::endl;
+        ArgumentModel<e_uplo, e_transA, e_diag, e_M, e_lda, e_incx>{}.log_args<T>(
+            rocblas_cout,
+            arg,
+            gpu_time_used,
+            trsv_gflop_count<T>(M),
+            ArgumentLogging::NA_value,
+            cpu_time_used,
+            max_err_1,
+            max_err_2);
     }
 }

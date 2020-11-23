@@ -202,13 +202,14 @@ void testing_tpsv(const Arguments& arg)
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
-        ArgumentModel<e_uplo, e_transA, e_diag, e_N, e_incx>{}.log_args<T>(rocblas_cout,
-                                                                           arg,
-                                                                           gpu_time_used,
-                                                                           tpsv_gflop_count<T>(N),
-                                                                           0.0,
-                                                                           cpu_time_used,
-                                                                           max_err_1,
-                                                                           max_err_2);
+        ArgumentModel<e_uplo, e_transA, e_diag, e_N, e_incx>{}.log_args<T>(
+            rocblas_cout,
+            arg,
+            gpu_time_used,
+            tpsv_gflop_count<T>(N),
+            ArgumentLogging::NA_value,
+            cpu_time_used,
+            max_err_1,
+            max_err_2);
     }
 }

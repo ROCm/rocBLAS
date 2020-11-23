@@ -299,7 +299,7 @@ void testing_tbsv_batched(const Arguments& arg)
                          arg,
                          gpu_time_used,
                          tbsv_gflop_count<T>(N, K),
-                         0.0,
+                         ArgumentLogging::NA_value,
                          cpu_time_used,
                          max_err_1,
                          max_err_2);

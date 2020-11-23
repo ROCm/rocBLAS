@@ -131,8 +131,8 @@ void testing_gemm(const Arguments& arg)
     T h_alpha = arg.get_alpha<T>();
     T h_beta  = arg.get_beta<T>();
 
-    double               gpu_time_used, cpu_time_used;
-    double               rocblas_gflops, cblas_gflops;
+    double gpu_time_used, cpu_time_used;
+    gpu_time_used = cpu_time_used      = 0.0;
     double               rocblas_error = 0.0;
     rocblas_local_handle handle{arg};
 
@@ -258,7 +258,6 @@ void testing_gemm(const Arguments& arg)
         CHECK_HIP_ERROR(hipMemcpy(d_beta, &h_beta, sizeof(T), hipMemcpyHostToDevice));
         CHECK_ROCBLAS_ERROR(rocblas_gemm_fn(
             handle, transA, transB, M, N, K, d_alpha, dA, lda, dB, ldb, d_beta, dC, ldc));
-        CHECK_HIP_ERROR(hipMemcpy(hC_2, dC, sizeof(T) * size_C, hipMemcpyDeviceToHost));
 
         // CPU BLAS
         if(arg.timing)
@@ -271,8 +270,10 @@ void testing_gemm(const Arguments& arg)
         if(arg.timing)
         {
             cpu_time_used = get_time_us_no_sync() - cpu_time_used;
-            cblas_gflops  = gemm_gflop_count<T>(M, N, K) / cpu_time_used * 1e6;
         }
+
+        // fetch GPU
+        CHECK_HIP_ERROR(hipMemcpy(hC_2, dC, sizeof(T) * size_C, hipMemcpyDeviceToHost));
 
         if(arg.unit_check)
         {
@@ -320,24 +321,15 @@ void testing_gemm(const Arguments& arg)
             rocblas_gemm_fn(
                 handle, transA, transB, M, N, K, &h_alpha, dA, lda, dB, ldb, &h_beta, dC, ldc);
         }
-        gpu_time_used  = get_time_us_sync(stream) - gpu_time_used;
-        rocblas_gflops = gemm_gflop_count<T>(M, N, K) * number_hot_calls / gpu_time_used * 1e6;
+        gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
 
-        rocblas_cout << "transA,transB,M,N,K,alpha,lda,ldb,beta,ldc,rocblas-Gflops,us";
-
-        if(arg.unit_check || arg.norm_check)
-            rocblas_cout << ",CPU-Gflops,us,norm-error";
-
-        rocblas_cout << std::endl;
-
-        rocblas_cout << arg.transA << "," << arg.transB << "," << M << "," << N << "," << K << ","
-                     << arg.get_alpha<T>() << "," << lda << "," << ldb << "," << arg.get_beta<T>()
-                     << "," << ldc << "," << rocblas_gflops << ","
-                     << gpu_time_used / number_hot_calls;
-
-        if(arg.unit_check || arg.norm_check)
-            rocblas_cout << "," << cblas_gflops << "," << cpu_time_used << "," << rocblas_error;
-
-        rocblas_cout << std::endl;
+        ArgumentModel<e_transA, e_transB, e_M, e_N, e_K, e_alpha, e_lda, e_beta, e_ldb, e_ldc>{}
+            .log_args<T>(rocblas_cout,
+                         arg,
+                         gpu_time_used,
+                         gemm_gflop_count<T>(M, N, K),
+                         ArgumentLogging::NA_value,
+                         cpu_time_used,
+                         rocblas_error);
     }
 }

@@ -201,8 +201,8 @@ void testing_trmm_strided_batched(const Arguments& arg)
     CHECK_HIP_ERROR(cpuB.memcheck());
 
     double gpu_time_used, cpu_time_used;
-    double rocblas_gflops, cblas_gflops;
-    double rocblas_error = 0.0;
+    gpu_time_used = cpu_time_used = 0.0;
+    double rocblas_error          = 0.0;
 
     // allocate memory on device
     device_vector<T> dA(size_A);
@@ -296,7 +296,6 @@ void testing_trmm_strided_batched(const Arguments& arg)
         if(arg.timing)
         {
             cpu_time_used = get_time_us_no_sync() - cpu_time_used;
-            cblas_gflops  = trmm_gflop_count<T>(M, N, side) * batch_count / cpu_time_used * 1e6;
         }
 
         if(arg.unit_check)
@@ -373,26 +372,26 @@ void testing_trmm_strided_batched(const Arguments& arg)
                                             stride_b,
                                             batch_count);
         }
-        gpu_time_used  = get_time_us_sync(stream) - gpu_time_used;
-        rocblas_gflops = trmm_gflop_count<T>(M, N, side) * batch_count * number_hot_calls
-                         / gpu_time_used * 1e6;
+        gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
 
-        rocblas_cout << "M,N,batch_count,alpha,lda,stride_a,ldb,stride_b,side,uplo,transA,diag,"
-                        "rocblas-Gflops,us";
-
-        if(arg.unit_check || arg.norm_check)
-            rocblas_cout << ",CPU-Gflops,us,norm-error";
-
-        rocblas_cout << std::endl;
-
-        rocblas_cout << M << ',' << N << ',' << batch_count << ',' << alpha << ',' << lda << ','
-                     << stride_a << ',' << ldb << ',' << stride_b << ',' << char_side << ','
-                     << char_uplo << ',' << char_transA << ',' << char_diag << ',' << rocblas_gflops
-                     << "," << gpu_time_used / number_hot_calls;
-
-        if(arg.unit_check || arg.norm_check)
-            rocblas_cout << ", " << cblas_gflops << ", " << cpu_time_used << ", " << rocblas_error;
-
-        rocblas_cout << std::endl;
+        ArgumentModel<e_side,
+                      e_uplo,
+                      e_transA,
+                      e_diag,
+                      e_M,
+                      e_N,
+                      e_alpha,
+                      e_lda,
+                      e_stride_a,
+                      e_ldb,
+                      e_stride_b,
+                      e_batch_count>{}
+            .log_args<T>(rocblas_cout,
+                         arg,
+                         gpu_time_used,
+                         trmm_gflop_count<T>(M, N, side),
+                         ArgumentLogging::NA_value,
+                         cpu_time_used,
+                         rocblas_error);
     }
 }

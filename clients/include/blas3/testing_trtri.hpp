@@ -50,7 +50,7 @@ void testing_trtri(const Arguments& arg)
     host_vector<T> hB(size_A);
 
     double gpu_time_used, cpu_time_used;
-    double rocblas_gflops, cblas_gflops;
+    gpu_time_used = cpu_time_used = 0.0;
     double rocblas_error;
 
     device_vector<T> dA(size_A);
@@ -119,8 +119,7 @@ void testing_trtri(const Arguments& arg)
 
     if(arg.timing)
     {
-        gpu_time_used  = get_time_us_sync(stream) - gpu_time_used;
-        rocblas_gflops = trtri_gflop_count<T>(N) / gpu_time_used * 1e6;
+        gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
     }
 
     // copy output from device to CPU
@@ -150,7 +149,6 @@ void testing_trtri(const Arguments& arg)
         if(arg.timing)
         {
             cpu_time_used = get_time_us_no_sync() - cpu_time_used;
-            cblas_gflops  = trtri_gflop_count<T>(N) / cpu_time_used * 1e6;
         }
 
         if(arg.unit_check)
@@ -167,23 +165,12 @@ void testing_trtri(const Arguments& arg)
 
     if(arg.timing)
     {
-        // only norm_check return an norm error, unit check won't return anything
-        rocblas_cout << "N, lda, uplo, diag, rocblas-Gflops (us) ";
-        if(arg.norm_check)
-        {
-            rocblas_cout << "CPU-Gflops(us), norm-error";
-        }
-        rocblas_cout << std::endl;
-
-        rocblas_cout << N << ',' << lda << ',' << char_uplo << ',' << char_diag << ','
-                     << rocblas_gflops << "(" << gpu_time_used << "),";
-
-        if(arg.norm_check)
-        {
-            rocblas_cout << cblas_gflops << "(" << cpu_time_used << "),";
-            rocblas_cout << rocblas_error;
-        }
-
-        rocblas_cout << std::endl;
+        ArgumentModel<e_uplo, e_diag, e_N, e_lda>{}.log_args<T>(rocblas_cout,
+                                                                arg,
+                                                                gpu_time_used,
+                                                                trtri_gflop_count<T>(N),
+                                                                ArgumentLogging::NA_value,
+                                                                cpu_time_used,
+                                                                rocblas_error);
     }
 }
