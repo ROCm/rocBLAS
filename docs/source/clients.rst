@@ -49,9 +49,9 @@ You can copy and change the command. Below the datatype is changed to IEEE-64 bi
 
    ./rocblas-bench -f gemm -r f64_r --transposeA N --transposeB N -m 2048 -n 2048 -k 2048 --alpha 1 --lda 2048 --ldb 2048 --beta 0 --ldc 2048
 
-Logging affects performance, so only use it to log the command that you copy and change, then run the command without logging to measure performance. 
+Logging affects performance, so only use it to log the command that you copy and change, then run the command without logging to measure performance.
 
-Note that rocblas-bench also has the flag ``-v 1`` for correctness checks. 
+Note that rocblas-bench also has the flag ``-v 1`` for correctness checks.
 
 rocblas-test
 ============
