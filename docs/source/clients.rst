@@ -6,7 +6,7 @@ The rocBLAS consists of two clients. They are,
 
 1. rocblas-bench
 
-2. rocblas-tests
+2. rocblas-test
 
 These two clients can be built by following the instructions at `Building and Installing rocBLAS github page <https://github.com/ROCmSoftwarePlatform/rocBLAS-internal/blob/develop/docs/source/install.rst>`_. After building the rocBLAS clients, they can be found in the directory ``rocBLAS/build/release/clients/staging``.
 
