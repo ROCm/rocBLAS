@@ -244,6 +244,16 @@ void rocblas_init_inf(
 /*! \brief  Initialize an array with random data, with zero */
 
 template <typename T>
+void rocblas_init_zero(
+    T* A, size_t M, size_t N, size_t lda, size_t stride = 0, size_t batch_count = 1)
+{
+    for(size_t i_batch = 0; i_batch < batch_count; i_batch++)
+        for(size_t i = 0; i < M; ++i)
+            for(size_t j = 0; j < N; ++j)
+                A[i + j * lda + i_batch * stride] = T(rocblas_zero_rng());
+}
+
+template <typename T>
 void rocblas_init_zero(T* A, size_t start_offset, size_t end_offset)
 {
     for(size_t i = start_offset; i < end_offset; ++i)

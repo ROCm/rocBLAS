@@ -1,7 +1,6 @@
 /* ************************************************************************
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include "check_numerics_vector.hpp"
 #include "handle.hpp"
 #include "logging.hpp"
 #include "rocblas.h"
@@ -52,67 +51,58 @@ namespace
         if(check_numerics)
         {
             bool           is_input = true;
-            rocblas_status check_numerics_status
-                = rocblas_check_numerics_vector_template(rocblas_rotmg_name<T>,
-                                                         handle,
-                                                         1,
-                                                         x1,
-                                                         0,
-                                                         1,
-                                                         0,
-                                                         batch_count,
-                                                         check_numerics,
-                                                         is_input);
-            if(check_numerics_status != rocblas_status_success)
-                return check_numerics_status;
-
-            check_numerics_status = rocblas_check_numerics_vector_template(rocblas_rotmg_name<T>,
-                                                                           handle,
-                                                                           1,
-                                                                           y1,
-                                                                           0,
-                                                                           1,
-                                                                           0,
-                                                                           batch_count,
-                                                                           check_numerics,
-                                                                           is_input);
-            if(check_numerics_status != rocblas_status_success)
-                return check_numerics_status;
+            rocblas_status rotmg_check_numerics_status
+                = rocblas_rotmg_check_numerics_template(rocblas_rotmg_name<T>,
+                                                        handle,
+                                                        1,
+                                                        d1,
+                                                        0,
+                                                        0,
+                                                        d2,
+                                                        0,
+                                                        0,
+                                                        x1,
+                                                        0,
+                                                        0,
+                                                        y1,
+                                                        0,
+                                                        0,
+                                                        batch_count,
+                                                        check_numerics,
+                                                        is_input);
+            if(rotmg_check_numerics_status != rocblas_status_success)
+                return rotmg_check_numerics_status;
         }
 
         rocblas_status status = rocblas_rotmg_template(
             handle, d1, 0, 0, d2, 0, 0, x1, 0, 0, y1, 0, 0, param, 0, 0, batch_count);
         if(status != rocblas_status_success)
             return status;
+
         if(check_numerics)
         {
             bool           is_input = false;
-            rocblas_status check_numerics_status
-                = rocblas_check_numerics_vector_template(rocblas_rotmg_name<T>,
-                                                         handle,
-                                                         1,
-                                                         x1,
-                                                         0,
-                                                         1,
-                                                         0,
-                                                         batch_count,
-                                                         check_numerics,
-                                                         is_input);
-            if(check_numerics_status != rocblas_status_success)
-                return check_numerics_status;
-
-            check_numerics_status = rocblas_check_numerics_vector_template(rocblas_rotmg_name<T>,
-                                                                           handle,
-                                                                           1,
-                                                                           y1,
-                                                                           0,
-                                                                           1,
-                                                                           0,
-                                                                           batch_count,
-                                                                           check_numerics,
-                                                                           is_input);
-            if(check_numerics_status != rocblas_status_success)
-                return check_numerics_status;
+            rocblas_status rotmg_check_numerics_status
+                = rocblas_rotmg_check_numerics_template(rocblas_rotmg_name<T>,
+                                                        handle,
+                                                        1,
+                                                        d1,
+                                                        0,
+                                                        0,
+                                                        d2,
+                                                        0,
+                                                        0,
+                                                        x1,
+                                                        0,
+                                                        0,
+                                                        y1,
+                                                        0,
+                                                        0,
+                                                        batch_count,
+                                                        check_numerics,
+                                                        is_input);
+            if(rotmg_check_numerics_status != rocblas_status_success)
+                return rotmg_check_numerics_status;
         }
         return status;
     }

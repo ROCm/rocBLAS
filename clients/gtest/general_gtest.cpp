@@ -1,7 +1,7 @@
 /* ************************************************************************
  * Copyright 2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-
+#include "check_numerics_matrix.hpp"
 #include "check_numerics_vector.hpp"
 #include "rocblas_data.hpp"
 #include "rocblas_test.hpp"
@@ -197,7 +197,7 @@ namespace
         rocblas_handle handle;
         CHECK_ROCBLAS_ERROR(rocblas_create_handle(&handle));
 
-        //Hard-code the enum `check_numerics` to `rocblas_check_numerics_mode_fail` which will return `rocblas_status_check_numerics_fail`
+        //Hard-code the enum `check_numerics` to `rocblas_check_numerics_mode_fail` which will return `rocblas_status_check_numerics_fail` if the vector contains a NaN/Inf
         rocblas_check_numerics_mode check_numerics = rocblas_check_numerics_mode_fail;
 
         //Argument sanity check before allocating invalid memory
@@ -232,7 +232,7 @@ namespace
                                                         offset_x,
                                                         inc_x,
                                                         stride_x,
-                                                        batch_count,
+                                                        1,
                                                         check_numerics,
                                                         is_input);
         EXPECT_EQ(status, rocblas_status_success);
@@ -251,7 +251,7 @@ namespace
                                                         offset_x,
                                                         inc_x,
                                                         stride_x,
-                                                        batch_count,
+                                                        1,
                                                         check_numerics,
                                                         is_input);
         EXPECT_EQ(status, rocblas_status_success);
@@ -272,7 +272,7 @@ namespace
                                                         offset_x,
                                                         inc_x,
                                                         stride_x,
-                                                        batch_count,
+                                                        1,
                                                         check_numerics,
                                                         is_input);
 
@@ -293,7 +293,7 @@ namespace
                                                         offset_x,
                                                         inc_x,
                                                         stride_x,
-                                                        batch_count,
+                                                        1,
                                                         check_numerics,
                                                         is_input);
 
@@ -302,7 +302,6 @@ namespace
         //==============================================================================================
         // Initializing random values in batched vectors
         //==============================================================================================
-        batch_count = 5;
         //Allocate device and host batched vectors
         device_batch_vector<T> d_x_batch(N, inc_x, batch_count);
         host_batch_vector<T>   h_x_batch(N, inc_x, batch_count);
@@ -333,7 +332,7 @@ namespace
         //Initialize Data on CPU
         rocblas_seedrand();
         rocblas_init(h_x_batch, true);
-        for(int i = 4; i < batch_count; i++)
+        for(int i = 0; i < batch_count; i++)
             for(size_t j = 0; j < N; j++)
                 h_x_batch[i][j * inc_x] = T(rocblas_zero_rng());
 
@@ -359,7 +358,7 @@ namespace
         //Initialize Data on CPU
         rocblas_seedrand();
         rocblas_init(h_x_batch, true);
-        for(int i = 3; i < 4; i++)
+        for(int i = 3; i < batch_count; i++)
             for(size_t j = 0; j < N; j++)
                 h_x_batch[i][j * inc_x] = T(rocblas_inf_rng());
 
@@ -385,7 +384,7 @@ namespace
         //Initialize Data on CPU
         rocblas_seedrand();
         rocblas_init(h_x_batch, true);
-        for(int i = 2; i < 4; i++)
+        for(int i = 4; i < batch_count; i++)
             for(size_t j = 0; j < N; j++)
                 h_x_batch[i][j * inc_x] = T(rocblas_nan_rng());
 
@@ -462,5 +461,295 @@ namespace
             rocblas_simple_dispatch<check_numerics_vector_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(check_numerics_vector);
+
+    //Testing a matrix for NaN/zero/Inf
+    template <typename T>
+    void testing_check_numerics_matrix(const Arguments& arg)
+    {
+        rocblas_int    M           = arg.M;
+        rocblas_int    N           = arg.N;
+        rocblas_int    lda         = M;
+        rocblas_int    offset_a    = 0;
+        rocblas_stride stride_a    = arg.stride_a;
+        rocblas_int    batch_count = arg.batch_count;
+
+        //Creating a rocBLAS handle
+        rocblas_handle handle;
+        CHECK_ROCBLAS_ERROR(rocblas_create_handle(&handle));
+
+        //Hard-code the enum `check_numerics` to `rocblas_check_numerics_mode_fail` which will return `rocblas_status_check_numerics_fail` if the matrix contains a NaN/Inf
+        rocblas_check_numerics_mode check_numerics = rocblas_check_numerics_mode_fail;
+
+        //Argument sanity check before allocating invalid memory
+        if(!M || !N || !batch_count)
+            return;
+
+        size_t size_a = N * size_t(lda);
+
+        //Allocating memory for the host matrix
+        host_vector<T> h_A(size_a);
+        //==============================================================================================
+        // Initializing random values in the matrix
+        //==============================================================================================
+        rocblas_seedrand();
+        rocblas_init<T>(h_A, M, N, lda);
+
+        // allocate memory on device
+        device_vector<T> d_A(size_a);
+
+        // copy data from CPU to device
+        CHECK_HIP_ERROR(hipMemcpy(d_A, h_A, sizeof(T) * size_a, hipMemcpyHostToDevice));
+
+        rocblas_status status          = rocblas_status_success;
+        const char     function_name[] = "testing_check_numerics_matrix";
+        bool           is_input        = true;
+        status                         = rocblas_check_numerics_matrix_template(function_name,
+                                                        handle,
+                                                        M,
+                                                        N,
+                                                        (T*)d_A,
+                                                        offset_a,
+                                                        lda,
+                                                        stride_a,
+                                                        1,
+                                                        check_numerics,
+                                                        is_input);
+        EXPECT_EQ(status, rocblas_status_success);
+        //==============================================================================================
+        // Initializing and testing for zero in the matrix
+        //==============================================================================================
+        rocblas_init_zero<T>((T*)h_A, M, N, lda);
+
+        // copy data from CPU to device
+        CHECK_HIP_ERROR(hipMemcpy(d_A, h_A, sizeof(T) * size_a, hipMemcpyHostToDevice));
+
+        status = rocblas_check_numerics_matrix_template(function_name,
+                                                        handle,
+                                                        M,
+                                                        N,
+                                                        (T*)d_A,
+                                                        offset_a,
+                                                        lda,
+                                                        stride_a,
+                                                        1,
+                                                        check_numerics,
+                                                        is_input);
+        EXPECT_EQ(status, rocblas_status_success);
+        //==============================================================================================
+        // Initializing and testing for Inf in the matrix
+        //==============================================================================================
+        rocblas_seedrand();
+        rocblas_init<T>((T*)h_A, M, N, lda);
+        rocblas_init_inf<T>((T*)h_A, M - 1, N - 1, lda);
+
+        // copy data from CPU to device
+        CHECK_HIP_ERROR(hipMemcpy(d_A, h_A, sizeof(T) * size_a, hipMemcpyHostToDevice));
+
+        status = rocblas_check_numerics_matrix_template(function_name,
+                                                        handle,
+                                                        M,
+                                                        N,
+                                                        (T*)d_A,
+                                                        offset_a,
+                                                        lda,
+                                                        stride_a,
+                                                        1,
+                                                        check_numerics,
+                                                        is_input);
+
+        EXPECT_EQ(status, rocblas_status_check_numerics_fail);
+        //==============================================================================================
+        // Initializing and testing for NaN in the matrix
+        //==============================================================================================
+        rocblas_seedrand();
+        rocblas_init<T>((T*)h_A, M, N, lda);
+        rocblas_init_nan<T>((T*)h_A, M, N, lda);
+
+        // copy data from CPU to device
+        CHECK_HIP_ERROR(hipMemcpy(d_A, h_A, sizeof(T) * size_a, hipMemcpyHostToDevice));
+
+        status = rocblas_check_numerics_matrix_template(function_name,
+                                                        handle,
+                                                        M,
+                                                        N,
+                                                        (T*)d_A,
+                                                        offset_a,
+                                                        lda,
+                                                        stride_a,
+                                                        1,
+                                                        check_numerics,
+                                                        is_input);
+
+        EXPECT_EQ(status, rocblas_status_check_numerics_fail);
+
+        //==============================================================================================
+        // Initializing random values in batched matrices
+        //==============================================================================================
+        //Allocate device and host batched matrices
+        device_batch_vector<T> d_A_batch(size_a, 1, batch_count);
+        host_batch_vector<T>   h_A_batch(size_a, 1, batch_count);
+
+        //Initialize Data on CPU
+        rocblas_seedrand();
+        rocblas_init(h_A_batch, true);
+
+        //Transferring data from host to device
+        CHECK_HIP_ERROR(d_A_batch.transfer_from(h_A_batch));
+
+        status = rocblas_check_numerics_matrix_template(function_name,
+                                                        handle,
+                                                        M,
+                                                        N,
+                                                        d_A_batch.const_batch_ptr(),
+                                                        offset_a,
+                                                        lda,
+                                                        stride_a,
+                                                        batch_count,
+                                                        check_numerics,
+                                                        is_input);
+
+        EXPECT_EQ(status, rocblas_status_success);
+
+        //==============================================================================================
+        // Initializing and testing for zero in batched matrices
+        //==============================================================================================
+        //Initialize Data on CPU
+        rocblas_seedrand();
+        rocblas_init(h_A_batch, true);
+        for(size_t i_batch = 0; i_batch < batch_count; i_batch++)
+            for(size_t i = 0; i < M; ++i)
+                for(size_t j = 0; j < N; ++j)
+                    h_A_batch[i_batch][i + j * lda] = T(rocblas_zero_rng());
+
+        //Transferring data from host to device
+        CHECK_HIP_ERROR(d_A_batch.transfer_from(h_A_batch));
+
+        status = rocblas_check_numerics_matrix_template(function_name,
+                                                        handle,
+                                                        M,
+                                                        N,
+                                                        d_A_batch.const_batch_ptr(),
+                                                        offset_a,
+                                                        lda,
+                                                        stride_a,
+                                                        batch_count,
+                                                        check_numerics,
+                                                        is_input);
+
+        EXPECT_EQ(status, rocblas_status_success);
+
+        //==============================================================================================
+        // Initializing and testing for Inf in batched matrices
+        //==============================================================================================
+        //Initialize Data on CPU
+        rocblas_seedrand();
+        rocblas_init(h_A_batch, true);
+        for(size_t i_batch = 4; i_batch < batch_count; i_batch++)
+            for(size_t i = 0; i < M; ++i)
+                for(size_t j = 0; j < N; ++j)
+                    h_A_batch[i_batch][i + j * lda] = T(rocblas_inf_rng());
+
+        //Transferring data from host to device
+        CHECK_HIP_ERROR(d_A_batch.transfer_from(h_A_batch));
+
+        status = rocblas_check_numerics_matrix_template(function_name,
+                                                        handle,
+                                                        M,
+                                                        N,
+                                                        d_A_batch.const_batch_ptr(),
+                                                        offset_a,
+                                                        lda,
+                                                        stride_a,
+                                                        batch_count,
+                                                        check_numerics,
+                                                        is_input);
+
+        EXPECT_EQ(status, rocblas_status_check_numerics_fail);
+
+        //==============================================================================================
+        // Initializing and testing for NaN in batched matrices
+        //==============================================================================================
+        //Initialize Data on CPU
+        rocblas_seedrand();
+        rocblas_init(h_A_batch, true);
+        for(size_t i_batch = 1; i_batch < batch_count; i_batch++)
+            for(size_t i = 0; i < M; ++i)
+                for(size_t j = 0; j < N; ++j)
+                    h_A_batch[i_batch][i + j * lda] = T(rocblas_nan_rng());
+
+        //Transferring data from host to device
+        CHECK_HIP_ERROR(d_A_batch.transfer_from(h_A_batch));
+
+        status = rocblas_check_numerics_matrix_template(function_name,
+                                                        handle,
+                                                        M,
+                                                        N,
+                                                        d_A_batch.const_batch_ptr(),
+                                                        offset_a,
+                                                        lda,
+                                                        stride_a,
+                                                        batch_count,
+                                                        check_numerics,
+                                                        is_input);
+
+        EXPECT_EQ(status, rocblas_status_check_numerics_fail);
+
+        CHECK_ROCBLAS_ERROR(rocblas_destroy_handle(handle));
+    };
+
+    // By default, arbitrary type combinations are invalid.
+    // The unnamed second parameter is used for enable_if_t below.
+    template <typename, typename = void>
+    struct check_numerics_matrix_testing : rocblas_test_invalid
+    {
+    };
+
+    template <typename T>
+    struct check_numerics_matrix_testing<
+        T,
+        std::enable_if_t<std::is_same<T, rocblas_half>{} || std::is_same<T, rocblas_bfloat16>{}
+                         || std::is_same<T, rocblas_float_complex>{}
+                         || std::is_same<T, rocblas_double_complex>{} || std::is_same<T, float>{}
+                         || std::is_same<T, double>{}>> : rocblas_test_valid
+    {
+        void operator()(const Arguments& arg)
+        {
+            if(!strcmp(arg.function, "check_numerics_matrix"))
+                testing_check_numerics_matrix<T>(arg);
+            else
+                FAIL() << "Internal error: Test called with unknown function: " << arg.function;
+        }
+    };
+
+    struct check_numerics_matrix
+        : RocBLAS_Test<check_numerics_matrix, check_numerics_matrix_testing>
+    {
+        // Filter for which types apply to this suite
+        static bool type_filter(const Arguments& arg)
+        {
+            return true;
+        }
+
+        // Filter for which functions apply to this suite
+        static bool function_filter(const Arguments& arg)
+        {
+            return !strcmp(arg.function, "check_numerics_matrix");
+        }
+
+        // Google Test name suffix based on parameters
+        static std::string name_suffix(const Arguments& arg)
+        {
+            RocBLAS_TestName<check_numerics_matrix> name(arg.name);
+            name << rocblas_datatype2string(arg.a_type);
+            return std::move(name);
+        }
+    };
+
+    TEST_P(check_numerics_matrix, auxiliary)
+    {
+        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(
+            rocblas_simple_dispatch<check_numerics_matrix_testing>(GetParam()));
+    }
+    INSTANTIATE_TEST_CATEGORIES(check_numerics_matrix);
 
 } // namespace

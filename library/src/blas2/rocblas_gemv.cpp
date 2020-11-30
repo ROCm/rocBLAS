@@ -43,7 +43,8 @@ namespace
                 return handle->set_optimal_device_memory_size(dev_bytes);
         }
 
-        auto layer_mode = handle->layer_mode;
+        auto layer_mode     = handle->layer_mode;
+        auto check_numerics = handle->check_numerics;
         if(layer_mode
            & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
               | rocblas_layer_mode_log_profile))
@@ -115,6 +116,33 @@ namespace
         if(!mem)
             perf_status = rocblas_status_perf_degraded;
 
+        if(check_numerics)
+        {
+            bool           is_input = true;
+            rocblas_status gemv_check_numerics_status
+                = rocblas_gemv_check_numerics(rocblas_gemv_name<T>,
+                                              handle,
+                                              transA,
+                                              m,
+                                              n,
+                                              A,
+                                              0,
+                                              lda,
+                                              0,
+                                              x,
+                                              0,
+                                              incx,
+                                              0,
+                                              y,
+                                              0,
+                                              incy,
+                                              0,
+                                              1,
+                                              check_numerics,
+                                              is_input);
+            if(gemv_check_numerics_status != rocblas_status_success)
+                return gemv_check_numerics_status;
+        }
         rocblas_status status = rocblas_gemv_template<T>(handle,
                                                          transA,
                                                          m,
@@ -138,7 +166,38 @@ namespace
                                                          1,
                                                          (T*)mem);
 
-        return status != rocblas_status_success ? status : perf_status;
+        status = (status != rocblas_status_success) ? status : perf_status;
+        if(status != rocblas_status_success)
+            return status;
+
+        if(check_numerics)
+        {
+            bool           is_input = false;
+            rocblas_status gemv_check_numerics_status
+                = rocblas_gemv_check_numerics(rocblas_gemv_name<T>,
+                                              handle,
+                                              transA,
+                                              m,
+                                              n,
+                                              A,
+                                              0,
+                                              lda,
+                                              0,
+                                              x,
+                                              0,
+                                              incx,
+                                              0,
+                                              y,
+                                              0,
+                                              incy,
+                                              0,
+                                              1,
+                                              check_numerics,
+                                              is_input);
+            if(gemv_check_numerics_status != rocblas_status_success)
+                return gemv_check_numerics_status;
+        }
+        return status;
     }
 
 } // namespace
