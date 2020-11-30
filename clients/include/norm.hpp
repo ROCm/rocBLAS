@@ -41,10 +41,14 @@ double
 
 void saxpy_(int* n, float* alpha, float* x, int* incx, float* y, int* incy);
 void daxpy_(int* n, double* alpha, double* x, int* incx, double* y, int* incy);
-void caxpy_(
-    int* n, float* alpha, rocblas_float_complex* x, int* incx, rocblas_float_complex* y, int* incy);
+void caxpy_(int*                   n,
+            rocblas_float_complex* alpha,
+            rocblas_float_complex* x,
+            int*                   incx,
+            rocblas_float_complex* y,
+            int*                   incy);
 void zaxpy_(int*                    n,
-            double*                 alpha,
+            rocblas_double_complex* alpha,
             rocblas_double_complex* x,
             int*                    incx,
             rocblas_double_complex* y,
@@ -106,14 +110,18 @@ inline void xaxpy(int* n, double* alpha, double* x, int* incx, double* y, int* i
     return daxpy_(n, alpha, x, incx, y, incy);
 }
 
-inline void xaxpy(
-    int* n, float* alpha, rocblas_float_complex* x, int* incx, rocblas_float_complex* y, int* incy)
+inline void xaxpy(int*                   n,
+                  rocblas_float_complex* alpha,
+                  rocblas_float_complex* x,
+                  int*                   incx,
+                  rocblas_float_complex* y,
+                  int*                   incy)
 {
     return caxpy_(n, alpha, x, incx, y, incy);
 }
 
 inline void xaxpy(int*                    n,
-                  double*                 alpha,
+                  rocblas_double_complex* alpha,
                   rocblas_double_complex* x,
                   int*                    incx,
                   rocblas_double_complex* y,
@@ -168,7 +176,7 @@ double norm_check_general(
 
     decltype(std::real(*hCPU)) work[1];
     rocblas_int                incx  = 1;
-    decltype(std::real(*hCPU)) alpha = -1.0f;
+    T                          alpha = -1.0;
     rocblas_int                size  = lda * N;
 
     double cpu_norm = xlange(&norm_type, &M, &N, hCPU, &lda, work);
@@ -353,7 +361,7 @@ double norm_check_symmetric(
 
     decltype(std::real(*hCPU)) work[1];
     rocblas_int                incx  = 1;
-    decltype(std::real(*hCPU)) alpha = -1.0;
+    T                          alpha = -1.0;
     rocblas_int                size  = lda * N;
 
     double cpu_norm = xlanhe(&norm_type, &uplo, &N, hCPU, &lda, work);
