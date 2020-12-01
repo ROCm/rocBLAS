@@ -35,7 +35,9 @@ public:
                   double           gbytes,
                   double           cpu_us,
                   double           norm1,
-                  double           norm2)
+                  double           norm2,
+                  double           norm3,
+                  double           norm4)
     {
         constexpr bool has_batch_count = has(e_batch_count);
         rocblas_int    batch_count     = has_batch_count ? arg.batch_count : 1;
@@ -49,17 +51,20 @@ public:
         double rocblas_gflops = gflops * batch_count / gpu_us * 1e6;
         double rocblas_GBps   = gbytes * batch_count / gpu_us * 1e6;
 
-        double cblas_gflops = gflops * batch_count / cpu_us * 1e6;
-
         // append performance fields
-        name_line << ",rocblas-Gflops";
-        val_line << ", " << rocblas_gflops;
+        if(gflops != ArgumentLogging::NA_value)
+        {
+            name_line << ",rocblas-Gflops";
+            val_line << ", " << rocblas_gflops;
+        }
+
         if(gbytes != ArgumentLogging::NA_value)
         {
             // GB/s not usually reported for non-memory bound functions
             name_line << ",rocblas-GB/s";
             val_line << ", " << rocblas_GBps;
         }
+
         name_line << ",us";
         val_line << ", " << gpu_us;
 
@@ -67,20 +72,37 @@ public:
         {
             if(cpu_us != ArgumentLogging::NA_value)
             {
-                name_line << ",CPU-Gflops,CPU-us";
-                val_line << cblas_gflops << ", " << cpu_us;
+                if(gflops != ArgumentLogging::NA_value)
+                {
+                    double cblas_gflops = gflops * batch_count / cpu_us * 1e6;
+                    name_line << ",CPU-Gflops";
+                    val_line << "," << cblas_gflops;
+                }
+
+                name_line << ",CPU-us";
+                val_line << "," << cpu_us;
             }
             if(arg.norm_check)
             {
                 if(norm1 != ArgumentLogging::NA_value)
                 {
                     name_line << ",norm_error_1";
-                    val_line << ", " << norm1;
+                    val_line << "," << norm1;
                 }
                 if(norm2 != ArgumentLogging::NA_value)
                 {
                     name_line << ",norm_error_2";
-                    val_line << ", " << norm2;
+                    val_line << "," << norm2;
+                }
+                if(norm3 != ArgumentLogging::NA_value)
+                {
+                    name_line << ",norm_error_3";
+                    val_line << "," << norm3;
+                }
+                if(norm4 != ArgumentLogging::NA_value)
+                {
+                    name_line << ",norm_error_4";
+                    val_line << "," << norm4;
                 }
             }
         }
@@ -94,7 +116,9 @@ public:
                   double           gpu_bytes = ArgumentLogging::NA_value,
                   double           cpu_us    = ArgumentLogging::NA_value,
                   double           norm1     = ArgumentLogging::NA_value,
-                  double           norm2     = ArgumentLogging::NA_value)
+                  double           norm2     = ArgumentLogging::NA_value,
+                  double           norm3     = ArgumentLogging::NA_value,
+                  double           norm4     = ArgumentLogging::NA_value)
     {
         rocblas_ostream name_list;
         rocblas_ostream value_list;
@@ -140,7 +164,17 @@ public:
 #endif
 
         if(arg.timing)
-            log_perf(name_list, value_list, arg, gpu_us, gflops, gpu_bytes, cpu_us, norm1, norm2);
+            log_perf(name_list,
+                     value_list,
+                     arg,
+                     gpu_us,
+                     gflops,
+                     gpu_bytes,
+                     cpu_us,
+                     norm1,
+                     norm2,
+                     norm3,
+                     norm4);
 
         str << name_list << "\n" << value_list << std::endl;
     }

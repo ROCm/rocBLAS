@@ -310,7 +310,7 @@ void testing_dot_batched_ex(const Arguments& arg)
             dot_gbyte_count<Tx>(N),
             cpu_time_used,
             rocblas_error_1,
-            rocblas_error_1);
+            rocblas_error_2);
     }
 }
 
