@@ -117,11 +117,11 @@ inline void rocblas_expect_status(rocblas_status status, rocblas_status expect)
         {                                                                              \
             rocblas_cerr << "error: " << hipGetErrorString(error__) << " (" << error__ \
                          << ") at " __FILE__ ":" << __LINE__ << std::endl;             \
-            rocblas_abort();                                                           \
+            exit(EXIT_FAILURE);                                                        \
         }                                                                              \
     } while(0)
 
-#define CHECK_DEVICE_ALLOCATION(ERROR)
+#define CHECK_DEVICE_ALLOCATION CHECK_HIP_ERROR
 
 #define EXPECT_ROCBLAS_STATUS rocblas_expect_status
 
