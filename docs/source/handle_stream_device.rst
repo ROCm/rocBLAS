@@ -39,9 +39,12 @@ stream and the non-default device, then call:
 
     if(rocblas_set_stream(handle, stream) != rocblas_status_success) return EXIT_FAILURE;
 
-If the user created a non-default stream, it is the user's responsibility to destroy it when the user has completed using it with:
+If the user created a non-default stream, it is the user's responsibility to synchronize the non-default stream before destroying it:
 
 ::
+
+    // Synchronize the non-default stream before destroying it
+    if(hipStreamSynchronize(stream) != hipSuccess) return EXIT_FAILURE;
 
     if(hipStreamDestroy(stream) != hipSuccess) return EXIT_FAILURE;
 
@@ -50,16 +53,16 @@ When a user changes the stream from one non-default stream to another non-defaul
 ::
 
     // Synchronize the old stream
-    if(hipStreamSynchronize(stream) != hipSuccess) return EXIT_FAILURE;
+    if(hipStreamSynchronize(old_stream) != hipSuccess) return EXIT_FAILURE;
 
     // Destroy the old stream (this step is optional but must come after synchronization)
-    if(hipStreamDestroy(stream) != hipSuccess) return EXIT_FAILURE;
+    if(hipStreamDestroy(old_stream) != hipSuccess) return EXIT_FAILURE;
 
     // Create a new stream (this step can be done before the steps above)
-    if(hipStreamCreate(&stream) != hipSuccess) return EXIT_FAILURE;
+    if(hipStreamCreate(&new_stream) != hipSuccess) return EXIT_FAILURE;
 
     // Set the handle to use the new stream (must come after synchronization)
-    if(rocblas_set_stream(handle, stream) != rocblas_status_success) return EXIT_FAILURE;
+    if(rocblas_set_stream(handle, new_stream) != rocblas_status_success) return EXIT_FAILURE;
 
 The above ``hipStreamSynchronize`` is necessary because the rocBLAS handle contains allocated device
 memory which must not be shared by multiple asynchronous streams at the same time.
@@ -99,8 +102,7 @@ two commands: ``hipStreamCreate()`` and ``rocblas_set_stream()``.
 
 If the user creates a
 stream, they are responsible for destroying it with ``hipStreamDestroy()``. If the handle
-is switching from one non-default stream to another, then the old stream needs to be synchronized. Next, the user needs to create and set the new non-default stream using ``hipStreamCreate()`` and ``rocblas_set_stream()`` respectively. Then the user can optionally destroy the old stream. The order of calls would be:
-First, call ``hipStreamSynchronize()`` on the old stream. Then, in any order, call the ``hipStreamDestroy()`` on the old stream,  and the new stream being passed to ``rocblas_set_stream()``.
+is switching from one non-default stream to another, then the old stream needs to be synchronized. Next, the user needs to create and set the new non-default stream using ``hipStreamCreate()`` and ``rocblas_set_stream()`` respectively. Then the user can optionally destroy the old stream.
 
 HIP has two important device management functions ``hipSetDevice()`` and ``hipGetDevice()``.
 
@@ -121,6 +123,4 @@ Multiple streams and Multiple devices
 =====================================
 
 If a machine has ``num`` GPU devices, they will have deviceID numbers 0, 1, 2, ... (``num`` - 1). The
-default device has deviceID == 0. Users can run ``num`` rocBLAS handles
-on ``num`` devices concurrently. But, users cannot run a single rocBLAS
-handle on ``num`` devices. Each handle is associated with only one device.
+default device has deviceID == 0. Each rocBLAS handle can only be used with a single device, but users can run ``num`` rocBLAS handles on ``num`` devices concurrently.
