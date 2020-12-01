@@ -2,6 +2,8 @@
  * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+#pragma once
+#include "bytes.hpp"
 #include "cblas_interface.hpp"
 #include "flops.hpp"
 #include "norm.hpp"
@@ -48,8 +50,8 @@ void testing_set_get_vector(const Arguments& arg)
     host_vector<T> hy_gold(M * size_t(incy));
 
     double gpu_time_used, cpu_time_used;
-    double rocblas_bandwidth, cpu_bandwidth;
-    double rocblas_error = 0.0;
+    gpu_time_used = cpu_time_used = 0.0;
+    double rocblas_error          = 0.0;
 
     // allocate memory on device
     device_vector<T> db(M * size_t(incb));
@@ -81,7 +83,6 @@ void testing_set_get_vector(const Arguments& arg)
         }
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
-        cpu_bandwidth = (M * sizeof(T)) / cpu_time_used / 1e3;
 
         if(arg.unit_check)
         {
@@ -107,21 +108,14 @@ void testing_set_get_vector(const Arguments& arg)
             rocblas_get_vector(M, sizeof(T), db, incb, hy, incy);
         }
 
-        gpu_time_used     = get_time_us_sync(stream) - gpu_time_used;
-        rocblas_bandwidth = (M * sizeof(T)) / gpu_time_used / 1e3 / number_timing_iterations;
+        gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
 
-        rocblas_cout << "M,incx,incy,incb,rocblas-GB/s";
-
-        if(arg.norm_check && cpu_bandwidth != std::numeric_limits<T>::infinity())
-            rocblas_cout << ",CPU-GB/s";
-
-        rocblas_cout << std::endl;
-
-        rocblas_cout << M << "," << incx << "," << incy << "," << incb << "," << rocblas_bandwidth;
-
-        if(arg.norm_check && cpu_bandwidth != std::numeric_limits<T>::infinity())
-            rocblas_cout << "," << cpu_bandwidth;
-
-        rocblas_cout << std::endl;
+        ArgumentModel<e_M, e_incx, e_incy, e_incb>{}.log_args<T>(rocblas_cout,
+                                                                 arg,
+                                                                 gpu_time_used,
+                                                                 ArgumentLogging::NA_value,
+                                                                 set_get_vector_gbyte_count<T>(M),
+                                                                 cpu_time_used,
+                                                                 rocblas_error);
     }
 }
