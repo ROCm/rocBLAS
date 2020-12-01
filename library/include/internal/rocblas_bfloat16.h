@@ -83,6 +83,11 @@ struct ROCBLAS_EXPORT rocblas_bfloat16
         return u.fp32;
     }
 
+    explicit __host__ __device__ operator bool() const
+    {
+        return data & 0x7fff;
+    }
+
 private:
     static __host__ __device__ uint16_t float_to_bfloat16(float f)
     {
