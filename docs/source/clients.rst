@@ -2,7 +2,7 @@
 Clients
 ============
 
-The rocBLAS consists of two clients. They are,
+There are two client executables that can be used with rocBLAS. They are,
 
 1. rocblas-bench
 
@@ -95,25 +95,3 @@ The number of lines of output can be reduced with:
 .. code-block:: bash
 
    GTEST_LISTENER=NO_PASS_LINE_IN_LOG ./rocblas-test --gtest_filter=*quick*
-
-
-Useful environment variables
-============================
-
-In bash:
-
-- ``export AMD_LOG_LEVEL=3`` (reset by =0). When the user runs the application it will log every HIP kernel, including rocBLAS kernels.
-
-- ``export HIP_LAUNCH_BLOCKING = 0``: make HIP APIs host-synchronous so they are blocked until any kernel launches or data-copy commands are complete (an alias is CUDA_LAUNCH_BLOCKING)
-
-For more profiling tools, see `Profiling and Debugging HIP Code <https://github.com/GPUOpen-ProfessionalCompute-Tools/HIP/blob/master/docs/markdown/hip_profiling.md#profiling-hip-apis>`_ .
-
-The IR and ISA can be dumped by setting the following environment variable before building the app:
-
-.. code-block:: bash
-
-    export KMDUMPISA=1
-
-    export KMDUMPLLVM=1
-
-    export KMDUMPDIR=/path/to/dump
