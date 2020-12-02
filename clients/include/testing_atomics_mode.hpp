@@ -26,8 +26,7 @@
 template <typename T>
 void testing_atomics_mode(const Arguments& arg)
 {
-    const bool FORTRAN         = arg.fortran;
-    auto       rocblas_gemm_fn = FORTRAN ? rocblas_gemm<T, true> : rocblas_gemm<T, false>;
+    auto rocblas_gemm_fn = arg.fortran ? rocblas_gemm<T, true> : rocblas_gemm<T, false>;
 
     rocblas_operation transA = char2rocblas_operation(arg.transA);
     rocblas_operation transB = char2rocblas_operation(arg.transB);

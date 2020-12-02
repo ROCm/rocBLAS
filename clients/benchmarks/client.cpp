@@ -285,6 +285,7 @@ struct perf_blas<T, U, std::enable_if_t<std::is_same<T, float>{} || std::is_same
     {
         static const func_map map
             = { {"set_get_vector", testing_set_get_vector<T>},
+                {"set_get_vector_async", testing_set_get_vector_async<T>},
                 {"set_get_matrix", testing_set_get_matrix<T>},
                 {"set_get_matrix_async", testing_set_get_matrix_async<T>},
                 // L1
@@ -453,7 +454,12 @@ struct perf_blas<T,
     void operator()(const Arguments& arg)
     {
         static const func_map map
-            = { {"asum", testing_asum<T>},
+            = { {"set_get_vector", testing_set_get_vector<T>},
+                {"set_get_vector_async", testing_set_get_vector_async<T>},
+                {"set_get_matrix", testing_set_get_matrix<T>},
+                {"set_get_matrix_async", testing_set_get_matrix_async<T>},
+                // L1
+                {"asum", testing_asum<T>},
                 {"asum_batched", testing_asum_batched<T>},
                 {"asum_strided_batched", testing_asum_strided_batched<T>},
                 {"axpy", testing_axpy<T>},
@@ -1191,6 +1197,10 @@ try
         ("incy",
          value<rocblas_int>(&arg.incy)->default_value(1),
          "increment between values in y vector")
+
+        ("incb",
+         value<rocblas_int>(&arg.incb)->default_value(1),
+         "increment between values in b vector")
 
         ("alpha",
           value<double>(&arg.alpha)->default_value(1.0), "specifies the scalar alpha")

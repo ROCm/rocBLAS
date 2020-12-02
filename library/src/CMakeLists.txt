@@ -253,6 +253,7 @@ set( rocblas_auxiliary_source
   buildinfo.cpp
   rocblas_ostream.cpp
   check_numerics_vector.cpp
+  check_numerics_matrix.cpp
 )
 
 set( rocblas_blas1_source

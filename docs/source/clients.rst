@@ -54,6 +54,7 @@ The user can copy and change the above command. For example, to change the datat
 
    ./rocblas-bench -f gemm -r f64_r --transposeA N --transposeB N -m 2048 -n 2048 -k 2048 --alpha 1 --lda 2048 --ldb 2048 --beta 0 --ldc 2048
 
+
 Logging affects performance, so only use it to log the command to copy and change, then run the command without logging to measure performance.
 
 Note that rocblas-bench also has the flag ``-v 1`` for correctness checks.

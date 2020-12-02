@@ -116,7 +116,7 @@ void testing_set_get_matrix(const Arguments& arg)
             rocblas_cout,
             arg,
             gpu_time_used,
-            0,
+            ArgumentLogging::NA_value,
             set_get_matrix_gbyte_count<T>(rows, cols),
             cpu_time_used,
             rocblas_error);

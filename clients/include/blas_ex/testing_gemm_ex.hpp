@@ -289,8 +289,8 @@ void testing_gemm_ex(const Arguments& arg)
     Tc h_beta_Tc  = arg.get_beta<Tc>();
 
     double gpu_time_used, cpu_time_used;
-    double rocblas_gflops, cblas_gflops;
-    double rocblas_error = 0.0;
+    gpu_time_used = cpu_time_used = 0.0;
+    double rocblas_error          = 0.0;
 
     rocblas_local_handle handle{arg};
     auto                 transA = char2rocblas_operation(arg.transA);
@@ -606,7 +606,6 @@ void testing_gemm_ex(const Arguments& arg)
             transA, transB, M, N, K, h_alpha_Tc, hA, lda, hB, ldb, h_beta_Tc, hD_gold, ldd);
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
-        cblas_gflops  = gemm_gflop_count<To>(M, N, K) / cpu_time_used * 1e6;
 
         if(arg.unit_check)
         {
@@ -698,26 +697,25 @@ void testing_gemm_ex(const Arguments& arg)
                                solution_index,
                                flags);
         }
-        gpu_time_used  = get_time_us_sync(stream) - gpu_time_used;
-        rocblas_gflops = gemm_gflop_count<Ti>(M, N, K) * number_hot_calls / gpu_time_used * 1e6;
+        gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
 
-        rocblas_cout << "transA,transB,M,N,K,alpha,lda,ldb,beta,ldc,rocblas-Gflops,us";
-
-        if(arg.unit_check || arg.norm_check)
-            rocblas_cout << ",CPU-Gflops(us),norm-error";
-
-        rocblas_cout << std::endl;
-
-        rocblas_cout << rocblas2char_operation(transA) << "," << rocblas2char_operation(transB)
-                     << "," << M << "," << N << "," << K << "," << arg.alpha << "," << lda << ","
-                     << ldb << "," << arg.beta << "," << ldc << "," << rocblas_gflops << ","
-                     << gpu_time_used / number_hot_calls;
-
-        if(arg.unit_check || arg.norm_check)
-        {
-            rocblas_cout << "," << cblas_gflops << "," << cpu_time_used << "," << rocblas_error;
-        }
-
-        rocblas_cout << std::endl;
+        ArgumentModel<e_transA,
+                      e_transB,
+                      e_M,
+                      e_N,
+                      e_K,
+                      e_alpha,
+                      e_lda,
+                      e_beta,
+                      e_ldb,
+                      e_ldc,
+                      e_ldd>{}
+            .log_args<To>(rocblas_cout,
+                          arg,
+                          gpu_time_used,
+                          gemm_gflop_count<Tc>(M, N, K),
+                          ArgumentLogging::NA_value,
+                          cpu_time_used,
+                          rocblas_error);
     }
 }
