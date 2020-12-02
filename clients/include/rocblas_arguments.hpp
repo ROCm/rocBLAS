@@ -178,17 +178,25 @@ struct Arguments
     template <typename T>
     T get_alpha() const
     {
-        return rocblas_isnan(alpha) || (is_complex<T> && rocblas_isnan(alphai))
-                   ? T(0)
-                   : convert_alpha_beta<T>(alpha, alphai);
+        return alpha_isnan<T>() ? T(0) : convert_alpha_beta<T>(alpha, alphai);
     }
 
     template <typename T>
     T get_beta() const
     {
-        return rocblas_isnan(beta) || (is_complex<T> && rocblas_isnan(betai))
-                   ? T(0)
-                   : convert_alpha_beta<T>(beta, betai);
+        return beta_isnan<T>() ? T(0) : convert_alpha_beta<T>(beta, betai);
+    }
+
+    template <typename T>
+    bool alpha_isnan() const
+    {
+        return rocblas_isnan(alpha) || (is_complex<T> && rocblas_isnan(alphai));
+    }
+
+    template <typename T>
+    bool beta_isnan() const
+    {
+        return rocblas_isnan(beta) || (is_complex<T> && rocblas_isnan(betai));
     }
 
 private:

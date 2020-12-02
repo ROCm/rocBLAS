@@ -20,11 +20,20 @@
  * ===========================================================================
  */
 
-/* \brief byte counts of SET/GET_MATRIX/_ASYNC calls done in pairs for timing */
+/* \brief byte counts of SET/GET_MATRIX/_ASYNC */
 template <typename T>
 constexpr double set_get_matrix_gbyte_count(rocblas_int m, rocblas_int n)
 {
+    // calls done in pairs for timing so x 2.0
     return (sizeof(T) * m * n * 2.0) / 1e9;
+}
+
+/* \brief byte counts of SET/GET_VECTOR/_ASYNC */
+template <typename T>
+constexpr double set_get_vector_gbyte_count(rocblas_int n)
+{
+    // calls done in pairs for timing so x 2.0
+    return (sizeof(T) * n * 2.0) / 1e9;
 }
 
 /*

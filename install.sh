@@ -531,7 +531,7 @@ if [[ "${install_dependencies}" == true ]]; then
     mkdir -p ${build_dir}/deps && cd ${build_dir}/deps
     CXX=${cxx} CC=${cc} FC=${fc} ${cmake_executable} -lpthread -DBUILD_BOOST=OFF ${ROCBLAS_SRC_PATH}/deps
     make -j$(nproc)
-    elevate_if_not_root make install
+    elevate_if_not_root make install_deps
     install_blis
     popd
   fi
@@ -633,7 +633,7 @@ pushd .
 
   # Build library with AMD toolchain because of existense of device kernels
   if [[ "${build_clients}" == true ]]; then
-    CXX=${cxx} CC=${cc} ${cmake_executable} ${cmake_common_options} ${cmake_client_options} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=${rocm_path} ${ROCBLAS_SRC_PATH}
+    CXX=${cxx} CC=${cc} FC=${fc} ${cmake_executable} ${cmake_common_options} ${cmake_client_options} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=${rocm_path} ${ROCBLAS_SRC_PATH}
   else
     CXX=${cxx} CC=${cc} ${cmake_executable} ${cmake_common_options} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=${rocm_path} ${ROCBLAS_SRC_PATH}
   fi

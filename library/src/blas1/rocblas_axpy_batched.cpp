@@ -1,7 +1,7 @@
 /* ************************************************************************
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include "check_numerics_vector.hpp"
+
 #include "rocblas_axpy.hpp"
 
 namespace
@@ -91,33 +91,23 @@ namespace
         if(check_numerics)
         {
             bool           is_input = true;
-            rocblas_status check_numerics_status
-                = rocblas_check_numerics_vector_template(rocblas_axpy_batched_name<T>,
-                                                         handle,
-                                                         n,
-                                                         x,
-                                                         0,
-                                                         incx,
-                                                         stride_0,
-                                                         batch_count,
-                                                         check_numerics,
-                                                         is_input);
-            if(check_numerics_status != rocblas_status_success)
-                return check_numerics_status;
-
-            check_numerics_status
-                = rocblas_check_numerics_vector_template(rocblas_axpy_batched_name<T>,
-                                                         handle,
-                                                         n,
-                                                         y,
-                                                         0,
-                                                         incy,
-                                                         stride_0,
-                                                         batch_count,
-                                                         check_numerics,
-                                                         is_input);
-            if(check_numerics_status != rocblas_status_success)
-                return check_numerics_status;
+            rocblas_status axpy_check_numerics_status
+                = rocblas_axpy_check_numerics(rocblas_axpy_batched_name<T>,
+                                              handle,
+                                              n,
+                                              x,
+                                              0,
+                                              incx,
+                                              stride_0,
+                                              y,
+                                              0,
+                                              incy,
+                                              stride_0,
+                                              batch_count,
+                                              check_numerics,
+                                              is_input);
+            if(axpy_check_numerics_status != rocblas_status_success)
+                return axpy_check_numerics_status;
         }
 
         rocblas_status status = rocblas_axpy_template<NB, T>(
@@ -128,33 +118,23 @@ namespace
         if(check_numerics)
         {
             bool           is_input = false;
-            rocblas_status check_numerics_status
-                = rocblas_check_numerics_vector_template(rocblas_axpy_batched_name<T>,
-                                                         handle,
-                                                         n,
-                                                         x,
-                                                         0,
-                                                         incx,
-                                                         stride_0,
-                                                         batch_count,
-                                                         check_numerics,
-                                                         is_input);
-            if(check_numerics_status != rocblas_status_success)
-                return check_numerics_status;
-
-            check_numerics_status
-                = rocblas_check_numerics_vector_template(rocblas_axpy_batched_name<T>,
-                                                         handle,
-                                                         n,
-                                                         y,
-                                                         0,
-                                                         incy,
-                                                         stride_0,
-                                                         batch_count,
-                                                         check_numerics,
-                                                         is_input);
-            if(check_numerics_status != rocblas_status_success)
-                return check_numerics_status;
+            rocblas_status axpy_check_numerics_status
+                = rocblas_axpy_check_numerics(rocblas_axpy_batched_name<T>,
+                                              handle,
+                                              n,
+                                              x,
+                                              0,
+                                              incx,
+                                              stride_0,
+                                              y,
+                                              0,
+                                              incy,
+                                              stride_0,
+                                              batch_count,
+                                              check_numerics,
+                                              is_input);
+            if(axpy_check_numerics_status != rocblas_status_success)
+                return axpy_check_numerics_status;
         }
         return status;
     }
