@@ -19,17 +19,16 @@
 template <typename T>
 void testing_trmm_strided_batched_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_trmm_strided_batched_fn
-        = FORTRAN ? rocblas_trmm_strided_batched<T, true> : rocblas_trmm_strided_batched<T, false>;
+    auto rocblas_trmm_strided_batched_fn = arg.fortran ? rocblas_trmm_strided_batched<T, true>
+                                                       : rocblas_trmm_strided_batched<T, false>;
 
     const rocblas_int M           = 100;
     const rocblas_int N           = 100;
     const rocblas_int lda         = 100;
     const rocblas_int ldb         = 100;
     const rocblas_int batch_count = 5;
-
-    const T alpha = 1.0;
+    const T           alpha       = 1.0;
+    const T           zero        = 0.0;
 
     const rocblas_side      side   = rocblas_side_left;
     const rocblas_fill      uplo   = rocblas_fill_upper;
@@ -117,19 +116,85 @@ void testing_trmm_strided_batched_bad_arg(const Arguments& arg)
                                                           stride_b,
                                                           batch_count),
                           rocblas_status_invalid_handle);
+
+    // When batch_count==0, all pointers may be nullptr without error
+    EXPECT_ROCBLAS_STATUS(rocblas_trmm_strided_batched_fn(handle,
+                                                          side,
+                                                          uplo,
+                                                          transA,
+                                                          diag,
+                                                          M,
+                                                          N,
+                                                          nullptr,
+                                                          nullptr,
+                                                          lda,
+                                                          stride_a,
+                                                          nullptr,
+                                                          ldb,
+                                                          stride_b,
+                                                          0),
+                          rocblas_status_success);
+
+    // When M==0, all pointers may be nullptr without error
+    EXPECT_ROCBLAS_STATUS(rocblas_trmm_strided_batched_fn(handle,
+                                                          side,
+                                                          uplo,
+                                                          transA,
+                                                          diag,
+                                                          0,
+                                                          N,
+                                                          nullptr,
+                                                          nullptr,
+                                                          lda,
+                                                          stride_a,
+                                                          nullptr,
+                                                          ldb,
+                                                          stride_b,
+                                                          batch_count),
+                          rocblas_status_success);
+
+    // When N==0, all pointers may be nullptr without error
+    EXPECT_ROCBLAS_STATUS(rocblas_trmm_strided_batched_fn(handle,
+                                                          side,
+                                                          uplo,
+                                                          transA,
+                                                          diag,
+                                                          M,
+                                                          0,
+                                                          nullptr,
+                                                          nullptr,
+                                                          lda,
+                                                          stride_a,
+                                                          nullptr,
+                                                          ldb,
+                                                          stride_b,
+                                                          batch_count),
+                          rocblas_status_success);
+
+    // When alpha==0, A may be nullptr without error
+    EXPECT_ROCBLAS_STATUS(rocblas_trmm_strided_batched_fn(handle,
+                                                          side,
+                                                          uplo,
+                                                          transA,
+                                                          diag,
+                                                          M,
+                                                          N,
+                                                          &zero,
+                                                          nullptr,
+                                                          lda,
+                                                          stride_a,
+                                                          dB,
+                                                          ldb,
+                                                          stride_b,
+                                                          batch_count),
+                          rocblas_status_success);
 }
 
 template <typename T>
 void testing_trmm_strided_batched(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_trmm_strided_batched_fn
-        = FORTRAN ? rocblas_trmm_strided_batched<T, true> : rocblas_trmm_strided_batched<T, false>;
-
-    bool nantest = rocblas_isnan(arg.alpha) || rocblas_isnan(arg.alphai);
-    if(!std::is_same<T, float>{} && !std::is_same<T, double>{} && !std::is_same<T, rocblas_half>{}
-       && !is_complex<T> && nantest)
-        return; // Exclude integers or other types which don't support NaN
+    auto rocblas_trmm_strided_batched_fn = arg.fortran ? rocblas_trmm_strided_batched<T, true>
+                                                       : rocblas_trmm_strided_batched<T, false>;
 
     rocblas_int M           = arg.M;
     rocblas_int N           = arg.N;
@@ -216,8 +281,20 @@ void testing_trmm_strided_batched(const Arguments& arg)
     //  initialize full random matrix hA and hB
     h_alpha[0] = alpha;
     rocblas_seedrand();
-    rocblas_init<T>(hA);
-    rocblas_init<T>(hB);
+
+    // TODO: Fix to use proper APIs for rocblas_init_nan
+#if 0
+    if(arg.alpha_isnan<T>())
+    {
+        rocblas_init_nan<T>(hA);
+        rocblas_init_nan<T>(hB);
+    }
+    else
+#endif
+    {
+        rocblas_init<T>(hA);
+        rocblas_init<T>(hB);
+    }
 
     hB_1 = hB; // hXorB <- B
     hB_2 = hB; // hXorB <- B

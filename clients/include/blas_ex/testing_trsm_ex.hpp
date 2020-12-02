@@ -35,8 +35,7 @@ void printMatrix(const char* name, T* A, rocblas_int m, rocblas_int n, rocblas_i
 template <typename T>
 void testing_trsm_ex(const Arguments& arg)
 {
-    const bool FORTRAN            = arg.fortran;
-    auto       rocblas_trsm_ex_fn = FORTRAN ? rocblas_trsm_ex_fortran : rocblas_trsm_ex;
+    auto rocblas_trsm_ex_fn = arg.fortran ? rocblas_trsm_ex_fortran : rocblas_trsm_ex;
 
     rocblas_int M   = arg.M;
     rocblas_int N   = arg.N;
@@ -97,7 +96,7 @@ void testing_trsm_ex(const Arguments& arg)
     host_vector<T> hinvAI(TRSM_BLOCK * K);
 
     double gpu_time_used, cpu_time_used;
-    gpu_time_used = cpu_time_used  = 0.0;
+    double rocblas_gflops, cblas_gflops;
     double error_eps_multiplier    = ERROR_EPS_MULTIPLIER;
     double residual_eps_multiplier = RESIDUAL_EPS_MULTIPLIER;
     double eps                     = std::numeric_limits<real_t<T>>::epsilon();
@@ -380,7 +379,8 @@ void testing_trsm_ex(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(
             rocblas_trsm<T>(handle, side, uplo, transA, diag, M, N, &alpha_h, dA, lda, dXorB, ldb));
 
-        gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
+        gpu_time_used  = get_time_us_sync(stream) - gpu_time_used;
+        rocblas_gflops = trsm_gflop_count<T>(M, N, K) / gpu_time_used * 1e6;
 
         // CPU cblas
         cpu_time_used = get_time_us_no_sync();
@@ -388,15 +388,24 @@ void testing_trsm_ex(const Arguments& arg)
         cblas_trsm<T>(side, uplo, transA, diag, M, N, alpha_h, hA, lda, cpuXorB, ldb);
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
+        cblas_gflops  = trsm_gflop_count<T>(M, N, K) / cpu_time_used * 1e6;
 
-        ArgumentModel<e_side, e_uplo, e_transA, e_diag, e_M, e_N, e_alpha, e_lda, e_ldb>{}
-            .log_args<T>(rocblas_cout,
-                         arg,
-                         gpu_time_used,
-                         trsm_gflop_count<T>(M, N, K),
-                         ArgumentLogging::NA_value,
-                         cpu_time_used,
-                         max_err_1,
-                         max_err_2);
+        // only norm_check return an norm error, unit check won't return anything
+        rocblas_cout << "M,N,lda,ldb,side,uplo,transA,diag,rocblas-Gflops,us";
+
+        if(arg.norm_check)
+            rocblas_cout << ",CPU-Gflops,us,norm_error_host_ptr,norm_error_dev_ptr";
+
+        rocblas_cout << std::endl;
+
+        rocblas_cout << M << ',' << N << ',' << lda << ',' << ldb << ',' << char_side << ','
+                     << char_uplo << ',' << char_transA << ',' << char_diag << ',' << rocblas_gflops
+                     << "," << gpu_time_used;
+
+        if(arg.norm_check)
+            rocblas_cout << "," << cblas_gflops << "," << cpu_time_used << "," << max_err_1 << ","
+                         << max_err_2;
+
+        rocblas_cout << std::endl;
     }
 }
