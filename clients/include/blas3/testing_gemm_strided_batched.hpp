@@ -18,9 +18,8 @@
 template <typename T>
 void testing_gemm_strided_batched(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_gemm_strided_batched_fn
-        = FORTRAN ? rocblas_gemm_strided_batched<T, true> : rocblas_gemm_strided_batched<T, false>;
+    auto rocblas_gemm_strided_batched_fn = arg.fortran ? rocblas_gemm_strided_batched<T, true>
+                                                       : rocblas_gemm_strided_batched<T, false>;
 
     rocblas_int M = arg.M;
     rocblas_int N = arg.N;
@@ -142,9 +141,18 @@ void testing_gemm_strided_batched(const Arguments& arg)
     // Initial Data on CPU
     rocblas_seedrand();
 
-    rocblas_init<T>(hA, A_row, A_col, lda, stride_a, batch_count);
-    rocblas_init_alternating_sign<T>(hB, B_row, B_col, ldb, stride_b, batch_count);
-    if(rocblas_isnan(arg.beta) || rocblas_isnan(arg.betai))
+    if(arg.alpha_isnan<T>())
+    {
+        rocblas_init_nan<T>(hA, A_row, A_col, lda, stride_a, batch_count);
+        rocblas_init_nan<T>(hB, B_row, B_col, ldb, stride_b, batch_count);
+    }
+    else
+    {
+        rocblas_init<T>(hA, A_row, A_col, lda, stride_a, batch_count);
+        rocblas_init_alternating_sign<T>(hB, B_row, B_col, ldb, stride_b, batch_count);
+    }
+
+    if(arg.beta_isnan<T>())
         rocblas_init_nan<T>(hC_1, M, N, ldc, stride_c, batch_count);
     else
         rocblas_init<T>(hC_1, M, N, ldc, stride_c, batch_count);

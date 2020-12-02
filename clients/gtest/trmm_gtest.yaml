@@ -279,8 +279,7 @@ Tests:
   transA: [N, C]
   diag: [N, U]
   matrix_size: *small_matrix_size
-  alpha: .NaN # converted to 0.0 in test code
-  alphai: .NaN
+  alpha: [ 1.0, 2.0, .NaN ] # NaN is converted to 0.0 in test code
 
 - name: trmm_testset1
   category: nightly
