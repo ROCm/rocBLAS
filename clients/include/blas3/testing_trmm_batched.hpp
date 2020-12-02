@@ -63,13 +63,13 @@ void testing_trmm_batched_bad_arg(const Arguments& arg)
             nullptr, side, uplo, transA, diag, M, N, &alpha, dA, lda, dB, ldb, batch_count),
         rocblas_status_invalid_handle);
 
-    // When batch_count==0, all poitners may be nullptr without error
+    // When batch_count==0, all pointers may be nullptr without error
     EXPECT_ROCBLAS_STATUS(
         rocblas_trmm_batched_fn(
             handle, side, uplo, transA, diag, M, N, nullptr, nullptr, lda, nullptr, ldb, 0),
         rocblas_status_success);
 
-    // When M==0, all poitners may be nullptr without error
+    // When M==0, all pointers may be nullptr without error
     EXPECT_ROCBLAS_STATUS(rocblas_trmm_batched_fn(handle,
                                                   side,
                                                   uplo,
@@ -85,7 +85,7 @@ void testing_trmm_batched_bad_arg(const Arguments& arg)
                                                   batch_count),
                           rocblas_status_success);
 
-    // When N==0, all poitners may be nullptr without error
+    // When N==0, all pointers may be nullptr without error
     EXPECT_ROCBLAS_STATUS(rocblas_trmm_batched_fn(handle,
                                                   side,
                                                   uplo,
