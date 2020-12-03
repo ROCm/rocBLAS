@@ -18,9 +18,8 @@
 template <typename T>
 void testing_trtri_batched(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_trtri_batched_fn
-        = FORTRAN ? rocblas_trtri_batched<T, true> : rocblas_trtri_batched<T, false>;
+    auto rocblas_trtri_batched_fn
+        = arg.fortran ? rocblas_trtri_batched<T, true> : rocblas_trtri_batched<T, false>;
 
     rocblas_int N           = arg.N;
     rocblas_int lda         = arg.lda;

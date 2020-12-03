@@ -18,11 +18,8 @@
 template <typename T>
 void testing_trtri_strided_batched(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    // clang-format off
-    auto       rocblas_trtri_strided_batched_fn = FORTRAN ? rocblas_trtri_strided_batched<T, true>
-                                                          : rocblas_trtri_strided_batched<T, false>;
-    // clang-format on
+    auto rocblas_trtri_strided_batched_fn = arg.fortran ? rocblas_trtri_strided_batched<T, true>
+                                                        : rocblas_trtri_strided_batched<T, false>;
 
     rocblas_int N           = arg.N;
     rocblas_int lda         = arg.lda;

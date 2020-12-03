@@ -19,8 +19,7 @@
 template <typename T>
 void testing_trmm_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN         = arg.fortran;
-    auto       rocblas_trmm_fn = FORTRAN ? rocblas_trmm<T, true> : rocblas_trmm<T, false>;
+    auto rocblas_trmm_fn = arg.fortran ? rocblas_trmm<T, true> : rocblas_trmm<T, false>;
 
     const rocblas_int M   = 100;
     const rocblas_int N   = 100;
@@ -28,6 +27,7 @@ void testing_trmm_bad_arg(const Arguments& arg)
     const rocblas_int ldb = 100;
 
     const T alpha = 1.0;
+    const T zero  = 0.0;
 
     const rocblas_side      side   = rocblas_side_left;
     const rocblas_fill      uplo   = rocblas_fill_upper;
@@ -62,18 +62,30 @@ void testing_trmm_bad_arg(const Arguments& arg)
     EXPECT_ROCBLAS_STATUS(
         rocblas_trmm_fn(nullptr, side, uplo, transA, diag, M, N, &alpha, dA, lda, dB, ldb),
         rocblas_status_invalid_handle);
+#if 0
+    // TODO: not passing right now
+    // If M==0, then all pointers can be nullptr without error
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_trmm_fn(
+            handle, side, uplo, transA, diag, 0, N, nullptr, nullptr, lda, nullptr, ldb),
+        rocblas_status_success);
+
+    // If N==0, then all pointers can be nullptr without error
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_trmm_fn(handle, side, uplo, transA, diag, M, N, &alpha, dA, lda, dB, ldb),
+        rocblas_status_success);
+
+    // If alpha==0, then A can be nullptr without error
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_trmm_fn(handle, side, uplo, transA, diag, M, N, &zero, nullptr, lda, dB, ldb),
+        rocblas_status_success);
+#endif
 }
 
 template <typename T>
 void testing_trmm(const Arguments& arg)
 {
-    const bool FORTRAN         = arg.fortran;
-    auto       rocblas_trmm_fn = FORTRAN ? rocblas_trmm<T, true> : rocblas_trmm<T, false>;
-
-    bool nantest = rocblas_isnan(arg.alpha) || rocblas_isnan(arg.alphai);
-    if(!std::is_same<T, float>{} && !std::is_same<T, double>{} && !std::is_same<T, rocblas_half>{}
-       && !is_complex<T> && nantest)
-        return; // Exclude integers or other types which don't support NaN
+    auto rocblas_trmm_fn = arg.fortran ? rocblas_trmm<T, true> : rocblas_trmm<T, false>;
 
     rocblas_int M   = arg.M;
     rocblas_int N   = arg.N;
@@ -130,7 +142,10 @@ void testing_trmm(const Arguments& arg)
 
     //  initialize full random matrix hA with all entries in [1, 10]
     rocblas_seedrand();
-    rocblas_init<T>(hA, K, K, lda);
+    if(arg.alpha_isnan<T>())
+        rocblas_init_nan<T>(hA, K, K, lda);
+    else
+        rocblas_init<T>(hA, K, K, lda);
 
     //  pad untouched area into zero
     for(int i = K; i < lda; i++)
@@ -138,10 +153,11 @@ void testing_trmm(const Arguments& arg)
             hA[i + j * lda] = 0.0;
 
     // Initial hB
-    if(nantest)
+    if(arg.alpha_isnan<T>())
         rocblas_init_nan<T>(hB, M, N, ldb);
     else
         rocblas_init<T>(hB, M, N, ldb);
+
     // pad untouched area into zero
     for(int i = M; i < ldb; i++)
         for(int j = 0; j < N; j++)

@@ -19,8 +19,7 @@
 template <typename T>
 void testing_geam_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN         = arg.fortran;
-    auto       rocblas_geam_fn = FORTRAN ? rocblas_geam<T, true> : rocblas_geam<T, false>;
+    auto rocblas_geam_fn = arg.fortran ? rocblas_geam<T, true> : rocblas_geam<T, false>;
 
     const rocblas_int M = 100;
     const rocblas_int N = 100;
@@ -85,8 +84,7 @@ void testing_geam_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_geam(const Arguments& arg)
 {
-    const bool FORTRAN         = arg.fortran;
-    auto       rocblas_geam_fn = FORTRAN ? rocblas_geam<T, true> : rocblas_geam<T, false>;
+    auto rocblas_geam_fn = arg.fortran ? rocblas_geam<T, true> : rocblas_geam<T, false>;
 
     rocblas_operation transA = char2rocblas_operation(arg.transA);
     rocblas_operation transB = char2rocblas_operation(arg.transB);

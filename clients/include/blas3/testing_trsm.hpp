@@ -21,8 +21,7 @@
 template <typename T>
 void testing_trsm(const Arguments& arg)
 {
-    const bool FORTRAN         = arg.fortran;
-    auto       rocblas_trsm_fn = FORTRAN ? rocblas_trsm<T, true> : rocblas_trsm<T, false>;
+    auto rocblas_trsm_fn = arg.fortran ? rocblas_trsm<T, true> : rocblas_trsm<T, false>;
 
     rocblas_int M   = arg.M;
     rocblas_int N   = arg.N;

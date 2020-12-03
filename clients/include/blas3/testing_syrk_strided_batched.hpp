@@ -19,9 +19,8 @@
 template <typename T>
 void testing_syrk_strided_batched_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_syrk_strided_batched_fn
-        = FORTRAN ? rocblas_syrk_strided_batched<T, true> : rocblas_syrk_strided_batched<T, false>;
+    auto rocblas_syrk_strided_batched_fn = arg.fortran ? rocblas_syrk_strided_batched<T, true>
+                                                       : rocblas_syrk_strided_batched<T, false>;
 
     rocblas_local_handle    handle{arg};
     const rocblas_fill      uplo        = rocblas_fill_upper;
@@ -176,9 +175,8 @@ void testing_syrk_strided_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_syrk_strided_batched(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_syrk_strided_batched_fn
-        = FORTRAN ? rocblas_syrk_strided_batched<T, true> : rocblas_syrk_strided_batched<T, false>;
+    auto rocblas_syrk_strided_batched_fn = arg.fortran ? rocblas_syrk_strided_batched<T, true>
+                                                       : rocblas_syrk_strided_batched<T, false>;
 
     rocblas_local_handle handle{arg};
     rocblas_fill         uplo        = char2rocblas_fill(arg.uplo);

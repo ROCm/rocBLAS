@@ -35,8 +35,7 @@ void printMatrix(const char* name, T* A, rocblas_int m, rocblas_int n, rocblas_i
 template <typename T>
 void testing_trsm_ex(const Arguments& arg)
 {
-    const bool FORTRAN            = arg.fortran;
-    auto       rocblas_trsm_ex_fn = FORTRAN ? rocblas_trsm_ex_fortran : rocblas_trsm_ex;
+    auto rocblas_trsm_ex_fn = arg.fortran ? rocblas_trsm_ex_fortran : rocblas_trsm_ex;
 
     rocblas_int M   = arg.M;
     rocblas_int N   = arg.N;

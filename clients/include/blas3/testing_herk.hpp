@@ -19,9 +19,8 @@
 template <typename T>
 void testing_herk_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_herk_fn
-        = FORTRAN ? rocblas_herk<T, real_t<T>, true> : rocblas_herk<T, real_t<T>, false>;
+    auto rocblas_herk_fn
+        = arg.fortran ? rocblas_herk<T, real_t<T>, true> : rocblas_herk<T, real_t<T>, false>;
 
     rocblas_local_handle    handle{arg};
     const rocblas_fill      uplo   = rocblas_fill_upper;
@@ -79,9 +78,8 @@ void testing_herk_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_herk(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_herk_fn
-        = FORTRAN ? rocblas_herk<T, real_t<T>, true> : rocblas_herk<T, real_t<T>, false>;
+    auto rocblas_herk_fn
+        = arg.fortran ? rocblas_herk<T, real_t<T>, true> : rocblas_herk<T, real_t<T>, false>;
 
     rocblas_local_handle handle{arg};
     rocblas_fill         uplo   = char2rocblas_fill(arg.uplo);

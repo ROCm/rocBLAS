@@ -19,9 +19,8 @@
 template <typename T>
 void testing_trmm_batched_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_trmm_batched_fn
-        = FORTRAN ? rocblas_trmm_batched<T, true> : rocblas_trmm_batched<T, false>;
+    auto rocblas_trmm_batched_fn
+        = arg.fortran ? rocblas_trmm_batched<T, true> : rocblas_trmm_batched<T, false>;
 
     rocblas_local_handle handle{arg};
     const rocblas_int    M           = 100;
@@ -29,8 +28,8 @@ void testing_trmm_batched_bad_arg(const Arguments& arg)
     const rocblas_int    lda         = 100;
     const rocblas_int    ldb         = 100;
     const rocblas_int    batch_count = 2;
-
-    const T alpha = 1.0;
+    const T              alpha       = 1.0;
+    const T              zero        = 0.0;
 
     const rocblas_side      side   = rocblas_side_left;
     const rocblas_fill      uplo   = rocblas_fill_upper;
@@ -63,14 +62,51 @@ void testing_trmm_batched_bad_arg(const Arguments& arg)
         rocblas_trmm_batched_fn(
             nullptr, side, uplo, transA, diag, M, N, &alpha, dA, lda, dB, ldb, batch_count),
         rocblas_status_invalid_handle);
+
+    // When batch_count==0, all pointers may be nullptr without error
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_trmm_batched_fn(
+            handle, side, uplo, transA, diag, M, N, nullptr, nullptr, lda, nullptr, ldb, 0),
+        rocblas_status_success);
+
+    // When M==0, all pointers may be nullptr without error
+    EXPECT_ROCBLAS_STATUS(rocblas_trmm_batched_fn(handle,
+                                                  side,
+                                                  uplo,
+                                                  transA,
+                                                  diag,
+                                                  0,
+                                                  N,
+                                                  nullptr,
+                                                  nullptr,
+                                                  lda,
+                                                  nullptr,
+                                                  ldb,
+                                                  batch_count),
+                          rocblas_status_success);
+
+    // When N==0, all pointers may be nullptr without error
+    EXPECT_ROCBLAS_STATUS(rocblas_trmm_batched_fn(handle,
+                                                  side,
+                                                  uplo,
+                                                  transA,
+                                                  diag,
+                                                  M,
+                                                  0,
+                                                  nullptr,
+                                                  nullptr,
+                                                  lda,
+                                                  nullptr,
+                                                  ldb,
+                                                  batch_count),
+                          rocblas_status_success);
 }
 
 template <typename T>
 void testing_trmm_batched(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_trmm_batched_fn
-        = FORTRAN ? rocblas_trmm_batched<T, true> : rocblas_trmm_batched<T, false>;
+    auto rocblas_trmm_batched_fn
+        = arg.fortran ? rocblas_trmm_batched<T, true> : rocblas_trmm_batched<T, false>;
 
     bool nantest = rocblas_isnan(arg.alpha) || rocblas_isnan(arg.alphai);
     if(!std::is_same<T, float>{} && !std::is_same<T, double>{} && !std::is_same<T, rocblas_half>{}
@@ -150,8 +186,16 @@ void testing_trmm_batched(const Arguments& arg)
     //  initialize data on CPU
     h_alpha[0] = alpha;
     rocblas_seedrand();
-    rocblas_init<T>(hA);
-    rocblas_init<T>(hB);
+    if(arg.alpha_isnan<T>())
+    {
+        rocblas_init_nan<T>(hA);
+        rocblas_init_nan<T>(hB);
+    }
+    else
+    {
+        rocblas_init<T>(hA);
+        rocblas_init<T>(hB);
+    }
 
     hB_1.copy_from(hB);
     hB_2.copy_from(hB);
