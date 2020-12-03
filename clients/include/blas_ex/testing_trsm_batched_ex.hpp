@@ -22,9 +22,8 @@
 template <typename T>
 void testing_trsm_batched_ex(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_trsm_batched_ex_fn
-        = FORTRAN ? rocblas_trsm_batched_ex_fortran : rocblas_trsm_batched_ex;
+    auto rocblas_trsm_batched_ex_fn
+        = arg.fortran ? rocblas_trsm_batched_ex_fortran : rocblas_trsm_batched_ex;
 
     rocblas_int M   = arg.M;
     rocblas_int N   = arg.N;

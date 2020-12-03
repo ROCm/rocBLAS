@@ -19,8 +19,7 @@
 template <typename T>
 void testing_dgmm_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN         = arg.fortran;
-    auto       rocblas_dgmm_fn = FORTRAN ? rocblas_dgmm<T, true> : rocblas_dgmm<T, false>;
+    auto rocblas_dgmm_fn = arg.fortran ? rocblas_dgmm<T, true> : rocblas_dgmm<T, false>;
 
     const rocblas_int M = 100;
     const rocblas_int N = 100;
@@ -62,8 +61,7 @@ void testing_dgmm_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_dgmm(const Arguments& arg)
 {
-    const bool FORTRAN         = arg.fortran;
-    auto       rocblas_dgmm_fn = FORTRAN ? rocblas_dgmm<T, true> : rocblas_dgmm<T, false>;
+    auto rocblas_dgmm_fn = arg.fortran ? rocblas_dgmm<T, true> : rocblas_dgmm<T, false>;
 
     rocblas_side side = char2rocblas_side(arg.side);
 

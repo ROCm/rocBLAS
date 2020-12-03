@@ -17,8 +17,7 @@
 template <typename T>
 void testing_trtri(const Arguments& arg)
 {
-    const bool FORTRAN          = arg.fortran;
-    auto       rocblas_trtri_fn = FORTRAN ? rocblas_trtri<T, true> : rocblas_trtri<T, false>;
+    auto rocblas_trtri_fn = arg.fortran ? rocblas_trtri<T, true> : rocblas_trtri<T, false>;
 
     rocblas_int N = arg.N;
     rocblas_int lda;

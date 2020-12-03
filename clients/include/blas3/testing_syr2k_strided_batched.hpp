@@ -19,12 +19,11 @@
 template <typename T, bool TWOK = true>
 void testing_syr2k_strided_batched_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_syrk_strided_batched_fn
-        = TWOK ? (FORTRAN ? rocblas_syr2k_strided_batched<T, true>
-                          : rocblas_syr2k_strided_batched<T, false>)
-               : (FORTRAN ? rocblas_syrkx_strided_batched<T, true>
-                          : rocblas_syrkx_strided_batched<T, false>);
+    auto rocblas_syrk_strided_batched_fn
+        = TWOK ? (arg.fortran ? rocblas_syr2k_strided_batched<T, true>
+                              : rocblas_syr2k_strided_batched<T, false>)
+               : (arg.fortran ? rocblas_syrkx_strided_batched<T, true>
+                              : rocblas_syrkx_strided_batched<T, false>);
 
     rocblas_local_handle    handle{arg};
     const rocblas_fill      uplo        = rocblas_fill_upper;
@@ -226,12 +225,11 @@ void testing_syr2k_strided_batched_bad_arg(const Arguments& arg)
 template <typename T, bool TWOK = true>
 void testing_syr2k_strided_batched(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_syrk_strided_batched_fn
-        = TWOK ? (FORTRAN ? rocblas_syr2k_strided_batched<T, true>
-                          : rocblas_syr2k_strided_batched<T, false>)
-               : (FORTRAN ? rocblas_syrkx_strided_batched<T, true>
-                          : rocblas_syrkx_strided_batched<T, false>);
+    auto rocblas_syrk_strided_batched_fn
+        = TWOK ? (arg.fortran ? rocblas_syr2k_strided_batched<T, true>
+                              : rocblas_syr2k_strided_batched<T, false>)
+               : (arg.fortran ? rocblas_syrkx_strided_batched<T, true>
+                              : rocblas_syrkx_strided_batched<T, false>);
     auto syrXX_gflop_count_fn = TWOK ? syr2k_gflop_count<T> : syrkx_gflop_count<T>;
 
     rocblas_local_handle handle{arg};

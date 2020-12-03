@@ -21,9 +21,8 @@
 template <typename T>
 void testing_trsm_strided_batched(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_trsm_strided_batched_fn
-        = FORTRAN ? rocblas_trsm_strided_batched<T, true> : rocblas_trsm_strided_batched<T, false>;
+    auto rocblas_trsm_strided_batched_fn = arg.fortran ? rocblas_trsm_strided_batched<T, true>
+                                                       : rocblas_trsm_strided_batched<T, false>;
 
     rocblas_int M           = arg.M;
     rocblas_int N           = arg.N;

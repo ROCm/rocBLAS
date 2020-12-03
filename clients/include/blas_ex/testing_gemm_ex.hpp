@@ -42,30 +42,21 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
         const rocblas_datatype d_type       = rocblas_datatype_f32_r;
         const rocblas_datatype compute_type = rocblas_datatype_f32_r;
 
-        const Tc* alpha = nullptr;
-        const Tc* beta  = nullptr;
+        device_vector<float> alpha_d(1), beta_d(1), zero_d(1);
+        const float          alpha_h(1), beta_h(1), zero_h(0);
 
-        const Tc h_alpha = 1.0;
-        const Tc h_beta  = 1.0;
+        const float* alpha = &alpha_h;
+        const float* beta  = &beta_h;
+        const float* zero  = &zero_h;
 
-        device_vector<Tc> d_alpha(1);
-        device_vector<Tc> d_beta(1);
-
-        CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
-        CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
-
-        CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(Tc), hipMemcpyHostToDevice));
-        CHECK_HIP_ERROR(hipMemcpy(d_beta, &h_beta, sizeof(Tc), hipMemcpyHostToDevice));
-
-        if(pointer_mode == rocblas_pointer_mode_host)
+        if(pointer_mode == rocblas_pointer_mode_device)
         {
-            alpha = &h_alpha;
-            beta  = &h_beta;
-        }
-        else
-        {
-            alpha = d_alpha;
-            beta  = d_beta;
+            CHECK_HIP_ERROR(hipMemcpy(alpha_d, alpha, sizeof(*alpha), hipMemcpyHostToDevice));
+            alpha = alpha_d;
+            CHECK_HIP_ERROR(hipMemcpy(beta_d, beta, sizeof(*beta), hipMemcpyHostToDevice));
+            beta = beta_d;
+            CHECK_HIP_ERROR(hipMemcpy(zero_d, zero, sizeof(*zero), hipMemcpyHostToDevice));
+            zero = zero_d;
         }
 
         const rocblas_gemm_algo algo      = rocblas_gemm_algo_standard;
@@ -262,12 +253,124 @@ void testing_gemm_ex_bad_arg(const Arguments& arg)
                                                  ldc,
                                                  dD,
                                                  d_type,
+
                                                  ldd,
                                                  compute_type,
                                                  algo,
                                                  solution_index,
                                                  flags),
                               rocblas_status_invalid_handle);
+
+        // If M==0, then all pointers can be nullptr without issue
+        EXPECT_ROCBLAS_STATUS(rocblas_gemm_ex_fn(handle,
+                                                 transA,
+                                                 transB,
+                                                 0,
+                                                 N,
+                                                 K,
+                                                 nullptr,
+                                                 nullptr,
+                                                 a_type,
+                                                 lda,
+                                                 nullptr,
+                                                 b_type,
+                                                 ldb,
+                                                 nullptr,
+                                                 nullptr,
+                                                 c_type,
+                                                 ldc,
+                                                 nullptr,
+                                                 d_type,
+                                                 ldd,
+                                                 compute_type,
+                                                 algo,
+                                                 solution_index,
+                                                 flags),
+                              rocblas_status_success);
+
+        // If N==0, then all pointers can be nullptr without issue
+        EXPECT_ROCBLAS_STATUS(rocblas_gemm_ex_fn(handle,
+                                                 transA,
+                                                 transB,
+                                                 M,
+                                                 0,
+                                                 K,
+                                                 nullptr,
+                                                 nullptr,
+                                                 a_type,
+                                                 lda,
+                                                 nullptr,
+                                                 b_type,
+                                                 ldb,
+                                                 nullptr,
+                                                 nullptr,
+                                                 c_type,
+                                                 ldc,
+                                                 nullptr,
+                                                 d_type,
+                                                 ldd,
+                                                 compute_type,
+                                                 algo,
+                                                 solution_index,
+                                                 flags),
+                              rocblas_status_success);
+
+#if 0
+        // TODO: Currently these tests fail
+        // If K==0, then A and B can both be nullptr without issue.
+        EXPECT_ROCBLAS_STATUS(rocblas_gemm_ex_fn(handle,
+                                                 transA,
+                                                 transB,
+                                                 M,
+                                                 N,
+                                                 0,
+                                                 alpha,
+                                                 nullptr,
+                                                 a_type,
+                                                 lda,
+                                                 nullptr,
+                                                 b_type,
+                                                 ldb,
+                                                 &beta,
+                                                 dC,
+                                                 c_type,
+                                                 ldc,
+                                                 dD,
+                                                 d_type,
+                                                 ldd,
+                                                 compute_type,
+                                                 algo,
+                                                 solution_index,
+                                                 flags),
+                              rocblas_status_success);
+
+        // If alpha==0, then A and B can both be nullptr without issue.
+        EXPECT_ROCBLAS_STATUS(rocblas_gemm_ex_fn(handle,
+                                                 transA,
+                                                 transB,
+                                                 M,
+                                                 N,
+                                                 K,
+                                                 zero,
+                                                 nullptr,
+                                                 a_type,
+                                                 lda,
+                                                 nullptr,
+                                                 b_type,
+                                                 ldb,
+                                                 beta,
+                                                 dC,
+                                                 c_type,
+                                                 ldc,
+                                                 dD,
+                                                 d_type,
+                                                 ldd,
+                                                 compute_type,
+                                                 algo,
+                                                 solution_index,
+                                                 flags),
+                              rocblas_status_success);
+#endif
     }
 }
 
@@ -280,9 +383,10 @@ void testing_gemm_ex(const Arguments& arg)
     int32_t           solution_index(arg.solution_index);
     uint32_t          flags(arg.flags);
 
-    bool nantest = rocblas_isnan(arg.beta) || rocblas_isnan(arg.betai);
+    bool alpha_isnan = arg.alpha_isnan<Tc>();
+    bool beta_isnan  = arg.beta_isnan<Tc>();
     if(!std::is_same<To, float>{} && !std::is_same<To, double>{}
-       && !std::is_same<To, rocblas_half>{} && !is_complex<To> && nantest)
+       && !std::is_same<To, rocblas_half>{} && !is_complex<To> && (alpha_isnan || beta_isnan))
         return; // Exclude integers or other types which don't support NaN
 
     Tc h_alpha_Tc = arg.get_alpha<Tc>();
@@ -445,13 +549,23 @@ void testing_gemm_ex(const Arguments& arg)
 
     // Initial Data on CPU
     rocblas_seedrand();
-    rocblas_init<Ti>(hA, A_row, A_col, lda);
-    rocblas_init_alternating_sign<Ti>(hB, B_row, B_col, ldb);
-    if(nantest)
+    if(alpha_isnan)
+    {
+        rocblas_init_nan<Ti>(hA, A_row, A_col, lda);
+        rocblas_init_nan<Ti>(hB, B_row, B_col, ldb);
+    }
+    else
+    {
+        rocblas_init<Ti>(hA, A_row, A_col, lda);
+        rocblas_init_alternating_sign<Ti>(hB, B_row, B_col, ldb);
+    }
+
+    if(beta_isnan)
         rocblas_init_nan<To>(hC, M, N, ldc);
     else
         rocblas_init<To>(hC, M, N, ldc);
-    rocblas_init<To>(hD_1, M, N, ldd);
+
+    rocblas_init_nan<To>(hD_1, M, N, ldd);
 
     if(std::is_same<To, rocblas_half>{} && std::is_same<Tc, float>{})
     {
@@ -709,7 +823,8 @@ void testing_gemm_ex(const Arguments& arg)
                       e_beta,
                       e_ldb,
                       e_ldc,
-                      e_ldd>{}
+                      e_ldd,
+                      e_batch_count>{}
             .log_args<To>(rocblas_cout,
                           arg,
                           gpu_time_used,
