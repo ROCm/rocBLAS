@@ -81,8 +81,8 @@ void testing_scal_batched_ex(const Arguments& arg)
     Ta          h_alpha     = arg.get_alpha<Ta>();
     rocblas_int batch_count = arg.batch_count;
 
-    rocblas_datatype alpha_type     = arg.a_type;
-    rocblas_datatype x_type         = arg.b_type;
+    rocblas_datatype alpha_type     = arg.b_type;
+    rocblas_datatype x_type         = arg.a_type;
     rocblas_datatype execution_type = arg.compute_type;
 
     rocblas_local_handle handle{arg};

@@ -107,13 +107,13 @@ auto rocblas_blas1_ex_dispatch(const Arguments& arg)
         // scal half
         return TEST<rocblas_half, rocblas_half, float>{}(arg);
     }
-    else if(Ta == rocblas_datatype_f32_r && Tx == rocblas_datatype_f32_c
+    else if(Ta == rocblas_datatype_f32_c && Tx == rocblas_datatype_f32_r
             && Tex == rocblas_datatype_f32_c)
     {
         // csscal
         return TEST<float, rocblas_float_complex, rocblas_float_complex>{}(arg);
     }
-    else if(Ta == rocblas_datatype_f64_r && Tx == rocblas_datatype_f64_c
+    else if(Ta == rocblas_datatype_f64_c && Tx == rocblas_datatype_f64_r
             && Tex == rocblas_datatype_f64_c)
     {
         // zdscal
