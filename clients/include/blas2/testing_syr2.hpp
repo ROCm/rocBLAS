@@ -19,8 +19,7 @@
 template <typename T>
 void testing_syr2_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN         = arg.fortran;
-    auto       rocblas_syr2_fn = FORTRAN ? rocblas_syr2<T, true> : rocblas_syr2<T, false>;
+    auto rocblas_syr2_fn = arg.fortran ? rocblas_syr2<T, true> : rocblas_syr2<T, false>;
 
     rocblas_fill         uplo  = rocblas_fill_upper;
     rocblas_int          N     = 100;
@@ -70,8 +69,7 @@ void testing_syr2_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_syr2(const Arguments& arg)
 {
-    const bool FORTRAN         = arg.fortran;
-    auto       rocblas_syr2_fn = FORTRAN ? rocblas_syr2<T, true> : rocblas_syr2<T, false>;
+    auto rocblas_syr2_fn = arg.fortran ? rocblas_syr2<T, true> : rocblas_syr2<T, false>;
 
     rocblas_int          N       = arg.N;
     rocblas_int          incx    = arg.incx;

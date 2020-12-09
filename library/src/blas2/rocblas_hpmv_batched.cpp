@@ -92,7 +92,18 @@ namespace
         if(!n || !batch_count)
             return rocblas_status_success;
 
-        if(!AP || !x || !y || !alpha || !beta)
+        if(!alpha || !beta)
+            return rocblas_status_invalid_pointer;
+
+        if(handle->pointer_mode == rocblas_pointer_mode_host && !*alpha)
+        {
+            if(*beta == 1)
+                return rocblas_status_success;
+        }
+        else if(!AP || !x)
+            return rocblas_status_invalid_pointer;
+
+        if(!y)
             return rocblas_status_invalid_pointer;
 
         constexpr rocblas_int    offset_A = 0, offset_x = 0, offset_y = 0;

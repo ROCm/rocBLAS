@@ -21,19 +21,19 @@
 template <typename T>
 void testing_gbmv_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN         = arg.fortran;
-    auto       rocblas_gbmv_fn = FORTRAN ? rocblas_gbmv<T, true> : rocblas_gbmv<T, false>;
+    auto rocblas_gbmv_fn = arg.fortran ? rocblas_gbmv<T, true> : rocblas_gbmv<T, false>;
 
-    const rocblas_int M    = 100;
-    const rocblas_int N    = 100;
-    const rocblas_int KL   = 5;
-    const rocblas_int KU   = 5;
-    const rocblas_int lda  = 100;
-    const rocblas_int incx = 1;
-    const rocblas_int incy = 1;
-    T                 alpha;
-    T                 beta;
-    alpha = beta = 1.0;
+    const rocblas_int M     = 100;
+    const rocblas_int N     = 100;
+    const rocblas_int KL    = 5;
+    const rocblas_int KU    = 5;
+    const rocblas_int lda   = 100;
+    const rocblas_int incx  = 1;
+    const rocblas_int incy  = 1;
+    const T           alpha = 2.0;
+    const T           beta  = 0.5;
+    const T           zero  = 0.0;
+    const T           one   = 1.0;
 
     const rocblas_operation transA = rocblas_operation_none;
 
@@ -94,15 +94,57 @@ void testing_gbmv_bad_arg(const Arguments& arg)
         rocblas_gbmv_fn(nullptr, transA, M, N, KL, KU, &alpha, dA, lda, dx, incx, &beta, dy, incy),
         rocblas_status_invalid_handle);
 
-    // TODO: See rocblas_gbmv.cpp comment on alpha==0 && beta==1 case.
-    // CHECK_ROCBLAS_ERROR(rocblas_gbmv_fn(handle, transA, 1, 1, 1, 1, &alpha, nullptr, 10, nullptr, 1, &beta, nullptr, 1));
+    // When M==0, alpha, A, x, beta, and y may be nullptr without error
+    EXPECT_ROCBLAS_STATUS(rocblas_gbmv_fn(handle,
+                                          transA,
+                                          0,
+                                          N,
+                                          KL,
+                                          KU,
+                                          nullptr,
+                                          nullptr,
+                                          lda,
+                                          nullptr,
+                                          incx,
+                                          nullptr,
+                                          nullptr,
+                                          incy),
+                          rocblas_status_success);
+
+    // When N==0, alpha, A, x, beta, and Y may be nullptr without error
+    EXPECT_ROCBLAS_STATUS(rocblas_gbmv_fn(handle,
+                                          transA,
+                                          M,
+                                          0,
+                                          KL,
+                                          KU,
+                                          nullptr,
+                                          nullptr,
+                                          lda,
+                                          nullptr,
+                                          incx,
+                                          nullptr,
+                                          nullptr,
+                                          incy),
+                          rocblas_status_success);
+
+    // When alpha==0, A and x may be nullptr without error
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_gbmv_fn(
+            handle, transA, M, N, KL, KU, &zero, nullptr, lda, nullptr, incx, &beta, dy, incy),
+        rocblas_status_success);
+
+    // When alpha==0 && beta==1, A, x and y may be nullptr without error
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_gbmv_fn(
+            handle, transA, M, N, KL, KU, &zero, nullptr, lda, nullptr, incx, &one, nullptr, incy),
+        rocblas_status_success);
 }
 
 template <typename T>
 void testing_gbmv(const Arguments& arg)
 {
-    const bool FORTRAN         = arg.fortran;
-    auto       rocblas_gbmv_fn = FORTRAN ? rocblas_gbmv<T, true> : rocblas_gbmv<T, false>;
+    auto rocblas_gbmv_fn = arg.fortran ? rocblas_gbmv<T, true> : rocblas_gbmv<T, false>;
 
     rocblas_int       M       = arg.M;
     rocblas_int       N       = arg.N;
@@ -187,11 +229,20 @@ void testing_gbmv(const Arguments& arg)
 
     // Initial Data on CPU
     rocblas_seedrand();
-    // Init a lda * N matrix, not M * N
-    rocblas_init<T>(hA, lda, N, lda);
-    rocblas_init<T>(hx, 1, dim_x, abs_incx);
 
-    if(rocblas_isnan(arg.beta))
+    // Init a lda * N matrix, not M * N
+    if(arg.alpha_isnan<T>())
+    {
+        rocblas_init_nan<T>(hA, lda, N, lda);
+        rocblas_init_nan<T>(hx, 1, dim_x, abs_incx);
+    }
+    else
+    {
+        rocblas_init<T>(hA, lda, N, lda);
+        rocblas_init<T>(hx, 1, dim_x, abs_incx);
+    }
+
+    if(arg.beta_isnan<T>())
         rocblas_init_nan<T>(hy_1, 1, dim_y, abs_incy);
     else
         rocblas_init<T>(hy_1, 1, dim_y, abs_incy);

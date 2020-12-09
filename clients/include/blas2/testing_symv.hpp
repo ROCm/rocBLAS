@@ -19,8 +19,7 @@
 template <typename T>
 void testing_symv_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN         = arg.fortran;
-    auto       rocblas_symv_fn = FORTRAN ? rocblas_symv<T, true> : rocblas_symv<T, false>;
+    auto rocblas_symv_fn = arg.fortran ? rocblas_symv<T, true> : rocblas_symv<T, false>;
 
     rocblas_fill         uplo  = rocblas_fill_upper;
     rocblas_int          N     = 100;
@@ -77,8 +76,7 @@ void testing_symv_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_symv(const Arguments& arg)
 {
-    const bool FORTRAN         = arg.fortran;
-    auto       rocblas_symv_fn = FORTRAN ? rocblas_symv<T, true> : rocblas_symv<T, false>;
+    auto rocblas_symv_fn = arg.fortran ? rocblas_symv<T, true> : rocblas_symv<T, false>;
 
     rocblas_int N    = arg.N;
     rocblas_int lda  = arg.lda;

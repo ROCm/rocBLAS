@@ -21,17 +21,17 @@
 template <typename T>
 void testing_hbmv_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN         = arg.fortran;
-    auto       rocblas_hbmv_fn = FORTRAN ? rocblas_hbmv<T, true> : rocblas_hbmv<T, false>;
+    auto rocblas_hbmv_fn = arg.fortran ? rocblas_hbmv<T, true> : rocblas_hbmv<T, false>;
 
-    const rocblas_int N    = 100;
-    const rocblas_int K    = 10;
-    const rocblas_int lda  = 100;
-    const rocblas_int incx = 1;
-    const rocblas_int incy = 1;
-    T                 alpha;
-    T                 beta;
-    alpha = beta = 1.0;
+    const rocblas_int N     = 100;
+    const rocblas_int K     = 10;
+    const rocblas_int lda   = 100;
+    const rocblas_int incx  = 1;
+    const rocblas_int incy  = 1;
+    const T           alpha = 1.0;
+    const T           beta  = 1.0;
+    const T           zero  = 0.0;
+    const T           one   = 1.0;
 
     const rocblas_fill   uplo = rocblas_fill_upper;
     rocblas_local_handle handle{arg};
@@ -71,13 +71,29 @@ void testing_hbmv_bad_arg(const Arguments& arg)
     EXPECT_ROCBLAS_STATUS(
         rocblas_hbmv_fn(nullptr, uplo, N, K, &alpha, dA, lda, dx, incx, &beta, dy, incy),
         rocblas_status_invalid_handle);
+
+    // When N==0, all pointers can be nullptr without error
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_hbmv_fn(
+            handle, uplo, 0, K, nullptr, nullptr, lda, nullptr, incx, nullptr, nullptr, incy),
+        rocblas_status_success);
+
+    // When alpha==0, A and x can be nullptr without error
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_hbmv_fn(handle, uplo, N, K, &zero, nullptr, lda, nullptr, incx, &beta, dy, incy),
+        rocblas_status_success);
+
+    // When alpha==0 && beta==1, A, x and y can be nullptr without error
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_hbmv_fn(
+            handle, uplo, N, K, &zero, nullptr, lda, nullptr, incx, &one, nullptr, incy),
+        rocblas_status_success);
 }
 
 template <typename T>
 void testing_hbmv(const Arguments& arg)
 {
-    const bool FORTRAN         = arg.fortran;
-    auto       rocblas_hbmv_fn = FORTRAN ? rocblas_hbmv<T, true> : rocblas_hbmv<T, false>;
+    auto rocblas_hbmv_fn = arg.fortran ? rocblas_hbmv<T, true> : rocblas_hbmv<T, false>;
 
     rocblas_int  N       = arg.N;
     rocblas_int  K       = arg.K;
@@ -132,10 +148,18 @@ void testing_hbmv(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
 
     // Initial Data on CPU
-    rocblas_init(hA, true);
-    rocblas_init<T>(hx, 1, N, abs_incx);
+    if(arg.alpha_isnan<T>())
+    {
+        rocblas_init_nan<T>(hA, size_A, 1, 1);
+        rocblas_init_nan<T>(hx, 1, N, abs_incx);
+    }
+    else
+    {
+        rocblas_init<T>(hA, true);
+        rocblas_init<T>(hx, 1, N, abs_incx);
+    }
 
-    if(rocblas_isnan(arg.beta))
+    if(arg.beta_isnan<T>())
         rocblas_init_nan<T>(hy_1, 1, N, abs_incy);
     else
         rocblas_init<T>(hy_1, 1, N, abs_incy);

@@ -18,9 +18,8 @@
 template <typename T>
 void testing_tbsv_strided_batched_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_tbsv_strided_batched_fn
-        = FORTRAN ? rocblas_tbsv_strided_batched<T, true> : rocblas_tbsv_strided_batched<T, false>;
+    auto rocblas_tbsv_strided_batched_fn = arg.fortran ? rocblas_tbsv_strided_batched<T, true>
+                                                       : rocblas_tbsv_strided_batched<T, false>;
 
     const rocblas_int       N           = 100;
     const rocblas_int       K           = 5;
@@ -97,9 +96,8 @@ void testing_tbsv_strided_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_tbsv_strided_batched(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_tbsv_strided_batched_fn
-        = FORTRAN ? rocblas_tbsv_strided_batched<T, true> : rocblas_tbsv_strided_batched<T, false>;
+    auto rocblas_tbsv_strided_batched_fn = arg.fortran ? rocblas_tbsv_strided_batched<T, true>
+                                                       : rocblas_tbsv_strided_batched<T, false>;
 
     rocblas_int N           = arg.N;
     rocblas_int K           = arg.K;

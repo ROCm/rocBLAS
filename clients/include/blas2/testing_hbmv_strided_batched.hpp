@@ -21,9 +21,8 @@
 template <typename T>
 void testing_hbmv_strided_batched_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_hbmv_strided_batched_fn
-        = FORTRAN ? rocblas_hbmv_strided_batched<T, true> : rocblas_hbmv_strided_batched<T, false>;
+    auto rocblas_hbmv_strided_batched_fn = arg.fortran ? rocblas_hbmv_strided_batched<T, true>
+                                                       : rocblas_hbmv_strided_batched<T, false>;
 
     const rocblas_int    N           = 100;
     const rocblas_int    K           = 5;
@@ -34,8 +33,10 @@ void testing_hbmv_strided_batched_bad_arg(const Arguments& arg)
     const rocblas_stride stride_A    = 10000;
     const rocblas_stride stride_x    = 100;
     const rocblas_stride stride_y    = 100;
-    T                    alpha       = 1.0;
-    T                    beta        = 1.0;
+    const T              alpha       = 1.5;
+    const T              beta        = 0.5;
+    const T              zero        = 0.0;
+    const T              one         = 1.0;
 
     const rocblas_fill   uplo = rocblas_fill_upper;
     rocblas_local_handle handle{arg};
@@ -158,11 +159,50 @@ void testing_hbmv_strided_batched_bad_arg(const Arguments& arg)
                                                           batch_count),
                           rocblas_status_invalid_handle);
 
+    // If batch_count==0, all pointers can be nullptr without error
     EXPECT_ROCBLAS_STATUS(rocblas_hbmv_strided_batched_fn(handle,
                                                           uplo,
                                                           N,
                                                           K,
-                                                          &alpha,
+                                                          nullptr,
+                                                          nullptr,
+                                                          lda,
+                                                          stride_A,
+                                                          nullptr,
+                                                          incx,
+                                                          stride_x,
+                                                          nullptr,
+                                                          nullptr,
+                                                          incy,
+                                                          stride_y,
+                                                          0),
+                          rocblas_status_success);
+
+    // If N==0, all pointers can be nullptr without error
+    EXPECT_ROCBLAS_STATUS(rocblas_hbmv_strided_batched_fn(handle,
+                                                          uplo,
+                                                          0,
+                                                          K,
+                                                          nullptr,
+                                                          nullptr,
+                                                          lda,
+                                                          stride_A,
+                                                          nullptr,
+                                                          incx,
+                                                          stride_x,
+                                                          nullptr,
+                                                          nullptr,
+                                                          incy,
+                                                          stride_y,
+                                                          batch_count),
+                          rocblas_status_success);
+
+    // When alpha==0, A and x can be nullptr without error
+    EXPECT_ROCBLAS_STATUS(rocblas_hbmv_strided_batched_fn(handle,
+                                                          uplo,
+                                                          N,
+                                                          K,
+                                                          &zero,
                                                           nullptr,
                                                           lda,
                                                           stride_A,
@@ -170,19 +210,37 @@ void testing_hbmv_strided_batched_bad_arg(const Arguments& arg)
                                                           incx,
                                                           stride_x,
                                                           &beta,
+                                                          dy,
+                                                          incy,
+                                                          stride_y,
+                                                          batch_count),
+                          rocblas_status_success);
+
+    // When alpha==0 && beta==1, A, x and y can be nullptr without error
+    EXPECT_ROCBLAS_STATUS(rocblas_hbmv_strided_batched_fn(handle,
+                                                          uplo,
+                                                          N,
+                                                          K,
+                                                          &zero,
+                                                          nullptr,
+                                                          lda,
+                                                          stride_A,
+                                                          nullptr,
+                                                          incx,
+                                                          stride_x,
+                                                          &one,
                                                           nullptr,
                                                           incy,
                                                           stride_y,
-                                                          0),
+                                                          batch_count),
                           rocblas_status_success);
 }
 
 template <typename T>
 void testing_hbmv_strided_batched(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_hbmv_strided_batched_fn
-        = FORTRAN ? rocblas_hbmv_strided_batched<T, true> : rocblas_hbmv_strided_batched<T, false>;
+    auto rocblas_hbmv_strided_batched_fn = arg.fortran ? rocblas_hbmv_strided_batched<T, true>
+                                                       : rocblas_hbmv_strided_batched<T, false>;
 
     rocblas_int    N           = arg.N;
     rocblas_int    K           = arg.K;
@@ -260,10 +318,18 @@ void testing_hbmv_strided_batched(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
 
     // Initial Data on CPU
-    rocblas_init<T>(hA, true);
-    rocblas_init<T>(hx, false);
+    if(arg.alpha_isnan<T>())
+    {
+        rocblas_init_nan<T>(hA, true);
+        rocblas_init_nan<T>(hx, false);
+    }
+    else
+    {
+        rocblas_init<T>(hA, true);
+        rocblas_init<T>(hx, false);
+    }
 
-    if(rocblas_isnan(arg.beta))
+    if(arg.beta_isnan<T>())
         rocblas_init_nan<T>(hy_1, false);
     else
         rocblas_init<T>(hy_1, false);

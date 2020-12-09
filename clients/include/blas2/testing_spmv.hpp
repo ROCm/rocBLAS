@@ -18,8 +18,7 @@
 template <typename T>
 void testing_spmv_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN         = arg.fortran;
-    auto       rocblas_spmv_fn = FORTRAN ? rocblas_spmv<T, true> : rocblas_spmv<T, false>;
+    auto rocblas_spmv_fn = arg.fortran ? rocblas_spmv<T, true> : rocblas_spmv<T, false>;
 
     rocblas_fill         uplo  = rocblas_fill_upper;
     rocblas_int          N     = 100;
@@ -72,8 +71,7 @@ void testing_spmv_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_spmv(const Arguments& arg)
 {
-    const bool FORTRAN         = arg.fortran;
-    auto       rocblas_spmv_fn = FORTRAN ? rocblas_spmv<T, true> : rocblas_spmv<T, false>;
+    auto rocblas_spmv_fn = arg.fortran ? rocblas_spmv<T, true> : rocblas_spmv<T, false>;
 
     rocblas_int N    = arg.N;
     rocblas_int incx = arg.incx;

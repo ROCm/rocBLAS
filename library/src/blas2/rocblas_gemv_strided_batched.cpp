@@ -43,12 +43,7 @@ namespace
 
         size_t dev_bytes = rocblas_gemv_kernel_workspace_size<T>(transA, m, n, batch_count);
         if(handle->is_device_memory_size_query())
-        {
-            if(dev_bytes <= 0)
-                return rocblas_status_size_unchanged;
-            else
-                return handle->set_optimal_device_memory_size(dev_bytes);
-        }
+            return handle->set_optimal_device_memory_size(dev_bytes);
 
         auto layer_mode     = handle->layer_mode;
         auto check_numerics = handle->check_numerics;
@@ -136,7 +131,17 @@ namespace
         if(!batch_count || !m || !n)
             return rocblas_status_success;
 
-        if(!A || !x || !y || !alpha || !beta)
+        if(!alpha || !beta)
+            return rocblas_status_invalid_pointer;
+
+        if(handle->pointer_mode == rocblas_pointer_mode_host && !*alpha)
+        {
+            if(*beta == 1)
+                return rocblas_status_success;
+        }
+        else if(!A || !x)
+            return rocblas_status_invalid_pointer;
+        if(!y)
             return rocblas_status_invalid_pointer;
 
         rocblas_status perf_status = rocblas_status_success;

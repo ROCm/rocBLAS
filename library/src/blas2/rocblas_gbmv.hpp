@@ -128,21 +128,25 @@ __device__ void gbmvx_kernel_calc(rocblas_operation transA,
     __shared__ T sdata[DIM_X * DIM_Y];
 
     T res_A = 0.0;
-    // Indexing is different for transpose/non-transpose case. To keep it clean
-    // it's separated in two helper functions. They could potentially be combined
-    // if more elegant logic is used.
-    if(transA == rocblas_operation_none)
+
+    if(alpha)
     {
-        res_A = gbmvn_kernel_helper<DIM_Y>(ty, ind, m, n, kl, ku, A, lda, x, incx);
+        // Indexing is different for transpose/non-transpose case. To keep it clean
+        // it's separated in two helper functions. They could potentially be combined
+        // if more elegant logic is used.
+        if(transA == rocblas_operation_none)
+        {
+            res_A = gbmvn_kernel_helper<DIM_Y>(ty, ind, m, n, kl, ku, A, lda, x, incx);
+        }
+        else
+        {
+            bool CONJ = transA == rocblas_operation_conjugate_transpose;
+            res_A     = gbmvt_kernel_helper<DIM_Y>(CONJ, ty, ind, m, n, kl, ku, A, lda, x, incx);
+        }
+        // Store partial sums for the diagonal
+        sdata[tx + ty * DIM_X] = res_A;
+        __syncthreads();
     }
-    else
-    {
-        bool CONJ = transA == rocblas_operation_conjugate_transpose;
-        res_A     = gbmvt_kernel_helper<DIM_Y>(CONJ, ty, ind, m, n, kl, ku, A, lda, x, incx);
-    }
-    // Store partial sums for the diagonal
-    sdata[tx + ty * DIM_X] = res_A;
-    __syncthreads();
 
     thread_id           = hipThreadIdx_x + hipThreadIdx_y * hipBlockDim_x;
     ind                 = hipBlockIdx_x * DIM_X + thread_id;
@@ -150,21 +154,18 @@ __device__ void gbmvx_kernel_calc(rocblas_operation transA,
     if(thread_id < DIM_X && ind < max_ind)
     {
         // Add the partial sums of each diagonal and store
-        for(rocblas_int i = 1; i < DIM_Y; i++)
-        {
-            sdata[thread_id] += sdata[thread_id + DIM_X * i];
-        }
+        if(alpha)
+            for(rocblas_int i = 1; i < DIM_Y; i++)
+                sdata[thread_id] += sdata[thread_id + DIM_X * i];
+
         if(ind < max_ind)
         {
             // Update y.
             if(beta != 0)
-            {
-                y[ind * incy] = (alpha * sdata[thread_id]) + (beta * y[ind * incy]);
-            }
+                y[ind * incy] = alpha ? alpha * sdata[thread_id] + beta * y[ind * incy]
+                                      : beta * y[ind * incy];
             else
-            {
-                y[ind * incy] = alpha * sdata[thread_id];
-            }
+                y[ind * incy] = alpha ? alpha * sdata[thread_id] : 0;
         }
     }
 }
@@ -194,35 +195,40 @@ __device__ void gbmvx_kernel_calc(rocblas_operation transA,
   *  reside on the same row as the other elements of the same diagonal.
   */
 template <rocblas_int DIM_X, rocblas_int DIM_Y, typename U, typename V, typename W>
-__global__ void gbmvx_kernel(rocblas_operation transA,
-                             rocblas_int       m,
-                             rocblas_int       n,
-                             rocblas_int       kl,
-                             rocblas_int       ku,
-                             U                 alphaa,
-                             V                 Aa,
-                             ptrdiff_t         shifta,
-                             rocblas_int       lda,
-                             rocblas_stride    strideA,
-                             V                 xa,
-                             ptrdiff_t         shiftx,
-                             rocblas_int       incx,
-                             rocblas_stride    stridex,
-                             U                 betaa,
-                             W                 ya,
-                             ptrdiff_t         shifty,
-                             rocblas_int       incy,
-                             rocblas_stride    stridey)
+__launch_bounds__(DIM_X* DIM_Y) __global__ void gbmvx_kernel(rocblas_operation transA,
+                                                             rocblas_int       m,
+                                                             rocblas_int       n,
+                                                             rocblas_int       kl,
+                                                             rocblas_int       ku,
+                                                             U                 alphaa,
+                                                             V                 Aa,
+                                                             ptrdiff_t         shifta,
+                                                             rocblas_int       lda,
+                                                             rocblas_stride    strideA,
+                                                             V                 xa,
+                                                             ptrdiff_t         shiftx,
+                                                             rocblas_int       incx,
+                                                             rocblas_stride    stridex,
+                                                             U                 betaa,
+                                                             W                 ya,
+                                                             ptrdiff_t         shifty,
+                                                             rocblas_int       incy,
+                                                             rocblas_stride    stridey)
 {
     rocblas_int num_threads = hipBlockDim_x * hipBlockDim_y * hipBlockDim_z;
     if(DIM_X * DIM_Y != num_threads)
         return; // need to launch exactly the same number of threads as template parameters indicate
 
-    const auto* A     = load_ptr_batch(Aa, hipBlockIdx_y, shifta, strideA);
-    const auto* x     = load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex);
-    auto*       y     = load_ptr_batch(ya, hipBlockIdx_y, shifty, stridey);
-    auto        alpha = load_scalar(alphaa, hipBlockIdx_y, 0);
-    auto        beta  = load_scalar(betaa, hipBlockIdx_y, 0);
+    auto alpha = load_scalar(alphaa, hipBlockIdx_y, 0);
+    auto beta  = load_scalar(betaa, hipBlockIdx_y, 0);
+
+    if(!alpha && beta == 1)
+        return;
+
+    const auto* A = alpha ? load_ptr_batch(Aa, hipBlockIdx_y, shifta, strideA) : nullptr;
+    const auto* x = alpha ? load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex) : nullptr;
+
+    auto* y = load_ptr_batch(ya, hipBlockIdx_y, shifty, stridey);
 
     gbmvx_kernel_calc<DIM_X, DIM_Y>(transA, m, n, kl, ku, alpha, A, lda, x, incx, beta, y, incy);
 }

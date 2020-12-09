@@ -19,8 +19,7 @@
 template <typename T>
 void testing_spr_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN        = arg.fortran;
-    auto       rocblas_spr_fn = FORTRAN ? rocblas_spr<T, true> : rocblas_spr<T, false>;
+    auto rocblas_spr_fn = arg.fortran ? rocblas_spr<T, true> : rocblas_spr<T, false>;
 
     rocblas_fill         uplo  = rocblas_fill_upper;
     rocblas_int          N     = 100;
@@ -54,8 +53,7 @@ void testing_spr_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_spr(const Arguments& arg)
 {
-    const bool FORTRAN        = arg.fortran;
-    auto       rocblas_spr_fn = FORTRAN ? rocblas_spr<T, true> : rocblas_spr<T, false>;
+    auto rocblas_spr_fn = arg.fortran ? rocblas_spr<T, true> : rocblas_spr<T, false>;
 
     rocblas_int          N       = arg.N;
     rocblas_int          incx    = arg.incx;

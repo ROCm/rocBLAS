@@ -20,9 +20,8 @@
 template <typename T>
 void testing_gbmv_strided_batched_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_gbmv_strided_batched_fn
-        = FORTRAN ? rocblas_gbmv_strided_batched<T, true> : rocblas_gbmv_strided_batched<T, false>;
+    auto rocblas_gbmv_strided_batched_fn = arg.fortran ? rocblas_gbmv_strided_batched<T, true>
+                                                       : rocblas_gbmv_strided_batched<T, false>;
 
     const rocblas_int       M           = 100;
     const rocblas_int       N           = 100;
@@ -31,8 +30,10 @@ void testing_gbmv_strided_batched_bad_arg(const Arguments& arg)
     const rocblas_int       lda         = 100;
     const rocblas_int       incx        = 1;
     const rocblas_int       incy        = 1;
-    const T                 alpha       = 1.0;
-    const T                 beta        = 1.0;
+    const T                 alpha       = 0.5;
+    const T                 beta        = 1.5;
+    const T                 zero        = 0.0;
+    const T                 one         = 1.0;
     const rocblas_int       stride_A    = 10000;
     const rocblas_int       stride_x    = 100;
     const rocblas_int       stride_y    = 100;
@@ -169,14 +170,118 @@ void testing_gbmv_strided_batched_bad_arg(const Arguments& arg)
                                                           stride_y,
                                                           batch_count),
                           rocblas_status_invalid_handle);
+
+    // If batch_count == 0, then all pointers may be nullptr without error
+    EXPECT_ROCBLAS_STATUS(rocblas_gbmv_strided_batched_fn(handle,
+                                                          transA,
+                                                          M,
+                                                          N,
+                                                          KL,
+                                                          KU,
+                                                          nullptr,
+                                                          nullptr,
+                                                          lda,
+                                                          stride_A,
+                                                          nullptr,
+                                                          incx,
+                                                          stride_x,
+                                                          nullptr,
+                                                          nullptr,
+                                                          incy,
+                                                          stride_y,
+                                                          0),
+                          rocblas_status_success);
+
+    // If M==0, then all pointers may be nullptr without error
+    EXPECT_ROCBLAS_STATUS(rocblas_gbmv_strided_batched_fn(handle,
+                                                          transA,
+                                                          0,
+                                                          N,
+                                                          KL,
+                                                          KU,
+                                                          nullptr,
+                                                          nullptr,
+                                                          lda,
+                                                          stride_A,
+                                                          nullptr,
+                                                          incx,
+                                                          stride_x,
+                                                          nullptr,
+                                                          nullptr,
+                                                          incy,
+                                                          stride_y,
+                                                          batch_count),
+                          rocblas_status_success);
+
+    // If N==0, then all pointers may be nullptr without error
+    EXPECT_ROCBLAS_STATUS(rocblas_gbmv_strided_batched_fn(handle,
+                                                          transA,
+                                                          M,
+                                                          0,
+                                                          KL,
+                                                          KU,
+                                                          nullptr,
+                                                          nullptr,
+                                                          lda,
+                                                          stride_A,
+                                                          nullptr,
+                                                          incx,
+                                                          stride_x,
+                                                          nullptr,
+                                                          nullptr,
+                                                          incy,
+                                                          stride_y,
+                                                          batch_count),
+                          rocblas_status_success);
+
+    // If alpha==0, then A and X may be nullptr without error
+    EXPECT_ROCBLAS_STATUS(rocblas_gbmv_strided_batched_fn(handle,
+                                                          transA,
+                                                          M,
+                                                          N,
+                                                          KL,
+                                                          KU,
+                                                          &zero,
+                                                          nullptr,
+                                                          lda,
+                                                          stride_A,
+                                                          nullptr,
+                                                          incx,
+                                                          stride_x,
+                                                          &beta,
+                                                          dy,
+                                                          incy,
+                                                          stride_y,
+                                                          batch_count),
+                          rocblas_status_success);
+
+    // If alpha==0 && beta==1, then A, X and Y may be nullptr without error
+    EXPECT_ROCBLAS_STATUS(rocblas_gbmv_strided_batched_fn(handle,
+                                                          transA,
+                                                          M,
+                                                          N,
+                                                          KL,
+                                                          KU,
+                                                          &zero,
+                                                          nullptr,
+                                                          lda,
+                                                          stride_A,
+                                                          nullptr,
+                                                          incx,
+                                                          stride_x,
+                                                          &one,
+                                                          nullptr,
+                                                          incy,
+                                                          stride_y,
+                                                          batch_count),
+                          rocblas_status_success);
 }
 
 template <typename T>
 void testing_gbmv_strided_batched(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_gbmv_strided_batched_fn
-        = FORTRAN ? rocblas_gbmv_strided_batched<T, true> : rocblas_gbmv_strided_batched<T, false>;
+    auto rocblas_gbmv_strided_batched_fn = arg.fortran ? rocblas_gbmv_strided_batched<T, true>
+                                                       : rocblas_gbmv_strided_batched<T, false>;
 
     rocblas_int       M           = arg.M;
     rocblas_int       N           = arg.N;
@@ -271,10 +376,18 @@ void testing_gbmv_strided_batched(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
 
     // Initial Data on CPU
-    rocblas_init<T>(hA, true);
-    rocblas_init<T>(hx, false);
+    if(arg.alpha_isnan<T>())
+    {
+        rocblas_init_nan<T>(hA, true);
+        rocblas_init_nan<T>(hx, false);
+    }
+    else
+    {
+        rocblas_init<T>(hA, true);
+        rocblas_init<T>(hx, false);
+    }
 
-    if(rocblas_isnan(arg.beta))
+    if(arg.beta_isnan<T>())
         rocblas_init_nan<T>(hy_1, false);
     else
         rocblas_init<T>(hy_1, false);
