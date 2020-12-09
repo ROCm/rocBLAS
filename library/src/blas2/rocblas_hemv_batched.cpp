@@ -95,7 +95,18 @@ namespace
         if(!n || !batch_count)
             return rocblas_status_success;
 
-        if(!A || !x || !y || !alpha || !beta)
+        if(!alpha || !beta)
+            return rocblas_status_invalid_pointer;
+
+        if(handle->pointer_mode == rocblas_pointer_mode_host && !*alpha)
+        {
+            if(*beta == 1)
+                return rocblas_status_success;
+        }
+        else if(!A || !x)
+            return rocblas_status_invalid_pointer;
+
+        if(!y)
             return rocblas_status_invalid_pointer;
 
         return rocblas_hemv_template(handle,

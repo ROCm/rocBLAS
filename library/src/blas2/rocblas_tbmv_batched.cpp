@@ -106,8 +106,10 @@ namespace
         if(m < 0 || k < 0 || lda < k + 1 || !incx || batch_count < 0)
             return rocblas_status_invalid_size;
         if(!m || !batch_count)
-            return handle->is_device_memory_size_query() ? rocblas_status_size_unchanged
-                                                         : rocblas_status_success;
+        {
+            RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
+            return rocblas_status_success;
+        }
         if(!A || !x)
             return rocblas_status_invalid_pointer;
 

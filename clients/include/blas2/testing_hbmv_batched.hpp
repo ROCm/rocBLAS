@@ -21,9 +21,8 @@
 template <typename T>
 void testing_hbmv_batched_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_hbmv_batched_fn
-        = FORTRAN ? rocblas_hbmv_batched<T, true> : rocblas_hbmv_batched<T, false>;
+    auto rocblas_hbmv_batched_fn
+        = arg.fortran ? rocblas_hbmv_batched<T, true> : rocblas_hbmv_batched<T, false>;
 
     const rocblas_int N           = 100;
     const rocblas_int K           = 5;
@@ -31,9 +30,10 @@ void testing_hbmv_batched_bad_arg(const Arguments& arg)
     const rocblas_int incx        = 1;
     const rocblas_int incy        = 1;
     const rocblas_int batch_count = 5;
-    T                 alpha;
-    T                 beta;
-    alpha = beta = 1.0;
+    T                 alpha       = 0.5;
+    T                 beta        = 2.0;
+    T                 zero        = 0.0;
+    T                 one         = 1.0;
 
     const rocblas_fill   uplo = rocblas_fill_upper;
     rocblas_local_handle handle{arg};
@@ -140,18 +140,66 @@ void testing_hbmv_batched_bad_arg(const Arguments& arg)
                                                   batch_count),
                           rocblas_status_invalid_handle);
 
+    // If batch_count==0, then all pointers can be nullptr without error
     EXPECT_ROCBLAS_STATUS(
         rocblas_hbmv_batched_fn(
             handle, uplo, N, K, nullptr, nullptr, lda, nullptr, incx, nullptr, nullptr, incy, 0),
         rocblas_status_success);
+
+    // If N==0, then all pointers can be nullptr without error
+    EXPECT_ROCBLAS_STATUS(rocblas_hbmv_batched_fn(handle,
+                                                  uplo,
+                                                  0,
+                                                  K,
+                                                  nullptr,
+                                                  nullptr,
+                                                  lda,
+                                                  nullptr,
+                                                  incx,
+                                                  nullptr,
+                                                  nullptr,
+                                                  incy,
+                                                  batch_count),
+                          rocblas_status_success);
+
+    // If alpha==0 then A and x may be nullptr without error
+    EXPECT_ROCBLAS_STATUS(rocblas_hbmv_batched_fn(handle,
+                                                  uplo,
+                                                  N,
+                                                  K,
+                                                  &zero,
+                                                  nullptr,
+                                                  lda,
+                                                  nullptr,
+                                                  incx,
+                                                  &beta,
+                                                  dy.ptr_on_device(),
+                                                  incy,
+                                                  batch_count),
+                          rocblas_status_success);
+
+    // If alpha==0 && beta==1, then A, x and y may be nullptr without error
+    EXPECT_ROCBLAS_STATUS(rocblas_hbmv_batched_fn(handle,
+                                                  uplo,
+                                                  N,
+                                                  K,
+                                                  &zero,
+                                                  nullptr,
+                                                  lda,
+                                                  nullptr,
+                                                  incx,
+                                                  &one,
+                                                  nullptr,
+                                                  incy,
+                                                  batch_count),
+                          rocblas_status_success);
 }
 
 template <typename T>
 void testing_hbmv_batched(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_hbmv_batched_fn
-        = FORTRAN ? rocblas_hbmv_batched<T, true> : rocblas_hbmv_batched<T, false>;
+    auto rocblas_hbmv_batched_fn
+        = arg.fortran ? rocblas_hbmv_batched<T, true> : rocblas_hbmv_batched<T, false>;
 
     rocblas_int  N           = arg.N;
     rocblas_int  K           = arg.K;
@@ -225,10 +273,18 @@ void testing_hbmv_batched(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
     CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
 
-    rocblas_init(hA, true);
-    rocblas_init(hx, false);
+    if(arg.alpha_isnan<T>())
+    {
+        rocblas_init_nan(hA, true);
+        rocblas_init_nan(hx, false);
+    }
+    else
+    {
+        rocblas_init(hA, true);
+        rocblas_init(hx, false);
+    }
 
-    if(rocblas_isnan(arg.beta))
+    if(arg.beta_isnan<T>())
         rocblas_init_nan(hy_1, false);
     else
         rocblas_init(hy_1, false);

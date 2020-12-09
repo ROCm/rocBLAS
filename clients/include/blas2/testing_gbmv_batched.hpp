@@ -20,9 +20,8 @@
 template <typename T>
 void testing_gbmv_batched_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_gbmv_batched_fn
-        = FORTRAN ? rocblas_gbmv_batched<T, true> : rocblas_gbmv_batched<T, false>;
+    auto rocblas_gbmv_batched_fn
+        = arg.fortran ? rocblas_gbmv_batched<T, true> : rocblas_gbmv_batched<T, false>;
 
     const rocblas_int M           = 100;
     const rocblas_int N           = 100;
@@ -158,9 +157,8 @@ void testing_gbmv_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_gbmv_batched(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_gbmv_batched_fn
-        = FORTRAN ? rocblas_gbmv_batched<T, true> : rocblas_gbmv_batched<T, false>;
+    auto rocblas_gbmv_batched_fn
+        = arg.fortran ? rocblas_gbmv_batched<T, true> : rocblas_gbmv_batched<T, false>;
 
     rocblas_int       M           = arg.M;
     rocblas_int       N           = arg.N;

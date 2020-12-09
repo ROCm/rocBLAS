@@ -18,9 +18,8 @@
 template <typename T, bool CONJ>
 void testing_ger_batched_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_ger_batched_fn
-        = FORTRAN
+    auto rocblas_ger_batched_fn
+        = arg.fortran
               ? (CONJ ? rocblas_ger_batched<T, true, true> : rocblas_ger_batched<T, false, true>)
               : (CONJ ? rocblas_ger_batched<T, true, false> : rocblas_ger_batched<T, false, false>);
 
@@ -97,9 +96,8 @@ void testing_ger_batched_bad_arg(const Arguments& arg)
 template <typename T, bool CONJ>
 void testing_ger_batched(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_ger_batched_fn
-        = FORTRAN
+    auto rocblas_ger_batched_fn
+        = arg.fortran
               ? (CONJ ? rocblas_ger_batched<T, true, true> : rocblas_ger_batched<T, false, true>)
               : (CONJ ? rocblas_ger_batched<T, true, false> : rocblas_ger_batched<T, false, false>);
 

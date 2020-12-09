@@ -19,9 +19,8 @@
 template <typename T, bool CONJ = false>
 void testing_ger_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
     // clang-format off
-    auto       rocblas_ger_fn = FORTRAN
+    auto rocblas_ger_fn = arg.fortran
                               ? (CONJ ? rocblas_ger<T, true, true> : rocblas_ger<T, false, true>)
                               : (CONJ ? rocblas_ger<T, true, false> : rocblas_ger<T, false, false>);
     // clang-format on
@@ -63,12 +62,9 @@ void testing_ger_bad_arg(const Arguments& arg)
 template <typename T, bool CONJ = false>
 void testing_ger(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    // clang-format off
-    auto       rocblas_ger_fn = FORTRAN
+    auto rocblas_ger_fn = arg.fortran
                               ? (CONJ ? rocblas_ger<T, true, true> : rocblas_ger<T, false, true>)
                               : (CONJ ? rocblas_ger<T, true, false> : rocblas_ger<T, false, false>);
-    // clang-format on
 
     rocblas_int M       = arg.M;
     rocblas_int N       = arg.N;

@@ -96,10 +96,11 @@ namespace
             return rocblas_status_invalid_size;
 
         // quick return if possible.
-        // return rocblas_status_size_unchanged if device memory size query
         if(!m)
-            return handle->is_device_memory_size_query() ? rocblas_status_size_unchanged
-                                                         : rocblas_status_success;
+        {
+            RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
+            return rocblas_status_success;
+        }
 
         if(!A || !B)
             return rocblas_status_invalid_pointer;

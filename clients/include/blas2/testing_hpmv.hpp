@@ -21,15 +21,15 @@
 template <typename T>
 void testing_hpmv_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN         = arg.fortran;
-    auto       rocblas_hpmv_fn = FORTRAN ? rocblas_hpmv<T, true> : rocblas_hpmv<T, false>;
+    auto rocblas_hpmv_fn = arg.fortran ? rocblas_hpmv<T, true> : rocblas_hpmv<T, false>;
 
-    const rocblas_int N    = 100;
-    const rocblas_int incx = 1;
-    const rocblas_int incy = 1;
-    T                 alpha;
-    T                 beta;
-    alpha = beta = 1.0;
+    const rocblas_int N     = 100;
+    const rocblas_int incx  = 1;
+    const rocblas_int incy  = 1;
+    const T           alpha = 1.5;
+    const T           beta  = 0.5;
+    const T           zero  = 0.0;
+    const T           one   = 1.0;
 
     const rocblas_fill   uplo = rocblas_fill_upper;
     rocblas_local_handle handle{arg};
@@ -66,13 +66,27 @@ void testing_hpmv_bad_arg(const Arguments& arg)
 
     EXPECT_ROCBLAS_STATUS(rocblas_hpmv_fn(nullptr, uplo, N, &alpha, dA, dx, incx, &beta, dy, incy),
                           rocblas_status_invalid_handle);
+
+    // If N==0, all pointers can be nullptr without error
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_hpmv_fn(handle, uplo, 0, nullptr, nullptr, nullptr, incx, nullptr, nullptr, incy),
+        rocblas_status_success);
+
+    // If alpha==0, then A and x may be nullptr without error
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_hpmv_fn(handle, uplo, N, &zero, nullptr, nullptr, incx, &beta, dy, incy),
+        rocblas_status_success);
+
+    // If alpha==0 && beta==1, then A, x and y may be nullptr without error
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_hpmv_fn(handle, uplo, N, &zero, dA, dx, incx, &one, nullptr, incy),
+        rocblas_status_success);
 }
 
 template <typename T>
 void testing_hpmv(const Arguments& arg)
 {
-    const bool FORTRAN         = arg.fortran;
-    auto       rocblas_hpmv_fn = FORTRAN ? rocblas_hpmv<T, true> : rocblas_hpmv<T, false>;
+    auto rocblas_hpmv_fn = arg.fortran ? rocblas_hpmv<T, true> : rocblas_hpmv<T, false>;
 
     rocblas_int  N       = arg.N;
     rocblas_int  incx    = arg.incx;
@@ -125,10 +139,18 @@ void testing_hpmv(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
 
     // Initial Data on CPU
-    rocblas_init(hA, true);
-    rocblas_init<T>(hx, 1, N, abs_incx);
+    if(arg.alpha_isnan<T>())
+    {
+        rocblas_init_nan<T>(hA, size_A, 1, 1);
+        rocblas_init_nan<T>(hx, 1, N, abs_incx);
+    }
+    else
+    {
+        rocblas_init<T>(hA, true);
+        rocblas_init<T>(hx, 1, N, abs_incx);
+    }
 
-    if(rocblas_isnan(arg.beta))
+    if(arg.beta_isnan<T>())
         rocblas_init_nan<T>(hy_1, 1, N, abs_incy);
     else
         rocblas_init<T>(hy_1, 1, N, abs_incy);

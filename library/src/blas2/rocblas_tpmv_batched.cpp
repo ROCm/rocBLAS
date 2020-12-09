@@ -107,8 +107,10 @@ namespace
             return rocblas_status_invalid_size;
 
         if(!m || !batch_count)
-            return handle->is_device_memory_size_query() ? rocblas_status_size_unchanged
-                                                         : rocblas_status_success;
+        {
+            RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
+            return rocblas_status_success;
+        }
 
         size_t dev_bytes = m * batch_count * sizeof(T);
         if(handle->is_device_memory_size_query())

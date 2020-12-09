@@ -19,8 +19,7 @@
 template <typename T>
 void testing_her_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN        = arg.fortran;
-    auto       rocblas_her_fn = FORTRAN ? rocblas_her<T, true> : rocblas_her<T, false>;
+    auto rocblas_her_fn = arg.fortran ? rocblas_her<T, true> : rocblas_her<T, false>;
 
     rocblas_fill         uplo  = rocblas_fill_upper;
     rocblas_int          N     = 100;
@@ -55,8 +54,7 @@ void testing_her_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_her(const Arguments& arg)
 {
-    const bool FORTRAN        = arg.fortran;
-    auto       rocblas_her_fn = FORTRAN ? rocblas_her<T, true> : rocblas_her<T, false>;
+    auto rocblas_her_fn = arg.fortran ? rocblas_her<T, true> : rocblas_her<T, false>;
 
     rocblas_int          N       = arg.N;
     rocblas_int          incx    = arg.incx;

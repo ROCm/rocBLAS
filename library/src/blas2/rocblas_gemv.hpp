@@ -82,11 +82,11 @@ ROCBLAS_EXPORT_NOINLINE size_t rocblas_gemv_kernel_workspace_size(rocblas_operat
                                                                   rocblas_int       n,
                                                                   rocblas_int       batch_count = 1)
 {
-    if(!rocblas_gemvt_skinny_n<To>(transA, m, n))
-        return 0; // workspace only used for skinny n kernel transpose/conj. transpose
-
     if(m <= 0 || n <= 0 || batch_count <= 0)
         return 0;
+
+    if(!rocblas_gemvt_skinny_n<To>(transA, m, n))
+        return 0; // workspace only used for skinny n kernel transpose/conj. transpose
 
     auto blocks = rocblas_gemvt_sn_kernel_block_count(m);
     return sizeof(To) * blocks * n * batch_count;

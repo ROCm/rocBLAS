@@ -21,8 +21,7 @@
 template <typename T>
 void testing_tpmv_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN         = arg.fortran;
-    auto       rocblas_tpmv_fn = FORTRAN ? rocblas_tpmv<T, true> : rocblas_tpmv<T, false>;
+    auto rocblas_tpmv_fn = arg.fortran ? rocblas_tpmv<T, true> : rocblas_tpmv<T, false>;
 
     const rocblas_int       M      = 100;
     const rocblas_int       incx   = 1;
@@ -60,8 +59,7 @@ void testing_tpmv_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_tpmv(const Arguments& arg)
 {
-    const bool FORTRAN         = arg.fortran;
-    auto       rocblas_tpmv_fn = FORTRAN ? rocblas_tpmv<T, true> : rocblas_tpmv<T, false>;
+    auto rocblas_tpmv_fn = arg.fortran ? rocblas_tpmv<T, true> : rocblas_tpmv<T, false>;
 
     rocblas_int M = arg.M, incx = arg.incx;
 
