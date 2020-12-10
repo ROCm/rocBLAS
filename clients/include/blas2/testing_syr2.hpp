@@ -122,8 +122,17 @@ void testing_syr2(const Arguments& arg)
 
     // Initial Data on CPU
     rocblas_init(hA_1, true);
-    rocblas_init(hx, false);
-    rocblas_init(hy, false);
+
+    if(arg.alpha_isnan<T>())
+    {
+        rocblas_init_nan<T>(hx, 1, N, abs_incx);
+        rocblas_init_nan<T>(hy, 1, N, abs_incy);
+    }
+    else
+    {
+        rocblas_init<T>(hx, false);
+        rocblas_init<T>(hy, false);
+    }
 
     hA_2    = hA_1;
     hA_gold = hA_1;

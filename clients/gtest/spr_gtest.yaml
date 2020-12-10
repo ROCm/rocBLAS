@@ -36,6 +36,9 @@ Definitions:
   - &alpha_range_small
     - { alpha: 2.0, alphai: 0.5 }
 
+  - &alpha_nan
+    - { alpha: 4.0, alphai: .NaN }
+
 Tests:
 
 - name: spr_bad_arg
@@ -74,6 +77,15 @@ Tests:
   matrix_size: *small_matrix_size_range
   incx: [ 1, -2, 10 ]
   alpha_beta: *alpha_range
+
+- name: spr_NaN
+  category: quick
+  function: spr
+  precision: *single_double_precisions_complex_real
+  uplo: [ U, L ]
+  N: [ 33 ]
+  incx: [ 1 ]
+  alpha_beta: *alpha_nan
 
 - name: spr_medium
   category: pre_checkin

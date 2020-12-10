@@ -319,10 +319,8 @@ __device__ void gemvt_kernel_calc(rocblas_int m,
 
     if(tx == 0)
     {
-        if(alpha)
-            y[col * incy] = beta ? alpha * sdata[0] + beta * y[col * incy] : alpha * sdata[0];
-        else
-            y[col * incy] = beta ? beta * y[col * incy] : 0;
+        // !alpha handled earlier by early return
+        y[col * incy] = beta ? alpha * sdata[0] + beta * y[col * incy] : alpha * sdata[0];
     }
 }
 
@@ -340,6 +338,9 @@ __device__ void gemvt_sn_kernel_calc(rocblas_int m,
 
     rocblas_int tx = hipThreadIdx_x;
 
+    // offset blocks * cols * batch
+    work += size_t(hipGridDim_x) * n * hipBlockIdx_y;
+
     // We need to short-circuit if alpha==0 and not propagate NaNs
     if(!alpha)
     {
@@ -351,9 +352,6 @@ __device__ void gemvt_sn_kernel_calc(rocblas_int m,
 
     int row = tx * WIN + hipBlockIdx_x * NB_X * WIN;
     A += row;
-
-    // offset blocks * cols * batch
-    work += size_t(hipGridDim_x) * n * hipBlockIdx_y;
 
     constexpr int NC = 4;
 
@@ -400,7 +398,7 @@ __device__ void gemvt_sn_kernel_calc(rocblas_int m,
         if(tx == 0)
         {
             for(int k = 0; k < NC; k++)
-                work[hipBlockIdx_x + (k + i) * hipGridDim_x] = alpha ? alpha * sum[k] : 0;
+                work[hipBlockIdx_x + (k + i) * hipGridDim_x] = alpha * sum[k];
         }
     }
     for(; i < n; i++)
@@ -471,14 +469,7 @@ __global__ __launch_bounds__(NB) void rocblas_gemvt_sn_reduce(rocblas_int    n_s
 
     if(hipThreadIdx_x == 0)
     {
-        if(beta != 0)
-        {
-            y[hipBlockIdx_y * incy] = (y[hipBlockIdx_y * incy] * beta) + sum;
-        }
-        else
-        {
-            y[hipBlockIdx_y * incy] = sum;
-        }
+        y[hipBlockIdx_y * incy] = beta ? (y[hipBlockIdx_y * incy] * beta) + sum : sum;
     }
 }
 
@@ -539,7 +530,7 @@ __device__ void gemvtsm_kernel_calc(rocblas_int m,
 }
 
 template <rocblas_int DIM_X, rocblas_int DIM_Y, typename T, typename U, typename V, typename W>
-__launch_bounds__(DIM_X* DIM_Y) __global__ void gemvn_kernel(rocblas_int    m,
+__global__ __launch_bounds__(DIM_X* DIM_Y) void gemvn_kernel(rocblas_int    m,
                                                              rocblas_int    n,
                                                              U              alpha_device_host,
                                                              rocblas_stride stride_alpha,
@@ -577,7 +568,7 @@ __launch_bounds__(DIM_X* DIM_Y) __global__ void gemvn_kernel(rocblas_int    m,
 }
 
 template <bool CONJ, rocblas_int NB_X, typename T, typename U, typename V, typename W>
-__launch_bounds__(NB_X) __global__ void gemvt_kernel(rocblas_int    m,
+__global__ __launch_bounds__(NB_X) void gemvt_kernel(rocblas_int    m,
                                                      rocblas_int    n,
                                                      U              alpha_device_host,
                                                      rocblas_stride stride_alpha,
@@ -611,7 +602,7 @@ __launch_bounds__(NB_X) __global__ void gemvt_kernel(rocblas_int    m,
 }
 
 template <bool CONJ, rocblas_int NB_X, rocblas_int WIN, typename T, typename U, typename V>
-__launch_bounds__(NB_X) __global__ void gemvt_sn_kernel(rocblas_int    m,
+__global__ __launch_bounds__(NB_X) void gemvt_sn_kernel(rocblas_int    m,
                                                         rocblas_int    n,
                                                         U              alpha_device_host,
                                                         rocblas_stride stride_alpha,
@@ -634,7 +625,7 @@ __launch_bounds__(NB_X) __global__ void gemvt_sn_kernel(rocblas_int    m,
 }
 
 template <bool CONJ, rocblas_int NB_X, typename T, typename U, typename V, typename W>
-__launch_bounds__(NB_X) __global__ void gemvtsm_kernel(rocblas_int    m,
+__global__ __launch_bounds__(NB_X) void gemvtsm_kernel(rocblas_int    m,
                                                        rocblas_int    n,
                                                        U              alpha_device_host,
                                                        rocblas_stride stride_alpha,

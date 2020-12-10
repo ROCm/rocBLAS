@@ -121,8 +121,17 @@ void testing_ger(const Arguments& arg)
     {
         rocblas_init<T>(hA_1, M, N, lda);
     }
-    rocblas_init<T>(hx, 1, M, abs_incx);
-    rocblas_init<T>(hy, 1, N, abs_incy);
+
+    if(arg.alpha_isnan<T>())
+    {
+        rocblas_init_nan<T>(hx, 1, M, abs_incx);
+        rocblas_init_nan<T>(hy, 1, N, abs_incy);
+    }
+    else
+    {
+        rocblas_init<T>(hx, 1, M, abs_incx);
+        rocblas_init<T>(hy, 1, N, abs_incy);
+    }
 
     // copy matrix is easy in STL; hA_gold = hA_1: save a copy in hA_gold which will be output of
     // CPU BLAS

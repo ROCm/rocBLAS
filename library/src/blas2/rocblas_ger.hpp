@@ -12,30 +12,34 @@ template <rocblas_int DIM_X,
           typename U,
           typename V,
           typename W>
-__global__ void ger_kernel(rocblas_int    m,
-                           rocblas_int    n,
-                           W              alpha_device_host,
-                           rocblas_stride stride_alpha,
-                           const U __restrict__ xa,
-                           ptrdiff_t      shiftx,
-                           rocblas_int    incx,
-                           rocblas_stride stridex,
-                           const U __restrict__ ya,
-                           ptrdiff_t      shifty,
-                           rocblas_int    incy,
-                           rocblas_stride stridey,
-                           V              Aa,
-                           ptrdiff_t      shifta,
-                           rocblas_int    lda,
-                           rocblas_stride strideA)
+__global__ __launch_bounds__(DIM_X* DIM_Y) void ger_kernel(rocblas_int    m,
+                                                           rocblas_int    n,
+                                                           W              alpha_device_host,
+                                                           rocblas_stride stride_alpha,
+                                                           const U __restrict__ xa,
+                                                           ptrdiff_t      shiftx,
+                                                           rocblas_int    incx,
+                                                           rocblas_stride stridex,
+                                                           const U __restrict__ ya,
+                                                           ptrdiff_t      shifty,
+                                                           rocblas_int    incy,
+                                                           rocblas_stride stridey,
+                                                           V              Aa,
+                                                           ptrdiff_t      shifta,
+                                                           rocblas_int    lda,
+                                                           rocblas_stride strideA)
 {
     __shared__ T xdata[DIM_X];
     __shared__ T ydata[DIM_Y * WIN];
 
+    auto alpha = load_scalar(alpha_device_host, hipBlockIdx_z, stride_alpha);
+    if(!alpha)
+        return;
+
     const T* __restrict__ x = load_ptr_batch(xa, hipBlockIdx_z, shiftx, stridex);
     const T* __restrict__ y = load_ptr_batch(ya, hipBlockIdx_z, shifty, stridey);
-    auto alpha              = load_scalar(alpha_device_host, hipBlockIdx_z, stride_alpha);
-    T*   A                  = load_ptr_batch(Aa, hipBlockIdx_z, shifta, strideA);
+
+    T* A = load_ptr_batch(Aa, hipBlockIdx_z, shifta, strideA);
 
     ptrdiff_t tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     ptrdiff_t ty = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
