@@ -2401,25 +2401,25 @@ Tests:
   fortran: [ false, true ]
 
 # Tests confirm no NaN propagation when alpha = 0, 2 and beta = 0. Value .NaN is converted into zero
-- {name: alpha_beta_zero, category: pre_checkin, precision: *single_precision,
+- {name: alpha_beta_zero_NaN, category: pre_checkin, precision: *single_precision,
    function: gemm, transA: N, transB: N, M: 256, N: 128, K:  64, alpha: [ .NaN, 2 ], beta: [ .NaN, 2 ] }
-- {name: alpha_beta_zero, category: pre_checkin, precision: *double_precision,
+- {name: alpha_beta_zero_NaN, category: pre_checkin, precision: *double_precision,
    function: gemm, transA: N, transB: T, M: 128, N:  64, K: 256, alpha: [ .NaN, 2 ], beta: [ .NaN, 2 ] }
-- {name: alpha_beta_zero, category: pre_checkin, precision: *single_precision_complex,
+- {name: alpha_beta_zero_NaN, category: pre_checkin, precision: *single_precision_complex,
    function: gemm, transA: T, transB: N, M:  64, N: 256, K: 128, alpha: [ .NaN, 2 ], beta: [ .NaN, 2 ] }
-- {name: alpha_beta_zero, category: pre_checkin, precision: *double_precision_complex,
+- {name: alpha_beta_zero_NaN, category: pre_checkin, precision: *double_precision_complex,
    function: gemm, transA: T, transB: T, M: 128, N:  64, K: 256, alpha: [ .NaN, 2 ], beta: [ .NaN, 2 ] }
 
-- {name: alpha_beta_zero, category: pre_checkin, function: gemm_ex,
+- {name: alpha_beta_zero_NaN, category: pre_checkin, function: gemm_ex,
    a_type: f16_r, b_type: f16_r, c_type: f16_r, d_type: f16_r, compute_type: f32_r,
    transA: N, transB: N, M: 255, N: 127, K:  63, alpha: [ .NaN, 2 ], beta: [ .NaN, 2 ] }
-- {name: alpha_beta_zero, category: pre_checkin, function: gemm_ex,
+- {name: alpha_beta_zero_NaN, category: pre_checkin, function: gemm_ex,
    a_type: bf16_r, b_type: bf16_r, c_type: bf16_r, d_type: bf16_r, compute_type: f32_r,
    transA: N, transB: T, M:  62, N: 126, K: 254, alpha: [ .NaN, 2 ], beta: [ .NaN, 2 ] }
-- {name: alpha_beta_zero, category: pre_checkin, function: gemm_ex,
+- {name: alpha_beta_zero_NaN, category: pre_checkin, function: gemm_ex,
    a_type: f32_r, b_type: f32_r, c_type: f32_r, d_type: f32_r, compute_type: f32_r,
    transA: T, transB: N, M: 253, N:  61, K: 125, alpha: [ .NaN, 2 ], beta: [ .NaN, 2 ] }
-- {name: alpha_beta_zero, category: pre_checkin, function: gemm_ex,
+- {name: alpha_beta_zero_NaN, category: pre_checkin, function: gemm_ex,
    a_type: f64_r, b_type: f64_r, c_type: f64_r, d_type: f64_r, compute_type: f64_r,
    transA: T, transB: T, M: 256, N: 128, K:  64, alpha: [ .NaN, 2 ], beta: [ .NaN, 2 ] }
 
