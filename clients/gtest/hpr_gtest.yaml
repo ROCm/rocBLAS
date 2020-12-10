@@ -27,12 +27,15 @@ Definitions:
     - { N:  4011 }
 
   - &alpha_range
-    - { alpha: -1.0, alphai:  0.5 }
-    - { alpha:  0.0, alphai: -0.5 }
-    - { alpha:  0.0, alphai:  0.0 }
+    - { alpha: -1.0 }
+    - { alpha:  1.0 }
+    - { alpha:  0.0 }
 
   - &alpha_range_small
-    - { alpha: 4.0, alphai: 2.0 }
+    - { alpha: 2.0 }
+
+  - &alpha_nan
+    - { alpha: .NaN }
 
 Tests:
 
@@ -62,6 +65,15 @@ Tests:
   incx: [ 2 ]
   alpha_beta: *alpha_range_small
   fortran: true
+
+- name: hpr_NaN
+  category: quick
+  function: hpr
+  precision: *single_double_precisions_complex
+  uplo: [ U, L ]
+  N: [ 32 ]
+  incx: [ 1 ]
+  alpha_beta: *alpha_nan
 
 - name: hpr_small
   category: quick

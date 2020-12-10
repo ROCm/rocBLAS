@@ -24,32 +24,32 @@ __device__ void spr2_kernel_calc(bool        upper,
 }
 
 template <rocblas_int DIM_X, rocblas_int DIM_Y, typename TScal, typename TConstPtr, typename TPtr>
-__global__ void rocblas_spr2_kernel(bool           upper,
-                                    rocblas_int    n,
-                                    TScal          alphaa,
-                                    TConstPtr      xa,
-                                    ptrdiff_t      shift_x,
-                                    rocblas_int    incx,
-                                    rocblas_stride stride_x,
-                                    TConstPtr      ya,
-                                    ptrdiff_t      shift_y,
-                                    rocblas_int    incy,
-                                    rocblas_stride stride_y,
-                                    TPtr           APa,
-                                    ptrdiff_t      shift_A,
-                                    rocblas_stride stride_A)
+__global__ __launch_bounds__(DIM_X* DIM_Y) void rocblas_spr2_kernel(bool           upper,
+                                                                    rocblas_int    n,
+                                                                    TScal          alphaa,
+                                                                    TConstPtr      xa,
+                                                                    ptrdiff_t      shift_x,
+                                                                    rocblas_int    incx,
+                                                                    rocblas_stride stride_x,
+                                                                    TConstPtr      ya,
+                                                                    ptrdiff_t      shift_y,
+                                                                    rocblas_int    incy,
+                                                                    rocblas_stride stride_y,
+                                                                    TPtr           APa,
+                                                                    ptrdiff_t      shift_A,
+                                                                    rocblas_stride stride_A)
 {
     rocblas_int num_threads = hipBlockDim_x * hipBlockDim_y * hipBlockDim_z;
     if(DIM_X * DIM_Y != num_threads)
         return; // need to launch exactly the number of threads as template parameters indicate.
 
-    auto*       AP    = load_ptr_batch(APa, hipBlockIdx_z, shift_A, stride_A);
-    const auto* x     = load_ptr_batch(xa, hipBlockIdx_z, shift_x, stride_x);
-    const auto* y     = load_ptr_batch(ya, hipBlockIdx_z, shift_y, stride_y);
-    auto        alpha = load_scalar(alphaa);
-
+    auto alpha = load_scalar(alphaa);
     if(!alpha)
         return;
+
+    auto*       AP = load_ptr_batch(APa, hipBlockIdx_z, shift_A, stride_A);
+    const auto* x  = load_ptr_batch(xa, hipBlockIdx_z, shift_x, stride_x);
+    const auto* y  = load_ptr_batch(ya, hipBlockIdx_z, shift_y, stride_y);
 
     spr2_kernel_calc(upper, n, alpha, x, incx, y, incy, AP);
 }

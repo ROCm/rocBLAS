@@ -99,7 +99,15 @@ void testing_syr(const Arguments& arg)
     {
         rocblas_init_symmetric<T>(hA_1, N, lda);
     }
-    rocblas_init<T>(hx, 1, N, abs_incx);
+
+    if(arg.alpha_isnan<T>())
+    {
+        rocblas_init_nan<T>(hx, 1, N, abs_incx);
+    }
+    else
+    {
+        rocblas_init<T>(hx, 1, N, abs_incx);
+    }
 
     // copy matrix is easy in STL; hA_gold = hA_1: save a copy in hA_gold which will be output of
     // CPU BLAS

@@ -14,6 +14,9 @@ Definitions:
     - { N:  0, lda: 1, K:  0, incx: 1, incy: 0, batch_count:  0 }
     - { N:  0, lda: 1, K:  0, incx: 1, incy: 1, batch_count: -1 }
 
+  - &tiny_matrix
+    - { N:    33, lda:   33, K:  3}
+
   - &medium_matrix_size_range
     - { N:    -1, lda:   -1, K:  -1 }
     - { N:    10, lda:    2, K:  -1 }
@@ -43,6 +46,10 @@ Definitions:
   - &alpha_beta_range_small
     - { alpha: 2.0, beta: 1.5 }
 
+  - &alpha_beta_range_nan
+    - { alpha: .NaN, beta: 1.5 }
+    - { alpha: 1.2, beta: .NaN }
+
 Tests:
 - name: sbmv_bad
   category: pre_checkin
@@ -58,6 +65,15 @@ Tests:
   precision: *single_double_precisions
   uplo: L
   matrix_size: *special_case_range
+
+- name: sbmv_NaN
+  category: pre_checkin
+  function: sbmv
+  precision: *single_double_precisions
+  uplo: [ U ]
+  matrix_size: *tiny_matrix
+  incx_incy: *incx_incy_range_small
+  alpha_beta: *alpha_beta_range_nan
 
 - name: sbmv_medium
   category: pre_checkin

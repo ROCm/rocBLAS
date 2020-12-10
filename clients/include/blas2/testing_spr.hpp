@@ -103,7 +103,15 @@ void testing_spr(const Arguments& arg)
 
     // Initial Data on CPU
     rocblas_init(hA_1, true);
-    rocblas_init(hx, false);
+
+    if(arg.alpha_isnan<T>())
+    {
+        rocblas_init_nan<T>(hx, 1, N, abs_incx);
+    }
+    else
+    {
+        rocblas_init<T>(hx, false);
+    }
 
     // copy matrix is easy in STL; hA_gold = hA_1: save a copy in hA_gold which will be output of
     // CPU BLAS
