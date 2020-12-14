@@ -4,6 +4,8 @@
 #ifndef __ROCBLAS_GBMV_HPP__
 #define __ROCBLAS_GBMV_HPP__
 #include "../blas1/rocblas_copy.hpp"
+#include "check_numerics_matrix.hpp"
+#include "check_numerics_vector.hpp"
 
 /**
   *  Helper for the non-transpose case. Iterates through each diagonal
@@ -346,6 +348,61 @@ rocblas_status rocblas_gbmv_template(rocblas_handle    handle,
     }
 
     return rocblas_status_success;
+}
+
+//TODO :-Add rocblas_check_numerics_gb_matrix_template for checking Matrix `A` which is a General Band matrix
+template <typename T, typename U>
+rocblas_status rocblas_gbmv_check_numerics(const char*       function_name,
+                                           rocblas_handle    handle,
+                                           rocblas_operation trans_a,
+                                           rocblas_int       m,
+                                           rocblas_int       n,
+                                           T                 A,
+                                           rocblas_int       offset_a,
+                                           rocblas_int       lda,
+                                           rocblas_stride    stride_a,
+                                           T                 x,
+                                           rocblas_int       offset_x,
+                                           rocblas_int       inc_x,
+                                           rocblas_stride    stride_x,
+                                           U                 y,
+                                           rocblas_int       offset_y,
+                                           rocblas_int       inc_y,
+                                           rocblas_stride    stride_y,
+                                           rocblas_int       batch_count,
+                                           const int         check_numerics,
+                                           bool              is_input)
+{
+    //Checking trans_a to transpose a vector 'x'
+    rocblas_int n_x = trans_a == rocblas_operation_none ? n : m;
+
+    rocblas_status check_numerics_status = rocblas_check_numerics_vector_template(function_name,
+                                                                                  handle,
+                                                                                  n_x,
+                                                                                  x,
+                                                                                  offset_x,
+                                                                                  inc_x,
+                                                                                  stride_x,
+                                                                                  batch_count,
+                                                                                  check_numerics,
+                                                                                  is_input);
+    if(check_numerics_status != rocblas_status_success)
+        return check_numerics_status;
+
+    //Checking trans_a to transpose a vector 'y'
+    rocblas_int n_y       = trans_a == rocblas_operation_none ? m : n;
+    check_numerics_status = rocblas_check_numerics_vector_template(function_name,
+                                                                   handle,
+                                                                   n_y,
+                                                                   y,
+                                                                   offset_y,
+                                                                   inc_y,
+                                                                   stride_y,
+                                                                   batch_count,
+                                                                   check_numerics,
+                                                                   is_input);
+
+    return check_numerics_status;
 }
 
 #endif

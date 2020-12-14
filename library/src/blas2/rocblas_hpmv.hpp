@@ -4,6 +4,7 @@
 #ifndef __ROCBLAS_TBMV_HPP__
 #define __ROCBLAS_TBMV_HPP__
 #include "../blas1/rocblas_copy.hpp"
+#include "check_numerics_vector.hpp"
 
 /**
   *  A combined kernel to handle all hpmv cases.
@@ -227,4 +228,51 @@ rocblas_status rocblas_hpmv_template(rocblas_handle handle,
     return rocblas_status_success;
 }
 
+//TODO :-Add rocblas_check_numerics_hp_matrix_template for checking Matrix `AP` which is a Hermitian Packed matrix
+template <typename T, typename U>
+rocblas_status rocblas_hpmv_check_numerics(const char*    function_name,
+                                           rocblas_handle handle,
+                                           rocblas_int    n,
+                                           T              AP,
+                                           rocblas_int    offset_a,
+                                           rocblas_stride stride_a,
+                                           T              x,
+                                           rocblas_int    offset_x,
+                                           rocblas_int    inc_x,
+                                           rocblas_stride stride_x,
+                                           U              y,
+                                           rocblas_int    offset_y,
+                                           rocblas_int    inc_y,
+                                           rocblas_stride stride_y,
+                                           rocblas_int    batch_count,
+                                           const int      check_numerics,
+                                           bool           is_input)
+{
+
+    rocblas_status check_numerics_status = rocblas_check_numerics_vector_template(function_name,
+                                                                                  handle,
+                                                                                  n,
+                                                                                  x,
+                                                                                  offset_x,
+                                                                                  inc_x,
+                                                                                  stride_x,
+                                                                                  batch_count,
+                                                                                  check_numerics,
+                                                                                  is_input);
+    if(check_numerics_status != rocblas_status_success)
+        return check_numerics_status;
+
+    check_numerics_status = rocblas_check_numerics_vector_template(function_name,
+                                                                   handle,
+                                                                   n,
+                                                                   y,
+                                                                   offset_y,
+                                                                   inc_y,
+                                                                   stride_y,
+                                                                   batch_count,
+                                                                   check_numerics,
+                                                                   is_input);
+
+    return check_numerics_status;
+}
 #endif

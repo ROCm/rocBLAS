@@ -3,6 +3,7 @@
  * ************************************************************************ */
 #pragma once
 #include "../blas3/trtri_trsm.hpp"
+#include "check_numerics_vector.hpp"
 #include "rocblas_gemv.hpp"
 
 template <typename T>
@@ -896,4 +897,35 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_trsv_template(rocblas_handle    h
     }
 
     return status;
+}
+
+//TODO :-Add rocblas_check_numerics_tr_matrix_template for checking Matrix `A` which is a Triangular Matrix
+template <typename T, typename U>
+rocblas_status rocblas_trsv_check_numerics(const char*    function_name,
+                                           rocblas_handle handle,
+                                           rocblas_int    m,
+                                           T              A,
+                                           rocblas_int    offset_a,
+                                           rocblas_int    lda,
+                                           rocblas_stride stride_a,
+                                           U              x,
+                                           rocblas_int    offset_x,
+                                           rocblas_int    inc_x,
+                                           rocblas_stride stride_x,
+                                           rocblas_int    batch_count,
+                                           const int      check_numerics,
+                                           bool           is_input)
+{
+    rocblas_status check_numerics_status = rocblas_check_numerics_vector_template(function_name,
+                                                                                  handle,
+                                                                                  m,
+                                                                                  x,
+                                                                                  offset_x,
+                                                                                  inc_x,
+                                                                                  stride_x,
+                                                                                  batch_count,
+                                                                                  check_numerics,
+                                                                                  is_input);
+
+    return check_numerics_status;
 }

@@ -2,6 +2,7 @@
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #pragma once
+#include "check_numerics_vector.hpp"
 #include "handle.hpp"
 #include "rocblas.h"
 
@@ -140,4 +141,35 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_syr_template(rocblas_handle handl
                            strideA);
     }
     return rocblas_status_success;
+}
+
+//TODO :-Add rocblas_check_numerics_sy_matrix_template for checking Matrix `A` which is a Symmetric Matrix
+template <typename T, typename U>
+rocblas_status rocblas_syr_check_numerics(const char*    function_name,
+                                          rocblas_handle handle,
+                                          rocblas_int    n,
+                                          T              A,
+                                          rocblas_int    offset_a,
+                                          rocblas_int    lda,
+                                          rocblas_stride stride_a,
+                                          U              x,
+                                          rocblas_int    offset_x,
+                                          rocblas_int    inc_x,
+                                          rocblas_stride stride_x,
+                                          rocblas_int    batch_count,
+                                          const int      check_numerics,
+                                          bool           is_input)
+{
+    rocblas_status check_numerics_status = rocblas_check_numerics_vector_template(function_name,
+                                                                                  handle,
+                                                                                  n,
+                                                                                  x,
+                                                                                  offset_x,
+                                                                                  inc_x,
+                                                                                  stride_x,
+                                                                                  batch_count,
+                                                                                  check_numerics,
+                                                                                  is_input);
+
+    return check_numerics_status;
 }

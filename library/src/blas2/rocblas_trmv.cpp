@@ -115,8 +115,57 @@ namespace
         if(!mem)
             return rocblas_status_memory_error;
 
-        return rocblas_trmv_nobatch_template(
+        auto check_numerics = handle->check_numerics;
+
+        if(check_numerics)
+        {
+            bool           is_input = true;
+            rocblas_status trmv_check_numerics_status
+                = rocblas_trmv_check_numerics(rocblas_trmv_name<T>,
+                                              handle,
+                                              m,
+                                              A,
+                                              0,
+                                              lda,
+                                              0,
+                                              x,
+                                              0,
+                                              incx,
+                                              0,
+                                              1,
+                                              check_numerics,
+                                              is_input);
+            if(trmv_check_numerics_status != rocblas_status_success)
+                return trmv_check_numerics_status;
+        }
+
+        rocblas_status status = rocblas_trmv_nobatch_template(
             handle, uplo, transA, diag, m, A, lda, x, incx, (T*)mem);
+        if(status != rocblas_status_success)
+            return status;
+
+        if(check_numerics)
+        {
+            bool           is_input = false;
+            rocblas_status trmv_check_numerics_status
+                = rocblas_trmv_check_numerics(rocblas_trmv_name<T>,
+                                              handle,
+                                              m,
+                                              A,
+                                              0,
+                                              lda,
+                                              0,
+                                              x,
+                                              0,
+                                              incx,
+                                              0,
+                                              1,
+                                              check_numerics,
+                                              is_input);
+            if(trmv_check_numerics_status != rocblas_status_success)
+                return trmv_check_numerics_status;
+        }
+        return status;
     }
 
 } // namespace
