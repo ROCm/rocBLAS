@@ -157,6 +157,29 @@ namespace
         if(perf_status != rocblas_status_success && perf_status != rocblas_status_perf_degraded)
             return perf_status;
 
+        auto check_numerics = handle->check_numerics;
+        if(check_numerics)
+        {
+            bool           is_input = true;
+            rocblas_status trsv_check_numerics_status
+                = rocblas_trsv_check_numerics(rocblas_trsv_strided_batched_name<T>,
+                                              handle,
+                                              m,
+                                              A,
+                                              0,
+                                              lda,
+                                              stride_A,
+                                              B,
+                                              0,
+                                              incx,
+                                              stride_x,
+                                              batch_count,
+                                              check_numerics,
+                                              is_input);
+            if(trsv_check_numerics_status != rocblas_status_success)
+                return trsv_check_numerics_status;
+        }
+
         rocblas_status status = rocblas_trsv_template<BLOCK, false, T>(handle,
                                                                        uplo,
                                                                        transA,
@@ -180,7 +203,32 @@ namespace
                                                                        0,
                                                                        stride_invA);
 
-        return status != rocblas_status_success ? status : perf_status;
+        status = (status != rocblas_status_success) ? status : perf_status;
+        if(status != rocblas_status_success)
+            return status;
+
+        if(check_numerics)
+        {
+            bool           is_input = false;
+            rocblas_status trsv_check_numerics_status
+                = rocblas_trsv_check_numerics(rocblas_trsv_strided_batched_name<T>,
+                                              handle,
+                                              m,
+                                              A,
+                                              0,
+                                              lda,
+                                              stride_A,
+                                              B,
+                                              0,
+                                              incx,
+                                              stride_x,
+                                              batch_count,
+                                              check_numerics,
+                                              is_input);
+            if(trsv_check_numerics_status != rocblas_status_success)
+                return trsv_check_numerics_status;
+        }
+        return status;
     }
 
 } // namespace

@@ -137,6 +137,30 @@ namespace
         if(!mem_x_copy)
             return rocblas_status_memory_error;
 
+        auto check_numerics = handle->check_numerics;
+
+        if(check_numerics)
+        {
+            bool           is_input = true;
+            rocblas_status tbmv_check_numerics_status
+                = rocblas_tbmv_check_numerics(rocblas_tbmv_name<T>,
+                                              handle,
+                                              m,
+                                              A,
+                                              0,
+                                              lda,
+                                              stride_A,
+                                              x,
+                                              0,
+                                              incx,
+                                              stride_x,
+                                              batch_count,
+                                              check_numerics,
+                                              is_input);
+            if(tbmv_check_numerics_status != rocblas_status_success)
+                return tbmv_check_numerics_status;
+        }
+
         return rocblas_tbmv_template(handle,
                                      uplo,
                                      transA,
@@ -153,6 +177,28 @@ namespace
                                      stride_x,
                                      batch_count,
                                      (T*)mem_x_copy);
+
+        if(check_numerics)
+        {
+            bool           is_input = false;
+            rocblas_status tbmv_check_numerics_status
+                = rocblas_tbmv_check_numerics(rocblas_tbmv_name<T>,
+                                              handle,
+                                              m,
+                                              A,
+                                              0,
+                                              lda,
+                                              stride_A,
+                                              x,
+                                              0,
+                                              incx,
+                                              stride_x,
+                                              batch_count,
+                                              check_numerics,
+                                              is_input);
+            if(tbmv_check_numerics_status != rocblas_status_success)
+                return tbmv_check_numerics_status;
+        }
     }
 
 } // namespace
