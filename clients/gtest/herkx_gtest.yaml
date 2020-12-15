@@ -15,6 +15,9 @@ Definitions:
     - { N:   3,  K:  3,  lda:  3,  ldb: 3,  ldc:  1 } # bad ldc
     - { N:   33, K: 33,  lda: 33,  ldb: 33, ldc: 33 } # okay
 
+  - &tiny_matrix_size
+    - { N:   199, K:   33,  lda:  199,  ldb: 199,  ldc: 199 }
+
   - &medium_matrix_size_range
     - { N:   199, K:   33,  lda:  199,  ldb: 199,  ldc: 199 }
     - { N:    88, K:  200,  lda:  200,  ldb: 200,  ldc: 88 }
@@ -50,6 +53,16 @@ Tests:
   matrix_size: *quick_matrix_size_range
   alpha: [ 0, 1 ]
   beta: [ 0, 1 ]
+
+- name: herkx_NaN
+  category: pre_checkin
+  function: herkx
+  precision: *single_double_precisions_complex
+  uplo: [ U ]
+  transA: [ N, C ]
+  matrix_size: *tiny_matrix_size
+  alpha: [ 1.0, .NaN ]  # NaN is converted to 0.0 in test code
+  beta: [ 0.5, 1.0, .NaN ]
 
 - name: herkx_medium
   category: pre_checkin

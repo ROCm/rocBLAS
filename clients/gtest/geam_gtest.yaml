@@ -8,6 +8,9 @@ Definitions:
     - { M:     3, N:    33, lda:    35, ldb:    35, ldc:    35 }
     - { M:    10, N:    11, lda:   100, ldb:    12, ldc:    13 }
 
+  - &tiny_matrix_size
+    - { M:   192, N:   193, lda:   194, ldb:   195, ldc:   196 }
+
   - &large_matrix_size_range
     - { M:   192, N:   193, lda:   194, ldb:   195, ldc:   196 }
     - { M:   640, N:   641, lda:   960, ldb:   961, ldc:   962 }
@@ -83,6 +86,15 @@ Tests:
   stride_scale: [ 1         ]
   batch_count: [        1    ]
   fortran: [ false, true ]
+
+- name: geam_NaN
+  category: quick
+  function: geam
+  precision: *single_double_precisions
+  transA_transB: *transA_transB_range
+  matrix_size: *tiny_matrix_size
+  alpha: [ 1.0, .NaN ]  # NaN is converted to 0.0 in test code
+  beta: [ 0.5, 1.0, .NaN ]
 
 - name: geam_small
   category: quick

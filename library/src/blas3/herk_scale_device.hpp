@@ -18,12 +18,12 @@ __device__ void herk_scale_device(bool upper, rocblas_int n, T beta, U* C, rocbl
         auto& e = C[ty * ldc + tx];
         if(from < to)
         {
-            e *= beta;
+            e = beta ? beta * e : 0;
         }
         else if(from == to)
         {
             // multiply only real component and zero imaginary on diagonal
-            e = {e.real() * beta, 0};
+            e = {beta ? e.real() * beta : 0, 0};
         }
     }
 }

@@ -186,7 +186,7 @@ Tests:
   incx_incy: *incx_incy_range_small
   alpha: [ 1.0, 2.0, .NaN ] # NaN is converted to 0.0 in test code
   beta: [2.0, 1.0, .NaN ]
-  batch_count: [ 2 ]
+  batch_count: [ 2, 9 ] # 9 for qmc_pack algo
 
 - name: gemv_batched_fortran
   category: quick

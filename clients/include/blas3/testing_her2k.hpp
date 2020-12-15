@@ -189,7 +189,15 @@ void testing_her2k(const Arguments& arg)
     h_alpha[0] = alpha;
     h_beta[0]  = beta;
     rocblas_seedrand();
-    rocblas_init<T>(hA);
+    if(arg.alpha_isnan<T>())
+    {
+        rocblas_init_nan<T>(hA, rows, cols, lda);
+    }
+    else
+    {
+        rocblas_init<T>(hA);
+    }
+
     if(TWOK)
     {
         rocblas_init<T>(hB);
@@ -198,7 +206,15 @@ void testing_her2k(const Arguments& arg)
     { // require symmetric A*B^H so testing with B = A
         rocblas_copy_matrix((T*)hA, (T*)hB, rows, cols, lda, ldb);
     }
-    rocblas_init<T>(hC_1);
+
+    if(arg.beta_isnan<T>())
+    {
+        rocblas_init_nan_tri<T>(uplo == rocblas_fill_upper, hC_1, rows, N, ldc);
+    }
+    else
+    {
+        rocblas_init<T>(hC_1);
+    }
 
     hC_2    = hC_1;
     hC_gold = hC_1;

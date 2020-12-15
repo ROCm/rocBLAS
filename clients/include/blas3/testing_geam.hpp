@@ -187,11 +187,22 @@ void testing_geam(const Arguments& arg)
     h_alpha[0] = alpha;
     h_beta[0]  = beta;
     rocblas_seedrand();
-    rocblas_init<T>(hA, A_row, A_col, lda);
-    rocblas_init<T>(hB, B_row, B_col, ldb);
-
-    hA_copy = hA;
-    hB_copy = hB;
+    if(arg.alpha_isnan<T>())
+    {
+        rocblas_init_nan<T>(hA, A_row, A_col, lda);
+    }
+    else
+    {
+        rocblas_init<T>(hA, A_row, A_col, lda);
+    }
+    if(arg.beta_isnan<T>())
+    {
+        rocblas_init_nan<T>(hB, B_row, B_col, ldb);
+    }
+    else
+    {
+        rocblas_init<T>(hB, B_row, B_col, ldb);
+    }
 
     // allocate memory on device
     device_vector<T> dA(size_A);
@@ -260,6 +271,15 @@ void testing_geam(const Arguments& arg)
 
         // inplace check for dC == dA
         {
+
+            if(arg.alpha_isnan<T>()) // need no NaN A
+            {
+                rocblas_init<T>(hA_copy, A_row, A_col, lda);
+                CHECK_HIP_ERROR(dA.transfer_from(hA_copy));
+            }
+            else
+                hA_copy = hA;
+
             dC_in_place = dA;
 
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
@@ -305,6 +325,14 @@ void testing_geam(const Arguments& arg)
 
         // inplace check for dC == dB
         {
+            if(arg.beta_isnan<T>()) // need no NaN B
+            {
+                rocblas_init<T>(hB_copy, B_row, B_col, ldb);
+                CHECK_HIP_ERROR(dB.transfer_from(hB_copy));
+            }
+            else
+                hB_copy = hB;
+
             dC_in_place = dB;
 
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));

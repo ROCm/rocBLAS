@@ -16,20 +16,20 @@ __device__ void syr2k_scale_device(bool upper, rocblas_int n, T beta, U* C, rocb
     int to   = upper ? ty : tx;
 
     if(tx < n && ty < n && from <= to)
-        C[ty * ldc + tx] *= beta;
+        C[ty * ldc + tx] = beta ? beta * C[ty * ldc + tx] : 0;
 }
 
 /**
   *  Loads pointers and launches the actual calculation kernel.
   */
-template <typename U, typename V>
-__global__ void syr2k_scale_kernel(bool           upper,
-                                   rocblas_int    n,
-                                   U              beta_host_device,
-                                   V              CP_array,
-                                   ptrdiff_t      shift_c,
-                                   rocblas_int    ldc,
-                                   rocblas_stride stride_c)
+template <int DIM_X, int DIM_Y, typename U, typename V>
+__global__ __launch_bounds__(DIM_X* DIM_Y) void syr2k_scale_kernel(bool           upper,
+                                                                   rocblas_int    n,
+                                                                   U              beta_host_device,
+                                                                   V              CP_array,
+                                                                   ptrdiff_t      shift_c,
+                                                                   rocblas_int    ldc,
+                                                                   rocblas_stride stride_c)
 {
     auto beta = load_scalar(beta_host_device);
     if(beta == 1)
@@ -66,6 +66,8 @@ __device__ void syr2k_her2k_mult_add_device(bool        upper,
                                             T* __restrict__ C,
                                             rocblas_int ldc)
 {
+    // if !alpha this function isn't called
+
     __shared__ T atile[TILE_NK][TILE_NK];
     __shared__ T btile[TILE_NK][TILE_NK];
 
@@ -195,23 +197,23 @@ template <bool        TWOK,
           typename TScal,
           typename TConstPtr,
           typename TPtr>
-__global__ void syr2k_her2k_kernel(bool              upper,
-                                   rocblas_operation trans,
-                                   rocblas_int       n,
-                                   rocblas_int       k,
-                                   TScal             alpha_host_device,
-                                   TConstPtr         AP_array,
-                                   ptrdiff_t         shift_a,
-                                   rocblas_int       lda,
-                                   rocblas_stride    stride_a,
-                                   TConstPtr         BP_array,
-                                   ptrdiff_t         shift_b,
-                                   rocblas_int       ldb,
-                                   rocblas_stride    stride_b,
-                                   TPtr              CP_array,
-                                   ptrdiff_t         shift_c,
-                                   rocblas_int       ldc,
-                                   rocblas_stride    stride_c)
+__global__ __launch_bounds__(DIM_XYT* DIM_XYT) void syr2k_her2k_kernel(bool              upper,
+                                                                       rocblas_operation trans,
+                                                                       rocblas_int       n,
+                                                                       rocblas_int       k,
+                                                                       TScal     alpha_host_device,
+                                                                       TConstPtr AP_array,
+                                                                       ptrdiff_t shift_a,
+                                                                       rocblas_int    lda,
+                                                                       rocblas_stride stride_a,
+                                                                       TConstPtr      BP_array,
+                                                                       ptrdiff_t      shift_b,
+                                                                       rocblas_int    ldb,
+                                                                       rocblas_stride stride_b,
+                                                                       TPtr           CP_array,
+                                                                       ptrdiff_t      shift_c,
+                                                                       rocblas_int    ldc,
+                                                                       rocblas_stride stride_c)
 {
     auto alpha = load_scalar(alpha_host_device);
     if(alpha == 0)
@@ -320,7 +322,7 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_syr2k_template(rocblas_handle    
     if(handle->pointer_mode == rocblas_pointer_mode_device)
     {
         // first scale C so we can use directly for output without work buffer
-        hipLaunchKernelGGL((syr2k_scale_kernel),
+        hipLaunchKernelGGL((syr2k_scale_kernel<syr2k_SCALE_DIM_X, syr2k_SCALE_DIM_Y>),
                            syr2k_scale_grid,
                            syr2k_scale_threads,
                            0,
@@ -393,7 +395,7 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_syr2k_template(rocblas_handle    
             return rocblas_status_success;
 
         // first scale C so we can use directly for output without work buffer
-        hipLaunchKernelGGL((syr2k_scale_kernel),
+        hipLaunchKernelGGL((syr2k_scale_kernel<syr2k_SCALE_DIM_X, syr2k_SCALE_DIM_Y>),
                            syr2k_scale_grid,
                            syr2k_scale_threads,
                            0,

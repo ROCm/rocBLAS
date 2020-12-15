@@ -117,6 +117,8 @@ void testing_syrk(const Arguments& arg)
 
     const auto size_A = size_t(lda) * (transA == rocblas_operation_none ? K : N);
     const auto size_C = size_t(ldc) * N;
+    size_t     cols   = (transA == rocblas_operation_none ? K : N);
+    size_t     rows   = (transA == rocblas_operation_none ? N : K);
 
     // allocate memory on device
     device_vector<T> dA(size_A);
@@ -147,8 +149,23 @@ void testing_syrk(const Arguments& arg)
     h_alpha[0] = alpha;
     h_beta[0]  = beta;
     rocblas_seedrand();
-    rocblas_init<T>(hA);
-    rocblas_init<T>(hC_1);
+    if(arg.alpha_isnan<T>())
+    {
+        rocblas_init_nan<T>(hA, rows, cols, lda);
+    }
+    else
+    {
+        rocblas_init<T>(hA);
+    }
+
+    if(arg.beta_isnan<T>())
+    {
+        rocblas_init_nan_tri<T>(uplo == rocblas_fill_upper, hC_1, N, N, ldc);
+    }
+    else
+    {
+        rocblas_init<T>(hC_1);
+    }
 
     hC_2    = hC_1;
     hC_gold = hC_1;
