@@ -41,17 +41,64 @@ target_include_directories( rocblas-bench
 set( BLIS_INCLUDE_DIR ${BUILD_DIR}/deps/blis/include/blis )
 set( BLIS_LIBRARY ${BUILD_DIR}/deps/blis/lib/libblis.so )
 
-# External header includes included as system files
-target_include_directories( rocblas-bench
-  SYSTEM PRIVATE
-    $<BUILD_INTERFACE:${HIP_INCLUDE_DIRS}>
-    $<BUILD_INTERFACE:${CBLAS_INCLUDE_DIRS}>
-    $<BUILD_INTERFACE:${BLIS_INCLUDE_DIR}>
-)
+if( OS_ID_rhel OR OS_ID_sles OR OS_ID_centos)
+    if( OS_ID_rhel OR OS_ID_centos)
+        if( EXISTS "/usr/lib/gcc/x86_64-redhat-linux/8/" )
+            set( ROCM_OPENMP_PATH /usr/lib/gcc/x86_64-redhat-linux/8 )
+        else()
+            set( ROCM_OPENMP_PATH /opt/rh/devtoolset-7/root/usr/lib/gcc/x86_64-redhat-linux/7 )
+        endif()
 
-target_link_libraries( rocblas-bench PRIVATE rocblas_fortran_client roc::rocblas lapack cblas )
-if(LINK_BLIS)
-  target_link_libraries( rocblas-bench PRIVATE ${BLIS_LIBRARY} )
+        # defer OpenMP include as search order must come after clang
+        set( XXX_OPENMP_INCLUDE_DIR ${ROCM_OPENMP_PATH}/include )
+        set( OPENMP_LIBRARY ${ROCM_OPENMP_PATH}/libgomp.so )
+        if( CXX_VERSION_STRING MATCHES "clang")
+            set( XXX_OPENMP_INCLUDE_DIR ${ROCM_OPENMP_PATH}/include )
+        endif()
+    else()
+    #SLES
+        set( XXX_OPENMP_INCLUDE_DIR /usr/lib64/gcc/x86_64-suse-linux/7/include/ )
+        set( OPENMP_LIBRARY /usr/lib64/gcc/x86_64-suse-linux/7/libgomp.so )
+    endif()
+
+    message(STATUS "RocmPath: ${ROCM_PATH}")
+    if(EXISTS ${ROCM_PATH}/llvm/lib/clang/12.0.0/include/immintrin.h AND CMAKE_CXX_COMPILER MATCHES ".*/hipcc$" )
+        set( CLANG_INCLUDE_DIR ${ROCM_PATH}/llvm/lib/clang/12.0.0/include )
+    elseif(EXISTS ${ROCM_PATH}/llvm/lib/clang/11.0.0/include/immintrin.h AND CMAKE_CXX_COMPILER MATCHES ".*/hipcc$" )
+        set( CLANG_INCLUDE_DIR ${ROCM_PATH}/llvm/lib/clang/11.0.0/include )
+    else()
+        set( CLANG_INCLUDE_DIR )
+    endif()
+
+    # External header includes included as system files
+    target_include_directories( rocblas-bench
+      SYSTEM PRIVATE
+        $<BUILD_INTERFACE:${CLANG_INCLUDE_DIR}>
+        $<BUILD_INTERFACE:${OPENMP_INCLUDE_DIR}>
+        $<BUILD_INTERFACE:${BLIS_INCLUDE_DIR}>
+        $<BUILD_INTERFACE:${HIP_INCLUDE_DIRS}>
+        $<BUILD_INTERFACE:${CBLAS_INCLUDE_DIRS}>
+        )
+
+    if(LINK_BLIS)
+      target_link_libraries( rocblas-bench PRIVATE rocblas_fortran_client roc::rocblas cblas lapack ${BLIS_LIBRARY} ${OPENMP_LIBRARY} )
+    else()
+      target_link_libraries( rocblas-bench PRIVATE rocblas_fortran_client roc::rocblas cblas lapack ${OPENMP_LIBRARY} )
+    endif()
+else()
+    # External header includes included as system files
+    target_include_directories( rocblas-bench
+      SYSTEM PRIVATE
+        $<BUILD_INTERFACE:${HIP_INCLUDE_DIRS}>
+        $<BUILD_INTERFACE:${CBLAS_INCLUDE_DIRS}>
+        $<BUILD_INTERFACE:${BLIS_INCLUDE_DIR}>
+    )
+
+    if(LINK_BLIS)
+      target_link_libraries( rocblas-bench PRIVATE rocblas_fortran_client roc::rocblas lapack cblas ${BLIS_LIBRARY} )
+    else()
+      target_link_libraries( rocblas-bench PRIVATE rocblas_fortran_client roc::rocblas lapack cblas )
+    endif()
 endif()
 
 if( CUDA_FOUND )
@@ -73,12 +120,24 @@ if( CMAKE_COMPILER_IS_GNUCXX OR CXX_VERSION_STRING MATCHES "clang")
   target_compile_options( rocblas-bench PRIVATE -mf16c )
 endif( )
 
-target_compile_options(rocblas-bench PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${COMMON_CXX_OPTIONS}>)
+if( CXX_VERSION_STRING MATCHES "clang" )
+  target_link_libraries( rocblas-bench PRIVATE -lm )
+  if(OS_ID_rhel OR OS_ID_centos OR OS_ID_sles)
+    set(TARGET_CXX_OPTIONS "-isystem ${CLANG_INCLUDE_DIR};-isystem ${XXX_OPENMP_INCLUDE_DIR}")
+  endif( )
+else( )
+  if(OS_ID_rhel OR OS_ID_centos OR OS_ID_sles)
+    set(TARGET_CXX_OPTIONS "-isystem ${CLANG_INCLUDE_DIR};-isystem ${XXX_OPENMP_INCLUDE_DIR}")
+  endif( )
+  set(TARGET_CXX_OPTIONS "-isystem ${ROCM_PATH}/include;${TARGET_CXX_OPTIONS}")
+endif( )
+set(TARGET_CXX_OPTIONS "${COMMON_CXX_OPTIONS};${TARGET_CXX_OPTIONS}")
+
+target_compile_options(rocblas-bench PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${TARGET_CXX_OPTIONS}>)
 # target_compile_options does not go to linker like CMAKE_CXX_FLAGS does, so manually add
-target_link_libraries( rocblas-bench PRIVATE ${COMMON_LINK_LIBS} -lm )
+target_link_libraries( rocblas-bench PRIVATE ${COMMON_LINK_LIBS} )
 
 set_target_properties( rocblas-bench PROPERTIES CXX_EXTENSIONS NO )
-set_target_properties( rocblas-bench PROPERTIES CXX_STANDARD 14 CXX_STANDARD_REQUIRED ON )
 set_target_properties( rocblas-bench PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )
 add_dependencies( rocblas-bench rocblas-common )
 add_subdirectory ( ./perf_script )

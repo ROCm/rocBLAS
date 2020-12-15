@@ -4,6 +4,9 @@
 
 set( rocblas_samples_common ../common/utility.cpp )
 
+set( THREADS_PREFER_PTHREAD_FLAG ON )
+find_package( Threads REQUIRED )
+
 # C example
 add_executable( example-c-dgeam example_c_dgeam.c )
 target_compile_definitions( example-c-dgeam PRIVATE __HIP_PLATFORM_HCC__ )
@@ -37,7 +40,6 @@ foreach( exe ${sample_list_all} )
   target_link_libraries( ${exe} PRIVATE rocblas_fortran_client roc::rocblas )
 
   set_target_properties( ${exe} PROPERTIES CXX_EXTENSIONS NO )
-  set_target_properties( ${exe} PROPERTIES CXX_STANDARD 14 CXX_STANDARD_REQUIRED ON )
   set_target_properties( ${exe} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )
 
   if (NOT ${exe} STREQUAL "example-c-dgeam")
