@@ -311,8 +311,8 @@ void cblas_geam_helper(rocblas_operation transA,
     {
         for(rocblas_int j = 0; j < N; j++)
         {
-            T a_val = A[i * inc1_A + j * inc2_A];
-            T b_val = B[i * inc1_B + j * inc2_B];
+            T a_val = alpha ? A[i * inc1_A + j * inc2_A] : 0;
+            T b_val = beta ? B[i * inc1_B + j * inc2_B] : 0;
             if(transA == rocblas_operation_conjugate_transpose)
                 a_val = geam_conj_helper(a_val);
             if(transB == rocblas_operation_conjugate_transpose)
@@ -724,17 +724,18 @@ void cblas_herkx(rocblas_fill      uplo,
             {
                 for(int i = 0; i <= j; i++)
                 {
-                    C[i + j * ldc] *= *beta;
+                    C[i + j * ldc] = *beta ? *beta * C[i + j * ldc] : 0;
                 }
 
-                for(int l = 0; l < k; l++)
-                {
-                    T temp = *alpha * std::conj(B[j + l * ldb]);
-                    for(int i = 0; i <= j; ++i)
+                if(*alpha)
+                    for(int l = 0; l < k; l++)
                     {
-                        C[i + j * ldc] += temp * A[i + l * lda];
+                        T temp = *alpha * std::conj(B[j + l * ldb]);
+                        for(int i = 0; i <= j; ++i)
+                        {
+                            C[i + j * ldc] += temp * A[i + l * lda];
+                        }
                     }
-                }
                 C[j + j * ldc].imag(0);
             }
         }
@@ -745,17 +746,18 @@ void cblas_herkx(rocblas_fill      uplo,
             {
                 for(int i = j; i < n; i++)
                 {
-                    C[i + j * ldc] *= *beta;
+                    C[i + j * ldc] = *beta ? *beta * C[i + j * ldc] : 0;
                 }
 
-                for(int l = 0; l < k; l++)
-                {
-                    T temp = *alpha * std::conj(B[j + l * ldb]);
-                    for(int i = j; i < n; ++i)
+                if(*alpha)
+                    for(int l = 0; l < k; l++)
                     {
-                        C[i + j * ldc] += temp * A[i + l * lda];
+                        T temp = *alpha * std::conj(B[j + l * ldb]);
+                        for(int i = j; i < n; ++i)
+                        {
+                            C[i + j * ldc] += temp * A[i + l * lda];
+                        }
                     }
-                }
                 C[j + j * ldc].imag(0);
             }
         }
@@ -769,14 +771,17 @@ void cblas_herkx(rocblas_fill      uplo,
             {
                 for(int i = 0; i <= j; i++)
                 {
-                    C[i + j * ldc] *= *beta;
+                    C[i + j * ldc] = *beta ? *beta * C[i + j * ldc] : 0;
 
-                    T temp(0);
-                    for(int l = 0; l < k; l++)
+                    if(*alpha)
                     {
-                        temp += std::conj(A[l + i * lda]) * B[l + j * ldb];
+                        T temp(0);
+                        for(int l = 0; l < k; l++)
+                        {
+                            temp += std::conj(A[l + i * lda]) * B[l + j * ldb];
+                        }
+                        C[i + j * ldc] += *alpha * temp;
                     }
-                    C[i + j * ldc] += *alpha * temp;
 
                     if(i == j)
                         C[j + j * ldc].imag(0);
@@ -790,14 +795,17 @@ void cblas_herkx(rocblas_fill      uplo,
             {
                 for(int i = j; i < n; i++)
                 {
-                    C[i + j * ldc] *= *beta;
+                    C[i + j * ldc] = *beta ? *beta * C[i + j * ldc] : 0;
 
-                    T temp(0);
-                    for(int l = 0; l < k; l++)
+                    if(*alpha)
                     {
-                        temp += std::conj(A[l + i * lda]) * B[l + j * ldb];
+                        T temp(0);
+                        for(int l = 0; l < k; l++)
+                        {
+                            temp += std::conj(A[l + i * lda]) * B[l + j * ldb];
+                        }
+                        C[i + j * ldc] += *alpha * temp;
                     }
-                    C[i + j * ldc] += *alpha * temp;
 
                     if(i == j)
                         C[j + j * ldc].imag(0);

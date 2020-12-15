@@ -14,21 +14,21 @@ __device__ void symm_scale_device(rocblas_int m, rocblas_int n, T beta, T* C, ro
 
     if(tx < m && ty < n)
     {
-        C[ty * ldc + tx] *= beta;
+        C[ty * ldc + tx] = beta ? beta * C[ty * ldc + tx] : 0;
     }
 }
 
 /**
   *  Loads pointers and launches the actual calculation kernel.
   */
-template <typename T, typename U>
-__global__ void symm_scale_kernel(rocblas_int    m,
-                                  rocblas_int    n,
-                                  T              beta_host_device,
-                                  U              CP_array,
-                                  ptrdiff_t      shift_c,
-                                  rocblas_int    ldc,
-                                  rocblas_stride stride_c)
+template <int DIM_X, int DIM_Y, typename T, typename U>
+__global__ __launch_bounds__(DIM_X* DIM_Y) void symm_scale_kernel(rocblas_int    m,
+                                                                  rocblas_int    n,
+                                                                  T              beta_host_device,
+                                                                  U              CP_array,
+                                                                  ptrdiff_t      shift_c,
+                                                                  rocblas_int    ldc,
+                                                                  rocblas_stride stride_c)
 {
     auto beta = load_scalar(beta_host_device);
     if(beta == 1)
@@ -53,6 +53,8 @@ __device__ void symm_hemm_mult_add_device(bool        upper,
                                           T* __restrict__ C,
                                           rocblas_int ldc)
 {
+    // function not called when !alpha
+
     __shared__ T atile[TILE_NK][TILE_NK];
     __shared__ T btile[TILE_NK][TILE_NK];
 
@@ -178,22 +180,22 @@ template <bool        HERM,
           typename TScal,
           typename TConstPtr,
           typename TPtr>
-__global__ void symm_hemm_kernel(bool           upper,
-                                 rocblas_int    m,
-                                 rocblas_int    n,
-                                 TScal          alpha_host_device,
-                                 TConstPtr      AP_array,
-                                 ptrdiff_t      shift_a,
-                                 rocblas_int    lda,
-                                 rocblas_stride stride_a,
-                                 TConstPtr      BP_array,
-                                 ptrdiff_t      shift_b,
-                                 rocblas_int    ldb,
-                                 rocblas_stride stride_b,
-                                 TPtr           CP_array,
-                                 ptrdiff_t      shift_c,
-                                 rocblas_int    ldc,
-                                 rocblas_stride stride_c)
+__global__ __launch_bounds__(DIM_XYT* DIM_XYT) void symm_hemm_kernel(bool        upper,
+                                                                     rocblas_int m,
+                                                                     rocblas_int n,
+                                                                     TScal       alpha_host_device,
+                                                                     TConstPtr   AP_array,
+                                                                     ptrdiff_t   shift_a,
+                                                                     rocblas_int lda,
+                                                                     rocblas_stride stride_a,
+                                                                     TConstPtr      BP_array,
+                                                                     ptrdiff_t      shift_b,
+                                                                     rocblas_int    ldb,
+                                                                     rocblas_stride stride_b,
+                                                                     TPtr           CP_array,
+                                                                     ptrdiff_t      shift_c,
+                                                                     rocblas_int    ldc,
+                                                                     rocblas_stride stride_c)
 {
     auto alpha = load_scalar(alpha_host_device);
     if(alpha == 0)
@@ -301,7 +303,7 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_symm_template(rocblas_handle hand
     if(handle->pointer_mode == rocblas_pointer_mode_device)
     {
         // first scale C so we can use directly for output without work buffer
-        hipLaunchKernelGGL((symm_scale_kernel),
+        hipLaunchKernelGGL((symm_scale_kernel<symm_SCALE_DIM_X, symm_SCALE_DIM_Y>),
                            symm_scale_grid,
                            symm_scale_threads,
                            0,
@@ -369,7 +371,7 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_symm_template(rocblas_handle hand
             return rocblas_status_success;
 
         // first scale C so we can use directly for output without work buffer
-        hipLaunchKernelGGL((symm_scale_kernel),
+        hipLaunchKernelGGL((symm_scale_kernel<symm_SCALE_DIM_X, symm_SCALE_DIM_Y>),
                            symm_scale_grid,
                            symm_scale_threads,
                            0,

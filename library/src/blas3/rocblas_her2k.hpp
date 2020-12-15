@@ -8,16 +8,16 @@
 /**
   *  Loads pointers and launches the actual calculation kernel.
   */
-template <typename U, typename V, typename W>
-__global__ void her2k_scale_kernel(bool           upper,
-                                   rocblas_int    n,
-                                   rocblas_int    k,
-                                   U              alpha_host_device,
-                                   V              beta_host_device,
-                                   W              CP_array,
-                                   ptrdiff_t      shift_c,
-                                   rocblas_int    ldc,
-                                   rocblas_stride stride_c)
+template <int DIM_X, int DIM_Y, typename U, typename V, typename W>
+__global__ __launch_bounds__(DIM_X* DIM_Y) void her2k_scale_kernel(bool           upper,
+                                                                   rocblas_int    n,
+                                                                   rocblas_int    k,
+                                                                   U              alpha_host_device,
+                                                                   V              beta_host_device,
+                                                                   W              CP_array,
+                                                                   ptrdiff_t      shift_c,
+                                                                   rocblas_int    ldc,
+                                                                   rocblas_stride stride_c)
 {
     auto alpha = load_scalar(alpha_host_device);
     auto beta  = load_scalar(beta_host_device);
@@ -123,7 +123,7 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_her2k_template(rocblas_handle    
     if(handle->pointer_mode == rocblas_pointer_mode_device)
     {
         // scale C so we can use directly for output without work buffer, zeros diag imaginary
-        hipLaunchKernelGGL(her2k_scale_kernel,
+        hipLaunchKernelGGL((her2k_scale_kernel<her2k_SCALE_DIM_X, her2k_SCALE_DIM_Y>),
                            her2k_scale_grid,
                            her2k_scale_threads,
                            0,
@@ -198,7 +198,7 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_her2k_template(rocblas_handle    
             return rocblas_status_success;
 
         // scale C so we can use directly for output without work buffer, zeros diag imaginary
-        hipLaunchKernelGGL(her2k_scale_kernel,
+        hipLaunchKernelGGL((her2k_scale_kernel<her2k_SCALE_DIM_X, her2k_SCALE_DIM_Y>),
                            her2k_scale_grid,
                            her2k_scale_threads,
                            0,

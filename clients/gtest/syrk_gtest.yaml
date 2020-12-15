@@ -12,6 +12,9 @@ Definitions:
     - { N:   1,  lda:   1,  K:  3,  ldc:  3 } # bad lda if transpose
     - { N:   3,  lda:   3,  K:  3,  ldc:  1 } # bad ldc
 
+  - &tiny_matrix_size
+    - { N:   199, lda:  199, K:  32,   ldc: 199 }
+
   - &medium_matrix_size_range
     - { N:   199, lda:  199, K:  32,   ldc: 199 }
     - { N:    88, lda:  200, K:  200,  ldc: 88 }
@@ -45,6 +48,16 @@ Tests:
   matrix_size: *quick_matrix_size_range
   alpha: [ 0 ]
   beta: [ 1 ]
+
+- name: syrk_NaN
+  category: pre_checkin
+  function: syrk
+  precision: *single_double_precisions_complex
+  uplo: [ U ]
+  transA: [N, T]
+  matrix_size: *tiny_matrix_size
+  alpha: [ 1.0, .NaN ]  # NaN is converted to 0.0 in test code
+  beta: [ 0.5, 1.0, .NaN ]
 
 - name: syrk_medium
   category: pre_checkin
