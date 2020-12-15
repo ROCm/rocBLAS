@@ -38,18 +38,15 @@ add_library(rocblas_fortran_client ${rocblas_f90_source_clients} $<TARGET_OBJECT
 include_directories(${CMAKE_BINARY_DIR}/include)
 include_directories(${CMAKE_BINARY_DIR}/include/internal)
 
+if(OS_ID_rhel OR OS_ID_centos OR OS_ID_sles)
+    set(COMMON_CXX_OPTIONS "-fopenmp=libgomp;-pthread;-stdlib=libstdc++;-std=c++14")
+else()
+    set(COMMON_CXX_OPTIONS "-fopenmp;-pthread")
+endif()
+set(COMMON_LINK_LIBS "-fopenmp -lpthread -lstdc++")
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
-
-find_package(OpenMP REQUIRED)
-
-set(COMMON_CXX_OPTIONS "${OpenMP_CXX_FLAGS};${PTHREAD_CXX_FLAG}")
-set(COMMON_LINK_LIBS "${OpenMP_CXX_FLAGS}")
-if (Threads::Threads)
-  set(COMMON_LINK_LIBS "${COMMON_LINK_LIBS} Threads::Threads")
-endif()
-
 
 list( APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake )
 
