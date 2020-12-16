@@ -136,7 +136,7 @@ void testing_scal_ex(const Arguments& arg)
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
-        cblas_scal<Tx, Ta>(N, h_alpha, hy_gold, incx);
+        cblas_scal(N, h_alpha, (Tx*)hy_gold, incx);
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         if(arg.unit_check)

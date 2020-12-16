@@ -62,22 +62,68 @@ void cblas_axpy<rocblas_half>(rocblas_int   n,
     }
 }
 
-template <>
-void cblas_scal<rocblas_half>(rocblas_int n, rocblas_half alpha, rocblas_half* x, rocblas_int incx)
+/**
+  *
+  * cblas_scal(rocblas_int n, T alpha, U x, rocblas_int incx)
+  *
+  * Info about cblas_scal function:
+  *
+  *    The reason why we call cblas_scal(our CPU implementation) instead of BLIS SCAL is because of the different resultant output vector produced
+  *    when initialized with input parameters alpha == 0 and vector `x` to NaN. For this input (alpha == 0 and vector `x` to NaN) BLIS SCAL produces
+  *    resultant vector filled with zeros whereas rocBLAS, cuBLAS, MAGMA produces resultant vector filled with NaN's.
+  *
+  * Parameters   : n     : Number of elements in `x`.
+  *                alpha : scalar alpha value.
+  *                x     : Host pointer storing vector `x`.
+  *                incx  : Specifies the increment for the elements of `x`.
+  *
+  * Return Value : Void
+  *
+**/
+
+template <typename T, typename U>
+void cblas_scal(rocblas_int n, T alpha, U x, rocblas_int incx)
 {
     if(n <= 0 || incx <= 0)
         return;
 
-    host_vector<float> x_float(n * incx);
-
-    for(size_t i = 0; i < n; i++)
-        x_float[i * incx] = x[i * incx];
-
-    cblas_sscal(n, alpha, x_float, incx);
-
-    for(size_t i = 0; i < n; i++)
-        x[i * incx] = rocblas_half(x_float[i * incx]);
+    if(incx == 1)
+    {
+        for(int i = 0; i < n; i++)
+            x[i] = alpha * x[i];
+    }
+    else
+    {
+        for(int i = 0; i < n * incx; i += incx)
+            x[i] = alpha * x[i];
+    }
 }
+
+//Scal Instantiation
+template void cblas_scal<float, float*>(rocblas_int n, float alpha, float* x, rocblas_int incx);
+template void cblas_scal<double, double*>(rocblas_int n, double alpha, double* x, rocblas_int incx);
+template void cblas_scal<rocblas_half, rocblas_half*>(rocblas_int   n,
+                                                      rocblas_half  alpha,
+                                                      rocblas_half* x,
+                                                      rocblas_int   incx);
+template void cblas_scal<rocblas_complex_num<float>, rocblas_complex_num<float>*>(
+    rocblas_int                 n,
+    rocblas_complex_num<float>  alpha,
+    rocblas_complex_num<float>* x,
+    rocblas_int                 incx);
+template void cblas_scal<rocblas_complex_num<double>, rocblas_complex_num<double>*>(
+    rocblas_int                  n,
+    rocblas_complex_num<double>  alpha,
+    rocblas_complex_num<double>* x,
+    rocblas_int                  incx);
+template void cblas_scal<float, rocblas_complex_num<float>*>(rocblas_int                 n,
+                                                             float                       alpha,
+                                                             rocblas_complex_num<float>* x,
+                                                             rocblas_int                 incx);
+template void cblas_scal<double, rocblas_complex_num<double>*>(rocblas_int                  n,
+                                                               double                       alpha,
+                                                               rocblas_complex_num<double>* x,
+                                                               rocblas_int                  incx);
 
 template <>
 void cblas_dot<rocblas_half>(rocblas_int         n,
