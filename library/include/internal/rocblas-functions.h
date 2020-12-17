@@ -11,7 +11,7 @@
  * \brief rocblas_functions.h provides Basic Linear Algebra Subprograms of Level 1, 2 and 3,
  *  using HIP optimized for AMD HCC-based GPU hardware. This library can also run on CUDA-based
  * NVIDIA GPUs.
- *  This file exposes C89 BLAS interface
+ *  This file exposes C99 BLAS interface
  */
 
 /*

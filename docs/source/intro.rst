@@ -27,7 +27,7 @@ The aim of rocBLAS is to provide:
 
 rocBLAS is written in C++14 and HIP. It uses AMD's ROCm runtime to run on GPU devices.
 
-The rocBLAS API is a thin C89 API using the `Hourglass Pattern <https://github.com/CppCon/CppCon2014/blob/master/Presentations/Hourglass%20Interfaces%20for%20C%2B%2B%20APIs/Hourglass%20Interfaces%20for%20C%2B%2B%20APIs%20-%20Stefanus%20Du%20Toit%20-%20CppCon%202014.pdf/>`_. It contains:
+The rocBLAS API is a thin C99 API using the `Hourglass Pattern <https://github.com/CppCon/CppCon2014/blob/master/Presentations/Hourglass%20Interfaces%20for%20C%2B%2B%20APIs/Hourglass%20Interfaces%20for%20C%2B%2B%20APIs%20-%20Stefanus%20Du%20Toit%20-%20CppCon%202014.pdf/>`_. It contains:
 
 - [Level1]_, [Level2]_, and [Level3]_ `BLAS <http://www.netlib.org/blas/>`_ functions, with batched and strided_batched versions
 - Extensions to Legacy BLAS, including functions for mixed precision
