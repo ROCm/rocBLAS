@@ -15,7 +15,7 @@ discrete GPUs.
 Acronym  Expansion
 ======== =========
 **BLAS**    **B**\ asic **L**\ inear **A**\ lgebra **S**\ ubprograms
-**ROCm**    **R**\ adeon **O**\ pen **C**\ ompute Platfor\ **m**
+**ROCm**    **R**\ adeon **O**\ pen E\ **C**\ osyste\ **m**
 **HIP**     **H**\ eterogeneous-Compute **I**\ nterface for **P**\ ortability
 ======== =========
 
