@@ -48,11 +48,39 @@ if( BUILD_WITH_TENSILE )
     #set( PACKAGE_TENSILE_LIBRARY ON )
     set( PACKAGE_TENSILE_LIBRARY OFF )
     set( USE_LEGACY_CODE OFF )
+
+    # Build options list
+    if(Tensile_MERGE_FILES)
+      set(Tensile_Options ${Tensile_Options} MERGE_FILES)
+    endif()
+    if(Tensile_SHORT_FILENAMES)
+      set(Tensile_Options ${Tensile_Options} SHORT_FILE_NAMES)
+    endif()
+    if(Tensile_PRINT_DEBUG)
+      set(Tensile_Options ${Tensile_Options} PRINT_DEBUG)
+    endif()
+    if(PACKAGE_TENSILE_LIBRARY)
+      set(Tensile_Options ${Tensile_Options} GENERATE_PACKAGE)
+    endif()
+
+    # Add a build target for Tensile kernel library
+    # Legacy code is OFF by default for new client
+    # Runtime language is HIP by default
+    TensileCreateLibraryFiles(
+      "${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/Logic/${Tensile_LOGIC}"
+      "${PROJECT_BINARY_DIR}/Tensile"
+      ARCHITECTURE        ${Tensile_ARCHITECTURE}
+      CODE_OBJECT_VERSION ${Tensile_CODE_OBJECT_VERSION}
+      COMPILER            ${Tensile_COMPILER}
+      LIBRARY_FORMAT      ${Tensile_LIBRARY_FORMAT}
+      ${Tensile_Options}
+    )
+
   else()
     set( PACKAGE_TENSILE_LIBRARY OFF )
     set( USE_LEGACY_CODE ON )
-  endif()
-  TensileCreateLibraryCmake(
+
+    TensileCreateLibraryCmake(
       ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/Logic/${Tensile_LOGIC}
       ${Tensile_RUNTIME_LANGUAGE}
       ${Tensile_COMPILER}
@@ -64,13 +92,17 @@ if( BUILD_WITH_TENSILE )
       ${Tensile_PRINT_DEBUG}
       ${PACKAGE_TENSILE_LIBRARY}
       ${USE_LEGACY_CODE}
-   )
+    )
+  endif()
 
   # build gemm with Tensile Host library
   if( BUILD_WITH_TENSILE_HOST )
     # Create a unique name for TensileHost compiled for rocBLAS
     set_target_properties( TensileHost PROPERTIES OUTPUT_NAME rocblas-tensile CXX_EXTENSIONS NO )
     target_compile_definitions( TensileHost PUBLIC USE_TENSILE_HOST )
+
+    # Tensile host depends on libs build target
+    add_dependencies( TensileHost TENSILE_LIBRARY_TARGET )
   else()
     # Create a unique name for Tensile compiled for rocBLAS
     set_target_properties( Tensile PROPERTIES OUTPUT_NAME rocblas-tensile CXX_EXTENSIONS NO )
