@@ -1271,6 +1271,10 @@ try
          value<rocblas_int>(&arg.batch_count)->default_value(1),
          "Number of matrices. Only applicable to batched and strided_batched routines")
 
+        ("HMM",
+         value<bool>(&arg.HMM)->default_value(false),
+         "Parameter requesting the use of HipManagedMemory")
+
         ("verify,v",
          value<rocblas_int>(&arg.norm_check)->default_value(0),
          "Validate GPU results with CPU? 0 = No, 1 = Yes (default: No)")

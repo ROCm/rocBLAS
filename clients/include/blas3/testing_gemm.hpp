@@ -194,6 +194,7 @@ void testing_gemm(const Arguments& arg)
     double gpu_time_used, cpu_time_used;
     gpu_time_used = cpu_time_used      = 0.0;
     double               rocblas_error = 0.0;
+    bool                 HMM           = arg.HMM;
     rocblas_local_handle handle{arg};
 
     rocblas_int A_row = transA == rocblas_operation_none ? M : K;
@@ -243,11 +244,11 @@ void testing_gemm(const Arguments& arg)
     const auto size_C_copy = arg.unit_check || arg.norm_check ? size_C : 0;
 
     // allocate memory on device
-    device_vector<T> dA(size_A);
-    device_vector<T> dB(size_B);
-    device_vector<T> dC(size_C);
-    device_vector<T> d_alpha(1);
-    device_vector<T> d_beta(1);
+    device_vector<T> dA(size_A, 1, HMM);
+    device_vector<T> dB(size_B, 1, HMM);
+    device_vector<T> dC(size_C, 1, HMM);
+    device_vector<T> d_alpha(1, 1, HMM);
+    device_vector<T> d_beta(1, 1, HMM);
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dB.memcheck());
     CHECK_DEVICE_ALLOCATION(dC.memcheck());
@@ -333,21 +334,23 @@ void testing_gemm(const Arguments& arg)
     }
 
     // copy data from CPU to device
-    CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(T) * size_A, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dB, hB, sizeof(T) * size_B, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(dA.transfer_from(hA));
+    CHECK_HIP_ERROR(dB.transfer_from(hB));
 
     if(arg.unit_check || arg.norm_check)
     {
         // ROCBLAS rocblas_pointer_mode_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_HIP_ERROR(hipMemcpy(dC, hC_1, sizeof(T) * size_C, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(dC.transfer_from(hC_1));
+
         CHECK_ROCBLAS_ERROR(rocblas_gemm_fn(
             handle, transA, transB, M, N, K, &h_alpha, dA, lda, dB, ldb, &h_beta, dC, ldc));
-        CHECK_HIP_ERROR(hipMemcpy(hC_1, dC, sizeof(T) * size_C, hipMemcpyDeviceToHost));
 
+        CHECK_HIP_ERROR(hC_1.transfer_from(dC));
         // ROCBLAS rocblas_pointer_mode_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_HIP_ERROR(hipMemcpy(dC, hC_2, sizeof(T) * size_C, hipMemcpyHostToDevice));
+
+        CHECK_HIP_ERROR(dC.transfer_from(hC_2));
         CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(T), hipMemcpyHostToDevice));
         CHECK_HIP_ERROR(hipMemcpy(d_beta, &h_beta, sizeof(T), hipMemcpyHostToDevice));
         CHECK_ROCBLAS_ERROR(rocblas_gemm_fn(
@@ -367,7 +370,7 @@ void testing_gemm(const Arguments& arg)
         }
 
         // fetch GPU
-        CHECK_HIP_ERROR(hipMemcpy(hC_2, dC, sizeof(T) * size_C, hipMemcpyDeviceToHost));
+        CHECK_HIP_ERROR(hC_2.transfer_from(dC));
 
         if(arg.unit_check)
         {

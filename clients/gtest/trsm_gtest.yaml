@@ -265,6 +265,19 @@ Tests:
   user_allocated_workspace: [0, 1000000]
 
 # Medium - pre_checkin
+- name: trsm_medium_HMM
+  category: HMM
+  function: trsm
+  precision: *single_double_precisions
+  side: [L]
+  uplo: [L]
+  transA: [N]
+  diag: [U]
+  matrix_size: *medium_matrix_size_range
+  alpha: 1
+  user_allocated_workspace: [0, 20000000]
+  HMM: true
+
 - name: trsm_medium
   category: pre_checkin
   function: trsm

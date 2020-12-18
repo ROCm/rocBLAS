@@ -122,6 +122,17 @@ Tests:
   incx_incy: *incx_incy_range
   alpha_beta: *alpha_beta_range
 
+- name: gemv_medium_HMM
+  category: HMM
+  function: gemv
+  precision: *single_double_precisions_complex_real
+  transA: [ N ]
+  matrix_size: *medium_matrix_size_range
+  incx: -1
+  incy: 2
+  alpha: 1
+  beta: 1
+
 - name: gemv_medium_multi_gpu
   category: multi_gpu
   function: gemv

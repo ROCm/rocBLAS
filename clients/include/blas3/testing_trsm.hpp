@@ -43,6 +43,8 @@ void testing_trsm(const Arguments& arg)
     size_t      size_A = lda * size_t(K);
     size_t      size_B = ldb * size_t(N);
 
+    bool HMM = arg.HMM;
+
     rocblas_local_handle handle{arg};
 
     // check here to prevent undefined memory allocation error
@@ -75,9 +77,9 @@ void testing_trsm(const Arguments& arg)
     double eps                     = std::numeric_limits<real_t<T>>::epsilon();
 
     // allocate memory on device
-    device_vector<T> dA(size_A);
-    device_vector<T> dXorB(size_B);
-    device_vector<T> alpha_d(1);
+    device_vector<T> dA(size_A, 1, HMM);
+    device_vector<T> dXorB(size_B, 1, HMM);
+    device_vector<T> alpha_d(1, 1, HMM);
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dXorB.memcheck());
     CHECK_DEVICE_ALLOCATION(alpha_d.memcheck());
@@ -167,8 +169,8 @@ void testing_trsm(const Arguments& arg)
     cpuXorB = hB; // cpuXorB <- B
 
     // copy data from CPU to device
-    CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(T) * size_A, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dXorB, hXorB_1, sizeof(T) * size_B, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(dA.transfer_from(hA));
+    CHECK_HIP_ERROR(dXorB.transfer_from(hXorB_1));
 
     double max_err_1 = 0.0;
     double max_err_2 = 0.0;
@@ -191,22 +193,22 @@ void testing_trsm(const Arguments& arg)
     {
         // calculate dXorB <- A^(-1) B   rocblas_device_pointer_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_HIP_ERROR(hipMemcpy(dXorB, hXorB_1, sizeof(T) * size_B, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(dXorB.transfer_from(hXorB_1));
 
         CHECK_ROCBLAS_ERROR(
             rocblas_trsm_fn(handle, side, uplo, transA, diag, M, N, &alpha_h, dA, lda, dXorB, ldb));
 
-        CHECK_HIP_ERROR(hipMemcpy(hXorB_1, dXorB, sizeof(T) * size_B, hipMemcpyDeviceToHost));
+        CHECK_HIP_ERROR(hXorB_1.transfer_from(dXorB));
 
         // calculate dXorB <- A^(-1) B   rocblas_device_pointer_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_HIP_ERROR(hipMemcpy(dXorB, hXorB_2, sizeof(T) * size_B, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(dXorB.transfer_from(hXorB_2));
         CHECK_HIP_ERROR(hipMemcpy(alpha_d, &alpha_h, sizeof(T), hipMemcpyHostToDevice));
 
         CHECK_ROCBLAS_ERROR(
             rocblas_trsm_fn(handle, side, uplo, transA, diag, M, N, alpha_d, dA, lda, dXorB, ldb));
 
-        CHECK_HIP_ERROR(hipMemcpy(hXorB_2, dXorB, sizeof(T) * size_B, hipMemcpyDeviceToHost));
+        CHECK_HIP_ERROR(hXorB_2.transfer_from(dXorB));
 
         //computed result is in hx_or_b, so forward error is E = hx - hx_or_b
         // calculate vector-induced-norm 1 of matrix E
