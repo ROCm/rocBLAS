@@ -17,6 +17,9 @@ private:
     size_t size, bytes;
 
 public:
+    bool use_HMM = false;
+
+protected:
     inline size_t nmemb() const noexcept
     {
         return size;
@@ -24,9 +27,10 @@ public:
 
 #ifdef GOOGLE_TEST
     U guard[PAD];
-    d_vector(size_t s)
+    d_vector(size_t s, bool HMM = false)
         : size(s)
         , bytes((s + PAD * 2) * sizeof(T))
+        , use_HMM(HMM)
     {
         // Initialize guard with random data
         if(PAD > 0)
@@ -35,9 +39,10 @@ public:
         }
     }
 #else
-    d_vector(size_t s)
+    d_vector(size_t s, bool HMM = false)
         : size(s)
         , bytes(s ? s * sizeof(T) : sizeof(T))
+        , use_HMM(HMM)
     {
     }
 #endif
@@ -45,7 +50,7 @@ public:
     T* device_vector_setup()
     {
         T* d;
-        if((hipMalloc)(&d, bytes) != hipSuccess)
+        if(use_HMM ? hipMallocManaged(&d, bytes) : (hipMalloc)(&d, bytes) != hipSuccess)
         {
             rocblas_cerr << "Error allocating " << bytes << " bytes (" << (bytes >> 30) << " GB)"
                          << std::endl;

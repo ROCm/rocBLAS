@@ -121,7 +121,6 @@ namespace
     using gemv = gemv_template<gemv_testing, GEMV>;
     TEST_P(gemv, blas2)
     {
-        // GetParam().streams = 0;
         RUN_TEST_ON_THREADS_STREAMS(rocblas_simple_dispatch<gemv_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(gemv);

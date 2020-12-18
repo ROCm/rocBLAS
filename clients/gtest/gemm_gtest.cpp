@@ -170,7 +170,7 @@ namespace
     using gemm = gemm_test_template<gemm_testing, GEMM>;
     TEST_P(gemm, blas3_tensile)
     {
-        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_gemm_dispatch<gemm_testing>(GetParam()));
+        RUN_TEST_ON_THREADS_STREAMS(rocblas_gemm_dispatch<gemm_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(gemm);
 

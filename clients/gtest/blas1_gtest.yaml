@@ -132,6 +132,16 @@ Tests:
       - axpy_strided_batched_ex: *half_single_double_complex_real_precisions
 
 # quick
+  - name: blas1_with_alpha_HMM
+    category: HMM
+    N: [ -1, 0, 5, 33792 ]
+    incx_incy: *incx_incy_range_y_output
+    alpha_beta: *alpha_beta_range
+    alphai_betai: *alphai_betai_range
+    function:
+      - axpy:  *half_single_precisions_complex_real
+    HMM: true
+
   - name: blas1_with_alpha
     category: quick
     N: [ -1, 0, 5, 33792 ]
@@ -636,6 +646,14 @@ Tests:
 
 
 # quick
+  - name: blas1_HMM
+    category: HMM
+    N: [ -1, 0, 1025]
+    incx_incy: *incx_incy_range
+    function:
+      - dot:   *half_bfloat_single_double_complex_real_precisions
+    HMM: true
+
   - name: blas1
     category: quick
     N: [ -1, 0, 1025]

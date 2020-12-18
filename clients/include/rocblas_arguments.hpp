@@ -63,6 +63,7 @@ struct Arguments
     char diag;
 
     rocblas_int batch_count;
+    bool        HMM;
     size_t      threads;
     size_t      streams;
     size_t      devices;
@@ -132,6 +133,7 @@ struct Arguments
     OPER(uplo) SEP                   \
     OPER(diag) SEP                   \
     OPER(batch_count) SEP            \
+    OPER(HMM) SEP            \
     OPER(threads) SEP                \
     OPER(streams) SEP                \
     OPER(devices) SEP                \

@@ -151,6 +151,7 @@ void testing_gemv(const Arguments& arg)
     T                 h_alpha = arg.get_alpha<T>();
     T                 h_beta  = arg.get_beta<T>();
     rocblas_operation transA  = char2rocblas_operation(arg.transA);
+    bool              HMM     = arg.HMM;
 
     rocblas_local_handle handle{arg};
 
@@ -194,12 +195,12 @@ void testing_gemv(const Arguments& arg)
     host_vector<T> hy_2(size_y);
     host_vector<T> hy_gold(size_y);
 
-    device_vector<T> dA(size_A);
-    device_vector<T> dx(size_x);
-    device_vector<T> dy_1(size_y);
-    device_vector<T> dy_2(size_y);
-    device_vector<T> d_alpha(1);
-    device_vector<T> d_beta(1);
+    device_vector<T> dA(size_A, 1, HMM);
+    device_vector<T> dx(size_x, 1, HMM);
+    device_vector<T> dy_1(size_y, 1, HMM);
+    device_vector<T> dy_2(size_y, 1, HMM);
+    device_vector<T> d_alpha(1, 1, HMM);
+    device_vector<T> d_beta(1, 1, HMM);
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy_1.memcheck());
@@ -231,9 +232,9 @@ void testing_gemv(const Arguments& arg)
     hy_2    = hy_1;
 
     // copy data from CPU to device
-    CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(T) * size_A, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T) * size_x, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dy_1, hy_1, sizeof(T) * size_y, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(dA.transfer_from(hA));
+    CHECK_HIP_ERROR(dx.transfer_from(hx));
+    CHECK_HIP_ERROR(dy_1.transfer_from(hy_1));
 
     double gpu_time_used, cpu_time_used;
     double rocblas_error_1;
@@ -244,7 +245,7 @@ void testing_gemv(const Arguments& arg)
     =================================================================== */
     if(arg.unit_check || arg.norm_check)
     {
-        CHECK_HIP_ERROR(hipMemcpy(dy_2, hy_2, sizeof(T) * size_y, hipMemcpyHostToDevice));
+        dy_2.transfer_from(hy_2);
         CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(T), hipMemcpyHostToDevice));
         CHECK_HIP_ERROR(hipMemcpy(d_beta, &h_beta, sizeof(T), hipMemcpyHostToDevice));
 
@@ -264,8 +265,8 @@ void testing_gemv(const Arguments& arg)
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         // copy output from device to CPU
-        CHECK_HIP_ERROR(hipMemcpy(hy_1, dy_1, sizeof(T) * size_y, hipMemcpyDeviceToHost));
-        CHECK_HIP_ERROR(hipMemcpy(hy_2, dy_2, sizeof(T) * size_y, hipMemcpyDeviceToHost));
+        CHECK_HIP_ERROR(hy_1.transfer_from(dy_1));
+        CHECK_HIP_ERROR(hy_2.transfer_from(dy_2));
 
         if(arg.unit_check)
         {

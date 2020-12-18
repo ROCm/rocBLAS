@@ -325,6 +325,7 @@ Arguments:
   - uplo: c_char
   - diag: c_char
   - batch_count: rocblas_int
+  - HMM: c_bool
   - threads: c_size_t
   - streams: c_size_t
   - devices: c_size_t
@@ -408,6 +409,7 @@ Defaults:
   uplo: '*'
   diag: '*'
   batch_count: -1
+  HMM: false
   threads: 0
   streams: 0
   devices: 0

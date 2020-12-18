@@ -15,7 +15,7 @@ class host_vector;
 //! @brief pseudo-vector subclass which uses device memory
 //!
 template <typename T, size_t PAD = 4096, typename U = T>
-class device_vector : d_vector<T, PAD, U>
+class device_vector : public d_vector<T, PAD, U>
 {
 
 public:
@@ -33,9 +33,10 @@ public:
     //! @brief Constructor.
     //! @param n The length of the vector.
     //! @param inc The increment.
+    //! @param HMM         HipManagedMemory Flag.
     //!
-    explicit device_vector(size_t n, rocblas_int inc = 1)
-        : d_vector<T, PAD, U>{n * std::abs(inc)}
+    explicit device_vector(size_t n, rocblas_int inc = 1, bool HMM = false)
+        : d_vector<T, PAD, U>{n * std::abs(inc), HMM}
         , m_n{n}
         , m_inc{inc}
         , m_data{this->device_vector_setup()}
@@ -106,7 +107,10 @@ public:
     //!
     hipError_t transfer_from(const host_vector<T>& that)
     {
-        return hipMemcpy(m_data, (const T*)that, this->nmemb() * sizeof(T), hipMemcpyHostToDevice);
+        return hipMemcpy(m_data,
+                         (const T*)that,
+                         this->nmemb() * sizeof(T),
+                         this->use_HMM ? hipMemcpyHostToHost : hipMemcpyHostToDevice);
     }
 
     hipError_t memcheck() const

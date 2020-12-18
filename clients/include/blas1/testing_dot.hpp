@@ -75,6 +75,7 @@ void testing_dot(const Arguments& arg)
 
     double               rocblas_error_1;
     double               rocblas_error_2;
+    bool                 HMM = arg.HMM;
     rocblas_local_handle handle{arg};
 
     // check to prevent undefined memmory allocation error
@@ -105,9 +106,9 @@ void testing_dot(const Arguments& arg)
         size_y = 1;
 
     // allocate memory on device
-    device_vector<T> dx(size_x);
-    device_vector<T> dy(size_y);
-    device_vector<T> d_rocblas_result_2(1);
+    device_vector<T> dx(size_x, 1, HMM);
+    device_vector<T> dy(size_y, 1, HMM);
+    device_vector<T> d_rocblas_result_2(1, 1, HMM);
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
     CHECK_DEVICE_ALLOCATION(d_rocblas_result_2.memcheck());
@@ -122,8 +123,8 @@ void testing_dot(const Arguments& arg)
     rocblas_init<T>(hy, 1, N, abs_incy);
 
     // copy data from CPU to device, does not work for incx != 1
-    CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T) * size_x, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dy, hy, sizeof(T) * size_y, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(dx.transfer_from(hx));
+    CHECK_HIP_ERROR(dy.transfer_from(hy));
 
     double gpu_time_used, cpu_time_used;
 

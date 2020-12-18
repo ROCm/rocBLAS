@@ -2462,6 +2462,17 @@ Tests:
   transA_transB: *transA_transB_range
   alpha_beta: *alpha_beta_range
 
+- name: gemm_medium_HMM
+  category: HMM
+  function:
+    gemm: *real_precisions
+  matrix_size: *medium_matrix_size_range
+  transA: [ N ]
+  transB: [ N ]
+  alpha: 1
+  beta: 1
+  HMM: true
+
 - name: gemm_multi_gpu
   category: multi_gpu
   function:
