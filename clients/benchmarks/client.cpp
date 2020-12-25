@@ -920,6 +920,12 @@ int run_bench_test(Arguments& arg)
             rocblas_cout << "rocblas-bench INFO: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
             arg.ldc = min_ldc;
         }
+        if(!strcmp(function, "gemm") && arg.batch_count > 1)
+        {
+            rocblas_cout << "rocblas-bench INFO: batch_count can only be 1 for function gemm"
+                         << ", set batch_count = 1" << std::endl;
+            arg.batch_count = 1;
+        }
     }
     else if(!strcmp(function, "gemm_strided_batched"))
     {
@@ -999,6 +1005,12 @@ int run_bench_test(Arguments& arg)
         {
             rocblas_cout << "rocblas-bench INFO: ldd < min_ldd, set ldd = " << min_ldc << std::endl;
             arg.ldd = min_ldd;
+        }
+        if(!strcmp(function, "gemm_ex") && arg.batch_count > 1)
+        {
+            rocblas_cout << "rocblas-bench INFO: batch_count can only be 1 for function gemm_ex"
+                         << ", set batch_count = 1" << std::endl;
+            arg.batch_count = 1;
         }
         rocblas_gemm_dispatch<perf_gemm_ex>(arg);
     }
