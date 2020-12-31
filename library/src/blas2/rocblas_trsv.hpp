@@ -1,7 +1,9 @@
 /* ************************************************************************
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+
 #pragma once
+
 #include "../blas3/trtri_trsm.hpp"
 #include "check_numerics_vector.hpp"
 #include "rocblas_gemv.hpp"

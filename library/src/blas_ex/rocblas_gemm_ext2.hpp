@@ -1,6 +1,7 @@
 /* ************************************************************************
  * Copyright 2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+
 #pragma once
 
 // This functionality is only availble when using the new Tensile client

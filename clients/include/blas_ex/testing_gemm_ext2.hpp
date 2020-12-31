@@ -3,6 +3,7 @@
  * ************************************************************************ */
 
 #pragma once
+
 #include "cblas_interface.hpp"
 #include "flops.hpp"
 #include "handle.hpp"

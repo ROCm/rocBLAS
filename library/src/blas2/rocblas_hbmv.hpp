@@ -1,7 +1,9 @@
 /* ************************************************************************
  * Copyright 2019-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+
 #pragma once
+
 #include "check_numerics_vector.hpp"
 #include "handle.hpp"
 

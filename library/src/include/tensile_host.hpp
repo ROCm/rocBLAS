@@ -5,6 +5,7 @@
 /*********************************************************
  * Declaration of the rocBLAS<->Tensile interface layer. *
  *********************************************************/
+
 #pragma once
 
 #ifndef USE_TENSILE_HOST

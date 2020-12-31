@@ -1,8 +1,11 @@
 /* ************************************************************************
  * Copyright 2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+
 #pragma once
+
 #pragma once
+
 #include "handle.hpp"
 
 template <typename T, typename U>
