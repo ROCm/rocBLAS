@@ -2,6 +2,8 @@
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+#pragma once
+
 #include "cblas_interface.hpp"
 #include "flops.hpp"
 #include "norm.hpp"
