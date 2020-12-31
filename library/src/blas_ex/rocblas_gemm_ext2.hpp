@@ -1,8 +1,7 @@
 /* ************************************************************************
  * Copyright 2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#ifndef __ROCBLAS_GEMM_EXT2_HPP
-#define __ROCBLAS_GEMM_EXT2_HPP
+#pragma once
 
 // This functionality is only availble when using the new Tensile client
 #ifdef USE_TENSILE_HOST
@@ -278,5 +277,3 @@ inline rocblas_status rocblas_gemm_ext2_template(rocblas_handle   handle,
 #undef EX_TYPECASTING_PARM
 
 #endif // USE_TENSILE_HOST
-
-#endif

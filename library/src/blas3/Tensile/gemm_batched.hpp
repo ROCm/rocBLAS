@@ -2,8 +2,6 @@
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #pragma once
-#ifndef _GEMM_BATCHED_HPP_
-#define _GEMM_BATCHED_HPP_
 
 #include "handle.hpp"
 
@@ -1059,4 +1057,3 @@ namespace
         }
     }
 }
-#endif //  _GEMM_BATCHED_HPP_

@@ -2,8 +2,7 @@
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#ifndef _ROCBLAS_HANDLE_H_
-#define _ROCBLAS_HANDLE_H_
+#pragma once
 
 #include "rocblas.h"
 #include "rocblas_ostream.hpp"
@@ -509,5 +508,3 @@ public:
 #define hipFree(ptr)                                                                               \
     _Pragma("GCC warning \"Direct use of hipFree in rocBLAS is deprecated; see CONTRIBUTING.md\"") \
         hipFree(ptr)
-
-#endif

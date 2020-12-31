@@ -2,8 +2,7 @@
  * Copyright 2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#ifndef _ROCBLAS_OSTREAM_HPP_
-#define _ROCBLAS_OSTREAM_HPP_
+#pragma once
 
 #include "rocblas.h"
 #include "utility.hpp"
@@ -409,5 +408,3 @@ public:
     static std::ostream& yaml_on(std::ostream& os);
     static std::ostream& yaml_off(std::ostream& os);
 };
-
-#endif

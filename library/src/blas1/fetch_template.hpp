@@ -8,8 +8,7 @@
  * ===========================================================================
  */
 
-#ifndef _FETCH_TEMPLATE_
-#define _FETCH_TEMPLATE_
+#pragma once
 
 #include "rocblas.h"
 
@@ -40,5 +39,3 @@ __device__ __host__ inline auto fetch_abs2(T A)
 {
     return A * A;
 }
-
-#endif
