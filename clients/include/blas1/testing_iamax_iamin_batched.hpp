@@ -2,6 +2,8 @@
  * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+#pragma once
+
 #include "rocblas_iamax_iamin_ref.hpp"
 #include "testing_reduction_batched.hpp"
 
