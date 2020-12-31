@@ -3,6 +3,7 @@
  * ************************************************************************ */
 
 #pragma once
+
 #include "rocblas.h"
 #include "rocblas_arguments.hpp"
 
