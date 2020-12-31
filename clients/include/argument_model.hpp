@@ -2,8 +2,7 @@
  * Copyright 2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#ifndef _ARGUMENT_MODEL_HPP_
-#define _ARGUMENT_MODEL_HPP_
+#pragma once
 
 #include "rocblas_arguments.hpp"
 
@@ -179,5 +178,3 @@ public:
         str << name_list << "\n" << value_list << std::endl;
     }
 };
-
-#endif

@@ -2,8 +2,7 @@
  * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#ifndef ROCBLAS_TEST_H_
-#define ROCBLAS_TEST_H_
+#pragma once
 
 #ifdef GOOGLE_TEST
 #include <gtest/gtest.h>
@@ -390,5 +389,3 @@ struct rocblas_test_invalid
 
     virtual ~rocblas_test_invalid() = default;
 };
-
-#endif

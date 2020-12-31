@@ -2,8 +2,7 @@
  * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#ifndef ROCBLAS_INIT_H_
-#define ROCBLAS_INIT_H_
+#pragma once
 
 #include "../../library/src/include/rocblas_ostream.hpp"
 #include "rocblas.h"
@@ -348,5 +347,3 @@ void rocblas_copy_matrix(const T* A,
             for(size_t j = 0; j < N; ++j)
                 B[i + j * ldb + i_batch * strideb] = A[i + j * lda + i_batch * stridea];
 }
-
-#endif

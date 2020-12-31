@@ -3,8 +3,7 @@
  *
  * ************************************************************************/
 
-#ifndef _CBLAS_INTERFACE_
-#define _CBLAS_INTERFACE_
+#pragma once
 
 #include "cblas.h"
 #include "rocblas.h"
@@ -3327,5 +3326,3 @@ inline rocblas_int cblas_potrf(char uplo, rocblas_int m, rocblas_double_complex*
 }
 
 /* ============================================================================================ */
-
-#endif /* _CBLAS_INTERFACE_ */

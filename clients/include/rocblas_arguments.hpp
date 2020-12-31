@@ -2,8 +2,7 @@
  * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#ifndef ROCBLAS_ARGUMENTS_H_
-#define ROCBLAS_ARGUMENTS_H_
+#pragma once
 
 #include "../../library/src/include/rocblas_ostream.hpp"
 #include "rocblas.h"
@@ -349,5 +348,3 @@ namespace ArgumentsHelper
 #endif
 
 #undef APPLY
-
-#endif
