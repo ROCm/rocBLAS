@@ -1,8 +1,7 @@
 /* ************************************************************************
  * Copyright 2019-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#ifndef __ROCBLAS_GBMV_HPP__
-#define __ROCBLAS_GBMV_HPP__
+#pragma once
 #include "../blas1/rocblas_copy.hpp"
 #include "check_numerics_matrix.hpp"
 #include "check_numerics_vector.hpp"
@@ -404,5 +403,3 @@ rocblas_status rocblas_gbmv_check_numerics(const char*       function_name,
 
     return check_numerics_status;
 }
-
-#endif

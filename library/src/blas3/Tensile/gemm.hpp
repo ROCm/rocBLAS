@@ -3,8 +3,6 @@
  * ************************************************************************ */
 
 #pragma once
-#ifndef _GEMM_HOST_HPP_
-#define _GEMM_HOST_HPP_
 
 #include "handle.hpp"
 
@@ -641,5 +639,3 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_gemm_template(rocblas_handle    h
 
     return status;
 }
-
-#endif // _GEMM_HOST_HPP_

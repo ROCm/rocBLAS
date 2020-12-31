@@ -1,8 +1,7 @@
 /* ************************************************************************
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#ifndef __GEMV_DEVICE_HPP__
-#define __GEMV_DEVICE_HPP__
+#pragma once
 
 // uses dot shuffle reductions
 #include "../blas1/rocblas_dot.hpp"
@@ -658,5 +657,3 @@ __global__ __launch_bounds__(NB_X) void gemvtsm_kernel(rocblas_int    m,
 
     gemvtsm_kernel_calc<CONJ, NB_X>(m, n, alpha, A, lda, x, incx, beta, y, incy);
 }
-
-#endif

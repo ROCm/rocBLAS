@@ -1,8 +1,7 @@
 /* ************************************************************************
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#ifndef __ROCBLAS_GEMM_EX_HPP
-#define __ROCBLAS_GEMM_EX_HPP
+#pragma once
 
 #ifndef USE_TENSILE_HOST
 #include "Tensile.h"
@@ -1151,5 +1150,3 @@ rocblas_status copy_alpha_beta_to_host_if_on_device(rocblas_handle   handle,
         return rocblas_status_not_implemented;
     }
 }
-
-#endif

@@ -2,8 +2,7 @@
  * Copyright 2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#ifndef _ROCBLAS_TUPLE_HPP_
-#define _ROCBLAS_TUPLE_HPP_
+#pragma once
 
 #include "handle.hpp"
 #include "rocblas_ostream.hpp"
@@ -153,5 +152,3 @@ public:
         }
     };
 };
-
-#endif
