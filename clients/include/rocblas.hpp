@@ -3,8 +3,7 @@
  *
  * ************************************************************************ */
 
-#ifndef _ROCBLAS_HPP_
-#define _ROCBLAS_HPP_
+#pragma once
 
 /* library headers */
 #include "../../library/src/include/utility.hpp"
@@ -5713,5 +5712,3 @@ template <>
 ROCBLAS_CLANG_STATIC constexpr auto
     rocblas_trtri_strided_batched<rocblas_double_complex,
                                   true> = rocblas_ztrtri_strided_batched_fortran;
-
-#endif // _ROCBLAS_HPP_

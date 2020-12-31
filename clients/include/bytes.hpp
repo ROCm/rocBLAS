@@ -3,8 +3,7 @@
  *
  * ************************************************************************/
 
-#ifndef _ROCBLAS_BYTES_H_
-#define _ROCBLAS_BYTES_H_
+#pragma once
 
 #include "rocblas.h"
 
@@ -273,5 +272,3 @@ constexpr double herk_gbyte_count(rocblas_int n, rocblas_int k)
 {
     return syrk_gbyte_count<T>(n, k);
 }
-
-#endif /* _ROCBLAS_BYTES_H_ */
