@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
 
@@ -146,10 +146,13 @@ double norm_check_general(
     host_vector<double> hCPU_double(N * lda);
     host_vector<double> hGPU_double(N * lda);
 
-    for(rocblas_int i = 0; i < N * lda; i++)
+    for(rocblas_int i = 0; i < N; i++)
     {
-        hCPU_double[i] = double(hCPU[i]);
-        hGPU_double[i] = double(hGPU[i]);
+        for(rocblas_int j = 0; j < M; j++)
+        {
+            hCPU_double[j + i * lda] = double(hCPU[j + i * lda]);
+            hGPU_double[j + i * lda] = double(hGPU[j + i * lda]);
+        }
     }
 
     double      work[1];
@@ -197,10 +200,13 @@ double norm_check_general(
     host_vector<double> hCPU_double(N * lda);
     host_vector<double> hGPU_double(N * lda);
 
-    for(size_t i = 0; i < size_t(N) * lda; i++)
+    for(rocblas_int i = 0; i < N; i++)
     {
-        hCPU_double[i] = hCPU[i];
-        hGPU_double[i] = hGPU[i];
+        for(rocblas_int j = 0; j < M; j++)
+        {
+            hCPU_double[j + i * lda] = hCPU[j + i * lda];
+            hGPU_double[j + i * lda] = hGPU[j + i * lda];
+        }
     }
 
     return norm_check_general<double>(norm_type, M, N, lda, hCPU_double, hGPU_double);
@@ -340,10 +346,13 @@ double norm_check_symmetric(
     host_vector<double> hCPU_double(N * lda);
     host_vector<double> hGPU_double(N * lda);
 
-    for(rocblas_int i = 0; i < N * lda; i++)
+    for(rocblas_int i = 0; i < N; i++)
     {
-        hCPU_double[i] = double(hCPU[i]);
-        hGPU_double[i] = double(hGPU[i]);
+        for(rocblas_int j = 0; j < N; j++)
+        {
+            hCPU_double[j + i * lda] = double(hCPU[j + i * lda]);
+            hGPU_double[j + i * lda] = double(hGPU[j + i * lda]);
+        }
     }
 
     double cpu_norm = xlanhe(&norm_type, &uplo, &N, hCPU_double, &lda, work);
@@ -382,10 +391,13 @@ inline double norm_check_symmetric(char          norm_type,
     host_vector<double> hCPU_double(N * lda);
     host_vector<double> hGPU_double(N * lda);
 
-    for(rocblas_int i = 0; i < N * lda; i++)
+    for(rocblas_int i = 0; i < N; i++)
     {
-        hCPU_double[i] = hCPU[i];
-        hGPU_double[i] = hGPU[i];
+        for(rocblas_int j = 0; j < N; j++)
+        {
+            hCPU_double[j + i * lda] = hCPU[j + i * lda];
+            hGPU_double[j + i * lda] = hGPU[j + i * lda];
+        }
     }
 
     return norm_check_symmetric(norm_type, uplo, N, lda, hCPU_double.data(), hGPU_double.data());
