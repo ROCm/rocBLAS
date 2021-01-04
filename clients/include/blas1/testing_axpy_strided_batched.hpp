@@ -19,16 +19,15 @@
 template <typename T>
 void testing_axpy_strided_batched_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_axpy_strided_batched_fn
-        = FORTRAN ? rocblas_axpy_strided_batched<T, true> : rocblas_axpy_strided_batched<T, false>;
+    auto rocblas_axpy_strided_batched_fn = arg.fortran ? rocblas_axpy_strided_batched<T, true>
+                                                       : rocblas_axpy_strided_batched<T, false>;
 
     rocblas_local_handle handle{arg};
     rocblas_int          N = 100, incx = 1, incy = 1, batch_count = 2;
 
     rocblas_stride stridex = arg.stride_x, stridey = arg.stride_y;
 
-    T alpha = 0.6;
+    T alpha = 0.6, zero = 0.0;
 
     device_strided_batch_vector<T> dx(10, 1, 10, 2), dy(10, 1, 10, 2);
 
@@ -52,14 +51,31 @@ void testing_axpy_strided_batched_bad_arg(const Arguments& arg)
         rocblas_axpy_strided_batched_fn(
             nullptr, N, &alpha, dx, incx, stridex, dy, incy, stridey, batch_count),
         rocblas_status_invalid_handle);
+
+    // When batch_count==0, all pointers can be nullptr without error
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_axpy_strided_batched_fn(
+            handle, N, nullptr, nullptr, incx, stridex, nullptr, incy, stridey, 0),
+        rocblas_status_success);
+
+    // When N==0, all pointers can be nullptr without error
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_axpy_strided_batched_fn(
+            handle, 0, nullptr, nullptr, incx, stridex, nullptr, incy, stridey, batch_count),
+        rocblas_status_success);
+
+    // When alpha==0, X and Y can be nullptr without error
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_axpy_strided_batched_fn(
+            handle, N, &zero, nullptr, incx, stridex, nullptr, incy, stridey, batch_count),
+        rocblas_status_success);
 }
 
 template <typename T>
 void testing_axpy_strided_batched(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_axpy_strided_batched_fn
-        = FORTRAN ? rocblas_axpy_strided_batched<T, true> : rocblas_axpy_strided_batched<T, false>;
+    auto rocblas_axpy_strided_batched_fn = arg.fortran ? rocblas_axpy_strided_batched<T, true>
+                                                       : rocblas_axpy_strided_batched<T, false>;
 
     rocblas_int N = arg.N, incx = arg.incx, incy = arg.incy, batch_count = arg.batch_count;
 
@@ -110,10 +126,13 @@ void testing_axpy_strided_batched(const Arguments& arg)
 
     //
     // Initialize host memory.
-    // TODO: add NaN testing when roblas_isnan(arg.alpha) returns true.
     //
 
-    rocblas_init(hx, true);
+    if(arg.alpha_isnan<T>())
+        rocblas_init_nan(hx, true);
+    else
+        rocblas_init(hx, true);
+
     rocblas_init(hy, false);
 
     //

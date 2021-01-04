@@ -16,8 +16,7 @@
 template <typename T>
 void testing_rotmg_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN          = arg.fortran;
-    auto       rocblas_rotgm_fn = FORTRAN ? rocblas_rotmg<T, true> : rocblas_rotmg<T, false>;
+    auto rocblas_rotgm_fn = arg.fortran ? rocblas_rotmg<T, true> : rocblas_rotmg<T, false>;
 
     static const size_t safe_size = 5;
 
@@ -50,8 +49,7 @@ void testing_rotmg_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_rotmg(const Arguments& arg)
 {
-    const bool FORTRAN          = arg.fortran;
-    auto       rocblas_rotgm_fn = FORTRAN ? rocblas_rotmg<T, true> : rocblas_rotmg<T, false>;
+    auto rocblas_rotgm_fn = arg.fortran ? rocblas_rotmg<T, true> : rocblas_rotmg<T, false>;
 
     const int TEST_COUNT = 100;
 

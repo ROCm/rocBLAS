@@ -18,11 +18,8 @@
 template <typename T, typename U = T>
 void testing_scal_strided_batched(const Arguments& arg)
 {
-    // clang-format off
-    const bool FORTRAN                         = arg.fortran;
-    auto       rocblas_scal_strided_batched_fn = FORTRAN ? rocblas_scal_strided_batched<T, U, true>
-                                                         : rocblas_scal_strided_batched<T, U, false>;
-    // clang-format on
+    auto rocblas_scal_strided_batched_fn = arg.fortran ? rocblas_scal_strided_batched<T, U, true>
+                                                       : rocblas_scal_strided_batched<T, U, false>;
 
     rocblas_int N           = arg.N;
     rocblas_int incx        = arg.incx;
@@ -157,11 +154,8 @@ void testing_scal_strided_batched(const Arguments& arg)
 template <typename T, typename U = T>
 void testing_scal_strided_batched_bad_arg(const Arguments& arg)
 {
-    // clang-format off
-    const bool FORTRAN                         = arg.fortran;
-    auto       rocblas_scal_strided_batched_fn = FORTRAN ? rocblas_scal_strided_batched<T, U, true>
-                                                         : rocblas_scal_strided_batched<T, U, false>;
-    // clang-format on
+    auto rocblas_scal_strided_batched_fn = arg.fortran ? rocblas_scal_strided_batched<T, U, true>
+                                                       : rocblas_scal_strided_batched<T, U, false>;
 
     rocblas_int N           = 100;
     rocblas_int incx        = 1;

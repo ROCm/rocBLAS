@@ -19,14 +19,14 @@
 template <typename T>
 void testing_axpy_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN         = arg.fortran;
-    auto       rocblas_axpy_fn = FORTRAN ? rocblas_axpy<T, true> : rocblas_axpy<T, false>;
+    auto rocblas_axpy_fn = arg.fortran ? rocblas_axpy<T, true> : rocblas_axpy<T, false>;
 
-    rocblas_int         N         = 100;
-    rocblas_int         incx      = 1;
-    rocblas_int         incy      = 1;
-    static const size_t safe_size = 100;
-    T                   alpha     = 0.6;
+    rocblas_int N         = 100;
+    rocblas_int incx      = 1;
+    rocblas_int incy      = 1;
+    size_t      safe_size = 100;
+    T           alpha     = 0.6;
+    T           zero      = 0.0;
 
     rocblas_local_handle handle{arg};
     device_vector<T>     dx(safe_size);
@@ -42,13 +42,18 @@ void testing_axpy_bad_arg(const Arguments& arg)
                           rocblas_status_invalid_pointer);
     EXPECT_ROCBLAS_STATUS(rocblas_axpy_fn(nullptr, N, &alpha, dx, incx, dy, incy),
                           rocblas_status_invalid_handle);
+    // If N == 0, then alpha, X and Y can be nullptr without error
+    EXPECT_ROCBLAS_STATUS(rocblas_axpy_fn(handle, 0, nullptr, nullptr, incx, nullptr, incy),
+                          rocblas_status_success);
+    // If alpha == 0, then X and Y can be nullptr without error
+    EXPECT_ROCBLAS_STATUS(rocblas_axpy_fn(handle, N, &zero, nullptr, incx, nullptr, incy),
+                          rocblas_status_success);
 }
 
 template <typename T>
 void testing_axpy(const Arguments& arg)
 {
-    const bool FORTRAN         = arg.fortran;
-    auto       rocblas_axpy_fn = FORTRAN ? rocblas_axpy<T, true> : rocblas_axpy<T, false>;
+    auto rocblas_axpy_fn = arg.fortran ? rocblas_axpy<T, true> : rocblas_axpy<T, false>;
 
     rocblas_int          N       = arg.N;
     rocblas_int          incx    = arg.incx;
@@ -81,10 +86,18 @@ void testing_axpy(const Arguments& arg)
     host_vector<T> hy_gold(size_y);
 
     // Initial Data on CPU
-    // TODO: add NaN testing when roblas_isnan(arg.alpha) returns true.
     rocblas_seedrand();
-    rocblas_init<T>(hx, 1, N, abs_incx);
-    rocblas_init<T>(hy_1, 1, N, abs_incy);
+
+    if(arg.alpha_isnan<T>())
+    {
+        rocblas_init_nan<T>(hx, 1, N, abs_incx);
+        rocblas_init_nan<T>(hy_1, 1, N, abs_incy);
+    }
+    else
+    {
+        rocblas_init<T>(hx, 1, N, abs_incx);
+        rocblas_init<T>(hy_1, 1, N, abs_incy);
+    }
 
     // copy vector is easy in STL; hy_gold = hx: save a copy in hy_gold which will be output of CPU
     // BLAS

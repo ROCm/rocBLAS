@@ -19,11 +19,8 @@
 template <typename Tx, typename Ty = Tx, typename Tr = Ty, typename Tex = Tr, bool CONJ = false>
 void testing_dot_ex_bad_arg(const Arguments& arg)
 {
-    // clang-format off
-    const bool FORTRAN        = arg.fortran;
-    auto       rocblas_dot_ex_fn = FORTRAN ? (CONJ ? rocblas_dotc_ex_fortran : rocblas_dot_ex_fortran)
-                                        : (CONJ ? rocblas_dotc_ex : rocblas_dot_ex);
-    // clang-format on
+    auto rocblas_dot_ex_fn = arg.fortran ? (CONJ ? rocblas_dotc_ex_fortran : rocblas_dot_ex_fortran)
+                                         : (CONJ ? rocblas_dotc_ex : rocblas_dot_ex);
 
     rocblas_datatype x_type         = rocblas_datatype_f32_r;
     rocblas_datatype y_type         = rocblas_datatype_f32_r;
@@ -96,11 +93,8 @@ void testing_dotc_ex_bad_arg(const Arguments& arg)
 template <typename Tx, typename Ty = Tx, typename Tr = Ty, typename Tex = Tr, bool CONJ = false>
 void testing_dot_ex(const Arguments& arg)
 {
-    // clang-format off
-    const bool FORTRAN        = arg.fortran;
-    auto       rocblas_dot_ex_fn = FORTRAN ? (CONJ ? rocblas_dotc_ex_fortran : rocblas_dot_ex_fortran)
-                                        : (CONJ ? rocblas_dotc_ex : rocblas_dot_ex);
-    // clang-format on
+    auto rocblas_dot_ex_fn = arg.fortran ? (CONJ ? rocblas_dotc_ex_fortran : rocblas_dot_ex_fortran)
+                                         : (CONJ ? rocblas_dotc_ex : rocblas_dot_ex);
 
     rocblas_datatype x_type         = arg.a_type;
     rocblas_datatype y_type         = arg.b_type;
