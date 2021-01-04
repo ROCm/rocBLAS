@@ -18,9 +18,8 @@
 template <typename Ta, typename Tx = Ta, typename Tex = Tx>
 void testing_scal_batched_ex_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_scal_batched_ex_fn
-        = FORTRAN ? rocblas_scal_batched_ex_fortran : rocblas_scal_batched_ex;
+    auto rocblas_scal_batched_ex_fn
+        = arg.fortran ? rocblas_scal_batched_ex_fortran : rocblas_scal_batched_ex;
 
     rocblas_datatype alpha_type     = rocblas_datatype_f32_r;
     rocblas_datatype x_type         = rocblas_datatype_f32_r;
@@ -72,9 +71,8 @@ void testing_scal_batched_ex_bad_arg(const Arguments& arg)
 template <typename Ta, typename Tx = Ta, typename Tex = Tx>
 void testing_scal_batched_ex(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_scal_batched_ex_fn
-        = FORTRAN ? rocblas_scal_batched_ex_fortran : rocblas_scal_batched_ex;
+    auto rocblas_scal_batched_ex_fn
+        = arg.fortran ? rocblas_scal_batched_ex_fortran : rocblas_scal_batched_ex;
 
     rocblas_int N           = arg.N;
     rocblas_int incx        = arg.incx;
