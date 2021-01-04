@@ -158,7 +158,7 @@ endfunction(rocm_create_package_clients)
 if (BUILD_CLIENTS_SAMPLES OR  BUILD_CLIENTS_TESTS OR BUILD_CLIENTS_SELFTEST OR BUILD_CLIENTS_RIDER)
 
 rocm_create_package_clients(LIB_NAME rocblas
-                            DESCRIPTION "Client for rocBLAS, AMD's BLAS library on ROCm (Radeon Open Compute platforM). The client can be used to test or benchmark rocBLAS"
+                            DESCRIPTION "Client for rocBLAS, AMD's BLAS library on ROCm. The client can be used to test or benchmark rocBLAS"
                             MAINTAINER "Rocblas Maintainer <rocblas-maintainer@amd.com>"
                             SECTION "dev"
                             VERSION ${rocblas_VERSION})
