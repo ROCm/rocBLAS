@@ -2,8 +2,8 @@
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#ifndef UTILITY_H
-#define UTILITY_H
+#pragma once
+
 #include "definitions.hpp"
 #include "rocblas.h"
 #include <cmath>
@@ -549,5 +549,3 @@ constexpr double value_category(const T& beta)
 ROCBLAS_EXPORT std::string rocblas_get_arch_name();
 ROCBLAS_EXPORT bool        rocblas_tensile_supports_ldc_ne_ldd();
 ROCBLAS_EXPORT bool        rocblas_tensile_debug_skip_launch();
-
-#endif

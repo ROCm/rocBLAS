@@ -1,7 +1,9 @@
 /* ************************************************************************
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+
 #pragma once
+
 #include "rocblas_asum.hpp"
 
 template <rocblas_int NB, typename U, typename To>

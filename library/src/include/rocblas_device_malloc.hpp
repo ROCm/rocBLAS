@@ -2,6 +2,8 @@
  * Copyright 2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+#pragma once
+
 // RAII helper class for device memory allocation outside of rocBLAS
 //
 // rocblas_device_malloc mem(handle, size1, size2, size3, ...);

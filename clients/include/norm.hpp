@@ -3,8 +3,7 @@
  *
  * ************************************************************************ */
 
-#ifndef _NORM_H
-#define _NORM_H
+#pragma once
 
 #include "cblas.h"
 #include "norm.hpp"
@@ -437,5 +436,3 @@ double vector_norm_1(rocblas_int M, rocblas_int incx, T* hx_gold, T* hx)
 
     return max_err / max_err_scal;
 }
-
-#endif

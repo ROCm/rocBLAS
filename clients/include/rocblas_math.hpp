@@ -2,8 +2,7 @@
  * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#ifndef ROCBLAS_MATH_H_
-#define ROCBLAS_MATH_H_
+#pragma once
 
 #include "rocblas.h"
 #include <cmath>
@@ -56,4 +55,3 @@ inline rocblas_bfloat16 negate(rocblas_bfloat16 x)
     x.data ^= 0x8000;
     return x;
 }
-#endif

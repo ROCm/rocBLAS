@@ -2,8 +2,7 @@
  * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#ifndef ROCBLAS_DATATYPE2CHAR_H_
-#define ROCBLAS_DATATYPE2CHAR_H_
+#pragma once
 
 #include "rocblas.h"
 #include <string>
@@ -230,5 +229,3 @@ inline rocblas_datatype string2rocblas_datatype(const std::string& value)
         static_cast<rocblas_datatype>(-1);
 }
 // clang-format on
-
-#endif

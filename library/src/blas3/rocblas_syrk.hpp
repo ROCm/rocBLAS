@@ -1,8 +1,9 @@
 /* ************************************************************************
  * Copyright 2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#ifndef __ROCBLAS_SYRK_HPP__
-#define __ROCBLAS_SYRK_HPP__
+
+#pragma once
+
 #include "handle.hpp"
 
 template <typename T, typename U>
@@ -365,5 +366,3 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_syrk_template(rocblas_handle    h
 
     return rocblas_status_success;
 }
-
-#endif

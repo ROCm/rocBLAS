@@ -2,6 +2,8 @@
  * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+#pragma once
+
 #include "flops.hpp"
 #include "norm.hpp"
 #include "rocblas.hpp"

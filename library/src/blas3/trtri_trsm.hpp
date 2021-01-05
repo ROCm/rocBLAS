@@ -4,8 +4,6 @@
  * ************************************************************************ */
 
 #pragma once
-#ifndef __TRTRI_TRSM_HPP__
-#define __TRTRI_TRSM_HPP__
 
 #include "gemm.hpp"
 #include "rocblas_trtri.hpp"
@@ -336,5 +334,3 @@ rocblas_status rocblas_trtri_trsm_template(rocblas_handle   handle,
 
     return rocblas_status_success;
 }
-
-#endif // __TRTRI_TRSM_HPP__

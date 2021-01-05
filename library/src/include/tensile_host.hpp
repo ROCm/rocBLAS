@@ -5,8 +5,8 @@
 /*********************************************************
  * Declaration of the rocBLAS<->Tensile interface layer. *
  *********************************************************/
-#ifndef __TENSILE_HOST_HPP__
-#define __TENSILE_HOST_HPP__
+
+#pragma once
 
 #ifndef USE_TENSILE_HOST
 #error "tensile_host.hpp #include'd when USE_TENSILE_HOST is undefined."
@@ -302,5 +302,3 @@ inline bool& rocblas_suppress_tensile_error_messages()
     thread_local bool t_suppress = false;
     return t_suppress;
 }
-
-#endif // __TENSILE_HOST_HPP__
