@@ -2,8 +2,8 @@
  * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#ifndef _ROCBLAS_TYPE_DISPATCH_
-#define _ROCBLAS_TYPE_DISPATCH_
+#pragma once
+
 #include "rocblas.h"
 #include "rocblas_arguments.hpp"
 
@@ -201,5 +201,3 @@ auto rocblas_gemm_dispatch(const Arguments& arg)
     }
     return TEST<void>{}(arg);
 }
-
-#endif

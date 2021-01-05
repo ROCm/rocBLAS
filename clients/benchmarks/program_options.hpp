@@ -3,6 +3,8 @@
  * ************************************************************************ */
 // This emulates the required functionality of boost::program_options
 
+#pragma once
+
 #include <cinttypes>
 #include <cstdio>
 #include <iomanip>

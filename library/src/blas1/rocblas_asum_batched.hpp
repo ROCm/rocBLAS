@@ -1,7 +1,9 @@
 /* ************************************************************************
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+
 #pragma once
+
 #include "rocblas_asum.hpp"
 #include "rocblas_reduction_impl.hpp"
 

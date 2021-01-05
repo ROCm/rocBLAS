@@ -1,8 +1,8 @@
 /* ************************************************************************
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#ifndef __ROCBLAS_TRSM_HPP__
-#define __ROCBLAS_TRSM_HPP__
+
+#pragma once
 
 #include "../blas_ex/rocblas_gemm_ex.hpp"
 #include "trtri_trsm.hpp"
@@ -2447,5 +2447,3 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_trsm_template(rocblas_handle    h
 
     return rocblas_status_success;
 }
-
-#endif

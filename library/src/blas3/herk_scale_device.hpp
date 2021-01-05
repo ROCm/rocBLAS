@@ -1,7 +1,9 @@
 /* ************************************************************************
  * Copyright 2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+
 #pragma once
+
 #include "rocblas.h"
 
 template <typename T, typename U>

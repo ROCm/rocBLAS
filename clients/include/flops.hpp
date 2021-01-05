@@ -3,8 +3,7 @@
  *
  * ************************************************************************/
 
-#ifndef _ROCBLAS_FLOPS_H_
-#define _ROCBLAS_FLOPS_H_
+#pragma once
 
 #include "rocblas.h"
 
@@ -801,5 +800,3 @@ constexpr double trtri_gflop_count<rocblas_double_complex>(rocblas_int n)
 {
     return (8.0 * n * n * n) / 3e9;
 }
-
-#endif /* _ROCBLAS_FLOPS_H_ */

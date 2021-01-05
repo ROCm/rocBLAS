@@ -1,7 +1,9 @@
 /* ************************************************************************
  * Copyright 2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+
 #pragma once
+
 #include "herk_scale_device.hpp"
 #include "rocblas_syrk.hpp"
 

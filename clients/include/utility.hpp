@@ -2,8 +2,7 @@
  * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#ifndef _TESTING_UTILITY_H_
-#define _TESTING_UTILITY_H_
+#pragma once
 
 #include "../../library/src/include/utility.hpp"
 #include "cblas_interface.hpp"
@@ -363,5 +362,3 @@ void print_batched_matrix(const char*           name,
     }
     rocblas_cout << std::flush;
 }
-
-#endif

@@ -1,6 +1,5 @@
 
-#ifndef _ROCBLAS_FORTRAN_HPP_
-#define _ROCBLAS_FORTRAN_HPP_
+#pragma once
 
 /*!\file
  *  This file interfaces with our Fortran BLAS interface.
@@ -6798,5 +6797,3 @@ rocblas_status rocblas_trsm_strided_batched_ex_fortran(rocblas_handle    handle,
                                                        rocblas_stride    stride_invA,
                                                        rocblas_datatype  compute_type);
 }
-
-#endif

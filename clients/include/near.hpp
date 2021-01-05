@@ -11,8 +11,7 @@
  * \brief compares two results (usually, CPU and GPU results); provides Google Near check.
  */
 
-#ifndef _NEAR_H
-#define _NEAR_H
+#pragma once
 
 #include "rocblas.h"
 #include "rocblas_math.hpp"
@@ -331,5 +330,3 @@ inline void near_check_general(rocblas_int                         M,
 {
     NEAR_CHECK_B(M, N, lda, hCPU, hGPU, batch_count, abs_error, NEAR_ASSERT_COMPLEX);
 }
-
-#endif

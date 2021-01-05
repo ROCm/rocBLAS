@@ -1,7 +1,9 @@
 /* ************************************************************************
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+
 #pragma once
+
 #include "handle.hpp"
 
 template <int DIM_X, int DIM_Y, typename TPtr>
