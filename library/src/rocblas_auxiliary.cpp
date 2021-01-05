@@ -1074,7 +1074,10 @@ struct ArchName<PROP, void_t<decltype(PROP::gcnArchName)>>
 {
     std::string operator()(const PROP& prop)
     {
-        return prop.gcnArchName;
+        // strip out xnack/ecc from name
+        std::string gcnArchName(prop.gcnArchName);
+        std::string gcnArch = gcnArchName.substr(0, gcnArchName.find(":"));
+        return gcnArch;
     }
 };
 
