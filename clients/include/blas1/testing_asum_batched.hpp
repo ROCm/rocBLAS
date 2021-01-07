@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -95,7 +95,10 @@ void testing_asum_batched(const Arguments& arg)
     //
     // Initialize memory on host.
     //
-    rocblas_init(hx);
+    if(rocblas_isnan(arg.alpha))
+        rocblas_init_nan<T>(hx);
+    else
+        rocblas_init(hx);
 
     //
     // Transfer from host to device.

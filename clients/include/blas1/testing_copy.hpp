@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -82,8 +82,16 @@ void testing_copy(const Arguments& arg)
 
     // Initial Data on CPU
     rocblas_seedrand();
-    rocblas_init<T>(hx, 1, N, abs_incx);
-    rocblas_init<T>(hy, 1, N, abs_incy);
+    if(rocblas_isnan(arg.alpha))
+    {
+        rocblas_init_nan<T>(hx, 1, N, abs_incx);
+        rocblas_init_nan<T>(hy, 1, N, abs_incy);
+    }
+    else
+    {
+        rocblas_init<T>(hx, 1, N, abs_incx);
+        rocblas_init<T>(hy, 1, N, abs_incy);
+    }
 
     // copy vector is easy in STL; hy_gold = hx: save a copy in hy_gold which will be output of CPU
     // BLAS

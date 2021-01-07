@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -165,8 +165,16 @@ void testing_dot_ex(const Arguments& arg)
 
     // Initial Data on CPU
     rocblas_seedrand();
-    rocblas_init<Tx>(hx, 1, N, abs_incx);
-    rocblas_init<Ty>(hy, 1, N, abs_incy);
+    if(rocblas_isnan(arg.alpha))
+    {
+        rocblas_init_nan<Tx>(hx, 1, N, abs_incx);
+        rocblas_init_nan<Ty>(hy, 1, N, abs_incy);
+    }
+    else
+    {
+        rocblas_init<Tx>(hx, 1, N, abs_incx);
+        rocblas_init<Ty>(hy, 1, N, abs_incy);
+    }
 
     // copy data from CPU to device, does not work for incx != 1
     CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(Tx) * size_x, hipMemcpyHostToDevice));

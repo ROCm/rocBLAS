@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -126,7 +126,10 @@ void testing_scal_strided_batched_ex(const Arguments& arg)
 
     // Initial Data on CPU
     rocblas_seedrand();
-    rocblas_init<Tx>(hx_1, 1, N, incx, stridex, batch_count);
+    if(rocblas_isnan(arg.alpha))
+        rocblas_init_nan<Tx>(hx_1, 1, N, incx, stridex, batch_count);
+    else
+        rocblas_init<Tx>(hx_1, 1, N, incx, stridex, batch_count);
 
     // copy vector is easy in STL; hx_gold = hx: save a copy in hx_gold which will be output of CPU
     // BLAS

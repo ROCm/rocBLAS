@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -120,8 +120,16 @@ void testing_rot_ex(const Arguments& arg)
     host_vector<Tcs> hc(1);
     host_vector<Tcs> hs(1);
     rocblas_seedrand();
-    rocblas_init<Tx>(hx, 1, N, abs_incx);
-    rocblas_init<Ty>(hy, 1, N, abs_incy);
+    if(rocblas_isnan(arg.alpha))
+    {
+        rocblas_init_nan<Tx>(hx, 1, N, abs_incx);
+        rocblas_init_nan<Ty>(hy, 1, N, abs_incy);
+    }
+    else
+    {
+        rocblas_init<Tx>(hx, 1, N, abs_incx);
+        rocblas_init<Ty>(hy, 1, N, abs_incy);
+    }
 
     rocblas_init<Tcs>(hc, 1, 1, 1);
     rocblas_init<Tcs>(hs, 1, 1, 1);

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -92,7 +92,10 @@ void testing_iamax_iamin(const Arguments& arg, rocblas_iamax_iamin_t<T> func)
 
     // Initial Data on CPU
     rocblas_seedrand();
-    rocblas_init<T>(hx, 1, N, incx);
+    if(rocblas_isnan(arg.alpha))
+        rocblas_init_nan<T>(hx, 1, N, incx);
+    else
+        rocblas_init<T>(hx, 1, N, incx);
 
     // copy data from CPU to device
     CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T) * size_x, hipMemcpyHostToDevice));

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -129,8 +129,16 @@ void testing_dot_batched(const Arguments& arg)
     host_batch_vector<T> hy(N, incy ? incy : 1, batch_count);
 
     // Initial Data on CPU
-    rocblas_init(hx, true);
-    rocblas_init(hy, false);
+    if(rocblas_isnan(arg.alpha))
+    {
+        rocblas_init_nan(hx, true);
+        rocblas_init_nan(hy, false);
+    }
+    else
+    {
+        rocblas_init(hx, true);
+        rocblas_init(hy, false);
+    }
 
     CHECK_HIP_ERROR(dx.transfer_from(hx));
     CHECK_HIP_ERROR(dy.transfer_from(hy));

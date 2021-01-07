@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -80,13 +80,20 @@ void testing_swap_batched(const Arguments& arg)
     host_batch_vector<T> hy_gold(N, incy, batch_count);
 
     // Initial Data on CPU
-    rocblas_init(hx, true);
+    if(rocblas_isnan(arg.alpha))
+        rocblas_init_nan(hx, true);
+    else
+        rocblas_init(hx, true);
+
     for(int i = 0; i < batch_count; i++)
     {
         // make hy different to hx
         for(size_t j = 0; j < N; j++)
         {
-            hy[i][j * abs_incy] = hx[i][j * abs_incx] + 1.0;
+            if(rocblas_isnan(arg.alpha))
+                hy[i][j * abs_incy] = T(rocblas_nan_rng());
+            else
+                hy[i][j * abs_incy] = hx[i][j * abs_incx] + 1.0;
         }
     }
 

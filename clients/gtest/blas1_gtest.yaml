@@ -851,6 +851,90 @@ Tests:
       - rot_strided_batched_ex: *rot_ex_precisions
       - rotm_strided_batched:  *single_double_precisions_complex_real
 
+# all functions NaN_check
+  - name: blas1_nan_check
+    category: pre_checkin
+    N: [ 5 ]
+    batch_count: [ 3 ]
+    incx: [ 1, 2 ]
+    incy: [ 2, 1 ]
+    alpha: .NaN
+    stride_scale: [ 1 ]
+    function:
+      - nrm2:  *single_double_precisions_complex_real
+      - nrm2_batched:  *single_double_precisions_complex_real
+      - nrm2_strided_batched:  *single_double_precisions_complex_real
+      - nrm2_ex: *nrm2_ex_precisions
+      - nrm2_batched_ex: *nrm2_ex_precisions
+      - nrm2_strided_batched_ex: *nrm2_ex_precisions
+      - asum:  *single_double_precisions_complex_real
+      - asum_batched:  *single_double_precisions_complex_real
+      - asum_strided_batched:  *single_double_precisions_complex_real
+      - iamax: *single_double_precisions_complex_real
+      - iamax_batched: *single_double_precisions_complex_real
+      - iamax_strided_batched: *single_double_precisions_complex_real
+      - iamin: *single_double_precisions_complex_real
+      - iamin_batched: *single_double_precisions_complex_real
+      - iamin_strided_batched: *single_double_precisions_complex_real
+      - axpy:  *half_single_precisions_complex_real
+      - axpy_batched: *half_single_precisions_complex_real
+      - axpy_strided_batched: *half_single_precisions_complex_real
+      - axpy_ex: *half_single_double_complex_real_precisions
+      - axpy_batched_ex: *half_single_double_complex_real_precisions
+      - axpy_strided_batched_ex: *half_single_double_complex_real_precisions
+      - copy:  *single_double_precisions_complex_real
+      - copy_batched:  *single_double_precisions_complex_real
+      - copy_strided_batched:  *single_double_precisions_complex_real
+      - dot:   *half_bfloat_single_double_complex_real_precisions
+      - dot_batched:   *half_bfloat_single_double_complex_real_precisions
+      - dot_strided_batched:   *half_bfloat_single_double_complex_real_precisions
+      - dotc:  *single_double_precisions_complex
+      - dotc_batched:   *half_bfloat_single_double_complex_real_precisions
+      - dotc_strided_batched:   *half_bfloat_single_double_complex_real_precisions
+      - dot_ex: *half_bfloat_single_double_complex_real_precisions
+      - dotc_ex: *half_bfloat_single_double_complex_real_precisions
+      - dot_batched_ex: *half_bfloat_single_double_complex_real_precisions
+      - dotc_batched_ex: *half_bfloat_single_double_complex_real_precisions
+      - dot_strided_batched_ex: *half_bfloat_single_double_complex_real_precisions
+      - dotc_strided_batched_ex: *half_bfloat_single_double_complex_real_precisions
+      - scal:  *single_double_precisions_complex_real
+      - scal:  *single_double_complex_real_in_complex_out
+      - scal_ex: *single_double_precisions_complex_real
+      - scal_ex: *single_double_complex_real_in_complex_out
+      - scal_ex: *hpa_half_half_precisions
+      - scal_batched:  *single_double_precisions_complex_real
+      - scal_batched:  *single_double_complex_real_in_complex_out
+      - scal_batched_ex: *single_double_precisions_complex_real
+      - scal_batched_ex: *single_double_complex_real_in_complex_out
+      - scal_batched_ex: *hpa_half_half_precisions
+      - scal_strided_batched:  *single_double_precisions_complex_real
+      - scal_strided_batched:  *single_double_complex_real_in_complex_out
+      - scal_strided_batched_ex: *single_double_precisions_complex_real
+      - scal_strided_batched_ex: *single_double_complex_real_in_complex_out
+      - scal_strided_batched_ex: *hpa_half_half_precisions
+      - swap:  *single_double_precisions_complex_real
+      - swap_batched:  *single_double_precisions_complex_real
+      - swap_strided_batched:  *single_double_precisions_complex_real
+
+      #TODO: - Tests bypass the unit_check_general in ROTG,ROTMG,ROTM when NaN is input for alpha as this is not expected
+
+      - rot:   *rot_precisions
+      - rot_ex: *rot_ex_precisions
+      - rotg:  *rotg_precisions
+      - rotm:  *single_double_precisions_complex_real
+      - rotmg: *single_double_precisions_complex_real
+      - rot_batched:   *rot_precisions
+      - rot_batched_ex: *rot_ex_precisions
+      - rotg_batched:  *rotg_precisions
+      - rotm_batched:  *single_double_precisions_complex_real
+      - rotmg_batched: *single_double_precisions_complex_real
+      - rot_strided_batched:   *rot_precisions
+      - rot_strided_batched_ex: *rot_ex_precisions
+      - rotg_strided_batched:  *rotg_precisions
+      - rotm_strided_batched:  *single_double_precisions_complex_real
+      - rotmg_strided_batched: *single_double_precisions_complex_real
+
+
 # all functions bad arg
 # for bad_arg no arguments should be used by test code
   - name: blas1_bad_arg

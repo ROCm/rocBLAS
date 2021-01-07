@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -119,7 +119,7 @@ void testing_axpy_batched(const Arguments& arg)
     //
     // Initialize host memory.
     //
-    if(arg.alpha_isnan<T>())
+    if(rocblas_isnan(arg.alpha))
     {
         rocblas_init_nan(hx, true);
         rocblas_init_nan(hy, false);

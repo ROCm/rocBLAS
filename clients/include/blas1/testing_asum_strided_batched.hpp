@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -95,7 +95,10 @@ void testing_asum_strided_batched(const Arguments& arg)
     //
     // Initialize the host vector.
     //
-    rocblas_init(hx, true);
+    if(rocblas_isnan(arg.alpha))
+        rocblas_init_nan<T>(hx, true);
+    else
+        rocblas_init(hx, true);
 
     //
     // copy data from CPU to device, does not work for incx != 1

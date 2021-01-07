@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -97,7 +97,10 @@ void testing_nrm2_ex(const Arguments& arg)
 
     // Initial Data on CPU
     rocblas_seedrand();
-    rocblas_init<Tx>(hx, 1, N, incx);
+    if(rocblas_isnan(arg.alpha))
+        rocblas_init_nan<Tx>(hx, 1, N, incx);
+    else
+        rocblas_init<Tx>(hx, 1, N, incx);
 
     // copy data from CPU to device, does not work for incx != 1
     CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(Tx) * N * incx, hipMemcpyHostToDevice));
@@ -136,10 +139,14 @@ void testing_nrm2_ex(const Arguments& arg)
         Tr tolerance = 2.0; //  accounts for rounding in reduction sum. depends on n.
             //  If test fails, try decreasing n or increasing tolerance.
         abs_error *= tolerance;
-        if(arg.unit_check)
+
+        if(!rocblas_isnan(arg.alpha))
         {
-            near_check_general<Tr, Tr>(1, 1, 1, &cpu_result, &rocblas_result_1, abs_error);
-            near_check_general<Tr, Tr>(1, 1, 1, &cpu_result, &rocblas_result_2, abs_error);
+            if(arg.unit_check)
+            {
+                near_check_general<Tr, Tr>(1, 1, 1, &cpu_result, &rocblas_result_1, abs_error);
+                near_check_general<Tr, Tr>(1, 1, 1, &cpu_result, &rocblas_result_2, abs_error);
+            }
         }
 
         if(arg.norm_check)

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -89,8 +89,7 @@ void testing_axpy(const Arguments& arg)
 
     // Initial Data on CPU
     rocblas_seedrand();
-
-    if(arg.alpha_isnan<T>())
+    if(rocblas_isnan(arg.alpha))
     {
         rocblas_init_nan<T>(hx, 1, N, abs_incx);
         rocblas_init_nan<T>(hy_1, 1, N, abs_incy);

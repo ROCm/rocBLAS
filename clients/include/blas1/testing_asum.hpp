@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -86,7 +86,10 @@ void testing_asum(const Arguments& arg)
     CHECK_HIP_ERROR(hx.memcheck());
 
     // Initial Data on CPU
-    rocblas_init(hx);
+    if(rocblas_isnan(arg.alpha))
+        rocblas_init_nan<T>(hx, 1, N, incx);
+    else
+        rocblas_init(hx);
 
     // copy data from CPU to device
     CHECK_HIP_ERROR(dx.transfer_from(hx));
