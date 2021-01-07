@@ -185,6 +185,17 @@ Tests:
       - axpy_strided_batched_ex: *half_single_double_complex_real_precisions
 
 # pre_checkin
+  - name: blas1_axpy_large_batch
+    category: pre_checkin
+    N: [ 7, 1000 ]
+    incx_incy: *incx_incy_range_small
+    alpha: [ 0, 1 ]
+    batch_count: [ 8193 ]
+    stride_scale: [ 1 ]
+    function:
+      - axpy_batched: *single_precision
+      - axpy_strided_batched: *single_precision
+
   - name: blas1_with_alpha
     category: pre_checkin
     N: [ 50007, 1049600 ]
