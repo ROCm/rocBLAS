@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -133,9 +133,18 @@ void testing_rotm_strided_batched(const Arguments& arg)
     host_vector<T> hdata(4 * batch_count);
     host_vector<T> hparam(size_param);
     rocblas_seedrand();
-    rocblas_init<T>(hx, 1, N, abs_incx, stride_x, batch_count);
-    rocblas_init<T>(hy, 1, N, abs_incy, stride_y, batch_count);
-    rocblas_init<T>(hdata, 1, 4, 1, 4, batch_count);
+    if(rocblas_isnan(arg.alpha))
+    {
+        rocblas_init_nan<T>(hx, 1, N, abs_incx, stride_x, batch_count);
+        rocblas_init_nan<T>(hy, 1, N, abs_incy, stride_y, batch_count);
+        rocblas_init_nan<T>(hdata, 1, 4, 1, 4, batch_count);
+    }
+    else
+    {
+        rocblas_init<T>(hx, 1, N, abs_incx, stride_x, batch_count);
+        rocblas_init<T>(hy, 1, N, abs_incy, stride_y, batch_count);
+        rocblas_init<T>(hdata, 1, 4, 1, 4, batch_count);
+    }
 
     // CPU BLAS reference data
     for(int b = 0; b < batch_count; b++)
@@ -214,11 +223,20 @@ void testing_rotm_strided_batched(const Arguments& arg)
                 host_vector<T> ry(size_y);
                 CHECK_HIP_ERROR(hipMemcpy(rx, dx, sizeof(T) * size_x, hipMemcpyDeviceToHost));
                 CHECK_HIP_ERROR(hipMemcpy(ry, dy, sizeof(T) * size_y, hipMemcpyDeviceToHost));
-                if(arg.unit_check)
+
+                //when (input vectors are initialized with NaN's) the resultant output vector for both the cblas and rocBLAS are NAn's.  The `near_check_general` function compares the output of both the results (i.e., Nan's) and
+                //throws an error. That is the reason why it is enclosed in an `if(!rocblas_isnan(arg.alpha))` loop to skip the check.
+                if(!rocblas_isnan(arg.alpha))
                 {
-                    near_check_general<T>(1, N, abs_incx, stride_x, cx, rx, batch_count, rel_error);
-                    near_check_general<T>(1, N, abs_incy, stride_y, cy, ry, batch_count, rel_error);
+                    if(arg.unit_check)
+                    {
+                        near_check_general<T>(
+                            1, N, abs_incx, stride_x, cx, rx, batch_count, rel_error);
+                        near_check_general<T>(
+                            1, N, abs_incy, stride_y, cy, ry, batch_count, rel_error);
+                    }
                 }
+
                 if(arg.norm_check)
                 {
                     norm_error_device_x

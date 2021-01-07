@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -118,7 +118,10 @@ void testing_scal_batched_ex(const Arguments& arg)
     halpha[0] = h_alpha;
 
     // Initial Data on CPU
-    rocblas_init(hx_1, true);
+    if(rocblas_isnan(arg.alpha))
+        rocblas_init_nan(hx_1, true);
+    else
+        rocblas_init(hx_1, true);
     hx_2.copy_from(hx_1);
     hx_gold.copy_from(hx_1);
 

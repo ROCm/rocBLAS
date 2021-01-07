@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -127,11 +127,23 @@ void testing_rotmg_batched(const Arguments& arg)
         host_batch_vector<T> cy1(1, 1, batch_count);
         host_batch_vector<T> cparams(5, 1, batch_count);
 
-        rocblas_init(hd1, true);
-        rocblas_init(hd2, false);
-        rocblas_init(hx1, false);
-        rocblas_init(hy1, false);
-        rocblas_init(hparams, false);
+        if(rocblas_isnan(arg.alpha))
+        {
+            rocblas_init_nan(hd1, true);
+            rocblas_init_nan(hd2, false);
+            rocblas_init_nan(hx1, false);
+            rocblas_init_nan(hy1, false);
+            rocblas_init_nan(hparams, false);
+        }
+        else
+        {
+            rocblas_init(hd1, true);
+            rocblas_init(hd2, false);
+            rocblas_init(hx1, false);
+            rocblas_init(hy1, false);
+            rocblas_init(hparams, false);
+        }
+
         cd1.copy_from(hd1);
         cd2.copy_from(hd2);
         cx1.copy_from(hx1);
@@ -164,13 +176,19 @@ void testing_rotmg_batched(const Arguments& arg)
             CHECK_ROCBLAS_ERROR(
                 rocblas_rotgm_batched_fn(handle, rd1, rd2, rx1, ry1, rparams, batch_count));
 
-            if(arg.unit_check)
+            //when (input vectors are initialized with NaN's) the resultant output vector for both the cblas and rocBLAS are NAn's.  The `near_check_general` function compares the output of both the results (i.e., Nan's) and
+            //throws an error. That is the reason why it is enclosed in an `if(!rocblas_isnan(arg.alpha))` loop to skip the check.
+
+            if(!rocblas_isnan(arg.alpha))
             {
-                near_check_general<T>(1, 1, 1, rd1, cd1, batch_count, rel_error);
-                near_check_general<T>(1, 1, 1, rd2, cd2, batch_count, rel_error);
-                near_check_general<T>(1, 1, 1, rx1, cx1, batch_count, rel_error);
-                near_check_general<T>(1, 1, 1, ry1, cy1, batch_count, rel_error);
-                near_check_general<T>(1, 5, 1, rparams, cparams, batch_count, rel_error);
+                if(arg.unit_check)
+                {
+                    near_check_general<T>(1, 1, 1, rd1, cd1, batch_count, rel_error);
+                    near_check_general<T>(1, 1, 1, rd2, cd2, batch_count, rel_error);
+                    near_check_general<T>(1, 1, 1, rx1, cx1, batch_count, rel_error);
+                    near_check_general<T>(1, 1, 1, ry1, cy1, batch_count, rel_error);
+                    near_check_general<T>(1, 5, 1, rparams, cparams, batch_count, rel_error);
+                }
             }
 
             if(arg.norm_check)
@@ -223,13 +241,16 @@ void testing_rotmg_batched(const Arguments& arg)
             CHECK_HIP_ERROR(ry1.transfer_from(dy1));
             CHECK_HIP_ERROR(rparams.transfer_from(dparams));
 
-            if(arg.unit_check)
+            if(!rocblas_isnan(arg.alpha))
             {
-                near_check_general<T>(1, 1, 1, rd1, cd1, batch_count, rel_error);
-                near_check_general<T>(1, 1, 1, rd2, cd2, batch_count, rel_error);
-                near_check_general<T>(1, 1, 1, rx1, cx1, batch_count, rel_error);
-                near_check_general<T>(1, 1, 1, ry1, cy1, batch_count, rel_error);
-                near_check_general<T>(1, 5, 1, rparams, cparams, batch_count, rel_error);
+                if(arg.unit_check)
+                {
+                    near_check_general<T>(1, 1, 1, rd1, cd1, batch_count, rel_error);
+                    near_check_general<T>(1, 1, 1, rd2, cd2, batch_count, rel_error);
+                    near_check_general<T>(1, 1, 1, rx1, cx1, batch_count, rel_error);
+                    near_check_general<T>(1, 1, 1, ry1, cy1, batch_count, rel_error);
+                    near_check_general<T>(1, 5, 1, rparams, cparams, batch_count, rel_error);
+                }
             }
 
             if(arg.norm_check)

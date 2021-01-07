@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -112,10 +112,17 @@ void testing_axpy_ex(const Arguments& arg)
     host_vector<Tex> hx_ex(size_x);
 
     // Initial Data on CPU
-    // TODO: add NaN testing when roblas_isnan(arg.alpha) returns true.
     rocblas_seedrand();
-    rocblas_init(hx, true);
-    rocblas_init(hy_1, false);
+    if(rocblas_isnan(arg.alpha))
+    {
+        rocblas_init_nan<Tx>(hx, 1, N, abs_incx);
+        rocblas_init_nan<Ty>(hy_1, 1, N, abs_incy);
+    }
+    else
+    {
+        rocblas_init(hx, true);
+        rocblas_init(hy_1, false);
+    }
 
     // copy vector is easy in STL; hy_gold = hx: save a copy in hy_gold which will be output of CPU
     // BLAS

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -108,10 +108,21 @@ void testing_rotg_batched(const Arguments& arg)
         host_batch_vector<U> cc(1, 1, batch_count);
         host_batch_vector<T> cs(1, 1, batch_count);
 
-        rocblas_init(ha, true);
-        rocblas_init(hb, false);
-        rocblas_init(hc, false);
-        rocblas_init(hs, false);
+        if(rocblas_isnan(arg.alpha))
+        {
+            rocblas_init_nan(ha, true);
+            rocblas_init_nan(hb, false);
+            rocblas_init_nan(hc, false);
+            rocblas_init_nan(hs, false);
+        }
+        else
+        {
+            rocblas_init(ha, true);
+            rocblas_init(hb, false);
+            rocblas_init(hc, false);
+            rocblas_init(hs, false);
+        }
+
         ca.copy_from(ha);
         cb.copy_from(hb);
         cc.copy_from(hc);
@@ -139,12 +150,17 @@ void testing_rotg_batched(const Arguments& arg)
 
             CHECK_ROCBLAS_ERROR((rocblas_rotg_batched_fn(handle, ra, rb, rc, rs, batch_count)));
 
-            if(arg.unit_check)
+            //when (input vectors are initialized with NaN's) the resultant output vector for both the cblas and rocBLAS are NAn's.  The `near_check_general` function compares the output of both the results (i.e., Nan's) and
+            //throws an error. That is the reason why it is enclosed in an `if(!rocblas_isnan(arg.alpha))` loop to skip the check.
+            if(!rocblas_isnan(arg.alpha))
             {
-                near_check_general<T>(1, 1, 1, ra, ca, rel_error, batch_count);
-                near_check_general<T>(1, 1, 1, rb, cb, rel_error, batch_count);
-                near_check_general<U>(1, 1, 1, rc, cc, rel_error, batch_count);
-                near_check_general<T>(1, 1, 1, rs, cs, rel_error, batch_count);
+                if(arg.unit_check)
+                {
+                    near_check_general<T>(1, 1, 1, ra, ca, rel_error, batch_count);
+                    near_check_general<T>(1, 1, 1, rb, cb, rel_error, batch_count);
+                    near_check_general<U>(1, 1, 1, rc, cc, rel_error, batch_count);
+                    near_check_general<T>(1, 1, 1, rs, cs, rel_error, batch_count);
+                }
             }
 
             if(arg.norm_check)
@@ -185,12 +201,15 @@ void testing_rotg_batched(const Arguments& arg)
             CHECK_HIP_ERROR(rc.transfer_from(dc));
             CHECK_HIP_ERROR(rs.transfer_from(ds));
 
-            if(arg.unit_check)
+            if(!rocblas_isnan(arg.alpha))
             {
-                near_check_general<T>(1, 1, 1, ra, ca, batch_count, rel_error);
-                near_check_general<T>(1, 1, 1, rb, cb, batch_count, rel_error);
-                near_check_general<U>(1, 1, 1, rc, cc, batch_count, rel_error);
-                near_check_general<T>(1, 1, 1, rs, cs, batch_count, rel_error);
+                if(arg.unit_check)
+                {
+                    near_check_general<T>(1, 1, 1, ra, ca, batch_count, rel_error);
+                    near_check_general<T>(1, 1, 1, rb, cb, batch_count, rel_error);
+                    near_check_general<U>(1, 1, 1, rc, cc, batch_count, rel_error);
+                    near_check_general<T>(1, 1, 1, rs, cs, batch_count, rel_error);
+                }
             }
 
             if(arg.norm_check)

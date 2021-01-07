@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -119,7 +119,10 @@ void testing_nrm2_batched_ex(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
     // Initial Data on CPU
-    rocblas_init(hx, true);
+    if(rocblas_isnan(arg.alpha))
+        rocblas_init_nan(hx, true);
+    else
+        rocblas_init(hx, true);
 
     CHECK_HIP_ERROR(dx.transfer_from(hx));
 
@@ -174,10 +177,16 @@ void testing_nrm2_batched_ex(const Arguments& arg)
         Tr tolerance = 2.0; //  accounts for rounding in reduction sum. depends on n.
             //  If test fails, try decreasing n or increasing tolerance.
         abs_error *= tolerance;
-        if(arg.unit_check)
+
+        if(!rocblas_isnan(arg.alpha))
         {
-            near_check_general<Tr, Tr>(batch_count, 1, 1, cpu_result, rocblas_result_1, abs_error);
-            near_check_general<Tr, Tr>(batch_count, 1, 1, cpu_result, rocblas_result_2, abs_error);
+            if(arg.unit_check)
+            {
+                near_check_general<Tr, Tr>(
+                    batch_count, 1, 1, cpu_result, rocblas_result_1, abs_error);
+                near_check_general<Tr, Tr>(
+                    batch_count, 1, 1, cpu_result, rocblas_result_2, abs_error);
+            }
         }
 
         if(arg.norm_check)

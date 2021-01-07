@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -85,8 +85,16 @@ void testing_copy_batched(const Arguments& arg)
     host_batch_vector<T> hx(N, incx ? incx : 1, batch_count);
 
     // Initial Data on CPU
-    rocblas_init(hx, true);
-    rocblas_init(hy, false);
+    if(rocblas_isnan(arg.alpha))
+    {
+        rocblas_init_nan(hx, true);
+        rocblas_init_nan(hy, false);
+    }
+    else
+    {
+        rocblas_init(hx, true);
+        rocblas_init(hy, false);
+    }
     hy_gold.copy_from(hy);
 
     CHECK_HIP_ERROR(dx.transfer_from(hx));

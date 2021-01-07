@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -174,8 +174,16 @@ void testing_rot_batched_ex(const Arguments& arg)
     host_vector<Tcs>      hc(1);
     host_vector<Tcs>      hs(1);
 
-    rocblas_init(hx, true);
-    rocblas_init(hy, false);
+    if(rocblas_isnan(arg.alpha))
+    {
+        rocblas_init_nan(hx, true);
+        rocblas_init_nan(hy, false);
+    }
+    else
+    {
+        rocblas_init(hx, true);
+        rocblas_init(hy, false);
+    }
 
     rocblas_init<Tcs>(hc, 1, 1, 1);
     rocblas_init<Tcs>(hs, 1, 1, 1);

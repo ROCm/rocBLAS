@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -116,10 +116,20 @@ void testing_rotg_strided_batched(const Arguments& arg)
     {
         // Initial data on CPU
         rocblas_seedrand();
-        rocblas_init<T>(ha, 1, 1, 1, stride_a, batch_count);
-        rocblas_init<T>(hb, 1, 1, 1, stride_b, batch_count);
-        rocblas_init<U>(hc, 1, 1, 1, stride_c, batch_count);
-        rocblas_init<T>(hs, 1, 1, 1, stride_s, batch_count);
+        if(rocblas_isnan(arg.alpha))
+        {
+            rocblas_init_nan<T>(ha, 1, 1, 1, stride_a, batch_count);
+            rocblas_init_nan<T>(hb, 1, 1, 1, stride_b, batch_count);
+            rocblas_init_nan<U>(hc, 1, 1, 1, stride_c, batch_count);
+            rocblas_init_nan<T>(hs, 1, 1, 1, stride_s, batch_count);
+        }
+        else
+        {
+            rocblas_init<T>(ha, 1, 1, 1, stride_a, batch_count);
+            rocblas_init<T>(hb, 1, 1, 1, stride_b, batch_count);
+            rocblas_init<U>(hc, 1, 1, 1, stride_c, batch_count);
+            rocblas_init<T>(hs, 1, 1, 1, stride_s, batch_count);
+        }
 
         // CPU_BLAS
         host_vector<T> ca = ha;
@@ -144,12 +154,17 @@ void testing_rotg_strided_batched(const Arguments& arg)
             CHECK_ROCBLAS_ERROR((rocblas_rotg_strided_batched_fn(
                 handle, ra, stride_a, rb, stride_b, rc, stride_c, rs, stride_s, batch_count)));
 
-            if(arg.unit_check)
+            //when (input vectors are initialized with NaN's) the resultant output vector for both the cblas and rocBLAS are NAn's.  The `near_check_general` function compares the output of both the results (i.e., Nan's) and
+            //throws an error. That is the reason why it is enclosed in an `if(!rocblas_isnan(arg.alpha))` loop to skip the check.
+            if(!rocblas_isnan(arg.alpha))
             {
-                near_check_general<T>(1, 1, 1, stride_a, ca, ra, batch_count, rel_error);
-                near_check_general<T>(1, 1, 1, stride_b, cb, rb, batch_count, rel_error);
-                near_check_general<U>(1, 1, 1, stride_c, cc, rc, batch_count, rel_error);
-                near_check_general<T>(1, 1, 1, stride_s, cs, rs, batch_count, rel_error);
+                if(arg.unit_check)
+                {
+                    near_check_general<T>(1, 1, 1, stride_a, ca, ra, batch_count, rel_error);
+                    near_check_general<T>(1, 1, 1, stride_b, cb, rb, batch_count, rel_error);
+                    near_check_general<U>(1, 1, 1, stride_c, cc, rc, batch_count, rel_error);
+                    near_check_general<T>(1, 1, 1, stride_s, cs, rs, batch_count, rel_error);
+                }
             }
 
             if(arg.norm_check)
@@ -191,12 +206,15 @@ void testing_rotg_strided_batched(const Arguments& arg)
             CHECK_HIP_ERROR(hipMemcpy(rc, dc, sizeof(U) * size_c, hipMemcpyDeviceToHost));
             CHECK_HIP_ERROR(hipMemcpy(rs, ds, sizeof(T) * size_s, hipMemcpyDeviceToHost));
 
-            if(arg.unit_check)
+            if(!rocblas_isnan(arg.alpha))
             {
-                near_check_general<T>(1, 1, 1, stride_a, ca, ra, batch_count, rel_error);
-                near_check_general<T>(1, 1, 1, stride_b, cb, rb, batch_count, rel_error);
-                near_check_general<U>(1, 1, 1, stride_c, cc, rc, batch_count, rel_error);
-                near_check_general<T>(1, 1, 1, stride_s, cs, rs, batch_count, rel_error);
+                if(arg.unit_check)
+                {
+                    near_check_general<T>(1, 1, 1, stride_a, ca, ra, batch_count, rel_error);
+                    near_check_general<T>(1, 1, 1, stride_b, cb, rb, batch_count, rel_error);
+                    near_check_general<U>(1, 1, 1, stride_c, cc, rc, batch_count, rel_error);
+                    near_check_general<T>(1, 1, 1, stride_s, cs, rs, batch_count, rel_error);
+                }
             }
 
             if(arg.norm_check)

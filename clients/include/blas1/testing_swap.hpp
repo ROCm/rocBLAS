@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -73,7 +73,10 @@ void testing_swap(const Arguments& arg)
 
     // Initial Data on CPU
     rocblas_seedrand();
-    rocblas_init<T>(hx, 1, N, abs_incx);
+    if(rocblas_isnan(arg.alpha))
+        rocblas_init_nan<T>(hx, 1, N, abs_incx);
+    else
+        rocblas_init<T>(hx, 1, N, abs_incx);
     // make hy different to hx
     for(size_t i = 0; i < N; i++)
     {
