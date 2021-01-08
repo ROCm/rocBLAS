@@ -6,6 +6,7 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 ## [(Unreleased) rocBLAS 2.36.0 for ROCm 4.1.0]
 ### Fixed
 - Fixed complex unit test bug caused by incorrect caxpy and zaxpy function signatures.
+- Make functions compliant with Legacy Blas for special values alpha == 0, k == 0, beta == 1, beta == 0
 ### Optimizations
 - Improved performance of single precision axpy_batched and axpy_strided_batched: batch_count >= 8192
 
