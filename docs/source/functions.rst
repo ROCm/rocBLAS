@@ -1,6 +1,3 @@
-.. toctree::
-   :maxdepth: 5
-   :caption: Contents:
 .. _api_label:
 
 *************
