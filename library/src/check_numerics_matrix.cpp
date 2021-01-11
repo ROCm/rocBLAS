@@ -3,13 +3,14 @@
 
 /**
   *
-  * rocblas_check_numerics_matrix_template(function_name, handle, n, x, offset_x, inc_x, stride_x, batch_count, check_numerics, is_input)
+  * rocblas_check_numerics_ge_matrix_template(function_name, handle, n, x, offset_x, inc_x, stride_x, batch_count, check_numerics, is_input)
   *
-  * Info about rocblas_check_numerics_matrix_template function:
+  * Info about rocblas_check_numerics_ge_matrix_template function:
   *
-  *    It is the host function which accepts a matrix and calls the 'rocblas_check_numerics_matrix_kernel' kernel function
+  *    It is the host function which accepts a matrix and calls the 'rocblas_check_numerics_ge_matrix_kernel' kernel function
   *    to check for numerical abnormalities such as NaN/zero/Infinity in that matrix.
   *    It also helps in debugging based on the different types of flags in rocblas_check_numerics_mode that users set to debug potential NaN/zero/Infinity.
+  *    ge in rocblas_check_numerics_ge_matrix_template refers to general.
   *
   * Parameters   : function_name         : Name of the rocBLAS math function
   *                handle                : Handle to the rocblas library context queue
@@ -30,20 +31,21 @@
 
 template <typename T>
 ROCBLAS_EXPORT_NOINLINE rocblas_status
-    rocblas_check_numerics_matrix_template(const char*    function_name,
-                                           rocblas_handle handle,
-                                           rocblas_int    m,
-                                           rocblas_int    n,
-                                           T              A,
-                                           rocblas_int    offset_a,
-                                           rocblas_int    lda,
-                                           rocblas_stride stride_a,
-                                           rocblas_int    batch_count,
-                                           const int      check_numerics,
-                                           bool           is_input)
+    rocblas_check_numerics_ge_matrix_template(const char*       function_name,
+                                              rocblas_handle    handle,
+                                              rocblas_operation trans_a,
+                                              rocblas_int       m,
+                                              rocblas_int       n,
+                                              T                 A,
+                                              rocblas_int       offset_a,
+                                              rocblas_int       lda,
+                                              rocblas_stride    stride_a,
+                                              rocblas_int       batch_count,
+                                              const int         check_numerics,
+                                              bool              is_input)
 {
     //Quick return if possible. Not Argument error
-    if(!m || !n || !batch_count)
+    if(!m || !n || !batch_count || !A)
         return rocblas_status_success;
 
     //Creating structure host object
@@ -58,22 +60,26 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status
                                   sizeof(rocblas_check_numerics_t),
                                   hipMemcpyHostToDevice));
 
+    //Checking trans_a to transpose a matrix 'A'
+    rocblas_int num_rows_a = trans_a == rocblas_operation_none ? m : n;
+    rocblas_int num_cols_a = trans_a == rocblas_operation_none ? n : m;
+
     hipStream_t          rocblas_stream = handle->get_stream();
     static constexpr int DIM_X          = 16;
     static constexpr int DIM_Y          = 16;
-    rocblas_int          blocks_X       = (m - 1) / DIM_X + 1;
-    rocblas_int          blocks_Y       = (n - 1) / DIM_Y + 1;
+    rocblas_int          blocks_X       = (num_rows_a - 1) / DIM_X + 1;
+    rocblas_int          blocks_Y       = (num_cols_a - 1) / DIM_Y + 1;
 
     dim3 blocks(blocks_X, blocks_Y, batch_count);
     dim3 threads(DIM_X, DIM_Y);
 
-    hipLaunchKernelGGL(rocblas_check_numerics_matrix_kernel,
+    hipLaunchKernelGGL(rocblas_check_numerics_ge_matrix_kernel,
                        blocks,
                        threads,
                        0,
                        rocblas_stream,
-                       m,
-                       n,
+                       num_rows_a,
+                       num_cols_a,
                        A,
                        offset_a,
                        lda,
@@ -95,18 +101,19 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status
 #ifdef INST
 #error INST IS ALREADY DEFINED
 #endif
-#define INST(typet_)                                                                              \
-    template rocblas_status rocblas_check_numerics_matrix_template(const char*    function_name,  \
-                                                                   rocblas_handle handle,         \
-                                                                   rocblas_int    m,              \
-                                                                   rocblas_int    n,              \
-                                                                   typet_         A,              \
-                                                                   rocblas_int    offset_a,       \
-                                                                   rocblas_int    lda,            \
-                                                                   rocblas_stride stride_a,       \
-                                                                   rocblas_int    batch_count,    \
-                                                                   const int      check_numerics, \
-                                                                   bool           is_input)
+#define INST(typet_)                                                                                 \
+    template rocblas_status rocblas_check_numerics_ge_matrix_template(const char*    function_name,  \
+                                                                      rocblas_handle handle,         \
+                                                                      rocblas_operation trans_A,     \
+                                                                      rocblas_int       m,           \
+                                                                      rocblas_int       n,           \
+                                                                      typet_            A,           \
+                                                                      rocblas_int       offset_a,    \
+                                                                      rocblas_int       lda,         \
+                                                                      rocblas_stride    stride_a,    \
+                                                                      rocblas_int       batch_count, \
+                                                                      const int check_numerics,      \
+                                                                      bool      is_input)
 INST(float*);
 INST(double*);
 INST(float* const*);
