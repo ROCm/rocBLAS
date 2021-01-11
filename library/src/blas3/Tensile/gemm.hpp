@@ -1,9 +1,10 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
 
+#include "check_numerics_matrix.hpp"
 #include "handle.hpp"
 
 #ifdef USE_TENSILE_HOST
@@ -638,4 +639,72 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_gemm_template(rocblas_handle    h
     }
 
     return status;
+}
+
+template <typename T, typename U>
+rocblas_status rocblas_gemm_check_numerics(const char*       function_name,
+                                           rocblas_handle    handle,
+                                           rocblas_operation trans_a,
+                                           rocblas_operation trans_b,
+                                           rocblas_int       m,
+                                           rocblas_int       n,
+                                           rocblas_int       k,
+                                           T                 A,
+                                           rocblas_int       lda,
+                                           rocblas_stride    stride_a,
+                                           T                 B,
+                                           rocblas_int       ldb,
+                                           rocblas_stride    stride_b,
+                                           U                 C,
+                                           rocblas_int       ldc,
+                                           rocblas_stride    stride_c,
+                                           rocblas_int       batch_count,
+                                           const int         check_numerics,
+                                           bool              is_input)
+{
+
+    rocblas_status check_numerics_status = rocblas_check_numerics_ge_matrix_template(function_name,
+                                                                                     handle,
+                                                                                     trans_a,
+                                                                                     m,
+                                                                                     k,
+                                                                                     A,
+                                                                                     0,
+                                                                                     lda,
+                                                                                     stride_a,
+                                                                                     batch_count,
+                                                                                     check_numerics,
+                                                                                     is_input);
+    if(check_numerics_status != rocblas_status_success)
+        return check_numerics_status;
+
+    check_numerics_status = rocblas_check_numerics_ge_matrix_template(function_name,
+                                                                      handle,
+                                                                      trans_b,
+                                                                      k,
+                                                                      n,
+                                                                      B,
+                                                                      0,
+                                                                      ldb,
+                                                                      stride_b,
+                                                                      batch_count,
+                                                                      check_numerics,
+                                                                      is_input);
+    if(check_numerics_status != rocblas_status_success)
+        return check_numerics_status;
+
+    check_numerics_status = rocblas_check_numerics_ge_matrix_template(function_name,
+                                                                      handle,
+                                                                      rocblas_operation_none,
+                                                                      m,
+                                                                      n,
+                                                                      C,
+                                                                      0,
+                                                                      ldc,
+                                                                      stride_c,
+                                                                      batch_count,
+                                                                      check_numerics,
+                                                                      is_input);
+
+    return check_numerics_status;
 }

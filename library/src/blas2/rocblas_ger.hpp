@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -219,17 +219,19 @@ rocblas_status rocblas_ger_check_numerics(const char*    function_name,
                                           const int      check_numerics,
                                           bool           is_input)
 {
-    rocblas_status check_numerics_status = rocblas_check_numerics_matrix_template(function_name,
-                                                                                  handle,
-                                                                                  m,
-                                                                                  n,
-                                                                                  A,
-                                                                                  offset_a,
-                                                                                  lda,
-                                                                                  stride_a,
-                                                                                  batch_count,
-                                                                                  check_numerics,
-                                                                                  is_input);
+    rocblas_status check_numerics_status
+        = rocblas_check_numerics_ge_matrix_template(function_name,
+                                                    handle,
+                                                    rocblas_operation_none,
+                                                    m,
+                                                    n,
+                                                    A,
+                                                    offset_a,
+                                                    lda,
+                                                    stride_a,
+                                                    batch_count,
+                                                    check_numerics,
+                                                    is_input);
     if(check_numerics_status != rocblas_status_success)
         return check_numerics_status;
 

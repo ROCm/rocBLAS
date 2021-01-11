@@ -4,12 +4,14 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 
 
 ## [(Unreleased) rocBLAS 2.36.0 for ROCm 4.1.0]
+### Added
+- Added Numerical checking helper function to detect zero/NaN/Inf in the input and the output vectors of rocBLAS level 1 and 2 functions.
+- Added Numerical checking helper function to detect zero/NaN/Inf in the input and the output general matrices of rocBLAS level 2 and 3 functions.
 ### Fixed
 - Fixed complex unit test bug caused by incorrect caxpy and zaxpy function signatures.
-- Make functions compliant with Legacy Blas for special values alpha == 0, k == 0, beta == 1, beta == 0
+- Make functions compliant with Legacy Blas for special values alpha == 0, k == 0, beta == 1, beta == 0.
 ### Optimizations
-- Improved performance of single precision axpy_batched and axpy_strided_batched: batch_count >= 8192
-
+- Improved performance of single precision axpy_batched and axpy_strided_batched: batch_count >= 8192.
 
 ## [rocBLAS 2.34.0 for ROCm 4.0.0]
 ### Added
