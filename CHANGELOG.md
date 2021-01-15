@@ -3,7 +3,7 @@
 Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://rocblas.readthedocs.io/en/latest/).
 
 
-## [(Unreleased) rocBLAS 2.36.0 for ROCm 4.1.0]
+## [rocBLAS 2.36.0 for ROCm 4.1.0]
 ### Added
 - Added Numerical checking helper function to detect zero/NaN/Inf in the input and the output vectors of rocBLAS level 1 and 2 functions.
 - Added Numerical checking helper function to detect zero/NaN/Inf in the input and the output general matrices of rocBLAS level 2 and 3 functions.
