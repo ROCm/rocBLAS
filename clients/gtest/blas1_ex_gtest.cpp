@@ -268,7 +268,7 @@ namespace
                                                                                               \
     TEST_P(NAME, blas1_ex)                                                                    \
     {                                                                                         \
-        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(                                             \
+        RUN_TEST_ON_THREADS_STREAMS(                                                          \
             rocblas_blas1_ex_dispatch<blas1_ex_##NAME::template testing>(GetParam()));        \
     }                                                                                         \
                                                                                               \

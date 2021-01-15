@@ -2,8 +2,7 @@
  * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#ifndef ROCBLAS_RANDOM_H_
-#define ROCBLAS_RANDOM_H_
+#pragma once
 
 #include "rocblas.h"
 #include "rocblas_math.hpp"
@@ -14,7 +13,7 @@
 /* ============================================================================================ */
 // Random number generator
 using rocblas_rng_t = std::mt19937;
-extern thread_local rocblas_rng_t rocblas_rng;
+extern thread_local rocblas_rng_t t_rocblas_rng;
 extern const rocblas_rng_t        rocblas_seed;
 extern const std::thread::id      main_thread_id;
 
@@ -29,7 +28,7 @@ inline rocblas_rng_t get_seed()
 // Reset the seed (mainly to ensure repeatability of failures in a given suite)
 inline void rocblas_seedrand()
 {
-    rocblas_rng = get_seed();
+    t_rocblas_rng = get_seed();
 }
 
 /* ============================================================================================ */
@@ -47,7 +46,7 @@ class rocblas_nan_rng
             T      fp;
         } x;
         do
-            x.u = std::uniform_int_distribution<UINT_T>{}(rocblas_rng);
+            x.u = std::uniform_int_distribution<UINT_T>{}(t_rocblas_rng);
         while(!(x.u & (((UINT_T)1 << SIG) - 1))); // Reject Inf (mantissa == 0)
         x.u |= (((UINT_T)1 << EXP) - 1) << SIG; // Exponent = all 1's
         return x.fp; // NaN with random bits
@@ -58,7 +57,7 @@ public:
     template <typename T, std::enable_if_t<std::is_integral<T>{}, int> = 0>
     explicit operator T()
     {
-        return std::uniform_int_distribution<T>{}(rocblas_rng);
+        return std::uniform_int_distribution<T>{}(t_rocblas_rng);
     }
 
     // Random NaN double
@@ -103,7 +102,7 @@ class rocblas_inf_rng
     // Generate random Inf values
     static unsigned rand2()
     {
-        return std::uniform_int_distribution<unsigned>(0, 1)(rocblas_rng);
+        return std::uniform_int_distribution<unsigned>(0, 1)(t_rocblas_rng);
     }
 
 public:
@@ -129,7 +128,7 @@ class rocblas_zero_rng
     // Generate random zero values
     static unsigned rand2()
     {
-        return std::uniform_int_distribution<unsigned>(0, 1)(rocblas_rng);
+        return std::uniform_int_distribution<unsigned>(0, 1)(t_rocblas_rng);
     }
 
 public:
@@ -154,7 +153,7 @@ public:
 template <typename T>
 inline T random_generator()
 {
-    return std::uniform_int_distribution<int>(1, 10)(rocblas_rng);
+    return std::uniform_int_distribution<int>(1, 10)(t_rocblas_rng);
 }
 
 /*! \brief  generate a random NaN number */
@@ -182,16 +181,16 @@ inline T random_zero_generator()
 template <>
 inline rocblas_float_complex random_generator<rocblas_float_complex>()
 {
-    return {float(std::uniform_int_distribution<int>(1, 10)(rocblas_rng)),
-            float(std::uniform_int_distribution<int>(1, 10)(rocblas_rng))};
+    return {float(std::uniform_int_distribution<int>(1, 10)(t_rocblas_rng)),
+            float(std::uniform_int_distribution<int>(1, 10)(t_rocblas_rng))};
 };
 
 // for rocblas_double_complex, generate two random ints (same behaviour as for doubles)
 template <>
 inline rocblas_double_complex random_generator<rocblas_double_complex>()
 {
-    return {double(std::uniform_int_distribution<int>(1, 10)(rocblas_rng)),
-            double(std::uniform_int_distribution<int>(1, 10)(rocblas_rng))};
+    return {double(std::uniform_int_distribution<int>(1, 10)(t_rocblas_rng)),
+            double(std::uniform_int_distribution<int>(1, 10)(t_rocblas_rng))};
 };
 
 // for rocblas_half, generate float, and convert to rocblas_half
@@ -199,7 +198,7 @@ inline rocblas_double_complex random_generator<rocblas_double_complex>()
 template <>
 inline rocblas_half random_generator<rocblas_half>()
 {
-    return rocblas_half(std::uniform_int_distribution<int>(-2, 2)(rocblas_rng));
+    return rocblas_half(std::uniform_int_distribution<int>(-2, 2)(t_rocblas_rng));
 };
 
 // for rocblas_bfloat16, generate float, and convert to rocblas_bfloat16
@@ -207,21 +206,21 @@ inline rocblas_half random_generator<rocblas_half>()
 template <>
 inline rocblas_bfloat16 random_generator<rocblas_bfloat16>()
 {
-    return rocblas_bfloat16(std::uniform_int_distribution<int>(-2, 2)(rocblas_rng));
+    return rocblas_bfloat16(std::uniform_int_distribution<int>(-2, 2)(t_rocblas_rng));
 };
 
 /*! \brief  generate a random number in range [1,2,3] */
 template <>
 inline int8_t random_generator<int8_t>()
 {
-    return std::uniform_int_distribution<int8_t>(1, 3)(rocblas_rng);
+    return std::uniform_int_distribution<int8_t>(1, 3)(t_rocblas_rng);
 };
 
 /*! \brief  generate a random number in HPL-like [-0.5,0.5] doubles  */
 template <typename T>
 inline T random_hpl_generator()
 {
-    return std::uniform_real_distribution<double>(-0.5, 0.5)(rocblas_rng);
+    return std::uniform_real_distribution<double>(-0.5, 0.5)(t_rocblas_rng);
 }
 
 /*! \brief  generate a random ASCII string of up to length n */
@@ -230,12 +229,10 @@ inline std::string random_string(size_t n)
     std::string str;
     if(n)
     {
-        size_t len = std::uniform_int_distribution<size_t>(1, n)(rocblas_rng);
+        size_t len = std::uniform_int_distribution<size_t>(1, n)(t_rocblas_rng);
         str.reserve(len);
         for(size_t i = 0; i < len; ++i)
-            str.push_back(std::uniform_int_distribution<char>(0x20, 0x7E)(rocblas_rng));
+            str.push_back(std::uniform_int_distribution<char>(0x20, 0x7E)(t_rocblas_rng));
     }
     return str;
 }
-
-#endif

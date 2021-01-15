@@ -2,8 +2,8 @@
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#ifndef _ROCBLAS_LOGGING_H_
-#define _ROCBLAS_LOGGING_H_
+#pragma once
+
 #include "handle.hpp"
 #include "rocblas_ostream.hpp"
 #include "tuple_helper.hpp"
@@ -384,5 +384,3 @@ auto value_category(const T* beta, rocblas_datatype compute_type)
         throw rocblas_status_internal_error;
     }
 }
-
-#endif

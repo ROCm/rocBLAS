@@ -33,7 +33,8 @@ namespace
 
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
-        auto layer_mode = handle->layer_mode;
+        auto layer_mode     = handle->layer_mode;
+        auto check_numerics = handle->check_numerics;
         if(layer_mode
            & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
               | rocblas_layer_mode_log_profile))
@@ -89,18 +90,64 @@ namespace
 
         static constexpr rocblas_int    offset_x = 0, offset_A = 0;
         static constexpr rocblas_stride stride_x = 0, stride_A = 0;
-        return rocblas_spr_template(handle,
-                                    uplo,
-                                    n,
-                                    alpha,
-                                    x,
-                                    offset_x,
-                                    incx,
-                                    stride_x,
-                                    AP,
-                                    offset_A,
-                                    stride_A,
-                                    batch_count);
+
+        if(check_numerics)
+        {
+            bool           is_input = true;
+            rocblas_status spr_check_numerics_status
+                = rocblas_spr_check_numerics(rocblas_spr_batched_name<T>,
+                                             handle,
+                                             n,
+                                             AP,
+                                             offset_A,
+                                             stride_A,
+                                             x,
+                                             offset_x,
+                                             incx,
+                                             stride_x,
+                                             batch_count,
+                                             check_numerics,
+                                             is_input);
+            if(spr_check_numerics_status != rocblas_status_success)
+                return spr_check_numerics_status;
+        }
+
+        rocblas_status status = rocblas_spr_template(handle,
+                                                     uplo,
+                                                     n,
+                                                     alpha,
+                                                     x,
+                                                     offset_x,
+                                                     incx,
+                                                     stride_x,
+                                                     AP,
+                                                     offset_A,
+                                                     stride_A,
+                                                     batch_count);
+        if(status != rocblas_status_success)
+            return status;
+
+        if(check_numerics)
+        {
+            bool           is_input = false;
+            rocblas_status spr_check_numerics_status
+                = rocblas_spr_check_numerics(rocblas_spr_batched_name<T>,
+                                             handle,
+                                             n,
+                                             AP,
+                                             offset_A,
+                                             stride_A,
+                                             x,
+                                             offset_x,
+                                             incx,
+                                             stride_x,
+                                             batch_count,
+                                             check_numerics,
+                                             is_input);
+            if(spr_check_numerics_status != rocblas_status_success)
+                return spr_check_numerics_status;
+        }
+        return status;
     }
 
 }

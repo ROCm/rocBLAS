@@ -2,8 +2,7 @@
 * Copyright 2016-2020 Advanced Micro Devices, Inc.
 * ************************************************************************ */
 
-#ifndef __ROCBLAS_TRTRI_HPP__
-#define __ROCBLAS_TRTRI_HPP__
+#pragma once
 
 #include "gemm.hpp"
 
@@ -1106,5 +1105,3 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_trtri_template(rocblas_handle   h
                                                             C_tmp);
     }
 }
-
-#endif // __ROCBLAS_TRTRI_HPP__

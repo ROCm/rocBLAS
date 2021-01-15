@@ -1,6 +1,7 @@
-//
-// Copyright 2018-2020 Advanced Micro Devices, Inc.
-//
+/* ************************************************************************
+ * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * ************************************************************************ */
+
 #pragma once
 
 #include <cmath>
@@ -62,7 +63,15 @@ struct host_vector : std::vector<T>
     //!
     hipError_t transfer_from(const device_vector<T>& that)
     {
-        return hipMemcpy(*this, that, sizeof(T) * this->size(), hipMemcpyDeviceToHost);
+        hipError_t hip_err;
+
+        if(that.use_HMM && hipSuccess != (hip_err = hipDeviceSynchronize()))
+            return hip_err;
+
+        return hipMemcpy(*this,
+                         that,
+                         sizeof(T) * this->size(),
+                         that.use_HMM ? hipMemcpyHostToHost : hipMemcpyDeviceToHost);
     }
 
     //!

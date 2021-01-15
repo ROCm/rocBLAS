@@ -8,8 +8,7 @@
 
 /*! \brief gtest unit compare two matrices float/double/complex */
 
-#ifndef _UNIT_H
-#define _UNIT_H
+#pragma once
 
 #include "rocblas.h"
 #include "rocblas_math.hpp"
@@ -486,5 +485,3 @@ constexpr auto get_epsilon()
 {
     return get_epsilon<decltype(std::real(T{}))>();
 }
-
-#endif

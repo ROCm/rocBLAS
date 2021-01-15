@@ -129,7 +129,7 @@ get_os_id(OS_ID)
 message (STATUS "OS detected is ${OS_ID}")
 
 # Versioning via rocm-cmake
-set ( VERSION_STRING "2.34.0" )
+set ( VERSION_STRING "2.36.0" )
 rocm_setup_version( VERSION ${VERSION_STRING} )
 
 # Append our library helper cmake path and the cmake path for hip (for convenience)
@@ -156,10 +156,25 @@ set( Tensile_ARCHITECTURE "all" CACHE STRING "Tensile to use which architecture?
 set_property( CACHE Tensile_ARCHITECTURE PROPERTY STRINGS all gfx803 gfx900 gfx906:xnack- gfx908:xnack-)
 # -DTensile_ARCHITECTURE= set by install.sh for builds with and without tensile
 
+# Detect if target ID syntax if supported for default all AMDGPU_TARGETS list
+if(CMAKE_CXX_COMPILER MATCHES ".*/hipcc$" )
+  execute_process(COMMAND ${CMAKE_CXX_COMPILER} "--help"
+    OUTPUT_VARIABLE CXX_OUTPUT
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+    ERROR_STRIP_TRAILING_WHITESPACE)
+  string(REGEX MATCH ".mcode\-object\-version" TARGET_ID_SUPPORT ${CXX_OUTPUT})
+endif()
+if(TARGET_ID_SUPPORT)
+  set(target_list "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-")
+else()
+  set(target_list "gfx803;gfx900;gfx906;gfx908")
+endif()
+set(ALL_TARGETS ${target_list} CACHE STRING "List of specific machine types for library to target")
+
 # gpu architectures to build for
 if (Tensile_ARCHITECTURE)
   if( Tensile_ARCHITECTURE STREQUAL "all" )
-    set( gpus "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-")
+    set( gpus ${ALL_TARGETS})
   else()
     set( gpus ${Tensile_ARCHITECTURE})
   endif()
@@ -214,7 +229,7 @@ if( BUILD_WITH_TENSILE )
   if (TENSILE_VERSION)
     find_package(Tensile ${TENSILE_VERSION} EXACT REQUIRED HIP LLVM OpenMP PATHS "${INSTALLED_TENSILE_PATH}")
   else()
-    find_package(Tensile 4.25.0 EXACT REQUIRED HIP LLVM OpenMP PATHS "${INSTALLED_TENSILE_PATH}")
+    find_package(Tensile 4.26.0 EXACT REQUIRED HIP LLVM OpenMP PATHS "${INSTALLED_TENSILE_PATH}")
   endif()
 endif()
 
@@ -223,7 +238,7 @@ if( CMAKE_CXX_COMPILER MATCHES ".*/hipcc$" )
   find_package( hip REQUIRED CONFIG PATHS ${ROCM_PATH} /opt/rocm )
 endif( )
 
-message(STATUS "Using AMDGPU_TARGETS: " ${AMDGPU_TARGETS})
+message(STATUS "Using AMDGPU_TARGETS: ${AMDGPU_TARGETS}")
 
 # setup rocblas defines used for both the library and clients
 if( BUILD_WITH_TENSILE )

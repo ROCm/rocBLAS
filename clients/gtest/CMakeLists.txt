@@ -2,17 +2,6 @@
 # Copyright 2018-2020 Advanced Micro Devices, Inc.
 # ########################################################################
 
-# For debugging, uncomment this
-# set( CMAKE_CXX_FLAGS_RELEASE "${CMAKE_CXX_FLAGS_RELEASE} -g -O0" )
-if(EXISTS /etc/redhat-release)
-    if(CXX_VERSION_STRING MATCHES "clang")
-        set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp=libgomp -pthread -stdlib=libstdc++ -std=c++14")
-    else()
-        set(CMAKE_CXX_FLAGS "-isystem /opt/rocm/include ${CMAKE_CXX_FLAGS} -fopenmp=libgomp -pthread")
-    endif()
-else()
-    set(CMAKE_CXX_FLAGS "-isystem /opt/rocm/include ${CMAKE_CXX_FLAGS} -fopenmp -pthread")
-endif()
 
 # Linking lapack library requires fortran flags
 enable_language( Fortran )
@@ -23,8 +12,6 @@ endif( )
 
 find_package( GTest REQUIRED )
 
-set( THREADS_PREFER_PTHREAD_FLAG ON )
-find_package( Threads REQUIRED )
 
 if( BUILD_WITH_TENSILE )
   set(rocblas_tensile_test_source
@@ -224,16 +211,21 @@ if( CMAKE_COMPILER_IS_GNUCXX OR CXX_VERSION_STRING MATCHES "clang" )
 endif( )
 
 if( CXX_VERSION_STRING MATCHES "clang" )
-  target_link_libraries( rocblas-test PRIVATE -lpthread -lstdc++ -lm )
+  target_link_libraries( rocblas-test PRIVATE -lm )
   if(OS_ID_rhel OR OS_ID_centos OR OS_ID_sles)
-    set(CMAKE_CXX_FLAGS "-isystem ${CLANG_INCLUDE_DIR} -isystem ${XXX_OPENMP_INCLUDE_DIR} ${CMAKE_CXX_FLAGS}")
+    set(TARGET_CXX_OPTIONS "-isystem ${CLANG_INCLUDE_DIR};-isystem ${XXX_OPENMP_INCLUDE_DIR}")
   endif( )
 else( )
   if(OS_ID_rhel OR OS_ID_centos OR OS_ID_sles)
-    set(CMAKE_CXX_FLAGS "-isystem ${CLANG_INCLUDE_DIR} -isystem ${XXX_OPENMP_INCLUDE_DIR} ${CMAKE_CXX_FLAGS}")
+    set(TARGET_CXX_OPTIONS "-isystem ${CLANG_INCLUDE_DIR};-isystem ${XXX_OPENMP_INCLUDE_DIR}")
   endif( )
-  set(CMAKE_CXX_FLAGS "-isystem ${ROCM_PATH}/include ${CMAKE_CXX_FLAGS}")
+  set(TARGET_CXX_OPTIONS "-isystem ${ROCM_PATH}/include;${TARGET_CXX_OPTIONS}")
 endif( )
+set(TARGET_CXX_OPTIONS "${COMMON_CXX_OPTIONS};${TARGET_CXX_OPTIONS}")
+
+target_compile_options(rocblas-test PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${TARGET_CXX_OPTIONS}>)
+# target_compile_options does not go to linker like CMAKE_CXX_FLAGS does, so manually add
+target_link_libraries( rocblas-test PRIVATE ${COMMON_LINK_LIBS} )
 
 set_target_properties( rocblas-test PROPERTIES CXX_EXTENSIONS NO )
 set_target_properties( rocblas-test PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )

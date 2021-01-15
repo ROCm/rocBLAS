@@ -1,6 +1,8 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+
+#pragma once
 
 #include "bytes.hpp"
 #include "cblas_interface.hpp"
@@ -30,7 +32,7 @@ void testing_dot_batched_bad_arg(const Arguments& arg)
     rocblas_int stride_y    = incy * N;
     rocblas_int batch_count = 5;
 
-    rocblas_local_handle   handle(arg.atomics_mode);
+    rocblas_local_handle   handle{arg};
     device_batch_vector<T> dx(N, incx, batch_count);
     device_batch_vector<T> dy(N, incy, batch_count);
     device_vector<T>       d_rocblas_result(batch_count);
@@ -83,7 +85,7 @@ void testing_dot_batched(const Arguments& arg)
 
     double               rocblas_error_1 = 0;
     double               rocblas_error_2 = 0;
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // check to prevent undefined memmory allocation error
     if(N <= 0 || batch_count <= 0)
@@ -127,8 +129,16 @@ void testing_dot_batched(const Arguments& arg)
     host_batch_vector<T> hy(N, incy ? incy : 1, batch_count);
 
     // Initial Data on CPU
-    rocblas_init(hx, true);
-    rocblas_init(hy, false);
+    if(rocblas_isnan(arg.alpha))
+    {
+        rocblas_init_nan(hx, true);
+        rocblas_init_nan(hy, false);
+    }
+    else
+    {
+        rocblas_init(hx, true);
+        rocblas_init(hy, false);
+    }
 
     CHECK_HIP_ERROR(dx.transfer_from(hx));
     CHECK_HIP_ERROR(dy.transfer_from(hy));

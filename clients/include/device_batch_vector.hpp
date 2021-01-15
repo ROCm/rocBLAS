@@ -1,6 +1,7 @@
-//
-// Copyright 2018-2020 Advanced Micro Devices, Inc.
-//
+/* ************************************************************************
+ * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * ************************************************************************ */
+
 #pragma once
 
 #include "d_vector.hpp"
@@ -17,7 +18,7 @@ class host_batch_vector;
 //!  - an array of pointers in device memory
 //!
 template <typename T, size_t PAD = 4096, typename U = T>
-class device_batch_vector : private d_vector<T, PAD, U>
+class device_batch_vector : public d_vector<T, PAD, U>
 {
 public:
     //!
@@ -35,12 +36,16 @@ public:
     //! @param n           The length of the vector.
     //! @param inc         The increment.
     //! @param batch_count The batch count.
+    //! @param HMM         HipManagedMemory Flag.
     //!
-    explicit device_batch_vector(rocblas_int n, rocblas_int inc, rocblas_int batch_count)
+    explicit device_batch_vector(rocblas_int n,
+                                 rocblas_int inc,
+                                 rocblas_int batch_count,
+                                 bool        HMM = false)
         : m_n(n)
         , m_inc(inc)
         , m_batch_count(batch_count)
-        , d_vector<T, PAD, U>(size_t(n) * std::abs(inc))
+        , d_vector<T, PAD, U>(size_t(n) * std::abs(inc), HMM)
     {
         if(false == this->try_initialize_memory())
         {
@@ -54,12 +59,14 @@ public:
     //! @param inc         The increment.
     //! @param stride      (UNUSED) The stride.
     //! @param batch_count The batch count.
+    //! @param HMM         HipManagedMemory Flag.
     //!
     explicit device_batch_vector(rocblas_int    n,
                                  rocblas_int    inc,
                                  rocblas_stride stride,
-                                 rocblas_int    batch_count)
-        : device_batch_vector(n, inc, batch_count)
+                                 rocblas_int    batch_count,
+                                 bool           HMM = false)
+        : device_batch_vector(n, inc, batch_count, HMM)
     {
     }
 
@@ -198,13 +205,12 @@ public:
         //
         // Copy each vector.
         //
+        hipMemcpyKind kind = this->use_HMM ? hipMemcpyHostToHost : hipMemcpyHostToDevice;
         for(rocblas_int batch_index = 0; batch_index < this->m_batch_count; ++batch_index)
         {
             if(hipSuccess
-               != (hip_err = hipMemcpy((*this)[batch_index],
-                                       that[batch_index],
-                                       sizeof(T) * this->nmemb(),
-                                       hipMemcpyHostToDevice)))
+               != (hip_err = hipMemcpy(
+                       (*this)[batch_index], that[batch_index], sizeof(T) * this->nmemb(), kind)))
             {
                 return hip_err;
             }
@@ -241,10 +247,16 @@ private:
         bool success = false;
 
         success
-            = (hipSuccess == (hipMalloc)(&this->m_device_data, this->m_batch_count * sizeof(T*)));
+            = (hipSuccess
+               == (!this->use_HMM
+                       ? (hipMalloc)(&this->m_device_data, this->m_batch_count * sizeof(T*))
+                       : hipMallocManaged(&this->m_device_data, this->m_batch_count * sizeof(T*))));
         if(success)
         {
-            success = (nullptr != (this->m_data = (T**)calloc(this->m_batch_count, sizeof(T*))));
+            success
+                = (nullptr
+                   != (this->m_data = !this->use_HMM ? (T**)calloc(this->m_batch_count, sizeof(T*))
+                                                     : m_device_data));
             if(success)
             {
                 for(rocblas_int batch_index = 0; batch_index < this->m_batch_count; ++batch_index)
@@ -257,7 +269,7 @@ private:
                     }
                 }
 
-                if(success)
+                if(success && !this->use_HMM)
                 {
                     success = (hipSuccess
                                == hipMemcpy(this->m_device_data,

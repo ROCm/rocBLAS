@@ -1,6 +1,9 @@
 /* ************************************************************************
  * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+
+#pragma once
+
 #include "cblas_interface.hpp"
 #include "flops.hpp"
 #include "near.hpp"
@@ -18,11 +21,10 @@
 template <typename T>
 void testing_gemm_batched(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_gemm_batched_fn
-        = FORTRAN ? rocblas_gemm_batched<T, true> : rocblas_gemm_batched<T, false>;
+    auto rocblas_gemm_batched_fn
+        = arg.fortran ? rocblas_gemm_batched<T, true> : rocblas_gemm_batched<T, false>;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
     rocblas_int          M           = arg.M;
     rocblas_int          N           = arg.N;
     rocblas_int          K           = arg.K;
@@ -66,7 +68,7 @@ void testing_gemm_batched(const Arguments& arg)
     }
 
     double gpu_time_used, cpu_time_used;
-    double rocblas_gflops, cblas_gflops;
+    gpu_time_used = cpu_time_used = 0.0;
 
     double rocblas_error = 0.0;
 
@@ -196,8 +198,6 @@ void testing_gemm_batched(const Arguments& arg)
                                                      ldc,
                                                      batch_count)));
 
-        CHECK_HIP_ERROR(hC_2.transfer_from(dC));
-
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
         for(rocblas_int i = 0; i < batch_count; i++)
@@ -206,7 +206,9 @@ void testing_gemm_batched(const Arguments& arg)
                 transA, transB, M, N, K, h_alpha, hA[i], lda, hB[i], ldb, h_beta, hC_gold[i], ldc);
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
-        cblas_gflops  = gemm_gflop_count<T>(M, N, K) * batch_count / cpu_time_used * 1e6;
+
+        // GPU fetch
+        CHECK_HIP_ERROR(hC_2.transfer_from(dC));
 
         if(arg.unit_check)
         {
@@ -284,27 +286,26 @@ void testing_gemm_batched(const Arguments& arg)
                                     batch_count);
         }
 
-        gpu_time_used  = (get_time_us_sync(stream) - gpu_time_used) / number_hot_calls;
-        rocblas_gflops = gemm_gflop_count<T>(M, N, K) * batch_count / gpu_time_used * 1e6;
+        gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
 
-        rocblas_cout << "transA,transB,M,N,K,alpha,lda,ldb,beta,ldc,Batch_Count,"
-                        "rocblas-Gflops,"
-                        "us";
-
-        if(arg.norm_check)
-            rocblas_cout << ",CPU-Gflops,us,norm-error";
-
-        rocblas_cout << std::endl;
-
-        rocblas_cout << arg.transA << "," << arg.transB << "," << M << "," << N << "," << K << ","
-                     << arg.get_alpha<T>() << "," << lda << "," << ldb << "," << arg.get_beta<T>()
-                     << "," << ldc << "," << batch_count << "," << rocblas_gflops << ","
-                     << gpu_time_used;
-
-        if(arg.norm_check)
-            rocblas_cout << "," << cblas_gflops << "," << cpu_time_used << "," << rocblas_error;
-
-        rocblas_cout << std::endl;
+        ArgumentModel<e_transA,
+                      e_transB,
+                      e_M,
+                      e_N,
+                      e_K,
+                      e_alpha,
+                      e_lda,
+                      e_beta,
+                      e_ldb,
+                      e_ldc,
+                      e_batch_count>{}
+            .log_args<T>(rocblas_cout,
+                         arg,
+                         gpu_time_used,
+                         gemm_gflop_count<T>(M, N, K),
+                         ArgumentLogging::NA_value,
+                         cpu_time_used,
+                         rocblas_error);
     }
 }
 
@@ -313,9 +314,8 @@ void testing_gemm_batched_bad_arg(const Arguments& arg)
 {
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
-        const bool FORTRAN = arg.fortran;
-        auto       rocblas_gemm_batched_fn
-            = FORTRAN ? rocblas_gemm_batched<T, true> : rocblas_gemm_batched<T, false>;
+        auto rocblas_gemm_batched_fn
+            = arg.fortran ? rocblas_gemm_batched<T, true> : rocblas_gemm_batched<T, false>;
 
         const rocblas_int M = 100;
         const rocblas_int N = 100;
@@ -325,38 +325,15 @@ void testing_gemm_batched_bad_arg(const Arguments& arg)
         const rocblas_int ldb = 100;
         const rocblas_int ldc = 100;
 
-        const T* alpha = nullptr;
-        const T* beta  = nullptr;
-
-        const T h_alpha = 1.0;
-        const T h_beta  = 1.0;
-
-        device_vector<T> d_alpha(1);
-        device_vector<T> d_beta(1);
-
-        CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
-        CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
-
-        CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(T), hipMemcpyHostToDevice));
-        CHECK_HIP_ERROR(hipMemcpy(d_beta, &h_beta, sizeof(T), hipMemcpyHostToDevice));
-
-        if(pointer_mode == rocblas_pointer_mode_host)
-        {
-            alpha = &h_alpha;
-            beta  = &h_beta;
-        }
-        else
-        {
-            alpha = d_alpha;
-            beta  = d_beta;
-        }
+        const T alpha = 1.0;
+        const T beta  = 1.0;
 
         const size_t safe_size = 100;
 
         const rocblas_operation transA = rocblas_operation_none;
         const rocblas_operation transB = rocblas_operation_none;
 
-        rocblas_local_handle handle(arg.atomics_mode);
+        rocblas_local_handle handle{arg};
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
 
         rocblas_int batch_count = 5;
@@ -375,12 +352,12 @@ void testing_gemm_batched_bad_arg(const Arguments& arg)
                                                       M,
                                                       N,
                                                       K,
-                                                      alpha,
+                                                      &alpha,
                                                       nullptr,
                                                       lda,
                                                       dB.ptr_on_device(),
                                                       ldb,
-                                                      beta,
+                                                      &beta,
                                                       dC.ptr_on_device(),
                                                       ldc,
                                                       batch_count),
@@ -392,12 +369,12 @@ void testing_gemm_batched_bad_arg(const Arguments& arg)
                                                       M,
                                                       N,
                                                       K,
-                                                      alpha,
+                                                      &alpha,
                                                       dA.ptr_on_device(),
                                                       lda,
                                                       nullptr,
                                                       ldb,
-                                                      beta,
+                                                      &beta,
                                                       dC.ptr_on_device(),
                                                       ldc,
                                                       batch_count),
@@ -409,12 +386,12 @@ void testing_gemm_batched_bad_arg(const Arguments& arg)
                                                       M,
                                                       N,
                                                       K,
-                                                      alpha,
+                                                      &alpha,
                                                       dA.ptr_on_device(),
                                                       lda,
                                                       dB.ptr_on_device(),
                                                       ldb,
-                                                      beta,
+                                                      &beta,
                                                       nullptr,
                                                       ldc,
                                                       batch_count),
@@ -431,7 +408,7 @@ void testing_gemm_batched_bad_arg(const Arguments& arg)
                                                       lda,
                                                       dB.ptr_on_device(),
                                                       ldb,
-                                                      beta,
+                                                      &beta,
                                                       dC.ptr_on_device(),
                                                       ldc,
                                                       batch_count),
@@ -443,7 +420,7 @@ void testing_gemm_batched_bad_arg(const Arguments& arg)
                                                       M,
                                                       N,
                                                       K,
-                                                      alpha,
+                                                      &alpha,
                                                       dA.ptr_on_device(),
                                                       lda,
                                                       dB.ptr_on_device(),
@@ -460,12 +437,12 @@ void testing_gemm_batched_bad_arg(const Arguments& arg)
                                                       M,
                                                       N,
                                                       K,
-                                                      alpha,
+                                                      &alpha,
                                                       dA.ptr_on_device(),
                                                       lda,
                                                       dB.ptr_on_device(),
                                                       ldb,
-                                                      beta,
+                                                      &beta,
                                                       dC.ptr_on_device(),
                                                       ldc,
                                                       batch_count),

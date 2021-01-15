@@ -1,6 +1,8 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+
+#pragma once
 
 #include "bytes.hpp"
 #include "cblas_interface.hpp"
@@ -19,16 +21,16 @@
 template <typename T>
 void testing_axpy_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN         = arg.fortran;
-    auto       rocblas_axpy_fn = FORTRAN ? rocblas_axpy<T, true> : rocblas_axpy<T, false>;
+    auto rocblas_axpy_fn = arg.fortran ? rocblas_axpy<T, true> : rocblas_axpy<T, false>;
 
-    rocblas_int         N         = 100;
-    rocblas_int         incx      = 1;
-    rocblas_int         incy      = 1;
-    static const size_t safe_size = 100;
-    T                   alpha     = 0.6;
+    rocblas_int N         = 100;
+    rocblas_int incx      = 1;
+    rocblas_int incy      = 1;
+    size_t      safe_size = 100;
+    T           alpha     = 0.6;
+    T           zero      = 0.0;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
     device_vector<T>     dx(safe_size);
     device_vector<T>     dy(safe_size);
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
@@ -42,19 +44,25 @@ void testing_axpy_bad_arg(const Arguments& arg)
                           rocblas_status_invalid_pointer);
     EXPECT_ROCBLAS_STATUS(rocblas_axpy_fn(nullptr, N, &alpha, dx, incx, dy, incy),
                           rocblas_status_invalid_handle);
+    // If N == 0, then alpha, X and Y can be nullptr without error
+    EXPECT_ROCBLAS_STATUS(rocblas_axpy_fn(handle, 0, nullptr, nullptr, incx, nullptr, incy),
+                          rocblas_status_success);
+    // If alpha == 0, then X and Y can be nullptr without error
+    EXPECT_ROCBLAS_STATUS(rocblas_axpy_fn(handle, N, &zero, nullptr, incx, nullptr, incy),
+                          rocblas_status_success);
 }
 
 template <typename T>
 void testing_axpy(const Arguments& arg)
 {
-    const bool FORTRAN         = arg.fortran;
-    auto       rocblas_axpy_fn = FORTRAN ? rocblas_axpy<T, true> : rocblas_axpy<T, false>;
+    auto rocblas_axpy_fn = arg.fortran ? rocblas_axpy<T, true> : rocblas_axpy<T, false>;
 
     rocblas_int          N       = arg.N;
     rocblas_int          incx    = arg.incx;
     rocblas_int          incy    = arg.incy;
     T                    h_alpha = arg.get_alpha<T>();
-    rocblas_local_handle handle(arg.atomics_mode);
+    bool                 HMM     = arg.HMM;
+    rocblas_local_handle handle{arg};
 
     // argument sanity check before allocating invalid memory
     if(N <= 0)
@@ -80,10 +88,17 @@ void testing_axpy(const Arguments& arg)
     host_vector<T> hy_gold(size_y);
 
     // Initial Data on CPU
-    // TODO: add NaN testing when roblas_isnan(arg.alpha) returns true.
     rocblas_seedrand();
-    rocblas_init<T>(hx, 1, N, abs_incx);
-    rocblas_init<T>(hy_1, 1, N, abs_incy);
+    if(rocblas_isnan(arg.alpha))
+    {
+        rocblas_init_nan<T>(hx, 1, N, abs_incx);
+        rocblas_init_nan<T>(hy_1, 1, N, abs_incy);
+    }
+    else
+    {
+        rocblas_init<T>(hx, 1, N, abs_incx);
+        rocblas_init<T>(hy_1, 1, N, abs_incy);
+    }
 
     // copy vector is easy in STL; hy_gold = hx: save a copy in hy_gold which will be output of CPU
     // BLAS
@@ -91,18 +106,18 @@ void testing_axpy(const Arguments& arg)
     hy_gold = hy_1;
 
     // allocate memory on device
-    device_vector<T> dx(size_x);
-    device_vector<T> dy_1(size_y);
-    device_vector<T> dy_2(size_y);
-    device_vector<T> d_alpha(1);
+    device_vector<T> dx(size_x, 1, HMM);
+    device_vector<T> dy_1(size_y, 1, HMM);
+    device_vector<T> dy_2(size_y, 1, HMM);
+    device_vector<T> d_alpha(1, 1, HMM);
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy_1.memcheck());
     CHECK_DEVICE_ALLOCATION(dy_2.memcheck());
     CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
 
     // copy data from CPU to device
-    CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T) * size_x, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dy_1, hy_1, sizeof(T) * size_y, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(dx.transfer_from(hx));
+    CHECK_HIP_ERROR(dy_1.transfer_from(hy_1));
 
     double gpu_time_used, cpu_time_used;
     double rocblas_error_1 = 0.0;
@@ -110,7 +125,7 @@ void testing_axpy(const Arguments& arg)
 
     if(arg.unit_check || arg.norm_check)
     {
-        CHECK_HIP_ERROR(hipMemcpy(dy_2, hy_2, sizeof(T) * size_y, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(dy_2.transfer_from(hy_2));
         CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(T), hipMemcpyHostToDevice));
 
         // ROCBLAS pointer mode host
@@ -122,8 +137,8 @@ void testing_axpy(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(rocblas_axpy_fn(handle, N, d_alpha, dx, incx, dy_2, incy));
 
         // copy output from device to CPU
-        CHECK_HIP_ERROR(hipMemcpy(hy_1, dy_1, sizeof(T) * size_y, hipMemcpyDeviceToHost));
-        CHECK_HIP_ERROR(hipMemcpy(hy_2, dy_2, sizeof(T) * size_y, hipMemcpyDeviceToHost));
+        CHECK_HIP_ERROR(hy_1.transfer_from(dy_1));
+        CHECK_HIP_ERROR(hy_2.transfer_from(dy_2));
 
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();

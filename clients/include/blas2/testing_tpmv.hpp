@@ -3,6 +3,9 @@
  *
  * ************************************************************************ */
 
+#pragma once
+
+#include "bytes.hpp"
 #include "cblas_interface.hpp"
 #include "flops.hpp"
 #include "near.hpp"
@@ -20,8 +23,7 @@
 template <typename T>
 void testing_tpmv_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN         = arg.fortran;
-    auto       rocblas_tpmv_fn = FORTRAN ? rocblas_tpmv<T, true> : rocblas_tpmv<T, false>;
+    auto rocblas_tpmv_fn = arg.fortran ? rocblas_tpmv<T, true> : rocblas_tpmv<T, false>;
 
     const rocblas_int       M      = 100;
     const rocblas_int       incx   = 1;
@@ -29,7 +31,7 @@ void testing_tpmv_bad_arg(const Arguments& arg)
     const rocblas_fill      uplo   = rocblas_fill_lower;
     const rocblas_diagonal  diag   = rocblas_diagonal_non_unit;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     size_t size_A = (M * (M + 1)) / 2;
     size_t size_x = M * size_t(incx);
@@ -59,8 +61,7 @@ void testing_tpmv_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_tpmv(const Arguments& arg)
 {
-    const bool FORTRAN         = arg.fortran;
-    auto       rocblas_tpmv_fn = FORTRAN ? rocblas_tpmv<T, true> : rocblas_tpmv<T, false>;
+    auto rocblas_tpmv_fn = arg.fortran ? rocblas_tpmv<T, true> : rocblas_tpmv<T, false>;
 
     rocblas_int M = arg.M, incx = arg.incx;
 
@@ -69,7 +70,7 @@ void testing_tpmv(const Arguments& arg)
     rocblas_fill         uplo   = char2rocblas_fill(char_uplo);
     rocblas_operation    transA = char2rocblas_operation(char_transA);
     rocblas_diagonal     diag   = char2rocblas_diagonal(char_diag);
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     bool invalid_size = M < 0 || !incx;
     if(invalid_size || !M)
@@ -111,7 +112,6 @@ void testing_tpmv(const Arguments& arg)
     CHECK_HIP_ERROR(dx.transfer_from(hx));
 
     double gpu_time_used, cpu_time_used;
-    double rocblas_gflops, cblas_gflops, rocblas_bandwidth;
     double rocblas_error;
 
     /* =====================================================================
@@ -124,7 +124,6 @@ void testing_tpmv(const Arguments& arg)
         // ROCBLAS
         //
         CHECK_ROCBLAS_ERROR(rocblas_tpmv_fn(handle, uplo, transA, diag, M, dA, dx, incx));
-        CHECK_HIP_ERROR(hres.transfer_from(dx));
 
         //
         // CPU BLAS
@@ -133,8 +132,10 @@ void testing_tpmv(const Arguments& arg)
             cpu_time_used = get_time_us_no_sync();
             cblas_tpmv<T>(uplo, transA, diag, M, hA, hx, incx);
             cpu_time_used = get_time_us_no_sync() - cpu_time_used;
-            cblas_gflops  = tpmv_gflop_count<T>(M) / cpu_time_used * 1e6;
         }
+
+        // fetch GPU
+        CHECK_HIP_ERROR(hres.transfer_from(dx));
 
         //
         // Unit check.
@@ -178,33 +179,18 @@ void testing_tpmv(const Arguments& arg)
             {
                 rocblas_tpmv_fn(handle, uplo, transA, diag, M, dA, dx, incx);
             }
-            gpu_time_used = (get_time_us_sync(stream) - gpu_time_used) / number_hot_calls;
+            gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
         }
 
         //
-        // Evaluate performance.
+        // Log performance.
         //
-        rocblas_gflops    = tpmv_gflop_count<T>(M) / gpu_time_used * 1e6;
-        rocblas_bandwidth = (double((M * (M + 1)) / 2) * sizeof(T)) / gpu_time_used * 1e-3;
-
-        //
-        // Display.
-        //
-        rocblas_cout << "M,incx,uplo,transA,diag,rocblas-Gflops,rocblas-GB/s,";
-        if(arg.norm_check)
-        {
-            rocblas_cout << "CPU-Gflops,norm_error";
-        }
-        rocblas_cout << std::endl;
-        rocblas_cout << M << "," << incx << "," << char_uplo << ',' << char_transA << ','
-                     << char_diag << ',' << rocblas_gflops << "," << rocblas_bandwidth << ",";
-
-        if(arg.norm_check)
-        {
-            rocblas_cout << cblas_gflops << ',';
-            rocblas_cout << rocblas_error;
-        }
-
-        rocblas_cout << std::endl;
+        ArgumentModel<e_uplo, e_transA, e_diag, e_M, e_incx>{}.log_args<T>(rocblas_cout,
+                                                                           arg,
+                                                                           gpu_time_used,
+                                                                           tpmv_gflop_count<T>(M),
+                                                                           tpmv_gbyte_count<T>(M),
+                                                                           cpu_time_used,
+                                                                           rocblas_error);
     }
 }

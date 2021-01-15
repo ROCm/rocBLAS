@@ -2,8 +2,7 @@
  * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#ifndef ROCBLAS_DATA_H_
-#define ROCBLAS_DATA_H_
+#pragma once
 
 #include "rocblas_arguments.hpp"
 #include "test_cleanup.hpp"
@@ -117,5 +116,3 @@ public:
         return {};
     }
 };
-
-#endif

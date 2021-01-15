@@ -65,6 +65,15 @@ Tests:
   alpha: [ 2.0 ]
   fortran: true
 
+- name: spr2_NaN
+  category: quick
+  function: spr2
+  precision: *single_double_precisions
+  uplo: [ U ]
+  N: [ 33 ]
+  incx_incy: *incx_incy_range_small
+  alpha: [ .NaN ]
+
 - name: spr2_small
   category: quick
   function: spr2

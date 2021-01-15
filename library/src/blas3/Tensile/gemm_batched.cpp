@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "gemm_batched.hpp"
 #include "gemm.hpp"
@@ -54,7 +54,8 @@ namespace
         auto saved_pointer_mode = handle->push_pointer_mode(rocblas_pointer_mode_host);
 
         // Perform logging
-        auto layer_mode = handle->layer_mode;
+        auto layer_mode     = handle->layer_mode;
+        auto check_numerics = handle->check_numerics;
         if(layer_mode
            & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
               | rocblas_layer_mode_log_profile))
@@ -138,6 +139,34 @@ namespace
         if(validArgs != rocblas_status_continue)
             return validArgs;
 
+        if(check_numerics)
+        {
+            bool           is_input = true;
+            rocblas_status gemm_check_numerics_status
+                = rocblas_gemm_check_numerics(rocblas_gemm_batched_name<T>,
+                                              handle,
+                                              trans_a,
+                                              trans_b,
+                                              m,
+                                              n,
+                                              k,
+                                              A,
+                                              ld_a,
+                                              0,
+                                              B,
+                                              ld_b,
+                                              0,
+                                              C,
+                                              ld_c,
+                                              0,
+                                              b_c,
+                                              check_numerics,
+                                              is_input);
+            if(gemm_check_numerics_status != rocblas_status_success)
+                return gemm_check_numerics_status;
+        }
+
+        rocblas_status status = rocblas_status_success;
         // call rocBLAS source code if m*n*k is small enough
         if(size_t(m) * size_t(n) * size_t(k) < 1024 * 1024 * 1024)
         {
@@ -158,33 +187,61 @@ namespace
                                   ld_c,
                                   b_c,
                                   rocblas_stream);
-
-            return rocblas_status_success;
         }
         else
         {
-            return rocblas_gemm_template<true>(handle,
-                                               trans_a,
-                                               trans_b,
-                                               m,
-                                               n,
-                                               k,
-                                               alpha,
-                                               A,
-                                               0,
-                                               ld_a,
-                                               0,
-                                               B,
-                                               0,
-                                               ld_b,
-                                               0,
-                                               beta,
-                                               C,
-                                               0,
-                                               ld_c,
-                                               0,
-                                               b_c);
+            status = rocblas_gemm_template<true>(handle,
+                                                 trans_a,
+                                                 trans_b,
+                                                 m,
+                                                 n,
+                                                 k,
+                                                 alpha,
+                                                 A,
+                                                 0,
+                                                 ld_a,
+                                                 0,
+                                                 B,
+                                                 0,
+                                                 ld_b,
+                                                 0,
+                                                 beta,
+                                                 C,
+                                                 0,
+                                                 ld_c,
+                                                 0,
+                                                 b_c);
+            if(status != rocblas_status_success)
+                return status;
         }
+
+        if(check_numerics)
+        {
+            bool           is_input = false;
+            rocblas_status gemm_check_numerics_status
+                = rocblas_gemm_check_numerics(rocblas_gemm_batched_name<T>,
+                                              handle,
+                                              trans_a,
+                                              trans_b,
+                                              m,
+                                              n,
+                                              k,
+                                              A,
+                                              ld_a,
+                                              0,
+                                              B,
+                                              ld_b,
+                                              0,
+                                              C,
+                                              ld_c,
+                                              0,
+                                              b_c,
+                                              check_numerics,
+                                              is_input);
+            if(gemm_check_numerics_status != rocblas_status_success)
+                return gemm_check_numerics_status;
+        }
+        return status;
     }
 }
 

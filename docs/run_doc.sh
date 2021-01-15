@@ -1,13 +1,15 @@
 #!/bin/bash
 
-if [ -d docBin ]; then
-    rm -rf docBin
-fi
+set -eu
 
-sh run_doxygen.sh
+# Make this directory the PWD
+cd "$(dirname "${BASH_SOURCE[0]}")"
 
+# Build doxygen info
+bash run_doxygen.sh
+
+# Build sphinx docs
 cd source
 make clean
 make html
 make latexpdf
-cd ..

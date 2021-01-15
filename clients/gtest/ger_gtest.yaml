@@ -3,6 +3,9 @@ include: rocblas_common.yaml
 include: known_bugs.yaml
 
 Definitions:
+  - &tiny_matrix
+    - { M:   16, N:   16, lda:   16, stride_a:  256 }
+
   - &small_matrix_size_range
     - { M:   11, N:   12, lda:   13, stride_a:  156 }
     - { M:   16, N:   16, lda:   16, stride_a:  256 }
@@ -76,6 +79,15 @@ Tests:
   incx_incy: *incx_incy_range_small
   alpha: [ 2.0 ]
   fortran: [ true ]
+
+- name: ger_NaN
+  category: quick
+  function: ger
+  precision: *single_double_precisions
+  transA: N
+  matrix_size: *tiny_matrix
+  incx_incy: *incx_incy_range_small
+  alpha: [ .NaN ]
 
 - name: ger_small
   category: quick

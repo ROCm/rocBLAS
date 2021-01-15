@@ -1,6 +1,8 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+
+#pragma once
 
 #include "bytes.hpp"
 #include "cblas_interface.hpp"
@@ -19,18 +21,15 @@
 template <typename T, bool CONJ = false>
 void testing_dot_bad_arg(const Arguments& arg)
 {
-    // clang-format off
-    const bool FORTRAN        = arg.fortran;
-    auto       rocblas_dot_fn = FORTRAN ? (CONJ ? rocblas_dotc<T, true> : rocblas_dot<T, true>)
-                                        : (CONJ ? rocblas_dotc<T, false> : rocblas_dot<T, false>);
-    // clang-format on
+    auto rocblas_dot_fn = arg.fortran ? (CONJ ? rocblas_dotc<T, true> : rocblas_dot<T, true>)
+                                      : (CONJ ? rocblas_dotc<T, false> : rocblas_dot<T, false>);
 
     rocblas_int         N         = 100;
     rocblas_int         incx      = 1;
     rocblas_int         incy      = 1;
     static const size_t safe_size = 100; //  arbitrarily set to 100
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
     device_vector<T>     dx(safe_size);
     device_vector<T>     dy(safe_size);
     device_vector<T>     d_rocblas_result(1);
@@ -59,11 +58,8 @@ void testing_dotc_bad_arg(const Arguments& arg)
 template <typename T, bool CONJ = false>
 void testing_dot(const Arguments& arg)
 {
-    // clang-format off
-    const bool FORTRAN        = arg.fortran;
-    auto       rocblas_dot_fn = FORTRAN ? (CONJ ? rocblas_dotc<T, true> : rocblas_dot<T, true>)
-                                        : (CONJ ? rocblas_dotc<T, false> : rocblas_dot<T, false>);
-    // clang-format on
+    auto rocblas_dot_fn = arg.fortran ? (CONJ ? rocblas_dotc<T, true> : rocblas_dot<T, true>)
+                                      : (CONJ ? rocblas_dotc<T, false> : rocblas_dot<T, false>);
 
     rocblas_int N    = arg.N;
     rocblas_int incx = arg.incx;
@@ -75,7 +71,8 @@ void testing_dot(const Arguments& arg)
 
     double               rocblas_error_1;
     double               rocblas_error_2;
-    rocblas_local_handle handle(arg.atomics_mode);
+    bool                 HMM = arg.HMM;
+    rocblas_local_handle handle{arg};
 
     // check to prevent undefined memmory allocation error
     if(N <= 0)
@@ -105,9 +102,9 @@ void testing_dot(const Arguments& arg)
         size_y = 1;
 
     // allocate memory on device
-    device_vector<T> dx(size_x);
-    device_vector<T> dy(size_y);
-    device_vector<T> d_rocblas_result_2(1);
+    device_vector<T> dx(size_x, 1, HMM);
+    device_vector<T> dy(size_y, 1, HMM);
+    device_vector<T> d_rocblas_result_2(1, 1, HMM);
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
     CHECK_DEVICE_ALLOCATION(d_rocblas_result_2.memcheck());
@@ -118,12 +115,20 @@ void testing_dot(const Arguments& arg)
 
     // Initial Data on CPU
     rocblas_seedrand();
-    rocblas_init<T>(hx, 1, N, abs_incx);
-    rocblas_init<T>(hy, 1, N, abs_incy);
+    if(rocblas_isnan(arg.alpha))
+    {
+        rocblas_init_nan<T>(hx, 1, N, abs_incx);
+        rocblas_init_nan<T>(hy, 1, N, abs_incy);
+    }
+    else
+    {
+        rocblas_init<T>(hx, 1, N, abs_incx);
+        rocblas_init<T>(hy, 1, N, abs_incy);
+    }
 
     // copy data from CPU to device, does not work for incx != 1
-    CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T) * size_x, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dy, hy, sizeof(T) * size_y, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(dx.transfer_from(hx));
+    CHECK_HIP_ERROR(dy.transfer_from(hy));
 
     double gpu_time_used, cpu_time_used;
 

@@ -2,8 +2,7 @@
  * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#ifndef _TESTING_UTILITY_H_
-#define _TESTING_UTILITY_H_
+#pragma once
 
 #include "../../library/src/include/utility.hpp"
 #include "cblas_interface.hpp"
@@ -40,6 +39,7 @@
 // puts, putchar, fputs, printf, fprintf, vprintf, vfprintf: Use rocblas_cout or rocblas_cerr
 // sprintf, vsprintf: Possible buffer overflows; us snprintf or vsnprintf instead
 // strerror: Thread-unsafe; use snprintf / dprintf with %m or strerror_* alternatives
+// strsignal: Thread-unsafe; use sys_siglist[signal] instead
 // strtok: Thread-unsafe; use strtok_r
 // gmtime, ctime, asctime, localtime: Thread-unsafe
 // tmpnam: Thread-unsafe; use mkstemp or related functions instead
@@ -53,38 +53,37 @@
 #undef stderr
 #pragma GCC poison cout cerr clog stdout stderr gets puts putchar fputs fprintf printf sprintf    \
     vfprintf vprintf vsprintf perror strerror strtok gmtime ctime asctime localtime tmpnam putenv \
-        clearenv fcloseall ecvt fcvt sleep abort
+        clearenv fcloseall ecvt fcvt sleep abort strsignal
 #else
 // Suppress warnings about hipMalloc(), hipFree() except in rocblas-test and rocblas-bench
 #undef hipMalloc
 #undef hipFree
 #endif
 
-static constexpr char LIMITED_MEMORY_STRING[]
-    = "Error: Attempting to allocate more memory than available.";
+#define LIMITED_MEMORY_STRING "Error: Attempting to allocate more memory than available."
+#define TOO_MANY_DEVICES_STRING "Error: Too many devices requested."
+#define HMM_NOT_SUPPORTED "Error: HMM not supported."
 
 // TODO: This is dependent on internal gtest behaviour.
 // Compared with result.message() when a test ended. Note that "Succeeded\n" is
 // added to the beginning of the message automatically by gtest, so this must be compared.
-static constexpr char LIMITED_MEMORY_STRING_GTEST[]
-    = "Succeeded\nError: Attempting to allocate more memory than available.";
+#define LIMITED_MEMORY_STRING_GTEST "Succeeded\n" LIMITED_MEMORY_STRING
+#define TOO_MANY_DEVICES_STRING_GTEST "Succeeded\n" TOO_MANY_DEVICES_STRING
+#define HMM_NOT_SUPPORTED_GTEST "Succeeded\n" HMM_NOT_SUPPORTED
 
 /* ============================================================================================ */
 /*! \brief  local handle which is automatically created and destroyed  */
 class rocblas_local_handle
 {
     rocblas_handle m_handle;
+    void*          m_memory = nullptr;
 
 public:
-    explicit rocblas_local_handle(rocblas_atomics_mode mode = rocblas_atomics_allowed)
-    {
-        rocblas_create_handle(&m_handle);
-        m_handle->atomics_mode = mode;
-    }
-    ~rocblas_local_handle()
-    {
-        rocblas_destroy_handle(m_handle);
-    }
+    rocblas_local_handle();
+
+    explicit rocblas_local_handle(const Arguments& arg);
+
+    ~rocblas_local_handle();
 
     rocblas_local_handle(const rocblas_local_handle&) = delete;
     rocblas_local_handle(rocblas_local_handle&&)      = delete;
@@ -363,5 +362,3 @@ void print_batched_matrix(const char*           name,
     }
     rocblas_cout << std::flush;
 }
-
-#endif

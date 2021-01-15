@@ -2,6 +2,8 @@
  * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+#pragma once
+
 #include "cblas_interface.hpp"
 #include "flops.hpp"
 #include "near.hpp"
@@ -19,18 +21,17 @@
 template <typename T>
 void testing_trmm_batched_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_trmm_batched_fn
-        = FORTRAN ? rocblas_trmm_batched<T, true> : rocblas_trmm_batched<T, false>;
+    auto rocblas_trmm_batched_fn
+        = arg.fortran ? rocblas_trmm_batched<T, true> : rocblas_trmm_batched<T, false>;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
     const rocblas_int    M           = 100;
     const rocblas_int    N           = 100;
     const rocblas_int    lda         = 100;
     const rocblas_int    ldb         = 100;
     const rocblas_int    batch_count = 2;
-
-    const T alpha = 1.0;
+    const T              alpha       = 1.0;
+    const T              zero        = 0.0;
 
     const rocblas_side      side   = rocblas_side_left;
     const rocblas_fill      uplo   = rocblas_fill_upper;
@@ -63,21 +64,58 @@ void testing_trmm_batched_bad_arg(const Arguments& arg)
         rocblas_trmm_batched_fn(
             nullptr, side, uplo, transA, diag, M, N, &alpha, dA, lda, dB, ldb, batch_count),
         rocblas_status_invalid_handle);
+
+    // When batch_count==0, all pointers may be nullptr without error
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_trmm_batched_fn(
+            handle, side, uplo, transA, diag, M, N, nullptr, nullptr, lda, nullptr, ldb, 0),
+        rocblas_status_success);
+
+    // When M==0, all pointers may be nullptr without error
+    EXPECT_ROCBLAS_STATUS(rocblas_trmm_batched_fn(handle,
+                                                  side,
+                                                  uplo,
+                                                  transA,
+                                                  diag,
+                                                  0,
+                                                  N,
+                                                  nullptr,
+                                                  nullptr,
+                                                  lda,
+                                                  nullptr,
+                                                  ldb,
+                                                  batch_count),
+                          rocblas_status_success);
+
+    // When N==0, all pointers may be nullptr without error
+    EXPECT_ROCBLAS_STATUS(rocblas_trmm_batched_fn(handle,
+                                                  side,
+                                                  uplo,
+                                                  transA,
+                                                  diag,
+                                                  M,
+                                                  0,
+                                                  nullptr,
+                                                  nullptr,
+                                                  lda,
+                                                  nullptr,
+                                                  ldb,
+                                                  batch_count),
+                          rocblas_status_success);
 }
 
 template <typename T>
 void testing_trmm_batched(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_trmm_batched_fn
-        = FORTRAN ? rocblas_trmm_batched<T, true> : rocblas_trmm_batched<T, false>;
+    auto rocblas_trmm_batched_fn
+        = arg.fortran ? rocblas_trmm_batched<T, true> : rocblas_trmm_batched<T, false>;
 
     bool nantest = rocblas_isnan(arg.alpha) || rocblas_isnan(arg.alphai);
     if(!std::is_same<T, float>{} && !std::is_same<T, double>{} && !std::is_same<T, rocblas_half>{}
        && !is_complex<T> && nantest)
         return; // Exclude integers or other types which don't support NaN
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
     rocblas_int          M           = arg.M;
     rocblas_int          N           = arg.N;
     rocblas_int          lda         = arg.lda;
@@ -121,8 +159,8 @@ void testing_trmm_batched(const Arguments& arg)
     }
 
     double gpu_time_used, cpu_time_used;
-    double rocblas_gflops, cblas_gflops;
-    double rocblas_error = 0.0;
+    gpu_time_used = cpu_time_used = 0.0;
+    double rocblas_error          = 0.0;
 
     // Naming: dK is in GPU (device) memory. hK is in CPU (host) memory
     host_vector<T>       h_alpha(1);
@@ -150,8 +188,16 @@ void testing_trmm_batched(const Arguments& arg)
     //  initialize data on CPU
     h_alpha[0] = alpha;
     rocblas_seedrand();
-    rocblas_init<T>(hA);
-    rocblas_init<T>(hB);
+    if(arg.alpha_isnan<T>())
+    {
+        rocblas_init_nan<T>(hA);
+        rocblas_init_nan<T>(hB);
+    }
+    else
+    {
+        rocblas_init<T>(hA);
+        rocblas_init<T>(hB);
+    }
 
     hB_1.copy_from(hB);
     hB_2.copy_from(hB);
@@ -201,8 +247,6 @@ void testing_trmm_batched(const Arguments& arg)
                                                     ldb,
                                                     batch_count));
 
-        CHECK_HIP_ERROR(hB_2.transfer_from(dB));
-
         // CPU BLAS
         if(arg.timing)
         {
@@ -217,8 +261,10 @@ void testing_trmm_batched(const Arguments& arg)
         if(arg.timing)
         {
             cpu_time_used = get_time_us_no_sync() - cpu_time_used;
-            cblas_gflops  = trmm_gflop_count<T>(M, N, side) / cpu_time_used * 1e6;
         }
+
+        // fetch GPU
+        CHECK_HIP_ERROR(hB_2.transfer_from(dB));
 
         if(arg.unit_check)
         {
@@ -288,24 +334,24 @@ void testing_trmm_batched(const Arguments& arg)
                                     ldb,
                                     batch_count);
         }
-        gpu_time_used  = get_time_us_sync(stream) - gpu_time_used;
-        rocblas_gflops = trmm_gflop_count<T>(M, N, side) * batch_count * number_hot_calls
-                         / gpu_time_used * 1e6;
+        gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
 
-        rocblas_cout << "M,N,alpha,lda,ldb,side,uplo,transA,diag,rocblas-Gflops,us";
-
-        if(arg.unit_check || arg.norm_check)
-            rocblas_cout << ",CPU-Gflops,us,norm-error";
-
-        rocblas_cout << std::endl;
-
-        rocblas_cout << M << ',' << N << ',' << alpha << ',' << lda << ',' << ldb << ','
-                     << char_side << ',' << char_uplo << ',' << char_transA << ',' << char_diag
-                     << ',' << rocblas_gflops << "," << gpu_time_used / number_hot_calls;
-
-        if(arg.unit_check || arg.norm_check)
-            rocblas_cout << ", " << cblas_gflops << ", " << cpu_time_used << ", " << rocblas_error;
-
-        rocblas_cout << std::endl;
+        ArgumentModel<e_side,
+                      e_uplo,
+                      e_transA,
+                      e_diag,
+                      e_M,
+                      e_N,
+                      e_alpha,
+                      e_lda,
+                      e_ldb,
+                      e_batch_count>{}
+            .log_args<T>(rocblas_cout,
+                         arg,
+                         gpu_time_used,
+                         trmm_gflop_count<T>(M, N, side),
+                         ArgumentLogging::NA_value,
+                         cpu_time_used,
+                         rocblas_error);
     }
 }

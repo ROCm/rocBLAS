@@ -1,6 +1,3 @@
-.. toctree::
-   :maxdepth: 5
-   :caption: Contents:
 .. _api_label:
 
 *************
@@ -1040,6 +1037,10 @@ rocblas_get_device_memory_size
 rocblas_set_device_memory_size
 ------------------------------
 .. doxygenfunction:: rocblas_set_device_memory_size
+
+rocblas_set_workspace
+---------------------
+.. doxygenfunction:: rocblas_set_workspace
 
 rocblas_is_managing_device_memory
 ---------------------------------

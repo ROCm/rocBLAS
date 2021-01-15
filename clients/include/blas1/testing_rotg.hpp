@@ -1,6 +1,8 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+
+#pragma once
 
 #include "cblas_interface.hpp"
 #include "norm.hpp"
@@ -21,7 +23,7 @@ void testing_rotg_bad_arg(const Arguments& arg)
 
     static const size_t safe_size = 1;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
     device_vector<T>     a(safe_size);
     device_vector<T>     b(safe_size);
     device_vector<U>     c(safe_size);
@@ -50,7 +52,7 @@ void testing_rotg(const Arguments& arg)
 
     const int TEST_COUNT = 100;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
     double               gpu_time_used, cpu_time_used;
     double               error_host, error_device;
     const U              rel_error = std::numeric_limits<U>::epsilon() * 1000;
@@ -63,10 +65,20 @@ void testing_rotg(const Arguments& arg)
     {
         // Initial data on CPU
         rocblas_seedrand();
-        rocblas_init<T>(a, 1, 1, 1);
-        rocblas_init<T>(b, 1, 1, 1);
-        rocblas_init<U>(c, 1, 1, 1);
-        rocblas_init<T>(s, 1, 1, 1);
+        if(rocblas_isnan(arg.alpha))
+        {
+            rocblas_init_nan<T>(a, 1, 1, 1);
+            rocblas_init_nan<T>(b, 1, 1, 1);
+            rocblas_init_nan<U>(c, 1, 1, 1);
+            rocblas_init_nan<T>(s, 1, 1, 1);
+        }
+        else
+        {
+            rocblas_init<T>(a, 1, 1, 1);
+            rocblas_init<T>(b, 1, 1, 1);
+            rocblas_init<U>(c, 1, 1, 1);
+            rocblas_init<T>(s, 1, 1, 1);
+        }
 
         // CPU BLAS
         host_vector<T> ca = a;
@@ -86,12 +98,17 @@ void testing_rotg(const Arguments& arg)
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
             CHECK_ROCBLAS_ERROR((rocblas_rotg_fn(handle, ha, hb, hc, hs)));
 
-            if(arg.unit_check)
+            //when (input vectors are initialized with NaN's) the resultant output vector for both the cblas and rocBLAS are NAn's.  The `near_check_general` function compares the output of both the results (i.e., Nan's) and
+            //throws an error. That is the reason why it is enclosed in an `if(!rocblas_isnan(arg.alpha))` loop to skip the check.
+            if(!rocblas_isnan(arg.alpha))
             {
-                near_check_general<T>(1, 1, 1, ca, ha, rel_error);
-                near_check_general<T>(1, 1, 1, cb, hb, rel_error);
-                near_check_general<U>(1, 1, 1, cc, hc, rel_error);
-                near_check_general<T>(1, 1, 1, cs, hs, rel_error);
+                if(arg.unit_check)
+                {
+                    near_check_general<T>(1, 1, 1, ca, ha, rel_error);
+                    near_check_general<T>(1, 1, 1, cb, hb, rel_error);
+                    near_check_general<U>(1, 1, 1, cc, hc, rel_error);
+                    near_check_general<T>(1, 1, 1, cs, hs, rel_error);
+                }
             }
 
             if(arg.norm_check)
@@ -128,12 +145,15 @@ void testing_rotg(const Arguments& arg)
             CHECK_HIP_ERROR(hipMemcpy(hc, dc, sizeof(U), hipMemcpyDeviceToHost));
             CHECK_HIP_ERROR(hipMemcpy(hs, ds, sizeof(T), hipMemcpyDeviceToHost));
 
-            if(arg.unit_check)
+            if(!rocblas_isnan(arg.alpha))
             {
-                near_check_general<T>(1, 1, 1, ca, ha, rel_error);
-                near_check_general<T>(1, 1, 1, cb, hb, rel_error);
-                near_check_general<U>(1, 1, 1, cc, hc, rel_error);
-                near_check_general<T>(1, 1, 1, cs, hs, rel_error);
+                if(arg.unit_check)
+                {
+                    near_check_general<T>(1, 1, 1, ca, ha, rel_error);
+                    near_check_general<T>(1, 1, 1, cb, hb, rel_error);
+                    near_check_general<U>(1, 1, 1, cc, hc, rel_error);
+                    near_check_general<T>(1, 1, 1, cs, hs, rel_error);
+                }
             }
 
             if(arg.norm_check)

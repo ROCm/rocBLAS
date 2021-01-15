@@ -19,7 +19,7 @@ namespace
         void operator()(const Arguments& arg)
         {
             rocblas_pointer_mode mode = rocblas_pointer_mode_device;
-            rocblas_local_handle handle(arg.atomics_mode);
+            rocblas_local_handle handle{arg};
             CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
             CHECK_ROCBLAS_ERROR(rocblas_get_pointer_mode(handle, &mode));
             EXPECT_EQ(rocblas_pointer_mode_device, mode);

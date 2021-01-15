@@ -2,7 +2,6 @@
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "rocblas_copy.hpp"
-#include "check_numerics_vector.hpp"
 #include "handle.hpp"
 #include "logging.hpp"
 #include "rocblas.h"
@@ -58,16 +57,24 @@ namespace
 
         if(check_numerics)
         {
-            bool           is_input              = true;
-            rocblas_status check_numerics_status = rocblas_check_numerics_vector_template(
-                rocblas_copy_name<T>, handle, n, x, 0, incx, 0, 1, check_numerics, is_input);
-            if(check_numerics_status != rocblas_status_success)
-                return check_numerics_status;
-
-            check_numerics_status = rocblas_check_numerics_vector_template(
-                rocblas_copy_name<T>, handle, n, y, 0, incy, 0, 1, check_numerics, is_input);
-            if(check_numerics_status != rocblas_status_success)
-                return check_numerics_status;
+            bool           is_input = true;
+            rocblas_status copy_check_numerics_status
+                = rocblas_copy_check_numerics(rocblas_copy_name<T>,
+                                              handle,
+                                              n,
+                                              x,
+                                              0,
+                                              incx,
+                                              0,
+                                              y,
+                                              0,
+                                              incy,
+                                              0,
+                                              1,
+                                              check_numerics,
+                                              is_input);
+            if(copy_check_numerics_status != rocblas_status_success)
+                return copy_check_numerics_status;
         }
 
         rocblas_status status
@@ -77,16 +84,24 @@ namespace
 
         if(check_numerics)
         {
-            bool           is_input              = false;
-            rocblas_status check_numerics_status = rocblas_check_numerics_vector_template(
-                rocblas_copy_name<T>, handle, n, x, 0, incx, 0, 1, check_numerics, is_input);
-            if(check_numerics_status != rocblas_status_success)
-                return check_numerics_status;
-
-            check_numerics_status = rocblas_check_numerics_vector_template(
-                rocblas_copy_name<T>, handle, n, y, 0, incy, 0, 1, check_numerics, is_input);
-            if(check_numerics_status != rocblas_status_success)
-                return check_numerics_status;
+            bool           is_input = false;
+            rocblas_status copy_check_numerics_status
+                = rocblas_copy_check_numerics(rocblas_copy_name<T>,
+                                              handle,
+                                              n,
+                                              x,
+                                              0,
+                                              incx,
+                                              0,
+                                              y,
+                                              0,
+                                              incy,
+                                              0,
+                                              1,
+                                              check_numerics,
+                                              is_input);
+            if(copy_check_numerics_status != rocblas_status_success)
+                return copy_check_numerics_status;
         }
         return status;
     }

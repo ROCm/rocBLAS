@@ -38,6 +38,9 @@ Definitions:
   - &alpha_range_small
     - { alpha: 2.0, alphai: 0.5 }
 
+  - &alpha_nan
+    - { alpha: .NaN, alphai: .NaN }
+
 Tests:
 
 - name: syr_bad_arg
@@ -66,6 +69,16 @@ Tests:
   incx: [ -2, 2 ]
   alpha_beta: *alpha_range_small
   fortran: true
+
+- name: syr_NaN
+  category: quick
+  function: syr
+  precision: *single_double_precisions_complex_real
+  uplo: [ U, L ]
+  N: [ 32 ]
+  lda: [ 32 ]
+  incx: [ 1 ]
+  alpha_beta: *alpha_nan
 
 - name: syr_small
   category: quick

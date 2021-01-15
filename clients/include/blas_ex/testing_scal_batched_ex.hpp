@@ -1,6 +1,8 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+
+#pragma once
 
 #include "bytes.hpp"
 #include "cblas_interface.hpp"
@@ -18,9 +20,8 @@
 template <typename Ta, typename Tx = Ta, typename Tex = Tx>
 void testing_scal_batched_ex_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_scal_batched_ex_fn
-        = FORTRAN ? rocblas_scal_batched_ex_fortran : rocblas_scal_batched_ex;
+    auto rocblas_scal_batched_ex_fn
+        = arg.fortran ? rocblas_scal_batched_ex_fortran : rocblas_scal_batched_ex;
 
     rocblas_datatype alpha_type     = rocblas_datatype_f32_r;
     rocblas_datatype x_type         = rocblas_datatype_f32_r;
@@ -31,7 +32,7 @@ void testing_scal_batched_ex_bad_arg(const Arguments& arg)
     Ta          h_alpha     = Ta(0.6);
     rocblas_int batch_count = 5;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     size_t size_x = N * size_t(incx);
 
@@ -72,20 +73,19 @@ void testing_scal_batched_ex_bad_arg(const Arguments& arg)
 template <typename Ta, typename Tx = Ta, typename Tex = Tx>
 void testing_scal_batched_ex(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_scal_batched_ex_fn
-        = FORTRAN ? rocblas_scal_batched_ex_fortran : rocblas_scal_batched_ex;
+    auto rocblas_scal_batched_ex_fn
+        = arg.fortran ? rocblas_scal_batched_ex_fortran : rocblas_scal_batched_ex;
 
     rocblas_int N           = arg.N;
     rocblas_int incx        = arg.incx;
     Ta          h_alpha     = arg.get_alpha<Ta>();
     rocblas_int batch_count = arg.batch_count;
 
-    rocblas_datatype alpha_type     = arg.a_type;
-    rocblas_datatype x_type         = arg.b_type;
+    rocblas_datatype alpha_type     = arg.b_type;
+    rocblas_datatype x_type         = arg.a_type;
     rocblas_datatype execution_type = arg.compute_type;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // argument sanity check before allocating invalid memory
     if(N < 0 || incx <= 0 || batch_count <= 0)
@@ -118,7 +118,10 @@ void testing_scal_batched_ex(const Arguments& arg)
     halpha[0] = h_alpha;
 
     // Initial Data on CPU
-    rocblas_init(hx_1, true);
+    if(rocblas_isnan(arg.alpha))
+        rocblas_init_nan(hx_1, true);
+    else
+        rocblas_init(hx_1, true);
     hx_2.copy_from(hx_1);
     hx_gold.copy_from(hx_1);
 
@@ -167,7 +170,7 @@ void testing_scal_batched_ex(const Arguments& arg)
         cpu_time_used = get_time_us_no_sync();
         for(int i = 0; i < batch_count; i++)
         {
-            cblas_scal<Tx, Ta>(N, h_alpha, hx_gold[i], incx);
+            cblas_scal(N, h_alpha, (Tx*)hx_gold[i], incx);
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 

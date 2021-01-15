@@ -1,6 +1,8 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+
+#pragma once
 
 #include "bytes.hpp"
 #include "cblas_interface.hpp"
@@ -19,10 +21,9 @@
 template <typename Tx, typename Ty = Tx, typename Tr = Ty, typename Tex = Tr, bool CONJ = false>
 void testing_dot_batched_ex_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_dot_batched_ex_fn
-        = FORTRAN ? (CONJ ? rocblas_dotc_batched_ex_fortran : rocblas_dot_batched_ex_fortran)
-                  : (CONJ ? rocblas_dotc_batched_ex : rocblas_dot_batched_ex);
+    auto rocblas_dot_batched_ex_fn
+        = arg.fortran ? (CONJ ? rocblas_dotc_batched_ex_fortran : rocblas_dot_batched_ex_fortran)
+                      : (CONJ ? rocblas_dotc_batched_ex : rocblas_dot_batched_ex);
 
     rocblas_datatype x_type         = rocblas_datatype_f32_r;
     rocblas_datatype y_type         = rocblas_datatype_f32_r;
@@ -35,7 +36,7 @@ void testing_dot_batched_ex_bad_arg(const Arguments& arg)
     rocblas_int stride_y    = incy * N;
     rocblas_int batch_count = 5;
 
-    rocblas_local_handle    handle(arg.atomics_mode);
+    rocblas_local_handle    handle{arg};
     device_batch_vector<Tx> dx(N, incx, batch_count);
     device_batch_vector<Ty> dy(N, incy, batch_count);
     device_vector<Tr>       d_rocblas_result(batch_count);
@@ -108,10 +109,9 @@ void testing_dotc_batched_ex_bad_arg(const Arguments& arg)
 template <typename Tx, typename Ty = Tx, typename Tr = Ty, typename Tex = Tr, bool CONJ = false>
 void testing_dot_batched_ex(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_dot_batched_ex_fn
-        = FORTRAN ? (CONJ ? rocblas_dotc_batched_ex_fortran : rocblas_dot_batched_ex_fortran)
-                  : (CONJ ? rocblas_dotc_batched_ex : rocblas_dot_batched_ex);
+    auto rocblas_dot_batched_ex_fn
+        = arg.fortran ? (CONJ ? rocblas_dotc_batched_ex_fortran : rocblas_dot_batched_ex_fortran)
+                      : (CONJ ? rocblas_dotc_batched_ex : rocblas_dot_batched_ex);
 
     rocblas_datatype x_type         = arg.a_type;
     rocblas_datatype y_type         = arg.b_type;
@@ -125,7 +125,7 @@ void testing_dot_batched_ex(const Arguments& arg)
 
     double               rocblas_error_1 = 0;
     double               rocblas_error_2 = 0;
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // check to prevent undefined memmory allocation error
     if(N <= 0 || batch_count <= 0)
@@ -180,8 +180,16 @@ void testing_dot_batched_ex(const Arguments& arg)
     host_batch_vector<Ty> hy(N, incy ? incy : 1, batch_count);
 
     // Initial Data on CPU
-    rocblas_init(hx, true);
-    rocblas_init(hy, false);
+    if(rocblas_isnan(arg.alpha))
+    {
+        rocblas_init_nan(hx, true);
+        rocblas_init_nan(hy, false);
+    }
+    else
+    {
+        rocblas_init(hx, true);
+        rocblas_init(hy, false);
+    }
 
     CHECK_HIP_ERROR(dx.transfer_from(hx));
     CHECK_HIP_ERROR(dy.transfer_from(hy));
@@ -310,7 +318,7 @@ void testing_dot_batched_ex(const Arguments& arg)
             dot_gbyte_count<Tx>(N),
             cpu_time_used,
             rocblas_error_1,
-            rocblas_error_1);
+            rocblas_error_2);
     }
 }
 

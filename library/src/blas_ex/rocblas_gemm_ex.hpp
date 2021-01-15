@@ -1,8 +1,8 @@
 /* ************************************************************************
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#ifndef __ROCBLAS_GEMM_EX_HPP
-#define __ROCBLAS_GEMM_EX_HPP
+
+#pragma once
 
 #ifndef USE_TENSILE_HOST
 #include "Tensile.h"
@@ -666,10 +666,14 @@ rocblas_status gemm_ex_batched_template(rocblas_handle    handle,
     // Temporarily change the thread's default device ID to the handle's device ID
     auto saved_device_id = handle->push_device_id();
 
-    a += offset_a;
-    b += offset_b;
-    c += offset_c;
-    d += offset_d;
+    if(a)
+        a += offset_a;
+    if(b)
+        b += offset_b;
+    if(c)
+        c += offset_c;
+    if(d)
+        d += offset_d;
 
     const To*      c_in;
     rocblas_int    ldi;
@@ -875,16 +879,77 @@ inline rocblas_status validateArgs(rocblas_handle    handle,
     if(!m || !n || !batch_count)
         return rocblas_status_success;
 
-    if(!alpha || !beta)
-        return rocblas_status_invalid_pointer;
-
-    // If (alpha == 0 || k == 0) && beta == 1 we could just copy
-    // C into D. Right now this should be handled as a "scale"
-    // operation later, which should be ok.
-
     // pointers must be valid
-    if(((!a || !b) && k != 0) || !c || !d)
+    if((k && !alpha) || !beta || !d)
         return rocblas_status_invalid_pointer;
+
+    // If C is nullptr, beta must be zero
+    if(!c)
+    {
+        switch(compute_type)
+        {
+        case rocblas_datatype_f16_r:
+            if(*(const rocblas_half*)beta)
+                return rocblas_status_invalid_pointer;
+            break;
+        case rocblas_datatype_f32_r:
+            if(*(const float*)beta)
+                return rocblas_status_invalid_pointer;
+            break;
+        case rocblas_datatype_f64_r:
+            if(*(const double*)beta)
+                return rocblas_status_invalid_pointer;
+            break;
+        case rocblas_datatype_i32_r:
+            if(*(const int32_t*)beta)
+                return rocblas_status_invalid_pointer;
+            break;
+        case rocblas_datatype_f32_c:
+            if(*(const rocblas_float_complex*)beta)
+                return rocblas_status_invalid_pointer;
+            break;
+        case rocblas_datatype_f64_c:
+            if(*(const rocblas_double_complex*)beta)
+                return rocblas_status_invalid_pointer;
+            break;
+        default:
+            break;
+        }
+    }
+
+    // If k != 0 and either A or B is nullptr, alpha must be zero
+    if(k && (!a || !b))
+    {
+        switch(compute_type)
+        {
+        case rocblas_datatype_f16_r:
+            if(*(const rocblas_half*)alpha)
+                return rocblas_status_invalid_pointer;
+            break;
+        case rocblas_datatype_f32_r:
+            if(*(const float*)alpha)
+                return rocblas_status_invalid_pointer;
+            break;
+        case rocblas_datatype_f64_r:
+            if(*(const double*)alpha)
+                return rocblas_status_invalid_pointer;
+            break;
+        case rocblas_datatype_i32_r:
+            if(*(const int32_t*)alpha)
+                return rocblas_status_invalid_pointer;
+            break;
+        case rocblas_datatype_f32_c:
+            if(*(const rocblas_float_complex*)alpha)
+                return rocblas_status_invalid_pointer;
+            break;
+        case rocblas_datatype_f64_c:
+            if(*(const rocblas_double_complex*)alpha)
+                return rocblas_status_invalid_pointer;
+            break;
+        default:
+            break;
+        }
+    }
 
     return rocblas_status_continue;
 }
@@ -1086,5 +1151,3 @@ rocblas_status copy_alpha_beta_to_host_if_on_device(rocblas_handle   handle,
         return rocblas_status_not_implemented;
     }
 }
-
-#endif

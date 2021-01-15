@@ -1,6 +1,8 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+
+#pragma once
 
 #include "bytes.hpp"
 #include "cblas_interface.hpp"
@@ -18,8 +20,7 @@
 template <typename Tx, typename Tr>
 void testing_nrm2_ex_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN            = arg.fortran;
-    auto       rocblas_nrm2_ex_fn = FORTRAN ? rocblas_nrm2_ex_fortran : rocblas_nrm2_ex;
+    auto rocblas_nrm2_ex_fn = arg.fortran ? rocblas_nrm2_ex_fortran : rocblas_nrm2_ex;
 
     rocblas_datatype x_type         = rocblas_datatype_f32_r;
     rocblas_datatype result_type    = rocblas_datatype_f32_r;
@@ -29,7 +30,7 @@ void testing_nrm2_ex_bad_arg(const Arguments& arg)
     rocblas_int         incx      = 1;
     static const size_t safe_size = 100;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     device_vector<Tx> dx(safe_size);
     device_vector<Tr> d_rocblas_result(1);
@@ -54,8 +55,7 @@ void testing_nrm2_ex_bad_arg(const Arguments& arg)
 template <typename Tx, typename Tr>
 void testing_nrm2_ex(const Arguments& arg)
 {
-    const bool FORTRAN            = arg.fortran;
-    auto       rocblas_nrm2_ex_fn = FORTRAN ? rocblas_nrm2_ex_fortran : rocblas_nrm2_ex;
+    auto rocblas_nrm2_ex_fn = arg.fortran ? rocblas_nrm2_ex_fortran : rocblas_nrm2_ex;
 
     rocblas_datatype x_type         = arg.a_type;
     rocblas_datatype result_type    = arg.b_type;
@@ -71,7 +71,7 @@ void testing_nrm2_ex(const Arguments& arg)
     double rocblas_error_1;
     double rocblas_error_2;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // check to prevent undefined memory allocation error
     if(N <= 0 || incx <= 0)
@@ -97,7 +97,10 @@ void testing_nrm2_ex(const Arguments& arg)
 
     // Initial Data on CPU
     rocblas_seedrand();
-    rocblas_init<Tx>(hx, 1, N, incx);
+    if(rocblas_isnan(arg.alpha))
+        rocblas_init_nan<Tx>(hx, 1, N, incx);
+    else
+        rocblas_init<Tx>(hx, 1, N, incx);
 
     // copy data from CPU to device, does not work for incx != 1
     CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(Tx) * N * incx, hipMemcpyHostToDevice));
@@ -136,10 +139,14 @@ void testing_nrm2_ex(const Arguments& arg)
         Tr tolerance = 2.0; //  accounts for rounding in reduction sum. depends on n.
             //  If test fails, try decreasing n or increasing tolerance.
         abs_error *= tolerance;
-        if(arg.unit_check)
+
+        if(!rocblas_isnan(arg.alpha))
         {
-            near_check_general<Tr, Tr>(1, 1, 1, &cpu_result, &rocblas_result_1, abs_error);
-            near_check_general<Tr, Tr>(1, 1, 1, &cpu_result, &rocblas_result_2, abs_error);
+            if(arg.unit_check)
+            {
+                near_check_general<Tr, Tr>(1, 1, 1, &cpu_result, &rocblas_result_1, abs_error);
+                near_check_general<Tr, Tr>(1, 1, 1, &cpu_result, &rocblas_result_2, abs_error);
+            }
         }
 
         if(arg.norm_check)

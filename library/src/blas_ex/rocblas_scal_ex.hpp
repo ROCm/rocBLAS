@@ -1,7 +1,9 @@
 /* ************************************************************************
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+
 #pragma once
+
 #include "../blas1/rocblas_scal.hpp"
 #include "handle.hpp"
 #include "logging.hpp"
@@ -116,9 +118,11 @@ rocblas_status rocblas_scal_ex_template(rocblas_handle   handle,
             && execution_type == rocblas_datatype_f64_c)
     {
         // zdscal
-        status
-            = scal_ex_typecasting<NB, BATCHED, float, rocblas_float_complex, rocblas_float_complex>(
-                SCAL_EX_TYPECASTING_PARAM);
+        status = scal_ex_typecasting<NB,
+                                     BATCHED,
+                                     double,
+                                     rocblas_double_complex,
+                                     rocblas_double_complex>(SCAL_EX_TYPECASTING_PARAM);
     }
     else
     {

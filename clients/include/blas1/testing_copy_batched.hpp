@@ -1,6 +1,8 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+
+#pragma once
 
 #include "bytes.hpp"
 #include "cblas_interface.hpp"
@@ -27,7 +29,7 @@ void testing_copy_batched_bad_arg(const Arguments& arg)
     rocblas_int       incy        = 1;
     const rocblas_int batch_count = 5;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // allocate memory on device
     device_batch_vector<T> dx(N, incx, batch_count);
@@ -57,7 +59,7 @@ void testing_copy_batched(const Arguments& arg)
     rocblas_int          N    = arg.N;
     rocblas_int          incx = arg.incx;
     rocblas_int          incy = arg.incy;
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
     rocblas_int          batch_count = arg.batch_count;
 
     // argument sanity check before allocating invalid memory
@@ -83,8 +85,16 @@ void testing_copy_batched(const Arguments& arg)
     host_batch_vector<T> hx(N, incx ? incx : 1, batch_count);
 
     // Initial Data on CPU
-    rocblas_init(hx, true);
-    rocblas_init(hy, false);
+    if(rocblas_isnan(arg.alpha))
+    {
+        rocblas_init_nan(hx, true);
+        rocblas_init_nan(hy, false);
+    }
+    else
+    {
+        rocblas_init(hx, true);
+        rocblas_init(hy, false);
+    }
     hy_gold.copy_from(hy);
 
     CHECK_HIP_ERROR(dx.transfer_from(hx));

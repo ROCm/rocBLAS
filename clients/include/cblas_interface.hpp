@@ -3,8 +3,7 @@
  *
  * ************************************************************************/
 
-#ifndef _CBLAS_INTERFACE_
-#define _CBLAS_INTERFACE_
+#pragma once
 
 #include "cblas.h"
 #include "rocblas.h"
@@ -287,49 +286,7 @@ inline void
 
 // scal
 template <typename T, typename U>
-void cblas_scal(rocblas_int n, U alpha, T* x, rocblas_int incx);
-
-template <>
-inline void cblas_scal(rocblas_int n, float alpha, float* x, rocblas_int incx)
-{
-    cblas_sscal(n, alpha, x, incx);
-}
-
-template <>
-inline void cblas_scal(rocblas_int n, double alpha, double* x, rocblas_int incx)
-{
-    cblas_dscal(n, alpha, x, incx);
-}
-
-template <>
-inline void cblas_scal(rocblas_int            n,
-                       rocblas_float_complex  alpha,
-                       rocblas_float_complex* x,
-                       rocblas_int            incx)
-{
-    cblas_cscal(n, &alpha, x, incx);
-}
-
-template <>
-inline void cblas_scal(rocblas_int             n,
-                       rocblas_double_complex  alpha,
-                       rocblas_double_complex* x,
-                       rocblas_int             incx)
-{
-    cblas_zscal(n, &alpha, x, incx);
-}
-
-template <>
-inline void cblas_scal(rocblas_int n, float alpha, rocblas_float_complex* x, rocblas_int incx)
-{
-    cblas_csscal(n, alpha, x, incx);
-}
-
-template <>
-inline void cblas_scal(rocblas_int n, double alpha, rocblas_double_complex* x, rocblas_int incx)
-{
-    cblas_zdscal(n, alpha, x, incx);
-}
+void cblas_scal(rocblas_int n, T alpha, U x, rocblas_int incx);
 
 // swap
 template <typename T>
@@ -3369,5 +3326,3 @@ inline rocblas_int cblas_potrf(char uplo, rocblas_int m, rocblas_double_complex*
 }
 
 /* ============================================================================================ */
-
-#endif /* _CBLAS_INTERFACE_ */

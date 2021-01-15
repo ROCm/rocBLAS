@@ -2,8 +2,7 @@
  * Copyright 2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#ifndef _ROCBLAS_OSTREAM_HPP_
-#define _ROCBLAS_OSTREAM_HPP_
+#pragma once
 
 #include "rocblas.h"
 #include "utility.hpp"
@@ -227,15 +226,15 @@ public:
     // Implemented as singleton to avoid the static initialization order fiasco
     static rocblas_ostream& cout()
     {
-        thread_local rocblas_ostream cout{STDOUT_FILENO};
-        return cout;
+        thread_local rocblas_ostream t_cout{STDOUT_FILENO};
+        return t_cout;
     }
 
     // Implemented as singleton to avoid the static initialization order fiasco
     static rocblas_ostream& cerr()
     {
-        thread_local rocblas_ostream cerr{STDERR_FILENO};
-        return cerr;
+        thread_local rocblas_ostream t_cerr{STDERR_FILENO};
+        return t_cerr;
     }
 
     // Abort function which safely flushes all IO
@@ -245,11 +244,19 @@ public:
      * Non-member friend functions for formatted output                      *
      *************************************************************************/
 
-    // Default output
-    template <typename T>
+    // Default output for non-enumeration types
+    template <typename T, std::enable_if_t<!std::is_enum<std::decay_t<T>>{}, int> = 0>
     friend rocblas_ostream& operator<<(rocblas_ostream& os, T&& x)
     {
         os.os << std::forward<T>(x);
+        return os;
+    }
+
+    // Default output for enumeration types
+    template <typename T, std::enable_if_t<std::is_enum<std::decay_t<T>>{}, int> = 0>
+    friend rocblas_ostream& operator<<(rocblas_ostream& os, T&& x)
+    {
+        os.os << std::underlying_type_t<std::decay_t<T>>(x);
         return os;
     }
 
@@ -401,5 +408,3 @@ public:
     static std::ostream& yaml_on(std::ostream& os);
     static std::ostream& yaml_off(std::ostream& os);
 };
-
-#endif

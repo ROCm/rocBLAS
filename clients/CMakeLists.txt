@@ -39,10 +39,11 @@ include_directories(${CMAKE_BINARY_DIR}/include)
 include_directories(${CMAKE_BINARY_DIR}/include/internal)
 
 if(OS_ID_rhel OR OS_ID_centos OR OS_ID_sles)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp=libgomp -pthread -stdlib=libstdc++ -std=c++14")
+    set(COMMON_CXX_OPTIONS "-fopenmp=libgomp;-pthread;-stdlib=libstdc++;-std=c++14")
 else()
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp -pthread")
+    set(COMMON_CXX_OPTIONS "-fopenmp;-pthread")
 endif()
+set(COMMON_LINK_LIBS "-fopenmp -lpthread -lstdc++")
 
 set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(Threads REQUIRED)
@@ -157,7 +158,7 @@ endfunction(rocm_create_package_clients)
 if (BUILD_CLIENTS_SAMPLES OR  BUILD_CLIENTS_TESTS OR BUILD_CLIENTS_SELFTEST OR BUILD_CLIENTS_RIDER)
 
 rocm_create_package_clients(LIB_NAME rocblas
-                            DESCRIPTION "Client for rocBLAS, AMD's BLAS library on ROCm (Radeon Open Compute platforM). The client can be used to test or benchmark rocBLAS"
+                            DESCRIPTION "Client for rocBLAS, AMD's BLAS library on ROCm. The client can be used to test or benchmark rocBLAS"
                             MAINTAINER "Rocblas Maintainer <rocblas-maintainer@amd.com>"
                             SECTION "dev"
                             VERSION ${rocblas_VERSION})

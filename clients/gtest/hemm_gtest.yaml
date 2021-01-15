@@ -17,6 +17,9 @@ Definitions:
     - { alpha:  0.0, alphai:  0.0, beta:  1.0, betai: 0.0 } # quick success
     - { alpha:  0.0, alphai:  0.0, beta:  2.0, betai: 0.5 } # scale step only
 
+  - &tiny_matrix_size
+    - { M:    88, N:  100,  lda:  200,  ldb:  88,  ldc: 88 }
+
   - &medium_matrix_size_range
     - { M:    12, N:   33,  lda:   33,  ldb: 33,   ldc: 33 }
     - { M:    88, N:  100,  lda:  200,  ldb:  88,  ldc: 88 }
@@ -46,6 +49,16 @@ Tests:
   matrix_size: *quick_matrix_size_range
   alpha: [ 0, 1 ]
   beta: [ 0, 1 ]
+
+- name: hemm_NaN
+  category: pre_checkin
+  function: hemm
+  precision: *single_double_precisions_complex
+  uplo: [ U, L ]
+  side: [ L, R ]
+  matrix_size: *tiny_matrix_size
+  alpha: [ 1.0, .NaN ]  # NaN is converted to 0.0 in test code
+  beta: [ 0.5, 1.0, .NaN ]
 
 - name: hemm_medium
   category: pre_checkin

@@ -1,7 +1,10 @@
 /* ************************************************************************
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+
 #pragma once
+
+#include "check_numerics_vector.hpp"
 #include "handle.hpp"
 #include "logging.hpp"
 
@@ -212,4 +215,47 @@ rocblas_status rocblas_rotm_template(rocblas_handle handle,
     }
 
     return rocblas_status_success;
+}
+
+template <typename T>
+rocblas_status rocblas_rotm_check_numerics(const char*    function_name,
+                                           rocblas_handle handle,
+                                           rocblas_int    n,
+                                           T              x,
+                                           rocblas_int    offset_x,
+                                           rocblas_int    inc_x,
+                                           rocblas_stride stride_x,
+                                           T              y,
+                                           rocblas_int    offset_y,
+                                           rocblas_int    inc_y,
+                                           rocblas_stride stride_y,
+                                           rocblas_int    batch_count,
+                                           const int      check_numerics,
+                                           bool           is_input)
+{
+    rocblas_status check_numerics_status = rocblas_check_numerics_vector_template(function_name,
+                                                                                  handle,
+                                                                                  n,
+                                                                                  x,
+                                                                                  offset_x,
+                                                                                  inc_x,
+                                                                                  stride_x,
+                                                                                  batch_count,
+                                                                                  check_numerics,
+                                                                                  is_input);
+    if(check_numerics_status != rocblas_status_success)
+        return check_numerics_status;
+
+    check_numerics_status = rocblas_check_numerics_vector_template(function_name,
+                                                                   handle,
+                                                                   n,
+                                                                   y,
+                                                                   offset_y,
+                                                                   inc_y,
+                                                                   stride_y,
+                                                                   batch_count,
+                                                                   check_numerics,
+                                                                   is_input);
+
+    return check_numerics_status;
 }

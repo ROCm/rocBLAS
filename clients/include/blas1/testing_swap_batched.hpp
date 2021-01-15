@@ -1,6 +1,7 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+
 #pragma once
 
 #include "cblas_interface.hpp"
@@ -17,16 +18,15 @@
 template <typename T>
 void testing_swap_batched_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_swap_batched_fn
-        = FORTRAN ? rocblas_swap_batched<T, true> : rocblas_swap_batched<T, false>;
+    auto rocblas_swap_batched_fn
+        = arg.fortran ? rocblas_swap_batched<T, true> : rocblas_swap_batched<T, false>;
 
     rocblas_int N           = 100;
     rocblas_int incx        = 1;
     rocblas_int incy        = 1;
     rocblas_int batch_count = 1;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     device_batch_vector<T> dxt(N, incx, batch_count);
     device_batch_vector<T> dyt(N, incy, batch_count);
@@ -48,16 +48,15 @@ void testing_swap_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_swap_batched(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_swap_batched_fn
-        = FORTRAN ? rocblas_swap_batched<T, true> : rocblas_swap_batched<T, false>;
+    auto rocblas_swap_batched_fn
+        = arg.fortran ? rocblas_swap_batched<T, true> : rocblas_swap_batched<T, false>;
 
     rocblas_int N           = arg.N;
     rocblas_int incx        = arg.incx;
     rocblas_int incy        = arg.incy;
     rocblas_int batch_count = arg.batch_count;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // argument sanity check before allocating invalid memory
     if(N <= 0 || batch_count <= 0)
@@ -81,13 +80,20 @@ void testing_swap_batched(const Arguments& arg)
     host_batch_vector<T> hy_gold(N, incy, batch_count);
 
     // Initial Data on CPU
-    rocblas_init(hx, true);
+    if(rocblas_isnan(arg.alpha))
+        rocblas_init_nan(hx, true);
+    else
+        rocblas_init(hx, true);
+
     for(int i = 0; i < batch_count; i++)
     {
         // make hy different to hx
         for(size_t j = 0; j < N; j++)
         {
-            hy[i][j * abs_incy] = hx[i][j * abs_incx] + 1.0;
+            if(rocblas_isnan(arg.alpha))
+                hy[i][j * abs_incy] = T(rocblas_nan_rng());
+            else
+                hy[i][j * abs_incy] = hx[i][j * abs_incx] + 1.0;
         }
     }
 

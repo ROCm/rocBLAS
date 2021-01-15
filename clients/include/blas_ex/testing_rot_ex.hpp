@@ -1,6 +1,8 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+
+#pragma once
 
 #include "cblas_interface.hpp"
 #include "norm.hpp"
@@ -16,8 +18,7 @@
 template <typename Tx, typename Ty, typename Tcs, typename Tex>
 void testing_rot_ex_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN           = arg.fortran;
-    auto       rocblas_rot_ex_fn = FORTRAN ? rocblas_rot_ex_fortran : rocblas_rot_ex;
+    auto rocblas_rot_ex_fn = arg.fortran ? rocblas_rot_ex_fortran : rocblas_rot_ex;
 
     rocblas_datatype x_type         = rocblas_datatype_f32_r;
     rocblas_datatype y_type         = rocblas_datatype_f32_r;
@@ -29,7 +30,7 @@ void testing_rot_ex_bad_arg(const Arguments& arg)
     rocblas_int         incy      = 1;
     static const size_t safe_size = 100;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
     device_vector<Tx>    dx(safe_size);
     device_vector<Ty>    dy(safe_size);
     device_vector<Tcs>   dc(1);
@@ -64,8 +65,7 @@ void testing_rot_ex_bad_arg(const Arguments& arg)
 template <typename Tx, typename Ty, typename Tcs, typename Tex>
 void testing_rot_ex(const Arguments& arg)
 {
-    const bool FORTRAN           = arg.fortran;
-    auto       rocblas_rot_ex_fn = FORTRAN ? rocblas_rot_ex_fortran : rocblas_rot_ex;
+    auto rocblas_rot_ex_fn = arg.fortran ? rocblas_rot_ex_fortran : rocblas_rot_ex;
 
     rocblas_datatype x_type         = arg.a_type;
     rocblas_datatype y_type         = arg.b_type;
@@ -76,7 +76,7 @@ void testing_rot_ex(const Arguments& arg)
     rocblas_int incx = arg.incx;
     rocblas_int incy = arg.incy;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
     double               gpu_time_used, cpu_time_used;
     double norm_error_host_x = 0.0, norm_error_host_y = 0.0, norm_error_device_x = 0.0,
            norm_error_device_y = 0.0;
@@ -120,8 +120,16 @@ void testing_rot_ex(const Arguments& arg)
     host_vector<Tcs> hc(1);
     host_vector<Tcs> hs(1);
     rocblas_seedrand();
-    rocblas_init<Tx>(hx, 1, N, abs_incx);
-    rocblas_init<Ty>(hy, 1, N, abs_incy);
+    if(rocblas_isnan(arg.alpha))
+    {
+        rocblas_init_nan<Tx>(hx, 1, N, abs_incx);
+        rocblas_init_nan<Ty>(hy, 1, N, abs_incy);
+    }
+    else
+    {
+        rocblas_init<Tx>(hx, 1, N, abs_incx);
+        rocblas_init<Ty>(hy, 1, N, abs_incy);
+    }
 
     rocblas_init<Tcs>(hc, 1, 1, 1);
     rocblas_init<Tcs>(hs, 1, 1, 1);
@@ -208,18 +216,17 @@ void testing_rot_ex(const Arguments& arg)
             rocblas_rot_ex_fn(
                 handle, N, dx, x_type, incx, dy, y_type, incy, dc, ds, cs_type, execution_type);
         }
-        gpu_time_used = (get_time_us_sync(stream) - gpu_time_used) / number_hot_calls;
+        gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
 
-        rocblas_cout << "N,incx,incy,rocblas(us),cpu(us)";
-        if(arg.norm_check)
-            rocblas_cout
-                << ",norm_error_host_x,norm_error_host_y,norm_error_device_x,norm_error_device_y";
-        rocblas_cout << std::endl;
-        rocblas_cout << N << "," << incx << "," << incy << "," << gpu_time_used << ","
-                     << cpu_time_used;
-        if(arg.norm_check)
-            rocblas_cout << ',' << norm_error_host_x << ',' << norm_error_host_y << ","
-                         << norm_error_device_x << "," << norm_error_device_y;
-        rocblas_cout << std::endl;
+        ArgumentModel<e_N, e_incx, e_incy>{}.log_args<Tx>(rocblas_cout,
+                                                          arg,
+                                                          gpu_time_used,
+                                                          ArgumentLogging::NA_value,
+                                                          ArgumentLogging::NA_value,
+                                                          cpu_time_used,
+                                                          norm_error_host_x,
+                                                          norm_error_device_x,
+                                                          norm_error_host_y,
+                                                          norm_error_device_y);
     }
 }

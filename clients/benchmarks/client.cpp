@@ -285,6 +285,7 @@ struct perf_blas<T, U, std::enable_if_t<std::is_same<T, float>{} || std::is_same
     {
         static const func_map map
             = { {"set_get_vector", testing_set_get_vector<T>},
+                {"set_get_vector_async", testing_set_get_vector_async<T>},
                 {"set_get_matrix", testing_set_get_matrix<T>},
                 {"set_get_matrix_async", testing_set_get_matrix_async<T>},
                 // L1
@@ -453,7 +454,12 @@ struct perf_blas<T,
     void operator()(const Arguments& arg)
     {
         static const func_map map
-            = { {"asum", testing_asum<T>},
+            = { {"set_get_vector", testing_set_get_vector<T>},
+                {"set_get_vector_async", testing_set_get_vector_async<T>},
+                {"set_get_matrix", testing_set_get_matrix<T>},
+                {"set_get_matrix_async", testing_set_get_matrix_async<T>},
+                // L1
+                {"asum", testing_asum<T>},
                 {"asum_batched", testing_asum_batched<T>},
                 {"asum_strided_batched", testing_asum_strided_batched<T>},
                 {"axpy", testing_axpy<T>},
@@ -881,6 +887,10 @@ int run_bench_test(Arguments& arg)
     // enable timing check,otherwise no performance data collected
     arg.timing = 1;
 
+    // One stream and one thread (0 indicates to use default behavior)
+    arg.streams = 0;
+    arg.threads = 0;
+
     // Skip past any testing_ prefix in function
     static constexpr char prefix[] = "testing_";
     const char*           function = arg.function;
@@ -909,6 +919,12 @@ int run_bench_test(Arguments& arg)
         {
             rocblas_cout << "rocblas-bench INFO: ldc < min_ldc, set ldc = " << min_ldc << std::endl;
             arg.ldc = min_ldc;
+        }
+        if(!strcmp(function, "gemm") && arg.batch_count > 1)
+        {
+            rocblas_cout << "rocblas-bench INFO: batch_count can only be 1 for function gemm"
+                         << ", set batch_count = 1" << std::endl;
+            arg.batch_count = 1;
         }
     }
     else if(!strcmp(function, "gemm_strided_batched"))
@@ -989,6 +1005,12 @@ int run_bench_test(Arguments& arg)
         {
             rocblas_cout << "rocblas-bench INFO: ldd < min_ldd, set ldd = " << min_ldc << std::endl;
             arg.ldd = min_ldd;
+        }
+        if(!strcmp(function, "gemm_ex") && arg.batch_count > 1)
+        {
+            rocblas_cout << "rocblas-bench INFO: batch_count can only be 1 for function gemm_ex"
+                         << ", set batch_count = 1" << std::endl;
+            arg.batch_count = 1;
         }
         rocblas_gemm_dispatch<perf_gemm_ex>(arg);
     }
@@ -1188,6 +1210,10 @@ try
          value<rocblas_int>(&arg.incy)->default_value(1),
          "increment between values in y vector")
 
+        ("incb",
+         value<rocblas_int>(&arg.incb)->default_value(1),
+         "increment between values in b vector")
+
         ("alpha",
           value<double>(&arg.alpha)->default_value(1.0), "specifies the scalar alpha")
 
@@ -1257,6 +1283,10 @@ try
          value<rocblas_int>(&arg.batch_count)->default_value(1),
          "Number of matrices. Only applicable to batched and strided_batched routines")
 
+        ("HMM",
+         value<bool>(&arg.HMM)->default_value(false),
+         "Parameter requesting the use of HipManagedMemory")
+
         ("verify,v",
          value<rocblas_int>(&arg.norm_check)->default_value(0),
          "Validate GPU results with CPU? 0 = No, 1 = Yes (default: No)")
@@ -1296,6 +1326,10 @@ try
         ("fortran",
          bool_switch(&arg.fortran)->default_value(false),
          "Run using Fortran interface")
+
+        ("workspace",
+         value<size_t>(&arg.user_allocated_workspace)->default_value(0),
+         "Set fixed workspace memory size instead of using rocblas managed memory")
 
         ("help,h", "produces this help message")
 

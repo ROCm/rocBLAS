@@ -1,6 +1,7 @@
-//
-// Copyright 2018-2020 Advanced Micro Devices, Inc.
-//
+/* ************************************************************************
+ * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * ************************************************************************ */
+
 #pragma once
 
 //
@@ -42,13 +43,15 @@ public:
     //! @param stride The stride.
     //! @param batch_count The batch count.
     //! @param stg The storage format to use.
+    //! @param HMM         HipManagedMemory Flag.
     //!
     explicit device_strided_batch_vector(rocblas_int    n,
                                          rocblas_int    inc,
                                          rocblas_stride stride,
                                          rocblas_int    batch_count,
-                                         storage        stg = storage::block)
-        : d_vector<T, PAD, U>(calculate_nmemb(n, inc, stride, batch_count, stg))
+                                         storage        stg = storage::block,
+                                         bool           HMM = false)
+        : d_vector<T, PAD, U>(calculate_nmemb(n, inc, stride, batch_count, stg), HMM)
         , m_storage(stg)
         , m_n(n)
         , m_inc(inc)
@@ -200,8 +203,10 @@ public:
     //!
     hipError_t transfer_from(const host_strided_batch_vector<T>& that)
     {
-        return hipMemcpy(
-            this->data(), that.data(), sizeof(T) * this->nmemb(), hipMemcpyHostToDevice);
+        return hipMemcpy(this->data(),
+                         that.data(),
+                         sizeof(T) * this->nmemb(),
+                         this->use_HMM ? hipMemcpyHostToHost : hipMemcpyHostToDevice);
     }
 
     //!

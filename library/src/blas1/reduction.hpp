@@ -2,8 +2,8 @@
  * Copyright 2019-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#ifndef REDUCTION_H_
-#define REDUCTION_H_
+#pragma once
+
 #include "handle.hpp"
 #include "rocblas.h"
 #include "utility.hpp"
@@ -301,5 +301,3 @@ rocblas_status rocblas_reduction_kernel(rocblas_handle __restrict__ handle,
 
     return rocblas_status_success;
 }
-
-#endif

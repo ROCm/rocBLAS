@@ -1,7 +1,6 @@
 /* ************************************************************************
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include "check_numerics_vector.hpp"
 #include "handle.hpp"
 #include "logging.hpp"
 #include "rocblas.h"
@@ -121,33 +120,23 @@ namespace
         if(check_numerics)
         {
             bool           is_input = true;
-            rocblas_status check_numerics_status
-                = rocblas_check_numerics_vector_template(rocblas_dot_batched_name<CONJ, T>,
-                                                         handle,
-                                                         n,
-                                                         x,
-                                                         0,
-                                                         incx,
-                                                         0,
-                                                         batch_count,
-                                                         check_numerics,
-                                                         is_input);
-            if(check_numerics_status != rocblas_status_success)
-                return check_numerics_status;
-
-            check_numerics_status
-                = rocblas_check_numerics_vector_template(rocblas_dot_batched_name<CONJ, T>,
-                                                         handle,
-                                                         n,
-                                                         y,
-                                                         0,
-                                                         incy,
-                                                         0,
-                                                         batch_count,
-                                                         check_numerics,
-                                                         is_input);
-            if(check_numerics_status != rocblas_status_success)
-                return check_numerics_status;
+            rocblas_status dot_check_numerics_status
+                = rocblas_dot_check_numerics(rocblas_dot_batched_name<CONJ, T>,
+                                             handle,
+                                             n,
+                                             x,
+                                             0,
+                                             incx,
+                                             0,
+                                             y,
+                                             0,
+                                             incy,
+                                             0,
+                                             batch_count,
+                                             check_numerics,
+                                             is_input);
+            if(dot_check_numerics_status != rocblas_status_success)
+                return dot_check_numerics_status;
         }
 
         rocblas_status status = rocblas_dot_template<NB, CONJ, T>(
@@ -158,33 +147,23 @@ namespace
         if(check_numerics)
         {
             bool           is_input = false;
-            rocblas_status check_numerics_status
-                = rocblas_check_numerics_vector_template(rocblas_dot_batched_name<CONJ, T>,
-                                                         handle,
-                                                         n,
-                                                         x,
-                                                         0,
-                                                         incx,
-                                                         0,
-                                                         batch_count,
-                                                         check_numerics,
-                                                         is_input);
-            if(check_numerics_status != rocblas_status_success)
-                return check_numerics_status;
-
-            check_numerics_status
-                = rocblas_check_numerics_vector_template(rocblas_dot_batched_name<CONJ, T>,
-                                                         handle,
-                                                         n,
-                                                         y,
-                                                         0,
-                                                         incy,
-                                                         0,
-                                                         batch_count,
-                                                         check_numerics,
-                                                         is_input);
-            if(check_numerics_status != rocblas_status_success)
-                return check_numerics_status;
+            rocblas_status dot_check_numerics_status
+                = rocblas_dot_check_numerics(rocblas_dot_batched_name<CONJ, T>,
+                                             handle,
+                                             n,
+                                             x,
+                                             0,
+                                             incx,
+                                             0,
+                                             y,
+                                             0,
+                                             incy,
+                                             0,
+                                             batch_count,
+                                             check_numerics,
+                                             is_input);
+            if(dot_check_numerics_status != rocblas_status_success)
+                return dot_check_numerics_status;
         }
         return status;
     }

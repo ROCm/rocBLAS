@@ -1,7 +1,10 @@
 /* ************************************************************************
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+
 #pragma once
+
+#include "check_numerics_vector.hpp"
 #include "handle.hpp"
 
 template <typename T>
@@ -18,27 +21,27 @@ __device__ void
 }
 
 template <rocblas_int DIM_X, rocblas_int DIM_Y, typename TScal, typename TConstPtr, typename TPtr>
-__global__ void rocblas_spr_kernel(bool           upper,
-                                   rocblas_int    n,
-                                   TScal          alphaa,
-                                   TConstPtr      xa,
-                                   ptrdiff_t      shift_x,
-                                   rocblas_int    incx,
-                                   rocblas_stride stride_x,
-                                   TPtr           APa,
-                                   ptrdiff_t      shift_A,
-                                   rocblas_stride stride_A)
+__global__ __launch_bounds__(DIM_X* DIM_Y) void rocblas_spr_kernel(bool           upper,
+                                                                   rocblas_int    n,
+                                                                   TScal          alphaa,
+                                                                   TConstPtr      xa,
+                                                                   ptrdiff_t      shift_x,
+                                                                   rocblas_int    incx,
+                                                                   rocblas_stride stride_x,
+                                                                   TPtr           APa,
+                                                                   ptrdiff_t      shift_A,
+                                                                   rocblas_stride stride_A)
 {
     rocblas_int num_threads = hipBlockDim_x * hipBlockDim_y * hipBlockDim_z;
     if(DIM_X * DIM_Y != num_threads)
         return; // need to launch exactly the number of threads as template parameters indicate.
 
-    auto*       AP    = load_ptr_batch(APa, hipBlockIdx_z, shift_A, stride_A);
-    const auto* x     = load_ptr_batch(xa, hipBlockIdx_z, shift_x, stride_x);
-    auto        alpha = load_scalar(alphaa);
-
+    auto alpha = load_scalar(alphaa);
     if(!alpha)
         return;
+
+    auto*       AP = load_ptr_batch(APa, hipBlockIdx_z, shift_A, stride_A);
+    const auto* x  = load_ptr_batch(xa, hipBlockIdx_z, shift_x, stride_x);
 
     spr_kernel_calc(upper, n, alpha, x, incx, AP);
 }
@@ -115,4 +118,34 @@ rocblas_status rocblas_spr_template(rocblas_handle handle,
                            stride_A);
 
     return rocblas_status_success;
+}
+
+//TODO :-Add rocblas_check_numerics_sp_matrix_template for checking Matrix `A` which is a Symmetric Packed Matrix
+template <typename T, typename U>
+rocblas_status rocblas_spr_check_numerics(const char*    function_name,
+                                          rocblas_handle handle,
+                                          rocblas_int    n,
+                                          T              A,
+                                          rocblas_int    offset_a,
+                                          rocblas_stride stride_a,
+                                          U              x,
+                                          rocblas_int    offset_x,
+                                          rocblas_int    inc_x,
+                                          rocblas_stride stride_x,
+                                          rocblas_int    batch_count,
+                                          const int      check_numerics,
+                                          bool           is_input)
+{
+    rocblas_status check_numerics_status = rocblas_check_numerics_vector_template(function_name,
+                                                                                  handle,
+                                                                                  n,
+                                                                                  x,
+                                                                                  offset_x,
+                                                                                  inc_x,
+                                                                                  stride_x,
+                                                                                  batch_count,
+                                                                                  check_numerics,
+                                                                                  is_input);
+
+    return check_numerics_status;
 }

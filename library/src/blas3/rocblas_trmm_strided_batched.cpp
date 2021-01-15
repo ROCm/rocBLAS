@@ -158,7 +158,7 @@ namespace
         if(m == 0 || n == 0 || batch_count == 0)
             return rocblas_status_success;
 
-        if(!a || !b || !alpha)
+        if(!b || !alpha || (!a && *alpha))
             return rocblas_status_invalid_pointer;
 
         auto mem = handle->device_malloc(dev_bytes);

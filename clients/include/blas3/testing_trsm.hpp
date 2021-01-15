@@ -2,6 +2,8 @@
  * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+#pragma once
+
 #include "cblas_interface.hpp"
 #include "flops.hpp"
 #include "norm.hpp"
@@ -21,8 +23,7 @@
 template <typename T>
 void testing_trsm(const Arguments& arg)
 {
-    const bool FORTRAN         = arg.fortran;
-    auto       rocblas_trsm_fn = FORTRAN ? rocblas_trsm<T, true> : rocblas_trsm<T, false>;
+    auto rocblas_trsm_fn = arg.fortran ? rocblas_trsm<T, true> : rocblas_trsm<T, false>;
 
     rocblas_int M   = arg.M;
     rocblas_int N   = arg.N;
@@ -44,7 +45,9 @@ void testing_trsm(const Arguments& arg)
     size_t      size_A = lda * size_t(K);
     size_t      size_B = ldb * size_t(N);
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    bool HMM = arg.HMM;
+
+    rocblas_local_handle handle{arg};
 
     // check here to prevent undefined memory allocation error
     bool invalid_size = M < 0 || N < 0 || lda < K || ldb < M;
@@ -70,15 +73,15 @@ void testing_trsm(const Arguments& arg)
     host_vector<T> cpuXorB(size_B);
 
     double gpu_time_used, cpu_time_used;
-    double rocblas_gflops, cblas_gflops;
+    gpu_time_used = cpu_time_used  = 0.0;
     double error_eps_multiplier    = ERROR_EPS_MULTIPLIER;
     double residual_eps_multiplier = RESIDUAL_EPS_MULTIPLIER;
     double eps                     = std::numeric_limits<real_t<T>>::epsilon();
 
     // allocate memory on device
-    device_vector<T> dA(size_A);
-    device_vector<T> dXorB(size_B);
-    device_vector<T> alpha_d(1);
+    device_vector<T> dA(size_A, 1, HMM);
+    device_vector<T> dXorB(size_B, 1, HMM);
+    device_vector<T> alpha_d(1, 1, HMM);
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dXorB.memcheck());
     CHECK_DEVICE_ALLOCATION(alpha_d.memcheck());
@@ -168,8 +171,8 @@ void testing_trsm(const Arguments& arg)
     cpuXorB = hB; // cpuXorB <- B
 
     // copy data from CPU to device
-    CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(T) * size_A, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dXorB, hXorB_1, sizeof(T) * size_B, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(dA.transfer_from(hA));
+    CHECK_HIP_ERROR(dXorB.transfer_from(hXorB_1));
 
     double max_err_1 = 0.0;
     double max_err_2 = 0.0;
@@ -192,22 +195,22 @@ void testing_trsm(const Arguments& arg)
     {
         // calculate dXorB <- A^(-1) B   rocblas_device_pointer_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_HIP_ERROR(hipMemcpy(dXorB, hXorB_1, sizeof(T) * size_B, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(dXorB.transfer_from(hXorB_1));
 
         CHECK_ROCBLAS_ERROR(
             rocblas_trsm_fn(handle, side, uplo, transA, diag, M, N, &alpha_h, dA, lda, dXorB, ldb));
 
-        CHECK_HIP_ERROR(hipMemcpy(hXorB_1, dXorB, sizeof(T) * size_B, hipMemcpyDeviceToHost));
+        CHECK_HIP_ERROR(hXorB_1.transfer_from(dXorB));
 
         // calculate dXorB <- A^(-1) B   rocblas_device_pointer_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_HIP_ERROR(hipMemcpy(dXorB, hXorB_2, sizeof(T) * size_B, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(dXorB.transfer_from(hXorB_2));
         CHECK_HIP_ERROR(hipMemcpy(alpha_d, &alpha_h, sizeof(T), hipMemcpyHostToDevice));
 
         CHECK_ROCBLAS_ERROR(
             rocblas_trsm_fn(handle, side, uplo, transA, diag, M, N, alpha_d, dA, lda, dXorB, ldb));
 
-        CHECK_HIP_ERROR(hipMemcpy(hXorB_2, dXorB, sizeof(T) * size_B, hipMemcpyDeviceToHost));
+        CHECK_HIP_ERROR(hXorB_2.transfer_from(dXorB));
 
         //computed result is in hx_or_b, so forward error is E = hx - hx_or_b
         // calculate vector-induced-norm 1 of matrix E
@@ -256,8 +259,7 @@ void testing_trsm(const Arguments& arg)
                 handle, side, uplo, transA, diag, M, N, &alpha_h, dA, lda, dXorB, ldb));
         }
 
-        gpu_time_used  = get_time_us_sync(stream) - gpu_time_used;
-        rocblas_gflops = trsm_gflop_count<T>(M, N, K) * number_hot_calls / gpu_time_used * 1e6;
+        gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
 
         // CPU cblas
         cpu_time_used = get_time_us_no_sync();
@@ -265,24 +267,15 @@ void testing_trsm(const Arguments& arg)
         cblas_trsm<T>(side, uplo, transA, diag, M, N, alpha_h, hA, lda, cpuXorB, ldb);
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
-        cblas_gflops  = trsm_gflop_count<T>(M, N, K) / cpu_time_used * 1e6;
 
-        // only norm_check return an norm error, unit check won't return anything
-        rocblas_cout << "M,N,lda,ldb,side,uplo,transA,diag,rocblas-Gflops,us";
-
-        if(arg.norm_check)
-            rocblas_cout << ",CPU-Gflops,us,norm_error_host_ptr,norm_error_dev_ptr";
-
-        rocblas_cout << std::endl;
-
-        rocblas_cout << M << ',' << N << ',' << lda << ',' << ldb << ',' << char_side << ','
-                     << char_uplo << ',' << char_transA << ',' << char_diag << ',' << rocblas_gflops
-                     << "," << gpu_time_used / number_hot_calls;
-
-        if(arg.norm_check)
-            rocblas_cout << "," << cblas_gflops << "," << cpu_time_used << "," << max_err_1 << ","
-                         << max_err_2;
-
-        rocblas_cout << std::endl;
+        ArgumentModel<e_side, e_uplo, e_transA, e_diag, e_M, e_N, e_alpha, e_lda, e_ldb>{}
+            .log_args<T>(rocblas_cout,
+                         arg,
+                         gpu_time_used,
+                         trsm_gflop_count<T>(M, N, K),
+                         ArgumentLogging::NA_value,
+                         cpu_time_used,
+                         max_err_1,
+                         max_err_2);
     }
 }

@@ -2,6 +2,8 @@
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+#pragma once
+
 #include "cblas_interface.hpp"
 #include "flops.hpp"
 #include "norm.hpp"
@@ -18,9 +20,8 @@
 template <typename T>
 void testing_tbsv_batched_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_tbsv_batched_fn
-        = FORTRAN ? rocblas_tbsv_batched<T, true> : rocblas_tbsv_batched<T, false>;
+    auto rocblas_tbsv_batched_fn
+        = arg.fortran ? rocblas_tbsv_batched<T, true> : rocblas_tbsv_batched<T, false>;
 
     const rocblas_int       N           = 100;
     const rocblas_int       K           = 5;
@@ -31,7 +32,7 @@ void testing_tbsv_batched_bad_arg(const Arguments& arg)
     const rocblas_fill      uplo        = rocblas_fill_lower;
     const rocblas_diagonal  diag        = rocblas_diagonal_non_unit;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     size_t size_A = lda * size_t(N);
     size_t size_x = N * size_t(incx);
@@ -81,9 +82,8 @@ void testing_tbsv_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_tbsv_batched(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_tbsv_batched_fn
-        = FORTRAN ? rocblas_tbsv_batched<T, true> : rocblas_tbsv_batched<T, false>;
+    auto rocblas_tbsv_batched_fn
+        = arg.fortran ? rocblas_tbsv_batched<T, true> : rocblas_tbsv_batched<T, false>;
 
     rocblas_int N           = arg.N;
     rocblas_int K           = arg.K;
@@ -99,7 +99,7 @@ void testing_tbsv_batched(const Arguments& arg)
     rocblas_diagonal  diag   = char2rocblas_diagonal(char_diag);
 
     rocblas_status       status;
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // check here to prevent undefined memory allocation error
     bool invalid_size = N < 0 || K < 0 || lda < K + 1 || !incx || batch_count < 0;
@@ -128,8 +128,6 @@ void testing_tbsv_batched(const Arguments& arg)
     host_batch_vector<T> cpu_x_or_b(N, incx, batch_count);
 
     double gpu_time_used, cpu_time_used;
-    double rocblas_gflops, cblas_gflops;
-    double rocblas_error;
     double error_eps_multiplier    = 40.0;
     double residual_eps_multiplier = 40.0;
     double eps                     = std::numeric_limits<real_t<T>>::epsilon();
@@ -286,8 +284,6 @@ void testing_tbsv_batched(const Arguments& arg)
                                     batch_count);
 
         gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
-        rocblas_gflops
-            = batch_count * tbsv_gflop_count<T>(N, K) * number_hot_calls / gpu_time_used * 1e6;
 
         // CPU cblas
         cpu_time_used = get_time_us_no_sync();
@@ -297,24 +293,15 @@ void testing_tbsv_batched(const Arguments& arg)
                 cblas_tbsv<T>(uplo, transA, diag, N, K, hAB[b], lda, cpu_x_or_b[b], incx);
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
-        cblas_gflops  = batch_count * tbsv_gflop_count<T>(N, K) / cpu_time_used * 1e6;
 
-        // only norm_check return an norm error, unit check won't return anything
-        rocblas_cout << "N,K,lda,incx,uplo,transA,diag,batch_count,rocblas-Gflops,us";
-
-        if(arg.norm_check)
-            rocblas_cout << ",CPU-Gflops,us,norm_error_host_ptr,norm_error_dev_ptr";
-
-        rocblas_cout << std::endl;
-
-        rocblas_cout << N << ',' << K << ',' << lda << ',' << incx << ',' << char_uplo << ','
-                     << char_transA << ',' << char_diag << ',' << batch_count << ','
-                     << rocblas_gflops << "," << gpu_time_used / number_hot_calls;
-
-        if(arg.norm_check)
-            rocblas_cout << "," << cblas_gflops << "," << cpu_time_used << "," << max_err_1 << ","
-                         << max_err_2;
-
-        rocblas_cout << std::endl;
+        ArgumentModel<e_uplo, e_transA, e_diag, e_N, e_K, e_lda, e_incx, e_batch_count>{}
+            .log_args<T>(rocblas_cout,
+                         arg,
+                         gpu_time_used,
+                         tbsv_gflop_count<T>(N, K),
+                         ArgumentLogging::NA_value,
+                         cpu_time_used,
+                         max_err_1,
+                         max_err_2);
     }
 }

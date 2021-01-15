@@ -3,6 +3,8 @@
  *
  * ************************************************************************ */
 
+#pragma once
+
 #include "bytes.hpp"
 #include "cblas_interface.hpp"
 #include "flops.hpp"
@@ -20,22 +22,23 @@
 template <typename T>
 void testing_gemv_batched_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_gemv_batched_fn
-        = FORTRAN ? rocblas_gemv_batched<T, true> : rocblas_gemv_batched<T, false>;
+    auto rocblas_gemv_batched_fn
+        = arg.fortran ? rocblas_gemv_batched<T, true> : rocblas_gemv_batched<T, false>;
 
     const rocblas_int M           = 100;
     const rocblas_int N           = 100;
     const rocblas_int lda         = 100;
     const rocblas_int incx        = 1;
     const rocblas_int incy        = 1;
-    const T           alpha       = 1.0;
-    const T           beta        = 1.0;
+    const T           alpha       = 0.5;
+    const T           beta        = 1.5;
+    const T           zero        = 0.0;
+    const T           one         = 1.0;
     const rocblas_int batch_count = 5;
 
     const rocblas_operation transA = rocblas_operation_none;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // allocate memory on device
     device_batch_vector<T> dA(N * lda, 1, batch_count);
@@ -134,14 +137,83 @@ void testing_gemv_batched_bad_arg(const Arguments& arg)
                                                   incy,
                                                   batch_count),
                           rocblas_status_invalid_handle);
+
+    // If batch_count==0, then all pointers may be nullptr without error
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_gemv_batched_fn(
+            handle, transA, M, N, nullptr, nullptr, lda, nullptr, incx, nullptr, nullptr, incy, 0),
+        rocblas_status_success);
+
+    // If M==0, then all pointers may be nullptr without error
+    EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched_fn(handle,
+                                                  transA,
+                                                  0,
+                                                  N,
+                                                  nullptr,
+                                                  nullptr,
+                                                  lda,
+                                                  nullptr,
+                                                  incx,
+                                                  nullptr,
+                                                  nullptr,
+                                                  incy,
+                                                  batch_count),
+                          rocblas_status_success);
+
+    // If N==0, then all pointers may be nullptr without error
+    EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched_fn(handle,
+                                                  transA,
+                                                  M,
+                                                  0,
+                                                  nullptr,
+                                                  nullptr,
+                                                  lda,
+                                                  nullptr,
+                                                  incx,
+                                                  nullptr,
+                                                  nullptr,
+                                                  incy,
+                                                  batch_count),
+                          rocblas_status_success);
+
+    // If alpha==0 && beta==1, then A, X and Y may be nullptr without error
+    EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched_fn(handle,
+                                                  transA,
+                                                  M,
+                                                  N,
+                                                  &zero,
+                                                  nullptr,
+                                                  lda,
+                                                  nullptr,
+                                                  incx,
+                                                  &one,
+                                                  nullptr,
+                                                  incy,
+                                                  batch_count),
+                          rocblas_status_success);
+
+    // If alpha==0, then A and X may be nullptr without error
+    EXPECT_ROCBLAS_STATUS(rocblas_gemv_batched_fn(handle,
+                                                  transA,
+                                                  M,
+                                                  N,
+                                                  &zero,
+                                                  nullptr,
+                                                  lda,
+                                                  nullptr,
+                                                  incx,
+                                                  &beta,
+                                                  dy.ptr_on_device(),
+                                                  incy,
+                                                  batch_count),
+                          rocblas_status_success);
 }
 
 template <typename T>
 void testing_gemv_batched(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_gemv_batched_fn
-        = FORTRAN ? rocblas_gemv_batched<T, true> : rocblas_gemv_batched<T, false>;
+    auto rocblas_gemv_batched_fn
+        = arg.fortran ? rocblas_gemv_batched<T, true> : rocblas_gemv_batched<T, false>;
 
     rocblas_int       M           = arg.M;
     rocblas_int       N           = arg.N;
@@ -153,7 +225,7 @@ void testing_gemv_batched(const Arguments& arg)
     rocblas_operation transA      = char2rocblas_operation(arg.transA);
     rocblas_int       batch_count = arg.batch_count;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // argument sanity check before allocating invalid memory
     bool invalid_size = M < 0 || N < 0 || lda < M || lda < 1 || !incx || !incy || batch_count < 0;
@@ -224,12 +296,22 @@ void testing_gemv_batched(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
 
     // Initial Data on CPU
-    rocblas_init(hA, true);
-    rocblas_init(hx, false);
-    if(rocblas_isnan(arg.beta))
+    if(arg.alpha_isnan<T>())
+    {
+        rocblas_init_nan(hA, true);
+        rocblas_init_nan(hx, false);
+    }
+    else
+    {
+        rocblas_init(hA, true);
+        rocblas_init(hx, false);
+    }
+
+    if(arg.beta_isnan<T>())
         rocblas_init_nan(hy_1, false);
     else
         rocblas_init(hy_1, false);
+
     hy_2.copy_from(hy_1);
     hy_gold.copy_from(hy_1);
 
@@ -280,9 +362,6 @@ void testing_gemv_batched(const Arguments& arg)
                                                     incy,
                                                     batch_count));
 
-        CHECK_HIP_ERROR(hy_1.transfer_from(dy_1));
-        CHECK_HIP_ERROR(hy_2.transfer_from(dy_2));
-
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
         for(int b = 0; b < batch_count; ++b)
@@ -290,6 +369,10 @@ void testing_gemv_batched(const Arguments& arg)
             cblas_gemv<T>(transA, M, N, h_alpha, hA[b], lda, hx[b], incx, h_beta, hy_gold[b], incy);
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
+
+        // copy device to host
+        CHECK_HIP_ERROR(hy_1.transfer_from(dy_1));
+        CHECK_HIP_ERROR(hy_2.transfer_from(dy_2));
 
         if(arg.unit_check)
         {

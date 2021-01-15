@@ -2,6 +2,8 @@
  * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+#pragma once
+
 #include "bytes.hpp"
 #include "cblas_interface.hpp"
 #include "flops.hpp"
@@ -19,9 +21,8 @@
 template <typename T>
 void testing_spmv_strided_batched_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_spmv_strided_batched_fn
-        = FORTRAN ? rocblas_spmv_strided_batched<T, true> : rocblas_spmv_strided_batched<T, false>;
+    auto rocblas_spmv_strided_batched_fn = arg.fortran ? rocblas_spmv_strided_batched<T, true>
+                                                       : rocblas_spmv_strided_batched<T, false>;
 
     rocblas_fill uplo        = rocblas_fill_upper;
     rocblas_int  N           = 100;
@@ -31,7 +32,7 @@ void testing_spmv_strided_batched_bad_arg(const Arguments& arg)
     T            beta        = 0.6;
     rocblas_int  batch_count = 2;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     size_t         abs_incx = incx >= 0 ? incx : -incx;
     size_t         abs_incy = incy >= 0 ? incy : -incy;
@@ -165,9 +166,8 @@ void testing_spmv_strided_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_spmv_strided_batched(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_spmv_strided_batched_fn
-        = FORTRAN ? rocblas_spmv_strided_batched<T, true> : rocblas_spmv_strided_batched<T, false>;
+    auto rocblas_spmv_strided_batched_fn = arg.fortran ? rocblas_spmv_strided_batched<T, true>
+                                                       : rocblas_spmv_strided_batched<T, false>;
 
     rocblas_int N    = arg.N;
     rocblas_int incx = arg.incx;
@@ -191,7 +191,7 @@ void testing_spmv_strided_batched(const Arguments& arg)
     size_t         size_X  = stridex * batch_count;
     size_t         size_Y  = stridey * batch_count;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // argument sanity check before allocating invalid memory
     bool invalid_size = N < 0 || !incx || !incy || batch_count < 0;
@@ -229,7 +229,6 @@ void testing_spmv_strided_batched(const Arguments& arg)
     host_vector<T> hg(size_Y); // gold standard
 
     double gpu_time_used, cpu_time_used;
-    double rocblas_gflops, cblas_gflops, rocblas_bandwidth;
     double h_error, d_error;
 
     char char_fill = arg.uplo;
@@ -251,28 +250,6 @@ void testing_spmv_strided_batched(const Arguments& arg)
     // make copy in hg which will later be used with CPU BLAS
     hg  = hy;
     hy2 = hy; // device memory re-test
-
-    if(arg.unit_check || arg.norm_check)
-    {
-        // cpu reference
-        cpu_time_used = get_time_us_no_sync();
-
-        for(int i = 0; i < batch_count; i++)
-        {
-            cblas_spmv<T>(uplo,
-                          N,
-                          alpha[0],
-                          hA + i * strideA,
-                          hx + i * stridex,
-                          incx,
-                          beta[0],
-                          hg + i * stridey,
-                          incy);
-        }
-
-        cpu_time_used = get_time_us_no_sync() - cpu_time_used;
-        cblas_gflops  = batch_count * spmv_gflop_count<T>(N) / cpu_time_used * 1e6;
-    }
 
     // copy data from CPU to device
     dx.transfer_from(hx);
@@ -327,6 +304,24 @@ void testing_spmv_strided_batched(const Arguments& arg)
                                                             incy,
                                                             stridey,
                                                             batch_count));
+
+        // cpu reference
+        cpu_time_used = get_time_us_no_sync();
+
+        for(int i = 0; i < batch_count; i++)
+        {
+            cblas_spmv<T>(uplo,
+                          N,
+                          alpha[0],
+                          hA + i * strideA,
+                          hx + i * stridex,
+                          incx,
+                          beta[0],
+                          hg + i * stridey,
+                          incy);
+        }
+
+        cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         // copy output from device to CPU
         CHECK_HIP_ERROR(hy2.transfer_from(dy));
@@ -392,28 +387,31 @@ void testing_spmv_strided_batched(const Arguments& arg)
                                                                 batch_count));
         }
 
-        gpu_time_used     = (get_time_us_sync(stream) - gpu_time_used) / number_hot_calls;
-        rocblas_gflops    = batch_count * spmv_gflop_count<T>(N) / gpu_time_used * 1e6;
-        rocblas_bandwidth = batch_count * spmv_gbyte_count<T>(N) / gpu_time_used * 1e6;
+        gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
 
-        // only norm_check return an norm error, unit check won't return anything
-        rocblas_cout << "uplo, N, strideA, incx, strideX, incy, stridey, batch_count, "
-                        "rocblas-Gflops, rocblas-GB/s, (us) ";
-        if(arg.norm_check)
-        {
-            rocblas_cout << "CPU-Gflops,(us),norm_error_host_ptr,norm_error_dev_ptr";
-        }
-        rocblas_cout << std::endl;
+        Arguments targ(arg);
+        targ.stride_a = strideA;
+        targ.stride_x = stridex;
+        targ.stride_y = stridey;
 
-        rocblas_cout << arg.uplo << ',' << N << ',' << strideA << incx << "," << stridex << ","
-                     << incy << "," << stridey << "," << batch_count << "," << rocblas_gflops << ","
-                     << rocblas_bandwidth << ",(" << gpu_time_used << "),";
-
-        if(arg.norm_check)
-        {
-            rocblas_cout << cblas_gflops << ",(" << cpu_time_used << ")," << h_error << ","
-                         << d_error;
-        }
-        rocblas_cout << std::endl;
+        ArgumentModel<e_uplo,
+                      e_N,
+                      e_alpha,
+                      e_lda,
+                      e_stride_a,
+                      e_incx,
+                      e_stride_x,
+                      e_beta,
+                      e_incy,
+                      e_stride_y,
+                      e_batch_count>{}
+            .log_args<T>(rocblas_cout,
+                         targ,
+                         gpu_time_used,
+                         spmv_gflop_count<T>(N),
+                         spmv_gbyte_count<T>(N),
+                         cpu_time_used,
+                         h_error,
+                         d_error);
     }
 }

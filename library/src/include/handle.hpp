@@ -2,8 +2,7 @@
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#ifndef _ROCBLAS_HANDLE_H_
-#define _ROCBLAS_HANDLE_H_
+#pragma once
 
 #include "rocblas.h"
 #include "rocblas_ostream.hpp"
@@ -18,7 +17,9 @@
 #include <utility>
 
 // Whether rocBLAS can reallocate device memory on demand, at the cost of only
-// allowing one allocation at a time, and at the cost of potential synchronization
+// allowing one allocation at a time, and at the cost of potential synchronization.
+// If this is 0, then stack-like allocation is allowed, but reallocation on demand
+// does not occur.
 #define ROCBLAS_REALLOC_ON_DEMAND 1
 
 // Round up size to the nearest MIN_CHUNK_SIZE
@@ -32,6 +33,17 @@ constexpr size_t roundup_device_memory_size(size_t size)
 struct rocblas_device_malloc_base
 {
 };
+
+// enum representing state of rocBLAS device memory ownership
+enum class rocblas_device_memory_ownership
+{
+    rocblas_managed,
+    user_managed,
+    user_owned,
+};
+
+// helper function in handle.cpp
+static rocblas_status free_existing_device_memory(rocblas_handle);
 
 /*******************************************************************************
  * \brief rocblas_handle is a structure holding the rocblas library context.
@@ -53,6 +65,7 @@ private:
     };
 
     // Class for saving and restoring default device ID
+    // clang-format off
     class [[nodiscard]] _rocblas_saved_device_id
     {
         int device_id;
@@ -77,9 +90,7 @@ private:
         }
 
         // Move constructor
-        // clang-format off
         _rocblas_saved_device_id(_rocblas_saved_device_id&& other)
-            // clang-format on
             : device_id(other.device_id)
             , old_device_id(other.old_device_id)
         {
@@ -90,8 +101,10 @@ private:
         _rocblas_saved_device_id& operator=(const _rocblas_saved_device_id&) = delete;
         _rocblas_saved_device_id& operator=(_rocblas_saved_device_id&&) = delete;
     };
+    // clang-format on
 
     // Class for temporarily modifying a state, restoring it on destruction
+    // clang-format off
     template <typename STATE>
     class [[nodiscard]] _pushed_state
     {
@@ -100,9 +113,7 @@ private:
 
     public:
         // Constructor
-        // clang-format off
         _pushed_state(STATE& state, STATE new_state)
-            // clang-format on
             : statep(&state)
             , old_state(std::move(state))
         {
@@ -123,9 +134,7 @@ private:
         }
 
         // Move constructor
-        // clang-format off
         _pushed_state(_pushed_state&& other)
-            // clang-format on
             : statep(other.statep)
             , old_state(std::move(other.old_state))
         {
@@ -136,6 +145,7 @@ private:
         _pushed_state& operator=(const _pushed_state&) = delete;
         _pushed_state& operator=(_pushed_state&&) = delete;
     };
+    // clang-format on
 
 public:
     _rocblas_handle();
@@ -179,6 +189,8 @@ public:
     friend rocblas_status(::rocblas_set_solution_fitness_query)(_rocblas_handle*, double*);
     friend rocblas_status(::rocblas_get_device_memory_size)(_rocblas_handle*, size_t*);
     friend rocblas_status(::rocblas_set_device_memory_size)(_rocblas_handle*, size_t);
+    friend rocblas_status(::free_existing_device_memory)(rocblas_handle);
+    friend rocblas_status(::rocblas_set_workspace)(_rocblas_handle*, void*, size_t);
     friend bool(::rocblas_is_managing_device_memory)(_rocblas_handle*);
     friend rocblas_status(::rocblas_set_stream)(_rocblas_handle*, hipStream_t);
 
@@ -244,12 +256,12 @@ private:
     static constexpr size_t DEFAULT_DEVICE_MEMORY_SIZE = 32 * 1024 * 1024;
 
     // Variables holding state of device memory allocation
-    void*  device_memory                    = nullptr;
-    size_t device_memory_size               = 0;
-    size_t device_memory_in_use             = 0;
-    bool   device_memory_size_query         = false;
-    bool   device_memory_is_rocblas_managed = false;
-    size_t device_memory_query_size;
+    void*                           device_memory            = nullptr;
+    size_t                          device_memory_size       = 0;
+    size_t                          device_memory_in_use     = 0;
+    bool                            device_memory_size_query = false;
+    rocblas_device_memory_ownership device_memory_owner;
+    size_t                          device_memory_query_size;
 
     // Solution fitness query (used for internal testing)
     double* solution_fitness_query = nullptr;
@@ -266,6 +278,7 @@ private:
     const int device;
 
     // Opaque smart allocator class to perform device memory allocations
+    // clang-format off
     class [[nodiscard]] _device_malloc : public rocblas_device_malloc_base
     {
     protected:
@@ -327,7 +340,13 @@ private:
             : handle(handle)
             , prev_device_memory_in_use(handle->device_memory_in_use)
             , size(roundup_device_memory_size(total))
-            , success(size <= handle->device_memory_size - handle->device_memory_in_use)
+            , success(
+                    #if ROCBLAS_REALLOC_ON_DEMAND
+                        handle->device_allocator(size)
+                    #else
+                        size <= handle->device_memory_size - handle->device_memory_in_use
+                    #endif
+                     )
             , pointers(count,
                        success ? static_cast<char*>(handle->device_memory)
                                      + handle->device_memory_in_use
@@ -344,9 +363,7 @@ private:
         // from a variable, then there must not be any alive allocations made
         // between the initialization of the variable and the object that it
         // moves to, or the LIFO ordering will be violated and flagged.
-        // clang-format off
         _device_malloc(_device_malloc&& other) noexcept
-            // clang-format on
             : handle(other.handle)
             , prev_device_memory_in_use(other.prev_device_memory_in_use)
             , size(other.size)
@@ -358,9 +375,7 @@ private:
 
         // Move assignment is allowed as long as the object being assigned to
         // is 0-sized or an unsuccessful previous allocation.
-        // clang-format off
         _device_malloc& operator=(_device_malloc&& other) & noexcept
-        // clang-format on
         {
             this->~_device_malloc();
             return *new(this) _device_malloc(std::move(other));
@@ -399,34 +414,30 @@ private:
         // void *p = (void*) handle->device_malloc(), which is a dangling pointer.
 
         // Conversion to bool to tell if the allocation succeeded
-        // clang-format off
         explicit operator bool() &
-        // clang-format on
         {
             return success;
         }
 
         // Return the ith pointer
-        // clang-format off
         void*& operator[](size_t i) &
-        // clang-format on
         {
             return pointers.at(i);
         }
 
         // Conversion to any pointer type (if pointers.size() == 1)
         template <typename T>
-        // clang-format off
         explicit operator T*() &
-        // clang-format on
         {
             // Index 1 - pointers.size() is used to make at() throw if size() != 1
             // but to otherwise return the first element.
             return static_cast<T*>(pointers.at(1 - pointers.size()));
         }
     };
+    // clang-format on
 
     // For HPA kernel calls, all available device memory is allocated and passed to Tensile
+    // clang-format off
     class [[nodiscard]] _gsu_malloc final : _device_malloc
     {
     public:
@@ -447,10 +458,9 @@ private:
         }
 
         // Move constructor allows initialization by rvalues and returns from functions
-        // clang-format off
         _gsu_malloc(_gsu_malloc&&) = default;
-        // clang-format on
     };
+    // clang-format on
 
 public:
     // Allocate one or more sizes
@@ -498,5 +508,3 @@ public:
 #define hipFree(ptr)                                                                               \
     _Pragma("GCC warning \"Direct use of hipFree in rocBLAS is deprecated; see CONTRIBUTING.md\"") \
         hipFree(ptr)
-
-#endif

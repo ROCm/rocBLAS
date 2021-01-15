@@ -43,6 +43,9 @@ Definitions:
   - &alpha_range_small
     - { alpha: 4.0, alphai: 2.0 }
 
+  - &alpha_nan
+    - { alpha: 4.0, alphai: .NaN }
+
 Tests:
 
 - name: hpr2_bad_arg
@@ -71,6 +74,15 @@ Tests:
   incx_incy: *incx_incy_range_small
   alpha_beta: *alpha_range_small
   fortran: true
+
+- name: hpr2_NaN
+  category: quick
+  function: hpr2
+  precision: *single_double_precisions_complex
+  uplo: [ U ]
+  N: [ 32 ]
+  incx_incy: *incx_incy_range_small
+  alpha_beta: *alpha_nan
 
 - name: hpr2_small
   category: quick

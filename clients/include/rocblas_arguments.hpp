@@ -2,8 +2,7 @@
  * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#ifndef ROCBLAS_ARGUMENTS_H_
-#define ROCBLAS_ARGUMENTS_H_
+#pragma once
 
 #include "../../library/src/include/rocblas_ostream.hpp"
 #include "rocblas.h"
@@ -63,6 +62,10 @@ struct Arguments
     char diag;
 
     rocblas_int batch_count;
+    bool        HMM;
+    size_t      threads;
+    size_t      streams;
+    size_t      devices;
 
     rocblas_int stride_a; //  stride_a > transA == 'N' ? lda * K : lda * M
     rocblas_int stride_b; //  stride_b > transB == 'N' ? ldb * N : ldb * K
@@ -91,6 +94,7 @@ struct Arguments
     char                   known_bug_platforms[64];
     bool                   c_noalias_d;
     rocblas_atomics_mode   atomics_mode;
+    size_t                 user_allocated_workspace;
 
     /*************************************************************************
      *                     End Of Arguments                                  *
@@ -128,6 +132,10 @@ struct Arguments
     OPER(uplo) SEP                   \
     OPER(diag) SEP                   \
     OPER(batch_count) SEP            \
+    OPER(HMM) SEP            \
+    OPER(threads) SEP                \
+    OPER(streams) SEP                \
+    OPER(devices) SEP                \
     OPER(stride_a) SEP               \
     OPER(stride_b) SEP               \
     OPER(stride_c) SEP               \
@@ -149,7 +157,8 @@ struct Arguments
     OPER(initialization) SEP         \
     OPER(known_bug_platforms) SEP    \
     OPER(c_noalias_d) SEP            \
-    OPER(atomics_mode)
+    OPER(atomics_mode) SEP           \
+    OPER(user_allocated_workspace)
 
     // clang-format on
 
@@ -170,17 +179,25 @@ struct Arguments
     template <typename T>
     T get_alpha() const
     {
-        return rocblas_isnan(alpha) || (is_complex<T> && rocblas_isnan(alphai))
-                   ? T(0)
-                   : convert_alpha_beta<T>(alpha, alphai);
+        return alpha_isnan<T>() ? T(0) : convert_alpha_beta<T>(alpha, alphai);
     }
 
     template <typename T>
     T get_beta() const
     {
-        return rocblas_isnan(beta) || (is_complex<T> && rocblas_isnan(betai))
-                   ? T(0)
-                   : convert_alpha_beta<T>(beta, betai);
+        return beta_isnan<T>() ? T(0) : convert_alpha_beta<T>(beta, betai);
+    }
+
+    template <typename T>
+    bool alpha_isnan() const
+    {
+        return rocblas_isnan(alpha) || (is_complex<T> && rocblas_isnan(alphai));
+    }
+
+    template <typename T>
+    bool beta_isnan() const
+    {
+        return rocblas_isnan(beta) || (is_complex<T> && rocblas_isnan(betai));
     }
 
 private:
@@ -331,5 +348,3 @@ namespace ArgumentsHelper
 #endif
 
 #undef APPLY
-
-#endif

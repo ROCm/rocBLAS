@@ -161,20 +161,20 @@ install_packages( )
   fi
 
   # dependencies needed to build the rocblas library
-  local library_dependencies_ubuntu=( "make" "cmake-curses-gui" "pkg-config"
-                                      "python2.7" "python3" "python-yaml" "python3-yaml" "python3*-distutils" "python3-venv" "python3*-pip"
-                                      "llvm-6.0-dev" "zlib1g-dev" "wget" "libmsgpack-dev" "libmsgpackc2" )
+  local library_dependencies_ubuntu=( "make" "cmake-curses-gui"
+                                      "python3" "python3-yaml" "python3-venv" "python3*-pip"
+                                      "llvm-6.0-dev" "wget" "libmsgpack-dev" "libmsgpackc2" )
   local library_dependencies_centos_rhel=( "epel-release"
                                       "make" "cmake3" "rpm-build"
-                                      "python34" "PyYAML" "python3*-PyYAML" "python3*-distutils-extra" "python3-virtualenv"
-                                      "gcc-c++" "zlib-devel" "wget" )
+                                      "python34" "python3*-PyYAML" "python3-virtualenv"
+                                      "gcc-c++" "wget" )
   local library_dependencies_centos_rhel_8=( "epel-release"
                                       "make" "cmake3" "rpm-build"
                                       "python3" "python3*-PyYAML" "python3-virtualenv"
-                                      "gcc-c++" "zlib-devel" "wget" "llvm-devel" "llvm-static" )
+                                      "gcc-c++" "wget" "llvm-devel" "llvm-static" )
   local library_dependencies_fedora=( "make" "cmake" "rpm-build"
-                                      "python34" "PyYAML" "python3*-PyYAML" "python3*-distutils-extra" "python3-virtualenv"
-                                      "gcc-c++" "libcxx-devel" "zlib-devel" "wget" "llvm7.0-devel" "llvm7.0-static"
+                                      "python34" "python3*-PyYAML" "python3-virtualenv"
+                                      "gcc-c++" "libcxx-devel" "wget" "llvm7.0-devel" "llvm7.0-static"
                                       "msgpack-devel" "msgpack" )
   local library_dependencies_sles=(   "make" "cmake" "python3-PyYAML" "python3-virtualenv"
                                       "gcc-c++" "libcxxtools9" "rpm-build" "wget" "llvm7-devel" )
@@ -531,7 +531,7 @@ if [[ "${install_dependencies}" == true ]]; then
     mkdir -p ${build_dir}/deps && cd ${build_dir}/deps
     CXX=${cxx} CC=${cc} FC=${fc} ${cmake_executable} -lpthread -DBUILD_BOOST=OFF ${ROCBLAS_SRC_PATH}/deps
     make -j$(nproc)
-    elevate_if_not_root make install
+    elevate_if_not_root make install_deps
     install_blis
     popd
   fi
@@ -633,7 +633,7 @@ pushd .
 
   # Build library with AMD toolchain because of existense of device kernels
   if [[ "${build_clients}" == true ]]; then
-    CXX=${cxx} CC=${cc} ${cmake_executable} ${cmake_common_options} ${cmake_client_options} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=${rocm_path} ${ROCBLAS_SRC_PATH}
+    CXX=${cxx} CC=${cc} FC=${fc} ${cmake_executable} ${cmake_common_options} ${cmake_client_options} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=${rocm_path} ${ROCBLAS_SRC_PATH}
   else
     CXX=${cxx} CC=${cc} ${cmake_executable} ${cmake_common_options} -DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=rocblas-install -DCPACK_PACKAGING_INSTALL_PREFIX=${rocm_path} ${ROCBLAS_SRC_PATH}
   fi

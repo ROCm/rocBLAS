@@ -1,8 +1,10 @@
 /* ************************************************************************
  * Copyright 2019-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#ifndef __ROCBLAS_HEMV_HPP__
-#define __ROCBLAS_HEMV_HPP__
+
+#pragma once
+
+#include "check_numerics_vector.hpp"
 #include "handle.hpp"
 
 /**
@@ -16,21 +18,31 @@ __device__ void hemvn_kernel_calc(rocblas_fill uplo,
                                   rocblas_int  n,
                                   T            alpha,
                                   const T*     A,
-                                  rocblas_int  lda,
+                                  ptrdiff_t    lda,
                                   const T*     x,
-                                  rocblas_int  incx,
+                                  ptrdiff_t    incx,
                                   T            beta,
                                   T*           y,
-                                  rocblas_int  incy)
+                                  ptrdiff_t    incy)
 {
     rocblas_int thread_id = hipThreadIdx_x + hipThreadIdx_y * hipBlockDim_x;
-    bool        upper     = uplo == rocblas_fill_upper;
+
+    if(!alpha)
+    {
+        if(thread_id < DIM_X)
+        {
+            rocblas_int ind = hipBlockIdx_x * DIM_X + thread_id;
+            if(ind < n)
+                y[ind * incy] = beta ? beta * y[ind * incy] : 0;
+        }
+        return;
+    }
+
+    bool upper = uplo == rocblas_fill_upper;
 
     // threads are all configurated locally
     rocblas_int tx = thread_id % DIM_X;
     rocblas_int ty = thread_id / DIM_X;
-
-    rocblas_int ind = hipBlockIdx_x * DIM_X + tx;
 
     __shared__ T sdata[DIM_X * DIM_Y];
 
@@ -42,6 +54,7 @@ __device__ void hemvn_kernel_calc(rocblas_fill uplo,
 
     for(col = ty; col < n; col += DIM_Y)
     {
+        rocblas_int ind = hipBlockIdx_x * DIM_X + tx;
         if(ind < n)
         {
             if(col > ind)
@@ -58,23 +71,15 @@ __device__ void hemvn_kernel_calc(rocblas_fill uplo,
     sdata[tx + ty * DIM_X] = res_A;
     __syncthreads();
 
-    ind = hipBlockIdx_x * DIM_X + thread_id;
     if(thread_id < DIM_X)
     {
         for(rocblas_int i = 1; i < DIM_Y; i++)
             sdata[thread_id] += sdata[thread_id + DIM_X * i];
 
+        rocblas_int ind = hipBlockIdx_x * DIM_X + thread_id;
         if(ind < n)
-        {
-            if(beta != 0)
-            {
-                y[ind * incy] = (alpha * sdata[thread_id]) + (beta * y[ind * incy]);
-            }
-            else
-            {
-                y[ind * incy] = alpha * sdata[thread_id];
-            }
-        }
+            y[ind * incy]
+                = beta ? alpha * sdata[thread_id] + beta * y[ind * incy] : alpha * sdata[thread_id];
     }
 }
 
@@ -84,35 +89,39 @@ __device__ void hemvn_kernel_calc(rocblas_fill uplo,
   *  W is either:       T* OR       T* const*
   */
 template <rocblas_int DIM_X, rocblas_int DIM_Y, typename U, typename V, typename W>
-__global__ void hemvn_kernel(rocblas_fill   uplo,
-                             rocblas_int    n,
-                             U              alpha_device_host,
-                             rocblas_stride stride_alpha,
-                             V              Aa,
-                             ptrdiff_t      shifta,
-                             rocblas_int    lda,
-                             rocblas_stride strideA,
-                             V              xa,
-                             ptrdiff_t      shiftx,
-                             rocblas_int    incx,
-                             rocblas_stride stridex,
-                             U              beta_device_host,
-                             rocblas_stride stride_beta,
-                             W              ya,
-                             ptrdiff_t      shifty,
-                             rocblas_int    incy,
-                             rocblas_stride stridey)
+__launch_bounds__(DIM_X* DIM_Y) __global__ void hemvn_kernel(rocblas_fill   uplo,
+                                                             rocblas_int    n,
+                                                             U              alpha_device_host,
+                                                             rocblas_stride stride_alpha,
+                                                             V              Aa,
+                                                             ptrdiff_t      shifta,
+                                                             rocblas_int    lda,
+                                                             rocblas_stride strideA,
+                                                             V              xa,
+                                                             ptrdiff_t      shiftx,
+                                                             rocblas_int    incx,
+                                                             rocblas_stride stridex,
+                                                             U              beta_device_host,
+                                                             rocblas_stride stride_beta,
+                                                             W              ya,
+                                                             ptrdiff_t      shifty,
+                                                             rocblas_int    incy,
+                                                             rocblas_stride stridey)
 {
     rocblas_int num_threads = hipBlockDim_x * hipBlockDim_y * hipBlockDim_z;
     if(DIM_X * DIM_Y != num_threads)
         return; // need to launch exactly the same number of threads as template parameters indicate
 
-    const auto* A = load_ptr_batch(Aa, hipBlockIdx_y, shifta, strideA);
-    const auto* x = load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex);
-    auto*       y = load_ptr_batch(ya, hipBlockIdx_y, shifty, stridey);
-
     auto alpha = load_scalar(alpha_device_host, hipBlockIdx_y, stride_alpha);
     auto beta  = load_scalar(beta_device_host, hipBlockIdx_y, stride_beta);
+
+    if(!alpha && beta == 1)
+        return;
+
+    const auto* A = alpha ? load_ptr_batch(Aa, hipBlockIdx_y, shifta, strideA) : nullptr;
+    const auto* x = alpha ? load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex) : nullptr;
+
+    auto* y = load_ptr_batch(ya, hipBlockIdx_y, shifty, stridey);
 
     hemvn_kernel_calc<DIM_X, DIM_Y>(uplo, n, alpha, A, lda, x, incx, beta, y, incy);
 }
@@ -146,7 +155,7 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_hemv_template(rocblas_handle hand
                                                              rocblas_int    batch_count)
 {
     //quick return
-    if(!n || batch_count < 0)
+    if(!n || !batch_count)
         return rocblas_status_success;
 
     hipStream_t rocblas_stream = handle->get_stream();
@@ -224,4 +233,50 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_hemv_template(rocblas_handle hand
     return rocblas_status_success;
 }
 
-#endif
+//TODO :-Add rocblas_check_numerics_he_matrix_template for checking Matrix `A` which is a Hermitian Matrix
+template <typename T, typename U>
+rocblas_status rocblas_hemv_check_numerics(const char*    function_name,
+                                           rocblas_handle handle,
+                                           rocblas_int    n,
+                                           T              A,
+                                           rocblas_int    offset_a,
+                                           rocblas_int    lda,
+                                           rocblas_stride stride_a,
+                                           T              x,
+                                           rocblas_int    offset_x,
+                                           rocblas_int    inc_x,
+                                           rocblas_stride stride_x,
+                                           U              y,
+                                           rocblas_int    offset_y,
+                                           rocblas_int    inc_y,
+                                           rocblas_stride stride_y,
+                                           rocblas_int    batch_count,
+                                           const int      check_numerics,
+                                           bool           is_input)
+{
+    rocblas_status check_numerics_status = rocblas_check_numerics_vector_template(function_name,
+                                                                                  handle,
+                                                                                  n,
+                                                                                  x,
+                                                                                  offset_x,
+                                                                                  inc_x,
+                                                                                  stride_x,
+                                                                                  batch_count,
+                                                                                  check_numerics,
+                                                                                  is_input);
+    if(check_numerics_status != rocblas_status_success)
+        return check_numerics_status;
+
+    check_numerics_status = rocblas_check_numerics_vector_template(function_name,
+                                                                   handle,
+                                                                   n,
+                                                                   y,
+                                                                   offset_y,
+                                                                   inc_y,
+                                                                   stride_y,
+                                                                   batch_count,
+                                                                   check_numerics,
+                                                                   is_input);
+
+    return check_numerics_status;
+}

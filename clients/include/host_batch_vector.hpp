@@ -1,6 +1,7 @@
-//
-// Copyright 2018-2020 Advanced Micro Devices, Inc.
-//
+/* ************************************************************************
+ * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * ************************************************************************ */
+
 #pragma once
 
 #include "rocblas_init.hpp"
@@ -173,11 +174,15 @@ public:
     {
         hipError_t hip_err;
         size_t     num_bytes = size_t(this->m_n) * std::abs(this->m_inc) * sizeof(T);
+        if(that.use_HMM && hipSuccess != (hip_err = hipDeviceSynchronize()))
+            return hip_err;
+
+        hipMemcpyKind kind = that.use_HMM ? hipMemcpyHostToHost : hipMemcpyDeviceToHost;
+
         for(rocblas_int batch_index = 0; batch_index < this->m_batch_count; ++batch_index)
         {
             if(hipSuccess
-               != (hip_err = hipMemcpy(
-                       (*this)[batch_index], that[batch_index], num_bytes, hipMemcpyDeviceToHost)))
+               != (hip_err = hipMemcpy((*this)[batch_index], that[batch_index], num_bytes, kind)))
             {
                 return hip_err;
             }

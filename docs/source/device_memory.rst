@@ -1,8 +1,3 @@
-
-.. toctree::
-   :maxdepth: 4
-   :caption: Contents:
-
 ========================
 Device Memory Allocation
 ========================
@@ -21,6 +16,7 @@ The following computational functions use temporary device memory.
 |L3 gemm based functions             |block of matrix                           |
 | - rocblas_Xtrsm                    |                                          |
 | - rocblas_Xtrmm                    |                                          |
+| - rocblas_Xgemm                    |                                          |
 +------------------------------------+------------------------------------------+
 |auxiliary                           |buffer to compress noncontiguous arrays   |
 | - rocblas_set_vector               |                                          |
@@ -30,12 +26,14 @@ The following computational functions use temporary device memory.
 +------------------------------------+------------------------------------------+
 
 
-For temporary device memory rocBLAS uses a per-handle memory allocation with out-of-band management. This allows for recycling temporary device memory across multiple computational functions that use the same handle. There are helper functions to get and set the number of bytes allocated. There are helper functions to measure how much memory will be required by a section of code. These functions allow for 3 schemes to be used:
+For temporary device memory rocBLAS uses a per-handle memory allocation with out-of-band management. The temporary device memory is stored in the handle. This allows for recycling temporary device memory across multiple computational kernels that use the same handle. Each handle has a single stream, and kernels execute in order in the stream, with each kernel completing before the next kernel in the stream starts. There are 4 schemes for temporary device memory:
 
-#. **Default**: Computational functions allocate the memory they require. Note that any memory allocated persists in the handle, so it is available for later computational functions that use the handle. This has the disadvantage that allocation is a synchronizing event.
-#. **Preallocate**:  Set an environment variable to preallocate required memory when handle is created, and thereafter there are no more synchronizing allocations or deallocations. This requires the use of helper functions to measure the memory use between the handle creation and destruction.
-#. **Manual**: Manually allocate and deallocate memory throughout the program. The user will then be controlling where the synchronizing allocation and deallocation occur.
+#. **rocBLAS_managed**: This is the default scheme. If there is not enough memory in the handle, computational functions allocate the memory they require. Note that any memory allocated persists in the handle, so it is available for later computational functions that use the handle.
+#. **user_managed, preallocate**: An environment variable is set before the rocBLAS handle is created and thereafter there are no more allocations or deallocations.
+#. **user_managed, manual**:  The user calls helper functions to get or set memory size throughout the program, thereby controlling when allocation and deallocation occur.
+#. **user_owned**:  User allocates workspace and calls a helper function to allow rocBLAS to access the workspace.
 
+The default scheme has the disadvantage that allocation is synchronizing, so if there is not enough memory in the handle, a synchronizing deallocation and allocation occurs.
 
 Environment Variable for Preallocating
 ======================================
@@ -44,15 +42,25 @@ The environment variable ROCBLAS_DEVICE_MEMORY_SIZE is used to set how much memo
 - if > 0, sets the default handle device memory size to the specified size (in bytes)
 - if == 0 or unset, lets rocBLAS manage device memory, using a default size (like 32MB), and expanding it when necessary
 
-Functions for manually allocating
-=================================
-The following helper functions can be used to manually allocate and deallocate. See the API section for information on the functions.
+Functions for manually setting memory size
+==========================================
 
 - rocblas_set_device_memory_size
 - rocblas_get_device_memory_size
-- rocblas_is_managing_device_memory
+
+Function for setting user owned workspace
+=========================================
+
+- rocblas_set_workspace
+
+Functions for finding how much memory is required
+=================================================
+
 - rocblas_start_device_memory_size_query
 - rocblas_stop_device_memory_size_query
+- rocblas_is_managing_device_memory
+
+See the API section for information on the above functions.
 
 rocBLAS Function Return Values for insufficient device memory
 =============================================================

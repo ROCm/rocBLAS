@@ -1,6 +1,8 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+
+#pragma once
 
 #include "bytes.hpp"
 #include "cblas_interface.hpp"
@@ -18,9 +20,8 @@
 template <typename Ta, typename Tx = Ta, typename Tex = Tx>
 void testing_scal_strided_batched_ex_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_scal_strided_batched_ex_fn
-        = FORTRAN ? rocblas_scal_strided_batched_ex_fortran : rocblas_scal_strided_batched_ex;
+    auto rocblas_scal_strided_batched_ex_fn
+        = arg.fortran ? rocblas_scal_strided_batched_ex_fortran : rocblas_scal_strided_batched_ex;
 
     rocblas_datatype alpha_type     = rocblas_datatype_f32_r;
     rocblas_datatype x_type         = rocblas_datatype_f32_r;
@@ -32,7 +33,7 @@ void testing_scal_strided_batched_ex_bad_arg(const Arguments& arg)
     rocblas_int batch_count = 5;
     rocblas_int stridex     = 50;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     size_t size_x = N * size_t(incx);
 
@@ -82,12 +83,11 @@ void testing_scal_strided_batched_ex_bad_arg(const Arguments& arg)
 template <typename Ta, typename Tx = Ta, typename Tex = Tx>
 void testing_scal_strided_batched_ex(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_scal_strided_batched_ex_fn
-        = FORTRAN ? rocblas_scal_strided_batched_ex_fortran : rocblas_scal_strided_batched_ex;
+    auto rocblas_scal_strided_batched_ex_fn
+        = arg.fortran ? rocblas_scal_strided_batched_ex_fortran : rocblas_scal_strided_batched_ex;
 
-    rocblas_datatype alpha_type     = arg.a_type;
-    rocblas_datatype x_type         = arg.b_type;
+    rocblas_datatype alpha_type     = arg.b_type;
+    rocblas_datatype x_type         = arg.a_type;
     rocblas_datatype execution_type = arg.compute_type;
 
     rocblas_int N           = arg.N;
@@ -96,7 +96,7 @@ void testing_scal_strided_batched_ex(const Arguments& arg)
     rocblas_int batch_count = arg.batch_count;
     Ta          h_alpha     = arg.get_alpha<Ta>();
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // argument sanity check before allocating invalid memory
     // --- do no checking for stride_x ---
@@ -126,7 +126,10 @@ void testing_scal_strided_batched_ex(const Arguments& arg)
 
     // Initial Data on CPU
     rocblas_seedrand();
-    rocblas_init<Tx>(hx_1, 1, N, incx, stridex, batch_count);
+    if(rocblas_isnan(arg.alpha))
+        rocblas_init_nan<Tx>(hx_1, 1, N, incx, stridex, batch_count);
+    else
+        rocblas_init<Tx>(hx_1, 1, N, incx, stridex, batch_count);
 
     // copy vector is easy in STL; hx_gold = hx: save a copy in hx_gold which will be output of CPU
     // BLAS
@@ -189,7 +192,7 @@ void testing_scal_strided_batched_ex(const Arguments& arg)
         cpu_time_used = get_time_us_no_sync();
         for(int i = 0; i < batch_count; i++)
         {
-            cblas_scal<Tx, Ta>(N, h_alpha, hx_gold + i * stridex, incx);
+            cblas_scal(N, h_alpha, (Tx*)hx_gold + i * stridex, incx);
         }
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
