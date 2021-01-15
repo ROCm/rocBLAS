@@ -106,8 +106,10 @@ namespace
         if(m < 0 || k < 0 || lda < k + 1 || !incx || batch_count < 0)
             return rocblas_status_invalid_size;
         if(!m || !batch_count)
-            return handle->is_device_memory_size_query() ? rocblas_status_size_unchanged
-                                                         : rocblas_status_success;
+        {
+            RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
+            return rocblas_status_success;
+        }
         if(!A || !x)
             return rocblas_status_invalid_pointer;
 
@@ -124,22 +126,70 @@ namespace
         setup_batched_array<256>(
             handle->get_stream(), (T*)mem_x_copy, m, (T**)mem_x_copy_arr, batch_count);
 
-        return rocblas_tbmv_template(handle,
-                                     uplo,
-                                     transA,
-                                     diag,
-                                     m,
-                                     k,
-                                     A,
-                                     0,
-                                     lda,
-                                     0,
-                                     x,
-                                     0,
-                                     incx,
-                                     0,
-                                     batch_count,
-                                     (T* const*)mem_x_copy_arr);
+        auto check_numerics = handle->check_numerics;
+        if(check_numerics)
+        {
+            bool           is_input = true;
+            rocblas_status tbmv_check_numerics_status
+                = rocblas_tbmv_check_numerics(rocblas_tbmv_name<T>,
+                                              handle,
+                                              m,
+                                              A,
+                                              0,
+                                              lda,
+                                              0,
+                                              x,
+                                              0,
+                                              incx,
+                                              0,
+                                              batch_count,
+                                              check_numerics,
+                                              is_input);
+            if(tbmv_check_numerics_status != rocblas_status_success)
+                return tbmv_check_numerics_status;
+        }
+
+        rocblas_status status = rocblas_tbmv_template(handle,
+                                                      uplo,
+                                                      transA,
+                                                      diag,
+                                                      m,
+                                                      k,
+                                                      A,
+                                                      0,
+                                                      lda,
+                                                      0,
+                                                      x,
+                                                      0,
+                                                      incx,
+                                                      0,
+                                                      batch_count,
+                                                      (T* const*)mem_x_copy_arr);
+        if(status != rocblas_status_success)
+            return status;
+
+        if(check_numerics)
+        {
+            bool           is_input = false;
+            rocblas_status tbmv_check_numerics_status
+                = rocblas_tbmv_check_numerics(rocblas_tbmv_name<T>,
+                                              handle,
+                                              m,
+                                              A,
+                                              0,
+                                              lda,
+                                              0,
+                                              x,
+                                              0,
+                                              incx,
+                                              0,
+                                              batch_count,
+                                              check_numerics,
+                                              is_input);
+            if(tbmv_check_numerics_status != rocblas_status_success)
+                return tbmv_check_numerics_status;
+        }
+        return status;
     }
 
 } // namespace

@@ -1,6 +1,9 @@
 /* ************************************************************************
  * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+
+#pragma once
+
 #include "cblas_interface.hpp"
 #include "flops.hpp"
 #include "near.hpp"
@@ -18,9 +21,8 @@
 template <typename T>
 void testing_gemm_strided_batched(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_gemm_strided_batched_fn
-        = FORTRAN ? rocblas_gemm_strided_batched<T, true> : rocblas_gemm_strided_batched<T, false>;
+    auto rocblas_gemm_strided_batched_fn = arg.fortran ? rocblas_gemm_strided_batched<T, true>
+                                                       : rocblas_gemm_strided_batched<T, false>;
 
     rocblas_int M = arg.M;
     rocblas_int N = arg.N;
@@ -41,7 +43,7 @@ void testing_gemm_strided_batched(const Arguments& arg)
     rocblas_operation transA = char2rocblas_operation(arg.transA);
     rocblas_operation transB = char2rocblas_operation(arg.transB);
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     rocblas_int A_row = transA == rocblas_operation_none ? M : K;
     rocblas_int A_col = transA == rocblas_operation_none ? K : M;
@@ -77,7 +79,7 @@ void testing_gemm_strided_batched(const Arguments& arg)
     }
 
     double gpu_time_used, cpu_time_used;
-    double rocblas_gflops, cblas_gflops;
+    gpu_time_used = cpu_time_used = 0.0;
 
     double rocblas_error = 0.0;
 
@@ -142,9 +144,18 @@ void testing_gemm_strided_batched(const Arguments& arg)
     // Initial Data on CPU
     rocblas_seedrand();
 
-    rocblas_init<T>(hA, A_row, A_col, lda, stride_a, batch_count);
-    rocblas_init_alternating_sign<T>(hB, B_row, B_col, ldb, stride_b, batch_count);
-    if(rocblas_isnan(arg.beta) || rocblas_isnan(arg.betai))
+    if(arg.alpha_isnan<T>())
+    {
+        rocblas_init_nan<T>(hA, A_row, A_col, lda, stride_a, batch_count);
+        rocblas_init_nan<T>(hB, B_row, B_col, ldb, stride_b, batch_count);
+    }
+    else
+    {
+        rocblas_init<T>(hA, A_row, A_col, lda, stride_a, batch_count);
+        rocblas_init_alternating_sign<T>(hB, B_row, B_col, ldb, stride_b, batch_count);
+    }
+
+    if(arg.beta_isnan<T>())
         rocblas_init_nan<T>(hC_1, M, N, ldc, stride_c, batch_count);
     else
         rocblas_init<T>(hC_1, M, N, ldc, stride_c, batch_count);
@@ -213,8 +224,6 @@ void testing_gemm_strided_batched(const Arguments& arg)
                                                             stride_c,
                                                             batch_count));
 
-        CHECK_HIP_ERROR(hipMemcpy(hC_2, dC, sizeof(T) * size_c, hipMemcpyDeviceToHost));
-
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
         for(rocblas_int i = 0; i < batch_count; i++)
@@ -234,7 +243,9 @@ void testing_gemm_strided_batched(const Arguments& arg)
                           ldc);
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
-        cblas_gflops  = gemm_gflop_count<T>(M, N, K) * batch_count / cpu_time_used * 1e6;
+
+        // fetch GPU
+        CHECK_HIP_ERROR(hipMemcpy(hC_2, dC, sizeof(T) * size_c, hipMemcpyDeviceToHost));
 
         if(arg.unit_check)
         {
@@ -318,27 +329,28 @@ void testing_gemm_strided_batched(const Arguments& arg)
                                             batch_count);
         }
 
-        gpu_time_used  = (get_time_us_sync(stream) - gpu_time_used) / number_hot_calls;
-        rocblas_gflops = gemm_gflop_count<T>(M, N, K) * batch_count / gpu_time_used * 1e6;
+        gpu_time_used = (get_time_us_sync(stream) - gpu_time_used) / number_hot_calls;
 
-        rocblas_cout
-            << "transA,transB,M,N,K,alpha,lda,stride_a,ldb,stride_b,beta,ldc,stride_c,Batch_Count,"
-               "rocblas-Gflops,"
-               "us";
-
-        if(arg.norm_check)
-            rocblas_cout << ",CPU-Gflops,us,norm-error";
-
-        rocblas_cout << std::endl;
-
-        rocblas_cout << arg.transA << "," << arg.transB << "," << M << "," << N << "," << K << ","
-                     << arg.get_alpha<T>() << "," << lda << "," << stride_a << "," << ldb << ","
-                     << stride_b << "," << arg.get_beta<T>() << "," << ldc << "," << stride_c << ","
-                     << batch_count << "," << rocblas_gflops << "," << gpu_time_used;
-
-        if(arg.norm_check)
-            rocblas_cout << "," << cblas_gflops << "," << cpu_time_used << "," << rocblas_error;
-
-        rocblas_cout << std::endl;
+        ArgumentModel<e_transA,
+                      e_transB,
+                      e_M,
+                      e_N,
+                      e_K,
+                      e_alpha,
+                      e_lda,
+                      e_stride_a,
+                      e_beta,
+                      e_ldb,
+                      e_stride_b,
+                      e_ldc,
+                      e_stride_c,
+                      e_batch_count>{}
+            .log_args<T>(rocblas_cout,
+                         arg,
+                         gpu_time_used,
+                         gemm_gflop_count<T>(M, N, K),
+                         ArgumentLogging::NA_value,
+                         cpu_time_used,
+                         rocblas_error);
     }
 }

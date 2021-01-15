@@ -1,17 +1,10 @@
 #!/bin/bash
 
-if [ -d docBin ]; then
-    rm -rf docBin
-fi
+set -eu
 
-sed -e 's/ROCBLAS_EXPORT //g' ../library/include/rocblas.h > rocblas.h
-sed -e 's/ROCBLAS_EXPORT //g' ../library/include/internal/rocblas-functions.h > rocblas-functions.h
-sed -e 's/ROCBLAS_EXPORT //g' ../library/include/internal/rocblas-types.h > rocblas-types.h
-sed -e 's/ROCBLAS_EXPORT //g' ../library/include/internal/rocblas_bfloat16.h > rocblas_bfloat16.h
-sed -e 's/ROCBLAS_EXPORT //g' ../library/include/internal/rocblas-complex-types.h > rocblas-complex-types.h
-sed -e 's/ROCBLAS_EXPORT //g' ../library/include/internal/rocblas-auxiliary.h > rocblas-auxiliary.h
+# Make this directory the PWD
+cd "$(dirname "${BASH_SOURCE[0]}")"
 
-
-
+# Build the doxygen info
+rm -rf docBin
 doxygen Doxyfile
-rm *.h

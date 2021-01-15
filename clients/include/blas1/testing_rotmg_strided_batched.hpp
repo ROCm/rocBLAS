@@ -1,6 +1,8 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+
+#pragma once
 
 #include "cblas_interface.hpp"
 #include "norm.hpp"
@@ -25,7 +27,7 @@ void testing_rotmg_strided_batched_bad_arg(const Arguments& arg)
     rocblas_int         batch_count = 5;
     static const size_t safe_size   = 5;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
     device_vector<T>     d1(safe_size);
     device_vector<T>     d2(safe_size);
     device_vector<T>     x1(safe_size);
@@ -73,7 +75,7 @@ void testing_rotmg_strided_batched(const Arguments& arg)
     rocblas_int          stride_x1    = arg.stride_x;
     rocblas_int          stride_y1    = arg.stride_y;
     rocblas_int          stride_param = arg.stride_c;
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     double  gpu_time_used, cpu_time_used;
     double  norm_error_host = 0.0, norm_error_device = 0.0;
@@ -115,11 +117,22 @@ void testing_rotmg_strided_batched(const Arguments& arg)
     for(int i = 0; i < TEST_COUNT; i++)
     {
         rocblas_seedrand();
-        rocblas_init<T>(hparams, 1, 5, 1, stride_param, batch_count);
-        rocblas_init<T>(hd1, 1, 1, 1, stride_d1, batch_count);
-        rocblas_init<T>(hd2, 1, 1, 1, stride_d2, batch_count);
-        rocblas_init<T>(hx1, 1, 1, 1, stride_x1, batch_count);
-        rocblas_init<T>(hy1, 1, 1, 1, stride_y1, batch_count);
+        if(rocblas_isnan(arg.alpha))
+        {
+            rocblas_init_nan<T>(hparams, 1, 5, 1, stride_param, batch_count);
+            rocblas_init_nan<T>(hd1, 1, 1, 1, stride_d1, batch_count);
+            rocblas_init_nan<T>(hd2, 1, 1, 1, stride_d2, batch_count);
+            rocblas_init_nan<T>(hx1, 1, 1, 1, stride_x1, batch_count);
+            rocblas_init_nan<T>(hy1, 1, 1, 1, stride_y1, batch_count);
+        }
+        else
+        {
+            rocblas_init<T>(hparams, 1, 5, 1, stride_param, batch_count);
+            rocblas_init<T>(hd1, 1, 1, 1, stride_d1, batch_count);
+            rocblas_init<T>(hd2, 1, 1, 1, stride_d2, batch_count);
+            rocblas_init<T>(hx1, 1, 1, 1, stride_x1, batch_count);
+            rocblas_init<T>(hy1, 1, 1, 1, stride_y1, batch_count);
+        }
 
         host_vector<T> cparams = hparams;
         host_vector<T> cd1     = hd1;
@@ -161,14 +174,19 @@ void testing_rotmg_strided_batched(const Arguments& arg)
                                                                   stride_param,
                                                                   batch_count)));
 
-            if(arg.unit_check)
+            //when (input vectors are initialized with NaN's) the resultant output vector for both the cblas and rocBLAS are NAn's.  The `near_check_general` function compares the output of both the results (i.e., Nan's) and
+            //throws an error. That is the reason why it is enclosed in an `if(!rocblas_isnan(arg.alpha))` loop to skip the check.
+            if(!rocblas_isnan(arg.alpha))
             {
-                near_check_general<T>(1, 1, 1, stride_d1, rd1, cd1, batch_count, rel_error);
-                near_check_general<T>(1, 1, 1, stride_d2, rd2, cd2, batch_count, rel_error);
-                near_check_general<T>(1, 1, 1, stride_x1, rx1, cx1, batch_count, rel_error);
-                near_check_general<T>(1, 1, 1, stride_y1, ry1, cy1, batch_count, rel_error);
-                near_check_general<T>(
-                    1, 5, 1, stride_param, rparams, cparams, batch_count, rel_error);
+                if(arg.unit_check)
+                {
+                    near_check_general<T>(1, 1, 1, stride_d1, rd1, cd1, batch_count, rel_error);
+                    near_check_general<T>(1, 1, 1, stride_d2, rd2, cd2, batch_count, rel_error);
+                    near_check_general<T>(1, 1, 1, stride_x1, rx1, cx1, batch_count, rel_error);
+                    near_check_general<T>(1, 1, 1, stride_y1, ry1, cy1, batch_count, rel_error);
+                    near_check_general<T>(
+                        1, 5, 1, stride_param, rparams, cparams, batch_count, rel_error);
+                }
             }
 
             if(arg.norm_check)
@@ -233,14 +251,17 @@ void testing_rotmg_strided_batched(const Arguments& arg)
             CHECK_HIP_ERROR(
                 hipMemcpy(rparams, dparams, sizeof(T) * size_param, hipMemcpyDeviceToHost));
 
-            if(arg.unit_check)
+            if(!rocblas_isnan(arg.alpha))
             {
-                near_check_general<T>(1, 1, 1, stride_d1, rd1, cd1, batch_count, rel_error);
-                near_check_general<T>(1, 1, 1, stride_d2, rd2, cd2, batch_count, rel_error);
-                near_check_general<T>(1, 1, 1, stride_x1, rx1, cx1, batch_count, rel_error);
-                near_check_general<T>(1, 1, 1, stride_y1, ry1, cy1, batch_count, rel_error);
-                near_check_general<T>(
-                    1, 5, 1, stride_param, rparams, cparams, batch_count, rel_error);
+                if(arg.unit_check)
+                {
+                    near_check_general<T>(1, 1, 1, stride_d1, rd1, cd1, batch_count, rel_error);
+                    near_check_general<T>(1, 1, 1, stride_d2, rd2, cd2, batch_count, rel_error);
+                    near_check_general<T>(1, 1, 1, stride_x1, rx1, cx1, batch_count, rel_error);
+                    near_check_general<T>(1, 1, 1, stride_y1, ry1, cy1, batch_count, rel_error);
+                    near_check_general<T>(
+                        1, 5, 1, stride_param, rparams, cparams, batch_count, rel_error);
+                }
             }
 
             if(arg.norm_check)

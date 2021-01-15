@@ -1,6 +1,9 @@
 /* ************************************************************************
  * Copyright 2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+
+#pragma once
+
 #include "bytes.hpp"
 #include "cblas_interface.hpp"
 #include "flops.hpp"
@@ -19,11 +22,10 @@
 template <typename T>
 void testing_herk_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_herk_fn
-        = FORTRAN ? rocblas_herk<T, real_t<T>, true> : rocblas_herk<T, real_t<T>, false>;
+    auto rocblas_herk_fn
+        = arg.fortran ? rocblas_herk<T, real_t<T>, true> : rocblas_herk<T, real_t<T>, false>;
 
-    rocblas_local_handle    handle(arg.atomics_mode);
+    rocblas_local_handle    handle{arg};
     const rocblas_fill      uplo   = rocblas_fill_upper;
     const rocblas_operation transA = rocblas_operation_none;
     const rocblas_int       N      = 100;
@@ -79,11 +81,10 @@ void testing_herk_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_herk(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_herk_fn
-        = FORTRAN ? rocblas_herk<T, real_t<T>, true> : rocblas_herk<T, real_t<T>, false>;
+    auto rocblas_herk_fn
+        = arg.fortran ? rocblas_herk<T, real_t<T>, true> : rocblas_herk<T, real_t<T>, false>;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
     rocblas_fill         uplo   = char2rocblas_fill(arg.uplo);
     rocblas_operation    transA = char2rocblas_operation(arg.transA);
     rocblas_int          N      = arg.N;
@@ -95,7 +96,6 @@ void testing_herk(const Arguments& arg)
     U beta                      = arg.get_beta<U>();
 
     double gpu_time_used, cpu_time_used;
-    double rocblas_gflops, cblas_gflops;
     double rocblas_error = 0.0;
 
     // Note: K==0 is not an early exit, since C still needs to be multiplied by beta
@@ -114,6 +114,8 @@ void testing_herk(const Arguments& arg)
 
     const auto size_A = size_t(lda) * (transA == rocblas_operation_none ? K : N);
     const auto size_C = size_t(ldc) * N;
+    size_t     cols   = (transA == rocblas_operation_none ? K : N);
+    size_t     rows   = (transA == rocblas_operation_none ? N : K);
 
     // allocate memory on device
     device_vector<T> dA(size_A);
@@ -144,8 +146,23 @@ void testing_herk(const Arguments& arg)
     h_alpha[0] = alpha;
     h_beta[0]  = beta;
     rocblas_seedrand();
-    rocblas_init<T>(hA);
-    rocblas_init<T>(hC_1);
+    if(arg.alpha_isnan<U>())
+    {
+        rocblas_init_nan<T>(hA, rows, cols, lda);
+    }
+    else
+    {
+        rocblas_init<T>(hA);
+    }
+
+    if(arg.beta_isnan<U>())
+    {
+        rocblas_init_nan_tri<T>(uplo == rocblas_fill_upper, hC_1, rows, N, ldc);
+    }
+    else
+    {
+        rocblas_init<T>(hC_1);
+    }
 
     hC_2    = hC_1;
     hC_gold = hC_1;
@@ -175,9 +192,6 @@ void testing_herk(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(
             (rocblas_herk_fn)(handle, uplo, transA, N, K, d_alpha, dA, lda, d_beta, dC, ldc));
 
-        // copy output from device to CPU
-        CHECK_HIP_ERROR(hC_2.transfer_from(dC));
-
         // CPU BLAS
         if(arg.timing)
         {
@@ -189,8 +203,10 @@ void testing_herk(const Arguments& arg)
         if(arg.timing)
         {
             cpu_time_used = get_time_us_no_sync() - cpu_time_used;
-            cblas_gflops  = herk_gflop_count<T>(N, K) / cpu_time_used * 1e6;
         }
+
+        // copy output from device to CPU
+        CHECK_HIP_ERROR(hC_2.transfer_from(dC));
 
         if(arg.unit_check)
         {
@@ -226,23 +242,15 @@ void testing_herk(const Arguments& arg)
         {
             rocblas_herk_fn(handle, uplo, transA, N, K, h_alpha, dA, lda, h_beta, dC, ldc);
         }
-        gpu_time_used  = get_time_us_sync(stream) - gpu_time_used;
-        rocblas_gflops = herk_gflop_count<T>(N, K) * number_hot_calls / gpu_time_used * 1e6;
+        gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
 
-        rocblas_cout << "uplo,transA,N,K,alpha,lda,beta,ldc,rocblas-Gflops,us";
-
-        if(arg.norm_check)
-            rocblas_cout << ",CPU-Gflops,us,norm-error";
-
-        rocblas_cout << std::endl;
-
-        rocblas_cout << arg.uplo << "," << arg.transA << "," << N << "," << K << ","
-                     << arg.get_alpha<U>() << "," << lda << "," << arg.get_beta<U>() << "," << ldc
-                     << "," << rocblas_gflops << "," << gpu_time_used / number_hot_calls;
-
-        if(arg.norm_check)
-            rocblas_cout << "," << cblas_gflops << "," << cpu_time_used << "," << rocblas_error;
-
-        rocblas_cout << std::endl;
+        ArgumentModel<e_uplo, e_transA, e_N, e_K, e_alpha, e_lda, e_beta, e_ldc>{}.log_args<T>(
+            rocblas_cout,
+            arg,
+            gpu_time_used,
+            herk_gflop_count<T>(N, K),
+            ArgumentLogging::NA_value,
+            cpu_time_used,
+            rocblas_error);
     }
 }

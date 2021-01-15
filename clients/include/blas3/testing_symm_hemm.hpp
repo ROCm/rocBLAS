@@ -1,6 +1,9 @@
 /* ************************************************************************
  * Copyright 2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+
+#pragma once
+
 #include "bytes.hpp"
 #include "cblas_interface.hpp"
 #include "flops.hpp"
@@ -19,13 +22,12 @@
 template <typename T, bool HERM>
 void testing_symm_hemm_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
     // clang-format off
-    auto       rocblas_fn = HERM ? (FORTRAN ? rocblas_hemm<T, true> : rocblas_hemm<T, false>)
-                           : (FORTRAN ? rocblas_symm<T, true> : rocblas_symm<T, false>);
+    auto rocblas_fn = HERM ? (arg.fortran ? rocblas_hemm<T, true> : rocblas_hemm<T, false>)
+                           : (arg.fortran ? rocblas_symm<T, true> : rocblas_symm<T, false>);
     // clang-format on
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
     const rocblas_side   side  = rocblas_side_left;
     const rocblas_fill   uplo  = rocblas_fill_upper;
     const rocblas_int    M     = 100;
@@ -88,13 +90,12 @@ template <typename T, bool HERM>
 void testing_symm_hemm(const Arguments& arg)
 {
     // clang-format off
-    const bool FORTRAN    = arg.fortran;
-    auto       rocblas_fn = HERM ? (FORTRAN ? rocblas_hemm<T, true> : rocblas_hemm<T, false>)
-                           : (FORTRAN ? rocblas_symm<T, true> : rocblas_symm<T, false>);
+    auto rocblas_fn = HERM ? (arg.fortran ? rocblas_hemm<T, true> : rocblas_hemm<T, false>)
+                           : (arg.fortran ? rocblas_symm<T, true> : rocblas_symm<T, false>);
     auto gflop_count_fn = HERM ? hemm_gflop_count<T> : symm_gflop_count<T>;
     // clang-format on
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
     rocblas_side         side  = char2rocblas_side(arg.side);
     rocblas_fill         uplo  = char2rocblas_fill(arg.uplo);
     rocblas_int          M     = arg.M;
@@ -106,7 +107,6 @@ void testing_symm_hemm(const Arguments& arg)
     T                    beta  = arg.get_beta<T>();
 
     double gpu_time_used, cpu_time_used;
-    double rocblas_gflops, cblas_gflops;
     double rocblas_error = 0.0;
 
     // Note: N==0 is not an early exit, since C still needs to be multiplied by beta
@@ -172,8 +172,25 @@ void testing_symm_hemm(const Arguments& arg)
     h_beta[0]  = beta;
     rocblas_seedrand();
     rocblas_init<T>(hA);
-    rocblas_init<T>(hB);
-    rocblas_init<T>(hC_1);
+
+    if(arg.alpha_isnan<T>())
+    {
+        rocblas_init_nan<T>(hB, M, N, ldb);
+    }
+    else
+    {
+        rocblas_init<T>(hB);
+    }
+
+    if(arg.beta_isnan<T>())
+    {
+        rocblas_init_nan_tri<T>(uplo == rocblas_fill_upper, hC_1, M, N, ldc);
+    }
+    else
+    {
+        rocblas_init<T>(hC_1);
+    }
+
     hC_2    = hC_1;
     hC_gold = hC_1;
 
@@ -202,9 +219,6 @@ void testing_symm_hemm(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(
             rocblas_fn(handle, side, uplo, M, N, d_alpha, dA, lda, dB, ldb, d_beta, dC, ldc));
 
-        // copy output from device to CPU
-        CHECK_HIP_ERROR(hC_2.transfer_from(dC));
-
         // CPU BLAS
         if(arg.timing)
         {
@@ -223,8 +237,10 @@ void testing_symm_hemm(const Arguments& arg)
         if(arg.timing)
         {
             cpu_time_used = get_time_us_no_sync() - cpu_time_used;
-            cblas_gflops  = gflop_count_fn(side, M, N) / cpu_time_used * 1e6;
         }
+
+        // copy output from device to CPU
+        CHECK_HIP_ERROR(hC_2.transfer_from(dC));
 
         if(arg.unit_check)
         {
@@ -269,24 +285,15 @@ void testing_symm_hemm(const Arguments& arg)
         {
             rocblas_fn(handle, side, uplo, M, N, h_alpha, dA, lda, dB, ldb, h_beta, dC, ldc);
         }
-        gpu_time_used  = get_time_us_sync(stream) - gpu_time_used;
-        rocblas_gflops = gflop_count_fn(side, M, N) * number_hot_calls / gpu_time_used * 1e6;
+        gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
 
-        rocblas_cout << "side,uplo,M,N,alpha,lda,ldb,beta,ldc,rocblas-Gflops,us";
-
-        if(arg.norm_check)
-            rocblas_cout << ",CPU-Gflops,us,norm-error";
-
-        rocblas_cout << std::endl;
-
-        rocblas_cout << arg.side << "," << arg.uplo << "," << M << "," << N << ","
-                     << arg.get_alpha<T>() << "," << lda << "," << ldb << "," << arg.get_beta<T>()
-                     << "," << ldc << "," << rocblas_gflops << ","
-                     << gpu_time_used / number_hot_calls;
-
-        if(arg.norm_check)
-            rocblas_cout << "," << cblas_gflops << "," << cpu_time_used << "," << rocblas_error;
-
-        rocblas_cout << std::endl;
+        ArgumentModel<e_side, e_uplo, e_M, e_N, e_alpha, e_lda, e_ldb, e_beta, e_ldc>{}.log_args<T>(
+            rocblas_cout,
+            arg,
+            gpu_time_used,
+            gflop_count_fn(side, M, N),
+            ArgumentLogging::NA_value,
+            cpu_time_used,
+            rocblas_error);
     }
 }

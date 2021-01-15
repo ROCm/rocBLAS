@@ -2,6 +2,8 @@
  * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+#pragma once
+
 #include "flops.hpp"
 #include "norm.hpp"
 #include "rocblas.hpp"
@@ -19,9 +21,8 @@
 template <typename T>
 void testing_dgmm_strided_batched_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_dgmm_strided_batched_fn
-        = FORTRAN ? rocblas_dgmm_strided_batched<T, true> : rocblas_dgmm_strided_batched<T, false>;
+    auto rocblas_dgmm_strided_batched_fn = arg.fortran ? rocblas_dgmm_strided_batched<T, true>
+                                                       : rocblas_dgmm_strided_batched<T, false>;
 
     const rocblas_int M = 100;
     const rocblas_int N = 100;
@@ -36,7 +37,7 @@ void testing_dgmm_strided_batched_bad_arg(const Arguments& arg)
 
     const rocblas_side side = rocblas_side_right;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     const rocblas_stride stride_a = N * size_t(lda);
     const rocblas_stride stride_x = (rocblas_side_right == side ? N : M) * size_t(abs_incx);
@@ -122,9 +123,8 @@ void testing_dgmm_strided_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_dgmm_strided_batched(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_dgmm_strided_batched_fn
-        = FORTRAN ? rocblas_dgmm_strided_batched<T, true> : rocblas_dgmm_strided_batched<T, false>;
+    auto rocblas_dgmm_strided_batched_fn = arg.fortran ? rocblas_dgmm_strided_batched<T, true>
+                                                       : rocblas_dgmm_strided_batched<T, false>;
 
     rocblas_side side = char2rocblas_side(arg.side);
 
@@ -145,9 +145,8 @@ void testing_dgmm_strided_batched(const Arguments& arg)
     rocblas_int abs_incx = incx > 0 ? incx : -incx;
 
     double gpu_time_used, cpu_time_used;
-    double rocblas_gflops, cblas_gflops;
 
-    T rocblas_error = std::numeric_limits<T>::max();
+    double rocblas_error = std::numeric_limits<double>::max();
 
     if((stride_a > 0) && (stride_a < lda * N))
         rocblas_cout << "WARNING: stride_a < lda * N" << std::endl;
@@ -161,7 +160,7 @@ void testing_dgmm_strided_batched(const Arguments& arg)
     size_t size_x = batch_count * stride_x;
     size_t size_C = batch_count * stride_c;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // argument sanity check before allocating invalid memory
     bool invalid_size = M < 0 || N < 0 || lda < M || ldc < M || batch_count < 0;
@@ -238,8 +237,6 @@ void testing_dgmm_strided_batched(const Arguments& arg)
                                                             stride_c,
                                                             batch_count));
 
-        CHECK_HIP_ERROR(hC_1.transfer_from(dC));
-
         // reference calculation for golden result
         ptrdiff_t shift_x = incx < 0 ? -ptrdiff_t(incx) * (N - 1) : 0;
         cpu_time_used     = get_time_us_no_sync();
@@ -267,7 +264,9 @@ void testing_dgmm_strided_batched(const Arguments& arg)
         }
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
-        cblas_gflops  = dgmm_gflop_count<T>(M, N) / cpu_time_used * 1e6;
+
+        // fetch GPU result
+        CHECK_HIP_ERROR(hC_1.transfer_from(dC));
 
         if(arg.unit_check)
         {
@@ -326,25 +325,22 @@ void testing_dgmm_strided_batched(const Arguments& arg)
                                             batch_count);
         }
         gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
-        rocblas_gflops
-            = dgmm_gflop_count<T>(M, N) * batch_count * number_hot_calls / gpu_time_used * 1e6;
 
-        rocblas_cout << "side,M,N,lda,incx,ldc,batch_count,rocblas-Gflops,us";
-        if(arg.unit_check || arg.norm_check)
-        {
-            rocblas_cout << ",CPU-Gflops,us,norm_error";
-        }
-        rocblas_cout << std::endl;
-
-        rocblas_cout << arg.side << "," << M << "," << N << "," << lda << "," << incx << "," << ldc
-                     << "," << batch_count << "," << rocblas_gflops << ","
-                     << gpu_time_used / number_hot_calls << ",";
-
-        if(arg.unit_check || arg.norm_check)
-        {
-            rocblas_cout << cblas_gflops << "," << cpu_time_used << ",";
-            rocblas_cout << rocblas_error;
-        }
-        rocblas_cout << std::endl;
+        ArgumentModel<e_side,
+                      e_M,
+                      e_N,
+                      e_lda,
+                      e_stride_a,
+                      e_incx,
+                      e_ldc,
+                      e_stride_c,
+                      e_batch_count>{}
+            .log_args<T>(rocblas_cout,
+                         arg,
+                         gpu_time_used,
+                         dgmm_gflop_count<T>(M, N),
+                         ArgumentLogging::NA_value,
+                         cpu_time_used,
+                         rocblas_error);
     }
 }

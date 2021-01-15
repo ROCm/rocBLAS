@@ -3,8 +3,7 @@
  *
  * ************************************************************************ */
 
-#ifndef DEFINITIONS_H
-#define DEFINITIONS_H
+#pragma once
 
 /*******************************************************************************
  * Definitions
@@ -85,5 +84,3 @@
             return TMP_STATUS_FOR_CHECK;                                                          \
         }                                                                                         \
     } while(0)
-
-#endif // DEFINITIONS_H

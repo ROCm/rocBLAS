@@ -1,6 +1,8 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+
+#pragma once
 
 #include "bytes.hpp"
 #include "cblas_interface.hpp"
@@ -18,9 +20,8 @@
 template <typename T>
 void testing_asum_batched_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_asum_batched_fn
-        = FORTRAN ? rocblas_asum_batched<T, true> : rocblas_asum_batched<T, false>;
+    auto rocblas_asum_batched_fn
+        = arg.fortran ? rocblas_asum_batched<T, true> : rocblas_asum_batched<T, false>;
 
     rocblas_int         N                = 100;
     rocblas_int         incx             = 1;
@@ -29,7 +30,7 @@ void testing_asum_batched_bad_arg(const Arguments& arg)
     real_t<T>           rocblas_result   = 10;
     real_t<T>*          h_rocblas_result = &rocblas_result;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     device_batch_vector<T> dx(N, 1, batch_count);
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
@@ -50,9 +51,8 @@ void testing_asum_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_asum_batched(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_asum_batched_fn
-        = FORTRAN ? rocblas_asum_batched<T, true> : rocblas_asum_batched<T, false>;
+    auto rocblas_asum_batched_fn
+        = arg.fortran ? rocblas_asum_batched<T, true> : rocblas_asum_batched<T, false>;
 
     rocblas_int N           = arg.N;
     rocblas_int incx        = arg.incx;
@@ -61,7 +61,7 @@ void testing_asum_batched(const Arguments& arg)
     double rocblas_error_1;
     double rocblas_error_2;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // check to prevent undefined memory allocation error
     if(N <= 0 || incx <= 0 || batch_count <= 0)
@@ -95,7 +95,10 @@ void testing_asum_batched(const Arguments& arg)
     //
     // Initialize memory on host.
     //
-    rocblas_init(hx);
+    if(rocblas_isnan(arg.alpha))
+        rocblas_init_nan<T>(hx);
+    else
+        rocblas_init(hx);
 
     //
     // Transfer from host to device.

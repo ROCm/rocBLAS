@@ -96,10 +96,11 @@ namespace
             return rocblas_status_invalid_size;
 
         // quick return if possible.
-        // return rocblas_status_size_unchanged if device memory size query
         if(!m)
-            return handle->is_device_memory_size_query() ? rocblas_status_size_unchanged
-                                                         : rocblas_status_success;
+        {
+            RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
+            return rocblas_status_success;
+        }
 
         if(!A || !B)
             return rocblas_status_invalid_pointer;
@@ -126,6 +127,30 @@ namespace
         if(perf_status != rocblas_status_success && perf_status != rocblas_status_perf_degraded)
             return perf_status;
 
+        auto check_numerics = handle->check_numerics;
+
+        if(check_numerics)
+        {
+            bool           is_input = true;
+            rocblas_status trsv_check_numerics_status
+                = rocblas_trsv_check_numerics(rocblas_trsv_name<T>,
+                                              handle,
+                                              m,
+                                              A,
+                                              0,
+                                              lda,
+                                              0,
+                                              B,
+                                              0,
+                                              incx,
+                                              0,
+                                              1,
+                                              check_numerics,
+                                              is_input);
+            if(trsv_check_numerics_status != rocblas_status_success)
+                return trsv_check_numerics_status;
+        }
+
         rocblas_status status = rocblas_trsv_template<BLOCK, false, T>(handle,
                                                                        uplo,
                                                                        transA,
@@ -147,7 +172,32 @@ namespace
                                                                        supplied_invA,
                                                                        supplied_invA_size);
 
-        return status != rocblas_status_success ? status : perf_status;
+        status = (status != rocblas_status_success) ? status : perf_status;
+        if(status != rocblas_status_success)
+            return status;
+
+        if(check_numerics)
+        {
+            bool           is_input = false;
+            rocblas_status trsv_check_numerics_status
+                = rocblas_trsv_check_numerics(rocblas_trsv_name<T>,
+                                              handle,
+                                              m,
+                                              A,
+                                              0,
+                                              lda,
+                                              0,
+                                              B,
+                                              0,
+                                              incx,
+                                              0,
+                                              1,
+                                              check_numerics,
+                                              is_input);
+            if(trsv_check_numerics_status != rocblas_status_success)
+                return trsv_check_numerics_status;
+        }
+        return status;
     }
 
 } // namespace

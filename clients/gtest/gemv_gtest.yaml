@@ -14,10 +14,16 @@ Definitions:
     - { M:    32, N:  1536, lda:   32, stride_a:    49152 }
 
   - &skinny_n_matrix_size_range
+    # n <= 128 && m >= 2048 * n
     - { M:  32000, N:  11, lda:    32000, stride_a:   352000 }
-    - { M:  67650, N:  40, lda:    67650, stride_a:  2232450 }
+    - { M:  81920, N:  40, lda:    81920, stride_a:  3276800 }
     - { M:  20480, N:   7, lda:    20480, stride_a:   143360 }
     - { M: 131071, N:  63, lda:   131071, stride_a:  8257473 }
+
+  - &all_algo_matrix_size_range
+    - { M:  4096, N:    2, lda:  4096, stride_a:     8192 } # skinny n
+    - { M:    32, N:    32, lda:   32, stride_a:     1024 }
+    - { M:   100, N:   200, lda:  200, stride_a:    40000 }
 
   - &special_case_range
     # Quick return
@@ -83,11 +89,11 @@ Tests:
   category: pre_checkin
   function: gemv
   precision: *single_double_precisions
-  transA: [ N, T, C ]
-  matrix_size: *medium_matrix_size_range
-  incx_incy: *incx_incy_range
-  alpha: [ -1.0, 0, 1.0, 2.0 ]
-  beta: .NaN  # converted to 0.0 in test code
+  transA: [ N, T ]
+  matrix_size: *all_algo_matrix_size_range
+  incx_incy: *incx_incy_range_small
+  alpha: [ 1.0, .NaN ]  # NaN is converted to 0.0 in test code
+  beta: [ 0.5, 1.0, .NaN ]
 
 - name: gemv_fortran
   category: quick
@@ -115,6 +121,40 @@ Tests:
   matrix_size: *medium_matrix_size_range
   incx_incy: *incx_incy_range
   alpha_beta: *alpha_beta_range
+
+- name: gemv_medium_HMM
+  category: HMM
+  function: gemv
+  precision: *single_double_precisions_complex_real
+  transA: [ N ]
+  matrix_size: *medium_matrix_size_range
+  incx: -1
+  incy: 2
+  alpha: 1
+  beta: 1
+
+- name: gemv_medium_multi_gpu
+  category: multi_gpu
+  function: gemv
+  precision: *single_double_precisions
+  transA: [ N, T ]
+  matrix_size: *medium_matrix_size_range
+  incx: 2
+  incy: 1
+  alpha_beta: *alpha_beta_range
+  threads_streams: *common_threads_streams
+  devices: [0, 2, 4]
+
+- name: gemv_medium_multi_threads_streams
+  category: nightly
+  function: gemv
+  precision: *single_double_precisions_complex_real
+  transA: [ N, T, C ]
+  matrix_size: *medium_matrix_size_range
+  incx: 2
+  incy: 1
+  alpha_beta: *alpha_beta_range
+  threads_streams: *common_threads_streams
 
 - name: gemv_large
   category: nightly
@@ -153,11 +193,11 @@ Tests:
   function: gemv_batched
   precision: *single_double_precisions
   transA: [ N, T, C ]
-  matrix_size: *medium_matrix_size_range
-  incx_incy: *incx_incy_range
-  alpha: [ -1.0, 0, 1.0, 2.0 ]
-  beta: .NaN  # converted to 0.0 in test code
-  batch_count: [ -1, 0, 1, 3 ]
+  matrix_size: *all_algo_matrix_size_range
+  incx_incy: *incx_incy_range_small
+  alpha: [ 1.0, 2.0, .NaN ] # NaN is converted to 0.0 in test code
+  beta: [2.0, 1.0, .NaN ]
+  batch_count: [ 2, 9 ] # 9 for qmc_pack algo
 
 - name: gemv_batched_fortran
   category: quick
@@ -239,11 +279,11 @@ Tests:
   function: gemv_strided_batched
   precision: *single_double_precisions
   transA: [ N, T, C ]
-  matrix_size: *medium_matrix_size_range
-  incx_incy: *incx_incy_range
-  alpha: [ -1.0, 0, 1.0, 2.0 ]
-  beta: .NaN  # converted to 0.0 in test code
-  batch_count: [ -1, 0, 1, 3 ]
+  matrix_size: *all_algo_matrix_size_range
+  incx_incy: *incx_incy_range_small
+  alpha: [ 2.0, .NaN ] # NaN converted to 0.0 in test code
+  beta:  [ 0.5, 1.0, .NaN ]
+  batch_count: [ 2 ]
 
 - name: gemv_strided_batched_fortran
   category: quick

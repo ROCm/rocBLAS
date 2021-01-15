@@ -1,6 +1,8 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+
+#pragma once
 
 #include "bytes.hpp"
 #include "cblas_interface.hpp"
@@ -19,16 +21,15 @@
 template <typename Ta, typename Tx = Ta, typename Ty = Tx, typename Tex = Ty>
 void testing_axpy_batched_ex_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_axpy_batched_ex_fn
-        = FORTRAN ? rocblas_axpy_batched_ex_fortran : rocblas_axpy_batched_ex;
+    auto rocblas_axpy_batched_ex_fn
+        = arg.fortran ? rocblas_axpy_batched_ex_fortran : rocblas_axpy_batched_ex;
 
     rocblas_datatype alpha_type     = rocblas_datatype_f32_r;
     rocblas_datatype x_type         = rocblas_datatype_f32_r;
     rocblas_datatype y_type         = rocblas_datatype_f32_r;
     rocblas_datatype execution_type = rocblas_datatype_f32_r;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     rocblas_int N = 100, incx = 1, incy = 1, batch_count = 2;
 
@@ -96,16 +97,15 @@ void testing_axpy_batched_ex_bad_arg(const Arguments& arg)
 template <typename Ta, typename Tx = Ta, typename Ty = Tx, typename Tex = Ty>
 void testing_axpy_batched_ex(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_axpy_batched_ex_fn
-        = FORTRAN ? rocblas_axpy_batched_ex_fortran : rocblas_axpy_batched_ex;
+    auto rocblas_axpy_batched_ex_fn
+        = arg.fortran ? rocblas_axpy_batched_ex_fortran : rocblas_axpy_batched_ex;
 
     rocblas_datatype alpha_type     = arg.a_type;
     rocblas_datatype x_type         = arg.b_type;
     rocblas_datatype y_type         = arg.c_type;
     rocblas_datatype execution_type = arg.compute_type;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
     rocblas_int          N = arg.N, incx = arg.incx, incy = arg.incy, batch_count = arg.batch_count;
 
     Ta  h_alpha    = arg.get_alpha<Ta>();
@@ -174,10 +174,17 @@ void testing_axpy_batched_ex(const Arguments& arg)
 
     //
     // Initialize host memory.
-    // TODO: add NaN testing when roblas_isnan(arg.alpha) returns true.
     //
-    rocblas_init(hx, true);
-    rocblas_init(hy, false);
+    if(rocblas_isnan(arg.alpha))
+    {
+        rocblas_init_nan(hx, true);
+        rocblas_init_nan(hy, false);
+    }
+    else
+    {
+        rocblas_init(hx, true);
+        rocblas_init(hy, false);
+    }
 
     for(rocblas_int b = 0; b < batch_count; b++)
     {

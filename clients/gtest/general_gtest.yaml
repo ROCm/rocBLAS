@@ -24,7 +24,7 @@ Tests:
   function : check_numerics_vector
   N : [ 5 ]
   incx : [ 1 ]
-  batch_count : [ 1 ]
+  batch_count : [ 5, 8 ]
   stride_x : [ 0 ]
   precision : *single_double_precisions
 
@@ -33,7 +33,7 @@ Tests:
   function : check_numerics_vector
   N : [ 5 ]
   incx : [ 1 ]
-  batch_count : [ 1 ]
+  batch_count : [ 5, 8 ]
   stride_x : [ 0 ]
   precision : *single_double_precisions_complex
 
@@ -42,8 +42,34 @@ Tests:
   function : check_numerics_vector
   N : [ 5 ]
   incx : [ 1 ]
-  batch_count : [ 1 ]
+  batch_count : [ 5, 8 ]
   stride_x : [ 0 ]
   precision : *half_bfloat_precisions
 
+- name : check_numerics_matrix
+  category : quick
+  function : check_numerics_matrix
+  M : [ 3 ]
+  N : [ 5 ]
+  batch_count : [ 5, 8 ]
+  stride_x : [ 0 ]
+  precision : *single_double_precisions
+
+- name : check_numerics_matrix
+  category : quick
+  function : check_numerics_matrix
+  M : [ 3 ]
+  N : [ 5 ]
+  batch_count : [ 5, 8 ]
+  stride_x : [ 0 ]
+  precision : *single_double_precisions_complex
+
+- name : check_numerics_matrix
+  category : quick
+  function : check_numerics_matrix
+  M : [ 3 ]
+  N : [ 5 ]
+  batch_count : [ 5, 8 ]
+  stride_x : [ 0 ]
+  precision : *half_bfloat_precisions
 ...

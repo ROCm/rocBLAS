@@ -2,8 +2,7 @@
  * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#ifndef TEST_CLEANUP_H_
-#define TEST_CLEANUP_H_
+#pragma once
 
 #include <functional>
 #include <stack>
@@ -44,5 +43,3 @@ public:
         return new T(std::forward<Args>(args)...);
     }
 };
-
-#endif

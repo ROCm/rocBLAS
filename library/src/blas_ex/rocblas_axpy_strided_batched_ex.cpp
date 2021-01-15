@@ -201,8 +201,8 @@ rocblas_status rocblas_axpy_strided_batched_ex(rocblas_handle   handle,
                                                          stridey,
                                                          batch_count,
                                                          execution_type,
-                                                         "rocblas_axpy_batched_ex",
-                                                         "axpy_batched_ex");
+                                                         "rocblas_axpy_strided_batched_ex",
+                                                         "axpy_strided_batched_ex");
     }
     catch(...)
     {

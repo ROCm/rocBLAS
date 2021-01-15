@@ -2,6 +2,8 @@
  * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+#pragma once
+
 #include "bytes.hpp"
 #include "cblas_interface.hpp"
 #include "flops.hpp"
@@ -29,7 +31,7 @@ void testing_sbmv_batched_bad_arg(const Arguments& arg)
     T            beta        = 0.6;
     rocblas_int  batch_count = 2;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     size_t abs_incx = incx >= 0 ? incx : -incx;
     size_t abs_incy = incy >= 0 ? incy : -incy;
@@ -173,7 +175,7 @@ void testing_sbmv_batched(const Arguments& arg)
 
     size_t size_A = size_t(lda) * N;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // argument sanity check before allocating invalid memory
     bool invalid_size = N < 0 || lda < K + 1 || K < 0 || !incx || !incy || batch_count < 0;
@@ -207,7 +209,6 @@ void testing_sbmv_batched(const Arguments& arg)
     host_batch_vector<T> hg(N, incy, batch_count);
 
     double gpu_time_used, cpu_time_used;
-    double rocblas_gflops, cblas_gflops, rocblas_bandwidth;
     double h_error, d_error;
 
     char char_fill = arg.uplo;
@@ -239,8 +240,8 @@ void testing_sbmv_batched(const Arguments& arg)
         {
             cblas_sbmv<T>(uplo, N, K, alpha[0], hA[i], lda, hx[i], incx, beta[0], hg[i], incy);
         }
+
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
-        cblas_gflops  = batch_count * sbmv_gflop_count<T>(N, K) / cpu_time_used * 1e6;
     }
 
     // copy data from CPU to device
@@ -358,28 +359,16 @@ void testing_sbmv_batched(const Arguments& arg)
                                                         batch_count));
         }
 
-        gpu_time_used     = (get_time_us_sync(stream) - gpu_time_used) / number_hot_calls;
-        rocblas_gflops    = batch_count * sbmv_gflop_count<T>(N, K) / gpu_time_used * 1e6;
-        rocblas_bandwidth = batch_count * sbmv_gbyte_count<T>(N, K) / gpu_time_used * 1e6;
+        gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
 
-        // only norm_check return an norm error, unit check won't return anything
-        rocblas_cout
-            << "uplo, N, lda, K, incx, incy, batch_count, rocblas-Gflops, rocblas-GB/s, (us) ";
-        if(arg.norm_check)
-        {
-            rocblas_cout << "CPU-Gflops,(us),norm_error_host_ptr,norm_error_dev_ptr";
-        }
-        rocblas_cout << std::endl;
-
-        rocblas_cout << arg.uplo << ',' << N << ',' << lda << ',' << K << ',' << incx << "," << incy
-                     << "," << batch_count << "," << rocblas_gflops << "," << rocblas_bandwidth
-                     << ",(" << gpu_time_used << "),";
-
-        if(arg.norm_check)
-        {
-            rocblas_cout << cblas_gflops << ",(" << cpu_time_used << ")," << h_error << ","
-                         << d_error;
-        }
-        rocblas_cout << std::endl;
+        ArgumentModel<e_uplo, e_N, e_K, e_alpha, e_lda, e_incx, e_beta, e_incy, e_batch_count>{}
+            .log_args<T>(rocblas_cout,
+                         arg,
+                         gpu_time_used,
+                         sbmv_gflop_count<T>(N, K),
+                         sbmv_gbyte_count<T>(N, K),
+                         cpu_time_used,
+                         h_error,
+                         d_error);
     }
 }

@@ -1,7 +1,17 @@
 # Change Log for rocBLAS
- 
+
 Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://rocblas.readthedocs.io/en/latest/).
 
+
+## [rocBLAS 2.36.0 for ROCm 4.1.0]
+### Added
+- Added Numerical checking helper function to detect zero/NaN/Inf in the input and the output vectors of rocBLAS level 1 and 2 functions.
+- Added Numerical checking helper function to detect zero/NaN/Inf in the input and the output general matrices of rocBLAS level 2 and 3 functions.
+### Fixed
+- Fixed complex unit test bug caused by incorrect caxpy and zaxpy function signatures.
+- Make functions compliant with Legacy Blas for special values alpha == 0, k == 0, beta == 1, beta == 0.
+### Optimizations
+- Improved performance of single precision axpy_batched and axpy_strided_batched: batch_count >= 8192.
 
 ## [rocBLAS 2.34.0 for ROCm 4.0.0]
 ### Added
@@ -31,7 +41,7 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 
 ## [rocBLAS 2.28.0 for ROCm 3.8.0]
 ### Added
-- added two functions: 
+- added two functions:
   - rocblas_status rocblas_set_atomics_mode(rocblas_atomics_mode mode)
   - rocblas_status rocblas_get_atomics_mode(rocblas_atomics_mode mode)
 - added enum rocblas_atomics_mode. It can have two values
@@ -84,11 +94,11 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
     - rocblas_sger, rocblas_dger,
     - rocblas_sger_batched, rocblas_dger_batched
     - rocblas_sger_strided_batched, rocblas_dger_strided_batched
-  - geru 
+  - geru
     - rocblas_cgeru, rocblas_zgeru
     - rocblas_cgeru_batched, rocblas_zgeru_batched
     - rocblas_cgeru_strided_batched, rocblas_zgeru_strided_batched
-  - gerc 
+  - gerc
     - rocblas_cgerc, rocblas_zgerc
     - rocblas_cgerc_batched, rocblas_zgerc_batched
     - rocblas_cgerc_strided_batched, rocblas_zgerc_strided_batched
@@ -96,11 +106,11 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
     - rocblas_ssymv, rocblas_dsymv, rocblas_csymv, rocblas_zsymv
     - rocblas_ssymv_batched, rocblas_dsymv_batched, rocblas_csymv_batched, rocblas_zsymv_batched
     - rocblas_ssymv_strided_batched, rocblas_dsymv_strided_batched, rocblas_csymv_strided_batched, rocblas_zsymv_strided_batched
-  - sbmv 
+  - sbmv
     - rocblas_ssbmv, rocblas_dsbmv
     - rocblas_ssbmv_batched, rocblas_dsbmv_batched
     - rocblas_ssbmv_strided_batched, rocblas_dsbmv_strided_batched
-  - spmv 
+  - spmv
     - rocblas_sspmv, rocblas_dspmv
     - rocblas_sspmv_batched, rocblas_dspmv_batched
     - rocblas_sspmv_strided_batched, rocblas_dspmv_strided_batched
@@ -111,5 +121,5 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 ### Known Issues
 - Compilation for GPU Targets:
 When using the install.sh script for "all" GPU Targets, which is the default, you must first set an environment variable HCC_AMDGPU_TARGET listing the GPU targets, e.g.  HCC_AMDGPU_TARGET=gfx803,gfx900,gfx906,gfx908
-If building for a specific architecture(s) using the  -a | --architecture flag, you should also set the environment variable HCC_AMDGPU_TARGET to match.  
+If building for a specific architecture(s) using the  -a | --architecture flag, you should also set the environment variable HCC_AMDGPU_TARGET to match.
 Mismatching the environment variable to the -a flag architectures creates builds that may result in SEGFAULTS when running on GPUs which weren't specified.

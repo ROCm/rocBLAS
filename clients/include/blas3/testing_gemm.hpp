@@ -1,6 +1,9 @@
 /* ************************************************************************
  * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+
+#pragma once
+
 #include "cblas_interface.hpp"
 #include "flops.hpp"
 #include "near.hpp"
@@ -20,8 +23,7 @@ void testing_gemm_bad_arg(const Arguments& arg)
 {
     for(auto pointer_mode : {rocblas_pointer_mode_host, rocblas_pointer_mode_device})
     {
-        const bool FORTRAN         = arg.fortran;
-        auto       rocblas_gemm_fn = FORTRAN ? rocblas_gemm<T, true> : rocblas_gemm<T, false>;
+        auto rocblas_gemm_fn = arg.fortran ? rocblas_gemm<T, true> : rocblas_gemm<T, false>;
 
         const rocblas_int M = 100;
         const rocblas_int N = 100;
@@ -31,30 +33,24 @@ void testing_gemm_bad_arg(const Arguments& arg)
         const rocblas_int ldb = 100;
         const rocblas_int ldc = 100;
 
-        const T* alpha = nullptr;
-        const T* beta  = nullptr;
+        device_vector<T> alpha_d(1), beta_d(1), zero_d(1), one_d(1);
+        const T          alpha_h(1), beta_h(1), zero_h(0), one_h(1);
 
-        const T h_alpha = 1.0;
-        const T h_beta  = 1.0;
+        const T* alpha = &alpha_h;
+        const T* beta  = &beta_h;
+        const T* zero  = &zero_h;
+        const T* one   = &one_h;
 
-        device_vector<T> d_alpha(1);
-        device_vector<T> d_beta(1);
-
-        CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
-        CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
-
-        CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(T), hipMemcpyHostToDevice));
-        CHECK_HIP_ERROR(hipMemcpy(d_beta, &h_beta, sizeof(T), hipMemcpyHostToDevice));
-
-        if(pointer_mode == rocblas_pointer_mode_host)
+        if(pointer_mode == rocblas_pointer_mode_device)
         {
-            alpha = &h_alpha;
-            beta  = &h_beta;
-        }
-        else
-        {
-            alpha = d_alpha;
-            beta  = d_beta;
+            CHECK_HIP_ERROR(hipMemcpy(alpha_d, alpha, sizeof(*alpha), hipMemcpyHostToDevice));
+            alpha = alpha_d;
+            CHECK_HIP_ERROR(hipMemcpy(beta_d, beta, sizeof(*beta), hipMemcpyHostToDevice));
+            beta = beta_d;
+            CHECK_HIP_ERROR(hipMemcpy(zero_d, zero, sizeof(*zero), hipMemcpyHostToDevice));
+            zero = zero_d;
+            CHECK_HIP_ERROR(hipMemcpy(one_d, one, sizeof(*one), hipMemcpyHostToDevice));
+            one = one_d;
         }
 
         const size_t safe_size = 100;
@@ -62,7 +58,7 @@ void testing_gemm_bad_arg(const Arguments& arg)
         const rocblas_operation transA = rocblas_operation_none;
         const rocblas_operation transB = rocblas_operation_none;
 
-        rocblas_local_handle handle(arg.atomics_mode);
+        rocblas_local_handle handle{arg};
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, pointer_mode));
 
         // allocate memory on device
@@ -103,19 +99,86 @@ void testing_gemm_bad_arg(const Arguments& arg)
                 nullptr, transA, transB, M, N, K, alpha, dA, lda, dB, ldb, beta, dC, ldc),
             rocblas_status_invalid_handle);
 
-        // if k == 0 we can test that A and B can both be nullptr without issue.
+        // If M==0, then all pointers can be nullptr without issue.
+        EXPECT_ROCBLAS_STATUS(rocblas_gemm_fn(handle,
+                                              transA,
+                                              transB,
+                                              0,
+                                              N,
+                                              K,
+                                              nullptr,
+                                              nullptr,
+                                              lda,
+                                              nullptr,
+                                              ldb,
+                                              nullptr,
+                                              nullptr,
+                                              ldc),
+                              rocblas_status_success);
+
+        // If N==0, then all pointers can be nullptr without issue.
+        EXPECT_ROCBLAS_STATUS(rocblas_gemm_fn(handle,
+                                              transA,
+                                              transB,
+                                              M,
+                                              0,
+                                              K,
+                                              nullptr,
+                                              nullptr,
+                                              lda,
+                                              nullptr,
+                                              ldb,
+                                              nullptr,
+                                              nullptr,
+                                              ldc),
+                              rocblas_status_success);
+
+        // If K==0, then alpha, A and B can be nullptr without issue.
+        EXPECT_ROCBLAS_STATUS(rocblas_gemm_fn(handle,
+                                              transA,
+                                              transB,
+                                              M,
+                                              N,
+                                              0,
+                                              nullptr,
+                                              nullptr,
+                                              lda,
+                                              nullptr,
+                                              ldb,
+                                              beta,
+                                              dC,
+                                              ldc),
+                              rocblas_status_success);
+
+        // If alpha==0, then A and B can be nullptr without issue.
         EXPECT_ROCBLAS_STATUS(
             rocblas_gemm_fn(
-                handle, transA, transB, M, N, 0, alpha, nullptr, lda, nullptr, ldb, beta, dC, ldc),
+                handle, transA, transB, M, N, K, zero, nullptr, lda, nullptr, ldb, beta, dC, ldc),
             rocblas_status_success);
+
+        // If alpha==0 && beta==1, then A, B and C can be nullptr without issue.
+        EXPECT_ROCBLAS_STATUS(rocblas_gemm_fn(handle,
+                                              transA,
+                                              transB,
+                                              M,
+                                              N,
+                                              K,
+                                              zero,
+                                              nullptr,
+                                              lda,
+                                              nullptr,
+                                              ldb,
+                                              one,
+                                              nullptr,
+                                              ldc),
+                              rocblas_status_success);
     }
 }
 
 template <typename T>
 void testing_gemm(const Arguments& arg)
 {
-    const bool FORTRAN         = arg.fortran;
-    auto       rocblas_gemm_fn = FORTRAN ? rocblas_gemm<T, true> : rocblas_gemm<T, false>;
+    auto rocblas_gemm_fn = arg.fortran ? rocblas_gemm<T, true> : rocblas_gemm<T, false>;
 
     rocblas_operation transA = char2rocblas_operation(arg.transA);
     rocblas_operation transB = char2rocblas_operation(arg.transB);
@@ -131,10 +194,11 @@ void testing_gemm(const Arguments& arg)
     T h_alpha = arg.get_alpha<T>();
     T h_beta  = arg.get_beta<T>();
 
-    double               gpu_time_used, cpu_time_used;
-    double               rocblas_gflops, cblas_gflops;
+    double gpu_time_used, cpu_time_used;
+    gpu_time_used = cpu_time_used      = 0.0;
     double               rocblas_error = 0.0;
-    rocblas_local_handle handle(arg.atomics_mode);
+    bool                 HMM           = arg.HMM;
+    rocblas_local_handle handle{arg};
 
     rocblas_int A_row = transA == rocblas_operation_none ? M : K;
     rocblas_int A_col = transA == rocblas_operation_none ? K : M;
@@ -183,11 +247,11 @@ void testing_gemm(const Arguments& arg)
     const auto size_C_copy = arg.unit_check || arg.norm_check ? size_C : 0;
 
     // allocate memory on device
-    device_vector<T> dA(size_A);
-    device_vector<T> dB(size_B);
-    device_vector<T> dC(size_C);
-    device_vector<T> d_alpha(1);
-    device_vector<T> d_beta(1);
+    device_vector<T> dA(size_A, 1, HMM);
+    device_vector<T> dB(size_B, 1, HMM);
+    device_vector<T> dC(size_C, 1, HMM);
+    device_vector<T> d_alpha(1, 1, HMM);
+    device_vector<T> d_beta(1, 1, HMM);
     CHECK_DEVICE_ALLOCATION(dA.memcheck());
     CHECK_DEVICE_ALLOCATION(dB.memcheck());
     CHECK_DEVICE_ALLOCATION(dC.memcheck());
@@ -201,35 +265,69 @@ void testing_gemm(const Arguments& arg)
     host_vector<T> hC_2(size_C_copy);
     host_vector<T> hC_gold(size_C_copy);
 
+    rocblas_seedrand();
+
     // Initial Data on CPU
     if(arg.initialization == rocblas_initialization::rand_int)
     {
-        rocblas_seedrand();
-        rocblas_init<T>(hA, A_row, A_col, lda);
-        rocblas_init_alternating_sign<T>(hB, B_row, B_col, ldb);
-        if(rocblas_isnan(arg.beta) || rocblas_isnan(arg.betai))
+        if(arg.alpha_isnan<T>())
+        {
+            rocblas_init_nan<T>(hA, A_row, A_col, lda);
+            rocblas_init_nan<T>(hB, B_row, B_col, ldb);
+        }
+        else
+        {
+            rocblas_init<T>(hA, A_row, A_col, lda);
+            rocblas_init_alternating_sign<T>(hB, B_row, B_col, ldb);
+        }
+        if(arg.beta_isnan<T>())
             rocblas_init_nan<T>(hC_1, M, N, ldc);
         else
             rocblas_init<T>(hC_1, M, N, ldc);
     }
     else if(arg.initialization == rocblas_initialization::trig_float)
     {
-        rocblas_init_sin<T>(hA, A_row, A_col, lda);
-        rocblas_init_cos<T>(hB, B_row, B_col, ldb);
-        if(rocblas_isnan(arg.beta) || rocblas_isnan(arg.betai))
+        if(arg.alpha_isnan<T>())
+        {
+            rocblas_init_nan<T>(hA, A_row, A_col, lda);
+            rocblas_init_nan<T>(hB, B_row, B_col, ldb);
+        }
+        else
+        {
+            rocblas_init_sin<T>(hA, A_row, A_col, lda);
+            rocblas_init_cos<T>(hB, B_row, B_col, ldb);
+        }
+        if(arg.beta_isnan<T>())
             rocblas_init_nan<T>(hC_1, M, N, ldc);
         else
             rocblas_init_sin<T>(hC_1, M, N, ldc);
     }
     else if(arg.initialization == rocblas_initialization::hpl)
     {
-        rocblas_seedrand();
-        rocblas_init_hpl<T>(hA, A_row, A_col, lda);
-        rocblas_init_hpl<T>(hB, B_row, B_col, ldb);
-        if(rocblas_isnan(arg.beta) || rocblas_isnan(arg.betai))
+        if(arg.alpha_isnan<T>())
+        {
+            rocblas_init_nan<T>(hA, A_row, A_col, lda);
+            rocblas_init_nan<T>(hB, B_row, B_col, ldb);
+        }
+        else
+        {
+            rocblas_init_hpl<T>(hA, A_row, A_col, lda);
+            rocblas_init_hpl<T>(hB, B_row, B_col, ldb);
+        }
+        if(arg.beta_isnan<T>())
             rocblas_init_nan<T>(hC_1, M, N, ldc);
         else
             rocblas_init_hpl<T>(hC_1, M, N, ldc);
+    }
+    else
+    {
+#ifdef GOOGLE_TEST
+        FAIL() << "unknown initialization type";
+        return;
+#else
+        rocblas_cerr << "unknown initialization type" << std::endl;
+        rocblas_abort();
+#endif
     }
 
     if(size_C_copy)
@@ -239,26 +337,27 @@ void testing_gemm(const Arguments& arg)
     }
 
     // copy data from CPU to device
-    CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(T) * size_A, hipMemcpyHostToDevice));
-    CHECK_HIP_ERROR(hipMemcpy(dB, hB, sizeof(T) * size_B, hipMemcpyHostToDevice));
+    CHECK_HIP_ERROR(dA.transfer_from(hA));
+    CHECK_HIP_ERROR(dB.transfer_from(hB));
 
     if(arg.unit_check || arg.norm_check)
     {
         // ROCBLAS rocblas_pointer_mode_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_HIP_ERROR(hipMemcpy(dC, hC_1, sizeof(T) * size_C, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(dC.transfer_from(hC_1));
+
         CHECK_ROCBLAS_ERROR(rocblas_gemm_fn(
             handle, transA, transB, M, N, K, &h_alpha, dA, lda, dB, ldb, &h_beta, dC, ldc));
-        CHECK_HIP_ERROR(hipMemcpy(hC_1, dC, sizeof(T) * size_C, hipMemcpyDeviceToHost));
 
+        CHECK_HIP_ERROR(hC_1.transfer_from(dC));
         // ROCBLAS rocblas_pointer_mode_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_HIP_ERROR(hipMemcpy(dC, hC_2, sizeof(T) * size_C, hipMemcpyHostToDevice));
+
+        CHECK_HIP_ERROR(dC.transfer_from(hC_2));
         CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(T), hipMemcpyHostToDevice));
         CHECK_HIP_ERROR(hipMemcpy(d_beta, &h_beta, sizeof(T), hipMemcpyHostToDevice));
         CHECK_ROCBLAS_ERROR(rocblas_gemm_fn(
             handle, transA, transB, M, N, K, d_alpha, dA, lda, dB, ldb, d_beta, dC, ldc));
-        CHECK_HIP_ERROR(hipMemcpy(hC_2, dC, sizeof(T) * size_C, hipMemcpyDeviceToHost));
 
         // CPU BLAS
         if(arg.timing)
@@ -271,8 +370,10 @@ void testing_gemm(const Arguments& arg)
         if(arg.timing)
         {
             cpu_time_used = get_time_us_no_sync() - cpu_time_used;
-            cblas_gflops  = gemm_gflop_count<T>(M, N, K) / cpu_time_used * 1e6;
         }
+
+        // fetch GPU
+        CHECK_HIP_ERROR(hC_2.transfer_from(dC));
 
         if(arg.unit_check)
         {
@@ -320,24 +421,15 @@ void testing_gemm(const Arguments& arg)
             rocblas_gemm_fn(
                 handle, transA, transB, M, N, K, &h_alpha, dA, lda, dB, ldb, &h_beta, dC, ldc);
         }
-        gpu_time_used  = get_time_us_sync(stream) - gpu_time_used;
-        rocblas_gflops = gemm_gflop_count<T>(M, N, K) * number_hot_calls / gpu_time_used * 1e6;
+        gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
 
-        rocblas_cout << "transA,transB,M,N,K,alpha,lda,ldb,beta,ldc,rocblas-Gflops,us";
-
-        if(arg.unit_check || arg.norm_check)
-            rocblas_cout << ",CPU-Gflops,us,norm-error";
-
-        rocblas_cout << std::endl;
-
-        rocblas_cout << arg.transA << "," << arg.transB << "," << M << "," << N << "," << K << ","
-                     << arg.get_alpha<T>() << "," << lda << "," << ldb << "," << arg.get_beta<T>()
-                     << "," << ldc << "," << rocblas_gflops << ","
-                     << gpu_time_used / number_hot_calls;
-
-        if(arg.unit_check || arg.norm_check)
-            rocblas_cout << "," << cblas_gflops << "," << cpu_time_used << "," << rocblas_error;
-
-        rocblas_cout << std::endl;
+        ArgumentModel<e_transA, e_transB, e_M, e_N, e_K, e_alpha, e_lda, e_beta, e_ldb, e_ldc>{}
+            .log_args<T>(rocblas_cout,
+                         arg,
+                         gpu_time_used,
+                         gemm_gflop_count<T>(M, N, K),
+                         ArgumentLogging::NA_value,
+                         cpu_time_used,
+                         rocblas_error);
     }
 }

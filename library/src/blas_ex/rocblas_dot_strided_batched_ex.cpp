@@ -28,15 +28,13 @@ namespace
                                                        const char*      name,
                                                        const char*      bench_name)
     {
-        static constexpr int WIN = rocblas_dot_WIN(sizeof(execution_type));
-
         if(!handle)
         {
             return rocblas_status_invalid_handle;
         }
 
         size_t dev_bytes
-            = rocblas_reduction_kernel_workspace_size<NB * WIN>(n, batch_count, execution_type);
+            = rocblas_reduction_kernel_workspace_size<NB>(n, batch_count, execution_type);
         if(handle->is_device_memory_size_query())
         {
             if(n <= 0 || batch_count <= 0)

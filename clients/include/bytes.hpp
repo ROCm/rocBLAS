@@ -3,8 +3,7 @@
  *
  * ************************************************************************/
 
-#ifndef _ROCBLAS_BYTES_H_
-#define _ROCBLAS_BYTES_H_
+#pragma once
 
 #include "rocblas.h"
 
@@ -20,11 +19,20 @@
  * ===========================================================================
  */
 
-/* \brief byte counts of SET/GET_MATRIX/_ASYNC calls done in pairs for timing */
+/* \brief byte counts of SET/GET_MATRIX/_ASYNC */
 template <typename T>
 constexpr double set_get_matrix_gbyte_count(rocblas_int m, rocblas_int n)
 {
+    // calls done in pairs for timing so x 2.0
     return (sizeof(T) * m * n * 2.0) / 1e9;
+}
+
+/* \brief byte counts of SET/GET_VECTOR/_ASYNC */
+template <typename T>
+constexpr double set_get_vector_gbyte_count(rocblas_int n)
+{
+    // calls done in pairs for timing so x 2.0
+    return (sizeof(T) * n * 2.0) / 1e9;
 }
 
 /*
@@ -86,6 +94,21 @@ inline size_t tri_count(rocblas_int n)
     return size_t(n) * (1 + n) / 2;
 }
 
+/* \brief byte counts of GBMV */
+template <typename T>
+constexpr double gbmv_gbyte_count(
+    rocblas_operation transA, rocblas_int m, rocblas_int n, rocblas_int kl, rocblas_int ku)
+{
+    size_t dim_x = transA == rocblas_operation_none ? n : m;
+
+    rocblas_int k1      = dim_x < kl ? dim_x : kl;
+    rocblas_int k2      = dim_x < ku ? dim_x : ku;
+    rocblas_int d1      = ((k1 * dim_x) - (k1 * (k1 + 1) / 2));
+    rocblas_int d2      = ((k2 * dim_x) - (k2 * (k2 + 1) / 2));
+    double      num_els = double(d1 + d2 + dim_x);
+    return (sizeof(T) * (num_els)) / 1e9;
+}
+
 /* \brief byte counts of GEMV */
 template <typename T>
 constexpr double gemv_gbyte_count(rocblas_operation transA, rocblas_int m, rocblas_int n)
@@ -98,6 +121,28 @@ template <typename T>
 constexpr double ger_gbyte_count(rocblas_int m, rocblas_int n)
 {
     return (sizeof(T) * (m * n + m + n)) / 1e9;
+}
+
+/* \brief byte counts of HEMV */
+template <typename T>
+constexpr double hemv_gbyte_count(rocblas_int n)
+{
+    return (sizeof(T) * (((n * (n + 1.0)) / 2.0) + 3.0 * n)) / 1e9;
+}
+
+/* \brief byte counts of HBMV */
+template <typename T>
+constexpr double hbmv_gbyte_count(rocblas_int n, rocblas_int k)
+{
+    rocblas_int k1 = k < n ? k : n;
+    return (sizeof(T) * (n * k1 - ((k1 * (k1 + 1)) / 2.0) + 3 * n)) / 1e9;
+}
+
+/* \brief byte counts of HPMV */
+template <typename T>
+constexpr double hpmv_gbyte_count(rocblas_int n)
+{
+    return (sizeof(T) * ((n * (n + 1.0)) / 2.0) + 3.0 * n) / 1e9;
 }
 
 /* \brief byte counts of HPR */
@@ -150,11 +195,54 @@ constexpr double her2_gbyte_count(rocblas_int n)
     return (sizeof(T) * (tri_count(n) + 2 * n)) / 1e9;
 }
 
+/* \brief byte  counts of SPR */
+template <typename T>
+constexpr double spr_gbyte_count(rocblas_int n)
+{
+    return (sizeof(T) * (2.0 * n * (n + 1)) / 2) / 1e9;
+}
+
+/* \brief byte  counts of SPR2 */
+template <typename T>
+constexpr double spr2_gbyte_count(rocblas_int n)
+{
+    return (sizeof(T) * (5.0 * n * (n + 1)) / 2) / 1e9;
+}
+
+/* \brief byte  counts of SYR */
+template <typename T>
+constexpr double syr_gbyte_count(rocblas_int n)
+{
+    return (sizeof(T) * (tri_count(n) * 2)) / 1e9;
+}
+
 /* \brief byte  counts of SYR2 */
 template <typename T>
 constexpr double syr2_gbyte_count(rocblas_int n)
 {
     return (sizeof(T) * (tri_count(n) + 2 * n)) / 1e9;
+}
+
+/* \brief byte counts of TBMV */
+template <typename T>
+constexpr double tbmv_gbyte_count(rocblas_int m, rocblas_int k)
+{
+    rocblas_int k1 = k < m ? k : m;
+    return (sizeof(T) * (m * k1 - ((k1 * (k1 + 1)) / 2.0) + 3 * m)) / 1e9;
+}
+
+/* \brief byte counts of TPMV */
+template <typename T>
+constexpr double tpmv_gbyte_count(rocblas_int m)
+{
+    return (sizeof(T) * tri_count(m)) / 1e9;
+}
+
+/* \brief byte counts of TRMV */
+template <typename T>
+constexpr double trmv_gbyte_count(rocblas_int m)
+{
+    return (sizeof(T) * ((m * (m + 1.0)) / 2 + 2 * m)) / 1e9;
 }
 
 /* \brief byte counts of TPSV */
@@ -184,5 +272,3 @@ constexpr double herk_gbyte_count(rocblas_int n, rocblas_int k)
 {
     return syrk_gbyte_count<T>(n, k);
 }
-
-#endif /* _ROCBLAS_BYTES_H_ */

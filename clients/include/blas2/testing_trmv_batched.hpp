@@ -5,6 +5,9 @@
  *
  * ************************************************************************ */
 
+#pragma once
+
+#include "bytes.hpp"
 #include "cblas_interface.hpp"
 #include "flops.hpp"
 #include "near.hpp"
@@ -22,9 +25,8 @@
 template <typename T>
 void testing_trmv_batched_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_trmv_batched_fn
-        = FORTRAN ? rocblas_trmv_batched<T, true> : rocblas_trmv_batched<T, false>;
+    auto rocblas_trmv_batched_fn
+        = arg.fortran ? rocblas_trmv_batched<T, true> : rocblas_trmv_batched<T, false>;
 
     const rocblas_int       M           = 100;
     const rocblas_int       lda         = 100;
@@ -34,7 +36,7 @@ void testing_trmv_batched_bad_arg(const Arguments& arg)
     const rocblas_fill      uplo        = rocblas_fill_lower;
     const rocblas_diagonal  diag        = rocblas_diagonal_non_unit;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     size_t size_A = lda * size_t(M);
 
@@ -77,9 +79,8 @@ void testing_trmv_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_trmv_batched(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_trmv_batched_fn
-        = FORTRAN ? rocblas_trmv_batched<T, true> : rocblas_trmv_batched<T, false>;
+    auto rocblas_trmv_batched_fn
+        = arg.fortran ? rocblas_trmv_batched<T, true> : rocblas_trmv_batched<T, false>;
 
     rocblas_int M = arg.M, lda = arg.lda, incx = arg.incx, batch_count = arg.batch_count;
 
@@ -89,7 +90,7 @@ void testing_trmv_batched(const Arguments& arg)
     rocblas_operation transA = char2rocblas_operation(char_transA);
     rocblas_diagonal  diag   = char2rocblas_diagonal(char_diag);
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     bool invalid_size = M < 0 || lda < M || lda < 1 || !incx || batch_count < 0;
     if(invalid_size || !M || !batch_count)
@@ -135,8 +136,7 @@ void testing_trmv_batched(const Arguments& arg)
     CHECK_HIP_ERROR(dA.transfer_from(hA));
     CHECK_HIP_ERROR(dx.transfer_from(hx));
 
-    double gpu_time_used, cpu_time_used, rocblas_gflops, cblas_gflops, rocblas_bandwidth,
-        rocblas_error;
+    double gpu_time_used, cpu_time_used, rocblas_error;
 
     /* =====================================================================
      ROCBLAS
@@ -148,7 +148,6 @@ void testing_trmv_batched(const Arguments& arg)
         //
         CHECK_ROCBLAS_ERROR(rocblas_trmv_batched_fn(
             handle, uplo, transA, diag, M, dA_on_device, lda, dx_on_device, incx, batch_count));
-        CHECK_HIP_ERROR(hres.transfer_from(dx));
 
         //
         // CPU BLAS
@@ -159,11 +158,11 @@ void testing_trmv_batched(const Arguments& arg)
             {
                 cblas_trmv<T>(uplo, transA, diag, M, hA[batch_index], lda, hx[batch_index], incx);
             }
-
             cpu_time_used = get_time_us_no_sync() - cpu_time_used;
-            cblas_gflops  = (double(batch_count) * trmv_gflop_count<T>(M)) / cpu_time_used * 1e6;
         }
 
+        // fetch GPU
+        CHECK_HIP_ERROR(hres.transfer_from(dx));
         //
         // Unit check.
         //
@@ -225,34 +224,19 @@ void testing_trmv_batched(const Arguments& arg)
                                         incx,
                                         batch_count);
             }
-            gpu_time_used = (get_time_us_sync(stream) - gpu_time_used) / number_hot_calls;
+            gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
         }
 
         //
-        // Evaluate performance.
+        // Log performance
         //
-        rocblas_gflops = (double(batch_count) * trmv_gflop_count<T>(M)) / gpu_time_used * 1e6;
-        rocblas_bandwidth
-            = (double((M * (M + 1)) / 2 + 2 * M) * double(batch_count) * double(sizeof(T)))
-              / gpu_time_used * 1e-3;
-
-        //
-        // Display.
-        //
-        rocblas_cout << "M,lda,incx,batch_count,uplo,transA,diag,rocblas-Gflops,rocblas-GB/s,";
-        if(arg.norm_check)
-        {
-            rocblas_cout << "CPU-Gflops,norm_error";
-        }
-        rocblas_cout << std::endl;
-        rocblas_cout << M << "," << lda << "," << incx << "," << batch_count << "," << char_uplo
-                     << ',' << char_transA << ',' << char_diag << ',' << rocblas_gflops << ","
-                     << rocblas_bandwidth << ",";
-        if(arg.norm_check)
-        {
-            rocblas_cout << cblas_gflops << ',';
-            rocblas_cout << rocblas_error;
-        }
-        rocblas_cout << std::endl;
+        ArgumentModel<e_uplo, e_transA, e_diag, e_M, e_lda, e_incx, e_batch_count>{}.log_args<T>(
+            rocblas_cout,
+            arg,
+            gpu_time_used,
+            trmv_gflop_count<T>(M),
+            trmv_gbyte_count<T>(M),
+            cpu_time_used,
+            rocblas_error);
     }
 }

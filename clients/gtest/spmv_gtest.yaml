@@ -40,6 +40,10 @@ Definitions:
   - &alpha_beta_range_small
     - { alpha: 2.0, beta: 1.5 }
 
+  - &alpha_beta_range_nan
+    - { alpha: .NaN, beta: 1.5 }
+    - { alpha: 1.2, beta: .NaN }
+
 Tests:
 - name: spmv_bad
   category: pre_checkin
@@ -66,6 +70,15 @@ Tests:
   incx_incy: *incx_incy_range_small
   alpha_beta: *alpha_beta_range_small
   fortran: true
+
+- name: spmv_NaN
+  category: pre_checkin
+  function: spmv
+  precision: *single_double_precisions
+  uplo: [ U ]
+  N: [ 33 ]
+  incx_incy: *incx_incy_range_small
+  alpha_beta: *alpha_beta_range_nan
 
 - name: spmv_medium
   category: pre_checkin

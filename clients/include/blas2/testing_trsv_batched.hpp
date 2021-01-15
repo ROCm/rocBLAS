@@ -2,6 +2,8 @@
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+#pragma once
+
 #include "cblas_interface.hpp"
 #include "flops.hpp"
 #include "norm.hpp"
@@ -21,9 +23,8 @@
 template <typename T>
 void testing_trsv_batched(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_trsv_batched_fn
-        = FORTRAN ? rocblas_trsv_batched<T, true> : rocblas_trsv_batched<T, false>;
+    auto rocblas_trsv_batched_fn
+        = arg.fortran ? rocblas_trsv_batched<T, true> : rocblas_trsv_batched<T, false>;
 
     rocblas_int M           = arg.M;
     rocblas_int lda         = arg.lda;
@@ -38,7 +39,7 @@ void testing_trsv_batched(const Arguments& arg)
     rocblas_diagonal  diag   = char2rocblas_diagonal(char_diag);
 
     rocblas_status       status;
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // check here to prevent undefined memory allocation error
     bool invalid_size = M < 0 || lda < M || lda < 1 || !incx || batch_count < 0;
@@ -66,8 +67,6 @@ void testing_trsv_batched(const Arguments& arg)
     host_batch_vector<T> cpu_x_or_b(size_x, 1, batch_count);
 
     double gpu_time_used, cpu_time_used;
-    double rocblas_gflops, cblas_gflops;
-    double rocblas_error;
     double error_eps_multiplier    = ERROR_EPS_MULTIPLIER;
     double residual_eps_multiplier = RESIDUAL_EPS_MULTIPLIER;
     double eps                     = std::numeric_limits<real_t<T>>::epsilon();
@@ -283,8 +282,6 @@ void testing_trsv_batched(const Arguments& arg)
                                     batch_count);
 
         gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
-        rocblas_gflops
-            = batch_count * trsv_gflop_count<T>(M) * number_hot_calls / gpu_time_used * 1e6;
 
         // CPU cblas
         cpu_time_used = get_time_us_no_sync();
@@ -294,24 +291,15 @@ void testing_trsv_batched(const Arguments& arg)
                 cblas_trsv<T>(uplo, transA, diag, M, hA[b], lda, cpu_x_or_b[b], incx);
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
-        cblas_gflops  = batch_count * trsv_gflop_count<T>(M) / cpu_time_used * 1e6;
 
-        // only norm_check return an norm error, unit check won't return anything
-        rocblas_cout << "M,lda,incx,uplo,transA,diag,batch_count,rocblas-Gflops,us";
-
-        if(arg.norm_check)
-            rocblas_cout << ",CPU-Gflops,us,norm_error_host_ptr,norm_error_dev_ptr";
-
-        rocblas_cout << std::endl;
-
-        rocblas_cout << M << ',' << lda << ',' << incx << ',' << char_uplo << ',' << char_transA
-                     << ',' << char_diag << ',' << batch_count << ',' << rocblas_gflops << ","
-                     << gpu_time_used / number_hot_calls;
-
-        if(arg.norm_check)
-            rocblas_cout << "," << cblas_gflops << "," << cpu_time_used << "," << max_err_1 << ","
-                         << max_err_2;
-
-        rocblas_cout << std::endl;
+        ArgumentModel<e_uplo, e_transA, e_diag, e_M, e_lda, e_incx, e_batch_count>{}.log_args<T>(
+            rocblas_cout,
+            arg,
+            gpu_time_used,
+            trsv_gflop_count<T>(M),
+            ArgumentLogging::NA_value,
+            cpu_time_used,
+            max_err_1,
+            max_err_2);
     }
 }

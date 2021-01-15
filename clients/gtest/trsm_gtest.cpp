@@ -129,7 +129,7 @@ namespace
     using trsm = trsm_template<trsm_testing, TRSM>;
     TEST_P(trsm, blas3_tensile)
     {
-        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<trsm_testing>(GetParam()));
+        RUN_TEST_ON_THREADS_STREAMS(rocblas_simple_dispatch<trsm_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(trsm);
 

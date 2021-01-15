@@ -2,6 +2,9 @@
  * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+#pragma once
+
+#include "bytes.hpp"
 #include "cblas_interface.hpp"
 #include "flops.hpp"
 #include "near.hpp"
@@ -18,15 +21,14 @@
 template <typename T>
 void testing_syr_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN        = arg.fortran;
-    auto       rocblas_syr_fn = FORTRAN ? rocblas_syr<T, true> : rocblas_syr<T, false>;
+    auto rocblas_syr_fn = arg.fortran ? rocblas_syr<T, true> : rocblas_syr<T, false>;
 
     rocblas_fill         uplo  = rocblas_fill_upper;
     rocblas_int          N     = 100;
     rocblas_int          incx  = 1;
     rocblas_int          lda   = 100;
     T                    alpha = 0.6;
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     size_t abs_incx = incx >= 0 ? incx : -incx;
     size_t size_A   = lda * N;
@@ -51,15 +53,14 @@ void testing_syr_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_syr(const Arguments& arg)
 {
-    const bool FORTRAN        = arg.fortran;
-    auto       rocblas_syr_fn = FORTRAN ? rocblas_syr<T, true> : rocblas_syr<T, false>;
+    auto rocblas_syr_fn = arg.fortran ? rocblas_syr<T, true> : rocblas_syr<T, false>;
 
     rocblas_int          N       = arg.N;
     rocblas_int          incx    = arg.incx;
     rocblas_int          lda     = arg.lda;
     T                    h_alpha = arg.get_alpha<T>();
     rocblas_fill         uplo    = char2rocblas_fill(arg.uplo);
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // argument check before allocating invalid memory
     if(N < 0 || lda < N || lda < 1 || !incx)
@@ -91,7 +92,6 @@ void testing_syr(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
 
     double gpu_time_used, cpu_time_used;
-    double rocblas_gflops, cblas_gflops, rocblas_bandwidth;
     double rocblas_error_1;
     double rocblas_error_2;
 
@@ -101,7 +101,15 @@ void testing_syr(const Arguments& arg)
     {
         rocblas_init_symmetric<T>(hA_1, N, lda);
     }
-    rocblas_init<T>(hx, 1, N, abs_incx);
+
+    if(arg.alpha_isnan<T>())
+    {
+        rocblas_init_nan<T>(hx, 1, N, abs_incx);
+    }
+    else
+    {
+        rocblas_init<T>(hx, 1, N, abs_incx);
+    }
 
     // copy matrix is easy in STL; hA_gold = hA_1: save a copy in hA_gold which will be output of
     // CPU BLAS
@@ -124,15 +132,14 @@ void testing_syr(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
         CHECK_ROCBLAS_ERROR(rocblas_syr_fn(handle, uplo, N, d_alpha, dx, incx, dA_2, lda));
 
-        // copy output from device to CPU
-        hipMemcpy(hA_1, dA_1, sizeof(T) * N * lda, hipMemcpyDeviceToHost);
-        hipMemcpy(hA_2, dA_2, sizeof(T) * N * lda, hipMemcpyDeviceToHost);
-
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
         cblas_syr<T>(uplo, N, h_alpha, hx, incx, hA_gold, lda);
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
-        cblas_gflops  = syr_gflop_count<T>(N) / cpu_time_used * 1e6;
+
+        // copy output from device to CPU
+        hipMemcpy(hA_1, dA_1, sizeof(T) * N * lda, hipMemcpyDeviceToHost);
+        hipMemcpy(hA_2, dA_2, sizeof(T) * N * lda, hipMemcpyDeviceToHost);
 
         if(arg.unit_check)
         {
@@ -176,24 +183,15 @@ void testing_syr(const Arguments& arg)
             rocblas_syr_fn(handle, uplo, N, &h_alpha, dx, incx, dA_1, lda);
         }
 
-        gpu_time_used     = (get_time_us_sync(stream) - gpu_time_used) / number_hot_calls;
-        rocblas_gflops    = syr_gflop_count<T>(N) / gpu_time_used * 1e6;
-        rocblas_bandwidth = (2.0 * N * (N + 1)) / 2 * sizeof(T) / gpu_time_used / 1e3;
+        gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
 
-        // only norm_check return an norm error, unit check won't return anything
-        rocblas_cout << "N,alpha,incx,lda,rocblas-Gflops,rocblas-GB/s";
-
-        if(arg.norm_check)
-            rocblas_cout << ",CPU-Gflops,norm_error_host_ptr,norm_error_dev_ptr";
-
-        rocblas_cout << std::endl;
-
-        rocblas_cout << N << "," << h_alpha << "," << incx << "," << lda << "," << rocblas_gflops
-                     << "," << rocblas_bandwidth;
-
-        if(arg.norm_check)
-            rocblas_cout << "," << cblas_gflops << "," << rocblas_error_1 << "," << rocblas_error_2;
-
-        rocblas_cout << std::endl;
+        ArgumentModel<e_uplo, e_N, e_alpha, e_lda, e_incx>{}.log_args<T>(rocblas_cout,
+                                                                         arg,
+                                                                         gpu_time_used,
+                                                                         syr_gflop_count<T>(N),
+                                                                         syr_gbyte_count<T>(N),
+                                                                         cpu_time_used,
+                                                                         rocblas_error_1,
+                                                                         rocblas_error_2);
     }
 }

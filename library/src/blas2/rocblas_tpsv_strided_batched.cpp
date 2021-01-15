@@ -117,9 +117,53 @@ namespace
         if(!AP || !x)
             return rocblas_status_invalid_pointer;
 
+        auto check_numerics = handle->check_numerics;
+        if(check_numerics)
+        {
+            bool           is_input = true;
+            rocblas_status tpsv_check_numerics_status
+                = rocblas_tpsv_check_numerics(rocblas_tpsv_strided_batched_name<T>,
+                                              handle,
+                                              n,
+                                              AP,
+                                              0,
+                                              stride_A,
+                                              x,
+                                              0,
+                                              incx,
+                                              stride_x,
+                                              batch_count,
+                                              check_numerics,
+                                              is_input);
+            if(tpsv_check_numerics_status != rocblas_status_success)
+                return tpsv_check_numerics_status;
+        }
+
         rocblas_status status = rocblas_tpsv_template<BLOCK>(
             handle, uplo, transA, diag, n, AP, 0, stride_A, x, 0, incx, stride_x, batch_count);
+        if(status != rocblas_status_success)
+            return status;
 
+        if(check_numerics)
+        {
+            bool           is_input = false;
+            rocblas_status tpsv_check_numerics_status
+                = rocblas_tpsv_check_numerics(rocblas_tpsv_strided_batched_name<T>,
+                                              handle,
+                                              n,
+                                              AP,
+                                              0,
+                                              stride_A,
+                                              x,
+                                              0,
+                                              incx,
+                                              stride_x,
+                                              batch_count,
+                                              check_numerics,
+                                              is_input);
+            if(tpsv_check_numerics_status != rocblas_status_success)
+                return tpsv_check_numerics_status;
+        }
         return status;
     }
 

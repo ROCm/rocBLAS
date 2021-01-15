@@ -1,6 +1,8 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+
+#pragma once
 
 #include "cblas_interface.hpp"
 #include "norm.hpp"
@@ -24,7 +26,7 @@ void testing_swap_bad_arg(const Arguments& arg)
     rocblas_int         incy      = 1;
     static const size_t safe_size = 100; //  arbitrarily set to 100
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // allocate memory on device
     device_vector<T> dx(safe_size);
@@ -49,7 +51,7 @@ void testing_swap(const Arguments& arg)
     rocblas_int          N    = arg.N;
     rocblas_int          incx = arg.incx;
     rocblas_int          incy = arg.incy;
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // argument sanity check before allocating invalid memory
     if(N <= 0)
@@ -71,7 +73,10 @@ void testing_swap(const Arguments& arg)
 
     // Initial Data on CPU
     rocblas_seedrand();
-    rocblas_init<T>(hx, 1, N, abs_incx);
+    if(rocblas_isnan(arg.alpha))
+        rocblas_init_nan<T>(hx, 1, N, abs_incx);
+    else
+        rocblas_init<T>(hx, 1, N, abs_incx);
     // make hy different to hx
     for(size_t i = 0; i < N; i++)
     {

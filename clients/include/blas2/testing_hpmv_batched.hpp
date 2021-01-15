@@ -3,6 +3,9 @@
  *
  * ************************************************************************ */
 
+#pragma once
+
+#include "bytes.hpp"
 #include "cblas_interface.hpp"
 #include "flops.hpp"
 #include "near.hpp"
@@ -20,20 +23,20 @@
 template <typename T>
 void testing_hpmv_batched_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_hpmv_batched_fn
-        = FORTRAN ? rocblas_hpmv_batched<T, true> : rocblas_hpmv_batched<T, false>;
+    auto rocblas_hpmv_batched_fn
+        = arg.fortran ? rocblas_hpmv_batched<T, true> : rocblas_hpmv_batched<T, false>;
 
     const rocblas_int N           = 100;
     const rocblas_int incx        = 1;
     const rocblas_int incy        = 1;
     const rocblas_int batch_count = 5;
-    T                 alpha;
-    T                 beta;
-    alpha = beta = 1.0;
+    const T           alpha       = 0.5;
+    const T           beta        = 2.0;
+    const T           zero        = 0.0;
+    const T           one         = 1.0;
 
     const rocblas_fill   uplo = rocblas_fill_upper;
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     size_t size_A = size_t(N);
     size_t size_x = N * size_t(incx);
@@ -125,18 +128,44 @@ void testing_hpmv_batched_bad_arg(const Arguments& arg)
                                                   batch_count),
                           rocblas_status_invalid_handle);
 
+    // If batch_count==0, then all pointers may be nullptr without error
     EXPECT_ROCBLAS_STATUS(
         rocblas_hpmv_batched_fn(
             handle, uplo, N, nullptr, nullptr, nullptr, incx, nullptr, nullptr, incy, 0),
+        rocblas_status_success);
+
+    // If N==0, then all pointers may be nullptr without error
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_hpmv_batched_fn(
+            handle, uplo, 0, nullptr, nullptr, nullptr, incx, nullptr, nullptr, incy, batch_count),
+        rocblas_status_success);
+
+    // If alpha==0, then A and x may be nullptr without error
+    EXPECT_ROCBLAS_STATUS(rocblas_hpmv_batched_fn(handle,
+                                                  uplo,
+                                                  N,
+                                                  &zero,
+                                                  nullptr,
+                                                  nullptr,
+                                                  incx,
+                                                  &beta,
+                                                  dy.ptr_on_device(),
+                                                  incy,
+                                                  batch_count),
+                          rocblas_status_success);
+
+    // If alpha==0 && beta==1, then A, x and y may be nullptr without error
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_hpmv_batched_fn(
+            handle, uplo, N, &zero, nullptr, nullptr, incx, &one, nullptr, incy, batch_count),
         rocblas_status_success);
 }
 
 template <typename T>
 void testing_hpmv_batched(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_hpmv_batched_fn
-        = FORTRAN ? rocblas_hpmv_batched<T, true> : rocblas_hpmv_batched<T, false>;
+    auto rocblas_hpmv_batched_fn
+        = arg.fortran ? rocblas_hpmv_batched<T, true> : rocblas_hpmv_batched<T, false>;
 
     rocblas_int  N           = arg.N;
     rocblas_int  incx        = arg.incx;
@@ -146,7 +175,7 @@ void testing_hpmv_batched(const Arguments& arg)
     T            h_beta      = arg.get_beta<T>();
     rocblas_fill uplo        = char2rocblas_fill(arg.uplo);
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // argument sanity check before allocating invalid memory
     bool invalid_size = N < 0 || !incx || !incy || batch_count < 0;
@@ -206,10 +235,18 @@ void testing_hpmv_batched(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(d_alpha.memcheck());
     CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
 
-    rocblas_init(hA, true);
-    rocblas_init(hx, false);
+    if(arg.alpha_isnan<T>())
+    {
+        rocblas_init_nan(hA, true);
+        rocblas_init_nan(hx, false);
+    }
+    else
+    {
+        rocblas_init(hA, true);
+        rocblas_init(hx, false);
+    }
 
-    if(rocblas_isnan(arg.beta))
+    if(arg.beta_isnan<T>())
         rocblas_init_nan(hy_1, false);
     else
         rocblas_init(hy_1, false);
@@ -221,7 +258,6 @@ void testing_hpmv_batched(const Arguments& arg)
     CHECK_HIP_ERROR(dy_1.transfer_from(hy_1));
 
     double gpu_time_used, cpu_time_used;
-    double rocblas_gflops, cblas_gflops, rocblas_bandwidth;
     double rocblas_error_1;
     double rocblas_error_2;
 
@@ -261,10 +297,6 @@ void testing_hpmv_batched(const Arguments& arg)
                                                     incy,
                                                     batch_count));
 
-        // copy output from device to CPU
-        CHECK_HIP_ERROR(hy_1.transfer_from(dy_1));
-        CHECK_HIP_ERROR(hy_2.transfer_from(dy_2));
-
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
 
@@ -272,7 +304,10 @@ void testing_hpmv_batched(const Arguments& arg)
             cblas_hpmv<T>(uplo, N, h_alpha, hA[b], hx[b], incx, h_beta, hy_gold[b], incy);
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
-        cblas_gflops  = batch_count * hpmv_gflop_count<T>(N) / cpu_time_used * 1e6;
+
+        // copy output from device to CPU
+        CHECK_HIP_ERROR(hy_1.transfer_from(dy_1));
+        CHECK_HIP_ERROR(hy_2.transfer_from(dy_2));
 
         if(arg.unit_check)
         {
@@ -329,28 +364,16 @@ void testing_hpmv_batched(const Arguments& arg)
                                     batch_count);
         }
 
-        gpu_time_used  = (get_time_us_sync(stream) - gpu_time_used) / number_hot_calls;
-        rocblas_gflops = batch_count * hpmv_gflop_count<T>(N) / gpu_time_used * 1e6;
-        rocblas_bandwidth
-            = batch_count * (((N * (N + 1.0)) / 2.0) + 3.0 * N) * sizeof(T) / gpu_time_used / 1e3;
+        gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
 
-        // only norm_check return an norm error, unit check won't return anything
-        rocblas_cout << "N,alpha,incx,beta,incy,batch_count,rocblas-Gflops,rocblas-GB/s,";
-        if(arg.norm_check)
-        {
-            rocblas_cout << "CPU-Gflops,norm_error_host_ptr,norm_error_device_ptr";
-        }
-        rocblas_cout << std::endl;
-
-        rocblas_cout << N << "," << h_alpha << "," << incx << "," << h_beta << "," << incy << ","
-                     << batch_count << "," << rocblas_gflops << "," << rocblas_bandwidth << ",";
-
-        if(arg.norm_check)
-        {
-            rocblas_cout << cblas_gflops << ',';
-            rocblas_cout << rocblas_error_1 << ',' << rocblas_error_2;
-        }
-
-        rocblas_cout << std::endl;
+        ArgumentModel<e_uplo, e_N, e_alpha, e_lda, e_incx, e_beta, e_incy, e_batch_count>{}
+            .log_args<T>(rocblas_cout,
+                         arg,
+                         gpu_time_used,
+                         hpmv_gflop_count<T>(N),
+                         hpmv_gbyte_count<T>(N),
+                         cpu_time_used,
+                         rocblas_error_1,
+                         rocblas_error_2);
     }
 }

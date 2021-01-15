@@ -1,11 +1,11 @@
 /* ************************************************************************
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+
+#pragma once
+
 #include "handle.hpp"
-#include "logging.hpp"
 #include "rocblas.h"
-#include "utility.hpp"
-#include <hip/hip_runtime.h>
 
 /**
   *
@@ -49,6 +49,11 @@ __global__ void rocblas_check_numerics_vector_kernel(rocblas_int               n
             abnormal->has_Inf = true;
     }
 }
+
+rocblas_status rocblas_check_numerics_abnormal_struct(const char*               function_name,
+                                                      const int                 check_numerics,
+                                                      bool                      is_input,
+                                                      rocblas_check_numerics_t* h_abnormal);
 
 template <typename T>
 ROCBLAS_EXPORT_NOINLINE rocblas_status

@@ -37,14 +37,11 @@ namespace
 
         size_t dev_bytes = rocblas_gemv_kernel_workspace_size<T>(transA, m, n, batch_count);
         if(handle->is_device_memory_size_query())
-        {
-            if(dev_bytes <= 0)
-                return rocblas_status_size_unchanged;
-            else
-                return handle->set_optimal_device_memory_size(dev_bytes);
-        }
+            return handle->set_optimal_device_memory_size(dev_bytes);
 
-        auto layer_mode = handle->layer_mode;
+        auto layer_mode     = handle->layer_mode;
+        auto check_numerics = handle->check_numerics;
+
         if(layer_mode
            & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
               | rocblas_layer_mode_log_profile))
@@ -113,13 +110,55 @@ namespace
         if(!m || !n || !batch_count)
             return rocblas_status_success;
 
-        if(!A || !x || !y || !alpha || !beta)
+        if(!alpha || !beta)
+            return rocblas_status_invalid_pointer;
+
+        if(handle->pointer_mode == rocblas_pointer_mode_host && !*alpha)
+        {
+            if(*beta == 1)
+                return rocblas_status_success;
+        }
+        else
+        {
+            if(!A || !x)
+                return rocblas_status_invalid_pointer;
+        }
+
+        if(!y)
             return rocblas_status_invalid_pointer;
 
         rocblas_status perf_status = rocblas_status_success;
         auto           mem         = handle->device_malloc(dev_bytes);
         if(!mem)
             perf_status = rocblas_status_perf_degraded;
+
+        if(check_numerics)
+        {
+            bool           is_input = true;
+            rocblas_status gemv_check_numerics_status
+                = rocblas_gemv_check_numerics(rocblas_gemv_name<T>,
+                                              handle,
+                                              transA,
+                                              m,
+                                              n,
+                                              A,
+                                              0,
+                                              lda,
+                                              0,
+                                              x,
+                                              0,
+                                              incx,
+                                              0,
+                                              y,
+                                              0,
+                                              incy,
+                                              0,
+                                              batch_count,
+                                              check_numerics,
+                                              is_input);
+            if(gemv_check_numerics_status != rocblas_status_success)
+                return gemv_check_numerics_status;
+        }
 
         rocblas_status status = rocblas_gemv_template<T>(handle,
                                                          transA,
@@ -144,7 +183,38 @@ namespace
                                                          batch_count,
                                                          (T*)mem);
 
-        return status != rocblas_status_success ? status : perf_status;
+        status = (status != rocblas_status_success) ? status : perf_status;
+        if(status != rocblas_status_success)
+            return status;
+
+        if(check_numerics)
+        {
+            bool           is_input = false;
+            rocblas_status gemv_check_numerics_status
+                = rocblas_gemv_check_numerics(rocblas_gemv_name<T>,
+                                              handle,
+                                              transA,
+                                              m,
+                                              n,
+                                              A,
+                                              0,
+                                              lda,
+                                              0,
+                                              x,
+                                              0,
+                                              incx,
+                                              0,
+                                              y,
+                                              0,
+                                              incy,
+                                              0,
+                                              batch_count,
+                                              check_numerics,
+                                              is_input);
+            if(gemv_check_numerics_status != rocblas_status_success)
+                return gemv_check_numerics_status;
+        }
+        return status;
     }
 } // namespace
 

@@ -1,6 +1,8 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+
+#pragma once
 
 #include "bytes.hpp"
 #include "cblas_interface.hpp"
@@ -18,9 +20,8 @@
 template <typename T>
 void testing_nrm2_strided_batched_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_nrm2_strided_batched_fn
-        = FORTRAN ? rocblas_nrm2_strided_batched<T, true> : rocblas_nrm2_strided_batched<T, false>;
+    auto rocblas_nrm2_strided_batched_fn = arg.fortran ? rocblas_nrm2_strided_batched<T, true>
+                                                       : rocblas_nrm2_strided_batched<T, false>;
 
     rocblas_int         N           = 100;
     rocblas_int         incx        = 1;
@@ -28,7 +29,7 @@ void testing_nrm2_strided_batched_bad_arg(const Arguments& arg)
     rocblas_int         batch_count = 5;
     static const size_t safe_size   = 100;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     device_vector<T>         dx(safe_size);
     device_vector<real_t<T>> d_rocblas_result(batch_count);
@@ -51,9 +52,8 @@ void testing_nrm2_strided_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_nrm2_strided_batched(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_nrm2_strided_batched_fn
-        = FORTRAN ? rocblas_nrm2_strided_batched<T, true> : rocblas_nrm2_strided_batched<T, false>;
+    auto rocblas_nrm2_strided_batched_fn = arg.fortran ? rocblas_nrm2_strided_batched<T, true>
+                                                       : rocblas_nrm2_strided_batched<T, false>;
 
     rocblas_int    N           = arg.N;
     rocblas_int    incx        = arg.incx;
@@ -63,7 +63,7 @@ void testing_nrm2_strided_batched(const Arguments& arg)
     double rocblas_error_1;
     double rocblas_error_2;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // check to prevent undefined memory allocation error
     if(N <= 0 || incx <= 0 || batch_count <= 0)
@@ -94,7 +94,10 @@ void testing_nrm2_strided_batched(const Arguments& arg)
 
     // Initial Data on CPU
     rocblas_seedrand();
-    rocblas_init<T>(hx, 1, N, incx, stridex, batch_count);
+    if(rocblas_isnan(arg.alpha))
+        rocblas_init_nan<T>(hx, 1, N, incx, stridex, batch_count);
+    else
+        rocblas_init<T>(hx, 1, N, incx, stridex, batch_count);
 
     // copy data from CPU to device, does not work for incx != 1
     CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T) * size_x * batch_count, hipMemcpyHostToDevice));
@@ -136,12 +139,16 @@ void testing_nrm2_strided_batched(const Arguments& arg)
         real_t<T> tolerance = 2.0; //  accounts for rounding in reduction sum. depends on n.
             //  If test fails, try decreasing n or increasing tolerance.
         abs_error *= tolerance;
-        if(arg.unit_check)
+
+        if(!rocblas_isnan(arg.alpha))
         {
-            near_check_general<real_t<T>, real_t<T>>(
-                batch_count, 1, 1, cpu_result, rocblas_result_1, abs_error);
-            near_check_general<real_t<T>, real_t<T>>(
-                batch_count, 1, 1, cpu_result, rocblas_result_2, abs_error);
+            if(arg.unit_check)
+            {
+                near_check_general<real_t<T>, real_t<T>>(
+                    batch_count, 1, 1, cpu_result, rocblas_result_1, abs_error);
+                near_check_general<real_t<T>, real_t<T>>(
+                    batch_count, 1, 1, cpu_result, rocblas_result_2, abs_error);
+            }
         }
 
         if(arg.norm_check)

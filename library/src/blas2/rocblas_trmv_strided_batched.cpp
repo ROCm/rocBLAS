@@ -129,8 +129,10 @@ namespace
             return rocblas_status_invalid_size;
 
         if(!m || !batch_count)
-            return handle->is_device_memory_size_query() ? rocblas_status_size_unchanged
-                                                         : rocblas_status_success;
+        {
+            RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
+            return rocblas_status_success;
+        }
 
         size_t dev_bytes = m * batch_count * sizeof(T);
         if(handle->is_device_memory_size_query())
@@ -143,21 +145,70 @@ namespace
         if(!mem)
             return rocblas_status_memory_error;
 
+        auto check_numerics = handle->check_numerics;
+
+        if(check_numerics)
+        {
+            bool           is_input = true;
+            rocblas_status trmv_check_numerics_status
+                = rocblas_trmv_check_numerics(rocblas_trmv_strided_batched_name<T>,
+                                              handle,
+                                              m,
+                                              a,
+                                              0,
+                                              lda,
+                                              stridea,
+                                              x,
+                                              0,
+                                              incx,
+                                              stridex,
+                                              batch_count,
+                                              check_numerics,
+                                              is_input);
+            if(trmv_check_numerics_status != rocblas_status_success)
+                return trmv_check_numerics_status;
+        }
+
         rocblas_stride stridew = m;
-        return rocblas_trmv_strided_batched_template(handle,
-                                                     uplo,
-                                                     transa,
-                                                     diag,
-                                                     m,
-                                                     a,
-                                                     lda,
-                                                     stridea,
-                                                     x,
-                                                     incx,
-                                                     stridex,
-                                                     (T*)mem,
-                                                     stridew,
-                                                     batch_count);
+        rocblas_status status  = rocblas_trmv_strided_batched_template(handle,
+                                                                      uplo,
+                                                                      transa,
+                                                                      diag,
+                                                                      m,
+                                                                      a,
+                                                                      lda,
+                                                                      stridea,
+                                                                      x,
+                                                                      incx,
+                                                                      stridex,
+                                                                      (T*)mem,
+                                                                      stridew,
+                                                                      batch_count);
+        if(status != rocblas_status_success)
+            return status;
+
+        if(check_numerics)
+        {
+            bool           is_input = false;
+            rocblas_status trmv_check_numerics_status
+                = rocblas_trmv_check_numerics(rocblas_trmv_strided_batched_name<T>,
+                                              handle,
+                                              m,
+                                              a,
+                                              0,
+                                              lda,
+                                              stridea,
+                                              x,
+                                              0,
+                                              incx,
+                                              stridex,
+                                              batch_count,
+                                              check_numerics,
+                                              is_input);
+            if(trmv_check_numerics_status != rocblas_status_success)
+                return trmv_check_numerics_status;
+        }
+        return status;
     }
 
 } // namespace

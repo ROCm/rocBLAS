@@ -1,9 +1,12 @@
 /* ************************************************************************
  * Copyright 2019-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#ifndef __ROCBLAS_GBMV_HPP__
-#define __ROCBLAS_GBMV_HPP__
+
+#pragma once
+
 #include "../blas1/rocblas_copy.hpp"
+#include "check_numerics_matrix.hpp"
+#include "check_numerics_vector.hpp"
 
 /**
   *  Helper for the non-transpose case. Iterates through each diagonal
@@ -128,21 +131,25 @@ __device__ void gbmvx_kernel_calc(rocblas_operation transA,
     __shared__ T sdata[DIM_X * DIM_Y];
 
     T res_A = 0.0;
-    // Indexing is different for transpose/non-transpose case. To keep it clean
-    // it's separated in two helper functions. They could potentially be combined
-    // if more elegant logic is used.
-    if(transA == rocblas_operation_none)
+
+    if(alpha)
     {
-        res_A = gbmvn_kernel_helper<DIM_Y>(ty, ind, m, n, kl, ku, A, lda, x, incx);
+        // Indexing is different for transpose/non-transpose case. To keep it clean
+        // it's separated in two helper functions. They could potentially be combined
+        // if more elegant logic is used.
+        if(transA == rocblas_operation_none)
+        {
+            res_A = gbmvn_kernel_helper<DIM_Y>(ty, ind, m, n, kl, ku, A, lda, x, incx);
+        }
+        else
+        {
+            bool CONJ = transA == rocblas_operation_conjugate_transpose;
+            res_A     = gbmvt_kernel_helper<DIM_Y>(CONJ, ty, ind, m, n, kl, ku, A, lda, x, incx);
+        }
+        // Store partial sums for the diagonal
+        sdata[tx + ty * DIM_X] = res_A;
+        __syncthreads();
     }
-    else
-    {
-        bool CONJ = transA == rocblas_operation_conjugate_transpose;
-        res_A     = gbmvt_kernel_helper<DIM_Y>(CONJ, ty, ind, m, n, kl, ku, A, lda, x, incx);
-    }
-    // Store partial sums for the diagonal
-    sdata[tx + ty * DIM_X] = res_A;
-    __syncthreads();
 
     thread_id           = hipThreadIdx_x + hipThreadIdx_y * hipBlockDim_x;
     ind                 = hipBlockIdx_x * DIM_X + thread_id;
@@ -150,21 +157,18 @@ __device__ void gbmvx_kernel_calc(rocblas_operation transA,
     if(thread_id < DIM_X && ind < max_ind)
     {
         // Add the partial sums of each diagonal and store
-        for(rocblas_int i = 1; i < DIM_Y; i++)
-        {
-            sdata[thread_id] += sdata[thread_id + DIM_X * i];
-        }
+        if(alpha)
+            for(rocblas_int i = 1; i < DIM_Y; i++)
+                sdata[thread_id] += sdata[thread_id + DIM_X * i];
+
         if(ind < max_ind)
         {
             // Update y.
             if(beta != 0)
-            {
-                y[ind * incy] = (alpha * sdata[thread_id]) + (beta * y[ind * incy]);
-            }
+                y[ind * incy] = alpha ? alpha * sdata[thread_id] + beta * y[ind * incy]
+                                      : beta * y[ind * incy];
             else
-            {
-                y[ind * incy] = alpha * sdata[thread_id];
-            }
+                y[ind * incy] = alpha ? alpha * sdata[thread_id] : 0;
         }
     }
 }
@@ -194,35 +198,40 @@ __device__ void gbmvx_kernel_calc(rocblas_operation transA,
   *  reside on the same row as the other elements of the same diagonal.
   */
 template <rocblas_int DIM_X, rocblas_int DIM_Y, typename U, typename V, typename W>
-__global__ void gbmvx_kernel(rocblas_operation transA,
-                             rocblas_int       m,
-                             rocblas_int       n,
-                             rocblas_int       kl,
-                             rocblas_int       ku,
-                             U                 alphaa,
-                             V                 Aa,
-                             ptrdiff_t         shifta,
-                             rocblas_int       lda,
-                             rocblas_stride    strideA,
-                             V                 xa,
-                             ptrdiff_t         shiftx,
-                             rocblas_int       incx,
-                             rocblas_stride    stridex,
-                             U                 betaa,
-                             W                 ya,
-                             ptrdiff_t         shifty,
-                             rocblas_int       incy,
-                             rocblas_stride    stridey)
+__launch_bounds__(DIM_X* DIM_Y) __global__ void gbmvx_kernel(rocblas_operation transA,
+                                                             rocblas_int       m,
+                                                             rocblas_int       n,
+                                                             rocblas_int       kl,
+                                                             rocblas_int       ku,
+                                                             U                 alphaa,
+                                                             V                 Aa,
+                                                             ptrdiff_t         shifta,
+                                                             rocblas_int       lda,
+                                                             rocblas_stride    strideA,
+                                                             V                 xa,
+                                                             ptrdiff_t         shiftx,
+                                                             rocblas_int       incx,
+                                                             rocblas_stride    stridex,
+                                                             U                 betaa,
+                                                             W                 ya,
+                                                             ptrdiff_t         shifty,
+                                                             rocblas_int       incy,
+                                                             rocblas_stride    stridey)
 {
     rocblas_int num_threads = hipBlockDim_x * hipBlockDim_y * hipBlockDim_z;
     if(DIM_X * DIM_Y != num_threads)
         return; // need to launch exactly the same number of threads as template parameters indicate
 
-    const auto* A     = load_ptr_batch(Aa, hipBlockIdx_y, shifta, strideA);
-    const auto* x     = load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex);
-    auto*       y     = load_ptr_batch(ya, hipBlockIdx_y, shifty, stridey);
-    auto        alpha = load_scalar(alphaa, hipBlockIdx_y, 0);
-    auto        beta  = load_scalar(betaa, hipBlockIdx_y, 0);
+    auto alpha = load_scalar(alphaa, hipBlockIdx_y, 0);
+    auto beta  = load_scalar(betaa, hipBlockIdx_y, 0);
+
+    if(!alpha && beta == 1)
+        return;
+
+    const auto* A = alpha ? load_ptr_batch(Aa, hipBlockIdx_y, shifta, strideA) : nullptr;
+    const auto* x = alpha ? load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex) : nullptr;
+
+    auto* y = load_ptr_batch(ya, hipBlockIdx_y, shifty, stridey);
 
     gbmvx_kernel_calc<DIM_X, DIM_Y>(transA, m, n, kl, ku, alpha, A, lda, x, incx, beta, y, incy);
 }
@@ -342,4 +351,57 @@ rocblas_status rocblas_gbmv_template(rocblas_handle    handle,
     return rocblas_status_success;
 }
 
-#endif
+//TODO :-Add rocblas_check_numerics_gb_matrix_template for checking Matrix `A` which is a General Band matrix
+template <typename T, typename U>
+rocblas_status rocblas_gbmv_check_numerics(const char*       function_name,
+                                           rocblas_handle    handle,
+                                           rocblas_operation trans_a,
+                                           rocblas_int       m,
+                                           rocblas_int       n,
+                                           T                 A,
+                                           rocblas_int       offset_a,
+                                           rocblas_int       lda,
+                                           rocblas_stride    stride_a,
+                                           T                 x,
+                                           rocblas_int       offset_x,
+                                           rocblas_int       inc_x,
+                                           rocblas_stride    stride_x,
+                                           U                 y,
+                                           rocblas_int       offset_y,
+                                           rocblas_int       inc_y,
+                                           rocblas_stride    stride_y,
+                                           rocblas_int       batch_count,
+                                           const int         check_numerics,
+                                           bool              is_input)
+{
+    //Checking trans_a to transpose a vector 'x'
+    rocblas_int n_x = trans_a == rocblas_operation_none ? n : m;
+
+    rocblas_status check_numerics_status = rocblas_check_numerics_vector_template(function_name,
+                                                                                  handle,
+                                                                                  n_x,
+                                                                                  x,
+                                                                                  offset_x,
+                                                                                  inc_x,
+                                                                                  stride_x,
+                                                                                  batch_count,
+                                                                                  check_numerics,
+                                                                                  is_input);
+    if(check_numerics_status != rocblas_status_success)
+        return check_numerics_status;
+
+    //Checking trans_a to transpose a vector 'y'
+    rocblas_int n_y       = trans_a == rocblas_operation_none ? m : n;
+    check_numerics_status = rocblas_check_numerics_vector_template(function_name,
+                                                                   handle,
+                                                                   n_y,
+                                                                   y,
+                                                                   offset_y,
+                                                                   inc_y,
+                                                                   stride_y,
+                                                                   batch_count,
+                                                                   check_numerics,
+                                                                   is_input);
+
+    return check_numerics_status;
+}

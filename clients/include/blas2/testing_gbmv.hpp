@@ -3,6 +3,9 @@
  *
  * ************************************************************************ */
 
+#pragma once
+
+#include "bytes.hpp"
 #include "cblas_interface.hpp"
 #include "flops.hpp"
 #include "near.hpp"
@@ -20,23 +23,23 @@
 template <typename T>
 void testing_gbmv_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN         = arg.fortran;
-    auto       rocblas_gbmv_fn = FORTRAN ? rocblas_gbmv<T, true> : rocblas_gbmv<T, false>;
+    auto rocblas_gbmv_fn = arg.fortran ? rocblas_gbmv<T, true> : rocblas_gbmv<T, false>;
 
-    const rocblas_int M    = 100;
-    const rocblas_int N    = 100;
-    const rocblas_int KL   = 5;
-    const rocblas_int KU   = 5;
-    const rocblas_int lda  = 100;
-    const rocblas_int incx = 1;
-    const rocblas_int incy = 1;
-    T                 alpha;
-    T                 beta;
-    alpha = beta = 1.0;
+    const rocblas_int M     = 100;
+    const rocblas_int N     = 100;
+    const rocblas_int KL    = 5;
+    const rocblas_int KU    = 5;
+    const rocblas_int lda   = 100;
+    const rocblas_int incx  = 1;
+    const rocblas_int incy  = 1;
+    const T           alpha = 2.0;
+    const T           beta  = 0.5;
+    const T           zero  = 0.0;
+    const T           one   = 1.0;
 
     const rocblas_operation transA = rocblas_operation_none;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     size_t size_A = lda * size_t(N);
     size_t size_x = N * size_t(incx);
@@ -93,15 +96,57 @@ void testing_gbmv_bad_arg(const Arguments& arg)
         rocblas_gbmv_fn(nullptr, transA, M, N, KL, KU, &alpha, dA, lda, dx, incx, &beta, dy, incy),
         rocblas_status_invalid_handle);
 
-    // TODO: See rocblas_gbmv.cpp comment on alpha==0 && beta==1 case.
-    // CHECK_ROCBLAS_ERROR(rocblas_gbmv_fn(handle, transA, 1, 1, 1, 1, &alpha, nullptr, 10, nullptr, 1, &beta, nullptr, 1));
+    // When M==0, alpha, A, x, beta, and y may be nullptr without error
+    EXPECT_ROCBLAS_STATUS(rocblas_gbmv_fn(handle,
+                                          transA,
+                                          0,
+                                          N,
+                                          KL,
+                                          KU,
+                                          nullptr,
+                                          nullptr,
+                                          lda,
+                                          nullptr,
+                                          incx,
+                                          nullptr,
+                                          nullptr,
+                                          incy),
+                          rocblas_status_success);
+
+    // When N==0, alpha, A, x, beta, and Y may be nullptr without error
+    EXPECT_ROCBLAS_STATUS(rocblas_gbmv_fn(handle,
+                                          transA,
+                                          M,
+                                          0,
+                                          KL,
+                                          KU,
+                                          nullptr,
+                                          nullptr,
+                                          lda,
+                                          nullptr,
+                                          incx,
+                                          nullptr,
+                                          nullptr,
+                                          incy),
+                          rocblas_status_success);
+
+    // When alpha==0, A and x may be nullptr without error
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_gbmv_fn(
+            handle, transA, M, N, KL, KU, &zero, nullptr, lda, nullptr, incx, &beta, dy, incy),
+        rocblas_status_success);
+
+    // When alpha==0 && beta==1, A, x and y may be nullptr without error
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_gbmv_fn(
+            handle, transA, M, N, KL, KU, &zero, nullptr, lda, nullptr, incx, &one, nullptr, incy),
+        rocblas_status_success);
 }
 
 template <typename T>
 void testing_gbmv(const Arguments& arg)
 {
-    const bool FORTRAN         = arg.fortran;
-    auto       rocblas_gbmv_fn = FORTRAN ? rocblas_gbmv<T, true> : rocblas_gbmv<T, false>;
+    auto rocblas_gbmv_fn = arg.fortran ? rocblas_gbmv<T, true> : rocblas_gbmv<T, false>;
 
     rocblas_int       M       = arg.M;
     rocblas_int       N       = arg.N;
@@ -114,7 +159,7 @@ void testing_gbmv(const Arguments& arg)
     T                 h_beta  = arg.get_beta<T>();
     rocblas_operation transA  = char2rocblas_operation(arg.transA);
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // argument sanity check before allocating invalid memory
     bool invalid_size = M < 0 || N < 0 || lda < KL + KU + 1 || !incx || !incy || KL < 0 || KU < 0;
@@ -186,11 +231,20 @@ void testing_gbmv(const Arguments& arg)
 
     // Initial Data on CPU
     rocblas_seedrand();
-    // Init a lda * N matrix, not M * N
-    rocblas_init<T>(hA, lda, N, lda);
-    rocblas_init<T>(hx, 1, dim_x, abs_incx);
 
-    if(rocblas_isnan(arg.beta))
+    // Init a lda * N matrix, not M * N
+    if(arg.alpha_isnan<T>())
+    {
+        rocblas_init_nan<T>(hA, lda, N, lda);
+        rocblas_init_nan<T>(hx, 1, dim_x, abs_incx);
+    }
+    else
+    {
+        rocblas_init<T>(hA, lda, N, lda);
+        rocblas_init<T>(hx, 1, dim_x, abs_incx);
+    }
+
+    if(arg.beta_isnan<T>())
         rocblas_init_nan<T>(hy_1, 1, dim_y, abs_incy);
     else
         rocblas_init<T>(hy_1, 1, dim_y, abs_incy);
@@ -206,7 +260,6 @@ void testing_gbmv(const Arguments& arg)
     dy_1.transfer_from(hy_1);
 
     double gpu_time_used, cpu_time_used;
-    double rocblas_gflops, cblas_gflops, rocblas_bandwidth;
     double rocblas_error_1;
     double rocblas_error_2;
 
@@ -228,17 +281,16 @@ void testing_gbmv(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(rocblas_gbmv_fn(
             handle, transA, M, N, KL, KU, d_alpha, dA, lda, dx, incx, d_beta, dy_2, incy));
 
-        // copy output from device to CPU
-        hy_1.transfer_from(dy_1);
-        hy_2.transfer_from(dy_2);
-
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
 
         cblas_gbmv<T>(transA, M, N, KL, KU, h_alpha, hA, lda, hx, incx, h_beta, hy_gold, incy);
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
-        cblas_gflops  = gbmv_gflop_count<T>(transA, M, N, KL, KU) / cpu_time_used * 1e6;
+
+        // copy output from device to CPU
+        hy_1.transfer_from(dy_1);
+        hy_2.transfer_from(dy_2);
 
         if(arg.unit_check)
         {
@@ -275,34 +327,16 @@ void testing_gbmv(const Arguments& arg)
                 handle, transA, M, N, KL, KU, &h_alpha, dA, lda, dx, incx, &h_beta, dy_1, incy);
         }
 
-        gpu_time_used  = (get_time_us_sync(stream) - gpu_time_used) / number_hot_calls;
-        rocblas_gflops = gbmv_gflop_count<T>(transA, M, N, KL, KU) / gpu_time_used * 1e6;
+        gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
 
-        rocblas_int k1      = dim_x < KL ? dim_x : KL;
-        rocblas_int k2      = dim_x < KU ? dim_x : KU;
-        rocblas_int d1      = ((k1 * dim_x) - (k1 * (k1 + 1) / 2));
-        rocblas_int d2      = ((k2 * dim_x) - (k2 * (k2 + 1) / 2));
-        double      num_els = double(d1 + d2 + dim_x);
-        rocblas_bandwidth   = (num_els) * sizeof(T) / gpu_time_used / 1e3;
-
-        // only norm_check return an norm error, unit check won't return anything
-        rocblas_cout << "M,N,KL,KU,alpha,lda,incx,beta,incy,rocblas-Gflops,rocblas-GB/s,";
-        if(arg.norm_check)
-        {
-            rocblas_cout << "CPU-Gflops,norm_error_host_ptr,norm_error_device_ptr";
-        }
-        rocblas_cout << std::endl;
-
-        rocblas_cout << M << "," << N << "," << KL << "," << KU << "," << h_alpha << "," << lda
-                     << "," << incx << "," << h_beta << "," << incy << "," << rocblas_gflops << ","
-                     << rocblas_bandwidth << ",";
-
-        if(arg.norm_check)
-        {
-            rocblas_cout << cblas_gflops << ',';
-            rocblas_cout << rocblas_error_1 << ',' << rocblas_error_2;
-        }
-
-        rocblas_cout << std::endl;
+        ArgumentModel<e_transA, e_M, e_N, e_KL, e_KU, e_alpha, e_lda, e_incx, e_beta, e_incy>{}
+            .log_args<T>(rocblas_cout,
+                         arg,
+                         gpu_time_used,
+                         gbmv_gflop_count<T>(transA, M, N, KL, KU),
+                         gbmv_gbyte_count<T>(transA, M, N, KL, KU),
+                         cpu_time_used,
+                         rocblas_error_1,
+                         rocblas_error_2);
     }
 }

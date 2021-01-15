@@ -1,6 +1,8 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+
+#pragma once
 
 #include "bytes.hpp"
 #include "cblas_interface.hpp"
@@ -18,16 +20,15 @@
 template <typename T, typename U = T>
 void testing_scal_batched(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_scal_batched_fn
-        = FORTRAN ? rocblas_scal_batched<T, U, true> : rocblas_scal_batched<T, U, false>;
+    auto rocblas_scal_batched_fn
+        = arg.fortran ? rocblas_scal_batched<T, U, true> : rocblas_scal_batched<T, U, false>;
 
     rocblas_int N           = arg.N;
     rocblas_int incx        = arg.incx;
     U           h_alpha     = arg.get_alpha<U>();
     rocblas_int batch_count = arg.batch_count;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // argument sanity check before allocating invalid memory
     if(N < 0 || incx <= 0 || batch_count <= 0)
@@ -59,7 +60,10 @@ void testing_scal_batched(const Arguments& arg)
     halpha[0] = h_alpha;
 
     // Initial Data on CPU
-    rocblas_init(hx_1, true);
+    if(rocblas_isnan(arg.alpha))
+        rocblas_init_nan(hx_1, true);
+    else
+        rocblas_init(hx_1, true);
     hx_2.copy_from(hx_1);
     hx_gold.copy_from(hx_1);
 
@@ -94,7 +98,7 @@ void testing_scal_batched(const Arguments& arg)
         cpu_time_used = get_time_us_no_sync();
         for(int i = 0; i < batch_count; i++)
         {
-            cblas_scal<T, U>(N, h_alpha, hx_gold[i], incx);
+            cblas_scal(N, h_alpha, (T*)hx_gold[i], incx);
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
@@ -148,16 +152,15 @@ void testing_scal_batched(const Arguments& arg)
 template <typename T, typename U = T>
 void testing_scal_batched_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_scal_batched_fn
-        = FORTRAN ? rocblas_scal_batched<T, U, true> : rocblas_scal_batched<T, U, false>;
+    auto rocblas_scal_batched_fn
+        = arg.fortran ? rocblas_scal_batched<T, U, true> : rocblas_scal_batched<T, U, false>;
 
     rocblas_int N           = 100;
     rocblas_int incx        = 1;
     U           h_alpha     = U(1.0);
     rocblas_int batch_count = 5;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     size_t size_x = N * size_t(incx);
 

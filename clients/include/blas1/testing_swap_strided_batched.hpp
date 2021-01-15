@@ -1,6 +1,8 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+
+#pragma once
 
 #include "cblas_interface.hpp"
 #include "norm.hpp"
@@ -29,7 +31,7 @@ void testing_swap_strided_batched_bad_arg(const Arguments& arg)
 
     static const size_t safe_size = 100; //  arbitrarily set to 100
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // allocate memory on device
     device_vector<T> dx(safe_size);
@@ -62,7 +64,7 @@ void testing_swap_strided_batched(const Arguments& arg)
     rocblas_stride stridey     = arg.stride_y;
     rocblas_int    batch_count = arg.batch_count;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // argument sanity check before allocating invalid memory
     if(N <= 0 || batch_count <= 0)
@@ -91,8 +93,16 @@ void testing_swap_strided_batched(const Arguments& arg)
 
     // Initial Data on CPU
     rocblas_seedrand();
-    rocblas_init<T>(hx, 1, N, abs_incx, size_x, batch_count);
-    rocblas_init<T>(hy, 1, N, abs_incy, size_y, batch_count);
+    if(rocblas_isnan(arg.alpha))
+    {
+        rocblas_init_nan<T>(hx, 1, N, abs_incx, size_x, batch_count);
+        rocblas_init_nan<T>(hy, 1, N, abs_incy, size_y, batch_count);
+    }
+    else
+    {
+        rocblas_init<T>(hx, 1, N, abs_incx, size_x, batch_count);
+        rocblas_init<T>(hy, 1, N, abs_incy, size_y, batch_count);
+    }
 
     hx_gold = hx;
     hy_gold = hy;

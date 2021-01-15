@@ -1,7 +1,9 @@
 /* ************************************************************************
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+
 #pragma once
+
 #include "../blas1/rocblas_nrm2.hpp"
 #include "handle.hpp"
 #include "logging.hpp"

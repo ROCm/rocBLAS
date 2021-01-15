@@ -2,6 +2,8 @@
  * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+#pragma once
+
 #include "flops.hpp"
 #include "norm.hpp"
 #include "rocblas.hpp"
@@ -19,9 +21,8 @@
 template <typename T>
 void testing_dgmm_batched_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_dgmm_batched_fn
-        = FORTRAN ? rocblas_dgmm_batched<T, true> : rocblas_dgmm_batched<T, false>;
+    auto rocblas_dgmm_batched_fn
+        = arg.fortran ? rocblas_dgmm_batched<T, true> : rocblas_dgmm_batched<T, false>;
 
     const rocblas_int M = 100;
     const rocblas_int N = 100;
@@ -35,7 +36,7 @@ void testing_dgmm_batched_bad_arg(const Arguments& arg)
 
     const rocblas_side side = rocblas_side_right;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     size_t size_A = N * size_t(lda);
     size_t size_x = (rocblas_side_right == side ? N : M) * size_t(abs_incx);
@@ -69,9 +70,8 @@ void testing_dgmm_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_dgmm_batched(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_dgmm_batched_fn
-        = FORTRAN ? rocblas_dgmm_batched<T, true> : rocblas_dgmm_batched<T, false>;
+    auto rocblas_dgmm_batched_fn
+        = arg.fortran ? rocblas_dgmm_batched<T, true> : rocblas_dgmm_batched<T, false>;
 
     rocblas_side side = char2rocblas_side(arg.side);
 
@@ -86,11 +86,10 @@ void testing_dgmm_batched(const Arguments& arg)
     rocblas_int batch_count = arg.batch_count;
 
     double gpu_time_used, cpu_time_used;
-    double rocblas_gflops, cblas_gflops;
 
-    T rocblas_error = std::numeric_limits<T>::max();
+    double rocblas_error = std::numeric_limits<double>::max();
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     size_t size_A = size_t(lda) * size_t(N);
     size_t size_C = size_t(ldc) * size_t(N);
@@ -159,8 +158,6 @@ void testing_dgmm_batched(const Arguments& arg)
                                                     ldc,
                                                     batch_count));
 
-        CHECK_HIP_ERROR(hC_1.transfer_from(dC));
-
         // reference calculation for golden result
         ptrdiff_t shift_x = incx < 0 ? -ptrdiff_t(incx) * (N - 1) : 0;
         cpu_time_used     = get_time_us_no_sync();
@@ -191,7 +188,9 @@ void testing_dgmm_batched(const Arguments& arg)
         }
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
-        cblas_gflops  = dgmm_gflop_count<T>(M, N) * batch_count / cpu_time_used * 1e6;
+
+        // fetch GPU results
+        CHECK_HIP_ERROR(hC_1.transfer_from(dC));
 
         if(arg.unit_check)
         {
@@ -243,25 +242,14 @@ void testing_dgmm_batched(const Arguments& arg)
                                     batch_count);
         }
         gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
-        rocblas_gflops
-            = dgmm_gflop_count<T>(M, N) * number_hot_calls * batch_count / gpu_time_used * 1e6;
 
-        rocblas_cout << "side,M,N,lda,incx,ldc,batch_count,rocblas-Gflops,us";
-        if(arg.unit_check || arg.norm_check)
-        {
-            rocblas_cout << ",CPU-Gflops,us,norm_error";
-        }
-        rocblas_cout << std::endl;
-
-        rocblas_cout << arg.side << "," << M << "," << N << "," << lda << "," << incx << "," << ldc
-                     << "," << batch_count << "," << rocblas_gflops << ","
-                     << gpu_time_used / number_hot_calls << ",";
-
-        if(arg.unit_check || arg.norm_check)
-        {
-            rocblas_cout << cblas_gflops << "," << cpu_time_used << ",";
-            rocblas_cout << rocblas_error;
-        }
-        rocblas_cout << std::endl;
+        ArgumentModel<e_side, e_M, e_N, e_lda, e_incx, e_ldc, e_batch_count>{}.log_args<T>(
+            rocblas_cout,
+            arg,
+            gpu_time_used,
+            dgmm_gflop_count<T>(M, N),
+            ArgumentLogging::NA_value,
+            cpu_time_used,
+            rocblas_error);
     }
 }

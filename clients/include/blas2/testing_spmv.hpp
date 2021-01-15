@@ -2,6 +2,8 @@
  * Copyright 2018-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+#pragma once
+
 #include "bytes.hpp"
 #include "cblas_interface.hpp"
 #include "flops.hpp"
@@ -18,8 +20,7 @@
 template <typename T>
 void testing_spmv_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN         = arg.fortran;
-    auto       rocblas_spmv_fn = FORTRAN ? rocblas_spmv<T, true> : rocblas_spmv<T, false>;
+    auto rocblas_spmv_fn = arg.fortran ? rocblas_spmv<T, true> : rocblas_spmv<T, false>;
 
     rocblas_fill         uplo  = rocblas_fill_upper;
     rocblas_int          N     = 100;
@@ -27,7 +28,7 @@ void testing_spmv_bad_arg(const Arguments& arg)
     rocblas_int          incy  = 1;
     T                    alpha = 0.6;
     T                    beta  = 0.6;
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     size_t abs_incx = incx >= 0 ? incx : -incx;
     size_t abs_incy = incy >= 0 ? incy : -incy;
@@ -72,8 +73,7 @@ void testing_spmv_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_spmv(const Arguments& arg)
 {
-    const bool FORTRAN         = arg.fortran;
-    auto       rocblas_spmv_fn = FORTRAN ? rocblas_spmv<T, true> : rocblas_spmv<T, false>;
+    auto rocblas_spmv_fn = arg.fortran ? rocblas_spmv<T, true> : rocblas_spmv<T, false>;
 
     rocblas_int N    = arg.N;
     rocblas_int incx = arg.incx;
@@ -81,8 +81,8 @@ void testing_spmv(const Arguments& arg)
 
     host_vector<T> alpha(1);
     host_vector<T> beta(1);
-    alpha[0] = arg.alpha;
-    beta[0]  = arg.beta;
+    alpha[0] = arg.get_alpha<T>();
+    beta[0]  = arg.get_beta<T>();
 
     rocblas_fill uplo = char2rocblas_fill(arg.uplo);
 
@@ -93,7 +93,7 @@ void testing_spmv(const Arguments& arg)
     size_t size_X = size_t(N) * abs_incx;
     size_t size_Y = size_t(N) * abs_incy;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // argument sanity check before allocating invalid memory
     bool invalid_size = N < 0 || !incx || !incy;
@@ -117,7 +117,6 @@ void testing_spmv(const Arguments& arg)
     host_vector<T> hg(size_Y); // gold standard
 
     double gpu_time_used, cpu_time_used;
-    double rocblas_gflops, cblas_gflops, rocblas_bandwidth;
     double h_error, d_error;
 
     device_vector<T> dA(size_A);
@@ -129,25 +128,26 @@ void testing_spmv(const Arguments& arg)
 
     // Initial Data on CPU
     rocblas_seedrand();
-    rocblas_init<T>(hA);
-    rocblas_init<T>(hx, 1, N, abs_incx);
-    rocblas_init<T>(hy, 1, N, abs_incy);
+
+    if(arg.alpha_isnan<T>())
+    {
+        rocblas_init_nan<T>(hA, size_A, 1, 1);
+        rocblas_init_nan<T>(hx, 1, N, abs_incx);
+    }
+    else
+    {
+        rocblas_init<T>(hA);
+        rocblas_init<T>(hx, 1, N, abs_incx);
+    }
+
+    if(arg.beta_isnan<T>())
+        rocblas_init_nan<T>(hy, 1, N, abs_incy);
+    else
+        rocblas_init<T>(hy, 1, N, abs_incy);
 
     // make copy in hg which will later be used with CPU BLAS
     hg  = hy;
     hy2 = hy; // device memory re-test
-
-    if(arg.unit_check || arg.norm_check)
-    {
-        // cpu ref
-        cpu_time_used = get_time_us_no_sync();
-
-        // cpu reference
-        cblas_spmv<T>(uplo, N, alpha[0], hA, hx, incx, beta[0], hg, incy);
-
-        cpu_time_used = get_time_us_no_sync() - cpu_time_used;
-        cblas_gflops  = spmv_gflop_count<T>(N) / cpu_time_used * 1e6;
-    }
 
     // copy data from CPU to device
     dx.transfer_from(hx);
@@ -177,6 +177,14 @@ void testing_spmv(const Arguments& arg)
 
         CHECK_ROCBLAS_ERROR(
             rocblas_spmv_fn(handle, uplo, N, d_alpha, dA, dx, incx, d_beta, dy, incy));
+
+        // cpu ref
+        cpu_time_used = get_time_us_no_sync();
+
+        // cpu reference
+        cblas_spmv<T>(uplo, N, alpha[0], hA, hx, incx, beta[0], hg, incy);
+
+        cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         // copy output from device to CPU
         CHECK_HIP_ERROR(hy2.transfer_from(dy));
@@ -218,27 +226,16 @@ void testing_spmv(const Arguments& arg)
                 rocblas_spmv_fn(handle, uplo, N, alpha, dA, dx, incx, beta, dy, incy));
         }
 
-        gpu_time_used     = (get_time_us_sync(stream) - gpu_time_used) / number_hot_calls;
-        rocblas_gflops    = spmv_gflop_count<T>(N) / gpu_time_used * 1e6;
-        rocblas_bandwidth = spmv_gbyte_count<T>(N) / gpu_time_used * 1e6;
+        gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
 
-        // only norm_check return an norm error, unit check won't return anything
-        rocblas_cout << "uplo, N, incx, incy, rocblas-Gflops, rocblas-GB/s, (us) ";
-        if(arg.norm_check)
-        {
-            rocblas_cout << "CPU-Gflops (us),norm_error_host_ptr,norm_error_dev_ptr";
-        }
-        rocblas_cout << std::endl;
-
-        rocblas_cout << arg.uplo << ',' << N << ',' << incx << "," << incy << "," << rocblas_gflops
-                     << "," << rocblas_bandwidth << ",(" << gpu_time_used << "),";
-
-        if(arg.norm_check)
-        {
-            rocblas_cout << cblas_gflops << "(" << cpu_time_used << "),";
-            rocblas_cout << h_error << "," << d_error;
-        }
-
-        rocblas_cout << std::endl;
+        ArgumentModel<e_uplo, e_N, e_alpha, e_lda, e_incx, e_beta, e_incy>{}.log_args<T>(
+            rocblas_cout,
+            arg,
+            gpu_time_used,
+            spmv_gflop_count<T>(N),
+            spmv_gbyte_count<T>(N),
+            cpu_time_used,
+            h_error,
+            d_error);
     }
 }

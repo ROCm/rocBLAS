@@ -1,53 +1,100 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+
 #pragma once
+
+#include "check_numerics_vector.hpp"
 #include "handle.hpp"
 #include "logging.hpp"
 
 //!
-//! @brief Kernel for all the versions (batched, strided batched) of axpy.
+//! @brief General kernel (batched, strided batched) of axpy.
 //!
-template <typename Tex, typename Ta, typename Tx, typename Ty>
-__global__ void axpy_kernel(rocblas_int    n,
-                            Ta             alpha_device_host,
-                            Tx             x,
-                            rocblas_int    incx,
-                            ptrdiff_t      offsetx,
-                            rocblas_stride stridex,
-                            Ty             y,
-                            rocblas_int    incy,
-                            ptrdiff_t      offsety,
-                            rocblas_stride stridey)
+template <rocblas_int NB, typename Tex, typename Ta, typename Tx, typename Ty>
+__global__ __launch_bounds__(NB) void axpy_kernel(rocblas_int    n,
+                                                  Ta             alpha_device_host,
+                                                  Tx             x,
+                                                  rocblas_int    incx,
+                                                  ptrdiff_t      offsetx,
+                                                  rocblas_stride stridex,
+                                                  Ty             y,
+                                                  rocblas_int    incy,
+                                                  ptrdiff_t      offsety,
+                                                  rocblas_stride stridey)
 {
     auto alpha = load_scalar(alpha_device_host);
     if(!alpha)
     {
         return;
     }
+
     ptrdiff_t tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     if(tid < n)
     {
-        auto tx  = load_ptr_batch(x, hipBlockIdx_y, offsetx + tid * incx, stridex);
-        auto ty  = load_ptr_batch(y, hipBlockIdx_y, offsety + tid * incy, stridey);
-        Tex  res = (*ty) + Tex(alpha) * (*tx);
-        *ty      = res;
+        auto tx = load_ptr_batch(x, hipBlockIdx_y, offsetx + tid * incx, stridex);
+        auto ty = load_ptr_batch(y, hipBlockIdx_y, offsety + tid * incy, stridey);
+
+        *ty = (*ty) + Tex(alpha) * (*tx);
     }
 }
 
 //!
-//! @brief Optimized kernel for the remaning part of 8 half floating points.
+//! @brief Large batch size kernel (batched, strided batched) of axpy.
+//!
+template <int DIM_X, int DIM_Y, typename Tex, typename Ta, typename Tx, typename Ty>
+__global__ __launch_bounds__(DIM_X* DIM_Y) void axpy_kernel_batched(rocblas_int n,
+                                                                    Ta          alpha_device_host,
+                                                                    Tx          x,
+                                                                    rocblas_int incx,
+                                                                    ptrdiff_t   offsetx,
+                                                                    rocblas_stride stridex,
+                                                                    Ty             y,
+                                                                    rocblas_int    incy,
+                                                                    ptrdiff_t      offsety,
+                                                                    rocblas_stride stridey,
+                                                                    rocblas_int    batch_count)
+{
+    auto alpha = load_scalar(alpha_device_host);
+    if(!alpha)
+    {
+        return;
+    }
+    Tex ex_alph = Tex(alpha);
+
+    ptrdiff_t tid = hipBlockIdx_x * DIM_X + hipThreadIdx_x;
+    int       bid = 4 * (hipBlockIdx_y * DIM_Y + hipThreadIdx_y);
+    if(tid < n)
+    {
+        offsetx += tid * incx;
+        offsety += tid * incy;
+
+        for(int i = 0; i < 4; i++)
+        {
+            if(bid + i < batch_count)
+            {
+                auto tx = load_ptr_batch(x, bid + i, offsetx, stridex);
+                auto ty = load_ptr_batch(y, bid + i, offsety, stridey);
+
+                *ty += ex_alph * (*tx);
+            }
+        }
+    }
+}
+
+//!
+//! @brief Optimized kernel for the remaining part of 8 half floating points.
 //! @remark Increment are required to be equal to one, that's why they are unspecified.
 //!
-template <typename Ta, typename Tx, typename Ty>
-__global__ void haxpy_mod_8_kernel(rocblas_int    n_mod_8,
-                                   Ta             alpha_device_host,
-                                   Tx             x,
-                                   ptrdiff_t      offsetx,
-                                   rocblas_stride stridex,
-                                   Ty             y,
-                                   ptrdiff_t      offsety,
-                                   rocblas_stride stridey)
+template <rocblas_int NB, typename Ta, typename Tx, typename Ty>
+__global__ __launch_bounds__(NB) void haxpy_mod_8_kernel(rocblas_int    n_mod_8,
+                                                         Ta             alpha_device_host,
+                                                         Tx             x,
+                                                         ptrdiff_t      offsetx,
+                                                         rocblas_stride stridex,
+                                                         Ty             y,
+                                                         ptrdiff_t      offsety,
+                                                         rocblas_stride stridey)
 {
     auto      alpha = load_scalar(alpha_device_host);
     ptrdiff_t tid   = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
@@ -62,13 +109,13 @@ __global__ void haxpy_mod_8_kernel(rocblas_int    n_mod_8,
 //!
 //! @brief Optimized kernel for the groups of 8 half floating points.
 //!
-template <typename Ta, typename Tx, typename Ty>
-__global__ void haxpy_mlt_8_kernel(rocblas_int    n_mlt_8,
-                                   Ta             alpha_device_host,
-                                   Tx             x,
-                                   rocblas_stride stridex,
-                                   Ty             y,
-                                   rocblas_stride stridey)
+template <rocblas_int NB, typename Ta, typename Tx, typename Ty>
+__global__ __launch_bounds__(NB) void haxpy_mlt_8_kernel(rocblas_int    n_mlt_8,
+                                                         Ta             alpha_device_host,
+                                                         Tx             x,
+                                                         rocblas_stride stridex,
+                                                         Ty             y,
+                                                         rocblas_stride stridey)
 {
 
     union
@@ -168,52 +215,103 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_axpy_template(rocblas_handle hand
     //
     // If not using rocblas_half otherwise only if incx == 1  && incy == 1.
     //
-    if(!using_rocblas_half || ((incx != 1 || incy != 1)))
+    bool non_unit_inc = (incx != 1 || incy != 1);
+    if(!using_rocblas_half || non_unit_inc)
     {
         ptrdiff_t offsetx = (incx < 0) ? ptrdiff_t(incx) * (1 - n) : 0;
         ptrdiff_t offsety = (incy < 0) ? ptrdiff_t(incy) * (1 - n) : 0;
 
-        // Default calculation
-        dim3 blocks((n - 1) / NB + 1, batch_count);
-        dim3 threads(NB);
-        if(handle->pointer_mode == rocblas_pointer_mode_device)
+        if(batch_count < 8192 || !std::is_same<Ta, float>::value)
         {
-            hipLaunchKernelGGL(axpy_kernel<Tex>,
-                               blocks,
-                               threads,
-                               0,
-                               handle->get_stream(),
-                               n,
-                               alpha,
-                               x,
-                               incx,
-                               offsetx,
-                               stridex,
-                               y,
-                               incy,
-                               offsety,
-                               stridey);
+            // Default calculation
+            dim3 blocks((n - 1) / (NB) + 1, batch_count);
+            dim3 threads(NB);
+            if(handle->pointer_mode == rocblas_pointer_mode_device)
+            {
+                hipLaunchKernelGGL((axpy_kernel<NB, Tex>),
+                                   blocks,
+                                   threads,
+                                   0,
+                                   handle->get_stream(),
+                                   n,
+                                   alpha,
+                                   x,
+                                   incx,
+                                   offsetx,
+                                   stridex,
+                                   y,
+                                   incy,
+                                   offsety,
+                                   stridey);
+            }
+            else
+            {
+                hipLaunchKernelGGL((axpy_kernel<NB, Tex>),
+                                   blocks,
+                                   threads,
+                                   0,
+                                   handle->get_stream(),
+                                   n,
+                                   *alpha,
+                                   x,
+                                   incx,
+                                   offsetx,
+                                   stridex,
+                                   y,
+                                   incy,
+                                   offsety,
+                                   stridey);
+            }
         }
-        else // it is using rocblas_half with increments equal to 1.
+        else
         {
-            hipLaunchKernelGGL(axpy_kernel<Tex>,
-                               blocks,
-                               threads,
-                               0,
-                               handle->get_stream(),
-                               n,
-                               *alpha,
-                               x,
-                               incx,
-                               offsetx,
-                               stridex,
-                               y,
-                               incy,
-                               offsety,
-                               stridey);
+            constexpr int DIM_X = 128;
+            constexpr int DIM_Y = 8;
+
+            dim3 blocks((n - 1) / (DIM_X) + 1, (batch_count - 1) / (DIM_Y * 4) + 1);
+            dim3 threads(DIM_X, DIM_Y);
+
+            if(handle->pointer_mode == rocblas_pointer_mode_device)
+            {
+                hipLaunchKernelGGL((axpy_kernel_batched<DIM_X, DIM_Y, Tex>),
+                                   blocks,
+                                   threads,
+                                   0,
+                                   handle->get_stream(),
+                                   n,
+                                   alpha,
+                                   x,
+                                   incx,
+                                   offsetx,
+                                   stridex,
+                                   y,
+                                   incy,
+                                   offsety,
+                                   stridey,
+                                   batch_count);
+            }
+            else
+            {
+                hipLaunchKernelGGL((axpy_kernel_batched<DIM_X, DIM_Y, Tex>),
+                                   blocks,
+                                   threads,
+                                   0,
+                                   handle->get_stream(),
+                                   n,
+                                   *alpha,
+                                   x,
+                                   incx,
+                                   offsetx,
+                                   stridex,
+                                   y,
+                                   incy,
+                                   offsety,
+                                   stridey,
+                                   batch_count);
+            }
         }
     }
-    else
+    else // it is using rocblas_half with increments equal to 1.
     {
 
         //
@@ -231,7 +329,7 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_axpy_template(rocblas_handle hand
         dim3        threads(NB);
         if(handle->pointer_mode == rocblas_pointer_mode_device)
         {
-            hipLaunchKernelGGL(haxpy_mlt_8_kernel,
+            hipLaunchKernelGGL((haxpy_mlt_8_kernel<NB>),
                                grid,
                                threads,
                                0,
@@ -248,7 +346,7 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_axpy_template(rocblas_handle hand
                 //
                 // cleanup non-multiple of 8
                 //
-                hipLaunchKernelGGL(haxpy_mod_8_kernel,
+                hipLaunchKernelGGL((haxpy_mod_8_kernel<NB>),
                                    dim3(1, batch_count),
                                    n_mod_8,
                                    0,
@@ -265,7 +363,7 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_axpy_template(rocblas_handle hand
         }
         else
         {
-            hipLaunchKernelGGL(haxpy_mlt_8_kernel,
+            hipLaunchKernelGGL((haxpy_mlt_8_kernel<NB>),
                                grid,
                                threads,
                                0,
@@ -279,7 +377,7 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_axpy_template(rocblas_handle hand
 
             if(n_mod_8)
             {
-                hipLaunchKernelGGL(haxpy_mod_8_kernel,
+                hipLaunchKernelGGL((haxpy_mod_8_kernel<NB>),
                                    dim3(1, batch_count),
                                    n_mod_8,
                                    0,
@@ -297,4 +395,47 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_axpy_template(rocblas_handle hand
     }
 
     return rocblas_status_success;
+}
+
+template <typename T, typename U>
+rocblas_status rocblas_axpy_check_numerics(const char*    function_name,
+                                           rocblas_handle handle,
+                                           rocblas_int    n,
+                                           T              x,
+                                           rocblas_int    offset_x,
+                                           rocblas_int    inc_x,
+                                           rocblas_stride stride_x,
+                                           U              y,
+                                           rocblas_int    offset_y,
+                                           rocblas_int    inc_y,
+                                           rocblas_stride stride_y,
+                                           rocblas_int    batch_count,
+                                           const int      check_numerics,
+                                           bool           is_input)
+{
+    rocblas_status check_numerics_status = rocblas_check_numerics_vector_template(function_name,
+                                                                                  handle,
+                                                                                  n,
+                                                                                  x,
+                                                                                  offset_x,
+                                                                                  inc_x,
+                                                                                  stride_x,
+                                                                                  batch_count,
+                                                                                  check_numerics,
+                                                                                  is_input);
+    if(check_numerics_status != rocblas_status_success)
+        return check_numerics_status;
+
+    check_numerics_status = rocblas_check_numerics_vector_template(function_name,
+                                                                   handle,
+                                                                   n,
+                                                                   y,
+                                                                   offset_y,
+                                                                   inc_y,
+                                                                   stride_y,
+                                                                   batch_count,
+                                                                   check_numerics,
+                                                                   is_input);
+
+    return check_numerics_status;
 }

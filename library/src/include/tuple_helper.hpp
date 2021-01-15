@@ -2,8 +2,7 @@
  * Copyright 2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#ifndef _ROCBLAS_TUPLE_HPP_
-#define _ROCBLAS_TUPLE_HPP_
+#pragma once
 
 #include "handle.hpp"
 #include "rocblas_ostream.hpp"
@@ -74,14 +73,14 @@ public:
     template <typename T, std::enable_if_t<std::is_enum<T>{}, int> = 0>
     static size_t hash(const T& x)
     {
-        return std::hash<std::underlying_type_t<T>>{}(std::underlying_type_t<T>(x));
+        return hash(std::underlying_type_t<T>(x));
     }
 
     // C-style string hash since std::hash does not hash them
     static size_t hash(const char* s)
     {
         size_t seed = 0xcbf29ce484222325;
-        for(auto p = reinterpret_cast<const unsigned char*>(s); *p; ++p)
+        for(const auto* p = reinterpret_cast<const unsigned char*>(s); *p; ++p)
             seed = (seed ^ *p) * 0x100000001b3; // FNV-1a
         return seed;
     }
@@ -153,5 +152,3 @@ public:
         }
     };
 };
-
-#endif

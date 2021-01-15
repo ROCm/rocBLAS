@@ -121,7 +121,7 @@ namespace
     using gemv = gemv_template<gemv_testing, GEMV>;
     TEST_P(gemv, blas2)
     {
-        CATCH_SIGNALS_AND_EXCEPTIONS_AS_FAILURES(rocblas_simple_dispatch<gemv_testing>(GetParam()));
+        RUN_TEST_ON_THREADS_STREAMS(rocblas_simple_dispatch<gemv_testing>(GetParam()));
     }
     INSTANTIATE_TEST_CATEGORIES(gemv);
 

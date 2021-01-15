@@ -2,6 +2,8 @@
  * Copyright 2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
+#pragma once
+
 // RAII helper class for device memory allocation outside of rocBLAS
 //
 // rocblas_device_malloc mem(handle, size1, size2, size3, ...);
@@ -32,6 +34,7 @@ struct rocblas_conjunction<T, Ts...>
 {
 };
 
+// clang-format off
 class [[nodiscard]] rocblas_device_malloc
 {
     rocblas_handle              handle;
@@ -47,15 +50,13 @@ public:
         : handle(handle)
         , dm_ptr(nullptr)
     {
-        if(rocblas_device_malloc_alloc(handle, &dm_ptr, sizeof...(sizes), size_t(sizes)...)
-           != rocblas_status_success)
+        rocblas_status status = rocblas_device_malloc_alloc(handle, &dm_ptr, sizeof...(sizes), size_t(sizes)...);
+        if (status != rocblas_status_success && status != rocblas_status_memory_error)
             throw std::bad_alloc();
     }
 
     // Move constructor
-    // clang-format off
     rocblas_device_malloc(rocblas_device_malloc&& other) noexcept
-        // clang-format on
         : handle(other.handle)
         , dm_ptr(other.dm_ptr)
     {
@@ -68,9 +69,7 @@ public:
     // ... which is incorrect, since the RAII temporary expression will be
     // destroyed, and the pointer will be left dangling.
     template <typename T>
-    // clang-format off
     explicit operator T*() &
-    // clang-format on
     {
         void* res;
         if(!dm_ptr || rocblas_device_malloc_ptr(dm_ptr, &res) != rocblas_status_success)
@@ -80,9 +79,7 @@ public:
 
     // Access a particular element
     // It is lvalue-qualified so that it cannot bind to temporaries
-    // clang-format off
     void* operator[](size_t index) &
-    // clang-format on
     {
         void* res;
         if(!dm_ptr || rocblas_device_malloc_get(dm_ptr, index, &res) != rocblas_status_success)
@@ -92,18 +89,14 @@ public:
 
     // Conversion to bool indicates whether allocation succeeded
     // It is lvalue-qualified so that it cannot bind to temporaries
-    // clang-format off
     explicit operator bool() &
-    // clang-format on
     {
         return rocblas_device_malloc_success(dm_ptr);
     }
 
     // Conversion to rocblas_device_malloc_base reference, to pass to rocBLAS
     // It is lvalue-qualified so that it cannot bind to temporaries
-    // clang-format off
     operator rocblas_device_malloc_base&() &
-    // clang-format on
     {
         return *dm_ptr;
     }
@@ -120,6 +113,7 @@ public:
     rocblas_device_malloc& operator=(const rocblas_device_malloc&) = delete;
     rocblas_device_malloc& operator=(rocblas_device_malloc&&) = delete;
 };
+// clang-format on
 
 // Set optimal device memory size in handle
 template <

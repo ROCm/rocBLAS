@@ -31,7 +31,8 @@ namespace
             return rocblas_status_invalid_handle;
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
-        auto layer_mode = handle->layer_mode;
+        auto layer_mode     = handle->layer_mode;
+        auto check_numerics = handle->check_numerics;
         if(layer_mode
            & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
               | rocblas_layer_mode_log_profile))
@@ -84,8 +85,61 @@ namespace
         if(arg_status != rocblas_status_continue)
             return arg_status;
 
-        return rocblas_spmv_template<T>(
+        if(check_numerics)
+        {
+            bool           is_input = true;
+            rocblas_status spmv_check_numerics_status
+                = rocblas_spmv_check_numerics(rocblas_spmv_name<T>,
+                                              handle,
+                                              n,
+                                              A,
+                                              0,
+                                              0,
+                                              x,
+                                              0,
+                                              incx,
+                                              0,
+                                              y,
+                                              0,
+                                              incy,
+                                              0,
+                                              1,
+                                              check_numerics,
+                                              is_input);
+            if(spmv_check_numerics_status != rocblas_status_success)
+                return spmv_check_numerics_status;
+        }
+
+        rocblas_status status = rocblas_spmv_template<T>(
             handle, uplo, n, alpha, 0, A, 0, 0, x, 0, incx, 0, beta, 0, y, 0, incy, 0, 1);
+        if(status != rocblas_status_success)
+            return status;
+
+        if(check_numerics)
+        {
+            bool           is_input = false;
+            rocblas_status spmv_check_numerics_status
+                = rocblas_spmv_check_numerics(rocblas_spmv_name<T>,
+                                              handle,
+                                              n,
+                                              A,
+                                              0,
+                                              0,
+                                              x,
+                                              0,
+                                              incx,
+                                              0,
+                                              y,
+                                              0,
+                                              incy,
+                                              0,
+                                              1,
+                                              check_numerics,
+                                              is_input);
+            if(spmv_check_numerics_status != rocblas_status_success)
+                return spmv_check_numerics_status;
+        }
+        return status;
     }
 
 } // namespace

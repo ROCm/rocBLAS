@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "gemm.hpp"
 #include "logging.hpp"
@@ -61,8 +61,8 @@ namespace
             copy_alpha_beta_to_host_if_on_device(handle, alpha, beta, alpha_h, beta_h, k));
         auto saved_pointer_mode = handle->push_pointer_mode(rocblas_pointer_mode_host);
 
-        auto layer_mode = handle->layer_mode;
-
+        auto layer_mode     = handle->layer_mode;
+        auto check_numerics = handle->check_numerics;
         if(layer_mode
            & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
               | rocblas_layer_mode_log_profile))
@@ -165,27 +165,84 @@ namespace
         if(validArgs != rocblas_status_continue)
             return validArgs;
 
-        return rocblas_gemm_template<false>(handle,
-                                            trans_a,
-                                            trans_b,
-                                            m,
-                                            n,
-                                            k,
-                                            alpha,
-                                            A,
-                                            0,
-                                            ld_a,
-                                            stride_a,
-                                            B,
-                                            0,
-                                            ld_b,
-                                            stride_b,
-                                            beta,
-                                            C,
-                                            0,
-                                            ld_c,
-                                            stride_c,
-                                            batch_count);
+        if(check_numerics)
+        {
+            bool           is_input = true;
+            rocblas_status gemm_check_numerics_status
+                = rocblas_gemm_check_numerics(rocblas_gemm_strided_batched_name<T>,
+                                              handle,
+                                              trans_a,
+                                              trans_b,
+                                              m,
+                                              n,
+                                              k,
+                                              A,
+                                              ld_a,
+                                              stride_a,
+                                              B,
+                                              ld_b,
+                                              stride_b,
+                                              C,
+                                              ld_c,
+                                              stride_c,
+                                              batch_count,
+                                              check_numerics,
+                                              is_input);
+            if(gemm_check_numerics_status != rocblas_status_success)
+                return gemm_check_numerics_status;
+        }
+
+        rocblas_status status = rocblas_gemm_template<false>(handle,
+                                                             trans_a,
+                                                             trans_b,
+                                                             m,
+                                                             n,
+                                                             k,
+                                                             alpha,
+                                                             A,
+                                                             0,
+                                                             ld_a,
+                                                             stride_a,
+                                                             B,
+                                                             0,
+                                                             ld_b,
+                                                             stride_b,
+                                                             beta,
+                                                             C,
+                                                             0,
+                                                             ld_c,
+                                                             stride_c,
+                                                             batch_count);
+        if(status != rocblas_status_success)
+            return status;
+
+        if(check_numerics)
+        {
+            bool           is_input = false;
+            rocblas_status gemm_check_numerics_status
+                = rocblas_gemm_check_numerics(rocblas_gemm_strided_batched_name<T>,
+                                              handle,
+                                              trans_a,
+                                              trans_b,
+                                              m,
+                                              n,
+                                              k,
+                                              A,
+                                              ld_a,
+                                              stride_a,
+                                              B,
+                                              ld_b,
+                                              stride_b,
+                                              C,
+                                              ld_c,
+                                              stride_c,
+                                              batch_count,
+                                              check_numerics,
+                                              is_input);
+            if(gemm_check_numerics_status != rocblas_status_success)
+                return gemm_check_numerics_status;
+        }
+        return status;
     }
 }
 

@@ -1,6 +1,8 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+
+#pragma once
 
 #include "bytes.hpp"
 #include "cblas_interface.hpp"
@@ -19,8 +21,7 @@
 template <typename Ta, typename Tx = Ta, typename Ty = Tx, typename Tex = Ty>
 void testing_axpy_ex_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN            = arg.fortran;
-    auto       rocblas_axpy_ex_fn = FORTRAN ? rocblas_axpy_ex_fortran : rocblas_axpy_ex;
+    auto rocblas_axpy_ex_fn = arg.fortran ? rocblas_axpy_ex_fortran : rocblas_axpy_ex;
 
     rocblas_datatype alpha_type     = rocblas_datatype_f32_r;
     rocblas_datatype x_type         = rocblas_datatype_f32_r;
@@ -33,7 +34,7 @@ void testing_axpy_ex_bad_arg(const Arguments& arg)
     static const size_t safe_size = 100;
     Ta                  alpha     = 0.6;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
     device_vector<Tx>    dx(safe_size);
     device_vector<Ty>    dy(safe_size);
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
@@ -60,8 +61,7 @@ void testing_axpy_ex_bad_arg(const Arguments& arg)
 template <typename Ta, typename Tx = Ta, typename Ty = Tx, typename Tex = Ty>
 void testing_axpy_ex(const Arguments& arg)
 {
-    const bool FORTRAN            = arg.fortran;
-    auto       rocblas_axpy_ex_fn = FORTRAN ? rocblas_axpy_ex_fortran : rocblas_axpy_ex;
+    auto rocblas_axpy_ex_fn = arg.fortran ? rocblas_axpy_ex_fortran : rocblas_axpy_ex;
 
     rocblas_datatype alpha_type     = arg.a_type;
     rocblas_datatype x_type         = arg.b_type;
@@ -72,7 +72,7 @@ void testing_axpy_ex(const Arguments& arg)
     rocblas_int          incx    = arg.incx;
     rocblas_int          incy    = arg.incy;
     Ta                   h_alpha = arg.get_alpha<Ta>();
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     bool special_compute_test = N == 1 && h_alpha == -1.001;
 
@@ -112,10 +112,17 @@ void testing_axpy_ex(const Arguments& arg)
     host_vector<Tex> hx_ex(size_x);
 
     // Initial Data on CPU
-    // TODO: add NaN testing when roblas_isnan(arg.alpha) returns true.
     rocblas_seedrand();
-    rocblas_init(hx, true);
-    rocblas_init(hy_1, false);
+    if(rocblas_isnan(arg.alpha))
+    {
+        rocblas_init_nan<Tx>(hx, 1, N, abs_incx);
+        rocblas_init_nan<Ty>(hy_1, 1, N, abs_incy);
+    }
+    else
+    {
+        rocblas_init(hx, true);
+        rocblas_init(hy_1, false);
+    }
 
     // copy vector is easy in STL; hy_gold = hx: save a copy in hy_gold which will be output of CPU
     // BLAS

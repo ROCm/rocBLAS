@@ -1,7 +1,9 @@
 /* ************************************************************************
  * Copyright 2016-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+
 #pragma once
+
 #include "rocblas_amax_amin.hpp"
 
 // Replaces x with y if y.value < x.value or y.value == x.value and y.index < x.index

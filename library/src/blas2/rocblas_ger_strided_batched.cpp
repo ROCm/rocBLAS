@@ -69,8 +69,8 @@ namespace
             return rocblas_status_invalid_handle;
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
-        auto layer_mode = handle->layer_mode;
-
+        auto layer_mode     = handle->layer_mode;
+        auto check_numerics = handle->check_numerics;
         if(layer_mode & rocblas_layer_mode_log_trace)
             log_trace(handle,
                       rocblas_ger_strided_batched_name<CONJ, T>,
@@ -156,26 +156,81 @@ namespace
         if(arg_status != rocblas_status_continue)
             return arg_status;
 
-        rocblas_ger_template<CONJ, T>(handle,
-                                      m,
-                                      n,
-                                      alpha,
-                                      0,
-                                      x,
-                                      0,
-                                      incx,
-                                      stridex,
-                                      y,
-                                      0,
-                                      incy,
-                                      stridey,
-                                      A,
-                                      0,
-                                      lda,
-                                      strideA,
-                                      batch_count);
+        if(check_numerics)
+        {
+            bool           is_input = true;
+            rocblas_status ger_check_numerics_status
+                = rocblas_ger_check_numerics(rocblas_ger_strided_batched_name<CONJ, T>,
+                                             handle,
+                                             m,
+                                             n,
+                                             A,
+                                             0,
+                                             lda,
+                                             strideA,
+                                             x,
+                                             stridex,
+                                             incx,
+                                             0,
+                                             y,
+                                             0,
+                                             incy,
+                                             stridey,
+                                             batch_count,
+                                             check_numerics,
+                                             is_input);
+            if(ger_check_numerics_status != rocblas_status_success)
+                return ger_check_numerics_status;
+        }
 
-        return rocblas_status_success;
+        rocblas_status status = rocblas_ger_template<CONJ, T>(handle,
+                                                              m,
+                                                              n,
+                                                              alpha,
+                                                              0,
+                                                              x,
+                                                              0,
+                                                              incx,
+                                                              stridex,
+                                                              y,
+                                                              0,
+                                                              incy,
+                                                              stridey,
+                                                              A,
+                                                              0,
+                                                              lda,
+                                                              strideA,
+                                                              batch_count);
+        if(status != rocblas_status_success)
+            return status;
+
+        if(check_numerics)
+        {
+            bool           is_input = false;
+            rocblas_status ger_check_numerics_status
+                = rocblas_ger_check_numerics(rocblas_ger_strided_batched_name<CONJ, T>,
+                                             handle,
+                                             m,
+                                             n,
+                                             A,
+                                             0,
+                                             lda,
+                                             strideA,
+                                             x,
+                                             stridex,
+                                             incx,
+                                             0,
+                                             y,
+                                             0,
+                                             incy,
+                                             stridey,
+                                             batch_count,
+                                             check_numerics,
+                                             is_input);
+            if(ger_check_numerics_status != rocblas_status_success)
+                return ger_check_numerics_status;
+        }
+        return status;
     }
 
 } // namespace

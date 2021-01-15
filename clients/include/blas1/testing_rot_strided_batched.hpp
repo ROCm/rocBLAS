@@ -1,6 +1,8 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+
+#pragma once
 
 #include "cblas_interface.hpp"
 #include "norm.hpp"
@@ -16,11 +18,8 @@
 template <typename T, typename U = T, typename V = T>
 void testing_rot_strided_batched_bad_arg(const Arguments& arg)
 {
-    // clang-format off
-    const bool FORTRAN                        = arg.fortran;
-    auto       rocblas_rot_strided_batched_fn = FORTRAN ? rocblas_rot_strided_batched<T, U, V, true>
-                                                        : rocblas_rot_strided_batched<T, U, V, false>;
-    // clang-format on
+    auto rocblas_rot_strided_batched_fn = arg.fortran ? rocblas_rot_strided_batched<T, U, V, true>
+                                                      : rocblas_rot_strided_batched<T, U, V, false>;
 
     rocblas_int         N           = 100;
     rocblas_int         incx        = 1;
@@ -30,7 +29,7 @@ void testing_rot_strided_batched_bad_arg(const Arguments& arg)
     rocblas_int         batch_count = 5;
     static const size_t safe_size   = 100;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
     device_vector<T>     dx(safe_size);
     device_vector<T>     dy(safe_size);
     device_vector<U>     dc(1);
@@ -65,11 +64,8 @@ void testing_rot_strided_batched_bad_arg(const Arguments& arg)
 template <typename T, typename U = T, typename V = T>
 void testing_rot_strided_batched(const Arguments& arg)
 {
-    // clang-format off
-    const bool FORTRAN                        = arg.fortran;
-    auto       rocblas_rot_strided_batched_fn = FORTRAN ? rocblas_rot_strided_batched<T, U, V, true>
-                                                        : rocblas_rot_strided_batched<T, U, V, false>;
-    // clang-format on
+    auto rocblas_rot_strided_batched_fn = arg.fortran ? rocblas_rot_strided_batched<T, U, V, true>
+                                                      : rocblas_rot_strided_batched<T, U, V, false>;
 
     rocblas_int N           = arg.N;
     rocblas_int incx        = arg.incx;
@@ -78,7 +74,7 @@ void testing_rot_strided_batched(const Arguments& arg)
     rocblas_int incy        = arg.incy;
     rocblas_int batch_count = arg.batch_count;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
     double               gpu_time_used, cpu_time_used;
     double norm_error_host_x = 0.0, norm_error_host_y = 0.0, norm_error_device_x = 0.0,
            norm_error_device_y = 0.0;
@@ -122,11 +118,23 @@ void testing_rot_strided_batched(const Arguments& arg)
     host_vector<U> hc(1);
     host_vector<V> hs(1);
     rocblas_seedrand();
-    rocblas_init<T>(hx, 1, N, abs_incx, stride_x, batch_count);
-    rocblas_init<T>(hy, 1, N, abs_incy, stride_y, batch_count);
 
-    rocblas_init<U>(hc, 1, 1, 1);
-    rocblas_init<V>(hs, 1, 1, 1);
+    if(rocblas_isnan(arg.alpha))
+    {
+        rocblas_init_nan<T>(hx, 1, N, abs_incx, stride_x, batch_count);
+        rocblas_init_nan<T>(hy, 1, N, abs_incy, stride_y, batch_count);
+
+        rocblas_init_nan<U>(hc, 1, 1, 1);
+        rocblas_init_nan<V>(hs, 1, 1, 1);
+    }
+    else
+    {
+        rocblas_init<T>(hx, 1, N, abs_incx, stride_x, batch_count);
+        rocblas_init<T>(hy, 1, N, abs_incy, stride_y, batch_count);
+
+        rocblas_init<U>(hc, 1, 1, 1);
+        rocblas_init<V>(hs, 1, 1, 1);
+    }
 
     // CPU BLAS reference data
     host_vector<T> cx = hx;

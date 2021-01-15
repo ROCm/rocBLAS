@@ -3,6 +3,9 @@
  *
  * ************************************************************************ */
 
+#pragma once
+
+#include "bytes.hpp"
 #include "cblas_interface.hpp"
 #include "flops.hpp"
 #include "near.hpp"
@@ -20,19 +23,19 @@
 template <typename T>
 void testing_hemv_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN         = arg.fortran;
-    auto       rocblas_hemv_fn = FORTRAN ? rocblas_hemv<T, true> : rocblas_hemv<T, false>;
+    auto rocblas_hemv_fn = arg.fortran ? rocblas_hemv<T, true> : rocblas_hemv<T, false>;
 
-    const rocblas_int N    = 100;
-    const rocblas_int lda  = 100;
-    const rocblas_int incx = 1;
-    const rocblas_int incy = 1;
-    T                 alpha;
-    T                 beta;
-    alpha = beta = 1.0;
+    const rocblas_int N     = 100;
+    const rocblas_int lda   = 100;
+    const rocblas_int incx  = 1;
+    const rocblas_int incy  = 1;
+    const T           alpha = 0.5;
+    const T           beta  = 1.5;
+    const T           zero  = 0.0;
+    const T           one   = 1.0;
 
     const rocblas_fill   uplo = rocblas_fill_upper;
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     size_t size_A = lda * size_t(N);
     size_t size_x = N * size_t(incx);
@@ -69,13 +72,28 @@ void testing_hemv_bad_arg(const Arguments& arg)
     EXPECT_ROCBLAS_STATUS(
         rocblas_hemv_fn(nullptr, uplo, N, &alpha, dA, lda, dx, incx, &beta, dy, incy),
         rocblas_status_invalid_handle);
+
+    // When N==0, all pointers may be nullptr without error
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_hemv_fn(
+            handle, uplo, 0, nullptr, nullptr, lda, nullptr, incx, nullptr, nullptr, incy),
+        rocblas_status_success);
+
+    // When alpha==0, A and x may be nullptr without error
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_hemv_fn(handle, uplo, N, &zero, nullptr, lda, nullptr, incx, &beta, dy, incy),
+        rocblas_status_success);
+
+    // When alpha==0 && beta==1, A, x and y may be nullptr without error
+    EXPECT_ROCBLAS_STATUS(
+        rocblas_hemv_fn(handle, uplo, N, &zero, nullptr, lda, nullptr, incx, &one, nullptr, incy),
+        rocblas_status_success);
 }
 
 template <typename T>
 void testing_hemv(const Arguments& arg)
 {
-    const bool FORTRAN         = arg.fortran;
-    auto       rocblas_hemv_fn = FORTRAN ? rocblas_hemv<T, true> : rocblas_hemv<T, false>;
+    auto rocblas_hemv_fn = arg.fortran ? rocblas_hemv<T, true> : rocblas_hemv<T, false>;
 
     rocblas_int  N       = arg.N;
     rocblas_int  lda     = arg.lda;
@@ -85,7 +103,7 @@ void testing_hemv(const Arguments& arg)
     T            h_beta  = arg.get_beta<T>();
     rocblas_fill uplo    = char2rocblas_fill(arg.uplo);
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // argument sanity check before allocating invalid memory
     if(N < 0 || lda < N || lda < 1 || !incx || !incy)
@@ -129,10 +147,18 @@ void testing_hemv(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(d_beta.memcheck());
 
     // Initial Data on CPU
-    rocblas_init(hA, true);
-    rocblas_init<T>(hx, 1, N, abs_incx);
+    if(arg.alpha_isnan<T>())
+    {
+        rocblas_init_nan(hA, N, N, lda);
+        rocblas_init_nan<T>(hx, 1, N, abs_incx);
+    }
+    else
+    {
+        rocblas_init(hA, true);
+        rocblas_init<T>(hx, 1, N, abs_incx);
+    }
 
-    if(rocblas_isnan(arg.beta))
+    if(arg.beta_isnan<T>())
         rocblas_init_nan<T>(hy_1, 1, N, abs_incy);
     else
         rocblas_init<T>(hy_1, 1, N, abs_incy);
@@ -148,7 +174,6 @@ void testing_hemv(const Arguments& arg)
     CHECK_HIP_ERROR(dy_1.transfer_from(hy_1));
 
     double gpu_time_used, cpu_time_used;
-    double rocblas_gflops, cblas_gflops, rocblas_bandwidth;
     double rocblas_error_1;
     double rocblas_error_2;
 
@@ -170,17 +195,16 @@ void testing_hemv(const Arguments& arg)
         CHECK_ROCBLAS_ERROR(
             rocblas_hemv_fn(handle, uplo, N, d_alpha, dA, lda, dx, incx, d_beta, dy_2, incy));
 
-        // copy output from device to CPU
-        CHECK_HIP_ERROR(hy_1.transfer_from(dy_1));
-        CHECK_HIP_ERROR(hy_2.transfer_from(dy_2));
-
         // CPU BLAS
         cpu_time_used = get_time_us_no_sync();
 
         cblas_hemv<T>(uplo, N, h_alpha, hA, lda, hx, incx, h_beta, hy_gold, incy);
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
-        cblas_gflops  = hemv_gflop_count<T>(N) / cpu_time_used * 1e6;
+
+        // copy output from device to CPU
+        CHECK_HIP_ERROR(hy_1.transfer_from(dy_1));
+        CHECK_HIP_ERROR(hy_2.transfer_from(dy_2));
 
         if(arg.unit_check)
         {
@@ -215,27 +239,16 @@ void testing_hemv(const Arguments& arg)
             rocblas_hemv_fn(handle, uplo, N, &h_alpha, dA, lda, dx, incx, &h_beta, dy_1, incy);
         }
 
-        gpu_time_used     = (get_time_us_sync(stream) - gpu_time_used) / number_hot_calls;
-        rocblas_gflops    = hemv_gflop_count<T>(N) / gpu_time_used * 1e6;
-        rocblas_bandwidth = (((N * (N + 1.0)) / 2.0) + 3.0 * N) * sizeof(T) / gpu_time_used / 1e3;
+        gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
 
-        // only norm_check return an norm error, unit check won't return anything
-        rocblas_cout << "N,alpha,lda,incx,beta,incy,rocblas-Gflops,rocblas-GB/s,";
-        if(arg.norm_check)
-        {
-            rocblas_cout << "CPU-Gflops,norm_error_host_ptr,norm_error_device_ptr";
-        }
-        rocblas_cout << std::endl;
-
-        rocblas_cout << N << "," << h_alpha << "," << lda << "," << incx << "," << h_beta << ","
-                     << incy << "," << rocblas_gflops << "," << rocblas_bandwidth << ",";
-
-        if(arg.norm_check)
-        {
-            rocblas_cout << cblas_gflops << ',';
-            rocblas_cout << rocblas_error_1 << ',' << rocblas_error_2;
-        }
-
-        rocblas_cout << std::endl;
+        ArgumentModel<e_uplo, e_N, e_alpha, e_lda, e_incx, e_beta, e_incy>{}.log_args<T>(
+            rocblas_cout,
+            arg,
+            gpu_time_used,
+            hemv_gflop_count<T>(N),
+            hemv_gbyte_count<T>(N),
+            cpu_time_used,
+            rocblas_error_1,
+            rocblas_error_2);
     }
 }

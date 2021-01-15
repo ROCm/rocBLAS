@@ -1,6 +1,9 @@
 /* ************************************************************************
  * Copyright 2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+
+#pragma once
+
 #include "bytes.hpp"
 #include "cblas_interface.hpp"
 #include "flops.hpp"
@@ -23,14 +26,13 @@
 template <typename T, bool TWOK = true>
 void testing_her2k_strided_batched_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_herXX_strided_batched_fn
-        = FORTRAN ? (TWOK ? rocblas_her2k_strided_batched<T, real_t<T>, true>
-                          : rocblas_herkx_strided_batched<T, real_t<T>, true>)
-                  : (TWOK ? rocblas_her2k_strided_batched<T, real_t<T>, false>
-                          : rocblas_herkx_strided_batched<T, real_t<T>, false>);
+    auto rocblas_herXX_strided_batched_fn
+        = arg.fortran ? (TWOK ? rocblas_her2k_strided_batched<T, real_t<T>, true>
+                              : rocblas_herkx_strided_batched<T, real_t<T>, true>)
+                      : (TWOK ? rocblas_her2k_strided_batched<T, real_t<T>, false>
+                              : rocblas_herkx_strided_batched<T, real_t<T>, false>);
 
-    rocblas_local_handle    handle(arg.atomics_mode);
+    rocblas_local_handle    handle{arg};
     const rocblas_fill      uplo   = rocblas_fill_upper;
     const rocblas_operation transA = rocblas_operation_none;
     const rocblas_int       N      = 100;
@@ -232,16 +234,15 @@ void testing_her2k_strided_batched_bad_arg(const Arguments& arg)
 template <typename T, bool TWOK = true>
 void testing_her2k_strided_batched(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_herXX_strided_batched_fn
-        = FORTRAN ? (TWOK ? rocblas_her2k_strided_batched<T, real_t<T>, true>
-                          : rocblas_herkx_strided_batched<T, real_t<T>, true>)
-                  : (TWOK ? rocblas_her2k_strided_batched<T, real_t<T>, false>
-                          : rocblas_herkx_strided_batched<T, real_t<T>, false>);
+    auto rocblas_herXX_strided_batched_fn
+        = arg.fortran ? (TWOK ? rocblas_her2k_strided_batched<T, real_t<T>, true>
+                              : rocblas_herkx_strided_batched<T, real_t<T>, true>)
+                      : (TWOK ? rocblas_her2k_strided_batched<T, real_t<T>, false>
+                              : rocblas_herkx_strided_batched<T, real_t<T>, false>);
     auto herXX_gflop_count_fn = TWOK ? her2k_gflop_count<T> : herkx_gflop_count<T>;
     auto herXX_ref_fn         = TWOK ? cblas_her2k<T> : cblas_herkx<T>;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
     rocblas_fill         uplo   = char2rocblas_fill(arg.uplo);
     rocblas_operation    transA = char2rocblas_operation(arg.transA);
     rocblas_int          N      = arg.N;
@@ -258,7 +259,6 @@ void testing_her2k_strided_batched(const Arguments& arg)
     rocblas_int    batch_count  = arg.batch_count;
 
     double gpu_time_used, cpu_time_used;
-    double rocblas_gflops, cblas_gflops;
     double rocblas_error = 0.0;
 
     // Note: K==0 is not an early exit, since C still needs to be multiplied by beta
@@ -401,9 +401,6 @@ void testing_her2k_strided_batched(const Arguments& arg)
                                                              strideC,
                                                              batch_count));
 
-        // copy output from device to CPU
-        CHECK_HIP_ERROR(hC_2.transfer_from(dC));
-
         // CPU BLAS
         if(arg.timing)
         {
@@ -431,8 +428,10 @@ void testing_her2k_strided_batched(const Arguments& arg)
         if(arg.timing)
         {
             cpu_time_used = get_time_us_no_sync() - cpu_time_used;
-            cblas_gflops  = batch_count * herXX_gflop_count_fn(N, K) / cpu_time_used * 1e6;
         }
+
+        // copy output from device to CPU
+        CHECK_HIP_ERROR(hC_2.transfer_from(dC));
 
         if(arg.unit_check)
         {
@@ -503,27 +502,30 @@ void testing_her2k_strided_batched(const Arguments& arg)
                                              batch_count);
         }
         gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
-        rocblas_gflops
-            = batch_count * herXX_gflop_count_fn(N, K) * number_hot_calls / gpu_time_used * 1e6;
 
-        rocblas_cout
-            << "uplo,transA,N,K,alpha,lda,strideA,ldb,strideB,beta,ldc,strideC,batch_count,"
-               "rocblas-Gflops,us";
-
-        if(arg.norm_check)
-            rocblas_cout << ",CPU-Gflops,us,norm-error";
-
-        rocblas_cout << std::endl;
-
-        rocblas_cout << arg.uplo << "," << arg.transA << "," << N << "," << K << ","
-                     << arg.get_alpha<T>() << "," << lda << "," << strideA << "," << ldb << ","
-                     << strideB << "," << arg.get_beta<U>() << "," << ldc << "," << strideC << ","
-                     << batch_count << "," << rocblas_gflops << ","
-                     << gpu_time_used / number_hot_calls;
-
-        if(arg.norm_check)
-            rocblas_cout << "," << cblas_gflops << "," << cpu_time_used << "," << rocblas_error;
-
-        rocblas_cout << std::endl;
+        Arguments targ(arg);
+        targ.stride_a = strideA;
+        targ.stride_b = strideB;
+        targ.stride_c = strideC;
+        ArgumentModel<e_uplo,
+                      e_transA,
+                      e_N,
+                      e_K,
+                      e_alpha,
+                      e_lda,
+                      e_stride_a,
+                      e_ldb,
+                      e_stride_b,
+                      e_beta,
+                      e_ldc,
+                      e_stride_c,
+                      e_batch_count>{}
+            .log_args<T>(rocblas_cout,
+                         targ,
+                         gpu_time_used,
+                         herXX_gflop_count_fn(N, K),
+                         ArgumentLogging::NA_value,
+                         cpu_time_used,
+                         rocblas_error);
     }
 }

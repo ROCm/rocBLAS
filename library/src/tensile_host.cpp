@@ -145,7 +145,7 @@ namespace
         freeIndex[0].c = freeIndex[0].d = 0;
         freeIndex[1].c = freeIndex[1].d = 1;
 
-        // Tensile does not short-circuit alpha==0. As a workaround, we set K=0 when alpha==0.
+        // We set K=0 when alpha==0.
         // This makes alpha==0 a change in the problem, and not just a change in the inputs.
         // It optimizes all problems with alpha==0 into K=0 and alpha=(don't care)
         auto k = prob.k && *prob.alpha ? prob.k : 0;
@@ -219,7 +219,7 @@ namespace
         // Size of GSU workspace. We set it to max size_t if this is a size query.
         size_t workspace_size
             = prob.handle->is_device_memory_size_query()
-                  ? ~size_t(0)
+                  ? ~size_t{0}
                   : (prob.handle->gsu_workspace_size / HPA_GSU_WORKSPACE_SIZE_GRANULARITY)
                         * HPA_GSU_WORKSPACE_SIZE_GRANULARITY;
 
@@ -238,9 +238,8 @@ namespace
                                                    value_category(*prob.beta),
                                                    workspace_size};
 
-        // If HPA is active, mark it as true
-        if(sizeof(Tc) > sizeof(Ti))
-            tensileProblem.setHighPrecisionAccumulate(true);
+        // HPA is active iff sizeof(compute type) > sizeof(input type)
+        tensileProblem.setHighPrecisionAccumulate(sizeof(Tc) > sizeof(Ti));
 
         // Pass atomics mode to Tensile interface
         tensileProblem.setDeterministicMode(prob.handle->atomics_mode
@@ -286,7 +285,7 @@ namespace
      * Construct the inputs to a Tensile ContractionProblem        *
      ***************************************************************/
     template <typename Ti, typename To, typename Tc>
-    inline auto GetTensileInputs(const RocblasContractionProblem<Ti, To, Tc>& prob)
+    auto GetTensileInputs(const RocblasContractionProblem<Ti, To, Tc>& prob)
     {
         // Tensile types corresponding to Ti, To, Tc
         using Tensile_Ti          = typename rocblas_to_tensile_type<Ti>::tensile_type;
@@ -336,27 +335,36 @@ namespace
     /**************************************************
      * The TensileHost struct interfaces with Tensile *
      **************************************************/
-    struct TensileHost
+    class TensileHost
     {
-        std::shared_ptr<Tensile::MasterSolutionLibrary<Tensile::ContractionProblem>> library;
+        // The library object
+        std::shared_ptr<Tensile::MasterSolutionLibrary<Tensile::ContractionProblem>> m_library;
 
+        // The adapter object. mutable is used to allow adapters to be modified
+        // even when they are stored in a const vector which is immutable in size
         struct adapter_s
         {
             mutable std::atomic<Tensile::hip::SolutionAdapter*> adapter{nullptr};
             mutable std::mutex                                  mutex;
         };
 
-        std::vector<adapter_s> const adapters;
+        // Each device contains an adapter
+        std::vector<adapter_s> const m_adapters;
 
+    public:
         TensileHost()
-            : adapters(GetDeviceCount())
+            : m_adapters(GetDeviceCount())
         {
+            // We mark TensileHost as initialized. This is so that CI tests can
+            // verify that the initialization occurs in the "multiheaded" tests
             rocblas_tensile_is_initialized() = true;
         }
 
+        // TensileHost is not copyable or assignable
         TensileHost(const TensileHost&) = delete;
         TensileHost& operator=(const TensileHost&) = delete;
 
+        // Get the number of devices
         static int GetDeviceCount()
         {
             int count;
@@ -372,8 +380,18 @@ namespace
 
         ~TensileHost()
         {
-            for(auto& a : adapters)
+            for(auto& a : m_adapters)
                 delete a.adapter;
+        }
+
+        auto& get_library() const
+        {
+            return m_library;
+        }
+
+        auto& get_adapters() const
+        {
+            return m_adapters;
         }
 
         /*******************************************************
@@ -480,14 +498,15 @@ namespace
                 auto lib = Tensile::LoadLibraryFile<Tensile::ContractionProblem>(path);
                 if(!lib)
                     rocblas_cerr << "\nrocBLAS error: Could not load " << path << std::endl;
-
-                using MSL = Tensile::MasterSolutionLibrary<Tensile::ContractionProblem>;
-                library   = std::dynamic_pointer_cast<MSL>(lib);
-
+                else
+                {
+                    using MSL = Tensile::MasterSolutionLibrary<Tensile::ContractionProblem>;
+                    m_library = std::dynamic_pointer_cast<MSL>(lib);
+                }
                 return 0;
             }();
 
-            if(!library)
+            if(!m_library)
             {
                 rocblas_cerr << "\nrocBLAS error: Could not initialize Tensile library"
                              << std::endl;
@@ -509,7 +528,7 @@ namespace
         hipGetDevice(&device);
 
         // Adapter entry for the current HIP device ID
-        auto& a       = host.adapters.at(device);
+        auto& a       = host.get_adapters().at(device);
         auto* adapter = a.adapter.load(std::memory_order_acquire);
 
         // Once set, a.adapter contains the adapter for the current HIP device ID
@@ -534,7 +553,7 @@ namespace
 
         // If an adapter is found, it is assumed that the library is initialized
         if(library)
-            *library = host.library;
+            *library = host.get_library();
 
         return *adapter;
     }
@@ -559,8 +578,8 @@ namespace
     {
         if(rocblas_suppress_tensile_error_messages())
             return;
-        const char* const  varname = "ROCBLAS_VERBOSE_TENSILE_ERROR";
-        static const char* verbose = getenv(varname);
+        static constexpr char varname[] = "ROCBLAS_VERBOSE_TENSILE_ERROR";
+        static const char*    verbose   = getenv(varname);
         if(!verbose)
         {
             static auto& once = rocblas_cerr

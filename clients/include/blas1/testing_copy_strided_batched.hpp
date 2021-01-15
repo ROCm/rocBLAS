@@ -1,6 +1,8 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+
+#pragma once
 
 #include "bytes.hpp"
 #include "cblas_interface.hpp"
@@ -18,9 +20,8 @@
 template <typename T>
 void testing_copy_strided_batched_bad_arg(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_copy_strided_batched_fn
-        = FORTRAN ? rocblas_copy_strided_batched<T, true> : rocblas_copy_strided_batched<T, false>;
+    auto rocblas_copy_strided_batched_fn = arg.fortran ? rocblas_copy_strided_batched<T, true>
+                                                       : rocblas_copy_strided_batched<T, false>;
 
     rocblas_int    N           = 100;
     rocblas_int    incx        = 1;
@@ -29,7 +30,7 @@ void testing_copy_strided_batched_bad_arg(const Arguments& arg)
     rocblas_stride stride_y    = incy * N;
     rocblas_int    batch_count = 5;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     size_t size_x = stride_x * batch_count;
     size_t size_y = stride_y * batch_count;
@@ -53,9 +54,8 @@ void testing_copy_strided_batched_bad_arg(const Arguments& arg)
 template <typename T>
 void testing_copy_strided_batched(const Arguments& arg)
 {
-    const bool FORTRAN = arg.fortran;
-    auto       rocblas_copy_strided_batched_fn
-        = FORTRAN ? rocblas_copy_strided_batched<T, true> : rocblas_copy_strided_batched<T, false>;
+    auto rocblas_copy_strided_batched_fn = arg.fortran ? rocblas_copy_strided_batched<T, true>
+                                                       : rocblas_copy_strided_batched<T, false>;
 
     rocblas_int          N           = arg.N;
     rocblas_int          incx        = arg.incx;
@@ -63,7 +63,7 @@ void testing_copy_strided_batched(const Arguments& arg)
     rocblas_int          stride_x    = arg.stride_x;
     rocblas_int          stride_y    = arg.stride_y;
     rocblas_int          batch_count = arg.batch_count;
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
     rocblas_int          abs_incx = incx >= 0 ? incx : -incx;
     rocblas_int          abs_incy = incy >= 0 ? incy : -incy;
 
@@ -97,8 +97,16 @@ void testing_copy_strided_batched(const Arguments& arg)
 
     // Initial Data on CPU
     rocblas_seedrand();
-    rocblas_init<T>(hx, 1, N, abs_incx, stride_x, batch_count);
-    rocblas_init<T>(hy, 1, N, abs_incy, stride_y, batch_count);
+    if(rocblas_isnan(arg.alpha))
+    {
+        rocblas_init_nan<T>(hx, 1, N, abs_incx, stride_x, batch_count);
+        rocblas_init_nan<T>(hy, 1, N, abs_incy, stride_y, batch_count);
+    }
+    else
+    {
+        rocblas_init<T>(hx, 1, N, abs_incx, stride_x, batch_count);
+        rocblas_init<T>(hy, 1, N, abs_incy, stride_y, batch_count);
+    }
 
     // copy_strided_batched vector is easy in STL; hy_gold = hx: save a copy_strided_batched in hy_gold which will be output of CPU
     // BLAS

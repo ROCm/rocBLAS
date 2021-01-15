@@ -3,6 +3,9 @@ include: rocblas_common.yaml
 include: known_bugs.yaml
 
 Definitions:
+  - &tiny_matrix
+    - { N:   16, lda:   16 }
+
   - &small_matrix_size_range
     - { N:     4, lda:   3 } # invalid lda
     - { N:     1, lda:   1 }
@@ -69,6 +72,15 @@ Tests:
   incx: [ 2 ]
   alpha_beta: *alpha_range_small
   fortran: true
+
+- name: her_NaN
+  category: quick
+  function: her
+  precision: *single_double_precisions_complex
+  uplo: [ U ]
+  matrix_size: *tiny_matrix
+  incx: [ 1 ]
+  alpha: [ .NaN ]
 
 - name: her_small
   category: quick

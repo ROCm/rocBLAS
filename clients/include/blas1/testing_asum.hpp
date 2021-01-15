@@ -1,6 +1,8 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+
+#pragma once
 
 #include "bytes.hpp"
 #include "cblas_interface.hpp"
@@ -27,7 +29,7 @@ void testing_asum_bad_arg(const Arguments& arg)
     real_t<T>           rocblas_result   = 10;
     real_t<T>*          h_rocblas_result = &rocblas_result;
 
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
     device_vector<T>     dx(safe_size);
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
@@ -53,7 +55,7 @@ void testing_asum(const Arguments& arg)
     real_t<T>            cpu_result;
     double               rocblas_error_1;
     double               rocblas_error_2;
-    rocblas_local_handle handle(arg.atomics_mode);
+    rocblas_local_handle handle{arg};
 
     // check to prevent undefined memory allocation error
     if(N <= 0 || incx <= 0)
@@ -84,7 +86,10 @@ void testing_asum(const Arguments& arg)
     CHECK_HIP_ERROR(hx.memcheck());
 
     // Initial Data on CPU
-    rocblas_init(hx);
+    if(rocblas_isnan(arg.alpha))
+        rocblas_init_nan<T>(hx, 1, N, incx);
+    else
+        rocblas_init(hx);
 
     // copy data from CPU to device
     CHECK_HIP_ERROR(dx.transfer_from(hx));

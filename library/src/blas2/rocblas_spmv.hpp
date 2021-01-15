@@ -1,7 +1,10 @@
 /* ************************************************************************
  * Copyright 2019-2020 Advanced Micro Devices, Inc.
  * ************************************************************************ */
+
 #pragma once
+
+#include "check_numerics_vector.hpp"
 #include "handle.hpp"
 #include "rocblas.h"
 
@@ -22,6 +25,16 @@ __device__ void spmv_kernel_calc(bool        upper,
                                  rocblas_int incy)
 {
     rocblas_int thread_id = hipThreadIdx_x + hipThreadIdx_y * hipBlockDim_x;
+
+    if(!alpha)
+    {
+        rocblas_int ind = hipBlockIdx_x * DIM_X + thread_id;
+        if(thread_id < DIM_X && ind < n)
+        {
+            y[ind * incy] = beta ? (beta * y[ind * incy]) : 0;
+        }
+        return;
+    }
 
     // threads are all configurated locally
     rocblas_int tx = thread_id % DIM_X;
@@ -60,8 +73,7 @@ __device__ void spmv_kernel_calc(bool        upper,
 
     __syncthreads();
 
-    thread_id = hipThreadIdx_x + hipThreadIdx_y * hipBlockDim_x;
-    ind       = hipBlockIdx_x * DIM_X + thread_id;
+    ind = hipBlockIdx_x * DIM_X + thread_id;
     if(thread_id < DIM_X && ind < n)
     {
         // Add the partial sums and store
@@ -70,17 +82,8 @@ __device__ void spmv_kernel_calc(bool        upper,
             sdata[thread_id] += sdata[thread_id + DIM_X * i];
         }
 
-        if(ind < n)
-        {
-            if(beta != 0)
-            {
-                y[ind * incy] = (alpha * sdata[thread_id]) + (beta * y[ind * incy]);
-            }
-            else
-            {
-                y[ind * incy] = alpha * sdata[thread_id];
-            }
-        }
+        y[ind * incy]
+            = beta ? (alpha * sdata[thread_id]) + (beta * y[ind * incy]) : alpha * sdata[thread_id];
     }
 }
 
@@ -88,34 +91,37 @@ __device__ void spmv_kernel_calc(bool        upper,
   *  Loads pointers and launches the actual calculation kernel.
   */
 template <rocblas_int DIM_X, rocblas_int DIM_Y, typename TScal, typename TConstPtr, typename TPtr>
-__global__ void spmv_kernel(bool           upper,
-                            rocblas_int    n,
-                            TScal          alpha_device_host,
-                            rocblas_stride stride_alpha,
-                            TConstPtr __restrict__ APa,
-                            ptrdiff_t      shifta,
-                            rocblas_stride strideA,
-                            TConstPtr __restrict__ xa,
-                            ptrdiff_t      shiftx,
-                            rocblas_int    incx,
-                            rocblas_stride stridex,
-                            TScal          beta_device_host,
-                            rocblas_stride stride_beta,
-                            TPtr __restrict__ ya,
-                            ptrdiff_t      shifty,
-                            rocblas_int    incy,
-                            rocblas_stride stridey)
+__global__ __launch_bounds__(DIM_X* DIM_Y) void spmv_kernel(bool           upper,
+                                                            rocblas_int    n,
+                                                            TScal          alpha_device_host,
+                                                            rocblas_stride stride_alpha,
+                                                            TConstPtr __restrict__ APa,
+                                                            ptrdiff_t      shifta,
+                                                            rocblas_stride strideA,
+                                                            TConstPtr __restrict__ xa,
+                                                            ptrdiff_t      shiftx,
+                                                            rocblas_int    incx,
+                                                            rocblas_stride stridex,
+                                                            TScal          beta_device_host,
+                                                            rocblas_stride stride_beta,
+                                                            TPtr __restrict__ ya,
+                                                            ptrdiff_t      shifty,
+                                                            rocblas_int    incy,
+                                                            rocblas_stride stridey)
 {
     rocblas_int num_threads = hipBlockDim_x * hipBlockDim_y * hipBlockDim_z;
     if(DIM_X * DIM_Y != num_threads)
         return; // need to launch exactly the same number of threads as template parameters indicate
 
-    auto AP = load_ptr_batch(APa, hipBlockIdx_y, shifta, strideA);
-    auto x  = load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex);
-    auto y  = load_ptr_batch(ya, hipBlockIdx_y, shifty, stridey);
-
     auto alpha = load_scalar(alpha_device_host, hipBlockIdx_y, stride_alpha);
     auto beta  = load_scalar(beta_device_host, hipBlockIdx_y, stride_beta);
+    if(!alpha && beta == 1)
+        return;
+
+    auto AP = alpha ? load_ptr_batch(APa, hipBlockIdx_y, shifta, strideA) : nullptr;
+    auto x  = alpha ? load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex) : nullptr;
+
+    auto y = load_ptr_batch(ya, hipBlockIdx_y, shifty, stridey);
 
     spmv_kernel_calc<DIM_X, DIM_Y>(upper, n, alpha, AP, x, incx, beta, y, incy);
 }
@@ -260,4 +266,51 @@ rocblas_status rocblas_spmv_template(rocblas_handle handle,
     }
 
     return rocblas_status_success;
+}
+
+//TODO :-Add rocblas_check_numerics_sp_matrix_template for checking Matrix `A` which is a Symmetric Packed Matrix
+template <typename T, typename U>
+rocblas_status rocblas_spmv_check_numerics(const char*    function_name,
+                                           rocblas_handle handle,
+                                           rocblas_int    n,
+                                           T              A,
+                                           rocblas_int    offset_a,
+                                           rocblas_stride stride_a,
+                                           T              x,
+                                           rocblas_int    offset_x,
+                                           rocblas_int    inc_x,
+                                           rocblas_stride stride_x,
+                                           U              y,
+                                           rocblas_int    offset_y,
+                                           rocblas_int    inc_y,
+                                           rocblas_stride stride_y,
+                                           rocblas_int    batch_count,
+                                           const int      check_numerics,
+                                           bool           is_input)
+{
+    rocblas_status check_numerics_status = rocblas_check_numerics_vector_template(function_name,
+                                                                                  handle,
+                                                                                  n,
+                                                                                  x,
+                                                                                  offset_x,
+                                                                                  inc_x,
+                                                                                  stride_x,
+                                                                                  batch_count,
+                                                                                  check_numerics,
+                                                                                  is_input);
+    if(check_numerics_status != rocblas_status_success)
+        return check_numerics_status;
+
+    check_numerics_status = rocblas_check_numerics_vector_template(function_name,
+                                                                   handle,
+                                                                   n,
+                                                                   y,
+                                                                   offset_y,
+                                                                   inc_y,
+                                                                   stride_y,
+                                                                   batch_count,
+                                                                   check_numerics,
+                                                                   is_input);
+
+    return check_numerics_status;
 }

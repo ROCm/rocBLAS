@@ -29,6 +29,7 @@ fi
 
 # Change the copyright date at the top of any text files
 for file in $files; do
+    [[ -L $file ]] && continue
     echo "Processing copyright dates in $file"
     if [[ -e $file ]]; then
         /usr/bin/perl -pi -e 'INIT { exit 1 if !-f $ARGV[0] || -B $ARGV[0]; $year = (localtime)[5] + 1900 }
@@ -39,6 +40,7 @@ done
 
 # do the formatting
 for file in $files; do
+    [[ -L $file ]] && continue
     if [[ -e $file ]] && echo $file | grep -Eq '\.c$|\.h$|\.hpp$|\.cpp$|\.cl$|\.in$|\.txt$|\.yaml$|\.yml$|\.sh$|\.py$|\.pl$|\.cmake$|\.md$|\.rst$|\.groovy$|\.ini$|\.awk$|\.csv$'; then
         echo "Processing line endings in $file"
         sed -i -e 's/[[:space:]]*$//' "$file" # Remove whitespace at end of lines
@@ -58,6 +60,7 @@ done
 # if clang-format exists, run it on C/C++ files
 if command -v clang-format >/dev/null; then
     for file in $files; do
+    [[ -L $file ]] && continue
        if [[ -e $file ]] && echo $file | grep -Eq '\.c$|\.h$|\.hpp$|\.cpp$|\.cl$|\.h\.in$|\.hpp\.in$|\.cpp\.in$'; then
             echo "clang-format $file"
             clang-format -i -style=file "$file"
