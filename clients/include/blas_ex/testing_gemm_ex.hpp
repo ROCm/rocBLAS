@@ -1,12 +1,12 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
 
+#include "../../library/src/include/handle.hpp"
 #include "cblas_interface.hpp"
 #include "flops.hpp"
-#include "handle.hpp"
 #include "near.hpp"
 #include "norm.hpp"
 #include "rocblas.hpp"

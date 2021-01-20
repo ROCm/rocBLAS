@@ -204,6 +204,30 @@ in the table below.
 |                                           | need the -i flag.        |
 +-------------------------------------------+--------------------------+
 
+Build clients without library
+-----------------------------
+
+The rocBLAS clients can be built on their own using install.sh with a preexisting rocBLAS library.
+
+Note that the version of the rocBLAS clients being built should match the version of the installed rocBLAS. The version of the installed rocBLAS can be found in the installed rocBLAS directory, in the file include/internal/rocblas-version.h. The version of rocBLAS being built can be found by running ``grep"VERSION_STRING" CMakeLists.txt`` in the rocBLAS directory being built.
+
+.. tabularcolumns::
+   |\X{1}{4}|\X{3}{4}|
+
++-------------------------------------------+--------------------------+
+| Command                                   | Description              |
++===========================================+==========================+
+| ``./install.sh --clients-only``           | Build rocBLAS clients    |
+|                                           | and use an installed     |
+|                                           | rocBLAS library at       |
+|                                           | ROCM_PATH (/opt/rocm if  |
+|                                           | not specified).          |
++-------------------------------------------+--------------------------+
+| ``./install.sh --clients-only``           | Build rocBLAS clients    |
+|     ``--library-path /path/to/rocBLAS``   | and use a rocBLAS        |
+|                                           | library at the specified |
+|                                           | location.                |
++-------------------------------------------+--------------------------+
 
 Dependencies
 ============
