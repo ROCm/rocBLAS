@@ -5,6 +5,7 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 
 ## [rocBLAS 2.38.0 for ROCm 4.2.0]
 ### Added
+- Added option to install script to build only rocBLAS clients with a pre-built rocBLAS library
 
 ## [rocBLAS 2.36.0 for ROCm 4.1.0]
 ### Added
