@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -111,6 +111,30 @@ __forceinline__ __device__ __host__ T*
                                     load_ptr_batch(T** p, rocblas_int block, ptrdiff_t offset, rocblas_stride stride)
 {
     return p[block] + offset;
+}
+
+// guarded by condition
+template <typename C, typename T>
+__forceinline__ __device__ __host__ T*
+                                    cond_load_ptr_batch(C cond, T* p, rocblas_int block, ptrdiff_t offset, rocblas_stride stride)
+{
+    // safe to offset pointer regardless of condition as not dereferenced
+    return load_ptr_batch( p, block, offset, stride);
+}
+
+// For device array of device pointers array is dereferenced, e.g. alpha, if !alpha don't dereference pointer array as we allow it to be null
+template <typename C, typename T>
+__forceinline__ __device__ __host__ T*
+                                    cond_load_ptr_batch(C cond, T* const* p, rocblas_int block, ptrdiff_t offset, rocblas_stride stride)
+{
+    return cond ? load_ptr_batch( p, block, offset, stride) : nullptr;
+}
+
+template <typename C, typename T>
+__forceinline__ __device__ __host__ T*
+                                    cond_load_ptr_batch(C cond, T** p, rocblas_int block, ptrdiff_t offset, rocblas_stride stride)
+{
+    return cond ? load_ptr_batch( p, block, offset, stride) : nullptr;
 }
 // clang-format on
 
