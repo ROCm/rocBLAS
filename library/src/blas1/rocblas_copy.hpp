@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -28,6 +28,31 @@ __global__ void copy_kernel(rocblas_int    n,
     }
 }
 
+//! @brief Optimized kernel for the floating points.
+//!
+template <rocblas_int NB, typename U, typename V>
+__global__ __launch_bounds__(NB) void scopy_2_kernel(rocblas_int n,
+                                                     const U __restrict xa,
+                                                     ptrdiff_t      shiftx,
+                                                     rocblas_stride stridex,
+                                                     V __restrict ya,
+                                                     ptrdiff_t      shifty,
+                                                     rocblas_stride stridey)
+{
+    ptrdiff_t   tid = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 2;
+    const auto* x   = load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex);
+    auto*       y   = load_ptr_batch(ya, hipBlockIdx_y, shifty, stridey);
+    if(tid < n - 1)
+    {
+        for(rocblas_int j = 0; j < 2; ++j)
+        {
+            y[tid + j] = x[tid + j];
+        }
+    }
+    if(n % 2 != 0 && tid == n - 1)
+        y[tid] = x[tid];
+}
+
 template <bool CONJ, rocblas_int NB, typename U, typename V>
 rocblas_status rocblas_copy_template(rocblas_handle handle,
                                      rocblas_int    n,
@@ -48,33 +73,66 @@ rocblas_status rocblas_copy_template(rocblas_handle handle,
     if(!x || !y)
         return rocblas_status_invalid_pointer;
 
-    // in case of negative inc shift pointer to end of data for negative indexing tid*inc
-    ptrdiff_t shiftx = offsetx - ((incx < 0) ? ptrdiff_t(incx) * (n - 1) : 0);
-    ptrdiff_t shifty = offsety - ((incy < 0) ? ptrdiff_t(incy) * (n - 1) : 0);
+    static constexpr bool using_rocblas_float
+        = std::is_same<V, rocblas_float*>{} || std::is_same<V, rocblas_float* const*>{};
 
-    int         blocks = (n - 1) / NB + 1;
-    dim3        grid(blocks, batch_count);
-    dim3        threads(NB);
-    hipStream_t my_stream = handle->get_stream();
+    if(!using_rocblas_float || incx != 1 || incy != 1)
+    {
+        // In case of negative inc shift pointer to end of data for negative indexing tid*inc
+        ptrdiff_t shiftx = offsetx - ((incx < 0) ? ptrdiff_t(incx) * (n - 1) : 0);
+        ptrdiff_t shifty = offsety - ((incy < 0) ? ptrdiff_t(incy) * (n - 1) : 0);
 
-    // Temporarily change the thread's default device ID to the handle's device ID
-    auto saved_device_id = handle->push_device_id();
+        int  blocks = (n - 1) / NB + 1;
+        dim3 grid(blocks, batch_count);
+        dim3 threads(NB);
 
-    hipLaunchKernelGGL(copy_kernel<CONJ>,
-                       grid,
-                       threads,
-                       0,
-                       my_stream,
-                       n,
-                       x,
-                       shiftx,
-                       incx,
-                       stridex,
-                       y,
-                       shifty,
-                       incy,
-                       stridey);
+        // Temporarily change the thread's default device ID to the handle's device ID
+        auto saved_device_id = handle->push_device_id();
 
+        hipLaunchKernelGGL(copy_kernel<CONJ>,
+                           grid,
+                           threads,
+                           0,
+                           handle->get_stream(),
+                           n,
+                           x,
+                           shiftx,
+                           incx,
+                           stridex,
+                           y,
+                           shifty,
+                           incy,
+                           stridey);
+    }
+    else
+    {
+        // Kernel function for improving the performance of SCOPY when incx==1 and incy==1
+
+        // In case of negative inc shift pointer to end of data for negative indexing tid*inc
+        ptrdiff_t shiftx = offsetx - 0;
+        ptrdiff_t shifty = offsety - 0;
+
+        int         blocks = 1 + ((n - 1) / (NB * 2));
+        dim3        grid(blocks, batch_count);
+        dim3        threads(NB);
+        hipStream_t scopy_stream = handle->get_stream();
+
+        // Temporarily change the thread's default device ID to the handle's device ID
+        auto saved_device_id = handle->push_device_id();
+
+        hipLaunchKernelGGL(scopy_2_kernel<NB>,
+                           grid,
+                           threads,
+                           0,
+                           scopy_stream,
+                           n,
+                           x,
+                           shiftx,
+                           stridex,
+                           y,
+                           shifty,
+                           stridey);
+    }
     return rocblas_status_success;
 }
 
