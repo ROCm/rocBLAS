@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "rocblas_data.hpp"
 #include "rocblas_datatype2string.hpp"
@@ -155,7 +155,9 @@ namespace
                   || std::is_same<T1, rocblas_half>{} || std::is_same<T1, rocblas_float_complex>{}
                   || std::is_same<T1, rocblas_double_complex>{}))
              || (std::is_same<T1, T2>{} && std::is_same<T2, T3>{}
-                 && std::is_same<T1, rocblas_half>{} && std::is_same<T4, float>{})))
+                 && std::is_same<T1, rocblas_half>{} && std::is_same<T4, float>{})
+             || (std::is_same<T2, T3>{} && std::is_same<T1, T4>{}
+                 && std::is_same<T2, rocblas_half>{} && std::is_same<T1, float>{})))
 
             // dot_ex
             // T1 is x_type, T2 is y_type, T3 is result_type, T4 is execution_type
@@ -205,6 +207,8 @@ namespace
                          || std::is_same<T1, rocblas_double_complex>{}))
                     || (std::is_same<T1, T2>{} && std::is_same<T1, rocblas_half>{}
                         && std::is_same<T3, float>{})
+                    || (std::is_same<T1, T3>{} && std::is_same<T1, float>{}
+                        && std::is_same<T2, rocblas_half>{})
                     || (std::is_same<T2, T3>{} && std::is_same<T1, float>{}
                         && std::is_same<T2, rocblas_float_complex>{})
                     || (std::is_same<T2, T3>{} && std::is_same<T1, double>{}

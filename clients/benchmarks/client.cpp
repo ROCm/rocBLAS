@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "program_options.hpp"
@@ -625,7 +625,9 @@ struct perf_blas_axpy_ex<
                      || (std::is_same<Ta, rocblas_double_complex>{} && std::is_same<Ta, Tx>{}
                          && std::is_same<Tx, Ty>{} && std::is_same<Ty, Tex>{})
                      || (std::is_same<Ta, rocblas_half>{} && std::is_same<Ta, Tx>{}
-                         && std::is_same<Tx, Ty>{} && std::is_same<Tex, float>{})>>
+                         && std::is_same<Tx, Ty>{} && std::is_same<Tex, float>{})
+                     || (std::is_same<Ta, float>{} && std::is_same<Tx, rocblas_half>{}
+                         && std::is_same<Ta, Tex>{} && std::is_same<Tx, Ty>{})>>
     : rocblas_test_valid
 {
     void operator()(const Arguments& arg)
@@ -832,6 +834,8 @@ struct perf_blas_scal_ex<
             && std::is_same<Tx, Tex>{})
         || (std::is_same<Ta, rocblas_half>{} && std::is_same<Ta, Tx>{}
             && std::is_same<Tex, float>{})
+        || (std::is_same<Ta, float>{} && std::is_same<Tx, rocblas_half>{}
+            && std::is_same<Ta, Tex>{})
         || (std::is_same<Ta, float>{} && std::is_same<Tx, rocblas_float_complex>{}
             && std::is_same<Tx, Tex>{})
         || (std::is_same<Ta, double>{} && std::is_same<Tx, rocblas_double_complex>{}
