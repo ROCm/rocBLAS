@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2019-2020 Advanced Micro Devices, Inc.
+ * Copyright 2019-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -228,8 +228,8 @@ __launch_bounds__(DIM_X* DIM_Y) __global__ void gbmvx_kernel(rocblas_operation t
     if(!alpha && beta == 1)
         return;
 
-    const auto* A = alpha ? load_ptr_batch(Aa, hipBlockIdx_y, shifta, strideA) : nullptr;
-    const auto* x = alpha ? load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex) : nullptr;
+    const auto* A = cond_load_ptr_batch(alpha, Aa, hipBlockIdx_y, shifta, strideA);
+    const auto* x = cond_load_ptr_batch(alpha, xa, hipBlockIdx_y, shiftx, stridex);
 
     auto* y = load_ptr_batch(ya, hipBlockIdx_y, shifty, stridey);
 

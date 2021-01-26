@@ -390,11 +390,11 @@ Lists to not expand:
 
 # Defaults
 Defaults:
-  M: -1
-  N: -1
-  K: -1
-  KL: -1
-  KU: -1
+  M: 128
+  N: 128
+  K: 128
+  KL: 128
+  KU: 128
   incx: 0
   incy: 0
   incd: 0
@@ -408,7 +408,7 @@ Defaults:
   side: '*'
   uplo: '*'
   diag: '*'
-  batch_count: -1
+  batch_count: 1
   HMM: false
   threads: 0
   streams: 0

@@ -17,6 +17,8 @@ rocBLAS build & installation helper script
       -i | --install             Install after build
       -d | --dependencies        Install build dependencies
       -c | --clients             Build library clients too (combines with -i & -d)
+           --clients-only        Build only clients with a pre-built library
+           --library-path        When only building clients, the path to the pre-built rocBLAS library (default is /opt/rocm/rocblas)
       -g | --debug               Set -DCMAKE_BUILD_TYPE=Debug (default is =Release)
       -f | --fork                GitHub fork to use, e.g., ROCmSoftwarePlatform or MyUserName
       -b | --branch              GitHub branch or tag to use, e.g., develop, mybranch or <commit hash>
@@ -303,6 +305,7 @@ tensile_merge_files=
 tensile_tag=
 tensile_test_local_path=
 tensile_version=
+build_library=true
 build_clients=false
 use_cuda=false
 build_tensile=true
@@ -321,6 +324,8 @@ if ! [ -z ${ROCM_PATH+x} ]; then
     rocm_path=${ROCM_PATH}
 fi
 
+library_dir_installed=${rocm_path}/rocblas
+
 # #################################################
 # Parameter parsing
 # #################################################
@@ -328,7 +333,7 @@ fi
 # check if we have a modern version of getopt that can handle whitespace and long parameters
 getopt -T
 if [[ $? -eq 4 ]]; then
-  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,dependencies,debug,hip-clang,no-hip-clang,merge-files,no-merge-files,no_tensile,no-tensile,tensile-host,no-tensile-host,msgpack,no-msgpack,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,static,use-cuda,rocm-dev: --options nsrhicdgl:a:o:f:b:t:u:v: -- "$@")
+  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,clients-only,dependencies,debug,hip-clang,no-hip-clang,merge-files,no-merge-files,no_tensile,no-tensile,tensile-host,no-tensile-host,msgpack,no-msgpack,library-path:,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,static,use-cuda,rocm-dev: --options nsrhicdgl:a:o:f:b:t:u:v: -- "$@")
 else
   echo "Need a new version of getopt"
   exit 1
@@ -356,6 +361,13 @@ while true; do
     -c|--clients)
         build_clients=true
         shift ;;
+    --clients-only)
+        build_library=false
+        build_clients=true
+        shift ;;
+    --library-path)
+        library_dir_installed=${2}
+        shift 2 ;;
     -g|--debug)
         build_release=false
         shift ;;
@@ -613,6 +625,10 @@ pushd .
     cmake_client_options="${cmake_client_options} -DBUILD_CLIENTS_SAMPLES=ON -DBUILD_CLIENTS_TESTS=ON -DBUILD_CLIENTS_BENCHMARKS=ON -DLINK_BLIS=${LINK_BLIS} -DBUILD_DIR=${build_dir}"
   fi
 
+  if [[ "${build_library}" == false ]]; then
+    cmake_client_options="${cmake_client_options} -DSKIP_LIBRARY=ON -DROCBLAS_LIBRARY_DIR=${library_dir_installed}"
+  fi
+
   if [[ "${build_hip_clang}" == true ]]; then
       cmake_common_options="${cmake_common_options} -DRUN_HEADER_TESTING=OFF"
   fi
@@ -639,7 +655,11 @@ pushd .
   fi
   check_exit_code "$?"
 
-  make -j$(nproc) install
+  if [[ "${build_library}" == true ]]; then
+    make -j$(nproc) install
+  else
+    make -j$(nproc)
+  fi
   check_exit_code "$?"
 
   # #################################################

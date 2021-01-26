@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -559,8 +559,8 @@ __global__ __launch_bounds__(DIM_X* DIM_Y) void gemvn_kernel(rocblas_int    m,
     if(!alpha && beta == 1)
         return;
 
-    const T* A = alpha ? load_ptr_batch(Aa, hipBlockIdx_y, shifta, strideA) : nullptr;
-    const T* x = alpha ? load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex) : nullptr;
+    const T* A = cond_load_ptr_batch(alpha, Aa, hipBlockIdx_y, shifta, strideA);
+    const T* x = cond_load_ptr_batch(alpha, xa, hipBlockIdx_y, shiftx, stridex);
 
     T* y = load_ptr_batch(ya, hipBlockIdx_y, shifty, stridey);
 
@@ -593,8 +593,8 @@ __global__ __launch_bounds__(NB_X) void gemvt_kernel(rocblas_int    m,
     if(!alpha && beta == 1)
         return;
 
-    const T* A = alpha ? load_ptr_batch(Aa, hipBlockIdx_y, shifta, strideA) : nullptr;
-    const T* x = alpha ? load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex) : nullptr;
+    const T* A = cond_load_ptr_batch(alpha, Aa, hipBlockIdx_y, shifta, strideA);
+    const T* x = cond_load_ptr_batch(alpha, xa, hipBlockIdx_y, shiftx, stridex);
 
     T* y = load_ptr_batch(ya, hipBlockIdx_y, shifty, stridey);
 
@@ -618,8 +618,8 @@ __global__ __launch_bounds__(NB_X) void gemvt_sn_kernel(rocblas_int    m,
 {
     auto alpha = load_scalar(alpha_device_host, hipBlockIdx_y, stride_alpha);
 
-    const T* A = alpha ? load_ptr_batch(Aa, hipBlockIdx_y, shifta, strideA) : nullptr;
-    const T* x = alpha ? load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex) : nullptr;
+    const T* A = cond_load_ptr_batch(alpha, Aa, hipBlockIdx_y, shifta, strideA);
+    const T* x = cond_load_ptr_batch(alpha, xa, hipBlockIdx_y, shiftx, stridex);
 
     gemvt_sn_kernel_calc<CONJ, NB_X, WIN>(m, n, alpha, A, lda, x, incx, work);
 }
@@ -651,8 +651,8 @@ __global__ __launch_bounds__(NB_X) void gemvtsm_kernel(rocblas_int    m,
         return;
 
     // batch in hipBlockIdx_x not y
-    const T* A = alpha ? load_ptr_batch(Aa, hipBlockIdx_x, shifta, strideA) : nullptr;
-    const T* x = alpha ? load_ptr_batch(xa, hipBlockIdx_x, shiftx, stridex) : nullptr;
+    const T* A = cond_load_ptr_batch(alpha, Aa, hipBlockIdx_x, shifta, strideA);
+    const T* x = cond_load_ptr_batch(alpha, xa, hipBlockIdx_x, shiftx, stridex);
 
     T* y = load_ptr_batch(ya, hipBlockIdx_x, shifty, stridey);
 

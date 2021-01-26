@@ -1,5 +1,5 @@
 # ########################################################################
-# Copyright 2016-2020 Advanced Micro Devices, Inc.
+# Copyright 2016-2021 Advanced Micro Devices, Inc.
 # ########################################################################
 
 # The ROCm platform requires Ubuntu 16.04 or Fedora 24, which has cmake 3.5
@@ -129,7 +129,7 @@ get_os_id(OS_ID)
 message (STATUS "OS detected is ${OS_ID}")
 
 # Versioning via rocm-cmake
-set ( VERSION_STRING "2.36.0" )
+set ( VERSION_STRING "2.37.0" )
 rocm_setup_version( VERSION ${VERSION_STRING} )
 
 # Append our library helper cmake path and the cmake path for hip (for convenience)
@@ -151,85 +151,86 @@ include( clients/cmake/build-options.cmake )
 # force library install path to lib (CentOS 7 defaults to lib64)
 set(CMAKE_INSTALL_LIBDIR "lib" CACHE INTERNAL "Installation directory for libraries" FORCE)
 
+if(NOT SKIP_LIBRARY)
+  set( Tensile_ARCHITECTURE "all" CACHE STRING "Tensile to use which architecture?")
+  set_property( CACHE Tensile_ARCHITECTURE PROPERTY STRINGS all gfx803 gfx900 gfx906:xnack- gfx908:xnack-)
+  # -DTensile_ARCHITECTURE= set by install.sh for builds with and without tensile
 
-set( Tensile_ARCHITECTURE "all" CACHE STRING "Tensile to use which architecture?")
-set_property( CACHE Tensile_ARCHITECTURE PROPERTY STRINGS all gfx803 gfx900 gfx906:xnack- gfx908:xnack-)
-# -DTensile_ARCHITECTURE= set by install.sh for builds with and without tensile
-
-# Detect if target ID syntax if supported for default all AMDGPU_TARGETS list
-if(CMAKE_CXX_COMPILER MATCHES ".*/hipcc$" )
-  execute_process(COMMAND ${CMAKE_CXX_COMPILER} "--help"
-    OUTPUT_VARIABLE CXX_OUTPUT
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-    ERROR_STRIP_TRAILING_WHITESPACE)
-  string(REGEX MATCH ".mcode\-object\-version" TARGET_ID_SUPPORT ${CXX_OUTPUT})
-endif()
-if(TARGET_ID_SUPPORT)
-  set(target_list "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-")
-else()
-  set(target_list "gfx803;gfx900;gfx906;gfx908")
-endif()
-set(ALL_TARGETS ${target_list} CACHE STRING "List of specific machine types for library to target")
-
-# gpu architectures to build for
-if (Tensile_ARCHITECTURE)
-  if( Tensile_ARCHITECTURE STREQUAL "all" )
-    set( gpus ${ALL_TARGETS})
-  else()
-    set( gpus ${Tensile_ARCHITECTURE})
+  # Detect if target ID syntax if supported for default all AMDGPU_TARGETS list
+  if(CMAKE_CXX_COMPILER MATCHES ".*/hipcc$" )
+    execute_process(COMMAND ${CMAKE_CXX_COMPILER} "--help"
+      OUTPUT_VARIABLE CXX_OUTPUT
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+      ERROR_STRIP_TRAILING_WHITESPACE)
+    string(REGEX MATCH ".mcode\-object\-version" TARGET_ID_SUPPORT ${CXX_OUTPUT})
   endif()
-  # match tensile if architecture is set
-  set( ROCBLAS_GPUS ${gpus} )
-  # must FORCE set this AMDGPU_TARGETS before any find_package( hip ...), via tensile or in this file
-  # to override CACHE var and set cuda-gpu-arch flags via hip-config.cmake hip::device dependency
-  set( AMDGPU_TARGETS "${ROCBLAS_GPUS}" CACHE STRING "AMD GPU targets to compile for" FORCE )
-endif()
-
-option( BUILD_WITH_TENSILE_HOST "Use the new tensile client for gemm?" ON )
-
-if( BUILD_WITH_TENSILE )
-  set( Tensile_LOGIC "asm_full" CACHE STRING "Tensile to use which logic?")
-  set( Tensile_CODE_OBJECT_VERSION "V2" CACHE STRING "Tensile code_object_version")
-  set( Tensile_COMPILER "hipcc" CACHE STRING "Tensile compiler")
-  set( Tensile_LIBRARY_FORMAT "msgpack" CACHE STRING "Tensile library format")
-
-  option( Tensile_MERGE_FILES "Tensile to merge kernels and solutions files?" ON )
-  option( Tensile_SHORT_FILENAMES "Tensile to use short file names? Use if compiler complains they're too long." OFF )
-  option( Tensile_PRINT_DEBUG "Tensile to print runtime debug info?" OFF )
-
-  set( Tensile_TEST_LOCAL_PATH "" CACHE PATH "Use local Tensile directory instead of fetching a GitHub branch" )
-
-  set_property( CACHE Tensile_LOGIC PROPERTY STRINGS asm_full asm_lite asm_miopen hip_lite other )
-  set_property( CACHE Tensile_CODE_OBJECT_VERSION PROPERTY STRINGS V2 V3 )
-  set_property( CACHE Tensile_COMPILER PROPERTY STRINGS hcc hipcc)
-  set_property( CACHE Tensile_LIBRARY_FORMAT PROPERTY STRINGS msgpack yaml)
-
-  if(Tensile_LIBRARY_FORMAT MATCHES "yaml")
-    option(TENSILE_USE_LLVM      "Use LLVM for parsing config files." ON)
-    option(TENSILE_USE_MSGPACK   "Use msgpack for parsing config files." OFF)
+  if(TARGET_ID_SUPPORT)
+    set(target_list "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-")
   else()
-    option(TENSILE_USE_LLVM      "Use LLVM for parsing config files." OFF)
-    option(TENSILE_USE_MSGPACK   "Use msgpack for parsing config files." ON)
+    set(target_list "gfx803;gfx900;gfx906;gfx908")
+  endif()
+  set(ALL_TARGETS ${target_list} CACHE STRING "List of specific machine types for library to target")
+
+  # gpu architectures to build for
+  if (Tensile_ARCHITECTURE)
+    if( Tensile_ARCHITECTURE STREQUAL "all" )
+      set( gpus ${ALL_TARGETS})
+    else()
+      set( gpus ${Tensile_ARCHITECTURE})
+    endif()
+    # match tensile if architecture is set
+    set( ROCBLAS_GPUS ${gpus} )
+    # must FORCE set this AMDGPU_TARGETS before any find_package( hip ...), via tensile or in this file
+    # to override CACHE var and set cuda-gpu-arch flags via hip-config.cmake hip::device dependency
+    set( AMDGPU_TARGETS "${ROCBLAS_GPUS}" CACHE STRING "AMD GPU targets to compile for" FORCE )
   endif()
 
-  include(virtualenv)
-  if (Tensile_TEST_LOCAL_PATH)
-    virtualenv_install(${Tensile_TEST_LOCAL_PATH})
-    message (STATUS "using local Tensile from ${Tensile_TEST_LOCAL_PATH}, copied to ${Tensile_ROOT}")
-  else()
-    # Use the virtual-env setup and download package from specified repot:
-    set( tensile_fork "ROCmSoftwarePlatform" CACHE STRING "Tensile fork to use" )
-    file (STRINGS "tensile_tag.txt" read_tensile_tag)
-    set( tensile_tag ${read_tensile_tag} CACHE STRING "Tensile tag to download" )
-    virtualenv_install("git+https://github.com/${tensile_fork}/Tensile.git@${tensile_tag}")
-    message (STATUS "using GIT Tensile fork=${tensile_fork} from branch=${tensile_tag}")
-  endif()
-  message(STATUS "Adding ${VIRTUALENV_HOME_DIR} to CMAKE_PREFIX_PATH")
-  list(APPEND CMAKE_PREFIX_PATH ${VIRTUALENV_HOME_DIR})
-  if (TENSILE_VERSION)
-    find_package(Tensile ${TENSILE_VERSION} EXACT REQUIRED HIP LLVM OpenMP PATHS "${INSTALLED_TENSILE_PATH}")
-  else()
-    find_package(Tensile 4.26.0 EXACT REQUIRED HIP LLVM OpenMP PATHS "${INSTALLED_TENSILE_PATH}")
+  option( BUILD_WITH_TENSILE_HOST "Use the new tensile client for gemm?" ON )
+
+  if( BUILD_WITH_TENSILE )
+    set( Tensile_LOGIC "asm_full" CACHE STRING "Tensile to use which logic?")
+    set( Tensile_CODE_OBJECT_VERSION "V2" CACHE STRING "Tensile code_object_version")
+    set( Tensile_COMPILER "hipcc" CACHE STRING "Tensile compiler")
+    set( Tensile_LIBRARY_FORMAT "msgpack" CACHE STRING "Tensile library format")
+
+    option( Tensile_MERGE_FILES "Tensile to merge kernels and solutions files?" ON )
+    option( Tensile_SHORT_FILENAMES "Tensile to use short file names? Use if compiler complains they're too long." OFF )
+    option( Tensile_PRINT_DEBUG "Tensile to print runtime debug info?" OFF )
+
+    set( Tensile_TEST_LOCAL_PATH "" CACHE PATH "Use local Tensile directory instead of fetching a GitHub branch" )
+
+    set_property( CACHE Tensile_LOGIC PROPERTY STRINGS asm_full asm_lite asm_miopen hip_lite other )
+    set_property( CACHE Tensile_CODE_OBJECT_VERSION PROPERTY STRINGS V2 V3 )
+    set_property( CACHE Tensile_COMPILER PROPERTY STRINGS hcc hipcc)
+    set_property( CACHE Tensile_LIBRARY_FORMAT PROPERTY STRINGS msgpack yaml)
+
+    if(Tensile_LIBRARY_FORMAT MATCHES "yaml")
+      option(TENSILE_USE_LLVM      "Use LLVM for parsing config files." ON)
+      option(TENSILE_USE_MSGPACK   "Use msgpack for parsing config files." OFF)
+    else()
+      option(TENSILE_USE_LLVM      "Use LLVM for parsing config files." OFF)
+      option(TENSILE_USE_MSGPACK   "Use msgpack for parsing config files." ON)
+    endif()
+
+    include(virtualenv)
+    if (Tensile_TEST_LOCAL_PATH)
+      virtualenv_install(${Tensile_TEST_LOCAL_PATH})
+      message (STATUS "using local Tensile from ${Tensile_TEST_LOCAL_PATH}, copied to ${Tensile_ROOT}")
+    else()
+      # Use the virtual-env setup and download package from specified repot:
+      set( tensile_fork "ROCmSoftwarePlatform" CACHE STRING "Tensile fork to use" )
+      file (STRINGS "tensile_tag.txt" read_tensile_tag)
+      set( tensile_tag ${read_tensile_tag} CACHE STRING "Tensile tag to download" )
+      virtualenv_install("git+https://github.com/${tensile_fork}/Tensile.git@${tensile_tag}")
+      message (STATUS "using GIT Tensile fork=${tensile_fork} from branch=${tensile_tag}")
+    endif()
+    message(STATUS "Adding ${VIRTUALENV_HOME_DIR} to CMAKE_PREFIX_PATH")
+    list(APPEND CMAKE_PREFIX_PATH ${VIRTUALENV_HOME_DIR})
+    if (TENSILE_VERSION)
+      find_package(Tensile ${TENSILE_VERSION} EXACT REQUIRED HIP LLVM OpenMP PATHS "${INSTALLED_TENSILE_PATH}")
+    else()
+      find_package(Tensile 4.26.0 EXACT REQUIRED HIP LLVM OpenMP PATHS "${INSTALLED_TENSILE_PATH}")
+    endif()
   endif()
 endif()
 
@@ -250,7 +251,9 @@ else()
     list(APPEND TENSILE_DEFINES BUILD_WITH_TENSILE=0)
 endif()
 
-add_subdirectory( library )
+if( NOT SKIP_LIBRARY )
+    add_subdirectory( library )
+endif()
 
 # Build clients of the library
 if( BUILD_CLIENTS_SAMPLES OR BUILD_CLIENTS_TESTS OR BUILD_CLIENTS_BENCHMARKS )

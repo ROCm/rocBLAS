@@ -1,5 +1,5 @@
 # ########################################################################
-# Copyright 2016-2020 Advanced Micro Devices, Inc.
+# Copyright 2016-2021 Advanced Micro Devices, Inc.
 # ########################################################################
 
 # The ROCm platform requires Ubuntu 16.04 or Fedora 24, which has cmake 3.5
@@ -35,8 +35,14 @@ if( BUILD_WITH_TENSILE )
 endif()
 
 add_library(rocblas_fortran_client ${rocblas_f90_source_clients} $<TARGET_OBJECTS:rocblas_fortran>)
-include_directories(${CMAKE_BINARY_DIR}/include)
-include_directories(${CMAKE_BINARY_DIR}/include/internal)
+
+if( SKIP_LIBRARY )
+  include_directories(${ROCBLAS_LIBRARY_DIR}/include)
+  include_directories(${ROCBLAS_LIBRARY_DIR}/include/internal)
+else()
+  include_directories(${CMAKE_BINARY_DIR}/include)
+  include_directories(${CMAKE_BINARY_DIR}/include/internal)
+endif()
 
 if(OS_ID_rhel OR OS_ID_centos OR OS_ID_sles)
     set(COMMON_CXX_OPTIONS "-fopenmp=libgomp;-pthread;-stdlib=libstdc++;-std=c++14")
@@ -57,7 +63,7 @@ include( build-options )
 set( CMAKE_EXPORT_COMPILE_COMMANDS ON )
 
 if( NOT TARGET rocblas )
-  find_package( rocblas REQUIRED CONFIG PATHS ${ROCM_PATH}/rocblas /opt/rocm/rocblas )
+  find_package( rocblas REQUIRED CONFIG PATHS ${ROCM_PATH}/rocblas /opt/rocm/rocblas ${ROCBLAS_LIBRARY_DIR})
 endif( )
 
 # Hip headers required of all clients; clients use hip to allocate device memory
