@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "utility.hpp"
@@ -112,12 +112,13 @@ rocblas_int query_device_property()
             snprintf(
                 buf,
                 sizeof(buf),
-                "Device ID %d : %s\n"
+                "Device ID %d : %s %s\n"
                 "with %3.1f GB memory, max. SCLK %d MHz, max. MCLK %d MHz, compute capability "
                 "%d.%d\n"
                 "maxGridDimX %d, sharedMemPerBlock %3.1f KB, maxThreadsPerBlock %d, warpSize %d\n",
                 i,
                 props.name,
+                props.gcnArchName,
                 props.totalGlobalMem / 1e9,
                 (int)(props.clockRate / 1000),
                 (int)(props.memoryClockRate / 1000),

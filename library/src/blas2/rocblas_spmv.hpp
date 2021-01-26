@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2019-2020 Advanced Micro Devices, Inc.
+ * Copyright 2019-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -118,8 +118,8 @@ __global__ __launch_bounds__(DIM_X* DIM_Y) void spmv_kernel(bool           upper
     if(!alpha && beta == 1)
         return;
 
-    auto AP = alpha ? load_ptr_batch(APa, hipBlockIdx_y, shifta, strideA) : nullptr;
-    auto x  = alpha ? load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex) : nullptr;
+    auto AP = cond_load_ptr_batch(alpha, APa, hipBlockIdx_y, shifta, strideA);
+    auto x  = cond_load_ptr_batch(alpha, xa, hipBlockIdx_y, shiftx, stridex);
 
     auto y = load_ptr_batch(ya, hipBlockIdx_y, shifty, stridey);
 

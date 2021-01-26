@@ -3,6 +3,10 @@
 Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://rocblas.readthedocs.io/en/latest/).
 
 
+## [rocBLAS 2.38.0 for ROCm 4.2.0]
+### Added
+- Added option to install script to build only rocBLAS clients with a pre-built rocBLAS library
+
 ## [rocBLAS 2.36.0 for ROCm 4.1.0]
 ### Added
 - Added Numerical checking helper function to detect zero/NaN/Inf in the input and the output vectors of rocBLAS level 1 and 2 functions.
