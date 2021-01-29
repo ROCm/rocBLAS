@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #ifndef _ROCBLAS_FUNCTIONS_H_
@@ -15905,16 +15905,17 @@ ROCBLAS_EXPORT rocblas_status rocblas_trsm_strided_batched_ex(rocblas_handle    
 
         Currently supported datatypes are as follows:
 
-        ---------------------------------------------
+        -------------------------------------------------
         | alpha_type | x_type | y_type | execution_type |
-        |-----------|-------|-------|---------------|
-        |  f16_r    | f16_r | f16_r |     f16_r     |
-        |  f16_r    | f16_r | f16_r |     f32_r     |
-        |  f32_r    | f32_r | f32_r |     f32_r     |
-        |  f64_r    | f64_r | f64_r |     f64_r     |
-        |  f32_c    | f32_c | f32_c |     f32_c     |
-        |  f64_c    | f64_c | f64_c |     f64_c     |
-        ---------------------------------------------
+        |------------|--------|--------|----------------|
+        |  f16_r     | f16_r  |  f16_r |      f16_r     |
+        |  f16_r     | f16_r  |  f16_r |      f32_r     |
+        |  f32_r     | f16_r  |  f16_r |      f32_r     |
+        |  f32_r     | f32_r  |  f32_r |      f32_r     |
+        |  f64_r     | f64_r  |  f64_r |      f64_r     |
+        |  f32_c     | f32_c  |  f32_c |      f32_c     |
+        |  f64_c     | f64_c  |  f64_c |      f64_c     |
+        -------------------------------------------------
 
     @param[in]
     handle    [rocblas_handle]
@@ -15970,16 +15971,17 @@ ROCBLAS_EXPORT rocblas_status rocblas_axpy_ex(rocblas_handle   handle,
 
         Currently supported datatypes are as follows:
 
-        ---------------------------------------------
+        -------------------------------------------------
         | alpha_type | x_type | y_type | execution_type |
-        |-----------|-------|-------|---------------|
-        |  f16_r    | f16_r | f16_r |     f16_r     |
-        |  f16_r    | f16_r | f16_r |     f32_r     |
-        |  f32_r    | f32_r | f32_r |     f32_r     |
-        |  f64_r    | f64_r | f64_r |     f64_r     |
-        |  f32_c    | f32_c | f32_c |     f32_c     |
-        |  f64_c    | f64_c | f64_c |     f64_c     |
-        ---------------------------------------------
+        |------------|--------|--------|----------------|
+        |  f16_r     | f16_r  |  f16_r |      f16_r     |
+        |  f16_r     | f16_r  |  f16_r |      f32_r     |
+        |  f32_r     | f16_r  |  f16_r |      f32_r     |
+        |  f32_r     | f32_r  |  f32_r |      f32_r     |
+        |  f64_r     | f64_r  |  f64_r |      f64_r     |
+        |  f32_c     | f32_c  |  f32_c |      f32_c     |
+        |  f64_c     | f64_c  |  f64_c |      f64_c     |
+        -------------------------------------------------
 
     @param[in]
     handle    [rocblas_handle]
@@ -16039,16 +16041,17 @@ ROCBLAS_EXPORT rocblas_status rocblas_axpy_batched_ex(rocblas_handle   handle,
 
         Currently supported datatypes are as follows:
 
-        ---------------------------------------------
+        -------------------------------------------------
         | alpha_type | x_type | y_type | execution_type |
-        |-----------|-------|-------|---------------|
-        |  f16_r    | f16_r | f16_r |     f16_r     |
-        |  f16_r    | f16_r | f16_r |     f32_r     |
-        |  f32_r    | f32_r | f32_r |     f32_r     |
-        |  f64_r    | f64_r | f64_r |     f64_r     |
-        |  f32_c    | f32_c | f32_c |     f32_c     |
-        |  f64_c    | f64_c | f64_c |     f64_c     |
-        ---------------------------------------------
+        |------------|--------|--------|----------------|
+        |  f16_r     | f16_r  |  f16_r |      f16_r     |
+        |  f16_r     | f16_r  |  f16_r |      f32_r     |
+        |  f32_r     | f16_r  |  f16_r |      f32_r     |
+        |  f32_r     | f32_r  |  f32_r |      f32_r     |
+        |  f64_r     | f64_r  |  f64_r |      f64_r     |
+        |  f32_c     | f32_c  |  f32_c |      f32_c     |
+        |  f64_c     | f64_c  |  f64_c |      f64_c     |
+        -------------------------------------------------
 
     @param[in]
     handle    [rocblas_handle]
@@ -16824,6 +16827,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_rot_strided_batched_ex(rocblas_handle   ha
         |------------|--------|----------------|
         |  f16_r     | f16_r  |     f16_r      |
         |  f16_r     | f16_r  |     f32_r      |
+        |  f32_r     | f16_r  |     f32_r      |
         |  f32_r     | f32_r  |     f32_r      |
         |  f64_r     | f64_r  |     f64_r      |
         |  f32_c     | f32_c  |     f32_c      |
@@ -16879,6 +16883,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_scal_ex(rocblas_handle   handle,
         |------------|--------|----------------|
         |  f16_r     | f16_r  |     f16_r      |
         |  f16_r     | f16_r  |     f32_r      |
+        |  f32_r     | f16_r  |     f32_r      |
         |  f32_r     | f32_r  |     f32_r      |
         |  f64_r     | f64_r  |     f64_r      |
         |  f32_c     | f32_c  |     f32_c      |
@@ -16939,6 +16944,7 @@ ROCBLAS_EXPORT rocblas_status rocblas_scal_batched_ex(rocblas_handle   handle,
         |------------|--------|----------------|
         |  f16_r     | f16_r  |     f16_r      |
         |  f16_r     | f16_r  |     f32_r      |
+        |  f32_r     | f16_r  |     f32_r      |
         |  f32_r     | f32_r  |     f32_r      |
         |  f64_r     | f64_r  |     f64_r      |
         |  f32_c     | f32_c  |     f32_c      |
