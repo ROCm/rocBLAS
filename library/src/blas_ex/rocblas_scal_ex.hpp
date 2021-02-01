@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -73,6 +73,13 @@ rocblas_status rocblas_scal_ex_template(rocblas_handle   handle,
     {
         // hscal with float computation
         status = scal_ex_typecasting<NB, BATCHED, rocblas_half, rocblas_half, float>(
+            SCAL_EX_TYPECASTING_PARAM);
+    }
+    else if(alpha_type == rocblas_datatype_f32_r && x_type == rocblas_datatype_f16_r
+            && execution_type == rocblas_datatype_f32_r)
+    {
+        // hscal with float computation & alpha
+        status = scal_ex_typecasting<NB, BATCHED, float, rocblas_half, float>(
             SCAL_EX_TYPECASTING_PARAM);
     }
     else if(alpha_type == rocblas_datatype_f16_r && x_type == rocblas_datatype_f16_r

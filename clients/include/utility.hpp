@@ -1,12 +1,12 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
 
+#include "../../library/src/include/logging.hpp"
 #include "../../library/src/include/utility.hpp"
 #include "cblas_interface.hpp"
-#include "logging.hpp"
 #include "rocblas.h"
 #include "rocblas_vector.hpp"
 #include <cstdio>

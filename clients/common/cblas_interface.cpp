@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************/
 #include "cblas_interface.hpp"
 #include "rocblas_vector.hpp"
@@ -106,6 +106,8 @@ template void cblas_scal<rocblas_half, rocblas_half*>(rocblas_int   n,
                                                       rocblas_half  alpha,
                                                       rocblas_half* x,
                                                       rocblas_int   incx);
+template void
+    cblas_scal<float, rocblas_half*>(rocblas_int n, float alpha, rocblas_half* x, rocblas_int incx);
 template void cblas_scal<rocblas_complex_num<float>, rocblas_complex_num<float>*>(
     rocblas_int                 n,
     rocblas_complex_num<float>  alpha,
