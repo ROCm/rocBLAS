@@ -63,8 +63,8 @@ void testing_scal_ex(const Arguments& arg)
 {
     auto rocblas_scal_ex_fn = arg.fortran ? rocblas_scal_ex_fortran : rocblas_scal_ex;
 
-    rocblas_datatype alpha_type     = arg.b_type;
-    rocblas_datatype x_type         = arg.a_type;
+    rocblas_datatype alpha_type     = arg.a_type;
+    rocblas_datatype x_type         = arg.b_type;
     rocblas_datatype execution_type = arg.compute_type;
 
     rocblas_int N       = arg.N;

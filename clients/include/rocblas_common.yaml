@@ -65,6 +65,8 @@ Real precisions: &real_precisions
     { a_type:  bf16_r, b_type:  bf16_r, c_type: bf16_r, d_type: bf16_r, compute_type: f32_r }
   - &hpa_bf16_in_single_out_precision
     { a_type:  bf16_r, b_type:  bf16_r, c_type: f32_r, d_type: f32_r, compute_type: f32_r }
+  - &hpa_half_float_alpha
+    { a_type: f32_r, b_type: f16_r, c_type: f16_r, d_type: f16_r, compute_type: f32_r }
 
 C precisions: &single_double_precisions
   - *single_precision
@@ -189,14 +191,16 @@ Simple precisions complex and real: &half_single_double_precisions_complex_real
   - *single_precision_complex
   - *double_precision_complex
 
+
+
 #############################################
 #               Used for Scal               #
 #############################################
 Joined precisions: &complex_real_in_complex_out
   - &single_precision_complex_real_in_complex_out
-    { a_type: f32_c, b_type: f32_r, c_type: f32_r, d_type: f32_c, compute_type: f32_c }
+    { a_type: f32_r, b_type: f32_c, c_type: f32_r, d_type: f32_c, compute_type: f32_c }
   - &double_precision_complex_real_in_complex_out
-    { a_type: f64_c, b_type: f64_r, c_type: f64_r, d_type: f64_c, compute_type: f64_c }
+    { a_type: f64_r, b_type: f64_c, c_type: f64_r, d_type: f64_c, compute_type: f64_c }
 
 Single double joined: &single_double_complex_real_in_complex_out
   - *single_precision_complex_real_in_complex_out
@@ -208,6 +212,7 @@ Single double joined: &single_double_complex_real_in_complex_out
 Hpa half and half: &hpa_half_half_precisions
   - *hpa_half_precision
   - *half_precision
+  - *hpa_half_float_alpha
 
 #############################################
 #               Used for rot*               #
@@ -269,6 +274,7 @@ Half bfloat single double complex real: &half_bfloat_single_double_complex_real_
 #           Used for axpy_ex                #
 #############################################
 Hpa single double complex real: &half_single_double_complex_real_precisions
+  - *hpa_half_float_alpha
   - *single_precision
   - *double_precision
   - *single_precision_complex
@@ -390,11 +396,11 @@ Lists to not expand:
 
 # Defaults
 Defaults:
-  M: -1
-  N: -1
-  K: -1
-  KL: -1
-  KU: -1
+  M: 128
+  N: 128
+  K: 128
+  KL: 128
+  KU: 128
   incx: 0
   incy: 0
   incd: 0
@@ -408,7 +414,7 @@ Defaults:
   side: '*'
   uplo: '*'
   diag: '*'
-  batch_count: -1
+  batch_count: 1
   HMM: false
   threads: 0
   streams: 0
