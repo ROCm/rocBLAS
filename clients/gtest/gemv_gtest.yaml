@@ -25,6 +25,10 @@ Definitions:
     - { M:    32, N:    32, lda:   32, stride_a:     1024 }
     - { M:   100, N:   200, lda:  200, stride_a:    40000 }
 
+  - &size_t_idx_all_algo_matrix_size_range
+    - { M: 12000, N:    5,  lda:  536870912,  stride_a: 536870912 } # skinny n
+    - { M:    16, N:    5,  lda:  536870912,  stride_a: 536870912 }
+
   - &special_case_range
     # Quick return
     - { M:    0, N:    1, lda:    1, incx: 1, incy: 1, batch_count: 1 }
@@ -60,6 +64,9 @@ Definitions:
 
   - &incx_incy_range_small
     - { incx: 2, incy: 2, stride_scale: 1 }
+
+  - &incx_incy_unity
+    - { incx: 1, incy: 1, stride_scale: 1 }
 
   - &alpha_beta_range
     - { alpha:  2.0, beta:  0.0, alphai: 1.5, betai: 0.5 }
@@ -173,6 +180,15 @@ Tests:
   matrix_size: *skinny_n_matrix_size_range
   incx_incy: *incx_incy_range_small
   alpha_beta: *alpha_beta_range
+
+- name: gemv_lda
+  category: nightly
+  function: gemv
+  precision: *single_precision
+  transA: [  N, T, C ]
+  matrix_size: *size_t_idx_all_algo_matrix_size_range
+  incx_incy: *incx_incy_unity
+  alpha_beta: *alpha_beta_range_small
 
 # gemv_batched
 - name: gemv_batched_bad_arg
