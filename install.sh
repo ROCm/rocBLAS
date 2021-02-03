@@ -164,7 +164,7 @@ install_packages( )
   fi
 
   # dependencies needed to build the rocblas library
-  local library_dependencies_ubuntu=( "make" "cmake-curses-gui"
+  local library_dependencies_ubuntu=( "make" "cmake"
                                       "python3" "python3-yaml" "python3-venv" "python3*-pip"
                                       "wget" )
   local library_dependencies_centos_rhel=( "epel-release"
