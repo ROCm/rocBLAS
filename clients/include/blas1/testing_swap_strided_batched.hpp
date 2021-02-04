@@ -25,8 +25,8 @@ void testing_swap_strided_batched_bad_arg(const Arguments& arg)
     rocblas_int    N           = 100;
     rocblas_int    incx        = 1;
     rocblas_int    incy        = 1;
-    rocblas_stride stridex     = 1;
-    rocblas_stride stridey     = 1;
+    rocblas_stride stride_x    = 1;
+    rocblas_stride stride_y    = 1;
     rocblas_int    batch_count = 5;
 
     static const size_t safe_size = 100; //  arbitrarily set to 100
@@ -40,13 +40,13 @@ void testing_swap_strided_batched_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
     EXPECT_ROCBLAS_STATUS(rocblas_swap_strided_batched_fn(
-                              handle, N, nullptr, incx, stridex, dy, incy, stridey, batch_count),
+                              handle, N, nullptr, incx, stride_x, dy, incy, stride_y, batch_count),
                           rocblas_status_invalid_pointer);
     EXPECT_ROCBLAS_STATUS(rocblas_swap_strided_batched_fn(
-                              handle, N, dx, incx, stridex, nullptr, incy, stridey, batch_count),
+                              handle, N, dx, incx, stride_x, nullptr, incy, stride_y, batch_count),
                           rocblas_status_invalid_pointer);
     EXPECT_ROCBLAS_STATUS(rocblas_swap_strided_batched_fn(
-                              nullptr, N, dx, incx, stridex, dy, incy, stridey, batch_count),
+                              nullptr, N, dx, incx, stride_x, dy, incy, stride_y, batch_count),
                           rocblas_status_invalid_handle);
 }
 
@@ -60,8 +60,8 @@ void testing_swap_strided_batched(const Arguments& arg)
     rocblas_int    N           = arg.N;
     rocblas_int    incx        = arg.incx;
     rocblas_int    incy        = arg.incy;
-    rocblas_stride stridex     = arg.stride_x;
-    rocblas_stride stridey     = arg.stride_y;
+    rocblas_stride stride_x    = arg.stride_x;
+    rocblas_stride stride_y    = arg.stride_y;
     rocblas_int    batch_count = arg.batch_count;
 
     rocblas_local_handle handle{arg};
@@ -71,7 +71,7 @@ void testing_swap_strided_batched(const Arguments& arg)
     {
         EXPECT_ROCBLAS_STATUS(
             rocblas_swap_strided_batched_fn(
-                handle, N, nullptr, incx, stridex, nullptr, incy, stridey, batch_count),
+                handle, N, nullptr, incx, stride_x, nullptr, incy, stride_y, batch_count),
             rocblas_status_success);
         return;
     }
@@ -79,8 +79,8 @@ void testing_swap_strided_batched(const Arguments& arg)
     size_t abs_incx = incx >= 0 ? incx : -incx;
     size_t abs_incy = incy >= 0 ? incy : -incy;
 
-    size_t size_x = (size_t)(stridex >= 0 ? stridex : -stridex);
-    size_t size_y = (size_t)(stridey >= 0 ? stridey : -stridey);
+    size_t size_x = (size_t)(stride_x >= 0 ? stride_x : -stride_x);
+    size_t size_y = (size_t)(stride_y >= 0 ? stride_y : -stride_y);
     // not testing non-standard strides
     size_x = std::max(size_x, N * abs_incx);
     size_y = std::max(size_y, N * abs_incy);
@@ -128,7 +128,7 @@ void testing_swap_strided_batched(const Arguments& arg)
     {
         // GPU BLAS
         CHECK_ROCBLAS_ERROR(rocblas_swap_strided_batched_fn(
-            handle, N, dx, incx, stridex, dy, incy, stridey, batch_count));
+            handle, N, dx, incx, stride_x, dy, incy, stride_y, batch_count));
         CHECK_HIP_ERROR(hipMemcpy(hx, dx, dataSizeX, hipMemcpyDeviceToHost));
         CHECK_HIP_ERROR(hipMemcpy(hy, dy, dataSizeY, hipMemcpyDeviceToHost));
 
@@ -136,22 +136,22 @@ void testing_swap_strided_batched(const Arguments& arg)
         cpu_time_used = get_time_us_no_sync();
         for(int i = 0; i < batch_count; i++)
         {
-            cblas_swap<T>(N, hx_gold + i * stridex, incx, hy_gold + i * stridey, incy);
+            cblas_swap<T>(N, hx_gold + i * stride_x, incx, hy_gold + i * stride_y, incy);
         }
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, N, abs_incx, stridex, hx_gold, hx, batch_count);
-            unit_check_general<T>(1, N, abs_incy, stridey, hy_gold, hy, batch_count);
+            unit_check_general<T>(1, N, abs_incx, stride_x, hx_gold, hx, batch_count);
+            unit_check_general<T>(1, N, abs_incy, stride_y, hy_gold, hy, batch_count);
         }
 
         if(arg.norm_check)
         {
             rocblas_error
-                = norm_check_general<T>('F', 1, N, abs_incx, stridex, hx_gold, hx, batch_count);
+                = norm_check_general<T>('F', 1, N, abs_incx, stride_x, hx_gold, hx, batch_count);
             rocblas_error
-                = norm_check_general<T>('F', 1, N, abs_incy, stridey, hy_gold, hy, batch_count);
+                = norm_check_general<T>('F', 1, N, abs_incy, stride_y, hy_gold, hy, batch_count);
         }
     }
 
@@ -164,7 +164,7 @@ void testing_swap_strided_batched(const Arguments& arg)
         for(int iter = 0; iter < number_cold_calls; iter++)
         {
             rocblas_swap_strided_batched_fn(
-                handle, N, dx, incx, stridex, dy, incy, stridey, batch_count);
+                handle, N, dx, incx, stride_x, dy, incy, stride_y, batch_count);
         }
 
         hipStream_t stream;
@@ -174,13 +174,18 @@ void testing_swap_strided_batched(const Arguments& arg)
         for(int iter = 0; iter < number_hot_calls; iter++)
         {
             rocblas_swap_strided_batched_fn(
-                handle, N, dx, incx, stridex, dy, incy, stridey, batch_count);
+                handle, N, dx, incx, stride_x, dy, incy, stride_y, batch_count);
         }
 
-        gpu_time_used = (get_time_us_sync(stream) - gpu_time_used) / number_hot_calls;
+        gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
 
-        rocblas_cout << "N,incx,incy,stride_x,stride_y,batch_count,rocblas-us" << std::endl;
-        rocblas_cout << N << "," << incx << "," << incy << "," << stridex << "," << stridey << ","
-                     << batch_count << "," << gpu_time_used << std::endl;
+        ArgumentModel<e_N, e_incx, e_incy, e_stride_x, e_stride_y, e_batch_count>{}.log_args<T>(
+            rocblas_cout,
+            arg,
+            gpu_time_used,
+            swap_gflop_count<T>(N),
+            swap_gbyte_count<T>(N),
+            cpu_time_used,
+            rocblas_error);
     }
 }
