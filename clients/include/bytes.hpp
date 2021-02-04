@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2020 Advanced Micro Devices, Inc.
+ * Copyright 2020-2021 Advanced Micro Devices, Inc.
  *
  * ************************************************************************/
 
@@ -81,6 +81,13 @@ template <typename T>
 constexpr double scal_gbyte_count(rocblas_int n)
 {
     return (sizeof(T) * 2.0 * n) / 1e9;
+}
+
+/* \brief byte counts of SWAP */
+template <typename T>
+constexpr double swap_gbyte_count(rocblas_int n)
+{
+    return (sizeof(T) * n) / 1e9;
 }
 
 /*
