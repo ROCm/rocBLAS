@@ -16,6 +16,7 @@ rocBLAS build & installation helper script
       -h | --help                Print this help message
       -i | --install             Install after build
       -d | --dependencies        Install build dependencies
+           --cleanup             Removes intermediary build artifacts after successful build to reduce disk usage
       -c | --clients             Build library clients too (combines with -i & -d)
            --clients-only        Build only clients with a pre-built library
            --library-path        When only building clients, the path to the pre-built rocBLAS library (default is /opt/rocm/rocblas)
@@ -307,6 +308,7 @@ tensile_tag=
 tensile_test_local_path=
 tensile_version=
 build_library=true
+build_cleanup=false
 build_clients=false
 use_cuda=false
 build_tensile=true
@@ -334,7 +336,7 @@ library_dir_installed=${rocm_path}/rocblas
 # check if we have a modern version of getopt that can handle whitespace and long parameters
 getopt -T
 if [[ $? -eq 4 ]]; then
-  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,clients-only,dependencies,debug,hip-clang,no-hip-clang,merge-files,no-merge-files,no_tensile,no-tensile,tensile-host,no-tensile-host,msgpack,no-msgpack,library-path:,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,static,use-cuda,rocm-dev: --options nsrhicdgl:a:o:f:b:t:u:v: -- "$@")
+  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,cleanup,clients,clients-only,dependencies,debug,hip-clang,no-hip-clang,merge-files,no-merge-files,no_tensile,no-tensile,tensile-host,no-tensile-host,msgpack,no-msgpack,library-path:,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,static,use-cuda,rocm-dev: --options nsrhicdgl:a:o:f:b:t:u:v: -- "$@")
 else
   echo "Need a new version of getopt"
   exit 1
@@ -358,6 +360,9 @@ while true; do
         shift ;;
     -d|--dependencies)
         install_dependencies=true
+        shift ;;
+    --cleanup)
+        build_cleanup=true
         shift ;;
     -c|--clients)
         build_clients=true
@@ -401,7 +406,7 @@ while true; do
         shift ;;
     --build_dir)
 #use readlink rather than realpath for CentOS 6.10 support
-	build_dir=$(readlink -m ${2})
+        build_dir=$(readlink -m ${2})
         shift 2;;
     --use-cuda)
         use_cuda=true
@@ -680,4 +685,13 @@ pushd .
     esac
 
   fi
+  check_exit_code "$?"
+
+  if [[ "${cleanup}" == true ]]; then
+      find -name '*.o' -delete
+      find -type d -name '*build_tmp*' -exec rm -rf {} +
+      find -type d -name '*_CPack_Packages*' -exec rm -rf {} +
+  fi
+  check_exit_code "$?"
+
 popd
