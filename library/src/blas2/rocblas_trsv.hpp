@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -645,7 +645,7 @@ rocblas_status special_trsv_template(rocblas_handle    handle,
                                  &one<T>,
                                  0,
                                  invA,
-                                 j * BLOCK * BLOCK,
+                                 offset_invAin + j * BLOCK * BLOCK,
                                  BLOCK,
                                  stride_invA,
                                  (U)x_temp,
@@ -655,7 +655,7 @@ rocblas_status special_trsv_template(rocblas_handle    handle,
                                  &zero<T>,
                                  0,
                                  B,
-                                 j * BLOCK * incx,
+                                 offset_Bin + j * BLOCK * incx,
                                  incx,
                                  stride_B,
                                  batch_count);
