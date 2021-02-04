@@ -59,7 +59,7 @@ constexpr double axpy_gbyte_count(rocblas_int n)
 template <typename T>
 constexpr double copy_gbyte_count(rocblas_int n)
 {
-    return (sizeof(T) * n) / 1e9;
+    return (sizeof(T) * 2.0 * n) / 1e9;
 }
 
 /* \brief byte counts of DOT */
@@ -87,7 +87,7 @@ constexpr double scal_gbyte_count(rocblas_int n)
 template <typename T>
 constexpr double swap_gbyte_count(rocblas_int n)
 {
-    return (sizeof(T) * n) / 1e9;
+    return (sizeof(T) * 4.0 * n) / 1e9;
 }
 
 /*
