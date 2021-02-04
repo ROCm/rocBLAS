@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -36,6 +36,33 @@ __global__ void rocblas_swap_kernel(rocblas_int    n,
     }
 }
 
+//! @brief Optimized kernel for the floating points.
+//!
+template <rocblas_int NB, typename UPtr>
+__global__ __launch_bounds__(NB) void sswap_2_kernel(rocblas_int n,
+                                                     UPtr __restrict xa,
+                                                     ptrdiff_t      offsetx,
+                                                     rocblas_stride stridex,
+                                                     UPtr __restrict ya,
+                                                     ptrdiff_t      offsety,
+                                                     rocblas_stride stridey)
+{
+    ptrdiff_t tid = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 2;
+    auto*     x   = load_ptr_batch(xa, hipBlockIdx_y, offsetx, stridex);
+    auto*     y   = load_ptr_batch(ya, hipBlockIdx_y, offsety, stridey);
+    if(tid < n - 1)
+    {
+        for(rocblas_int j = 0; j < 2; ++j)
+        {
+            rocblas_swap_vals(x + tid + j, y + tid + j);
+        }
+    }
+    if(n % 2 != 0 && tid == n - 1)
+    {
+        rocblas_swap_vals(x + tid, y + tid);
+    }
+}
+
 template <rocblas_int NB, typename U>
 rocblas_status rocblas_swap_template(rocblas_handle handle,
                                      rocblas_int    n,
@@ -53,28 +80,65 @@ rocblas_status rocblas_swap_template(rocblas_handle handle,
     if(n <= 0 || batch_count <= 0)
         return rocblas_status_success;
 
-    dim3        blocks((n - 1) / NB + 1, batch_count);
-    dim3        threads(NB);
-    hipStream_t rocblas_stream = handle->get_stream();
+    static constexpr bool using_rocblas_float
+        = std::is_same<U, rocblas_float*>{} || std::is_same<U, rocblas_float** const>{};
 
-    // in case of negative inc shift pointer to end of data for negative indexing tid*inc
-    ptrdiff_t shiftx = incx < 0 ? offsetx - ptrdiff_t(incx) * (n - 1) : offsetx;
-    ptrdiff_t shifty = incy < 0 ? offsety - ptrdiff_t(incy) * (n - 1) : offsety;
+    if(!using_rocblas_float || incx != 1 || incy != 1)
+    {
+        // in case of negative inc shift pointer to end of data for negative indexing tid*inc
+        ptrdiff_t shiftx = incx < 0 ? offsetx - ptrdiff_t(incx) * (n - 1) : offsetx;
+        ptrdiff_t shifty = incy < 0 ? offsety - ptrdiff_t(incy) * (n - 1) : offsety;
 
-    hipLaunchKernelGGL(rocblas_swap_kernel,
-                       blocks,
-                       threads,
-                       0,
-                       rocblas_stream,
-                       n,
-                       x,
-                       shiftx,
-                       incx,
-                       stridex,
-                       y,
-                       shifty,
-                       incy,
-                       stridey);
+        dim3 blocks((n - 1) / NB + 1, batch_count);
+        dim3 threads(NB);
+
+        // Temporarily change the thread's default device ID to the handle's device ID
+        auto saved_device_id = handle->push_device_id();
+
+        hipLaunchKernelGGL(rocblas_swap_kernel,
+                           blocks,
+                           threads,
+                           0,
+                           handle->get_stream(),
+                           n,
+                           x,
+                           shiftx,
+                           incx,
+                           stridex,
+                           y,
+                           shifty,
+                           incy,
+                           stridey);
+    }
+    else
+    {
+        // Kernel function for improving the performance of SCOPY when incx==1 and incy==1
+
+        // In case of negative inc shift pointer to end of data for negative indexing tid*inc
+        ptrdiff_t shiftx = offsetx - 0;
+        ptrdiff_t shifty = offsety - 0;
+
+        int         blocks = 1 + ((n - 1) / (NB * 2));
+        dim3        grid(blocks, batch_count);
+        dim3        threads(NB);
+        hipStream_t scopy_stream = handle->get_stream();
+
+        // Temporarily change the thread's default device ID to the handle's device ID
+        auto saved_device_id = handle->push_device_id();
+
+        hipLaunchKernelGGL(sswap_2_kernel<NB>,
+                           grid,
+                           threads,
+                           0,
+                           scopy_stream,
+                           n,
+                           x,
+                           shiftx,
+                           stridex,
+                           y,
+                           shifty,
+                           stridey);
+    }
 
     return rocblas_status_success;
 }
