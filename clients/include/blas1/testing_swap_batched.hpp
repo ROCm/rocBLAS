@@ -164,10 +164,14 @@ void testing_swap_batched(const Arguments& arg)
                 handle, N, dx.ptr_on_device(), incx, dy.ptr_on_device(), incy, batch_count);
         }
 
-        gpu_time_used = (get_time_us_sync(stream) - gpu_time_used) / number_hot_calls;
+        gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
 
-        rocblas_cout << "N,incx,incy,batch_count,rocblas-us" << std::endl;
-        rocblas_cout << N << "," << incx << "," << incy << "," << batch_count << ","
-                     << gpu_time_used << std::endl;
+        ArgumentModel<e_N, e_incx, e_incy, e_batch_count>{}.log_args<T>(rocblas_cout,
+                                                                        arg,
+                                                                        gpu_time_used,
+                                                                        swap_gflop_count<T>(N),
+                                                                        swap_gbyte_count<T>(N),
+                                                                        cpu_time_used,
+                                                                        rocblas_error);
     }
 }

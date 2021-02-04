@@ -8,7 +8,7 @@
 #include "handle.hpp"
 
 template <typename T>
-__forceinline__ __device__ __host__ void rocblas_swap_vals(T* x, T* y)
+__forceinline__ __device__ __host__ void rocblas_swap_vals(T* __restrict__ x, T* __restrict__ y)
 {
     T tmp = *y;
     *y    = *x;
@@ -40,10 +40,10 @@ __global__ void rocblas_swap_kernel(rocblas_int    n,
 //!
 template <rocblas_int NB, typename UPtr>
 __global__ __launch_bounds__(NB) void sswap_2_kernel(rocblas_int n,
-                                                     UPtr __restrict xa,
+                                                     UPtr __restrict__ xa,
                                                      ptrdiff_t      offsetx,
                                                      rocblas_stride stridex,
-                                                     UPtr __restrict ya,
+                                                     UPtr __restrict__ ya,
                                                      ptrdiff_t      offsety,
                                                      rocblas_stride stridey)
 {
@@ -81,7 +81,7 @@ rocblas_status rocblas_swap_template(rocblas_handle handle,
         return rocblas_status_success;
 
     static constexpr bool using_rocblas_float
-        = std::is_same<U, rocblas_float*>{} || std::is_same<U, rocblas_float** const>{};
+        = std::is_same<U, rocblas_float*>{} || std::is_same<U, rocblas_float* const*>{};
 
     if(!using_rocblas_float || incx != 1 || incy != 1)
     {
@@ -112,16 +112,13 @@ rocblas_status rocblas_swap_template(rocblas_handle handle,
     }
     else
     {
-        // Kernel function for improving the performance of SCOPY when incx==1 and incy==1
-
-        // In case of negative inc shift pointer to end of data for negative indexing tid*inc
+        // Kernel function for improving the performance of SSWAP when incx==1 and incy==1
         ptrdiff_t shiftx = offsetx - 0;
         ptrdiff_t shifty = offsety - 0;
 
-        int         blocks = 1 + ((n - 1) / (NB * 2));
-        dim3        grid(blocks, batch_count);
-        dim3        threads(NB);
-        hipStream_t scopy_stream = handle->get_stream();
+        int  blocks = 1 + ((n - 1) / (NB * 2));
+        dim3 grid(blocks, batch_count);
+        dim3 threads(NB);
 
         // Temporarily change the thread's default device ID to the handle's device ID
         auto saved_device_id = handle->push_device_id();
@@ -130,7 +127,7 @@ rocblas_status rocblas_swap_template(rocblas_handle handle,
                            grid,
                            threads,
                            0,
-                           scopy_stream,
+                           handle->get_stream(),
                            n,
                            x,
                            shiftx,
@@ -139,7 +136,6 @@ rocblas_status rocblas_swap_template(rocblas_handle handle,
                            shifty,
                            stridey);
     }
-
     return rocblas_status_success;
 }
 
