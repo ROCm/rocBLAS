@@ -61,20 +61,12 @@ __forceinline__ __device__ __host__ T load_scalar(const T* xp)
     return *xp;
 }
 
-// For rocblas_half2, we broadcast a fp16 across two halves
-template <>
-__forceinline__ __device__ __host__ rocblas_half2 load_scalar(const rocblas_half2* xp)
-{
-    auto x = *reinterpret_cast<const rocblas_half*>(xp);
-    return {x, x};
-}
-
 // Load a batched scalar. This only works on the device. Used for batched functions which may
 // pass an array of scalars rather than a single scalar.
 
 // For device side array of scalars
 template <typename T>
-__forceinline__ __device__ __host__ T load_scalar(T* x, rocblas_int idx, rocblas_int inc)
+__forceinline__ __device__ __host__ T load_scalar(const T* x, rocblas_int idx, rocblas_int inc)
 {
     return x[idx * inc];
 }

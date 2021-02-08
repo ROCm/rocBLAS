@@ -12,10 +12,13 @@ template <int NB, bool BATCHED, typename Ta, typename Tx = Ta, typename Ty = Tx,
 rocblas_status axpy_ex_typecasting(rocblas_handle handle,
                                    rocblas_int    n,
                                    const void*    alpha,
+                                   rocblas_stride stride_alpha,
                                    const void*    x,
+                                   ptrdiff_t      offset_x,
                                    rocblas_int    incx,
                                    rocblas_stride stride_x,
                                    void*          y,
+                                   ptrdiff_t      offset_y,
                                    rocblas_int    incy,
                                    rocblas_stride stride_y,
                                    rocblas_int    batch_count)
@@ -35,18 +38,32 @@ rocblas_status axpy_ex_typecasting(rocblas_handle handle,
         return rocblas_axpy_template<NB, Tex>(handle,
                                               n,
                                               alphat,
+                                              stride_alpha,
                                               (const Tx* const*)x,
+                                              offset_x,
                                               incx,
                                               stride_x,
                                               (Ty* const*)y,
+                                              offset_y,
                                               incy,
                                               stride_y,
                                               batch_count);
     }
     else
     {
-        return rocblas_axpy_template<NB, Tex>(
-            handle, n, alphat, (const Tx*)x, incx, stride_x, (Ty*)y, incy, stride_y, batch_count);
+        return rocblas_axpy_template<NB, Tex>(handle,
+                                              n,
+                                              alphat,
+                                              stride_alpha,
+                                              (const Tx*)x,
+                                              offset_x,
+                                              incx,
+                                              stride_x,
+                                              (Ty*)y,
+                                              offset_y,
+                                              incy,
+                                              stride_y,
+                                              batch_count);
     }
 }
 
@@ -55,12 +72,15 @@ rocblas_status rocblas_axpy_ex_template(rocblas_handle   handle,
                                         rocblas_int      n,
                                         const void*      alpha,
                                         rocblas_datatype alpha_type,
+                                        rocblas_stride   stride_alpha,
                                         const void*      x,
                                         rocblas_datatype x_type,
+                                        ptrdiff_t        offset_x,
                                         rocblas_int      incx,
                                         rocblas_stride   stride_x,
                                         void*            y,
                                         rocblas_datatype y_type,
+                                        ptrdiff_t        offset_y,
                                         rocblas_int      incy,
                                         rocblas_stride   stride_y,
                                         rocblas_int      batch_count,
@@ -80,8 +100,9 @@ rocblas_status rocblas_axpy_ex_template(rocblas_handle   handle,
 
     rocblas_status status = rocblas_status_not_implemented;
 
-#define AXPY_EX_TYPECASTING_PARAM \
-    handle, n, alpha, x, incx, stride_x, y, incy, stride_y, batch_count
+#define AXPY_EX_TYPECASTING_PARAM                                                             \
+    handle, n, alpha, stride_alpha, x, offset_x, incx, stride_x, y, offset_y, incy, stride_y, \
+        batch_count
 
     if(alpha_type == rocblas_datatype_f16_r && x_type == rocblas_datatype_f16_r
        && y_type == rocblas_datatype_f16_r && execution_type == rocblas_datatype_f32_r)
