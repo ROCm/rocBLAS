@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -678,9 +678,9 @@ rocblas_status gemm_ex_batched_template(rocblas_handle    handle,
     const To*      c_in;
     rocblas_int    ldi;
     rocblas_stride stride_i;
+    bool           tensile_supports_ldc_ne_ldd = rocblas_tensile_supports_ldc_ne_ldd(handle);
 
-    if(rocblas_tensile_supports_ldc_ne_ldd()
-       && (std::is_same<Ti, float>{} || std::is_same<Ti, double>{})
+    if(tensile_supports_ldc_ne_ldd && (std::is_same<Ti, float>{} || std::is_same<Ti, double>{})
        && ((ldc >= ldd && (stride_c >= stride_d || batch_count == 1) && m == ldd)
            || (ldc == ldd && (stride_c == stride_d || batch_count == 1))))
     {

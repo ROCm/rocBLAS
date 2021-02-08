@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -1053,6 +1053,7 @@ rocblas_status special_trsm_template(rocblas_handle    handle,
     size_t R      = k / BLOCK;
     size_t bsize  = side == rocblas_side_left ? n : m;
     size_t W      = 1 + (bsize - 1) / B_chunk_size;
+    bool   tensile_supports_ldc_ne_ldd = rocblas_tensile_supports_ldc_ne_ldd(handle);
 
     for(size_t w = 0; w < W; w++)
     {
@@ -1066,7 +1067,7 @@ rocblas_status special_trsm_template(rocblas_handle    handle,
                 size_t j = parity ? r : q;
 
                 // copy a BLOCK*n piece we are solving at a time
-                if(!r || !rocblas_tensile_supports_ldc_ne_ldd())
+                if(!r || !tensile_supports_ldc_ne_ldd)
                     copy_block_unit<T>(handle,
                                        BLOCK,
                                        width,
@@ -1091,7 +1092,7 @@ rocblas_status special_trsm_template(rocblas_handle    handle,
                     else
                         offsetA = parity ? r * BLOCK * lda : BLOCK * (q * lda + q + 1);
 
-                    if(!rocblas_tensile_supports_ldc_ne_ldd())
+                    if(!tensile_supports_ldc_ne_ldd)
                     {
                         rocblas_gemm_template<BATCHED>(handle,
                                                        transA,
@@ -1187,7 +1188,7 @@ rocblas_status special_trsm_template(rocblas_handle    handle,
                 size_t j = parity ? q : r;
 
                 // copy a m*BLOCK piece we are solving at a time
-                if(!r || !rocblas_tensile_supports_ldc_ne_ldd())
+                if(!r || !tensile_supports_ldc_ne_ldd)
                     copy_block_unit<T>(handle,
                                        width,
                                        BLOCK,
@@ -1211,7 +1212,7 @@ rocblas_status special_trsm_template(rocblas_handle    handle,
                     else
                         offsetA = parity ? BLOCK * (q * lda + q + lda) : r * BLOCK;
 
-                    if(!rocblas_tensile_supports_ldc_ne_ldd())
+                    if(!tensile_supports_ldc_ne_ldd)
                     {
                         rocblas_gemm_template<BATCHED>(handle,
                                                        rocblas_operation_none,

@@ -563,5 +563,5 @@ constexpr double value_category(const T& beta)
 }
 
 ROCBLAS_EXPORT std::string rocblas_get_arch_name();
-ROCBLAS_EXPORT bool        rocblas_tensile_supports_ldc_ne_ldd();
+ROCBLAS_EXPORT bool        rocblas_tensile_supports_ldc_ne_ldd(rocblas_handle handle);
 ROCBLAS_EXPORT bool        rocblas_tensile_debug_skip_launch();
