@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "rocblas_axpy.hpp"
 #include "logging.hpp"
@@ -76,6 +76,7 @@ namespace
 
         static constexpr rocblas_int    batch_count_1 = 1;
         static constexpr rocblas_stride stride_0      = 0;
+        static constexpr ptrdiff_t      offset_0      = 0;
 
         if(check_numerics)
         {
@@ -85,11 +86,11 @@ namespace
                                               handle,
                                               n,
                                               x,
-                                              0,
+                                              offset_0,
                                               incx,
                                               stride_0,
                                               y,
-                                              0,
+                                              offset_0,
                                               incy,
                                               stride_0,
                                               batch_count_1,
@@ -99,8 +100,19 @@ namespace
                 return axpy_check_numerics_status;
         }
 
-        rocblas_status status = rocblas_axpy_template<NB, T>(
-            handle, n, alpha, x, incx, stride_0, y, incy, stride_0, batch_count_1);
+        rocblas_status status = rocblas_axpy_template<NB, T>(handle,
+                                                             n,
+                                                             alpha,
+                                                             stride_0,
+                                                             x,
+                                                             offset_0,
+                                                             incx,
+                                                             stride_0,
+                                                             y,
+                                                             offset_0,
+                                                             incy,
+                                                             stride_0,
+                                                             batch_count_1);
         if(status != rocblas_status_success)
             return status;
 
@@ -112,11 +124,11 @@ namespace
                                               handle,
                                               n,
                                               x,
-                                              0,
+                                              offset_0,
                                               incx,
                                               stride_0,
                                               y,
-                                              0,
+                                              offset_0,
                                               incy,
                                               stride_0,
                                               batch_count_1,
