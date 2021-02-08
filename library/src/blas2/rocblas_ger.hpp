@@ -148,9 +148,6 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_ger_template(rocblas_handle handl
     dim3 grid(blocksX, blocksY, batch_count);
     dim3 threads(DIM_X, DIM_Y);
 
-    // Temporarily change the thread's default device ID to the handle's device ID
-    auto saved_device_id = handle->push_device_id();
-
     if(handle->pointer_mode == rocblas_pointer_mode_device)
         hipLaunchKernelGGL((ger_kernel<DIM_X, DIM_Y, WIN, CONJ, T>),
                            grid,

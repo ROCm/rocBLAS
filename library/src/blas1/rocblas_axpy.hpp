@@ -209,9 +209,6 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_axpy_template(rocblas_handle hand
                                                              rocblas_stride stridey,
                                                              rocblas_int    batch_count)
 {
-    // Temporarily change the thread's default device ID to the handle's device ID
-    auto saved_device_id = handle->push_device_id();
-
     //
     // Using rocblas_half ?
     //

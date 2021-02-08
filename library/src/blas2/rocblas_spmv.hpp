@@ -206,9 +206,6 @@ rocblas_status rocblas_spmv_template(rocblas_handle handle,
     dim3                 grid(blocks, batch_count);
     dim3                 threads(spmv_DIM_X, spmv_DIM_Y);
 
-    // Temporarily change the thread's default device ID to the handle's device ID
-    auto saved_device_id = handle->push_device_id();
-
     bool upper = uplo == rocblas_fill_upper;
     if(handle->pointer_mode == rocblas_pointer_mode_device)
     {

@@ -81,9 +81,6 @@ rocblas_status rocblas_spr_template(rocblas_handle handle,
     dim3 spr_grid(blocksX, blocksY, batch_count);
     dim3 spr_threads(SPR_DIM_X, SPR_DIM_Y);
 
-    // Temporarily change the thread's default device ID to the handle's device ID
-    auto saved_device_id = handle->push_device_id();
-
     if(rocblas_pointer_mode_device == handle->pointer_mode)
         hipLaunchKernelGGL((rocblas_spr_kernel<SPR_DIM_X, SPR_DIM_Y>),
                            spr_grid,

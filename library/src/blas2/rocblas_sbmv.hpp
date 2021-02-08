@@ -223,9 +223,6 @@ rocblas_status rocblas_sbmv_template(rocblas_handle handle,
     if(!n || !batch_count)
         return rocblas_status_success;
 
-    // Temporarily change the thread's default device ID to the handle's device ID
-    auto saved_device_id = handle->push_device_id();
-
     hipStream_t rocblas_stream = handle->get_stream();
 
     // in case of negative inc shift pointer to end of data for negative indexing tid*inc

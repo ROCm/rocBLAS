@@ -124,8 +124,6 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_trmm_template(rocblas_handle    h
                                                              TPtr              workspace,
                                                              rocblas_stride    stride_w)
 {
-    // Temporarily change the thread's default device ID to the handle's device ID
-    auto saved_device_id = handle->push_device_id();
 
     //
     // Level 3 Blas routine.

@@ -86,9 +86,6 @@ rocblas_status rocblas_copy_template(rocblas_handle handle,
         dim3 grid(blocks, batch_count);
         dim3 threads(NB);
 
-        // Temporarily change the thread's default device ID to the handle's device ID
-        auto saved_device_id = handle->push_device_id();
-
         hipLaunchKernelGGL(copy_kernel<CONJ>,
                            grid,
                            threads,
@@ -116,9 +113,6 @@ rocblas_status rocblas_copy_template(rocblas_handle handle,
         dim3        grid(blocks, batch_count);
         dim3        threads(NB);
         hipStream_t scopy_stream = handle->get_stream();
-
-        // Temporarily change the thread's default device ID to the handle's device ID
-        auto saved_device_id = handle->push_device_id();
 
         hipLaunchKernelGGL(scopy_2_kernel<NB>,
                            grid,

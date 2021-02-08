@@ -2158,9 +2158,6 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_trsm_template(rocblas_handle    h
     // Temporarily switch to host pointer mode, saving current pointer mode, restored on return
     auto saved_pointer_mode = handle->push_pointer_mode(rocblas_pointer_mode_host);
 
-    // Temporarily change the thread's default device ID to the handle's device ID
-    auto saved_device_id = handle->push_device_id();
-
     // Get alpha - Check if zero for quick return
     T alpha_h;
     if(saved_pointer_mode == rocblas_pointer_mode_host)
