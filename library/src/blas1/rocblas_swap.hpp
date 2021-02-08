@@ -61,9 +61,6 @@ rocblas_status rocblas_swap_template(rocblas_handle handle,
     ptrdiff_t shiftx = incx < 0 ? offsetx - ptrdiff_t(incx) * (n - 1) : offsetx;
     ptrdiff_t shifty = incy < 0 ? offsety - ptrdiff_t(incy) * (n - 1) : offsety;
 
-    // Temporarily change the thread's default device ID to the handle's device ID
-    auto saved_device_id = handle->push_device_id();
-
     hipLaunchKernelGGL(rocblas_swap_kernel,
                        blocks,
                        threads,

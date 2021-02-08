@@ -212,9 +212,6 @@ rocblas_status rocblas_hbmv_template(rocblas_handle handle,
     dim3                 hbmvn_grid(blocks, batch_count);
     dim3                 hbmvn_threads(hbmvN_DIM_X, hbmvN_DIM_Y);
 
-    // Temporarily change the thread's default device ID to the handle's device ID
-    auto saved_device_id = handle->push_device_id();
-
     if(handle->pointer_mode == rocblas_pointer_mode_device)
     {
         hipLaunchKernelGGL((hbmvn_kernel<hbmvN_DIM_X, hbmvN_DIM_Y>),

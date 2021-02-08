@@ -41,9 +41,6 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_trmv_template(rocblas_handle    h
     dim3 trmv_grid((m - 1) / NB + 1, batch_count);
     dim3 trmv_threads(NB);
 
-    // Temporarily change the thread's default device ID to the handle's device ID
-    auto saved_device_id = handle->push_device_id();
-
     switch(transa)
     {
     case rocblas_operation_none:

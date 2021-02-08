@@ -44,9 +44,6 @@ namespace
             return rocblas_status_invalid_handle;
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
-        // Temporarily change the thread's default device ID to the handle's device ID
-        auto saved_device_id = handle->push_device_id();
-
         // Copy alpha and beta to host if on device
         T alpha_h, beta_h;
         RETURN_IF_ROCBLAS_ERROR(

@@ -123,9 +123,6 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_gemv_template(rocblas_handle    h
 
     hipStream_t rocblas_stream = handle->get_stream();
 
-    // Temporarily change the thread's default device ID to the handle's device ID
-    auto saved_device_id = handle->push_device_id();
-
     // in case of negative inc shift pointer to end of data for negative indexing tid*inc
     auto shiftx
         = incx < 0 ? offsetx - ptrdiff_t(incx) * (transA == rocblas_operation_none ? n - 1 : m - 1)

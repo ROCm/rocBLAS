@@ -560,9 +560,6 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_gemm_template(rocblas_handle    h
     if(m == 0 || n == 0 || batch_count == 0)
         return rocblas_status_success;
 
-    // Temporarily change the thread's default device ID to the handle's device ID
-    auto saved_device_id = handle->push_device_id();
-
     T alpha_h, beta_h;
     RETURN_IF_ROCBLAS_ERROR(
         copy_alpha_beta_to_host_if_on_device(handle, alpha, beta, alpha_h, beta_h, k));

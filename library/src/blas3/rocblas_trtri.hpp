@@ -1062,9 +1062,6 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_trtri_template(rocblas_handle   h
     if(!n || !sub_batch_count)
         return rocblas_status_success;
 
-    // Temporarily change the thread's default device ID to the handle's device ID
-    auto saved_device_id = handle->push_device_id();
-
     if(n <= NB)
     {
         return rocblas_trtri_small<NB, T>(handle,

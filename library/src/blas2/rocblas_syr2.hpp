@@ -100,9 +100,6 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_syr2_template(rocblas_handle hand
     dim3 syr2_grid(blocksX, blocksY, batch_count);
     dim3 syr2_threads(SYR2_DIM_X, SYR2_DIM_Y);
 
-    // Temporarily change the thread's default device ID to the handle's device ID
-    auto saved_device_id = handle->push_device_id();
-
     if(rocblas_pointer_mode_device == handle->pointer_mode)
         hipLaunchKernelGGL((rocblas_syr2_kernel<SYR2_DIM_X, SYR2_DIM_Y>),
                            syr2_grid,

@@ -108,9 +108,6 @@ rocblas_status rocblas_trtri_trsm_template(rocblas_handle   handle,
     if(!n)
         return rocblas_status_success;
 
-    // Temporarily change the thread's default device ID to the handle's device ID
-    auto saved_device_id = handle->push_device_id();
-
     rocblas_status status;
 
     /* sub_blocks is number of divisible NB*NB sub_blocks, but 2 * sub_blocks of IB*IB sub_blocks.

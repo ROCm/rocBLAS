@@ -315,9 +315,6 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_syr2k_template(rocblas_handle    
     dim3                 syr2k_grid(bx, by, batch_count);
     dim3                 syr2k_threads(syr2k_DIM_XY, syr2k_DIM_XY);
 
-    // Temporarily change the thread's default device ID to the handle's device ID
-    auto saved_device_id = handle->push_device_id();
-
     // Launch a herk kernel for syr2k.
     if(handle->pointer_mode == rocblas_pointer_mode_device)
     {
