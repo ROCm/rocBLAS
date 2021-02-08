@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -160,6 +160,16 @@ public:
         return _rocblas_saved_device_id(device);
     }
 
+    int getDevice()
+    {
+        return device;
+    }
+
+    rocblas_int getArch()
+    {
+        return arch;
+    }
+
     // hipEvent_t pointers (for internal use only)
     hipEvent_t startEvent = nullptr;
     hipEvent_t stopEvent  = nullptr;
@@ -276,6 +286,9 @@ private:
 
     // Device ID is created at handle creation time and remains in effect for the life of the handle.
     const int device;
+
+    // Arch ID is created at handle creation time and remains in effect for the life of the handle.
+    const int arch;
 
     // Opaque smart allocator class to perform device memory allocations
     // clang-format off

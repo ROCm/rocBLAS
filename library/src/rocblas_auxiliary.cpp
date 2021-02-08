@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
 #include "handle.hpp"
@@ -1092,20 +1092,10 @@ std::string rocblas_get_arch_name()
 }
 
 // Whether Tensile supports ldc != ldd
-// We parse the GPU architecture name, skipping any initial letters (e.g., "gfx")
-// If there are not three or more characters after the initial letters, we assume false
-// If there are more than 3 characters or any non-digits after the initial letters, we assume true
-// Otherwise we assume true iff the value is greater than or equal to 906
-
-bool rocblas_tensile_supports_ldc_ne_ldd()
+// We assume true if the value is greater than or equal to 906
+bool rocblas_tensile_supports_ldc_ne_ldd(rocblas_handle handle)
 {
-    std::string arch_name = rocblas_get_arch_name();
-    const char* name      = arch_name.c_str();
-    while(isalpha(*name))
-        ++name;
-    return name[0] && name[1] && name[2]
-           && (name[3] || !isdigit(name[0]) || !isdigit(name[1]) || !isdigit(name[2])
-               || atoi(name) >= 906);
+    return handle->getArch() >= 906;
 }
 
 /*******************************************************************************

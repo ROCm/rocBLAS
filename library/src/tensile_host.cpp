@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2019-2020 Advanced Micro Devices, Inc.
+ * Copyright 2019-2021 Advanced Micro Devices, Inc.
  * ************************************************************************/
 
 // The implementation of the rocBLAS<->Tensile interface layer.
@@ -339,6 +339,7 @@ namespace
     {
         // The library object
         std::shared_ptr<Tensile::MasterSolutionLibrary<Tensile::ContractionProblem>> m_library;
+        std::shared_ptr<hipDeviceProp_t>                                             m_deviceProp;
 
         // The adapter object. mutable is used to allow adapters to be modified
         // even when they are stored in a const vector which is immutable in size
@@ -389,6 +390,11 @@ namespace
             return m_library;
         }
 
+        auto& get_device_property() const
+        {
+            return m_deviceProp;
+        }
+
         auto& get_adapters() const
         {
             return m_adapters;
@@ -406,7 +412,7 @@ namespace
          * Initialize adapter and library according to environment variables *
          * and default paths based on librocblas.so location and GPU         *
          *********************************************************************/
-        void initialize(Tensile::hip::SolutionAdapter& adapter)
+        void initialize(Tensile::hip::SolutionAdapter& adapter, rocblas_int deviceId)
         {
             std::string path;
             path.reserve(PATH_MAX);
@@ -512,20 +518,27 @@ namespace
                              << std::endl;
                 rocblas_abort();
             }
+
+            hipDeviceProp_t prop;
+            HIP_CHECK_EXC(hipGetDeviceProperties(&prop, deviceId));
+
+            m_deviceProp = std::make_shared<hipDeviceProp_t>(prop);
         }
     };
 
     // Return the library and adapter for the current HIP device
     auto& get_library_and_adapter(
         std::shared_ptr<Tensile::MasterSolutionLibrary<Tensile::ContractionProblem>>* library
-        = nullptr)
+        = nullptr,
+        std::shared_ptr<hipDeviceProp_t>* deviceProp = nullptr,
+        int                               device     = -1)
     try
     {
         // TensileHost is initialized on the first call
         static TensileHost host;
 
-        int device;
-        hipGetDevice(&device);
+        if(device == -1)
+            hipGetDevice(&device);
 
         // Adapter entry for the current HIP device ID
         auto& a       = host.get_adapters().at(device);
@@ -544,7 +557,7 @@ namespace
                 adapter = new Tensile::hip::SolutionAdapter;
 
                 // Initialize the adapter and possibly the library
-                host.initialize(*adapter);
+                host.initialize(*adapter, device);
 
                 // Atomically change the adapter stored for this device ID
                 a.adapter.store(adapter, std::memory_order_release);
@@ -554,6 +567,8 @@ namespace
         // If an adapter is found, it is assumed that the library is initialized
         if(library)
             *library = host.get_library();
+        if(deviceProp)
+            *deviceProp = host.get_device_property();
 
         return *adapter;
     }
@@ -606,8 +621,12 @@ rocblas_status runContractionProblem(const RocblasContractionProblem<Ti, To, Tc>
     try
     {
         std::shared_ptr<Tensile::MasterSolutionLibrary<Tensile::ContractionProblem>> library;
-        auto& adapter       = get_library_and_adapter(&library);
-        auto  hardware      = Tensile::hip::GetCurrentDevice();
+        std::shared_ptr<hipDeviceProp_t>                                             deviceProp;
+        std::shared_ptr<Tensile::Hardware>                                           hardware;
+
+        auto& adapter = get_library_and_adapter(&library, &deviceProp, prob.handle->getDevice());
+
+        hardware            = Tensile::hip::GetDevice(*deviceProp);
         auto  tensile_prob  = ConstructTensileProblem(prob);
         auto  handle        = prob.handle;
         auto* fitness_query = handle->get_solution_fitness_query();
