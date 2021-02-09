@@ -92,9 +92,6 @@ rocblas_status rocblas_swap_template(rocblas_handle handle,
         dim3 blocks((n - 1) / NB + 1, batch_count);
         dim3 threads(NB);
 
-        // Temporarily change the thread's default device ID to the handle's device ID
-        auto saved_device_id = handle->push_device_id();
-
         hipLaunchKernelGGL(rocblas_swap_kernel,
                            blocks,
                            threads,
@@ -119,9 +116,6 @@ rocblas_status rocblas_swap_template(rocblas_handle handle,
         int  blocks = 1 + ((n - 1) / (NB * 2));
         dim3 grid(blocks, batch_count);
         dim3 threads(NB);
-
-        // Temporarily change the thread's default device ID to the handle's device ID
-        auto saved_device_id = handle->push_device_id();
 
         hipLaunchKernelGGL(sswap_2_kernel<NB>,
                            grid,
