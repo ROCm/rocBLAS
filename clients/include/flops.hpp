@@ -58,13 +58,6 @@ constexpr double axpy_gflop_count<rocblas_double_complex>(rocblas_int n)
     return (8.0 * n) / 1e9;
 }
 
-// copy
-template <typename T>
-constexpr double copy_gflop_count(rocblas_int n)
-{
-    return (n) / 1e9; // no actual operations but reporting to be consistent
-}
-
 // dot
 template <bool CONJ, typename T>
 constexpr double dot_gflop_count(rocblas_int n)
@@ -138,12 +131,6 @@ constexpr double scal_gflop_count<rocblas_double_complex, double>(rocblas_int n)
     return (2.0 * n) / 1e9;
 }
 
-// swap
-template <typename T>
-constexpr double swap_gflop_count(rocblas_int n)
-{
-    return (n) / 1e9; // no actual operations but reporting to be consistent
-}
 /*
  * ===========================================================================
  *    level 2 BLAS

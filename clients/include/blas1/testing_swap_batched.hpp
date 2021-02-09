@@ -169,7 +169,7 @@ void testing_swap_batched(const Arguments& arg)
         ArgumentModel<e_N, e_incx, e_incy, e_batch_count>{}.log_args<T>(rocblas_cout,
                                                                         arg,
                                                                         gpu_time_used,
-                                                                        swap_gflop_count<T>(N),
+                                                                        ArgumentLogging::NA_value,
                                                                         swap_gbyte_count<T>(N),
                                                                         cpu_time_used,
                                                                         rocblas_error);

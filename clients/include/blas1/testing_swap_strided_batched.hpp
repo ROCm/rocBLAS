@@ -183,7 +183,7 @@ void testing_swap_strided_batched(const Arguments& arg)
             rocblas_cout,
             arg,
             gpu_time_used,
-            swap_gflop_count<T>(N),
+            ArgumentLogging::NA_value,
             swap_gbyte_count<T>(N),
             cpu_time_used,
             rocblas_error);
