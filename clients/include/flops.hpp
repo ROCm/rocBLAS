@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  *
  * ************************************************************************/
 
@@ -56,13 +56,6 @@ template <>
 constexpr double axpy_gflop_count<rocblas_double_complex>(rocblas_int n)
 {
     return (8.0 * n) / 1e9;
-}
-
-// copy
-template <typename T>
-constexpr double copy_gflop_count(rocblas_int n)
-{
-    return (n) / 1e9; // no actual operations but reporting to be consistent
 }
 
 // dot
