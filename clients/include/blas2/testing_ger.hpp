@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -89,7 +89,7 @@ void testing_ger(const Arguments& arg)
 
     size_t abs_incx = incx >= 0 ? incx : -incx;
     size_t abs_incy = incy >= 0 ? incy : -incy;
-    size_t size_A   = lda * N;
+    size_t size_A   = size_t(lda) * N;
     size_t size_x   = M * abs_incx;
     size_t size_y   = N * abs_incy;
 

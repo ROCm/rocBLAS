@@ -45,8 +45,8 @@ __global__ __launch_bounds__(DIM_X* DIM_Y) void ger_kernel(rocblas_int    m,
 
     T* A = load_ptr_batch(Aa, hipBlockIdx_z, shifta, strideA);
 
-    ptrdiff_t tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
-    ptrdiff_t ty = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
+    int tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+    int ty = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
     ty *= WIN;
 
     // shared data base index
@@ -73,7 +73,8 @@ __global__ __launch_bounds__(DIM_X* DIM_Y) void ger_kernel(rocblas_int    m,
         {
             int yi = ty + i;
             if(yi < n)
-                A[tx + lda * yi] += x_value * (CONJ ? conj(ydata[tyi + i]) : ydata[tyi + i]);
+                A[tx + size_t(lda) * yi]
+                    += x_value * (CONJ ? conj(ydata[tyi + i]) : ydata[tyi + i]);
         }
     }
 }
