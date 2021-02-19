@@ -67,7 +67,7 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_scal_template(rocblas_handle hand
                                                              rocblas_int    n,
                                                              const Ta*      alpha,
                                                              rocblas_stride stride_alpha,
-                                                             Tx __restrict__ x,
+                                                             Tx             x,
                                                              rocblas_int    offsetx,
                                                              rocblas_int    incx,
                                                              rocblas_stride stridex,
@@ -180,15 +180,15 @@ __global__ __launch_bounds__(NB) void sscal_2_kernel(rocblas_int    n,
                                                      const Ta*      alphaa,
                                                      ptrdiff_t      offset_alpha,
                                                      rocblas_stride stride_alpha,
-                                                     Tx*            xa,
+                                                     Tx* __restrict__ xa,
                                                      ptrdiff_t      offsetx,
                                                      rocblas_stride stridex)
 {
     auto*       x     = load_ptr_batch(xa, hipBlockIdx_y, offsetx, stridex);
     const auto* alpha = load_ptr_batch(alphaa, hipBlockIdx_y, offset_alpha, stride_alpha);
-    ptrdiff_t   tid   = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+    ptrdiff_t   tid   = (hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x) * 2;
 
-    if(tid < n)
+    if(tid < n - 1)
     {
         // Each thread access contiguous elements for example Thread '0' access indices '0' and '1' of the vector `x`
         for(rocblas_int j = 0; j < 2; ++j)
