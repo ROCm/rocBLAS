@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -15,13 +15,13 @@ __device__ void her_kernel_calc(
     rocblas_int ty = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
 
     if(upper ? ty < n && tx < ty : tx < n && ty < tx)
-        A[tx + lda * ty] += alpha * x[tx * incx] * conj(x[ty * incx]);
+        A[tx + size_t(lda) * ty] += alpha * x[tx * incx] * conj(x[ty * incx]);
     else if(tx == ty && tx < n)
     {
-        U x_real = std::real(x[tx * incx]);
-        U x_imag = std::imag(x[tx * incx]);
-        A[tx + lda * ty]
-            = std::real(A[tx + lda * ty]) + alpha * ((x_real * x_real) + (x_imag * x_imag));
+        U      x_real = std::real(x[tx * incx]);
+        U      x_imag = std::imag(x[tx * incx]);
+        size_t offset = tx + size_t(lda) * ty;
+        A[offset]     = std::real(A[offset]) + alpha * ((x_real * x_real) + (x_imag * x_imag));
     }
 }
 
