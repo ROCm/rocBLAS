@@ -2423,26 +2423,47 @@ Tests:
    a_type: f64_r, b_type: f64_r, c_type: f64_r, d_type: f64_r, compute_type: f64_r,
    transA: T, transB: T, M: 256, N: 128, K:  64, alpha: [ .NaN, 2 ], beta: [ .NaN, 2 ] }
 
+# Split *real_precisions into *int8 and *nonint8_real_precisions. Since int8 has flags 0,1
+
 - name: gemm_fortran
   category: quick
   function:
     - gemm: *half_single_double_precisions
     - gemm: *single_double_precisions_complex
-    - gemm_ex: *real_precisions
+    - gemm_ex: *nonint8_real_precisions
     - gemm_ex: *single_double_precisions_complex
   matrix_size: *fortran_matrix_size_range
   transA_transB: *transA_transB_range
   alpha_beta: *alpha_beta_range_small
   fortran: true
 
+- name: gemm_int8_fortran
+  category: quick
+  function:
+    - gemm_ex: *int8_precision
+  matrix_size: *fortran_matrix_size_range
+  transA_transB: *transA_transB_range
+  alpha_beta: *alpha_beta_range_small
+  fortran: true
+  flags: [0,1]
+
 - name: gemm_small
   category: quick
   function:
     gemm: *half_single_double_precisions
-    gemm_ex: *real_precisions
+    gemm_ex: *nonint8_real_precisions
   matrix_size: *small_matrix_size_range
   transA_transB: *transA_transB_range
   alpha_beta: *alpha_beta_range
+
+- name: gemm_small_int8
+  category: quick
+  function:
+    gemm_ex: *int8_precision
+  matrix_size: *small_matrix_size_range
+  transA_transB: *transA_transB_range
+  alpha_beta: *alpha_beta_range
+  flags: [0,1]
 
 - name: gemm_small_complex
   category: quick
@@ -2457,7 +2478,7 @@ Tests:
   category: pre_checkin
   function:
     gemm: *half_single_double_precisions
-    gemm_ex: *real_precisions
+    gemm_ex: *nonint8_real_precisions
   matrix_size: *medium_matrix_size_range
   transA_transB: *transA_transB_range
   alpha_beta: *alpha_beta_range
@@ -2465,7 +2486,7 @@ Tests:
 - name: gemm_medium_HMM
   category: HMM
   function:
-    gemm: *real_precisions
+    gemm: *nonint8_real_precisions
   matrix_size: *medium_matrix_size_range
   transA: [ N ]
   transB: [ N ]
@@ -2476,7 +2497,7 @@ Tests:
 - name: gemm_multi_gpu
   category: multi_gpu
   function:
-    gemm_ex: *real_precisions
+    gemm_ex: *nonint8_real_precisions
   matrix_size: *medium_matrix_size_range
   transA: [ N, T ]
   transB: [ N, T ]
@@ -2488,13 +2509,60 @@ Tests:
 - name: gemm_multi_threads_streams
   category: nightly
   function:
-    gemm_ex: *real_precisions
+    gemm_ex: *nonint8_real_precisions
   matrix_size: *medium_matrix_size_range
   transA: [ N, T ]
   transB: [ N, T ]
   alpha: 1
   beta: 3
   threads_streams: *common_threads_streams
+
+# Int8 and Int8x4
+- name: gemm_medium_int8
+  category: pre_checkin
+  function:
+    gemm_ex: *int8_precision
+  matrix_size: *medium_matrix_size_range
+  transA_transB: *transA_transB_range
+  alpha_beta: *alpha_beta_range
+  flags: [0,1]
+
+- name: gemm_medium_HMM_int8
+  category: HMM
+  function:
+    gemm: *int8_precision
+  matrix_size: *medium_matrix_size_range
+  transA: [ N ]
+  transB: [ N ]
+  alpha: 1
+  beta: 1
+  HMM: true
+  flags: [0,1]
+
+- name: gemm_multi_gpu_int8
+  category: multi_gpu
+  function:
+    gemm_ex: *int8_precision
+  matrix_size: *medium_matrix_size_range
+  transA: [ N, T ]
+  transB: [ N, T ]
+  alpha: 1
+  beta: 3
+  threads_streams: *common_threads_streams
+  devices: [0, 2, 4]
+  flags: [0,1]
+
+- name: gemm_multi_threads_streams_int8
+  category: nightly
+  function:
+    gemm_ex: *int8_precision
+  matrix_size: *medium_matrix_size_range
+  transA: [ N, T ]
+  transB: [ N, T ]
+  alpha: 1
+  beta: 3
+  threads_streams: *common_threads_streams
+  flags: [0,1]
 
 - name: gemm_medium_complex
   category: pre_checkin
@@ -2509,10 +2577,19 @@ Tests:
   category: nightly
   function:
     gemm: *half_single_double_precisions
-    gemm_ex: *real_precisions
+    gemm_ex: *nonint8_real_precisions
   matrix_size: *large_matrix_size_range
   transA_transB: *transA_transB_range
   alpha_beta: *alpha_beta_range
+
+- name: gemm_large_int8
+  category: nightly
+  function:
+    gemm_ex: *int8_precision
+  matrix_size: *large_matrix_size_range
+  transA_transB: *transA_transB_range
+  alpha_beta: *alpha_beta_range
+  flags: [0,1]
 
 - name: gemm_large
   category: nightly
@@ -2533,16 +2610,27 @@ Tests:
   alpha: 2
   beta: 3
 
+# Split *int8_half_single_precisions into *int8 and *half_single_precisions. Since int8 has flags 0,1
+
 - name: gemm_deepbench
   category: nightly
   function:
     gemm: *half_single_precisions
-    gemm_ex: *int8_half_single_precisions
+    gemm_ex: *half_single_precisions
   matrix_size: *deepbench_sizes
   alpha_beta: *deepbench_alpha_beta_range
   transA_transB: *deepbench_transA_transB_range
 
-- name: gemm_deepbench_large
+- name: gemm_deepbench_int8
+  category: nightly
+  function:
+    gemm_ex: *int8_precision
+  matrix_size: *deepbench_sizes
+  alpha_beta: *deepbench_alpha_beta_range
+  transA_transB: *deepbench_transA_transB_range
+  flags: [0,1]
+
+- name: gemm_deepbench_large_int8
   category: nightly
   function:
     gemm_ex: *int8_precision
@@ -2550,39 +2638,73 @@ Tests:
   alpha_beta: *deepbench_alpha_beta_range
   transA: T
   transB: N
+  flags: [0,1]
 
 - name: resnet50_fwd
   category: nightly
   function:
     gemm: *half_single_double_precisions
-    gemm_ex: *int8_half_single_precisions
+    gemm_ex: *half_single_precisions
   transA: N
   transB: N
   matrix_size: *resnet50_fwd_sizes
   alpha: 1
   beta: 0
 
+- name: resnet50_fwd_int8
+  category: nightly
+  function:
+    gemm_ex: *int8_precision
+  transA: N
+  transB: N
+  matrix_size: *resnet50_fwd_sizes
+  alpha: 1
+  beta: 0
+  flags: [0,1]
+
 - name: resnet50_bwdwrw
   category: nightly
   function:
     gemm: *half_single_double_precisions
-    gemm_ex: *int8_half_single_precisions
+    gemm_ex: *half_single_precisions
   transA: T
   transB: N
   matrix_size: *resnet50_bwdwrw_sizes
   alpha: 1
   beta: 1
 
+- name: resnet50_bwdwrw_int8
+  category: nightly
+  function:
+    gemm_ex: *int8_precision
+  transA: T
+  transB: N
+  matrix_size: *resnet50_bwdwrw_sizes
+  alpha: 1
+  beta: 1
+  flags: [0,1]
+
 - name: resnet50_bwddata
   category: nightly
   function:
     gemm: *half_single_double_precisions
-    gemm_ex: *int8_half_single_precisions
+    gemm_ex: *half_single_precisions
   transA: N
   transB: T
   matrix_size: *resnet50_bwddata_sizes
   alpha: 1
   beta: 0
+
+- name: resnet50_bwddata_int8
+  category: nightly
+  function:
+    gemm_ex: *int8_precision
+  transA: N
+  transB: T
+  matrix_size: *resnet50_bwddata_sizes
+  alpha: 1
+  beta: 0
+  flags: [0,1]
 
 - name: inception4_fwd
   category: nightly
@@ -2648,7 +2770,7 @@ Tests:
   category: quick
   function:
     gemm: *half_single_double_precisions
-    gemm_ex: *real_precisions
+    gemm_ex: *nonint8_real_precisions
   M: 1..8
   N: 1..8
   K: 1..8
@@ -2659,7 +2781,7 @@ Tests:
   category: pre_checkin
   function:
     gemm: *half_single_double_precisions
-    gemm_ex: *real_precisions
+    gemm_ex: *nonint8_real_precisions
   M: 9..12
   N: 9..12
   K: 9..12
@@ -2670,7 +2792,7 @@ Tests:
   category: pre_checkin
   function:
     gemm: *half_single_double_precisions
-    gemm_ex: *real_precisions
+    gemm_ex: *nonint8_real_precisions
   M: 13..16
   N: 13..16
   K: 13..16
@@ -2681,7 +2803,7 @@ Tests:
   category: pre_checkin
   function:
     gemm: *half_single_double_precisions
-    gemm_ex: *real_precisions
+    gemm_ex: *nonint8_real_precisions
   M: 17..20
   N: 17..20
   K: 17..20
@@ -2692,7 +2814,7 @@ Tests:
   category: pre_checkin
   function:
     gemm: *half_single_double_precisions
-    gemm_ex: *real_precisions
+    gemm_ex: *nonint8_real_precisions
   M: 20..23
   N: 20..23
   K: 20..23
@@ -2703,7 +2825,7 @@ Tests:
   category: pre_checkin
   function:
     gemm: *half_single_double_precisions
-    gemm_ex: *real_precisions
+    gemm_ex: *nonint8_real_precisions
   M: 24..27
   N: 24..27
   K: 24..27
@@ -2714,7 +2836,7 @@ Tests:
   category: pre_checkin
   function:
     gemm: *half_single_double_precisions
-    gemm_ex: *real_precisions
+    gemm_ex: *nonint8_real_precisions
   M: 28..31
   N: 28..31
   K: 28..31
@@ -2725,7 +2847,7 @@ Tests:
   category: pre_checkin
   function:
     gemm: *half_single_double_precisions
-    gemm_ex: *real_precisions
+    gemm_ex: *nonint8_real_precisions
   M: 31..33
   N: 31..33
   K: 31..33
@@ -2736,7 +2858,7 @@ Tests:
   category: nightly
   function:
     gemm: *half_single_double_precisions
-    gemm_ex: *real_precisions
+    gemm_ex: *nonint8_real_precisions
   M: 9..129
   N: 31..33
   K: 31..33
@@ -2747,7 +2869,7 @@ Tests:
   category: pre_checkin
   function:
     gemm: *half_single_double_precisions
-    gemm_ex: *real_precisions
+    gemm_ex: *nonint8_real_precisions
   M: 47..49
   N: 47..49
   K: 47..49
@@ -2758,7 +2880,7 @@ Tests:
   category: nightly
   function:
     gemm: *half_single_double_precisions
-    gemm_ex: *real_precisions
+    gemm_ex: *nonint8_real_precisions
   M: 47..49
   N: 9..129
   K: 47..49
@@ -2769,7 +2891,7 @@ Tests:
   category: pre_checkin
   function:
     gemm: *half_single_double_precisions
-    gemm_ex: *real_precisions
+    gemm_ex: *nonint8_real_precisions
   M: 63..65
   N: 63..65
   K: 63..65
@@ -2780,7 +2902,7 @@ Tests:
   category: nightly
   function:
     gemm: *half_single_double_precisions
-    gemm_ex: *real_precisions
+    gemm_ex: *nonint8_real_precisions
   M: 63..65
   N: 63..65
   K: 9..129
@@ -2791,7 +2913,7 @@ Tests:
   category: quick
   function:
     gemm: *half_single_double_precisions
-    gemm_ex: *real_precisions
+    gemm_ex: *nonint8_real_precisions
   M: 63..65
   N: 1..4
   K: 5..8
@@ -2802,7 +2924,7 @@ Tests:
   category: quick
   function:
     gemm: *half_single_double_precisions
-    gemm_ex: *real_precisions
+    gemm_ex: *nonint8_real_precisions
   M: 5..8
   N: 63..65
   K: 1..4
@@ -2813,7 +2935,7 @@ Tests:
   category: quick
   function:
     gemm: *half_single_double_precisions
-    gemm_ex: *real_precisions
+    gemm_ex: *nonint8_real_precisions
   M: 1..4
   N: 5..8
   K: 63..65
@@ -2824,7 +2946,7 @@ Tests:
   category: pre_checkin
   function:
     gemm: *half_single_double_precisions
-    gemm_ex: *real_precisions
+    gemm_ex: *nonint8_real_precisions
   M: 95..97
   N: 95..97
   K: 95..97
@@ -2835,7 +2957,7 @@ Tests:
   category: pre_checkin
   function:
     gemm: *half_single_double_precisions
-    gemm_ex: *real_precisions
+    gemm_ex: *nonint8_real_precisions
   M: 127..129
   N: 127..129
   K: 127..129
@@ -2846,7 +2968,7 @@ Tests:
   category: pre_checkin
   function:
     gemm: *half_single_double_precisions
-    gemm_ex: *real_precisions
+    gemm_ex: *nonint8_real_precisions
   M: 255..257
   N: 255..257
   K: 255..257
@@ -2857,7 +2979,7 @@ Tests:
   category: pre_checkin
   function:
     gemm: *half_single_double_precisions
-    gemm_ex: *real_precisions
+    gemm_ex: *nonint8_real_precisions
   M: 255..257
   N: 9..12
   K: 13..16
@@ -2868,7 +2990,7 @@ Tests:
   category: pre_checkin
   function:
     gemm: *half_single_double_precisions
-    gemm_ex: *real_precisions
+    gemm_ex: *nonint8_real_precisions
   M: 13..16
   N: 255..257
   K: 9..12
@@ -2879,7 +3001,7 @@ Tests:
   category: pre_checkin
   function:
     gemm: *half_single_double_precisions
-    gemm_ex: *real_precisions
+    gemm_ex: *nonint8_real_precisions
   M: 9..12
   N: 13..16
   K: 255..257
@@ -2890,7 +3012,7 @@ Tests:
   category: pre_checkin
   function:
     gemm: *half_single_double_precisions
-    gemm_ex: *real_precisions
+    gemm_ex: *nonint8_real_precisions
   M: 511..513
   N: 511..513
   K: 511..513
@@ -2901,7 +3023,7 @@ Tests:
   category: nightly
   function:
     gemm: *half_single_double_precisions
-    gemm_ex: *real_precisions
+    gemm_ex: *nonint8_real_precisions
   M: 1023..1025
   N: 1023..1025
   K: 1023..1025
@@ -2911,10 +3033,284 @@ Tests:
 - name: gemm_ldd
   category: quick
   function:
-    gemm_ex: *real_precisions
+    gemm_ex: *nonint8_real_precisions
   matrix_size: *ldd_size_range
   transA_transB: *ldd_transA_transB_range
   alpha_beta: *alpha_beta_range
+
+# Int8 and Int8x4: int8_precision + flags = [0,1]
+- name: gemm_1_8_int8
+  category: quick
+  function:
+    gemm_ex: *int8_precision
+  M: 1..8
+  N: 1..8
+  K: 1..8
+  alpha_beta: *alpha_beta_range
+  transA_transB: *transA_transB_range
+  flags: [0,1]
+
+- name: gemm_9_12_int8
+  category: pre_checkin
+  function:
+    gemm_ex: *int8_precision
+  M: 9..12
+  N: 9..12
+  K: 9..12
+  alpha_beta: *alpha_beta_range
+  transA_transB: *transA_transB_range
+  flags: [0,1]
+
+- name: gemm_13_16_int8
+  category: pre_checkin
+  function:
+    gemm_ex: *int8_precision
+  M: 13..16
+  N: 13..16
+  K: 13..16
+  alpha_beta: *alpha_beta_range
+  transA_transB: *transA_transB_range
+  flags: [0,1]
+
+- name: gemm_17_20_int8
+  category: pre_checkin
+  function:
+    gemm_ex: *int8_precision
+  M: 17..20
+  N: 17..20
+  K: 17..20
+  alpha_beta: *alpha_beta_range
+  transA_transB: *transA_transB_range
+  flags: [0,1]
+
+- name: gemm_20_23_int8
+  category: pre_checkin
+  function:
+    gemm_ex: *int8_precision
+  M: 20..23
+  N: 20..23
+  K: 20..23
+  alpha_beta: *alpha_beta_range
+  transA_transB: *transA_transB_range
+  flags: [0,1]
+
+- name: gemm_24_27_int8
+  category: pre_checkin
+  function:
+    gemm_ex: *int8_precision
+  M: 24..27
+  N: 24..27
+  K: 24..27
+  alpha_beta: *alpha_beta_range
+  transA_transB: *transA_transB_range
+  flags: [0,1]
+
+- name: gemm_28_31_int8
+  category: pre_checkin
+  function:
+    gemm_ex: *int8_precision
+  M: 28..31
+  N: 28..31
+  K: 28..31
+  alpha_beta: *alpha_beta_range
+  transA_transB: *transA_transB_range
+  flags: [0,1]
+
+- name: gemm_32_int8
+  category: pre_checkin
+  function:
+    gemm_ex: *int8_precision
+  M: 31..33
+  N: 31..33
+  K: 31..33
+  alpha_beta: *alpha_beta_range
+  transA_transB: *transA_transB_range
+  flags: [0,1]
+
+- name: gemm_32_9_129_int8
+  category: nightly
+  function:
+    gemm_ex: *int8_precision
+  M: 9..129
+  N: 31..33
+  K: 31..33
+  alpha_beta: *alpha_beta_range
+  transA_transB: *transA_transB_range
+  flags: [0,1]
+
+- name: gemm_48_int8
+  category: pre_checkin
+  function:
+    gemm_ex: *int8_precision
+  M: 47..49
+  N: 47..49
+  K: 47..49
+  alpha_beta: *alpha_beta_range
+  transA_transB: *transA_transB_range
+  flags: [0,1]
+
+- name: gemm_48_9_129_int8
+  category: nightly
+  function:
+    gemm_ex: *int8_precision
+  M: 47..49
+  N: 9..129
+  K: 47..49
+  alpha_beta: *alpha_beta_range
+  transA_transB: *transA_transB_range
+  flags: [0,1]
+
+- name: gemm_64_int8
+  category: pre_checkin
+  function:
+    gemm_ex: *int8_precision
+  M: 63..65
+  N: 63..65
+  K: 63..65
+  alpha_beta: *alpha_beta_range
+  transA_transB: *transA_transB_range
+  flags: [0,1]
+
+- name: gemm_64_9_129_int8
+  category: nightly
+  function:
+    gemm_ex: *int8_precision
+  M: 63..65
+  N: 63..65
+  K: 9..129
+  alpha_beta: *alpha_beta_range
+  transA_transB: *transA_transB_range
+  flags: [0,1]
+
+- name: gemm_64_1_4_5_8_int8
+  category: quick
+  function:
+    gemm_ex: *int8_precision
+  M: 63..65
+  N: 1..4
+  K: 5..8
+  alpha_beta: *alpha_beta_range
+  transA_transB: *transA_transB_range
+  flags: [0,1]
+
+- name: gemm_5_8_64_1_4_int8
+  category: quick
+  function:
+    gemm_ex: *int8_precision
+  M: 5..8
+  N: 63..65
+  K: 1..4
+  alpha_beta: *alpha_beta_range
+  transA_transB: *transA_transB_range
+  flags: [0,1]
+
+- name: gemm_1_4_5_8_64_int8
+  category: quick
+  function:
+    gemm_ex: *int8_precision
+  M: 1..4
+  N: 5..8
+  K: 63..65
+  alpha_beta: *alpha_beta_range
+  transA_transB: *transA_transB_range
+  flags: [0,1]
+
+- name: gemm_96_int8
+  category: pre_checkin
+  function:
+    gemm_ex: *int8_precision
+  M: 95..97
+  N: 95..97
+  K: 95..97
+  alpha_beta: *alpha_beta_range
+  transA_transB: *transA_transB_range
+  flags: [0,1]
+
+- name: gemm_128_int8
+  category: pre_checkin
+  function:
+    gemm_ex: *int8_precision
+  M: 127..129
+  N: 127..129
+  K: 127..129
+  alpha_beta: *alpha_beta_range
+  transA_transB: *transA_transB_range
+  flags: [0,1]
+
+- name: gemm_256_int8
+  category: pre_checkin
+  function:
+    gemm_ex: *int8_precision
+  M: 255..257
+  N: 255..257
+  K: 255..257
+  alpha_beta: *alpha_beta_range
+  transA_transB: *transA_transB_range
+  flags: [0,1]
+
+- name: gemm_256_9_12_13_16_int8
+  category: pre_checkin
+  function:
+    gemm_ex: *int8_precision
+  M: 255..257
+  N: 9..12
+  K: 13..16
+  alpha_beta: *alpha_beta_range
+  transA_transB: *transA_transB_range
+  flags: [0,1]
+
+- name: gemm_13_16_256_9_12_int8
+  category: pre_checkin
+  function:
+    gemm_ex: *int8_precision
+  M: 13..16
+  N: 255..257
+  K: 9..12
+  alpha_beta: *alpha_beta_range
+  transA_transB: *transA_transB_range
+  flags: [0,1]
+
+- name: gemm_9_12_13_16_256_int8
+  category: pre_checkin
+  function:
+    gemm_ex: *int8_precision
+  M: 9..12
+  N: 13..16
+  K: 255..257
+  alpha_beta: *alpha_beta_range
+  transA_transB: *transA_transB_range
+  flags: [0,1]
+
+- name: gemm_512_int8
+  category: pre_checkin
+  function:
+    gemm_ex: *int8_precision
+  M: 511..513
+  N: 511..513
+  K: 511..513
+  alpha_beta: *alpha_beta_range
+  transA_transB: *transA_transB_range
+  flags: [0,1]
+
+- name: gemm_1024_int8
+  category: nightly
+  function:
+    gemm_ex: *int8_precision
+  M: 1023..1025
+  N: 1023..1025
+  K: 1023..1025
+  alpha_beta: *alpha_beta_range
+  transA_transB: *transA_transB_range
+  flags: [0,1]
+
+- name: gemm_ldd_int8
+  category: quick
+  function:
+    gemm_ex: *int8_precision
+  matrix_size: *ldd_size_range
+  transA_transB: *ldd_transA_transB_range
+  alpha_beta: *alpha_beta_range
+  flags: [0,1]
 
 - name: gemm_384
   category: nightly

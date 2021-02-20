@@ -1153,7 +1153,8 @@ rocblas_status special_trsm_template(rocblas_handle    handle,
                                                           BLOCK,
                                                           stride_X,
                                                           batch_count,
-                                                          compute_type);
+                                                          compute_type,
+                                                          0);
                     }
                 }
 
@@ -1273,7 +1274,8 @@ rocblas_status special_trsm_template(rocblas_handle    handle,
                                                           width,
                                                           stride_X,
                                                           batch_count,
-                                                          compute_type);
+                                                          compute_type,
+                                                          0);
                     }
                 }
 

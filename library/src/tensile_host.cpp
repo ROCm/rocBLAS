@@ -78,8 +78,15 @@ namespace
         using tensile_type = Tensile::BFloat16;
     };
 
+    // int8_t -> int8_t (supported for MI-kernel) / rocblas_int8x4 -> PackedInt8x4
     template <>
     struct rocblas_to_tensile_type<int8_t>
+    {
+        using tensile_type = int8_t;
+    };
+
+    template <>
+    struct rocblas_to_tensile_type<rocblas_int8x4>
     {
         using tensile_type = Tensile::Int8x4;
     };
@@ -90,8 +97,12 @@ namespace
     template <typename>
     constexpr auto tensile_datatype = nullptr;
 
+    // int8_t -> int8_t (supported for MI-kernel) / rocblas_int8x4 -> PackedInt8x4
     template <>
-    constexpr auto tensile_datatype<int8_t> = Tensile::DataType::Int8x4;
+    constexpr auto tensile_datatype<int8_t> = Tensile::DataType::Int8;
+
+    template <>
+    constexpr auto tensile_datatype<rocblas_int8x4> = Tensile::DataType::Int8x4;
 
     template <>
     constexpr auto tensile_datatype<int32_t> = Tensile::DataType::Int32;
@@ -127,6 +138,7 @@ namespace
         // Tensile DataTypes corresponding to rocBLAS data types
         static constexpr Tensile::DataType Tensile_Ti = tensile_datatype<Ti>;
         static constexpr Tensile::DataType Tensile_To = tensile_datatype<To>;
+        static constexpr Tensile::DataType Tensile_Tc = tensile_datatype<Tc>;
 
         // Tensor descriptors for a, b
         Tensile::TensorDescriptor a, b;
@@ -238,8 +250,14 @@ namespace
                                                    value_category(*prob.beta),
                                                    workspace_size};
 
+        // Open these two when we're ready to migrate from <HHH+HPA> to <HHS+HPA>
+        // tensileProblem.setAlphaType(Tensile_Tc);
+        // tensileProblem.setBetaType(Tensile_Tc);
+
         // HPA is active iff sizeof(compute type) > sizeof(input type)
-        tensileProblem.setHighPrecisionAccumulate(sizeof(Tc) > sizeof(Ti));
+        // but when Ti=int8x4 (32-byte),we still need to use HPA since the primitive data is int8
+        tensileProblem.setHighPrecisionAccumulate(sizeof(Tc) > sizeof(Ti)
+                                                  || std::is_same<Ti, rocblas_int8x4>{});
 
         // Pass atomics mode to Tensile interface
         tensileProblem.setDeterministicMode(prob.handle->atomics_mode
@@ -269,6 +287,8 @@ namespace
     /**************************************************************
      * Tensile does not support float alpha and beta for HPA half *
      * We must convert alpha and beta from float to half          *
+     * TODO- Tensile supports HHS HPA now                         *
+     * We could plan to use HHS+HPA instead of this workaround    *
      **************************************************************/
     template <>
     struct AlphaBeta<rocblas_half, rocblas_half, float>
@@ -293,9 +313,8 @@ namespace
         using Tensile_Talpha_beta = typename AlphaBeta<Ti, To, Tc>::tensile_type;
 
         // Make sure rocBLAS and Tensile types are compatible
-        // For int8_t we allow the sizes to differ, assuming alignment
-        static_assert((sizeof(Tensile_Ti) == sizeof(Ti) || std::is_same<Ti, int8_t>{})
-                          && sizeof(Tensile_To) == sizeof(To),
+        // (Even if Ti=rocblas_int8x4, Tensile_Ti=Int8x4, they are both 32-byte)
+        static_assert(sizeof(Tensile_Ti) == sizeof(Ti) && sizeof(Tensile_To) == sizeof(To),
                       "Tensile and rocBLAS types are not the same size");
 
         static_assert(std::is_standard_layout<Ti>{} && std::is_standard_layout<Tensile_Ti>{}
@@ -720,6 +739,9 @@ template rocblas_status
 
 template rocblas_status
     runContractionProblem(const RocblasContractionProblem<int8_t, int32_t, int32_t>&);
+
+template rocblas_status
+    runContractionProblem(const RocblasContractionProblem<rocblas_int8x4, int32_t, int32_t>&);
 
 /***********************************************************************************
  * Whether Tensile has been initialized for at least one device (used for testing) *

@@ -94,6 +94,17 @@ Non-int precisions: &hpa_half_single_double_precisions
   - *single_precision
   - *double_precision
 
+Non-int8 Real precisions: &nonint8_real_precisions
+  - *hpa_half_precision
+  - *hpa_half_in_single_out_precision
+  - *half_precision
+  - *single_precision
+  - *double_precision
+  - *bf16_precision
+  - *hpa_bf16_precision
+  - *hpa_bf16_in_single_out_precision
+  - *hpa_half_float_alpha
+
 Simple precisions: &half_single_double_precisions
   - *half_precision
   - *single_precision

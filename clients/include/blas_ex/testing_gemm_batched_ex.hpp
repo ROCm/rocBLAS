@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -450,8 +450,13 @@ void testing_gemm_batched_ex(const Arguments& arg)
     // Note: K==0 is not an early exit, since we still must multiply C by beta
     bool invalid_size = M < 0 || N < 0 || K < 0 || lda < A_row || ldb < B_row || ldc < M || ldd < M
                         || batch_count < 0;
-    bool int8_invalid = (std::is_same<Ti, int8_t>{}
+
+    // size checking is only needed for int8x4
+    bool pack_to_int8x4 = arg.flags & rocblas_gemm_flags_pack_int8x4;
+    bool int8_invalid   = (pack_to_int8x4 && std::is_same<Ti, int8_t>{}
                          && (K % 4 != 0 || (transA != rocblas_operation_none && lda % 4 != 0)));
+
+    int8_invalid |= (!pack_to_int8x4 && std::is_same<Ti, int8_t>{} && (M < 4 || N < 4));
 
     if(invalid_size || !M || !N || !batch_count)
     {
@@ -658,7 +663,7 @@ void testing_gemm_batched_ex(const Arguments& arg)
 #endif
 
     // copy data from CPU to device
-    if(std::is_same<Ti, int8_t>{} && transA == rocblas_operation_none)
+    if(std::is_same<Ti, int8_t>{} && transA == rocblas_operation_none && pack_to_int8x4)
     {
         host_batch_vector<Ti> hA_packed(size_a, 1, batch_count);
         hA_packed.copy_from(hA);
@@ -673,7 +678,7 @@ void testing_gemm_batched_ex(const Arguments& arg)
         CHECK_HIP_ERROR(dA.transfer_from(hA));
     }
 
-    if(std::is_same<Ti, int8_t>{} && transB != rocblas_operation_none)
+    if(std::is_same<Ti, int8_t>{} && transB != rocblas_operation_none && pack_to_int8x4)
     {
         host_batch_vector<Ti> hB_packed(size_b, 1, batch_count);
         hB_packed.copy_from(hB);
