@@ -1313,7 +1313,7 @@ try
 
         ("flags",
          value<uint32_t>(&arg.flags)->default_value(rocblas_gemm_flags_none),
-         "gemm_ex flags")
+         "gemm_ex flags, 1: Use packed-i8, 0: (default) uses unpacked-i8, available on matrix-inst-supported device")
 
         ("atomics_not_allowed",
          bool_switch(&atomics_not_allowed)->default_value(false),

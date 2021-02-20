@@ -6,6 +6,11 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 ## [rocBLAS 2.38.0 for ROCm 4.2.0]
 ### Added
 - Added option to install script to build only rocBLAS clients with a pre-built rocBLAS library
+- Supported gemm ext for unpacked int8 input layout on arcturus card
+  - Added new flags rocblas_gemm_flags::rocblas_gemm_flags_pack_int8x4 to specify if using the packed layout
+    - Set the rocblas_gemm_flags_pack_int8x4 when using packed int8x4, this should be always set on cards before arcturus.
+    - For arcturus card, unpacked int8 is supported so no need to set this flag.
+    - Notice the default flags 0 uses unpacked int8, this somehow changes the behaviour of int8 gemm from ROCm 4.1.0
 
 ## [rocBLAS 2.36.0 for ROCm 4.1.0]
 ### Added

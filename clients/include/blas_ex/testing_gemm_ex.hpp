@@ -411,9 +411,14 @@ void testing_gemm_ex(const Arguments& arg)
 
     // check for invalid sizes
     bool invalid_size = M < 0 || N < 0 || K < 0 || lda < A_row || ldb < B_row || ldc < M || ldd < M;
-    bool int8_invalid = (std::is_same<Ti, int8_t>{}
+
+    // size checking is only needed for int8x4
+    bool pack_to_int8x4 = arg.flags & rocblas_gemm_flags_pack_int8x4;
+    bool int8_invalid   = (pack_to_int8x4 && std::is_same<Ti, int8_t>{}
                          && (K % 4 != 0 || (transA != rocblas_operation_none && lda % 4 != 0)
                              || (transB == rocblas_operation_none && ldb % 4 != 0)));
+
+    int8_invalid |= (!pack_to_int8x4 && std::is_same<Ti, int8_t>{} && (M < 4 || N < 4));
 
     if(invalid_size)
     {
@@ -616,8 +621,9 @@ void testing_gemm_ex(const Arguments& arg)
     hD_2 = hD_1;
 
     // copy data from CPU to device
-    // if int8 and A not transposed and valid case, pack A
-    if(std::is_same<Ti, int8_t>{} && transA == rocblas_operation_none)
+    // do packing only when pack_to_int8x4=true (int8x4)
+    // if int8x4 and A not transposed and valid case, pack A
+    if(std::is_same<Ti, int8_t>{} && transA == rocblas_operation_none && pack_to_int8x4)
     {
         host_vector<Ti> hA_packed(hA);
 
@@ -629,8 +635,9 @@ void testing_gemm_ex(const Arguments& arg)
         CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(Ti) * size_A, hipMemcpyHostToDevice));
     }
 
-    // if int8 and B transposed and valid case, pack B
-    if(std::is_same<Ti, int8_t>{} && transB != rocblas_operation_none)
+    // do packing only when pack_to_int8x4=true (int8x4)
+    // if int8x4 and B transposed and valid case, pack B
+    if(std::is_same<Ti, int8_t>{} && transB != rocblas_operation_none && pack_to_int8x4)
     {
         host_vector<Ti> hB_packed(hB);
 
