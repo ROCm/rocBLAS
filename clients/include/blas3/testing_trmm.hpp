@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -64,8 +64,7 @@ void testing_trmm_bad_arg(const Arguments& arg)
     EXPECT_ROCBLAS_STATUS(
         rocblas_trmm_fn(nullptr, side, uplo, transA, diag, M, N, &alpha, dA, lda, dB, ldb),
         rocblas_status_invalid_handle);
-#if 0
-    // TODO: not passing right now
+
     // If M==0, then all pointers can be nullptr without error
     EXPECT_ROCBLAS_STATUS(
         rocblas_trmm_fn(
@@ -81,7 +80,6 @@ void testing_trmm_bad_arg(const Arguments& arg)
     EXPECT_ROCBLAS_STATUS(
         rocblas_trmm_fn(handle, side, uplo, transA, diag, M, N, &zero, nullptr, lda, dB, ldb),
         rocblas_status_success);
-#endif
 }
 
 template <typename T>

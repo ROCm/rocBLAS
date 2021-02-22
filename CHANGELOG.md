@@ -21,6 +21,7 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 - Make functions compliant with Legacy Blas for special values alpha == 0, k == 0, beta == 1, beta == 0.
 ### Optimizations
 - Improved performance of single precision axpy_batched and axpy_strided_batched: batch_count >= 8192.
+- Improved performance of trmm.
 
 ## [rocBLAS 2.34.0 for ROCm 4.0.0]
 ### Added
