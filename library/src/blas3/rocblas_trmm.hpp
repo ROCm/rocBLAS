@@ -657,7 +657,7 @@ rocblas_status rocblas_trmm_small(rocblas_handle    handle,
 }
 
 template <int STOPPING_NB, bool BATCHED, typename T, typename TScal, typename TConstPtr, typename TPtr, typename T_lda>
-rocblas_status rocblas_trmm_recursive_template(rocblas_handle    handle,
+ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_trmm_recursive_template(rocblas_handle    handle,
                                      rocblas_side      side,
                                      rocblas_fill      uplo,
                                      rocblas_operation trans_a,
