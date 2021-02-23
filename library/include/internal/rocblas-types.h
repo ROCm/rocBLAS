@@ -225,7 +225,7 @@ typedef enum rocblas_gemm_flags_
     /*! \brief Default empty flags */
     rocblas_gemm_flags_none = 0x0,
     /*! \brief Before ROCm 4.2, this flags is not implemeneted and rocblas uses packed-Int8x4 by default.
-    * After ROCm 4.2, set flag is neccesary if we want packed-Int8x4. Default false will be unpacked and is for arcturus or later card only */
+    * After ROCm 4.2, set flag is neccesary if we want packed-Int8x4. Default (0x0) uses unpacked and is for gfx908 GPUs only */
     rocblas_gemm_flags_pack_int8x4 = 0x1,
 
 } rocblas_gemm_flags;

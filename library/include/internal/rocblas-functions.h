@@ -14652,14 +14652,14 @@ ROCBLAS_EXPORT rocblas_status rocblas_zgeam_strided_batched(rocblas_handle      
         - Both versions are rocblas_datatype_i8_r = a_type = b_type; rocblas_datatype_i32_r =
    c_type = d_type = compute_type, in addition to a last flag param indicating packing input or not.
 
-        - Without setting the last param 'flags' (default=none), this is supported for arcturus or
-   later card only. Input a/b won't be packed into int8x4. So the following size restrictions and
+        - Without setting the last param 'flags' (default=none), this is supported for gfx908 or
+   later GPUs only. Input a/b won't be packed into int8x4. So the following size restrictions and
    packing pseudo-code is not neccessary.
 
         - Set the last param 'flags' |= rocblas_gemm_flags_pack_int8x4. Input a/b would be packed
-   into int8x4, and this will impose some size restrictions on A or B (See below.) For cards before
-   arcturus, only packed-int8 version is supported so this flag and packing is required, while
-   arcturus or later card support both versions.
+   into int8x4, and this will impose some size restrictions on A or B (See below.) For GPUs before
+   gfx908, only packed-int8 version is supported so this flag and packing is required, while
+   gfx908 GPUs support both versions.
 
     Below are restrictions for rocblas_datatype_i8_r = a_type = b_type; rocblas_datatype_i32_r =
    c_type = d_type = compute_type; flags |= rocblas_gemm_flags_pack_int8x4:
@@ -14895,14 +14895,14 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_ex(rocblas_handle    handle,
         - Both versions are rocblas_datatype_i8_r = a_type = b_type; rocblas_datatype_i32_r =
    c_type = d_type = compute_type, in addition to a last flag param indicating packing input or not.
 
-        - Without setting the last param 'flags' (default=none), this is supported for arcturus or
-   later card only. Input a/b won't be packed into int8x4. So the following size restrictions and
+        - Without setting the last param 'flags' (default=none), this is supported for gfx908 or
+   later GPUs only. Input a/b won't be packed into int8x4. So the following size restrictions and
    packing pseudo-code is not neccessary.
 
         - Set the last param 'flags' |= rocblas_gemm_flags_pack_int8x4. Input a/b would be packed
-   into int8x4, and this will impose some size restrictions on A or B (See below.) For cards before
-   arcturus, only packed-int8 version is supported so this flag and packing is required, while
-   arcturus or later card support both versions.
+   into int8x4, and this will impose some size restrictions on A or B (See below.) For GPUs before
+   gfx908, only packed-int8 version is supported so this flag and packing is required, while
+   gfx908 GPUs support both versions.
 
     Below are restrictions for rocblas_datatype_i8_r = a_type = b_type; rocblas_datatype_i32_r =
    c_type = d_type = compute_type; flags |= rocblas_gemm_flags_pack_int8x4:
@@ -15094,14 +15094,14 @@ ROCBLAS_EXPORT rocblas_status rocblas_gemm_batched_ex(rocblas_handle    handle,
         - Both versions are rocblas_datatype_i8_r = a_type = b_type; rocblas_datatype_i32_r =
    c_type = d_type = compute_type, in addition to a last flag param indicating packing input or not.
 
-        - Without setting the last param 'flags' (default=none), this is supported for arcturus or
-   later card only. Input a/b won't be packed into int8x4. So the following size restrictions and
+        - Without setting the last param 'flags' (default=none), this is supported for gfx908 or
+   later GPUs only. Input a/b won't be packed into int8x4. So the following size restrictions and
    packing pseudo-code is not neccessary.
 
         - Set the last param 'flags' |= rocblas_gemm_flags_pack_int8x4. Input a/b would be packed
-   into int8x4, and this will impose some size restrictions on A or B (See below.) For cards before
-   arcturus, only packed-int8 version is supported so this flag and packing is required, while
-   arcturus or later card support both versions.
+   into int8x4, and this will impose some size restrictions on A or B (See below.) For GPUs before
+   gfx908, only packed-int8 version is supported so this flag and packing is required, while
+   gfx908 GPUs support both versions.
 
     Below are restrictions for rocblas_datatype_i8_r = a_type = b_type; rocblas_datatype_i32_r =
    c_type = d_type = compute_type; flags |= rocblas_gemm_flags_pack_int8x4:
