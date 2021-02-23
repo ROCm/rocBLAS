@@ -103,6 +103,26 @@ catch(...)
 }
 
 /*******************************************************************************
+ * ! \brief query the preferable supported int8 input layout for gemm by device
+ ******************************************************************************/
+extern "C" rocblas_status rocblas_query_int8_layout_flag(rocblas_handle      handle,
+                                                         rocblas_gemm_flags* flag)
+try
+{
+    // if handle not valid
+    if(!handle)
+        return rocblas_status_invalid_handle;
+    *flag = handle->getArch() == 908 ? rocblas_gemm_flags_none : rocblas_gemm_flags_pack_int8x4;
+    if(handle->layer_mode & rocblas_layer_mode_log_trace)
+        log_trace(handle, "rocblas_query_int8_layout_flag", *flag);
+    return rocblas_status_success;
+}
+catch(...)
+{
+    return exception_to_rocblas_status();
+}
+
+/*******************************************************************************
  * ! \brief create rocblas handle called before any rocblas library routines
  ******************************************************************************/
 extern "C" rocblas_status rocblas_create_handle(rocblas_handle* handle)
