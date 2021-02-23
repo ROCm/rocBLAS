@@ -13,6 +13,11 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
     - Notice the default flags 0 uses unpacked int8, this somehow changes the behaviour of int8 gemm from ROCm 4.1.0
 - Added a query function rocblas_query_int8_layout_flag to get the preferable layout of int8 for gemm by device
 
+### Optimizations
+- Improved performance of single precision copy, swap, and scal when incx == 1 and incy == 1.
+- Improved performance of single precision axpy when incx == 1, incy == 1 and batch_count =< 8192.
+
+
 ## [rocBLAS 2.36.0 for ROCm 4.1.0]
 ### Added
 - Added Numerical checking helper function to detect zero/NaN/Inf in the input and the output vectors of rocBLAS level 1 and 2 functions.
