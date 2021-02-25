@@ -2,7 +2,7 @@
 # Copyright 2016-2021 Advanced Micro Devices, Inc.
 # ########################################################################
 
-cmake_minimum_required( VERSION 3.9 )
+cmake_minimum_required( VERSION 3.16.8 )
 
 # We use C++14 features, this will add compile option: -std=c++14
 set( CMAKE_CXX_STANDARD 14 )

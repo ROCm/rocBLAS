@@ -2,7 +2,7 @@
 # Copyright 2016-2021 Advanced Micro Devices, Inc.
 # ########################################################################
 
-cmake_minimum_required( VERSION 3.9 )
+cmake_minimum_required( VERSION 3.16.8 )
 
 add_definitions(-D_ROCBLAS_INTERNAL_BFLOAT16_)
 
