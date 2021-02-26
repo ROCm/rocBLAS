@@ -17,6 +17,8 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 - Improved performance of single precision copy, swap, and scal when incx == 1 and incy == 1.
 - Improved performance of single precision axpy when incx == 1, incy == 1 and batch_count =< 8192.
 
+### Changed
+- Change cmake_minimum_required to VERSION 3.16.8
 
 ## [rocBLAS 2.36.0 for ROCm 4.1.0]
 ### Added
