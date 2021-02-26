@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -645,7 +645,7 @@ rocblas_status special_trsv_template(rocblas_handle    handle,
                                  &one<T>,
                                  0,
                                  invA,
-                                 j * BLOCK * BLOCK,
+                                 offset_invAin + j * BLOCK * BLOCK,
                                  BLOCK,
                                  stride_invA,
                                  (U)x_temp,
@@ -655,7 +655,7 @@ rocblas_status special_trsv_template(rocblas_handle    handle,
                                  &zero<T>,
                                  0,
                                  B,
-                                 j * BLOCK * incx,
+                                 offset_Bin + j * BLOCK * incx,
                                  incx,
                                  stride_B,
                                  batch_count);
@@ -781,9 +781,6 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_trsv_template(rocblas_handle    h
 
     // Temporarily switch to host pointer mode, restoring on return
     auto saved_pointer_mode = handle->push_pointer_mode(rocblas_pointer_mode_host);
-
-    // Temporarily change the thread's default device ID to the handle's device ID
-    auto saved_device_id = handle->push_device_id();
 
     if(supplied_invA)
         invA = (U*)(supplied_invA);

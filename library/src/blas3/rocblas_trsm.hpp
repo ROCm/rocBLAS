@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -1053,6 +1053,7 @@ rocblas_status special_trsm_template(rocblas_handle    handle,
     size_t R      = k / BLOCK;
     size_t bsize  = side == rocblas_side_left ? n : m;
     size_t W      = 1 + (bsize - 1) / B_chunk_size;
+    bool   tensile_supports_ldc_ne_ldd = rocblas_tensile_supports_ldc_ne_ldd(handle);
 
     for(size_t w = 0; w < W; w++)
     {
@@ -1066,7 +1067,7 @@ rocblas_status special_trsm_template(rocblas_handle    handle,
                 size_t j = parity ? r : q;
 
                 // copy a BLOCK*n piece we are solving at a time
-                if(!r || !rocblas_tensile_supports_ldc_ne_ldd())
+                if(!r || !tensile_supports_ldc_ne_ldd)
                     copy_block_unit<T>(handle,
                                        BLOCK,
                                        width,
@@ -1091,7 +1092,7 @@ rocblas_status special_trsm_template(rocblas_handle    handle,
                     else
                         offsetA = parity ? r * BLOCK * lda : BLOCK * (q * lda + q + 1);
 
-                    if(!rocblas_tensile_supports_ldc_ne_ldd())
+                    if(!tensile_supports_ldc_ne_ldd)
                     {
                         rocblas_gemm_template<BATCHED>(handle,
                                                        transA,
@@ -1152,7 +1153,8 @@ rocblas_status special_trsm_template(rocblas_handle    handle,
                                                           BLOCK,
                                                           stride_X,
                                                           batch_count,
-                                                          compute_type);
+                                                          compute_type,
+                                                          0);
                     }
                 }
 
@@ -1187,7 +1189,7 @@ rocblas_status special_trsm_template(rocblas_handle    handle,
                 size_t j = parity ? q : r;
 
                 // copy a m*BLOCK piece we are solving at a time
-                if(!r || !rocblas_tensile_supports_ldc_ne_ldd())
+                if(!r || !tensile_supports_ldc_ne_ldd)
                     copy_block_unit<T>(handle,
                                        width,
                                        BLOCK,
@@ -1211,7 +1213,7 @@ rocblas_status special_trsm_template(rocblas_handle    handle,
                     else
                         offsetA = parity ? BLOCK * (q * lda + q + lda) : r * BLOCK;
 
-                    if(!rocblas_tensile_supports_ldc_ne_ldd())
+                    if(!tensile_supports_ldc_ne_ldd)
                     {
                         rocblas_gemm_template<BATCHED>(handle,
                                                        rocblas_operation_none,
@@ -1272,7 +1274,8 @@ rocblas_status special_trsm_template(rocblas_handle    handle,
                                                           width,
                                                           stride_X,
                                                           batch_count,
-                                                          compute_type);
+                                                          compute_type,
+                                                          0);
                     }
                 }
 
@@ -2156,9 +2159,6 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_trsm_template(rocblas_handle    h
 
     // Temporarily switch to host pointer mode, saving current pointer mode, restored on return
     auto saved_pointer_mode = handle->push_pointer_mode(rocblas_pointer_mode_host);
-
-    // Temporarily change the thread's default device ID to the handle's device ID
-    auto saved_device_id = handle->push_device_id();
 
     // Get alpha - Check if zero for quick return
     T alpha_h;

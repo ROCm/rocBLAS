@@ -34,9 +34,6 @@ namespace
         if(!handle)
             return rocblas_status_invalid_handle;
 
-        // Temporarily change the thread's default device ID to the handle's device ID
-        auto saved_device_id = handle->push_device_id();
-
         // Compute the optimal size for temporary device memory
         size_t els   = rocblas_trtri_temp_size<NB>(n, 1);
         size_t size  = els * batch_count * sizeof(T);

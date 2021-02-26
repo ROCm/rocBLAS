@@ -40,9 +40,6 @@ rocblas_status tpmv_template(rocblas_handle    handle,
     dim3 tpmv_grid((m - 1) / NB + 1, batch_count);
     dim3 tpmv_threads(NB);
 
-    // Temporarily change the thread's default device ID to the handle's device ID
-    auto saved_device_id = handle->push_device_id();
-
     switch(transa)
     {
     case rocblas_operation_none:

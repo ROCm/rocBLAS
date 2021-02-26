@@ -21,7 +21,7 @@ def runCompileCommand(platform, project, jobName)
         {
             if (it == "noTensile")
             {
-                project.paths.build_command = project.paths.build_command.replaceAll('-c', '-cn')
+                project.paths.build_command = project.paths.build_command.replaceAll(' -c', ' -cn')
             }
         }
     }
@@ -69,4 +69,3 @@ def runPackageCommand(platform, project)
 }
 
 return this
-

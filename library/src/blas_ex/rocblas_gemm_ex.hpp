@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -563,77 +563,30 @@ rocblas_status gemm_ex_batched_template(rocblas_handle    handle,
                                         rocblas_int       k,
                                         const Tc*         alpha,
                                         const Ti*         a[],
-                                        size_t            offset_a,
+                                        rocblas_int       offset_a,
                                         rocblas_int       lda,
                                         rocblas_stride    stride_a,
                                         const Ti*         b[],
-                                        size_t            offset_b,
+                                        rocblas_int       offset_b,
                                         rocblas_int       ldb,
                                         rocblas_stride    stride_b,
                                         const Tc*         beta,
                                         const To*         c[],
-                                        size_t            offset_c,
+                                        rocblas_int       offset_c,
                                         rocblas_int       ldc,
                                         rocblas_stride    stride_c,
                                         To*               d[],
-                                        size_t            offset_d,
+                                        rocblas_int       offset_d,
                                         rocblas_int       ldd,
                                         rocblas_stride    stride_d,
                                         rocblas_int       batch_count)
 {
-    // BATCHED VERSION
-    // Host arrays of device pointers.
-    auto hostA = std::make_unique<Ti*[]>(batch_count);
-    auto hostB = std::make_unique<Ti*[]>(batch_count);
-    auto hostC = std::make_unique<To*[]>(batch_count);
-    auto hostD = std::make_unique<To*[]>(batch_count);
+    RocblasContractionProblem<Ti, To, Tc> problem{
+        handle,   trans_a, trans_b, m,   n,        k,        alpha,       nullptr, a, lda, stride_a,
+        offset_a, nullptr, b,       ldb, stride_b, offset_b, beta,        nullptr, c, ldc, stride_c,
+        offset_c, nullptr, d,       ldd, stride_d, offset_d, batch_count, false};
 
-    RETURN_IF_HIP_ERROR(hipMemcpy(&hostA[0], a, sizeof(Ti*) * batch_count, hipMemcpyDeviceToHost));
-    RETURN_IF_HIP_ERROR(hipMemcpy(&hostB[0], b, sizeof(Ti*) * batch_count, hipMemcpyDeviceToHost));
-    RETURN_IF_HIP_ERROR(hipMemcpy(&hostC[0], c, sizeof(To*) * batch_count, hipMemcpyDeviceToHost));
-    RETURN_IF_HIP_ERROR(hipMemcpy(&hostD[0], d, sizeof(To*) * batch_count, hipMemcpyDeviceToHost));
-
-    stride_a = rocblas_stride(lda) * (trans_a == rocblas_operation_none ? k : m);
-    stride_b = rocblas_stride(ldb) * (trans_b == rocblas_operation_none ? n : k);
-    stride_c = rocblas_stride(ldc) * n;
-    stride_d = rocblas_stride(ldd) * n;
-
-    rocblas_status status = rocblas_status_success;
-    for(rocblas_int bi = 0; bi < batch_count; bi++)
-    {
-        // Tensile does not support batched gemm_ex yet, must do naive version
-        status = gemm_ex_batched_template(handle,
-                                          trans_a,
-                                          trans_b,
-                                          m,
-                                          n,
-                                          k,
-                                          alpha,
-                                          hostA[bi],
-                                          offset_a,
-                                          lda,
-                                          stride_a,
-                                          hostB[bi],
-                                          offset_b,
-                                          ldb,
-                                          stride_b,
-                                          beta,
-                                          hostC[bi],
-                                          offset_c,
-                                          ldc,
-                                          stride_c,
-                                          hostD[bi],
-                                          offset_d,
-                                          ldd,
-                                          stride_d,
-                                          1);
-
-        if(handle->is_device_memory_size_query()
-               ? status != rocblas_status_size_increased && status != rocblas_status_size_unchanged
-               : status != rocblas_status_success)
-            break;
-    }
-    return status;
+    return runContractionProblem(problem);
 }
 
 template <typename Ti, typename To, typename Tc>
@@ -645,63 +598,32 @@ rocblas_status gemm_ex_batched_template(rocblas_handle    handle,
                                         rocblas_int       k,
                                         const Tc*         alpha,
                                         const Ti*         a,
-                                        size_t            offset_a,
+                                        rocblas_int       offset_a,
                                         rocblas_int       lda,
                                         rocblas_stride    stride_a,
                                         const Ti*         b,
-                                        size_t            offset_b,
+                                        rocblas_int       offset_b,
                                         rocblas_int       ldb,
                                         rocblas_stride    stride_b,
                                         const Tc*         beta,
                                         const To*         c,
-                                        size_t            offset_c,
+                                        rocblas_int       offset_c,
                                         rocblas_int       ldc,
                                         rocblas_stride    stride_c,
                                         To*               d,
-                                        size_t            offset_d,
+                                        rocblas_int       offset_d,
                                         rocblas_int       ldd,
                                         rocblas_stride    stride_d,
                                         rocblas_int       batch_count)
 {
-    // Temporarily change the thread's default device ID to the handle's device ID
-    auto saved_device_id = handle->push_device_id();
-
-    if(a)
-        a += offset_a;
-    if(b)
-        b += offset_b;
-    if(c)
-        c += offset_c;
-    if(d)
-        d += offset_d;
-
-    const To*      c_in;
-    rocblas_int    ldi;
-    rocblas_stride stride_i;
-
-    if(rocblas_tensile_supports_ldc_ne_ldd()
-       && (std::is_same<Ti, float>{} || std::is_same<Ti, double>{})
-       && ((ldc >= ldd && (stride_c >= stride_d || batch_count == 1) && m == ldd)
-           || (ldc == ldd && (stride_c == stride_d || batch_count == 1))))
-    {
-        c_in     = c;
-        ldi      = ldc;
-        stride_i = stride_c;
-    }
-    else
-    {
-        device_strided_batched_matrix_copy(
-            handle, c, ldc, stride_c, d, ldd, stride_d, m, n, batch_count);
-        c_in     = d;
-        ldi      = ldd;
-        stride_i = stride_d;
-    }
 
 #ifdef USE_TENSILE_HOST
 
     RocblasContractionProblem<Ti, To, Tc> problem{
-        handle, trans_a,  trans_b, m,    n,   k,        alpha, a,   lda,      stride_a,   b,
-        ldb,    stride_b, beta,    c_in, ldi, stride_i, d,     ldd, stride_d, batch_count};
+        handle,   trans_a, trans_b,  m,        n,           k,        alpha,    a,
+        nullptr,  lda,     stride_a, offset_a, b,           nullptr,  ldb,      stride_b,
+        offset_b, beta,    c,        nullptr,  ldc,         stride_c, offset_c, d,
+        nullptr,  ldd,     stride_d, offset_d, batch_count, true};
 
     return runContractionProblem(problem);
 
@@ -711,15 +633,15 @@ rocblas_status gemm_ex_batched_template(rocblas_handle    handle,
     rocblas_status rb_status;
 
     t_status = call_tensile_ex<Ti, To, Tc>(d,
-                                           c_in,
+                                           c,
                                            a,
                                            b,
                                            *alpha,
                                            *beta,
                                            ldd,
                                            stride_d,
-                                           ldi,
-                                           stride_i,
+                                           ldc,
+                                           stride_c,
                                            lda,
                                            stride_a,
                                            ldb,
@@ -984,14 +906,12 @@ rocblas_status rocblas_gemm_ex_template(rocblas_handle    handle,
                                         rocblas_int       ldd,
                                         rocblas_stride    stride_d,
                                         rocblas_int       batch_count,
-                                        rocblas_datatype  compute_type)
+                                        rocblas_datatype  compute_type,
+                                        uint32_t          flags)
 {
     // Note: k==0 is not an early exit, since C still needs to be multiplied by beta
     if(!m || !n || !batch_count)
         return rocblas_status_success;
-
-    // Temporarily change the thread's default device ID to the handle's device ID
-    auto saved_device_id = handle->push_device_id();
 
     if(BATCHED)
     {
@@ -1068,31 +988,52 @@ rocblas_status rocblas_gemm_ex_template(rocblas_handle    handle,
             && c_type == rocblas_datatype_i32_r && d_type == rocblas_datatype_i32_r
             && compute_type == rocblas_datatype_i32_r)
     {
-        // For now, K must be a multiple of 4
-        if(k % 4 != 0 || ((trans_a == rocblas_operation_transpose) && (lda % 4 != 0))
-           || ((trans_b == rocblas_operation_none) && (ldb % 4 != 0))
-           || (batch_count > 1 && (stride_a % 4 != 0 || stride_b % 4 != 0)))
-        {
-            rb_status = rocblas_status_invalid_size;
-        }
-        else
-        {
-            // adjust by 4 for Tensile
-            lda = (trans_a == rocblas_operation_none) ? lda : lda / 4;
-            ldb = (trans_b == rocblas_operation_none) ? ldb / 4 : ldb;
-            k   = k / 4;
-            if(!BATCHED)
-            {
-                stride_a = stride_a / 4;
-                stride_b = stride_b / 4;
-            }
-
+        bool useInt8x4 = flags & rocblas_gemm_flags_pack_int8x4;
 #ifdef USE_TENSILE_HOST
-            rb_status = gemm_ex_typecasting<BATCHED, int8_t, int32_t>(EX_TYPECASTING_PARM);
-#else
-            rb_status
-                = gemm_ex_typecasting<BATCHED, TensileInt8x4, TensileInt32>(EX_TYPECASTING_PARM);
+        // Here is point where we decide to branch to real int8 or rocblas_int8x4
+        // MatrixInstruction kernel uses general int8 (unless rocblas_gemm_flags_pack_int8x4 is set)
+        if(!useInt8x4)
+        {
+            // M, N should be at least 4
+            if(m < 4 || n < 4)
+            {
+                rb_status = rocblas_status_invalid_size;
+            }
+            else
+            {
+                rb_status = gemm_ex_typecasting<BATCHED, int8_t, int32_t>(EX_TYPECASTING_PARM);
+            }
+        }
+        // Else, we check if we can pack 4 int8:
+        else
 #endif
+        {
+            // For now, K must be a multiple of 4
+            if(k % 4 != 0 || ((trans_a == rocblas_operation_transpose) && (lda % 4 != 0))
+               || ((trans_b == rocblas_operation_none) && (ldb % 4 != 0))
+               || (batch_count > 1 && (stride_a % 4 != 0 || stride_b % 4 != 0)))
+            {
+                rb_status = rocblas_status_invalid_size;
+            }
+            else
+            {
+                // adjust by 4 for Tensile
+                lda = (trans_a == rocblas_operation_none) ? lda : lda / 4;
+                ldb = (trans_b == rocblas_operation_none) ? ldb / 4 : ldb;
+                k   = k / 4;
+                if(!BATCHED)
+                {
+                    stride_a = stride_a / 4;
+                    stride_b = stride_b / 4;
+                }
+#ifdef USE_TENSILE_HOST
+                rb_status
+                    = gemm_ex_typecasting<BATCHED, rocblas_int8x4, int32_t>(EX_TYPECASTING_PARM);
+#else
+                rb_status = gemm_ex_typecasting<BATCHED, TensileInt8x4, TensileInt32>(
+                    EX_TYPECASTING_PARM);
+#endif
+            }
         }
     }
     else if(a_type == rocblas_datatype_f32_c && b_type == rocblas_datatype_f32_c

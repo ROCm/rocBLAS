@@ -137,7 +137,7 @@ class RocBlasArgumentSet(cr.ArgumentSetABC):
 
         return [exec_name] + self.get_args()
 
-    def collect_timing(self, run_configuration, data_type='gflops'):
+    def collect_timing(self, run_configuration):
         output_filename = self.get_output_file(run_configuration)
         rv = {}
         print('Processing {}'.format(output_filename))
@@ -394,40 +394,6 @@ class FlopsComparison(RocBlasYamlComparison):
     def __init__(self, **kwargs):
         RocBlasYamlComparison.__init__(self, data_type='gflops', **kwargs)
 
-    def my_collect_timing(self, run_configuration, output_filename, data_type='gflops'):
-        rv = {}
-        print('Processing {}'.format(output_filename))
-        if os.path.exists(output_filename):
-            lines = open(output_filename, 'r').readlines()
-            us_vals = []
-            gf_vals = []
-            bw_vals = []
-            gf_string = "rocblas-Gflops"
-            bw_string = "rocblas-GB/s"
-            us_string = "us"
-            for i in range(0, len(lines)):
-                if re.search(r"\b" + re.escape(us_string) + r"\b", lines[i]) is not None:
-                    us_line = lines[i].strip().split(",")
-                    index = [idx for idx, s in enumerate(us_line) if us_string in s][0] #us_line.index()
-                    us_vals.append(float(re.split(r',\s*(?![^()]*\))', lines[i+1])[index]))
-                if gf_string in lines[i]:
-                    gf_line = lines[i].split(",")
-                    index = gf_line.index(gf_string)
-                    gf_vals.append(float(re.split(r',\s*(?![^()]*\))', lines[i+1])[index]))
-                if bw_string in lines[i]:
-                    bw_line = lines[i].split(",")
-                    index = bw_line.index(bw_string)
-                    bw_vals.append(float(re.split(r',\s*(?![^()]*\))', lines[i+1])[index]))
-            if len(us_vals) > 0 and data_type == 'time':
-                rv['Time (microseconds)'] = us_vals
-            if len(bw_vals) > 0 and data_type == 'bandwidth':
-                rv['Bandwidth (GB/s)'] = bw_vals
-            if len(gf_vals) > 0 and data_type == 'gflops':
-                rv['GFLOP/s'] = gf_vals
-        else:
-            print('{} does not exist'.format(output_filename))
-        return rv
-
     def plot(self, run_configurations, axes):
         num_argument_sets = len(self.argument_sets)
         if num_argument_sets == 0:
@@ -527,11 +493,116 @@ class FlopsComparison(RocBlasYamlComparison):
         axes.set_xlabel('='.join(xLabel))
         return True
 
-data_type_classes['gflops'] = FlopsComparison
+
 class BandwidthComparison(RocBlasYamlComparison):
     def __init__(self, **kwargs):
         RocBlasYamlComparison.__init__(self, data_type='bandwidth', **kwargs)
-#data_type_classes['bandwidth'] = BandwidthComparison
+
+    def plot(self, run_configurations, axes):
+        num_argument_sets = len(self.argument_sets)
+        if num_argument_sets == 0:
+            return
+
+        sorted_argument_sets = self.sort_argument_sets(isolate_keys=[]) # No sort applied, but labels provided
+        argument_diff = cr.ArgumentSetDifference(self.argument_sets, ignore_keys=self._get_sweep_keys())
+        differences = argument_diff.get_differences()
+        test = []
+        xLabel = []
+        for key in differences:
+            xLabel.append(key)
+        for argument_set_hash, argument_sets in sorted_argument_sets.items():
+            argument_set = argument_sets[0]
+            precision = argument_set.get("compute_type").get_value()
+            function = argument_set.get("function").get_value()
+            for key in differences:
+                argument = argument_set.get(key)
+                test.append(argument.get_value() if argument.is_set() else 'DEFAULT')
+                break;
+
+        grouped_run_configurations = run_configurations.group_by_label()
+
+        num_groups = len(grouped_run_configurations)
+        metric_labels = [key for key in self.argument_sets[0].collect_timing(run_configurations[0])]
+        num_metrics = len(metric_labels)
+        if num_metrics == 0:
+            return
+
+        # loop over independent outputs
+        y_scatter_by_group = OrderedDict()
+        for group_label, run_configuration_group in grouped_run_configurations.items():
+            # x_scatter_by_group[group_label] = []
+            y_scatter_by_group[group_label] = []
+            # loop over argument sets that differ other than the swept variable(s)
+            for subset_label, partial_argument_sets in sorted_argument_sets.items():
+                if len(partial_argument_sets) != 1:
+                    raise ValueError('Assumed that sorting argument sets with no keys has a single element per sort.')
+                argument_set = partial_argument_sets[0]
+                y_list_by_metric = OrderedDict() # One array of y values for each metric
+                # loop over number of coarse grain runs and concatenate results
+                for run_configuration in run_configuration_group:
+                    results = argument_set.collect_timing(run_configuration)
+                    for metric_label in results:
+                        if not metric_label in y_list_by_metric:
+                            y_list_by_metric[metric_label] = []
+                        y_list_by_metric[metric_label].extend(results[metric_label])
+                # For each metric, add a set of bars in the bar chart.
+                for metric_label, y_list in y_list_by_metric.items():
+                    y_scatter_by_group[group_label].extend(sorted(y_list))
+
+        for group_label, run_configuration_group in grouped_run_configurations.items():
+            for run_configuration in run_configuration_group:
+                # Reference: MI-100 theoretical memory bandwidth by default
+                tmb_MI100 = 1200
+                # Reference: radeon 7 theoretical memory bandwidth by default
+                tmb_radeon7 = 1000
+                theoMax = 0
+                precisionBits = int(re.search(r'\d+', precision).group())
+                if(function == 'gemm' and precisionBits == 32): #xdlops
+                    theoMax = tmb_MI100 #scaling to appropriate precision
+                elif(function == 'trsm' or function == 'gemm'):  #TODO better logic to decide memory bound vs compute bound
+                    theoMax = tmb_MI100 #scaling to appropriate precision
+                elif(function == 'copy' and precisionBits == 32):
+                    theoMax = tmb_MI100
+                elif(function == 'swap' and precisionBits == 32):
+                    theoMax = tmb_MI100
+                elif self.flops and self.mem:
+                    try:
+                        theoMax = tmb_MI100
+                    except:
+                        print("flops and mem equations produce errors")
+                if theoMax:
+                    theoMax = round(theoMax)
+                    x_co = (test[0], test[len(test)-1])
+                    y_co = (theoMax, theoMax)
+                    axes.plot(x_co, y_co, label = "Theoretical Peak Performance: "+str(theoMax)+"GB/s")
+
+        for group_label in y_scatter_by_group:
+            axes.scatter(
+                    # x_bar_by_group[group_label],
+                    test,
+                    y_scatter_by_group[group_label],
+                    # gap_scalar * width,
+                    color='black',
+                    # label = group_label,
+                    )
+            axes.plot(
+                    # x_scatter_by_group[group_label],
+                    test,
+                    y_scatter_by_group[group_label],
+                    # 'k*',
+                    '-ok',
+                    )
+
+        axes.xaxis.set_minor_locator(AutoMinorLocator())
+        axes.yaxis.set_minor_locator(AutoMinorLocator())
+
+        axes.set_ylabel('Bandwidth (GB/s)')
+        axes.set_xlabel('='.join(xLabel))
+        return True
+
+
+data_type_classes['gflops'] = FlopsComparison
+data_type_classes['bandwidth'] = BandwidthComparison
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

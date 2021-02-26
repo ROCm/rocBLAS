@@ -1,11 +1,16 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "handle.hpp"
 #include "logging.hpp"
 #include "rocblas.h"
 #include "rocblas_trmm.hpp"
 #include "utility.hpp"
+
+#define STRMM_BATCHED_STOPPING_NB 32
+#define DTRMM_BATCHED_STOPPING_NB 32
+#define CTRMM_BATCHED_STOPPING_NB 16
+#define ZTRMM_BATCHED_STOPPING_NB 16
 
 namespace
 {
@@ -20,7 +25,7 @@ namespace
     template <>
     constexpr char rocblas_trmm_batched_name<rocblas_double_complex>[] = "rocblas_ztrmm_batched";
 
-    template <typename T>
+    template <int STOPPING_NB, typename T>
     rocblas_status rocblas_trmm_batched_impl(rocblas_handle    handle,
                                              rocblas_side      side,
                                              rocblas_fill      uplo,
@@ -38,28 +43,10 @@ namespace
         if(!handle)
             return rocblas_status_invalid_handle;
 
-        // gemm based trmm block sizes
-        constexpr rocblas_int RB = 128;
-        constexpr rocblas_int CB = 128;
+        RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
-        // work arrays dt1 and dt2 are used in trmm
-        rocblas_stride stride_a = 0;
-        rocblas_stride stride_b = 0;
-        rocblas_stride stride_w = 0;
-
-        rocblas_int size_dt1 = RB * CB;
-        rocblas_int size_dt2 = CB * CB;
-
-        size_t dev_bytes = ((size_dt1 + size_dt2) * sizeof(T) + sizeof(T*)) * batch_count;
-        if(handle->is_device_memory_size_query())
-        {
-            if(m == 0 || n == 0 || batch_count == 0)
-                return rocblas_status_size_unchanged;
-
-            return handle->set_optimal_device_memory_size(dev_bytes);
-        }
-
-        // Copy alpha and beta to host if on device
+        // Copy alpha and beta to host if on device. This is because gemm is called and it
+        // requires alpha and beta to be on host
         T        alpha_h, beta_h;
         const T* beta = nullptr;
         RETURN_IF_ROCBLAS_ERROR(
@@ -148,42 +135,81 @@ namespace
         if(m == 0 || n == 0 || batch_count == 0)
             return rocblas_status_success;
 
-        if(!a || !b || !alpha)
+        if(!b || !alpha)
             return rocblas_status_invalid_pointer;
 
-        auto mem = handle->device_malloc(dev_bytes);
-        if(!mem)
-            return rocblas_status_memory_error;
+        rocblas_int    offset_a     = 0;
+        rocblas_int    offset_b     = 0;
+        rocblas_stride stride_a     = 0;
+        rocblas_stride stride_b     = 0;
+        rocblas_stride stride_alpha = 0;
 
-        T** d_workspace_batch_vector = (T**)((T*)mem + (size_dt1 + size_dt2) * batch_count);
+        if(rocblas_pointer_mode_host == handle->pointer_mode && 0 == *alpha)
+        {
+            PRINT_AND_RETURN_IF_ROCBLAS_ERROR(set_matrix_zero_if_alpha_zero_template(
+                handle, m, n, alpha, 0, b, offset_b, ldb, stride_b, batch_count));
+            return rocblas_status_success;
+        }
+        else if(rocblas_pointer_mode_device == handle->pointer_mode)
+        {
+            // set matrix to zero and continue calculation. This will give
+            // the same functionality as Legacy BLAS. alpha is on device and
+            // it should not be copied from device to host because this is
+            // an asynchronous function and the copy would make it synchronous.
+            PRINT_AND_RETURN_IF_ROCBLAS_ERROR(set_matrix_zero_if_alpha_zero_template(
+                handle, m, n, alpha, 0, b, offset_b, ldb, stride_b, batch_count));
+        }
 
-        rocblas_int mem_stride = size_dt1 + size_dt2;
+        if(rocblas_pointer_mode_host == handle->pointer_mode && !a)
+            return rocblas_status_invalid_pointer;
 
-        setup_device_pointer_array(
-            handle->get_stream(), (T*)mem, mem_stride, d_workspace_batch_vector, batch_count);
+        rocblas_int a_row       = rocblas_side_left == side ? m : n;
+        bool        i64_indices = (a_row * size_t(lda) > std::numeric_limits<rocblas_int>::max())
+                           || (m * size_t(ldb) > std::numeric_limits<rocblas_int>::max());
 
-        rocblas_int offset_a = 0;
-        rocblas_int offset_b = 0;
-
-        return rocblas_trmm_template<true, RB, CB, T>(handle,
-                                                      side,
-                                                      uplo,
-                                                      transa,
-                                                      diag,
-                                                      m,
-                                                      n,
-                                                      alpha,
-                                                      a,
-                                                      offset_a,
-                                                      lda,
-                                                      stride_a,
-                                                      b,
-                                                      offset_b,
-                                                      ldb,
-                                                      stride_b,
-                                                      batch_count,
-                                                      (T* const*)d_workspace_batch_vector,
-                                                      stride_w);
+        if(i64_indices)
+        {
+            rocblas_trmm_recursive_template<STOPPING_NB, true, T>(handle,
+                                                                  side,
+                                                                  uplo,
+                                                                  transa,
+                                                                  diag,
+                                                                  m,
+                                                                  n,
+                                                                  alpha,
+                                                                  stride_alpha,
+                                                                  a,
+                                                                  size_t(offset_a),
+                                                                  size_t(lda),
+                                                                  stride_a,
+                                                                  b,
+                                                                  size_t(offset_b),
+                                                                  size_t(ldb),
+                                                                  stride_b,
+                                                                  batch_count);
+        }
+        else
+        {
+            rocblas_trmm_recursive_template<STOPPING_NB, true, T>(handle,
+                                                                  side,
+                                                                  uplo,
+                                                                  transa,
+                                                                  diag,
+                                                                  m,
+                                                                  n,
+                                                                  alpha,
+                                                                  stride_alpha,
+                                                                  a,
+                                                                  offset_a,
+                                                                  lda,
+                                                                  stride_a,
+                                                                  b,
+                                                                  offset_b,
+                                                                  ldb,
+                                                                  stride_b,
+                                                                  batch_count);
+        }
+        return rocblas_status_success;
     }
 
 } // namespace
@@ -211,7 +237,7 @@ rocblas_status rocblas_strmm_batched(rocblas_handle     handle,
                                      rocblas_int        batch_count)
 try
 {
-    return rocblas_trmm_batched_impl(
+    return rocblas_trmm_batched_impl<STRMM_BATCHED_STOPPING_NB>(
         handle, side, uplo, transa, diag, m, n, alpha, a, lda, b, ldb, batch_count);
 }
 catch(...)
@@ -234,7 +260,7 @@ rocblas_status rocblas_dtrmm_batched(rocblas_handle      handle,
                                      rocblas_int         batch_count)
 try
 {
-    return rocblas_trmm_batched_impl(
+    return rocblas_trmm_batched_impl<DTRMM_BATCHED_STOPPING_NB>(
         handle, side, uplo, transa, diag, m, n, alpha, a, lda, b, ldb, batch_count);
 }
 catch(...)
@@ -257,7 +283,7 @@ rocblas_status rocblas_ctrmm_batched(rocblas_handle                     handle,
                                      rocblas_int                        batch_count)
 try
 {
-    return rocblas_trmm_batched_impl(
+    return rocblas_trmm_batched_impl<CTRMM_BATCHED_STOPPING_NB>(
         handle, side, uplo, transa, diag, m, n, alpha, a, lda, b, ldb, batch_count);
 }
 catch(...)
@@ -280,7 +306,7 @@ rocblas_status rocblas_ztrmm_batched(rocblas_handle                      handle,
                                      rocblas_int                         batch_count)
 try
 {
-    return rocblas_trmm_batched_impl(
+    return rocblas_trmm_batched_impl<ZTRMM_BATCHED_STOPPING_NB>(
         handle, side, uplo, transa, diag, m, n, alpha, a, lda, b, ldb, batch_count);
 }
 catch(...)

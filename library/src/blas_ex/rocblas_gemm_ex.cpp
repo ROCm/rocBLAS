@@ -265,7 +265,8 @@ namespace
                                                    ldd,
                                                    stride_d,
                                                    batch_count,
-                                                   compute_type);
+                                                   compute_type,
+                                                   flags);
         };
 
         if(HPA && !handle->is_device_memory_size_query())

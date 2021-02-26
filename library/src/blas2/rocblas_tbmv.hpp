@@ -285,9 +285,6 @@ rocblas_status rocblas_tbmv_template(rocblas_handle    handle,
     if(!m || !batch_count)
         return rocblas_status_success;
 
-    // Temporarily change the thread's default device ID to the handle's device ID
-    auto saved_device_id = handle->push_device_id();
-
     // First we make a copy of x so we can avoid RAW race conditions in the kernel
     int  copy_blocks = (m - 1) / 256 + 1;
     dim3 copy_grid(copy_blocks, batch_count);

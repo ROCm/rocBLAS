@@ -1,23 +1,52 @@
 /* ************************************************************************
- * Copyright 2019-2020 Advanced Micro Devices, Inc.
+ * Copyright 2019-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
 
-#include "../blas1/rocblas_copy.hpp"
-#include "../blas1/rocblas_scal.hpp"
-#include "../blas2/rocblas_gemv.hpp"
 #include "../blas3/Tensile/gemm.hpp"
-#include "dcld.hpp"
+#include "definitions.hpp"
 
-template <typename TScal, typename TPtr>
+//-- Innovative Computing Laboratory
+//  -- Electrical Engineering and Computer Science Department
+//  -- University of Tennessee
+//  -- (C) Copyright 2009-2020
+//
+//  Redistribution and use in source and binary forms, with or without
+//  modification, are permitted provided that the following conditions
+//  are met:
+//
+//  * Redistributions of source code must retain the above copyright
+//    notice, this list of conditions and the following disclaimer.
+//  * Redistributions in binary form must reproduce the above copyright
+//    notice, this list of conditions and the following disclaimer in the
+//    documentation and/or other materials provided with the distribution.
+//  * Neither the name of the University of Tennessee, Knoxville nor the
+//    names of its contributors may be used to endorse or promote products
+//    derived from this software without specific prior written permission.
+//
+//  This software is provided by the copyright holders and contributors
+//  ``as is'' and any express or implied warranties, including, but not
+//  limited to, the implied warranties of merchantability and fitness for
+//  a particular purpose are disclaimed. In no event shall the copyright
+//  holders or contributors be liable for any direct, indirect, incidental,
+//  special, exemplary, or consequential damages (including, but not
+//  limited to, procurement of substitute goods or services; loss of use,
+//  data, or profits; or business interruption) however caused and on any
+//  theory of liability, whether in contract, strict liability, or tort
+//  (including negligence or otherwise) arising in any way out of the use
+//  of this software, even if advised of the possibility of such damage.
+
+rocblas_int rocblas_get_trmm_recursive_nb(rocblas_int n);
+
+template <typename TScal, typename TPtr, typename T_lda>
 __global__ void set_matrix_zero_if_alpha_zero_kernel(rocblas_int    m,
                                                      rocblas_int    n,
                                                      TScal          alpha_device_host,
                                                      rocblas_stride stride_alpha,
                                                      TPtr           Aa,
-                                                     ptrdiff_t      offsetA,
-                                                     rocblas_int    lda,
+                                                     T_lda          offsetA,
+                                                     T_lda          lda,
                                                      rocblas_stride strideA)
 {
     ptrdiff_t tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
@@ -33,15 +62,15 @@ __global__ void set_matrix_zero_if_alpha_zero_kernel(rocblas_int    m,
     }
 }
 
-template <typename TScal, typename TPtr>
+template <typename TScal, typename TPtr, typename T_lda>
 rocblas_status set_matrix_zero_if_alpha_zero_template(rocblas_handle handle,
                                                       rocblas_int    m,
                                                       rocblas_int    n,
                                                       TScal          alpha,
                                                       rocblas_stride stride_alpha,
                                                       TPtr           A,
-                                                      rocblas_int    offsetA,
-                                                      rocblas_int    lda,
+                                                      T_lda          offsetA,
+                                                      T_lda          lda,
                                                       rocblas_stride strideA,
                                                       rocblas_int    batch_count)
 {
@@ -90,1543 +119,778 @@ rocblas_status set_matrix_zero_if_alpha_zero_template(rocblas_handle handle,
     return rocblas_status_success;
 }
 
-/**
- * TScal     is always: const T* (either host or device)
- * TConstPtr is either: const T* OR const T* const*
- * TPtr      is either:       T* OR       T* const*
- * Where T is the base type (float, double, rocblas_complex, or rocblas_double_complex)
- */
-
-template <bool        BATCHED,
-          rocblas_int RB,
-          rocblas_int CB,
+// left, NoTrans
+template <const int NB,
           typename T,
           typename TScal,
           typename TConstPtr,
-          typename TPtr>
-ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_trmm_template(rocblas_handle    handle,
-                                                             rocblas_side      side,
-                                                             rocblas_fill      uplo,
-                                                             rocblas_operation transa,
-                                                             rocblas_diagonal  diag,
-                                                             rocblas_int       m,
-                                                             rocblas_int       n,
-                                                             TScal             alpha,
-                                                             TConstPtr         a,
-                                                             rocblas_int       offset_a,
-                                                             rocblas_int       lda,
-                                                             rocblas_stride    stride_a,
-                                                             TPtr              b,
-                                                             rocblas_int       offset_b,
-                                                             rocblas_int       ldb,
-                                                             rocblas_stride    stride_b,
-                                                             rocblas_int       batch_count,
-                                                             TPtr              workspace,
-                                                             rocblas_stride    stride_w)
+          typename TPtr,
+          typename T_lda>
+__global__ void rocblas_trmm_lNx_kernel(rocblas_fill     uplo,
+                                        rocblas_diagonal diag,
+                                        int              m,
+                                        int              n, // m must be <= NB
+                                        TScal            alpha_device_host,
+                                        rocblas_stride   stride_alpha,
+                                        TConstPtr*       A_arg,
+                                        T_lda            offset_a,
+                                        T_lda            ldda,
+                                        rocblas_stride   stride_a,
+                                        TPtr*            B_arg,
+                                        T_lda            offset_b,
+                                        T_lda            lddb,
+                                        rocblas_stride   stride_b)
 {
-    // Temporarily change the thread's default device ID to the handle's device ID
-    auto saved_device_id = handle->push_device_id();
+    const int tx = threadIdx.x;
+    const int ty = threadIdx.y;
+    const int bx = blockIdx.x;
 
-    //
-    // Level 3 Blas routine.
-    //
-    // -- Written on 8-February-1989.
-    //    Jack Dongarra, Argonne National Laboratory.
-    //    iain Duff, AERE Harwell.
-    //    Jeremy Du Croz, Numerical Algorithms Group Ltd.
-    //    Sven Hammarling, Numerical Algorithms Group Ltd.
-    //
-    // -- Rewritten in December-1993.
-    //    GEMM-Based Level 3 BLAS.
-    //    Per Ling, institute of information Processing,
-    //    University of Umea, Sweden.
-    //
-    // -- Rewritten for gemm based trmm for rocBLAS
-    //
-    T one = 1.0;
-    //
-    //    And when alpha.eq.zero.
-    //
-    if(rocblas_pointer_mode_host == handle->pointer_mode && 0 == *alpha)
+    T alpha = load_scalar(alpha_device_host, hipBlockIdx_z, stride_alpha);
+    if(alpha == 0)
+        return;
+    auto* A = load_ptr_batch(A_arg, hipBlockIdx_z, offset_a, stride_a);
+    auto* B = load_ptr_batch(B_arg, hipBlockIdx_z, offset_b, stride_b);
+
+    const int nblocks = (n + NB - 1) / NB;
+    const int nn      = (bx < nblocks - 1) ? NB : n - (nblocks - 1) * NB;
+    B += bx * NB * lddb;
+
+    __shared__ T sA[NB * NB];
+    __shared__ T sB[NB * NB];
+
+    // initialize sA and sB to zero
+    sA[ty * NB + tx] = 0;
+    sB[ty * NB + tx] = 0;
+
+    // load A and B
+    if(ty < m && tx < m)
+        sA[ty * NB + tx] = A[ty * ldda + tx];
+    if(ty < nn && tx < m)
+        sB[ty * NB + tx] = B[ty * lddb + tx];
+
+    // handle diag
+    if(diag == rocblas_diagonal_unit)
     {
-        PRINT_AND_RETURN_IF_ROCBLAS_ERROR(set_matrix_zero_if_alpha_zero_template(
-            handle, m, n, alpha, 0, b, offset_b, ldb, stride_b, batch_count));
-        return rocblas_status_success;
-    }
-    else if(rocblas_pointer_mode_device == handle->pointer_mode)
-    {
-        // set matrix to zero and continue calculation. This will give
-        // the same functionality as Legacy BLAS. alpha is on device and
-        // it should not be copied from device to host because this is
-        // an asynchronous function and the copy would make it synchronous.
-        PRINT_AND_RETURN_IF_ROCBLAS_ERROR(set_matrix_zero_if_alpha_zero_template(
-            handle, m, n, alpha, 0, b, offset_b, ldb, stride_b, batch_count));
+        if(ty == tx)
+            sA[ty * NB + tx] = 1.0;
     }
 
-    // grid size for rocblas_copy_template
-    constexpr rocblas_int NB = 256;
-
-    // assign space for dt1 and dt2
-    rocblas_int rb = RB, cb = CB;
-    rocblas_int ldt1 = rb, ldt2 = cb;
-    //  TPtr        dt1 = workspace;
-    //  TPtr        dt2 = workspace + rb * cb;
-    rocblas_int dt2_offset = rb * cb;
-
-    rocblas_int    offd = rocblas_diagonal_unit == diag ? 1 : 0;
-    rocblas_int    isec, jsec, tsec;
-    rocblas_status status = rocblas_status_success;
-
-    if(side == rocblas_side_left)
+    // handle uplo
+    if(uplo == rocblas_fill_upper)
     {
-        if(uplo == rocblas_fill_upper)
+        if(tx > ty)
+            sA[ty * NB + tx] = 0.0;
+    }
+    else
+    {
+        if(tx < ty)
+            sA[ty * NB + tx] = 0.0;
+    }
+    __syncthreads();
+
+    T accumulator = 0;
+#pragma unroll
+    for(int i = 0; i < NB; i++)
+        accumulator += sA[i * NB + tx] * sB[ty * NB + i];
+    accumulator *= alpha;
+    if(ty < nn && tx < m)
+        B[ty * lddb + tx] = accumulator;
+}
+
+// left, Trans|ConjTrans
+template <const int NB,
+          bool      CONJA,
+          typename T,
+          typename TScal,
+          typename TConstPtr,
+          typename TPtr,
+          typename T_lda>
+__global__ void rocblas_trmm_lTx_kernel(rocblas_fill     uplo,
+                                        rocblas_diagonal diag,
+                                        int              m,
+                                        int              n, // m must be <= NB
+                                        TScal            alpha_device_host,
+                                        rocblas_stride   stride_alpha,
+                                        TConstPtr*       A_arg,
+                                        T_lda            offset_a,
+                                        T_lda            ldda,
+                                        rocblas_stride   stride_a,
+                                        TPtr*            B_arg,
+                                        T_lda            offset_b,
+                                        T_lda            lddb,
+                                        rocblas_stride   stride_b)
+{
+    const int tx = threadIdx.x;
+    const int ty = threadIdx.y;
+    const int bx = blockIdx.x;
+
+    T alpha = load_scalar(alpha_device_host, hipBlockIdx_z, stride_alpha);
+    if(alpha == 0)
+        return;
+    auto* A = load_ptr_batch(A_arg, hipBlockIdx_z, offset_a, stride_a);
+    auto* B = load_ptr_batch(B_arg, hipBlockIdx_z, offset_b, stride_b);
+
+    const int nblocks = (n + NB - 1) / NB;
+    const int nn      = (bx < nblocks - 1) ? NB : n - (nblocks - 1) * NB;
+    B += bx * NB * lddb;
+
+    __shared__ T sA[NB * NB];
+    __shared__ T sB[NB * NB];
+
+    // init sA and sB to zero
+    sA[ty * NB + tx] = 0.0;
+    sB[ty * NB + tx] = 0.0;
+    __syncthreads(); // needed because sA will be stored as transposed
+
+    // load A and B
+    if(ty < m && tx < m)
+    {
+        if(CONJA)
         {
-            if(transa == rocblas_operation_none)
-            {
-                //
-                //              Form  C := alpha*A*C. Left, Upper, No transpose.
-                //
-                bool cldb = dcld(ldb);
-                for(int ii = 1; ii <= m; ii += cb)
-                {
-                    isec = cb < m - ii + 1 ? cb : m - ii + 1;
-                    //
-                    //                  T2 := A', the transpose of a upper unit or non-unit
-                    //                  triangular diagonal block of A is copied to the
-                    //                  lower triangular part of T2.
-                    //
-                    for(int i = ii + offd; i <= ii + isec - 1; i++)
-                    {
-                        PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                            (rocblas_copy_template<false, NB>)(handle,
-                                                               i - ii + 1 - offd,
-                                                               a,
-                                                               ii - 1 + (i - 1) * lda + offset_a,
-                                                               1,
-                                                               stride_a,
-                                                               workspace, // dt2
-                                                               i - ii + dt2_offset,
-                                                               cb,
-                                                               stride_w,
-                                                               batch_count));
-                    }
-                    for(int jj = 1; jj <= n; jj += rb)
-                    {
-                        jsec = rb < n - jj + 1 ? rb : n - jj + 1;
-                        //
-                        //                      T1 := C', the transpose of a rectangular block
-                        //                      of C is copied to T1.
-                        //
-                        if(cldb)
-                        {
-                            for(int j = jj; j <= jj + jsec - 1; j++)
-                            {
-                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                                    (rocblas_copy_template<false, NB>)(handle,
-                                                                       isec,
-                                                                       b,
-                                                                       ii - 1 + (j - 1) * ldb
-                                                                           + offset_b,
-                                                                       1,
-                                                                       stride_b,
-                                                                       workspace, // dt1
-                                                                       j - jj,
-                                                                       rb,
-                                                                       stride_w,
-                                                                       batch_count));
-                            }
-                        }
-                        else
-                        {
-                            for(int i = ii; i <= ii + isec - 1; i++)
-                            {
-                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                                    (rocblas_copy_template<false, NB>)(handle,
-                                                                       jsec,
-                                                                       b,
-                                                                       i - 1 + (jj - 1) * ldb
-                                                                           + offset_b,
-                                                                       ldb,
-                                                                       stride_b,
-                                                                       workspace, // dt1
-                                                                       (i - ii) * ldt1,
-                                                                       1,
-                                                                       stride_w,
-                                                                       batch_count));
-                            }
-                        }
-                        //
-                        //                      T1 := alpha*T1*T2 + delta*T1, triangular matrix
-                        //                      multiply where the value of delta depends on
-                        //                      whether T2 stores a unit or non-unit triangular
-                        //                      block. Gamma and tsec are used to compensate for
-                        //                      a deficiency in DGEMV that appears if the second
-                        //                      dimension (tsec) is zero.
-                        //
-                        for(int i = ii; i <= ii + isec - 1; i++)
-                        {
-                            if(diag == rocblas_diagonal_non_unit)
-                            {
-                                auto saved_pointer_mode
-                                    = handle->push_pointer_mode(rocblas_pointer_mode_device);
-                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                                    (rocblas_scal_template<NB, T>)(handle,
-                                                                   jsec,
-                                                                   workspace, // dt2
-                                                                   i - ii + (i - ii) * ldt2
-                                                                       + dt2_offset,
-                                                                   1,
-                                                                   stride_w,
-                                                                   workspace, // dt1
-                                                                   (i - ii) * ldt1,
-                                                                   1,
-                                                                   stride_w,
-                                                                   batch_count));
-                            }
-                            tsec = ii + isec - 1 - i;
-                            if(tsec == 0)
-                            {
-                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                                    (rocblas_scal_template<NB, T>)(handle,
-                                                                   jsec,
-                                                                   alpha,
-                                                                   0,
-                                                                   workspace, // dt1
-                                                                   (i - ii) * ldt1,
-                                                                   1,
-                                                                   stride_w,
-                                                                   batch_count));
-                            }
-                            else
-                            {
-                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                                    (rocblas_gemv_template<T>)(handle,
-                                                               rocblas_operation_none,
-                                                               jsec,
-                                                               tsec,
-                                                               alpha,
-                                                               0,
-                                                               workspace, // dt1
-                                                               (i - ii + 1) * ldt1,
-                                                               rb,
-                                                               stride_w,
-                                                               workspace, // dt2
-                                                               i - ii + 1 + (i - ii) * ldt2
-                                                                   + dt2_offset,
-                                                               1,
-                                                               stride_w,
-                                                               alpha,
-                                                               0,
-                                                               workspace, // dt1
-                                                               (i - ii) * ldt1,
-                                                               1,
-                                                               stride_w,
-                                                               batch_count));
-                            }
-                        }
-                        //
-                        //                      C := T1', the transpose of T1 is copied back
-                        //                      to C.
-                        //
-                        for(int j = jj; j <= jj + jsec - 1; j++)
-                        {
-                            PRINT_AND_RETURN_IF_ROCBLAS_ERROR((
-                                rocblas_copy_template<false, NB>)(handle,
-                                                                  isec,
-                                                                  workspace, // dt1
-                                                                  j - jj,
-                                                                  rb,
-                                                                  stride_w,
-                                                                  b,
-                                                                  ii - 1 + (j - 1) * ldb + offset_b,
-                                                                  1,
-                                                                  stride_b,
-                                                                  batch_count));
-                        }
-                    }
-                    //
-                    //                  C := alpha*A*C + C, general matrix multiply
-                    //                  involving a rectangular block of A.
-                    //
-
-                    if(ii + isec <= m)
-                    {
-
-                        PRINT_AND_RETURN_IF_ROCBLAS_ERROR(rocblas_gemm_template<BATCHED>(
-                            handle,
-                            rocblas_operation_none,
-                            rocblas_operation_none,
-                            isec,
-                            n,
-                            m - ii - isec + 1,
-                            alpha,
-                            a,
-                            ii - 1 + (ii + isec - 1) * lda + offset_a,
-                            lda,
-                            stride_a,
-                            (TConstPtr)b,
-                            ii + isec - 1 + offset_b,
-                            ldb,
-                            stride_b,
-                            &one,
-                            b,
-                            ii - 1 + offset_b,
-                            ldb,
-                            stride_b,
-                            batch_count));
-                    }
-                }
-            }
-
-            else
-            {
-                //
-                //             Form  C := alpha*A'*C. Left, Upper, Transpose.
-                //
-                bool cldb = dcld(ldb);
-                for(int ii = m - ((m - 1) % cb); ii >= 1; ii -= cb)
-                {
-                    isec = cb < m - ii + 1 ? cb : m - ii + 1;
-                    //
-                    //                   T2 := A or T2 := conjg( A ), a unit or non-unit
-                    //                   upper triangular diagonal block of A is copied to
-                    //                   the upper triangular part of T2.
-                    //
-                    for(int j = ii + offd; j <= ii + isec - 1; j++)
-                    {
-                        if(transa == rocblas_operation_conjugate_transpose)
-                        {
-                            PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                                (rocblas_copy_template<true, NB>)(handle,
-                                                                  j - ii + 1 - offd,
-                                                                  a,
-                                                                  ii - 1 + (j - 1) * lda + offset_a,
-                                                                  1,
-                                                                  stride_a,
-                                                                  workspace, // dt2
-                                                                  (j - ii) * ldt2 + dt2_offset,
-                                                                  1,
-                                                                  stride_w,
-                                                                  batch_count));
-                        }
-                        else
-                        {
-                            PRINT_AND_RETURN_IF_ROCBLAS_ERROR((
-                                rocblas_copy_template<false, NB>)(handle,
-                                                                  j - ii + 1 - offd,
-                                                                  a,
-                                                                  ii - 1 + (j - 1) * lda + offset_a,
-                                                                  1,
-                                                                  stride_a,
-                                                                  workspace, // dt2
-                                                                  (j - ii) * ldt2 + dt2_offset,
-                                                                  1,
-                                                                  stride_w,
-                                                                  batch_count));
-                        }
-                    }
-
-                    for(int jj = 1; jj <= n; jj += rb)
-                    {
-                        jsec = rb < n - jj + 1 ? rb : n - jj + 1;
-                        //
-                        //                      T1 := C', the transpose of a rectangular block
-                        //                      of C is copied to T1.
-                        //
-                        if(cldb)
-                        {
-                            for(int j = jj; j <= jj + jsec - 1; j++)
-                            {
-                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                                    (rocblas_copy_template<false, NB>)(handle,
-                                                                       isec,
-                                                                       b,
-                                                                       ii - 1 + (j - 1) * ldb
-                                                                           + offset_b,
-                                                                       1,
-                                                                       stride_b,
-                                                                       workspace, // dt1
-                                                                       j - jj,
-                                                                       rb,
-                                                                       stride_w,
-                                                                       batch_count));
-                            }
-                        }
-                        else
-                        {
-                            for(int i = ii; i <= ii + isec - 1; i++)
-                            {
-                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                                    (rocblas_copy_template<false, NB>)(handle,
-                                                                       jsec,
-                                                                       b,
-                                                                       i - 1 + (jj - 1) * ldb
-                                                                           + offset_b,
-                                                                       ldb,
-                                                                       stride_b,
-                                                                       workspace, // dt1
-                                                                       (i - ii) * ldt1,
-                                                                       1,
-                                                                       stride_w,
-                                                                       batch_count));
-                            }
-                        }
-                        //
-                        //                      T1 := alpha*T1*A + delta*T1, triangular matrix
-                        //                      multiply where the value of delta depends on
-                        //                      whether A is a unit or non-unit triangular
-                        //                      matrix. Gamma and tsec are used to compensate
-                        //                      for a deficiency in DGEMV that appears if the
-                        //                      second dimension (tsec) is zero.
-                        //
-                        for(int i = ii + isec - 1; i >= ii; i--)
-                        {
-                            if(diag == rocblas_diagonal_non_unit)
-                            {
-                                auto saved_pointer_mode
-                                    = handle->push_pointer_mode(rocblas_pointer_mode_device);
-                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                                    (rocblas_scal_template<NB, T>)(handle,
-                                                                   jsec,
-                                                                   workspace, // dt2
-                                                                   i - ii + (i - ii) * ldt2
-                                                                       + dt2_offset,
-                                                                   1,
-                                                                   stride_w,
-                                                                   workspace, // dt1
-                                                                   (i - ii) * ldt1,
-                                                                   1,
-                                                                   stride_w,
-                                                                   batch_count));
-                            }
-                            tsec = ii + isec - 1 - i;
-                            tsec = i - ii;
-                            if(0 == tsec)
-                            {
-                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                                    (rocblas_scal_template<NB, T>)(handle,
-                                                                   jsec,
-                                                                   alpha,
-                                                                   0,
-                                                                   workspace, // dt1
-                                                                   (i - ii) * ldt1,
-                                                                   1,
-                                                                   stride_w,
-                                                                   batch_count));
-                            }
-                            else
-                            {
-                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                                    (rocblas_gemv_template<T>)(handle,
-                                                               rocblas_operation_none,
-                                                               jsec,
-                                                               tsec,
-                                                               alpha,
-                                                               0,
-                                                               workspace, // dt1
-                                                               0,
-                                                               rb,
-                                                               stride_w,
-                                                               workspace, // dt2
-                                                               (i - ii) * ldt2 + dt2_offset,
-                                                               1,
-                                                               stride_w,
-                                                               alpha,
-                                                               0,
-                                                               workspace, // dt1
-                                                               (i - ii) * ldt1,
-                                                               1,
-                                                               stride_w,
-                                                               batch_count));
-                            }
-                        }
-                        //
-                        //                      C := T1', the transpose of T1 is copied back
-                        //                      to C.
-                        //
-                        for(int j = jj; j <= jj + jsec - 1; j++)
-                        {
-                            PRINT_AND_RETURN_IF_ROCBLAS_ERROR((
-                                rocblas_copy_template<false, NB>)(handle,
-                                                                  isec,
-                                                                  workspace, // dt1
-                                                                  j - jj,
-                                                                  rb,
-                                                                  stride_w,
-                                                                  b,
-                                                                  ii - 1 + (j - 1) * ldb + offset_b,
-                                                                  1,
-                                                                  stride_b,
-                                                                  batch_count));
-                        }
-                    }
-                    //
-                    //                   C := alpha*A'*C + C, general matrix multiply
-                    //                   involving the transpose of a rectangular block
-                    //                   of A.
-                    //
-                    if(ii > 1)
-                    {
-                        PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                            rocblas_gemm_template<BATCHED>(handle,
-                                                           transa,
-                                                           rocblas_operation_none,
-                                                           isec,
-                                                           n,
-                                                           ii - 1,
-                                                           alpha,
-                                                           a,
-                                                           (ii - 1) * lda + offset_a,
-                                                           lda,
-                                                           stride_a,
-                                                           (TConstPtr)b,
-                                                           offset_b,
-                                                           ldb,
-                                                           stride_b,
-                                                           &one,
-                                                           b,
-                                                           ii - 1 + offset_b,
-                                                           ldb,
-                                                           stride_b,
-                                                           batch_count));
-                    }
-                }
-            }
+            sA[tx * NB + ty] = conj(A[ty * ldda + tx]);
         }
         else
         {
-            if(transa == rocblas_operation_none)
-            {
-                //
-                //             Form  C := alpha*A*C. Left, Lower, No transpose.
-                //
-                bool cldb = dcld(ldb);
-                for(int ix = m; ix >= 1; ix -= cb)
-                {
-                    rocblas_int ii = 1 > ix - cb + 1 ? 1 : ix - cb + 1;
-                    isec           = ix - ii + 1;
-                    //
-                    //                   T2 := A', the transpose of a lower unit or non-unit
-                    //                   triangular diagonal block of A is copied to the
-                    //                   upper triangular part of T2.
-                    //
-                    for(int i = ii; i <= ii + isec - 1 - offd; i++)
-                    {
-                        PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                            (rocblas_copy_template<false, NB>)(handle,
-                                                               ii + isec - i - offd,
-                                                               a,
-                                                               i + offd - 1 + (i - 1) * lda
-                                                                   + offset_a,
-                                                               1,
-                                                               stride_a,
-                                                               workspace, // dt2
-                                                               i - ii + (i - ii + offd) * ldt2
-                                                                   + dt2_offset,
-                                                               cb,
-                                                               stride_w,
-                                                               batch_count));
-                    }
-                    for(int jj = 1; jj <= n; jj += rb)
-                    {
-                        jsec = rb < n - jj + 1 ? rb : n - jj + 1;
-                        //
-                        //                      T1 := C', the transpose of a rectangular block
-                        //                      of C is copied to T1.
-                        //
-                        if(cldb)
-                        {
-                            for(int j = jj; j <= jj + jsec - 1; j++)
-                            {
-                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                                    (rocblas_copy_template<false, NB>)(handle,
-                                                                       isec,
-                                                                       b,
-                                                                       ii - 1 + (j - 1) * ldb
-                                                                           + offset_b,
-                                                                       1,
-                                                                       stride_b,
-                                                                       workspace, // dt1
-                                                                       j - jj,
-                                                                       rb,
-                                                                       stride_w,
-                                                                       batch_count));
-                            }
-                        }
-                        else
-                        {
-                            for(int i = ii; i <= ii + isec - 1; i++)
-                            {
-                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                                    (rocblas_copy_template<false, NB>)(handle,
-                                                                       jsec,
-                                                                       b,
-                                                                       i - 1 + (jj - 1) * ldb
-                                                                           + offset_b,
-                                                                       ldb,
-                                                                       stride_b,
-                                                                       workspace, // dt1
-                                                                       (i - ii) * ldt1,
-                                                                       1,
-                                                                       stride_w,
-                                                                       batch_count));
-                            }
-                        }
-                        //
-                        //                      T1 := alpha*T1*T2 + delta*T1, triangular matrix
-                        //                      multiply where the value of delta depends on
-                        //                      whether T2 stores a unit or non-unit triangular
-                        //                      block. Gamma and tsec are used to compensate for
-                        //                      a deficiency in DGEMV that appears if the second
-                        //                      dimension (tsec) is zero.
-                        //
-                        for(int i = ii + isec - 1; i >= ii; i--)
-                        {
-                            if(diag == rocblas_diagonal_non_unit)
-                            {
-                                auto saved_pointer_mode
-                                    = handle->push_pointer_mode(rocblas_pointer_mode_device);
-                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                                    (rocblas_scal_template<NB, T>)(handle,
-                                                                   jsec,
-                                                                   workspace, // dt2
-                                                                   i - ii + (i - ii) * ldt2
-                                                                       + dt2_offset,
-                                                                   1,
-                                                                   stride_w,
-                                                                   workspace, // dt1
-                                                                   (i - ii) * ldt1,
-                                                                   1,
-                                                                   stride_w,
-                                                                   batch_count));
-                            }
-                            tsec = i - ii;
-                            if(tsec == 0)
-                            {
-                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                                    (rocblas_scal_template<NB, T>)(handle,
-                                                                   jsec,
-                                                                   alpha,
-                                                                   0,
-                                                                   workspace, // dt1
-                                                                   (i - ii) * ldt1,
-                                                                   1,
-                                                                   stride_w,
-                                                                   batch_count));
-                            }
-                            else
-                            {
-                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                                    (rocblas_gemv_template<T>)(handle,
-                                                               rocblas_operation_none,
-                                                               jsec,
-                                                               tsec,
-                                                               alpha,
-                                                               0,
-                                                               workspace, // dt1
-                                                               0,
-                                                               rb,
-                                                               stride_w,
-                                                               workspace, // dt2
-                                                               (i - ii) * ldt2 + dt2_offset,
-                                                               1,
-                                                               stride_w,
-                                                               alpha,
-                                                               0,
-                                                               workspace, // dt1
-                                                               (i - ii) * ldt1,
-                                                               1,
-                                                               stride_w,
-                                                               batch_count));
-                            }
-                        }
-                        //
-                        //                      C := T1', the transpose of T1 is copied back
-                        //                      to C.
-                        //
-                        for(int j = jj; j <= jj + jsec - 1; j++)
-                        {
-                            PRINT_AND_RETURN_IF_ROCBLAS_ERROR((
-                                rocblas_copy_template<false, NB>)(handle,
-                                                                  isec,
-                                                                  // &dt1[j - jj],
-                                                                  // 0,
-                                                                  workspace, // dt1
-                                                                  j - jj,
-                                                                  rb,
-                                                                  stride_w,
-                                                                  b,
-                                                                  ii - 1 + (j - 1) * ldb + offset_b,
-                                                                  1,
-                                                                  stride_b,
-                                                                  batch_count));
-                        }
-                    }
-                    //
-                    //                   C := alpha*A'*C + C, general matrix multiply
-                    //                   involving a rectangular block of A.
-                    //
-                    if(ii > 1)
-                    {
-                        PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                            rocblas_gemm_template<BATCHED>(handle,
-                                                           rocblas_operation_none,
-                                                           rocblas_operation_none,
-                                                           isec,
-                                                           n,
-                                                           ii - 1,
-                                                           alpha,
-                                                           a,
-                                                           ii - 1 + offset_a,
-                                                           lda,
-                                                           stride_a,
-                                                           (TConstPtr)b,
-                                                           offset_b,
-                                                           ldb,
-                                                           stride_b,
-                                                           &one,
-                                                           b,
-                                                           ii - 1 + offset_b,
-                                                           ldb,
-                                                           stride_b,
-                                                           batch_count));
-                    }
-                }
-            }
-            else
-            {
-                //
-                //              Form  C := alpha*A'*C. Left, Lower, Transpose.
-                //
-                bool cldb = dcld(ldb);
-                for(int ix = ((m - 1) % cb) + 1; ix <= m; ix += cb)
-                {
-                    rocblas_int ii = 1 > ix - cb + 1 ? 1 : ix - cb + 1;
-                    isec           = ix - ii + 1;
-                    //
-                    //    T2 := A or T2 := conjg( A ), a unit or non-unit
-                    //    lower triangular diagonal block of A is copied to
-                    //    the lower triangular part of T2.
-                    //
-                    for(int j = ii; j <= ii + isec - 1 - offd; j++)
-                    {
-                        if(transa == rocblas_operation_conjugate_transpose)
-                        {
-                            PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                                (rocblas_copy_template<true, NB>)(handle,
-                                                                  ii + isec - j - offd,
-                                                                  a,
-                                                                  j + offd - 1 + (j - 1) * lda
-                                                                      + offset_a,
-                                                                  1,
-                                                                  stride_a,
-                                                                  workspace, // dt2
-                                                                  j - ii + offd + (j - ii) * ldt2
-                                                                      + dt2_offset,
-                                                                  1,
-                                                                  stride_w,
-                                                                  batch_count));
-                        }
-                        else
-                        {
-                            PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                                (rocblas_copy_template<false, NB>)(handle,
-                                                                   ii + isec - j - offd,
-                                                                   a,
-                                                                   j + offd - 1 + (j - 1) * lda
-                                                                       + offset_a,
-                                                                   1,
-                                                                   stride_a,
-                                                                   workspace, // dt2
-                                                                   j - ii + offd + (j - ii) * ldt2
-                                                                       + dt2_offset,
-                                                                   1,
-                                                                   stride_w,
-                                                                   batch_count));
-                        }
-                    }
+            sA[tx * NB + ty] = A[ty * ldda + tx];
+        }
+    }
+    if(ty < nn && tx < m)
+        sB[ty * NB + tx] = B[ty * lddb + tx];
 
-                    for(int jj = 1; jj <= n; jj += rb)
-                    {
-                        jsec = rb < n - jj + 1 ? rb : n - jj + 1;
-                        //
-                        //                      T1 := C', the transpose of a rectangular block
-                        //                      of C is copied to T1.
-                        //
-                        if(cldb)
-                        {
-                            for(int j = jj; j <= jj + jsec - 1; j++)
-                            {
-                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                                    (rocblas_copy_template<false, NB>)(handle,
-                                                                       isec,
-                                                                       b,
-                                                                       ii - 1 + (j - 1) * ldb
-                                                                           + offset_b,
-                                                                       1,
-                                                                       stride_b,
-                                                                       workspace, // dt1
-                                                                       j - jj,
-                                                                       rb,
-                                                                       stride_w,
-                                                                       batch_count));
-                            }
-                        }
-                        else
-                        {
-                            for(int i = ii; i <= ii + isec - 1; i++)
-                            {
-                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                                    (rocblas_copy_template<false, NB>)(handle,
-                                                                       jsec,
-                                                                       b,
-                                                                       i - 1 + (jj - 1) * ldb
-                                                                           + offset_b,
-                                                                       ldb,
-                                                                       stride_b,
-                                                                       workspace, // dt1
-                                                                       (i - ii) * ldt1,
-                                                                       1,
-                                                                       stride_w,
-                                                                       batch_count));
-                            }
-                        }
-                        //
-                        //                      T1 := alpha*T1*A + delta*T1, triangular matrix
-                        //                      multiply where the value of delta depends on
-                        //                      whether A is a unit or non-unit triangular
-                        //                      matrix. Gamma and tsec are used to compensate
-                        //                      for a deficiency in DGEMV that appears if the
-                        //                      second dimension (tsec) is zero.
-                        //
-                        for(int i = ii; i <= ii + isec - 1; i++)
-                        {
-                            if(diag == rocblas_diagonal_non_unit)
-                            {
-                                auto saved_pointer_mode
-                                    = handle->push_pointer_mode(rocblas_pointer_mode_device);
+    // handle diag
+    if(diag == rocblas_diagonal_unit)
+    {
+        if(ty == tx)
+            sA[ty * NB + tx] = 1.0;
+    }
 
-                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                                    (rocblas_scal_template<NB, T>)(handle,
-                                                                   jsec,
-                                                                   workspace, // dt2
-                                                                   i - ii + (i - ii) * ldt2
-                                                                       + dt2_offset,
-                                                                   1,
-                                                                   stride_w,
-                                                                   workspace, // dt1
-                                                                   (i - ii) * ldt1,
-                                                                   1,
-                                                                   stride_w,
-                                                                   batch_count));
-                            }
-                            tsec = ii + isec - 1 - i;
-                            if(tsec == 0)
-                            {
-                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                                    (rocblas_scal_template<NB, T>)(handle,
-                                                                   jsec,
-                                                                   alpha,
-                                                                   0,
-                                                                   workspace, // dt1
-                                                                   (i - ii) * ldt1,
-                                                                   1,
-                                                                   stride_w,
-                                                                   batch_count));
-                            }
-                            else
-                            {
-                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                                    (rocblas_gemv_template<
-                                        T>)(handle,
-                                            rocblas_operation_none,
-                                            jsec,
-                                            tsec,
-                                            alpha,
-                                            0,
-                                            workspace, // dt1
-                                            (i - ii + 1) * ldt1,
-                                            rb,
-                                            stride_w,
-                                            //                                                             &a[i + (i - 1) * lda],
-                                            workspace, // dt2
-                                            i - ii + 1 + (i - ii) * ldt2 + dt2_offset,
-                                            1,
-                                            stride_w,
-                                            alpha,
-                                            0,
-                                            workspace, // dt1
-                                            (i - ii) * ldt1,
-                                            1,
-                                            stride_w,
-                                            batch_count));
-                            }
-                        }
-                        //
-                        //                      C := T1', the transpose of T1 is copied back
-                        //                      to C.
-                        //
-                        for(int j = jj; j <= jj + jsec - 1; j++)
-                        {
-                            PRINT_AND_RETURN_IF_ROCBLAS_ERROR((
-                                rocblas_copy_template<false, NB>)(handle,
-                                                                  isec,
-                                                                  workspace, // dt1
-                                                                  j - jj,
-                                                                  rb,
-                                                                  stride_w,
-                                                                  b,
-                                                                  ii - 1 + (j - 1) * ldb + offset_b,
-                                                                  1,
-                                                                  stride_b,
-                                                                  batch_count));
-                        }
-                    }
-                    //
-                    //                  C := alpha*A'*C + C, general matrix multiply
-                    //                  involving the transpose of a rectangular block
-                    //                  of A.
-                    //
-                    if(ii + isec <= m)
-                    {
-                        PRINT_AND_RETURN_IF_ROCBLAS_ERROR(rocblas_gemm_template<BATCHED>(
-                            handle,
-                            transa,
-                            rocblas_operation_none,
-                            isec,
-                            n,
-                            m - ii - isec + 1,
-                            alpha,
-                            a,
-                            ii + isec - 1 + (ii - 1) * lda + offset_a,
-                            lda,
-                            stride_a,
-                            (TConstPtr)b,
-                            ii + isec - 1 + offset_b,
-                            ldb,
-                            stride_b,
-                            &one,
-                            b,
-                            ii - 1 + offset_b,
-                            ldb,
-                            stride_b,
-                            batch_count));
-                    }
-                }
-            }
+    // handle uplo
+    __syncthreads();
+    if(uplo == rocblas_fill_lower)
+    {
+        if(tx > ty)
+            sA[ty * NB + tx] = 0.0;
+    }
+    else
+    {
+        if(tx < ty)
+            sA[ty * NB + tx] = 0.0;
+    }
+    __syncthreads();
+
+    T accumulator = 0.0;
+#pragma unroll
+    for(int i = 0; i < NB; i++)
+        accumulator += sA[i * NB + tx] * sB[ty * NB + i];
+    accumulator *= alpha;
+
+    // write B
+    if(ty < nn && tx < m)
+        B[ty * lddb + tx] = accumulator;
+}
+
+// right NoTrans
+template <const int NB,
+          typename T,
+          typename TScal,
+          typename TConstPtr,
+          typename TPtr,
+          typename T_lda>
+__global__ void rocblas_trmm_rNx_kernel(rocblas_fill     uplo,
+                                        rocblas_diagonal diag,
+                                        int              m,
+                                        int              n, // m must be <= NB
+                                        TScal            alpha_device_host,
+                                        rocblas_stride   stride_alpha,
+                                        TConstPtr*       A_arg,
+                                        T_lda            offset_a,
+                                        T_lda            ldda,
+                                        rocblas_stride   stride_a,
+                                        TPtr*            B_arg,
+                                        T_lda            offset_b,
+                                        T_lda            lddb,
+                                        rocblas_stride   stride_b)
+{
+    const int tx = threadIdx.x;
+    const int ty = threadIdx.y;
+    const int bx = blockIdx.x;
+
+    T alpha = load_scalar(alpha_device_host, hipBlockIdx_z, stride_alpha);
+    if(alpha == 0)
+        return;
+    auto* A = load_ptr_batch(A_arg, hipBlockIdx_z, offset_a, stride_a);
+    auto* B = load_ptr_batch(B_arg, hipBlockIdx_z, offset_b, stride_b);
+
+    const int nblocks = (m + NB - 1) / NB;
+    const int mm      = (bx < nblocks - 1) ? NB : m - (nblocks - 1) * NB;
+    B += bx * NB;
+
+    __shared__ T sA[NB * NB];
+    __shared__ T sB[NB * NB];
+
+    // init sA and sB to zero
+    sA[ty * NB + tx] = 0.0;
+    sB[ty * NB + tx] = 0.0;
+
+    // load A and B
+    if(ty < n && tx < n)
+        sA[ty * NB + tx] = A[ty * ldda + tx];
+    if(ty < n && tx < mm)
+        sB[ty * NB + tx] = B[ty * lddb + tx];
+
+    // handle diag
+    if(diag == rocblas_diagonal_unit)
+    {
+        if(ty == tx)
+            sA[ty * NB + tx] = 1.0;
+    }
+
+    // handle uplo
+    if(uplo == rocblas_fill_upper)
+    {
+        if(tx > ty)
+            sA[ty * NB + tx] = 0.0;
+    }
+    else
+    {
+        if(tx < ty)
+            sA[ty * NB + tx] = 0.0;
+    }
+    __syncthreads();
+
+    T accumulator = 0.0;
+#pragma unroll
+    for(int i = 0; i < NB; i++)
+        accumulator += sB[i * NB + tx] * sA[ty * NB + i];
+    accumulator *= alpha;
+    // write B
+    if(ty < n && tx < mm)
+        B[ty * lddb + tx] = accumulator;
+}
+
+// right, transpose_and_conjugate_transpose
+template <const int NB,
+          bool      CONJA,
+          typename T,
+          typename TScal,
+          typename TConstPtr,
+          typename TPtr,
+          typename T_lda>
+__global__ void rocblas_trmm_rTx_kernel(rocblas_fill     uplo,
+                                        rocblas_diagonal diag,
+                                        int              m,
+                                        int              n, // m must be <= NB
+                                        TScal            alpha_device_host,
+                                        rocblas_stride   stride_alpha,
+                                        TConstPtr*       A_arg,
+                                        T_lda            offset_a,
+                                        T_lda            ldda,
+                                        rocblas_stride   stride_a,
+                                        TPtr*            B_arg,
+                                        T_lda            offset_b,
+                                        T_lda            lddb,
+                                        rocblas_stride   stride_b)
+{
+    const int tx = threadIdx.x;
+    const int ty = threadIdx.y;
+    const int bx = blockIdx.x;
+
+    T alpha = load_scalar(alpha_device_host, hipBlockIdx_z, stride_alpha);
+    if(alpha == 0)
+        return;
+    auto* A = load_ptr_batch(A_arg, hipBlockIdx_z, offset_a, stride_a);
+    auto* B = load_ptr_batch(B_arg, hipBlockIdx_z, offset_b, stride_b);
+
+    const int nblocks = (m + NB - 1) / NB;
+    const int mm      = (bx < nblocks - 1) ? NB : m - (nblocks - 1) * NB;
+    B += bx * NB;
+
+    __shared__ T sA[NB * NB];
+    __shared__ T sB[NB * NB];
+
+    // init sA and sB to zero
+    sA[ty * NB + tx] = 0.0;
+    sB[ty * NB + tx] = 0.0;
+
+    // load A and B
+    if(ty < n && tx < n)
+    {
+        if(CONJA)
+        {
+            sA[ty * NB + tx] = conj(A[ty * ldda + tx]);
+        }
+        else
+        {
+            sA[ty * NB + tx] = A[ty * ldda + tx];
+        }
+    }
+    if(ty < n && tx < mm)
+        sB[ty * NB + tx] = B[ty * lddb + tx];
+
+    // handle diag
+    if(diag == rocblas_diagonal_unit)
+    {
+        if(ty == tx)
+            sA[ty * NB + tx] = 1.0;
+    }
+
+    // handle uplo
+    if(uplo == rocblas_fill_upper)
+    {
+        if(tx > ty)
+            sA[ty * NB + tx] = 0.0;
+    }
+    else
+    {
+        if(tx < ty)
+            sA[ty * NB + tx] = 0.0;
+    }
+    __syncthreads();
+
+    T accumulator = 0.0;
+#pragma unroll
+    for(int i = 0; i < NB; i++)
+        accumulator += sB[i * NB + tx] * sA[i * NB + ty];
+    accumulator *= alpha;
+    // write B
+    if(ty < n && tx < mm)
+        B[ty * lddb + tx] = accumulator;
+}
+
+// clang-format off
+// left, NoTrans
+template <const int NB, typename T, typename TScal, typename TConstPtr, typename TPtr, typename T_lda>
+rocblas_status trmm_template_lNx(rocblas_handle   handle,
+                       rocblas_fill     uplo,
+                       rocblas_diagonal diag,
+                       rocblas_int      m,
+                       rocblas_int      n,
+                       TScal*           alpha,
+                       rocblas_stride   stride_alpha,
+                       TConstPtr*       dA, T_lda offset_a, T_lda ldda, rocblas_stride stride_a,
+                       TPtr*            dB, T_lda offset_b, T_lda lddb, rocblas_stride stride_b,
+                       rocblas_int      batch_count)
+{
+    hipStream_t rocblas_stream = handle->get_stream();
+
+    dim3 threads(NB, NB, 1);
+    dim3 grid((n + NB - 1) / NB, 1, batch_count);
+
+    if(rocblas_pointer_mode_device == handle->pointer_mode)
+        hipLaunchKernelGGL((rocblas_trmm_lNx_kernel<NB, T>), grid, threads, 0, rocblas_stream,
+                           uplo, diag,
+                           m, n, alpha, stride_alpha,
+                           dA, offset_a, ldda, stride_a,
+                           dB, offset_b, lddb, stride_b);
+    else
+        hipLaunchKernelGGL((rocblas_trmm_lNx_kernel<NB, T>), grid, threads, 0, rocblas_stream,
+                           uplo, diag,
+                           m, n, *alpha, stride_alpha,
+                           dA, offset_a, ldda, stride_a,
+                           dB, offset_b, lddb, stride_b);
+
+    return rocblas_status_success;
+}
+
+// left, Trans|ConjTrans
+template <const int NB, bool CONJ, typename T, typename TScal, typename TConstPtr, typename TPtr, typename T_lda>
+rocblas_status trmm_template_lTx(rocblas_handle   handle,
+                       rocblas_fill     uplo,
+                       rocblas_diagonal diag,
+                       rocblas_int      m,
+                       rocblas_int      n,
+                       TScal*           alpha,
+                       rocblas_stride   stride_alpha,
+                       TConstPtr*       dA, T_lda offset_a, T_lda ldda, rocblas_stride stride_a,
+                       TPtr*            dB, T_lda offset_b, T_lda lddb, rocblas_stride stride_b,
+                       rocblas_int      batch_count)
+{
+    hipStream_t rocblas_stream = handle->get_stream();
+
+    dim3 threads(NB, NB, 1);
+    dim3 grid((n + NB - 1) / NB, 1, batch_count);
+
+    if(rocblas_pointer_mode_device == handle->pointer_mode)
+        hipLaunchKernelGGL((rocblas_trmm_lTx_kernel<NB, CONJ, T>), grid, threads, 0, rocblas_stream,
+                           uplo, diag,
+                           m, n, alpha, stride_alpha,
+                           dA, offset_a, ldda, stride_a,
+                           dB, offset_b, lddb, stride_b);
+    else
+        hipLaunchKernelGGL((rocblas_trmm_lTx_kernel<NB, CONJ, T>), grid, threads, 0, rocblas_stream,
+                           uplo, diag,
+                           m, n, *alpha, stride_alpha,
+                           dA, offset_a, ldda, stride_a,
+                           dB, offset_b, lddb, stride_b);
+
+    return rocblas_status_success;
+}
+
+// right, NoTrans
+template <const int NB, typename T, typename TScal, typename TConstPtr, typename TPtr, typename T_lda>
+rocblas_status trmm_template_rNx(rocblas_handle   handle,
+                       rocblas_fill     uplo,
+                       rocblas_diagonal diag,
+                       rocblas_int      m,
+                       rocblas_int      n,
+                       TScal*           alpha,
+                       rocblas_stride   stride_alpha,
+                       TConstPtr*       dA, T_lda offset_a, T_lda ldda, rocblas_stride stride_a,
+                       TPtr*            dB, T_lda offset_b, T_lda lddb, rocblas_stride stride_b,
+                       rocblas_int      batch_count)
+{
+    hipStream_t rocblas_stream = handle->get_stream();
+
+    dim3 threads(NB, NB, 1);
+    dim3 grid((m + NB - 1) / NB, 1, batch_count);
+
+    if(rocblas_pointer_mode_device == handle->pointer_mode)
+        hipLaunchKernelGGL((rocblas_trmm_rNx_kernel<NB, T>), grid, threads, 0, rocblas_stream,
+                           uplo, diag,
+                           m, n, alpha, stride_alpha,
+                           dA, offset_a, ldda, stride_a,
+                           dB, offset_b, lddb, stride_b);
+    else
+        hipLaunchKernelGGL((rocblas_trmm_rNx_kernel<NB, T>), grid, threads, 0, rocblas_stream,
+                           uplo, diag,
+                           m, n, *alpha, stride_alpha,
+                           dA, offset_a, ldda, stride_a,
+                           dB, offset_b, lddb, stride_b);
+
+    return rocblas_status_success;
+}
+
+// right, Trans|ConjTrans
+template <const int NB, bool CONJ, typename T, typename TScal, typename TConstPtr, typename TPtr, typename T_lda>
+rocblas_status trmm_template_rTx(rocblas_handle   handle,
+                       rocblas_fill     uplo,
+                       rocblas_diagonal diag,
+                       rocblas_int      m,
+                       rocblas_int      n,
+                       TScal*           alpha,
+                       rocblas_stride   stride_alpha,
+                       TConstPtr*       dA, T_lda offset_a, T_lda ldda, rocblas_stride stride_a,
+                       TPtr*            dB, T_lda offset_b, T_lda lddb, rocblas_stride stride_b,
+                       rocblas_int      batch_count)
+{
+    hipStream_t rocblas_stream = handle->get_stream();
+
+    dim3 threads(NB, NB, 1);
+    dim3 grid((m + NB - 1) / NB, 1, batch_count);
+
+    if(rocblas_pointer_mode_device == handle->pointer_mode)
+        hipLaunchKernelGGL((rocblas_trmm_rTx_kernel<NB, CONJ, T>), grid, threads, 0, rocblas_stream,
+                           uplo, diag,
+                           m, n, alpha, stride_alpha,
+                           dA, offset_a, ldda, stride_a,
+                           dB, offset_b, lddb, stride_b);
+    else
+        hipLaunchKernelGGL((rocblas_trmm_rTx_kernel<NB, CONJ, T>), grid, threads, 0, rocblas_stream,
+                           uplo, diag,
+                           m, n, *alpha, stride_alpha,
+                           dA, offset_a, ldda, stride_a,
+                           dB, offset_b, lddb, stride_b);
+
+    return rocblas_status_success;
+}
+
+template <int STOPPING_NB, typename T, typename TScal, typename TConstPtr, typename TPtr, typename T_lda>
+rocblas_status rocblas_trmm_small(rocblas_handle    handle,
+                        rocblas_side      side,
+                        rocblas_fill      uplo,
+                        rocblas_operation trans_a,
+                        rocblas_diagonal  diag,
+                        rocblas_int       m,
+                        rocblas_int       n,
+                        TScal*            alpha,
+                        rocblas_stride    stride_alpha,
+                        TConstPtr*        dA, T_lda offset_a, T_lda ldda, rocblas_stride stride_a,
+                        TPtr*             dB, T_lda offset_b, T_lda lddb, rocblas_stride stride_b,
+                        rocblas_int       batch_count)
+{
+    rocblas_int shape = -1;
+    if(side == rocblas_side_left)
+    {
+        if     (trans_a == rocblas_operation_none)                shape = 0;      // lNx     left, NoTrans
+        else if(trans_a == rocblas_operation_transpose)           shape = 1;      // lTx     left, Transpose
+        else if(trans_a == rocblas_operation_conjugate_transpose) shape = 2;      // lCx     left, ConjTrans
+    }
+    else
+    {
+        if     (trans_a == rocblas_operation_none)                shape = 3;      // rNx     right, NoTrans
+        else if(trans_a == rocblas_operation_transpose)           shape = 4;      // rTx     right, Transpose }
+        else if(trans_a == rocblas_operation_conjugate_transpose) shape = 5;      // rCx     right, ConjTrans
+    }
+
+    if (shape == 0) // lNx, left, NoTrans
+        return trmm_template_lNx<STOPPING_NB, T>(handle, uplo, diag,
+                                               m, n, alpha, stride_alpha,
+                                               dA, offset_a, ldda, stride_a,
+                                               dB, offset_b, lddb, stride_b, batch_count);
+    else if (shape == 1) // lTx, left, Transpose
+        return trmm_template_lTx<STOPPING_NB, false, T>(handle, uplo, diag,
+                                               m, n, alpha, stride_alpha,
+                                               dA, offset_a, ldda, stride_a,
+                                               dB, offset_b, lddb, stride_b, batch_count);
+    else if (shape == 2) // lCx, left, ConjTrans
+        return trmm_template_lTx<STOPPING_NB, true, T>(handle, uplo, diag,
+                                               m, n, alpha, stride_alpha,
+                                               dA, offset_a, ldda, stride_a,
+                                               dB, offset_b, lddb, stride_b, batch_count);
+    else if (shape == 3) // rNx, right, NoTrans
+        return trmm_template_rNx<STOPPING_NB, T>(handle, uplo, diag,
+                                               m, n, alpha, stride_alpha,
+                                               dA, offset_a, ldda, stride_a,
+                                               dB, offset_b, lddb, stride_b, batch_count);
+    else if (shape == 4) // rTx, right, Transpose
+        return trmm_template_rTx<STOPPING_NB, false, T>(handle, uplo, diag,
+                                               m, n, alpha, stride_alpha,
+                                               dA, offset_a, ldda, stride_a,
+                                               dB, offset_b, lddb, stride_b, batch_count);
+    else if (shape == 5) // rCx, right, ConjTrans
+        return trmm_template_rTx<STOPPING_NB, true, T>(handle, uplo, diag,
+                                               m, n, alpha, stride_alpha,
+                                               dA, offset_a, ldda, stride_a,
+                                               dB, offset_b, lddb, stride_b, batch_count);
+    else
+        return rocblas_status_internal_error;
+}
+
+template <int STOPPING_NB, bool BATCHED, typename T, typename TScal, typename TConstPtr, typename TPtr, typename T_lda>
+ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_trmm_recursive_template(rocblas_handle    handle,
+                                     rocblas_side      side,
+                                     rocblas_fill      uplo,
+                                     rocblas_operation trans_a,
+                                     rocblas_diagonal  diag,
+                                     rocblas_int       m,
+                                     rocblas_int       n,
+                                     TScal*            alpha,
+                                     rocblas_stride    stride_alpha,
+                                     TConstPtr*        dA,
+                                     T_lda             offset_a,
+                                     T_lda             ldda,
+                                     rocblas_stride    stride_a,
+                                     TPtr*             dB,
+                                     T_lda             offset_b,
+                                     T_lda             lddb,
+                                     rocblas_stride    stride_b,
+                                     rocblas_int       batch_count)
+{
+
+#define CALC_OFFSET_A(i, j) offset_a + i + j* ldda
+#define CALC_OFFSET_B(i, j) offset_b + i + j* lddb
+
+    const T one = 1.0;
+
+    rocblas_int nrow_a = (side == rocblas_side_left ? m : n);
+    // stopping condition
+    if(nrow_a <= STOPPING_NB)
+    {
+        return rocblas_trmm_small<STOPPING_NB, T>(handle, side, uplo, trans_a, diag,
+                                                  m, n, alpha, stride_alpha,
+                                                  dA, offset_a, ldda, stride_a,
+                                                  dB, offset_b, lddb, stride_b, batch_count);
+    }
+
+    rocblas_status status = rocblas_status_success;
+
+    rocblas_int shape = -1;
+    if(side == rocblas_side_left)
+    {
+        if(trans_a == rocblas_operation_none)
+        {
+            if (uplo == rocblas_fill_lower) shape = 0; else shape = 1; // lNL, lNU
+        }
+        else
+        {
+            if (uplo == rocblas_fill_lower) shape = 2; else shape = 3; // lTL | lCL, lTU | lCU
         }
     }
     else
     {
-        if(uplo == rocblas_fill_upper)
+        if(trans_a == rocblas_operation_none)
         {
-            if(transa == rocblas_operation_none)
-            {
-                //
-                //              Form  C := alpha*C*A. Right, Upper, No transpose.
-                //
-                for(int jj = n - (n - 1) % cb; jj >= 1; jj -= cb)
-                {
-                    jsec = cb < n - jj + 1 ? cb : n - jj + 1;
-                    for(int ii = 1; ii <= m; ii += rb)
-                    {
-                        isec = rb < m - ii + 1 ? rb : m - ii + 1;
-                        //
-                        //                      T1 := C, a rectangular block of C is copied
-                        //                      to T1.
-                        //
-                        for(int j = jj; j <= jj + jsec - 1; j++)
-                        {
-                            PRINT_AND_RETURN_IF_ROCBLAS_ERROR((
-                                rocblas_copy_template<false, NB>)(handle,
-                                                                  isec,
-                                                                  b,
-                                                                  ii - 1 + (j - 1) * ldb + offset_b,
-                                                                  1,
-                                                                  stride_b,
-                                                                  workspace, // dt1
-                                                                  (j - jj) * ldt1,
-                                                                  1,
-                                                                  stride_w,
-                                                                  batch_count));
-                        }
-                        //
-                        //                      C := alpha*T1*A + delta*C, triangular matrix
-                        //                      multiply where the value of delta depends on
-                        //                      whether A is a unit or non-unit triangular
-                        //                      matrix. Gamma and tsec are used to compensate
-                        //                      for a deficiency in DGEmV that appears if the
-                        //                      second dimension (tsec) is zero.
-                        //
-                        for(int j = jj + jsec - 1; j >= jj; j--)
-                        {
-                            if(diag == rocblas_diagonal_non_unit)
-                            {
-                                auto saved_pointer_mode
-                                    = handle->push_pointer_mode(rocblas_pointer_mode_device);
-                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR((
-                                    rocblas_scal_template<NB, T>)(handle,
-                                                                  isec,
-                                                                  a,
-                                                                  j - 1 + (j - 1) * lda + offset_a,
-                                                                  1,
-                                                                  stride_a,
-                                                                  b,
-                                                                  ii - 1 + (j - 1) * ldb + offset_b,
-                                                                  1,
-                                                                  stride_b,
-                                                                  batch_count));
-                            }
-                            tsec = j - jj;
-                            if(tsec == 0)
-                            {
-                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR((
-                                    rocblas_scal_template<NB, T>)(handle,
-                                                                  isec,
-                                                                  alpha,
-                                                                  0,
-                                                                  b,
-                                                                  ii - 1 + (j - 1) * ldb + offset_b,
-                                                                  1,
-                                                                  stride_b,
-                                                                  batch_count));
-                            }
-                            else
-                            {
-                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                                    (rocblas_gemv_template<T>)(handle,
-                                                               rocblas_operation_none,
-                                                               isec,
-                                                               tsec,
-                                                               alpha,
-                                                               0,
-                                                               (TConstPtr)workspace, // dt1
-                                                               0,
-                                                               rb,
-                                                               stride_w,
-                                                               a,
-                                                               jj - 1 + (j - 1) * lda + offset_a,
-                                                               1,
-                                                               stride_a,
-                                                               alpha,
-                                                               0,
-                                                               b,
-                                                               ii - 1 + (j - 1) * ldb + offset_b,
-                                                               1,
-                                                               stride_b,
-                                                               batch_count));
-                            }
-                        }
-                    }
-                    //
-                    //                  C := alpha*C*A + C, general matrix multiply
-                    //                  involving a rectangular block of A.
-                    //
-                    if(jj > 1)
-                    {
-                        PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                            rocblas_gemm_template<BATCHED>(handle,
-                                                           rocblas_operation_none,
-                                                           rocblas_operation_none,
-                                                           m,
-                                                           jsec,
-                                                           jj - 1,
-                                                           alpha,
-                                                           (TConstPtr)b,
-                                                           offset_b,
-                                                           ldb,
-                                                           stride_b,
-                                                           a,
-                                                           (jj - 1) * lda + offset_a,
-                                                           lda,
-                                                           stride_a,
-                                                           &one,
-                                                           b,
-                                                           (jj - 1) * ldb + offset_b,
-                                                           ldb,
-                                                           stride_b,
-                                                           batch_count));
-                    }
-                }
-            }
-            else
-            {
-                //
-                //              Form  C := alpha*C*A'. Right, Upper, Transpose.   error, error
-                //
-                for(int jj = 1; jj <= n; jj += cb)
-                {
-                    jsec = cb < n - jj + 1 ? cb : n - jj + 1;
-                    //
-                    //                  T2 := A', the transpose of a upper unit or non-unit
-                    //                  triangular diagonal block of A is copied to the
-                    //                  lower triangular part of T2.
-                    //
-                    for(int j = jj + offd; j <= jj + jsec - 1; j++)
-                    {
-                        if(transa == rocblas_operation_conjugate_transpose)
-                        {
-                            PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                                (rocblas_copy_template<true, NB>)(handle,
-                                                                  j - jj + 1 - offd,
-                                                                  a,
-                                                                  jj - 1 + (j - 1) * lda + offset_a,
-                                                                  1,
-                                                                  stride_a,
-                                                                  workspace, // dt2
-                                                                  j - jj + dt2_offset,
-                                                                  cb,
-                                                                  stride_w,
-                                                                  batch_count));
-                        }
-                        else
-                        {
-                            PRINT_AND_RETURN_IF_ROCBLAS_ERROR((
-                                rocblas_copy_template<false, NB>)(handle,
-                                                                  j - jj + 1 - offd,
-                                                                  a,
-                                                                  jj - 1 + (j - 1) * lda + offset_a,
-                                                                  1,
-                                                                  stride_a,
-                                                                  workspace, // dt2
-                                                                  j - jj + dt2_offset,
-                                                                  cb,
-                                                                  stride_w,
-                                                                  batch_count));
-                        }
-                    }
-                    for(int ii = 1; ii <= m; ii += rb)
-                    {
-                        isec = rb < m - ii + 1 ? rb : m - ii + 1;
-                        //
-                        //                      T1 := C, a rectangular block of C is copied
-                        //                      to T1.
-                        //
-                        for(int j = jj; j <= jj + jsec - 1; j++)
-                        {
-                            PRINT_AND_RETURN_IF_ROCBLAS_ERROR((
-                                rocblas_copy_template<false, NB>)(handle,
-                                                                  isec,
-                                                                  b,
-                                                                  ii - 1 + (j - 1) * ldb + offset_b,
-                                                                  1,
-                                                                  stride_b,
-                                                                  workspace, // dt1
-                                                                  (j - jj) * ldt1,
-                                                                  1,
-                                                                  stride_w,
-                                                                  batch_count));
-                        }
-                        //
-                        //                      C := alpha*T1*T2 + delta*C, triangular matrix
-                        //                      multiply where the value of delta depends on
-                        //                      whether T2 is a unit or non-unit triangular
-                        //                      matrix. Gamma and tsec are used to compensate
-                        //                      for a deficiency in DGEmV that appears if the
-                        //                      second dimension (tsec) is zero.
-                        //
-                        for(int j = jj; j <= jj + jsec - 1; j++)
-                        {
-                            if(diag == rocblas_diagonal_non_unit)
-                            {
-                                auto saved_pointer_mode
-                                    = handle->push_pointer_mode(rocblas_pointer_mode_device);
-                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR((
-                                    rocblas_scal_template<NB, T>)(handle,
-                                                                  isec,
-                                                                  workspace, // dt2
-                                                                  j - jj + (j - jj) * ldt2
-                                                                      + dt2_offset,
-                                                                  1,
-                                                                  stride_w,
-                                                                  b,
-                                                                  ii - 1 + (j - 1) * ldb + offset_b,
-                                                                  1,
-                                                                  stride_b,
-                                                                  batch_count));
-                            }
-                            tsec = jj + jsec - 1 - j;
-                            if(tsec == 0)
-                            {
-                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR((
-                                    rocblas_scal_template<NB, T>)(handle,
-                                                                  isec,
-                                                                  alpha,
-                                                                  0,
-                                                                  b,
-                                                                  ii - 1 + (j - 1) * ldb + offset_b,
-                                                                  1,
-                                                                  stride_b,
-                                                                  batch_count));
-                            }
-                            else
-                            {
-                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                                    (rocblas_gemv_template<T>)(handle,
-                                                               rocblas_operation_none,
-                                                               isec,
-                                                               tsec,
-                                                               alpha,
-                                                               0,
-                                                               workspace, // dt1
-                                                               (j - jj + 1) * ldt1,
-                                                               rb,
-                                                               stride_w,
-                                                               workspace, // dt2
-                                                               j - jj + 1 + (j - jj) * ldt2
-                                                                   + dt2_offset,
-                                                               1,
-                                                               stride_w,
-                                                               alpha,
-                                                               0,
-                                                               b,
-                                                               ii - 1 + (j - 1) * ldb + offset_b,
-                                                               1,
-                                                               stride_b,
-                                                               batch_count));
-                            }
-                        }
-                    }
-                    //
-                    //                  C := alpha*C*A' + C, general matrix multiply
-                    //                  involving the transpose of a rectangular block
-                    //                  of A.
-                    //
-                    if(jj + jsec <= n)
-                    {
-                        PRINT_AND_RETURN_IF_ROCBLAS_ERROR(rocblas_gemm_template<BATCHED>(
-                            handle,
-                            rocblas_operation_none,
-                            transa,
-                            m,
-                            jsec,
-                            n - jj - jsec + 1,
-                            alpha,
-                            (TConstPtr)b,
-                            (jj + jsec - 1) * ldb + offset_b,
-                            ldb,
-                            stride_b,
-                            a,
-                            jj - 1 + (jj + jsec - 1) * lda + offset_a,
-                            lda,
-                            stride_a,
-                            &one,
-                            b,
-                            (jj - 1) * ldb + offset_b,
-                            ldb,
-                            stride_b,
-                            batch_count));
-                    }
-                }
-            }
+            if (uplo == rocblas_fill_lower) shape = 4; else shape = 5; // rNL, rNU
         }
         else
         {
-            if(transa == rocblas_operation_none)
-            {
-                //
-                //              Form  C := alpha*C*A. Right, Lower, No transpose.   error error
-                //
-                for(int jx = ((n - 1) % cb) + 1; jx <= n; jx += cb)
-                {
-                    rocblas_int jj = 1 > jx - cb + 1 ? 1 : jx - cb + 1;
-                    jsec           = jx - jj + 1;
-                    for(int ii = 1; ii <= m; ii += rb)
-                    {
-                        isec = rb < m - ii + 1 ? rb : m - ii + 1;
-                        //
-                        //                      T1 := C, a rectangular block of C is copied
-                        //                      to T1.
-                        //
-                        for(int j = jj; j <= jj + jsec - 1; j++)
-                        {
-                            PRINT_AND_RETURN_IF_ROCBLAS_ERROR((
-                                rocblas_copy_template<false, NB>)(handle,
-                                                                  isec,
-                                                                  b,
-                                                                  ii - 1 + (j - 1) * ldb + offset_b,
-                                                                  1,
-                                                                  stride_b,
-                                                                  workspace, // dt1
-                                                                  (j - jj) * ldt1,
-                                                                  1,
-                                                                  stride_w,
-                                                                  batch_count));
-                        }
-                        //
-                        //                      C := alpha*T1*A + delta*C, triangular matrix
-                        //                      multiply where the value of delta depends on
-                        //                      whether A is a unit or non-unit triangular
-                        //                      matrix. Gamma and tsec are used to compensate
-                        //                      for a deficiency in DGEmV that appears if the
-                        //                      second dimension (tsec) is zero.
-                        //
-                        for(int j = jj; j <= jj + jsec - 1; j++)
-                        {
-                            if(diag == rocblas_diagonal_non_unit)
-                            {
-                                auto saved_pointer_mode
-                                    = handle->push_pointer_mode(rocblas_pointer_mode_device);
-                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR((
-                                    rocblas_scal_template<NB, T>)(handle,
-                                                                  isec,
-                                                                  a,
-                                                                  j - 1 + (j - 1) * lda + offset_a,
-                                                                  1,
-                                                                  stride_a,
-                                                                  b,
-                                                                  ii - 1 + (j - 1) * ldb + offset_b,
-                                                                  1,
-                                                                  stride_b,
-                                                                  batch_count));
-                            }
-                            tsec = jj + jsec - 1 - j;
-                            if(tsec == 0)
-                            {
-                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR((
-                                    rocblas_scal_template<NB, T>)(handle,
-                                                                  isec,
-                                                                  alpha,
-                                                                  0,
-                                                                  b,
-                                                                  ii - 1 + (j - 1) * ldb + offset_b,
-                                                                  1,
-                                                                  stride_b,
-                                                                  batch_count));
-                            }
-                            else
-                            {
-                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                                    (rocblas_gemv_template<T>)(handle,
-                                                               rocblas_operation_none,
-                                                               isec,
-                                                               tsec,
-                                                               alpha,
-                                                               0,
-                                                               (TConstPtr)workspace, // dt1
-                                                               (j - jj + 1) * ldt1,
-                                                               rb,
-                                                               stride_w,
-                                                               a,
-                                                               j + (j - 1) * lda + offset_a,
-                                                               1,
-                                                               stride_a,
-                                                               alpha,
-                                                               0,
-                                                               b,
-                                                               ii - 1 + (j - 1) * ldb + offset_b,
-                                                               1,
-                                                               stride_b,
-                                                               batch_count));
-                            }
-                        }
-                    }
-                    //
-                    //                   C := alpha*C*A + C, general matrix multiply
-                    //                   involving a rectangular block of A.
-                    //
-                    if(jj + jsec <= n)
-                    {
-                        PRINT_AND_RETURN_IF_ROCBLAS_ERROR(rocblas_gemm_template<BATCHED>(
-                            handle,
-                            rocblas_operation_none,
-                            rocblas_operation_none,
-                            m,
-                            jsec,
-                            n - jj - jsec + 1,
-                            alpha,
-                            (TConstPtr)b,
-                            (jj + jsec - 1) * ldb + offset_b,
-                            ldb,
-                            stride_b,
-                            a,
-                            jj + jsec - 1 + (jj - 1) * lda + offset_a,
-                            lda,
-                            stride_a,
-                            &one,
-                            b,
-                            (jj - 1) * ldb + offset_b,
-                            ldb,
-                            stride_b,
-                            batch_count));
-                    }
-                }
-            }
-            else
-            {
-                //
-                //              Form  C := alpha*C*A'. Right, Lower, Transpose.    error error
-                //
-                for(int jx = n; jx >= 1; jx -= cb)
-                {
-                    rocblas_int jj = 1 > jx - cb + 1 ? 1 : jx - cb + 1;
-                    jsec           = jx - jj + 1;
-                    //
-                    //                  T2 := A', the transpose of a lower unit or non-unit
-                    //                  triangular diagonal block of A is copied to the
-                    //                  upper triangular part of T2.
-                    //
-                    // noconj
-                    for(int j = jj; j <= jj + jsec - 1 - offd; j++)
-                    {
-                        if(transa == rocblas_operation_conjugate_transpose)
-                        {
-                            PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                                (rocblas_copy_template<true, NB>)(handle,
-                                                                  jj + jsec - j - offd,
-                                                                  a,
-                                                                  j + offd - 1 + (j - 1) * lda
-                                                                      + offset_a,
-                                                                  1,
-                                                                  stride_a,
-                                                                  workspace, // dt2
-                                                                  j - jj + (j - jj + offd) * ldt2
-                                                                      + dt2_offset,
-                                                                  cb,
-                                                                  stride_w,
-                                                                  batch_count));
-                        }
-                        else
-                        {
-                            PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                                (rocblas_copy_template<false, NB>)(handle,
-                                                                   jj + jsec - j - offd,
-                                                                   a,
-                                                                   j + offd - 1 + (j - 1) * lda
-                                                                       + offset_a,
-                                                                   1,
-                                                                   stride_a,
-                                                                   workspace, // dt2
-                                                                   j - jj + (j - jj + offd) * ldt2
-                                                                       + dt2_offset,
-                                                                   cb,
-                                                                   stride_w,
-                                                                   batch_count));
-                        }
-                    }
-                    for(int ii = 1; ii <= m; ii += rb)
-                    {
-                        isec = rb < m - ii + 1 ? rb : m - ii + 1;
-                        //
-                        //                      T1 := C, a rectangular block of C is copied
-                        //                      to T1.
-                        //
-                        for(int j = jj; j <= jj + jsec - 1; j++)
-                        {
-                            PRINT_AND_RETURN_IF_ROCBLAS_ERROR((
-                                rocblas_copy_template<false, NB>)(handle,
-                                                                  isec,
-                                                                  b,
-                                                                  ii - 1 + (j - 1) * ldb + offset_b,
-                                                                  1,
-                                                                  stride_b,
-                                                                  workspace, // dt1
-                                                                  (j - jj) * ldt1,
-                                                                  1,
-                                                                  stride_w,
-                                                                  batch_count));
-                        }
-                        //
-                        //                      C := alpha*T1*T2 + delta*C, triangular matrix
-                        //                      multiply where the value of delta depends on
-                        //                      whether T2 is a unit or non-unit triangular
-                        //                      matrix. Gamma and tsec are used to compensate
-                        //                      for a deficiency in DGEmV that appears if the
-                        //                      second dimension (tsec) is zero.
-                        //
-                        for(int j = jj + jsec - 1; j >= jj; j--)
-                        {
-                            if(diag == rocblas_diagonal_non_unit)
-                            {
-                                auto saved_pointer_mode
-                                    = handle->push_pointer_mode(rocblas_pointer_mode_device);
-                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR((
-                                    rocblas_scal_template<NB, T>)(handle,
-                                                                  isec,
-                                                                  workspace, // dt2
-                                                                  j - jj + (j - jj) * ldt2
-                                                                      + dt2_offset,
-                                                                  1,
-                                                                  stride_w,
-                                                                  b,
-                                                                  ii - 1 + (j - 1) * ldb + offset_b,
-                                                                  1,
-                                                                  stride_b,
-                                                                  batch_count));
-                            }
-                            tsec = j - jj;
-                            if(tsec == 0)
-                            {
-                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR((
-                                    rocblas_scal_template<NB, T>)(handle,
-                                                                  isec,
-                                                                  alpha,
-                                                                  0,
-                                                                  b,
-                                                                  ii - 1 + (j - 1) * ldb + offset_b,
-                                                                  1,
-                                                                  stride_b,
-                                                                  batch_count));
-                            }
-                            else
-                            {
-                                PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                                    (rocblas_gemv_template<T>)(handle,
-                                                               rocblas_operation_none,
-                                                               isec,
-                                                               tsec,
-                                                               alpha,
-                                                               0,
-                                                               workspace, // dt1
-                                                               0,
-                                                               rb,
-                                                               stride_w,
-                                                               workspace, // dt2
-                                                               (j - jj) * ldt2 + dt2_offset,
-                                                               1,
-                                                               stride_w,
-                                                               alpha,
-                                                               0,
-                                                               b,
-                                                               ii - 1 + (j - 1) * ldb + offset_b,
-                                                               1,
-                                                               stride_b,
-                                                               batch_count));
-                            }
-                        }
-                    }
-                    //
-                    //                  C := alpha*C*A' + C, general matrix multiply involving the transpose of a rectangular block of A.
-                    //
-                    if(jj > 1)
-                    {
-                        PRINT_AND_RETURN_IF_ROCBLAS_ERROR(
-                            rocblas_gemm_template<BATCHED>(handle,
-                                                           rocblas_operation_none,
-                                                           transa,
-                                                           m,
-                                                           jsec,
-                                                           jj - 1,
-                                                           alpha,
-                                                           (TConstPtr)b,
-                                                           offset_b,
-                                                           ldb,
-                                                           stride_b,
-                                                           a,
-                                                           jj - 1 + offset_a,
-                                                           lda,
-                                                           stride_a,
-                                                           &one,
-                                                           b,
-                                                           (jj - 1) * ldb + offset_b,
-                                                           ldb,
-                                                           stride_b,
-                                                           batch_count));
-                    }
-                }
-            }
+            if (uplo == rocblas_fill_lower) shape = 6; else shape = 7; // rTL | rCL, rTU | rCU
         }
     }
 
-    return rocblas_status_success;
+    if (shape == 0) // lNl    left, NoTrans, Lower
+    {
+        const int m1 = rocblas_get_trmm_recursive_nb(m);
+        const int m2 = m - m1;
+
+         RETURN_IF_ROCBLAS_ERROR((rocblas_trmm_recursive_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
+                                     m2, n, alpha, stride_alpha,
+                                     dA, CALC_OFFSET_A(m1, m1), ldda, stride_a,
+                                     dB, CALC_OFFSET_B(m1,  0), lddb, stride_b, batch_count)));
+
+         RETURN_IF_ROCBLAS_ERROR((rocblas_gemm_template<BATCHED, T>(handle, rocblas_operation_none, rocblas_operation_none,
+                                     m2, n, m1, alpha,
+                                     dA, CALC_OFFSET_A(m1, 0), ldda, stride_a,
+                        (TConstPtr*) dB, CALC_OFFSET_B( 0, 0), lddb, stride_b, &one,
+                                     dB, CALC_OFFSET_B(m1, 0), lddb, stride_b, batch_count)));
+
+         RETURN_IF_ROCBLAS_ERROR((rocblas_trmm_recursive_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
+                                     m1, n, alpha, stride_alpha,
+                                     dA, CALC_OFFSET_A(0, 0), ldda, stride_a,
+                                     dB, CALC_OFFSET_B(0, 0), lddb, stride_b, batch_count)));
+    }
+    else if (shape == 1) // lNU  left, NoTrans, Upper
+    {
+        const int m2 = rocblas_get_trmm_recursive_nb(m);
+        const int m1 = m - m2;
+
+        RETURN_IF_ROCBLAS_ERROR((rocblas_trmm_recursive_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
+                                     m1, n, alpha, stride_alpha,
+                                     dA, CALC_OFFSET_A(0, 0), ldda, stride_a,
+                                     dB, CALC_OFFSET_B(0, 0), lddb, stride_b, batch_count)));
+
+
+        RETURN_IF_ROCBLAS_ERROR((rocblas_gemm_template<BATCHED, T>(handle, rocblas_operation_none, rocblas_operation_none,
+                                     m1, n, m2, alpha,
+                                     dA, CALC_OFFSET_A( 0, m1), ldda, stride_a,
+                        (TConstPtr*) dB, CALC_OFFSET_B(m1,  0), lddb, stride_b, &one,
+                                     dB, CALC_OFFSET_B( 0,  0), lddb, stride_b, batch_count)));
+
+        RETURN_IF_ROCBLAS_ERROR((rocblas_trmm_recursive_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
+                                     m2, n, alpha, stride_alpha,
+                                     dA, CALC_OFFSET_A(m1, m1), ldda, stride_a,
+                                     dB, CALC_OFFSET_B(m1,  0), lddb, stride_b, batch_count)));
+    }
+    else if (shape == 2) // lTL | lCL    left, Trans|ConjTrans, Lower
+    {
+        const int m2 = rocblas_get_trmm_recursive_nb(m);
+        const int m1 = m - m2;
+
+        RETURN_IF_ROCBLAS_ERROR((rocblas_trmm_recursive_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
+                                     m1, n, alpha, stride_alpha,
+                                     dA, CALC_OFFSET_A(0, 0), ldda, stride_a,
+                                     dB, CALC_OFFSET_B(0, 0), lddb, stride_b, batch_count)));
+
+        RETURN_IF_ROCBLAS_ERROR((rocblas_gemm_template<BATCHED, T>(handle, trans_a, rocblas_operation_none,
+                                     m1, n, m2, alpha,
+                                     dA, CALC_OFFSET_A(m1, 0), ldda, stride_a,
+                        (TConstPtr*) dB, CALC_OFFSET_B(m1, 0), lddb, stride_b, &one,
+                                     dB, CALC_OFFSET_B( 0, 0), lddb, stride_b, batch_count)));
+
+        RETURN_IF_ROCBLAS_ERROR((rocblas_trmm_recursive_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
+                                     m2, n, alpha, stride_alpha,
+                                     dA, CALC_OFFSET_A(m1, m1), ldda, stride_a,
+                                     dB, CALC_OFFSET_B(m1,  0), lddb, stride_b, batch_count)));
+    }
+    else if (shape == 3) // lTU | lCU     left, Trans|ConjTrans, Upper
+    {
+        const int m1 = rocblas_get_trmm_recursive_nb(m);
+        const int m2 = m - m1;
+
+        RETURN_IF_ROCBLAS_ERROR((rocblas_trmm_recursive_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
+                                     m2, n, alpha, stride_alpha,
+                                     dA, CALC_OFFSET_A(m1, m1), ldda, stride_a,
+                                     dB, CALC_OFFSET_B(m1,  0), lddb, stride_b, batch_count)));
+
+        RETURN_IF_ROCBLAS_ERROR((rocblas_gemm_template<BATCHED, T>(handle, trans_a, rocblas_operation_none,
+                                     m2, n, m1, alpha,
+                                     dA, CALC_OFFSET_A( 0, m1), ldda, stride_a,
+                        (TConstPtr*) dB, CALC_OFFSET_B( 0,  0), lddb, stride_b, &one,
+                                     dB, CALC_OFFSET_B(m1,  0), lddb, stride_b, batch_count)));
+
+        RETURN_IF_ROCBLAS_ERROR((rocblas_trmm_recursive_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
+                                     m1, n, alpha, stride_alpha,
+                                     dA, CALC_OFFSET_A(0, 0), ldda, stride_a,
+                                     dB, CALC_OFFSET_B(0, 0), lddb, stride_b, batch_count)));
+    }
+    else if (shape == 4) // rNL       right, NoTrans, Lower
+    {
+        const int n2 = rocblas_get_trmm_recursive_nb(n);
+        const int n1 = n - n2;
+
+        RETURN_IF_ROCBLAS_ERROR((rocblas_trmm_recursive_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
+                                     m, n1, alpha, stride_alpha,
+                                     dA, CALC_OFFSET_A(0, 0), ldda, stride_a,
+                                     dB, CALC_OFFSET_B(0, 0), lddb, stride_b, batch_count)));
+
+        RETURN_IF_ROCBLAS_ERROR((rocblas_gemm_template<BATCHED, T>(handle, rocblas_operation_none, trans_a,
+                                     m, n1, n2, alpha,
+                        (TConstPtr*) dB, CALC_OFFSET_B( 0, n1), lddb, stride_b,
+                                     dA, CALC_OFFSET_A(n1,  0), ldda, stride_a, &one,
+                                     dB, CALC_OFFSET_B( 0,  0), lddb, stride_b, batch_count)));
+
+        RETURN_IF_ROCBLAS_ERROR((rocblas_trmm_recursive_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
+                                     m, n2, alpha, stride_alpha,
+                                     dA, CALC_OFFSET_A(n1, n1), ldda, stride_a,
+                                     dB, CALC_OFFSET_B( 0, n1), lddb, stride_b, batch_count)));
+    }
+    else if (shape == 5) // rNU       right, NoTrans, Upper
+    {
+        const int n1 = rocblas_get_trmm_recursive_nb(n);
+        const int n2 = n - n1;
+
+        RETURN_IF_ROCBLAS_ERROR((rocblas_trmm_recursive_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
+                                     m, n2, alpha, stride_alpha,
+                                     dA, CALC_OFFSET_A(n1, n1), ldda, stride_a,
+                                     dB, CALC_OFFSET_B( 0, n1), lddb, stride_b, batch_count)));
+
+        RETURN_IF_ROCBLAS_ERROR((rocblas_gemm_template<BATCHED, T>(handle, rocblas_operation_none, trans_a,
+                                     m, n2, n1, alpha,
+                        (TConstPtr*) dB, CALC_OFFSET_B(0,  0), lddb, stride_b,
+                                     dA, CALC_OFFSET_A(0, n1), ldda, stride_a, &one,
+                                     dB, CALC_OFFSET_B(0, n1), lddb, stride_b, batch_count)));
+
+        RETURN_IF_ROCBLAS_ERROR((rocblas_trmm_recursive_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
+                                     m, n1, alpha, stride_alpha,
+                                     dA, CALC_OFFSET_A(0, 0), ldda, stride_a,
+                                     dB, CALC_OFFSET_B(0, 0), lddb, stride_b, batch_count)));
+    }
+    else if (shape == 6) // rTL | rCL      right, Trans|ConjTrans, Lower
+    {
+        const int n1 = rocblas_get_trmm_recursive_nb(n);
+        const int n2 = n - n1;
+
+        RETURN_IF_ROCBLAS_ERROR((rocblas_trmm_recursive_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
+                                     m, n2, alpha, stride_alpha,
+                                     dA, CALC_OFFSET_A(n1, n1), ldda, stride_a,
+                                     dB, CALC_OFFSET_B( 0, n1), lddb, stride_b, batch_count)));
+
+        RETURN_IF_ROCBLAS_ERROR((rocblas_gemm_template<BATCHED, T>(handle, rocblas_operation_none, trans_a,
+                                     m, n2, n1, alpha,
+                        (TConstPtr*) dB, CALC_OFFSET_B( 0,  0), lddb, stride_b,
+                                     dA, CALC_OFFSET_A(n1,  0), ldda, stride_a, &one,
+                                     dB, CALC_OFFSET_B( 0, n1), lddb, stride_b, batch_count)));
+
+        RETURN_IF_ROCBLAS_ERROR((rocblas_trmm_recursive_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
+                                     m, n1, alpha, stride_alpha,
+                                     dA, CALC_OFFSET_A(0, 0), ldda, stride_a,
+                                     dB, CALC_OFFSET_B(0, 0), lddb, stride_b, batch_count)));
+    }
+    else if (shape == 7) // rTU | rCU      right, Trans|ConjTrans, Upper
+    {
+        const int n2 = rocblas_get_trmm_recursive_nb(n);
+        const int n1 = n - n2;
+
+        RETURN_IF_ROCBLAS_ERROR((rocblas_trmm_recursive_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
+                                     m, n1, alpha, stride_alpha,
+                                     dA, CALC_OFFSET_A(0, 0), ldda, stride_a,
+                                     dB, CALC_OFFSET_B(0, 0), lddb, stride_b, batch_count)));
+
+        RETURN_IF_ROCBLAS_ERROR((rocblas_gemm_template<BATCHED, T>(handle, rocblas_operation_none, trans_a,
+                                     m, n1, n2, alpha,
+                        (TConstPtr*) dB, CALC_OFFSET_B(0, n1), lddb, stride_b,
+                                     dA, CALC_OFFSET_A(0, n1), ldda, stride_a, &one,
+                                     dB, CALC_OFFSET_B(0,  0), lddb, stride_b, batch_count)));
+
+        RETURN_IF_ROCBLAS_ERROR((rocblas_trmm_recursive_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
+                                     m, n2, alpha, stride_alpha,
+                                     dA, CALC_OFFSET_A(n1, n1), ldda, stride_a,
+                                     dB, CALC_OFFSET_B( 0, n1), lddb, stride_b, batch_count)));
+    }
+    else
+    {
+        status = rocblas_status_internal_error;
+    }
+    return status;
 }
+// clang-format on

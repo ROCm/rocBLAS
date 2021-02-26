@@ -99,9 +99,6 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_syr_template(rocblas_handle handl
     // in case of negative inc shift pointer to end of data for negative indexing tid*inc
     auto shiftx = incx < 0 ? offsetx - ptrdiff_t(incx) * (n - 1) : offsetx;
 
-    // Temporarily change the thread's default device ID to the handle's device ID
-    auto saved_device_id = handle->push_device_id();
-
     if(rocblas_pointer_mode_device == handle->pointer_mode)
     {
         hipLaunchKernelGGL((rocblas_syr_kernel<GEMV_DIM_X, GEMV_DIM_Y, T>),

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 /*! \file
@@ -79,6 +79,15 @@ namespace std
 }
 
 #endif
+
+// (4.2) When rocblas API takes input --a/b_type as i8_r,
+// we use --flags (0/1) to determine which TensileType (int8_t or int8x4) to be cast
+// in order to having a way to call gemm_ex_typecasting<?>(),
+// we can define a minimal definition of rocblas_int8x4, and int8 is for MI-kernel
+typedef struct
+{
+    int8_t a, b, c, d;
+} rocblas_int8x4;
 
 // complex types
 #include "rocblas-complex-types.h"
@@ -215,6 +224,9 @@ typedef enum rocblas_gemm_flags_
 {
     /*! \brief Default empty flags */
     rocblas_gemm_flags_none = 0x0,
+    /*! \brief Before ROCm 4.2, this flags is not implemeneted and rocblas uses packed-Int8x4 by default.
+    * After ROCm 4.2, set flag is neccesary if we want packed-Int8x4. Default (0x0) uses unpacked and is for gfx908 GPUs only */
+    rocblas_gemm_flags_pack_int8x4 = 0x1,
 
 } rocblas_gemm_flags;
 
