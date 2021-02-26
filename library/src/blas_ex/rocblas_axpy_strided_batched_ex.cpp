@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "logging.hpp"
 #include "rocblas_axpy_ex.hpp"
@@ -144,16 +144,21 @@ namespace
             }
         }
 
+        static constexpr rocblas_stride stride_0 = 0;
+        static constexpr ptrdiff_t      offset_0 = 0;
         return rocblas_axpy_ex_template<NB, false>(handle,
                                                    n,
                                                    alpha,
                                                    alpha_type,
+                                                   stride_0,
                                                    x,
                                                    x_type,
+                                                   offset_0,
                                                    incx,
                                                    stridex,
                                                    y,
                                                    y_type,
+                                                   offset_0,
                                                    incy,
                                                    stridey,
                                                    batch_count,

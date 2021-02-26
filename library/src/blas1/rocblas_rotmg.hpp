@@ -197,9 +197,6 @@ rocblas_status rocblas_rotmg_template(rocblas_handle handle,
     if(batch_count <= 0)
         return rocblas_status_success;
 
-    // Temporarily change the thread's default device ID to the handle's device ID
-    auto saved_device_id = handle->push_device_id();
-
     hipStream_t rocblas_stream = handle->get_stream();
     if(rocblas_pointer_mode_device == handle->pointer_mode)
     {
@@ -301,9 +298,6 @@ rocblas_status rocblas_rotmg_check_numerics_template(const char*    function_nam
     if(rocblas_pointer_mode_device == handle->pointer_mode)
     {
         hipStream_t rocblas_stream = handle->get_stream();
-
-        // Temporarily change the thread's default device ID to the handle's device ID
-        auto saved_device_id = handle->push_device_id();
 
         auto d_abnormal = handle->device_malloc(sizeof(rocblas_check_numerics_t));
 

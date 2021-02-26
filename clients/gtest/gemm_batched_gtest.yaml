@@ -259,14 +259,14 @@ Tests:
    transA: T, transB: T, M: 256, N: 128, K:  64, alpha: [ .NaN, 2 ], beta: [ .NaN, 2 ] }
 
 
-# TODO: Add int8 precisions by replacing *hpa_half_single_double_precisions with *real_precisions
+# Split *real_precisions into *int8 and *nonint8_real_precisions. Since int8 has flags 0,1
 
 - name: gemm_batched_fortran
   category: quick
   function:
     - gemm_batched: *half_single_double_precisions
     - gemm_batched: *single_double_precisions_complex
-    - gemm_batched_ex: *real_precisions
+    - gemm_batched_ex: *nonint8_real_precisions
     - gemm_batched_ex: *single_double_precisions_complex
   matrix_size: *small_matrix_size_range
   transA_transB: *transA_transB_range
@@ -274,15 +274,36 @@ Tests:
   batch_count: [ -1, 0, 3 ]
   fortran: true
 
+- name: gemm_batched_int8_fortran
+  category: quick
+  function:
+    - gemm_batched_ex: *int8_precision
+  matrix_size: *small_matrix_size_range
+  transA_transB: *transA_transB_range
+  alpha_beta: *alpha_beta_range_small
+  batch_count: [ -1, 0, 3 ]
+  fortran: true
+  flags: [0,1]
+
 - name: gemm_batched_small
   category: quick
   function:
     - gemm_batched: *half_single_double_precisions
-    - gemm_batched_ex: *real_precisions
+    - gemm_batched_ex: *nonint8_real_precisions
   matrix_size: *small_matrix_size_range
   alpha_beta: *alpha_beta_range
   transA_transB: *transA_transB_range
   batch_count: [ -1, 0, 1, 3 ]
+
+- name: gemm_batched_small_int8
+  category: quick
+  function:
+    - gemm_batched_ex: *int8_precision
+  matrix_size: *small_matrix_size_range
+  alpha_beta: *alpha_beta_range
+  transA_transB: *transA_transB_range
+  batch_count: [ -1, 0, 1, 3 ]
+  flags: [0,1]
 
 - name: gemm_batched_small_complex
   category: quick

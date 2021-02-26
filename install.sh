@@ -16,6 +16,7 @@ rocBLAS build & installation helper script
       -h | --help                Print this help message
       -i | --install             Install after build
       -d | --dependencies        Install build dependencies
+           --cleanup             Removes intermediary build artifacts after successful build to reduce disk usage
       -c | --clients             Build library clients too (combines with -i & -d)
            --clients-only        Build only clients with a pre-built library
            --library-path        When only building clients, the path to the pre-built rocBLAS library (default is /opt/rocm/rocblas)
@@ -39,6 +40,7 @@ rocBLAS build & installation helper script
            --static              Create static library instead of shared library
       -v | --rocm-dev            Set specific rocm-dev version
            --[no-]msgpack        Set Tensile backend to use MessagePack
+           --cmake_install       Auto Update CMake to minimum version if required
 EOF
 #           --prefix              Specify an alternate CMAKE_INSTALL_PREFIX for cmake
 }
@@ -164,21 +166,21 @@ install_packages( )
   fi
 
   # dependencies needed to build the rocblas library
-  local library_dependencies_ubuntu=( "make" "cmake"
+  local library_dependencies_ubuntu=( "make" "cmake" "libssl-dev"
                                       "python3" "python3-yaml" "python3-venv" "python3*-pip"
                                       "wget" )
-  local library_dependencies_centos_rhel=( "epel-release"
+  local library_dependencies_centos_rhel=( "epel-release" "openssl-devel"
                                       "make" "cmake3" "rpm-build"
                                       "python34" "python3*-PyYAML" "python3-virtualenv"
                                       "gcc-c++" "wget" )
-  local library_dependencies_centos_rhel_8=( "epel-release"
+  local library_dependencies_centos_rhel_8=( "epel-release" "openssl-devel"
                                       "make" "cmake3" "rpm-build"
                                       "python3" "python3*-PyYAML" "python3-virtualenv"
                                       "gcc-c++" "wget" )
   local library_dependencies_fedora=( "make" "cmake" "rpm-build"
                                       "python34" "python3*-PyYAML" "python3-virtualenv"
                                       "gcc-c++" "libcxx-devel" "wget" )
-  local library_dependencies_sles=(   "make" "cmake" "python3-PyYAML" "python3-virtualenv"
+  local library_dependencies_sles=(   "make" "cmake" "libopenssl-devel" "python3-PyYAML" "python3-virtualenv"
                                       "gcc-c++" "libcxxtools9" "rpm-build" "wget" )
 
   if [[ "${tensile_msgpack_backend}" == true ]]; then
@@ -307,6 +309,7 @@ tensile_tag=
 tensile_test_local_path=
 tensile_version=
 build_library=true
+build_cleanup=false
 build_clients=false
 use_cuda=false
 build_tensile=true
@@ -319,6 +322,7 @@ build_dir=$(readlink -m ./build)
 skip_ld_conf_entry=false
 static_lib=false
 tensile_msgpack_backend=true
+update_cmake=false
 
 rocm_path=/opt/rocm
 if ! [ -z ${ROCM_PATH+x} ]; then
@@ -334,7 +338,7 @@ library_dir_installed=${rocm_path}/rocblas
 # check if we have a modern version of getopt that can handle whitespace and long parameters
 getopt -T
 if [[ $? -eq 4 ]]; then
-  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,clients,clients-only,dependencies,debug,hip-clang,no-hip-clang,merge-files,no-merge-files,no_tensile,no-tensile,tensile-host,no-tensile-host,msgpack,no-msgpack,library-path:,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,static,use-cuda,rocm-dev: --options nsrhicdgl:a:o:f:b:t:u:v: -- "$@")
+  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,cleanup,clients,clients-only,dependencies,debug,hip-clang,no-hip-clang,merge-files,no-merge-files,no_tensile,no-tensile,tensile-host,no-tensile-host,msgpack,no-msgpack,library-path:,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,static,use-cuda,rocm-dev:,cmake_install --options nsrhicdgl:a:o:f:b:t:u:v: -- "$@")
 else
   echo "Need a new version of getopt"
   exit 1
@@ -358,6 +362,9 @@ while true; do
         shift ;;
     -d|--dependencies)
         install_dependencies=true
+        shift ;;
+    --cleanup)
+        build_cleanup=true
         shift ;;
     -c|--clients)
         build_clients=true
@@ -401,7 +408,7 @@ while true; do
         shift ;;
     --build_dir)
 #use readlink rather than realpath for CentOS 6.10 support
-	build_dir=$(readlink -m ${2})
+        build_dir=$(readlink -m ${2})
         shift 2;;
     --use-cuda)
         use_cuda=true
@@ -441,6 +448,9 @@ while true; do
         shift ;;
     --no-msgpack)
         tensile_msgpack_backend=false
+        shift ;;
+    --cmake_install)
+        update_cmake=true
         shift ;;
     --) shift ; break ;;
     *)  echo "Unexpected command line parameter received; aborting";
@@ -535,6 +545,24 @@ fi
 # #################################################
 if [[ "${install_dependencies}" == true ]]; then
   install_packages
+
+  CMAKE_VERSION=$(cmake --version | grep -oP '(?<=version )[^ ]*' )
+  if $(dpkg --compare-versions $CMAKE_VERSION lt 3.16.8); then
+      if $update_cmake == true; then
+        CMAKE_REPO="https://github.com/Kitware/CMake/releases/download/v3.16.8/"
+        wget -nv ${CMAKE_REPO}/cmake-3.16.8.tar.gz
+        tar -xvf cmake-3.16.8.tar.gz
+        cd cmake-3.16.8
+        ./bootstrap --prefix=/usr --no-system-curl --parallel=16
+        make -j16
+        sudo make install
+        cd ..
+        rm -rf cmake-3.16.8.tar.gz cmake-3.16.8
+      else
+          echo "rocBLAS requires CMake version >= 3.16.8 and CMake version ${CMAKE_VERSION} is installed. Run install.sh again with --cmake_install flag and CMake version ${CMAKE_VERSION} will be uninstalled and CMake version 3.16.8 will be installed"
+          exit 2
+      fi
+  fi
 
   if [[ "${build_clients}" == true ]]; then
 
@@ -680,4 +708,13 @@ pushd .
     esac
 
   fi
+  check_exit_code "$?"
+
+  if [[ "${cleanup}" == true ]]; then
+      find -name '*.o' -delete
+      find -type d -name '*build_tmp*' -exec rm -rf {} +
+      find -type d -name '*_CPack_Packages*' -exec rm -rf {} +
+  fi
+  check_exit_code "$?"
+
 popd

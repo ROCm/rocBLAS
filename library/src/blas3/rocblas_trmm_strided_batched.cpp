@@ -1,11 +1,16 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "handle.hpp"
 #include "logging.hpp"
 #include "rocblas.h"
 #include "rocblas_trmm.hpp"
 #include "utility.hpp"
+
+#define STRMM_STRIDED_BATCHED_STOPPING_NB 32
+#define DTRMM_STRIDED_BATCHED_STOPPING_NB 32
+#define CTRMM_STRIDED_BATCHED_STOPPING_NB 16
+#define ZTRMM_STRIDED_BATCHED_STOPPING_NB 16
 
 namespace
 {
@@ -22,7 +27,7 @@ namespace
     constexpr char rocblas_trmm_strided_batched_name<rocblas_double_complex>[]
         = "rocblas_ztrmm_strided_batched";
 
-    template <typename T>
+    template <int STOPPING_NB, typename T>
     rocblas_status rocblas_trmm_strided_batched_impl(rocblas_handle    handle,
                                                      rocblas_side      side,
                                                      rocblas_fill      uplo,
@@ -42,24 +47,10 @@ namespace
         if(!handle)
             return rocblas_status_invalid_handle;
 
-        // gemm based trmm block sizes
-        constexpr rocblas_int RB = 128;
-        constexpr rocblas_int CB = 128;
+        RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
-        // work arrays dt1 and dt2 are used in trmm
-        rocblas_int size_dt1 = RB * CB;
-        rocblas_int size_dt2 = CB * CB;
-
-        size_t dev_bytes = (size_dt1 + size_dt2) * batch_count * sizeof(T);
-        if(handle->is_device_memory_size_query())
-        {
-            if(m == 0 || n == 0 || batch_count == 0)
-                return rocblas_status_size_unchanged;
-
-            return handle->set_optimal_device_memory_size(dev_bytes);
-        }
-
-        // Copy alpha and beta to host if on device
+        // Copy alpha and beta to host if on device. This is because gemm is called and it
+        // requires alpha and beta to be on host
         T        alpha_h, beta_h;
         const T* beta = nullptr;
         RETURN_IF_ROCBLAS_ERROR(
@@ -158,37 +149,79 @@ namespace
         if(m == 0 || n == 0 || batch_count == 0)
             return rocblas_status_success;
 
-        if(!b || !alpha || (!a && *alpha))
+        if(!b || !alpha)
             return rocblas_status_invalid_pointer;
 
-        auto mem = handle->device_malloc(dev_bytes);
-        if(!mem)
-            return rocblas_status_memory_error;
+        rocblas_int    offset_a     = 0;
+        rocblas_int    offset_b     = 0;
+        rocblas_stride stride_alpha = 0;
 
-        rocblas_stride stride_mem = size_dt1 + size_dt2;
+        if(rocblas_pointer_mode_host == handle->pointer_mode && 0 == *alpha)
+        {
+            PRINT_AND_RETURN_IF_ROCBLAS_ERROR(set_matrix_zero_if_alpha_zero_template(
+                handle, m, n, alpha, 0, b, offset_b, ldb, stride_b, batch_count));
+            return rocblas_status_success;
+        }
+        else if(rocblas_pointer_mode_device == handle->pointer_mode)
+        {
+            // set matrix to zero and continue calculation. This will give
+            // the same functionality as Legacy BLAS. alpha is on device and
+            // it should not be copied from device to host because this is
+            // an asynchronous function and the copy would make it synchronous.
+            PRINT_AND_RETURN_IF_ROCBLAS_ERROR(set_matrix_zero_if_alpha_zero_template(
+                handle, m, n, alpha, 0, b, offset_b, ldb, stride_b, batch_count));
+        }
 
-        rocblas_int offset_a = 0;
-        rocblas_int offset_b = 0;
+        if(rocblas_pointer_mode_host == handle->pointer_mode && !a)
+            return rocblas_status_invalid_pointer;
 
-        return rocblas_trmm_template<false, RB, CB, T>(handle,
-                                                       side,
-                                                       uplo,
-                                                       transa,
-                                                       diag,
-                                                       m,
-                                                       n,
-                                                       alpha,
-                                                       a,
-                                                       offset_a,
-                                                       lda,
-                                                       stride_a,
-                                                       b,
-                                                       offset_b,
-                                                       ldb,
-                                                       stride_b,
-                                                       batch_count,
-                                                       (T*)mem,
-                                                       stride_mem);
+        rocblas_int a_row       = rocblas_side_left == side ? m : n;
+        bool        i64_indices = (a_row * size_t(lda) > std::numeric_limits<rocblas_int>::max())
+                           || (m * size_t(ldb) > std::numeric_limits<rocblas_int>::max());
+
+        if(i64_indices)
+        {
+            rocblas_trmm_recursive_template<STOPPING_NB, false, T>(handle,
+                                                                   side,
+                                                                   uplo,
+                                                                   transa,
+                                                                   diag,
+                                                                   m,
+                                                                   n,
+                                                                   alpha,
+                                                                   stride_alpha,
+                                                                   a,
+                                                                   size_t(offset_a),
+                                                                   size_t(lda),
+                                                                   stride_a,
+                                                                   b,
+                                                                   size_t(offset_b),
+                                                                   size_t(ldb),
+                                                                   stride_b,
+                                                                   batch_count);
+        }
+        else
+        {
+            rocblas_trmm_recursive_template<STOPPING_NB, false, T>(handle,
+                                                                   side,
+                                                                   uplo,
+                                                                   transa,
+                                                                   diag,
+                                                                   m,
+                                                                   n,
+                                                                   alpha,
+                                                                   stride_alpha,
+                                                                   a,
+                                                                   offset_a,
+                                                                   lda,
+                                                                   stride_a,
+                                                                   b,
+                                                                   offset_b,
+                                                                   ldb,
+                                                                   stride_b,
+                                                                   batch_count);
+        }
+        return rocblas_status_success;
     }
 
 } // namespace
@@ -218,21 +251,21 @@ rocblas_status rocblas_strmm_strided_batched(rocblas_handle    handle,
                                              rocblas_int       batch_count)
 try
 {
-    return rocblas_trmm_strided_batched_impl(handle,
-                                             side,
-                                             uplo,
-                                             transa,
-                                             diag,
-                                             m,
-                                             n,
-                                             alpha,
-                                             a,
-                                             lda,
-                                             stride_a,
-                                             b,
-                                             ldb,
-                                             stride_b,
-                                             batch_count);
+    return rocblas_trmm_strided_batched_impl<STRMM_STRIDED_BATCHED_STOPPING_NB>(handle,
+                                                                                side,
+                                                                                uplo,
+                                                                                transa,
+                                                                                diag,
+                                                                                m,
+                                                                                n,
+                                                                                alpha,
+                                                                                a,
+                                                                                lda,
+                                                                                stride_a,
+                                                                                b,
+                                                                                ldb,
+                                                                                stride_b,
+                                                                                batch_count);
 }
 catch(...)
 {
@@ -256,21 +289,21 @@ rocblas_status rocblas_dtrmm_strided_batched(rocblas_handle    handle,
                                              rocblas_int       batch_count)
 try
 {
-    return rocblas_trmm_strided_batched_impl(handle,
-                                             side,
-                                             uplo,
-                                             transa,
-                                             diag,
-                                             m,
-                                             n,
-                                             alpha,
-                                             a,
-                                             lda,
-                                             stride_a,
-                                             b,
-                                             ldb,
-                                             stride_b,
-                                             batch_count);
+    return rocblas_trmm_strided_batched_impl<DTRMM_STRIDED_BATCHED_STOPPING_NB>(handle,
+                                                                                side,
+                                                                                uplo,
+                                                                                transa,
+                                                                                diag,
+                                                                                m,
+                                                                                n,
+                                                                                alpha,
+                                                                                a,
+                                                                                lda,
+                                                                                stride_a,
+                                                                                b,
+                                                                                ldb,
+                                                                                stride_b,
+                                                                                batch_count);
 }
 catch(...)
 {
@@ -294,21 +327,21 @@ rocblas_status rocblas_ctrmm_strided_batched(rocblas_handle               handle
                                              rocblas_int                  batch_count)
 try
 {
-    return rocblas_trmm_strided_batched_impl(handle,
-                                             side,
-                                             uplo,
-                                             transa,
-                                             diag,
-                                             m,
-                                             n,
-                                             alpha,
-                                             a,
-                                             lda,
-                                             stride_a,
-                                             b,
-                                             ldb,
-                                             stride_b,
-                                             batch_count);
+    return rocblas_trmm_strided_batched_impl<CTRMM_STRIDED_BATCHED_STOPPING_NB>(handle,
+                                                                                side,
+                                                                                uplo,
+                                                                                transa,
+                                                                                diag,
+                                                                                m,
+                                                                                n,
+                                                                                alpha,
+                                                                                a,
+                                                                                lda,
+                                                                                stride_a,
+                                                                                b,
+                                                                                ldb,
+                                                                                stride_b,
+                                                                                batch_count);
 }
 catch(...)
 {
@@ -332,21 +365,21 @@ rocblas_status rocblas_ztrmm_strided_batched(rocblas_handle                handl
                                              rocblas_int                   batch_count)
 try
 {
-    return rocblas_trmm_strided_batched_impl(handle,
-                                             side,
-                                             uplo,
-                                             transa,
-                                             diag,
-                                             m,
-                                             n,
-                                             alpha,
-                                             a,
-                                             lda,
-                                             stride_a,
-                                             b,
-                                             ldb,
-                                             stride_b,
-                                             batch_count);
+    return rocblas_trmm_strided_batched_impl<ZTRMM_STRIDED_BATCHED_STOPPING_NB>(handle,
+                                                                                side,
+                                                                                uplo,
+                                                                                transa,
+                                                                                diag,
+                                                                                m,
+                                                                                n,
+                                                                                alpha,
+                                                                                a,
+                                                                                lda,
+                                                                                stride_a,
+                                                                                b,
+                                                                                ldb,
+                                                                                stride_b,
+                                                                                batch_count);
 }
 catch(...)
 {

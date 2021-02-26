@@ -234,6 +234,7 @@ Dependencies
 
 Dependencies are listed in the script install.sh. The -d flag to install.sh installs dependencies.
 
+CMake has a minimum version requirement listed in the file install.sh. See --cmake_install flag in install.sh to upgrade automatically.
 
 Use of Tensile
 ==============

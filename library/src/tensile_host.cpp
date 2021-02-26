@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2019-2020 Advanced Micro Devices, Inc.
+ * Copyright 2019-2021 Advanced Micro Devices, Inc.
  * ************************************************************************/
 
 // The implementation of the rocBLAS<->Tensile interface layer.
@@ -78,8 +78,15 @@ namespace
         using tensile_type = Tensile::BFloat16;
     };
 
+    // int8_t -> int8_t (supported for MI-kernel) / rocblas_int8x4 -> PackedInt8x4
     template <>
     struct rocblas_to_tensile_type<int8_t>
+    {
+        using tensile_type = int8_t;
+    };
+
+    template <>
+    struct rocblas_to_tensile_type<rocblas_int8x4>
     {
         using tensile_type = Tensile::Int8x4;
     };
@@ -90,8 +97,12 @@ namespace
     template <typename>
     constexpr auto tensile_datatype = nullptr;
 
+    // int8_t -> int8_t (supported for MI-kernel) / rocblas_int8x4 -> PackedInt8x4
     template <>
-    constexpr auto tensile_datatype<int8_t> = Tensile::DataType::Int8x4;
+    constexpr auto tensile_datatype<int8_t> = Tensile::DataType::Int8;
+
+    template <>
+    constexpr auto tensile_datatype<rocblas_int8x4> = Tensile::DataType::Int8x4;
 
     template <>
     constexpr auto tensile_datatype<int32_t> = Tensile::DataType::Int32;
@@ -127,6 +138,7 @@ namespace
         // Tensile DataTypes corresponding to rocBLAS data types
         static constexpr Tensile::DataType Tensile_Ti = tensile_datatype<Ti>;
         static constexpr Tensile::DataType Tensile_To = tensile_datatype<To>;
+        static constexpr Tensile::DataType Tensile_Tc = tensile_datatype<Tc>;
 
         // Tensor descriptors for a, b
         Tensile::TensorDescriptor a, b;
@@ -158,7 +170,8 @@ namespace
             a = {
                     Tensile_Ti,
                     {k, prob.m, prob.batch_count},
-                    {prob.row_stride_a, prob.col_stride_a, prob.batch_stride_a}
+                    {prob.row_stride_a, prob.col_stride_a, prob.batch_stride_a},
+                    prob.buffer_offset_a
                 };
             freeIndex[0].i  = 1;
             boundIndex[0].a = 0;
@@ -168,7 +181,8 @@ namespace
             a = {
                     Tensile_Ti,
                     {prob.m, k, prob.batch_count},
-                    {prob.row_stride_a, prob.col_stride_a, prob.batch_stride_a}
+                    {prob.row_stride_a, prob.col_stride_a, prob.batch_stride_a},
+                    prob.buffer_offset_a
                 };
             freeIndex[0].i  = 0;
             boundIndex[0].a = 1;
@@ -184,7 +198,8 @@ namespace
             b = {
                     Tensile_Ti,
                     {prob.n, k, prob.batch_count},
-                    {prob.row_stride_b, prob.col_stride_b, prob.batch_stride_b}
+                    {prob.row_stride_b, prob.col_stride_b, prob.batch_stride_b},
+                    prob.buffer_offset_b
                 };
             freeIndex[1].i  = 0;
             boundIndex[0].b = 1;
@@ -194,7 +209,8 @@ namespace
             b = {
                     Tensile_Ti,
                     {k, prob.n, prob.batch_count},
-                    {prob.row_stride_b, prob.col_stride_b, prob.batch_stride_b}
+                    {prob.row_stride_b, prob.col_stride_b, prob.batch_stride_b},
+                    prob.buffer_offset_b
                 };
             freeIndex[1].i  = 1;
             boundIndex[0].b = 0;
@@ -209,12 +225,14 @@ namespace
         // Descriptor for input matrix C
         Tensile::TensorDescriptor c{Tensile_To,
                                     {prob.m, prob.n, prob.batch_count},
-                                    {prob.row_stride_c, prob.col_stride_c, prob.batch_stride_c}};
+                                    {prob.row_stride_c, prob.col_stride_c, prob.batch_stride_c},
+                                    prob.buffer_offset_c};
 
         // Descriptor for output matrix D
         Tensile::TensorDescriptor d{Tensile_To,
                                     {prob.m, prob.n, prob.batch_count},
-                                    {prob.row_stride_d, prob.col_stride_d, prob.batch_stride_d}};
+                                    {prob.row_stride_d, prob.col_stride_d, prob.batch_stride_d},
+                                    prob.buffer_offset_d};
 
         // Size of GSU workspace. We set it to max size_t if this is a size query.
         size_t workspace_size
@@ -238,12 +256,21 @@ namespace
                                                    value_category(*prob.beta),
                                                    workspace_size};
 
+        // Open these two when we're ready to migrate from <HHH+HPA> to <HHS+HPA>
+        // tensileProblem.setAlphaType(Tensile_Tc);
+        // tensileProblem.setBetaType(Tensile_Tc);
+
         // HPA is active iff sizeof(compute type) > sizeof(input type)
-        tensileProblem.setHighPrecisionAccumulate(sizeof(Tc) > sizeof(Ti));
+        // but when Ti=int8x4 (32-byte),we still need to use HPA since the primitive data is int8
+        tensileProblem.setHighPrecisionAccumulate(sizeof(Tc) > sizeof(Ti)
+                                                  || std::is_same<Ti, rocblas_int8x4>{});
 
         // Pass atomics mode to Tensile interface
         tensileProblem.setDeterministicMode(prob.handle->atomics_mode
                                             == rocblas_atomics_not_allowed);
+
+        // set batch mode
+        tensileProblem.setStridedBatched(prob.strided_batch);
 
         return tensileProblem;
     }
@@ -269,6 +296,8 @@ namespace
     /**************************************************************
      * Tensile does not support float alpha and beta for HPA half *
      * We must convert alpha and beta from float to half          *
+     * TODO- Tensile supports HHS HPA now                         *
+     * We could plan to use HHS+HPA instead of this workaround    *
      **************************************************************/
     template <>
     struct AlphaBeta<rocblas_half, rocblas_half, float>
@@ -293,9 +322,8 @@ namespace
         using Tensile_Talpha_beta = typename AlphaBeta<Ti, To, Tc>::tensile_type;
 
         // Make sure rocBLAS and Tensile types are compatible
-        // For int8_t we allow the sizes to differ, assuming alignment
-        static_assert((sizeof(Tensile_Ti) == sizeof(Ti) || std::is_same<Ti, int8_t>{})
-                          && sizeof(Tensile_To) == sizeof(To),
+        // (Even if Ti=rocblas_int8x4, Tensile_Ti=Int8x4, they are both 32-byte)
+        static_assert(sizeof(Tensile_Ti) == sizeof(Ti) && sizeof(Tensile_To) == sizeof(To),
                       "Tensile and rocBLAS types are not the same size");
 
         static_assert(std::is_standard_layout<Ti>{} && std::is_standard_layout<Tensile_Ti>{}
@@ -316,6 +344,11 @@ namespace
         inputs.b = reinterpret_cast<const Tensile_Ti*>(prob.B);
         inputs.c = reinterpret_cast<const Tensile_To*>(prob.C);
         inputs.d = reinterpret_cast<Tensile_To*>(prob.D);
+
+        inputs.batchA = reinterpret_cast<Tensile_Ti const* const*>(prob.batch_A);
+        inputs.batchB = reinterpret_cast<Tensile_Ti const* const*>(prob.batch_B);
+        inputs.batchC = reinterpret_cast<Tensile_To const* const*>(prob.batch_C);
+        inputs.batchD = reinterpret_cast<Tensile_To* const*>(prob.batch_D);
 
         // Set the GSU workspace
         inputs.ws = prob.handle->gsu_workspace;
@@ -339,6 +372,7 @@ namespace
     {
         // The library object
         std::shared_ptr<Tensile::MasterSolutionLibrary<Tensile::ContractionProblem>> m_library;
+        std::shared_ptr<hipDeviceProp_t>                                             m_deviceProp;
 
         // The adapter object. mutable is used to allow adapters to be modified
         // even when they are stored in a const vector which is immutable in size
@@ -389,6 +423,11 @@ namespace
             return m_library;
         }
 
+        auto& get_device_property() const
+        {
+            return m_deviceProp;
+        }
+
         auto& get_adapters() const
         {
             return m_adapters;
@@ -406,7 +445,7 @@ namespace
          * Initialize adapter and library according to environment variables *
          * and default paths based on librocblas.so location and GPU         *
          *********************************************************************/
-        void initialize(Tensile::hip::SolutionAdapter& adapter)
+        void initialize(Tensile::hip::SolutionAdapter& adapter, rocblas_int deviceId)
         {
             std::string path;
             path.reserve(PATH_MAX);
@@ -512,20 +551,27 @@ namespace
                              << std::endl;
                 rocblas_abort();
             }
+
+            hipDeviceProp_t prop;
+            HIP_CHECK_EXC(hipGetDeviceProperties(&prop, deviceId));
+
+            m_deviceProp = std::make_shared<hipDeviceProp_t>(prop);
         }
     };
 
     // Return the library and adapter for the current HIP device
     auto& get_library_and_adapter(
         std::shared_ptr<Tensile::MasterSolutionLibrary<Tensile::ContractionProblem>>* library
-        = nullptr)
+        = nullptr,
+        std::shared_ptr<hipDeviceProp_t>* deviceProp = nullptr,
+        int                               device     = -1)
     try
     {
         // TensileHost is initialized on the first call
         static TensileHost host;
 
-        int device;
-        hipGetDevice(&device);
+        if(device == -1)
+            hipGetDevice(&device);
 
         // Adapter entry for the current HIP device ID
         auto& a       = host.get_adapters().at(device);
@@ -544,7 +590,7 @@ namespace
                 adapter = new Tensile::hip::SolutionAdapter;
 
                 // Initialize the adapter and possibly the library
-                host.initialize(*adapter);
+                host.initialize(*adapter, device);
 
                 // Atomically change the adapter stored for this device ID
                 a.adapter.store(adapter, std::memory_order_release);
@@ -554,6 +600,8 @@ namespace
         // If an adapter is found, it is assumed that the library is initialized
         if(library)
             *library = host.get_library();
+        if(deviceProp)
+            *deviceProp = host.get_device_property();
 
         return *adapter;
     }
@@ -606,8 +654,12 @@ rocblas_status runContractionProblem(const RocblasContractionProblem<Ti, To, Tc>
     try
     {
         std::shared_ptr<Tensile::MasterSolutionLibrary<Tensile::ContractionProblem>> library;
-        auto& adapter       = get_library_and_adapter(&library);
-        auto  hardware      = Tensile::hip::GetCurrentDevice();
+        std::shared_ptr<hipDeviceProp_t>                                             deviceProp;
+        std::shared_ptr<Tensile::Hardware>                                           hardware;
+
+        auto& adapter = get_library_and_adapter(&library, &deviceProp, prob.handle->getDevice());
+
+        hardware            = Tensile::hip::GetDevice(*deviceProp);
         auto  tensile_prob  = ConstructTensileProblem(prob);
         auto  handle        = prob.handle;
         auto* fitness_query = handle->get_solution_fitness_query();
@@ -701,6 +753,9 @@ template rocblas_status
 
 template rocblas_status
     runContractionProblem(const RocblasContractionProblem<int8_t, int32_t, int32_t>&);
+
+template rocblas_status
+    runContractionProblem(const RocblasContractionProblem<rocblas_int8x4, int32_t, int32_t>&);
 
 /***********************************************************************************
  * Whether Tensile has been initialized for at least one device (used for testing) *

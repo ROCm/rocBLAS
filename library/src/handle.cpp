@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "handle.hpp"
 #include <cstdarg>
@@ -24,18 +24,27 @@ extern "C" void rocblas_device_malloc_set_default_memory_size(size_t size)
     t_rocblas_device_malloc_default_memory_size = size;
 }
 
-static inline int getDevice()
+static inline int getActiveDevice()
 {
     int device;
     THROW_IF_HIP_ERROR(hipGetDevice(&device));
     return device;
 }
 
+static inline int getActiveArch(int deviceId)
+{
+    hipDeviceProp_t deviceProperties;
+    hipGetDeviceProperties(&deviceProperties, deviceId);
+    return deviceProperties.gcnArch;
+}
+
 /*******************************************************************************
  * constructor
  ******************************************************************************/
 _rocblas_handle::_rocblas_handle()
-    : device(getDevice()) // active device is handle device
+    : device(getActiveDevice())
+    , // active device is handle device
+    arch(getActiveArch(device))
 {
 #if BUILD_WITH_TENSILE
 #ifndef USE_TENSILE_HOST

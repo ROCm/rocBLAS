@@ -399,6 +399,42 @@ template <typename T>
 inline rocblas_status call_tensile(rocblas_handle    handle,
                                    const T*          alpha,
                                    const T*          beta,
+                                   const T* const*   batchA,
+                                   const T* const*   batchB,
+                                   T* const*         batchC,
+                                   rocblas_operation trans_a,
+                                   rocblas_operation trans_b,
+                                   rocblas_int       ld_c,
+                                   rocblas_stride    stride_c,
+                                   rocblas_int       offset_c,
+                                   rocblas_int       ld_a,
+                                   rocblas_stride    stride_a,
+                                   rocblas_int       offset_a,
+                                   rocblas_int       ld_b,
+                                   rocblas_stride    stride_b,
+                                   rocblas_int       offset_b,
+                                   rocblas_int       m,
+                                   rocblas_int       n,
+                                   rocblas_int       k,
+                                   rocblas_int       batch_count = 1)
+{
+
+#ifdef USE_TENSILE_HOST
+    RocblasContractionProblem<T> problem{
+        handle,  trans_a,  trans_b,  m,        n,        k,           alpha,    nullptr,  batchA,
+        ld_a,    stride_a, offset_a, nullptr,  batchB,   ld_b,        stride_b, offset_b, beta,
+        nullptr, batchC,   ld_c,     stride_c, offset_c, batch_count, false};
+
+    return runContractionProblem(problem);
+#else
+    return rocblas_status_not_implemented;
+#endif // USE_TENSILE_HOST
+}
+
+template <typename T>
+inline rocblas_status call_tensile(rocblas_handle    handle,
+                                   const T*          alpha,
+                                   const T*          beta,
                                    const T*          A,
                                    const T*          B,
                                    T*                C,
@@ -406,37 +442,25 @@ inline rocblas_status call_tensile(rocblas_handle    handle,
                                    rocblas_operation trans_b,
                                    rocblas_int       ld_c,
                                    rocblas_stride    stride_c,
+                                   rocblas_int       offset_c,
                                    rocblas_int       ld_a,
                                    rocblas_stride    stride_a,
+                                   rocblas_int       offset_a,
                                    rocblas_int       ld_b,
                                    rocblas_stride    stride_b,
+                                   rocblas_int       offset_b,
                                    rocblas_int       m,
                                    rocblas_int       n,
                                    rocblas_int       k,
                                    rocblas_int       batch_count = 1)
-
 {
 
 #ifdef USE_TENSILE_HOST
 
-    RocblasContractionProblem<T> problem{handle,
-                                         trans_a,
-                                         trans_b,
-                                         m,
-                                         n,
-                                         k,
-                                         alpha,
-                                         A,
-                                         ld_a,
-                                         stride_a,
-                                         B,
-                                         ld_b,
-                                         stride_b,
-                                         beta,
-                                         C,
-                                         ld_c,
-                                         stride_c,
-                                         batch_count};
+    RocblasContractionProblem<T> problem{
+        handle, trans_a,  trans_b,  m,        n,        k,           alpha,    A,        nullptr,
+        ld_a,   stride_a, offset_a, B,        nullptr,  ld_b,        stride_b, offset_b, beta,
+        C,      nullptr,  ld_c,     stride_c, offset_c, batch_count, true};
 
     return runContractionProblem(problem);
 
@@ -532,7 +556,6 @@ inline rocblas_status validateArgs(rocblas_handle    handle,
  *    template interface
  * ===========================================================================
  */
-
 template <bool BATCHED, typename T, typename U, typename V>
 ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_gemm_template(rocblas_handle    handle,
                                                              rocblas_operation trans_a,
@@ -560,9 +583,6 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_gemm_template(rocblas_handle    h
     if(m == 0 || n == 0 || batch_count == 0)
         return rocblas_status_success;
 
-    // Temporarily change the thread's default device ID to the handle's device ID
-    auto saved_device_id = handle->push_device_id();
-
     T alpha_h, beta_h;
     RETURN_IF_ROCBLAS_ERROR(
         copy_alpha_beta_to_host_if_on_device(handle, alpha, beta, alpha_h, beta_h, k));
@@ -571,74 +591,27 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_gemm_template(rocblas_handle    h
     if(*beta == 1 && (k == 0 || *alpha == 0))
         return rocblas_status_success;
 
-    rocblas_status status = rocblas_status_success;
-
-    // TODO: Use C++17 constexpr if
-    if(BATCHED)
-    {
-        // We cannot do this with a device array, so array of pointers must be on host for now
-
-        // Host arrays of device pointers.
-        auto hostA = std::make_unique<T*[]>(batch_count);
-        auto hostB = std::make_unique<T*[]>(batch_count);
-        auto hostC = std::make_unique<T*[]>(batch_count);
-
-        RETURN_IF_HIP_ERROR(
-            hipMemcpy(&hostA[0], A, sizeof(T*) * batch_count, hipMemcpyDeviceToHost));
-        RETURN_IF_HIP_ERROR(
-            hipMemcpy(&hostB[0], B, sizeof(T*) * batch_count, hipMemcpyDeviceToHost));
-        RETURN_IF_HIP_ERROR(
-            hipMemcpy(&hostC[0], C, sizeof(T*) * batch_count, hipMemcpyDeviceToHost));
-
-        for(rocblas_int b = 0; b < batch_count; b++)
-        {
-            status = call_tensile(handle,
-                                  alpha,
-                                  beta,
-                                  hostA[b] + offset_a,
-                                  hostB[b] + offset_b,
-                                  hostC[b] + offset_c,
-                                  trans_a,
-                                  trans_b,
-                                  ld_c,
-                                  stride_c,
-                                  ld_a,
-                                  stride_a,
-                                  ld_b,
-                                  stride_b,
-                                  m,
-                                  n,
-                                  k);
-
-            if(status != rocblas_status_success)
-                break;
-        }
-    }
-    else
-    {
-        // The (T*) casts are to prevent template deduction errors when BATCHED==true and the A, B, C
-        // pointers are pointers to arrays of pointers. constexpr if(BATCHED) above could avoid this.
-        status = call_tensile(handle,
-                              alpha,
-                              beta,
-                              (T*)A + offset_a,
-                              (T*)B + offset_b,
-                              (T*)C + offset_c,
-                              trans_a,
-                              trans_b,
-                              ld_c,
-                              stride_c,
-                              ld_a,
-                              stride_a,
-                              ld_b,
-                              stride_b,
-                              m,
-                              n,
-                              k,
-                              batch_count);
-    }
-
-    return status;
+    return call_tensile(handle,
+                        alpha,
+                        beta,
+                        A,
+                        B,
+                        C,
+                        trans_a,
+                        trans_b,
+                        ld_c,
+                        stride_c,
+                        offset_c,
+                        ld_a,
+                        stride_a,
+                        offset_a,
+                        ld_b,
+                        stride_b,
+                        offset_b,
+                        m,
+                        n,
+                        k,
+                        batch_count);
 }
 
 template <typename T, typename U>

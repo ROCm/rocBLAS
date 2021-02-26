@@ -173,7 +173,7 @@ void testing_copy_strided_batched(const Arguments& arg)
             rocblas_cout,
             arg,
             gpu_time_used,
-            copy_gflop_count<T>(N),
+            ArgumentLogging::NA_value,
             copy_gbyte_count<T>(N),
             cpu_time_used,
             rocblas_error);
