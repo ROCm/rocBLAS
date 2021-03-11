@@ -641,6 +641,18 @@ namespace
 
 } // namespace
 
+Tensile::PerformanceMetric performanceMetricMap(rocblas_performance_metric metric)
+{
+    switch(metric)
+    {
+    case rocblas_cu_efficiency_performance_metric:
+        return Tensile::PerformanceMetric::CUEfficiency;
+    case rocblas_device_efficiency_performance_metric:
+    default:
+        return Tensile::PerformanceMetric::DeviceEfficiency;
+    }
+}
+
 /******************************************************************************
  * runContractionProblem calls Tensile to run a contraction problem described *
  * by RocblasContractionProblem                                               *
@@ -663,7 +675,13 @@ rocblas_status runContractionProblem(const RocblasContractionProblem<Ti, To, Tc>
         auto  tensile_prob  = ConstructTensileProblem(prob);
         auto  handle        = prob.handle;
         auto* fitness_query = handle->get_solution_fitness_query();
-        solution            = library->findBestSolution(tensile_prob, *hardware, fitness_query);
+
+        rocblas_performance_metric metric;
+        rocblas_get_performance_metric(handle, &metric);
+        if(metric != rocblas_default_performance_metric)
+            tensile_prob.setPerformanceMetric(performanceMetricMap(metric));
+
+        solution = library->findBestSolution(tensile_prob, *hardware, fitness_query);
 
         if(!solution)
         {

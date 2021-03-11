@@ -200,6 +200,19 @@ typedef enum rocblas_atomics_mode_
     rocblas_atomics_allowed = 1,
 } rocblas_atomics_mode;
 
+/*! \brief Indicates which performance metric Tensile uses when selecting the optimal
+*    solution for gemm problems.  */
+typedef enum rocblas_performance_metric_
+{
+    /*! \brief Use Tensile's default performance metric for solution selection */
+    rocblas_default_performance_metric = 0,
+    /*! \brief Select the solution with the highest GFlops across all compute units */
+    rocblas_device_efficiency_performance_metric = 1,
+    /*! \brief Select the solution with the highest GFlops per compute unit it uses. This
+     * may be useful when running multiple small gemm problems simultaneously  */
+    rocblas_cu_efficiency_performance_metric = 2
+} rocblas_performance_metric;
+
 /*! \brief Indicates if layer is active with bitmask*/
 typedef enum rocblas_layer_mode_
 {
