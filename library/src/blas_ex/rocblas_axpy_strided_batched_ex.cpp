@@ -146,7 +146,8 @@ namespace
 
         static constexpr rocblas_stride stride_0 = 0;
         static constexpr ptrdiff_t      offset_0 = 0;
-        return rocblas_axpy_ex_template<NB, false>(handle,
+        return rocblas_axpy_ex_template<NB, false>(name,
+                                                   handle,
                                                    n,
                                                    alpha,
                                                    alpha_type,
