@@ -1,5 +1,5 @@
 # ########################################################################
-# Copyright 2016-2020 Advanced Micro Devices, Inc.
+# Copyright 2016-2021 Advanced Micro Devices, Inc.
 # ########################################################################
 
 # ########################################################################
@@ -496,6 +496,11 @@ endif( )
 # Force installation of .f90 module file
 install(FILES "../include/rocblas_module.f90"
         DESTINATION "rocblas/include"
+)
+
+# Force installation of LICENSE.md
+install(FILES "../../LICENSE.md"
+	DESTINATION "share/doc/rocBLAS"
 )
 
 rocm_install_targets(
