@@ -152,7 +152,7 @@ set(CMAKE_INSTALL_LIBDIR "lib" CACHE INTERNAL "Installation directory for librar
 
 if(NOT SKIP_LIBRARY)
   set( Tensile_ARCHITECTURE "all" CACHE STRING "Tensile to use which architecture?")
-  set_property( CACHE Tensile_ARCHITECTURE PROPERTY STRINGS all gfx803 gfx900 gfx906:xnack- gfx908:xnack-)
+  set_property( CACHE Tensile_ARCHITECTURE PROPERTY STRINGS all gfx803 gfx900 gfx906:xnack- gfx908:xnack- gfx90a:xnack+ gfx90a:xnack-)
   # -DTensile_ARCHITECTURE= set by install.sh for builds with and without tensile
 
   # Detect if target ID syntax if supported for default all AMDGPU_TARGETS list
@@ -164,7 +164,11 @@ if(NOT SKIP_LIBRARY)
     string(REGEX MATCH ".mcode\-object\-version" TARGET_ID_SUPPORT ${CXX_OUTPUT})
   endif()
   if(TARGET_ID_SUPPORT)
-    set(target_list "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-")
+    if(Tensile_LOGIC STREQUAL "aldebaran")
+      set(target_list "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-")
+    else()
+      set(target_list "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-")
+    endif()
   else()
     set(target_list "gfx803;gfx900;gfx906;gfx908")
   endif()
@@ -198,7 +202,7 @@ if(NOT SKIP_LIBRARY)
 
     set( Tensile_TEST_LOCAL_PATH "" CACHE PATH "Use local Tensile directory instead of fetching a GitHub branch" )
 
-    set_property( CACHE Tensile_LOGIC PROPERTY STRINGS asm_full asm_lite asm_miopen hip_lite other )
+    set_property( CACHE Tensile_LOGIC PROPERTY STRINGS aldebaran asm_full asm_lite asm_miopen hip_lite other )
     set_property( CACHE Tensile_CODE_OBJECT_VERSION PROPERTY STRINGS V2 V3 )
     set_property( CACHE Tensile_COMPILER PROPERTY STRINGS hcc hipcc)
     set_property( CACHE Tensile_LIBRARY_FORMAT PROPERTY STRINGS msgpack yaml)
