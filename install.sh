@@ -167,52 +167,59 @@ install_packages( )
 
   # dependencies needed to build the rocblas library
   local library_dependencies_ubuntu=( "make" "cmake" "libssl-dev"
-                                      "python3" "python3-yaml" "python3-venv" "python3*-pip"
-                                      "wget" )
+                                      "python3" "python3-yaml" "python3-venv" "python3*-pip" )
   local library_dependencies_centos_rhel=( "epel-release" "openssl-devel"
                                       "make" "cmake3" "rpm-build"
                                       "python34" "python3*-PyYAML" "python3-virtualenv"
-                                      "gcc-c++" "wget" )
+                                      "gcc-c++" )
   local library_dependencies_centos_rhel_8=( "epel-release" "openssl-devel"
                                       "make" "cmake3" "rpm-build"
                                       "python3" "python3*-PyYAML" "python3-virtualenv"
-                                      "gcc-c++" "wget" )
+                                      "gcc-c++" )
   local library_dependencies_fedora=( "make" "cmake" "rpm-build"
                                       "python34" "python3*-PyYAML" "python3-virtualenv"
-                                      "gcc-c++" "libcxx-devel" "wget" )
+                                      "gcc-c++" "libcxx-devel" )
   local library_dependencies_sles=(   "make" "cmake" "libopenssl-devel" "python3-PyYAML" "python3-virtualenv"
-                                      "gcc-c++" "libcxxtools9" "rpm-build" "wget" )
+                                      "gcc-c++" "libcxxtools9" "rpm-build" )
 
   if [[ "${tensile_msgpack_backend}" == true ]]; then
     library_dependencies_ubuntu+=("libmsgpack-dev")
     library_dependencies_fedora+=("msgpack-devel")
   fi
 
+  # wget is needed for msgpack in this case
   if [[ ("${ID}" == "ubuntu") && ("${VERSION_ID}" == "16.04") && "${tensile_msgpack_backend}" == true ]]; then
-    # On Ubuntu 16.04, the version of msgpack provided in the repository is outdated, so a newer version
-    # must be manually downloaded and installed.  Trying to match or exceed Ubuntu 18 default
     if ! $(dpkg -s "libmsgpackc2" &> /dev/null) || $(dpkg --compare-versions $(dpkg-query -f='${Version}' --show libmsgpackc2) lt 2.1.5-1); then
-      wget -nv -P ./ "http://ftp.us.debian.org/debian/pool/main/m/msgpack-c/libmsgpackc2_3.0.1-3_amd64.deb"
-      wget -nv -P ./ "http://ftp.us.debian.org/debian/pool/main/m/msgpack-c/libmsgpack-dev_3.0.1-3_amd64.deb"
-      elevate_if_not_root dpkg -i ./libmsgpackc2_3.0.1-3_amd64.deb ./libmsgpack-dev_3.0.1-3_amd64.deb
-      rm libmsgpack-dev_3.0.1-3_amd64.deb libmsgpackc2_3.0.1-3_amd64.deb
+      library_dependencies_ubuntu+=("wget")
     fi
   fi
 
-  case "${ID}" in
-    centos|rhel|sles|opensuse-leap)
-      if [[ "${tensile_msgpack_backend}" == true ]]; then
-        install_msgpack_from_source
-      fi
-      ;;
-  esac
+  # wget is needed for cmake
+  if $(dpkg --compare-versions $CMAKE_VERSION lt 3.16.8); then
+    if $update_cmake == true; then
+      library_dependencies_ubuntu+=("wget")
+      library_dependencies_centos_rhel+=("wget")
+      library_dependencies_centos_rhel_8+=("wget")
+      library_dependencies_fedora+=("wget")
+      library_dependencies_sles+=("wget")
+    fi
+  fi
 
   # dependencies to build the client
-  local client_dependencies_ubuntu=( "gfortran" "libomp-dev" "libboost-program-options-dev")
+  local client_dependencies_ubuntu=( "gfortran" "libomp-dev" "libboost-program-options-dev" )
   local client_dependencies_centos_rhel=( "devtoolset-7-gcc-gfortran" "libgomp" "boost-devel" )
   local client_dependencies_centos_rhel_8=( "gcc-gfortran" "libgomp" "boost-devel" )
   local client_dependencies_fedora=( "gcc-gfortran" "libgomp" "boost-devel" )
   local client_dependencies_sles=( "gcc-fortran" "libgomp1" "libboost_program_options1_66_0-devel" )
+
+  # wget is needed for blis
+  if [[ "${cpu_ref_lib}" == blis ]] && [[ ! -e "${build_dir}/deps/blis/lib/libblis.so" ]]; then
+    client_dependencies_ubuntu+=("wget")
+    client_dependencies_centos_rhel+=("wget")
+    client_dependencies_centos_rhel_8+=("wget")
+    client_dependencies_fedora+=("wget")
+    client_dependencies_sles+=("wget")
+  fi
 
   case "${ID}" in
     ubuntu)
@@ -262,6 +269,25 @@ install_packages( )
     *)
       echo "This script is currently supported on Ubuntu, CentOS, RHEL, SLES, OpenSUSE-Leap, and Fedora"
       exit 2
+      ;;
+  esac
+
+  if [[ ("${ID}" == "ubuntu") && ("${VERSION_ID}" == "16.04") && "${tensile_msgpack_backend}" == true ]]; then
+    # On Ubuntu 16.04, the version of msgpack provided in the repository is outdated, so a newer version
+    # must be manually downloaded and installed.  Trying to match or exceed Ubuntu 18 default
+    if ! $(dpkg -s "libmsgpackc2" &> /dev/null) || $(dpkg --compare-versions $(dpkg-query -f='${Version}' --show libmsgpackc2) lt 2.1.5-1); then
+      wget -nv -P ./ "http://ftp.us.debian.org/debian/pool/main/m/msgpack-c/libmsgpackc2_3.0.1-3_amd64.deb"
+      wget -nv -P ./ "http://ftp.us.debian.org/debian/pool/main/m/msgpack-c/libmsgpack-dev_3.0.1-3_amd64.deb"
+      elevate_if_not_root dpkg -i ./libmsgpackc2_3.0.1-3_amd64.deb ./libmsgpack-dev_3.0.1-3_amd64.deb
+      rm libmsgpack-dev_3.0.1-3_amd64.deb libmsgpackc2_3.0.1-3_amd64.deb
+    fi
+  fi
+
+  case "${ID}" in
+    centos|rhel|sles|opensuse-leap)
+      if [[ "${tensile_msgpack_backend}" == true ]]; then
+        install_msgpack_from_source
+      fi
       ;;
   esac
 }
@@ -544,9 +570,10 @@ fi
 # dependencies
 # #################################################
 if [[ "${install_dependencies}" == true ]]; then
+  CMAKE_VERSION=$(cmake --version | grep -oP '(?<=version )[^ ]*' )
+
   install_packages
 
-  CMAKE_VERSION=$(cmake --version | grep -oP '(?<=version )[^ ]*' )
   if $(dpkg --compare-versions $CMAKE_VERSION lt 3.16.8); then
       if $update_cmake == true; then
         CMAKE_REPO="https://github.com/Kitware/CMake/releases/download/v3.16.8/"
