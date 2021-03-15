@@ -90,6 +90,13 @@ constexpr double swap_gbyte_count(rocblas_int n)
     return (sizeof(T) * 4.0 * n) / 1e9;
 }
 
+/* \brief byte counts of ROT */
+template <typename T>
+constexpr double rot_gbyte_count(rocblas_int n)
+{
+    return (sizeof(T) * 4.0 * n) / 1e9; //2 loads and 2 stores
+}
+
 /*
  * ===========================================================================
  *    level 2 BLAS
