@@ -239,69 +239,70 @@ void testing_rotm_strided_batched(const Arguments& arg)
 
                 if(arg.norm_check)
                 {
-                    norm_error_device_x
-                        = norm_check_general<T>('F', 1, N, abs_incx, stride_x, cx, rx, batch_count);
-                    norm_error_device_y
-                        = norm_check_general<T>('F', 1, N, abs_incy, stride_y, cy, ry, batch_count);
+                    norm_error_device_x += norm_check_general<T>(
+                        'F', 1, N, abs_incx, stride_x, cx, rx, batch_count);
+                    norm_error_device_y += norm_check_general<T>(
+                        'F', 1, N, abs_incy, stride_y, cy, ry, batch_count);
                 }
             }
         }
-
-        if(arg.timing)
+    }
+    if(arg.timing)
+    {
+        // Initializing flag value to -1 for all the batches of hparam
+        for(int b = 0; b < batch_count; b++)
         {
-            int number_cold_calls = arg.cold_iters;
-            int number_hot_calls  = arg.iters;
-            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-            CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T) * size_x, hipMemcpyHostToDevice));
-            CHECK_HIP_ERROR(hipMemcpy(dy, hy, sizeof(T) * size_y, hipMemcpyHostToDevice));
-            CHECK_HIP_ERROR(
-                hipMemcpy(dparam, hparam, sizeof(T) * size_param, hipMemcpyHostToDevice));
-
-            for(int iter = 0; iter < number_cold_calls; iter++)
-            {
-                rocblas_rotm_strided_batched_fn(handle,
-                                                N,
-                                                dx,
-                                                incx,
-                                                stride_x,
-                                                dy,
-                                                incy,
-                                                stride_y,
-                                                dparam,
-                                                stride_param,
-                                                batch_count);
-            }
-            hipStream_t stream;
-            CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
-            gpu_time_used = get_time_us_sync(stream); // in microseconds
-            for(int iter = 0; iter < number_hot_calls; iter++)
-            {
-                rocblas_rotm_strided_batched_fn(handle,
-                                                N,
-                                                dx,
-                                                incx,
-                                                stride_x,
-                                                dy,
-                                                incy,
-                                                stride_y,
-                                                dparam,
-                                                stride_param,
-                                                batch_count);
-            }
-            gpu_time_used = (get_time_us_sync(stream) - gpu_time_used) / number_hot_calls;
-
-            rocblas_cout << "N,incx,incy,rocblas(us),cpu(us)";
-            if(arg.norm_check)
-                rocblas_cout
-                    << ",norm_error_host_x,norm_error_host_y,norm_error_device_x,norm_error_"
-                       "device_y";
-            rocblas_cout << std::endl;
-            rocblas_cout << N << "," << incx << "," << incy << "," << gpu_time_used << ","
-                         << cpu_time_used;
-            if(arg.norm_check)
-                rocblas_cout << ',' << norm_error_host_x << ',' << norm_error_host_y << ","
-                             << norm_error_device_x << "," << norm_error_device_y;
-            rocblas_cout << std::endl;
+            (hparam + b * stride_param)[0] = FLAGS[0];
         }
+
+        int number_cold_calls = arg.cold_iters;
+        int number_hot_calls  = arg.iters;
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+        CHECK_HIP_ERROR(hipMemcpy(dx, hx, sizeof(T) * size_x, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(hipMemcpy(dy, hy, sizeof(T) * size_y, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(hipMemcpy(dparam, hparam, sizeof(T) * size_param, hipMemcpyHostToDevice));
+
+        for(int iter = 0; iter < number_cold_calls; iter++)
+        {
+            rocblas_rotm_strided_batched_fn(handle,
+                                            N,
+                                            dx,
+                                            incx,
+                                            stride_x,
+                                            dy,
+                                            incy,
+                                            stride_y,
+                                            dparam,
+                                            stride_param,
+                                            batch_count);
+        }
+        hipStream_t stream;
+        CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
+        gpu_time_used = get_time_us_sync(stream); // in microseconds
+        for(int iter = 0; iter < number_hot_calls; iter++)
+        {
+            rocblas_rotm_strided_batched_fn(handle,
+                                            N,
+                                            dx,
+                                            incx,
+                                            stride_x,
+                                            dy,
+                                            incy,
+                                            stride_y,
+                                            dparam,
+                                            stride_param,
+                                            batch_count);
+        }
+        gpu_time_used = (get_time_us_sync(stream) - gpu_time_used);
+
+        ArgumentModel<e_N, e_incx, e_incy, e_stride_x, e_stride_y, e_batch_count>{}.log_args<T>(
+            rocblas_cout,
+            arg,
+            gpu_time_used,
+            rotm_gflop_count<T>(N, (hparam + 0 * stride_param)[0]),
+            rotm_gbyte_count<T>(N, (hparam + 0 * stride_param)[0]),
+            cpu_time_used,
+            norm_error_device_x,
+            norm_error_device_y);
     }
 }
