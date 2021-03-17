@@ -165,6 +165,24 @@ constexpr double
     return (12.0 * n) / 1e9;
 }
 
+// rotm
+template <typename Tx>
+constexpr double rotm_gflop_count(rocblas_int n, Tx flag)
+{
+    //No floating point operations when flag is set to -2.0
+    if(flag != -2.0)
+    {
+        if(flag < 0)
+            return (6.0 * n) / 1e9; // 4 real multiplication, 2 addition
+        else
+            return (4.0 * n) / 1e9; // 2 real multiplication, 2 addition
+    }
+    else
+    {
+        return 0;
+    }
+}
+
 /*
  * ===========================================================================
  *    level 2 BLAS

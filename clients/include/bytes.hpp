@@ -97,6 +97,21 @@ constexpr double rot_gbyte_count(rocblas_int n)
     return (sizeof(T) * 4.0 * n) / 1e9; //2 loads and 2 stores
 }
 
+/* \brief byte counts of ROTM */
+template <typename T>
+constexpr double rotm_gbyte_count(rocblas_int n, T flag)
+{
+    //No load and store operations when flag is set to -2.0
+    if(flag != -2.0)
+    {
+        return (sizeof(T) * 4.0 * n) / 1e9; //2 loads and 2 stores
+    }
+    else
+    {
+        return 0;
+    }
+}
+
 /*
  * ===========================================================================
  *    level 2 BLAS
