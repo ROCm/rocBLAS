@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -284,15 +284,12 @@ void testing_trmm_strided_batched(const Arguments& arg)
     h_alpha[0] = alpha;
     rocblas_seedrand();
 
-    // TODO: Fix to use proper APIs for rocblas_init_nan
-#if 0
     if(arg.alpha_isnan<T>())
     {
-        rocblas_init_nan<T>(hA);
-        rocblas_init_nan<T>(hB);
+        rocblas_init_nan<T>(hA, K, K, lda, stride_a, batch_count);
+        rocblas_init_nan<T>(hB, M, N, ldb, stride_b, batch_count);
     }
     else
-#endif
     {
         rocblas_init<T>(hA);
         rocblas_init<T>(hB);
