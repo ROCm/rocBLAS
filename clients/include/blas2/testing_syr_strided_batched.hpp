@@ -225,7 +225,7 @@ void testing_syr_strided_batched(const Arguments& arg)
                 handle, uplo, N, &h_alpha, dx, incx, stridex, dA_1, lda, strideA, batch_count);
         }
 
-        gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
+        gpu_time_used = (get_time_us_sync(stream) - gpu_time_used) / number_hot_calls;
 
         Arguments targ(arg);
         targ.stride_a = strideA;
