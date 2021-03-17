@@ -329,7 +329,7 @@ void testing_gemm_strided_batched(const Arguments& arg)
                                             batch_count);
         }
 
-        gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
+        gpu_time_used = (get_time_us_sync(stream) - gpu_time_used) / number_hot_calls;
 
         ArgumentModel<e_transA,
                       e_transB,
