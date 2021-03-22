@@ -219,13 +219,13 @@ void testing_rotg_strided_batched(const Arguments& arg)
 
             if(arg.norm_check)
             {
-                norm_error_host
+                norm_error_device
                     = norm_check_general<T>('F', 1, 1, 1, stride_a, ca, ra, batch_count);
-                norm_error_host
+                norm_error_device
                     += norm_check_general<T>('F', 1, 1, 1, stride_b, cb, rb, batch_count);
-                norm_error_host
+                norm_error_device
                     += norm_check_general<U>('F', 1, 1, 1, stride_c, cc, rc, batch_count);
-                norm_error_host
+                norm_error_device
                     += norm_check_general<T>('F', 1, 1, 1, stride_s, cs, rs, batch_count);
             }
         }
@@ -265,16 +265,16 @@ void testing_rotg_strided_batched(const Arguments& arg)
             rocblas_rotg_strided_batched_fn(
                 handle, da, stride_a, db, stride_b, dc, stride_c, ds, stride_s, batch_count);
         }
-        gpu_time_used = (get_time_us_sync(stream) - gpu_time_used) / number_hot_calls;
+        gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
 
-        rocblas_cout << "rocblas-us,CPU-us";
-        if(arg.norm_check)
-            rocblas_cout << ",norm_error_host_ptr,norm_error_device";
-        rocblas_cout << std::endl;
-
-        rocblas_cout << gpu_time_used << "," << cpu_time_used;
-        if(arg.norm_check)
-            rocblas_cout << ',' << norm_error_host << ',' << norm_error_device;
-        rocblas_cout << std::endl;
+        ArgumentModel<e_stride_a, e_stride_b, e_stride_c, e_stride_d, e_batch_count>{}.log_args<T>(
+            rocblas_cout,
+            arg,
+            gpu_time_used,
+            ArgumentLogging::NA_value,
+            ArgumentLogging::NA_value,
+            cpu_time_used,
+            norm_error_host,
+            norm_error_device);
     }
 }
