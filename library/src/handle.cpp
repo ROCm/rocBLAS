@@ -569,6 +569,33 @@ extern "C" rocblas_status rocblas_set_solution_fitness_query(rocblas_handle hand
 }
 
 /*******************************************************************************
+ * Choose performance metric used to select solution
+ ******************************************************************************/
+extern "C" rocblas_status rocblas_set_performance_metric(rocblas_handle             handle,
+                                                         rocblas_performance_metric metric)
+{
+    if(!handle)
+        return rocblas_status_invalid_handle;
+
+    handle->performance_metric = metric;
+    return rocblas_status_success;
+}
+
+extern "C" rocblas_status rocblas_get_performance_metric(rocblas_handle              handle,
+                                                         rocblas_performance_metric* metric)
+{
+    if(!handle)
+        return rocblas_status_invalid_handle;
+    if(metric)
+    {
+        *metric = handle->performance_metric;
+        return rocblas_status_success;
+    }
+    else
+        return rocblas_status_invalid_pointer;
+}
+
+/*******************************************************************************
  * Numeric_check initialization
  ******************************************************************************/
 void _rocblas_handle::init_check_numerics()
