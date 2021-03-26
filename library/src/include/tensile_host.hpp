@@ -31,9 +31,10 @@
 template <typename Ti, typename To = Ti, typename Tc = To>
 struct RocblasContractionProblem
 {
-    rocblas_handle    handle;
-    rocblas_operation trans_a;
-    rocblas_operation trans_b;
+    rocblas_handle     handle;
+    rocblas_gemm_flags flags;
+    rocblas_operation  trans_a;
+    rocblas_operation  trans_b;
 
     // The RocblasContractionProblem data members should exactly match
     // Tensile's parameter types, even if rocBLAS uses differently
@@ -80,32 +81,34 @@ struct RocblasContractionProblem
 
     // gemm
     // gemm_strided_batched
-    RocblasContractionProblem(rocblas_handle    handle,
-                              rocblas_operation trans_a,
-                              rocblas_operation trans_b,
-                              rocblas_int       m,
-                              rocblas_int       n,
-                              rocblas_int       k,
-                              const Tc*         alpha,
-                              const Ti*         A,
-                              const Ti* const*  batch_A,
-                              rocblas_int       ld_a,
-                              rocblas_stride    batch_stride_a,
-                              rocblas_int       offset_a,
-                              const Ti*         B,
-                              const Ti* const*  batch_B,
-                              rocblas_int       ld_b,
-                              rocblas_stride    batch_stride_b,
-                              rocblas_int       offset_b,
-                              const Tc*         beta,
-                              To*               C,
-                              To* const*        batch_C,
-                              rocblas_int       ld_c,
-                              rocblas_stride    batch_stride_c,
-                              rocblas_int       offset_c,
-                              rocblas_int       batch_count,
-                              bool              strided_batch)
+    RocblasContractionProblem(rocblas_handle     handle,
+                              rocblas_operation  trans_a,
+                              rocblas_operation  trans_b,
+                              rocblas_int        m,
+                              rocblas_int        n,
+                              rocblas_int        k,
+                              const Tc*          alpha,
+                              const Ti*          A,
+                              const Ti* const*   batch_A,
+                              rocblas_int        ld_a,
+                              rocblas_stride     batch_stride_a,
+                              rocblas_int        offset_a,
+                              const Ti*          B,
+                              const Ti* const*   batch_B,
+                              rocblas_int        ld_b,
+                              rocblas_stride     batch_stride_b,
+                              rocblas_int        offset_b,
+                              const Tc*          beta,
+                              To*                C,
+                              To* const*         batch_C,
+                              rocblas_int        ld_c,
+                              rocblas_stride     batch_stride_c,
+                              rocblas_int        offset_c,
+                              rocblas_int        batch_count,
+                              bool               strided_batch,
+                              rocblas_gemm_flags flags)
         : handle(handle)
+        , flags(flags)
         , trans_a(trans_a)
         , trans_b(trans_b)
         , m(m)
@@ -144,37 +147,39 @@ struct RocblasContractionProblem
 
     // gemm_ex
     // gemm_strided_batched_ex
-    RocblasContractionProblem(rocblas_handle    handle,
-                              rocblas_operation trans_a,
-                              rocblas_operation trans_b,
-                              rocblas_int       m,
-                              rocblas_int       n,
-                              rocblas_int       k,
-                              const Tc*         alpha,
-                              const Ti*         A,
-                              const Ti* const*  batch_A,
-                              rocblas_int       ld_a,
-                              rocblas_stride    batch_stride_a,
-                              rocblas_int       offset_a,
-                              const Ti*         B,
-                              const Ti* const*  batch_B,
-                              rocblas_int       ld_b,
-                              rocblas_stride    batch_stride_b,
-                              rocblas_int       offset_b,
-                              const Tc*         beta,
-                              const To*         C,
-                              const To* const*  batch_C,
-                              rocblas_int       ld_c,
-                              rocblas_stride    batch_stride_c,
-                              rocblas_int       offset_c,
-                              To*               D,
-                              To* const*        batch_D,
-                              rocblas_int       ld_d,
-                              rocblas_stride    batch_stride_d,
-                              rocblas_int       offset_d,
-                              rocblas_int       batch_count,
-                              bool              strided_batch)
+    RocblasContractionProblem(rocblas_handle     handle,
+                              rocblas_operation  trans_a,
+                              rocblas_operation  trans_b,
+                              rocblas_int        m,
+                              rocblas_int        n,
+                              rocblas_int        k,
+                              const Tc*          alpha,
+                              const Ti*          A,
+                              const Ti* const*   batch_A,
+                              rocblas_int        ld_a,
+                              rocblas_stride     batch_stride_a,
+                              rocblas_int        offset_a,
+                              const Ti*          B,
+                              const Ti* const*   batch_B,
+                              rocblas_int        ld_b,
+                              rocblas_stride     batch_stride_b,
+                              rocblas_int        offset_b,
+                              const Tc*          beta,
+                              const To*          C,
+                              const To* const*   batch_C,
+                              rocblas_int        ld_c,
+                              rocblas_stride     batch_stride_c,
+                              rocblas_int        offset_c,
+                              To*                D,
+                              To* const*         batch_D,
+                              rocblas_int        ld_d,
+                              rocblas_stride     batch_stride_d,
+                              rocblas_int        offset_d,
+                              rocblas_int        batch_count,
+                              bool               strided_batch,
+                              rocblas_gemm_flags flags)
         : handle(handle)
+        , flags(flags)
         , trans_a(trans_a)
         , trans_b(trans_b)
         , m(m)
@@ -246,6 +251,7 @@ struct RocblasContractionProblem
                               rocblas_int      batch_count,
                               bool             strided_batch)
         : handle(handle)
+        , flags(rocblas_gemm_flags_none)
         , trans_a(rocblas_operation_none)
         , trans_b(rocblas_operation_none)
         , m(m)

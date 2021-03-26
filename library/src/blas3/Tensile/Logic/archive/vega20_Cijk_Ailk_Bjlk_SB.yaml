@@ -91,6 +91,7 @@
     LdsOffsetB_Blk: 768
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -2618.7335083076787, max: 10602, slope: 5.306627846891881}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -239,6 +240,7 @@
     LdsOffsetB_Blk: 384
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -2414.660018318071, max: 10602, slope: 5.0828560416844}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -387,6 +389,7 @@
     LdsOffsetB_Blk: 768
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -920.0644381739112, max: 10602, slope: 2.312637813878371}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -535,6 +538,7 @@
     LdsOffsetB_Blk: 768
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -497.0169091481145, max: 10602, slope: 1.4674172269886825}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -683,6 +687,7 @@
     LdsOffsetB_Blk: 768
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -1162.9276354807419, max: 10602, slope: 2.5393196105397955}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -831,6 +836,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -434.1848218344138, max: 10602, slope: 1.1517548480753472}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -979,6 +985,7 @@
     LdsOffsetB_Blk: 384
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -1188.8133558167278, max: 10602, slope: 3.3187104557261478}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -1127,6 +1134,7 @@
     LdsOffsetB_Blk: 768
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -557.5675972760155, max: 10602, slope: 1.67112049964964}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -1275,6 +1283,7 @@
     LdsOffsetB_Blk: 768
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -230.34662387061002, max: 10602, slope: 0.776901859866171}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -1423,6 +1432,7 @@
     LdsOffsetB_Blk: 768
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -661.9709567630464, max: 10602, slope: 1.8055670808823916}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -1571,6 +1581,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -10.694825594356285, max: 10602, slope: 1.114247894859077}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -1719,6 +1730,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -1213.6195941411477, max: 10602, slope: 2.5737892922134376}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -1867,6 +1879,7 @@
     LdsOffsetB_Blk: 768
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -2850.4130905622023, max: 10602, slope: 5.479928466192953}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -2015,6 +2028,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -1299.030119464221, max: 10602, slope: 2.632494696644012}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -2163,6 +2177,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -958.3837179356851, max: 10602, slope: 2.1957620002245637}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -2311,6 +2326,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -596.9237181831044, max: 10602, slope: 1.3177246069270239}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -2459,6 +2475,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -444.5771547183116, max: 10602, slope: 1.1443068721546852}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -2607,6 +2624,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -1268.6802956790004, max: 10602, slope: 3.6687472749478265}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -2755,6 +2773,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -2967.721749429249, max: 10602, slope: 6.687466522248922}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -2903,6 +2922,7 @@
     LdsOffsetB_Blk: 768
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -1219.8903307742346, max: 10602, slope: 3.4659137901128156}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -3051,6 +3071,7 @@
     LdsOffsetB_Blk: 1408
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -1293.0446608887585, max: 10602, slope: 3.4715017297500297}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -3199,6 +3220,7 @@
     LdsOffsetB_Blk: 384
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -3176.786864260234, max: 10602, slope: 5.191878979708549}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -3347,6 +3369,7 @@
     LdsOffsetB_Blk: 768
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -1443.759603870519, max: 10602, slope: 2.866516669747212}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -3495,6 +3518,7 @@
     LdsOffsetB_Blk: 384
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -2384.9447985217535, max: 10602, slope: 3.796610373481715}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -3643,6 +3667,7 @@
     LdsOffsetB_Blk: 384
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -1752.9523170534505, max: 10602, slope: 2.9542046357344307}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -3791,6 +3816,7 @@
     LdsOffsetB_Blk: 768
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -3223.6645054766263, max: 10602, slope: 5.108010054120274}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -3939,6 +3965,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -1350.5914960562045, max: 10602, slope: 2.5008812616577547}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -4087,6 +4114,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -1233.9050195977184, max: 10602, slope: 2.706802814790624}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -4235,6 +4263,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -481.3427094533991, max: 10602, slope: 1.2664750623525474}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -4383,6 +4412,7 @@
     LdsOffsetB_Blk: 768
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -2921.091249378195, max: 10602, slope: 4.297366895597212}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -4531,6 +4561,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -1339.1636779367864, max: 10602, slope: 2.40222615396614}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -4679,6 +4710,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -1385.96570762524, max: 10602, slope: 2.4924879352024982}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -4827,6 +4859,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -421.19078070035073, max: 10602, slope: 1.0656698724299971}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -4975,6 +5008,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -348.28009044088094, max: 10602, slope: 1.0037271225796538}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -5123,6 +5157,7 @@
     LdsOffsetB_Blk: 768
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -1169.4721982461408, max: 10602, slope: 3.458410054493727}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -5271,6 +5306,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -580.0313383621622, max: 10602, slope: 1.7550044883520421}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -5419,6 +5455,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -233.61347827821825, max: 10602, slope: 0.8021002063834134}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -5567,6 +5604,7 @@
     LdsOffsetB_Blk: 768
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -1363.716634049, max: 10602, slope: 3.312112715956167}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -5715,6 +5753,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -676.4405868333954, max: 10602, slope: 1.7727579663347728}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -5863,6 +5902,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -625.5840442309966, max: 10602, slope: 1.7747115256975916}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -6011,6 +6051,7 @@
     LdsOffsetB_Blk: 768
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -1372.5259434103255, max: 10602, slope: 2.6110815436689103}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -6159,6 +6200,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -19.01000408449093, max: 10602, slope: 0.6807542394717858}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -6307,6 +6349,7 @@
     LdsOffsetB_Blk: 768
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -1162.2193861435012, max: 10602, slope: 2.8218322537319085}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -6455,6 +6498,7 @@
     LdsOffsetB_Blk: 768
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -53.63634581583547, max: 10602, slope: 1.5324074332119857}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -6603,6 +6647,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -2290.727058415793, max: 10602, slope: 3.9489661602196557}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -6751,6 +6796,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -1131.1924655435662, max: 10602, slope: 2.0012074261982455}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -6899,6 +6945,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -3098.1059676698615, max: 10602, slope: 4.529533860798088}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -7047,6 +7094,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -1123.606384806763, max: 10602, slope: 1.9741116398052547}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -7195,6 +7243,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -1499.7324173022114, max: 10602, slope: 2.7443190356903995}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -7343,6 +7392,7 @@
     LdsOffsetB_Blk: 6144
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -377.0157168386718, max: 10602, slope: 0.9802462398985131}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -7491,6 +7541,7 @@
     LdsOffsetB_Blk: 6144
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -374.0000724687532, max: 10602, slope: 0.9786366446512074}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -7639,6 +7690,7 @@
     LdsOffsetB_Blk: 12288
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 65.0863527853832, max: 10602, slope: 0.19835461690036768}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -7787,6 +7839,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -872.6523200321385, max: 10602, slope: 1.7679521274429668}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -7935,6 +7988,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -349.4988685129859, max: 10602, slope: 0.8093064689612934}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -8083,6 +8137,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -1412.6021656593148, max: 10602, slope: 3.494631444697371}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -8231,6 +8286,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -894.4020830921295, max: 10602, slope: 1.7765742531309356}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -8379,6 +8435,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -345.92935832463496, max: 10602, slope: 0.8097465441127178}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -8527,6 +8584,7 @@
     LdsOffsetB_Blk: 6144
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -101.35000954217605, max: 10602, slope: 0.4526752647913964}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -8675,6 +8733,7 @@
     LdsOffsetB_Blk: 6144
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -87.71255469579555, max: 10602, slope: 1.1165389374875496}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -8823,6 +8882,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -1485.1975745013012, max: 10602, slope: 2.7027455345526503}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -8971,6 +9031,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -517.5675411561846, max: 10602, slope: 1.3022582803758571}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -9119,6 +9180,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -1192.2112537817104, max: 10602, slope: 2.114260807521649}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -9267,6 +9329,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -173.72970706772693, max: 10602, slope: 0.6162717412003189}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -9415,6 +9478,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -64.7287077631644, max: 10602, slope: 1.7065111526979557}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -9563,6 +9627,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -68.08280935249242, max: 10602, slope: 1.537408411958048}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -9711,6 +9776,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 37.707621993003904, max: 10602, slope: 0.16112284013102093}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -9859,6 +9925,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -213.91978418625183, max: 10602, slope: 0.7144046746409333}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -10007,6 +10074,7 @@
     LdsOffsetB_Blk: 5120
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -170.11025142080186, max: 10602, slope: 0.5493158388289932}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -10155,6 +10223,7 @@
     LdsOffsetB_Blk: 6144
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -56.99866093726664, max: 10602, slope: 0.3286256699340125}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -10303,6 +10372,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -42.847533832978264, max: 10602, slope: 0.20056155928491876}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -10451,6 +10521,7 @@
     LdsOffsetB_Blk: 5120
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 26.576705442439245, max: 10602, slope: 0.11990756206585217}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -10599,6 +10670,7 @@
     LdsOffsetB_Blk: 6144
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 25.139116888197382, max: 10602, slope: 0.12013698807070933}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -10747,6 +10819,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -19.853845818254854, max: 10602, slope: 0.14530675611262742}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -10895,6 +10968,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 20.45130599936194, max: 10602, slope: 0.09300407446989231}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -11043,6 +11117,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -212.7229498509454, max: 10602, slope: 0.6861106486466303}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -11191,6 +11266,7 @@
     LdsOffsetB_Blk: 5120
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -163.06739105897637, max: 10602, slope: 0.49496923869160325}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -11339,6 +11415,7 @@
     LdsOffsetB_Blk: 5632
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -36.507791413015866, max: 10602, slope: 0.22001745846480453}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -11487,6 +11564,7 @@
     LdsOffsetB_Blk: 6144
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 264.1715712515558, max: 10602, slope: 0.5244456537866163}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -11635,6 +11713,7 @@
     LdsOffsetB_Blk: 6144
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -32.42442232800828, max: 10602, slope: 0.21408627978491132}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -11783,6 +11862,7 @@
     LdsOffsetB_Blk: 6144
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -24.90831560324608, max: 10602, slope: 0.16626546356612998}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -11931,6 +12011,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -48.43214124340654, max: 10602, slope: 0.2064563276953064}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -12079,6 +12160,7 @@
     LdsOffsetB_Blk: 5120
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 22.340151278752337, max: 10602, slope: 0.09540749469347352}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -12227,6 +12309,7 @@
     LdsOffsetB_Blk: 5632
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 21.479918861295513, max: 10602, slope: 0.09705919247018327}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -12375,6 +12458,7 @@
     LdsOffsetB_Blk: 6144
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 19.20443701108708, max: 10602, slope: 0.09511296203653591}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -12523,6 +12607,7 @@
     LdsOffsetB_Blk: 6144
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 18.964245358327094, max: 10602, slope: 0.09976261404762726}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -12671,6 +12756,7 @@
     LdsOffsetB_Blk: 6144
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 19.565774330825413, max: 10602, slope: 0.09299463089148274}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -12819,6 +12905,7 @@
     LdsOffsetB_Blk: 192
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -2084.996296998421, max: 10602, slope: 4.659444578762311}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -12967,6 +13054,7 @@
     LdsOffsetB_Blk: 192
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -405.60912798430314, max: 10602, slope: 1.2557766117920548}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -13115,6 +13203,7 @@
     LdsOffsetB_Blk: 192
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -13429.96292441098, max: 10602, slope: 22.197974951732157}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -13263,6 +13352,7 @@
     LdsOffsetB_Blk: 768
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -3358.0716161854825, max: 10602, slope: 5.482471652588942}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -13411,6 +13501,7 @@
     LdsOffsetB_Blk: 192
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -13911.01131688325, max: 10602, slope: 20.838846251726107}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -13559,6 +13650,7 @@
     LdsOffsetB_Blk: 192
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -3261.045060761464, max: 10602, slope: 6.028322318015214}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -13707,6 +13799,7 @@
     LdsOffsetB_Blk: 192
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -10295.808838780134, max: 10602, slope: 15.011073444250757}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -13855,6 +13948,7 @@
     LdsOffsetB_Blk: 192
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -3390.408816309631, max: 10602, slope: 4.47084561334618}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -14003,6 +14097,7 @@
     LdsOffsetB_Blk: 192
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -3501.81796170742, max: 10602, slope: 8.275587505428826}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -14151,6 +14246,7 @@
     LdsOffsetB_Blk: 384
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 30.711701766490073, max: 10602, slope: 1.5363984221417923}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -14299,6 +14395,7 @@
     LdsOffsetB_Blk: 192
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -1127.0437814776947, max: 10602, slope: 6.075635499015694}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -14447,6 +14544,7 @@
     LdsOffsetB_Blk: 768
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 334.1615527094239, max: 10602, slope: 1.7491652127505528}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -14593,6 +14691,7 @@
     LdsOffsetB_Blk: 2560
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -76.25111162525923, max: 10602, slope: 0.3307230257510957}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -14738,6 +14837,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -106.27899163037355, max: 10602, slope: 0.4096826787475587}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -14879,6 +14979,7 @@
     LdsOffsetB: 256
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -121.68395848253566, max: 10602, slope: 0.45121094590540867}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -15020,6 +15121,7 @@
     LdsOffsetB: 256
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 49.98484093624514, max: 10602, slope: 0.09749270886387847}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -15161,6 +15263,7 @@
     LdsOffsetB: 256
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 35.34463794275501, max: 10602, slope: 0.11481810493341582}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -15302,6 +15405,7 @@
     LdsOffsetB: 1024
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -70.78928091932633, max: 10602, slope: 0.330566276532842}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -15447,6 +15551,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -162.13476690448735, max: 10602, slope: 0.5199403669161005}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -15588,6 +15693,7 @@
     LdsOffsetB: 1024
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -96.65561000112311, max: 10602, slope: 0.35255041444856416}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -15733,6 +15839,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -229.53986232674868, max: 10602, slope: 0.6906586137595507}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -15874,6 +15981,7 @@
     LdsOffsetB: 1024
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -113.98386702341746, max: 10602, slope: 0.360407633144714}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -16015,6 +16123,7 @@
     LdsOffsetB: 1024
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 19.63787101199504, max: 10602, slope: 0.09815686517233546}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -16163,6 +16272,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -33.367113252046856, max: 10602, slope: 0.1896129186127397}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -16327,6 +16437,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -67.01835515767773, max: 10602, slope: 0.2434234994462748}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -16487,6 +16598,7 @@
     LdsOffsetB: 2048
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -48.18760298095215, max: 10602, slope: 0.22910008290627376}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -16651,6 +16763,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -52.785708894367914, max: 10602, slope: 0.2096642086825894}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -16811,6 +16924,7 @@
     LdsOffsetB: 1024
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -122.82048217172566, max: 10602, slope: 0.3546027376189603}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -16975,6 +17089,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -210.37423401988596, max: 10602, slope: 0.5523297792234357}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -17139,6 +17254,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -86.79105913221541, max: 10602, slope: 0.3597245314485608}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -17300,6 +17416,7 @@
     LdsOffsetB: 512
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -98.27844937527989, max: 10602, slope: 0.40007685277718674}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -17461,6 +17578,7 @@
     LdsOffsetB: 512
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -282.3813391607555, max: 10602, slope: 0.866290914743153}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -17626,6 +17744,7 @@
     LdsOffsetB_Blk: 2560
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -55.78265729909778, max: 10602, slope: 0.2798161862019679}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -17787,6 +17906,7 @@
     LdsOffsetB: 512
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -148.72050200205152, max: 10602, slope: 0.53630511307702}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -17948,6 +18068,7 @@
     LdsOffsetB: 512
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -137.21931043441126, max: 10602, slope: 0.5811595502597645}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -18109,6 +18230,7 @@
     LdsOffsetB: 512
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -307.0507702528632, max: 10602, slope: 0.9917258792819875}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -18270,6 +18392,7 @@
     LdsOffsetB: 512
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -322.22768272465584, max: 10602, slope: 1.0093754162333384}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -18435,6 +18558,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -25.13276943369946, max: 10602, slope: 0.17862363704838988}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -18600,6 +18724,7 @@
     LdsOffsetB_Blk: 2560
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 19.86001823176466, max: 10602, slope: 0.09574469040129167}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -18761,6 +18886,7 @@
     LdsOffsetB: 512
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -93.13689871306069, max: 10602, slope: 0.40055723869320425}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -18922,6 +19048,7 @@
     LdsOffsetB: 512
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -111.18699539751447, max: 10602, slope: 0.40913878694600375}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -19083,6 +19210,7 @@
     LdsOffsetB: 512
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -228.46229305640747, max: 10602, slope: 0.8186528855980748}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -19244,6 +19372,7 @@
     LdsOffsetB: 1024
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -83.40453429160627, max: 10602, slope: 0.36150529506814005}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -19405,6 +19534,7 @@
     LdsOffsetB: 1024
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -327.15069122897535, max: 10602, slope: 1.1006490097343475}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -19566,6 +19696,7 @@
     LdsOffsetB: 1024
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -300.18334206807685, max: 10602, slope: 1.057434595825845}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -19727,6 +19858,7 @@
     LdsOffsetB: 2048
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -133.6101069867164, max: 10602, slope: 0.42753648444171244}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -19888,6 +20020,7 @@
     LdsOffsetB: 512
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -138.1369794817251, max: 10602, slope: 0.5372109591515819}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -20049,6 +20182,7 @@
     LdsOffsetB: 512
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -178.20712538527417, max: 10602, slope: 0.5935304955302636}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -20210,6 +20344,7 @@
     LdsOffsetB: 512
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -92.96123321658872, max: 10602, slope: 0.40168681051443383}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -20371,6 +20506,7 @@
     LdsOffsetB: 512
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -104.64067782086371, max: 10602, slope: 0.41089080480450074}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -20536,6 +20672,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -157.6465549681762, max: 10602, slope: 0.5176130191754518}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -20701,6 +20838,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -205.94952341686923, max: 10602, slope: 0.7000265910155415}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -20866,6 +21004,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -227.01613504512832, max: 10602, slope: 0.7060827148088038}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -21031,6 +21170,7 @@
     LdsOffsetB_Blk: 6144
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -63.315285419199284, max: 10602, slope: 0.316531411970481}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -21196,6 +21336,7 @@
     LdsOffsetB_Blk: 6144
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -59.44925744248344, max: 10602, slope: 0.3117364816022649}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -21361,6 +21502,7 @@
     LdsOffsetB_Blk: 6144
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -22.085060953210036, max: 10602, slope: 0.16253694115230294}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -21526,6 +21668,7 @@
     LdsOffsetB_Blk: 6144
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -17.606671963531934, max: 10602, slope: 0.1597259456736151}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -21691,6 +21834,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -48.17077804727969, max: 10602, slope: 0.20681446940808557}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -21856,6 +22000,7 @@
     LdsOffsetB_Blk: 5120
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 22.972635449935613, max: 10602, slope: 0.09524680589055999}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -22021,6 +22166,7 @@
     LdsOffsetB_Blk: 5120
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 23.249745876930994, max: 10602, slope: 0.09522827815775575}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -22186,6 +22332,7 @@
     LdsOffsetB_Blk: 6144
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 21.032645172749255, max: 10602, slope: 0.0949036367799693}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -22351,6 +22498,7 @@
     LdsOffsetB_Blk: 6144
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 21.294832283107485, max: 10602, slope: 0.09494100074281889}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -22516,6 +22664,7 @@
     LdsOffsetB_Blk: 6144
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 20.955697778793162, max: 10602, slope: 0.0928611716273066}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -22681,6 +22830,7 @@
     LdsOffsetB_Blk: 6144
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 21.303721239431518, max: 10602, slope: 0.09280488613590397}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -22847,6 +22997,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -50.29002388093147, max: 10602, slope: 0.2072527622987354}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -23014,6 +23165,7 @@
     LdsOffsetB_Blk: 2560
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 19.96463045509721, max: 10602, slope: 0.09349920351609216}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -23181,6 +23333,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 1.9921945765827906, max: 10602, slope: 0.10704826814010987}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -23348,6 +23501,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 19.078413666257468, max: 10602, slope: 0.09364143660899395}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -23511,6 +23665,7 @@
     LdsOffsetB: 512
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -96.61753452150695, max: 10602, slope: 0.4014263188226805}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -23675,6 +23830,7 @@
     LdsOffsetB: 512
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -101.22517086712702, max: 10602, slope: 0.40479594280952313}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -23843,6 +23999,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -129.0417512746391, max: 10602, slope: 0.4750897774736383}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -24011,6 +24168,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -157.52785316302183, max: 10602, slope: 0.5534422377752318}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -24179,6 +24337,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -230.66040630973148, max: 10602, slope: 0.7041491277606139}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -24347,6 +24506,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -3143.8541663595984, max: 10602, slope: 5.329186298344905}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -24515,6 +24675,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -2750.576204579959, max: 10602, slope: 5.685681882744727}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -24683,6 +24844,7 @@
     LdsOffsetB_Blk: 2816
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -82.33842120285685, max: 10602, slope: 0.33890705244422925}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -24851,6 +25013,7 @@
     LdsOffsetB_Blk: 2816
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -14.810972408531653, max: 10602, slope: 0.13938125255543957}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -25019,6 +25182,7 @@
     LdsOffsetB_Blk: 2560
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -172.7395283953476, max: 10602, slope: 0.5165219603379408}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -25187,6 +25351,7 @@
     LdsOffsetB_Blk: 2560
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -65.89022352697803, max: 10602, slope: 0.2862669990637884}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -25355,6 +25520,7 @@
     LdsOffsetB_Blk: 2560
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -90.0645979384614, max: 10602, slope: 0.34767071653067705}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -25523,6 +25689,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -53.157713900031666, max: 10602, slope: 0.24375362088849728}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -25691,6 +25858,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -190.01357791867233, max: 10602, slope: 0.5848840397489189}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -25859,6 +26027,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -47.874077077065635, max: 10602, slope: 0.20583462408561615}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -26027,6 +26196,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -196.77641598319644, max: 10602, slope: 0.46529271301435926}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -26195,6 +26365,7 @@
     LdsOffsetB_Blk: 2304
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -6806.5903897850685, max: 10602, slope: 13.043834404157154}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -26363,6 +26534,7 @@
     LdsOffsetB_Blk: 2560
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -764.8088281192638, max: 10602, slope: 1.626701065568272}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -26531,6 +26703,7 @@
     LdsOffsetB_Blk: 2560
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -764.5514704878101, max: 10602, slope: 1.6346764517725598}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -26699,6 +26872,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -3560.8484895250094, max: 10602, slope: 6.915994821945228}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -26867,6 +27041,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -543.5186955904951, max: 10602, slope: 1.1962598329954184}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -27035,6 +27210,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 16.40393211012464, max: 10602, slope: 0.09500508041870691}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -27203,6 +27379,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -2.0361127680942483, max: 10602, slope: 0.11063308224815432}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -27371,6 +27548,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -47.84055179015988, max: 10602, slope: 0.2081421790883895}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -27542,6 +27720,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -230.66040630973148, max: 10602, slope: 0.7041491277606139}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -27713,6 +27892,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -236.90658151916017, max: 10602, slope: 0.7051928806620117}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -27884,6 +28064,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -48.62008300406065, max: 10602, slope: 0.2054938441229552}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -28055,6 +28236,7 @@
     LdsOffsetB_Blk: 2560
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -171.69061140460056, max: 10602, slope: 0.5211256789855048}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -28226,6 +28408,7 @@
     LdsOffsetB_Blk: 2560
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -172.7395283953476, max: 10602, slope: 0.5165219603379408}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -28397,6 +28580,7 @@
     LdsOffsetB_Blk: 2560
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -31.098427143408163, max: 10602, slope: 0.16422410591006723}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -28568,6 +28752,7 @@
     LdsOffsetB_Blk: 2560
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -90.0645979384614, max: 10602, slope: 0.34767071653067705}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -28739,6 +28924,7 @@
     LdsOffsetB_Blk: 2560
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -85.29098249947506, max: 10602, slope: 0.34294787356033174}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -28910,6 +29096,7 @@
     LdsOffsetB_Blk: 2560
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 20.594081422380903, max: 10602, slope: 0.09328795686940657}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -29081,6 +29268,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -52.07543908116176, max: 10602, slope: 0.24253343423305246}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -29252,6 +29440,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 8.583152937175205, max: 10602, slope: 0.10194257233779025}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -29423,6 +29612,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -53.157713900031666, max: 10602, slope: 0.24375362088849728}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -29594,6 +29784,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 0.2810180248949092, max: 10602, slope: 0.1232850753030138}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -29765,6 +29956,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 19.247549332938732, max: 10602, slope: 0.09668610519439483}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -29936,6 +30128,7 @@
     LdsOffsetB_Blk: 5120
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -978.6752610470666, max: 10602, slope: 2.7022745760293954}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -30107,6 +30300,7 @@
     LdsOffsetB_Blk: 5120
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -110.8924034582337, max: 10602, slope: 0.36371967708018166}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -30278,6 +30472,7 @@
     LdsOffsetB_Blk: 5120
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -950.0912445467287, max: 10602, slope: 2.662995419767666}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -30449,6 +30644,7 @@
     LdsOffsetB_Blk: 5120
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -111.27784810346591, max: 10602, slope: 0.36553654227237375}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -30620,6 +30816,7 @@
     LdsOffsetB_Blk: 6144
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -151.37949955725946, max: 10602, slope: 0.4580635835909078}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -30791,6 +30988,7 @@
     LdsOffsetB_Blk: 6144
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -150.41278794146714, max: 10602, slope: 0.45633850539453763}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -30962,6 +31160,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -167.19671229374245, max: 10602, slope: 0.466098237355404}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -31130,6 +31329,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -796.2101066640909, max: 10602, slope: 1.8496275146583694}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -31298,6 +31498,7 @@
     LdsOffsetB_Blk: 6144
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -11.43246930027425, max: 10602, slope: 0.14458499929092938}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -31466,6 +31667,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -145.87881283791467, max: 10602, slope: 0.44404313582080907}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -31634,6 +31836,7 @@
     LdsOffsetB_Blk: 1280
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -2976.6226999805876, max: 10602, slope: 5.976016256400932}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -31802,6 +32005,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -1398.7996098315748, max: 10602, slope: 2.942817531041907}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -31970,6 +32174,7 @@
     LdsOffsetB_Blk: 2560
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -898.4512361941973, max: 10602, slope: 2.3706978235974985}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -32138,6 +32343,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -166.12470832488788, max: 10602, slope: 0.4669523808221191}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -32306,6 +32512,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -47.874077077065635, max: 10602, slope: 0.20583462408561615}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -32474,6 +32681,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -163.81375369438845, max: 10602, slope: 0.5585423142542569}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -32642,6 +32850,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -162.38758707415172, max: 10602, slope: 0.4657015584640469}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -32810,6 +33019,7 @@
     LdsOffsetB_Blk: 2560
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -117.81983439874888, max: 10602, slope: 0.36346846404678373}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -32978,6 +33188,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -1359.4888500484874, max: 10602, slope: 2.5533829497910228}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -33146,6 +33357,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -48.62008300406065, max: 10602, slope: 0.2054938441229552}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -33314,6 +33526,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -1408.4044077343037, max: 10602, slope: 2.953679184652264}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -33482,6 +33695,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -157.52785316302183, max: 10602, slope: 0.5534422377752318}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -33650,6 +33864,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -192.5030377463513, max: 10602, slope: 0.5875891098320176}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -33818,6 +34033,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -1282.6344900644647, max: 10602, slope: 2.798090960550153}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -33986,6 +34202,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -186.45123434645694, max: 10602, slope: 0.5821607207295687}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -34154,6 +34371,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -236.90658151916017, max: 10602, slope: 0.7051928806620117}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -34322,6 +34540,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -159.9947026420365, max: 10602, slope: 0.5569596611956573}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -34490,6 +34709,7 @@
     LdsOffsetB_Blk: 6144
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -515.5358938474282, max: 10602, slope: 1.193362407735522}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -34658,6 +34878,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -131.22485378553037, max: 10602, slope: 1.3919432971478194}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -34826,6 +35047,7 @@
     LdsOffsetB_Blk: 6144
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 20.901569652470414, max: 10602, slope: 0.09337524405719723}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -34994,6 +35216,7 @@
     LdsOffsetB_Blk: 768
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -407.1343698061072, max: 10602, slope: 0.9052215883892892}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -35162,6 +35385,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -440.2759676973105, max: 10602, slope: 1.1576211150734614}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -35330,6 +35554,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -44.86434244549313, max: 10602, slope: 0.19746753011380225}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -35498,6 +35723,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -35.26618064899245, max: 10602, slope: 0.18453198191256565}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -35666,6 +35892,7 @@
     LdsOffsetB_Blk: 6144
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -516.2008561657314, max: 10602, slope: 1.200001273467606}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -35834,6 +36061,7 @@
     LdsOffsetB_Blk: 2560
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -769.007226561136, max: 10602, slope: 1.637482351102883}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -36002,6 +36230,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -812.7896417252194, max: 10602, slope: 1.8518187618090685}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -36170,6 +36399,7 @@
     LdsOffsetB_Blk: 2560
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -3176.941476162243, max: 10602, slope: 6.233903123063494}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -36338,6 +36568,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -1304.0081111774016, max: 10602, slope: 2.8744384209514395}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -36506,6 +36737,7 @@
     LdsOffsetB_Blk: 6144
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 20.793335620522235, max: 10602, slope: 0.09337339337935806}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -36674,6 +36906,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -129.0417512746391, max: 10602, slope: 0.4750897774736383}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -36842,6 +37075,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -371.611772874747, max: 10602, slope: 0.890507906812662}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -37010,6 +37244,7 @@
     LdsOffsetB_Blk: 2560
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -105.33353642796922, max: 10602, slope: 0.3385597528528231}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -37178,6 +37413,7 @@
     LdsOffsetB_Blk: 2560
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -932.6534758872335, max: 10602, slope: 2.3726773276832653}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -37346,6 +37582,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -37.1717150872387, max: 10602, slope: 0.20507508226757729}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -37514,6 +37751,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -6.849530963286136, max: 10602, slope: 0.13070108618489548}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -37682,6 +37920,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -444.3018403896754, max: 10602, slope: 1.1643940944833735}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -37850,6 +38089,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -356.9156444113688, max: 10602, slope: 0.8538029756017392}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -38018,6 +38258,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 21.016829961988606, max: 10602, slope: 0.09319415792319251}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -38186,6 +38427,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 20.75653339367472, max: 10602, slope: 0.09316200039552493}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -38354,6 +38596,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -295.5005134215159, max: 10602, slope: 0.8826451257982579}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -38522,6 +38765,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -360.3857436463086, max: 10602, slope: 0.8681749138970124}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -38690,6 +38934,7 @@
     LdsOffsetB_Blk: 2560
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -773.8097171561045, max: 10602, slope: 1.6386504625850355}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -38858,6 +39103,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -304.5901591972527, max: 10602, slope: 0.8938997272776349}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -39026,6 +39272,7 @@
     LdsOffsetB_Blk: 6144
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -363.095987621398, max: 10602, slope: 0.9609415384787926}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -39194,6 +39441,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -192.47414782548995, max: 10602, slope: 0.5885200839996066}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -39362,6 +39610,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -469.8870320002994, max: 10602, slope: 1.1865285158148549}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -39530,6 +39779,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -1566.526992956683, max: 10602, slope: 2.784815222245909}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -39698,6 +39948,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 0.2810180248949092, max: 10602, slope: 0.1232850753030138}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -39866,6 +40117,7 @@
     LdsOffsetB_Blk: 2560
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -3186.212329095119, max: 10602, slope: 6.282881301471453}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -40034,6 +40286,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -324.86098086748325, max: 10602, slope: 0.9053573782728176}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -40202,6 +40455,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -130.0283114660122, max: 10602, slope: 0.4786821835900373}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -40370,6 +40624,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -43.70021696809123, max: 10602, slope: 0.1974866673759581}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -40538,6 +40793,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -190.01357791867233, max: 10602, slope: 0.5848840397489189}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -40706,6 +40962,7 @@
     LdsOffsetB_Blk: 4608
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -2142.6299333948614, max: 10602, slope: 5.920335516381532}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -40874,6 +41131,7 @@
     LdsOffsetB_Blk: 2560
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -814.3070115704228, max: 10602, slope: 1.7324308267758934}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -41042,6 +41300,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -20.225824222092836, max: 10602, slope: 0.14506008360744554}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -41210,6 +41469,7 @@
     LdsOffsetB_Blk: 2560
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -118.64550126239529, max: 10602, slope: 0.3635980824756849}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -41378,6 +41638,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -605.6504360777019, max: 10602, slope: 1.405771981814788}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -41546,6 +41807,7 @@
     LdsOffsetB_Blk: 6144
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -150.41278794146714, max: 10602, slope: 0.45633850539453763}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -41714,6 +41976,7 @@
     LdsOffsetB_Blk: 6144
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -551.802210932056, max: 10602, slope: 1.3005176506085947}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -41882,6 +42145,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -1268.7872789903913, max: 10602, slope: 2.793550465127085}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -42050,6 +42314,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -1425.7856567254853, max: 10602, slope: 2.760842728592419}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -42218,6 +42483,7 @@
     LdsOffsetB_Blk: 6144
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -151.37949955725946, max: 10602, slope: 0.4580635835909078}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -42386,6 +42652,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -1388.718855071535, max: 10602, slope: 2.9354756301427494}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -42554,6 +42821,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -1395.7053155223007, max: 10602, slope: 2.9463134927237}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -42722,6 +42990,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -126.23214236804127, max: 10602, slope: 0.4773151653326659}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -42890,6 +43159,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -221.32311607933465, max: 10602, slope: 0.679190648941636}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -43058,6 +43328,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -377.74010959418405, max: 10602, slope: 0.9725126055649895}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -43226,6 +43497,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -162.10726584821842, max: 10602, slope: 0.45844146820603726}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -43394,6 +43666,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -35.5490359570825, max: 10602, slope: 0.18420032292657607}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -43562,6 +43835,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -371.24838754710476, max: 10602, slope: 0.8933898589031132}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -43730,6 +44004,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -166.59705121819877, max: 10602, slope: 0.4590080145360973}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -43898,6 +44173,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -230.66040630973148, max: 10602, slope: 0.7041491277606139}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -44066,6 +44342,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -353.87602020641197, max: 10602, slope: 0.8638983130224989}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -44234,6 +44511,7 @@
     LdsOffsetB_Blk: 5120
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -1024.4965759875872, max: 10602, slope: 2.773169800904671}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -44402,6 +44680,7 @@
     LdsOffsetB_Blk: 5120
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -978.6752610470666, max: 10602, slope: 2.7022745760293954}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -44570,6 +44849,7 @@
     LdsOffsetB_Blk: 5120
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -1017.7092010146299, max: 10602, slope: 2.807464820440972}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -44738,6 +45018,7 @@
     LdsOffsetB_Blk: 6144
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -556.0516508661948, max: 10602, slope: 1.2980594900665317}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -44906,6 +45187,7 @@
     LdsOffsetB_Blk: 6144
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -41.708242757938955, max: 10602, slope: 0.19458570247291726}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -45074,6 +45356,7 @@
     LdsOffsetB_Blk: 6144
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -149.09139372660547, max: 10602, slope: 0.45178521551480505}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -45242,6 +45525,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -26.047147373353614, max: 10602, slope: 0.17852944850174948}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -45410,6 +45694,7 @@
     LdsOffsetB: 512
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -96.61753452150695, max: 10602, slope: 0.4014263188226805}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -45582,6 +45867,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -130.0283114660122, max: 10602, slope: 0.4786821835900373}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -45754,6 +46040,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -35.5490359570825, max: 10602, slope: 0.18420032292657607}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -45922,6 +46209,7 @@
     LdsOffsetB: 1024
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -104.38876922257607, max: 10602, slope: 0.40516331792937305}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -46090,6 +46378,7 @@
     LdsOffsetB: 1024
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -25.643260146181976, max: 10602, slope: 0.1728354891128103}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -46262,6 +46551,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -81.88248123664894, max: 10602, slope: 0.3573018671500087}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -46430,6 +46720,7 @@
     LdsOffsetB: 512
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -26.19201000263403, max: 10602, slope: 0.17627795036918575}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -46602,6 +46893,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -27.55723169478459, max: 10602, slope: 0.17872925886274155}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -46770,6 +47062,7 @@
     LdsOffsetB: 512
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -101.22517086712702, max: 10602, slope: 0.40479594280952313}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -46942,6 +47235,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -35.26618064899245, max: 10602, slope: 0.18453198191256565}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -47110,6 +47404,7 @@
     LdsOffsetB: 1024
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -109.79652741149681, max: 10602, slope: 0.4090657987114782}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -47282,6 +47577,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -157.52785316302183, max: 10602, slope: 0.5534422377752318}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -47450,6 +47746,7 @@
     LdsOffsetB: 1024
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -26.63254566007927, max: 10602, slope: 0.17334247319995655}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -47622,6 +47919,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -43.34634275818505, max: 10602, slope: 0.1974710861496292}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -47794,6 +48092,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -190.01357791867233, max: 10602, slope: 0.5848840397489189}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -47966,6 +48265,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -230.66040630973148, max: 10602, slope: 0.7041491277606139}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -48138,6 +48438,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -47.874077077065635, max: 10602, slope: 0.20583462408561615}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -48310,6 +48611,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -44.39478929656635, max: 10602, slope: 0.1970701965769135}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -48482,6 +48784,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -48.62008300406065, max: 10602, slope: 0.2054938441229552}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -48654,6 +48957,7 @@
     LdsOffsetB_Blk: 2816
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -52.60159697895356, max: 10602, slope: 0.29030686861690597}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -48826,6 +49130,7 @@
     LdsOffsetB_Blk: 2816
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -15.812446369378694, max: 10602, slope: 0.13601654767867366}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -48998,6 +49303,7 @@
     LdsOffsetB_Blk: 2816
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -82.33842120285685, max: 10602, slope: 0.33890705244422925}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -49170,6 +49476,7 @@
     LdsOffsetB_Blk: 2816
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -14.810972408531653, max: 10602, slope: 0.13938125255543957}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -49342,6 +49649,7 @@
     LdsOffsetB_Blk: 2560
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -29.750701745487262, max: 10602, slope: 0.16156749783043858}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -49514,6 +49822,7 @@
     LdsOffsetB_Blk: 2560
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -172.7395283953476, max: 10602, slope: 0.5165219603379408}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -49686,6 +49995,7 @@
     LdsOffsetB_Blk: 2560
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -31.098427143408163, max: 10602, slope: 0.16422410591006723}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -49858,6 +50168,7 @@
     LdsOffsetB_Blk: 2560
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -65.89022352697803, max: 10602, slope: 0.2862669990637884}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -50030,6 +50341,7 @@
     LdsOffsetB_Blk: 2560
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 18.86980804155388, max: 10602, slope: 0.09417190973369018}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -50202,6 +50514,7 @@
     LdsOffsetB_Blk: 2560
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -68.757609466063, max: 10602, slope: 0.29124771095607277}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -50374,6 +50687,7 @@
     LdsOffsetB_Blk: 2560
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -90.0645979384614, max: 10602, slope: 0.34767071653067705}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -50546,6 +50860,7 @@
     LdsOffsetB_Blk: 2560
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 19.96463045509721, max: 10602, slope: 0.09349920351609216}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -50718,6 +51033,7 @@
     LdsOffsetB_Blk: 2560
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -85.29098249947506, max: 10602, slope: 0.34294787356033174}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -50890,6 +51206,7 @@
     LdsOffsetB_Blk: 2560
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 20.594081422380903, max: 10602, slope: 0.09328795686940657}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -51062,6 +51379,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -17.2942794962699, max: 10602, slope: 0.1792756735436619}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -51234,6 +51552,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 1.9921945765827906, max: 10602, slope: 0.10704826814010987}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -51406,6 +51725,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 16.40393211012464, max: 10602, slope: 0.09500508041870691}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -51578,6 +51898,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -27.381957191272665, max: 10602, slope: 0.19364919282506646}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -51750,6 +52071,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 19.078413666257468, max: 10602, slope: 0.09364143660899395}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -51918,6 +52240,7 @@
     LdsOffsetB: 512
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -383.8994988761944, max: 10602, slope: 1.2315974265656364}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -52086,6 +52409,7 @@
     LdsOffsetB: 512
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -85.33749533792457, max: 10602, slope: 0.32716078837422774}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -52258,6 +52582,7 @@
     LdsOffsetB_Blk: 1280
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -116.08399077790588, max: 10602, slope: 0.36500929333693294}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -52430,6 +52755,7 @@
     LdsOffsetB_Blk: 2560
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -570.9063148937721, max: 10602, slope: 1.7306704188706512}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -52602,6 +52928,7 @@
     LdsOffsetB_Blk: 2560
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -622.6547030682812, max: 10602, slope: 1.7085590597125406}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -52774,6 +53101,7 @@
     LdsOffsetB_Blk: 768
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -1159.2954017281736, max: 10602, slope: 2.7061333174728874}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -52946,6 +53274,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -1179.1402329053221, max: 10602, slope: 2.722691979663945}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -53118,6 +53447,7 @@
     LdsOffsetB_Blk: 2304
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -6806.5903897850685, max: 10602, slope: 13.043834404157154}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -53290,6 +53620,7 @@
     LdsOffsetB_Blk: 2560
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -3142.5954869995126, max: 10602, slope: 6.2005015929061384}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -53462,6 +53793,7 @@
     LdsOffsetB_Blk: 2304
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -279.1465937662956, max: 10602, slope: 0.719909482044422}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -53634,6 +53966,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -1555.6988301632293, max: 10602, slope: 2.7796405390205465}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -53806,6 +54139,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -563.2125549221845, max: 10602, slope: 1.2177120413158458}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -53978,6 +54312,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -377.3283634242307, max: 10602, slope: 0.9958750794213622}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -54150,6 +54485,7 @@
     LdsOffsetB_Blk: 6144
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -492.51178507256947, max: 10602, slope: 1.0195409281407328}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -54318,6 +54654,7 @@
     LdsOffsetB: 512
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -178.20712538527417, max: 10602, slope: 0.5935304955302636}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -54486,6 +54823,7 @@
     LdsOffsetB: 512
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -104.64067782086371, max: 10602, slope: 0.41089080480450074}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -54654,6 +54992,7 @@
     LdsOffsetB: 1024
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -110.57525869179821, max: 10602, slope: 0.42707448073098875}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -54826,6 +55165,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -75.780310681774, max: 10602, slope: 0.3292498006108364}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -54998,6 +55338,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -73.66598673502553, max: 10602, slope: 0.3284895344244374}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -55170,6 +55511,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -27.87460450848585, max: 10602, slope: 0.17753608112518304}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -55342,6 +55684,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -110.09237840951289, max: 10602, slope: 0.397164119902391}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -55514,6 +55857,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -33.929399271846655, max: 10602, slope: 0.19500664856634056}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -55686,6 +56030,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -36.663903415285574, max: 10602, slope: 0.19575740345149176}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -55858,6 +56203,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -45.59955837114129, max: 10602, slope: 0.19997690160043258}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -56026,6 +56372,7 @@
     LdsOffsetB: 1024
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -42.916816371586386, max: 10602, slope: 0.22340831082618764}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -56194,6 +56541,7 @@
     LdsOffsetB: 512
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -101.24665541022615, max: 10602, slope: 0.36516606233605126}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -56366,6 +56714,7 @@
     LdsOffsetB_Blk: 1280
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -499.3593764745562, max: 10602, slope: 1.3192374556187083}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -56534,6 +56883,7 @@
     LdsOffsetB: 512
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -406.6304989392303, max: 10602, slope: 1.1166796989265761}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -56706,6 +57056,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -111.40002507238806, max: 10602, slope: 0.40041460982376226}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -56878,6 +57229,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -37.14518991097618, max: 10602, slope: 0.1961497679851371}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -57050,6 +57402,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -103.04255741406885, max: 10602, slope: 0.3962112989411529}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -57222,6 +57575,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -81.88248123664894, max: 10602, slope: 0.3573018671500087}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -57396,6 +57750,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -27.55723169478459, max: 10602, slope: 0.17872925886274155}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -57566,6 +57921,7 @@
     LdsOffsetB: 1024
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -109.79652741149681, max: 10602, slope: 0.4090657987114782}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -57740,6 +58096,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -38.11969211589899, max: 10602, slope: 0.1859433096992141}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -57914,6 +58271,7 @@
     LdsOffsetB_Blk: 2560
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 21.125334989677526, max: 10602, slope: 0.09408426632628396}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -58088,6 +58446,7 @@
     LdsOffsetB_Blk: 2560
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -65.89022352697803, max: 10602, slope: 0.2862669990637884}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -58262,6 +58621,7 @@
     LdsOffsetB_Blk: 2560
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 18.86980804155388, max: 10602, slope: 0.09417190973369018}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -58436,6 +58796,7 @@
     LdsOffsetB_Blk: 2560
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 19.241963108900926, max: 10602, slope: 0.09422563028638721}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -58610,6 +58971,7 @@
     LdsOffsetB_Blk: 2560
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -85.29098249947506, max: 10602, slope: 0.34294787356033174}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -58784,6 +59146,7 @@
     LdsOffsetB_Blk: 2560
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 20.594081422380903, max: 10602, slope: 0.09328795686940657}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -58954,6 +59317,7 @@
     LdsOffsetB: 2048
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -17.494309888454605, max: 10602, slope: 0.16935257044175586}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -59128,6 +59492,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -110.09237840951289, max: 10602, slope: 0.397164119902391}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -59302,6 +59667,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -33.929399271846655, max: 10602, slope: 0.19500664856634056}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -59472,6 +59838,7 @@
     LdsOffsetB: 1024
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -42.916816371586386, max: 10602, slope: 0.22340831082618764}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -59646,6 +60013,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -111.40002507238806, max: 10602, slope: 0.40041460982376226}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -59820,6 +60188,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -103.04255741406885, max: 10602, slope: 0.3962112989411529}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -59995,6 +60364,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -43.34634275818505, max: 10602, slope: 0.1974710861496292}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -60172,6 +60542,7 @@
     LdsOffsetB_Blk: 2816
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -14.810972408531653, max: 10602, slope: 0.13938125255543957}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -60349,6 +60720,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 8.583152937175205, max: 10602, slope: 0.10194257233779025}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -60526,6 +60898,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -2.0361127680942483, max: 10602, slope: 0.11063308224815432}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -60704,6 +61077,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 185.34673984422213, max: 10602, slope: 0.1240919845909368}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -60883,6 +61257,7 @@
     LdsOffsetB_Blk: 2560
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -85.29098249947506, max: 10602, slope: 0.34294787356033174}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -61058,6 +61433,7 @@
     LdsOffsetB: 2048
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 0.5224419793099594, max: 10602, slope: 0.10998197915164848}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -61237,6 +61613,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -128.39262382183023, max: 10602, slope: 0.43121891871756696}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -61416,6 +61793,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -157.52785316302183, max: 10602, slope: 0.5534422377752318}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -61595,6 +61973,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -44.86434244549313, max: 10602, slope: 0.19746753011380225}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -61774,6 +62153,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -192.47414782548995, max: 10602, slope: 0.5885200839996066}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -61953,6 +62333,7 @@
     LdsOffsetB_Blk: 2560
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 19.96463045509721, max: 10602, slope: 0.09349920351609216}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -62132,6 +62513,7 @@
     LdsOffsetB_Blk: 2560
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 20.594081422380903, max: 10602, slope: 0.09328795686940657}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -62311,6 +62693,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -52.07543908116176, max: 10602, slope: 0.24253343423305246}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -62490,6 +62873,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 8.583152937175205, max: 10602, slope: 0.10194257233779025}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -62669,6 +63053,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -53.157713900031666, max: 10602, slope: 0.24375362088849728}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -62848,6 +63233,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 19.078413666257468, max: 10602, slope: 0.09364143660899395}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -63023,6 +63409,7 @@
     LdsOffsetB: 2048
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -129.87367885790334, max: 10602, slope: 0.4268489468713067}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -63202,6 +63589,7 @@
     LdsOffsetB_Blk: 5120
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -978.6752610470666, max: 10602, slope: 2.7022745760293954}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -63381,6 +63769,7 @@
     LdsOffsetB_Blk: 5120
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -950.0912445467287, max: 10602, slope: 2.662995419767666}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -63560,6 +63949,7 @@
     LdsOffsetB_Blk: 6144
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -515.5358938474282, max: 10602, slope: 1.193362407735522}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -63739,6 +64129,7 @@
     LdsOffsetB_Blk: 6144
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -151.37949955725946, max: 10602, slope: 0.4580635835909078}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -63918,6 +64309,7 @@
     LdsOffsetB_Blk: 6144
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -516.2008561657314, max: 10602, slope: 1.200001273467606}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -64097,6 +64489,7 @@
     LdsOffsetB_Blk: 6144
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -150.41278794146714, max: 10602, slope: 0.45633850539453763}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -64272,6 +64665,7 @@
     LdsOffsetB: 512
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -146.6913880574827, max: 10602, slope: 0.5398322781305573}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -64447,6 +64841,7 @@
     LdsOffsetB: 512
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -175.5339304160419, max: 10602, slope: 0.5918145642998064}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -64622,6 +65017,7 @@
     LdsOffsetB: 512
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -109.39669204270967, max: 10602, slope: 0.4095012815140461}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -64797,6 +65193,7 @@
     LdsOffsetB: 512
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -178.20712538527417, max: 10602, slope: 0.5935304955302636}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -64972,6 +65369,7 @@
     LdsOffsetB: 512
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -111.53441950132773, max: 10602, slope: 0.41529877877170573}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -65151,6 +65549,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -243.61195345853974, max: 10602, slope: 0.7478421684679294}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -65330,6 +65729,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -125.42204166382206, max: 10602, slope: 0.42318253181599585}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -65509,6 +65909,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -240.98455573800186, max: 10602, slope: 0.7461573871940212}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -65684,6 +66085,7 @@
     LdsOffsetB: 512
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -310.76664507684825, max: 10602, slope: 1.0003885013391685}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -65859,6 +66261,7 @@
     LdsOffsetB: 1024
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -218.742405539263, max: 10602, slope: 0.87891352145891}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -66034,6 +66437,7 @@
     LdsOffsetB: 512
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -311.30121133703733, max: 10602, slope: 0.999510333335241}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -66209,6 +66613,7 @@
     LdsOffsetB: 512
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -224.19640864688267, max: 10602, slope: 0.8186636006531417}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -66384,6 +66789,7 @@
     LdsOffsetB: 512
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -349.59784565548347, max: 10602, slope: 1.0223338097651629}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -66559,6 +66965,7 @@
     LdsOffsetB: 1024
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -336.77979567030997, max: 10602, slope: 1.0655179890531188}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -66734,6 +67141,7 @@
     LdsOffsetB: 1024
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -208.59212038314436, max: 10602, slope: 0.865371415088221}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -66909,6 +67317,7 @@
     LdsOffsetB: 1024
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -325.9603533544806, max: 10602, slope: 1.0620601985979832}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -67088,6 +67497,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -110.09237840951289, max: 10602, slope: 0.397164119902391}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -67267,6 +67677,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -81.88248123664894, max: 10602, slope: 0.3573018671500087}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -67448,6 +67859,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -27.55723169478459, max: 10602, slope: 0.17872925886274155}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -67625,6 +68037,7 @@
     LdsOffsetB: 1024
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -26.63254566007927, max: 10602, slope: 0.17334247319995655}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -67806,6 +68219,7 @@
     LdsOffsetB_Blk: 2560
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -65.89022352697803, max: 10602, slope: 0.2862669990637884}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -67987,6 +68401,7 @@
     LdsOffsetB_Blk: 2560
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 18.86980804155388, max: 10602, slope: 0.09417190973369018}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -68168,6 +68583,7 @@
     LdsOffsetB_Blk: 2560
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -90.0645979384614, max: 10602, slope: 0.34767071653067705}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -68349,6 +68765,7 @@
     LdsOffsetB_Blk: 2560
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 19.96463045509721, max: 10602, slope: 0.09349920351609216}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -68530,6 +68947,7 @@
     LdsOffsetB_Blk: 2560
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -85.29098249947506, max: 10602, slope: 0.34294787356033174}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -68711,6 +69129,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -110.09237840951289, max: 10602, slope: 0.397164119902391}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -68892,6 +69311,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -105.94569320903832, max: 10602, slope: 0.40246290568520215}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -69073,6 +69493,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -36.663903415285574, max: 10602, slope: 0.19575740345149176}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -69250,6 +69671,7 @@
     LdsOffsetB: 1024
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -42.916816371586386, max: 10602, slope: 0.22340831082618764}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -69427,6 +69849,7 @@
     LdsOffsetB: 256
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -211.99326693035275, max: 10602, slope: 0.628092042240127}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -69608,6 +70031,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -36.476099302894866, max: 10602, slope: 0.18862207950961069}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -69789,6 +70213,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -37.14518991097618, max: 10602, slope: 0.1961497679851371}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -69970,6 +70395,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -230.66040630973148, max: 10602, slope: 0.7041491277606139}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -70154,6 +70580,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -47.874077077065635, max: 10602, slope: 0.20583462408561615}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -70338,6 +70765,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -48.62008300406065, max: 10602, slope: 0.2054938441229552}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -70522,6 +70950,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -22.020494381828392, max: 10602, slope: 0.1790405681447192}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -70702,6 +71131,7 @@
     LdsOffsetB: 2048
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -16.877158646133584, max: 10602, slope: 0.1677081988311852}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -70886,6 +71316,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -17.2942794962699, max: 10602, slope: 0.1792756735436619}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -71070,6 +71501,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 1.9921945765827906, max: 10602, slope: 0.10704826814010987}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -71250,6 +71682,7 @@
     LdsOffsetB: 1024
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -12.01104948121892, max: 10602, slope: 0.16349792855283485}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -71434,6 +71867,7 @@
     LdsOffsetB_Blk: 2816
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -14.810972408531653, max: 10602, slope: 0.13938125255543957}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -71618,6 +72052,7 @@
     LdsOffsetB_Blk: 2560
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -151.5596582796885, max: 10602, slope: 0.48237877288082365}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -71802,6 +72237,7 @@
     LdsOffsetB_Blk: 2560
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -31.098427143408163, max: 10602, slope: 0.16422410591006723}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -71989,6 +72425,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -48.47561107401082, max: 10602, slope: 0.20757650252416837}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -72181,6 +72618,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -46.30098670744775, max: 10602, slope: 0.20630926846093683}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -72373,6 +72811,7 @@
     LdsOffsetB_Blk: 6144
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -65.35032578857853, max: 10602, slope: 0.31392641338697763}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -72565,6 +73004,7 @@
     LdsOffsetB_Blk: 6144
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -127.70268863365445, max: 10602, slope: 0.37792754737619005}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -72760,6 +73200,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -242.7747949862425, max: 10602, slope: 0.7102013003832279}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -72958,6 +73399,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -48.88754849427128, max: 10602, slope: 0.20715080313046783}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -73156,6 +73598,7 @@
     LdsOffsetB_Blk: 5120
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -201.79231456306368, max: 10602, slope: 0.6551381750997952}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -73354,6 +73797,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 19.898823581510708, max: 10602, slope: 0.09309557864948882}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -73552,6 +73996,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -117.23737532864185, max: 10602, slope: 0.358675948689575}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -73750,6 +74195,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -49.700071539755, max: 10602, slope: 0.20681518777237387}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -73948,6 +74394,7 @@
     LdsOffsetB_Blk: 5632
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -137.24208805097885, max: 10602, slope: 0.4909867876864228}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -74146,6 +74593,7 @@
     LdsOffsetB_Blk: 6144
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -68.11533458076104, max: 10602, slope: 0.31836677921670553}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -74344,6 +74792,7 @@
     LdsOffsetB_Blk: 6144
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -40.658831785776044, max: 10602, slope: 0.19221329621917785}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -74542,6 +74991,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -22.91429513230972, max: 10602, slope: 0.1501542048710101}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -74740,6 +75190,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -19.436116404975397, max: 10602, slope: 0.1430730125205426}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -74938,6 +75389,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 19.49526338476193, max: 10602, slope: 0.09319466443547761}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -75136,6 +75588,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -606.2865900069002, max: 10602, slope: 1.32516496741658}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -75338,6 +75791,7 @@
     LdsOffsetB_Blk: 2560
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -32.74644576172311, max: 10602, slope: 0.16321465169960983}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -75544,6 +75998,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -19.700884398035296, max: 10602, slope: 0.14595579959952876}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -75750,6 +76205,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -13.495170871038761, max: 10602, slope: 0.13976535460760145}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -75956,6 +76412,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -551.6046172208486, max: 10602, slope: 1.2016927018831276}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -76162,6 +76619,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -376.64438179525274, max: 10602, slope: 0.9952762389357446}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -76368,6 +76826,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -360.16993357878073, max: 10602, slope: 0.8682684734788614}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -76574,6 +77033,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -1268.9622661537906, max: 10602, slope: 2.794664446366811}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -76781,6 +77241,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -356.7864546319911, max: 10602, slope: 0.8656435114312193}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -76988,6 +77449,7 @@
     LdsOffsetB_Blk: 5120
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 618.8150937768527, max: 10602, slope: 0.16232016404553376}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -77197,6 +77659,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -51.23862027268325, max: 10602, slope: 0.20774099799372242}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -77407,6 +77870,7 @@
     LdsOffsetB_Blk: 6144
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -66.25970928366866, max: 10602, slope: 0.31656173548395034}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -77617,6 +78081,7 @@
     LdsOffsetB_Blk: 6144
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 18.2942262325267, max: 10602, slope: 0.09524471644338159}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -77827,6 +78292,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -232.8642792262808, max: 10602, slope: 0.7065271756737244}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -78037,6 +78503,7 @@
     LdsOffsetB_Blk: 6144
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 18.926841088989658, max: 10602, slope: 0.09320960382171473}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -78247,6 +78714,7 @@
     LdsOffsetB_Blk: 6144
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -24.730694860754305, max: 10602, slope: 0.16483374387111424}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -78457,6 +78925,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -51.23862027268325, max: 10602, slope: 0.20774099799372242}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -78669,6 +79138,7 @@
     LdsOffsetB_Blk: 6144
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -24.730694860754305, max: 10602, slope: 0.16483374387111424}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -78881,6 +79351,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -232.8642792262808, max: 10602, slope: 0.7065271756737244}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -79093,6 +79564,7 @@
     LdsOffsetB_Blk: 6144
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 18.926841088989658, max: 10602, slope: 0.09320960382171473}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -79305,6 +79777,7 @@
     LdsOffsetB_Blk: 6144
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 18.2942262325267, max: 10602, slope: 0.09524471644338159}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -79517,6 +79990,7 @@
     LdsOffsetB_Blk: 6144
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -45.790112855579686, max: 10602, slope: 0.20211156910910832}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -79729,6 +80203,7 @@
     LdsOffsetB_Blk: 5120
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -168.1641434159526, max: 10602, slope: 0.5072079284177079}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -79941,6 +80416,7 @@
     LdsOffsetB_Blk: 5120
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: 21.737888119746955, max: 10602, slope: 0.09551284331529353}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -80153,6 +80629,7 @@
     LdsOffsetB_Blk: 6144
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -66.25970928366866, max: 10602, slope: 0.31656173548395034}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -80365,6 +80842,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -36.4866807377382, max: 10602, slope: 0.18426465244309798}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -80577,6 +81055,7 @@
     LdsOffsetB_Blk: 6144
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -43.7340830949094, max: 10602, slope: 0.20123728942712618}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -80789,6 +81268,7 @@
     LdsOffsetB_Blk: 6144
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -43.72278618601435, max: 10602, slope: 0.20382680385604288}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -81001,6 +81481,7 @@
     LdsOffsetB_Blk: 4864
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -27.21974960578188, max: 10602, slope: 0.18647574432444955}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -81213,6 +81694,7 @@
     LdsOffsetB_Blk: 7168
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -62.275325550179815, max: 10602, slope: 0.24670586564420677}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -81425,6 +81907,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -38.485777184677005, max: 10602, slope: 0.18572188821426}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -81637,6 +82120,7 @@
     LdsOffsetB_Blk: 7168
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -115.37560778352677, max: 10602, slope: 0.4669313073993483}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -81849,6 +82333,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -356.27425560425974, max: 10602, slope: 1.0084886308161936}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -82061,6 +82546,7 @@
     LdsOffsetB_Blk: 4864
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -491.19733893207297, max: 10602, slope: 1.3978598767630412}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -82273,6 +82759,7 @@
     LdsOffsetB_Blk: 6144
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -356.2397279841821, max: 10602, slope: 1.0335405191751066}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -82485,6 +82972,7 @@
     LdsOffsetB_Blk: 5120
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -7.164657247213588, max: 10602, slope: 0.1322803677616795}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -82697,6 +83185,7 @@
     LdsOffsetB_Blk: 5120
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -198.75367033578286, max: 10602, slope: 0.6293979444568601}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -82909,6 +83398,7 @@
     LdsOffsetB_Blk: 5632
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -35.95342114690584, max: 10602, slope: 0.1574105558235519}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -83121,6 +83611,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -361.67354491194953, max: 10602, slope: 1.0123521586198228}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -83333,6 +83824,7 @@
     LdsOffsetB_Blk: 6144
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -356.06708668776383, max: 10602, slope: 1.0364126022729128}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -83545,6 +84037,7 @@
     LdsOffsetB_Blk: 6400
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -21.292943409262843, max: 10602, slope: 0.14468498972554056}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -83759,6 +84252,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -242.7747949862425, max: 10602, slope: 0.7102013003832279}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -83978,6 +84472,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -48.88754849427128, max: 10602, slope: 0.20715080313046783}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -84197,6 +84692,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -346.105930456293, max: 10602, slope: 1.0154261223238374}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -84416,6 +84912,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -356.40886588624085, max: 10602, slope: 0.8668818864467479}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -84635,6 +85132,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -1274.0253181997334, max: 10602, slope: 2.8004604997208906}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -84850,6 +85348,7 @@
     LdsOffsetB: 256
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -3250.7017185277577, max: 10602, slope: 5.703429129044782}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -85069,6 +85568,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -35.77439415315335, max: 10602, slope: 0.19509115025500798}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -85288,6 +85788,7 @@
     LdsOffsetB_Blk: 3072
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -297.63981854913004, max: 10602, slope: 0.8440080984315309}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true
@@ -85507,6 +86008,7 @@
     LdsOffsetB_Blk: 1536
     LdsPadA: 0
     LdsPadB: 0
+    LinearModel: {intercept: -1015.4322128861047, max: 10602, slope: 3.7713763425103126}
     LocalDotLayout: 1
     LocalRead2A: true
     LocalRead2B: true

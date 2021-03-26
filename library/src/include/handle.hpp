@@ -183,6 +183,9 @@ public:
     // default atomics mode allows atomic operations
     rocblas_atomics_mode atomics_mode = rocblas_atomics_allowed;
 
+    // Selects the benchmark library to be used for solution selection
+    rocblas_performance_metric performance_metric = rocblas_default_performance_metric;
+
     // default check_numerics_mode is no numeric_check
     rocblas_check_numerics_mode check_numerics = rocblas_check_numerics_mode_no_check;
 
@@ -196,13 +199,19 @@ public:
     // C interfaces for manipulating device memory
     friend rocblas_status(::rocblas_start_device_memory_size_query)(_rocblas_handle*);
     friend rocblas_status(::rocblas_stop_device_memory_size_query)(_rocblas_handle*, size_t*);
-    friend rocblas_status(::rocblas_set_solution_fitness_query)(_rocblas_handle*, double*);
     friend rocblas_status(::rocblas_get_device_memory_size)(_rocblas_handle*, size_t*);
     friend rocblas_status(::rocblas_set_device_memory_size)(_rocblas_handle*, size_t);
     friend rocblas_status(::free_existing_device_memory)(rocblas_handle);
     friend rocblas_status(::rocblas_set_workspace)(_rocblas_handle*, void*, size_t);
     friend bool(::rocblas_is_managing_device_memory)(_rocblas_handle*);
     friend rocblas_status(::rocblas_set_stream)(_rocblas_handle*, hipStream_t);
+
+    // C interfaces that interact with the solution selection process
+    friend rocblas_status(::rocblas_set_solution_fitness_query)(_rocblas_handle*, double*);
+    friend rocblas_status(::rocblas_set_performance_metric)(_rocblas_handle*,
+                                                            rocblas_performance_metric);
+    friend rocblas_status(::rocblas_get_performance_metric)(_rocblas_handle*,
+                                                            rocblas_performance_metric*);
 
     // Returns whether the current kernel call is a device memory size query
     bool is_device_memory_size_query() const
