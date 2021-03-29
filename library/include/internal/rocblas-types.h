@@ -200,6 +200,19 @@ typedef enum rocblas_atomics_mode_
     rocblas_atomics_allowed = 1,
 } rocblas_atomics_mode;
 
+/*! \brief Indicates which performance metric Tensile uses when selecting the optimal
+*    solution for gemm problems.  */
+typedef enum rocblas_performance_metric_
+{
+    /*! \brief Use Tensile's default performance metric for solution selection */
+    rocblas_default_performance_metric = 0,
+    /*! \brief Select the solution with the highest GFlops across all compute units */
+    rocblas_device_efficiency_performance_metric = 1,
+    /*! \brief Select the solution with the highest GFlops per compute unit it uses. This
+     * may be useful when running multiple small gemm problems simultaneously  */
+    rocblas_cu_efficiency_performance_metric = 2
+} rocblas_performance_metric;
+
 /*! \brief Indicates if layer is active with bitmask*/
 typedef enum rocblas_layer_mode_
 {
@@ -224,10 +237,13 @@ typedef enum rocblas_gemm_flags_
 {
     /*! \brief Default empty flags */
     rocblas_gemm_flags_none = 0x0,
-    /*! \brief Before ROCm 4.2, this flags is not implemeneted and rocblas uses packed-Int8x4 by default.
+    /*! \brief Before ROCm 4.2, this flags is not implemented and rocblas uses packed-Int8x4 by default.
     * After ROCm 4.2, set flag is neccesary if we want packed-Int8x4. Default (0x0) uses unpacked and is for gfx908 GPUs only */
     rocblas_gemm_flags_pack_int8x4 = 0x1,
-
+    /*! \brief Select the gemm problem with the highest efficiency per compute unit used. Useful for running multiple smaller problems
+    * simultaneously. This takes precedence over the performance metric set in rocblas_handle and currently only works for
+    * gemm_*_ex problems. */
+    rocblas_gemm_flags_use_cu_efficiency = 0x2
 } rocblas_gemm_flags;
 
 /*! \brief Union for representing scalar values */

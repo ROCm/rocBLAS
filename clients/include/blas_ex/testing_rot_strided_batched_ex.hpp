@@ -353,14 +353,14 @@ void testing_rot_strided_batched_ex(const Arguments& arg)
                                               batch_count,
                                               execution_type);
         }
-        gpu_time_used = (get_time_us_sync(stream) - gpu_time_used) / number_hot_calls;
+        gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
 
         ArgumentModel<e_N, e_incx, e_stride_x, e_incy, e_stride_y, e_batch_count>{}.log_args<Tx>(
             rocblas_cout,
             arg,
             gpu_time_used,
-            ArgumentLogging::NA_value,
-            ArgumentLogging::NA_value,
+            rot_gflop_count<Tx, Ty, Tcs, Tcs>(N),
+            rot_gbyte_count<Tx>(N),
             cpu_time_used,
             norm_error_host_x,
             norm_error_device_x,
