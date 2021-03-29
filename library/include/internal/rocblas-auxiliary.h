@@ -254,6 +254,33 @@ ROCBLAS_EXPORT rocblas_status rocblas_set_start_stop_events(rocblas_handle handl
 ROCBLAS_EXPORT rocblas_status rocblas_set_solution_fitness_query(rocblas_handle handle,
                                                                  double*        fitness);
 
+/*! \brief specifies the performance metric that solution selection uses
+     \details
+    Determines which performance metric will be used by Tensile when selecting the optimal solution
+    for gemm problems. If a valid solution benchmarked for this performance metric does not exist
+    for a problem, Tensile will default to a solution benchmarked for overall performance instead.
+    @param[in]
+    handle      [rocblas_handle]
+                the handle of device
+    @param[in]
+    metric      [rocblas_performance_metric]
+                the performance metric to be used
+     ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_set_performance_metric(rocblas_handle             handle,
+                                                             rocblas_performance_metric metric);
+/*! \brief returns the performance metric being used for solution selection
+     \details
+    Returns the performance metric used by Tensile to select the optimal solution for gemm problems.
+    @param[in]
+    handle      [rocblas_handle]
+                the handle of device
+    @param[out]
+    metric      [rocblas_performance_metric*]
+                pointer to where the metric will be stored
+     ********************************************************************/
+ROCBLAS_EXPORT rocblas_status rocblas_get_performance_metric(rocblas_handle              handle,
+                                                             rocblas_performance_metric* metric);
+
 #ifdef __cplusplus
 }
 #endif

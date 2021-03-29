@@ -9,7 +9,8 @@
 #include "logging.hpp"
 
 template <int NB, bool BATCHED, typename Ta, typename Tx = Ta, typename Ty = Tx, typename Tex = Ty>
-rocblas_status axpy_ex_typecasting(rocblas_handle handle,
+rocblas_status axpy_ex_typecasting(const char*    name,
+                                   rocblas_handle handle,
                                    rocblas_int    n,
                                    const void*    alpha,
                                    rocblas_stride stride_alpha,
@@ -23,6 +24,8 @@ rocblas_status axpy_ex_typecasting(rocblas_handle handle,
                                    rocblas_stride stride_y,
                                    rocblas_int    batch_count)
 {
+    auto check_numerics = handle->check_numerics;
+
     const Ta* alphat = (const Ta*)alpha;
     if(handle->pointer_mode == rocblas_pointer_mode_host)
     {
@@ -35,10 +38,14 @@ rocblas_status axpy_ex_typecasting(rocblas_handle handle,
 
     if(BATCHED)
     {
-        return rocblas_axpy_template<NB, Tex>(handle,
+        //Checking input batched vectors for numerical abnormalities
+        if(check_numerics)
+        {
+            bool           is_input = true;
+            rocblas_status axpy_ex_check_numerics_status
+                = rocblas_axpy_check_numerics(name,
+                                              handle,
                                               n,
-                                              alphat,
-                                              stride_alpha,
                                               (const Tx* const*)x,
                                               offset_x,
                                               incx,
@@ -47,14 +54,63 @@ rocblas_status axpy_ex_typecasting(rocblas_handle handle,
                                               offset_y,
                                               incy,
                                               stride_y,
-                                              batch_count);
+                                              batch_count,
+                                              check_numerics,
+                                              is_input);
+            if(axpy_ex_check_numerics_status != rocblas_status_success)
+                return axpy_ex_check_numerics_status;
+        }
+
+        rocblas_status status = rocblas_axpy_template<NB, Tex>(handle,
+                                                               n,
+                                                               alphat,
+                                                               stride_alpha,
+                                                               (const Tx* const*)x,
+                                                               offset_x,
+                                                               incx,
+                                                               stride_x,
+                                                               (Ty* const*)y,
+                                                               offset_y,
+                                                               incy,
+                                                               stride_y,
+                                                               batch_count);
+        if(status != rocblas_status_success)
+            return status;
+
+        //Checking output batched vectors for numerical abnormalities
+        if(check_numerics)
+        {
+            bool           is_input = false;
+            rocblas_status axpy_ex_check_numerics_status
+                = rocblas_axpy_check_numerics(name,
+                                              handle,
+                                              n,
+                                              (const Tx* const*)x,
+                                              offset_x,
+                                              incx,
+                                              stride_x,
+                                              (Ty* const*)y,
+                                              offset_y,
+                                              incy,
+                                              stride_y,
+                                              batch_count,
+                                              check_numerics,
+                                              is_input);
+            if(axpy_ex_check_numerics_status != rocblas_status_success)
+                return axpy_ex_check_numerics_status;
+        }
+        return status;
     }
     else
     {
-        return rocblas_axpy_template<NB, Tex>(handle,
+        //Checking input vectors for numerical abnormalities
+        if(check_numerics)
+        {
+            bool           is_input = true;
+            rocblas_status axpy_ex_check_numerics_status
+                = rocblas_axpy_check_numerics(name,
+                                              handle,
                                               n,
-                                              alphat,
-                                              stride_alpha,
                                               (const Tx*)x,
                                               offset_x,
                                               incx,
@@ -63,12 +119,59 @@ rocblas_status axpy_ex_typecasting(rocblas_handle handle,
                                               offset_y,
                                               incy,
                                               stride_y,
-                                              batch_count);
+                                              batch_count,
+                                              check_numerics,
+                                              is_input);
+            if(axpy_ex_check_numerics_status != rocblas_status_success)
+                return axpy_ex_check_numerics_status;
+        }
+
+        rocblas_status status = rocblas_axpy_template<NB, Tex>(handle,
+                                                               n,
+                                                               alphat,
+                                                               stride_alpha,
+                                                               (const Tx*)x,
+                                                               offset_x,
+                                                               incx,
+                                                               stride_x,
+                                                               (Ty*)y,
+                                                               offset_y,
+                                                               incy,
+                                                               stride_y,
+                                                               batch_count);
+
+        if(status != rocblas_status_success)
+            return status;
+
+        //Checking output vectors for numerical abnormalities
+        if(check_numerics)
+        {
+            bool           is_input = false;
+            rocblas_status axpy_ex_check_numerics_status
+                = rocblas_axpy_check_numerics(name,
+                                              handle,
+                                              n,
+                                              (const Tx*)x,
+                                              offset_x,
+                                              incx,
+                                              stride_x,
+                                              (Ty*)y,
+                                              offset_y,
+                                              incy,
+                                              stride_y,
+                                              batch_count,
+                                              check_numerics,
+                                              is_input);
+            if(axpy_ex_check_numerics_status != rocblas_status_success)
+                return axpy_ex_check_numerics_status;
+        }
+        return status;
     }
 }
 
 template <int NB, bool BATCHED = false>
-rocblas_status rocblas_axpy_ex_template(rocblas_handle   handle,
+rocblas_status rocblas_axpy_ex_template(const char*      name,
+                                        rocblas_handle   handle,
                                         rocblas_int      n,
                                         const void*      alpha,
                                         rocblas_datatype alpha_type,
@@ -100,9 +203,9 @@ rocblas_status rocblas_axpy_ex_template(rocblas_handle   handle,
 
     rocblas_status status = rocblas_status_not_implemented;
 
-#define AXPY_EX_TYPECASTING_PARAM                                                             \
-    handle, n, alpha, stride_alpha, x, offset_x, incx, stride_x, y, offset_y, incy, stride_y, \
-        batch_count
+#define AXPY_EX_TYPECASTING_PARAM                                                         \
+    name, handle, n, alpha, stride_alpha, x, offset_x, incx, stride_x, y, offset_y, incy, \
+        stride_y, batch_count
 
     if(alpha_type == rocblas_datatype_f16_r && x_type == rocblas_datatype_f16_r
        && y_type == rocblas_datatype_f16_r && execution_type == rocblas_datatype_f32_r)

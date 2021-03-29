@@ -414,29 +414,34 @@ rocblas_status rocblas_axpy_check_numerics(const char*    function_name,
                                            const int      check_numerics,
                                            bool           is_input)
 {
+    //constant vector `x` is checked only once if is_input is true.
+    if(is_input)
+    {
+        rocblas_status check_numerics_status
+            = rocblas_check_numerics_vector_template(function_name,
+                                                     handle,
+                                                     n,
+                                                     x,
+                                                     offset_x,
+                                                     inc_x,
+                                                     stride_x,
+                                                     batch_count,
+                                                     check_numerics,
+                                                     is_input);
+        if(check_numerics_status != rocblas_status_success)
+            return check_numerics_status;
+    }
+
     rocblas_status check_numerics_status = rocblas_check_numerics_vector_template(function_name,
                                                                                   handle,
                                                                                   n,
-                                                                                  x,
-                                                                                  offset_x,
-                                                                                  inc_x,
-                                                                                  stride_x,
+                                                                                  y,
+                                                                                  offset_y,
+                                                                                  inc_y,
+                                                                                  stride_y,
                                                                                   batch_count,
                                                                                   check_numerics,
                                                                                   is_input);
-    if(check_numerics_status != rocblas_status_success)
-        return check_numerics_status;
-
-    check_numerics_status = rocblas_check_numerics_vector_template(function_name,
-                                                                   handle,
-                                                                   n,
-                                                                   y,
-                                                                   offset_y,
-                                                                   inc_y,
-                                                                   stride_y,
-                                                                   batch_count,
-                                                                   check_numerics,
-                                                                   is_input);
 
     return check_numerics_status;
 }

@@ -231,61 +231,61 @@ void testing_rotm_batched(const Arguments& arg)
                 if(arg.norm_check)
                 {
                     norm_error_device_x
-                        = norm_check_general<T>('F', 1, N, abs_incx, cx, rx, batch_count);
+                        += norm_check_general<T>('F', 1, N, abs_incx, cx, rx, batch_count);
                     norm_error_device_y
-                        = norm_check_general<T>('F', 1, N, abs_incy, cy, ry, batch_count);
+                        += norm_check_general<T>('F', 1, N, abs_incy, cy, ry, batch_count);
                 }
             }
         }
+    }
+    if(arg.timing)
+    {
+        // Initializing flag value to -1 for all the batches of hparam
+        for(int b = 0; b < batch_count; b++)
+            hparam[b][0] = FLAGS[0];
 
-        if(arg.timing)
+        int number_cold_calls = arg.cold_iters;
+        int number_hot_calls  = arg.iters;
+        CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
+        CHECK_HIP_ERROR(dx.transfer_from(hx));
+        CHECK_HIP_ERROR(dy.transfer_from(hy));
+        CHECK_HIP_ERROR(dparam.transfer_from(hparam));
+
+        for(int iter = 0; iter < number_cold_calls; iter++)
         {
-            int number_cold_calls = arg.cold_iters;
-            int number_hot_calls  = arg.iters;
-            CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-            CHECK_HIP_ERROR(dx.transfer_from(hx));
-            CHECK_HIP_ERROR(dy.transfer_from(hy));
-            CHECK_HIP_ERROR(dparam.transfer_from(hparam));
-
-            for(int iter = 0; iter < number_cold_calls; iter++)
-            {
-                rocblas_rotm_batched_fn(handle,
-                                        N,
-                                        dx.ptr_on_device(),
-                                        incx,
-                                        dy.ptr_on_device(),
-                                        incy,
-                                        dparam.ptr_on_device(),
-                                        batch_count);
-            }
-            hipStream_t stream;
-            CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
-            gpu_time_used = get_time_us_sync(stream); // in microseconds
-            for(int iter = 0; iter < number_hot_calls; iter++)
-            {
-                rocblas_rotm_batched_fn(handle,
-                                        N,
-                                        dx.ptr_on_device(),
-                                        incx,
-                                        dy.ptr_on_device(),
-                                        incy,
-                                        dparam.ptr_on_device(),
-                                        batch_count);
-            }
-            gpu_time_used = (get_time_us_sync(stream) - gpu_time_used) / number_hot_calls;
-
-            rocblas_cout << "N,incx,incy,rocblas(us),cpu(us)";
-            if(arg.norm_check)
-                rocblas_cout
-                    << ",norm_error_host_x,norm_error_host_y,norm_error_device_x,norm_error_"
-                       "device_y";
-            rocblas_cout << std::endl;
-            rocblas_cout << N << "," << incx << "," << incy << "," << gpu_time_used << ","
-                         << cpu_time_used;
-            if(arg.norm_check)
-                rocblas_cout << ',' << norm_error_host_x << ',' << norm_error_host_y << ","
-                             << norm_error_device_x << "," << norm_error_device_y;
-            rocblas_cout << std::endl;
+            rocblas_rotm_batched_fn(handle,
+                                    N,
+                                    dx.ptr_on_device(),
+                                    incx,
+                                    dy.ptr_on_device(),
+                                    incy,
+                                    dparam.ptr_on_device(),
+                                    batch_count);
         }
+        hipStream_t stream;
+        CHECK_ROCBLAS_ERROR(rocblas_get_stream(handle, &stream));
+        gpu_time_used = get_time_us_sync(stream); // in microseconds
+        for(int iter = 0; iter < number_hot_calls; iter++)
+        {
+            rocblas_rotm_batched_fn(handle,
+                                    N,
+                                    dx.ptr_on_device(),
+                                    incx,
+                                    dy.ptr_on_device(),
+                                    incy,
+                                    dparam.ptr_on_device(),
+                                    batch_count);
+        }
+        gpu_time_used = get_time_us_sync(stream) - gpu_time_used;
+
+        ArgumentModel<e_N, e_incx, e_incy, e_batch_count>{}.log_args<T>(
+            rocblas_cout,
+            arg,
+            gpu_time_used,
+            rotm_gflop_count<T>(N, hparam[0][0]),
+            rotm_gbyte_count<T>(N, hparam[0][0]),
+            cpu_time_used,
+            norm_error_device_x,
+            norm_error_device_y);
     }
 }

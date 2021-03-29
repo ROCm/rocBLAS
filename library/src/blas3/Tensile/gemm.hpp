@@ -420,10 +420,19 @@ inline rocblas_status call_tensile(rocblas_handle    handle,
 {
 
 #ifdef USE_TENSILE_HOST
-    RocblasContractionProblem<T> problem{
-        handle,  trans_a,  trans_b,  m,        n,        k,           alpha,    nullptr,  batchA,
-        ld_a,    stride_a, offset_a, nullptr,  batchB,   ld_b,        stride_b, offset_b, beta,
-        nullptr, batchC,   ld_c,     stride_c, offset_c, batch_count, false};
+    RocblasContractionProblem<T> problem{handle,   trans_a,
+                                         trans_b,  m,
+                                         n,        k,
+                                         alpha,    nullptr,
+                                         batchA,   ld_a,
+                                         stride_a, offset_a,
+                                         nullptr,  batchB,
+                                         ld_b,     stride_b,
+                                         offset_b, beta,
+                                         nullptr,  batchC,
+                                         ld_c,     stride_c,
+                                         offset_c, batch_count,
+                                         false,    rocblas_gemm_flags_none};
 
     return runContractionProblem(problem);
 #else
@@ -457,10 +466,19 @@ inline rocblas_status call_tensile(rocblas_handle    handle,
 
 #ifdef USE_TENSILE_HOST
 
-    RocblasContractionProblem<T> problem{
-        handle, trans_a,  trans_b,  m,        n,        k,           alpha,    A,        nullptr,
-        ld_a,   stride_a, offset_a, B,        nullptr,  ld_b,        stride_b, offset_b, beta,
-        C,      nullptr,  ld_c,     stride_c, offset_c, batch_count, true};
+    RocblasContractionProblem<T> problem{handle,   trans_a,
+                                         trans_b,  m,
+                                         n,        k,
+                                         alpha,    A,
+                                         nullptr,  ld_a,
+                                         stride_a, offset_a,
+                                         B,        nullptr,
+                                         ld_b,     stride_b,
+                                         offset_b, beta,
+                                         C,        nullptr,
+                                         ld_c,     stride_c,
+                                         offset_c, batch_count,
+                                         true,     rocblas_gemm_flags_none};
 
     return runContractionProblem(problem);
 

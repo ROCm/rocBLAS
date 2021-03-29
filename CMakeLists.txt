@@ -67,6 +67,9 @@ if( CXX_VERSION_STRING MATCHES "clang" )
   message( STATUS "Use hip-clang to build for amdgpu backend" )
 # set ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Xclang -fallow-half-arguments-and-returns" )
   set ( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -D__HIP_HCC_COMPAT_MODE__=1" )
+  if ( CMAKE_BUILD_TYPE MATCHES "Debug" AND NOT WIN32)
+    set ( CMAKE_CXX_FLAGS_DEBUG "-O0 ${CMAKE_CXX_FLAGS_DEBUG} -ggdb" )
+  endif()
 elseif( CXX_VERSION_STRING MATCHES "nvcc" )
   message( STATUS "HIPCC nvcc compiler detected; CUDA backend selected" )
 
@@ -128,7 +131,7 @@ get_os_id(OS_ID)
 message (STATUS "OS detected is ${OS_ID}")
 
 # Versioning via rocm-cmake
-set ( VERSION_STRING "2.38.0" )
+set ( VERSION_STRING "2.39.0" )
 rocm_setup_version( VERSION ${VERSION_STRING} )
 
 # Append our library helper cmake path and the cmake path for hip (for convenience)
@@ -152,7 +155,7 @@ set(CMAKE_INSTALL_LIBDIR "lib" CACHE INTERNAL "Installation directory for librar
 
 if(NOT SKIP_LIBRARY)
   set( Tensile_ARCHITECTURE "all" CACHE STRING "Tensile to use which architecture?")
-  set_property( CACHE Tensile_ARCHITECTURE PROPERTY STRINGS all gfx803 gfx900 gfx906:xnack- gfx908:xnack-)
+  set_property( CACHE Tensile_ARCHITECTURE PROPERTY STRINGS all gfx803 gfx900 gfx906:xnack- gfx908:xnack- gfx90a:xnack+ gfx90a:xnack-)
   # -DTensile_ARCHITECTURE= set by install.sh for builds with and without tensile
 
   # Detect if target ID syntax if supported for default all AMDGPU_TARGETS list
@@ -164,7 +167,11 @@ if(NOT SKIP_LIBRARY)
     string(REGEX MATCH ".mcode\-object\-version" TARGET_ID_SUPPORT ${CXX_OUTPUT})
   endif()
   if(TARGET_ID_SUPPORT)
-    set(target_list "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-")
+    if(Tensile_LOGIC STREQUAL "aldebaran")
+      set(target_list "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-")
+    else()
+      set(target_list "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-")
+    endif()
   else()
     set(target_list "gfx803;gfx900;gfx906;gfx908")
   endif()
@@ -198,7 +205,7 @@ if(NOT SKIP_LIBRARY)
 
     set( Tensile_TEST_LOCAL_PATH "" CACHE PATH "Use local Tensile directory instead of fetching a GitHub branch" )
 
-    set_property( CACHE Tensile_LOGIC PROPERTY STRINGS asm_full asm_lite asm_miopen hip_lite other )
+    set_property( CACHE Tensile_LOGIC PROPERTY STRINGS aldebaran asm_full asm_lite asm_miopen hip_lite other )
     set_property( CACHE Tensile_CODE_OBJECT_VERSION PROPERTY STRINGS V2 V3 )
     set_property( CACHE Tensile_COMPILER PROPERTY STRINGS hcc hipcc)
     set_property( CACHE Tensile_LIBRARY_FORMAT PROPERTY STRINGS msgpack yaml)

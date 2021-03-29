@@ -131,6 +131,58 @@ constexpr double scal_gflop_count<rocblas_double_complex, double>(rocblas_int n)
     return (2.0 * n) / 1e9;
 }
 
+// rot
+template <typename Tx, typename Ty, typename Tc, typename Ts>
+constexpr double rot_gflop_count(rocblas_int n)
+{
+    return (6.0 * n) / 1e9; //4 real multiplication, 1 addition , 1 subtraction
+}
+template <>
+constexpr double
+    rot_gflop_count<rocblas_float_complex, rocblas_float_complex, float, rocblas_float_complex>(
+        rocblas_int n)
+{
+    return (20.0 * n)
+           / 1e9; // (6*2 n for c-c multiply)+(2*2 n for real-complex multiply) + 2n for c-c add + 2n for c-c sub
+}
+template <>
+constexpr double
+    rot_gflop_count<rocblas_float_complex, rocblas_float_complex, float, float>(rocblas_int n)
+{
+    return (12.0 * n) / 1e9; // (2*4 n for real-complex multiply) + 2n for c-c add + 2n for c-c sub
+}
+template <>
+constexpr double
+    rot_gflop_count<rocblas_double_complex, rocblas_double_complex, double, rocblas_double_complex>(
+        rocblas_int n)
+{
+    return (20.0 * n) / 1e9;
+}
+template <>
+constexpr double
+    rot_gflop_count<rocblas_double_complex, rocblas_double_complex, double, double>(rocblas_int n)
+{
+    return (12.0 * n) / 1e9;
+}
+
+// rotm
+template <typename Tx>
+constexpr double rotm_gflop_count(rocblas_int n, Tx flag)
+{
+    //No floating point operations when flag is set to -2.0
+    if(flag != -2.0)
+    {
+        if(flag < 0)
+            return (6.0 * n) / 1e9; // 4 real multiplication, 2 addition
+        else
+            return (4.0 * n) / 1e9; // 2 real multiplication, 2 addition
+    }
+    else
+    {
+        return 0;
+    }
+}
+
 /*
  * ===========================================================================
  *    level 2 BLAS
