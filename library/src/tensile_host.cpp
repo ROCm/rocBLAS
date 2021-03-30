@@ -277,6 +277,14 @@ namespace
         tensileProblem.setHighPrecisionAccumulate(sizeof(Tc) > sizeof(Ti)
                                                   || std::is_same<Ti, rocblas_int8x4>{});
 
+        // Environment variable to force use of VALU for double precision gemm
+        static bool force_valu_for_dgemm = std::getenv("ROCBLAS_INTERNAL_FORCE_VALU_FOR_DGEMM");
+        if(std::is_same<Ti, double>::value && std::is_same<To, double>::value
+           && std::is_same<Tc, double>::value && force_valu_for_dgemm)
+        {
+            tensileProblem.setArithmeticUnit(Tensile::ArithmeticUnit::VALU);
+        }
+
         // Pass atomics mode to Tensile interface
         tensileProblem.setDeterministicMode(prob.handle->atomics_mode
                                             == rocblas_atomics_not_allowed);
