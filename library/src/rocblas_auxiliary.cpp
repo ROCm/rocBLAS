@@ -1101,8 +1101,13 @@ struct ArchName<PROP, void_t<decltype(PROP::gcnArchName)>>
     }
 };
 
-// Get architecture name
-std::string rocblas_get_arch_name()
+bool rocblas_internal_tensile_supports_ldc_ne_ldd(rocblas_handle handle)
+{
+    return handle->getArch() >= 906;
+}
+
+// exported. Get architecture name
+std::string rocblas_internal_get_arch_name()
 {
     int deviceId;
     hipGetDevice(&deviceId);
@@ -1111,17 +1116,10 @@ std::string rocblas_get_arch_name()
     return ArchName<hipDeviceProp_t>{}(deviceProperties);
 }
 
-// Whether Tensile supports ldc != ldd
-// We assume true if the value is greater than or equal to 906
-bool rocblas_tensile_supports_ldc_ne_ldd(rocblas_handle handle)
-{
-    return handle->getArch() >= 906;
-}
-
 /*******************************************************************************
- * Whether to skip buffer alloc/init/copy when tracing kernel names in Tensile *
+ * exported. Whether to skip buffer alloc/init/copy when tracing kernel names in Tensile *
  *******************************************************************************/
-bool rocblas_tensile_debug_skip_launch()
+bool rocblas_internal_tensile_debug_skip_launch()
 {
     static const bool skip_launch = [] {
         const char* db2 = std::getenv("TENSILE_DB2");

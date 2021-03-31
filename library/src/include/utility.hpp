@@ -563,6 +563,12 @@ constexpr double value_category(const T& beta)
     return beta == T(0) ? 0.0 : beta == T(1) ? 1.0 : beta == T(-1) ? -1.0 : 2.0;
 }
 
-ROCBLAS_EXPORT std::string rocblas_get_arch_name();
-ROCBLAS_EXPORT bool        rocblas_tensile_supports_ldc_ne_ldd(rocblas_handle handle);
-ROCBLAS_EXPORT bool        rocblas_tensile_debug_skip_launch();
+// Internal use, whether Tensile supports ldc != ldd
+// We assume true if the value is greater than or equal to 906
+bool rocblas_internal_tensile_supports_ldc_ne_ldd(rocblas_handle handle);
+
+// for internal use during testing, fetch arch name
+ROCBLAS_EXPORT std::string rocblas_internal_get_arch_name();
+
+// for internal use during testing, whether to skip actual kernel launch
+ROCBLAS_EXPORT bool rocblas_internal_tensile_debug_skip_launch();
