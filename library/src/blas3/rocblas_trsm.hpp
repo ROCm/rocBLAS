@@ -1053,7 +1053,7 @@ rocblas_status special_trsm_template(rocblas_handle    handle,
     size_t R      = k / BLOCK;
     size_t bsize  = side == rocblas_side_left ? n : m;
     size_t W      = 1 + (bsize - 1) / B_chunk_size;
-    bool   tensile_supports_ldc_ne_ldd = rocblas_tensile_supports_ldc_ne_ldd(handle);
+    bool   tensile_supports_ldc_ne_ldd = rocblas_internal_tensile_supports_ldc_ne_ldd(handle);
 
     for(size_t w = 0; w < W; w++)
     {

@@ -361,7 +361,7 @@ rocblas_status runContractionProblem(RocblasContractionProblem<Ti, To, Tc> const
 /***********************************************************************************
  * Whether Tensile has been initialized for at least one device (used for testing) *
  ***********************************************************************************/
-ROCBLAS_EXPORT std::atomic_bool& rocblas_tensile_is_initialized();
+ROCBLAS_EXPORT std::atomic_bool& rocblas_internal_tensile_is_initialized();
 
 /**********************************************
  * Whether to suppress Tensile error messages *

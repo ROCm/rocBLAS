@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -115,7 +115,7 @@ void testing_atomics_mode(const Arguments& arg)
     //  should not be deterministic.
     //  If this test fails, check to see if kernel selection file listed above has changed.
 
-    std::string arch_name = rocblas_get_arch_name();
+    std::string arch_name = rocblas_internal_get_arch_name();
     if(arch_name == "gfx906")
     {
         CHECK_ROCBLAS_ERROR(rocblas_set_atomics_mode(handle, rocblas_atomics_allowed));

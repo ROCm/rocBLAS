@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -230,7 +230,7 @@ void testing_gemm(const Arguments& arg)
     }
 
 #ifdef ROCBLAS_BENCH
-    if(rocblas_tensile_debug_skip_launch())
+    if(rocblas_internal_tensile_debug_skip_launch())
     {
         device_vector<T> dA(1);
         device_vector<T> dB(1);

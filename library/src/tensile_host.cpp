@@ -420,7 +420,7 @@ namespace
         {
             // We mark TensileHost as initialized. This is so that CI tests can
             // verify that the initialization occurs in the "multiheaded" tests
-            rocblas_tensile_is_initialized() = true;
+            rocblas_internal_tensile_is_initialized() = true;
         }
 
         // TensileHost is not copyable or assignable
@@ -480,7 +480,7 @@ namespace
             path.reserve(PATH_MAX);
 
             // The name of the current GPU platform
-            std::string processor = rocblas_get_arch_name();
+            std::string processor = rocblas_internal_get_arch_name();
 
             const char* env = getenv("ROCBLAS_TENSILE_LIBPATH");
             if(env)
@@ -790,7 +790,7 @@ template rocblas_status
 /***********************************************************************************
  * Whether Tensile has been initialized for at least one device (used for testing) *
  ***********************************************************************************/
-ROCBLAS_EXPORT std::atomic_bool& rocblas_tensile_is_initialized()
+ROCBLAS_EXPORT std::atomic_bool& rocblas_internal_tensile_is_initialized()
 {
     static std::atomic_bool init;
     return init;
