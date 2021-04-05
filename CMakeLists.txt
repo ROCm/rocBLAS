@@ -154,9 +154,8 @@ include( clients/cmake/build-options.cmake )
 set(CMAKE_INSTALL_LIBDIR "lib" CACHE INTERNAL "Installation directory for libraries" FORCE)
 
 if(NOT SKIP_LIBRARY)
-  set( Tensile_ARCHITECTURE "all" CACHE STRING "Tensile to use which architecture?")
-  set_property( CACHE Tensile_ARCHITECTURE PROPERTY STRINGS all gfx803 gfx900 gfx906:xnack- gfx908:xnack- gfx90a:xnack+ gfx90a:xnack- gfx1010 gfx1011 gfx1012 gfx1030)
-  # -DTensile_ARCHITECTURE= set by install.sh for builds with and without tensile
+  set( AMDGPU_TARGETS "all" CACHE STRING "Compile for which gpu architectures?")
+  set_property( CACHE AMDGPU_TARGETS PROPERTY STRINGS all gfx803 gfx900 gfx906:xnack- gfx908:xnack- gfx90a:xnack+ gfx90a:xnack- gfx1010 gfx1011 gfx1012 gfx1030 )
 
   # Detect if target ID syntax if supported for default all AMDGPU_TARGETS list
   if(CMAKE_CXX_COMPILER MATCHES ".*/hipcc$" )
@@ -175,25 +174,28 @@ if(NOT SKIP_LIBRARY)
   else()
     set(target_list "gfx803;gfx900;gfx906;gfx908")
   endif()
-  set(ALL_TARGETS ${target_list} CACHE STRING "List of specific machine types for library to target")
+  set(ROCBLAS_ALL_GPUS "${target_list}" CACHE STRING "List of specific machine types for library to target")
 
-  # gpu architectures to build for
-  if (Tensile_ARCHITECTURE)
-    if( Tensile_ARCHITECTURE STREQUAL "all" )
-      set( gpus ${ALL_TARGETS})
+  # gpu architectures to build for we may FORCE overwrite expanded "all", AMDGPU_TARGETS always defined by install.sh
+  if (AMDGPU_TARGETS)
+    if( AMDGPU_TARGETS STREQUAL "all" )
+      set( gpus "${ROCBLAS_ALL_GPUS}")
     else()
-      set( gpus ${Tensile_ARCHITECTURE})
+      set( gpus "${AMDGPU_TARGETS}")
     endif()
-    # match tensile if architecture is set
-    set( ROCBLAS_GPUS ${gpus} )
+    # will force tensile variable to match if tensile used
+    set( ROCBLAS_GPUS "${gpus}" )
     # must FORCE set this AMDGPU_TARGETS before any find_package( hip ...), via tensile or in this file
-    # to override CACHE var and set cuda-gpu-arch flags via hip-config.cmake hip::device dependency
-    set( AMDGPU_TARGETS "${ROCBLAS_GPUS}" CACHE STRING "AMD GPU targets to compile for" FORCE )
+    # to override CACHE var and set --offload-arch flags via hip-config.cmake hip::device dependency
+    set( AMDGPU_TARGETS "${gpus}" CACHE STRING "AMD GPU targets to compile for" FORCE )
   endif()
 
   option( BUILD_WITH_TENSILE_HOST "Use the new tensile client for gemm?" ON )
 
   if( BUILD_WITH_TENSILE )
+    # we will have expanded "all" for tensile to ensure consistency as we have local rules
+    set( Tensile_ARCHITECTURE "${AMDGPU_TARGETS}" CACHE STRING "Tensile to use which architecture?" FORCE)
+
     set( Tensile_LOGIC "asm_full" CACHE STRING "Tensile to use which logic?")
     set( Tensile_CODE_OBJECT_VERSION "V2" CACHE STRING "Tensile code_object_version")
     set( Tensile_COMPILER "hipcc" CACHE STRING "Tensile compiler")

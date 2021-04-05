@@ -24,7 +24,7 @@ rocBLAS build & installation helper script
       -f | --fork                GitHub fork to use, e.g., ROCmSoftwarePlatform or MyUserName
       -b | --branch              GitHub branch or tag to use, e.g., develop, mybranch or <commit hash>
       -l | --logic               Set Tensile logic target, e.g., asm_full, asm_lite, etc.
-      -a | --architecture        Set Tensile GPU architecture target, e.g. all, gfx000, gfx803, gfx900, gfx906, gfx908
+      -a | --architecture        Set GPU architecture target(s), e.g., all, gfx000, gfx900, gfx906:xnack-;gfx908:xnack-
       -o | --cov                 Set Tensile code_object_version (V2 or V3)
       -t | --test_local_path     Use a local path for Tensile instead of remote GIT repo
            --cpu_ref_lib         Specify library to use for CPU reference code in testing (blis or lapack)
@@ -327,7 +327,7 @@ install_package=false
 install_dependencies=false
 install_prefix=rocblas-install
 tensile_logic=asm_full
-tensile_architecture=all
+gpu_architecture=all
 tensile_cov=
 tensile_fork=
 tensile_merge_files=
@@ -409,7 +409,7 @@ while true; do
         tensile_logic=${2}
         shift 2 ;;
     -a|--architecture)
-        tensile_architecture=${2}
+        gpu_architecture=${2}
         shift 2 ;;
     -o|--cov)
         tensile_cov=${2}
@@ -617,7 +617,7 @@ pushd .
   cmake_common_options=""
   cmake_client_options=""
 
-  cmake_common_options="${cmake_common_options} -DROCM_PATH=${rocm_path} -lpthread -DTensile_LOGIC=${tensile_logic} -DTensile_ARCHITECTURE=${tensile_architecture} -DTensile_CODE_OBJECT_VERSION=${tensile_cov}"
+  cmake_common_options="${cmake_common_options} -DROCM_PATH=${rocm_path} -lpthread -DAMDGPU_TARGETS=${gpu_architecture}"
 
   # build type
   if [[ "${build_release}" == true ]]; then
@@ -655,6 +655,8 @@ pushd .
   tensile_opt=""
   if [[ "${build_tensile}" == false ]]; then
     tensile_opt="${tensile_opt} -DBUILD_WITH_TENSILE=OFF"
+   else
+    tensile_opt="${tensile_opt} -DTensile_LOGIC=${tensile_logic} -DTensile_CODE_OBJECT_VERSION=${tensile_cov}"
   fi
 
   if [[ "${build_tensile_host}" == false ]]; then
