@@ -166,20 +166,20 @@ install_packages( )
   fi
 
   # dependencies needed to build the rocblas library
-  local library_dependencies_ubuntu=( "make" "cmake" "libssl-dev"
+  local library_dependencies_ubuntu=( "make" "libssl-dev"
                                       "python3" "python3-yaml" "python3-venv" "python3*-pip" )
   local library_dependencies_centos_rhel=( "epel-release" "openssl-devel"
-                                      "make" "cmake3" "rpm-build"
+                                      "make" "rpm-build"
                                       "python34" "python3*-PyYAML" "python3-virtualenv"
                                       "gcc-c++" )
   local library_dependencies_centos_rhel_8=( "epel-release" "openssl-devel"
-                                      "make" "cmake3" "rpm-build"
+                                      "make" "rpm-build"
                                       "python3" "python3*-PyYAML" "python3-virtualenv"
                                       "gcc-c++" )
-  local library_dependencies_fedora=( "make" "cmake" "rpm-build"
+  local library_dependencies_fedora=( "make" "rpm-build"
                                       "python34" "python3*-PyYAML" "python3-virtualenv"
                                       "gcc-c++" "libcxx-devel" )
-  local library_dependencies_sles=(   "make" "cmake" "libopenssl-devel" "python3-PyYAML" "python3-virtualenv"
+  local library_dependencies_sles=(   "make" "libopenssl-devel" "python3-PyYAML" "python3-virtualenv"
                                       "gcc-c++" "libcxxtools9" "rpm-build" )
 
   if [[ "${tensile_msgpack_backend}" == true ]]; then
@@ -195,7 +195,7 @@ install_packages( )
   fi
 
   # wget is needed for cmake
-  if $(dpkg --compare-versions $CMAKE_VERSION lt 3.16.8); then
+  if [ -z "$CMAKE_VERSION"] || $(dpkg --compare-versions $CMAKE_VERSION lt 3.16.8); then
     if $update_cmake == true; then
       library_dependencies_ubuntu+=("wget")
       library_dependencies_centos_rhel+=("wget")
@@ -282,14 +282,6 @@ install_packages( )
       rm libmsgpack-dev_3.0.1-3_amd64.deb libmsgpackc2_3.0.1-3_amd64.deb
     fi
   fi
-
-  case "${ID}" in
-    centos|rhel|sles|opensuse-leap)
-      if [[ "${tensile_msgpack_backend}" == true ]]; then
-        install_msgpack_from_source
-      fi
-      ;;
-  esac
 }
 
 # #################################################
@@ -545,12 +537,6 @@ fi
 # Default cmake executable is called cmake
 cmake_executable=cmake
 
-case "${ID}" in
-  centos|rhel)
-  cmake_executable=cmake3
-  ;;
-esac
-
 if [[ "${build_hip_clang}" == true ]]; then
   cxx="hipcc"
   cc="hipcc"
@@ -574,7 +560,7 @@ if [[ "${install_dependencies}" == true ]]; then
 
   install_packages
 
-  if $(dpkg --compare-versions $CMAKE_VERSION lt 3.16.8); then
+  if [ -z "$CMAKE_VERSION"] || $(dpkg --compare-versions $CMAKE_VERSION lt 3.16.8); then
       if $update_cmake == true; then
         CMAKE_REPO="https://github.com/Kitware/CMake/releases/download/v3.16.8/"
         wget -nv ${CMAKE_REPO}/cmake-3.16.8.tar.gz
@@ -590,6 +576,15 @@ if [[ "${install_dependencies}" == true ]]; then
           exit 2
       fi
   fi
+
+  # cmake is needed to install msgpack
+  case "${ID}" in
+    centos|rhel|sles|opensuse-leap)
+      if [[ "${tensile_msgpack_backend}" == true ]]; then
+        install_msgpack_from_source
+      fi
+      ;;
+  esac
 
   if [[ "${build_clients}" == true ]]; then
 
