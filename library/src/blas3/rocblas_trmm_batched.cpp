@@ -222,97 +222,40 @@ namespace
 
 extern "C" {
 
-rocblas_status rocblas_strmm_batched(rocblas_handle     handle,
-                                     rocblas_side       side,
-                                     rocblas_fill       uplo,
-                                     rocblas_operation  transa,
-                                     rocblas_diagonal   diag,
-                                     rocblas_int        m,
-                                     rocblas_int        n,
-                                     const float*       alpha,
-                                     const float* const a[],
-                                     rocblas_int        lda,
-                                     float* const       b[],
-                                     rocblas_int        ldb,
-                                     rocblas_int        batch_count)
-try
-{
-    return rocblas_trmm_batched_impl<STRMM_BATCHED_STOPPING_NB>(
-        handle, side, uplo, transa, diag, m, n, alpha, a, lda, b, ldb, batch_count);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
+#ifdef IMPL
+#error IMPL ALREADY DEFINED
+#endif
 
-rocblas_status rocblas_dtrmm_batched(rocblas_handle      handle,
-                                     rocblas_side        side,
-                                     rocblas_fill        uplo,
-                                     rocblas_operation   transa,
-                                     rocblas_diagonal    diag,
-                                     rocblas_int         m,
-                                     rocblas_int         n,
-                                     const double*       alpha,
-                                     const double* const a[],
-                                     rocblas_int         lda,
-                                     double* const       b[],
-                                     rocblas_int         ldb,
-                                     rocblas_int         batch_count)
-try
-{
-    return rocblas_trmm_batched_impl<DTRMM_BATCHED_STOPPING_NB>(
-        handle, side, uplo, transa, diag, m, n, alpha, a, lda, b, ldb, batch_count);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
+#define IMPL(routine_name_, T_, BATCHED_STOPPING_NB_)                                    \
+    rocblas_status routine_name_(rocblas_handle    handle,                               \
+                                 rocblas_side      side,                                 \
+                                 rocblas_fill      uplo,                                 \
+                                 rocblas_operation transa,                               \
+                                 rocblas_diagonal  diag,                                 \
+                                 rocblas_int       m,                                    \
+                                 rocblas_int       n,                                    \
+                                 const T_*         alpha,                                \
+                                 const T_* const   a[],                                  \
+                                 rocblas_int       lda,                                  \
+                                 T_* const         b[],                                  \
+                                 rocblas_int       ldb,                                  \
+                                 rocblas_int       batch_count)                          \
+    try                                                                                  \
+    {                                                                                    \
+        return rocblas_trmm_batched_impl<BATCHED_STOPPING_NB_>(                          \
+            handle, side, uplo, transa, diag, m, n, alpha, a, lda, b, ldb, batch_count); \
+    }                                                                                    \
+    catch(...)                                                                           \
+    {                                                                                    \
+        return exception_to_rocblas_status();                                            \
+    }
 
-rocblas_status rocblas_ctrmm_batched(rocblas_handle                     handle,
-                                     rocblas_side                       side,
-                                     rocblas_fill                       uplo,
-                                     rocblas_operation                  transa,
-                                     rocblas_diagonal                   diag,
-                                     rocblas_int                        m,
-                                     rocblas_int                        n,
-                                     const rocblas_float_complex*       alpha,
-                                     const rocblas_float_complex* const a[],
-                                     rocblas_int                        lda,
-                                     rocblas_float_complex* const       b[],
-                                     rocblas_int                        ldb,
-                                     rocblas_int                        batch_count)
-try
-{
-    return rocblas_trmm_batched_impl<CTRMM_BATCHED_STOPPING_NB>(
-        handle, side, uplo, transa, diag, m, n, alpha, a, lda, b, ldb, batch_count);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
+IMPL(rocblas_strmm_batched, float, STRMM_BATCHED_STOPPING_NB);
+IMPL(rocblas_dtrmm_batched, double, DTRMM_BATCHED_STOPPING_NB);
+IMPL(rocblas_ctrmm_batched, rocblas_float_complex, CTRMM_BATCHED_STOPPING_NB);
+IMPL(rocblas_ztrmm_batched, rocblas_double_complex, ZTRMM_BATCHED_STOPPING_NB);
 
-rocblas_status rocblas_ztrmm_batched(rocblas_handle                      handle,
-                                     rocblas_side                        side,
-                                     rocblas_fill                        uplo,
-                                     rocblas_operation                   transa,
-                                     rocblas_diagonal                    diag,
-                                     rocblas_int                         m,
-                                     rocblas_int                         n,
-                                     const rocblas_double_complex*       alpha,
-                                     const rocblas_double_complex* const a[],
-                                     rocblas_int                         lda,
-                                     rocblas_double_complex* const       b[],
-                                     rocblas_int                         ldb,
-                                     rocblas_int                         batch_count)
-try
-{
-    return rocblas_trmm_batched_impl<ZTRMM_BATCHED_STOPPING_NB>(
-        handle, side, uplo, transa, diag, m, n, alpha, a, lda, b, ldb, batch_count);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
+#undef IMPL
 
 } // extern "C"
 
