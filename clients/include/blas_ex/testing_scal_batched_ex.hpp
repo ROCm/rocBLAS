@@ -50,14 +50,26 @@ void testing_scal_batched_ex_bad_arg(const Arguments& arg)
                                                        batch_count,
                                                        execution_type),
                           rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(
-        (rocblas_scal_batched_ex_fn)(
-            handle, N, &h_alpha, alpha_type, nullptr, x_type, incx, batch_count, execution_type),
-        rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(
-        (rocblas_scal_batched_ex_fn)(
-            nullptr, N, &h_alpha, alpha_type, dx, x_type, incx, batch_count, execution_type),
-        rocblas_status_invalid_handle);
+    EXPECT_ROCBLAS_STATUS((rocblas_scal_batched_ex_fn)(handle,
+                                                       N,
+                                                       &h_alpha,
+                                                       alpha_type,
+                                                       nullptr,
+                                                       x_type,
+                                                       incx,
+                                                       batch_count,
+                                                       execution_type),
+                          rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS((rocblas_scal_batched_ex_fn)(nullptr,
+                                                       N,
+                                                       &h_alpha,
+                                                       alpha_type,
+                                                       dx,
+                                                       x_type,
+                                                       incx,
+                                                       batch_count,
+                                                       execution_type),
+                          rocblas_status_invalid_handle);
     EXPECT_ROCBLAS_STATUS((rocblas_scal_batched_ex_fn)(handle,
                                                        N,
                                                        nullptr,
@@ -91,10 +103,16 @@ void testing_scal_batched_ex(const Arguments& arg)
     if(N < 0 || incx <= 0 || batch_count <= 0)
     {
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        EXPECT_ROCBLAS_STATUS(
-            (rocblas_scal_batched_ex_fn)(
-                handle, N, nullptr, alpha_type, nullptr, x_type, incx, batch_count, execution_type),
-            rocblas_status_success);
+        EXPECT_ROCBLAS_STATUS((rocblas_scal_batched_ex_fn)(handle,
+                                                           N,
+                                                           nullptr,
+                                                           alpha_type,
+                                                           nullptr,
+                                                           x_type,
+                                                           incx,
+                                                           batch_count,
+                                                           execution_type),
+                              rocblas_status_success);
         return;
     }
 
