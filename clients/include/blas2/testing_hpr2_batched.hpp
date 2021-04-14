@@ -42,13 +42,28 @@ void testing_hpr2_batched_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
     CHECK_DEVICE_ALLOCATION(dA_1.memcheck());
 
-    EXPECT_ROCBLAS_STATUS(
-        (rocblas_hpr2_batched_fn)(
-            handle, rocblas_fill_full, N, &alpha, dx, incx, dy, incy, dA_1, batch_count),
-        rocblas_status_invalid_value);
+    EXPECT_ROCBLAS_STATUS((rocblas_hpr2_batched_fn)(handle,
+                                                    rocblas_fill_full,
+                                                    N,
+                                                    &alpha,
+                                                    dx,
+                                                    incx,
+                                                    dy,
+                                                    incy,
+                                                    dA_1,
+                                                    batch_count),
+                          rocblas_status_invalid_value);
 
-    EXPECT_ROCBLAS_STATUS((rocblas_hpr2_batched_fn)(
-                              handle, uplo, N, &alpha, nullptr, incx, dy, incy, dA_1, batch_count),
+    EXPECT_ROCBLAS_STATUS((rocblas_hpr2_batched_fn)(handle,
+                                                    uplo,
+                                                    N,
+                                                    &alpha,
+                                                    nullptr,
+                                                    incx,
+                                                    dy,
+                                                    incy,
+                                                    dA_1,
+                                                    batch_count),
                           rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
@@ -56,8 +71,16 @@ void testing_hpr2_batched_bad_arg(const Arguments& arg)
             T>)(handle, uplo, N, &alpha, dx, incx, nullptr, incy, dA_1, batch_count),
         rocblas_status_invalid_pointer);
 
-    EXPECT_ROCBLAS_STATUS((rocblas_hpr2_batched_fn)(
-                              handle, uplo, N, &alpha, dx, incx, dy, incy, nullptr, batch_count),
+    EXPECT_ROCBLAS_STATUS((rocblas_hpr2_batched_fn)(handle,
+                                                    uplo,
+                                                    N,
+                                                    &alpha,
+                                                    dx,
+                                                    incx,
+                                                    dy,
+                                                    incy,
+                                                    nullptr,
+                                                    batch_count),
                           rocblas_status_invalid_pointer);
 
     EXPECT_ROCBLAS_STATUS(
