@@ -42,14 +42,24 @@ void testing_dot_batched_bad_arg(const Arguments& arg)
 
     CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
-    EXPECT_ROCBLAS_STATUS(
-        (rocblas_dot_batched_fn)(
-            handle, N, nullptr, incx, dy.ptr_on_device(), incy, batch_count, d_rocblas_result),
-        rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(
-        (rocblas_dot_batched_fn)(
-            handle, N, dx.ptr_on_device(), incx, nullptr, incy, batch_count, d_rocblas_result),
-        rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS((rocblas_dot_batched_fn)(handle,
+                                                   N,
+                                                   nullptr,
+                                                   incx,
+                                                   dy.ptr_on_device(),
+                                                   incy,
+                                                   batch_count,
+                                                   d_rocblas_result),
+                          rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS((rocblas_dot_batched_fn)(handle,
+                                                   N,
+                                                   dx.ptr_on_device(),
+                                                   incx,
+                                                   nullptr,
+                                                   incy,
+                                                   batch_count,
+                                                   d_rocblas_result),
+                          rocblas_status_invalid_pointer);
     EXPECT_ROCBLAS_STATUS(
         (rocblas_dot_batched_fn)(handle, N, dx, incx, dy, incy, batch_count, nullptr),
         rocblas_status_invalid_pointer);
@@ -95,8 +105,14 @@ void testing_dot_batched(const Arguments& arg)
 
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
-        CHECK_ROCBLAS_ERROR((rocblas_dot_batched_fn)(
-            handle, N, nullptr, incx, nullptr, incy, batch_count, d_rocblas_result));
+        CHECK_ROCBLAS_ERROR((rocblas_dot_batched_fn)(handle,
+                                                     N,
+                                                     nullptr,
+                                                     incx,
+                                                     nullptr,
+                                                     incy,
+                                                     batch_count,
+                                                     d_rocblas_result));
 
         if(batch_count > 0)
         {
@@ -155,13 +171,25 @@ void testing_dot_batched(const Arguments& arg)
     {
         // GPU BLAS, rocblas_pointer_mode_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR((rocblas_dot_batched_fn)(
-            handle, N, dx.ptr_on_device(), incx, dy_ptr, incy, batch_count, rocblas_result_1));
+        CHECK_ROCBLAS_ERROR((rocblas_dot_batched_fn)(handle,
+                                                     N,
+                                                     dx.ptr_on_device(),
+                                                     incx,
+                                                     dy_ptr,
+                                                     incy,
+                                                     batch_count,
+                                                     rocblas_result_1));
 
         // GPU BLAS, rocblas_pointer_mode_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_ROCBLAS_ERROR((rocblas_dot_batched_fn)(
-            handle, N, dx.ptr_on_device(), incx, dy_ptr, incy, batch_count, d_rocblas_result_2));
+        CHECK_ROCBLAS_ERROR((rocblas_dot_batched_fn)(handle,
+                                                     N,
+                                                     dx.ptr_on_device(),
+                                                     incx,
+                                                     dy_ptr,
+                                                     incy,
+                                                     batch_count,
+                                                     d_rocblas_result_2));
 
         CHECK_HIP_ERROR(rocblas_result_2.transfer_from(d_rocblas_result_2));
 

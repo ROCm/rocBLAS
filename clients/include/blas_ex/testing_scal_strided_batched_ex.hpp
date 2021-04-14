@@ -41,10 +41,17 @@ void testing_scal_strided_batched_ex_bad_arg(const Arguments& arg)
     device_vector<Tx> dx(size_x);
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
 
-    EXPECT_ROCBLAS_STATUS(
-        (rocblas_scal_strided_batched_ex_fn)(
-            handle, N, nullptr, alpha_type, dx, x_type, incx, stridex, batch_count, execution_type),
-        rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS((rocblas_scal_strided_batched_ex_fn)(handle,
+                                                               N,
+                                                               nullptr,
+                                                               alpha_type,
+                                                               dx,
+                                                               x_type,
+                                                               incx,
+                                                               stridex,
+                                                               batch_count,
+                                                               execution_type),
+                          rocblas_status_invalid_pointer);
     EXPECT_ROCBLAS_STATUS((rocblas_scal_strided_batched_ex_fn)(handle,
                                                                N,
                                                                &h_alpha,
