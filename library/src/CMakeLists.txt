@@ -447,10 +447,18 @@ set_target_properties( rocblas PROPERTIES CXX_VISIBILITY_PRESET "hidden" C_VISIB
 generate_export_header( rocblas EXPORT_FILE_NAME ${PROJECT_BINARY_DIR}/include/internal/rocblas-export.h )
 
 # generate header with prototypes for export reuse
+file( GLOB rocblas_prototype_inputs
+  LIST_DIRECTORIES OFF
+  CONFIGURE_DEPENDS
+  ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/*.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/blas3/*.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/blas2/*.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/blas1/*.hpp
+)
 set( ROCBLAS_PROTO_TEMPLATES "${PROJECT_BINARY_DIR}/include/internal/rocblas-exported-proto.hpp" )
 add_custom_command(OUTPUT ${ROCBLAS_PROTO_TEMPLATES}
-  COMMAND python3 template-proto.py ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/*.hpp ${CMAKE_CURRENT_SOURCE_DIR}/blas3/*.hpp ${CMAKE_CURRENT_SOURCE_DIR}/blas2/*.hpp ${CMAKE_CURRENT_SOURCE_DIR}/blas1/*.hpp > ${ROCBLAS_PROTO_TEMPLATES}
-  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/*.hpp ${CMAKE_CURRENT_SOURCE_DIR}/blas3/*.hpp ${CMAKE_CURRENT_SOURCE_DIR}/blas2/*.hpp ${CMAKE_CURRENT_SOURCE_DIR}/blas1/*.hpp
+  COMMAND python3 template-proto.py ${rocblas_prototype_inputs} > ${ROCBLAS_PROTO_TEMPLATES}
+  DEPENDS ${rocblas_prototype_inputs}
   COMMENT "Generating prototypes from ${CMAKE_CURRENT_SOURCE_DIR}."
   WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
   )
