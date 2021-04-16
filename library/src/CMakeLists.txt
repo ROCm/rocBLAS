@@ -42,7 +42,6 @@ if( BUILD_WITH_TENSILE )
   endif( )
 
   set( Tensile_RUNTIME_LANGUAGE "HIP" )
-  message( STATUS "ROCBLAS_GPUS=${ROCBLAS_GPUS}" )
   if( BUILD_WITH_TENSILE_HOST )
     #TODO update when this feature has been validated
     #set( PACKAGE_TENSILE_LIBRARY ON )
