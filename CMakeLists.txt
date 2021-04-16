@@ -125,6 +125,8 @@ include( ROCMCreatePackage )
 include( ROCMInstallTargets )
 include( ROCMPackageConfigHelpers )
 include( ROCMInstallSymlinks )
+include( ROCMCheckTargetIds OPTIONAL )
+
 
 include (cmake/os-detection.cmake)
 get_os_id(OS_ID)
@@ -158,22 +160,33 @@ if(NOT SKIP_LIBRARY)
   set_property( CACHE AMDGPU_TARGETS PROPERTY STRINGS all gfx803 gfx900 gfx906:xnack- gfx908:xnack- gfx90a:xnack+ gfx90a:xnack- gfx1010 gfx1011 gfx1012 gfx1030 )
 
   # Detect if target ID syntax if supported for default all AMDGPU_TARGETS list
-  if(CMAKE_CXX_COMPILER MATCHES ".*/hipcc$" )
-    execute_process(COMMAND ${CMAKE_CXX_COMPILER} "--help"
-      OUTPUT_VARIABLE CXX_OUTPUT
-      OUTPUT_STRIP_TRAILING_WHITESPACE
-      ERROR_STRIP_TRAILING_WHITESPACE)
-    string(REGEX MATCH ".mcode\-object\-version" TARGET_ID_SUPPORT ${CXX_OUTPUT})
-  endif()
-  if(TARGET_ID_SUPPORT)
-    if(Tensile_LOGIC STREQUAL "aldebaran")
-      set(target_list "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx1010;gfx1011;gfx1012;gfx1030")
-    else()
-      set(target_list "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx1010;gfx1011;gfx1012;gfx1030")
-    endif()
+  # Sets the AMDGPU_TARGETS with backward compatiblity
+  if(COMMAND rocm_check_target_ids)
+    rocm_check_target_ids(target_list
+        TARGETS "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx1010;gfx1011;gfx1012;gfx1030"
+    )
   else()
-    set(target_list "gfx803;gfx900;gfx906;gfx908")
+    # This section is deprecated. Please use rocm_check_target_ids for future use.
+    if(CMAKE_CXX_COMPILER MATCHES ".*/hipcc$" )
+      execute_process(COMMAND ${CMAKE_CXX_COMPILER} "--help"
+        OUTPUT_VARIABLE CXX_OUTPUT
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        ERROR_STRIP_TRAILING_WHITESPACE)
+      string(REGEX MATCH ".mcode\-object\-version" TARGET_ID_SUPPORT ${CXX_OUTPUT})
+    endif()
+    if(TARGET_ID_SUPPORT)
+      if(Tensile_LOGIC STREQUAL "aldebaran")
+        # Temporary bypass: if logic aldebaran logic is selected, assume aldebaran compiler support exists
+        # To be removed for ROCm 4.4
+        set(target_list "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx1010;gfx1011;gfx1012;gfx1030")
+      else()
+        set(target_list "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx1010;gfx1011;gfx1012;gfx1030")
+      endif()
+    else()
+      set(target_list "gfx803;gfx900;gfx906;gfx908")
+    endif()
   endif()
+
   set(ROCBLAS_ALL_GPUS "${target_list}" CACHE STRING "List of specific machine types for library to target")
 
   # gpu architectures to build for we may FORCE overwrite expanded "all", AMDGPU_TARGETS always defined by install.sh
@@ -183,8 +196,6 @@ if(NOT SKIP_LIBRARY)
     else()
       set( gpus "${AMDGPU_TARGETS}")
     endif()
-    # will force tensile variable to match if tensile used
-    set( ROCBLAS_GPUS "${gpus}" )
     # must FORCE set this AMDGPU_TARGETS before any find_package( hip ...), via tensile or in this file
     # to override CACHE var and set --offload-arch flags via hip-config.cmake hip::device dependency
     set( AMDGPU_TARGETS "${gpus}" CACHE STRING "AMD GPU targets to compile for" FORCE )
