@@ -374,31 +374,32 @@ rocblas_status rocblas_gbmv_check_numerics(const char*       function_name,
     //Checking trans_a to transpose a vector 'x'
     rocblas_int n_x = trans_a == rocblas_operation_none ? n : m;
 
-    rocblas_status check_numerics_status = rocblas_check_numerics_vector_template(function_name,
-                                                                                  handle,
-                                                                                  n_x,
-                                                                                  x,
-                                                                                  offset_x,
-                                                                                  inc_x,
-                                                                                  stride_x,
-                                                                                  batch_count,
-                                                                                  check_numerics,
-                                                                                  is_input);
+    rocblas_status check_numerics_status
+        = rocblas_internal_check_numerics_vector_template(function_name,
+                                                          handle,
+                                                          n_x,
+                                                          x,
+                                                          offset_x,
+                                                          inc_x,
+                                                          stride_x,
+                                                          batch_count,
+                                                          check_numerics,
+                                                          is_input);
     if(check_numerics_status != rocblas_status_success)
         return check_numerics_status;
 
     //Checking trans_a to transpose a vector 'y'
     rocblas_int n_y       = trans_a == rocblas_operation_none ? m : n;
-    check_numerics_status = rocblas_check_numerics_vector_template(function_name,
-                                                                   handle,
-                                                                   n_y,
-                                                                   y,
-                                                                   offset_y,
-                                                                   inc_y,
-                                                                   stride_y,
-                                                                   batch_count,
-                                                                   check_numerics,
-                                                                   is_input);
+    check_numerics_status = rocblas_internal_check_numerics_vector_template(function_name,
+                                                                            handle,
+                                                                            n_y,
+                                                                            y,
+                                                                            offset_y,
+                                                                            inc_y,
+                                                                            stride_y,
+                                                                            batch_count,
+                                                                            check_numerics,
+                                                                            is_input);
 
     return check_numerics_status;
 }

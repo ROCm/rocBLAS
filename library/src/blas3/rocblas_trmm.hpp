@@ -657,7 +657,7 @@ rocblas_status rocblas_trmm_small(rocblas_handle    handle,
 }
 
 template <int STOPPING_NB, bool BATCHED, typename T, typename TScal, typename TConstPtr, typename TPtr, typename T_lda>
-ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_trmm_recursive_template(rocblas_handle    handle,
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status rocblas_internal_trmm_recursive_template(rocblas_handle    handle,
                                      rocblas_side      side,
                                      rocblas_fill      uplo,
                                      rocblas_operation trans_a,
@@ -723,18 +723,18 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_trmm_recursive_template(rocblas_h
         const int m1 = rocblas_get_trmm_recursive_nb(m);
         const int m2 = m - m1;
 
-         RETURN_IF_ROCBLAS_ERROR((rocblas_trmm_recursive_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
+         RETURN_IF_ROCBLAS_ERROR((rocblas_internal_trmm_recursive_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
                                      m2, n, alpha, stride_alpha,
                                      dA, CALC_OFFSET_A(m1, m1), ldda, stride_a,
                                      dB, CALC_OFFSET_B(m1,  0), lddb, stride_b, batch_count)));
 
-         RETURN_IF_ROCBLAS_ERROR((rocblas_gemm_template<BATCHED, T>(handle, rocblas_operation_none, rocblas_operation_none,
+         RETURN_IF_ROCBLAS_ERROR((rocblas_internal_gemm_template<BATCHED, T>(handle, rocblas_operation_none, rocblas_operation_none,
                                      m2, n, m1, alpha,
                                      dA, CALC_OFFSET_A(m1, 0), ldda, stride_a,
                         (TConstPtr*) dB, CALC_OFFSET_B( 0, 0), lddb, stride_b, &one,
                                      dB, CALC_OFFSET_B(m1, 0), lddb, stride_b, batch_count)));
 
-         RETURN_IF_ROCBLAS_ERROR((rocblas_trmm_recursive_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
+         RETURN_IF_ROCBLAS_ERROR((rocblas_internal_trmm_recursive_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
                                      m1, n, alpha, stride_alpha,
                                      dA, CALC_OFFSET_A(0, 0), ldda, stride_a,
                                      dB, CALC_OFFSET_B(0, 0), lddb, stride_b, batch_count)));
@@ -744,19 +744,19 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_trmm_recursive_template(rocblas_h
         const int m2 = rocblas_get_trmm_recursive_nb(m);
         const int m1 = m - m2;
 
-        RETURN_IF_ROCBLAS_ERROR((rocblas_trmm_recursive_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
+        RETURN_IF_ROCBLAS_ERROR((rocblas_internal_trmm_recursive_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
                                      m1, n, alpha, stride_alpha,
                                      dA, CALC_OFFSET_A(0, 0), ldda, stride_a,
                                      dB, CALC_OFFSET_B(0, 0), lddb, stride_b, batch_count)));
 
 
-        RETURN_IF_ROCBLAS_ERROR((rocblas_gemm_template<BATCHED, T>(handle, rocblas_operation_none, rocblas_operation_none,
+        RETURN_IF_ROCBLAS_ERROR((rocblas_internal_gemm_template<BATCHED, T>(handle, rocblas_operation_none, rocblas_operation_none,
                                      m1, n, m2, alpha,
                                      dA, CALC_OFFSET_A( 0, m1), ldda, stride_a,
                         (TConstPtr*) dB, CALC_OFFSET_B(m1,  0), lddb, stride_b, &one,
                                      dB, CALC_OFFSET_B( 0,  0), lddb, stride_b, batch_count)));
 
-        RETURN_IF_ROCBLAS_ERROR((rocblas_trmm_recursive_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
+        RETURN_IF_ROCBLAS_ERROR((rocblas_internal_trmm_recursive_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
                                      m2, n, alpha, stride_alpha,
                                      dA, CALC_OFFSET_A(m1, m1), ldda, stride_a,
                                      dB, CALC_OFFSET_B(m1,  0), lddb, stride_b, batch_count)));
@@ -766,18 +766,18 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_trmm_recursive_template(rocblas_h
         const int m2 = rocblas_get_trmm_recursive_nb(m);
         const int m1 = m - m2;
 
-        RETURN_IF_ROCBLAS_ERROR((rocblas_trmm_recursive_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
+        RETURN_IF_ROCBLAS_ERROR((rocblas_internal_trmm_recursive_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
                                      m1, n, alpha, stride_alpha,
                                      dA, CALC_OFFSET_A(0, 0), ldda, stride_a,
                                      dB, CALC_OFFSET_B(0, 0), lddb, stride_b, batch_count)));
 
-        RETURN_IF_ROCBLAS_ERROR((rocblas_gemm_template<BATCHED, T>(handle, trans_a, rocblas_operation_none,
+        RETURN_IF_ROCBLAS_ERROR((rocblas_internal_gemm_template<BATCHED, T>(handle, trans_a, rocblas_operation_none,
                                      m1, n, m2, alpha,
                                      dA, CALC_OFFSET_A(m1, 0), ldda, stride_a,
                         (TConstPtr*) dB, CALC_OFFSET_B(m1, 0), lddb, stride_b, &one,
                                      dB, CALC_OFFSET_B( 0, 0), lddb, stride_b, batch_count)));
 
-        RETURN_IF_ROCBLAS_ERROR((rocblas_trmm_recursive_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
+        RETURN_IF_ROCBLAS_ERROR((rocblas_internal_trmm_recursive_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
                                      m2, n, alpha, stride_alpha,
                                      dA, CALC_OFFSET_A(m1, m1), ldda, stride_a,
                                      dB, CALC_OFFSET_B(m1,  0), lddb, stride_b, batch_count)));
@@ -787,18 +787,18 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_trmm_recursive_template(rocblas_h
         const int m1 = rocblas_get_trmm_recursive_nb(m);
         const int m2 = m - m1;
 
-        RETURN_IF_ROCBLAS_ERROR((rocblas_trmm_recursive_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
+        RETURN_IF_ROCBLAS_ERROR((rocblas_internal_trmm_recursive_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
                                      m2, n, alpha, stride_alpha,
                                      dA, CALC_OFFSET_A(m1, m1), ldda, stride_a,
                                      dB, CALC_OFFSET_B(m1,  0), lddb, stride_b, batch_count)));
 
-        RETURN_IF_ROCBLAS_ERROR((rocblas_gemm_template<BATCHED, T>(handle, trans_a, rocblas_operation_none,
+        RETURN_IF_ROCBLAS_ERROR((rocblas_internal_gemm_template<BATCHED, T>(handle, trans_a, rocblas_operation_none,
                                      m2, n, m1, alpha,
                                      dA, CALC_OFFSET_A( 0, m1), ldda, stride_a,
                         (TConstPtr*) dB, CALC_OFFSET_B( 0,  0), lddb, stride_b, &one,
                                      dB, CALC_OFFSET_B(m1,  0), lddb, stride_b, batch_count)));
 
-        RETURN_IF_ROCBLAS_ERROR((rocblas_trmm_recursive_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
+        RETURN_IF_ROCBLAS_ERROR((rocblas_internal_trmm_recursive_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
                                      m1, n, alpha, stride_alpha,
                                      dA, CALC_OFFSET_A(0, 0), ldda, stride_a,
                                      dB, CALC_OFFSET_B(0, 0), lddb, stride_b, batch_count)));
@@ -808,18 +808,18 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_trmm_recursive_template(rocblas_h
         const int n2 = rocblas_get_trmm_recursive_nb(n);
         const int n1 = n - n2;
 
-        RETURN_IF_ROCBLAS_ERROR((rocblas_trmm_recursive_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
+        RETURN_IF_ROCBLAS_ERROR((rocblas_internal_trmm_recursive_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
                                      m, n1, alpha, stride_alpha,
                                      dA, CALC_OFFSET_A(0, 0), ldda, stride_a,
                                      dB, CALC_OFFSET_B(0, 0), lddb, stride_b, batch_count)));
 
-        RETURN_IF_ROCBLAS_ERROR((rocblas_gemm_template<BATCHED, T>(handle, rocblas_operation_none, trans_a,
+        RETURN_IF_ROCBLAS_ERROR((rocblas_internal_gemm_template<BATCHED, T>(handle, rocblas_operation_none, trans_a,
                                      m, n1, n2, alpha,
                         (TConstPtr*) dB, CALC_OFFSET_B( 0, n1), lddb, stride_b,
                                      dA, CALC_OFFSET_A(n1,  0), ldda, stride_a, &one,
                                      dB, CALC_OFFSET_B( 0,  0), lddb, stride_b, batch_count)));
 
-        RETURN_IF_ROCBLAS_ERROR((rocblas_trmm_recursive_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
+        RETURN_IF_ROCBLAS_ERROR((rocblas_internal_trmm_recursive_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
                                      m, n2, alpha, stride_alpha,
                                      dA, CALC_OFFSET_A(n1, n1), ldda, stride_a,
                                      dB, CALC_OFFSET_B( 0, n1), lddb, stride_b, batch_count)));
@@ -829,18 +829,18 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_trmm_recursive_template(rocblas_h
         const int n1 = rocblas_get_trmm_recursive_nb(n);
         const int n2 = n - n1;
 
-        RETURN_IF_ROCBLAS_ERROR((rocblas_trmm_recursive_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
+        RETURN_IF_ROCBLAS_ERROR((rocblas_internal_trmm_recursive_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
                                      m, n2, alpha, stride_alpha,
                                      dA, CALC_OFFSET_A(n1, n1), ldda, stride_a,
                                      dB, CALC_OFFSET_B( 0, n1), lddb, stride_b, batch_count)));
 
-        RETURN_IF_ROCBLAS_ERROR((rocblas_gemm_template<BATCHED, T>(handle, rocblas_operation_none, trans_a,
+        RETURN_IF_ROCBLAS_ERROR((rocblas_internal_gemm_template<BATCHED, T>(handle, rocblas_operation_none, trans_a,
                                      m, n2, n1, alpha,
                         (TConstPtr*) dB, CALC_OFFSET_B(0,  0), lddb, stride_b,
                                      dA, CALC_OFFSET_A(0, n1), ldda, stride_a, &one,
                                      dB, CALC_OFFSET_B(0, n1), lddb, stride_b, batch_count)));
 
-        RETURN_IF_ROCBLAS_ERROR((rocblas_trmm_recursive_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
+        RETURN_IF_ROCBLAS_ERROR((rocblas_internal_trmm_recursive_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
                                      m, n1, alpha, stride_alpha,
                                      dA, CALC_OFFSET_A(0, 0), ldda, stride_a,
                                      dB, CALC_OFFSET_B(0, 0), lddb, stride_b, batch_count)));
@@ -850,18 +850,18 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_trmm_recursive_template(rocblas_h
         const int n1 = rocblas_get_trmm_recursive_nb(n);
         const int n2 = n - n1;
 
-        RETURN_IF_ROCBLAS_ERROR((rocblas_trmm_recursive_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
+        RETURN_IF_ROCBLAS_ERROR((rocblas_internal_trmm_recursive_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
                                      m, n2, alpha, stride_alpha,
                                      dA, CALC_OFFSET_A(n1, n1), ldda, stride_a,
                                      dB, CALC_OFFSET_B( 0, n1), lddb, stride_b, batch_count)));
 
-        RETURN_IF_ROCBLAS_ERROR((rocblas_gemm_template<BATCHED, T>(handle, rocblas_operation_none, trans_a,
+        RETURN_IF_ROCBLAS_ERROR((rocblas_internal_gemm_template<BATCHED, T>(handle, rocblas_operation_none, trans_a,
                                      m, n2, n1, alpha,
                         (TConstPtr*) dB, CALC_OFFSET_B( 0,  0), lddb, stride_b,
                                      dA, CALC_OFFSET_A(n1,  0), ldda, stride_a, &one,
                                      dB, CALC_OFFSET_B( 0, n1), lddb, stride_b, batch_count)));
 
-        RETURN_IF_ROCBLAS_ERROR((rocblas_trmm_recursive_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
+        RETURN_IF_ROCBLAS_ERROR((rocblas_internal_trmm_recursive_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
                                      m, n1, alpha, stride_alpha,
                                      dA, CALC_OFFSET_A(0, 0), ldda, stride_a,
                                      dB, CALC_OFFSET_B(0, 0), lddb, stride_b, batch_count)));
@@ -871,18 +871,18 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_trmm_recursive_template(rocblas_h
         const int n2 = rocblas_get_trmm_recursive_nb(n);
         const int n1 = n - n2;
 
-        RETURN_IF_ROCBLAS_ERROR((rocblas_trmm_recursive_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
+        RETURN_IF_ROCBLAS_ERROR((rocblas_internal_trmm_recursive_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
                                      m, n1, alpha, stride_alpha,
                                      dA, CALC_OFFSET_A(0, 0), ldda, stride_a,
                                      dB, CALC_OFFSET_B(0, 0), lddb, stride_b, batch_count)));
 
-        RETURN_IF_ROCBLAS_ERROR((rocblas_gemm_template<BATCHED, T>(handle, rocblas_operation_none, trans_a,
+        RETURN_IF_ROCBLAS_ERROR((rocblas_internal_gemm_template<BATCHED, T>(handle, rocblas_operation_none, trans_a,
                                      m, n1, n2, alpha,
                         (TConstPtr*) dB, CALC_OFFSET_B(0, n1), lddb, stride_b,
                                      dA, CALC_OFFSET_A(0, n1), ldda, stride_a, &one,
                                      dB, CALC_OFFSET_B(0,  0), lddb, stride_b, batch_count)));
 
-        RETURN_IF_ROCBLAS_ERROR((rocblas_trmm_recursive_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
+        RETURN_IF_ROCBLAS_ERROR((rocblas_internal_trmm_recursive_template<STOPPING_NB, BATCHED, T>(handle, side, uplo, trans_a, diag,
                                      m, n2, alpha, stride_alpha,
                                      dA, CALC_OFFSET_A(n1, n1), ldda, stride_a,
                                      dB, CALC_OFFSET_B( 0, n1), lddb, stride_b, batch_count)));

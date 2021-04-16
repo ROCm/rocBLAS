@@ -651,7 +651,7 @@ namespace
     /**************************************************************************
     * We normally print error messages only once, to avoid excessive logging *
     **************************************************************************/
-    void print_once(rocblas_ostream& msg)
+    void print_once(rocblas_internal_ostream& msg)
     {
         if(rocblas_suppress_tensile_error_messages())
             return;
@@ -697,7 +697,7 @@ rocblas_status runContractionProblem(const RocblasContractionProblem<Ti, To, Tc>
 
         if(!solution)
         {
-            rocblas_ostream msg;
+            rocblas_internal_ostream msg;
             print_once(msg << "\nrocBLAS error: No Tensile solution found for " << prob);
             status = rocblas_status_not_implemented;
         }
@@ -726,13 +726,13 @@ rocblas_status runContractionProblem(const RocblasContractionProblem<Ti, To, Tc>
     }
     catch(const std::exception& e)
     {
-        rocblas_ostream msg;
+        rocblas_internal_ostream msg;
         print_once(msg << "\nrocBLAS error: " << (solution ? "" : "No ")
                        << "Tensile solution found, but exception thown for " << prob << e.what());
     }
     catch(...)
     {
-        rocblas_ostream msg;
+        rocblas_internal_ostream msg;
         print_once(msg << "\nrocBLAS error: " << (solution ? "" : "No ")
                        << "Tensile solution found, but unknown exception thown for " << prob);
     }
@@ -790,7 +790,7 @@ template rocblas_status
 /***********************************************************************************
  * Whether Tensile has been initialized for at least one device (used for testing) *
  ***********************************************************************************/
-ROCBLAS_EXPORT std::atomic_bool& rocblas_internal_tensile_is_initialized()
+ROCBLAS_INTERNAL_EXPORT std::atomic_bool& rocblas_internal_tensile_is_initialized()
 {
     static std::atomic_bool init;
     return init;

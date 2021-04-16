@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "rocblas_syr.hpp"
 #include "logging.hpp"
@@ -104,8 +104,8 @@ namespace
             if(syr_check_numerics_status != rocblas_status_success)
                 return syr_check_numerics_status;
         }
-        rocblas_status status
-            = rocblas_syr_template<T>(handle, uplo, n, alpha, 0, x, 0, incx, 0, A, 0, lda, 0, 1);
+        rocblas_status status = rocblas_internal_syr_template<T>(
+            handle, uplo, n, alpha, 0, x, 0, incx, 0, A, 0, lda, 0, 1);
         if(status != rocblas_status_success)
             return status;
 

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
 
@@ -37,7 +37,7 @@ namespace
             return rocblas_status_invalid_handle;
 
         // Compute the optimal size for temporary device memory
-        size_t size = rocblas_trtri_temp_size<NB>(n, batch_count) * sizeof(T);
+        size_t size = rocblas_internal_trtri_temp_size<NB>(n, batch_count) * sizeof(T);
         if(handle->is_device_memory_size_query())
         {
             if(n <= NB || !batch_count)

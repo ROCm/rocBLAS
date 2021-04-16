@@ -1,5 +1,5 @@
 /* ************************************************************************
-* Copyright 2016-2020 Advanced Micro Devices, Inc.
+* Copyright 2016-2021 Advanced Micro Devices, Inc.
 * ************************************************************************ */
 
 #pragma once
@@ -597,54 +597,54 @@ rocblas_status trtri_gemm_block(rocblas_handle handle,
         }
 
         // We are naively iterating through the batches, and uses sub-batches in a strided_batched style.
-        status = rocblas_gemm_template<false>(handle,
-                                              rocblas_operation_none,
-                                              rocblas_operation_none,
-                                              M,
-                                              N,
-                                              N,
-                                              &one,
-                                              aptr,
-                                              0,
-                                              ld_A,
-                                              sub_stride_A,
-                                              invAg1ptr,
-                                              0,
-                                              ld_invA,
-                                              sub_stride_invA,
-                                              &zero,
-                                              cptr,
-                                              0,
-                                              ld_C,
-                                              sub_stride_C,
-                                              sub_blocks);
+        status = rocblas_internal_gemm_template<false>(handle,
+                                                       rocblas_operation_none,
+                                                       rocblas_operation_none,
+                                                       M,
+                                                       N,
+                                                       N,
+                                                       &one,
+                                                       aptr,
+                                                       0,
+                                                       ld_A,
+                                                       sub_stride_A,
+                                                       invAg1ptr,
+                                                       0,
+                                                       ld_invA,
+                                                       sub_stride_invA,
+                                                       &zero,
+                                                       cptr,
+                                                       0,
+                                                       ld_C,
+                                                       sub_stride_C,
+                                                       sub_blocks);
 
         if(status != rocblas_status_success)
             break;
 
         // second batched gemm compute  invA21 = -invA22 * C (lower) or invA12 = -invA11*C (upper)
         // distance between each invA21 or invA12 is stride_invA,
-        status = rocblas_gemm_template<false>(handle,
-                                              rocblas_operation_none,
-                                              rocblas_operation_none,
-                                              M,
-                                              N,
-                                              M,
-                                              &negative_one,
-                                              invAg2ptr,
-                                              0,
-                                              ld_invA,
-                                              sub_stride_invA,
-                                              cptr,
-                                              0,
-                                              ld_C,
-                                              sub_stride_C,
-                                              &zero,
-                                              invAg2cptr,
-                                              0,
-                                              ld_invA,
-                                              sub_stride_invA,
-                                              sub_blocks);
+        status = rocblas_internal_gemm_template<false>(handle,
+                                                       rocblas_operation_none,
+                                                       rocblas_operation_none,
+                                                       M,
+                                                       N,
+                                                       M,
+                                                       &negative_one,
+                                                       invAg2ptr,
+                                                       0,
+                                                       ld_invA,
+                                                       sub_stride_invA,
+                                                       cptr,
+                                                       0,
+                                                       ld_C,
+                                                       sub_stride_C,
+                                                       &zero,
+                                                       invAg2cptr,
+                                                       0,
+                                                       ld_invA,
+                                                       sub_stride_invA,
+                                                       sub_blocks);
         if(status != rocblas_status_success)
             break;
     }
@@ -1000,7 +1000,8 @@ rocblas_status rocblas_trtri_large(rocblas_handle   handle,
 }
 
 template <rocblas_int NB>
-ROCBLAS_EXPORT_NOINLINE size_t rocblas_trtri_temp_size(rocblas_int n, rocblas_int batch_count)
+ROCBLAS_INTERNAL_EXPORT_NOINLINE size_t rocblas_internal_trtri_temp_size(rocblas_int n,
+                                                                         rocblas_int batch_count)
 {
     rocblas_int IB   = NB * 2;
     size_t      size = 0;
@@ -1041,23 +1042,24 @@ ROCBLAS_EXPORT_NOINLINE size_t rocblas_trtri_temp_size(rocblas_int n, rocblas_in
 }
 
 template <rocblas_int NB, bool BATCHED, bool STRIDED, typename T, typename U, typename V>
-ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_trtri_template(rocblas_handle   handle,
-                                                              rocblas_fill     uplo,
-                                                              rocblas_diagonal diag,
-                                                              rocblas_int      n,
-                                                              U                A,
-                                                              rocblas_int      offset_A,
-                                                              rocblas_int      lda,
-                                                              rocblas_stride   stride_A,
-                                                              rocblas_stride   sub_stride_A,
-                                                              V                invA,
-                                                              rocblas_int      offset_invA,
-                                                              rocblas_int      ldinvA,
-                                                              rocblas_stride   stride_invA,
-                                                              rocblas_stride   sub_stride_invA,
-                                                              rocblas_int      batch_count,
-                                                              rocblas_int      sub_batch_count,
-                                                              V                C_tmp)
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_trtri_template(rocblas_handle   handle,
+                                    rocblas_fill     uplo,
+                                    rocblas_diagonal diag,
+                                    rocblas_int      n,
+                                    U                A,
+                                    rocblas_int      offset_A,
+                                    rocblas_int      lda,
+                                    rocblas_stride   stride_A,
+                                    rocblas_stride   sub_stride_A,
+                                    V                invA,
+                                    rocblas_int      offset_invA,
+                                    rocblas_int      ldinvA,
+                                    rocblas_stride   stride_invA,
+                                    rocblas_stride   sub_stride_invA,
+                                    rocblas_int      batch_count,
+                                    rocblas_int      sub_batch_count,
+                                    V                C_tmp)
 {
     if(!n || !sub_batch_count)
         return rocblas_status_success;

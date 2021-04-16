@@ -568,7 +568,7 @@ constexpr double value_category(const T& beta)
 bool rocblas_internal_tensile_supports_ldc_ne_ldd(rocblas_handle handle);
 
 // for internal use during testing, fetch arch name
-ROCBLAS_EXPORT std::string rocblas_internal_get_arch_name();
+ROCBLAS_INTERNAL_EXPORT std::string rocblas_internal_get_arch_name();
 
 // for internal use during testing, whether to skip actual kernel launch
-ROCBLAS_EXPORT bool rocblas_internal_tensile_debug_skip_launch();
+ROCBLAS_INTERNAL_EXPORT bool rocblas_internal_tensile_debug_skip_launch();

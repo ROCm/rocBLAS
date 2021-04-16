@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "handle.hpp"
 #include "logging.hpp"
@@ -38,7 +38,7 @@ namespace
             {
                 if(layer_mode & rocblas_layer_mode_log_trace)
                 {
-                    rocblas_ostream alphass, betass;
+                    rocblas_internal_ostream alphass, betass;
                     if(log_trace_alpha_beta_ex(alpha_type, alpha, nullptr, alphass, betass)
                        == rocblas_status_success)
                     {

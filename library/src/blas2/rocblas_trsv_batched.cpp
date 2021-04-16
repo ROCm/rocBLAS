@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "handle.hpp"
 #include "logging.hpp"
@@ -127,16 +127,17 @@ namespace
         void* mem_invA;
         void* mem_invA_arr;
 
-        rocblas_status perf_status = rocblas_trsv_template_mem<BLOCK, true, T>(handle,
-                                                                               m,
-                                                                               batch_count,
-                                                                               mem,
-                                                                               mem_x_temp,
-                                                                               mem_x_temp_arr,
-                                                                               mem_invA,
-                                                                               mem_invA_arr,
-                                                                               supplied_invA,
-                                                                               supplied_invA_size);
+        rocblas_status perf_status
+            = rocblas_internal_trsv_template_mem<BLOCK, true, T>(handle,
+                                                                 m,
+                                                                 batch_count,
+                                                                 mem,
+                                                                 mem_x_temp,
+                                                                 mem_x_temp_arr,
+                                                                 mem_invA,
+                                                                 mem_invA_arr,
+                                                                 supplied_invA,
+                                                                 supplied_invA_size);
 
         // If this was a device memory query or an error occurred, return status
         if(perf_status != rocblas_status_success && perf_status != rocblas_status_perf_degraded)
@@ -166,26 +167,26 @@ namespace
                 return trsv_check_numerics_status;
         }
 
-        rocblas_status status = rocblas_trsv_template<BLOCK, true, T>(handle,
-                                                                      uplo,
-                                                                      transA,
-                                                                      diag,
-                                                                      m,
-                                                                      A,
-                                                                      0,
-                                                                      lda,
-                                                                      0,
-                                                                      B,
-                                                                      0,
-                                                                      incx,
-                                                                      0,
-                                                                      batch_count,
-                                                                      mem_x_temp,
-                                                                      mem_x_temp_arr,
-                                                                      mem_invA,
-                                                                      mem_invA_arr,
-                                                                      supplied_invA,
-                                                                      supplied_invA_size);
+        rocblas_status status = rocblas_internal_trsv_template<BLOCK, true, T>(handle,
+                                                                               uplo,
+                                                                               transA,
+                                                                               diag,
+                                                                               m,
+                                                                               A,
+                                                                               0,
+                                                                               lda,
+                                                                               0,
+                                                                               B,
+                                                                               0,
+                                                                               incx,
+                                                                               0,
+                                                                               batch_count,
+                                                                               mem_x_temp,
+                                                                               mem_x_temp_arr,
+                                                                               mem_invA,
+                                                                               mem_invA_arr,
+                                                                               supplied_invA,
+                                                                               supplied_invA_size);
 
         status = (status != rocblas_status_success) ? status : perf_status;
         if(status != rocblas_status_success)

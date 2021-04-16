@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "logging.hpp"
 #include "rocblas_herk.hpp"
@@ -118,22 +118,22 @@ namespace
         if(arg_status != rocblas_status_continue)
             return arg_status;
 
-        return rocblas_herk_template(handle,
-                                     uplo,
-                                     transA,
-                                     n,
-                                     k,
-                                     alpha,
-                                     A,
-                                     offset_A,
-                                     lda,
-                                     stride_A,
-                                     beta,
-                                     C,
-                                     offset_C,
-                                     ldc,
-                                     stride_C,
-                                     batch_count);
+        return rocblas_internal_herk_template(handle,
+                                              uplo,
+                                              transA,
+                                              n,
+                                              k,
+                                              alpha,
+                                              A,
+                                              offset_A,
+                                              lda,
+                                              stride_A,
+                                              beta,
+                                              C,
+                                              offset_C,
+                                              ldc,
+                                              stride_C,
+                                              batch_count);
     }
 
 }

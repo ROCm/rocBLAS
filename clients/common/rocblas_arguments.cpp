@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "rocblas_arguments.hpp"
@@ -12,7 +12,7 @@
 #include <utility>
 
 // Function to print Arguments out to stream in YAML format
-rocblas_ostream& operator<<(rocblas_ostream& os, const Arguments& arg)
+rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os, const Arguments& arg)
 {
     // delim starts as "{ " and becomes ", " afterwards
     auto print_pair = [&, delim = "{ "](const char* name, const auto& value) mutable {
@@ -31,8 +31,8 @@ rocblas_ostream& operator<<(rocblas_ostream& os, const Arguments& arg)
 // Google Tests uses this automatically with std::ostream to dump parameters
 std::ostream& operator<<(std::ostream& os, const Arguments& arg)
 {
-    rocblas_ostream oss;
-    // Print to rocblas_ostream, then transfer to std::ostream
+    rocblas_internal_ostream oss;
+    // Print to rocblas_internal_ostream, then transfer to std::ostream
     return os << (oss << arg);
 }
 

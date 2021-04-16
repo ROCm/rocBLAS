@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "rocblas_ger.hpp"
 #include "handle.hpp"
@@ -134,7 +134,7 @@ namespace
                 return ger_check_numerics_status;
         }
 
-        rocblas_status status = rocblas_ger_template<CONJ, T>(
+        rocblas_status status = rocblas_internal_ger_template<CONJ, T>(
             handle, m, n, alpha, 0, x, 0, incx, 0, y, 0, incy, 0, A, 0, lda, 0, 1);
         if(status != rocblas_status_success)
             return status;

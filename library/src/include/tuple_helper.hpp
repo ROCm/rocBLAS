@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2020 Advanced Micro Devices, Inc.
+ * Copyright 2020-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -42,7 +42,8 @@ public:
 
     // Print a tuple which is expected to be (name1, value1, name2, value2, ...)
     template <typename TUP>
-    static rocblas_ostream& print_tuple_pairs(rocblas_ostream& os, const TUP& tuple)
+    static rocblas_internal_ostream& print_tuple_pairs(rocblas_internal_ostream& os,
+                                                       const TUP&                tuple)
     {
         static_assert(std::tuple_size<TUP>{} % 2 == 0, "Tuple size must be even");
 

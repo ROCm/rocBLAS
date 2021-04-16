@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "rocblas_hemm.hpp"
 #include "logging.hpp"
@@ -126,26 +126,26 @@ namespace
             return arg_status;
 
         static constexpr bool Hermetian = true;
-        return rocblas_symm_template<Hermetian>(handle,
-                                                side,
-                                                uplo,
-                                                m,
-                                                n,
-                                                alpha,
-                                                A,
-                                                offset_A,
-                                                lda,
-                                                stride_A,
-                                                B,
-                                                offset_B,
-                                                ldb,
-                                                stride_B,
-                                                beta,
-                                                C,
-                                                offset_C,
-                                                ldc,
-                                                stride_C,
-                                                batch_count);
+        return rocblas_internal_symm_template<Hermetian>(handle,
+                                                         side,
+                                                         uplo,
+                                                         m,
+                                                         n,
+                                                         alpha,
+                                                         A,
+                                                         offset_A,
+                                                         lda,
+                                                         stride_A,
+                                                         B,
+                                                         offset_B,
+                                                         ldb,
+                                                         stride_B,
+                                                         beta,
+                                                         C,
+                                                         offset_C,
+                                                         ldc,
+                                                         stride_C,
+                                                         batch_count);
     }
 
 }

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2019-2020 Advanced Micro Devices, Inc.
+ * Copyright 2019-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -9,22 +9,23 @@
 #include "trmv_device.hpp"
 
 template <rocblas_int NB, typename A, typename X, typename W>
-ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_trmv_template(rocblas_handle    handle,
-                                                             rocblas_fill      uplo,
-                                                             rocblas_operation transa,
-                                                             rocblas_diagonal  diag,
-                                                             rocblas_int       m,
-                                                             A                 a,
-                                                             ptrdiff_t         offseta,
-                                                             rocblas_int       lda,
-                                                             rocblas_stride    stridea,
-                                                             X                 x,
-                                                             ptrdiff_t         offsetx,
-                                                             rocblas_int       incx,
-                                                             rocblas_stride    stridex,
-                                                             W                 w,
-                                                             rocblas_stride    stridew,
-                                                             rocblas_int       batch_count)
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_trmv_template(rocblas_handle    handle,
+                                   rocblas_fill      uplo,
+                                   rocblas_operation transa,
+                                   rocblas_diagonal  diag,
+                                   rocblas_int       m,
+                                   A                 a,
+                                   ptrdiff_t         offseta,
+                                   rocblas_int       lda,
+                                   rocblas_stride    stridea,
+                                   X                 x,
+                                   ptrdiff_t         offsetx,
+                                   rocblas_int       incx,
+                                   rocblas_stride    stridex,
+                                   W                 w,
+                                   rocblas_stride    stridew,
+                                   rocblas_int       batch_count)
 {
     //
     // quick return
@@ -142,16 +143,17 @@ rocblas_status rocblas_trmv_check_numerics(const char*    function_name,
                                            const int      check_numerics,
                                            bool           is_input)
 {
-    rocblas_status check_numerics_status = rocblas_check_numerics_vector_template(function_name,
-                                                                                  handle,
-                                                                                  m,
-                                                                                  x,
-                                                                                  offset_x,
-                                                                                  inc_x,
-                                                                                  stride_x,
-                                                                                  batch_count,
-                                                                                  check_numerics,
-                                                                                  is_input);
+    rocblas_status check_numerics_status
+        = rocblas_internal_check_numerics_vector_template(function_name,
+                                                          handle,
+                                                          m,
+                                                          x,
+                                                          offset_x,
+                                                          inc_x,
+                                                          stride_x,
+                                                          batch_count,
+                                                          check_numerics,
+                                                          is_input);
 
     return check_numerics_status;
 }

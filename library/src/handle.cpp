@@ -526,8 +526,8 @@ static auto open_log_stream(const char* environment_variable_name)
     const char* logfile;
     return (logfile = getenv(environment_variable_name)) != nullptr
                    || (logfile = getenv("ROCBLAS_LOG_PATH")) != nullptr
-               ? std::make_unique<rocblas_ostream>(logfile)
-               : std::make_unique<rocblas_ostream>(STDERR_FILENO);
+               ? std::make_unique<rocblas_internal_ostream>(logfile)
+               : std::make_unique<rocblas_internal_ostream>(STDERR_FILENO);
 }
 
 /*******************************************************************************

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2020 Advanced Micro Devices, Inc.
+ * Copyright 2020-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 // Predeclare rocblas_abort_once() for friend declaration in rocblas_ostream.hpp
@@ -11,7 +11,7 @@ static void rocblas_abort_once [[noreturn]] ();
 #include <type_traits>
 
 /***********************************************************************
- * rocblas_ostream functions                                           *
+ * rocblas_internal_ostream functions                                           *
  ***********************************************************************/
 
 // Abort function which is called only once by rocblas_abort
@@ -32,10 +32,10 @@ static void rocblas_abort_once()
     alarm(5);
 
     // Obtain the map lock
-    rocblas_ostream::map_mutex().lock();
+    rocblas_internal_ostream::map_mutex().lock();
 
     // Clear the map, stopping all workers
-    rocblas_ostream::map().clear();
+    rocblas_internal_ostream::map().clear();
 
     // Flush all
     fflush(NULL);
@@ -52,7 +52,7 @@ extern "C" void rocblas_abort()
 }
 
 // Get worker for writing to a file descriptor
-std::shared_ptr<rocblas_ostream::worker> rocblas_ostream::get_worker(int fd)
+std::shared_ptr<rocblas_internal_ostream::worker> rocblas_internal_ostream::get_worker(int fd)
 {
     // For a file descriptor indicating an error, return a nullptr
     if(fd == -1)
@@ -80,11 +80,11 @@ std::shared_ptr<rocblas_ostream::worker> rocblas_ostream::get_worker(int fd)
         return nullptr;
     }
 
-    // Lock the map from file_id -> std::shared_ptr<rocblas_ostream::worker>
+    // Lock the map from file_id -> std::shared_ptr<rocblas_internal_ostream::worker>
     std::lock_guard<std::recursive_mutex> lock(map_mutex());
 
     // Insert a nullptr map element if file_id doesn't exist in map already
-    // worker_ptr is a reference to the std::shared_ptr<rocblas_ostream::worker>
+    // worker_ptr is a reference to the std::shared_ptr<rocblas_internal_ostream::worker>
     auto& worker_ptr = map().emplace(file_id, nullptr).first->second;
 
     // If a new entry was inserted, or an old entry is empty, create new worker
@@ -95,8 +95,8 @@ std::shared_ptr<rocblas_ostream::worker> rocblas_ostream::get_worker(int fd)
     return worker_ptr;
 }
 
-// Construct rocblas_ostream from a file descriptor
-ROCBLAS_EXPORT rocblas_ostream::rocblas_ostream(int fd)
+// Construct rocblas_internal_ostream from a file descriptor
+ROCBLAS_INTERNAL_EXPORT rocblas_internal_ostream::rocblas_internal_ostream(int fd)
     : worker_ptr(get_worker(fd))
 {
     if(!worker_ptr)
@@ -106,8 +106,8 @@ ROCBLAS_EXPORT rocblas_ostream::rocblas_ostream(int fd)
     }
 }
 
-// Construct rocblas_ostream from a filename opened for writing with truncation
-ROCBLAS_EXPORT rocblas_ostream::rocblas_ostream(const char* filename)
+// Construct rocblas_internal_ostream from a filename opened for writing with truncation
+ROCBLAS_INTERNAL_EXPORT rocblas_internal_ostream::rocblas_internal_ostream(const char* filename)
 {
     int fd     = open(filename, O_WRONLY | O_CREAT | O_TRUNC | O_APPEND | O_CLOEXEC, 0644);
     worker_ptr = get_worker(fd);
@@ -120,7 +120,7 @@ ROCBLAS_EXPORT rocblas_ostream::rocblas_ostream(const char* filename)
 }
 
 // Flush the output
-ROCBLAS_EXPORT void rocblas_ostream::flush()
+ROCBLAS_INTERNAL_EXPORT void rocblas_internal_ostream::flush()
 {
     // Flush only if this stream contains a worker (i.e., is not a string)
     if(worker_ptr)
@@ -142,7 +142,7 @@ ROCBLAS_EXPORT void rocblas_ostream::flush()
  ***********************************************************************/
 
 // Floating-point output
-ROCBLAS_EXPORT rocblas_ostream& operator<<(rocblas_ostream& os, double x)
+ROCBLAS_INTERNAL_EXPORT rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os, double x)
 {
     if(!os.yaml)
         os.os << x;
@@ -176,7 +176,7 @@ ROCBLAS_EXPORT rocblas_ostream& operator<<(rocblas_ostream& os, double x)
 }
 
 // bool output
-ROCBLAS_EXPORT rocblas_ostream& operator<<(rocblas_ostream& os, bool b)
+ROCBLAS_INTERNAL_EXPORT rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os, bool b)
 {
     if(os.yaml)
         os.os << (b ? "true" : "false");
@@ -186,7 +186,7 @@ ROCBLAS_EXPORT rocblas_ostream& operator<<(rocblas_ostream& os, bool b)
 }
 
 // Character output
-ROCBLAS_EXPORT rocblas_ostream& operator<<(rocblas_ostream& os, char c)
+ROCBLAS_INTERNAL_EXPORT rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os, char c)
 {
     if(os.yaml)
     {
@@ -199,7 +199,8 @@ ROCBLAS_EXPORT rocblas_ostream& operator<<(rocblas_ostream& os, char c)
 }
 
 // String output
-ROCBLAS_EXPORT rocblas_ostream& operator<<(rocblas_ostream& os, const char* s)
+ROCBLAS_INTERNAL_EXPORT rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os,
+                                                             const char*               s)
 {
     if(os.yaml)
         os.os << std::quoted(s);
@@ -209,23 +210,24 @@ ROCBLAS_EXPORT rocblas_ostream& operator<<(rocblas_ostream& os, const char* s)
 }
 
 // YAML Manipulators (only used for their addresses now)
-ROCBLAS_EXPORT std::ostream& rocblas_ostream::yaml_on(std::ostream& os)
+ROCBLAS_INTERNAL_EXPORT std::ostream& rocblas_internal_ostream::yaml_on(std::ostream& os)
 {
     return os;
 }
 
-ROCBLAS_EXPORT std::ostream& rocblas_ostream::yaml_off(std::ostream& os)
+ROCBLAS_INTERNAL_EXPORT std::ostream& rocblas_internal_ostream::yaml_off(std::ostream& os)
 {
     return os;
 }
 
 // IO Manipulators
-ROCBLAS_EXPORT rocblas_ostream& operator<<(rocblas_ostream& os, std::ostream& (*pf)(std::ostream&))
+ROCBLAS_INTERNAL_EXPORT rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os,
+                                                             std::ostream& (*pf)(std::ostream&))
 {
     // Turn YAML formatting on or off
-    if(pf == rocblas_ostream::yaml_on)
+    if(pf == rocblas_internal_ostream::yaml_on)
         os.yaml = true;
-    else if(pf == rocblas_ostream::yaml_off)
+    else if(pf == rocblas_internal_ostream::yaml_off)
         os.yaml = false;
     else
     {
@@ -243,12 +245,12 @@ ROCBLAS_EXPORT rocblas_ostream& operator<<(rocblas_ostream& os, std::ostream& (*
 }
 
 /***********************************************************************
- * rocblas_ostream::worker functions handle logging in a single thread *
+ * rocblas_internal_ostream::worker functions handle logging in a single thread *
  ***********************************************************************/
 
 // Send a string to the worker thread for this stream's device/inode
 // Empty strings tell the worker thread to exit
-void rocblas_ostream::worker::send(std::string str)
+void rocblas_internal_ostream::worker::send(std::string str)
 {
     // Create a promise to wait for the operation to complete
     std::promise<void> promise;
@@ -274,7 +276,7 @@ void rocblas_ostream::worker::send(std::string str)
 }
 
 // Worker thread which serializes data to be written to a device/inode
-void rocblas_ostream::worker::thread_function()
+void rocblas_internal_ostream::worker::thread_function()
 {
     // Clear any errors in the FILE
     clearerr(file);
@@ -324,7 +326,7 @@ void rocblas_ostream::worker::thread_function()
 }
 
 // Constructor creates a worker thread from a file descriptor
-rocblas_ostream::worker::worker(int fd)
+rocblas_internal_ostream::worker::worker(int fd)
 {
     // The worker duplicates the file descriptor (RAII)
     fd = fcntl(fd, F_DUPFD_CLOEXEC, 0);
