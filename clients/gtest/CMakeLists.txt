@@ -174,4 +174,4 @@ set_target_properties( rocblas-test PROPERTIES
   CXX_EXTENSIONS OFF
   RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging"
 )
-target_compile_definitions( rocblas-test PRIVATE ROCM_USE_FLOAT16 )
+target_compile_definitions( rocblas-test PRIVATE ROCM_USE_FLOAT16 ROCBLAS_INTERNAL_API )

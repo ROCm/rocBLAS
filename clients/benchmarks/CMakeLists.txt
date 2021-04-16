@@ -85,4 +85,4 @@ set_target_properties( rocblas-bench PROPERTIES
 )
 add_dependencies( rocblas-bench rocblas-common )
 add_subdirectory ( ./perf_script )
-target_compile_definitions( rocblas-bench PRIVATE ROCBLAS_BENCH ROCM_USE_FLOAT16 )
+target_compile_definitions( rocblas-bench PRIVATE ROCBLAS_BENCH ROCM_USE_FLOAT16 ROCBLAS_INTERNAL_API )

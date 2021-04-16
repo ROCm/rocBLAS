@@ -5,6 +5,7 @@
 #include <cstdlib>
 #include <exception>
 #include <pthread.h>
+#include <regex>
 #include <unistd.h>
 
 /*********************************************
@@ -288,4 +289,40 @@ std::string RocBLAS_TestName_to_string(std::unordered_map<std::string, size_t>& 
         table[name] = 1;
 
     return name;
+}
+
+/********************************************************************************************
+ * Function which matches Arguments with a category, accounting for arg.known_bug_platforms *
+ ********************************************************************************************/
+bool match_test_category(const Arguments& arg, const char* category)
+{
+    if(*arg.known_bug_platforms)
+    {
+        // Regular expression for token delimiters
+        static const std::regex regex{"[:, \\f\\n\\r\\t\\v]+", std::regex_constants::optimize};
+
+        // The name of the current GPU platform
+        static const std::string platform = rocblas_internal_get_arch_name();
+
+        // Token iterator
+        std::cregex_token_iterator iter{arg.known_bug_platforms,
+                                        arg.known_bug_platforms + strlen(arg.known_bug_platforms),
+                                        regex,
+                                        -1};
+
+        // Iterate across tokens in known_bug_platforms, looking for matches with platform
+        for(; iter != std::cregex_token_iterator(); ++iter)
+        {
+            // If a platform matches, set category to "known_bug"
+            if(!strcasecmp(iter->str().c_str(), platform.c_str()))
+            {
+                // We know that underlying arg object is non-const, so we can use const_cast
+                strcpy(const_cast<char*>(arg.category), "known_bug");
+                break;
+            }
+        }
+    }
+
+    // Return whether arg.category matches the requested category
+    return !strcmp(arg.category, category);
 }

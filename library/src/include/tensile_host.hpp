@@ -291,7 +291,8 @@ struct RocblasContractionProblem
     /***************************************************
      * Print a RocblasContractionProblem for debugging *
      ***************************************************/
-    friend rocblas_ostream& operator<<(rocblas_ostream& os, const RocblasContractionProblem& prob)
+    friend rocblas_internal_ostream& operator<<(rocblas_internal_ostream&        os,
+                                                const RocblasContractionProblem& prob)
     {
         return tuple_helper::print_tuple_pairs(
             os,
@@ -361,7 +362,7 @@ rocblas_status runContractionProblem(RocblasContractionProblem<Ti, To, Tc> const
 /***********************************************************************************
  * Whether Tensile has been initialized for at least one device (used for testing) *
  ***********************************************************************************/
-ROCBLAS_EXPORT std::atomic_bool& rocblas_internal_tensile_is_initialized();
+ROCBLAS_INTERNAL_EXPORT std::atomic_bool& rocblas_internal_tensile_is_initialized();
 
 /**********************************************
  * Whether to suppress Tensile error messages *

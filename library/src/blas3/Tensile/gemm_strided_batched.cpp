@@ -192,27 +192,27 @@ namespace
                 return gemm_check_numerics_status;
         }
 
-        rocblas_status status = rocblas_gemm_template<false>(handle,
-                                                             trans_a,
-                                                             trans_b,
-                                                             m,
-                                                             n,
-                                                             k,
-                                                             alpha,
-                                                             A,
-                                                             0,
-                                                             ld_a,
-                                                             stride_a,
-                                                             B,
-                                                             0,
-                                                             ld_b,
-                                                             stride_b,
-                                                             beta,
-                                                             C,
-                                                             0,
-                                                             ld_c,
-                                                             stride_c,
-                                                             batch_count);
+        rocblas_status status = rocblas_internal_gemm_template<false>(handle,
+                                                                      trans_a,
+                                                                      trans_b,
+                                                                      m,
+                                                                      n,
+                                                                      k,
+                                                                      alpha,
+                                                                      A,
+                                                                      0,
+                                                                      ld_a,
+                                                                      stride_a,
+                                                                      B,
+                                                                      0,
+                                                                      ld_b,
+                                                                      stride_b,
+                                                                      beta,
+                                                                      C,
+                                                                      0,
+                                                                      ld_c,
+                                                                      stride_c,
+                                                                      batch_count);
         if(status != rocblas_status_success)
             return status;
 

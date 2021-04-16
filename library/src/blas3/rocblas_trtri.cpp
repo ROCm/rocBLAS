@@ -1,5 +1,5 @@
 /* ************************************************************************
- *  * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ *  * Copyright 2016-2021 Advanced Micro Devices, Inc.
  *  *
  *  * ************************************************************************ */
 #include "rocblas_trtri.hpp"
@@ -32,7 +32,7 @@ namespace
         if(!handle)
             return rocblas_status_invalid_handle;
 
-        size_t size = rocblas_trtri_temp_size<NB>(n, 1) * sizeof(T);
+        size_t size = rocblas_internal_trtri_temp_size<NB>(n, 1) * sizeof(T);
         if(handle->is_device_memory_size_query())
         {
             if(!n)
@@ -71,23 +71,23 @@ namespace
         if(!mem)
             return rocblas_status_memory_error;
 
-        return rocblas_trtri_template<NB, false, false, T>(handle,
-                                                           uplo,
-                                                           diag,
-                                                           n,
-                                                           A,
-                                                           0,
-                                                           lda,
-                                                           lda * n,
-                                                           0,
-                                                           invA,
-                                                           0,
-                                                           ldinvA,
-                                                           ldinvA * n,
-                                                           0,
-                                                           1,
-                                                           1,
-                                                           (T*)mem);
+        return rocblas_internal_trtri_template<NB, false, false, T>(handle,
+                                                                    uplo,
+                                                                    diag,
+                                                                    n,
+                                                                    A,
+                                                                    0,
+                                                                    lda,
+                                                                    lda * n,
+                                                                    0,
+                                                                    invA,
+                                                                    0,
+                                                                    ldinvA,
+                                                                    ldinvA * n,
+                                                                    0,
+                                                                    1,
+                                                                    1,
+                                                                    (T*)mem);
     }
 
 }

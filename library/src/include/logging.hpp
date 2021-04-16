@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -29,7 +29,7 @@ template <typename TUP>
 class argument_profile
 {
     // Output stream
-    mutable rocblas_ostream os;
+    mutable rocblas_internal_ostream os;
 
     // Mutex for multithreaded access to table
     mutable std::shared_timed_mutex mutex;
@@ -74,8 +74,8 @@ public:
     }
 
     // Constructor
-    // We must duplicate the rocblas_ostream to avoid dependence on static destruction order
-    explicit argument_profile(rocblas_ostream& os)
+    // We must duplicate the rocblas_internal_ostream to avoid dependence on static destruction order
+    explicit argument_profile(rocblas_internal_ostream& os)
         : os(os.dup())
     {
     }
@@ -138,7 +138,7 @@ void log_profile(rocblas_handle handle, const char* func, Ts&&... xs)
  * Log values (for log_trace and log_bench) *
  ********************************************/
 template <typename H, typename... Ts>
-void log_arguments(rocblas_ostream& os, const char* sep, H&& head, Ts&&... xs)
+void log_arguments(rocblas_internal_ostream& os, const char* sep, H&& head, Ts&&... xs)
 {
     os << std::forward<H>(head);
     // TODO: Replace with C++17 fold expression
@@ -194,8 +194,8 @@ inline T log_trace_scalar_value(const T* value)
 template <typename T>
 std::string log_trace_scalar_value(rocblas_handle handle, const T* value)
 {
-    rocblas_ostream os;
-    T               host;
+    rocblas_internal_ostream os;
+    T                        host;
     if(value && handle->pointer_mode == rocblas_pointer_mode_device)
     {
         hipMemcpy(&host, value, sizeof(host), hipMemcpyDeviceToHost);
@@ -212,7 +212,7 @@ std::string log_trace_scalar_value(rocblas_handle handle, const T* value)
  *************************************************/
 inline std::string log_bench_scalar_value(const char* name, const rocblas_half* value)
 {
-    rocblas_ostream ss;
+    rocblas_internal_ostream ss;
     ss << "--" << name << " " << (value ? float(*value) : std::numeric_limits<float>::quiet_NaN());
     return ss.str();
 }
@@ -220,7 +220,7 @@ inline std::string log_bench_scalar_value(const char* name, const rocblas_half* 
 template <typename T, std::enable_if_t<!is_complex<T>, int> = 0>
 std::string log_bench_scalar_value(const char* name, const T* value)
 {
-    rocblas_ostream ss;
+    rocblas_internal_ostream ss;
     ss << "--" << name << " " << (value ? *value : std::numeric_limits<T>::quiet_NaN());
     return ss.str();
 }
@@ -228,7 +228,7 @@ std::string log_bench_scalar_value(const char* name, const T* value)
 template <typename T, std::enable_if_t<+is_complex<T>, int> = 0>
 std::string log_bench_scalar_value(const char* name, const T* value)
 {
-    rocblas_ostream ss;
+    rocblas_internal_ostream ss;
     ss << "--" << name << " "
        << (value ? std::real(*value) : std::numeric_limits<typename T::value_type>::quiet_NaN());
     if(value && std::imag(*value))
@@ -257,7 +257,7 @@ inline std::string log_bench_scal_precisions(rocblas_datatype a_type,
                                              rocblas_datatype x_type,
                                              rocblas_datatype ex_type)
 {
-    rocblas_ostream ss;
+    rocblas_internal_ostream ss;
     if(a_type == x_type && x_type == ex_type)
         ss << "-r " << a_type;
     else
@@ -272,7 +272,7 @@ inline std::string log_bench_ex_precisions(rocblas_datatype a_type,
                                            rocblas_datatype x_type,
                                            rocblas_datatype ex_type)
 {
-    rocblas_ostream ss;
+    rocblas_internal_ostream ss;
     if(a_type == x_type && x_type == ex_type)
         ss << "-r " << a_type;
     else
@@ -283,11 +283,11 @@ inline std::string log_bench_ex_precisions(rocblas_datatype a_type,
 /******************************************************************
  * Log alpha and beta with dynamic compute_type in *_ex functions *
  ******************************************************************/
-inline rocblas_status log_trace_alpha_beta_ex(rocblas_datatype compute_type,
-                                              const void*      alpha,
-                                              const void*      beta,
-                                              rocblas_ostream& alphass,
-                                              rocblas_ostream& betass)
+inline rocblas_status log_trace_alpha_beta_ex(rocblas_datatype          compute_type,
+                                              const void*               alpha,
+                                              const void*               beta,
+                                              rocblas_internal_ostream& alphass,
+                                              rocblas_internal_ostream& betass)
 {
     switch(compute_type)
     {

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -324,19 +324,20 @@ constexpr int rocblas_dot_WIN(size_t nb)
 // assume workspace has already been allocated, recommened for repeated calling of dot_strided_batched product
 // routine
 template <rocblas_int NB, bool CONJ, typename T, typename U, typename V = T>
-ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_dot_template(rocblas_handle __restrict__ handle,
-                                                            rocblas_int n,
-                                                            const U __restrict__ x,
-                                                            rocblas_int    offsetx,
-                                                            rocblas_int    incx,
-                                                            rocblas_stride stridex,
-                                                            const U __restrict__ y,
-                                                            rocblas_int    offsety,
-                                                            rocblas_int    incy,
-                                                            rocblas_stride stridey,
-                                                            rocblas_int    batch_count,
-                                                            T* __restrict__ results,
-                                                            V* __restrict__ workspace)
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_dot_template(rocblas_handle __restrict__ handle,
+                                  rocblas_int n,
+                                  const U __restrict__ x,
+                                  rocblas_int    offsetx,
+                                  rocblas_int    incx,
+                                  rocblas_stride stridex,
+                                  const U __restrict__ y,
+                                  rocblas_int    offsety,
+                                  rocblas_int    incy,
+                                  rocblas_stride stridey,
+                                  rocblas_int    batch_count,
+                                  T* __restrict__ results,
+                                  V* __restrict__ workspace)
 {
 
     // One or two kernels are used to finish the reduction
@@ -484,29 +485,30 @@ rocblas_status rocblas_dot_check_numerics(const char*    function_name,
                                           const int      check_numerics,
                                           bool           is_input)
 {
-    rocblas_status check_numerics_status = rocblas_check_numerics_vector_template(function_name,
-                                                                                  handle,
-                                                                                  n,
-                                                                                  x,
-                                                                                  offset_x,
-                                                                                  inc_x,
-                                                                                  stride_x,
-                                                                                  batch_count,
-                                                                                  check_numerics,
-                                                                                  is_input);
+    rocblas_status check_numerics_status
+        = rocblas_internal_check_numerics_vector_template(function_name,
+                                                          handle,
+                                                          n,
+                                                          x,
+                                                          offset_x,
+                                                          inc_x,
+                                                          stride_x,
+                                                          batch_count,
+                                                          check_numerics,
+                                                          is_input);
     if(check_numerics_status != rocblas_status_success)
         return check_numerics_status;
 
-    check_numerics_status = rocblas_check_numerics_vector_template(function_name,
-                                                                   handle,
-                                                                   n,
-                                                                   y,
-                                                                   offset_y,
-                                                                   inc_y,
-                                                                   stride_y,
-                                                                   batch_count,
-                                                                   check_numerics,
-                                                                   is_input);
+    check_numerics_status = rocblas_internal_check_numerics_vector_template(function_name,
+                                                                            handle,
+                                                                            n,
+                                                                            y,
+                                                                            offset_y,
+                                                                            inc_y,
+                                                                            stride_y,
+                                                                            batch_count,
+                                                                            check_numerics,
+                                                                            is_input);
 
     return check_numerics_status;
 }

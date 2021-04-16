@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -56,14 +56,14 @@ rocblas_status rocblas_check_numerics_abnormal_struct(const char*               
                                                       rocblas_check_numerics_t* h_abnormal);
 
 template <typename T>
-ROCBLAS_EXPORT_NOINLINE rocblas_status
-    rocblas_check_numerics_vector_template(const char*    function_name,
-                                           rocblas_handle handle,
-                                           rocblas_int    n,
-                                           T              x,
-                                           rocblas_int    offset_x,
-                                           rocblas_int    inc_x,
-                                           rocblas_stride stride_x,
-                                           rocblas_int    batch_count,
-                                           const int      check_numerics,
-                                           bool           is_input);
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_check_numerics_vector_template(const char*    function_name,
+                                                    rocblas_handle handle,
+                                                    rocblas_int    n,
+                                                    T              x,
+                                                    rocblas_int    offset_x,
+                                                    rocblas_int    inc_x,
+                                                    rocblas_stride stride_x,
+                                                    rocblas_int    batch_count,
+                                                    const int      check_numerics,
+                                                    bool           is_input);

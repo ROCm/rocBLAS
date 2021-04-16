@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -248,7 +248,7 @@ private:
 //! @param that That host batch vector.
 //!
 template <typename T>
-rocblas_ostream& operator<<(rocblas_ostream& os, const host_batch_vector<T>& that)
+rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os, const host_batch_vector<T>& that)
 {
     auto n           = that.n();
     auto inc         = std::abs(that.inc());

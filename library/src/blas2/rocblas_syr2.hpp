@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -66,23 +66,24 @@ __global__ __launch_bounds__(DIM_X* DIM_Y) void rocblas_syr2_kernel(bool        
  * Where T is the bast type (float or double)
  */
 template <typename TScal, typename TConstPtr, typename TPtr>
-ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_syr2_template(rocblas_handle handle,
-                                                             rocblas_fill   uplo,
-                                                             rocblas_int    n,
-                                                             TScal          alpha,
-                                                             TConstPtr      x,
-                                                             rocblas_int    offset_x,
-                                                             rocblas_int    incx,
-                                                             rocblas_stride stride_x,
-                                                             TConstPtr      y,
-                                                             rocblas_int    offset_y,
-                                                             rocblas_int    incy,
-                                                             rocblas_stride stride_y,
-                                                             TPtr           A,
-                                                             rocblas_int    lda,
-                                                             rocblas_int    offset_A,
-                                                             rocblas_stride stride_A,
-                                                             rocblas_int    batch_count)
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_syr2_template(rocblas_handle handle,
+                                   rocblas_fill   uplo,
+                                   rocblas_int    n,
+                                   TScal          alpha,
+                                   TConstPtr      x,
+                                   rocblas_int    offset_x,
+                                   rocblas_int    incx,
+                                   rocblas_stride stride_x,
+                                   TConstPtr      y,
+                                   rocblas_int    offset_y,
+                                   rocblas_int    incy,
+                                   rocblas_stride stride_y,
+                                   TPtr           A,
+                                   rocblas_int    lda,
+                                   rocblas_int    offset_A,
+                                   rocblas_stride stride_A,
+                                   rocblas_int    batch_count)
 {
     // Quick return if possible. Not Argument error
     if(!n || !batch_count)
@@ -167,29 +168,30 @@ rocblas_status rocblas_syr2_check_numerics(const char*    function_name,
                                            const int      check_numerics,
                                            bool           is_input)
 {
-    rocblas_status check_numerics_status = rocblas_check_numerics_vector_template(function_name,
-                                                                                  handle,
-                                                                                  n,
-                                                                                  x,
-                                                                                  offset_x,
-                                                                                  inc_x,
-                                                                                  stride_x,
-                                                                                  batch_count,
-                                                                                  check_numerics,
-                                                                                  is_input);
+    rocblas_status check_numerics_status
+        = rocblas_internal_check_numerics_vector_template(function_name,
+                                                          handle,
+                                                          n,
+                                                          x,
+                                                          offset_x,
+                                                          inc_x,
+                                                          stride_x,
+                                                          batch_count,
+                                                          check_numerics,
+                                                          is_input);
     if(check_numerics_status != rocblas_status_success)
         return check_numerics_status;
 
-    check_numerics_status = rocblas_check_numerics_vector_template(function_name,
-                                                                   handle,
-                                                                   n,
-                                                                   y,
-                                                                   offset_y,
-                                                                   inc_y,
-                                                                   stride_y,
-                                                                   batch_count,
-                                                                   check_numerics,
-                                                                   is_input);
+    check_numerics_status = rocblas_internal_check_numerics_vector_template(function_name,
+                                                                            handle,
+                                                                            n,
+                                                                            y,
+                                                                            offset_y,
+                                                                            inc_y,
+                                                                            stride_y,
+                                                                            batch_count,
+                                                                            check_numerics,
+                                                                            is_input);
 
     return check_numerics_status;
 }

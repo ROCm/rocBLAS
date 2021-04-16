@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -369,8 +369,8 @@ void testing_logging(const Arguments& arg)
     trace_ofs.open(trace_path2);
     bench_ofs.open(bench_path2);
 
-    rocblas_ostream trace_ofs2;
-    rocblas_ostream bench_ofs2;
+    rocblas_internal_ostream trace_ofs2;
+    rocblas_internal_ostream bench_ofs2;
 
     // Auxiliary function
     trace_ofs2 << "rocblas_create_handle,atomics_allowed\n";

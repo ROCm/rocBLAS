@@ -190,11 +190,11 @@ public:
     rocblas_check_numerics_mode check_numerics = rocblas_check_numerics_mode_no_check;
 
     // logging streams
-    std::unique_ptr<rocblas_ostream> log_trace_os;
-    std::unique_ptr<rocblas_ostream> log_bench_os;
-    std::unique_ptr<rocblas_ostream> log_profile_os;
-    void                             init_logging();
-    void                             init_check_numerics();
+    std::unique_ptr<rocblas_internal_ostream> log_trace_os;
+    std::unique_ptr<rocblas_internal_ostream> log_bench_os;
+    std::unique_ptr<rocblas_internal_ostream> log_profile_os;
+    void                                      init_logging();
+    void                                      init_check_numerics();
 
     // C interfaces for manipulating device memory
     friend rocblas_status(::rocblas_start_device_memory_size_query)(_rocblas_handle*);

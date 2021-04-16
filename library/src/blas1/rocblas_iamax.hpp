@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -26,15 +26,16 @@ struct rocblas_reduce_amax
 };
 
 template <rocblas_int NB, bool ISBATCHED, typename T, typename S>
-ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_iamax_template(rocblas_handle            handle,
-                                                              rocblas_int               n,
-                                                              const T                   x,
-                                                              rocblas_int               shiftx,
-                                                              rocblas_int               incx,
-                                                              rocblas_stride            stridex,
-                                                              rocblas_int               batch_count,
-                                                              rocblas_int*              result,
-                                                              rocblas_index_value_t<S>* workspace)
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_iamax_template(rocblas_handle            handle,
+                                    rocblas_int               n,
+                                    const T                   x,
+                                    rocblas_int               shiftx,
+                                    rocblas_int               incx,
+                                    rocblas_stride            stridex,
+                                    rocblas_int               batch_count,
+                                    rocblas_int*              result,
+                                    rocblas_index_value_t<S>* workspace)
 {
     return rocblas_reduction_template<NB,
                                       ISBATCHED,

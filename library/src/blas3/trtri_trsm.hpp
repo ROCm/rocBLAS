@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  *
  * ************************************************************************ */
 
@@ -306,7 +306,7 @@ rocblas_status rocblas_trtri_trsm_template(rocblas_handle   handle,
                            stride_invA,
                            1);
 
-        status = rocblas_trtri_template<ROCBLAS_TRTRI_NB, BATCHED, !BATCHED, T>(
+        status = rocblas_internal_trtri_template<ROCBLAS_TRTRI_NB, BATCHED, !BATCHED, T>(
             handle,
             uplo,
             diag,

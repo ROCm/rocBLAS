@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2020 Advanced Micro Devices, Inc.
+ * Copyright 2020-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -26,17 +26,17 @@ class ArgumentModel
     }
 
 public:
-    void log_perf(rocblas_ostream& name_line,
-                  rocblas_ostream& val_line,
-                  const Arguments& arg,
-                  double           gpu_us,
-                  double           gflops,
-                  double           gbytes,
-                  double           cpu_us,
-                  double           norm1,
-                  double           norm2,
-                  double           norm3,
-                  double           norm4)
+    void log_perf(rocblas_internal_ostream& name_line,
+                  rocblas_internal_ostream& val_line,
+                  const Arguments&          arg,
+                  double                    gpu_us,
+                  double                    gflops,
+                  double                    gbytes,
+                  double                    cpu_us,
+                  double                    norm1,
+                  double                    norm2,
+                  double                    norm3,
+                  double                    norm4)
     {
         constexpr bool has_batch_count = has(e_batch_count);
         rocblas_int    batch_count     = has_batch_count ? arg.batch_count : 1;
@@ -108,19 +108,19 @@ public:
     }
 
     template <typename T>
-    void log_args(rocblas_ostream& str,
-                  const Arguments& arg,
-                  double           gpu_us,
-                  double           gflops,
-                  double           gpu_bytes = ArgumentLogging::NA_value,
-                  double           cpu_us    = ArgumentLogging::NA_value,
-                  double           norm1     = ArgumentLogging::NA_value,
-                  double           norm2     = ArgumentLogging::NA_value,
-                  double           norm3     = ArgumentLogging::NA_value,
-                  double           norm4     = ArgumentLogging::NA_value)
+    void log_args(rocblas_internal_ostream& str,
+                  const Arguments&          arg,
+                  double                    gpu_us,
+                  double                    gflops,
+                  double                    gpu_bytes = ArgumentLogging::NA_value,
+                  double                    cpu_us    = ArgumentLogging::NA_value,
+                  double                    norm1     = ArgumentLogging::NA_value,
+                  double                    norm2     = ArgumentLogging::NA_value,
+                  double                    norm3     = ArgumentLogging::NA_value,
+                  double                    norm4     = ArgumentLogging::NA_value)
     {
-        rocblas_ostream name_list;
-        rocblas_ostream value_list;
+        rocblas_internal_ostream name_list;
+        rocblas_internal_ostream value_list;
 
         // Output (name, value) pairs to name_list and value_list
         auto print = [&, delim = ""](const char* name, auto&& value) mutable {
