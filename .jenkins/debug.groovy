@@ -20,7 +20,7 @@ def runCI =
 
     // Define test architectures, optional rocm version argument is available
     def nodes = new dockerNodes(nodeDetails, jobName, prj)
-    prj.timeout.compile = 240
+    prj.timeout.compile = 480
 
     boolean formatCheck = false
 
