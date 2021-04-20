@@ -352,10 +352,9 @@ endif( )
 
 
 target_link_libraries( rocblas INTERFACE hip::host )
-target_link_libraries( rocblas PRIVATE hip::device --rtlib=compiler-rt --unwindlib=libgcc )
+target_link_libraries( rocblas PRIVATE hip::device --rtlib=compiler-rt --unwindlib=libgcc -ldl)
 
 set_target_properties( rocblas PROPERTIES CXX_STANDARD 14 CXX_STANDARD_REQUIRED ON )
-
 
 #  -fno-gpu-rdc compiler option was used with hcc, so revisit feature at some point
 
