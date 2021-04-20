@@ -6,6 +6,9 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 ## [rocBLAS 2.39.0 for ROCm 4.3.0]
 ### Optimizations
 - Improved performance of non-batched and batched dot, dotc, and dot_ex for small n. e.g. sdot n <= 31000
+- Improved performance of non-batched and batched rocblas_Xgemv for gfx908 when m <= 15000 and n <= 15000
+- Improved performance of non-batched and batched rocblas_sgemv and rocblas_dgemv for gfx906 when m <= 6000 and n <= 6000
+- Improved the overall performance of non-batched and batched rocblas_cgemv for gfx906
 
 ### Changed
 - Internal use only APIs prefixed with rocblas_internal_ and deprecated to discourage use
