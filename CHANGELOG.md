@@ -3,6 +3,13 @@
 Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://rocblas.readthedocs.io/en/latest/).
 
 
+## [rocBLAS 2.39.0 for ROCm 4.3.0]
+### Optimizations
+- Improved performance of non-batched and batched dot, dotc, and dot_ex for small n. e.g. sdot n <= 31000
+
+### Changed
+- Internal use only APIs prefixed with rocblas_internal_ and deprecated to discourage use
+
 ## [rocBLAS 2.38.0 for ROCm 4.2.0]
 ### Added
 - Added option to install script to build only rocBLAS clients with a pre-built rocBLAS library
