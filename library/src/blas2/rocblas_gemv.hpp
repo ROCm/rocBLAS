@@ -8,9 +8,9 @@
 #include "check_numerics_vector.hpp"
 #include "gemv_device.hpp"
 #include "handle.hpp"
+#include "rocblas_gemv_threshold.hpp"
 
 // gemvt_sn is skinny n matrix optimizations
-
 constexpr int rocblas_gemvt_sn_WIN()
 {
     return 4;
@@ -129,8 +129,17 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     auto shifty
         = incy < 0 ? offsety - ptrdiff_t(incy) * (transA == rocblas_operation_none ? m - 1 : n - 1)
                    : offsety;
-
     bool i64_indices = n * size_t(lda) > std::numeric_limits<rocblas_int>::max();
+
+    //Identifying the precision to have an appropriate optimization
+    bool is_float          = std::is_same<T, float>{};
+    bool is_double         = std::is_same<T, double>{};
+    bool is_complex_float  = std::is_same<T, rocblas_float_complex>{};
+    bool is_complex_double = std::is_same<T, rocblas_double_complex>{};
+
+    //Identifying the architecture to have an appropriate optimization
+    bool is_gfx908 = handle->getArch() == 908 ? true : false;
+    bool is_gfx906 = handle->getArch() == 906 ? true : false;
 
     if(transA == rocblas_operation_none)
     {
@@ -144,6 +153,53 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 
             static constexpr int GEMVN_DIM_X = 64;
             static constexpr int GEMVN_DIM_Y = 4;
+            rocblas_int          blocks      = (m - 1) / (GEMVN_DIM_X * 4) + 1;
+            if(std::is_same<T, rocblas_double_complex>{})
+                blocks = (m - 1) / (GEMVN_DIM_X) + 1;
+            dim3 gemvn_grid(blocks, batch_count);
+            dim3 gemvn_threads(GEMVN_DIM_X, GEMVN_DIM_Y);
+
+            if(handle->pointer_mode == rocblas_pointer_mode_device)
+            {
+                if(!i64_indices)
+                    hipLaunchKernelGGL((gemvn_kernel<GEMVN_DIM_X, GEMVN_DIM_Y, rocblas_int, T>),
+                                       gemvn_KARGS(alpha, beta));
+                else
+                    hipLaunchKernelGGL((gemvn_kernel<GEMVN_DIM_X, GEMVN_DIM_Y, size_t, T>),
+                                       gemvn_KARGS(alpha, beta));
+            }
+            else
+            {
+                if(!*alpha && *beta == 1)
+                    return rocblas_status_success;
+
+                if(!i64_indices)
+                    hipLaunchKernelGGL((gemvn_kernel<GEMVN_DIM_X, GEMVN_DIM_Y, rocblas_int, T>),
+                                       gemvn_KARGS(*alpha, *beta));
+                else
+                    hipLaunchKernelGGL((gemvn_kernel<GEMVN_DIM_X, GEMVN_DIM_Y, size_t, T>),
+                                       gemvn_KARGS(*alpha, *beta));
+            }
+        }
+        //optimized gemvn kernel for gfx906 and gfx908.
+        else if((is_gfx908
+                 && (((is_float || is_double || is_complex_float) && m <= gemvn_gfx908_threshold
+                      && n <= gemvn_gfx908_threshold)
+                     || (is_complex_double && m <= zgemvn_gfx908_threshold
+                         && n <= zgemvn_gfx908_threshold)))
+
+                || (is_gfx906
+                    && (is_complex_float
+                        || ((is_float || is_double) && m <= gemvn_gfx906_threshold
+                            && n <= gemvn_gfx906_threshold)
+                        || (is_double
+                            && ((m >= dgemvn_gfx906_lower_threshold
+                                 && n >= dgemvn_gfx906_lower_threshold)
+                                || (m <= dgemvn_gfx906_upper_threshold
+                                    && n <= dgemvn_gfx906_upper_threshold))))))
+        {
+            static constexpr int GEMVN_DIM_X = 32;
+            static constexpr int GEMVN_DIM_Y = 16;
             rocblas_int          blocks      = (m - 1) / (GEMVN_DIM_X * 4) + 1;
             if(std::is_same<T, rocblas_double_complex>{})
                 blocks = (m - 1) / (GEMVN_DIM_X) + 1;
