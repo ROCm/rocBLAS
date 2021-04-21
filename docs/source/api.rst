@@ -139,20 +139,25 @@ result is as in the figure below:
 
    Code blocks in synchronous function call
 
-GFX908 Considerations
-=====================
+MI100 (gfx908) Considerations
+=============================
 
-On nodes with gfx908, MFMA instructions are available to substantially
-speed up matrix operations.  This hardware feature is used only in matrix
-multiplications functions in rocBLAS, and supports only the three base types
-f16_r, bf16_r and f32_r.   To take full advantage of this hardware
-feature, a few usage guidelines are in order:
+On nodes with the MI100 (gfx908), MFMA instructions are available to
+substantially speed up matrix operations.  This hardware feature is
+used in all gemm and gemm based functions in rocBLAS with 32-bit
+or shorter base datatypes with an associated 32-bit compute_type
+(f32_r, i32_r or f32_c as appropriate).
 
-1. For half precision (f16_r and bf16_r) GEMM, use the function
-   rocblas_gemm_ex, and set the compute_type parameter to f32_r.
+Specifically, rocBLAS takes advantage of MI100's MFMA instructions for
+three real base types f16_r, bf16_r and f32_r with compute_type f32_r,
+one integral base type i8_r with compute_type i32_r, and one complex
+base type f32_c with compute_type f32_c.  In summary, all GEMM APIs and
+APIs for GEMM based functions using these five base types and their
+associated compute_type (explicit or implicit) take advantage of MI100's
+MFMA instructions.
 
-2. For single precision (f32_r) GEMM, use the function rocblas_sgemm.
+.. note::
 
-3. For single precision complex (f32_c) GEMM, use the function rocblas_cgemm.
+   The use of MI100's MFMA instructions is automatic.  There is no user control for on/off.
 
-.. note:: Not all problem sizes may select MFMA based kernels; additional tuning may be needed to get good performance.
+   Not all problem sizes may select MFMA based kernels; additional tuning may be needed to get good performance.
