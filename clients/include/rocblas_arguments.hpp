@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -166,7 +166,8 @@ struct Arguments
     static void validate(std::istream& ifs);
 
     // Function to print Arguments out to stream in YAML format
-    friend rocblas_ostream& operator<<(rocblas_ostream& str, const Arguments& arg);
+    friend rocblas_internal_ostream& operator<<(rocblas_internal_ostream& str,
+                                                const Arguments&          arg);
 
     // Google Tests uses this with std:ostream automatically to dump parameters
     friend std::ostream& operator<<(std::ostream& str, const Arguments& arg);

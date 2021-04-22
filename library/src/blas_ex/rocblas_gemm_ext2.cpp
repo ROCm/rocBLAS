@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2020 Advanced Micro Devices, Inc.
+ * Copyright 2020-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "rocblas_gemm_ext2.hpp"
@@ -201,7 +201,7 @@ namespace
 
                 if(layer_mode & rocblas_layer_mode_log_trace)
                 {
-                    rocblas_ostream alphass, betass;
+                    rocblas_internal_ostream alphass, betass;
                     if(log_trace_alpha_beta_ex(compute_type, alpha, beta, alphass, betass)
                        == rocblas_status_success)
                     {

@@ -24,7 +24,7 @@ rocBLAS build & installation helper script
       -f | --fork                GitHub fork to use, e.g., ROCmSoftwarePlatform or MyUserName
       -b | --branch              GitHub branch or tag to use, e.g., develop, mybranch or <commit hash>
       -l | --logic               Set Tensile logic target, e.g., asm_full, asm_lite, etc.
-      -a | --architecture        Set Tensile GPU architecture target, e.g. all, gfx000, gfx803, gfx900, gfx906, gfx908
+      -a | --architecture        Set GPU architecture target(s), e.g., all, gfx000, gfx900, gfx906:xnack-;gfx908:xnack-
       -o | --cov                 Set Tensile code_object_version (V2 or V3)
       -t | --test_local_path     Use a local path for Tensile instead of remote GIT repo
            --cpu_ref_lib         Specify library to use for CPU reference code in testing (blis or lapack)
@@ -41,6 +41,8 @@ rocBLAS build & installation helper script
       -v | --rocm-dev            Set specific rocm-dev version
            --[no-]msgpack        Set Tensile backend to use MessagePack
            --cmake_install       Auto Update CMake to minimum version if required
+      -p | --profile             Build with code coverage profiling enabled
+      -k | --relwithdebinfo      Set -DCMAKE_BUILD_TYPE=RelWithDebInfo
 EOF
 #           --prefix              Specify an alternate CMAKE_INSTALL_PREFIX for cmake
 }
@@ -166,20 +168,20 @@ install_packages( )
   fi
 
   # dependencies needed to build the rocblas library
-  local library_dependencies_ubuntu=( "make" "cmake" "libssl-dev"
+  local library_dependencies_ubuntu=( "make" "libssl-dev"
                                       "python3" "python3-yaml" "python3-venv" "python3*-pip" )
   local library_dependencies_centos_rhel=( "epel-release" "openssl-devel"
-                                      "make" "cmake3" "rpm-build"
+                                      "make" "rpm-build"
                                       "python34" "python3*-PyYAML" "python3-virtualenv"
                                       "gcc-c++" )
   local library_dependencies_centos_rhel_8=( "epel-release" "openssl-devel"
-                                      "make" "cmake3" "rpm-build"
+                                      "make" "rpm-build"
                                       "python3" "python3*-PyYAML" "python3-virtualenv"
                                       "gcc-c++" )
-  local library_dependencies_fedora=( "make" "cmake" "rpm-build"
+  local library_dependencies_fedora=( "make" "rpm-build"
                                       "python34" "python3*-PyYAML" "python3-virtualenv"
                                       "gcc-c++" "libcxx-devel" )
-  local library_dependencies_sles=(   "make" "cmake" "libopenssl-devel" "python3-PyYAML" "python3-virtualenv"
+  local library_dependencies_sles=(   "make" "libopenssl-devel" "python3-PyYAML" "python3-virtualenv"
                                       "gcc-c++" "libcxxtools9" "rpm-build" )
 
   if [[ "${tensile_msgpack_backend}" == true ]]; then
@@ -195,7 +197,7 @@ install_packages( )
   fi
 
   # wget is needed for cmake
-  if $(dpkg --compare-versions $CMAKE_VERSION lt 3.16.8); then
+  if [ -z "$CMAKE_VERSION"] || $(dpkg --compare-versions $CMAKE_VERSION lt 3.16.8); then
     if $update_cmake == true; then
       library_dependencies_ubuntu+=("wget")
       library_dependencies_centos_rhel+=("wget")
@@ -282,14 +284,6 @@ install_packages( )
       rm libmsgpack-dev_3.0.1-3_amd64.deb libmsgpackc2_3.0.1-3_amd64.deb
     fi
   fi
-
-  case "${ID}" in
-    centos|rhel|sles|opensuse-leap)
-      if [[ "${tensile_msgpack_backend}" == true ]]; then
-        install_msgpack_from_source
-      fi
-      ;;
-  esac
 }
 
 # #################################################
@@ -327,7 +321,7 @@ install_package=false
 install_dependencies=false
 install_prefix=rocblas-install
 tensile_logic=asm_full
-tensile_architecture=all
+gpu_architecture=all
 tensile_cov=
 tensile_fork=
 tensile_merge_files=
@@ -349,6 +343,8 @@ skip_ld_conf_entry=false
 static_lib=false
 tensile_msgpack_backend=true
 update_cmake=false
+build_coverage=false
+build_release_debug=false
 
 rocm_path=/opt/rocm
 if ! [ -z ${ROCM_PATH+x} ]; then
@@ -364,7 +360,7 @@ library_dir_installed=${rocm_path}/rocblas
 # check if we have a modern version of getopt that can handle whitespace and long parameters
 getopt -T
 if [[ $? -eq 4 ]]; then
-  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,cleanup,clients,clients-only,dependencies,debug,hip-clang,no-hip-clang,merge-files,no-merge-files,no_tensile,no-tensile,tensile-host,no-tensile-host,msgpack,no-msgpack,library-path:,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,static,use-cuda,rocm-dev:,cmake_install --options nsrhicdgl:a:o:f:b:t:u:v: -- "$@")
+  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,cleanup,clients,clients-only,dependencies,debug,hip-clang,no-hip-clang,merge-files,no-merge-files,no_tensile,no-tensile,tensile-host,no-tensile-host,msgpack,no-msgpack,library-path:,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,static,use-cuda,rocm-dev:,cmake_install,profile,relwithdebinfo --options nsrhicdgpkl:a:o:f:b:t:u:v: -- "$@")
 else
   echo "Need a new version of getopt"
   exit 1
@@ -409,7 +405,7 @@ while true; do
         tensile_logic=${2}
         shift 2 ;;
     -a|--architecture)
-        tensile_architecture=${2}
+        gpu_architecture=${2}
         shift 2 ;;
     -o|--cov)
         tensile_cov=${2}
@@ -478,6 +474,13 @@ while true; do
     --cmake_install)
         update_cmake=true
         shift ;;
+    -p|--profile)
+        build_coverage=true
+        shift ;;
+    -k|--relwithdebinfo)
+        build_release=false
+        build_release_debug=true
+        shift ;;
     --) shift ; break ;;
     *)  echo "Unexpected command line parameter received; aborting";
         exit 1
@@ -538,18 +541,14 @@ install_blis()
 # ensure a clean build environment
 if [[ "${build_release}" == true ]]; then
   rm -rf ${build_dir}/release
+elif [[ "${build_release_debug}" == true ]]; then
+  rm -rf ${build_dir}/release-debug
 else
   rm -rf ${build_dir}/debug
 fi
 
 # Default cmake executable is called cmake
 cmake_executable=cmake
-
-case "${ID}" in
-  centos|rhel)
-  cmake_executable=cmake3
-  ;;
-esac
 
 if [[ "${build_hip_clang}" == true ]]; then
   cxx="hipcc"
@@ -574,7 +573,7 @@ if [[ "${install_dependencies}" == true ]]; then
 
   install_packages
 
-  if $(dpkg --compare-versions $CMAKE_VERSION lt 3.16.8); then
+  if [ -z "$CMAKE_VERSION"] || $(dpkg --compare-versions $CMAKE_VERSION lt 3.16.8); then
       if $update_cmake == true; then
         CMAKE_REPO="https://github.com/Kitware/CMake/releases/download/v3.16.8/"
         wget -nv ${CMAKE_REPO}/cmake-3.16.8.tar.gz
@@ -590,6 +589,15 @@ if [[ "${install_dependencies}" == true ]]; then
           exit 2
       fi
   fi
+
+  # cmake is needed to install msgpack
+  case "${ID}" in
+    centos|rhel|sles|opensuse-leap)
+      if [[ "${tensile_msgpack_backend}" == true ]]; then
+        install_msgpack_from_source
+      fi
+      ;;
+  esac
 
   if [[ "${build_clients}" == true ]]; then
 
@@ -617,15 +625,23 @@ pushd .
   cmake_common_options=""
   cmake_client_options=""
 
-  cmake_common_options="${cmake_common_options} -DROCM_PATH=${rocm_path} -lpthread -DTensile_LOGIC=${tensile_logic} -DTensile_ARCHITECTURE=${tensile_architecture} -DTensile_CODE_OBJECT_VERSION=${tensile_cov}"
+  cmake_common_options="${cmake_common_options} -DROCM_PATH=${rocm_path} -lpthread -DAMDGPU_TARGETS=${gpu_architecture}"
 
   # build type
   if [[ "${build_release}" == true ]]; then
     mkdir -p ${build_dir}/release/clients && cd ${build_dir}/release
     cmake_common_options="${cmake_common_options} -DCMAKE_BUILD_TYPE=Release"
+  elif [[ "${build_release_debug}" == true ]]; then
+    mkdir -p ${build_dir}/release-debug/clients && cd ${build_dir}/release-debug
+    cmake_common_options="${cmake_common_options}  -DCMAKE_BUILD_TYPE=RelWithDebInfo"
   else
     mkdir -p ${build_dir}/debug/clients && cd ${build_dir}/debug
     cmake_common_options="${cmake_common_options} -DCMAKE_BUILD_TYPE=Debug"
+  fi
+
+  # code coverage
+  if [[ "${build_coverage}" == true ]]; then
+      cmake_common_options="${cmake_common_options} -DBUILD_CODE_COVERAGE=ON"
   fi
 
   if [[ "${static_lib}" == true ]]; then
@@ -655,6 +671,8 @@ pushd .
   tensile_opt=""
   if [[ "${build_tensile}" == false ]]; then
     tensile_opt="${tensile_opt} -DBUILD_WITH_TENSILE=OFF"
+   else
+    tensile_opt="${tensile_opt} -DTensile_LOGIC=${tensile_logic} -DTensile_CODE_OBJECT_VERSION=${tensile_cov}"
   fi
 
   if [[ "${build_tensile_host}" == false ]]; then

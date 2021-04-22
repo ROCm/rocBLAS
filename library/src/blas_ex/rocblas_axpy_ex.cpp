@@ -42,7 +42,7 @@ namespace
             {
                 if(layer_mode & rocblas_layer_mode_log_trace)
                 {
-                    rocblas_ostream alphass, betass;
+                    rocblas_internal_ostream alphass, betass;
                     if(log_trace_alpha_beta_ex(alpha_type, alpha, nullptr, alphass, betass)
                        == rocblas_status_success)
                     {

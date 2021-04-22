@@ -291,7 +291,7 @@ Coding Guidelines
         static constexpr T zero = 0;
         static constexpr T one = 1;
 
-        rocblas_gemm_template( handle, transA, transB, jb, n, jb, alpha, invA, BLOCK, B, ldb, &zero, X, m);
+        rocblas_internal_gemm_template( handle, transA, transB, jb, n, jb, alpha, invA, BLOCK, B, ldb, &zero, X, m);
 
     When ``saved_pointer_mode`` is destroyed, the handle's pointer mode
     returns to the previous pointer mode.
@@ -738,23 +738,23 @@ Coding Guidelines
     ``for``, ``&&``, ``||``, ``!``, ``? :``, etc.). This is a shorter
     syntax than using ``std::is_same<...>::value``.
 
-21. ``rocblas_cout`` and ``rocblas_cerr`` should be used instead of ``std::cout``, ``std::cerr``, ``stdout`` or ``stderr``, and ``rocblas_ostream`` should be used instead of ``std::ostream``, ``std::ofstream`` or ``std::ostringstream``.
+21. ``rocblas_cout`` and ``rocblas_cerr`` should be used instead of ``std::cout``, ``std::cerr``, ``stdout`` or ``stderr``, and ``rocblas_internal_ostream`` should be used instead of ``std::ostream``, ``std::ofstream`` or ``std::ostringstream``.
 
-    In ``rocblas-bench`` and ``rocblas-test``, ``std::cout``, ``std::cerr``, ``printf``, ``fprintf``, ``stdout``, ``stderr``, ``puts()``, ``fputs()``, and other symbols are "poisoned", to remind you to use ``rocblas_cout``, ``rocblas_cerr``, and ``rocblas_ostream`` instead.
+    In ``rocblas-bench`` and ``rocblas-test``, ``std::cout``, ``std::cerr``, ``printf``, ``fprintf``, ``stdout``, ``stderr``, ``puts()``, ``fputs()``, and other symbols are "poisoned", to remind you to use ``rocblas_cout``, ``rocblas_cerr``, and ``rocblas_internal_ostream`` instead.
 
-    ``rocblas_cout`` and ``rocblas_cerr`` are instances of ``rocblas_ostream`` which output to standard output and standard error, but in a way that prevents interlacing of different threads' output.
+    ``rocblas_cout`` and ``rocblas_cerr`` are instances of ``rocblas_internal_ostream`` which output to standard output and standard error, but in a way that prevents interlacing of different threads' output.
 
-    ``rocblas_ostream`` provides standardized thread-safe formatted output for rocBLAS datatypes. It can be constructed in 3 ways:
+    ``rocblas_internal_ostream`` provides standardized thread-safe formatted output for rocBLAS datatypes. It can be constructed in 3 ways:
     - By default, in which case it behaves like a ``std::ostringstream``
     - With a file descriptor number, in which case the file descriptor is ``dup()``ed and the same file it points to is outputted to
     - With a string, in which case a new file is opened for writing, with file creation, truncation and appending enabled (``O_WRONLY | O_CREAT | O_TRUNC | O_APPEND | O_CLOEXEC``)
 
-    ``std::endl`` or ``std::flush`` should be used at the end of an output sequence when an atomic flush of the output is needed (atomic meaning that multiple threads can be writing to the same file, but that their flushes will be atomic). Until then, the output will accumulate in the ``rocblas_ostream`` and will not be flushed until either ``rocblas_ostream::flush()`` is called, ``std::endl`` or ``std::flush`` is outputted, or the ``rocblas_ostream`` is destroyed.
+    ``std::endl`` or ``std::flush`` should be used at the end of an output sequence when an atomic flush of the output is needed (atomic meaning that multiple threads can be writing to the same file, but that their flushes will be atomic). Until then, the output will accumulate in the ``rocblas_internal_ostream`` and will not be flushed until either ``rocblas_internal_ostream::flush()`` is called, ``std::endl`` or ``std::flush`` is outputted, or the ``rocblas_internal_ostream`` is destroyed.
 
-    The ``rocblas_ostream::yaml_on`` and ``rocblas_ostream::yaml_off`` IO modifiers enable or disable YAML formatting, for when outputting abitrary types as YAML source code. For example, to output a ``key: value`` pair as YAML source code, you would use:
+    The ``rocblas_internal_ostream::yaml_on`` and ``rocblas_internal_ostream::yaml_off`` IO modifiers enable or disable YAML formatting, for when outputting abitrary types as YAML source code. For example, to output a ``key: value`` pair as YAML source code, you would use:
 
     .. code:: cpp
-        os << key << ": " << rocblas_ostream::yaml_on << value << rocblas_ostream::yaml_off;
+        os << key << ": " << rocblas_internal_ostream::yaml_on << value << rocblas_internal_ostream::yaml_off;
 
     The ``key`` is outputted normally as a bare string, but the ``value`` uses YAML metacharacters and lexical syntax to output the value, so that when it's read in as YAML, it has the type and value of ``value``.
 

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2019-2020 Advanced Micro Devices, Inc.
+ * Copyright 2019-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "gemm.hpp"
@@ -178,50 +178,51 @@ namespace
         void* mem_invA;
         void* mem_invA_arr;
 
-        rocblas_status perf_status = rocblas_trsm_template_mem<BLOCK, true, T>(handle,
-                                                                               side,
-                                                                               m,
-                                                                               n,
-                                                                               batch_count,
-                                                                               mem,
-                                                                               mem_x_temp,
-                                                                               mem_x_temp_arr,
-                                                                               mem_invA,
-                                                                               mem_invA_arr,
-                                                                               supplied_invA,
-                                                                               supplied_invA_size);
+        rocblas_status perf_status
+            = rocblas_internal_trsm_template_mem<BLOCK, true, T>(handle,
+                                                                 side,
+                                                                 m,
+                                                                 n,
+                                                                 batch_count,
+                                                                 mem,
+                                                                 mem_x_temp,
+                                                                 mem_x_temp_arr,
+                                                                 mem_invA,
+                                                                 mem_invA_arr,
+                                                                 supplied_invA,
+                                                                 supplied_invA_size);
 
         if(perf_status != rocblas_status_success && perf_status != rocblas_status_perf_degraded)
             return perf_status;
 
         bool optimal_mem = perf_status == rocblas_status_success;
 
-        rocblas_status status = rocblas_trsm_template<BLOCK, true, T>(handle,
-                                                                      side,
-                                                                      uplo,
-                                                                      transA,
-                                                                      diag,
-                                                                      m,
-                                                                      n,
-                                                                      alpha,
-                                                                      A,
-                                                                      0,
-                                                                      lda,
-                                                                      0,
-                                                                      B,
-                                                                      0,
-                                                                      ldb,
-                                                                      0,
-                                                                      batch_count,
-                                                                      optimal_mem,
-                                                                      mem_x_temp,
-                                                                      mem_x_temp_arr,
-                                                                      mem_invA,
-                                                                      mem_invA_arr,
-                                                                      supplied_invA,
-                                                                      supplied_invA_size,
-                                                                      0,
-                                                                      0);
+        rocblas_status status = rocblas_internal_trsm_template<BLOCK, true, T>(handle,
+                                                                               side,
+                                                                               uplo,
+                                                                               transA,
+                                                                               diag,
+                                                                               m,
+                                                                               n,
+                                                                               alpha,
+                                                                               A,
+                                                                               0,
+                                                                               lda,
+                                                                               0,
+                                                                               B,
+                                                                               0,
+                                                                               ldb,
+                                                                               0,
+                                                                               batch_count,
+                                                                               optimal_mem,
+                                                                               mem_x_temp,
+                                                                               mem_x_temp_arr,
+                                                                               mem_invA,
+                                                                               mem_invA_arr,
+                                                                               supplied_invA,
+                                                                               supplied_invA_size,
+                                                                               0,
+                                                                               0);
 
         return status != rocblas_status_success ? status : perf_status;
     }

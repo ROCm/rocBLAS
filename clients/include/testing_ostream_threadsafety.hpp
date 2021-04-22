@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2020 Advanced Micro Devices, Inc.
+ * Copyright 2020-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -35,7 +35,7 @@ inline void testing_ostream_threadsafety(const Arguments& arg)
 
     // Each thread writes random strings with signature checksums
     auto thread_func = [&](int fd) {
-        rocblas_ostream os(fd);
+        rocblas_internal_ostream os(fd);
         for(size_t i = 0; i < NLINES; ++i)
         {
             // Random ASCII string
@@ -59,7 +59,7 @@ inline void testing_ostream_threadsafety(const Arguments& arg)
             return;
         }
 
-        // Launch NTHREAD threads, creating a rocblas_ostream for each thread by duplicating fd
+        // Launch NTHREAD threads, creating a rocblas_internal_ostream for each thread by duplicating fd
         std::thread threads[NTHREAD];
         for(auto& t : threads)
             t = std::thread(thread_func, fd);

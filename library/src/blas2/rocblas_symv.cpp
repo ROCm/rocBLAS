@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "rocblas_symv.hpp"
 #include "logging.hpp"
@@ -120,7 +120,7 @@ namespace
                 return symv_check_numerics_status;
         }
 
-        rocblas_status status = rocblas_symv_template<T>(
+        rocblas_status status = rocblas_internal_symv_template<T>(
             handle, uplo, n, alpha, 0, A, 0, lda, 0, x, 0, incx, 0, beta, 0, y, 0, incy, 0, 1);
         if(status != rocblas_status_success)
             return status;

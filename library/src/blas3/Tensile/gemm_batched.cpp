@@ -164,27 +164,27 @@ namespace
         }
 
         rocblas_status status = rocblas_status_success;
-        status                = rocblas_gemm_template<true>(handle,
-                                             trans_a,
-                                             trans_b,
-                                             m,
-                                             n,
-                                             k,
-                                             alpha,
-                                             A,
-                                             0,
-                                             ld_a,
-                                             0,
-                                             B,
-                                             0,
-                                             ld_b,
-                                             0,
-                                             beta,
-                                             C,
-                                             0,
-                                             ld_c,
-                                             0,
-                                             b_c);
+        status                = rocblas_internal_gemm_template<true>(handle,
+                                                      trans_a,
+                                                      trans_b,
+                                                      m,
+                                                      n,
+                                                      k,
+                                                      alpha,
+                                                      A,
+                                                      0,
+                                                      ld_a,
+                                                      0,
+                                                      B,
+                                                      0,
+                                                      ld_b,
+                                                      0,
+                                                      beta,
+                                                      C,
+                                                      0,
+                                                      ld_c,
+                                                      0,
+                                                      b_c);
         if(status != rocblas_status_success)
             return status;
 

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2020 Advanced Micro Devices, Inc.
+ * Copyright 2020-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -14,7 +14,7 @@
 //
 // void* ptr = static_cast<void*>(mem); // Only works if there is one size
 //
-// rocblas_trsm_template_mem(..., mem, ...)
+// rocblas_internal_trsm_template_mem(..., mem, ...)
 //
 // This header should be included in other projects to use the rocblas_handle
 // C++ device memory allocation API. It is unlikely to change very often.

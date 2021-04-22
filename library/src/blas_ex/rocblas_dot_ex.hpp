@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -30,35 +30,35 @@ rocblas_status dot_ex_typecasting(rocblas_handle __restrict__ handle,
     static constexpr rocblas_int offset_0 = 0;
     if(ISBATCHED)
     {
-        return rocblas_dot_template<NB, CONJ>(handle,
-                                              n,
-                                              (const Tx* const*)x,
-                                              offset_0,
-                                              incx,
-                                              stride_x,
-                                              (const Ty* const*)y,
-                                              offset_0,
-                                              incy,
-                                              stride_y,
-                                              batch_count,
-                                              (Tr*)results,
-                                              (Tex*)workspace);
+        return rocblas_internal_dot_template<NB, CONJ>(handle,
+                                                       n,
+                                                       (const Tx* const*)x,
+                                                       offset_0,
+                                                       incx,
+                                                       stride_x,
+                                                       (const Ty* const*)y,
+                                                       offset_0,
+                                                       incy,
+                                                       stride_y,
+                                                       batch_count,
+                                                       (Tr*)results,
+                                                       (Tex*)workspace);
     }
     else
     {
-        return rocblas_dot_template<NB, CONJ>(handle,
-                                              n,
-                                              (const Tx*)x,
-                                              offset_0,
-                                              incx,
-                                              stride_x,
-                                              (const Ty*)y,
-                                              offset_0,
-                                              incy,
-                                              stride_y,
-                                              batch_count,
-                                              (Tr*)results,
-                                              (Tex*)workspace);
+        return rocblas_internal_dot_template<NB, CONJ>(handle,
+                                                       n,
+                                                       (const Tx*)x,
+                                                       offset_0,
+                                                       incx,
+                                                       stride_x,
+                                                       (const Ty*)y,
+                                                       offset_0,
+                                                       incy,
+                                                       stride_y,
+                                                       batch_count,
+                                                       (Tr*)results,
+                                                       (Tex*)workspace);
     }
 }
 

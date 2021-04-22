@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "check_numerics_vector.hpp"
 #include "rocblas_nrm2.hpp"
@@ -57,18 +57,18 @@ namespace
         auto check_numerics = handle->check_numerics;
         if(check_numerics)
         {
-            bool           is_input = true;
-            rocblas_status check_numerics_status
-                = rocblas_check_numerics_vector_template(rocblas_nrm2_strided_batched_name<Ti>,
-                                                         handle,
-                                                         n,
-                                                         x,
-                                                         0,
-                                                         incx,
-                                                         stridex,
-                                                         batch_count,
-                                                         check_numerics,
-                                                         is_input);
+            bool           is_input              = true;
+            rocblas_status check_numerics_status = rocblas_internal_check_numerics_vector_template(
+                rocblas_nrm2_strided_batched_name<Ti>,
+                handle,
+                n,
+                x,
+                0,
+                incx,
+                stridex,
+                batch_count,
+                check_numerics,
+                is_input);
             if(check_numerics_status != rocblas_status_success)
                 return check_numerics_status;
         }
@@ -78,25 +78,25 @@ namespace
         {
             return rocblas_status_memory_error;
         }
-        rocblas_status status = rocblas_nrm2_template<NB, isbatched>(
+        rocblas_status status = rocblas_internal_nrm2_template<NB, isbatched>(
             handle, n, x, shiftx_0, incx, stridex, batch_count, results, (To*)mem);
         if(status != rocblas_status_success)
             return status;
 
         if(check_numerics)
         {
-            bool           is_input = false;
-            rocblas_status check_numerics_status
-                = rocblas_check_numerics_vector_template(rocblas_nrm2_strided_batched_name<Ti>,
-                                                         handle,
-                                                         n,
-                                                         x,
-                                                         0,
-                                                         incx,
-                                                         stridex,
-                                                         batch_count,
-                                                         check_numerics,
-                                                         is_input);
+            bool           is_input              = false;
+            rocblas_status check_numerics_status = rocblas_internal_check_numerics_vector_template(
+                rocblas_nrm2_strided_batched_name<Ti>,
+                handle,
+                n,
+                x,
+                0,
+                incx,
+                stridex,
+                batch_count,
+                check_numerics,
+                is_input);
             if(check_numerics_status != rocblas_status_success)
                 return check_numerics_status;
         }

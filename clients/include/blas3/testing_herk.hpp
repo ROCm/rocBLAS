@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2020 Advanced Micro Devices, Inc.
+ * Copyright 2020-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -51,10 +51,18 @@ void testing_herk_bad_arg(const Arguments& arg)
         (rocblas_herk_fn)(handle, rocblas_fill_full, transA, N, K, &alpha, dA, lda, &beta, dC, ldc),
         rocblas_status_invalid_value);
 
-    EXPECT_ROCBLAS_STATUS(
-        (rocblas_herk_fn)(
-            handle, uplo, rocblas_operation_transpose, N, K, &alpha, dA, lda, &beta, dC, ldc),
-        rocblas_status_invalid_value);
+    EXPECT_ROCBLAS_STATUS((rocblas_herk_fn)(handle,
+                                            uplo,
+                                            rocblas_operation_transpose,
+                                            N,
+                                            K,
+                                            &alpha,
+                                            dA,
+                                            lda,
+                                            &beta,
+                                            dC,
+                                            ldc),
+                          rocblas_status_invalid_value);
 
     EXPECT_ROCBLAS_STATUS(
         (rocblas_herk_fn)(handle, uplo, transA, N, K, nullptr, dA, lda, &beta, dC, ldc),

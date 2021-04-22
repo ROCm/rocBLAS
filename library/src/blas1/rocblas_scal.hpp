@@ -121,15 +121,16 @@ __global__ __launch_bounds__(NB) void hscal_mlt_4_kernel(rocblas_int    n,
 }
 
 template <rocblas_int NB, typename Tex, typename Ta, typename Tx>
-ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_scal_template(rocblas_handle handle,
-                                                             rocblas_int    n,
-                                                             const Ta*      alpha,
-                                                             rocblas_stride stride_alpha,
-                                                             Tx             x,
-                                                             rocblas_int    offset_x,
-                                                             rocblas_int    incx,
-                                                             rocblas_stride stride_x,
-                                                             rocblas_int    batch_count)
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_scal_template(rocblas_handle handle,
+                                   rocblas_int    n,
+                                   const Ta*      alpha,
+                                   rocblas_stride stride_alpha,
+                                   Tx             x,
+                                   rocblas_int    offset_x,
+                                   rocblas_int    incx,
+                                   rocblas_stride stride_x,
+                                   rocblas_int    batch_count)
 {
     // Quick return if possible. Not Argument error
     if(n <= 0 || incx <= 0 || batch_count <= 0)

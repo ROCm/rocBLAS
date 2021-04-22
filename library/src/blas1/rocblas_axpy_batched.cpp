@@ -111,19 +111,19 @@ namespace
                 return axpy_check_numerics_status;
         }
 
-        rocblas_status status = rocblas_axpy_template<NB, T>(handle,
-                                                             n,
-                                                             alpha,
-                                                             stride_0,
-                                                             x,
-                                                             offset_0,
-                                                             incx,
-                                                             stride_0,
-                                                             y,
-                                                             offset_0,
-                                                             incy,
-                                                             stride_0,
-                                                             batch_count);
+        rocblas_status status = rocblas_internal_axpy_template<NB, T>(handle,
+                                                                      n,
+                                                                      alpha,
+                                                                      stride_0,
+                                                                      x,
+                                                                      offset_0,
+                                                                      incx,
+                                                                      stride_0,
+                                                                      y,
+                                                                      offset_0,
+                                                                      incy,
+                                                                      stride_0,
+                                                                      batch_count);
         if(status != rocblas_status_success)
             return status;
 

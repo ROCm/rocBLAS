@@ -68,10 +68,18 @@ void testing_dot_ex_bad_arg(const Arguments& arg)
                                               result_type,
                                               execution_type),
                           rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(
-        (rocblas_dot_ex_fn)(
-            handle, N, dx, x_type, incx, dy, y_type, incy, nullptr, result_type, execution_type),
-        rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS((rocblas_dot_ex_fn)(handle,
+                                              N,
+                                              dx,
+                                              x_type,
+                                              incx,
+                                              dy,
+                                              y_type,
+                                              incy,
+                                              nullptr,
+                                              result_type,
+                                              execution_type),
+                          rocblas_status_invalid_pointer);
     EXPECT_ROCBLAS_STATUS((rocblas_dot_ex_fn)(nullptr,
                                               N,
                                               dx,

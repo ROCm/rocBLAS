@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "rocblas_scal.hpp"
 #include "check_numerics_vector.hpp"
@@ -45,7 +45,7 @@ namespace
             // ANSWER: -r is syntatic sugar; the types can be specified separately
             if(layer_mode & rocblas_layer_mode_log_bench)
             {
-                rocblas_ostream alphass;
+                rocblas_internal_ostream alphass;
                 alphass << "--alpha " << std::real(*alpha)
                         << (std::imag(*alpha) != 0
                                 ? (" --alphai " + std::to_string(std::imag(*alpha)))
@@ -80,20 +80,21 @@ namespace
         if(check_numerics)
         {
             bool           is_input              = true;
-            rocblas_status check_numerics_status = rocblas_check_numerics_vector_template(
+            rocblas_status check_numerics_status = rocblas_internal_check_numerics_vector_template(
                 rocblas_scal_name<T>, handle, n, x, 0, incx, 0, 1, check_numerics, is_input);
             if(check_numerics_status != rocblas_status_success)
                 return check_numerics_status;
         }
 
-        rocblas_status status = rocblas_scal_template<NB, T>(handle, n, alpha, 0, x, 0, incx, 0, 1);
+        rocblas_status status
+            = rocblas_internal_scal_template<NB, T>(handle, n, alpha, 0, x, 0, incx, 0, 1);
         if(status != rocblas_status_success)
             return status;
 
         if(check_numerics)
         {
             bool           is_input              = false;
-            rocblas_status check_numerics_status = rocblas_check_numerics_vector_template(
+            rocblas_status check_numerics_status = rocblas_internal_check_numerics_vector_template(
                 rocblas_scal_name<T>, handle, n, x, 0, incx, 0, 1, check_numerics, is_input);
             if(check_numerics_status != rocblas_status_success)
                 return check_numerics_status;

@@ -61,19 +61,19 @@ rocblas_status axpy_ex_typecasting(const char*    name,
                 return axpy_ex_check_numerics_status;
         }
 
-        rocblas_status status = rocblas_axpy_template<NB, Tex>(handle,
-                                                               n,
-                                                               alphat,
-                                                               stride_alpha,
-                                                               (const Tx* const*)x,
-                                                               offset_x,
-                                                               incx,
-                                                               stride_x,
-                                                               (Ty* const*)y,
-                                                               offset_y,
-                                                               incy,
-                                                               stride_y,
-                                                               batch_count);
+        rocblas_status status = rocblas_internal_axpy_template<NB, Tex>(handle,
+                                                                        n,
+                                                                        alphat,
+                                                                        stride_alpha,
+                                                                        (const Tx* const*)x,
+                                                                        offset_x,
+                                                                        incx,
+                                                                        stride_x,
+                                                                        (Ty* const*)y,
+                                                                        offset_y,
+                                                                        incy,
+                                                                        stride_y,
+                                                                        batch_count);
         if(status != rocblas_status_success)
             return status;
 
@@ -126,19 +126,19 @@ rocblas_status axpy_ex_typecasting(const char*    name,
                 return axpy_ex_check_numerics_status;
         }
 
-        rocblas_status status = rocblas_axpy_template<NB, Tex>(handle,
-                                                               n,
-                                                               alphat,
-                                                               stride_alpha,
-                                                               (const Tx*)x,
-                                                               offset_x,
-                                                               incx,
-                                                               stride_x,
-                                                               (Ty*)y,
-                                                               offset_y,
-                                                               incy,
-                                                               stride_y,
-                                                               batch_count);
+        rocblas_status status = rocblas_internal_axpy_template<NB, Tex>(handle,
+                                                                        n,
+                                                                        alphat,
+                                                                        stride_alpha,
+                                                                        (const Tx*)x,
+                                                                        offset_x,
+                                                                        incx,
+                                                                        stride_x,
+                                                                        (Ty*)y,
+                                                                        offset_y,
+                                                                        incy,
+                                                                        stride_y,
+                                                                        batch_count);
 
         if(status != rocblas_status_success)
             return status;

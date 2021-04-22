@@ -125,6 +125,8 @@ include( ROCMCreatePackage )
 include( ROCMInstallTargets )
 include( ROCMPackageConfigHelpers )
 include( ROCMInstallSymlinks )
+include( ROCMCheckTargetIds OPTIONAL )
+
 
 include (cmake/os-detection.cmake)
 get_os_id(OS_ID)
@@ -148,52 +150,72 @@ option( BUILD_SHARED_LIBS "Build rocBLAS as a shared library" ON )
 
 option( BUILD_TESTING "Build tests for rocBLAS" ON )
 
+# FOR OPTIONAL CODE COVERAGE
+option(BUILD_CODE_COVERAGE "Build rocBLAS with code coverage enabled" OFF)
+if(BUILD_CODE_COVERAGE)
+  add_compile_options(-g -fprofile-arcs -ftest-coverage)
+  add_link_options(-g --coverage)
+endif()
+
+
+
 include( clients/cmake/build-options.cmake )
 
 # force library install path to lib (CentOS 7 defaults to lib64)
 set(CMAKE_INSTALL_LIBDIR "lib" CACHE INTERNAL "Installation directory for libraries" FORCE)
 
 if(NOT SKIP_LIBRARY)
-  set( Tensile_ARCHITECTURE "all" CACHE STRING "Tensile to use which architecture?")
-  set_property( CACHE Tensile_ARCHITECTURE PROPERTY STRINGS all gfx803 gfx900 gfx906:xnack- gfx908:xnack- gfx90a:xnack+ gfx90a:xnack-)
-  # -DTensile_ARCHITECTURE= set by install.sh for builds with and without tensile
+  set( AMDGPU_TARGETS "all" CACHE STRING "Compile for which gpu architectures?")
+  set_property( CACHE AMDGPU_TARGETS PROPERTY STRINGS all gfx803 gfx900 gfx906:xnack- gfx908:xnack- gfx90a:xnack+ gfx90a:xnack- gfx1010 gfx1011 gfx1012 gfx1030 )
 
   # Detect if target ID syntax if supported for default all AMDGPU_TARGETS list
-  if(CMAKE_CXX_COMPILER MATCHES ".*/hipcc$" )
-    execute_process(COMMAND ${CMAKE_CXX_COMPILER} "--help"
-      OUTPUT_VARIABLE CXX_OUTPUT
-      OUTPUT_STRIP_TRAILING_WHITESPACE
-      ERROR_STRIP_TRAILING_WHITESPACE)
-    string(REGEX MATCH ".mcode\-object\-version" TARGET_ID_SUPPORT ${CXX_OUTPUT})
-  endif()
-  if(TARGET_ID_SUPPORT)
-    if(Tensile_LOGIC STREQUAL "aldebaran")
-      set(target_list "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-")
-    else()
-      set(target_list "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-")
-    endif()
+  # Sets the AMDGPU_TARGETS with backward compatiblity
+  if(COMMAND rocm_check_target_ids)
+    rocm_check_target_ids(target_list
+        TARGETS "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx1010;gfx1011;gfx1012;gfx1030"
+    )
   else()
-    set(target_list "gfx803;gfx900;gfx906;gfx908")
-  endif()
-  set(ALL_TARGETS ${target_list} CACHE STRING "List of specific machine types for library to target")
-
-  # gpu architectures to build for
-  if (Tensile_ARCHITECTURE)
-    if( Tensile_ARCHITECTURE STREQUAL "all" )
-      set( gpus ${ALL_TARGETS})
-    else()
-      set( gpus ${Tensile_ARCHITECTURE})
+    # This section is deprecated. Please use rocm_check_target_ids for future use.
+    if(CMAKE_CXX_COMPILER MATCHES ".*/hipcc$" )
+      execute_process(COMMAND ${CMAKE_CXX_COMPILER} "--help"
+        OUTPUT_VARIABLE CXX_OUTPUT
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+        ERROR_STRIP_TRAILING_WHITESPACE)
+      string(REGEX MATCH ".mcode\-object\-version" TARGET_ID_SUPPORT ${CXX_OUTPUT})
     endif()
-    # match tensile if architecture is set
-    set( ROCBLAS_GPUS ${gpus} )
+    if(TARGET_ID_SUPPORT)
+      if(Tensile_LOGIC STREQUAL "aldebaran")
+        # Temporary bypass: if logic aldebaran logic is selected, assume aldebaran compiler support exists
+        # To be removed for ROCm 4.4
+        set(target_list "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx90a:xnack+;gfx90a:xnack-;gfx1010;gfx1011;gfx1012;gfx1030")
+      else()
+        set(target_list "gfx803;gfx900;gfx906:xnack-;gfx908:xnack-;gfx1010;gfx1011;gfx1012;gfx1030")
+      endif()
+    else()
+      set(target_list "gfx803;gfx900;gfx906;gfx908")
+    endif()
+  endif()
+
+  set(ROCBLAS_ALL_GPUS "${target_list}" CACHE STRING "List of specific machine types for library to target")
+
+  # gpu architectures to build for we may FORCE overwrite expanded "all", AMDGPU_TARGETS always defined by install.sh
+  if (AMDGPU_TARGETS)
+    if( AMDGPU_TARGETS STREQUAL "all" )
+      set( gpus "${ROCBLAS_ALL_GPUS}")
+    else()
+      set( gpus "${AMDGPU_TARGETS}")
+    endif()
     # must FORCE set this AMDGPU_TARGETS before any find_package( hip ...), via tensile or in this file
-    # to override CACHE var and set cuda-gpu-arch flags via hip-config.cmake hip::device dependency
-    set( AMDGPU_TARGETS "${ROCBLAS_GPUS}" CACHE STRING "AMD GPU targets to compile for" FORCE )
+    # to override CACHE var and set --offload-arch flags via hip-config.cmake hip::device dependency
+    set( AMDGPU_TARGETS "${gpus}" CACHE STRING "AMD GPU targets to compile for" FORCE )
   endif()
 
   option( BUILD_WITH_TENSILE_HOST "Use the new tensile client for gemm?" ON )
 
   if( BUILD_WITH_TENSILE )
+    # we will have expanded "all" for tensile to ensure consistency as we have local rules
+    set( Tensile_ARCHITECTURE "${AMDGPU_TARGETS}" CACHE STRING "Tensile to use which architecture?" FORCE)
+
     set( Tensile_LOGIC "asm_full" CACHE STRING "Tensile to use which logic?")
     set( Tensile_CODE_OBJECT_VERSION "V2" CACHE STRING "Tensile code_object_version")
     set( Tensile_COMPILER "hipcc" CACHE STRING "Tensile compiler")
@@ -235,7 +257,7 @@ if(NOT SKIP_LIBRARY)
     if (TENSILE_VERSION)
       find_package(Tensile ${TENSILE_VERSION} EXACT REQUIRED HIP LLVM OpenMP PATHS "${INSTALLED_TENSILE_PATH}")
     else()
-      find_package(Tensile 4.27.0 EXACT REQUIRED HIP LLVM OpenMP PATHS "${INSTALLED_TENSILE_PATH}")
+      find_package(Tensile 4.28.0 EXACT REQUIRED HIP LLVM OpenMP PATHS "${INSTALLED_TENSILE_PATH}")
     endif()
   endif()
 endif()
@@ -265,3 +287,56 @@ endif()
 if( BUILD_CLIENTS_SAMPLES OR BUILD_CLIENTS_TESTS OR BUILD_CLIENTS_BENCHMARKS )
   add_subdirectory( clients )
 endif( )
+
+#
+# ADDITIONAL TARGETS FOR CODE COVERAGE
+#
+# > make coverage_cleanup (clean coverage related files.)
+# > make coverage GTEST_FILTER=<>
+# will run:
+#  > make coverage_analysis GTEST_FILTER=<> (analyze tests)
+#  > make coverage_output (generate html documentation)
+#
+#
+
+
+#
+# Run coverage analysis
+#
+add_custom_target(coverage_analysis
+   COMMAND echo Coverage GTEST_FILTER=\${GTEST_FILTER}
+   COMMAND ./clients/staging/rocblas-test --gtest_filter=\"\${GTEST_FILTER}\"
+   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+ )
+
+add_dependencies(coverage_analysis rocblas)
+
+#
+# Prepare coverage output
+#
+add_custom_target(coverage_output
+    COMMAND mkdir -p lcoverage
+    COMMAND echo "\\#!/bin/bash" > llvm-gcov.sh
+    COMMAND echo "\\# THIS FILE HAS BEEN GENERATED" >> llvm-gcov.sh
+    COMMAND printf "exec /opt/rocm/llvm/bin/llvm-cov gcov $$\\@" >> llvm-gcov.sh
+    COMMAND chmod +x llvm-gcov.sh
+    )
+
+#
+# Generate coverage output.
+#
+add_custom_command(TARGET coverage_output
+  COMMAND lcov --directory . --base-directory . --gcov-tool ${CMAKE_BINARY_DIR}/llvm-gcov.sh --capture -o lcoverage/raw_main_coverage.info
+  COMMAND lcov --remove lcoverage/raw_main_coverage.info "'/opt/*'" "'/usr/*'" -o lcoverage/main_coverage.info
+  COMMAND genhtml --ignore-errors source lcoverage/main_coverage.info --output-directory lcoverage
+    )
+
+add_custom_target(coverage DEPENDS coverage_analysis coverage_output)
+
+#
+# Coverage cleanup
+#
+add_custom_target(coverage_cleanup
+    COMMAND rm -f `find ${CMAKE_BINARY_DIR} -name *.gcda`
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+    )

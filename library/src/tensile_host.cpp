@@ -277,6 +277,14 @@ namespace
         tensileProblem.setHighPrecisionAccumulate(sizeof(Tc) > sizeof(Ti)
                                                   || std::is_same<Ti, rocblas_int8x4>{});
 
+        // Environment variable to force use of VALU for double precision gemm
+        static bool force_valu_for_dgemm = std::getenv("ROCBLAS_INTERNAL_FORCE_VALU_FOR_DGEMM");
+        if(std::is_same<Ti, double>::value && std::is_same<To, double>::value
+           && std::is_same<Tc, double>::value && force_valu_for_dgemm)
+        {
+            tensileProblem.setArithmeticUnit(Tensile::ArithmeticUnit::VALU);
+        }
+
         // Pass atomics mode to Tensile interface
         tensileProblem.setDeterministicMode(prob.handle->atomics_mode
                                             == rocblas_atomics_not_allowed);
@@ -412,7 +420,7 @@ namespace
         {
             // We mark TensileHost as initialized. This is so that CI tests can
             // verify that the initialization occurs in the "multiheaded" tests
-            rocblas_tensile_is_initialized() = true;
+            rocblas_internal_tensile_is_initialized() = true;
         }
 
         // TensileHost is not copyable or assignable
@@ -472,7 +480,7 @@ namespace
             path.reserve(PATH_MAX);
 
             // The name of the current GPU platform
-            std::string processor = rocblas_get_arch_name();
+            std::string processor = rocblas_internal_get_arch_name();
 
             const char* env = getenv("ROCBLAS_TENSILE_LIBPATH");
             if(env)
@@ -643,7 +651,7 @@ namespace
     /**************************************************************************
     * We normally print error messages only once, to avoid excessive logging *
     **************************************************************************/
-    void print_once(rocblas_ostream& msg)
+    void print_once(rocblas_internal_ostream& msg)
     {
         if(rocblas_suppress_tensile_error_messages())
             return;
@@ -689,7 +697,7 @@ rocblas_status runContractionProblem(const RocblasContractionProblem<Ti, To, Tc>
 
         if(!solution)
         {
-            rocblas_ostream msg;
+            rocblas_internal_ostream msg;
             print_once(msg << "\nrocBLAS error: No Tensile solution found for " << prob);
             status = rocblas_status_not_implemented;
         }
@@ -718,13 +726,13 @@ rocblas_status runContractionProblem(const RocblasContractionProblem<Ti, To, Tc>
     }
     catch(const std::exception& e)
     {
-        rocblas_ostream msg;
+        rocblas_internal_ostream msg;
         print_once(msg << "\nrocBLAS error: " << (solution ? "" : "No ")
                        << "Tensile solution found, but exception thown for " << prob << e.what());
     }
     catch(...)
     {
-        rocblas_ostream msg;
+        rocblas_internal_ostream msg;
         print_once(msg << "\nrocBLAS error: " << (solution ? "" : "No ")
                        << "Tensile solution found, but unknown exception thown for " << prob);
     }
@@ -782,7 +790,7 @@ template rocblas_status
 /***********************************************************************************
  * Whether Tensile has been initialized for at least one device (used for testing) *
  ***********************************************************************************/
-ROCBLAS_EXPORT std::atomic_bool& rocblas_tensile_is_initialized()
+ROCBLAS_INTERNAL_EXPORT std::atomic_bool& rocblas_internal_tensile_is_initialized()
 {
     static std::atomic_bool init;
     return init;

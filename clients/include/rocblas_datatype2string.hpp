@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -126,7 +126,8 @@ constexpr auto rocblas_initialization2string(rocblas_initialization init)
     return "invalid";
 }
 
-inline rocblas_ostream& operator<<(rocblas_ostream& os, rocblas_initialization init)
+inline rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os,
+                                            rocblas_initialization    init)
 {
     return os << rocblas_initialization2string(init);
 }

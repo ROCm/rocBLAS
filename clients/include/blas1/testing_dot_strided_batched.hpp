@@ -46,22 +46,50 @@ void testing_dot_strided_batched_bad_arg(const Arguments& arg)
 
     CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
-    EXPECT_ROCBLAS_STATUS(
-        (rocblas_dot_strided_batched_fn)(
-            handle, N, nullptr, incx, stride_x, dy, incy, stride_y, batch_count, d_rocblas_result),
-        rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(
-        (rocblas_dot_strided_batched_fn)(
-            handle, N, dx, incx, stride_x, nullptr, incy, stride_y, batch_count, d_rocblas_result),
-        rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(
-        (rocblas_dot_strided_batched_fn)(
-            handle, N, dx, incx, stride_x, dy, incy, stride_y, batch_count, nullptr),
-        rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(
-        (rocblas_dot_strided_batched_fn)(
-            nullptr, N, dx, incx, stride_x, dy, incy, stride_y, batch_count, d_rocblas_result),
-        rocblas_status_invalid_handle);
+    EXPECT_ROCBLAS_STATUS((rocblas_dot_strided_batched_fn)(handle,
+                                                           N,
+                                                           nullptr,
+                                                           incx,
+                                                           stride_x,
+                                                           dy,
+                                                           incy,
+                                                           stride_y,
+                                                           batch_count,
+                                                           d_rocblas_result),
+                          rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS((rocblas_dot_strided_batched_fn)(handle,
+                                                           N,
+                                                           dx,
+                                                           incx,
+                                                           stride_x,
+                                                           nullptr,
+                                                           incy,
+                                                           stride_y,
+                                                           batch_count,
+                                                           d_rocblas_result),
+                          rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS((rocblas_dot_strided_batched_fn)(handle,
+                                                           N,
+                                                           dx,
+                                                           incx,
+                                                           stride_x,
+                                                           dy,
+                                                           incy,
+                                                           stride_y,
+                                                           batch_count,
+                                                           nullptr),
+                          rocblas_status_invalid_pointer);
+    EXPECT_ROCBLAS_STATUS((rocblas_dot_strided_batched_fn)(nullptr,
+                                                           N,
+                                                           dx,
+                                                           incx,
+                                                           stride_x,
+                                                           dy,
+                                                           incy,
+                                                           stride_y,
+                                                           batch_count,
+                                                           d_rocblas_result),
+                          rocblas_status_invalid_handle);
 }
 
 template <typename T>
@@ -180,8 +208,16 @@ void testing_dot_strided_batched(const Arguments& arg)
     {
         // GPU BLAS, rocblas_pointer_mode_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_ROCBLAS_ERROR((rocblas_dot_strided_batched_fn)(
-            handle, N, dx, incx, stride_x, dy_ptr, incy, stride_y, batch_count, rocblas_result_1));
+        CHECK_ROCBLAS_ERROR((rocblas_dot_strided_batched_fn)(handle,
+                                                             N,
+                                                             dx,
+                                                             incx,
+                                                             stride_x,
+                                                             dy_ptr,
+                                                             incy,
+                                                             stride_y,
+                                                             batch_count,
+                                                             rocblas_result_1));
 
         // GPU BLAS, rocblas_pointer_mode_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));

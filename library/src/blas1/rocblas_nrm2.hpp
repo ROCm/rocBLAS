@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -26,15 +26,16 @@ struct rocblas_finalize_nrm2
 };
 
 template <rocblas_int NB, bool ISBATCHED, typename Ti, typename To, typename Tex = To>
-ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_nrm2_template(rocblas_handle handle,
-                                                             rocblas_int    n,
-                                                             const Ti*      x,
-                                                             rocblas_int    shiftx,
-                                                             rocblas_int    incx,
-                                                             rocblas_stride stridex,
-                                                             rocblas_int    batch_count,
-                                                             To*            results,
-                                                             Tex*           workspace)
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_nrm2_template(rocblas_handle handle,
+                                   rocblas_int    n,
+                                   const Ti*      x,
+                                   rocblas_int    shiftx,
+                                   rocblas_int    incx,
+                                   rocblas_stride stridex,
+                                   rocblas_int    batch_count,
+                                   To*            results,
+                                   Tex*           workspace)
 {
     return rocblas_reduction_template<NB,
                                       ISBATCHED,
