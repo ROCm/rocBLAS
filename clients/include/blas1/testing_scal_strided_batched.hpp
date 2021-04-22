@@ -36,8 +36,13 @@ void testing_scal_strided_batched(const Arguments& arg)
     if(N <= 0 || incx <= 0 || batch_count <= 0)
     {
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        EXPECT_ROCBLAS_STATUS((rocblas_scal_strided_batched_fn)(
-                                  handle, N, nullptr, nullptr, incx, stridex, batch_count),
+        EXPECT_ROCBLAS_STATUS((rocblas_scal_strided_batched_fn)(handle,
+                                                                N,
+                                                                nullptr,
+                                                                nullptr,
+                                                                incx,
+                                                                stridex,
+                                                                batch_count),
                               rocblas_status_success);
         return;
     }

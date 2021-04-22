@@ -1,5 +1,5 @@
 # ########################################################################
-# Copyright 2016-2020 Advanced Micro Devices, Inc.
+# Copyright 2016-2021 Advanced Micro Devices, Inc.
 # ########################################################################
 
 # ########################################################################
@@ -42,7 +42,6 @@ if( BUILD_WITH_TENSILE )
   endif( )
 
   set( Tensile_RUNTIME_LANGUAGE "HIP" )
-  message( STATUS "ROCBLAS_GPUS=${ROCBLAS_GPUS}" )
   if( BUILD_WITH_TENSILE_HOST )
     #TODO update when this feature has been validated
     #set( PACKAGE_TENSILE_LIBRARY ON )
@@ -434,7 +433,7 @@ if( BUILD_WITH_TENSILE )
   target_compile_definitions( rocblas PRIVATE ${TENSILE_DEFINES} )
 endif()
 
-target_compile_definitions( rocblas PRIVATE ROCM_USE_FLOAT16 )
+target_compile_definitions( rocblas PRIVATE ROCM_USE_FLOAT16 ROCBLAS_INTERNAL_API )
 
 rocm_set_soversion( rocblas ${rocblas_SOVERSION} )
 set_target_properties( rocblas PROPERTIES CXX_EXTENSIONS NO )
@@ -446,10 +445,18 @@ set_target_properties( rocblas PROPERTIES CXX_VISIBILITY_PRESET "hidden" C_VISIB
 generate_export_header( rocblas EXPORT_FILE_NAME ${PROJECT_BINARY_DIR}/include/internal/rocblas-export.h )
 
 # generate header with prototypes for export reuse
+file( GLOB rocblas_prototype_inputs
+  LIST_DIRECTORIES OFF
+  CONFIGURE_DEPENDS
+  ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/*.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/blas3/*.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/blas2/*.hpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/blas1/*.hpp
+)
 set( ROCBLAS_PROTO_TEMPLATES "${PROJECT_BINARY_DIR}/include/internal/rocblas-exported-proto.hpp" )
 add_custom_command(OUTPUT ${ROCBLAS_PROTO_TEMPLATES}
-  COMMAND python3 template-proto.py ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/*.hpp ${CMAKE_CURRENT_SOURCE_DIR}/blas3/*.hpp ${CMAKE_CURRENT_SOURCE_DIR}/blas2/*.hpp ${CMAKE_CURRENT_SOURCE_DIR}/blas1/*.hpp > ${ROCBLAS_PROTO_TEMPLATES}
-  DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/*.hpp ${CMAKE_CURRENT_SOURCE_DIR}/blas3/*.hpp ${CMAKE_CURRENT_SOURCE_DIR}/blas2/*.hpp ${CMAKE_CURRENT_SOURCE_DIR}/blas1/*.hpp
+  COMMAND python3 template-proto.py ${rocblas_prototype_inputs} > ${ROCBLAS_PROTO_TEMPLATES}
+  DEPENDS ${rocblas_prototype_inputs}
   COMMENT "Generating prototypes from ${CMAKE_CURRENT_SOURCE_DIR}."
   WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
   )
@@ -495,6 +502,11 @@ endif( )
 # Force installation of .f90 module file
 install(FILES "../include/rocblas_module.f90"
         DESTINATION "rocblas/include"
+)
+
+# Force installation of LICENSE.md
+install(FILES "../../LICENSE.md"
+	DESTINATION "share/doc/rocBLAS"
 )
 
 rocm_install_targets(

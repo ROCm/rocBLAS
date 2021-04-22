@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -79,7 +79,7 @@ void testing_gemm_batched(const Arguments& arg)
     size_t size_one_c = N * ldc;
 
 #ifdef ROCBLAS_BENCH
-    if(rocblas_tensile_debug_skip_launch())
+    if(rocblas_internal_tensile_debug_skip_launch())
     {
         device_batch_vector<T> dA(1, 1, batch_count);
         device_batch_vector<T> dB(1, 1, batch_count);

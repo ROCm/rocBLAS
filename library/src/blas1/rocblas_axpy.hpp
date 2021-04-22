@@ -236,19 +236,20 @@ __global__ __launch_bounds__(NB) void haxpy_mlt_8_kernel(rocblas_int    n_mlt_8,
 //! @brief General template to compute y = a * x + y.
 //!
 template <int NB, typename Tex, typename Ta, typename Tx, typename Ty>
-ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_axpy_template(rocblas_handle handle,
-                                                             rocblas_int    n,
-                                                             const Ta*      alpha,
-                                                             rocblas_stride stride_alpha,
-                                                             Tx             x,
-                                                             ptrdiff_t      offset_x,
-                                                             rocblas_int    incx,
-                                                             rocblas_stride stride_x,
-                                                             Ty             y,
-                                                             ptrdiff_t      offset_y,
-                                                             rocblas_int    incy,
-                                                             rocblas_stride stride_y,
-                                                             rocblas_int    batch_count)
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_axpy_template(rocblas_handle handle,
+                                   rocblas_int    n,
+                                   const Ta*      alpha,
+                                   rocblas_stride stride_alpha,
+                                   Tx             x,
+                                   ptrdiff_t      offset_x,
+                                   rocblas_int    incx,
+                                   rocblas_stride stride_x,
+                                   Ty             y,
+                                   ptrdiff_t      offset_y,
+                                   rocblas_int    incy,
+                                   rocblas_stride stride_y,
+                                   rocblas_int    batch_count)
 {
     if(n <= 0 || batch_count <= 0) // Quick return if possible. Not Argument error
     {
@@ -418,30 +419,31 @@ rocblas_status rocblas_axpy_check_numerics(const char*    function_name,
     if(is_input)
     {
         rocblas_status check_numerics_status
-            = rocblas_check_numerics_vector_template(function_name,
-                                                     handle,
-                                                     n,
-                                                     x,
-                                                     offset_x,
-                                                     inc_x,
-                                                     stride_x,
-                                                     batch_count,
-                                                     check_numerics,
-                                                     is_input);
+            = rocblas_internal_check_numerics_vector_template(function_name,
+                                                              handle,
+                                                              n,
+                                                              x,
+                                                              offset_x,
+                                                              inc_x,
+                                                              stride_x,
+                                                              batch_count,
+                                                              check_numerics,
+                                                              is_input);
         if(check_numerics_status != rocblas_status_success)
             return check_numerics_status;
     }
 
-    rocblas_status check_numerics_status = rocblas_check_numerics_vector_template(function_name,
-                                                                                  handle,
-                                                                                  n,
-                                                                                  y,
-                                                                                  offset_y,
-                                                                                  inc_y,
-                                                                                  stride_y,
-                                                                                  batch_count,
-                                                                                  check_numerics,
-                                                                                  is_input);
+    rocblas_status check_numerics_status
+        = rocblas_internal_check_numerics_vector_template(function_name,
+                                                          handle,
+                                                          n,
+                                                          y,
+                                                          offset_y,
+                                                          inc_y,
+                                                          stride_y,
+                                                          batch_count,
+                                                          check_numerics,
+                                                          is_input);
 
     return check_numerics_status;
 }

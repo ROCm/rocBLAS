@@ -29,6 +29,8 @@ The rocBLAS API is a thin C99 API using the `Hourglass Pattern <https://github.c
 - Auxiliary functions
 - Device Memory functions
 
+The official rocBLAS API is the C99 API defined in rocblas.h and therefore the use of any other public symbols is discouraged. All other C/C++ interfaces may not follow a deprecation model and so can change without warning from one release to the next.
+
 rocBLAS array storage format is column major and one based. This is to maintain compatibility with the Legacy BLAS code which is written in Fortran.
 
 rocBLAS calls AMD's library `Tensile <https://github.com/ROCmSoftwarePlatform/Tensile>`_ for Level 3 BLAS matrix multiplication.

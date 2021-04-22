@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2020 Advanced Micro Devices, Inc.
+ * Copyright 2020-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -72,22 +72,23 @@ inline rocblas_status rocblas_herk_arg_check(rocblas_handle    handle,
   *  TPtr      is either:       T* OR       T* const*
   */
 template <typename TScal, typename TConstPtr, typename TPtr>
-ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_herk_template(rocblas_handle    handle,
-                                                             rocblas_fill      uplo,
-                                                             rocblas_operation transA,
-                                                             rocblas_int       n,
-                                                             rocblas_int       k,
-                                                             TScal             alpha,
-                                                             TConstPtr         AP,
-                                                             rocblas_int       offsetA,
-                                                             rocblas_int       lda,
-                                                             rocblas_stride    strideA,
-                                                             TScal             beta,
-                                                             TPtr              CP,
-                                                             rocblas_int       offsetC,
-                                                             rocblas_int       ldc,
-                                                             rocblas_stride    strideC,
-                                                             rocblas_int       batch_count)
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_herk_template(rocblas_handle    handle,
+                                   rocblas_fill      uplo,
+                                   rocblas_operation transA,
+                                   rocblas_int       n,
+                                   rocblas_int       k,
+                                   TScal             alpha,
+                                   TConstPtr         AP,
+                                   rocblas_int       offsetA,
+                                   rocblas_int       lda,
+                                   rocblas_stride    strideA,
+                                   TScal             beta,
+                                   TPtr              CP,
+                                   rocblas_int       offsetC,
+                                   rocblas_int       ldc,
+                                   rocblas_stride    strideC,
+                                   rocblas_int       batch_count)
 {
     // quick return
     if(!n || !batch_count)

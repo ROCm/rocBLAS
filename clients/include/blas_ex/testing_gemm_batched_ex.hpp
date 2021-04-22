@@ -530,7 +530,7 @@ void testing_gemm_batched_ex(const Arguments& arg)
     }
 
 #ifdef ROCBLAS_BENCH
-    if(rocblas_tensile_debug_skip_launch())
+    if(rocblas_internal_tensile_debug_skip_launch())
     {
         device_batch_vector<Ti> dA(1, 1, batch_count);
         device_batch_vector<Ti> dB(1, 1, batch_count);

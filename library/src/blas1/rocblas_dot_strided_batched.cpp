@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "handle.hpp"
 #include "logging.hpp"
@@ -159,7 +159,7 @@ namespace
                 return dot_check_numerics_status;
         }
 
-        rocblas_status status = rocblas_dot_template<NB, CONJ, T>(
+        rocblas_status status = rocblas_internal_dot_template<NB, CONJ, T>(
             handle, n, x, 0, incx, stridex, y, 0, incy, stridey, batch_count, results, (T2*)mem);
         if(status != rocblas_status_success)
             return status;

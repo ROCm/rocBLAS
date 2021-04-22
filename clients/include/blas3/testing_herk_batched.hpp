@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2020 Advanced Micro Devices, Inc.
+ * Copyright 2020-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -49,10 +49,19 @@ void testing_herk_batched_bad_arg(const Arguments& arg)
             T>)(nullptr, uplo, transA, N, K, &alpha, dA, lda, &beta, dC, ldc, batch_count),
         rocblas_status_invalid_handle);
 
-    EXPECT_ROCBLAS_STATUS(
-        (rocblas_herk_batched_fn)(
-            handle, rocblas_fill_full, transA, N, K, &alpha, dA, lda, &beta, dC, ldc, batch_count),
-        rocblas_status_invalid_value);
+    EXPECT_ROCBLAS_STATUS((rocblas_herk_batched_fn)(handle,
+                                                    rocblas_fill_full,
+                                                    transA,
+                                                    N,
+                                                    K,
+                                                    &alpha,
+                                                    dA,
+                                                    lda,
+                                                    &beta,
+                                                    dC,
+                                                    ldc,
+                                                    batch_count),
+                          rocblas_status_invalid_value);
 
     EXPECT_ROCBLAS_STATUS((rocblas_herk_batched_fn)(handle,
                                                     uplo,
@@ -89,10 +98,19 @@ void testing_herk_batched_bad_arg(const Arguments& arg)
         rocblas_status_invalid_pointer);
 
     // quick return with invalid pointers
-    EXPECT_ROCBLAS_STATUS(
-        (rocblas_herk_batched_fn)(
-            handle, uplo, transA, 0, K, nullptr, nullptr, lda, nullptr, nullptr, ldc, batch_count),
-        rocblas_status_success);
+    EXPECT_ROCBLAS_STATUS((rocblas_herk_batched_fn)(handle,
+                                                    uplo,
+                                                    transA,
+                                                    0,
+                                                    K,
+                                                    nullptr,
+                                                    nullptr,
+                                                    lda,
+                                                    nullptr,
+                                                    nullptr,
+                                                    ldc,
+                                                    batch_count),
+                          rocblas_status_success);
 }
 
 template <typename T>

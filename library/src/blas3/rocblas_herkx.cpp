@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "rocblas_herkx.hpp"
 #include "logging.hpp"
@@ -125,26 +125,26 @@ namespace
             return arg_status;
 
         static constexpr bool is2K = false; // herkx
-        return rocblas_her2k_template<is2K>(handle,
-                                            uplo,
-                                            trans,
-                                            n,
-                                            k,
-                                            alpha,
-                                            A,
-                                            offset_A,
-                                            lda,
-                                            stride_A,
-                                            B,
-                                            offset_B,
-                                            ldb,
-                                            stride_B,
-                                            beta,
-                                            C,
-                                            offset_C,
-                                            ldc,
-                                            stride_C,
-                                            batch_count);
+        return rocblas_internal_her2k_template<is2K>(handle,
+                                                     uplo,
+                                                     trans,
+                                                     n,
+                                                     k,
+                                                     alpha,
+                                                     A,
+                                                     offset_A,
+                                                     lda,
+                                                     stride_A,
+                                                     B,
+                                                     offset_B,
+                                                     ldb,
+                                                     stride_B,
+                                                     beta,
+                                                     C,
+                                                     offset_C,
+                                                     ldc,
+                                                     stride_C,
+                                                     batch_count);
     }
 
 }

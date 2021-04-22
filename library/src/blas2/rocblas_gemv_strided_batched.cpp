@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "handle.hpp"
 #include "logging.hpp"
@@ -41,7 +41,8 @@ namespace
         if(!handle)
             return rocblas_status_invalid_handle;
 
-        size_t dev_bytes = rocblas_gemv_kernel_workspace_size<T>(transA, m, n, batch_count);
+        size_t dev_bytes
+            = rocblas_internal_gemv_kernel_workspace_size<T>(transA, m, n, batch_count);
         if(handle->is_device_memory_size_query())
             return handle->set_optimal_device_memory_size(dev_bytes);
 
@@ -177,28 +178,28 @@ namespace
                 return gemv_check_numerics_status;
         }
 
-        rocblas_status status = rocblas_gemv_template<T>(handle,
-                                                         transA,
-                                                         m,
-                                                         n,
-                                                         alpha,
-                                                         0,
-                                                         A,
-                                                         0,
-                                                         lda,
-                                                         strideA,
-                                                         x,
-                                                         0,
-                                                         incx,
-                                                         stridex,
-                                                         beta,
-                                                         0,
-                                                         y,
-                                                         0,
-                                                         incy,
-                                                         stridey,
-                                                         batch_count,
-                                                         (T*)mem);
+        rocblas_status status = rocblas_internal_gemv_template<T>(handle,
+                                                                  transA,
+                                                                  m,
+                                                                  n,
+                                                                  alpha,
+                                                                  0,
+                                                                  A,
+                                                                  0,
+                                                                  lda,
+                                                                  strideA,
+                                                                  x,
+                                                                  0,
+                                                                  incx,
+                                                                  stridex,
+                                                                  beta,
+                                                                  0,
+                                                                  y,
+                                                                  0,
+                                                                  incy,
+                                                                  stridey,
+                                                                  batch_count,
+                                                                  (T*)mem);
 
         status = (status != rocblas_status_success) ? status : perf_status;
         if(status != rocblas_status_success)

@@ -56,16 +56,16 @@ __global__ void rocblas_check_numerics_ge_matrix_kernel(rocblas_int             
     }
 }
 template <typename T>
-ROCBLAS_EXPORT_NOINLINE rocblas_status
-    rocblas_check_numerics_ge_matrix_template(const char*       function_name,
-                                              rocblas_handle    handle,
-                                              rocblas_operation trans_a,
-                                              rocblas_int       m,
-                                              rocblas_int       n,
-                                              T                 A,
-                                              rocblas_int       offset_a,
-                                              rocblas_int       lda,
-                                              rocblas_stride    stride_a,
-                                              rocblas_int       batch_count,
-                                              const int         check_numerics,
-                                              bool              is_input);
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_check_numerics_ge_matrix_template(const char*       function_name,
+                                                       rocblas_handle    handle,
+                                                       rocblas_operation trans_a,
+                                                       rocblas_int       m,
+                                                       rocblas_int       n,
+                                                       T                 A,
+                                                       rocblas_int       offset_a,
+                                                       rocblas_int       lda,
+                                                       rocblas_stride    stride_a,
+                                                       rocblas_int       batch_count,
+                                                       const int         check_numerics,
+                                                       bool              is_input);

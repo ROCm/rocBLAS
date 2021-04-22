@@ -57,9 +57,9 @@ rocblas_status rocblas_check_numerics_abnormal_struct(const char*               
 }
 /**
   *
-  * rocblas_check_numerics_vector_template(function_name, handle, n, x, offset_x, inc_x, stride_x, batch_count, check_numerics, is_input)
+  * rocblas_internal_check_numerics_vector_template(function_name, handle, n, x, offset_x, inc_x, stride_x, batch_count, check_numerics, is_input)
   *
-  * Info about rocblas_check_numerics_vector_template function:
+  * Info about rocblas_internal_check_numerics_vector_template function:
   *
   *    It is the host function which accepts a vector and calls the 'rocblas_check_numerics_vector_kernel' kernel function
   *    to check for numerical abnormalities such as NaN/zero/Infinity in that vector.
@@ -82,17 +82,17 @@ rocblas_status rocblas_check_numerics_abnormal_struct(const char*               
 **/
 
 template <typename T>
-ROCBLAS_EXPORT_NOINLINE rocblas_status
-    rocblas_check_numerics_vector_template(const char*    function_name,
-                                           rocblas_handle handle,
-                                           rocblas_int    n,
-                                           T              x,
-                                           rocblas_int    offset_x,
-                                           rocblas_int    inc_x,
-                                           rocblas_stride stride_x,
-                                           rocblas_int    batch_count,
-                                           const int      check_numerics,
-                                           bool           is_input)
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_check_numerics_vector_template(const char*    function_name,
+                                                    rocblas_handle handle,
+                                                    rocblas_int    n,
+                                                    T              x,
+                                                    rocblas_int    offset_x,
+                                                    rocblas_int    inc_x,
+                                                    rocblas_stride stride_x,
+                                                    rocblas_int    batch_count,
+                                                    const int      check_numerics,
+                                                    bool           is_input)
 {
     //Quick return if possible. Not Argument error
     if(n <= 0 || inc_x <= 0 || batch_count <= 0 || !x)
@@ -144,17 +144,18 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status
 #ifdef INST
 #error INST IS ALREADY DEFINED
 #endif
-#define INST(typet_)                                                                              \
-    template rocblas_status rocblas_check_numerics_vector_template(const char*    function_name,  \
-                                                                   rocblas_handle handle,         \
-                                                                   rocblas_int    n,              \
-                                                                   typet_         x,              \
-                                                                   rocblas_int    offset_x,       \
-                                                                   rocblas_int    incx,           \
-                                                                   rocblas_stride stride_x,       \
-                                                                   rocblas_int    batch_count,    \
-                                                                   const int      check_numerics, \
-                                                                   bool           is_input)
+#define INST(typet_)                                                         \
+    template rocblas_status rocblas_internal_check_numerics_vector_template( \
+        const char*    function_name,                                        \
+        rocblas_handle handle,                                               \
+        rocblas_int    n,                                                    \
+        typet_         x,                                                    \
+        rocblas_int    offset_x,                                             \
+        rocblas_int    incx,                                                 \
+        rocblas_stride stride_x,                                             \
+        rocblas_int    batch_count,                                          \
+        const int      check_numerics,                                       \
+        bool           is_input)
 INST(float*);
 INST(double*);
 INST(float* const*);

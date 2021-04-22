@@ -225,16 +225,16 @@ namespace
         rocblas_status status          = rocblas_status_success;
         const char     function_name[] = "testing_check_numerics_vector";
         bool           is_input        = true;
-        status                         = rocblas_check_numerics_vector_template(function_name,
-                                                        handle,
-                                                        N,
-                                                        (T*)d_x,
-                                                        offset_x,
-                                                        inc_x,
-                                                        stride_x,
-                                                        1,
-                                                        check_numerics,
-                                                        is_input);
+        status = rocblas_internal_check_numerics_vector_template(function_name,
+                                                                 handle,
+                                                                 N,
+                                                                 (T*)d_x,
+                                                                 offset_x,
+                                                                 inc_x,
+                                                                 stride_x,
+                                                                 1,
+                                                                 check_numerics,
+                                                                 is_input);
         EXPECT_EQ(status, rocblas_status_success);
         //==============================================================================================
         // Initializing and testing for zero in the vector
@@ -244,16 +244,16 @@ namespace
         // copy data from CPU to device
         CHECK_HIP_ERROR(hipMemcpy(d_x, h_x, sizeof(T) * size_x, hipMemcpyHostToDevice));
 
-        status = rocblas_check_numerics_vector_template(function_name,
-                                                        handle,
-                                                        N,
-                                                        (T*)d_x,
-                                                        offset_x,
-                                                        inc_x,
-                                                        stride_x,
-                                                        1,
-                                                        check_numerics,
-                                                        is_input);
+        status = rocblas_internal_check_numerics_vector_template(function_name,
+                                                                 handle,
+                                                                 N,
+                                                                 (T*)d_x,
+                                                                 offset_x,
+                                                                 inc_x,
+                                                                 stride_x,
+                                                                 1,
+                                                                 check_numerics,
+                                                                 is_input);
         EXPECT_EQ(status, rocblas_status_success);
         //==============================================================================================
         // Initializing and testing for Inf in the vector
@@ -265,16 +265,16 @@ namespace
         // copy data from CPU to device
         CHECK_HIP_ERROR(hipMemcpy(d_x, h_x, sizeof(T) * size_x, hipMemcpyHostToDevice));
 
-        status = rocblas_check_numerics_vector_template(function_name,
-                                                        handle,
-                                                        N,
-                                                        (T*)d_x,
-                                                        offset_x,
-                                                        inc_x,
-                                                        stride_x,
-                                                        1,
-                                                        check_numerics,
-                                                        is_input);
+        status = rocblas_internal_check_numerics_vector_template(function_name,
+                                                                 handle,
+                                                                 N,
+                                                                 (T*)d_x,
+                                                                 offset_x,
+                                                                 inc_x,
+                                                                 stride_x,
+                                                                 1,
+                                                                 check_numerics,
+                                                                 is_input);
 
         EXPECT_EQ(status, rocblas_status_check_numerics_fail);
         //==============================================================================================
@@ -286,16 +286,16 @@ namespace
 
         // copy data from CPU to device
         CHECK_HIP_ERROR(hipMemcpy(d_x, h_x, sizeof(T) * size_x, hipMemcpyHostToDevice));
-        status = rocblas_check_numerics_vector_template(function_name,
-                                                        handle,
-                                                        N,
-                                                        (T*)d_x,
-                                                        offset_x,
-                                                        inc_x,
-                                                        stride_x,
-                                                        1,
-                                                        check_numerics,
-                                                        is_input);
+        status = rocblas_internal_check_numerics_vector_template(function_name,
+                                                                 handle,
+                                                                 N,
+                                                                 (T*)d_x,
+                                                                 offset_x,
+                                                                 inc_x,
+                                                                 stride_x,
+                                                                 1,
+                                                                 check_numerics,
+                                                                 is_input);
 
         EXPECT_EQ(status, rocblas_status_check_numerics_fail);
 
@@ -313,16 +313,16 @@ namespace
         //Transferring data from host to device
         CHECK_HIP_ERROR(d_x_batch.transfer_from(h_x_batch));
 
-        status = rocblas_check_numerics_vector_template(function_name,
-                                                        handle,
-                                                        N,
-                                                        d_x_batch.const_batch_ptr(),
-                                                        offset_x,
-                                                        inc_x,
-                                                        stride_x,
-                                                        batch_count,
-                                                        check_numerics,
-                                                        is_input);
+        status = rocblas_internal_check_numerics_vector_template(function_name,
+                                                                 handle,
+                                                                 N,
+                                                                 d_x_batch.const_batch_ptr(),
+                                                                 offset_x,
+                                                                 inc_x,
+                                                                 stride_x,
+                                                                 batch_count,
+                                                                 check_numerics,
+                                                                 is_input);
 
         EXPECT_EQ(status, rocblas_status_success);
 
@@ -339,16 +339,16 @@ namespace
         //Transferring data from host to device
         CHECK_HIP_ERROR(d_x_batch.transfer_from(h_x_batch));
 
-        status = rocblas_check_numerics_vector_template(function_name,
-                                                        handle,
-                                                        N,
-                                                        d_x_batch.const_batch_ptr(),
-                                                        offset_x,
-                                                        inc_x,
-                                                        stride_x,
-                                                        batch_count,
-                                                        check_numerics,
-                                                        is_input);
+        status = rocblas_internal_check_numerics_vector_template(function_name,
+                                                                 handle,
+                                                                 N,
+                                                                 d_x_batch.const_batch_ptr(),
+                                                                 offset_x,
+                                                                 inc_x,
+                                                                 stride_x,
+                                                                 batch_count,
+                                                                 check_numerics,
+                                                                 is_input);
 
         EXPECT_EQ(status, rocblas_status_success);
 
@@ -365,16 +365,16 @@ namespace
         //Transferring data from host to device
         CHECK_HIP_ERROR(d_x_batch.transfer_from(h_x_batch));
 
-        status = rocblas_check_numerics_vector_template(function_name,
-                                                        handle,
-                                                        N,
-                                                        d_x_batch.const_batch_ptr(),
-                                                        offset_x,
-                                                        inc_x,
-                                                        stride_x,
-                                                        batch_count,
-                                                        check_numerics,
-                                                        is_input);
+        status = rocblas_internal_check_numerics_vector_template(function_name,
+                                                                 handle,
+                                                                 N,
+                                                                 d_x_batch.const_batch_ptr(),
+                                                                 offset_x,
+                                                                 inc_x,
+                                                                 stride_x,
+                                                                 batch_count,
+                                                                 check_numerics,
+                                                                 is_input);
 
         EXPECT_EQ(status, rocblas_status_check_numerics_fail);
 
@@ -391,16 +391,16 @@ namespace
         //Transferring data from host to device
         CHECK_HIP_ERROR(d_x_batch.transfer_from(h_x_batch));
 
-        status = rocblas_check_numerics_vector_template(function_name,
-                                                        handle,
-                                                        N,
-                                                        d_x_batch.const_batch_ptr(),
-                                                        offset_x,
-                                                        inc_x,
-                                                        stride_x,
-                                                        batch_count,
-                                                        check_numerics,
-                                                        is_input);
+        status = rocblas_internal_check_numerics_vector_template(function_name,
+                                                                 handle,
+                                                                 N,
+                                                                 d_x_batch.const_batch_ptr(),
+                                                                 offset_x,
+                                                                 inc_x,
+                                                                 stride_x,
+                                                                 batch_count,
+                                                                 check_numerics,
+                                                                 is_input);
 
         EXPECT_EQ(status, rocblas_status_check_numerics_fail);
 
@@ -503,18 +503,18 @@ namespace
         rocblas_status status          = rocblas_status_success;
         const char     function_name[] = "testing_check_numerics_matrix";
         bool           is_input        = true;
-        status                         = rocblas_check_numerics_ge_matrix_template(function_name,
-                                                           handle,
-                                                           rocblas_operation_transpose,
-                                                           M,
-                                                           N,
-                                                           (T*)d_A,
-                                                           offset_a,
-                                                           lda,
-                                                           stride_a,
-                                                           1,
-                                                           check_numerics,
-                                                           is_input);
+        status = rocblas_internal_check_numerics_ge_matrix_template(function_name,
+                                                                    handle,
+                                                                    rocblas_operation_transpose,
+                                                                    M,
+                                                                    N,
+                                                                    (T*)d_A,
+                                                                    offset_a,
+                                                                    lda,
+                                                                    stride_a,
+                                                                    1,
+                                                                    check_numerics,
+                                                                    is_input);
         EXPECT_EQ(status, rocblas_status_success);
         //==============================================================================================
         // Initializing and testing for zero in the matrix
@@ -524,18 +524,18 @@ namespace
         // copy data from CPU to device
         CHECK_HIP_ERROR(hipMemcpy(d_A, h_A, sizeof(T) * size_a, hipMemcpyHostToDevice));
 
-        status = rocblas_check_numerics_ge_matrix_template(function_name,
-                                                           handle,
-                                                           rocblas_operation_transpose,
-                                                           M,
-                                                           N,
-                                                           (T*)d_A,
-                                                           offset_a,
-                                                           lda,
-                                                           stride_a,
-                                                           1,
-                                                           check_numerics,
-                                                           is_input);
+        status = rocblas_internal_check_numerics_ge_matrix_template(function_name,
+                                                                    handle,
+                                                                    rocblas_operation_transpose,
+                                                                    M,
+                                                                    N,
+                                                                    (T*)d_A,
+                                                                    offset_a,
+                                                                    lda,
+                                                                    stride_a,
+                                                                    1,
+                                                                    check_numerics,
+                                                                    is_input);
         EXPECT_EQ(status, rocblas_status_success);
         //==============================================================================================
         // Initializing and testing for Inf in the matrix
@@ -547,18 +547,18 @@ namespace
         // copy data from CPU to device
         CHECK_HIP_ERROR(hipMemcpy(d_A, h_A, sizeof(T) * size_a, hipMemcpyHostToDevice));
 
-        status = rocblas_check_numerics_ge_matrix_template(function_name,
-                                                           handle,
-                                                           rocblas_operation_none,
-                                                           M,
-                                                           N,
-                                                           (T*)d_A,
-                                                           offset_a,
-                                                           lda,
-                                                           stride_a,
-                                                           1,
-                                                           check_numerics,
-                                                           is_input);
+        status = rocblas_internal_check_numerics_ge_matrix_template(function_name,
+                                                                    handle,
+                                                                    rocblas_operation_none,
+                                                                    M,
+                                                                    N,
+                                                                    (T*)d_A,
+                                                                    offset_a,
+                                                                    lda,
+                                                                    stride_a,
+                                                                    1,
+                                                                    check_numerics,
+                                                                    is_input);
 
         EXPECT_EQ(status, rocblas_status_check_numerics_fail);
         //==============================================================================================
@@ -571,18 +571,18 @@ namespace
         // copy data from CPU to device
         CHECK_HIP_ERROR(hipMemcpy(d_A, h_A, sizeof(T) * size_a, hipMemcpyHostToDevice));
 
-        status = rocblas_check_numerics_ge_matrix_template(function_name,
-                                                           handle,
-                                                           rocblas_operation_none,
-                                                           M,
-                                                           N,
-                                                           (T*)d_A,
-                                                           offset_a,
-                                                           lda,
-                                                           stride_a,
-                                                           1,
-                                                           check_numerics,
-                                                           is_input);
+        status = rocblas_internal_check_numerics_ge_matrix_template(function_name,
+                                                                    handle,
+                                                                    rocblas_operation_none,
+                                                                    M,
+                                                                    N,
+                                                                    (T*)d_A,
+                                                                    offset_a,
+                                                                    lda,
+                                                                    stride_a,
+                                                                    1,
+                                                                    check_numerics,
+                                                                    is_input);
 
         EXPECT_EQ(status, rocblas_status_check_numerics_fail);
 
@@ -600,18 +600,18 @@ namespace
         //Transferring data from host to device
         CHECK_HIP_ERROR(d_A_batch.transfer_from(h_A_batch));
 
-        status = rocblas_check_numerics_ge_matrix_template(function_name,
-                                                           handle,
-                                                           rocblas_operation_none,
-                                                           M,
-                                                           N,
-                                                           d_A_batch.const_batch_ptr(),
-                                                           offset_a,
-                                                           lda,
-                                                           stride_a,
-                                                           batch_count,
-                                                           check_numerics,
-                                                           is_input);
+        status = rocblas_internal_check_numerics_ge_matrix_template(function_name,
+                                                                    handle,
+                                                                    rocblas_operation_none,
+                                                                    M,
+                                                                    N,
+                                                                    d_A_batch.const_batch_ptr(),
+                                                                    offset_a,
+                                                                    lda,
+                                                                    stride_a,
+                                                                    batch_count,
+                                                                    check_numerics,
+                                                                    is_input);
 
         EXPECT_EQ(status, rocblas_status_success);
 
@@ -629,18 +629,18 @@ namespace
         //Transferring data from host to device
         CHECK_HIP_ERROR(d_A_batch.transfer_from(h_A_batch));
 
-        status = rocblas_check_numerics_ge_matrix_template(function_name,
-                                                           handle,
-                                                           rocblas_operation_transpose,
-                                                           M,
-                                                           N,
-                                                           d_A_batch.const_batch_ptr(),
-                                                           offset_a,
-                                                           lda,
-                                                           stride_a,
-                                                           batch_count,
-                                                           check_numerics,
-                                                           is_input);
+        status = rocblas_internal_check_numerics_ge_matrix_template(function_name,
+                                                                    handle,
+                                                                    rocblas_operation_transpose,
+                                                                    M,
+                                                                    N,
+                                                                    d_A_batch.const_batch_ptr(),
+                                                                    offset_a,
+                                                                    lda,
+                                                                    stride_a,
+                                                                    batch_count,
+                                                                    check_numerics,
+                                                                    is_input);
 
         EXPECT_EQ(status, rocblas_status_success);
 
@@ -658,18 +658,18 @@ namespace
         //Transferring data from host to device
         CHECK_HIP_ERROR(d_A_batch.transfer_from(h_A_batch));
 
-        status = rocblas_check_numerics_ge_matrix_template(function_name,
-                                                           handle,
-                                                           rocblas_operation_transpose,
-                                                           M,
-                                                           N,
-                                                           d_A_batch.const_batch_ptr(),
-                                                           offset_a,
-                                                           lda,
-                                                           stride_a,
-                                                           batch_count,
-                                                           check_numerics,
-                                                           is_input);
+        status = rocblas_internal_check_numerics_ge_matrix_template(function_name,
+                                                                    handle,
+                                                                    rocblas_operation_transpose,
+                                                                    M,
+                                                                    N,
+                                                                    d_A_batch.const_batch_ptr(),
+                                                                    offset_a,
+                                                                    lda,
+                                                                    stride_a,
+                                                                    batch_count,
+                                                                    check_numerics,
+                                                                    is_input);
 
         EXPECT_EQ(status, rocblas_status_check_numerics_fail);
 
@@ -687,18 +687,18 @@ namespace
         //Transferring data from host to device
         CHECK_HIP_ERROR(d_A_batch.transfer_from(h_A_batch));
 
-        status = rocblas_check_numerics_ge_matrix_template(function_name,
-                                                           handle,
-                                                           rocblas_operation_transpose,
-                                                           M,
-                                                           N,
-                                                           d_A_batch.const_batch_ptr(),
-                                                           offset_a,
-                                                           lda,
-                                                           stride_a,
-                                                           batch_count,
-                                                           check_numerics,
-                                                           is_input);
+        status = rocblas_internal_check_numerics_ge_matrix_template(function_name,
+                                                                    handle,
+                                                                    rocblas_operation_transpose,
+                                                                    M,
+                                                                    N,
+                                                                    d_A_batch.const_batch_ptr(),
+                                                                    offset_a,
+                                                                    lda,
+                                                                    stride_a,
+                                                                    batch_count,
+                                                                    check_numerics,
+                                                                    is_input);
 
         EXPECT_EQ(status, rocblas_status_check_numerics_fail);
 

@@ -49,10 +49,14 @@ Definitions:
     - { M:   600, N:   500, lda:  601, stride_a:   301000 }
 
   - &large_matrix_size_range
-    - { M:  1000, N:  1000, lda: 1000, stride_a:  1000000 }
-    - { M:  2000, N:  2000, lda: 2000, stride_a:  4000000 }
-    - { M:  4011, N:  4011, lda: 4011, stride_a: 16088200 }
-    - { M:  8000, N:  8000, lda: 8000, stride_a: 64000000 }
+    - { M:  1000, N:  1000,  lda: 1000,  stride_a:  1000000 }
+    - { M:  2000, N:  2000,  lda: 2000,  stride_a:  4000000 }
+    - { M:  4011, N:  4011,  lda: 4011,  stride_a: 16088200 }
+    - { M:  8000, N:  8000,  lda: 8000,  stride_a: 64000000 }
+
+  - &very_large_matrix_size_range
+    - { M:  16010, N: 16010, lda: 16010, stride_a: 256320100 }
+    - { M:  25020, N: 25020, lda: 25020, stride_a: 625000400 }
 
   - &incx_incy_range
     - { incx:   2, incy:   1, stride_scale: 1   }
@@ -172,6 +176,15 @@ Tests:
   incx_incy: *incx_incy_range_small
   alpha_beta: *alpha_beta_range_small
 
+- name: gemv_very_large
+  category: nightly
+  function: gemv
+  precision: *double_precision
+  transA: [ N ]
+  matrix_size: *very_large_matrix_size_range
+  incx_incy: *incx_incy_range_small
+  alpha_beta: *alpha_beta_range_small
+
 - name: gemv_skinny_n
   category: pre_checkin
   function: gemv
@@ -276,6 +289,16 @@ Tests:
   alpha_beta: *alpha_beta_range_small
   batch_count: [ 3 ]
 
+- name: gemv_batched_very_large
+  category: nightly
+  function: gemv_batched
+  precision: *double_precision
+  transA: [ N ]
+  matrix_size: *very_large_matrix_size_range
+  incx_incy: *incx_incy_range_small
+  alpha_beta: *alpha_beta_range_small
+  batch_count: [ 3 ]
+
 # gemv_strided_batched
 - name: gemv_strided_batched_bad_arg
   category: pre_checkin
@@ -360,6 +383,16 @@ Tests:
   precision: *single_double_precisions
   transA: [ N, T, C ]
   matrix_size: *large_matrix_size_range
+  incx_incy: *incx_incy_range_small
+  alpha_beta: *alpha_beta_range_small
+  batch_count: [ 3 ]
+
+- name: gemv_strided_batched_very_large
+  category: nightly
+  function: gemv_strided_batched
+  precision: *double_precision
+  transA: [ N ]
+  matrix_size: *very_large_matrix_size_range
   incx_incy: *incx_incy_range_small
   alpha_beta: *alpha_beta_range_small
   batch_count: [ 3 ]

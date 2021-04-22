@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "logging.hpp"
 #include "rocblas_her2.hpp"
@@ -145,23 +145,23 @@ namespace
             if(her2_check_numerics_status != rocblas_status_success)
                 return her2_check_numerics_status;
         }
-        rocblas_status status = rocblas_her2_template(handle,
-                                                      uplo,
-                                                      n,
-                                                      alpha,
-                                                      x,
-                                                      offset_x,
-                                                      incx,
-                                                      stridex,
-                                                      y,
-                                                      offset_y,
-                                                      incy,
-                                                      stridey,
-                                                      A,
-                                                      lda,
-                                                      offset_A,
-                                                      strideA,
-                                                      batch_count);
+        rocblas_status status = rocblas_internal_her2_template(handle,
+                                                               uplo,
+                                                               n,
+                                                               alpha,
+                                                               x,
+                                                               offset_x,
+                                                               incx,
+                                                               stridex,
+                                                               y,
+                                                               offset_y,
+                                                               incy,
+                                                               stridey,
+                                                               A,
+                                                               lda,
+                                                               offset_A,
+                                                               strideA,
+                                                               batch_count);
         if(status != rocblas_status_success)
             return status;
 

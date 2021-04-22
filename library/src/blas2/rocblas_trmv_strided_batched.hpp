@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2019-2020 Advanced Micro Devices, Inc.
+ * Copyright 2019-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -25,20 +25,20 @@ rocblas_status rocblas_trmv_strided_batched_template(rocblas_handle    handle,
     static constexpr rocblas_int NB      = 512;
     static constexpr ptrdiff_t   offseta = 0;
     static constexpr ptrdiff_t   offsetx = 0;
-    return rocblas_trmv_template<NB>(handle,
-                                     uplo,
-                                     transa,
-                                     diag,
-                                     m,
-                                     a,
-                                     offseta,
-                                     lda,
-                                     stridea,
-                                     x,
-                                     offsetx,
-                                     incx,
-                                     stridex,
-                                     w,
-                                     stridew,
-                                     batch_count);
+    return rocblas_internal_trmv_template<NB>(handle,
+                                              uplo,
+                                              transa,
+                                              diag,
+                                              m,
+                                              a,
+                                              offseta,
+                                              lda,
+                                              stridea,
+                                              x,
+                                              offsetx,
+                                              incx,
+                                              stridex,
+                                              w,
+                                              stridew,
+                                              batch_count);
 }

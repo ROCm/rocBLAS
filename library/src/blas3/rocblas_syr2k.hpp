@@ -277,26 +277,27 @@ inline rocblas_status rocblas_syr2k_arg_check(rocblas_handle    handle,
   *  TPtr      is either:       T* OR       T* const*
   */
 template <bool TWOK, typename TScal, typename TConstPtr, typename TPtr>
-ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_syr2k_template(rocblas_handle    handle,
-                                                              rocblas_fill      uplo,
-                                                              rocblas_operation trans,
-                                                              rocblas_int       n,
-                                                              rocblas_int       k,
-                                                              TScal             alpha,
-                                                              TConstPtr         AP,
-                                                              rocblas_int       offsetA,
-                                                              rocblas_int       lda,
-                                                              rocblas_stride    strideA,
-                                                              TConstPtr         BP,
-                                                              rocblas_int       offsetB,
-                                                              rocblas_int       ldb,
-                                                              rocblas_stride    strideB,
-                                                              TScal             beta,
-                                                              TPtr              CP,
-                                                              rocblas_int       offsetC,
-                                                              rocblas_int       ldc,
-                                                              rocblas_stride    strideC,
-                                                              rocblas_int       batch_count)
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_syr2k_template(rocblas_handle    handle,
+                                    rocblas_fill      uplo,
+                                    rocblas_operation trans,
+                                    rocblas_int       n,
+                                    rocblas_int       k,
+                                    TScal             alpha,
+                                    TConstPtr         AP,
+                                    rocblas_int       offsetA,
+                                    rocblas_int       lda,
+                                    rocblas_stride    strideA,
+                                    TConstPtr         BP,
+                                    rocblas_int       offsetB,
+                                    rocblas_int       ldb,
+                                    rocblas_stride    strideB,
+                                    TScal             beta,
+                                    TPtr              CP,
+                                    rocblas_int       offsetC,
+                                    rocblas_int       ldc,
+                                    rocblas_stride    strideC,
+                                    rocblas_int       batch_count)
 {
     // quick return
     if(!n || !batch_count)

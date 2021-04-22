@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "logging.hpp"
 #include "rocblas_symm.hpp"
@@ -134,26 +134,26 @@ namespace
         if(arg_status != rocblas_status_continue)
             return arg_status;
 
-        return rocblas_symm_template<false>(handle,
-                                            side,
-                                            uplo,
-                                            m,
-                                            n,
-                                            alpha,
-                                            A,
-                                            offset_A,
-                                            lda,
-                                            stride_A,
-                                            B,
-                                            offset_B,
-                                            ldb,
-                                            stride_B,
-                                            beta,
-                                            C,
-                                            offset_C,
-                                            ldc,
-                                            stride_C,
-                                            batch_count);
+        return rocblas_internal_symm_template<false>(handle,
+                                                     side,
+                                                     uplo,
+                                                     m,
+                                                     n,
+                                                     alpha,
+                                                     A,
+                                                     offset_A,
+                                                     lda,
+                                                     stride_A,
+                                                     B,
+                                                     offset_B,
+                                                     ldb,
+                                                     stride_B,
+                                                     beta,
+                                                     C,
+                                                     offset_C,
+                                                     ldc,
+                                                     stride_C,
+                                                     batch_count);
     }
 
 }

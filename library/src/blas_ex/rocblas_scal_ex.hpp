@@ -35,12 +35,12 @@ rocblas_status scal_ex_typecasting(rocblas_handle handle,
 
     if(BATCHED)
     {
-        return rocblas_scal_template<NB, Tex>(
+        return rocblas_internal_scal_template<NB, Tex>(
             handle, n, alpha, stride_alpha, (Tx* const*)x, offset_x, incx, stride_x, batch_count);
     }
     else
     {
-        return rocblas_scal_template<NB, Tex>(
+        return rocblas_internal_scal_template<NB, Tex>(
             handle, n, alpha, stride_alpha, (Tx*)x, offset_x, incx, stride_x, batch_count);
     }
 }

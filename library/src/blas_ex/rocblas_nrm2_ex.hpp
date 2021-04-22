@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -23,27 +23,27 @@ rocblas_status nrm2_ex_typecasting(rocblas_handle handle,
 {
     if(ISBATCHED)
     {
-        return rocblas_nrm2_template<NB, ISBATCHED>(handle,
-                                                    n,
-                                                    (const Tx* const*)x,
-                                                    shiftx,
-                                                    incx,
-                                                    stridex,
-                                                    batch_count,
-                                                    (Tr*)results,
-                                                    (Tex*)workspace);
+        return rocblas_internal_nrm2_template<NB, ISBATCHED>(handle,
+                                                             n,
+                                                             (const Tx* const*)x,
+                                                             shiftx,
+                                                             incx,
+                                                             stridex,
+                                                             batch_count,
+                                                             (Tr*)results,
+                                                             (Tex*)workspace);
     }
     else
     {
-        return rocblas_nrm2_template<NB, ISBATCHED>(handle,
-                                                    n,
-                                                    (const Tx*)x,
-                                                    shiftx,
-                                                    incx,
-                                                    stridex,
-                                                    batch_count,
-                                                    (Tr*)results,
-                                                    (Tex*)workspace);
+        return rocblas_internal_nrm2_template<NB, ISBATCHED>(handle,
+                                                             n,
+                                                             (const Tx*)x,
+                                                             shiftx,
+                                                             incx,
+                                                             stridex,
+                                                             batch_count,
+                                                             (Tr*)results,
+                                                             (Tex*)workspace);
     }
 }
 

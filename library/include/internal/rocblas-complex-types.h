@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2019-2020 Advanced Micro Devices, Inc.
+ * Copyright 2019-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 /*! \file
@@ -446,7 +446,7 @@ ROCBLAS_CLANG_STATIC constexpr bool is_complex<rocblas_double_complex> = true;
 //! @brief Struct to define pair of value and index.
 //!
 template <typename T>
-struct ROCBLAS_EXPORT rocblas_index_value_t
+struct ROCBLAS_INTERNAL_EXPORT rocblas_index_value_t
 {
     //! @brief Important: index must come first, so that rocblas_index_value_t* can be cast to rocblas_int*
     rocblas_int index;

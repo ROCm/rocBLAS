@@ -1,4 +1,4 @@
-# Copyright 2020 Advanced Micro Devices, Inc.
+# Copyright 2020-2021 Advanced Micro Devices, Inc.
 
 import os
 import argparse
@@ -15,9 +15,10 @@ gPattern = re.compile(r'\{[^\{\}]*\}')
 def translateToProto(templateCode):
     global gPattern
     proto = ''.join(templateCode)
-    if re.search("ROCBLAS_EXPORT_NOINLINE", proto) is None:
+    if re.search("ROCBLAS_INTERNAL_EXPORT_NOINLINE", proto) is None:
         return
-    proto = re.sub("ROCBLAS_EXPORT_NOINLINE ", "", proto)
+    # keep warning in proto
+    proto = re.sub("ROCBLAS_INTERNAL_EXPORT_NOINLINE", "ROCBLAS_INTERNAL_DEPRECATION", proto)
     n = 1
     while n:
         proto, n = re.subn(gPattern, '', proto)
@@ -44,11 +45,16 @@ def parseForExportedTemplates(inputFileName):
 
 def RunExporter():
     print("""
-// Copyright (C) 2020 Advanced Micro Devices, Inc. All rights reserved.
+// Copyright (C) 2020-2021 Advanced Micro Devices, Inc. All rights reserved.
 
 // Script-generated file -- do not edit
 
+// rocBLAS internal API may change each release. The rocBLAS team strongly advises against its use.
+
 #pragma once
+
+#include "internal/rocblas-types.h"
+
 """)
 
     # Parse Command Line Arguments

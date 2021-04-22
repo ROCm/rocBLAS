@@ -491,7 +491,7 @@ void testing_gemm_ex(const Arguments& arg)
     }
 
 #ifdef ROCBLAS_BENCH
-    if(rocblas_tensile_debug_skip_launch())
+    if(rocblas_internal_tensile_debug_skip_launch())
     {
         device_vector<Ti> dA(1);
         device_vector<Ti> dB(1);

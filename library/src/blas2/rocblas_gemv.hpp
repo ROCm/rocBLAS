@@ -8,9 +8,9 @@
 #include "check_numerics_vector.hpp"
 #include "gemv_device.hpp"
 #include "handle.hpp"
+#include "rocblas_gemv_threshold.hpp"
 
 // gemvt_sn is skinny n matrix optimizations
-
 constexpr int rocblas_gemvt_sn_WIN()
 {
     return 4;
@@ -60,7 +60,7 @@ inline bool rocblas_gemvt_skinny_n(rocblas_operation transA, rocblas_int m, rocb
         return false;
 }
 
-/*! \brief rocblas_gemv_kernel_workspace_size
+/*! \brief rocblas_internal_gemv_kernel_workspace_size
     Currently only transpose/conj skinny n matrices use workspace memory, so usually returns 0
     Work buffer for column reductions: number of blocks * cols * batch_count
 
@@ -78,10 +78,8 @@ inline bool rocblas_gemvt_skinny_n(rocblas_operation transA, rocblas_int m, rocb
         Number of batches
     ********************************************************************/
 template <typename To>
-ROCBLAS_EXPORT_NOINLINE size_t rocblas_gemv_kernel_workspace_size(rocblas_operation transA,
-                                                                  rocblas_int       m,
-                                                                  rocblas_int       n,
-                                                                  rocblas_int       batch_count = 1)
+ROCBLAS_INTERNAL_EXPORT_NOINLINE size_t rocblas_internal_gemv_kernel_workspace_size(
+    rocblas_operation transA, rocblas_int m, rocblas_int n, rocblas_int batch_count = 1)
 {
     if(m <= 0 || n <= 0 || batch_count <= 0)
         return 0;
@@ -94,28 +92,29 @@ ROCBLAS_EXPORT_NOINLINE size_t rocblas_gemv_kernel_workspace_size(rocblas_operat
 }
 
 template <typename T, typename U, typename V, typename W>
-ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_gemv_template(rocblas_handle    handle,
-                                                             rocblas_operation transA,
-                                                             rocblas_int       m,
-                                                             rocblas_int       n,
-                                                             const U*          alpha,
-                                                             rocblas_stride    stride_alpha,
-                                                             const V*          A,
-                                                             rocblas_int       offseta,
-                                                             rocblas_int       lda,
-                                                             rocblas_stride    strideA,
-                                                             const V*          x,
-                                                             rocblas_int       offsetx,
-                                                             rocblas_int       incx,
-                                                             rocblas_stride    stridex,
-                                                             const U*          beta,
-                                                             rocblas_stride    stride_beta,
-                                                             W*                y,
-                                                             rocblas_int       offsety,
-                                                             rocblas_int       incy,
-                                                             rocblas_stride    stridey,
-                                                             rocblas_int       batch_count,
-                                                             T*                work = nullptr)
+ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
+    rocblas_internal_gemv_template(rocblas_handle    handle,
+                                   rocblas_operation transA,
+                                   rocblas_int       m,
+                                   rocblas_int       n,
+                                   const U*          alpha,
+                                   rocblas_stride    stride_alpha,
+                                   const V*          A,
+                                   rocblas_int       offseta,
+                                   rocblas_int       lda,
+                                   rocblas_stride    strideA,
+                                   const V*          x,
+                                   rocblas_int       offsetx,
+                                   rocblas_int       incx,
+                                   rocblas_stride    stridex,
+                                   const U*          beta,
+                                   rocblas_stride    stride_beta,
+                                   W*                y,
+                                   rocblas_int       offsety,
+                                   rocblas_int       incy,
+                                   rocblas_stride    stridey,
+                                   rocblas_int       batch_count,
+                                   T*                work = nullptr)
 {
     //quick return
     if(!m || !n || !batch_count)
@@ -130,8 +129,17 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_gemv_template(rocblas_handle    h
     auto shifty
         = incy < 0 ? offsety - ptrdiff_t(incy) * (transA == rocblas_operation_none ? m - 1 : n - 1)
                    : offsety;
-
     bool i64_indices = n * size_t(lda) > std::numeric_limits<rocblas_int>::max();
+
+    //Identifying the precision to have an appropriate optimization
+    bool is_float          = std::is_same<T, float>{};
+    bool is_double         = std::is_same<T, double>{};
+    bool is_complex_float  = std::is_same<T, rocblas_float_complex>{};
+    bool is_complex_double = std::is_same<T, rocblas_double_complex>{};
+
+    //Identifying the architecture to have an appropriate optimization
+    bool is_gfx908 = handle->getArch() == 908 ? true : false;
+    bool is_gfx906 = handle->getArch() == 906 ? true : false;
 
     if(transA == rocblas_operation_none)
     {
@@ -145,6 +153,53 @@ ROCBLAS_EXPORT_NOINLINE rocblas_status rocblas_gemv_template(rocblas_handle    h
 
             static constexpr int GEMVN_DIM_X = 64;
             static constexpr int GEMVN_DIM_Y = 4;
+            rocblas_int          blocks      = (m - 1) / (GEMVN_DIM_X * 4) + 1;
+            if(std::is_same<T, rocblas_double_complex>{})
+                blocks = (m - 1) / (GEMVN_DIM_X) + 1;
+            dim3 gemvn_grid(blocks, batch_count);
+            dim3 gemvn_threads(GEMVN_DIM_X, GEMVN_DIM_Y);
+
+            if(handle->pointer_mode == rocblas_pointer_mode_device)
+            {
+                if(!i64_indices)
+                    hipLaunchKernelGGL((gemvn_kernel<GEMVN_DIM_X, GEMVN_DIM_Y, rocblas_int, T>),
+                                       gemvn_KARGS(alpha, beta));
+                else
+                    hipLaunchKernelGGL((gemvn_kernel<GEMVN_DIM_X, GEMVN_DIM_Y, size_t, T>),
+                                       gemvn_KARGS(alpha, beta));
+            }
+            else
+            {
+                if(!*alpha && *beta == 1)
+                    return rocblas_status_success;
+
+                if(!i64_indices)
+                    hipLaunchKernelGGL((gemvn_kernel<GEMVN_DIM_X, GEMVN_DIM_Y, rocblas_int, T>),
+                                       gemvn_KARGS(*alpha, *beta));
+                else
+                    hipLaunchKernelGGL((gemvn_kernel<GEMVN_DIM_X, GEMVN_DIM_Y, size_t, T>),
+                                       gemvn_KARGS(*alpha, *beta));
+            }
+        }
+        //optimized gemvn kernel for gfx906 and gfx908.
+        else if((is_gfx908
+                 && (((is_float || is_double || is_complex_float) && m <= gemvn_gfx908_threshold
+                      && n <= gemvn_gfx908_threshold)
+                     || (is_complex_double && m <= zgemvn_gfx908_threshold
+                         && n <= zgemvn_gfx908_threshold)))
+
+                || (is_gfx906
+                    && (is_complex_float
+                        || ((is_float || is_double) && m <= gemvn_gfx906_threshold
+                            && n <= gemvn_gfx906_threshold)
+                        || (is_double
+                            && ((m >= dgemvn_gfx906_lower_threshold
+                                 && n >= dgemvn_gfx906_lower_threshold)
+                                || (m <= dgemvn_gfx906_upper_threshold
+                                    && n <= dgemvn_gfx906_upper_threshold))))))
+        {
+            static constexpr int GEMVN_DIM_X = 32;
+            static constexpr int GEMVN_DIM_Y = 16;
             rocblas_int          blocks      = (m - 1) / (GEMVN_DIM_X * 4) + 1;
             if(std::is_same<T, rocblas_double_complex>{})
                 blocks = (m - 1) / (GEMVN_DIM_X) + 1;
@@ -622,49 +677,49 @@ rocblas_status rocblas_gemv_check_numerics(const char*       function_name,
                                            bool              is_input)
 {
     rocblas_status check_numerics_status
-        = rocblas_check_numerics_ge_matrix_template(function_name,
-                                                    handle,
-                                                    rocblas_operation_none,
-                                                    m,
-                                                    n,
-                                                    A,
-                                                    offset_a,
-                                                    lda,
-                                                    stride_a,
-                                                    batch_count,
-                                                    check_numerics,
-                                                    is_input);
+        = rocblas_internal_check_numerics_ge_matrix_template(function_name,
+                                                             handle,
+                                                             rocblas_operation_none,
+                                                             m,
+                                                             n,
+                                                             A,
+                                                             offset_a,
+                                                             lda,
+                                                             stride_a,
+                                                             batch_count,
+                                                             check_numerics,
+                                                             is_input);
     if(check_numerics_status != rocblas_status_success)
         return check_numerics_status;
 
     //Checking trans_a to transpose a vector 'x'
     rocblas_int n_x = trans_a == rocblas_operation_none ? n : m;
 
-    check_numerics_status = rocblas_check_numerics_vector_template(function_name,
-                                                                   handle,
-                                                                   n_x,
-                                                                   x,
-                                                                   offset_x,
-                                                                   inc_x,
-                                                                   stride_x,
-                                                                   batch_count,
-                                                                   check_numerics,
-                                                                   is_input);
+    check_numerics_status = rocblas_internal_check_numerics_vector_template(function_name,
+                                                                            handle,
+                                                                            n_x,
+                                                                            x,
+                                                                            offset_x,
+                                                                            inc_x,
+                                                                            stride_x,
+                                                                            batch_count,
+                                                                            check_numerics,
+                                                                            is_input);
     if(check_numerics_status != rocblas_status_success)
         return check_numerics_status;
 
     //Checking trans_a to transpose a vector 'y'
     rocblas_int n_y       = trans_a == rocblas_operation_none ? m : n;
-    check_numerics_status = rocblas_check_numerics_vector_template(function_name,
-                                                                   handle,
-                                                                   n_y,
-                                                                   y,
-                                                                   offset_y,
-                                                                   inc_y,
-                                                                   stride_y,
-                                                                   batch_count,
-                                                                   check_numerics,
-                                                                   is_input);
+    check_numerics_status = rocblas_internal_check_numerics_vector_template(function_name,
+                                                                            handle,
+                                                                            n_y,
+                                                                            y,
+                                                                            offset_y,
+                                                                            inc_y,
+                                                                            stride_y,
+                                                                            batch_count,
+                                                                            check_numerics,
+                                                                            is_input);
 
     return check_numerics_status;
 }
