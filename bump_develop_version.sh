@@ -5,8 +5,8 @@
 # - run this script in master branch
 # - after running this script merge master into develop
 
-OLD_TENSILE_HASH="1a8369a4baf528926a179cea86c630176d17298a"
-NEW_TENSILE_HASH="ec7a04df20b3b0248de61add042525f49210209d"
+OLD_TENSILE_HASH="9cbabb07f81e932b9c98bf5ae48fbd7fcef615cf"
+NEW_TENSILE_HASH="057d389dd902eae437576b505204a22daeb4ae1d"
 
 sed -i "s/${OLD_TENSILE_HASH}/${NEW_TENSILE_HASH}/g" tensile_tag.txt
 
