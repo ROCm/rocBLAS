@@ -701,23 +701,12 @@ Tests:
       - dot_strided_batched_ex:   *half_bfloat_single_double_complex_real_precisions
       - dotc_strided_batched_ex:   *half_bfloat_single_double_complex_real_precisions
 
-# quick dot one block transitions (halfs excluded)
-  - name: blas1
-    category: quick
-    N: [ 10001, 13001, 16001, 33000 ]
-    incx_incy: *incx_incy_range_small
-    function:
-      - dot:   *single_double_precisions_complex
-      - dotc:  *single_double_precisions_complex
-      - dot_ex:   *single_double_precisions_complex
-      - dotc_ex:   *single_double_precisions_complex
-
 # quick
 # dot alt algorithm, algo=1 forces x*x with incx=incy to test special case kernel
   - name: blas1
     category: quick
-    N: [ -1, 0, 1025, 10001]
-    incx_incy: *incx_incy_range_small
+    N: [ -1, 0, 1025]
+    incx_incy: *incx_incy_range
     algo: 1
     function:
       - dot:   *half_bfloat_single_double_complex_real_precisions
@@ -728,7 +717,7 @@ Tests:
   - name: blas1_batched
     category: quick
     N: [ -1, 0, 1025]
-    incx_incy: *incx_incy_range_small
+    incx_incy: *incx_incy_range
     batch_count: [-1, 0, 257]
     algo: 1
     function:
@@ -740,7 +729,7 @@ Tests:
   - name: blas1_strided_batched
     category: quick
     N: [ -1, 0, 1025]
-    incx_incy: *incx_incy_range_small
+    incx_incy: *incx_incy_range
     batch_count: [-1, 0, 257]
     stride_scale: [ 1 ]
     algo: 1
