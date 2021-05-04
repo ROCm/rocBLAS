@@ -141,6 +141,41 @@ namespace
         }
     }
 
+    /*************************************************************************
+     * Class for converting alpha and beta between rocBLAS and Tensile types *
+     * By default, alpha and beta are the same type as Tc compute_type       *
+     *************************************************************************/
+    template <typename Ti, typename To = Ti, typename Tc = To>
+    struct AlphaBeta
+    {
+        using tensile_type = typename rocblas_to_tensile_type<Tc>::tensile_type;
+        static void copy(tensile_type* dst, const Tc* src)
+        {
+            static_assert(sizeof(*src) == sizeof(*dst),
+                          "Tensile and rocBLAS types are not the same size");
+            static_assert(std::is_standard_layout<tensile_type>{} && std::is_standard_layout<Tc>{},
+                          "Tensile or rocBLAS types are not standard layout types");
+            memcpy(dst, src, sizeof(*dst));
+        }
+    };
+
+    /**************************************************************
+     * Tensile does not support float alpha and beta for HPA half *
+     * We must convert alpha and beta from float to half          *
+     * TODO- Tensile supports HHS HPA now                         *
+     * We could plan to use HHS+HPA instead of this workaround    *
+     **************************************************************/
+    template <>
+    struct AlphaBeta<rocblas_half, rocblas_half, float>
+    {
+        using tensile_type = Tensile::Half;
+        static void copy(tensile_type* dst, const float* float_src)
+        {
+            rocblas_half src(*float_src);
+            AlphaBeta<rocblas_half>::copy(dst, &src);
+        }
+    };
+
     /****************************************************************
      * Construct a Tensile Problem from a RocblasContractionProblem *
      ****************************************************************/
@@ -301,43 +336,22 @@ namespace
         else if(metric != rocblas_default_performance_metric)
             tensileProblem.setPerformanceMetric(performanceMetricMap(metric));
 
+        // alpha and beta are stored by value in Tensile::TypedContractionInputs
+        // alpha and beta are copied from host to Tensile::TypedContractionInputs
+        // If k==0, we do not need to dereference prob.alpha and can set tensileAlpha=0
+        // Not positive if this is necessary here as well
+        typename AlphaBeta<Ti, To, Tc>::tensile_type tensileAlpha;
+        if(prob.k)
+            AlphaBeta<Ti, To, Tc>::copy(&tensileAlpha, prob.alpha);
+        else
+            memset(&tensileAlpha, 0, sizeof(tensileAlpha));
+        tensileProblem.setAlphaRestriction(Tensile::toScalarValueEnum(tensileAlpha));
+
+        // Add problem predicates for CEqualsD
+        tensileProblem.setCEqualsD(prob.C == prob.D);
+
         return tensileProblem;
     }
-
-    /*************************************************************************
-     * Class for converting alpha and beta between rocBLAS and Tensile types *
-     * By default, alpha and beta are the same type as Tc compute_type       *
-     *************************************************************************/
-    template <typename Ti, typename To = Ti, typename Tc = To>
-    struct AlphaBeta
-    {
-        using tensile_type = typename rocblas_to_tensile_type<Tc>::tensile_type;
-        static void copy(tensile_type* dst, const Tc* src)
-        {
-            static_assert(sizeof(*src) == sizeof(*dst),
-                          "Tensile and rocBLAS types are not the same size");
-            static_assert(std::is_standard_layout<tensile_type>{} && std::is_standard_layout<Tc>{},
-                          "Tensile or rocBLAS types are not standard layout types");
-            memcpy(dst, src, sizeof(*dst));
-        }
-    };
-
-    /**************************************************************
-     * Tensile does not support float alpha and beta for HPA half *
-     * We must convert alpha and beta from float to half          *
-     * TODO- Tensile supports HHS HPA now                         *
-     * We could plan to use HHS+HPA instead of this workaround    *
-     **************************************************************/
-    template <>
-    struct AlphaBeta<rocblas_half, rocblas_half, float>
-    {
-        using tensile_type = Tensile::Half;
-        static void copy(tensile_type* dst, const float* float_src)
-        {
-            rocblas_half src(*float_src);
-            AlphaBeta<rocblas_half>::copy(dst, &src);
-        }
-    };
 
     /***************************************************************
      * Construct the inputs to a Tensile ContractionProblem        *
