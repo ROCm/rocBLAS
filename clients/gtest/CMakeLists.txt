@@ -159,7 +159,7 @@ add_custom_target( rocblas-test-data
 
 add_dependencies( rocblas-test rocblas-test-data rocblas-common )
 
-if( CMAKE_COMPILER_IS_GNUCXX OR CXX_VERSION_STRING MATCHES "clang" )
+if( CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
   # GCC or hip-clang needs specific flag to turn on f16c intrinsics
   target_compile_options( rocblas-test PRIVATE -mf16c )
 endif( )
