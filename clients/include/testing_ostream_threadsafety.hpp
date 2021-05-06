@@ -13,11 +13,40 @@
 #include <cstdio>
 #include <sstream>
 #include <thread>
+#ifdef WIN32
+#include <fcntl.h>
+#include <io.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#define FDOPEN(A, B) _fdopen(A, B)
+#define OPEN(A) _open(A, _O_WRONLY | _O_CREAT | _O_TRUNC | _O_APPEND, _S_IREAD | _S_IWRITE);
+#define CLOSE(A) _close(A)
+#else
+#define FDOPEN(A, B) fdopen(A, B)
+#define OPEN(A) open(A, O_WRONLY | O_CREAT | O_TRUNC | O_APPEND | O_CLOEXEC, 0644);
+#define CLOSE(A) close(A)
+#include <fcntl.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#endif
+//
+// https://en.cppreference.com/w/User:D41D8CD98F/feature_testing_macros
+//
+#ifdef __cpp_lib_filesystem
+#include <filesystem>
+#else
+#include <experimental/filesystem>
+
+namespace std
+{
+    namespace filesystem = experimental::filesystem;
+}
+#endif
 
 inline void testing_ostream_threadsafety(const Arguments& arg)
 {
-    constexpr size_t NTIMES  = 100; // Number of times the tests are repeated across files
-    constexpr size_t NLINES  = 10000; // Number of lines each thread outputs
+    constexpr size_t NTIMES  = 10; // Number of times the tests are repeated across files
+    constexpr size_t NLINES  = 5000; // Number of lines each thread outputs
     constexpr size_t MAXLEN  = 2000; // Maximum length of random strings
     constexpr size_t NTHREAD = 16; // Number of threads to run simultaneously
     constexpr size_t SIGLEN  = 16; // Number of characters in signature
@@ -51,8 +80,16 @@ inline void testing_ostream_threadsafety(const Arguments& arg)
     for(size_t n = 0; n < NTIMES; ++n)
     {
         // Open a file in /tmp
-        char path[] = "/tmp/rocblas-XXXXXX";
-        int  fd     = mkstemp(path);
+        //char path[] = "/tmp/rocblas-XXXXXX";
+        std::filesystem::path path;
+        std::string           uniquestr;
+        const std::string alphanum = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuv";
+        int               stringlength = alphanum.length() - 1;
+        uniquestr                      = "rocblas-";
+        for(auto n : {0, 1, 2, 3, 4, 5})
+            uniquestr += alphanum.at(rand() % stringlength);
+        path   = std::filesystem::temp_directory_path() / uniquestr;
+        int fd = OPEN(path.generic_string().c_str());
         if(fd == -1)
         {
             FAIL() << "Cannot open temporary file " << path;
@@ -69,7 +106,7 @@ inline void testing_ostream_threadsafety(const Arguments& arg)
             t.join();
 
         // Close the original file descriptor
-        if(close(fd))
+        if(CLOSE(fd))
             FAIL() << "Could not close filehandle for " << path;
 
         // Reopen the file to check its integrity
@@ -91,7 +128,13 @@ inline void testing_ostream_threadsafety(const Arguments& arg)
             }
         }
 
+        is.close();
+
+#ifdef WIN32
+        // need all file descriptors closed to allow file removal on windows before process exits
+        rocblas_internal_ostream::clear_workers();
+#endif
         // If there were no failures, erase the temporary file
-        remove(path);
+        std::filesystem::remove(path);
     }
 }

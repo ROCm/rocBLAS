@@ -11,6 +11,50 @@
 #include <ostream>
 #include <utility>
 
+#ifdef WIN32
+// Clang specific code
+template <typename T>
+rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os, std::pair<char const*, T> p)
+{
+    os << p.first << ":";
+    os << p.second;
+    return os;
+}
+
+rocblas_internal_ostream& operator<<(rocblas_internal_ostream&                os,
+                                     std::pair<char const*, rocblas_datatype> p)
+{
+    os << p.first << ":";
+    os << rocblas_datatype_string(p.second);
+    return os;
+}
+
+rocblas_internal_ostream& operator<<(rocblas_internal_ostream&                      os,
+                                     std::pair<char const*, rocblas_initialization> p)
+{
+    os << p.first << ":";
+#define CASE(x) \
+    case x:     \
+        return os << #x
+    switch(p.second)
+    {
+        CASE(rocblas_initialization::rand_int);
+        CASE(rocblas_initialization::trig_float);
+        CASE(rocblas_initialization::hpl);
+    }
+    return os << "unknown";
+}
+#undef CASE
+
+rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os, std::pair<char const*, bool> p)
+{
+    os << p.first << ":";
+    os << (p.second ? "true" : "false");
+    return os;
+}
+// End of Clang specific code
+#endif
+
 // Function to print Arguments out to stream in YAML format
 rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os, const Arguments& arg)
 {

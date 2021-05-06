@@ -1,7 +1,7 @@
 /**
  * MIT License
  *
- * Copyright 2019-2020 Advanced Micro Devices, Inc. All rights reserved.
+ * Copyright 2019-2021 Advanced Micro Devices, Inc. All rights reserved.
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -36,7 +36,7 @@
 
 #include <stdint.h>
 /*! \brief Struct to represent a 16 bit Brain floating-point number. */
-typedef struct ROCBLAS_EXPORT
+typedef struct
 {
     uint16_t data;
 } rocblas_bfloat16;

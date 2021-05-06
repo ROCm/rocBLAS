@@ -21,16 +21,16 @@ __device__ void
 }
 
 template <rocblas_int DIM_X, rocblas_int DIM_Y, typename TScal, typename TConstPtr, typename TPtr>
-__global__ __launch_bounds__(DIM_X* DIM_Y) void rocblas_spr_kernel(bool           upper,
-                                                                   rocblas_int    n,
-                                                                   TScal          alphaa,
-                                                                   TConstPtr      xa,
-                                                                   ptrdiff_t      shift_x,
-                                                                   rocblas_int    incx,
-                                                                   rocblas_stride stride_x,
-                                                                   TPtr           APa,
-                                                                   ptrdiff_t      shift_A,
-                                                                   rocblas_stride stride_A)
+ROCBLAS_KERNEL __launch_bounds__(DIM_X* DIM_Y) void rocblas_spr_kernel(bool           upper,
+                                                                       rocblas_int    n,
+                                                                       TScal          alphaa,
+                                                                       TConstPtr      xa,
+                                                                       ptrdiff_t      shift_x,
+                                                                       rocblas_int    incx,
+                                                                       rocblas_stride stride_x,
+                                                                       TPtr           APa,
+                                                                       ptrdiff_t      shift_A,
+                                                                       rocblas_stride stride_A)
 {
     rocblas_int num_threads = hipBlockDim_x * hipBlockDim_y * hipBlockDim_z;
     if(DIM_X * DIM_Y != num_threads)

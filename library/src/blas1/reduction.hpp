@@ -159,7 +159,7 @@ template <rocblas_int NB,
           typename Ti,
           typename To>
 __attribute__((amdgpu_flat_work_group_size((NB < 128) ? NB : 128, (NB > 256) ? NB : 256)))
-__global__ void
+ROCBLAS_KERNEL void
     rocblas_reduction_kernel_part1(rocblas_int n, const Ti* x, rocblas_int incx, To* workspace)
 {
     ptrdiff_t     tx  = hipThreadIdx_x;
@@ -186,7 +186,7 @@ template <rocblas_int NB,
           typename To,
           typename Tr>
 __attribute__((amdgpu_flat_work_group_size((NB < 128) ? NB : 128, (NB > 256) ? NB : 256)))
-__global__ void
+ROCBLAS_KERNEL void
     rocblas_reduction_kernel_part2(rocblas_int nblocks, To* workspace, Tr* result)
 {
     rocblas_int   tx = hipThreadIdx_x;
