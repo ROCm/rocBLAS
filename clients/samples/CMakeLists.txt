@@ -70,7 +70,7 @@ foreach( exe ${sample_list_all} )
     #target_compile_definitions( ${exe} PRIVATE __HIP_PLATFORM_HCC__ )
   endif( )
 
-  if( CMAKE_COMPILER_IS_GNUCXX OR CXX_VERSION_STRING MATCHES "clang" )
+  if( CMAKE_COMPILER_IS_GNUCXX OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
     # GCC or hip-clang needs specific flags to turn on f16c intrinsics
     target_compile_options( ${exe} PRIVATE -mf16c )
   endif( )
