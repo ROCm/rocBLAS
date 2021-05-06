@@ -31,17 +31,42 @@ extern "C" void rocblas_initialize() {}
 #include <Tensile/hip/HipUtils.hpp>
 #include <atomic>
 #include <complex>
-#include <dlfcn.h>
 #include <exception>
-#include <glob.h>
 #include <iomanip>
-#include <libgen.h>
 #include <memory>
 #include <mutex>
 #include <string>
 #include <type_traits>
-#include <unistd.h>
 #include <vector>
+
+#ifdef WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <fileapi.h>
+#include <io.h>
+#include <libloaderapi.h>
+#include <windows.h>
+#define ROCBLAS_LIB_PATH "C:/rocblas"
+#else
+#include <dlfcn.h>
+#include <glob.h>
+#include <libgen.h>
+#include <unistd.h>
+#define ROCBLAS_LIB_PATH "/opt/rocm/rocblas/lib"
+#endif
+
+//
+// https://en.cppreference.com/w/User:D41D8CD98F/feature_testing_macros
+//
+#ifdef __cpp_lib_filesystem
+#include <filesystem>
+#else
+#include <experimental/filesystem>
+
+namespace std
+{
+    namespace filesystem = experimental::filesystem;
+}
+#endif
 
 namespace
 {
@@ -481,7 +506,11 @@ namespace
          *******************************************************/
         static bool TestPath(const std::string& path)
         {
+#ifdef WIN32
+            return ((_access(path.c_str(), 4) != -1) || (_access(path.c_str(), 6) != -1));
+#else
             return access(path.c_str(), R_OK) == 0;
+#endif
         }
 
         /*********************************************************************
@@ -491,7 +520,9 @@ namespace
         void initialize(Tensile::hip::SolutionAdapter& adapter, rocblas_int deviceId)
         {
             std::string path;
+#ifndef WIN32
             path.reserve(PATH_MAX);
+#endif
 
             // The name of the current GPU platform
             std::string processor = rocblas_internal_get_arch_name();
@@ -504,6 +535,16 @@ namespace
             else
             {
 #ifndef ROCBLAS_STATIC_LIB
+#ifdef WIN32
+                // Find the location of librocblas.dll
+                // Fall back on hard-coded path if static library or not found
+                wchar_t wpath[MAX_PATH + 1] = {0};
+                if(GetModuleFileNameW(GetModuleHandle("rocblas.dll"), wpath, MAX_PATH + 1))
+                {
+                    std::wstring          wspath(wpath);
+                    std::string           tmp(wspath.begin(), wspath.end());
+                    std::filesystem::path exepath = tmp;
+#else
                 Dl_info info;
 
                 // Find the location of librocblas.so
@@ -514,13 +555,23 @@ namespace
 
                 if(dladdr((void*)rocblas_sscal, &info))
                 {
-                    path = info.dli_fname;
-                    path = std::string{dirname(&path[0])};
+                    //path = info.dli_fname;
+                    //path = std::string{dirname(&path[0])};
+                    std::filesystem::path exepath = info.dli_fname;
+#endif
+                    if(exepath.has_filename())
+                    {
+                        path = exepath.remove_filename().string();
+                    }
+                    else
+                    {
+                        path = ROCBLAS_LIB_PATH;
+                    }
                 }
                 else
 #endif
                 {
-                    path = "/opt/rocm/rocblas/lib";
+                    path = ROCBLAS_LIB_PATH;
                 }
 
                 // Find the location of the libraries
@@ -536,6 +587,25 @@ namespace
             // only load modules for the current architecture
             auto dir = path + "/*" + processor + "*co";
 
+            bool no_match = false;
+#ifdef WIN32
+            std::replace(dir.begin(), dir.end(), '/', '\\');
+            WIN32_FIND_DATAA finddata;
+            HANDLE           hfine = FindFirstFileA(dir.c_str(), &finddata);
+            if(hfine != INVALID_HANDLE_VALUE)
+            {
+                do
+                {
+                    std::string codeObjectFile = path + "\\" + finddata.cFileName;
+                    adapter.loadCodeObjectFile(codeObjectFile.c_str());
+                } while(FindNextFileA(hfine, &finddata));
+            }
+            else
+            {
+                no_match = true;
+            }
+            FindClose(hfine);
+#else
             glob_t glob_result{};
             int    g = glob(dir.c_str(), GLOB_NOSORT, nullptr, &glob_result);
             if(!g)
@@ -545,10 +615,7 @@ namespace
             }
             else if(g == GLOB_NOMATCH)
             {
-                static auto& once = rocblas_cerr
-                                    << "\nrocBLAS warning: No paths matched " << dir
-                                    << ". Make sure that ROCBLAS_TENSILE_LIBPATH is set correctly."
-                                    << std::endl;
+                no_match = true;
             }
             else
             {
@@ -562,6 +629,14 @@ namespace
                 // clang-format on
             }
             globfree(&glob_result);
+#endif
+            if(no_match)
+            {
+                static auto& once = rocblas_cerr
+                                    << "\nrocBLAS warning: No paths matched " << dir
+                                    << ". Make sure that ROCBLAS_TENSILE_LIBPATH is set correctly."
+                                    << std::endl;
+            }
 
             // We initialize a local static variable with a lambda function call to avoid
             // race conditions when multiple threads with different device IDs try to

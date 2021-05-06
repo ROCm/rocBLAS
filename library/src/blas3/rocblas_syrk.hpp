@@ -25,13 +25,13 @@ __device__ void syrk_scale_device(bool upper, rocblas_int n, T beta, U* C, rocbl
   *  Loads pointers and launches the actual calculation kernel.
   */
 template <int DIM_X, int DIM_Y, typename U, typename V>
-__global__ __launch_bounds__(DIM_X* DIM_Y) void syrk_scale_kernel(bool           upper,
-                                                                  rocblas_int    n,
-                                                                  U              beta_host_device,
-                                                                  V              CP_array,
-                                                                  ptrdiff_t      shift_c,
-                                                                  rocblas_int    ldc,
-                                                                  rocblas_stride stride_c)
+ROCBLAS_KERNEL __launch_bounds__(DIM_X* DIM_Y) void syrk_scale_kernel(bool        upper,
+                                                                      rocblas_int n,
+                                                                      U           beta_host_device,
+                                                                      V           CP_array,
+                                                                      ptrdiff_t   shift_c,
+                                                                      rocblas_int ldc,
+                                                                      rocblas_stride stride_c)
 {
     auto beta = load_scalar(beta_host_device);
 
@@ -138,19 +138,19 @@ template <bool        HERM,
           typename TScal,
           typename TConstPtr,
           typename TPtr>
-__global__ __launch_bounds__(DIM_XYT* DIM_XYT) void syrk_herk_kernel(bool              upper,
-                                                                     rocblas_operation transA,
-                                                                     rocblas_int       n,
-                                                                     rocblas_int       k,
-                                                                     TScal       alpha_host_device,
-                                                                     TConstPtr   AP_array,
-                                                                     ptrdiff_t   shift_a,
-                                                                     rocblas_int lda,
-                                                                     rocblas_stride stride_a,
-                                                                     TPtr           CP_array,
-                                                                     ptrdiff_t      shift_c,
-                                                                     rocblas_int    ldc,
-                                                                     rocblas_stride stride_c)
+ROCBLAS_KERNEL __launch_bounds__(DIM_XYT* DIM_XYT) void syrk_herk_kernel(bool              upper,
+                                                                         rocblas_operation transA,
+                                                                         rocblas_int       n,
+                                                                         rocblas_int       k,
+                                                                         TScal alpha_host_device,
+                                                                         TConstPtr      AP_array,
+                                                                         ptrdiff_t      shift_a,
+                                                                         rocblas_int    lda,
+                                                                         rocblas_stride stride_a,
+                                                                         TPtr           CP_array,
+                                                                         ptrdiff_t      shift_c,
+                                                                         rocblas_int    ldc,
+                                                                         rocblas_stride stride_c)
 {
     auto alpha = load_scalar(alpha_host_device);
     if(alpha == 0)

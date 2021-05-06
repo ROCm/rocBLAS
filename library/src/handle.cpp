@@ -4,6 +4,9 @@
 #include "handle.hpp"
 #include <cstdarg>
 #include <limits>
+#ifdef WIN32
+#include <windows.h>
+#endif
 
 #if BUILD_WITH_TENSILE
 #ifndef USE_TENSILE_HOST
@@ -14,6 +17,27 @@
 // it isn't compiled if not BUILD_WITH_TENSILE so defining here
 extern "C" void rocblas_initialize() {}
 #endif
+
+// forcing early cleanup
+// extern "C" ROCBLAS_EXPORT void rocblas_shutdown()
+// {
+//     rocblas_internal_ostream::clear_workers();
+// }
+
+/* read environment variable */
+/* On windows, getenv take a copy of the environment at the beginning of the process */
+/* This behavior is not suited for the purpose of the tests */
+inline const char* read_env(const char* env_var)
+{
+#ifdef WIN32
+    const DWORD nSize = _MAX_PATH;
+    static char lpBuffer[nSize];
+    GetEnvironmentVariableA(env_var, lpBuffer, nSize);
+    return lpBuffer;
+#else
+    return getenv(env_var);
+#endif
+}
 
 // This variable can be set in hipBLAS or other libraries to change the default
 // device memory size
@@ -53,7 +77,7 @@ _rocblas_handle::_rocblas_handle()
 #endif
 
     // Device memory size
-    const char* env = getenv("ROCBLAS_DEVICE_MEMORY_SIZE");
+    const char* env = read_env("ROCBLAS_DEVICE_MEMORY_SIZE");
     if(env)
         device_memory_size = strtoul(env, nullptr, 0);
 
@@ -524,10 +548,11 @@ extern "C" rocblas_status rocblas_device_malloc_free(rocblas_device_malloc_base*
 static auto open_log_stream(const char* environment_variable_name)
 {
     const char* logfile;
-    return (logfile = getenv(environment_variable_name)) != nullptr
-                   || (logfile = getenv("ROCBLAS_LOG_PATH")) != nullptr
-               ? std::make_unique<rocblas_internal_ostream>(logfile)
-               : std::make_unique<rocblas_internal_ostream>(STDERR_FILENO);
+    logfile = read_env(environment_variable_name);
+    if(!logfile)
+        logfile = read_env("ROCBLAS_LOG_PATH");
+    return logfile ? std::make_unique<rocblas_internal_ostream>(logfile)
+                   : std::make_unique<rocblas_internal_ostream>(STDERR_FILENO);
 }
 
 /*******************************************************************************
@@ -536,7 +561,7 @@ static auto open_log_stream(const char* environment_variable_name)
 void _rocblas_handle::init_logging()
 {
     // set layer_mode from value of environment variable ROCBLAS_LAYER
-    const char* str_layer_mode = getenv("ROCBLAS_LAYER");
+    const char* str_layer_mode = read_env("ROCBLAS_LAYER");
     if(str_layer_mode)
     {
         layer_mode = static_cast<rocblas_layer_mode>(strtol(str_layer_mode, 0, 0));
@@ -601,7 +626,7 @@ extern "C" rocblas_status rocblas_get_performance_metric(rocblas_handle         
 void _rocblas_handle::init_check_numerics()
 {
     // set check_numerics from value of environment variable ROCBLAS_CHECK_NUMERICS
-    const char* str_check_numerics_mode = getenv("ROCBLAS_CHECK_NUMERICS");
+    const char* str_check_numerics_mode = read_env("ROCBLAS_CHECK_NUMERICS");
     if(str_check_numerics_mode)
     {
         check_numerics

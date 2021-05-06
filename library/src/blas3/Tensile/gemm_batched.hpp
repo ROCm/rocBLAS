@@ -23,7 +23,7 @@ namespace
               bool BETA_EQ_ZERO,
               char TRANS_A,
               char TRANS_B>
-    __attribute__((amdgpu_flat_work_group_size(DIM_M * DIM_N, DIM_M* DIM_N))) __global__ static void
+    __attribute__((amdgpu_flat_work_group_size(DIM_M * DIM_N, DIM_M* DIM_N))) ROCBLAS_KERNEL void
         gemm_batched_general_kernel(rocblas_int    M,
                                     rocblas_int    N,
                                     rocblas_int    K,
@@ -171,7 +171,7 @@ namespace
               bool BETA_EQ_ZERO,
               char TRANS_A,
               char TRANS_B>
-    __attribute__((amdgpu_flat_work_group_size(DIM_M * DIM_N, DIM_M* DIM_N))) __global__ static void
+    __attribute__((amdgpu_flat_work_group_size(DIM_M * DIM_N, DIM_M* DIM_N))) ROCBLAS_KERNEL void
         gemm_batched_kernel(rocblas_int    M,
                             rocblas_int    N,
                             rocblas_int    K,
@@ -308,7 +308,7 @@ namespace
               int  beta,
               char TRANS_A,
               char TRANS_B>
-    __attribute__((amdgpu_flat_work_group_size(DIM_M * DIM_N, DIM_M* DIM_N))) __global__ static void
+    __attribute__((amdgpu_flat_work_group_size(DIM_M * DIM_N, DIM_M* DIM_N))) ROCBLAS_KERNEL void
         gemm_batched_kernel(rocblas_int    M,
                             rocblas_int    N,
                             rocblas_int    K,

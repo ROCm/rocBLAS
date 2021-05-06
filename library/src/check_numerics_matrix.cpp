@@ -101,20 +101,20 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 #ifdef INST
 #error INST IS ALREADY DEFINED
 #endif
-#define INST(typet_)                                                            \
-    template rocblas_status rocblas_internal_check_numerics_ge_matrix_template( \
-        const char*       function_name,                                        \
-        rocblas_handle    handle,                                               \
-        rocblas_operation trans_A,                                              \
-        rocblas_int       m,                                                    \
-        rocblas_int       n,                                                    \
-        typet_            A,                                                    \
-        rocblas_int       offset_a,                                             \
-        rocblas_int       lda,                                                  \
-        rocblas_stride    stride_a,                                             \
-        rocblas_int       batch_count,                                          \
-        const int         check_numerics,                                       \
-        bool              is_input)
+#define INST(typet_)                                                                         \
+    template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status                                 \
+        rocblas_internal_check_numerics_ge_matrix_template(const char*       function_name,  \
+                                                           rocblas_handle    handle,         \
+                                                           rocblas_operation trans_A,        \
+                                                           rocblas_int       m,              \
+                                                           rocblas_int       n,              \
+                                                           typet_            A,              \
+                                                           rocblas_int       offset_a,       \
+                                                           rocblas_int       lda,            \
+                                                           rocblas_stride    stride_a,       \
+                                                           rocblas_int       batch_count,    \
+                                                           const int         check_numerics, \
+                                                           bool              is_input)
 INST(float*);
 INST(double*);
 INST(float* const*);

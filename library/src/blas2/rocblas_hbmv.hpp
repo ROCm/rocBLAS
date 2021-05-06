@@ -133,23 +133,23 @@ __device__ void hbmvn_kernel_calc(bool        upper,
   *  W is either:       T* OR       T* const*
   */
 template <rocblas_int DIM_X, rocblas_int DIM_Y, typename U, typename V, typename W>
-__launch_bounds__(DIM_X* DIM_Y) __global__ void hbmvn_kernel(bool           upper,
-                                                             rocblas_int    n,
-                                                             rocblas_int    k,
-                                                             U              alpha_device_host,
-                                                             V              Aa,
-                                                             ptrdiff_t      shifta,
-                                                             rocblas_int    lda,
-                                                             rocblas_stride strideA,
-                                                             V              xa,
-                                                             ptrdiff_t      shiftx,
-                                                             rocblas_int    incx,
-                                                             rocblas_stride stridex,
-                                                             U              beta_device_host,
-                                                             W              ya,
-                                                             ptrdiff_t      shifty,
-                                                             rocblas_int    incy,
-                                                             rocblas_stride stridey)
+__launch_bounds__(DIM_X* DIM_Y) ROCBLAS_KERNEL void hbmvn_kernel(bool           upper,
+                                                                 rocblas_int    n,
+                                                                 rocblas_int    k,
+                                                                 U              alpha_device_host,
+                                                                 V              Aa,
+                                                                 ptrdiff_t      shifta,
+                                                                 rocblas_int    lda,
+                                                                 rocblas_stride strideA,
+                                                                 V              xa,
+                                                                 ptrdiff_t      shiftx,
+                                                                 rocblas_int    incx,
+                                                                 rocblas_stride stridex,
+                                                                 U              beta_device_host,
+                                                                 W              ya,
+                                                                 ptrdiff_t      shifty,
+                                                                 rocblas_int    incy,
+                                                                 rocblas_stride stridey)
 {
     rocblas_int num_threads = hipBlockDim_x * hipBlockDim_y * hipBlockDim_z;
     if(DIM_X * DIM_Y != num_threads)

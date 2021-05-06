@@ -131,15 +131,15 @@ __inline__ __device__ T rocblas_dot_block_reduce(T val)
 }
 
 template <rocblas_int NB, rocblas_int WIN, bool CONJ, typename T, typename U, typename V = T>
-__global__ __launch_bounds__(NB) void rocblas_dot_kernel_inc1(rocblas_int n,
-                                                              const U __restrict__ xa,
-                                                              ptrdiff_t      shiftx,
-                                                              rocblas_stride stridex,
-                                                              const U __restrict__ ya,
-                                                              ptrdiff_t   shifty,
-                                                              rocblas_int stridey,
-                                                              V* __restrict__ workspace,
-                                                              T* __restrict__ out)
+ROCBLAS_KERNEL __launch_bounds__(NB) void rocblas_dot_kernel_inc1(rocblas_int n,
+                                                                  const U __restrict__ xa,
+                                                                  ptrdiff_t      shiftx,
+                                                                  rocblas_stride stridex,
+                                                                  const U __restrict__ ya,
+                                                                  ptrdiff_t   shifty,
+                                                                  rocblas_int stridey,
+                                                                  V* __restrict__ workspace,
+                                                                  T* __restrict__ out)
 {
     const T* x = load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex);
     const T* y = load_ptr_batch(ya, hipBlockIdx_y, shifty, stridey);
@@ -179,7 +179,7 @@ __global__ __launch_bounds__(NB) void rocblas_dot_kernel_inc1(rocblas_int n,
 }
 
 template <rocblas_int NB, rocblas_int WIN, bool CONJ, typename T, typename U, typename V = T>
-__global__ __launch_bounds__(NB, 1) void rocblas_dot_kernel(rocblas_int n,
+ROCBLAS_KERNEL __launch_bounds__(NB, 1) void rocblas_dot_kernel(rocblas_int n,
                                                             const U __restrict__ xa,
                                                             ptrdiff_t      shiftx,
                                                             rocblas_int    incx,
@@ -215,13 +215,13 @@ __global__ __launch_bounds__(NB, 1) void rocblas_dot_kernel(rocblas_int n,
 }
 
 template <rocblas_int NB, rocblas_int WIN, bool CONJ, typename T, typename U, typename V = T>
-__global__ void __launch_bounds__(NB) rocblas_dot_kernel_magsq(rocblas_int n,
-                                                               const U __restrict__ xa,
-                                                               ptrdiff_t      shiftx,
-                                                               rocblas_int    incx,
-                                                               rocblas_stride stridex,
-                                                               V* __restrict__ workspace,
-                                                               T* __restrict__ out)
+ROCBLAS_KERNEL void __launch_bounds__(NB) rocblas_dot_kernel_magsq(rocblas_int n,
+                                                                   const U __restrict__ xa,
+                                                                   ptrdiff_t      shiftx,
+                                                                   rocblas_int    incx,
+                                                                   rocblas_stride stridex,
+                                                                   V* __restrict__ workspace,
+                                                                   T* __restrict__ out)
 {
     const T* x = load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex);
 
@@ -246,9 +246,9 @@ __global__ void __launch_bounds__(NB) rocblas_dot_kernel_magsq(rocblas_int n,
 }
 
 template <rocblas_int NB, rocblas_int WIN, typename V, typename T = V>
-__global__ __launch_bounds__(NB) void rocblas_dot_kernel_reduce(rocblas_int n_sums,
-                                                                V* __restrict__ in,
-                                                                T* __restrict__ out)
+ROCBLAS_KERNEL __launch_bounds__(NB) void rocblas_dot_kernel_reduce(rocblas_int n_sums,
+                                                                    V* __restrict__ in,
+                                                                    T* __restrict__ out)
 {
     V sum = 0;
 

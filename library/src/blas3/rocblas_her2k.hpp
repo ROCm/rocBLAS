@@ -11,15 +11,15 @@
   *  Loads pointers and launches the actual calculation kernel.
   */
 template <int DIM_X, int DIM_Y, typename U, typename V, typename W>
-__global__ __launch_bounds__(DIM_X* DIM_Y) void her2k_scale_kernel(bool           upper,
-                                                                   rocblas_int    n,
-                                                                   rocblas_int    k,
-                                                                   U              alpha_host_device,
-                                                                   V              beta_host_device,
-                                                                   W              CP_array,
-                                                                   ptrdiff_t      shift_c,
-                                                                   rocblas_int    ldc,
-                                                                   rocblas_stride stride_c)
+ROCBLAS_KERNEL __launch_bounds__(DIM_X* DIM_Y) void her2k_scale_kernel(bool        upper,
+                                                                       rocblas_int n,
+                                                                       rocblas_int k,
+                                                                       U         alpha_host_device,
+                                                                       V         beta_host_device,
+                                                                       W         CP_array,
+                                                                       ptrdiff_t shift_c,
+                                                                       rocblas_int    ldc,
+                                                                       rocblas_stride stride_c)
 {
     auto alpha = load_scalar(alpha_host_device);
     auto beta  = load_scalar(beta_host_device);

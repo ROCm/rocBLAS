@@ -16,12 +16,12 @@ template <typename T>
 static const T one = T(1);
 
 template <typename T, typename U>
-__global__ void flip_vector_kernel(U* __restrict__ data,
-                                   rocblas_int    m,
-                                   rocblas_int    size,
-                                   rocblas_int    abs_incx,
-                                   rocblas_int    offset,
-                                   rocblas_stride stride)
+ROCBLAS_KERNEL void flip_vector_kernel(U* __restrict__ data,
+                                       rocblas_int    m,
+                                       rocblas_int    size,
+                                       rocblas_int    abs_incx,
+                                       rocblas_int    offset,
+                                       rocblas_stride stride)
 {
     rocblas_int tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     if(tx < size)
@@ -63,15 +63,15 @@ void flip_vector(rocblas_handle handle,
 }
 
 template <typename T, typename U, typename V>
-__global__ void strided_vector_copy_kernel(U __restrict__ dst,
-                                           rocblas_int    dst_incx,
-                                           rocblas_stride dst_stride,
-                                           V __restrict__ src,
-                                           rocblas_int    src_incx,
-                                           rocblas_stride src_stride,
-                                           rocblas_int    size,
-                                           rocblas_int    offset_dst = 0,
-                                           rocblas_int    offset_src = 0)
+ROCBLAS_KERNEL void strided_vector_copy_kernel(U __restrict__ dst,
+                                               rocblas_int    dst_incx,
+                                               rocblas_stride dst_stride,
+                                               V __restrict__ src,
+                                               rocblas_int    src_incx,
+                                               rocblas_stride src_stride,
+                                               rocblas_int    size,
+                                               rocblas_int    offset_dst = 0,
+                                               rocblas_int    offset_src = 0)
 {
     ptrdiff_t tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     if(tx < size)

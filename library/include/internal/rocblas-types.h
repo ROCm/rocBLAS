@@ -28,11 +28,15 @@
 #define ROCBLAS_INTERNAL_DEPRECATION
 #endif
 
-#define ROCBLAS_INTERNAL_EXPORT_NOINLINE \
-    __attribute__((visibility("default"))) __attribute__((noinline)) ROCBLAS_INTERNAL_DEPRECATION
-#define ROCBLAS_EXPORT_NOINLINE __attribute__((visibility("default"))) __attribute__((noinline))
-
 #define ROCBLAS_INTERNAL_EXPORT ROCBLAS_EXPORT ROCBLAS_INTERNAL_DEPRECATION
+#define ROCBLAS_INTERNAL_EXPORT_NOINLINE \
+    ROCBLAS_EXPORT __attribute__((noinline)) ROCBLAS_INTERNAL_DEPRECATION
+
+#ifdef WIN32
+#define ROCBLAS_KERNEL __global__ static
+#else
+#define ROCBLAS_KERNEL __global__
+#endif
 
 /*! \brief rocblas_handle is a structure holding the rocblas library context.
  * It must be initialized using rocblas_create_handle()

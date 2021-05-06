@@ -3,8 +3,10 @@
 # ########################################################################
 
 # Linking lapack library requires fortran flags
-enable_language( Fortran )
-find_package( cblas CONFIG REQUIRED )
+if (NOT WIN32)
+  enable_language( Fortran )
+endif( )
+find_package( cblas CONFIG REQUIRED PATHS ${LAPACK_DIR} )
 if( NOT cblas_FOUND )
   message( FATAL_ERROR "cblas is a required dependency and is not found;  try adding cblas path to CMAKE_PREFIX_PATH" )
 endif( )
@@ -38,8 +40,18 @@ target_include_directories( rocblas-bench
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/../../library/include>
 )
 
-set( BLIS_INCLUDE_DIR ${BUILD_DIR}/deps/blis/include/blis )
-set( BLIS_LIBRARY ${BUILD_DIR}/deps/blis/lib/libblis.so )
+if (NOT WIN32)
+  set( BLIS_INCLUDE_DIR ${BUILD_DIR}/deps/blis/include/blis )
+  set( BLIS_LIBRARY ${BUILD_DIR}/deps/blis/lib/libblis.so )
+else()
+  set( BLIS_INCLUDE_DIR ${BLIS_DIR}/include/blis CACHE PATH "Blis library include path" )
+  find_library( BLIS_LIBRARY libblis
+                  PATHS ${BLIS_DIR}/lib
+                  REQUIRED
+                  NO_DEFAULT_PATH
+              )
+endif()
+
 
 # External header includes included as system files
 target_include_directories( rocblas-bench
@@ -49,7 +61,11 @@ target_include_directories( rocblas-bench
     $<BUILD_INTERFACE:${BLIS_INCLUDE_DIR}>
 )
 
-target_link_libraries( rocblas-bench PRIVATE rocblas_fortran_client roc::rocblas lapack cblas )
+if( NOT WIN32 )
+  target_link_libraries( rocblas-bench PRIVATE rocblas_fortran_client )
+endif( )
+target_link_libraries( rocblas-bench PRIVATE roc::rocblas lapack cblas )
+
 if(LINK_BLIS)
   target_link_libraries( rocblas-bench PRIVATE ${BLIS_LIBRARY} )
 endif()
@@ -75,7 +91,12 @@ endif( )
 
 target_compile_options(rocblas-bench PRIVATE $<$<COMPILE_LANGUAGE:CXX>:${COMMON_CXX_OPTIONS}>)
 # target_compile_options does not go to linker like CMAKE_CXX_FLAGS does, so manually add
-target_link_libraries( rocblas-bench PRIVATE ${COMMON_LINK_LIBS} -lm )
+if (NOT WIN32)
+  list( APPEND COMMON_LINK_LIBS "-lm -lstdc++fs")
+else()
+  list( APPEND COMMON_LINK_LIBS "libomp")
+endif()
+target_link_libraries( rocblas-bench PRIVATE ${COMMON_LINK_LIBS} )
 
 set_target_properties( rocblas-bench PROPERTIES
   CXX_STANDARD 14
