@@ -113,7 +113,7 @@ std::shared_ptr<rocblas_internal_ostream::worker> rocblas_internal_ostream::get_
 #endif
 
     // Lock the map from file_id -> std::shared_ptr<rocblas_internal_ostream::worker>
-    std::unique_lock<std::mutex> lock(worker_map_mutex());
+    std::lock_guard<std::recursive_mutex> lock(worker_map_mutex());
 
     // Insert a nullptr map element if file_id doesn't exist in map already
     // worker_ptr is a reference to the std::shared_ptr<rocblas_internal_ostream::worker>
@@ -122,8 +122,6 @@ std::shared_ptr<rocblas_internal_ostream::worker> rocblas_internal_ostream::get_
     // If a new entry was inserted, or an old entry is empty, create new worker
     if(!worker_ptr)
         worker_ptr = std::make_shared<worker>(fd);
-
-    lock.unlock();
 
     // Return the existing or new worker matching the file
     return worker_ptr;
@@ -178,7 +176,7 @@ void rocblas_internal_ostream::flush()
 
 void rocblas_internal_ostream::clear_workers()
 {
-    std::lock_guard<std::mutex> lock(worker_map_mutex());
+    std::lock_guard<std::recursive_mutex> lock(worker_map_mutex());
     worker_map().clear();
 }
 
