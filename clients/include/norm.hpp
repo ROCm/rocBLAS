@@ -130,10 +130,12 @@ inline void xaxpy(int*                    n,
 }
 
 template <typename T>
-void m_axpy(size_t* N, T* alpha, T *x, int* incx, T *y, int* incy) {
-     for (size_t i=0; i < *N; i++) {
-             y[i*(*incy)] = (*alpha)*x[i*(*incx)] + y[i*(*incy)];
-     }
+void m_axpy(size_t* N, T* alpha, T* x, int* incx, T* y, int* incy)
+{
+    for(size_t i = 0; i < *N; i++)
+    {
+        y[i * (*incy)] = (*alpha) * x[i * (*incx)] + y[i * (*incy)];
+    }
 }
 
 /* ============== Norm Check for General Matrix ============= */
@@ -157,7 +159,7 @@ double norm_check_general(
     {
         for(rocblas_int j = 0; j < M; j++)
         {
-            size_t idx = j + i * (size_t)lda;
+            size_t idx       = j + i * (size_t)lda;
             hCPU_double[idx] = double(hCPU[idx]);
             hGPU_double[idx] = double(hGPU[idx]);
         }
@@ -204,7 +206,7 @@ template <typename T,
 double norm_check_general(
     char norm_type, rocblas_int M, rocblas_int N, rocblas_int lda, VEC&& hCPU, T* hGPU)
 {
-    size_t size  = N * (size_t)lda;
+    size_t              size = N * (size_t)lda;
     host_vector<double> hCPU_double(size);
     host_vector<double> hGPU_double(size);
 
@@ -212,7 +214,7 @@ double norm_check_general(
     {
         for(rocblas_int j = 0; j < M; j++)
         {
-            size_t idx = j + i * (size_t)lda;
+            size_t idx       = j + i * (size_t)lda;
             hCPU_double[idx] = hCPU[idx];
             hGPU_double[idx] = hGPU[idx];
         }
@@ -350,7 +352,7 @@ double norm_check_symmetric(
     double      work[1];
     rocblas_int incx  = 1;
     double      alpha = -1.0;
-    size_t size  = N * (size_t)lda;
+    size_t      size  = N * (size_t)lda;
 
     host_vector<double> hCPU_double(size);
     host_vector<double> hGPU_double(size);
@@ -359,7 +361,7 @@ double norm_check_symmetric(
     {
         for(rocblas_int j = 0; j < N; j++)
         {
-            size_t idx = j + i * (size_t)lda;
+            size_t idx       = j + i * (size_t)lda;
             hCPU_double[idx] = double(hCPU[idx]);
             hGPU_double[idx] = double(hGPU[idx]);
         }
@@ -381,7 +383,7 @@ double norm_check_symmetric(
     decltype(std::real(*hCPU)) work[1];
     rocblas_int                incx  = 1;
     T                          alpha = -1.0;
-    size_t                size  = (size_t)lda * N;
+    size_t                     size  = (size_t)lda * N;
 
     double cpu_norm = xlanhe(&norm_type, &uplo, &N, hCPU, &lda, work);
     m_axpy(&size, &alpha, hCPU, &incx, hGPU, &incx);
@@ -398,7 +400,7 @@ inline double norm_check_symmetric(char          norm_type,
                                    rocblas_half* hCPU,
                                    rocblas_half* hGPU)
 {
-    size_t size  = N * (size_t)lda;
+    size_t              size = N * (size_t)lda;
     host_vector<double> hCPU_double(size);
     host_vector<double> hGPU_double(size);
 
@@ -406,7 +408,7 @@ inline double norm_check_symmetric(char          norm_type,
     {
         for(rocblas_int j = 0; j < N; j++)
         {
-            size_t idx = j + i * (size_t)lda;
+            size_t idx       = j + i * (size_t)lda;
             hCPU_double[idx] = hCPU[idx];
             hGPU_double[idx] = hGPU[idx];
         }

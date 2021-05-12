@@ -3,10 +3,7 @@
 # ########################################################################
 
 
-# Linking lapack library requires fortran flags
-if (NOT WIN32)
-  enable_language( Fortran )
-endif()
+# Linking lapack library requires fortran flags 
 find_package( cblas CONFIG REQUIRED PATHS ${LAPACK_DIR} )
 if( NOT cblas_FOUND )
   message( FATAL_ERROR "cblas is a required dependency and is not found;  try adding cblas path to CMAKE_PREFIX_PATH" )

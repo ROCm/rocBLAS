@@ -157,7 +157,7 @@ class ROCBLAS_INTERNAL_EXPORT rocblas_internal_ostream
     // Implemented as singleton to avoid the static initialization order fiasco
     static auto& worker_map_mutex()
     {
-        static std::mutex map_mutex;
+        static std::recursive_mutex map_mutex;
         return map_mutex;
     }
 

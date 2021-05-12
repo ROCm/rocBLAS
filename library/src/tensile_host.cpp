@@ -41,10 +41,11 @@ extern "C" void rocblas_initialize() {}
 
 #ifdef WIN32
 #define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+
 #include <fileapi.h>
 #include <io.h>
 #include <libloaderapi.h>
-#include <windows.h>
 #define ROCBLAS_LIB_PATH "C:/rocblas"
 #else
 #include <dlfcn.h>

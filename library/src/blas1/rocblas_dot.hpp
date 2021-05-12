@@ -180,16 +180,16 @@ ROCBLAS_KERNEL __launch_bounds__(NB) void rocblas_dot_kernel_inc1(rocblas_int n,
 
 template <rocblas_int NB, rocblas_int WIN, bool CONJ, typename T, typename U, typename V = T>
 ROCBLAS_KERNEL __launch_bounds__(NB, 1) void rocblas_dot_kernel(rocblas_int n,
-                                                            const U __restrict__ xa,
-                                                            ptrdiff_t      shiftx,
-                                                            rocblas_int    incx,
-                                                            rocblas_stride stridex,
-                                                            const U __restrict__ ya,
-                                                            ptrdiff_t   shifty,
-                                                            rocblas_int incy,
-                                                            rocblas_int stridey,
-                                                            V* __restrict__ workspace,
-                                                            T* __restrict__ out)
+                                                                const U __restrict__ xa,
+                                                                ptrdiff_t      shiftx,
+                                                                rocblas_int    incx,
+                                                                rocblas_stride stridex,
+                                                                const U __restrict__ ya,
+                                                                ptrdiff_t   shifty,
+                                                                rocblas_int incy,
+                                                                rocblas_int stridey,
+                                                                V* __restrict__ workspace,
+                                                                T* __restrict__ out)
 {
     const T* x = load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex);
     const T* y = load_ptr_batch(ya, hipBlockIdx_y, shifty, stridey);
