@@ -17,6 +17,7 @@ def runCI =
     def prj = new rocProject('rocBLAS', 'Extended')
     // customize for project
     prj.paths.build_command = './install.sh -c'
+    prj.defaults.ccache = true
     prj.timeout.compile = 480
     prj.timeout.test = 600
 
