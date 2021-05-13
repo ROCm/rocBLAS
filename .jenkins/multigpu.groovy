@@ -17,6 +17,7 @@ def runCI =
     // customize for project
     prj.paths.build_command = './install.sh -c'
 
+    prj.defaults.ccache = true
     prj.timeout.compile = 480
 
     // Define test architectures, optional rocm version argument is available
