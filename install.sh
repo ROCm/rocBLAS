@@ -43,6 +43,7 @@ rocBLAS build & installation helper script
            --cmake_install       Auto Update CMake to minimum version if required
       -p | --profile             Build with code coverage profiling enabled
       -k | --relwithdebinfo      Set -DCMAKE_BUILD_TYPE=RelWithDebInfo
+           --sanitizer           Build with address sanitizer enabled
 EOF
 #           --prefix              Specify an alternate CMAKE_INSTALL_PREFIX for cmake
 }
@@ -345,6 +346,7 @@ tensile_msgpack_backend=true
 update_cmake=false
 build_coverage=false
 build_release_debug=false
+build_sanitizer=false
 
 rocm_path=/opt/rocm
 if ! [ -z ${ROCM_PATH+x} ]; then
@@ -360,7 +362,7 @@ library_dir_installed=${rocm_path}/rocblas
 # check if we have a modern version of getopt that can handle whitespace and long parameters
 getopt -T
 if [[ $? -eq 4 ]]; then
-  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,cleanup,clients,clients-only,dependencies,debug,hip-clang,no-hip-clang,merge-files,no-merge-files,no_tensile,no-tensile,tensile-host,no-tensile-host,msgpack,no-msgpack,library-path:,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,static,use-cuda,rocm-dev:,cmake_install,profile,relwithdebinfo --options nsrhicdgpkl:a:o:f:b:t:u:v: -- "$@")
+  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,cleanup,clients,clients-only,dependencies,debug,hip-clang,no-hip-clang,merge-files,no-merge-files,no_tensile,no-tensile,tensile-host,no-tensile-host,msgpack,no-msgpack,library-path:,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,static,use-cuda,rocm-dev:,cmake_install,profile,relwithdebinfo,sanitizer --options nsrhicdgpkl:a:o:f:b:t:u:v: -- "$@")
 else
   echo "Need a new version of getopt"
   exit 1
@@ -480,6 +482,9 @@ while true; do
     -k|--relwithdebinfo)
         build_release=false
         build_release_debug=true
+        shift ;;
+    --sanitizer)
+        build_sanitizer=true
         shift ;;
     --) shift ; break ;;
     *)  echo "Unexpected command line parameter received; aborting";
@@ -709,6 +714,10 @@ pushd .
 
   if [[ "${use_cuda}" == true ]]; then
     cmake_common_options="${cmake_common_options} -DUSE_CUDA=ON"
+  fi
+
+  if [[ "${build_sanitizer}" == true ]]; then
+    cmake_common_options="$cmake_common_options -DBUILD_ADDRESS_SANITIZER=ON"
   fi
 
   # Uncomment for cmake debugging
