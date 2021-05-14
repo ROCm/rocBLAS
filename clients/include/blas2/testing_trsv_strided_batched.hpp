@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -164,8 +164,10 @@ void testing_trsv_strided_batched(const Arguments& arg)
     CHECK_HIP_ERROR(hipMemcpy(dA, hA, sizeof(T) * size_A, hipMemcpyHostToDevice));
     CHECK_HIP_ERROR(hipMemcpy(dx_or_b, hx_or_b_1, sizeof(T) * size_x, hipMemcpyHostToDevice));
 
-    double max_err_1 = 0.0;
-    double max_err_2 = 0.0;
+    double error_host       = 0.0;
+    double error_device     = 0.0;
+    double max_error_host   = 0.0;
+    double max_error_device = 0.0;
 
     if(!ROCBLAS_REALLOC_ON_DEMAND)
     {
@@ -231,14 +233,16 @@ void testing_trsv_strided_batched(const Arguments& arg)
         // calculate norm 1 of vector E
         for(int b = 0; b < batch_count; b++)
         {
-            max_err_1 = rocblas_abs(
+            error_host = rocblas_abs(
                 vector_norm_1<T>(M, abs_incx, &hx[b * stride_x], &hx_or_b_1[b * stride_x]));
-            max_err_2 = rocblas_abs(
+            error_device = rocblas_abs(
                 vector_norm_1<T>(M, abs_incx, &hx[b * stride_x], &hx_or_b_2[b * stride_x]));
+            max_error_host   = std::max(max_error_host, error_host);
+            max_error_device = std::max(max_error_device, error_device);
 
             //unit test
-            trsm_err_res_check<T>(max_err_1, M, error_eps_multiplier, eps);
-            trsm_err_res_check<T>(max_err_2, M, error_eps_multiplier, eps);
+            trsm_err_res_check<T>(error_host, M, error_eps_multiplier, eps);
+            trsm_err_res_check<T>(error_device, M, error_eps_multiplier, eps);
         }
 
         // hx_or_b contains A * (calculated X), so res = A * (calculated x) - b = hx_or_b - hb
@@ -253,14 +257,14 @@ void testing_trsv_strided_batched(const Arguments& arg)
         //calculate norm 1 of res
         for(int b = 0; b < batch_count; b++)
         {
-            max_err_1 = rocblas_abs(
+            error_host = rocblas_abs(
                 vector_norm_1<T>(M, abs_incx, &hx_or_b_1[b * stride_x], &hb[b * stride_x]));
-            max_err_2 = rocblas_abs(
+            error_device = rocblas_abs(
                 vector_norm_1<T>(M, abs_incx, &hx_or_b_1[b * stride_x], &hb[b * stride_x]));
 
             //unit test
-            trsm_err_res_check<T>(max_err_1, M, error_eps_multiplier, eps);
-            trsm_err_res_check<T>(max_err_2, M, error_eps_multiplier, eps);
+            trsm_err_res_check<T>(error_host, M, error_eps_multiplier, eps);
+            trsm_err_res_check<T>(error_device, M, error_eps_multiplier, eps);
         }
     }
 
@@ -333,7 +337,7 @@ void testing_trsv_strided_batched(const Arguments& arg)
                          trsv_gflop_count<T>(M),
                          ArgumentLogging::NA_value,
                          cpu_time_used,
-                         max_err_1,
-                         max_err_2);
+                         max_error_host,
+                         max_error_device);
     }
 }

@@ -23,7 +23,6 @@ if( BUILD_WITH_TENSILE )
       gemm_gtest.cpp
       trmm_gtest.cpp
       trsm_gtest.cpp
-      trsv_gtest.cpp
       trtri_gtest.cpp
       )
 endif()
@@ -41,6 +40,7 @@ set(rocblas_no_tensile_test_source
     blas1_gtest.cpp
     blas1_ex_gtest.cpp
     # blas2
+    trsv_gtest.cpp
     gbmv_gtest.cpp
     gemv_gtest.cpp
     hbmv_gtest.cpp
