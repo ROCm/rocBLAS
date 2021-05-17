@@ -5,6 +5,11 @@
 #include "logging.hpp"
 #include "utility.hpp"
 
+#define SSYRKX_MIN_NB 16
+#define DSYRKX_MIN_NB 16
+#define CSYRKX_MIN_NB 8
+#define ZSYRKX_MIN_NB 8
+
 namespace
 {
     template <typename>
@@ -18,7 +23,7 @@ namespace
     template <>
     constexpr char rocblas_syrkx_name<rocblas_double_complex>[] = "rocblas_zsyrkx";
 
-    template <typename T>
+    template <int MIN_NB, typename T>
     rocblas_status rocblas_syrkx_impl(rocblas_handle    handle,
                                       rocblas_fill      uplo,
                                       rocblas_operation transA,
@@ -102,8 +107,8 @@ namespace
                             ldc);
         }
 
-        static constexpr rocblas_int    offset_C = 0, offset_A = 0, offset_B = 0, batch_count = 1;
-        static constexpr rocblas_stride stride_C = 0, stride_A = 0, stride_B = 0;
+        static constexpr rocblas_int    offset_c = 0, offset_a = 0, offset_b = 0, batch_count = 1;
+        static constexpr rocblas_stride stride_c = 0, stride_a = 0, stride_b = 0;
 
         // syr2k arg check is equivalent
         rocblas_status arg_status = rocblas_syr2k_arg_check(handle,
@@ -113,23 +118,26 @@ namespace
                                                             k,
                                                             alpha,
                                                             A,
-                                                            offset_A,
+                                                            offset_a,
                                                             lda,
-                                                            stride_A,
+                                                            stride_a,
                                                             B,
-                                                            offset_B,
+                                                            offset_b,
                                                             ldb,
-                                                            stride_B,
+                                                            stride_b,
                                                             beta,
                                                             C,
-                                                            offset_C,
+                                                            offset_c,
                                                             ldc,
-                                                            stride_C,
+                                                            stride_c,
                                                             batch_count);
         if(arg_status != rocblas_status_continue)
             return arg_status;
 
-        static constexpr bool is2K = false; // syrkx
+        static constexpr bool is2K    = false; // syrkx
+        static constexpr bool BATCHED = false;
+
+#if 0
         return rocblas_internal_syr2k_template<is2K>(handle,
                                                      uplo,
                                                      transA,
@@ -137,21 +145,41 @@ namespace
                                                      k,
                                                      alpha,
                                                      A,
-                                                     offset_A,
+                                                     offset_a,
                                                      lda,
-                                                     stride_A,
+                                                     stride_a,
                                                      B,
-                                                     offset_B,
+                                                     offset_b,
                                                      ldb,
-                                                     stride_B,
+                                                     stride_b,
                                                      beta,
                                                      C,
-                                                     offset_C,
+                                                     offset_c,
                                                      ldc,
-                                                     stride_C,
+                                                     stride_c,
                                                      batch_count);
+#endif
+        return rocblas_internal_syrkx_template<MIN_NB, BATCHED, T>(handle,
+                                                                   uplo,
+                                                                   transA,
+                                                                   n,
+                                                                   k,
+                                                                   alpha,
+                                                                   A,
+                                                                   offset_a,
+                                                                   lda,
+                                                                   stride_a,
+                                                                   B,
+                                                                   offset_b,
+                                                                   ldb,
+                                                                   stride_b,
+                                                                   beta,
+                                                                   C,
+                                                                   offset_a,
+                                                                   ldc,
+                                                                   stride_c,
+                                                                   batch_count);
     }
-
 }
 /*
  * ===========================================================================
@@ -165,7 +193,7 @@ extern "C" {
 #error IMPL ALREADY DEFINED
 #endif
 
-#define IMPL(routine_name_, T_)                                               \
+#define IMPL(routine_name_, T_, MIN_NB)                                       \
     rocblas_status routine_name_(rocblas_handle    handle,                    \
                                  rocblas_fill      uplo,                      \
                                  rocblas_operation transA,                    \
@@ -181,7 +209,7 @@ extern "C" {
                                  rocblas_int       ldc)                       \
     try                                                                       \
     {                                                                         \
-        return rocblas_syrkx_impl(                                            \
+        return rocblas_syrkx_impl<MIN_NB>(                                    \
             handle, uplo, transA, n, k, alpha, A, lda, B, ldb, beta, C, ldc); \
     }                                                                         \
     catch(...)                                                                \
@@ -189,11 +217,15 @@ extern "C" {
         return exception_to_rocblas_status();                                 \
     }
 
-IMPL(rocblas_ssyrkx, float);
-IMPL(rocblas_dsyrkx, double);
-IMPL(rocblas_csyrkx, rocblas_float_complex);
-IMPL(rocblas_zsyrkx, rocblas_double_complex);
+IMPL(rocblas_ssyrkx, float, SSYRKX_MIN_NB);
+IMPL(rocblas_dsyrkx, double, DSYRKX_MIN_NB);
+IMPL(rocblas_csyrkx, rocblas_float_complex, CSYRKX_MIN_NB);
+IMPL(rocblas_zsyrkx, rocblas_double_complex, ZSYRKX_MIN_NB);
 
 #undef IMPL
+#undef SSYRKX_MIN_NB
+#undef DSYRKX_MIN_NB
+#undef CSYRKX_MIN_NB
+#undef ZSYRKX_MIN_NB
 
 } // extern "C"
