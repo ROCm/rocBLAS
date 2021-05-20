@@ -120,8 +120,8 @@ namespace
         if(!mem)
             return rocblas_status_memory_error;
 
-        auto g_unique_row    = mem[0];
-        auto g_completed_sec = mem[1];
+        auto w_unique_row    = mem[0];
+        auto w_completed_sec = mem[1];
 
         auto check_numerics = handle->check_numerics;
 
@@ -162,8 +162,8 @@ namespace
                                                                     incx,
                                                                     0,
                                                                     1,
-                                                                    (rocblas_int*)g_unique_row,
-                                                                    (rocblas_int*)g_completed_sec);
+                                                                    (rocblas_int*)w_unique_row,
+                                                                    (rocblas_int*)w_completed_sec);
 
         if(status != rocblas_status_success)
             return status;
