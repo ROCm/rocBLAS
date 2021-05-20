@@ -436,14 +436,14 @@ void __device__ rocblas_trsv_block_solve_upper(const T* __restrict__ A, rocblas_
     }
 }
 
-static __global__ __launch_bounds__(1) void rocblas_trsv_init(rocblas_int* g_unique_row,
-                                                              rocblas_int* g_completed_sec)
+static __global__ __launch_bounds__(1) void rocblas_trsv_init(rocblas_int* w_unique_row,
+                                                              rocblas_int* w_completed_sec)
 {
     // Assign a unique row for each block, starting at 0 (for each batch)
-    g_unique_row[blockIdx.x] = 0;
+    w_unique_row[blockIdx.x] = 0;
 
     // The last block section which has been completed (for each batch)
-    g_completed_sec[blockIdx.x] = -1;
+    w_completed_sec[blockIdx.x] = -1;
 }
 
 // If defined, INV_AFTER allows for a block-inversion technique while waiting for data
@@ -472,8 +472,8 @@ static __global__
                                                              ptrdiff_t      offset_x,
                                                              rocblas_int    incx,
                                                              rocblas_stride stride_x,
-                                                             rocblas_int*   g_unique_row,
-                                                             rocblas_int*   g_completed_sec)
+                                                             rocblas_int*   w_unique_row,
+                                                             rocblas_int*   w_completed_sec)
 {
     // If we need to start at the bottom and work upwards (backwards substitution)
     constexpr bool backwards_sub = (!LOWER && !TRANS) || (LOWER && TRANS);
@@ -512,7 +512,7 @@ static __global__
     {
         // Get row handled by this block, atomic add in global memory to ensure
         // that each thread block gets a unique row
-        old = atomicAdd(&(g_unique_row[batchid]), 1);
+        old = atomicAdd(&(w_unique_row[batchid]), 1);
     }
     __syncthreads();
 
@@ -651,9 +651,9 @@ static __global__
             // update when ready.
             if(col_done < block_iter)
             {
-                while(g_completed_sec[batchid] < block_iter)
+                while(w_completed_sec[batchid] < block_iter)
                     __threadfence();
-                col_done = g_completed_sec[batchid];
+                col_done = w_completed_sec[batchid];
             }
         }
 
@@ -756,7 +756,7 @@ static __global__
 
     // next column is ready
     if(tid == 0)
-        atomicAdd(&(g_completed_sec[batchid]), 1);
+        atomicAdd(&(w_completed_sec[batchid]), 1);
     __threadfence();
 }
 
@@ -776,8 +776,8 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                                 rocblas_int       incx,
                                                 rocblas_stride    stride_x,
                                                 rocblas_int       batch_count,
-                                                rocblas_int*      g_unique_row,
-                                                rocblas_int*      g_completed_sec)
+                                                rocblas_int*      w_unique_row,
+                                                rocblas_int*      w_completed_sec)
 {
     if(batch_count == 0)
         return rocblas_status_success;
@@ -800,12 +800,12 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                        dim3(1),
                        0,
                        handle->get_stream(),
-                       g_unique_row,
-                       g_completed_sec);
+                       w_unique_row,
+                       w_completed_sec);
 
 #define TRSV_TEMPLATE_PARAMS                                                                    \
     grid, threads, 0, handle->get_stream(), m, dA, offset_A, lda, stride_A, dx, offset_x, incx, \
-        stride_x, g_unique_row, g_completed_sec
+        stride_x, w_unique_row, w_completed_sec
 
     // Template Parameters: DIM_X, DIM_Y, LOWER, TRANSPOSE, CONJUGATE, UNIT_DIAG, T
     if(uplo == rocblas_fill_upper)
