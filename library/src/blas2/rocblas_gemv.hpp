@@ -393,12 +393,78 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 
 #undef gemvt_sn_KARGS
         }
-        else
+        //Having 256 threads per block for single precision GEMV (transpose) for better performance
+        else if(is_float)
         {
             // number of columns on the y-dim of the grid
             static constexpr int NB = 256;
             dim3                 gemvt_grid(n, batch_count);
             dim3                 gemvt_threads(NB);
+
+            if(handle->pointer_mode == rocblas_pointer_mode_device)
+            {
+                hipLaunchKernelGGL((gemvt_kernel<CONJ, NB, T>),
+                                   gemvt_grid,
+                                   gemvt_threads,
+                                   0,
+                                   rocblas_stream,
+                                   m,
+                                   n,
+                                   alpha,
+                                   stride_alpha,
+                                   A,
+                                   offseta,
+                                   lda,
+                                   strideA,
+                                   x,
+                                   shiftx,
+                                   incx,
+                                   stridex,
+                                   beta,
+                                   stride_beta,
+                                   y,
+                                   shifty,
+                                   incy,
+                                   stridey);
+            }
+            else
+            {
+                if(!*alpha && *beta == 1)
+                    return rocblas_status_success;
+
+                hipLaunchKernelGGL((gemvt_kernel<CONJ, NB, T>),
+                                   gemvt_grid,
+                                   gemvt_threads,
+                                   0,
+                                   rocblas_stream,
+                                   m,
+                                   n,
+                                   *alpha,
+                                   stride_alpha,
+                                   A,
+                                   offseta,
+                                   lda,
+                                   strideA,
+                                   x,
+                                   shiftx,
+                                   incx,
+                                   stridex,
+                                   *beta,
+                                   stride_beta,
+                                   y,
+                                   shifty,
+                                   incy,
+                                   stridey);
+            }
+        }
+        //Having 1024 threads per block for double, complex-float and complex-double precision GEMV (transpose) for better performance
+        else
+        {
+            // number of columns on the y-dim of the grid
+            static constexpr int NB = 1024;
+            dim3                 gemvt_grid(n, batch_count);
+            dim3                 gemvt_threads(NB);
+
             if(handle->pointer_mode == rocblas_pointer_mode_device)
             {
                 hipLaunchKernelGGL((gemvt_kernel<CONJ, NB, T>),
@@ -587,13 +653,74 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 
 #undef gemvt_sn_KARGS
         }
-        else
+        //Having 256 threads per block for single precision GEMV (transpose) for better performance
+        else if(is_float)
         {
-            // number of columns on the y-dim of the grid
             static constexpr int NB = 256;
             dim3                 gemvt_grid(n, batch_count);
             dim3                 gemvt_threads(NB);
+            if(handle->pointer_mode == rocblas_pointer_mode_device)
+            {
+                hipLaunchKernelGGL((gemvt_kernel<CONJ, NB, T>),
+                                   gemvt_grid,
+                                   gemvt_threads,
+                                   0,
+                                   rocblas_stream,
+                                   m,
+                                   n,
+                                   alpha,
+                                   stride_alpha,
+                                   A,
+                                   offseta,
+                                   lda,
+                                   strideA,
+                                   x,
+                                   shiftx,
+                                   incx,
+                                   stridex,
+                                   beta,
+                                   stride_beta,
+                                   y,
+                                   shifty,
+                                   incy,
+                                   stridey);
+            }
+            else
+            {
+                if(!*alpha && *beta == 1)
+                    return rocblas_status_success;
 
+                hipLaunchKernelGGL((gemvt_kernel<CONJ, NB, T>),
+                                   gemvt_grid,
+                                   gemvt_threads,
+                                   0,
+                                   rocblas_stream,
+                                   m,
+                                   n,
+                                   *alpha,
+                                   stride_alpha,
+                                   A,
+                                   offseta,
+                                   lda,
+                                   strideA,
+                                   x,
+                                   shiftx,
+                                   incx,
+                                   stridex,
+                                   *beta,
+                                   stride_beta,
+                                   y,
+                                   shifty,
+                                   incy,
+                                   stridey);
+            }
+        }
+        //Having 1024 threads per block for double, complex-float and complex-double precision GEMV (transpose) for better performance
+        else
+        {
+            static constexpr int NB = 1024;
+            dim3                 gemvt_grid(n, batch_count);
+            dim3                 gemvt_threads(NB);
             if(handle->pointer_mode == rocblas_pointer_mode_device)
             {
                 hipLaunchKernelGGL((gemvt_kernel<CONJ, NB, T>),

@@ -262,12 +262,12 @@ template <bool CONJ, rocblas_int NB_X, typename T, typename U>
 __device__ void gemvt_kernel_calc(rocblas_int m,
                                   rocblas_int n,
                                   U           alpha,
-                                  const T*    A,
+                                  const T* __restrict__ A,
                                   rocblas_int lda,
-                                  const T*    x,
+                                  const T* __restrict__ x,
                                   rocblas_int incx,
                                   U           beta,
-                                  T*          y,
+                                  T* __restrict__ y,
                                   rocblas_int incy)
 {
     rocblas_int tx  = hipThreadIdx_x;
@@ -283,45 +283,37 @@ __device__ void gemvt_kernel_calc(rocblas_int m,
     if(tx < m)
         A += tx;
 
+    //Each BlockIdx.x takes care of each column of matrix A
     A += col * size_t(lda);
 
     T res = 0;
 
-    __shared__ T sdata[NB_X];
-
     // partial sums
     rocblas_int m_full = (m / NB_X) * NB_X;
 
-    for(rocblas_int i = 0; i < m_full; i += NB_X)
+    //Each column of Matrix A is multiplied with vector x and the resultant value is stored in res.
+    //If m > NB_X, then the threads are reused and the multiplied values will be accumalated.
+    for(rocblas_int i = 0; tx + i < m_full; i += NB_X)
         res += (CONJ ? conj(A[i]) : A[i]) * x[(tx + i) * incx];
 
     if(tx + m_full < m)
         res += (CONJ ? conj(A[m_full]) : A[m_full]) * x[(tx + m_full) * incx];
 
-    sdata[tx] = res;
-
-    // tree reduction of partial sums,
-    if(NB_X > 16)
+    if(NB_X <= warpSize)
     {
-        rocblas_sum_reduce<NB_X>(tx, sdata);
+        //shuffle warp reduction if NB_X is less than or equal to 64 (WarpSize)
+        res = wavefront_reduce<NB_X>(res);
     }
     else
     {
-        __syncthreads();
-
-        if(tx == 0)
-        {
-            for(rocblas_int i = 1; i < m && i < NB_X; i++)
-                sdata[0] += sdata[i];
-        }
-
-        __syncthreads();
+        //block shuffle warp reduction if NB_X is greater than 64 (WarpSize)
+        res = rocblas_dot_block_reduce<NB_X>(res);
     }
 
     if(tx == 0)
     {
         // !alpha handled earlier by early return
-        y[col * incy] = beta ? alpha * sdata[0] + beta * y[col * incy] : alpha * sdata[0];
+        y[col * incy] = beta ? alpha * res + beta * y[col * incy] : alpha * res;
     }
 }
 
