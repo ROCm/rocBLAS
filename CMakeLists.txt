@@ -280,7 +280,7 @@ endif()
 
 # Find HIP dependencies
 if( CMAKE_CXX_COMPILER_ID MATCHES "Clang" )
-  find_package( hip REQUIRED CONFIG PATHS ${HIP_PATH} ${ROCM_PATH} /opt/rocm )
+  find_package( hip REQUIRED CONFIG PATHS ${HIP_DIR} ${ROCM_PATH} /opt/rocm )
 endif( )
 
 message(STATUS "Using AMDGPU_TARGETS: ${AMDGPU_TARGETS}")

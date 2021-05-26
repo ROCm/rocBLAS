@@ -215,8 +215,11 @@ void rocblas_internal_ostream::worker::send(std::string str)
     // no lock needed for notification
     cond.notify_one();
 
-    // Wait for the task to be completed, to ensure flushed IO
-    future.get();
+// Wait for the task to be completed, to ensure flushed IO
+#ifdef WIN32
+    if(worker_task.size())
+#endif
+        future.get();
 }
 
 // Worker thread which serializes data to be written to a device/inode
