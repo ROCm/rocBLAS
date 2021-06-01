@@ -14,7 +14,7 @@
 function( target_compile_features target_name )
   # With Cmake v3.5, hipcc (with nvcc backend) does not work with target_compile_features
   # Turn on -std=c++14 manually
-  if( CUDA_FOUND AND CMAKE_CXX_COMPILER MATCHES ".*/hipcc$|.*/nvcc$" )
+  if( CUDA_FOUND AND ( CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER MATCHES ".*/nvcc$" ) )
     set_target_properties( ${target_name} PROPERTIES CXX_STANDARD 14 CXX_STANDARD_REQUIRED ON )
   else( )
     _target_compile_features( ${target_name} ${ARGN} )
@@ -27,7 +27,7 @@ endfunction( )
 function( target_link_libraries target_name )
   # hipcc takes care of finding hip library dependencies internally; remove
   # explicit mentions of them so cmake doesn't complain on nvcc path
-  if( CUDA_FOUND AND CMAKE_CXX_COMPILER MATCHES ".*/hipcc$|.*/nvcc$" )
+  if( CUDA_FOUND AND ( CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER MATCHES ".*/nvcc$" ) )
     foreach( link_library ${ARGN} )
       if( (link_library MATCHES "^hip::") )
       else( )
@@ -116,14 +116,14 @@ set( INCLUDE_INSTALL_DIR ${CMAKE_INSTALL_INCLUDEDIR} )
 add_subdirectory( src )
 
 # The following code is setting variables to control the behavior of CPack to generate our
-# if( WIN32 )
-#     set( CPACK_SOURCE_GENERATOR "ZIP" )
-#     set( CPACK_GENERATOR "ZIP" )
+if( WIN32 )
+    set( CPACK_SOURCE_GENERATOR "ZIP" )
+    set( CPACK_GENERATOR "ZIP" )
 # else( )
-#     set( CPACK_SOURCE_GENERATOR "TGZ" )
-#     set( CPACK_GENERATOR "DEB;RPM" CACHE STRING "cpack list: 7Z, DEB, IFW, NSIS, NSIS64, RPM, STGZ, TBZ2, TGZ, TXZ, TZ, ZIP" )
-#     # set( CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON )
-# endif( )
+#    set( CPACK_SOURCE_GENERATOR "TGZ" )
+#    set( CPACK_GENERATOR "DEB;RPM" CACHE STRING "cpack list: 7Z, DEB, IFW, NSIS, NSIS64, RPM, STGZ, TBZ2, TGZ, TXZ, TZ, ZIP" )
+#    set( CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON )
+endif( )
 
 # Package specific CPACK vars
 # As of ROCm 3.8, HIP_RUNTIME has been changed from "ROCclr" to "rocclr"
@@ -132,7 +132,7 @@ string( TOLOWER "${HIP_RUNTIME}" HIP_RUNTIME_LOWER )
 if( HIP_RUNTIME_LOWER STREQUAL "rocclr" )
   set( RPM_REQUIREMENTS "hip-rocclr >= 3.5.0" )
   set( CPACK_DEBIAN_PACKAGE_DEPENDS "hip-rocclr (>= 3.5.0)" )
-elseif( HIP_RUNTIME MATCHES "*cuda*")
+elseif( HIP_RUNTIME MATCHES ".*cuda.*")
   set( RPM_REQUIREMENTS "hip-nvcc >= 3.5.0" )
   set( CPACK_DEBIAN_PACKAGE_DEPENDS "hip-nvcc (>= 3.5.0)" )
 else()
@@ -147,7 +147,7 @@ set( CPACK_RPM_PACKAGE_REQUIRES ${RPM_REQUIREMENTS} )
 
 set( CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_SOURCE_DIR}/../LICENSE.md" )
 
-if( NOT CPACK_PACKAGING_INSTALL_PREFIX )
+if( NOT CPACK_PACKAGING_INSTALL_PREFIX AND NOT WIN32 )
   set( CPACK_PACKAGING_INSTALL_PREFIX ${ROCM_PATH} )
 endif( )
 

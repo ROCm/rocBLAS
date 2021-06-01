@@ -241,10 +241,10 @@ void testing_gemm(const Arguments& arg)
     }
 #endif
 
-    const auto size_A      = size_t(lda) * size_t(A_col);
-    const auto size_B      = size_t(ldb) * size_t(B_col);
-    const auto size_C      = size_t(ldc) * size_t(N);
-    const auto size_C_copy = arg.unit_check || arg.norm_check ? size_C : 0;
+    const size_t size_A      = size_t(lda) * A_col;
+    const size_t size_B      = size_t(ldb) * B_col;
+    const size_t size_C      = size_t(ldc) * N;
+    const size_t size_C_copy = arg.unit_check || arg.norm_check ? size_C : 0;
 
     // allocate memory on device
     device_vector<T> dA(size_A, 1, HMM);
@@ -262,7 +262,6 @@ void testing_gemm(const Arguments& arg)
     host_vector<T> hA(size_A);
     host_vector<T> hB(size_B);
     host_vector<T> hC_1(size_C);
-    host_vector<T> hC_2(size_C_copy);
     host_vector<T> hC_gold(size_C_copy);
 
     rocblas_seedrand();
@@ -332,7 +331,6 @@ void testing_gemm(const Arguments& arg)
 
     if(size_C_copy)
     {
-        hC_2    = hC_1;
         hC_gold = hC_1;
     }
 
@@ -340,26 +338,30 @@ void testing_gemm(const Arguments& arg)
     CHECK_HIP_ERROR(dA.transfer_from(hA));
     CHECK_HIP_ERROR(dB.transfer_from(hB));
 
+    CHECK_HIP_ERROR(dC.transfer_from(hC_1));
+
     if(arg.unit_check || arg.norm_check)
     {
         // ROCBLAS rocblas_pointer_mode_host
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_host));
-        CHECK_HIP_ERROR(dC.transfer_from(hC_1));
 
         CHECK_ROCBLAS_ERROR(rocblas_gemm_fn(
             handle, transA, transB, M, N, K, &h_alpha, dA, lda, dB, ldb, &h_beta, dC, ldc));
 
         CHECK_HIP_ERROR(hC_1.transfer_from(dC));
+
+        // gold has copy of hC1
+        CHECK_HIP_ERROR(dC.transfer_from(hC_gold));
+        CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(T), hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(hipMemcpy(d_beta, &h_beta, sizeof(T), hipMemcpyHostToDevice));
+
         // ROCBLAS rocblas_pointer_mode_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
 
-        CHECK_HIP_ERROR(dC.transfer_from(hC_2));
-        CHECK_HIP_ERROR(hipMemcpy(d_alpha, &h_alpha, sizeof(T), hipMemcpyHostToDevice));
-        CHECK_HIP_ERROR(hipMemcpy(d_beta, &h_beta, sizeof(T), hipMemcpyHostToDevice));
         CHECK_ROCBLAS_ERROR(rocblas_gemm_fn(
             handle, transA, transB, M, N, K, d_alpha, dA, lda, dB, ldb, d_beta, dC, ldc));
 
-        // CPU BLAS
+        // now we can recycle gold matrix for reference purposes
         if(arg.timing)
         {
             cpu_time_used = get_time_us_no_sync();
@@ -372,8 +374,30 @@ void testing_gemm(const Arguments& arg)
             cpu_time_used = get_time_us_no_sync() - cpu_time_used;
         }
 
-        // fetch GPU
-        CHECK_HIP_ERROR(hC_2.transfer_from(dC));
+        // check host error and norm
+        if(arg.unit_check)
+        {
+            if(std::is_same<T, rocblas_half>{} && K > 10000)
+            {
+                // For large K, rocblas_half tends to diverge proportional to K
+                // Tolerance is slightly greater than 1 / 1024.0
+                const double tol = K * sum_error_tolerance<T>;
+                near_check_general<T>(M, N, ldc, hC_gold, hC_1, tol);
+            }
+            else
+            {
+                unit_check_general<T>(M, N, ldc, hC_gold, hC_1);
+            }
+        }
+
+        if(arg.norm_check)
+        {
+            auto err1     = std::abs(norm_check_general<T>('F', M, N, ldc, hC_gold, hC_1));
+            rocblas_error = err1 > rocblas_error ? err1 : rocblas_error;
+        }
+
+        // fetch device mode GPU results
+        CHECK_HIP_ERROR(hC_1.transfer_from(dC));
 
         if(arg.unit_check)
         {
@@ -383,20 +407,17 @@ void testing_gemm(const Arguments& arg)
                 // Tolerance is slightly greater than 1 / 1024.0
                 const double tol = K * sum_error_tolerance<T>;
                 near_check_general<T>(M, N, ldc, hC_gold, hC_1, tol);
-                near_check_general<T>(M, N, ldc, hC_gold, hC_2, tol);
             }
             else
             {
                 unit_check_general<T>(M, N, ldc, hC_gold, hC_1);
-                unit_check_general<T>(M, N, ldc, hC_gold, hC_2);
             }
         }
 
         if(arg.norm_check)
         {
             auto err1     = std::abs(norm_check_general<T>('F', M, N, ldc, hC_gold, hC_1));
-            auto err2     = std::abs(norm_check_general<T>('F', M, N, ldc, hC_gold, hC_2));
-            rocblas_error = err1 > err2 ? err1 : err2;
+            rocblas_error = err1 > rocblas_error ? err1 : rocblas_error;
         }
     }
 

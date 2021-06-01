@@ -16,22 +16,22 @@ template <rocblas_int DIM_X,
           typename U,
           typename V,
           typename W>
-__global__ __launch_bounds__(DIM_X* DIM_Y) void ger_kernel(rocblas_int    m,
-                                                           rocblas_int    n,
-                                                           W              alpha_device_host,
-                                                           rocblas_stride stride_alpha,
-                                                           const U __restrict__ xa,
-                                                           ptrdiff_t      shiftx,
-                                                           rocblas_int    incx,
-                                                           rocblas_stride stridex,
-                                                           const U __restrict__ ya,
-                                                           ptrdiff_t      shifty,
-                                                           rocblas_int    incy,
-                                                           rocblas_stride stridey,
-                                                           V              Aa,
-                                                           ptrdiff_t      shifta,
-                                                           rocblas_int    lda,
-                                                           rocblas_stride strideA)
+ROCBLAS_KERNEL __launch_bounds__(DIM_X* DIM_Y) void ger_kernel(rocblas_int    m,
+                                                               rocblas_int    n,
+                                                               W              alpha_device_host,
+                                                               rocblas_stride stride_alpha,
+                                                               const U __restrict__ xa,
+                                                               ptrdiff_t      shiftx,
+                                                               rocblas_int    incx,
+                                                               rocblas_stride stridex,
+                                                               const U __restrict__ ya,
+                                                               ptrdiff_t      shifty,
+                                                               rocblas_int    incy,
+                                                               rocblas_stride stridey,
+                                                               V              Aa,
+                                                               ptrdiff_t      shifta,
+                                                               rocblas_int    lda,
+                                                               rocblas_stride strideA)
 {
     __shared__ T xdata[DIM_X];
     __shared__ T ydata[DIM_Y * WIN];
@@ -141,11 +141,12 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     auto shiftx = incx < 0 ? offsetx - ptrdiff_t(incx) * (m - 1) : offsetx;
     auto shifty = incy < 0 ? offsety - ptrdiff_t(incy) * (n - 1) : offsety;
 
-    static constexpr int DIM_X   = 32;
-    static constexpr int DIM_Y   = 32;
-    static constexpr int WIN     = 8; // work item number of elements to process
-    rocblas_int          blocksX = (m - 1) / DIM_X + 1;
-    rocblas_int          blocksY = (n - 1) / (DIM_Y * WIN) + 1; // WIN columns/work item
+    static constexpr int DIM_X = 32;
+    static constexpr int DIM_Y = 32;
+    static constexpr int WIN
+        = std::is_same<T, float>{} ? 4 : 2; // work item number of elements to process
+    rocblas_int blocksX = (m - 1) / DIM_X + 1;
+    rocblas_int blocksY = (n - 1) / (DIM_Y * WIN) + 1; // WIN columns/work item
 
     dim3 grid(blocksX, blocksY, batch_count);
     dim3 threads(DIM_X, DIM_Y);

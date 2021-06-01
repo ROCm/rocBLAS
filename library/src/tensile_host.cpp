@@ -31,17 +31,43 @@ extern "C" void rocblas_initialize() {}
 #include <Tensile/hip/HipUtils.hpp>
 #include <atomic>
 #include <complex>
-#include <dlfcn.h>
 #include <exception>
-#include <glob.h>
 #include <iomanip>
-#include <libgen.h>
 #include <memory>
 #include <mutex>
 #include <string>
 #include <type_traits>
-#include <unistd.h>
 #include <vector>
+
+#ifdef WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+
+#include <fileapi.h>
+#include <io.h>
+#include <libloaderapi.h>
+#define ROCBLAS_LIB_PATH "C:/rocblas"
+#else
+#include <dlfcn.h>
+#include <glob.h>
+#include <libgen.h>
+#include <unistd.h>
+#define ROCBLAS_LIB_PATH "/opt/rocm/rocblas/lib"
+#endif
+
+//
+// https://en.cppreference.com/w/User:D41D8CD98F/feature_testing_macros
+//
+#ifdef __cpp_lib_filesystem
+#include <filesystem>
+#else
+#include <experimental/filesystem>
+
+namespace std
+{
+    namespace filesystem = experimental::filesystem;
+}
+#endif
 
 namespace
 {
@@ -140,6 +166,41 @@ namespace
             return Tensile::PerformanceMetric::DeviceEfficiency;
         }
     }
+
+    /*************************************************************************
+     * Class for converting alpha and beta between rocBLAS and Tensile types *
+     * By default, alpha and beta are the same type as Tc compute_type       *
+     *************************************************************************/
+    template <typename Ti, typename To = Ti, typename Tc = To>
+    struct AlphaBeta
+    {
+        using tensile_type = typename rocblas_to_tensile_type<Tc>::tensile_type;
+        static void copy(tensile_type* dst, const Tc* src)
+        {
+            static_assert(sizeof(*src) == sizeof(*dst),
+                          "Tensile and rocBLAS types are not the same size");
+            static_assert(std::is_standard_layout<tensile_type>{} && std::is_standard_layout<Tc>{},
+                          "Tensile or rocBLAS types are not standard layout types");
+            memcpy(dst, src, sizeof(*dst));
+        }
+    };
+
+    /**************************************************************
+     * Tensile does not support float alpha and beta for HPA half *
+     * We must convert alpha and beta from float to half          *
+     * TODO- Tensile supports HHS HPA now                         *
+     * We could plan to use HHS+HPA instead of this workaround    *
+     **************************************************************/
+    template <>
+    struct AlphaBeta<rocblas_half, rocblas_half, float>
+    {
+        using tensile_type = Tensile::Half;
+        static void copy(tensile_type* dst, const float* float_src)
+        {
+            rocblas_half src(*float_src);
+            AlphaBeta<rocblas_half>::copy(dst, &src);
+        }
+    };
 
     /****************************************************************
      * Construct a Tensile Problem from a RocblasContractionProblem *
@@ -301,43 +362,22 @@ namespace
         else if(metric != rocblas_default_performance_metric)
             tensileProblem.setPerformanceMetric(performanceMetricMap(metric));
 
+        // alpha and beta are stored by value in Tensile::TypedContractionInputs
+        // alpha and beta are copied from host to Tensile::TypedContractionInputs
+        // If k==0, we do not need to dereference prob.alpha and can set tensileAlpha=0
+        // Not positive if this is necessary here as well
+        typename AlphaBeta<Ti, To, Tc>::tensile_type tensileAlpha;
+        if(prob.k)
+            AlphaBeta<Ti, To, Tc>::copy(&tensileAlpha, prob.alpha);
+        else
+            memset(&tensileAlpha, 0, sizeof(tensileAlpha));
+        tensileProblem.setAlphaRestriction(Tensile::toScalarValueEnum(tensileAlpha));
+
+        // Add problem predicates for CEqualsD
+        tensileProblem.setCEqualsD(prob.C == prob.D);
+
         return tensileProblem;
     }
-
-    /*************************************************************************
-     * Class for converting alpha and beta between rocBLAS and Tensile types *
-     * By default, alpha and beta are the same type as Tc compute_type       *
-     *************************************************************************/
-    template <typename Ti, typename To = Ti, typename Tc = To>
-    struct AlphaBeta
-    {
-        using tensile_type = typename rocblas_to_tensile_type<Tc>::tensile_type;
-        static void copy(tensile_type* dst, const Tc* src)
-        {
-            static_assert(sizeof(*src) == sizeof(*dst),
-                          "Tensile and rocBLAS types are not the same size");
-            static_assert(std::is_standard_layout<tensile_type>{} && std::is_standard_layout<Tc>{},
-                          "Tensile or rocBLAS types are not standard layout types");
-            memcpy(dst, src, sizeof(*dst));
-        }
-    };
-
-    /**************************************************************
-     * Tensile does not support float alpha and beta for HPA half *
-     * We must convert alpha and beta from float to half          *
-     * TODO- Tensile supports HHS HPA now                         *
-     * We could plan to use HHS+HPA instead of this workaround    *
-     **************************************************************/
-    template <>
-    struct AlphaBeta<rocblas_half, rocblas_half, float>
-    {
-        using tensile_type = Tensile::Half;
-        static void copy(tensile_type* dst, const float* float_src)
-        {
-            rocblas_half src(*float_src);
-            AlphaBeta<rocblas_half>::copy(dst, &src);
-        }
-    };
 
     /***************************************************************
      * Construct the inputs to a Tensile ContractionProblem        *
@@ -467,7 +507,11 @@ namespace
          *******************************************************/
         static bool TestPath(const std::string& path)
         {
+#ifdef WIN32
+            return ((_access(path.c_str(), 4) != -1) || (_access(path.c_str(), 6) != -1));
+#else
             return access(path.c_str(), R_OK) == 0;
+#endif
         }
 
         /*********************************************************************
@@ -477,7 +521,9 @@ namespace
         void initialize(Tensile::hip::SolutionAdapter& adapter, rocblas_int deviceId)
         {
             std::string path;
+#ifndef WIN32
             path.reserve(PATH_MAX);
+#endif
 
             // The name of the current GPU platform
             std::string processor = rocblas_internal_get_arch_name();
@@ -490,6 +536,16 @@ namespace
             else
             {
 #ifndef ROCBLAS_STATIC_LIB
+#ifdef WIN32
+                // Find the location of librocblas.dll
+                // Fall back on hard-coded path if static library or not found
+                wchar_t wpath[MAX_PATH + 1] = {0};
+                if(GetModuleFileNameW(GetModuleHandle("rocblas.dll"), wpath, MAX_PATH + 1))
+                {
+                    std::wstring          wspath(wpath);
+                    std::string           tmp(wspath.begin(), wspath.end());
+                    std::filesystem::path exepath = tmp;
+#else
                 Dl_info info;
 
                 // Find the location of librocblas.so
@@ -500,13 +556,23 @@ namespace
 
                 if(dladdr((void*)rocblas_sscal, &info))
                 {
-                    path = info.dli_fname;
-                    path = std::string{dirname(&path[0])};
+                    //path = info.dli_fname;
+                    //path = std::string{dirname(&path[0])};
+                    std::filesystem::path exepath = info.dli_fname;
+#endif
+                    if(exepath.has_filename())
+                    {
+                        path = exepath.remove_filename().string();
+                    }
+                    else
+                    {
+                        path = ROCBLAS_LIB_PATH;
+                    }
                 }
                 else
 #endif
                 {
-                    path = "/opt/rocm/rocblas/lib";
+                    path = ROCBLAS_LIB_PATH;
                 }
 
                 // Find the location of the libraries
@@ -522,6 +588,25 @@ namespace
             // only load modules for the current architecture
             auto dir = path + "/*" + processor + "*co";
 
+            bool no_match = false;
+#ifdef WIN32
+            std::replace(dir.begin(), dir.end(), '/', '\\');
+            WIN32_FIND_DATAA finddata;
+            HANDLE           hfine = FindFirstFileA(dir.c_str(), &finddata);
+            if(hfine != INVALID_HANDLE_VALUE)
+            {
+                do
+                {
+                    std::string codeObjectFile = path + "\\" + finddata.cFileName;
+                    adapter.loadCodeObjectFile(codeObjectFile.c_str());
+                } while(FindNextFileA(hfine, &finddata));
+            }
+            else
+            {
+                no_match = true;
+            }
+            FindClose(hfine);
+#else
             glob_t glob_result{};
             int    g = glob(dir.c_str(), GLOB_NOSORT, nullptr, &glob_result);
             if(!g)
@@ -531,10 +616,7 @@ namespace
             }
             else if(g == GLOB_NOMATCH)
             {
-                static auto& once = rocblas_cerr
-                                    << "\nrocBLAS warning: No paths matched " << dir
-                                    << ". Make sure that ROCBLAS_TENSILE_LIBPATH is set correctly."
-                                    << std::endl;
+                no_match = true;
             }
             else
             {
@@ -548,6 +630,14 @@ namespace
                 // clang-format on
             }
             globfree(&glob_result);
+#endif
+            if(no_match)
+            {
+                static auto& once = rocblas_cerr
+                                    << "\nrocBLAS warning: No paths matched " << dir
+                                    << ". Make sure that ROCBLAS_TENSILE_LIBPATH is set correctly."
+                                    << std::endl;
+            }
 
             // We initialize a local static variable with a lambda function call to avoid
             // race conditions when multiple threads with different device IDs try to

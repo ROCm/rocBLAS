@@ -229,20 +229,20 @@ __device__ void tbmvx_kernel_calc(rocblas_operation transA,
   *  reside on the same row as the other elements of the same diagonal.
   */
 template <rocblas_int DIM_X, rocblas_int DIM_Y, typename U, typename V>
-__global__ void tbmvx_kernel(rocblas_operation transA,
-                             bool              upper,
-                             bool              diag,
-                             rocblas_int       m,
-                             rocblas_int       k,
-                             U                 Aa,
-                             ptrdiff_t         shifta,
-                             rocblas_int       lda,
-                             rocblas_stride    strideA,
-                             U                 xa_copy,
-                             V                 xa,
-                             ptrdiff_t         shiftx,
-                             rocblas_int       incx,
-                             rocblas_stride    stridex)
+ROCBLAS_KERNEL void tbmvx_kernel(rocblas_operation transA,
+                                 bool              upper,
+                                 bool              diag,
+                                 rocblas_int       m,
+                                 rocblas_int       k,
+                                 U                 Aa,
+                                 ptrdiff_t         shifta,
+                                 rocblas_int       lda,
+                                 rocblas_stride    strideA,
+                                 U                 xa_copy,
+                                 V                 xa,
+                                 ptrdiff_t         shiftx,
+                                 rocblas_int       incx,
+                                 rocblas_stride    stridex)
 {
     rocblas_int num_threads = hipBlockDim_x * hipBlockDim_y * hipBlockDim_z;
     if(DIM_X * DIM_Y != num_threads)

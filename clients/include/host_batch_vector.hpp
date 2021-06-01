@@ -177,6 +177,10 @@ public:
         if(that.use_HMM && hipSuccess != (hip_err = hipDeviceSynchronize()))
             return hip_err;
 
+#ifdef WIN32
+// TODO remove, this allows batched tests to pass
+//hipDeviceSynchronize();
+#endif
         hipMemcpyKind kind = that.use_HMM ? hipMemcpyHostToHost : hipMemcpyDeviceToHost;
 
         for(rocblas_int batch_index = 0; batch_index < this->m_batch_count; ++batch_index)

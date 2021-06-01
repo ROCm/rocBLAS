@@ -22,15 +22,15 @@ static constexpr rocblas_int ROCBLAS_TRTRI_NB = 16;
 
 */
 template <rocblas_int NB, rocblas_int IB, rocblas_int IBD, typename T, typename U, typename V>
-__global__ void trtri_trsm_kernel(rocblas_fill     uplo,
-                                  rocblas_diagonal diag,
-                                  U                A,
-                                  rocblas_int      offset_A,
-                                  rocblas_int      lda,
-                                  rocblas_stride   stride_A,
-                                  V                invA,
-                                  rocblas_int      offset_invA,
-                                  rocblas_stride   stride_invA)
+ROCBLAS_KERNEL void trtri_trsm_kernel(rocblas_fill     uplo,
+                                      rocblas_diagonal diag,
+                                      U                A,
+                                      rocblas_int      offset_A,
+                                      rocblas_int      lda,
+                                      rocblas_stride   stride_A,
+                                      V                invA,
+                                      rocblas_int      offset_invA,
+                                      rocblas_stride   stride_invA)
 {
     // get the individual matrix which is processed by device function
     // device function only see one matrix

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -58,6 +58,12 @@ public:
     explicit operator T()
     {
         return std::uniform_int_distribution<T>{}(t_rocblas_rng);
+    }
+
+    // Random signed char
+    explicit operator signed char()
+    {
+        return static_cast<signed char>(std::uniform_int_distribution<int>{}(t_rocblas_rng));
     }
 
     // Random NaN double
@@ -213,7 +219,7 @@ inline rocblas_bfloat16 random_generator<rocblas_bfloat16>()
 template <>
 inline int8_t random_generator<int8_t>()
 {
-    return std::uniform_int_distribution<int8_t>(1, 3)(t_rocblas_rng);
+    return static_cast<int8_t>(std::uniform_int_distribution<unsigned short>(1, 3)(t_rocblas_rng));
 };
 
 /*! \brief  generate a random number in HPL-like [-0.5,0.5] doubles  */
@@ -232,7 +238,8 @@ inline std::string random_string(size_t n)
         size_t len = std::uniform_int_distribution<size_t>(1, n)(t_rocblas_rng);
         str.reserve(len);
         for(size_t i = 0; i < len; ++i)
-            str.push_back(std::uniform_int_distribution<char>(0x20, 0x7E)(t_rocblas_rng));
+            str.push_back(static_cast<char>(
+                std::uniform_int_distribution<unsigned short>(0x20, 0x7E)(t_rocblas_rng)));
     }
     return str;
 }

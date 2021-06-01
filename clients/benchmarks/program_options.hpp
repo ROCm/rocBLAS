@@ -11,6 +11,7 @@
 #include <map>
 #include <ostream>
 #include <regex>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <utility>

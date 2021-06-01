@@ -129,6 +129,15 @@ inline void xaxpy(int*                    n,
     return zaxpy_(n, alpha, x, incx, y, incy);
 }
 
+template <typename T>
+void m_axpy(size_t* N, T* alpha, T* x, int* incx, T* y, int* incy)
+{
+    for(size_t i = 0; i < *N; i++)
+    {
+        y[i * (*incy)] = (*alpha) * x[i * (*incx)] + y[i * (*incy)];
+    }
+}
+
 /* ============== Norm Check for General Matrix ============= */
 /*! \brief compare the norm error of two matrices hCPU & hGPU */
 
@@ -141,26 +150,27 @@ double norm_check_general(
     // one norm is max column sum
     // infinity norm is max row sum
     // Frobenius is l2 norm of matrix entries
+    size_t size = N * (size_t)lda;
 
-    host_vector<double> hCPU_double(N * lda);
-    host_vector<double> hGPU_double(N * lda);
+    host_vector<double> hCPU_double(size);
+    host_vector<double> hGPU_double(size);
 
     for(rocblas_int i = 0; i < N; i++)
     {
         for(rocblas_int j = 0; j < M; j++)
         {
-            hCPU_double[j + i * lda] = double(hCPU[j + i * lda]);
-            hGPU_double[j + i * lda] = double(hGPU[j + i * lda]);
+            size_t idx       = j + i * (size_t)lda;
+            hCPU_double[idx] = double(hCPU[idx]);
+            hGPU_double[idx] = double(hGPU[idx]);
         }
     }
 
     double      work[1];
     rocblas_int incx  = 1;
     double      alpha = -1.0;
-    rocblas_int size  = lda * N;
 
     double cpu_norm = xlange(&norm_type, &M, &N, hCPU_double.data(), &lda, work);
-    xaxpy(&size, &alpha, hCPU_double.data(), &incx, hGPU_double.data(), &incx);
+    m_axpy(&size, &alpha, hCPU_double.data(), &incx, hGPU_double.data(), &incx);
     double error = xlange(&norm_type, &M, &N, hGPU_double.data(), &lda, work) / cpu_norm;
 
     return error;
@@ -179,10 +189,10 @@ double norm_check_general(
     decltype(std::real(*hCPU)) work[1];
     rocblas_int                incx  = 1;
     T                          alpha = -1.0;
-    rocblas_int                size  = lda * N;
+    size_t                     size  = N * (size_t)lda;
 
     double cpu_norm = xlange(&norm_type, &M, &N, hCPU, &lda, work);
-    xaxpy(&size, &alpha, hCPU, &incx, hGPU, &incx);
+    m_axpy(&size, &alpha, hCPU, &incx, hGPU, &incx);
     double error = xlange(&norm_type, &M, &N, hGPU, &lda, work) / cpu_norm;
 
     return error;
@@ -196,15 +206,17 @@ template <typename T,
 double norm_check_general(
     char norm_type, rocblas_int M, rocblas_int N, rocblas_int lda, VEC&& hCPU, T* hGPU)
 {
-    host_vector<double> hCPU_double(N * lda);
-    host_vector<double> hGPU_double(N * lda);
+    size_t              size = N * (size_t)lda;
+    host_vector<double> hCPU_double(size);
+    host_vector<double> hGPU_double(size);
 
     for(rocblas_int i = 0; i < N; i++)
     {
         for(rocblas_int j = 0; j < M; j++)
         {
-            hCPU_double[j + i * lda] = hCPU[j + i * lda];
-            hGPU_double[j + i * lda] = hGPU[j + i * lda];
+            size_t idx       = j + i * (size_t)lda;
+            hCPU_double[idx] = hCPU[idx];
+            hGPU_double[idx] = hGPU[idx];
         }
     }
 
@@ -340,22 +352,23 @@ double norm_check_symmetric(
     double      work[1];
     rocblas_int incx  = 1;
     double      alpha = -1.0;
-    rocblas_int size  = lda * N;
+    size_t      size  = N * (size_t)lda;
 
-    host_vector<double> hCPU_double(N * lda);
-    host_vector<double> hGPU_double(N * lda);
+    host_vector<double> hCPU_double(size);
+    host_vector<double> hGPU_double(size);
 
     for(rocblas_int i = 0; i < N; i++)
     {
         for(rocblas_int j = 0; j < N; j++)
         {
-            hCPU_double[j + i * lda] = double(hCPU[j + i * lda]);
-            hGPU_double[j + i * lda] = double(hGPU[j + i * lda]);
+            size_t idx       = j + i * (size_t)lda;
+            hCPU_double[idx] = double(hCPU[idx]);
+            hGPU_double[idx] = double(hGPU[idx]);
         }
     }
 
     double cpu_norm = xlanhe(&norm_type, &uplo, &N, hCPU_double, &lda, work);
-    xaxpy(&size, &alpha, hCPU_double, &incx, hGPU_double, &incx);
+    m_axpy(&size, &alpha, hCPU_double.data(), &incx, hGPU_double.data(), &incx);
     double error = xlanhe(&norm_type, &uplo, &N, hGPU_double, &lda, work) / cpu_norm;
 
     return error;
@@ -370,10 +383,10 @@ double norm_check_symmetric(
     decltype(std::real(*hCPU)) work[1];
     rocblas_int                incx  = 1;
     T                          alpha = -1.0;
-    rocblas_int                size  = lda * N;
+    size_t                     size  = (size_t)lda * N;
 
     double cpu_norm = xlanhe(&norm_type, &uplo, &N, hCPU, &lda, work);
-    xaxpy(&size, &alpha, hCPU, &incx, hGPU, &incx);
+    m_axpy(&size, &alpha, hCPU, &incx, hGPU, &incx);
     double error = xlanhe(&norm_type, &uplo, &N, hGPU, &lda, work) / cpu_norm;
 
     return error;
@@ -387,15 +400,17 @@ inline double norm_check_symmetric(char          norm_type,
                                    rocblas_half* hCPU,
                                    rocblas_half* hGPU)
 {
-    host_vector<double> hCPU_double(N * lda);
-    host_vector<double> hGPU_double(N * lda);
+    size_t              size = N * (size_t)lda;
+    host_vector<double> hCPU_double(size);
+    host_vector<double> hGPU_double(size);
 
     for(rocblas_int i = 0; i < N; i++)
     {
         for(rocblas_int j = 0; j < N; j++)
         {
-            hCPU_double[j + i * lda] = hCPU[j + i * lda];
-            hGPU_double[j + i * lda] = hGPU[j + i * lda];
+            size_t idx       = j + i * (size_t)lda;
+            hCPU_double[idx] = hCPU[idx];
+            hGPU_double[idx] = hGPU[idx];
         }
     }
 
@@ -413,8 +428,9 @@ double matrix_norm_1(rocblas_int M, rocblas_int N, rocblas_int lda, T* hA_gold, 
     {
         for(int j = 0; j < M; j++)
         {
-            err += rocblas_abs((hA_gold[j + i * lda] - hA[j + i * lda]));
-            err_scal += rocblas_abs(hA_gold[j + i * lda]);
+            size_t idx = j + i * (size_t)lda;
+            err += rocblas_abs((hA_gold[idx] - hA[idx]));
+            err_scal += rocblas_abs(hA_gold[idx]);
         }
         max_err_scal = max_err_scal > err_scal ? max_err_scal : err_scal;
         max_err      = max_err > err ? max_err : err;
@@ -430,8 +446,9 @@ double vector_norm_1(rocblas_int M, rocblas_int incx, T* hx_gold, T* hx)
     double max_err      = 0.0;
     for(int i = 0; i < M; i++)
     {
-        max_err += rocblas_abs((hx_gold[i * incx] - hx[i * incx]));
-        max_err_scal += rocblas_abs(hx_gold[i * incx]);
+        size_t idx = i * (size_t)incx;
+        max_err += rocblas_abs((hx_gold[idx] - hx[idx]));
+        max_err_scal += rocblas_abs(hx_gold[idx]);
     }
 
     return max_err / max_err_scal;

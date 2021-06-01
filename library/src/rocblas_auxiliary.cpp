@@ -229,12 +229,12 @@ catch(...)
 constexpr size_t      VEC_BUFF_MAX_BYTES = 1048576;
 constexpr rocblas_int NB_X               = 256;
 
-__global__ void rocblas_copy_void_ptr_vector_kernel(rocblas_int n,
-                                                    rocblas_int elem_size,
-                                                    const void* x,
-                                                    rocblas_int incx,
-                                                    void*       y,
-                                                    rocblas_int incy)
+ROCBLAS_KERNEL void rocblas_copy_void_ptr_vector_kernel(rocblas_int n,
+                                                        rocblas_int elem_size,
+                                                        const void* x,
+                                                        rocblas_int incx,
+                                                        void*       y,
+                                                        rocblas_int incy)
 {
     size_t tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     if(tid < n)
@@ -616,13 +616,13 @@ constexpr size_t      MAT_BUFF_MAX_BYTES = 1048576;
 constexpr rocblas_int MATRIX_DIM_X       = 128;
 constexpr rocblas_int MATRIX_DIM_Y       = 8;
 
-__global__ void rocblas_copy_void_ptr_matrix_kernel(rocblas_int rows,
-                                                    rocblas_int cols,
-                                                    size_t      elem_size,
-                                                    const void* a,
-                                                    rocblas_int lda,
-                                                    void*       b,
-                                                    rocblas_int ldb)
+ROCBLAS_KERNEL void rocblas_copy_void_ptr_matrix_kernel(rocblas_int rows,
+                                                        rocblas_int cols,
+                                                        size_t      elem_size,
+                                                        const void* a,
+                                                        rocblas_int lda,
+                                                        void*       b,
+                                                        rocblas_int ldb)
 {
     rocblas_int tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     rocblas_int ty = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;

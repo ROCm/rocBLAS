@@ -23,8 +23,24 @@
 #include <string>
 #include <sys/stat.h>
 #include <thread>
-#include <unistd.h>
 #include <utility>
+#ifdef WIN32
+#include <io.h>
+#include <iostream>
+#include <sstream>
+#include <sys/stat.h>
+#include <sys/types.h>
+#define STDOUT_FILENO _fileno(stdout)
+#define STDERR_FILENO _fileno(stderr)
+#define FDOPEN(A, B) _fdopen(A, B)
+#define OPEN(A) _open(A, _O_WRONLY | _O_CREAT | _O_TRUNC | _O_APPEND, _S_IREAD | _S_IWRITE);
+#define CLOSE(A) _close(A)
+#else
+#define FDOPEN(A, B) fdopen(A, B)
+#define OPEN(A) open(A, O_WRONLY | O_CREAT | O_TRUNC | O_APPEND | O_CLOEXEC, 0644);
+#define CLOSE(A) close(A)
+#include <unistd.h>
+#endif
 
 /*****************************************************************************
  * rocBLAS output streams                                                    *
@@ -37,7 +53,7 @@
  * The rocblas_internal_ostream class performs atomic IO on log files, and provides *
  * consistent formatting                                                   *
  ***************************************************************************/
-class rocblas_internal_ostream
+class ROCBLAS_INTERNAL_EXPORT rocblas_internal_ostream
 {
     /**************************************************************************
      * The worker class sets up a worker thread for writing to log files. Two *
@@ -52,11 +68,15 @@ class rocblas_internal_ostream
             std::promise<void> promise;
 
         public:
-            // The task takes ownership of the string payload and promise
-            task_t(std::string&& str, std::promise<void>&& promise)
+            // The task takes ownership of the string payload
+            task_t(std::string&& str)
                 : str(std::move(str))
-                , promise(std::move(promise))
             {
+            }
+
+            auto get_future()
+            {
+                return promise.get_future();
             }
 
             // Notify the future to wake up
@@ -104,15 +124,7 @@ class rocblas_internal_ostream
         void send(std::string);
 
         // Destroy a worker when all std::shared_ptr references to it are gone
-        ~worker()
-        {
-            // Tell worker thread to exit, by sending it an empty string
-            send({});
-
-            // Close the FILE
-            if(file)
-                fclose(file);
-        }
+        ~worker();
     };
 
     // Two filehandles point to the same file if they share the same (std_dev, std_ino).
@@ -135,15 +147,15 @@ class rocblas_internal_ostream
 
     // Map from file_id to a worker shared_ptr
     // Implemented as singleton to avoid the static initialization order fiasco
-    static auto& map()
+    static auto& worker_map()
     {
-        static std::map<file_id_t, std::shared_ptr<worker>, file_id_less> map;
-        return map;
+        static std::map<file_id_t, std::shared_ptr<worker>, file_id_less> file_id_to_worker_map;
+        return file_id_to_worker_map;
     }
 
     // Mutex for accessing the map
     // Implemented as singleton to avoid the static initialization order fiasco
-    static auto& map_mutex()
+    static auto& worker_map_mutex()
     {
         static std::recursive_mutex map_mutex;
         return map_mutex;
@@ -201,6 +213,9 @@ public:
         return rocblas_internal_ostream(*this);
     }
 
+    // For testing to allow file closing and deletion
+    static void clear_workers();
+
     // Convert stream output to string
     std::string str() const
     {
@@ -218,10 +233,7 @@ public:
     void flush();
 
     // Destroy the rocblas_internal_ostream
-    virtual ~rocblas_internal_ostream()
-    {
-        flush(); // Flush any pending IO
-    }
+    virtual ~rocblas_internal_ostream();
 
     // Implemented as singleton to avoid the static initialization order fiasco
     static rocblas_internal_ostream& cout()
@@ -284,7 +296,38 @@ public:
     }
 
     // Floating-point output
-    friend rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os, double x);
+    friend rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os, double x)
+    {
+        if(!os.yaml)
+            os.os << x;
+        else
+        {
+            // For YAML, we must output the floating-point value exactly
+            if(std::isnan(x))
+                os.os << ".nan";
+            else if(std::isinf(x))
+                os.os << (x < 0 ? "-.inf" : ".inf");
+            else
+            {
+                char s[32];
+                snprintf(s, sizeof(s) - 2, "%.17g", x);
+
+                // If no decimal point or exponent, append .0 to indicate floating point
+                for(char* end = s; *end != '.' && *end != 'e' && *end != 'E'; ++end)
+                {
+                    if(!*end)
+                    {
+                        end[0] = '.';
+                        end[1] = '0';
+                        end[2] = '\0';
+                        break;
+                    }
+                }
+                os.os << s;
+            }
+        }
+        return os;
+    }
 
     friend rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os, rocblas_half half)
     {
@@ -319,13 +362,37 @@ public:
     }
 
     // bool output
-    friend rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os, bool b);
+    friend rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os, bool b)
+    {
+        if(os.yaml)
+            os.os << (b ? "true" : "false");
+        else
+            os.os << (b ? 1 : 0);
+        return os;
+    }
 
     // Character output
-    friend rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os, char c);
+    friend rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os, char c)
+    {
+        if(os.yaml)
+        {
+            char s[]{c, 0};
+            os.os << std::quoted(s, '\'');
+        }
+        else
+            os.os << c;
+        return os;
+    }
 
     // String output
-    friend rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os, const char* s);
+    friend rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os, const char* s)
+    {
+        if(os.yaml)
+            os.os << std::quoted(s);
+        else
+            os.os << s;
+        return os;
+    }
 
     friend rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os, const std::string& s)
     {
@@ -404,11 +471,30 @@ public:
         return os << str.str();
     }
 
-    friend std::ostream& operator<<(std::ostream& os, const rocblas_internal_ostream& str);
-
     // IO Manipulators
+
     friend rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os,
-                                                std::ostream& (*pf)(std::ostream&));
+                                                std::ostream& (*pf)(std::ostream&))
+    {
+        // Turn YAML formatting on or off
+        if(pf == rocblas_internal_ostream::yaml_on)
+            os.yaml = true;
+        else if(pf == rocblas_internal_ostream::yaml_off)
+            os.yaml = false;
+        else
+        {
+            // Output the manipulator to the buffer
+            os.os << pf;
+
+            // If the manipulator is std::endl or std::flush, flush the output
+            if(pf == static_cast<std::ostream& (*)(std::ostream&)>(std::endl)
+               || pf == static_cast<std::ostream& (*)(std::ostream&)>(std::flush))
+            {
+                os.flush();
+            }
+        }
+        return os;
+    }
 
     // YAML Manipulators (only used for their addresses now)
     static std::ostream& yaml_on(std::ostream& os);

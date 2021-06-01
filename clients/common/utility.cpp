@@ -2,14 +2,35 @@
  * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
-#include "utility.hpp"
+#ifdef WIN32
+#include <windows.h>
+#endif
 #include "../../library/src/include/handle.hpp"
 #include "rocblas_random.hpp"
+#include "utility.hpp"
+#include <chrono>
 #include <cstdlib>
 #include <cstring>
 #include <new>
 #include <stdexcept>
-#include <sys/time.h>
+
+#ifdef WIN32
+#define strcasecmp(A, B) _stricmp(A, B)
+#endif
+
+//
+// https://en.cppreference.com/w/User:D41D8CD98F/feature_testing_macros
+//
+#ifdef __cpp_lib_filesystem
+#include <filesystem>
+#else
+#include <experimental/filesystem>
+
+namespace std
+{
+    namespace filesystem = experimental::filesystem;
+}
+#endif
 
 // Random number generator
 // Note: We do not use random_device to initialize the RNG, because we want
@@ -28,6 +49,31 @@ thread_local rocblas_rng_t t_rocblas_rng = get_seed();
 // Return path of this executable
 std::string rocblas_exepath()
 {
+#ifdef WIN32
+    //wchar_t wpath[MAX_PATH + 1] = {0};
+    //GetModuleFileNameW(NULL, wpath, MAX_PATH + 1);
+
+    std::vector<wchar_t> result(MAX_PATH + 1);
+    // Ensure result is large enough to accomodate the path
+    for(;;)
+    {
+        auto length = GetModuleFileNameW(nullptr, result.data(), result.size());
+        if(length < result.size() - 1)
+        {
+            result.resize(length);
+            result.shrink_to_fit();
+            break;
+        }
+        result.resize(result.size() * 2);
+    }
+
+    std::wstring          wspath(result.data());
+    std::filesystem::path exepath(wspath.begin(), wspath.end());
+    exepath = exepath.remove_filename();
+    // Add trailing "/" to exepath if required
+    exepath += exepath.empty() ? "" : "/";
+    return exepath.string();
+#else
     std::string pathstr;
     char*       path = realpath("/proc/self/exe", 0);
     if(path)
@@ -41,6 +87,7 @@ std::string rocblas_exepath()
         free(path);
     }
     return pathstr;
+#endif
 }
 
 /* ============================================================================================ */
@@ -50,26 +97,37 @@ std::string rocblas_exepath()
 double get_time_us_sync_device(void)
 {
     hipDeviceSynchronize();
-    struct timespec tv;
-    clock_gettime(CLOCK_MONOTONIC, &tv);
-    return tv.tv_sec * 1'000'000llu + (tv.tv_nsec + 500llu) / 1000;
+
+    auto now = std::chrono::steady_clock::now();
+    // now.time_since_epoch() is the duration since epoch
+    // which is converted to microseconds
+    auto duration
+        = std::chrono::duration_cast<std::chrono::microseconds>(now.time_since_epoch()).count();
+    return (static_cast<double>(duration));
 };
 
 /*! \brief  CPU Timer(in microsecond): synchronize with given queue/stream and return wall time */
 double get_time_us_sync(hipStream_t stream)
 {
     hipStreamSynchronize(stream);
-    struct timespec tv;
-    clock_gettime(CLOCK_MONOTONIC, &tv);
-    return tv.tv_sec * 1'000'000llu + (tv.tv_nsec + 500llu) / 1000;
+
+    auto now = std::chrono::steady_clock::now();
+    // now.time_since_epoch() is the duration since epoch
+    // which is converted to microseconds
+    auto duration
+        = std::chrono::duration_cast<std::chrono::microseconds>(now.time_since_epoch()).count();
+    return (static_cast<double>(duration));
 };
 
 /*! \brief  CPU Timer(in microsecond): no GPU synchronization */
 double get_time_us_no_sync(void)
 {
-    struct timespec tv;
-    clock_gettime(CLOCK_MONOTONIC, &tv);
-    return tv.tv_sec * 1'000'000llu + (tv.tv_nsec + 500llu) / 1000;
+    auto now = std::chrono::steady_clock::now();
+    // now.time_since_epoch() is the duration since epoch
+    // which is converted to microseconds
+    auto duration
+        = std::chrono::duration_cast<std::chrono::microseconds>(now.time_since_epoch()).count();
+    return (static_cast<double>(duration));
 };
 
 /* ============================================================================================ */

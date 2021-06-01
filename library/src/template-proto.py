@@ -70,7 +70,7 @@ def RunExporter():
         if os.path.isfile(path):
             files.add(path)
         else:
-            files |= set(glob.glob(path + '/*.h*'))
+            files.update(glob.glob(path+'*.h*'))
 
     headerFiles = sorted(files)
     for f in headerFiles:

@@ -9,12 +9,17 @@ set( CMAKE_CXX_STANDARD 14 )
 # Without this line, it will add -std=gnu++14 instead, which has some issues.
 set( CMAKE_CXX_EXTENSIONS OFF )
 
+if (NOT python)
+  set(python "python3") # default for linux
+endif()
+
 # This has to be initialized before the project() command appears
 # Set the default of CMAKE_BUILD_TYPE to be release, unless user specifies with -D.  MSVC_IDE does not use CMAKE_BUILD_TYPE
 if( NOT DEFINED CMAKE_CONFIGURATION_TYPES AND NOT DEFINED CMAKE_BUILD_TYPE )
   set( CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo MinSizeRel." )
 endif()
 
+# disable this next option and test build whenever compiler changes to verify unused arguments are safe to ignore
 add_compile_options( -Wno-unused-command-line-argument )
 
 unset(ENV{ROCM_BUILD_ID})
@@ -54,7 +59,7 @@ find_package(Threads REQUIRED)
 # Main
 # ########################################################################
 
-if( CMAKE_CXX_COMPILER MATCHES ".*/hipcc$" )
+if( CMAKE_CXX_COMPILER_ID MATCHES "Clang" )
   # Determine if CXX Compiler is hip-clang or nvcc
   execute_process(COMMAND ${CMAKE_CXX_COMPILER} "--version" OUTPUT_VARIABLE CXX_OUTPUT
                   OUTPUT_STRIP_TRAILING_WHITESPACE
@@ -133,7 +138,7 @@ get_os_id(OS_ID)
 message (STATUS "OS detected is ${OS_ID}")
 
 # Versioning via rocm-cmake
-set ( VERSION_STRING "2.39.0" )
+set ( VERSION_STRING "2.40.0" )
 rocm_setup_version( VERSION ${VERSION_STRING} )
 
 # Append our library helper cmake path and the cmake path for hip (for convenience)
@@ -157,7 +162,13 @@ if(BUILD_CODE_COVERAGE)
   add_link_options(-g --coverage)
 endif()
 
-
+# FOR OPTIONAL ADDRESS SANITIZER
+option(BUILD_ADDRESS_SANITIZER "Build with address sanitizer enabled" OFF)
+if(BUILD_ADDRESS_SANITIZER AND BUILD_SHARED_LIBS)
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=address -shared-libasan")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fsanitize=address -shared-libasan")
+  add_link_options(-fuse-ld=lld)
+endif()
 
 include( clients/cmake/build-options.cmake )
 
@@ -176,7 +187,7 @@ if(NOT SKIP_LIBRARY)
     )
   else()
     # This section is deprecated. Please use rocm_check_target_ids for future use.
-    if(CMAKE_CXX_COMPILER MATCHES ".*/hipcc$" )
+    if(CMAKE_CXX_COMPILER_ID MATCHES "Clang")
       execute_process(COMMAND ${CMAKE_CXX_COMPILER} "--help"
         OUTPUT_VARIABLE CXX_OUTPUT
         OUTPUT_STRIP_TRAILING_WHITESPACE
@@ -210,6 +221,7 @@ if(NOT SKIP_LIBRARY)
     set( AMDGPU_TARGETS "${gpus}" CACHE STRING "AMD GPU targets to compile for" FORCE )
   endif()
 
+  option( BUILD_WITH_TENSILE "Build full functionality which requires tensile?" ON )
   option( BUILD_WITH_TENSILE_HOST "Use the new tensile client for gemm?" ON )
 
   if( BUILD_WITH_TENSILE )
@@ -240,6 +252,10 @@ if(NOT SKIP_LIBRARY)
       option(TENSILE_USE_MSGPACK   "Use msgpack for parsing config files." ON)
     endif()
 
+    if (WIN32)
+      set( Tensile_ROOT "${CMAKE_BINARY_DIR}/virtualenv/Lib/site-packages/Tensile" )
+    endif()
+
     include(virtualenv)
     if (Tensile_TEST_LOCAL_PATH)
       virtualenv_install(${Tensile_TEST_LOCAL_PATH})
@@ -263,8 +279,8 @@ if(NOT SKIP_LIBRARY)
 endif()
 
 # Find HIP dependencies
-if( CMAKE_CXX_COMPILER MATCHES ".*/hipcc$" )
-  find_package( hip REQUIRED CONFIG PATHS ${ROCM_PATH} /opt/rocm )
+if( CMAKE_CXX_COMPILER_ID MATCHES "Clang" )
+  find_package( hip REQUIRED CONFIG PATHS ${HIP_PATH} ${ROCM_PATH} /opt/rocm )
 endif( )
 
 message(STATUS "Using AMDGPU_TARGETS: ${AMDGPU_TARGETS}")
@@ -279,12 +295,16 @@ else()
     list(APPEND TENSILE_DEFINES BUILD_WITH_TENSILE=0)
 endif()
 
+if( BUILD_CLIENTS_SAMPLES OR BUILD_CLIENTS_TESTS OR BUILD_CLIENTS_BENCHMARKS )
+  set( BUILD_CLIENTS ON )
+endif()
+
 if( NOT SKIP_LIBRARY )
     add_subdirectory( library )
 endif()
 
 # Build clients of the library
-if( BUILD_CLIENTS_SAMPLES OR BUILD_CLIENTS_TESTS OR BUILD_CLIENTS_BENCHMARKS )
+if( BUILD_CLIENTS )
   add_subdirectory( clients )
 endif( )
 

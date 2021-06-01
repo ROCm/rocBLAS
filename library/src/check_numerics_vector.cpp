@@ -144,18 +144,18 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 #ifdef INST
 #error INST IS ALREADY DEFINED
 #endif
-#define INST(typet_)                                                         \
-    template rocblas_status rocblas_internal_check_numerics_vector_template( \
-        const char*    function_name,                                        \
-        rocblas_handle handle,                                               \
-        rocblas_int    n,                                                    \
-        typet_         x,                                                    \
-        rocblas_int    offset_x,                                             \
-        rocblas_int    incx,                                                 \
-        rocblas_stride stride_x,                                             \
-        rocblas_int    batch_count,                                          \
-        const int      check_numerics,                                       \
-        bool           is_input)
+#define INST(typet_)                                                                   \
+    template ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status                           \
+        rocblas_internal_check_numerics_vector_template(const char*    function_name,  \
+                                                        rocblas_handle handle,         \
+                                                        rocblas_int    n,              \
+                                                        typet_         x,              \
+                                                        rocblas_int    offset_x,       \
+                                                        rocblas_int    incx,           \
+                                                        rocblas_stride stride_x,       \
+                                                        rocblas_int    batch_count,    \
+                                                        const int      check_numerics, \
+                                                        bool           is_input)
 INST(float*);
 INST(double*);
 INST(float* const*);

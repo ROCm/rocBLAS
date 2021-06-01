@@ -208,5 +208,7 @@ int main(int argc, char** argv)
     // Failures printed at end for reporting so repeat version info
     rocblas_print_version();
 
+    //rocblas_shutdown();
+
     return status;
 }

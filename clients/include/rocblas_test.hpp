@@ -29,6 +29,9 @@
 #include <unordered_map>
 #include <utility>
 #include <vector>
+#ifdef WIN32
+typedef long long ssize_t; /* x64 only supported */
+#endif
 
 #ifdef GOOGLE_TEST
 

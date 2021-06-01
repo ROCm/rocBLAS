@@ -40,14 +40,14 @@
 rocblas_int rocblas_get_trmm_recursive_nb(rocblas_int n);
 
 template <typename TScal, typename TPtr, typename T_lda>
-__global__ void set_matrix_zero_if_alpha_zero_kernel(rocblas_int    m,
-                                                     rocblas_int    n,
-                                                     TScal          alpha_device_host,
-                                                     rocblas_stride stride_alpha,
-                                                     TPtr           Aa,
-                                                     T_lda          offsetA,
-                                                     T_lda          lda,
-                                                     rocblas_stride strideA)
+ROCBLAS_KERNEL void set_matrix_zero_if_alpha_zero_kernel(rocblas_int    m,
+                                                         rocblas_int    n,
+                                                         TScal          alpha_device_host,
+                                                         rocblas_stride stride_alpha,
+                                                         TPtr           Aa,
+                                                         T_lda          offsetA,
+                                                         T_lda          lda,
+                                                         rocblas_stride strideA)
 {
     ptrdiff_t tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     ptrdiff_t ty = hipBlockIdx_y * hipBlockDim_y + hipThreadIdx_y;
@@ -126,20 +126,20 @@ template <const int NB,
           typename TConstPtr,
           typename TPtr,
           typename T_lda>
-__global__ __launch_bounds__(NB* NB) void rocblas_trmm_lNx_kernel(rocblas_fill     uplo,
-                                                                  rocblas_diagonal diag,
-                                                                  int              m,
-                                                                  int   n, // m must be <= NB
-                                                                  TScal alpha_device_host,
-                                                                  rocblas_stride stride_alpha,
-                                                                  TConstPtr*     A_arg,
-                                                                  T_lda          offset_a,
-                                                                  T_lda          ldda,
-                                                                  rocblas_stride stride_a,
-                                                                  TPtr*          B_arg,
-                                                                  T_lda          offset_b,
-                                                                  T_lda          lddb,
-                                                                  rocblas_stride stride_b)
+ROCBLAS_KERNEL __launch_bounds__(NB* NB) void rocblas_trmm_lNx_kernel(rocblas_fill     uplo,
+                                                                      rocblas_diagonal diag,
+                                                                      int              m,
+                                                                      int   n, // m must be <= NB
+                                                                      TScal alpha_device_host,
+                                                                      rocblas_stride stride_alpha,
+                                                                      TConstPtr*     A_arg,
+                                                                      T_lda          offset_a,
+                                                                      T_lda          ldda,
+                                                                      rocblas_stride stride_a,
+                                                                      TPtr*          B_arg,
+                                                                      T_lda          offset_b,
+                                                                      T_lda          lddb,
+                                                                      rocblas_stride stride_b)
 {
     const int tx = threadIdx.x;
     const int ty = threadIdx.y;
@@ -205,20 +205,20 @@ template <const int NB,
           typename TConstPtr,
           typename TPtr,
           typename T_lda>
-__global__ __launch_bounds__(NB* NB) void rocblas_trmm_lTx_kernel(rocblas_fill     uplo,
-                                                                  rocblas_diagonal diag,
-                                                                  int              m,
-                                                                  int   n, // m must be <= NB
-                                                                  TScal alpha_device_host,
-                                                                  rocblas_stride stride_alpha,
-                                                                  TConstPtr*     A_arg,
-                                                                  T_lda          offset_a,
-                                                                  T_lda          ldda,
-                                                                  rocblas_stride stride_a,
-                                                                  TPtr*          B_arg,
-                                                                  T_lda          offset_b,
-                                                                  T_lda          lddb,
-                                                                  rocblas_stride stride_b)
+ROCBLAS_KERNEL __launch_bounds__(NB* NB) void rocblas_trmm_lTx_kernel(rocblas_fill     uplo,
+                                                                      rocblas_diagonal diag,
+                                                                      int              m,
+                                                                      int   n, // m must be <= NB
+                                                                      TScal alpha_device_host,
+                                                                      rocblas_stride stride_alpha,
+                                                                      TConstPtr*     A_arg,
+                                                                      T_lda          offset_a,
+                                                                      T_lda          ldda,
+                                                                      rocblas_stride stride_a,
+                                                                      TPtr*          B_arg,
+                                                                      T_lda          offset_b,
+                                                                      T_lda          lddb,
+                                                                      rocblas_stride stride_b)
 {
     const int tx = threadIdx.x;
     const int ty = threadIdx.y;
@@ -296,20 +296,20 @@ template <const int NB,
           typename TConstPtr,
           typename TPtr,
           typename T_lda>
-__global__ __launch_bounds__(NB* NB) void rocblas_trmm_rNx_kernel(rocblas_fill     uplo,
-                                                                  rocblas_diagonal diag,
-                                                                  int              m,
-                                                                  int   n, // m must be <= NB
-                                                                  TScal alpha_device_host,
-                                                                  rocblas_stride stride_alpha,
-                                                                  TConstPtr*     A_arg,
-                                                                  T_lda          offset_a,
-                                                                  T_lda          ldda,
-                                                                  rocblas_stride stride_a,
-                                                                  TPtr*          B_arg,
-                                                                  T_lda          offset_b,
-                                                                  T_lda          lddb,
-                                                                  rocblas_stride stride_b)
+ROCBLAS_KERNEL __launch_bounds__(NB* NB) void rocblas_trmm_rNx_kernel(rocblas_fill     uplo,
+                                                                      rocblas_diagonal diag,
+                                                                      int              m,
+                                                                      int   n, // m must be <= NB
+                                                                      TScal alpha_device_host,
+                                                                      rocblas_stride stride_alpha,
+                                                                      TConstPtr*     A_arg,
+                                                                      T_lda          offset_a,
+                                                                      T_lda          ldda,
+                                                                      rocblas_stride stride_a,
+                                                                      TPtr*          B_arg,
+                                                                      T_lda          offset_b,
+                                                                      T_lda          lddb,
+                                                                      rocblas_stride stride_b)
 {
     const int tx = threadIdx.x;
     const int ty = threadIdx.y;
@@ -376,20 +376,20 @@ template <const int NB,
           typename TConstPtr,
           typename TPtr,
           typename T_lda>
-__global__ __launch_bounds__(NB* NB) void rocblas_trmm_rTx_kernel(rocblas_fill     uplo,
-                                                                  rocblas_diagonal diag,
-                                                                  int              m,
-                                                                  int   n, // m must be <= NB
-                                                                  TScal alpha_device_host,
-                                                                  rocblas_stride stride_alpha,
-                                                                  TConstPtr*     A_arg,
-                                                                  T_lda          offset_a,
-                                                                  T_lda          ldda,
-                                                                  rocblas_stride stride_a,
-                                                                  TPtr*          B_arg,
-                                                                  T_lda          offset_b,
-                                                                  T_lda          lddb,
-                                                                  rocblas_stride stride_b)
+ROCBLAS_KERNEL __launch_bounds__(NB* NB) void rocblas_trmm_rTx_kernel(rocblas_fill     uplo,
+                                                                      rocblas_diagonal diag,
+                                                                      int              m,
+                                                                      int   n, // m must be <= NB
+                                                                      TScal alpha_device_host,
+                                                                      rocblas_stride stride_alpha,
+                                                                      TConstPtr*     A_arg,
+                                                                      T_lda          offset_a,
+                                                                      T_lda          ldda,
+                                                                      rocblas_stride stride_a,
+                                                                      TPtr*          B_arg,
+                                                                      T_lda          offset_b,
+                                                                      T_lda          lddb,
+                                                                      rocblas_stride stride_b)
 {
     const int tx = threadIdx.x;
     const int ty = threadIdx.y;

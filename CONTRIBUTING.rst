@@ -358,7 +358,7 @@ Coding Guidelines
     .. code:: cpp
 
         template <typename T, typename U>
-        __global__ void axpy_kernel(rocblas_int n, U alpha_device_host, const T* x, rocblas_int incx, T* y, rocblas_int incy)
+        ROCBLAS_KERNEL void axpy_kernel(rocblas_int n, U alpha_device_host, const T* x, rocblas_int incx, T* y, rocblas_int incy)
         {
             auto alpha = load_scalar(alpha_device_host);
             ptrdiff_t tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;

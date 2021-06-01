@@ -134,7 +134,7 @@ __forceinline__ __device__ __host__ T*
 // Helper for batched functions with temporary memory, currently just trsm and trsv.
 // Copys addresses to array of pointers for batched versions.
 template <typename T>
-__global__ void setup_batched_array_kernel(T* src, rocblas_stride src_stride, T* dst[])
+ROCBLAS_KERNEL void setup_batched_array_kernel(T* src, rocblas_stride src_stride, T* dst[])
 {
     dst[hipBlockIdx_x] = src + hipBlockIdx_x * src_stride;
 }
@@ -151,10 +151,10 @@ void setup_batched_array(
 }
 
 template <typename T>
-__global__ void setup_device_pointer_array_kernel(T*             src,
-                                                  rocblas_stride src_stride,
-                                                  T*             dst[],
-                                                  rocblas_int    batch_count)
+ROCBLAS_KERNEL void setup_device_pointer_array_kernel(T*             src,
+                                                      rocblas_stride src_stride,
+                                                      T*             dst[],
+                                                      rocblas_int    batch_count)
 {
     ptrdiff_t tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     if(tid < batch_count)

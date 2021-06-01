@@ -4,9 +4,14 @@
 #include <csignal>
 #include <cstdlib>
 #include <exception>
-#include <pthread.h>
 #include <regex>
+#ifdef WIN32
+#include <windows.h>
+#define strcasecmp(A, B) _stricmp(A, B)
+#else
+#include <pthread.h>
 #include <unistd.h>
+#endif
 
 /*********************************************
  * thread pool functions
@@ -102,7 +107,11 @@ static thread_local struct
     volatile sig_atomic_t enabled = false;
 
     // sigjmp_buf describing stack frame to go back to
+#ifndef WIN32
     sigjmp_buf sigjmp_buf;
+#else
+    jmp_buf sigjmp_buf;
+#endif
 
     // The signal which was received
     volatile sig_atomic_t signal;
@@ -124,6 +133,7 @@ extern "C" void rocblas_test_signal_handler(int sig)
         return;
     }
 
+#ifndef WIN32
     // If this is an alarm timeout, we abort
     if(sig == SIGALRM)
     {
@@ -135,18 +145,24 @@ extern "C" void rocblas_test_signal_handler(int sig)
         write(STDERR_FILENO, msg, sizeof(msg) - 1);
         rocblas_abort();
     }
+#endif
 
     // Jump back to the handler code after setting handler.signal
     // Note: This bypasses stack unwinding, and may lead to memory leaks, but
     // it is better than crashing.
     t_handler.signal = sig;
     errno            = saved_errno;
+#ifndef WIN32
     siglongjmp(t_handler.sigjmp_buf, true);
+#else
+    longjmp(t_handler.sigjmp_buf, true);
+#endif
 }
 
 // Set up signal handlers
 void rocblas_test_sigaction()
 {
+#ifndef WIN32
     struct sigaction act;
     act.sa_flags = 0;
     sigfillset(&act.sa_mask);
@@ -155,6 +171,10 @@ void rocblas_test_sigaction()
     // Catch SIGALRM and synchronous signals
     for(int sig : {SIGALRM, SIGABRT, SIGBUS, SIGFPE, SIGILL, SIGSEGV})
         sigaction(sig, &act, nullptr);
+#else
+    for(int sig : {SIGABRT, SIGFPE, SIGILL, SIGINT, SIGSEGV, SIGTERM})
+        signal(sig, rocblas_test_signal_handler);
+#endif
 }
 
 static const unsigned test_timeout = [] {
@@ -171,17 +191,25 @@ void catch_signals_and_exceptions_as_failures(std::function<void()> test, bool s
     // Save the current handler (to allow nested calls to this function)
     auto old_handler = t_handler;
 
+#ifndef WIN32
     // Set up the return point, and handle siglongjmp returning back to here
     if(sigsetjmp(t_handler.sigjmp_buf, true))
     {
         FAIL() << "Received " << sys_siglist[t_handler.signal] << " signal";
     }
+#else
+    if(setjmp(t_handler.sigjmp_buf))
+    {
+        FAIL() << "Received signal";
+    }
+#endif
     else
     {
+#ifndef WIN32
         // Alarm to detect deadlocks or hangs
         if(set_alarm)
             alarm(test_timeout);
-
+#endif
         // Enable the signal handler
         t_handler.enabled = true;
 
@@ -200,10 +228,11 @@ void catch_signals_and_exceptions_as_failures(std::function<void()> test, bool s
         }
     }
 
+#ifndef WIN32
     // Cancel the alarm if it was set
     if(set_alarm)
         alarm(0);
-
+#endif
     // Restore the previous handler
     t_handler = old_handler;
 }

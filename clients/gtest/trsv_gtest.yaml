@@ -22,17 +22,19 @@ Definitions:
   - &medium_matrix_size_range
     - { M:   192, lda:   192, stride_a: 36864 }
     - { M:   256, lda:   256, stride_a: 65536 }
+    - { M:   511, lda:   613, stride_a: 413243 }
     - { M:   800, lda:   801, stride_a: 640800 }
 
   - &large_matrix_size_range
     - { M:  1000, lda:  1000, stride_a: 1000000 }
     - { M:  1024, lda:  1024, stride_a: 1048576 }
     - { M:  2000, lda:  2000, stride_a: 4000000 }
+    - { M:  1000, lda:  4096, stride_a: 10000000 }
 
   - &common_args
     precision: *single_double_precisions_complex_real
     uplo: [L, U]
-    transA: [N, C]
+    transA: [N, T, C]
     diag: [N, U]
 
 Tests:
@@ -94,7 +96,6 @@ Tests:
   arguments: *common_args
   matrix_size: *small_matrix_size_range
   incx: [ -3, -1, 1, 3, 100 ]
-  stride_scale: [ 1, 10 ]
   batch_count: [ 1, 3, 5 ]
 
 - name: trsv_batched_medium

@@ -8,13 +8,13 @@
 #include "rocblas.h"
 
 template <typename Tex, typename Ta, typename Tx>
-__global__ void rocblas_scal_kernel(rocblas_int    n,
-                                    Ta             alpha_device_host,
-                                    rocblas_stride stride_alpha,
-                                    Tx             xa,
-                                    ptrdiff_t      offset_x,
-                                    rocblas_int    incx,
-                                    rocblas_stride stride_x)
+ROCBLAS_KERNEL void rocblas_scal_kernel(rocblas_int    n,
+                                        Ta             alpha_device_host,
+                                        rocblas_stride stride_alpha,
+                                        Tx             xa,
+                                        ptrdiff_t      offset_x,
+                                        rocblas_int    incx,
+                                        rocblas_stride stride_x)
 {
     auto*     x     = load_ptr_batch(xa, hipBlockIdx_y, offset_x, stride_x);
     auto      alpha = load_scalar(alpha_device_host, hipBlockIdx_y, stride_alpha);
@@ -33,12 +33,12 @@ __global__ void rocblas_scal_kernel(rocblas_int    n,
 //! @remark Increment are required to be equal to one, that's why they are unspecified.
 //!
 template <rocblas_int NB, typename Tex, typename Ta, typename Tx>
-__global__ __launch_bounds__(NB) void sscal_2_kernel(rocblas_int    n,
-                                                     Ta             alpha_device_host,
-                                                     rocblas_stride stride_alpha,
-                                                     Tx __restrict__ xa,
-                                                     ptrdiff_t      offset_x,
-                                                     rocblas_stride stride_x)
+ROCBLAS_KERNEL __launch_bounds__(NB) void sscal_2_kernel(rocblas_int    n,
+                                                         Ta             alpha_device_host,
+                                                         rocblas_stride stride_alpha,
+                                                         Tx __restrict__ xa,
+                                                         ptrdiff_t      offset_x,
+                                                         rocblas_stride stride_x)
 {
     auto*     x     = load_ptr_batch(xa, hipBlockIdx_y, offset_x, stride_x);
     auto      alpha = load_scalar(alpha_device_host, hipBlockIdx_y, stride_alpha);
@@ -67,14 +67,14 @@ __global__ __launch_bounds__(NB) void sscal_2_kernel(rocblas_int    n,
 //! @remark Increments are required to be equal to one, that's why they are unspecified.
 //!
 template <rocblas_int NB, typename Ta, typename Tx>
-__global__ __launch_bounds__(NB) void hscal_mlt_4_kernel(rocblas_int    n,
-                                                         rocblas_int    n_mod_4,
-                                                         rocblas_int    n_mlt_4,
-                                                         Ta             alpha_device_host,
-                                                         rocblas_stride stride_alpha,
-                                                         Tx __restrict__ xa,
-                                                         ptrdiff_t      offset_x,
-                                                         rocblas_stride stride_x)
+ROCBLAS_KERNEL __launch_bounds__(NB) void hscal_mlt_4_kernel(rocblas_int    n,
+                                                             rocblas_int    n_mod_4,
+                                                             rocblas_int    n_mlt_4,
+                                                             Ta             alpha_device_host,
+                                                             rocblas_stride stride_alpha,
+                                                             Tx __restrict__ xa,
+                                                             ptrdiff_t      offset_x,
+                                                             rocblas_stride stride_x)
 {
 
     auto alpha = load_scalar(alpha_device_host, hipBlockIdx_y, stride_alpha);

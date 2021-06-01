@@ -7,7 +7,6 @@ def runCompileCommand(platform, project, jobName)
 
     String compiler = jobName.contains('hipclang') ? 'hipcc' : 'hcc'
     String hipClang = jobName.contains('hipclang') ? '--hip-clang' : '--no-hip-clang'
-    String sles = platform.jenkinsLabel.contains('sles') ? '/usr/bin/sudo --preserve-env' : ''
     String centos7 = platform.jenkinsLabel.contains('centos7') ? 'source scl_source enable devtoolset-7' : ':'
     String hipccCompileFlags = ""
     if (jobName.contains('hipclang'))
@@ -32,7 +31,7 @@ def runCompileCommand(platform, project, jobName)
                 ${centos7}
                 echo Original HIPCC_COMPILE_FLAGS_APPEND: \$HIPCC_COMPILE_FLAGS_APPEND
                 ${hipccCompileFlags}
-                ${sles} CXX=/opt/rocm/bin/${compiler} ${project.paths.build_command} ${hipClang}
+                CXX=/opt/rocm/bin/${compiler} ${project.paths.build_command} ${hipClang}
                 """
     platform.runCommand(this, command)
 }
