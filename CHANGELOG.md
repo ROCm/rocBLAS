@@ -8,6 +8,7 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 - Improved performance of non-batched and batched rocblas_Xgemv for gfx908 when m <= 15000 and n <= 15000
 - Improved performance of non-batched and batched rocblas_sgemv and rocblas_dgemv for gfx906 when m <= 6000 and n <= 6000
 - Improved the overall performance of non-batched and batched rocblas_cgemv for gfx906
+- Improved the overall performance of rocblas_Xtrsv
 
 ### Changed
 - Internal use only APIs prefixed with rocblas_internal_ and deprecated to discourage use

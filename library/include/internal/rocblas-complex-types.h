@@ -228,12 +228,12 @@ public:
     }
 
     // Unary operations
-    __device__ __host__ constexpr rocblas_complex_num operator-() const
+    __forceinline__ __device__ __host__ rocblas_complex_num operator-() const
     {
         return {-x, -y};
     }
 
-    __device__ __host__ constexpr rocblas_complex_num operator+() const
+    __forceinline__ __device__ __host__ rocblas_complex_num operator+() const
     {
         return *this;
     }

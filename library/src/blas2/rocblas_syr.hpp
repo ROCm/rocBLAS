@@ -9,18 +9,18 @@
 #include "rocblas.h"
 
 template <rocblas_int DIM_X, rocblas_int DIM_Y, typename T, typename U, typename V, typename W>
-__global__ __launch_bounds__(DIM_X* DIM_Y) void rocblas_syr_kernel(rocblas_fill   uplo,
-                                                                   rocblas_int    n,
-                                                                   U              alpha_device_host,
-                                                                   rocblas_stride stride_alpha,
-                                                                   V              xa,
-                                                                   ptrdiff_t      shiftx,
-                                                                   rocblas_int    incx,
-                                                                   rocblas_stride stridex,
-                                                                   W              Aa,
-                                                                   ptrdiff_t      shiftA,
-                                                                   rocblas_int    lda,
-                                                                   rocblas_stride strideA)
+ROCBLAS_KERNEL __launch_bounds__(DIM_X* DIM_Y) void rocblas_syr_kernel(rocblas_fill uplo,
+                                                                       rocblas_int  n,
+                                                                       U alpha_device_host,
+                                                                       rocblas_stride stride_alpha,
+                                                                       V              xa,
+                                                                       ptrdiff_t      shiftx,
+                                                                       rocblas_int    incx,
+                                                                       rocblas_stride stridex,
+                                                                       W              Aa,
+                                                                       ptrdiff_t      shiftA,
+                                                                       rocblas_int    lda,
+                                                                       rocblas_stride strideA)
 {
     auto alpha = load_scalar(alpha_device_host, hipBlockIdx_z, stride_alpha);
     if(!alpha)

@@ -140,6 +140,9 @@ if( BUILD_WITH_TENSILE )
     blas_ex/rocblas_gemm_batched_ex.cpp
     blas_ex/rocblas_gemm_strided_batched_ex.cpp
     blas_ex/rocblas_gemm_ext2.cpp
+    blas_ex/rocblas_trsv_ex.cpp
+    blas_ex/rocblas_trsv_strided_batched_ex.cpp
+    blas_ex/rocblas_trsv_batched_ex.cpp
   )
 
   set( rocblas_blas3_source
@@ -147,12 +150,6 @@ if( BUILD_WITH_TENSILE )
     blas3/rocblas_trtri_batched.cpp
     blas3/rocblas_trtri_strided_batched.cpp
     ${Tensile_SRC}
-  )
-
-  set( rocblas_blas2_tensile_source
-    blas2/rocblas_trsv.cpp
-    blas2/rocblas_trsv_strided_batched.cpp
-    blas2/rocblas_trsv_batched.cpp
   )
 
 endif( ) # BUILD_WITH_TENSILE
@@ -209,7 +206,6 @@ set( rocblas_blas3_source_no_tensile
 )
 
 set( rocblas_blas2_source
-  ${rocblas_blas2_tensile_source}
   blas2/rocblas_gemv.cpp
   blas2/rocblas_gemv_batched.cpp
   blas2/rocblas_gemv_strided_batched.cpp
@@ -276,6 +272,9 @@ set( rocblas_blas2_source
   blas2/rocblas_symv.cpp
   blas2/rocblas_symv_batched.cpp
   blas2/rocblas_symv_strided_batched.cpp
+  blas2/rocblas_trsv.cpp
+  blas2/rocblas_trsv_strided_batched.cpp
+  blas2/rocblas_trsv_batched.cpp
 )
 
 set( rocblas_auxiliary_source
@@ -342,6 +341,11 @@ add_library( rocblas
   ${rocblas_auxiliary_source}
 )
 
+#if( WIN32 )
+#  set_target_properties(rocblas_fortran PROPERTIES LINKER_LANGUAGE CXX)
+#  target_link_directories(rocblas_fortran PRIVATE "C:\\cygwin64\\lib\\gcc\\x86_64-pc-cygwin\\9.3.0" "C:\\cygwin64\\lib" "C:\\cygwin64\\lib\\w32api")
+#endif( )
+
 add_library( roc::rocblas ALIAS rocblas )
 
 # RUNPATH is set only when ROCM_RPATH is defined in the ENV
@@ -351,16 +355,18 @@ endif( )
 
 
 target_link_libraries( rocblas INTERFACE hip::host )
-target_link_libraries( rocblas PRIVATE hip::device --rtlib=compiler-rt --unwindlib=libgcc -ldl)
+if (WIN32)
+  target_link_libraries( rocblas PRIVATE hip::device )
+else()
+  target_link_libraries( rocblas PRIVATE hip::device -lstdc++fs --rtlib=compiler-rt --unwindlib=libgcc -ldl )
+endif()
 
 set_target_properties( rocblas PROPERTIES CXX_STANDARD 14 CXX_STANDARD_REQUIRED ON )
 
 #  -fno-gpu-rdc compiler option was used with hcc, so revisit feature at some point
 
-if( CMAKE_CXX_COMPILER MATCHES ".*/hipcc$" )
-  # GCC or hip-clang needs specific flags to turn on f16c intrinsics
-  target_compile_options( rocblas PRIVATE -mf16c )
-endif( )
+# GCC or hip-clang needs specific flags to turn on f16c intrinsics
+target_compile_options( rocblas PRIVATE -mf16c )
 
 # Do not allow Variable Length Arrays (use unique_ptr instead)
 target_compile_options( rocblas PRIVATE -Werror=vla )
@@ -374,11 +380,9 @@ target_include_directories( rocblas
           $<INSTALL_INTERFACE:include>
           )
 
-# NOTE:
-# 1.  rocblas header 'rocblas-types.h' exposes the hip header hip/hip_vector_types.h, requiring clients to find hip headers
-# target_include_directories( rocblas SYSTEM PUBLIC ${HIP_INCLUDE_DIRS} )
-
-target_link_libraries( rocblas PRIVATE "-Xlinker --exclude-libs=ALL" ) # HIDE symbols
+if( NOT BUILD_SHARED_LIBS )
+  target_link_libraries( rocblas PRIVATE "-Xlinker --exclude-libs=ALL" ) # HIDE symbols
+endif()
 
 if( BUILD_WITH_TENSILE )
   if( BUILD_WITH_TENSILE_HOST )
@@ -439,6 +443,13 @@ rocm_set_soversion( rocblas ${rocblas_SOVERSION} )
 set_target_properties( rocblas PROPERTIES CXX_EXTENSIONS NO )
 set_target_properties( rocblas PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging" )
 
+if (WIN32 AND BUILD_CLIENTS)
+  add_custom_command( TARGET rocblas POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/staging/$<TARGET_FILE_NAME:rocblas> ${PROJECT_BINARY_DIR}/clients/staging/$<TARGET_FILE_NAME:rocblas> )
+  if( ${CMAKE_BUILD_TYPE} MATCHES "Debug")
+    add_custom_command( TARGET rocblas POST_BUILD COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/staging/rocblas.pdb ${PROJECT_BINARY_DIR}/clients/staging/rocblas.pdb )
+  endif()
+endif()
+
 # Package that helps me set visibility for function names exported from shared library
 include( GenerateExportHeader )
 set_target_properties( rocblas PROPERTIES CXX_VISIBILITY_PRESET "hidden" C_VISIBILITY_PRESET "hidden" VISIBILITY_INLINES_HIDDEN ON )
@@ -455,7 +466,8 @@ file( GLOB rocblas_prototype_inputs
 )
 set( ROCBLAS_PROTO_TEMPLATES "${PROJECT_BINARY_DIR}/include/internal/rocblas-exported-proto.hpp" )
 add_custom_command(OUTPUT ${ROCBLAS_PROTO_TEMPLATES}
-  COMMAND python3 template-proto.py ${rocblas_prototype_inputs} > ${ROCBLAS_PROTO_TEMPLATES}
+  COMMAND ${python} template-proto.py ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/ ${CMAKE_CURRENT_SOURCE_DIR}/blas3/ ${CMAKE_CURRENT_SOURCE_DIR}/blas2/ ${CMAKE_CURRENT_SOURCE_DIR}/blas1/ > ${ROCBLAS_PROTO_TEMPLATES}
+  #DEPENDS ${CMAKE_CURRENT_SOURCE_DIR}/blas3/Tensile/ ${CMAKE_CURRENT_SOURCE_DIR}/blas3/ ${CMAKE_CURRENT_SOURCE_DIR}/blas2/ ${CMAKE_CURRENT_SOURCE_DIR}/blas1/
   DEPENDS ${rocblas_prototype_inputs}
   COMMENT "Generating prototypes from ${CMAKE_CURRENT_SOURCE_DIR}."
   WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}"
@@ -481,7 +493,7 @@ if( NOT BUILD_SHARED_LIBS )
   if( BUILD_WITH_TENSILE AND BUILD_WITH_TENSILE_HOST )
     add_custom_command( TARGET rocblas POST_BUILD
       COMMAND
-        python3 ${CMAKE_CURRENT_SOURCE_DIR}/merge_archives.py
+        ${python} ${CMAKE_CURRENT_SOURCE_DIR}/merge_archives.py
       ARGS
         -v
         -o "$<TARGET_LINKER_FILE:rocblas>"
@@ -534,7 +546,12 @@ if( BUILD_SHARED_LIBS )
     NAMESPACE roc::
     )
 else()
-  if (${Tensile_LIBRARY_FORMAT} STREQUAL "msgpack")
+  if (Tensile_LIBRARY_FORMAT)
+    if (${Tensile_LIBRARY_FORMAT} STREQUAL "msgpack")
+      set(USING_MSGPACK ON)
+    endif()
+  endif()
+  if (USING_MSGPACK)
     rocm_export_targets(
       TARGETS roc::rocblas
       PREFIX rocblas

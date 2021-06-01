@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2019-2020 Advanced Micro Devices, Inc.
+ * Copyright 2019-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "rocblas_parse_data.hpp"
@@ -12,27 +12,40 @@
 #include <iostream>
 #include <string>
 #include <sys/types.h>
-#include <sys/wait.h>
-#include <unistd.h>
+//
+// https://en.cppreference.com/w/User:D41D8CD98F/feature_testing_macros
+//
+#ifdef __cpp_lib_filesystem
+#include <filesystem>
+#else
+#include <experimental/filesystem>
+
+namespace std
+{
+    namespace filesystem = experimental::filesystem;
+}
+#endif
 
 // Parse YAML data
 static std::string rocblas_parse_yaml(const std::string& yaml)
 {
-    char tmp[] = "/tmp/rocblas-XXXXXX";
-    int  fd    = mkostemp(tmp, O_CLOEXEC);
-    if(fd == -1)
-    {
-        dprintf(STDERR_FILENO, "Cannot open temporary file: %m\n");
-        exit(EXIT_FAILURE);
-    }
+    // Generate "/tmp/rocblas-XXXXXX" like file name
+    const std::string alphanum     = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuv";
+    int               stringlength = alphanum.length() - 1;
+    std::string       uniquestr    = "rocblas-";
+
+    for(auto n : {0, 1, 2, 3, 4, 5})
+        uniquestr += alphanum.at(rand() % stringlength);
+
+    std::filesystem::path tmpname = std::filesystem::temp_directory_path() / uniquestr;
+
     auto exepath = rocblas_exepath();
     auto cmd = exepath + "rocblas_gentest.py --template " + exepath + "rocblas_template.yaml -o "
-               + tmp + " " + yaml;
+               + tmpname.string() + " " + yaml;
     rocblas_cerr << cmd << std::endl;
-    int status = system(cmd.c_str());
-    if(status == -1 || !WIFEXITED(status) || WEXITSTATUS(status))
-        exit(EXIT_FAILURE);
-    return tmp;
+    int status = std::system(cmd.c_str());
+
+    return tmpname.string(); // results to be read and removed later
 }
 
 // Parse --data and --yaml command-line arguments

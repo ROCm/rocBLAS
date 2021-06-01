@@ -14,8 +14,27 @@
 #include <cstdio>
 #include <cstdlib>
 #include <fstream>
+#ifdef WIN32
+#include <stdlib.h>
+#define setenv(A, B, C) _putenv_s(A, B)
+#else
 #include <sys/param.h>
 #include <unistd.h>
+#endif
+
+//
+// https://en.cppreference.com/w/User:D41D8CD98F/feature_testing_macros
+//
+#ifdef __cpp_lib_filesystem
+#include <filesystem>
+#else
+#include <experimental/filesystem>
+
+namespace std
+{
+    namespace filesystem = experimental::filesystem;
+}
+#endif
 
 template <typename T>
 static constexpr auto precision_letter = "*";
@@ -29,6 +48,22 @@ template <>
 ROCBLAS_CLANG_STATIC constexpr auto precision_letter<rocblas_float_complex> = "c";
 template <>
 ROCBLAS_CLANG_STATIC constexpr auto precision_letter<rocblas_double_complex> = "z";
+
+#ifdef WIN32
+int diff_files(std::string path1, std::string path2)
+{
+    std::replace(path1.begin(), path1.end(), '/', '\\');
+    std::replace(path2.begin(), path2.end(), '/', '\\');
+    std::ifstream actual(path1);
+    std::ifstream expected(path2);
+    std::string   test((std::istreambuf_iterator<char>(actual)), std::istreambuf_iterator<char>());
+    std::string gold((std::istreambuf_iterator<char>(expected)), std::istreambuf_iterator<char>());
+    actual.close();
+    expected.close();
+    int cmp = test != gold;
+    return cmp;
+}
+#endif
 
 // replaces X in string with s, d, c, z or h depending on typename T
 template <typename T>
@@ -62,10 +97,21 @@ void testing_logging(const Arguments& arg)
     // open files
     static std::string exe_dir = rocblas_exepath();
 
-    std::string trace_path1 = exe_dir + "trace_" + std::string(precision_letter<T>) + ".csv";
-    std::string trace_path2 = exe_dir + "trace_" + std::string(precision_letter<T>) + "_gold.csv";
-    std::string bench_path1 = exe_dir + "bench_" + std::string(precision_letter<T>) + ".txt";
-    std::string bench_path2 = exe_dir + "bench_" + std::string(precision_letter<T>) + "_gold.txt";
+    const std::filesystem::path trace_fspath1
+        = exe_dir + std::string("trace_") + std::string(precision_letter<T>) + std::string(".csv");
+    const std::filesystem::path trace_fspath2 = exe_dir + std::string("trace_")
+                                                + std::string(precision_letter<T>)
+                                                + std::string("_gold.csv");
+    const std::filesystem::path bench_fspath1
+        = exe_dir + std::string("bench_") + std::string(precision_letter<T>) + std::string(".txt");
+    const std::filesystem::path bench_fspath2 = exe_dir + std::string("bench_")
+                                                + std::string(precision_letter<T>)
+                                                + std::string("_gold.txt");
+
+    std::string trace_path1 = trace_fspath1.generic_string();
+    std::string trace_path2 = trace_fspath2.generic_string();
+    std::string bench_path1 = bench_fspath1.generic_string();
+    std::string bench_path2 = bench_fspath2.generic_string();
 
     // set environment variable to give pathname of for log_trace file
     setenv_status = setenv("ROCBLAS_LOG_TRACE_PATH", trace_path1.c_str(), true);
@@ -366,8 +412,18 @@ void testing_logging(const Arguments& arg)
     std::ofstream trace_ofs;
     std::ofstream bench_ofs;
 
+    trace_ofs.exceptions(std::ifstream::badbit | std::ifstream::failbit);
+    trace_ofs.exceptions(std::ofstream::badbit | std::ofstream::failbit);
+
     trace_ofs.open(trace_path2);
     bench_ofs.open(bench_path2);
+
+#ifdef GOOGLE_TEST
+    ASSERT_FALSE(trace_ofs.fail());
+    ASSERT_FALSE(trace_ofs.bad());
+    ASSERT_FALSE(bench_ofs.fail());
+    ASSERT_FALSE(bench_ofs.bad());
+#endif
 
     rocblas_internal_ostream trace_ofs2;
     rocblas_internal_ostream bench_ofs2;
@@ -1071,9 +1127,17 @@ void testing_logging(const Arguments& arg)
     // Auxiliary function
     trace_ofs2 << "rocblas_destroy_handle,atomics_allowed\n";
 
+    // Flush the streams
+    trace_ofs2.flush();
+    bench_ofs2.flush();
+
     // Transfer the formatted output to the files
     trace_ofs << trace_ofs2;
     bench_ofs << bench_ofs2;
+
+    // Flush the streams
+    trace_ofs.flush();
+    bench_ofs.flush();
 
     // Close the files
     trace_ofs.close();
@@ -1082,21 +1146,34 @@ void testing_logging(const Arguments& arg)
     //
     // check if rocBLAS output files same as "golden files"
     //
-    int trace_cmp = system(("/usr/bin/diff " + trace_path1 + " " + trace_path2).c_str());
+#ifdef WIN32
+    // need all file descriptors closed to allow file removal on windows before process exits
+    rocblas_internal_ostream::clear_workers();
 
-    if(!trace_cmp)
-    {
-        remove(trace_path1.c_str());
-        remove(trace_path2.c_str());
-    }
+    int trace_cmp = diff_files(trace_path1, trace_path2);
+    //int trace_cmp = system(("fc.exe \"" + trace_path1 + "\" \"" + trace_path2 + "\" | findstr *****").c_str());
+#else
+    int trace_cmp = system(("/usr/bin/diff " + trace_path1 + " " + trace_path2).c_str());
+#endif
 
 #ifdef GOOGLE_TEST
     ASSERT_EQ(trace_cmp, 0);
 #endif
 
+    if(!trace_cmp)
+    {
+        std::filesystem::remove(trace_fspath1);
+        std::filesystem::remove(trace_fspath2);
+    }
+
     if(test_pointer_mode == rocblas_pointer_mode_host)
     {
+#ifdef WIN32
+        int bench_cmp = diff_files(bench_path1, bench_path2);
+        //int bench_cmp = system(("fc.exe \"" + bench_path1 + "\" \"" + bench_path2 + "\" | findstr *****").c_str());
+#else
         int bench_cmp = system(("/usr/bin/diff " + bench_path1 + " " + bench_path2).c_str());
+#endif
 
 #ifdef GOOGLE_TEST
         ASSERT_EQ(bench_cmp, 0);
@@ -1104,8 +1181,8 @@ void testing_logging(const Arguments& arg)
 
         if(!bench_cmp)
         {
-            remove(bench_path1.c_str());
-            remove(bench_path2.c_str());
+            std::filesystem::remove(bench_fspath1);
+            std::filesystem::remove(bench_fspath2);
         }
     }
 }

@@ -175,6 +175,23 @@ struct Arguments
     // Function to read Arguments data from stream
     friend std::istream& operator>>(std::istream& str, Arguments& arg);
 
+#ifdef WIN32
+    // Clang specific code
+    template <typename T>
+    friend rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os,
+                                                std::pair<char const*, T> p);
+
+    friend rocblas_internal_ostream& operator<<(rocblas_internal_ostream&                os,
+                                                std::pair<char const*, rocblas_datatype> p);
+
+    friend rocblas_internal_ostream& operator<<(rocblas_internal_ostream&                      os,
+                                                std::pair<char const*, rocblas_initialization> p);
+
+    friend rocblas_internal_ostream& operator<<(rocblas_internal_ostream&    os,
+                                                std::pair<char const*, bool> p);
+// End of Clang specific code
+#endif
+
     // Convert (alpha, alphai) and (beta, betai) to a particular type
     // Return alpha, beta adjusted to 0 for when they are NaN
     template <typename T>

@@ -1,17 +1,18 @@
 /* ************************************************************************
  * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
-#include "rocblas_trsv.hpp"
 #include "handle.hpp"
 #include "logging.hpp"
 #include "rocblas.h"
-#include "rocblas_gemv.hpp"
+#include "rocblas_trsv_substitution.hpp"
 #include "utility.hpp"
 
 namespace
 {
-    constexpr rocblas_int STRSV_BLOCK = 128;
-    constexpr rocblas_int DTRSV_BLOCK = 128;
+    constexpr rocblas_int STRSV_BLOCK = 64;
+    constexpr rocblas_int DTRSV_BLOCK = 64;
+    constexpr rocblas_int CTRSV_BLOCK = 64;
+    constexpr rocblas_int ZTRSV_BLOCK = 32;
 
     template <typename>
     constexpr char rocblas_trsv_name[] = "unknown";
@@ -25,17 +26,17 @@ namespace
     constexpr char rocblas_trsv_name<rocblas_double_complex>[] = "rocblas_ztrsv";
 
     template <rocblas_int BLOCK, typename T>
-    rocblas_status rocblas_trsv_ex_impl(rocblas_handle    handle,
-                                        rocblas_fill      uplo,
-                                        rocblas_operation transA,
-                                        rocblas_diagonal  diag,
-                                        rocblas_int       m,
-                                        const T*          A,
-                                        rocblas_int       lda,
-                                        T*                B,
-                                        rocblas_int       incx,
-                                        const T*          supplied_invA      = nullptr,
-                                        rocblas_int       supplied_invA_size = 0)
+    rocblas_status rocblas_trsv_impl(rocblas_handle    handle,
+                                     rocblas_fill      uplo,
+                                     rocblas_operation transA,
+                                     rocblas_diagonal  diag,
+                                     rocblas_int       m,
+                                     const T*          A,
+                                     rocblas_int       lda,
+                                     T*                B,
+                                     rocblas_int       incx,
+                                     const T*          supplied_invA      = nullptr,
+                                     rocblas_int       supplied_invA_size = 0)
     {
         if(!handle)
             return rocblas_status_invalid_handle;
@@ -105,28 +106,22 @@ namespace
         if(!A || !B)
             return rocblas_status_invalid_pointer;
 
-        // Proxy object holds the allocation. It must stay alive as long as mem_* pointers below are alive.
-        auto  mem = handle->device_malloc(0);
-        void* mem_x_temp;
-        void* mem_x_temp_arr;
-        void* mem_invA;
-        void* mem_invA_arr;
+        // Need two ints worth of global memory, one to assign each block a unique "row",
+        // and another to keep track of completed sections
+        size_t dev_bytes_unique_row    = sizeof(rocblas_int);
+        size_t dev_bytes_completed_sec = sizeof(rocblas_int);
+        if(handle->is_device_memory_size_query())
+        {
+            return handle->set_optimal_device_memory_size(dev_bytes_unique_row,
+                                                          dev_bytes_completed_sec);
+        }
+        auto mem = handle->device_malloc(dev_bytes_unique_row, dev_bytes_completed_sec);
 
-        rocblas_status perf_status
-            = rocblas_internal_trsv_template_mem<BLOCK, false, T>(handle,
-                                                                  m,
-                                                                  1,
-                                                                  mem,
-                                                                  mem_x_temp,
-                                                                  mem_x_temp_arr,
-                                                                  mem_invA,
-                                                                  mem_invA_arr,
-                                                                  supplied_invA,
-                                                                  supplied_invA_size);
+        if(!mem)
+            return rocblas_status_memory_error;
 
-        // If this was a device memory query or an error occurred, return status
-        if(perf_status != rocblas_status_success && perf_status != rocblas_status_perf_degraded)
-            return perf_status;
+        auto w_unique_row    = mem[0];
+        auto w_completed_sec = mem[1];
 
         auto check_numerics = handle->check_numerics;
 
@@ -134,46 +129,42 @@ namespace
         {
             bool           is_input = true;
             rocblas_status trsv_check_numerics_status
-                = rocblas_trsv_check_numerics(rocblas_trsv_name<T>,
-                                              handle,
-                                              m,
-                                              A,
-                                              0,
-                                              lda,
-                                              0,
-                                              B,
-                                              0,
-                                              incx,
-                                              0,
-                                              1,
-                                              check_numerics,
-                                              is_input);
+                = rocblas_internal_trsv_check_numerics(rocblas_trsv_name<T>,
+                                                       handle,
+                                                       m,
+                                                       A,
+                                                       0,
+                                                       lda,
+                                                       0,
+                                                       B,
+                                                       0,
+                                                       incx,
+                                                       0,
+                                                       1,
+                                                       check_numerics,
+                                                       is_input);
             if(trsv_check_numerics_status != rocblas_status_success)
                 return trsv_check_numerics_status;
         }
 
-        rocblas_status status = rocblas_internal_trsv_template<BLOCK, false, T>(handle,
-                                                                                uplo,
-                                                                                transA,
-                                                                                diag,
-                                                                                m,
-                                                                                A,
-                                                                                0,
-                                                                                lda,
-                                                                                0,
-                                                                                B,
-                                                                                0,
-                                                                                incx,
-                                                                                0,
-                                                                                1,
-                                                                                mem_x_temp,
-                                                                                mem_x_temp_arr,
-                                                                                mem_invA,
-                                                                                mem_invA_arr,
-                                                                                supplied_invA,
-                                                                                supplied_invA_size);
+        rocblas_status status
+            = rocblas_internal_trsv_substitution_template<BLOCK, T>(handle,
+                                                                    uplo,
+                                                                    transA,
+                                                                    diag,
+                                                                    m,
+                                                                    A,
+                                                                    0,
+                                                                    lda,
+                                                                    0,
+                                                                    B,
+                                                                    0,
+                                                                    incx,
+                                                                    0,
+                                                                    1,
+                                                                    (rocblas_int*)w_unique_row,
+                                                                    (rocblas_int*)w_completed_sec);
 
-        status = (status != rocblas_status_success) ? status : perf_status;
         if(status != rocblas_status_success)
             return status;
 
@@ -181,20 +172,20 @@ namespace
         {
             bool           is_input = false;
             rocblas_status trsv_check_numerics_status
-                = rocblas_trsv_check_numerics(rocblas_trsv_name<T>,
-                                              handle,
-                                              m,
-                                              A,
-                                              0,
-                                              lda,
-                                              0,
-                                              B,
-                                              0,
-                                              incx,
-                                              0,
-                                              1,
-                                              check_numerics,
-                                              is_input);
+                = rocblas_internal_trsv_check_numerics(rocblas_trsv_name<T>,
+                                                       handle,
+                                                       m,
+                                                       A,
+                                                       0,
+                                                       lda,
+                                                       0,
+                                                       B,
+                                                       0,
+                                                       incx,
+                                                       0,
+                                                       1,
+                                                       check_numerics,
+                                                       is_input);
             if(trsv_check_numerics_status != rocblas_status_success)
                 return trsv_check_numerics_status;
         }
@@ -222,7 +213,7 @@ rocblas_status rocblas_strsv(rocblas_handle    handle,
                              rocblas_int       incx)
 try
 {
-    return rocblas_trsv_ex_impl<STRSV_BLOCK>(handle, uplo, transA, diag, m, A, lda, x, incx);
+    return rocblas_trsv_impl<STRSV_BLOCK>(handle, uplo, transA, diag, m, A, lda, x, incx);
 }
 catch(...)
 {
@@ -240,7 +231,7 @@ rocblas_status rocblas_dtrsv(rocblas_handle    handle,
                              rocblas_int       incx)
 try
 {
-    return rocblas_trsv_ex_impl<DTRSV_BLOCK>(handle, uplo, transA, diag, m, A, lda, x, incx);
+    return rocblas_trsv_impl<DTRSV_BLOCK>(handle, uplo, transA, diag, m, A, lda, x, incx);
 }
 catch(...)
 {
@@ -258,7 +249,7 @@ rocblas_status rocblas_ctrsv(rocblas_handle               handle,
                              rocblas_int                  incx)
 try
 {
-    return rocblas_trsv_ex_impl<STRSV_BLOCK>(handle, uplo, transA, diag, m, A, lda, x, incx);
+    return rocblas_trsv_impl<CTRSV_BLOCK>(handle, uplo, transA, diag, m, A, lda, x, incx);
 }
 catch(...)
 {
@@ -276,84 +267,7 @@ rocblas_status rocblas_ztrsv(rocblas_handle                handle,
                              rocblas_int                   incx)
 try
 {
-    return rocblas_trsv_ex_impl<DTRSV_BLOCK>(handle, uplo, transA, diag, m, A, lda, x, incx);
-}
-catch(...)
-{
-    return exception_to_rocblas_status();
-}
-
-rocblas_status rocblas_trsv_ex(rocblas_handle    handle,
-                               rocblas_fill      uplo,
-                               rocblas_operation transA,
-                               rocblas_diagonal  diag,
-                               rocblas_int       m,
-                               const void*       A,
-                               rocblas_int       lda,
-                               void*             x,
-                               rocblas_int       incx,
-                               const void*       invA,
-                               rocblas_int       invA_size,
-                               rocblas_datatype  compute_type)
-try
-{
-    switch(compute_type)
-    {
-    case rocblas_datatype_f64_r:
-        return rocblas_trsv_ex_impl<DTRSV_BLOCK>(handle,
-                                                 uplo,
-                                                 transA,
-                                                 diag,
-                                                 m,
-                                                 static_cast<const double*>(A),
-                                                 lda,
-                                                 static_cast<double*>(x),
-                                                 incx,
-                                                 static_cast<const double*>(invA),
-                                                 invA_size);
-
-    case rocblas_datatype_f32_r:
-        return rocblas_trsv_ex_impl<STRSV_BLOCK>(handle,
-                                                 uplo,
-                                                 transA,
-                                                 diag,
-                                                 m,
-                                                 static_cast<const float*>(A),
-                                                 lda,
-                                                 static_cast<float*>(x),
-                                                 incx,
-                                                 static_cast<const float*>(invA),
-                                                 invA_size);
-
-    case rocblas_datatype_f64_c:
-        return rocblas_trsv_ex_impl<DTRSV_BLOCK>(handle,
-                                                 uplo,
-                                                 transA,
-                                                 diag,
-                                                 m,
-                                                 static_cast<const rocblas_double_complex*>(A),
-                                                 lda,
-                                                 static_cast<rocblas_double_complex*>(x),
-                                                 incx,
-                                                 static_cast<const rocblas_double_complex*>(invA),
-                                                 invA_size);
-
-    case rocblas_datatype_f32_c:
-        return rocblas_trsv_ex_impl<STRSV_BLOCK>(handle,
-                                                 uplo,
-                                                 transA,
-                                                 diag,
-                                                 m,
-                                                 static_cast<const rocblas_float_complex*>(A),
-                                                 lda,
-                                                 static_cast<rocblas_float_complex*>(x),
-                                                 incx,
-                                                 static_cast<const rocblas_float_complex*>(invA),
-                                                 invA_size);
-
-    default:
-        return rocblas_status_not_implemented;
-    }
+    return rocblas_trsv_impl<ZTRSV_BLOCK>(handle, uplo, transA, diag, m, A, lda, x, incx);
 }
 catch(...)
 {

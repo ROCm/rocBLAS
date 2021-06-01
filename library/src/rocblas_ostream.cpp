@@ -8,7 +8,22 @@ static void rocblas_abort_once [[noreturn]] ();
 #include "rocblas_ostream.hpp"
 #include <csignal>
 #include <fcntl.h>
+#include <iostream>
 #include <type_traits>
+#ifdef WIN32
+#include <io.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <windows.h>
+
+#define FDOPEN(A, B) _fdopen(A, B)
+#define OPEN(A) _open(A, _O_WRONLY | _O_CREAT | _O_TRUNC | _O_APPEND, _S_IREAD | _S_IWRITE);
+#define CLOSE(A) _close(A)
+#else
+#define FDOPEN(A, B) fdopen(A, B)
+#define OPEN(A) open(A, O_WRONLY | O_CREAT | O_TRUNC | O_APPEND | O_CLOEXEC, 0644);
+#define CLOSE(A) close(A)
+#endif
 
 /***********************************************************************
  * rocblas_internal_ostream functions                                           *
@@ -17,6 +32,7 @@ static void rocblas_abort_once [[noreturn]] ();
 // Abort function which is called only once by rocblas_abort
 static void rocblas_abort_once()
 {
+#ifndef WIN32
     // Make sure the alarm and abort actions are default
     signal(SIGALRM, SIG_DFL);
     signal(SIGABRT, SIG_DFL);
@@ -30,12 +46,10 @@ static void rocblas_abort_once()
 
     // Timeout in case of deadlock
     alarm(5);
-
-    // Obtain the map lock
-    rocblas_internal_ostream::map_mutex().lock();
+#endif
 
     // Clear the map, stopping all workers
-    rocblas_internal_ostream::map().clear();
+    rocblas_internal_ostream::clear_workers();
 
     // Flush all
     fflush(NULL);
@@ -73,19 +87,37 @@ std::shared_ptr<rocblas_internal_ostream::worker> rocblas_internal_ostream::get_
                       && std::is_same<decltype(file_id_t::st_ino), decltype(stat::st_ino)>{},
                   "struct stat and file_id_t are not layout-compatible");
 
+#ifndef WIN32
     // Get the device ID and inode, to detect common files
     if(fstat(fd, &statbuf))
     {
         perror("Error executing fstat()");
         return nullptr;
     }
+#else
+    HANDLE                     fh = (HANDLE)_get_osfhandle(fd);
+    BY_HANDLE_FILE_INFORMATION bhfi;
+
+    if(GetFileInformationByHandle(fh, &bhfi))
+    {
+        // Index info should be unique
+        file_id.st_dev = bhfi.nFileIndexLow;
+        file_id.st_ino = bhfi.nFileIndexHigh;
+    }
+    else
+    {
+        // assign what should be unique
+        file_id.st_dev = fd;
+        file_id.st_ino = 0;
+    }
+#endif
 
     // Lock the map from file_id -> std::shared_ptr<rocblas_internal_ostream::worker>
-    std::lock_guard<std::recursive_mutex> lock(map_mutex());
+    std::lock_guard<std::recursive_mutex> lock(worker_map_mutex());
 
     // Insert a nullptr map element if file_id doesn't exist in map already
     // worker_ptr is a reference to the std::shared_ptr<rocblas_internal_ostream::worker>
-    auto& worker_ptr = map().emplace(file_id, nullptr).first->second;
+    auto& worker_ptr = worker_map().emplace(file_id, nullptr).first->second;
 
     // If a new entry was inserted, or an old entry is empty, create new worker
     if(!worker_ptr)
@@ -96,31 +128,36 @@ std::shared_ptr<rocblas_internal_ostream::worker> rocblas_internal_ostream::get_
 }
 
 // Construct rocblas_internal_ostream from a file descriptor
-ROCBLAS_INTERNAL_EXPORT rocblas_internal_ostream::rocblas_internal_ostream(int fd)
+rocblas_internal_ostream::rocblas_internal_ostream(int fd)
     : worker_ptr(get_worker(fd))
 {
     if(!worker_ptr)
     {
-        dprintf(STDERR_FILENO, "Error: Bad file descriptor %d\n", fd);
+        std::cerr << "Error: Bad file descriptor " << fd << std::endl;
         rocblas_abort();
     }
 }
 
 // Construct rocblas_internal_ostream from a filename opened for writing with truncation
-ROCBLAS_INTERNAL_EXPORT rocblas_internal_ostream::rocblas_internal_ostream(const char* filename)
+rocblas_internal_ostream::rocblas_internal_ostream(const char* filename)
 {
-    int fd     = open(filename, O_WRONLY | O_CREAT | O_TRUNC | O_APPEND | O_CLOEXEC, 0644);
+    int fd     = OPEN(filename);
     worker_ptr = get_worker(fd);
     if(!worker_ptr)
     {
-        dprintf(STDERR_FILENO, "Cannot open %s: %m\n", filename);
+        std::cerr << "Cannot open " << filename << std::endl;
         rocblas_abort();
     }
-    close(fd);
+    CLOSE(fd);
+}
+
+rocblas_internal_ostream::~rocblas_internal_ostream()
+{
+    flush(); // Flush any pending IO
 }
 
 // Flush the output
-ROCBLAS_INTERNAL_EXPORT void rocblas_internal_ostream::flush()
+void rocblas_internal_ostream::flush()
 {
     // Flush only if this stream contains a worker (i.e., is not a string)
     if(worker_ptr)
@@ -137,110 +174,20 @@ ROCBLAS_INTERNAL_EXPORT void rocblas_internal_ostream::flush()
     }
 }
 
-/***********************************************************************
- * Formatted Output                                                    *
- ***********************************************************************/
-
-// Floating-point output
-ROCBLAS_INTERNAL_EXPORT rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os, double x)
+void rocblas_internal_ostream::clear_workers()
 {
-    if(!os.yaml)
-        os.os << x;
-    else
-    {
-        // For YAML, we must output the floating-point value exactly
-        if(std::isnan(x))
-            os.os << ".nan";
-        else if(std::isinf(x))
-            os.os << (x < 0 ? "-.inf" : ".inf");
-        else
-        {
-            char s[32];
-            snprintf(s, sizeof(s) - 2, "%.17g", x);
-
-            // If no decimal point or exponent, append .0 to indicate floating point
-            for(char* end = s; *end != '.' && *end != 'e' && *end != 'E'; ++end)
-            {
-                if(!*end)
-                {
-                    end[0] = '.';
-                    end[1] = '0';
-                    end[2] = '\0';
-                    break;
-                }
-            }
-            os.os << s;
-        }
-    }
-    return os;
-}
-
-// bool output
-ROCBLAS_INTERNAL_EXPORT rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os, bool b)
-{
-    if(os.yaml)
-        os.os << (b ? "true" : "false");
-    else
-        os.os << (b ? 1 : 0);
-    return os;
-}
-
-// Character output
-ROCBLAS_INTERNAL_EXPORT rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os, char c)
-{
-    if(os.yaml)
-    {
-        char s[]{c, 0};
-        os.os << std::quoted(s, '\'');
-    }
-    else
-        os.os << c;
-    return os;
-}
-
-// String output
-ROCBLAS_INTERNAL_EXPORT rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os,
-                                                             const char*               s)
-{
-    if(os.yaml)
-        os.os << std::quoted(s);
-    else
-        os.os << s;
-    return os;
+    std::lock_guard<std::recursive_mutex> lock(worker_map_mutex());
+    worker_map().clear();
 }
 
 // YAML Manipulators (only used for their addresses now)
-ROCBLAS_INTERNAL_EXPORT std::ostream& rocblas_internal_ostream::yaml_on(std::ostream& os)
+std::ostream& rocblas_internal_ostream::yaml_on(std::ostream& os)
 {
     return os;
 }
 
-ROCBLAS_INTERNAL_EXPORT std::ostream& rocblas_internal_ostream::yaml_off(std::ostream& os)
+std::ostream& rocblas_internal_ostream::yaml_off(std::ostream& os)
 {
-    return os;
-}
-
-// IO Manipulators
-ROCBLAS_INTERNAL_EXPORT rocblas_internal_ostream& operator<<(rocblas_internal_ostream& os,
-                                                             std::ostream& (*pf)(std::ostream&))
-{
-    // Turn YAML formatting on or off
-    if(pf == rocblas_internal_ostream::yaml_on)
-        os.yaml = true;
-    else if(pf == rocblas_internal_ostream::yaml_off)
-        os.yaml = false;
-    else
-    {
-        // Output the manipulator to the buffer
-        os.os << pf;
-
-        // If the manipulator is std::endl or std::flush, flush the output
-        if(pf == static_cast<std::ostream& (*)(std::ostream&)>(std::endl)
-           || pf == static_cast<std::ostream& (*)(std::ostream&)>(std::flush))
-        {
-            os.flush();
-        }
-    }
     return os;
 }
 
@@ -252,24 +199,21 @@ ROCBLAS_INTERNAL_EXPORT rocblas_internal_ostream& operator<<(rocblas_internal_os
 // Empty strings tell the worker thread to exit
 void rocblas_internal_ostream::worker::send(std::string str)
 {
-    // Create a promise to wait for the operation to complete
-    std::promise<void> promise;
-
-    // The future indicating when the operation has completed
-    auto future = promise.get_future();
-
     // task_t consists of string and promise
     // std::move transfers ownership of str and promise to task
-    task_t worker_task(std::move(str), std::move(promise));
+    task_t worker_task(std::move(str));
+
+    // The future indicating when the operation has completed
+    auto future = worker_task.get_future();
 
     // Submit the task to the worker assigned to this device/inode
     // Hold mutex for as short as possible, to reduce contention
-    // TODO: Consider whether notification should be done with lock held or released
     {
         std::lock_guard<std::mutex> lock(mutex);
         queue.push(std::move(worker_task));
-        cond.notify_one();
     }
+    // no lock needed for notification
+    cond.notify_one();
 
     // Wait for the task to be completed, to ensure flushed IO
     future.get();
@@ -286,7 +230,7 @@ void rocblas_internal_ostream::worker::thread_function()
 
     while(true)
     {
-        // Wait for any data, ignoring spurious wakeups
+        // Wait for any data, ignoring spurious wakeups, locks lock on continue
         cond.wait(lock, [&] { return !queue.empty(); });
 
         // With the mutex locked, get and pop data from the front of queue
@@ -329,10 +273,14 @@ void rocblas_internal_ostream::worker::thread_function()
 rocblas_internal_ostream::worker::worker(int fd)
 {
     // The worker duplicates the file descriptor (RAII)
+#ifdef WIN32
+    fd = _dup(fd);
+#else
     fd = fcntl(fd, F_DUPFD_CLOEXEC, 0);
+#endif
 
     // If the dup fails or fdopen fails, print error and abort
-    if(fd == -1 || !(file = fdopen(fd, "a")))
+    if(fd == -1 || !(file = FDOPEN(fd, "a")))
     {
         perror("fdopen() error");
         rocblas_abort();
@@ -343,4 +291,14 @@ rocblas_internal_ostream::worker::worker(int fd)
 
     // Detatch from the worker thread
     thread.detach();
+}
+
+rocblas_internal_ostream::worker::~worker()
+{
+    // Tell worker thread to exit, by sending it an empty string
+    send({});
+
+    // Close the FILE
+    if(file)
+        fclose(file);
 }

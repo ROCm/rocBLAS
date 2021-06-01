@@ -11,15 +11,15 @@
   *  Loads pointers and launches the actual calculation kernel.
   */
 template <typename U, typename V>
-__global__ void herk_scale_kernel(bool           upper,
-                                  rocblas_int    n,
-                                  rocblas_int    k,
-                                  U              alpha_host_device,
-                                  U              beta_host_device,
-                                  V              CP_array,
-                                  ptrdiff_t      shift_c,
-                                  rocblas_int    ldc,
-                                  rocblas_stride stride_c)
+ROCBLAS_KERNEL void herk_scale_kernel(bool           upper,
+                                      rocblas_int    n,
+                                      rocblas_int    k,
+                                      U              alpha_host_device,
+                                      U              beta_host_device,
+                                      V              CP_array,
+                                      ptrdiff_t      shift_c,
+                                      rocblas_int    ldc,
+                                      rocblas_stride stride_c)
 {
 
     auto C     = load_ptr_batch(CP_array, hipBlockIdx_z, shift_c, stride_c);

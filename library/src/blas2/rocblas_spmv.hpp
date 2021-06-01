@@ -91,23 +91,23 @@ __device__ void spmv_kernel_calc(bool        upper,
   *  Loads pointers and launches the actual calculation kernel.
   */
 template <rocblas_int DIM_X, rocblas_int DIM_Y, typename TScal, typename TConstPtr, typename TPtr>
-__global__ __launch_bounds__(DIM_X* DIM_Y) void spmv_kernel(bool           upper,
-                                                            rocblas_int    n,
-                                                            TScal          alpha_device_host,
-                                                            rocblas_stride stride_alpha,
-                                                            TConstPtr __restrict__ APa,
-                                                            ptrdiff_t      shifta,
-                                                            rocblas_stride strideA,
-                                                            TConstPtr __restrict__ xa,
-                                                            ptrdiff_t      shiftx,
-                                                            rocblas_int    incx,
-                                                            rocblas_stride stridex,
-                                                            TScal          beta_device_host,
-                                                            rocblas_stride stride_beta,
-                                                            TPtr __restrict__ ya,
-                                                            ptrdiff_t      shifty,
-                                                            rocblas_int    incy,
-                                                            rocblas_stride stridey)
+ROCBLAS_KERNEL __launch_bounds__(DIM_X* DIM_Y) void spmv_kernel(bool           upper,
+                                                                rocblas_int    n,
+                                                                TScal          alpha_device_host,
+                                                                rocblas_stride stride_alpha,
+                                                                TConstPtr __restrict__ APa,
+                                                                ptrdiff_t      shifta,
+                                                                rocblas_stride strideA,
+                                                                TConstPtr __restrict__ xa,
+                                                                ptrdiff_t      shiftx,
+                                                                rocblas_int    incx,
+                                                                rocblas_stride stridex,
+                                                                TScal          beta_device_host,
+                                                                rocblas_stride stride_beta,
+                                                                TPtr __restrict__ ya,
+                                                                ptrdiff_t      shifty,
+                                                                rocblas_int    incy,
+                                                                rocblas_stride stridey)
 {
     rocblas_int num_threads = hipBlockDim_x * hipBlockDim_y * hipBlockDim_z;
     if(DIM_X * DIM_Y != num_threads)

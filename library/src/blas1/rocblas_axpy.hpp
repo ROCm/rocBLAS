@@ -12,17 +12,17 @@
 //! @brief General kernel (batched, strided batched) of axpy.
 //!
 template <rocblas_int NB, typename Tex, typename Ta, typename Tx, typename Ty>
-__global__ __launch_bounds__(NB) void axpy_kernel(rocblas_int    n,
-                                                  Ta             alpha_device_host,
-                                                  rocblas_stride stride_alpha,
-                                                  Tx __restrict__ x,
-                                                  ptrdiff_t      offset_x,
-                                                  rocblas_int    incx,
-                                                  rocblas_stride stride_x,
-                                                  Ty __restrict__ y,
-                                                  ptrdiff_t      offset_y,
-                                                  rocblas_int    incy,
-                                                  rocblas_stride stride_y)
+ROCBLAS_KERNEL __launch_bounds__(NB) void axpy_kernel(rocblas_int    n,
+                                                      Ta             alpha_device_host,
+                                                      rocblas_stride stride_alpha,
+                                                      Tx __restrict__ x,
+                                                      ptrdiff_t      offset_x,
+                                                      rocblas_int    incx,
+                                                      rocblas_stride stride_x,
+                                                      Ty __restrict__ y,
+                                                      ptrdiff_t      offset_y,
+                                                      rocblas_int    incy,
+                                                      rocblas_stride stride_y)
 {
     auto alpha = load_scalar(alpha_device_host, hipBlockIdx_y, stride_alpha);
     if(!alpha)
@@ -45,15 +45,15 @@ __global__ __launch_bounds__(NB) void axpy_kernel(rocblas_int    n,
 //! @remark Increment are required to be equal to one, that's why they are unspecified.
 //!
 template <rocblas_int NB, typename Tex, typename Ta, typename Tx, typename Ty>
-__global__ __launch_bounds__(NB) void saxpy_2_kernel(rocblas_int    n,
-                                                     Ta             alpha_device_host,
-                                                     rocblas_stride stride_alpha,
-                                                     Tx __restrict__ x,
-                                                     ptrdiff_t      offset_x,
-                                                     rocblas_stride stride_x,
-                                                     Ty __restrict__ y,
-                                                     ptrdiff_t      offset_y,
-                                                     rocblas_stride stride_y)
+ROCBLAS_KERNEL __launch_bounds__(NB) void saxpy_2_kernel(rocblas_int    n,
+                                                         Ta             alpha_device_host,
+                                                         rocblas_stride stride_alpha,
+                                                         Tx __restrict__ x,
+                                                         ptrdiff_t      offset_x,
+                                                         rocblas_stride stride_x,
+                                                         Ty __restrict__ y,
+                                                         ptrdiff_t      offset_y,
+                                                         rocblas_stride stride_y)
 {
     auto alpha = load_scalar(alpha_device_host, hipBlockIdx_y, stride_alpha);
     if(!alpha)
@@ -85,18 +85,18 @@ __global__ __launch_bounds__(NB) void saxpy_2_kernel(rocblas_int    n,
 //! @brief Large batch size kernel (batched, strided batched) of axpy.
 //!
 template <int DIM_X, int DIM_Y, typename Tex, typename Ta, typename Tx, typename Ty>
-__global__ __launch_bounds__(DIM_X* DIM_Y) void axpy_kernel_batched(rocblas_int n,
-                                                                    Ta          alpha_device_host,
-                                                                    rocblas_stride stride_alpha,
-                                                                    Tx             x,
-                                                                    ptrdiff_t      offset_x,
-                                                                    rocblas_int    incx,
-                                                                    rocblas_stride stride_x,
-                                                                    Ty             y,
-                                                                    ptrdiff_t      offset_y,
-                                                                    rocblas_int    incy,
-                                                                    rocblas_stride stride_y,
-                                                                    rocblas_int    batch_count)
+ROCBLAS_KERNEL __launch_bounds__(DIM_X* DIM_Y) void axpy_kernel_batched(rocblas_int n,
+                                                                        Ta alpha_device_host,
+                                                                        rocblas_stride stride_alpha,
+                                                                        Tx             x,
+                                                                        ptrdiff_t      offset_x,
+                                                                        rocblas_int    incx,
+                                                                        rocblas_stride stride_x,
+                                                                        Ty             y,
+                                                                        ptrdiff_t      offset_y,
+                                                                        rocblas_int    incy,
+                                                                        rocblas_stride stride_y,
+                                                                        rocblas_int    batch_count)
 {
     auto alpha = load_scalar(alpha_device_host, hipBlockIdx_y, stride_alpha);
     if(!alpha)
@@ -130,15 +130,15 @@ __global__ __launch_bounds__(DIM_X* DIM_Y) void axpy_kernel_batched(rocblas_int 
 //! @remark Increment are required to be equal to one, that's why they are unspecified.
 //!
 template <rocblas_int NB, typename Ta, typename Tx, typename Ty>
-__global__ __launch_bounds__(NB) void haxpy_mod_8_kernel(rocblas_int    n_mod_8,
-                                                         Ta             alpha_device_host,
-                                                         rocblas_stride stride_alpha,
-                                                         Tx             x,
-                                                         ptrdiff_t      offset_x,
-                                                         rocblas_stride stride_x,
-                                                         Ty             y,
-                                                         ptrdiff_t      offset_y,
-                                                         rocblas_stride stride_y)
+ROCBLAS_KERNEL __launch_bounds__(NB) void haxpy_mod_8_kernel(rocblas_int    n_mod_8,
+                                                             Ta             alpha_device_host,
+                                                             rocblas_stride stride_alpha,
+                                                             Tx             x,
+                                                             ptrdiff_t      offset_x,
+                                                             rocblas_stride stride_x,
+                                                             Ty             y,
+                                                             ptrdiff_t      offset_y,
+                                                             rocblas_stride stride_y)
 {
     auto      alpha = load_scalar(alpha_device_host, hipBlockIdx_y, stride_alpha);
     ptrdiff_t tid   = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
@@ -154,15 +154,15 @@ __global__ __launch_bounds__(NB) void haxpy_mod_8_kernel(rocblas_int    n_mod_8,
 //! @brief Optimized kernel for the groups of 8 half floating points.
 //!
 template <rocblas_int NB, typename Ta, typename Tx, typename Ty>
-__global__ __launch_bounds__(NB) void haxpy_mlt_8_kernel(rocblas_int    n_mlt_8,
-                                                         Ta             alpha_device_host,
-                                                         rocblas_stride stride_alpha,
-                                                         Tx             x,
-                                                         ptrdiff_t      offset_x,
-                                                         rocblas_stride stride_x,
-                                                         Ty             y,
-                                                         ptrdiff_t      offset_y,
-                                                         rocblas_stride stride_y)
+ROCBLAS_KERNEL __launch_bounds__(NB) void haxpy_mlt_8_kernel(rocblas_int    n_mlt_8,
+                                                             Ta             alpha_device_host,
+                                                             rocblas_stride stride_alpha,
+                                                             Tx             x,
+                                                             ptrdiff_t      offset_x,
+                                                             rocblas_stride stride_x,
+                                                             Ty             y,
+                                                             ptrdiff_t      offset_y,
+                                                             rocblas_stride stride_y)
 {
     // Load alpha into both sides of a rocblas_half2 for fma instructions.
     auto alpha_value = load_scalar(alpha_device_host, hipBlockIdx_y, stride_alpha);

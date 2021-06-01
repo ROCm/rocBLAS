@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2018-2020 Advanced Micro Devices, Inc.
+ * Copyright 2018-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -16,6 +16,19 @@
 #include <iterator>
 #include <string>
 #include <utility>
+
+// https://en.cppreference.com/w/User:D41D8CD98F/feature_testing_macros
+//
+#ifdef __cpp_lib_filesystem
+#include <filesystem>
+#else
+#include <experimental/filesystem>
+
+namespace std
+{
+    namespace filesystem = experimental::filesystem;
+}
+#endif
 
 // Class used to read Arguments data into the tests
 class RocBLAS_TestData
@@ -74,7 +87,7 @@ public:
         filename() = std::move(name);
         if(remove_atexit)
         {
-            auto cleanup = [] { remove(filename().c_str()); };
+            auto cleanup = [] { std::filesystem::remove(filename().c_str()); };
             atexit(cleanup);
             at_quick_exit(cleanup);
         }
@@ -83,16 +96,18 @@ public:
     // begin() iterator which accepts an optional filter.
     static iterator begin(bool filter(const Arguments&) = nullptr)
     {
-        static std::ifstream* ifs;
+        static std::ifstream* ifs = nullptr;
 
         // If this is the first time, or after test_cleanup::cleanup() has been called
         if(!ifs)
         {
+            std::string fileToOpen = filename();
             // Allocate a std::ifstream and register it to be deleted during cleanup
-            ifs = test_cleanup::allocate(&ifs, filename(), std::ifstream::binary);
+            ifs = test_cleanup::allocate(
+                &ifs, fileToOpen, std::ifstream::in | std::ifstream::binary);
             if(!ifs || ifs->fail())
             {
-                rocblas_cerr << "Cannot open " << filename() << ": " << strerror(errno)
+                rocblas_cerr << "Cannot open " << fileToOpen << ": " << strerror(errno)
                              << std::endl;
                 exit(EXIT_FAILURE);
             }

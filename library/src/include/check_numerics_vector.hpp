@@ -4,8 +4,9 @@
 
 #pragma once
 
-#include "handle.hpp"
 #include "rocblas.h"
+
+#include "handle.hpp"
 
 /**
   *
@@ -27,12 +28,12 @@
 **/
 
 template <typename T>
-__global__ void rocblas_check_numerics_vector_kernel(rocblas_int               n,
-                                                     T                         xa,
-                                                     ptrdiff_t                 offset_x,
-                                                     rocblas_int               inc_x,
-                                                     rocblas_stride            stride_x,
-                                                     rocblas_check_numerics_t* abnormal)
+ROCBLAS_KERNEL void rocblas_check_numerics_vector_kernel(rocblas_int               n,
+                                                         T                         xa,
+                                                         ptrdiff_t                 offset_x,
+                                                         rocblas_int               inc_x,
+                                                         rocblas_stride            stride_x,
+                                                         rocblas_check_numerics_t* abnormal)
 {
     auto*     x   = load_ptr_batch(xa, hipBlockIdx_y, offset_x, stride_x);
     ptrdiff_t tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;

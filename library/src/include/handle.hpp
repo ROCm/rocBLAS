@@ -13,8 +13,17 @@
 #include <memory>
 #include <tuple>
 #include <type_traits>
+#ifdef WIN32
+#include <stdio.h>
+#define STDOUT_FILENO _fileno(stdout)
+#define STDERR_FILENO _fileno(stderr)
+#else
 #include <unistd.h>
+#endif
 #include <utility>
+
+// forcing early cleanup
+//extern "C" ROCBLAS_EXPORT void rocblas_shutdown();
 
 // Whether rocBLAS can reallocate device memory on demand, at the cost of only
 // allowing one allocation at a time, and at the cost of potential synchronization.

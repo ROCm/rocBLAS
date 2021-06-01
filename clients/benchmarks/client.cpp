@@ -144,6 +144,9 @@
 #include "testing_trmv.hpp"
 #include "testing_trmv_batched.hpp"
 #include "testing_trmv_strided_batched.hpp"
+#include "testing_trsv.hpp"
+#include "testing_trsv_batched.hpp"
+#include "testing_trsv_strided_batched.hpp"
 // blas3 with no tensile
 #include "testing_dgmm.hpp"
 #include "testing_dgmm_batched.hpp"
@@ -213,9 +216,6 @@ void run_function(const func_map& map, const Arguments& arg, const std::string& 
 #include "testing_trsm_ex.hpp"
 #include "testing_trsm_strided_batched.hpp"
 #include "testing_trsm_strided_batched_ex.hpp"
-#include "testing_trsv.hpp"
-#include "testing_trsv_batched.hpp"
-#include "testing_trsv_strided_batched.hpp"
 #include "testing_trtri.hpp"
 #include "testing_trtri_batched.hpp"
 #include "testing_trtri_strided_batched.hpp"
@@ -385,6 +385,9 @@ struct perf_blas<T, U, std::enable_if_t<std::is_same<T, float>{} || std::is_same
                 {"syrkx", testing_syr2k<T, false>},
                 {"syrkx_batched", testing_syr2k_batched<T, false>},
                 {"syrkx_strided_batched", testing_syr2k_strided_batched<T, false>},
+                {"trsv", testing_trsv<T>},
+                {"trsv_batched", testing_trsv_batched<T>},
+                {"trsv_strided_batched", testing_trsv_strided_batched<T>},
 #if BUILD_WITH_TENSILE
                 {"trmm", testing_trmm<T>},
                 {"trmm_batched", testing_trmm_batched<T>},
@@ -401,9 +404,6 @@ struct perf_blas<T, U, std::enable_if_t<std::is_same<T, float>{} || std::is_same
                 {"trsm_batched_ex", testing_trsm_batched_ex<T>},
                 {"trsm_strided_batched", testing_trsm_strided_batched<T>},
                 {"trsm_strided_batched_ex", testing_trsm_strided_batched_ex<T>},
-                {"trsv", testing_trsv<T>},
-                {"trsv_batched", testing_trsv_batched<T>},
-                {"trsv_strided_batched", testing_trsv_strided_batched<T>},
 #endif
               };
         run_function(map, arg);
@@ -579,6 +579,9 @@ struct perf_blas<T,
                 {"herkx", testing_her2k<T, false>},
                 {"herkx_batched", testing_her2k_batched<T, false>},
                 {"herkx_strided_batched", testing_her2k_strided_batched<T, false>},
+                {"trsv", testing_trsv<T>},
+                {"trsv_batched", testing_trsv_batched<T>},
+                {"trsv_strided_batched", testing_trsv_strided_batched<T>},
 #if BUILD_WITH_TENSILE
                 {"trtri", testing_trtri<T>},
                 {"trtri_batched", testing_trtri_batched<T>},
@@ -592,9 +595,6 @@ struct perf_blas<T,
                 {"trsm_batched_ex", testing_trsm_batched_ex<T>},
                 {"trsm_strided_batched", testing_trsm_strided_batched<T>},
                 {"trsm_strided_batched_ex", testing_trsm_strided_batched_ex<T>},
-                {"trsv", testing_trsv<T>},
-                {"trsv_batched", testing_trsv_batched<T>},
-                {"trsv_strided_batched", testing_trsv_strided_batched<T>},
                 {"trmm", testing_trmm<T>},
                 {"trmm_batched", testing_trmm_batched<T>},
                 {"trmm_strided_batched", testing_trmm_strided_batched<T>},
