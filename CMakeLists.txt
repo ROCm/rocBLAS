@@ -310,31 +310,34 @@ endif( )
 
 #
 # ADDITIONAL TARGETS FOR CODE COVERAGE
-#
-# > make coverage_cleanup (clean coverage related files.)
-# > make coverage GTEST_FILTER=<>
-# will run:
-#  > make coverage_analysis GTEST_FILTER=<> (analyze tests)
-#  > make coverage_output (generate html documentation)
-#
-#
+if(BUILD_CODE_COVERAGE)
+  #
+  # > make coverage_cleanup (clean coverage related files.)
+  # > make coverage GTEST_FILTER=<>
+  # will run:
+  #  > make coverage_analysis GTEST_FILTER=<> (analyze tests)
+  #  > make coverage_output (generate html documentation)
+  #
+  #
 
 
-#
-# Run coverage analysis
-#
-add_custom_target(coverage_analysis
-   COMMAND echo Coverage GTEST_FILTER=\${GTEST_FILTER}
-   COMMAND ./clients/staging/rocblas-test --gtest_filter=\"\${GTEST_FILTER}\"
-   WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
- )
+  #
+  # Run coverage analysis
+  #
+  add_custom_target(coverage_analysis
+    COMMAND echo Coverage GTEST_FILTER=\${GTEST_FILTER}
+    COMMAND ./clients/staging/rocblas-test --gtest_filter=\"\${GTEST_FILTER}\"
+    WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
+    )
 
-add_dependencies(coverage_analysis rocblas)
+  add_dependencies(coverage_analysis rocblas)
 
-#
-# Prepare coverage output
-#
-add_custom_target(coverage_output
+  #
+  # Prepare coverage output
+  # This little script is generated because the option '--gcov-tool <program name>' of lcov cannot take arguments.
+  #
+  add_custom_target(coverage_output
+    DEPENDS coverage_analysis
     COMMAND mkdir -p lcoverage
     COMMAND echo "\\#!/bin/bash" > llvm-gcov.sh
     COMMAND echo "\\# THIS FILE HAS BEEN GENERATED" >> llvm-gcov.sh
@@ -342,21 +345,22 @@ add_custom_target(coverage_output
     COMMAND chmod +x llvm-gcov.sh
     )
 
-#
-# Generate coverage output.
-#
-add_custom_command(TARGET coverage_output
-  COMMAND lcov --directory . --base-directory . --gcov-tool ${CMAKE_BINARY_DIR}/llvm-gcov.sh --capture -o lcoverage/raw_main_coverage.info
-  COMMAND lcov --remove lcoverage/raw_main_coverage.info "'/opt/*'" "'/usr/*'" -o lcoverage/main_coverage.info
-  COMMAND genhtml --ignore-errors source lcoverage/main_coverage.info --output-directory lcoverage
+  #
+  # Generate coverage output.
+  #
+  add_custom_command(TARGET coverage_output
+    COMMAND lcov --directory . --base-directory . --gcov-tool ${CMAKE_BINARY_DIR}/llvm-gcov.sh --capture -o lcoverage/raw_main_coverage.info
+    COMMAND lcov --remove lcoverage/raw_main_coverage.info "'/opt/*'" "'/usr/*'" -o lcoverage/main_coverage.info
+    COMMAND genhtml --ignore-errors source lcoverage/main_coverage.info --output-directory lcoverage
     )
 
-add_custom_target(coverage DEPENDS coverage_analysis coverage_output)
+  add_custom_target(coverage DEPENDS coverage_output)
 
-#
-# Coverage cleanup
-#
-add_custom_target(coverage_cleanup
-    COMMAND rm -f `find ${CMAKE_BINARY_DIR} -name *.gcda`
+  #
+  # Coverage cleanup
+  #
+  add_custom_target(coverage_cleanup
+    COMMAND find ${CMAKE_BINARY_DIR} -name *.gcda -delete
     WORKING_DIRECTORY ${CMAKE_BINARY_DIR}
     )
+endif()
