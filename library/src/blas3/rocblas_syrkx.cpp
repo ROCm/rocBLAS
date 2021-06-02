@@ -6,9 +6,9 @@
 #include "utility.hpp"
 
 #define SSYRKX_MIN_NB 16
-#define DSYRKX_MIN_NB 16
-#define CSYRKX_MIN_NB 8
-#define ZSYRKX_MIN_NB 8
+#define DSYRKX_MIN_NB 32
+#define CSYRKX_MIN_NB 32
+#define ZSYRKX_MIN_NB 32
 
 namespace
 {
@@ -134,31 +134,8 @@ namespace
         if(arg_status != rocblas_status_continue)
             return arg_status;
 
-        static constexpr bool is2K    = false; // syrkx
         static constexpr bool BATCHED = false;
 
-#if 0
-        return rocblas_internal_syr2k_template<is2K>(handle,
-                                                     uplo,
-                                                     transA,
-                                                     n,
-                                                     k,
-                                                     alpha,
-                                                     A,
-                                                     offset_a,
-                                                     lda,
-                                                     stride_a,
-                                                     B,
-                                                     offset_b,
-                                                     ldb,
-                                                     stride_b,
-                                                     beta,
-                                                     C,
-                                                     offset_c,
-                                                     ldc,
-                                                     stride_c,
-                                                     batch_count);
-#endif
         return rocblas_internal_syrkx_template<MIN_NB, BATCHED, T>(handle,
                                                                    uplo,
                                                                    transA,
