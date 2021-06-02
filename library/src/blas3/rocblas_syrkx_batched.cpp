@@ -140,30 +140,8 @@ namespace
         if(arg_status != rocblas_status_continue)
             return arg_status;
 
-        static constexpr bool is2K    = false; // syrkx
-        static constexpr bool BATCHED = true; // syrkx
-#if 0
-        return rocblas_syr2k_template<is2K>(handle,
-                                            uplo,
-                                            transA,
-                                            n,
-                                            k,
-                                            alpha,
-                                            A,
-                                            offset_A,
-                                            lda,
-                                            stride_A,
-                                            B,
-                                            offset_B,
-                                            ldb,
-                                            stride_B,
-                                            beta,
-                                            C,
-                                            offset_C,
-                                            ldc,
-                                            stride_C,
-                                            batch_count);
-#endif
+        static constexpr bool BATCHED = true;
+
         return rocblas_internal_syrkx_template<MIN_NB, BATCHED, T>(handle,
                                                                    uplo,
                                                                    transA,
