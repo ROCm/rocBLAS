@@ -11,22 +11,23 @@
 template <typename T,
           int  DIM,
           bool BETA_EQ_ZERO,
-          char TRANS_A,
+          char TRANS,
           char UPLO,
           typename TConstPtr,
-          typename TPtr>
+          typename TPtr,
+          typename TLd>
 ROCBLAS_KERNEL __launch_bounds__(DIM* DIM) void syrkx_small_kernel(rocblas_int    N,
                                                                    rocblas_int    K,
                                                                    const T        alpha,
                                                                    TConstPtr*     dA_array,
-                                                                   rocblas_int    lda,
+                                                                   TLd            lda,
                                                                    rocblas_stride stride_a,
                                                                    TConstPtr*     dB_array,
-                                                                   rocblas_int    ldb,
+                                                                   TLd            ldb,
                                                                    rocblas_stride stride_b,
                                                                    const T        beta,
                                                                    TPtr*          dC_array,
-                                                                   rocblas_int    ldc,
+                                                                   TLd            ldc,
                                                                    rocblas_stride stride_c,
                                                                    rocblas_int    batch_count)
 {
@@ -54,9 +55,9 @@ ROCBLAS_KERNEL __launch_bounds__(DIM* DIM) void syrkx_small_kernel(rocblas_int  
         i3_a = kk + thy;
         if(i1 < N && i3_a < K)
         {
-            if(TRANS_A == 'N')
+            if(TRANS == 'N')
                 sA[thy][thx] = dA[i1 + i3_a * lda];
-            if(TRANS_A == 'T')
+            if(TRANS == 'T')
                 sA[thy][thx] = dA[i3_a + i1 * lda];
         }
         else
@@ -67,9 +68,9 @@ ROCBLAS_KERNEL __launch_bounds__(DIM* DIM) void syrkx_small_kernel(rocblas_int  
         i3_b = kk + thx;
         if(i2 < N && i3_b < K)
         {
-            if(TRANS_A == 'T')
+            if(TRANS == 'T')
                 sB[thy][thx] = dB[i3_b + i2 * ldb];
-            if(TRANS_A == 'N')
+            if(TRANS == 'N')
                 sB[thy][thx] = dB[i2 + i3_b * ldb];
         }
         else
@@ -98,22 +99,23 @@ ROCBLAS_KERNEL __launch_bounds__(DIM* DIM) void syrkx_small_kernel(rocblas_int  
 template <typename T,
           int  DIM,
           bool BETA_EQ_ZERO,
-          char TRANS_A,
+          char TRANS,
           char UPLO,
           typename TConstPtr,
-          typename TPtr>
+          typename TPtr,
+          typename TLd>
 ROCBLAS_KERNEL __launch_bounds__(DIM* DIM) void syrkx_small_restrict_kernel(rocblas_int    N,
                                                                             rocblas_int    K,
                                                                             const T        alpha,
                                                                             TConstPtr*     dA_array,
-                                                                            rocblas_int    lda,
+                                                                            TLd            lda,
                                                                             rocblas_stride stride_a,
                                                                             TConstPtr*     dB_array,
-                                                                            rocblas_int    ldb,
+                                                                            TLd            ldb,
                                                                             rocblas_stride stride_b,
                                                                             const T        beta,
                                                                             TPtr*          dC_array,
-                                                                            rocblas_int    ldc,
+                                                                            TLd            ldc,
                                                                             rocblas_stride stride_c,
                                                                             rocblas_int batch_count)
 {
@@ -140,15 +142,15 @@ ROCBLAS_KERNEL __launch_bounds__(DIM* DIM) void syrkx_small_restrict_kernel(rocb
     for(; kk < K; kk += DIM)
     {
         i3_a = kk + thy;
-        if(TRANS_A == 'N')
+        if(TRANS == 'N')
             sA[thy][thx] = dA[i1 + i3_a * lda];
-        if(TRANS_A == 'T')
+        if(TRANS == 'T')
             sA[thy][thx] = dA[i3_a + i1 * lda];
 
         i3_b = kk + thx;
-        if(TRANS_A == 'T')
+        if(TRANS == 'T')
             sB[thy][thx] = dB[i3_b + i2 * ldb];
-        if(TRANS_A == 'N')
+        if(TRANS == 'N')
             sB[thy][thx] = dB[i2 + i3_b * ldb];
 
         __syncthreads();
@@ -168,29 +170,29 @@ ROCBLAS_KERNEL __launch_bounds__(DIM* DIM) void syrkx_small_restrict_kernel(rocb
     }
 }
 
-// large index support is not needed for lda, ldb, ldc as this kernel is only intended for small m, n, k
 // general alpha, beta, m, n, k
 template <typename T,
           int  DIM_N,
           int  BLK_N,
           int  BLK_K,
           bool BETA_EQ_ZERO,
-          char TRANS_A,
+          char TRANS,
           char UPLO,
           typename TConstPtr,
-          typename TPtr>
+          typename TPtr,
+          typename TLd>
 ROCBLAS_KERNEL __launch_bounds__(DIM_N* DIM_N) void syrkx_general_kernel(rocblas_int    N,
                                                                          rocblas_int    K,
                                                                          const T        alpha,
                                                                          TConstPtr*     dA_array,
-                                                                         rocblas_int    lda,
+                                                                         TLd            lda,
                                                                          rocblas_stride stride_a,
                                                                          TConstPtr*     dB_array,
-                                                                         rocblas_int    ldb,
+                                                                         TLd            ldb,
                                                                          rocblas_stride stride_b,
                                                                          const T        beta,
                                                                          TPtr*          dC_array,
-                                                                         rocblas_int    ldc,
+                                                                         TLd            ldc,
                                                                          rocblas_stride stride_c,
                                                                          rocblas_int    batch_count)
 {
@@ -233,9 +235,9 @@ ROCBLAS_KERNEL __launch_bounds__(DIM_N* DIM_N) void syrkx_general_kernel(rocblas
                 int j = n + kk + a_j_offset;
                 if(i < N && j < K)
                 {
-                    if(TRANS_A == 'N')
+                    if(TRANS == 'N')
                         sA[n + thyA][m + thxA] = dA[i + j * lda];
-                    else if(TRANS_A == 'T')
+                    if(TRANS == 'T')
                         sA[n + thyA][m + thxA] = dA[i * lda + j];
                 }
                 else
@@ -253,9 +255,9 @@ ROCBLAS_KERNEL __launch_bounds__(DIM_N* DIM_N) void syrkx_general_kernel(rocblas
                 int j = n + b_j_offset;
                 if(i < K && j < N)
                 {
-                    if(TRANS_A == 'T')
+                    if(TRANS == 'T')
                         sB[n + thyB][m + thxB] = dB[i + j * ldb];
-                    else if(TRANS_A == 'N')
+                    if(TRANS == 'N')
                         sB[n + thyB][m + thxB] = dB[i * ldb + j];
                 }
                 else
@@ -301,22 +303,23 @@ template <typename T,
           int  BLK_N,
           int  BLK_K,
           bool BETA_EQ_ZERO,
-          char TRANS_A,
+          char TRANS,
           char UPLO,
           typename TConstPtr,
-          typename TPtr>
+          typename TPtr,
+          typename TLd>
 ROCBLAS_KERNEL __launch_bounds__(DIM_N* DIM_N) void syrkx_restricted_kernel(rocblas_int    N,
                                                                             rocblas_int    K,
                                                                             const T        alpha,
                                                                             TConstPtr*     dA_array,
-                                                                            rocblas_int    lda,
+                                                                            TLd            lda,
                                                                             rocblas_stride stride_a,
                                                                             TConstPtr*     dB_array,
-                                                                            rocblas_int    ldb,
+                                                                            TLd            ldb,
                                                                             rocblas_stride stride_b,
                                                                             const T        beta,
                                                                             TPtr*          dC_array,
-                                                                            rocblas_int    ldc,
+                                                                            TLd            ldc,
                                                                             rocblas_stride stride_c,
                                                                             rocblas_int batch_count)
 {
@@ -344,14 +347,14 @@ ROCBLAS_KERNEL __launch_bounds__(DIM_N* DIM_N) void syrkx_restricted_kernel(rocb
             rC[n][m] = 0.0;
 
     size_t coord_A, coord_B;
-    if(TRANS_A == 'N')
+    if(TRANS == 'N')
         coord_A = (thxA + blx * BLK_N) + (thyA)*lda;
-    else if(TRANS_A == 'T')
+    if(TRANS == 'T')
         coord_A = (thxA + blx * BLK_N) * lda + (thyA);
 
-    if(TRANS_A == 'T')
+    if(TRANS == 'T')
         coord_B = thxB + (bly * BLK_N + thyB) * ldb;
-    else if(TRANS_A == 'N')
+    if(TRANS == 'N')
         coord_B = thxB * ldb + (bly * BLK_N + thyB);
 
     int kk = 0;
@@ -359,17 +362,21 @@ ROCBLAS_KERNEL __launch_bounds__(DIM_N* DIM_N) void syrkx_restricted_kernel(rocb
     {
         for(int n = 0; n < BLK_K; n += BLK_K)
             for(int m = 0; m < BLK_N; m += BLK_N)
-                if(TRANS_A == 'N')
+            {
+                if(TRANS == 'N')
                     sA[n + thyA][m + thxA] = dA[coord_A + m + n * lda];
-                else if(TRANS_A == 'T')
+                if(TRANS == 'T')
                     sA[n + thyA][m + thxA] = dA[coord_A + m * lda + n];
+            }
 
         for(int n = 0; n < BLK_N; n += BLK_N)
             for(int m = 0; m < BLK_K; m += BLK_K)
-                if(TRANS_A == 'T')
+            {
+                if(TRANS == 'T')
                     sB[n + thyB][m + thxB] = dB[coord_B + m + n * ldb];
-                else if(TRANS_A == 'N')
+                if(TRANS == 'N')
                     sB[n + thyB][m + thxB] = dB[coord_B + m * ldb + n];
+            }
 
         __syncthreads();
 
@@ -380,14 +387,14 @@ ROCBLAS_KERNEL __launch_bounds__(DIM_N* DIM_N) void syrkx_restricted_kernel(rocb
 
         __syncthreads();
 
-        if(TRANS_A == 'N')
+        if(TRANS == 'N')
             coord_A += BLK_K * lda;
-        else if(TRANS_A == 'T')
+        if(TRANS == 'T')
             coord_A += BLK_K;
 
-        if(TRANS_A == 'T')
+        if(TRANS == 'T')
             coord_B += BLK_K;
-        else if(TRANS_A == 'N')
+        if(TRANS == 'N')
             coord_B += BLK_K * ldb;
     }
 
@@ -418,20 +425,21 @@ template <typename T,
           int  BLK_K,
           int  alpha,
           int  beta,
-          char TRANS_A,
+          char TRANS,
           char UPLO,
           typename TConstPtr,
-          typename TPtr>
+          typename TPtr,
+          typename TLd>
 ROCBLAS_KERNEL __launch_bounds__(DIM_N* DIM_N) void syrkx_restricted_kernel(rocblas_int    N,
                                                                             rocblas_int    K,
                                                                             TConstPtr*     dA_array,
-                                                                            rocblas_int    lda,
+                                                                            TLd            lda,
                                                                             rocblas_stride stride_a,
                                                                             TConstPtr*     dB_array,
-                                                                            rocblas_int    ldb,
+                                                                            TLd            ldb,
                                                                             rocblas_stride stride_b,
                                                                             TPtr*          dC_array,
-                                                                            rocblas_int    ldc,
+                                                                            TLd            ldc,
                                                                             rocblas_stride stride_c,
                                                                             rocblas_int batch_count)
 {
@@ -455,13 +463,13 @@ ROCBLAS_KERNEL __launch_bounds__(DIM_N* DIM_N) void syrkx_restricted_kernel(rocb
     T            rC[BLK_N / DIM_N][BLK_N / DIM_N]; // registers for C
 
     size_t coord_A, coord_B;
-    if(TRANS_A == 'N')
+    if(TRANS == 'N')
         coord_A = (blx * BLK_N + thxA) + thyA * lda;
-    else if(TRANS_A == 'T')
+    if(TRANS == 'T')
         coord_A = (blx * BLK_N + thxA) * lda + thyA;
-    if(TRANS_A == 'T')
+    if(TRANS == 'T')
         coord_B = (bly * BLK_N + thyB) * ldb + thxB;
-    else if(TRANS_A == 'N')
+    if(TRANS == 'N')
         coord_B = (bly * BLK_N + thyB) + thxB * ldb;
 
     for(int n = 0; n < BLK_N / DIM_N; ++n)
@@ -473,17 +481,21 @@ ROCBLAS_KERNEL __launch_bounds__(DIM_N* DIM_N) void syrkx_restricted_kernel(rocb
     {
         for(int n = 0; n < BLK_K; n += BLK_K)
             for(int m = 0; m < BLK_N; m += BLK_N)
-                if(TRANS_A == 'N')
+            {
+                if(TRANS == 'N')
                     sA[n + thyA][m + thxA] = dA[coord_A + (n * lda + m)];
-                else if(TRANS_A == 'T')
+                if(TRANS == 'T')
                     sA[n + thyA][m + thxA] = dA[coord_A + (n + m * lda)];
+            }
 
         for(int n = 0; n < BLK_N; n += BLK_N)
             for(int m = 0; m < BLK_K; m += BLK_K)
-                if(TRANS_A == 'T')
+            {
+                if(TRANS == 'T')
                     sB[n + thyB][m + thxB] = dB[coord_B + (n * ldb + m)];
-                else if(TRANS_A == 'N')
+                if(TRANS == 'N')
                     sB[n + thyB][m + thxB] = dB[coord_B + (n + m * ldb)];
+            }
 
         __syncthreads();
 
@@ -494,14 +506,14 @@ ROCBLAS_KERNEL __launch_bounds__(DIM_N* DIM_N) void syrkx_restricted_kernel(rocb
 
         __syncthreads();
 
-        if(TRANS_A == 'N')
+        if(TRANS == 'N')
             coord_A += BLK_K * lda;
-        else if(TRANS_A == 'T')
+        if(TRANS == 'T')
             coord_A += BLK_K;
 
-        if(TRANS_A == 'T')
+        if(TRANS == 'T')
             coord_B += BLK_K;
-        else if(TRANS_A == 'N')
+        if(TRANS == 'N')
             coord_B += BLK_K * ldb;
     }
 
@@ -517,37 +529,37 @@ ROCBLAS_KERNEL __launch_bounds__(DIM_N* DIM_N) void syrkx_restricted_kernel(rocb
             {
                 if(alpha == 1 && beta == 1)
                     dC[coord_dCn * ldc + coord_dCm] += rC[n][m];
-                else if(alpha == 1 && beta == -1)
+                if(alpha == 1 && beta == -1)
                     dC[coord_dCn * ldc + coord_dCm] = -dC[coord_dCn * ldc + coord_dCm] + rC[n][m];
-                else if(alpha == -1 && beta == 0)
+                if(alpha == -1 && beta == 0)
                     dC[coord_dCn * ldc + coord_dCm] = -rC[n][m];
-                else if(alpha == 1 && beta == 0)
+                if(alpha == 1 && beta == 0)
                     dC[coord_dCn * ldc + coord_dCm] = rC[n][m];
             }
         }
     }
 }
 
-template <typename T, typename TConstPtr, typename TPtr>
-void syrkx_solution(rocblas_fill      uplo,
-                    rocblas_operation trans_a,
+template <typename T, typename TConstPtr, typename TPtr, typename TLd>
+void syrkx_dispatch(rocblas_fill      uplo,
+                    rocblas_operation trans,
                     rocblas_int       n,
                     rocblas_int       k,
                     const T           alpha,
                     TConstPtr*        dA_array,
-                    rocblas_int       lda,
+                    TLd               lda,
                     rocblas_stride    stride_a,
                     TConstPtr*        dB_array,
-                    rocblas_int       ldb,
+                    TLd               ldb,
                     rocblas_stride    stride_b,
                     const T           beta,
                     TPtr*             dC_array,
-                    rocblas_int       ldc,
+                    TLd               ldc,
                     rocblas_stride    stride_c,
                     rocblas_int       batch_count,
                     hipStream_t       stream)
 {
-    // gemm has same behavior for alpha == 0 and k == 0. Special code is needed
+    // syrkx has same behavior for alpha == 0 and k == 0. Special code is needed
     // for alpha == 0, no special code is needed for k == 0. It is more efficient
     // setting k = 0 than adding extra code to a kernel to handle alpha == 0
     if(alpha == 0)
@@ -570,19 +582,19 @@ void syrkx_solution(rocblas_fill      uplo,
         if(alpha == 1.0 && beta == 1.0)
         {
             // clang-format off
-                if((rocblas_operation_transpose == trans_a) && (rocblas_fill_lower == uplo))
+                if((rocblas_operation_transpose == trans) && (rocblas_fill_lower == uplo))
                     hipLaunchKernelGGL((syrkx_restricted_kernel
                     <T, dim_n, blk_n, blk_k, 1, 1, 'T', 'L'>),
                     dimGrid, dimBlock, 0, stream, n, k, dA_array, lda, stride_a, dB_array, ldb, stride_b, dC_array, ldc, stride_c, batch_count);
-                else if((rocblas_operation_none == trans_a) && (rocblas_fill_lower == uplo))
+                else if((rocblas_operation_none == trans) && (rocblas_fill_lower == uplo))
                     hipLaunchKernelGGL((syrkx_restricted_kernel
                     <T, dim_n, blk_n, blk_k, 1, 1, 'N', 'L'>),
                     dimGrid, dimBlock, 0, stream, n, k, dA_array, lda, stride_a, dB_array, ldb, stride_b, dC_array, ldc, stride_c, batch_count);
-                else if((rocblas_operation_transpose == trans_a) && (rocblas_fill_upper == uplo))
+                else if((rocblas_operation_transpose == trans) && (rocblas_fill_upper == uplo))
                     hipLaunchKernelGGL((syrkx_restricted_kernel
                     <T, dim_n, blk_n, blk_k, 1, 1, 'T', 'U'>),
                     dimGrid, dimBlock, 0, stream, n, k, dA_array, lda, stride_a, dB_array, ldb, stride_b, dC_array, ldc, stride_c, batch_count);
-                else if((rocblas_operation_none == trans_a) && (rocblas_fill_upper == uplo))
+                else if((rocblas_operation_none == trans) && (rocblas_fill_upper == uplo))
                     hipLaunchKernelGGL((syrkx_restricted_kernel
                     <T, dim_n, blk_n, blk_k, 1, 1, 'N', 'U'>),
                     dimGrid, dimBlock, 0, stream, n, k, dA_array, lda, stride_a, dB_array, ldb, stride_b, dC_array, ldc, stride_c, batch_count);
@@ -591,19 +603,19 @@ void syrkx_solution(rocblas_fill      uplo,
         else if(alpha == 1.0 && beta == -1.0)
         {
             // clang-format off
-                if((rocblas_operation_transpose == trans_a) && (rocblas_fill_lower == uplo))
+                if((rocblas_operation_transpose == trans) && (rocblas_fill_lower == uplo))
                     hipLaunchKernelGGL((syrkx_restricted_kernel
                     <T, dim_n, blk_n, blk_k, 1, -1, 'T', 'L'>),
                     dimGrid, dimBlock, 0, stream, n, k, dA_array, lda, stride_a, dB_array, ldb, stride_b, dC_array, ldc, stride_c, batch_count);
-                else if((rocblas_operation_none == trans_a) && (rocblas_fill_lower == uplo))
+                else if((rocblas_operation_none == trans) && (rocblas_fill_lower == uplo))
                     hipLaunchKernelGGL((syrkx_restricted_kernel
                     <T, dim_n, blk_n, blk_k, 1, -1, 'N', 'L'>),
                     dimGrid, dimBlock, 0, stream, n, k, dA_array, lda, stride_a, dB_array, ldb, stride_b, dC_array, ldc, stride_c, batch_count);
-                else if((rocblas_operation_transpose == trans_a) && (rocblas_fill_upper == uplo))
+                else if((rocblas_operation_transpose == trans) && (rocblas_fill_upper == uplo))
                     hipLaunchKernelGGL((syrkx_restricted_kernel
                     <T, dim_n, blk_n, blk_k, 1, -1, 'T', 'U'>),
                     dimGrid, dimBlock, 0, stream, n, k, dA_array, lda, stride_a, dB_array, ldb, stride_b, dC_array, ldc, stride_c, batch_count);
-                else if((rocblas_operation_none == trans_a) && (rocblas_fill_upper == uplo))
+                else if((rocblas_operation_none == trans) && (rocblas_fill_upper == uplo))
                     hipLaunchKernelGGL((syrkx_restricted_kernel
                     <T, dim_n, blk_n, blk_k, 1, -1, 'N', 'U'>),
                     dimGrid, dimBlock, 0, stream, n, k, dA_array, lda, stride_a, dB_array, ldb, stride_b, dC_array, ldc, stride_c, batch_count);
@@ -612,19 +624,19 @@ void syrkx_solution(rocblas_fill      uplo,
         else if(alpha == 1.0 && beta == 0.0)
         {
             // clang-format off
-                if((rocblas_operation_transpose == trans_a) && (rocblas_fill_lower == uplo))
+                if((rocblas_operation_transpose == trans) && (rocblas_fill_lower == uplo))
                     hipLaunchKernelGGL((syrkx_restricted_kernel
                     <T, dim_n, blk_n, blk_k, 1, 0, 'T', 'L'>),
                     dimGrid, dimBlock, 0, stream, n, k, dA_array, lda, stride_a, dB_array, ldb, stride_b, dC_array, ldc, stride_c, batch_count);
-                else if((rocblas_operation_none == trans_a) && (rocblas_fill_lower == uplo))
+                else if((rocblas_operation_none == trans) && (rocblas_fill_lower == uplo))
                     hipLaunchKernelGGL((syrkx_restricted_kernel
                     <T, dim_n, blk_n, blk_k, 1, 0, 'N', 'L'>),
                     dimGrid, dimBlock, 0, stream, n, k, dA_array, lda, stride_a, dB_array, ldb, stride_b, dC_array, ldc, stride_c, batch_count);
-                else if((rocblas_operation_transpose == trans_a) && (rocblas_fill_upper == uplo))
+                else if((rocblas_operation_transpose == trans) && (rocblas_fill_upper == uplo))
                     hipLaunchKernelGGL((syrkx_restricted_kernel
                     <T, dim_n, blk_n, blk_k, 1, 0, 'T', 'U'>),
                     dimGrid, dimBlock, 0, stream, n, k, dA_array, lda, stride_a, dB_array, ldb, stride_b, dC_array, ldc, stride_c, batch_count);
-                else if((rocblas_operation_none == trans_a) && (rocblas_fill_upper == uplo))
+                else if((rocblas_operation_none == trans) && (rocblas_fill_upper == uplo))
                     hipLaunchKernelGGL((syrkx_restricted_kernel
                     <T, dim_n, blk_n, blk_k, 1, 0, 'N', 'U'>),
                     dimGrid, dimBlock, 0, stream, n, k, dA_array, lda, stride_a, dB_array, ldb, stride_b, dC_array, ldc, stride_c, batch_count);
@@ -633,19 +645,19 @@ void syrkx_solution(rocblas_fill      uplo,
         else if(alpha == -1.0 && beta == 0.0)
         {
             // clang-format off
-                if((rocblas_operation_transpose == trans_a) && (rocblas_fill_lower == uplo))
+                if((rocblas_operation_transpose == trans) && (rocblas_fill_lower == uplo))
                     hipLaunchKernelGGL((syrkx_restricted_kernel
                     <T, dim_n, blk_n, blk_k, -1, 0, 'T', 'L'>),
                     dimGrid, dimBlock, 0, stream, n, k, dA_array, lda, stride_a, dB_array, ldb, stride_b, dC_array, ldc, stride_c, batch_count);
-                else if((rocblas_operation_none == trans_a) && (rocblas_fill_lower == uplo))
+                else if((rocblas_operation_none == trans) && (rocblas_fill_lower == uplo))
                     hipLaunchKernelGGL((syrkx_restricted_kernel
                     <T, dim_n, blk_n, blk_k, -1, 0, 'N', 'L'>),
                     dimGrid, dimBlock, 0, stream, n, k, dA_array, lda, stride_a, dB_array, ldb, stride_b, dC_array, ldc, stride_c, batch_count);
-                else if((rocblas_operation_transpose == trans_a) && (rocblas_fill_upper == uplo))
+                else if((rocblas_operation_transpose == trans) && (rocblas_fill_upper == uplo))
                     hipLaunchKernelGGL((syrkx_restricted_kernel
                     <T, dim_n, blk_n, blk_k, -1, 0, 'T', 'U'>),
                     dimGrid, dimBlock, 0, stream, n, k, dA_array, lda, stride_a, dB_array, ldb, stride_b, dC_array, ldc, stride_c, batch_count);
-                else if((rocblas_operation_none == trans_a) && (rocblas_fill_upper == uplo))
+                else if((rocblas_operation_none == trans) && (rocblas_fill_upper == uplo))
                     hipLaunchKernelGGL((syrkx_restricted_kernel
                     <T, dim_n, blk_n, blk_k, -1, 0, 'N', 'U'>),
                     dimGrid, dimBlock, 0, stream, n, k, dA_array, lda, stride_a, dB_array, ldb, stride_b, dC_array, ldc, stride_c, batch_count);
@@ -655,19 +667,19 @@ void syrkx_solution(rocblas_fill      uplo,
         {
             // general alpha; beta == 0
             // clang-format off
-                if((rocblas_operation_transpose == trans_a) && (rocblas_fill_lower == uplo))
+                if((rocblas_operation_transpose == trans) && (rocblas_fill_lower == uplo))
                     hipLaunchKernelGGL((syrkx_restricted_kernel
                     <T, dim_n, blk_n, blk_k, true, 'T', 'L'>),
                     dimGrid, dimBlock, 0, stream, n, k, alpha, dA_array, lda, stride_a, dB_array, ldb, stride_b, beta, dC_array, ldc, stride_c, batch_count);
-                else if((rocblas_operation_none == trans_a) && (rocblas_fill_lower == uplo))
+                else if((rocblas_operation_none == trans) && (rocblas_fill_lower == uplo))
                     hipLaunchKernelGGL((syrkx_restricted_kernel
                     <T, dim_n, blk_n, blk_k, true, 'N', 'L'>),
                     dimGrid, dimBlock, 0, stream, n, k, alpha, dA_array, lda, stride_a, dB_array, ldb, stride_b, beta, dC_array, ldc, stride_c, batch_count);
-                else if((rocblas_operation_transpose == trans_a) && (rocblas_fill_upper == uplo))
+                else if((rocblas_operation_transpose == trans) && (rocblas_fill_upper == uplo))
                     hipLaunchKernelGGL((syrkx_restricted_kernel
                     <T, dim_n, blk_n, blk_k, true, 'T', 'U'>),
                     dimGrid, dimBlock, 0, stream, n, k, alpha, dA_array, lda, stride_a, dB_array, ldb, stride_b, beta, dC_array, ldc, stride_c, batch_count);
-                else if((rocblas_operation_none == trans_a) && (rocblas_fill_upper == uplo))
+                else if((rocblas_operation_none == trans) && (rocblas_fill_upper == uplo))
                     hipLaunchKernelGGL((syrkx_restricted_kernel
                     <T, dim_n, blk_n, blk_k, true, 'N', 'U'>),
                     dimGrid, dimBlock, 0, stream, n, k, alpha, dA_array, lda, stride_a, dB_array, ldb, stride_b, beta, dC_array, ldc, stride_c, batch_count);
@@ -677,19 +689,19 @@ void syrkx_solution(rocblas_fill      uplo,
         {
             // general alpha, beta
             // clang-format off
-                if((rocblas_operation_transpose == trans_a) && (rocblas_fill_lower == uplo))
+                if((rocblas_operation_transpose == trans) && (rocblas_fill_lower == uplo))
                     hipLaunchKernelGGL((syrkx_restricted_kernel
                     <T, dim_n, blk_n, blk_k, false, 'T', 'L'>),
                     dimGrid, dimBlock, 0, stream, n, k, alpha, dA_array, lda, stride_a, dB_array, ldb, stride_b, beta, dC_array, ldc, stride_c, batch_count);
-                else if((rocblas_operation_none == trans_a) && (rocblas_fill_lower == uplo))
+                else if((rocblas_operation_none == trans) && (rocblas_fill_lower == uplo))
                     hipLaunchKernelGGL((syrkx_restricted_kernel
                     <T, dim_n, blk_n, blk_k, false, 'N', 'L'>),
                     dimGrid, dimBlock, 0, stream, n, k, alpha, dA_array, lda, stride_a, dB_array, ldb, stride_b, beta, dC_array, ldc, stride_c, batch_count);
-                else if((rocblas_operation_transpose == trans_a) && (rocblas_fill_upper == uplo))
+                else if((rocblas_operation_transpose == trans) && (rocblas_fill_upper == uplo))
                     hipLaunchKernelGGL((syrkx_restricted_kernel
                     <T, dim_n, blk_n, blk_k, false, 'T', 'U'>),
                     dimGrid, dimBlock, 0, stream, n, k, alpha, dA_array, lda, stride_a, dB_array, ldb, stride_b, beta, dC_array, ldc, stride_c, batch_count);
-                else if((rocblas_operation_none == trans_a) && (rocblas_fill_upper == uplo))
+                else if((rocblas_operation_none == trans) && (rocblas_fill_upper == uplo))
                     hipLaunchKernelGGL((syrkx_restricted_kernel
                     <T, dim_n, blk_n, blk_k, false, 'N', 'U'>),
                     dimGrid, dimBlock, 0, stream, n, k, alpha, dA_array, lda, stride_a, dB_array, ldb, stride_b, beta, dC_array, ldc, stride_c, batch_count);
@@ -706,19 +718,19 @@ void syrkx_solution(rocblas_fill      uplo,
         {
             // general n, k, alpha; beta == 0
             // clang-format off
-                if((rocblas_operation_transpose == trans_a) && (rocblas_fill_lower == uplo))
+                if((rocblas_operation_transpose == trans) && (rocblas_fill_lower == uplo))
                     hipLaunchKernelGGL((syrkx_small_restrict_kernel
                     <T, dim, true, 'T', 'L'>),
                     dimGrid, dimBlock, 0, stream, n, k, alpha, dA_array, lda, stride_a, dB_array, ldb, stride_b, beta, dC_array, ldc, stride_c, batch_count);
-                else if((rocblas_operation_none == trans_a) && (rocblas_fill_lower == uplo))
+                else if((rocblas_operation_none == trans) && (rocblas_fill_lower == uplo))
                     hipLaunchKernelGGL((syrkx_small_restrict_kernel
                     <T, dim, true,'N', 'L'>),
                     dimGrid, dimBlock, 0, stream, n, k, alpha, dA_array, lda, stride_a, dB_array, ldb, stride_b, beta, dC_array, ldc, stride_c, batch_count);
-                else if((rocblas_operation_transpose == trans_a) && (rocblas_fill_upper == uplo))
+                else if((rocblas_operation_transpose == trans) && (rocblas_fill_upper == uplo))
                     hipLaunchKernelGGL((syrkx_small_restrict_kernel
                     <T, dim, true, 'T', 'U'>),
                     dimGrid, dimBlock, 0, stream, n, k, alpha, dA_array, lda, stride_a, dB_array, ldb, stride_b, beta, dC_array, ldc, stride_c, batch_count);
-                else if((rocblas_operation_none == trans_a) && (rocblas_fill_upper == uplo))
+                else if((rocblas_operation_none == trans) && (rocblas_fill_upper == uplo))
                     hipLaunchKernelGGL((syrkx_small_restrict_kernel
                     <T, dim, true,'N', 'U'>),
                     dimGrid, dimBlock, 0, stream, n, k, alpha, dA_array, lda, stride_a, dB_array, ldb, stride_b, beta, dC_array, ldc, stride_c, batch_count);
@@ -728,19 +740,19 @@ void syrkx_solution(rocblas_fill      uplo,
         {
             // general n, k, alpha, beta
             // clang-format off
-                if((rocblas_operation_transpose == trans_a) && (rocblas_fill_lower == uplo))
+                if((rocblas_operation_transpose == trans) && (rocblas_fill_lower == uplo))
                     hipLaunchKernelGGL((syrkx_small_restrict_kernel
                     <T, dim, false, 'T', 'L'>),
                     dimGrid, dimBlock, 0, stream, n, k, alpha, dA_array, lda, stride_a, dB_array, ldb, stride_b, beta, dC_array, ldc, stride_c, batch_count);
-                else if((rocblas_operation_none == trans_a) && (rocblas_fill_lower == uplo))
+                else if((rocblas_operation_none == trans) && (rocblas_fill_lower == uplo))
                     hipLaunchKernelGGL((syrkx_small_restrict_kernel
                     <T, dim, false, 'N', 'L'>),
                     dimGrid, dimBlock, 0, stream, n, k, alpha, dA_array, lda, stride_a, dB_array, ldb, stride_b, beta, dC_array, ldc, stride_c, batch_count);
-                else if((rocblas_operation_transpose == trans_a) && (rocblas_fill_upper == uplo))
+                else if((rocblas_operation_transpose == trans) && (rocblas_fill_upper == uplo))
                     hipLaunchKernelGGL((syrkx_small_restrict_kernel
                     <T, dim, false, 'T', 'U'>),
                     dimGrid, dimBlock, 0, stream, n, k, alpha, dA_array, lda, stride_a, dB_array, ldb, stride_b, beta, dC_array, ldc, stride_c, batch_count);
-                else if((rocblas_operation_none == trans_a) && (rocblas_fill_upper == uplo))
+                else if((rocblas_operation_none == trans) && (rocblas_fill_upper == uplo))
                     hipLaunchKernelGGL((syrkx_small_restrict_kernel
                     <T, dim, false, 'N', 'U'>),
                     dimGrid, dimBlock, 0, stream, n, k, alpha, dA_array, lda, stride_a, dB_array, ldb, stride_b, beta, dC_array, ldc, stride_c, batch_count);
@@ -761,19 +773,19 @@ void syrkx_solution(rocblas_fill      uplo,
         {
             // general n, k, alpha; beta == 0
             // clang-format off
-                if((rocblas_operation_transpose == trans_a) && (rocblas_fill_lower == uplo))
+                if((rocblas_operation_transpose == trans) && (rocblas_fill_lower == uplo))
                     hipLaunchKernelGGL((syrkx_small_kernel
                     <T, dim, true, 'T', 'L'>),
                     dimGrid, dimBlock, 0, stream, n, k, alpha, dA_array, lda, stride_a, dB_array, ldb, stride_b, beta, dC_array, ldc, stride_c, batch_count);
-                else if((rocblas_operation_none == trans_a) && (rocblas_fill_lower == uplo))
+                else if((rocblas_operation_none == trans) && (rocblas_fill_lower == uplo))
                     hipLaunchKernelGGL((syrkx_small_kernel
                     <T, dim, true,'N', 'L'>),
                     dimGrid, dimBlock, 0, stream, n, k, alpha, dA_array, lda, stride_a, dB_array, ldb, stride_b, beta, dC_array, ldc, stride_c, batch_count);
-                else if((rocblas_operation_transpose == trans_a) && (rocblas_fill_upper == uplo))
+                else if((rocblas_operation_transpose == trans) && (rocblas_fill_upper == uplo))
                     hipLaunchKernelGGL((syrkx_small_kernel
                     <T, dim, true, 'T', 'U'>),
                     dimGrid, dimBlock, 0, stream, n, k, alpha, dA_array, lda, stride_a, dB_array, ldb, stride_b, beta, dC_array, ldc, stride_c, batch_count);
-                else if((rocblas_operation_none == trans_a) && (rocblas_fill_upper == uplo))
+                else if((rocblas_operation_none == trans) && (rocblas_fill_upper == uplo))
                     hipLaunchKernelGGL((syrkx_small_kernel
                     <T, dim, true,'N', 'U'>),
                     dimGrid, dimBlock, 0, stream, n, k, alpha, dA_array, lda, stride_a, dB_array, ldb, stride_b, beta, dC_array, ldc, stride_c, batch_count);
@@ -783,19 +795,19 @@ void syrkx_solution(rocblas_fill      uplo,
         {
             // general n, k, alpha, beta
             // clang-format off
-                if((rocblas_operation_transpose == trans_a) && (rocblas_fill_lower == uplo))
+                if((rocblas_operation_transpose == trans) && (rocblas_fill_lower == uplo))
                     hipLaunchKernelGGL((syrkx_small_kernel
                     <T, dim, false, 'T', 'L'>),
                     dimGrid, dimBlock, 0, stream, n, k, alpha, dA_array, lda, stride_a, dB_array, ldb, stride_b, beta, dC_array, ldc, stride_c, batch_count);
-                else if((rocblas_operation_none == trans_a) && (rocblas_fill_lower == uplo))
+                else if((rocblas_operation_none == trans) && (rocblas_fill_lower == uplo))
                     hipLaunchKernelGGL((syrkx_small_kernel
                     <T, dim, false, 'N', 'L'>),
                     dimGrid, dimBlock, 0, stream, n, k, alpha, dA_array, lda, stride_a, dB_array, ldb, stride_b, beta, dC_array, ldc, stride_c, batch_count);
-                else if((rocblas_operation_transpose == trans_a) && (rocblas_fill_upper == uplo))
+                else if((rocblas_operation_transpose == trans) && (rocblas_fill_upper == uplo))
                     hipLaunchKernelGGL((syrkx_small_kernel
                     <T, dim, false, 'T', 'U'>),
                     dimGrid, dimBlock, 0, stream, n, k, alpha, dA_array, lda, stride_a, dB_array, ldb, stride_b, beta, dC_array, ldc, stride_c, batch_count);
-                else if((rocblas_operation_none == trans_a) && (rocblas_fill_upper == uplo))
+                else if((rocblas_operation_none == trans) && (rocblas_fill_upper == uplo))
                     hipLaunchKernelGGL((syrkx_small_kernel
                     <T, dim, false, 'N', 'U'>),
                     dimGrid, dimBlock, 0, stream, n, k, alpha, dA_array, lda, stride_a, dB_array, ldb, stride_b, beta, dC_array, ldc, stride_c, batch_count);
@@ -813,19 +825,19 @@ void syrkx_solution(rocblas_fill      uplo,
         {
             // general n, k, alpha; beta == 0
             // clang-format off
-                if((rocblas_operation_transpose == trans_a) && (rocblas_fill_lower == uplo))
+                if((rocblas_operation_transpose == trans) && (rocblas_fill_lower == uplo))
                     hipLaunchKernelGGL((syrkx_general_kernel
                     <T, dim_n, blk_n, blk_k, true, 'T', 'L'>),
                     dimGrid, dimBlock, 0, stream, n, k, alpha, dA_array, lda, stride_a, dB_array, ldb, stride_b, beta, dC_array, ldc, stride_c, batch_count);
-                else if((rocblas_operation_none == trans_a) && (rocblas_fill_lower == uplo))
+                else if((rocblas_operation_none == trans) && (rocblas_fill_lower == uplo))
                     hipLaunchKernelGGL((syrkx_general_kernel
                     <T, dim_n, blk_n, blk_k, true,'N', 'L'>),
                     dimGrid, dimBlock, 0, stream, n, k, alpha, dA_array, lda, stride_a, dB_array, ldb, stride_b, beta, dC_array, ldc, stride_c, batch_count);
-                else if((rocblas_operation_transpose == trans_a) && (rocblas_fill_upper == uplo))
+                else if((rocblas_operation_transpose == trans) && (rocblas_fill_upper == uplo))
                     hipLaunchKernelGGL((syrkx_general_kernel
                     <T, dim_n, blk_n, blk_k, true, 'T', 'U'>),
                     dimGrid, dimBlock, 0, stream, n, k, alpha, dA_array, lda, stride_a, dB_array, ldb, stride_b, beta, dC_array, ldc, stride_c, batch_count);
-                else if((rocblas_operation_none == trans_a) && (rocblas_fill_upper == uplo))
+                else if((rocblas_operation_none == trans) && (rocblas_fill_upper == uplo))
                     hipLaunchKernelGGL((syrkx_general_kernel
                     <T, dim_n, blk_n, blk_k, true,'N', 'U'>),
                     dimGrid, dimBlock, 0, stream, n, k, alpha, dA_array, lda, stride_a, dB_array, ldb, stride_b, beta, dC_array, ldc, stride_c, batch_count);
@@ -835,19 +847,19 @@ void syrkx_solution(rocblas_fill      uplo,
         {
             // general n, k, alpha, beta
             // clang-format off
-                if((rocblas_operation_transpose == trans_a) && (rocblas_fill_lower == uplo))
+                if((rocblas_operation_transpose == trans) && (rocblas_fill_lower == uplo))
                     hipLaunchKernelGGL((syrkx_general_kernel
                     <T, dim_n, blk_n, blk_k, false, 'T', 'L'>),
                     dimGrid, dimBlock, 0, stream, n, k, alpha, dA_array, lda, stride_a, dB_array, ldb, stride_b, beta, dC_array, ldc, stride_c, batch_count);
-                else if((rocblas_operation_none == trans_a) && (rocblas_fill_lower == uplo))
+                else if((rocblas_operation_none == trans) && (rocblas_fill_lower == uplo))
                     hipLaunchKernelGGL((syrkx_general_kernel
                     <T, dim_n, blk_n, blk_k, false, 'N', 'L'>),
                     dimGrid, dimBlock, 0, stream, n, k, alpha, dA_array, lda, stride_a, dB_array, ldb, stride_b, beta, dC_array, ldc, stride_c, batch_count);
-                else if((rocblas_operation_transpose == trans_a) && (rocblas_fill_upper == uplo))
+                else if((rocblas_operation_transpose == trans) && (rocblas_fill_upper == uplo))
                     hipLaunchKernelGGL((syrkx_general_kernel
                     <T, dim_n, blk_n, blk_k, false, 'T', 'U'>),
                     dimGrid, dimBlock, 0, stream, n, k, alpha, dA_array, lda, stride_a, dB_array, ldb, stride_b, beta, dC_array, ldc, stride_c, batch_count);
-                else if((rocblas_operation_none == trans_a) && (rocblas_fill_upper == uplo))
+                else if((rocblas_operation_none == trans) && (rocblas_fill_upper == uplo))
                     hipLaunchKernelGGL((syrkx_general_kernel
                     <T, dim_n, blk_n, blk_k, false, 'N', 'U'>),
                     dimGrid, dimBlock, 0, stream, n, k, alpha, dA_array, lda, stride_a, dB_array, ldb, stride_b, beta, dC_array, ldc, stride_c, batch_count);
@@ -860,7 +872,13 @@ void syrkx_solution(rocblas_fill      uplo,
 #define OFFSET_B(i1) offset_b + i1* b_s1
 #define OFFSET_C(i1, i2) offset_c + i1* c_s1 + i2* c_s2
 
-template <int MIN_NB, bool BATCHED, typename T, typename TScal, typename TPtr, typename TConstPtr>
+template <int  MIN_NB,
+          bool BATCHED,
+          typename T,
+          typename TScal,
+          typename TPtr,
+          typename TConstPtr,
+          typename TLd>
 rocblas_status rocblas_syrkx_template(rocblas_handle    handle,
                                       rocblas_fill      uplo,
                                       rocblas_operation trans,
@@ -868,14 +886,13 @@ rocblas_status rocblas_syrkx_template(rocblas_handle    handle,
                                       rocblas_int       k,
                                       TScal*            alpha,
                                       TConstPtr*        da,
-                                      rocblas_int       lda,
+                                      TLd               lda,
                                       TConstPtr*        db,
-                                      rocblas_int       ldb,
+                                      TLd               ldb,
                                       TScal*            beta,
                                       TPtr*             dc,
-                                      rocblas_int       ldc)
+                                      TLd               ldc)
 {
-    static constexpr bool           TWOK     = false;
     static constexpr rocblas_int    offset_c = 0, offset_a = 0, offset_b = 0, batch_count = 1;
     static constexpr rocblas_stride stride_c = 0, stride_a = 0, stride_b = 0;
 
@@ -891,16 +908,11 @@ rocblas_status rocblas_syrkx_template(rocblas_handle    handle,
     n_nb = n / nb; // number of diagonal blocks of size nb
     rem  = n % nb; // size of remainder block when n is not multiple of nb
 
-    rocblas_operation trans_a
-        = rocblas_operation_none == trans ? rocblas_operation_none : rocblas_operation_transpose;
-    rocblas_operation trans_b
-        = rocblas_operation_none == trans ? rocblas_operation_transpose : rocblas_operation_none;
-
     hipStream_t stream = handle->get_stream();
 
-    // call syr2k strided_batched for n_nb diagonal blocks
+    // call syrkx_dispatch with batch_count = n_nb for n_nb diagonal blocks
     // clang-format off
-    syrkx_solution<T>( uplo, trans_a, nb, k, *alpha,
+    syrkx_dispatch<T>( uplo, trans, nb, k, *alpha,
                        da, lda, nb * a_s1,
                        db, ldb, nb * b_s1, *beta,
                        dc, ldc, nb * (c_s1 + c_s2), n_nb, stream);
@@ -911,16 +923,22 @@ rocblas_status rocblas_syrkx_template(rocblas_handle    handle,
     {
         i_diag = n_nb * nb; // diag block at c[i_diag, i_diag], size is n_diag
         n_diag = n - i_diag;
+        // call syrkx_dispatch for one remainder diagonal block of size n_diag
         // clang-format off
-        syrkx_solution<T>( uplo, trans_a, n_diag, k, *alpha,
+        syrkx_dispatch<T>( uplo, trans, n_diag, k, *alpha,
                           &(da[i_diag * a_s1]),          lda, stride_a,
                           &(db[i_diag * b_s1]),          ldb, stride_b, *beta,
                           &(dc[i_diag * (c_s1 + c_s2)]), ldc, stride_c, batch_count, stream);
         // clang-format on
     }
 
+    rocblas_operation trans_a
+        = rocblas_operation_none == trans ? rocblas_operation_none : rocblas_operation_transpose;
+    rocblas_operation trans_b
+        = rocblas_operation_none == trans ? rocblas_operation_transpose : rocblas_operation_none;
+
     // calls to gemm with m == n == nb.
-    // Start with nb == MIN_NB, and each iteration of the outer loop:
+    // Start with nb == MIN_NB, then for each iteration of nb,i_start loop:
     // - nb doubles
     // - the number of gemm calls in the inner loop halves.
     for(nb = MIN_NB, i_start = MIN_NB; i_start < n; i_start += nb, nb *= 2)
@@ -934,7 +952,7 @@ rocblas_status rocblas_syrkx_template(rocblas_handle    handle,
             n_nb += 1;
         }
 
-        // call gemm strided_batched for n_nb square blocks of size nb x nb
+        // call gemm with batch_count = n_nb for n_nb square blocks of size nb x nb
         if(rocblas_fill_lower == uplo)
         {
             // clang-format off
@@ -968,8 +986,8 @@ rocblas_status rocblas_syrkx_template(rocblas_handle    handle,
                 // clang-format off
                 RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(
                      handle, trans_a, trans_b, n1, nb, k, alpha,
-                     da, OFFSET_A(i1), lda, stride_a,
-                     db, OFFSET_B(i2), ldb, stride_b, beta,
+                     da, OFFSET_A(i1),     lda, stride_a,
+                     db, OFFSET_B(i2),     ldb, stride_b, beta,
                      dc, OFFSET_C(i1, i2), ldc, stride_c, batch_count)));
                 // clang-format on
             }
@@ -978,8 +996,8 @@ rocblas_status rocblas_syrkx_template(rocblas_handle    handle,
                 // clang-format off
                 RETURN_IF_ROCBLAS_ERROR( (rocblas_internal_gemm_template<BATCHED, T>(
                      handle, trans_a, trans_b, nb, n1, k, alpha,
-                     da, OFFSET_A(i2), lda, stride_a,
-                     db, OFFSET_B(i1), ldb, stride_b, beta,
+                     da, OFFSET_A(i2),     lda, stride_a,
+                     db, OFFSET_B(i1),     ldb, stride_b, beta,
                      dc, OFFSET_C(i2, i1), ldc, stride_c, batch_count)));
                 // clang-format on
             }
@@ -988,7 +1006,13 @@ rocblas_status rocblas_syrkx_template(rocblas_handle    handle,
     return rocblas_status_success;
 }
 
-template <int MIN_NB, bool BATCHED, typename T, typename TScal, typename TPtr, typename TConstPtr>
+template <int  MIN_NB,
+          bool BATCHED,
+          typename T,
+          typename TScal,
+          typename TPtr,
+          typename TConstPtr,
+          typename TLd>
 ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     rocblas_internal_syrkx_template(rocblas_handle    handle,
                                     rocblas_fill      uplo,
@@ -997,17 +1021,17 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                     rocblas_int       k,
                                     TScal*            alpha,
                                     TConstPtr*        da,
-                                    rocblas_int       offset_a,
-                                    rocblas_int       lda,
+                                    TLd               offset_a,
+                                    TLd               lda,
                                     rocblas_stride    stride_a,
                                     TConstPtr*        db,
-                                    rocblas_int       offset_b,
-                                    rocblas_int       ldb,
+                                    TLd               offset_b,
+                                    TLd               ldb,
                                     rocblas_stride    stride_b,
                                     TScal*            beta,
                                     TPtr*             dc,
-                                    rocblas_int       offset_c,
-                                    rocblas_int       ldc,
+                                    TLd               offset_c,
+                                    TLd               ldc,
                                     rocblas_stride    stride_c,
                                     rocblas_int       batch_count)
 {
@@ -1015,8 +1039,19 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 
     if(batch_count == 1)
     {
-        return rocblas_syrkx_template<MIN_NB, BATCHED, T>(
-            handle, uplo, trans, n, k, alpha, da, lda, db, ldb, beta, dc, ldc);
+        return rocblas_syrkx_template<MIN_NB, BATCHED, T>(handle,
+                                                          uplo,
+                                                          trans,
+                                                          n,
+                                                          k,
+                                                          alpha,
+                                                          &(da[offset_a]),
+                                                          lda,
+                                                          &(db[offset_b]),
+                                                          ldb,
+                                                          beta,
+                                                          &(dc[offset_c]),
+                                                          ldc);
     }
 
     rocblas_int a_s1 = rocblas_operation_none == trans ? 1 : lda;
@@ -1031,7 +1066,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     n_nb = n / nb; // number of diagonal blocks of size nb
     rem  = n % nb; // size of remainder block when n is not multiple of nb
 
-    // diagonal blocks of size nb
+    // n_nb diagonal blocks of size nb
     for(int i_nb = 0; i_nb < n_nb; i_nb++)
     {
         i_diag = i_nb * nb; // diag block at c[i_diag, i_diag], size is nb
@@ -1077,7 +1112,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
             rem = 0;
             n_nb += 1;
         }
-        // gemm blocks of size nb x nb
+        // n_nb gemm blocks of size nb x nb
         for(int i = 0; i < n_nb; i++)
         {
             rocblas_int i1 = i_start + (i * stride);
