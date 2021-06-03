@@ -158,8 +158,8 @@ option( BUILD_TESTING "Build tests for rocBLAS" ON )
 # FOR OPTIONAL CODE COVERAGE
 option(BUILD_CODE_COVERAGE "Build rocBLAS with code coverage enabled" OFF)
 if(BUILD_CODE_COVERAGE)
-  add_compile_options(-g -fprofile-arcs -ftest-coverage)
-  add_link_options(-g --coverage)
+  add_compile_options(-fprofile-arcs -ftest-coverage)
+  add_link_options(--coverage)
 endif()
 
 # FOR OPTIONAL ADDRESS SANITIZER
