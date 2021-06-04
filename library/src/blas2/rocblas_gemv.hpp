@@ -114,7 +114,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                    rocblas_int       incy,
                                    rocblas_stride    stridey,
                                    rocblas_int       batch_count,
-                                   T*                work = nullptr)
+                                   T*                workspace = nullptr)
 {
     //quick return
     if(!m || !n || !batch_count)
@@ -329,7 +329,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                    stridey);
             }
         }
-        else if(work && rocblas_gemvt_skinny_n<T>(transA, m, n))
+        else if(workspace && rocblas_gemvt_skinny_n<T>(transA, m, n))
         {
             static constexpr int NB     = rocblas_gemvt_sn_NB();
             static constexpr int WIN    = rocblas_gemvt_sn_WIN();
@@ -339,7 +339,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 
 #define gemvt_sn_KARGS(alpha_)                                                                 \
     gemvt_grid, gemvt_threads, 0, rocblas_stream, m, n, alpha_, stride_alpha, A, offseta, lda, \
-        strideA, x, shiftx, incx, stridex, (T*)work
+        strideA, x, shiftx, incx, stridex, (T*)workspace
 
             if(handle->pointer_mode == rocblas_pointer_mode_device)
             {
@@ -362,7 +362,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                    shifty,
                                    incy,
                                    stridey,
-                                   (T*)work);
+                                   (T*)workspace);
             }
             else
             {
@@ -388,7 +388,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                    shifty,
                                    incy,
                                    stridey,
-                                   work);
+                                   workspace);
             }
 
 #undef gemvt_sn_KARGS
@@ -589,7 +589,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                    stridey);
             }
         }
-        else if(work && rocblas_gemvt_skinny_n<T>(transA, m, n))
+        else if(workspace && rocblas_gemvt_skinny_n<T>(transA, m, n))
         {
             static constexpr int NB     = rocblas_gemvt_sn_NB();
             static constexpr int WIN    = rocblas_gemvt_sn_WIN();
@@ -599,7 +599,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 
 #define gemvt_sn_KARGS(alpha_)                                                                 \
     gemvt_grid, gemvt_threads, 0, rocblas_stream, m, n, alpha_, stride_alpha, A, offseta, lda, \
-        strideA, x, shiftx, incx, stridex, (T*)work
+        strideA, x, shiftx, incx, stridex, (T*)workspace
 
             if(handle->pointer_mode == rocblas_pointer_mode_device)
             {
@@ -622,7 +622,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                    shifty,
                                    incy,
                                    stridey,
-                                   (T*)work);
+                                   (T*)workspace);
             }
             else
             {
@@ -648,7 +648,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                    shifty,
                                    incy,
                                    stridey,
-                                   work);
+                                   workspace);
             }
 
 #undef gemvt_sn_KARGS

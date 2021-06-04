@@ -73,13 +73,13 @@ namespace
                 return check_numerics_status;
         }
 
-        auto mem = handle->device_malloc(dev_bytes);
-        if(!mem)
+        auto w_mem = handle->device_malloc(dev_bytes);
+        if(!w_mem)
         {
             return rocblas_status_memory_error;
         }
         rocblas_status status = rocblas_internal_nrm2_template<NB, isbatched>(
-            handle, n, x, shiftx_0, incx, stridex, batch_count, results, (To*)mem);
+            handle, n, x, shiftx_0, incx, stridex, batch_count, results, (To*)w_mem);
         if(status != rocblas_status_success)
             return status;
 

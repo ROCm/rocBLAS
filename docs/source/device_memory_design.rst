@@ -139,9 +139,9 @@ Device memory can be allocated for n floats using device_malloc as follows:
 
 ::
 
-     auto mem = handle->device_malloc(n * sizeof(float));
-     if (!mem) return rocblas_status_memory_error;
-     float* ptr = static_cast<float*>(mem);
+     auto workspace = handle->device_malloc(n * sizeof(float));
+     if (!workspace) return rocblas_status_memory_error;
+     float* ptr = static_cast<float*>(workspace);
 
 Example
 -------
@@ -153,12 +153,12 @@ To allocate multiple buffers
     size_t size1 = m * n;
     size_t size2 = m * k;
 
-    auto mem = handle->device_malloc(size1, size2);
-    if (!mem) return rocblas_status_memory_error;
+    auto workspace = handle->device_malloc(size1, size2);
+    if (!workspace) return rocblas_status_memory_error;
 
-    void * buf1, * buf2;
-    buf1 = mem[0];
-    buf2 = mem[1];
+    void * w_buf1, * w_buf2;
+    w_buf1 = workspace[0];
+    w_buf2 = workspace[1];
 
 
 Function
@@ -166,7 +166,7 @@ Function
 
 ::
 
-    auto mem = handle->device_malloc(size...)
+    auto workspace = handle->device_malloc(size...)
 
 - Returns an opaque RAII object lending allocated device memory to a particular rocBLAS function.
 - The object returned is convertible to ``void *`` or other pointer types if only one size is specified
@@ -198,15 +198,15 @@ Example
     rocblas_status ret = rocblas_status_success;
     size_t size_for_optimal_algorithm = m + n + k;
     size_t size_for_degraded_algorithm = m;
-    auto mem_optimal = handle->device_malloc(size_for_optimal_algorithm);
-    if (mem1)
+    auto workspace_optimal = handle->device_malloc(size_for_optimal_algorithm);
+    if (workspace_optimal)
     {
         // Algorithm using larger optimal memory
     }
     else
     {
-        auto mem_degraded = handle->device_malloc(size_for_degraded_algorithm);
-        if (mem_degraded)
+        auto workspace_degraded = handle->device_malloc(size_for_degraded_algorithm);
+        if (workspace_degraded)
         {
             // Algorithm using smaller degraded memory
             ret = rocblas_status_perf_degraded;

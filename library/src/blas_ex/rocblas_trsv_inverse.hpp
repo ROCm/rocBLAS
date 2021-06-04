@@ -669,11 +669,11 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     rocblas_internal_trsv_inverse_template_mem(rocblas_handle handle,
                                                rocblas_int    m,
                                                rocblas_int    batch_count,
-                                               MEM&           mem,
-                                               void*&         mem_x_temp,
-                                               void*&         mem_x_temp_arr,
-                                               void*&         mem_invA,
-                                               void*&         mem_invA_arr,
+                                               MEM&           w_mem,
+                                               void*&         w_mem_x_temp,
+                                               void*&         w_mem_x_temp_arr,
+                                               void*&         w_mem_invA,
+                                               void*&         w_mem_invA_arr,
                                                const U*       supplied_invA      = nullptr,
                                                rocblas_int    supplied_invA_size = 0)
 {
@@ -736,16 +736,16 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
             x_c_temp_bytes, xarrBytes, invA_bytes, arrBytes);
 
     // Attempt to allocate optimal memory size, returning error if failure
-    mem = handle->device_malloc(x_c_temp_bytes, xarrBytes, invA_bytes, arrBytes);
-    if(!mem)
+    w_mem = handle->device_malloc(x_c_temp_bytes, xarrBytes, invA_bytes, arrBytes);
+    if(!w_mem)
         return rocblas_status_memory_error;
 
     // Get pointers to allocated device memory
 
-    mem_x_temp     = mem[0];
-    mem_x_temp_arr = mem[1];
-    mem_invA       = mem[2];
-    mem_invA_arr   = mem[3];
+    w_mem_x_temp     = w_mem[0];
+    w_mem_x_temp_arr = w_mem[1];
+    w_mem_invA       = w_mem[2];
+    w_mem_invA_arr   = w_mem[3];
     return perf_status;
 }
 

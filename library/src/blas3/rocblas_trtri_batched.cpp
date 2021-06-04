@@ -84,22 +84,22 @@ namespace
         else
         {
             // Allocate memory
-            auto mem = handle->device_malloc(size, sizep);
-            if(!mem)
+            auto w_mem = handle->device_malloc(size, sizep);
+            if(!w_mem)
             {
                 return rocblas_status_memory_error;
             }
-            void* C_tmp     = mem[0];
-            void* C_tmp_arr = mem[1];
+            void* w_C_tmp     = w_mem[0];
+            void* w_C_tmp_arr = w_mem[1];
 
-            auto C_tmp_host = std::make_unique<T*[]>(batch_count);
+            auto w_C_tmp_host = std::make_unique<T*[]>(batch_count);
             for(int b = 0; b < batch_count; b++)
             {
-                C_tmp_host[b] = (T*)C_tmp + b * els;
+                w_C_tmp_host[b] = (T*)w_C_tmp + b * els;
             }
 
-            RETURN_IF_HIP_ERROR(hipMemcpyAsync(C_tmp_arr,
-                                               &C_tmp_host[0],
+            RETURN_IF_HIP_ERROR(hipMemcpyAsync(w_C_tmp_arr,
+                                               &w_C_tmp_host[0],
                                                batch_count * sizeof(T*),
                                                hipMemcpyHostToDevice,
                                                handle->get_stream()));
@@ -120,7 +120,7 @@ namespace
                                                              0,
                                                              batch_count,
                                                              1,
-                                                             (T* const*)C_tmp_arr);
+                                                             (T* const*)w_C_tmp_arr);
         }
 
         return status;
