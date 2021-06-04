@@ -41,7 +41,7 @@ rocBLAS build & installation helper script
       -v | --rocm-dev            Set specific rocm-dev version
            --[no-]msgpack        Set Tensile backend to use MessagePack
            --cmake_install       Auto Update CMake to minimum version if required
-      --codecoverage             Build with code coverage profiling enabled
+           --codecoverage        Build with code coverage profiling enabled
       -k | --relwithdebinfo      Set -DCMAKE_BUILD_TYPE=RelWithDebInfo
            --sanitizer           Build with address sanitizer enabled
 EOF
@@ -647,7 +647,7 @@ pushd .
   # code coverage
   if [[ "${build_codecoverage}" == true ]]; then
       if [[ "${build_release}" == true ]]; then
-          echo "Code coverage is chosen to be disabled in Release mode, to enable code coverage select either Debug mode (-g|--debug) or RelWithDebInfo mode (-k|--relwithdebinfo); aborting";
+          echo "Code coverage is disabled in Release mode, to enable code coverage select either Debug mode (-g|--debug) or RelWithDebInfo mode (-k|--relwithdebinfo); aborting";
           exit 1
       fi
       cmake_common_options="${cmake_common_options} -DBUILD_CODE_COVERAGE=ON"
