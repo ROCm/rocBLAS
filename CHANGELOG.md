@@ -5,6 +5,7 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 ## [rocBLAS 2.40.0 for ROCm 4.4.0]
 ### Optimizations
 - Improved performance of non-batched and batched dot, dotc, and dot_ex for small n. e.g. sdot n <= 31000
+- Improved performance of non-batched and batched trmv for all sizes and matrix types
 
 ## [rocBLAS 2.39.0 for ROCm 4.3.0]
 ### Optimizations
