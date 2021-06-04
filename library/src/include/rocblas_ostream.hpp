@@ -68,15 +68,11 @@ class ROCBLAS_INTERNAL_EXPORT rocblas_internal_ostream
             std::promise<void> promise;
 
         public:
-            // The task takes ownership of the string payload
-            task_t(std::string&& str)
+            // The task takes ownership of the string payload and promise
+            task_t(std::string&& str, std::promise<void>&& promise)
                 : str(std::move(str))
+                , promise(std::move(promise))
             {
-            }
-
-            auto get_future()
-            {
-                return promise.get_future();
             }
 
             // Notify the future to wake up
