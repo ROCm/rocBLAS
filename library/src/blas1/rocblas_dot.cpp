@@ -91,8 +91,8 @@ namespace
         if(!x || !y || !result)
             return rocblas_status_invalid_pointer;
 
-        auto mem = handle->device_malloc(dev_bytes);
-        if(!mem)
+        auto w_mem = handle->device_malloc(dev_bytes);
+        if(!w_mem)
             return rocblas_status_memory_error;
 
         if(check_numerics)
@@ -118,7 +118,7 @@ namespace
         }
 
         rocblas_status status = rocblas_internal_dot_template<NB, CONJ, T>(
-            handle, n, x, 0, incx, 0, y, 0, incy, 0, 1, result, (T2*)mem);
+            handle, n, x, 0, incx, 0, y, 0, incy, 0, 1, result, (T2*)w_mem);
         if(status != rocblas_status_success)
             return status;
 

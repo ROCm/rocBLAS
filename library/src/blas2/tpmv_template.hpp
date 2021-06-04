@@ -21,7 +21,7 @@ rocblas_status tpmv_template(rocblas_handle    handle,
                              ptrdiff_t         offsetx,
                              rocblas_int       incx,
                              rocblas_stride    stridex,
-                             W                 w,
+                             W                 workspace,
                              rocblas_stride    stridew,
                              rocblas_int       batch_count)
 {
@@ -59,7 +59,7 @@ rocblas_status tpmv_template(rocblas_handle    handle,
                            shiftx,
                            incx,
                            stridex,
-                           w,
+                           workspace,
                            stridew);
         break;
     }
@@ -81,7 +81,7 @@ rocblas_status tpmv_template(rocblas_handle    handle,
                            shiftx,
                            incx,
                            stridex,
-                           w,
+                           workspace,
                            stridew);
         break;
     }
@@ -103,7 +103,7 @@ rocblas_status tpmv_template(rocblas_handle    handle,
                            shiftx,
                            incx,
                            stridex,
-                           w,
+                           workspace,
                            stridew);
 
         break;
@@ -117,7 +117,7 @@ rocblas_status tpmv_template(rocblas_handle    handle,
         static constexpr rocblas_int offsetw = 0;
         static constexpr rocblas_int incw    = 1;
         return rocblas_copy_template<false, NB>(
-            handle, m, w, offsetw, incw, stridew, x, offsetx, incx, stridex, batch_count);
+            handle, m, workspace, offsetw, incw, stridew, x, offsetx, incx, stridex, batch_count);
     }
 }
 

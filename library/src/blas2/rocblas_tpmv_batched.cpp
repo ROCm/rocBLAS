@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "rocblas_tpmv_batched.hpp"
 #include "handle.hpp"
@@ -119,8 +119,8 @@ namespace
         if(!a || !x)
             return rocblas_status_invalid_pointer;
 
-        auto mem = handle->device_malloc(dev_bytes);
-        if(!mem)
+        auto w_mem = handle->device_malloc(dev_bytes);
+        if(!w_mem)
             return rocblas_status_memory_error;
 
         auto check_numerics = handle->check_numerics;
@@ -149,7 +149,7 @@ namespace
         rocblas_stride stridew = m;
 
         rocblas_status status = rocblas_tpmv_batched_template(
-            handle, uplo, transa, diag, m, a, x, incx, (T*)mem, stridew, batch_count);
+            handle, uplo, transa, diag, m, a, x, incx, (T*)w_mem, stridew, batch_count);
         if(status != rocblas_status_success)
             return status;
 

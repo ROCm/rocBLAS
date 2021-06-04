@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "handle.hpp"
 #include "logging.hpp"
@@ -133,8 +133,8 @@ namespace
         if(handle->is_device_memory_size_query())
             return handle->set_optimal_device_memory_size(sizeof(T) * m * batch_count);
 
-        auto mem_x_copy = handle->device_malloc(sizeof(T) * m * batch_count);
-        if(!mem_x_copy)
+        auto w_mem_x_copy = handle->device_malloc(sizeof(T) * m * batch_count);
+        if(!w_mem_x_copy)
             return rocblas_status_memory_error;
 
         auto check_numerics = handle->check_numerics;
@@ -176,7 +176,7 @@ namespace
                                      incx,
                                      stride_x,
                                      batch_count,
-                                     (T*)mem_x_copy);
+                                     (T*)w_mem_x_copy);
 
         if(check_numerics)
         {

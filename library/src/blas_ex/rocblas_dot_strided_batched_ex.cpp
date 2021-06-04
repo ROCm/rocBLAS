@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "logging.hpp"
 #include "rocblas_dot_ex.hpp"
@@ -147,8 +147,8 @@ namespace
         if(!x || !y || !result)
             return rocblas_status_invalid_pointer;
 
-        auto mem = handle->device_malloc(dev_bytes);
-        if(!mem)
+        auto w_mem = handle->device_malloc(dev_bytes);
+        if(!w_mem)
             return rocblas_status_memory_error;
 
         return rocblas_dot_ex_template<NB, false, CONJ>(handle,
@@ -165,7 +165,7 @@ namespace
                                                         result,
                                                         result_type,
                                                         execution_type,
-                                                        (void*)mem);
+                                                        (void*)w_mem);
     }
 
 }
