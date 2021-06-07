@@ -9,6 +9,7 @@
 #include "rocblas.h"
 #include "rocblas_vector.hpp"
 #include <cstdio>
+#include <iomanip>
 #include <iostream>
 #include <string>
 #include <type_traits>
@@ -150,7 +151,7 @@ void rocblas_print_matrix(const char* name, T* A, size_t m, size_t n, size_t lda
     for(size_t i = 0; i < m; i++)
     {
         for(size_t j = 0; j < n; j++)
-            rocblas_cout << A[i + j * lda] << " ";
+            rocblas_cout << std::setprecision(0) << std::setw(5) << A[i + j * lda] << " ";
         rocblas_cout << std::endl;
     }
 }
