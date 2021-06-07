@@ -17181,6 +17181,14 @@ ROCBLAS_EXPORT bool rocblas_is_managing_device_memory(rocblas_handle handle);
 
 /*! \brief
     \details
+    Returns true when device memory in handle is managed by the user
+    @param[in]
+    handle          rocblas handle
+ ******************************************************************************/
+ROCBLAS_EXPORT bool rocblas_is_user_managing_device_memory(rocblas_handle handle);
+
+/*! \brief
+    \details
     Abort function which safely flushes all IO
  ******************************************************************************/
 #ifndef _WIN32
