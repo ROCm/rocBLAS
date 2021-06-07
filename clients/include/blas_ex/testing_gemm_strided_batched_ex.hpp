@@ -519,8 +519,6 @@ void testing_gemm_strided_batched_ex(const Arguments& arg)
                              || (transB == rocblas_operation_none && ldb % 4 != 0)
                              || stride_a % 4 != 0 || stride_b % 4 != 0));
 
-    int8_invalid |= (!pack_to_int8x4 && std::is_same<Ti, int8_t>{} && (M < 4 || N < 4));
-
     if(invalid_size || !M || !N || !batch_count)
     {
         EXPECT_ROCBLAS_STATUS(rocblas_gemm_strided_batched_ex_fn(handle,

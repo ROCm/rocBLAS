@@ -246,15 +246,7 @@ inline rocblas_status rocblas_gemm_ext2_template(rocblas_handle   handle,
         // MatrixInstruction kernel uses general int8 (unless rocblas_gemm_flags_pack_int8x4 is set)
         if(!useInt8x4)
         {
-            // M, N should be at least 4
-            if(m < 4 || n < 4)
-            {
-                rb_status = rocblas_status_invalid_size;
-            }
-            else
-            {
-                rb_status = gemm_ext2_typecasting<int8_t, int32_t>(EX_TYPECASTING_PARM);
-            }
+            rb_status = gemm_ext2_typecasting<int8_t, int32_t>(EX_TYPECASTING_PARM);
         }
         // Else, we check if we can pack 4 int8:
         else
