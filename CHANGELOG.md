@@ -7,6 +7,7 @@ Full documentation for rocBLAS is available at [rocblas.readthedocs.io](https://
 - Improved performance of non-batched and batched dot, dotc, and dot_ex for small n. e.g. sdot n <= 31000
 - Improved performance of non-batched and batched trmv for all sizes and matrix types
 - Improved performance of non-batched and batched gemv transpose case for all sizes and datatypes
+- Improved performance of sger and dger for all sizes, in particular the larger dger sizes.
 
 ## [rocBLAS 2.39.0 for ROCm 4.3.0]
 ### Optimizations
