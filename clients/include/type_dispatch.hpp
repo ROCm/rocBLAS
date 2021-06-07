@@ -7,6 +7,31 @@
 #include "rocblas.h"
 #include "rocblas_arguments.hpp"
 
+template <typename T>
+constexpr auto rocblas_type2datatype()
+{
+    if(std::is_same<T, rocblas_half>{})
+        return rocblas_datatype_f16_r;
+    if(std::is_same<T, rocblas_bfloat16>{})
+        return rocblas_datatype_bf16_r;
+    if(std::is_same<T, rocblas_float>{})
+        return rocblas_datatype_f32_r;
+    if(std::is_same<T, rocblas_double>{})
+        return rocblas_datatype_f64_r;
+    // if(std::is_same<T, rocblas_half_complex>{})
+    //     return rocblas_datatype_f16_c;
+    if(std::is_same<T, rocblas_float_complex>{})
+        return rocblas_datatype_f32_c;
+    if(std::is_same<T, rocblas_double_complex>{})
+        return rocblas_datatype_f64_c;
+    if(std::is_same<T, char>{})
+        return rocblas_datatype_i8_r;
+    if(std::is_same<T, unsigned char>{})
+        return rocblas_datatype_u8_r;
+
+    return rocblas_datatype_f32_r; // testing purposes we default to f32 ex
+}
+
 // ----------------------------------------------------------------------------
 // Calls TEST template based on the argument types. TEST<> is expected to
 // return a functor which takes a const Arguments& argument. If the types do

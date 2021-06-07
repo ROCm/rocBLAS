@@ -14,6 +14,7 @@
 #include "rocblas_random.hpp"
 #include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
+#include "type_dispatch.hpp"
 #include "unit.hpp"
 #include "utility.hpp"
 
@@ -23,13 +24,13 @@ void testing_scal_batched_ex_bad_arg(const Arguments& arg)
     auto rocblas_scal_batched_ex_fn
         = arg.fortran ? rocblas_scal_batched_ex_fortran : rocblas_scal_batched_ex;
 
-    rocblas_datatype alpha_type     = rocblas_datatype_f32_r;
-    rocblas_datatype x_type         = rocblas_datatype_f32_r;
-    rocblas_datatype execution_type = rocblas_datatype_f32_r;
+    rocblas_datatype alpha_type     = rocblas_type2datatype<Ta>();
+    rocblas_datatype x_type         = rocblas_type2datatype<Tx>();
+    rocblas_datatype execution_type = rocblas_type2datatype<Tex>();
 
-    rocblas_int N           = 100;
-    rocblas_int incx        = 1;
-    Ta          h_alpha     = Ta(0.6);
+    rocblas_int N    = 100;
+    rocblas_int incx = 1;
+    Ta          h_alpha(0.6);
     rocblas_int batch_count = 5;
 
     rocblas_local_handle handle{arg};
