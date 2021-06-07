@@ -56,6 +56,7 @@ Functions for manually setting memory size
 
 - rocblas_set_device_memory_size
 - rocblas_get_device_memory_size
+- rocblas_is_user_managing_device_memory
 
 Function for setting user owned workspace
 =========================================
