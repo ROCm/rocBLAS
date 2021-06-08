@@ -17183,7 +17183,11 @@ ROCBLAS_EXPORT bool rocblas_is_managing_device_memory(rocblas_handle handle);
     \details
     Abort function which safely flushes all IO
  ******************************************************************************/
+#ifndef _WIN32
 ROCBLAS_EXPORT void rocblas_abort(void) __attribute__((__noreturn__));
+#else
+ROCBLAS_EXPORT __declspec(noreturn) void rocblas_abort(void);
+#endif
 
 #ifdef __cplusplus
 }

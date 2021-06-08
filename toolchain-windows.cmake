@@ -1,9 +1,9 @@
 
-if (DEFINED ENV{HIP_PATH})
-  file(TO_CMAKE_PATH "$ENV{HIP_PATH}" HIP_PATH)
-  set(rocm_bin "${HIP_PATH}/bin")
+if (DEFINED ENV{HIP_DIR})
+  file(TO_CMAKE_PATH "$ENV{HIP_DIR}" HIP_DIR)
+  set(rocm_bin "${HIP_DIR}/bin")
 else()
-  set(HIP_PATH "C:/hip")
+  set(HIP_DIR "C:/hip")
   set(rocm_bin "C:/hip/bin")
 endif()
 
@@ -23,7 +23,7 @@ set(python "python")
 
 
 # our usage flags
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DWIN32 -D_CRT_SECURE_NO_WARNINGS -D_SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING")
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DWIN32 -DNOMINMAX -D_CRT_SECURE_NO_WARNINGS -D_SILENCE_EXPERIMENTAL_FILESYSTEM_DEPRECATION_WARNING")
 
 # flags for clang direct use
 
@@ -34,12 +34,6 @@ set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -DHIP_CLANG_HCC_COMPAT_MODE=1")
 
 # args also in hipcc.bat 
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fms-extensions -fms-compatibility -D__HIP_ROCclr__=1 -D__HIP_PLATFORM_AMD__=1 ")
-
-# find_program(CCACHE_PROGRAM ccache)
-# if(CCACHE_PROGRAM)
-#     set(CMAKE_CXX_COMPILER_LAUNCHER "${CCACHE_PROGRAM}")
-#     set(CMAKE_CUDA_COMPILER_LAUNCHER "${CCACHE_PROGRAM}") # CMake 3.9+
-# endif()
 
 if (DEFINED ENV{LAPACK_DIR})
   file(TO_CMAKE_PATH "$ENV{LAPACK_DIR}" LAPACK_DIR)

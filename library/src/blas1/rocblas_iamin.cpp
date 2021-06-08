@@ -67,8 +67,8 @@ namespace
                 return check_numerics_status;
         }
 
-        auto mem = handle->device_malloc(dev_bytes);
-        if(!mem)
+        auto w_mem = handle->device_malloc(dev_bytes);
+        if(!w_mem)
         {
             return rocblas_status_memory_error;
         }
@@ -81,7 +81,7 @@ namespace
                                                              stridex_0,
                                                              batch_count_1,
                                                              result,
-                                                             (rocblas_index_value_t<S>*)mem);
+                                                             (rocblas_index_value_t<S>*)w_mem);
         if(status != rocblas_status_success)
             return status;
 

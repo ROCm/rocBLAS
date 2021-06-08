@@ -172,6 +172,9 @@ Coding Guidelines
     or more operations, the maximum size needed by all them should be
     reported or allocated.
 
+    When allocating memory, it is recommended to use a variable name which implies
+    that this is allocated workspace memory, such as ``workspace`` or using a ``w_`` prefix.
+
     Details are in the `Device Memory
     Allocation <https://github.com/ROCmSoftwarePlatform/rocBLAS/blob/develop/docs/Device_Memory_Allocation.pdf>`__
     design document. Examples of how to use the device memory allocator

@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #include "../blas1/rocblas_reduction_impl.hpp"
@@ -116,8 +116,8 @@ namespace
             return rocblas_status_invalid_pointer;
         }
 
-        auto mem = handle->device_malloc(dev_bytes);
-        if(!mem)
+        auto w_mem = handle->device_malloc(dev_bytes);
+        if(!w_mem)
         {
             return rocblas_status_memory_error;
         }
@@ -137,7 +137,7 @@ namespace
                                                        results,
                                                        result_type,
                                                        execution_type,
-                                                       (void*)mem);
+                                                       (void*)w_mem);
     }
 
 } // namespace

@@ -112,8 +112,8 @@ namespace
         else
         {
             // Allocate memory
-            auto C_tmp = handle->device_malloc(size);
-            if(!C_tmp)
+            auto w_C_tmp = handle->device_malloc(size);
+            if(!w_C_tmp)
                 return rocblas_status_memory_error;
 
             status = rocblas_trtri_large<NB, false, true, T>(handle,
@@ -132,7 +132,7 @@ namespace
                                                              0,
                                                              batch_count,
                                                              1,
-                                                             (T*)C_tmp);
+                                                             (T*)w_C_tmp);
         }
 
         return status;

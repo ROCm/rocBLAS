@@ -67,8 +67,8 @@ namespace
         if(!A || !invA)
             return rocblas_status_invalid_pointer;
 
-        auto mem = handle->device_malloc(size);
-        if(!mem)
+        auto w_mem = handle->device_malloc(size);
+        if(!w_mem)
             return rocblas_status_memory_error;
 
         return rocblas_internal_trtri_template<NB, false, false, T>(handle,
@@ -87,7 +87,7 @@ namespace
                                                                     0,
                                                                     1,
                                                                     1,
-                                                                    (T*)mem);
+                                                                    (T*)w_mem);
     }
 
 }
