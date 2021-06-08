@@ -7,7 +7,7 @@
 #include "../blas1/rocblas_copy.hpp"
 #include "check_numerics_vector.hpp"
 
-__device__ inline rocblas_int
+ROCBLAS_KERNEL_ILF inline rocblas_int
     packed_matrix_index(bool upper, bool trans, rocblas_int n, rocblas_int row, rocblas_int col)
 {
     return upper ? (trans ? ((row * (row + 1) / 2) + col) : ((col * (col + 1) / 2) + row))
@@ -18,7 +18,7 @@ __device__ inline rocblas_int
 // Uses forward substitution to solve Ax = b. Used for a non-transposed lower-triangular matrix
 // or a transposed upper-triangular matrix.
 template <bool CONJ, rocblas_int BLK_SIZE, typename T>
-__device__ void tpsv_forward_substitution_calc(
+ROCBLAS_KERNEL_ILF void tpsv_forward_substitution_calc(
     bool diag, bool trans, int n, const T* __restrict__ A, T* __restrict__ x, rocblas_int incx)
 {
     __shared__ T xshared[BLK_SIZE];
@@ -97,7 +97,7 @@ __device__ void tpsv_forward_substitution_calc(
 // Uses backward substitution to solve Ax = b. Used for a non-transposed upper-triangular matrix
 // or a transposed lower-triangular matrix.
 template <bool CONJ, rocblas_int BLK_SIZE, typename T>
-__device__ void tpsv_backward_substitution_calc(
+ROCBLAS_KERNEL_ILF void tpsv_backward_substitution_calc(
     bool diag, bool trans, int n, const T* __restrict__ A, T* __restrict__ x, rocblas_int incx)
 {
     __shared__ T xshared[BLK_SIZE];

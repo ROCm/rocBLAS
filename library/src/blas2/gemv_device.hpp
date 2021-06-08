@@ -13,16 +13,16 @@ template <rocblas_int DIM_X,
           typename T,
           typename U,
           std::enable_if_t<!std::is_same<T, rocblas_double_complex>{}, int> = 0>
-__device__ void gemvn_kernel_calc(rocblas_int m,
-                                  rocblas_int n,
-                                  U           alpha,
-                                  const T*    A,
-                                  T_lda       lda,
-                                  const T*    x,
-                                  rocblas_int incx,
-                                  U           beta,
-                                  T*          y,
-                                  rocblas_int incy)
+ROCBLAS_KERNEL_ILF void gemvn_kernel_calc(rocblas_int m,
+                                          rocblas_int n,
+                                          U           alpha,
+                                          const T*    A,
+                                          T_lda       lda,
+                                          const T*    x,
+                                          rocblas_int incx,
+                                          U           beta,
+                                          T*          y,
+                                          rocblas_int incy)
 {
     rocblas_int thread_id = hipThreadIdx_x + hipThreadIdx_y * hipBlockDim_x;
 
@@ -174,16 +174,16 @@ __device__ void gemvn_kernel_calc(rocblas_int m,
 // Overload for double precision complex numbers. We run out of registers
 // if we use the above algorithm.
 template <rocblas_int DIM_X, rocblas_int DIM_Y, typename T_lda, typename U>
-__device__ void gemvn_kernel_calc(rocblas_int                   m,
-                                  rocblas_int                   n,
-                                  U                             alpha,
-                                  const rocblas_double_complex* A,
-                                  T_lda                         lda,
-                                  const rocblas_double_complex* x,
-                                  rocblas_int                   incx,
-                                  U                             beta,
-                                  rocblas_double_complex*       y,
-                                  rocblas_int                   incy)
+ROCBLAS_KERNEL_ILF void gemvn_kernel_calc(rocblas_int                   m,
+                                          rocblas_int                   n,
+                                          U                             alpha,
+                                          const rocblas_double_complex* A,
+                                          T_lda                         lda,
+                                          const rocblas_double_complex* x,
+                                          rocblas_int                   incx,
+                                          U                             beta,
+                                          rocblas_double_complex*       y,
+                                          rocblas_int                   incy)
 {
     rocblas_int thread_id = hipThreadIdx_x + hipThreadIdx_y * hipBlockDim_x;
 
@@ -259,16 +259,16 @@ __device__ void gemvn_kernel_calc(rocblas_int                   m,
 }
 
 template <bool CONJ, rocblas_int NB_X, typename T, typename U>
-__device__ void gemvt_kernel_calc(rocblas_int m,
-                                  rocblas_int n,
-                                  U           alpha,
-                                  const T* __restrict__ A,
-                                  rocblas_int lda,
-                                  const T* __restrict__ x,
-                                  rocblas_int incx,
-                                  U           beta,
-                                  T* __restrict__ y,
-                                  rocblas_int incy)
+ROCBLAS_KERNEL_ILF void gemvt_kernel_calc(rocblas_int m,
+                                          rocblas_int n,
+                                          U           alpha,
+                                          const T* __restrict__ A,
+                                          rocblas_int lda,
+                                          const T* __restrict__ x,
+                                          rocblas_int incx,
+                                          U           beta,
+                                          T* __restrict__ y,
+                                          rocblas_int incy)
 {
     rocblas_int tx  = hipThreadIdx_x;
     rocblas_int col = hipBlockIdx_x;
@@ -318,14 +318,14 @@ __device__ void gemvt_kernel_calc(rocblas_int m,
 }
 
 template <bool CONJ, rocblas_int NB_X, rocblas_int WIN, typename T_lda, typename T, typename U>
-__device__ void gemvt_sn_kernel_calc(rocblas_int m,
-                                     rocblas_int n,
-                                     U           alpha,
-                                     const T*    A,
-                                     T_lda       lda,
-                                     const T*    x,
-                                     rocblas_int incx,
-                                     T*          workspace)
+ROCBLAS_KERNEL_ILF void gemvt_sn_kernel_calc(rocblas_int m,
+                                             rocblas_int n,
+                                             U           alpha,
+                                             const T*    A,
+                                             T_lda       lda,
+                                             const T*    x,
+                                             rocblas_int incx,
+                                             T*          workspace)
 {
     // skinny n kernel
 
@@ -467,16 +467,16 @@ ROCBLAS_KERNEL __launch_bounds__(NB) void rocblas_gemvt_sn_reduce(rocblas_int   
 }
 
 template <bool CONJ, rocblas_int NB_X, typename T, typename U>
-__device__ void gemvtsm_kernel_calc(rocblas_int m,
-                                    rocblas_int n,
-                                    U           alpha,
-                                    const T*    A,
-                                    rocblas_int lda,
-                                    const T*    x,
-                                    rocblas_int incx,
-                                    U           beta,
-                                    T*          y,
-                                    rocblas_int incy)
+ROCBLAS_KERNEL_ILF void gemvtsm_kernel_calc(rocblas_int m,
+                                            rocblas_int n,
+                                            U           alpha,
+                                            const T*    A,
+                                            rocblas_int lda,
+                                            const T*    x,
+                                            rocblas_int incx,
+                                            U           beta,
+                                            T*          y,
+                                            rocblas_int incy)
 {
     // small m <= 64 kernel
 
