@@ -38,10 +38,10 @@ template <typename T,
           rocblas_int DIM_X,
           rocblas_int DIM_Y,
           bool        UNIT>
-void __device__ rocblas_invert_solve_A21(const T* const __restrict__ A11,
-                                         T* const __restrict__ A21,
-                                         const T* __restrict__ A22,
-                                         T* const __restrict__ sx)
+void ROCBLAS_KERNEL_ILF rocblas_invert_solve_A21(const T* const __restrict__ A11,
+                                                 T* const __restrict__ A21,
+                                                 const T* __restrict__ A22,
+                                                 T* const __restrict__ sx)
 {
     const rocblas_int tid      = DIM_X * threadIdx.y + threadIdx.x;
     const rocblas_int ntid     = DIM_X * DIM_Y;
@@ -101,10 +101,10 @@ template <typename T,
           rocblas_int DIM_X,
           rocblas_int DIM_Y,
           bool        UNIT>
-void __device__ rocblas_invert_solve_A12(const T* const __restrict__ A11,
-                                         T* const __restrict__ A12,
-                                         const T* __restrict__ A22,
-                                         T* const __restrict__ sx)
+void ROCBLAS_KERNEL_ILF rocblas_invert_solve_A12(const T* const __restrict__ A11,
+                                                 T* const __restrict__ A12,
+                                                 const T* __restrict__ A22,
+                                                 T* const __restrict__ sx)
 {
     const rocblas_int tid      = DIM_X * threadIdx.y + threadIdx.x;
     const rocblas_int ntid     = DIM_X * DIM_Y;
@@ -158,9 +158,9 @@ void __device__ rocblas_invert_solve_A12(const T* const __restrict__ A11,
 }
 
 template <typename T, rocblas_int LDA>
-void __device__ rocblas_trsv_transpose(const rocblas_int n,
-                                       const T* const __restrict__ A,
-                                       T* const __restrict__ at)
+void ROCBLAS_KERNEL_ILF rocblas_trsv_transpose(const rocblas_int n,
+                                               const T* const __restrict__ A,
+                                               T* const __restrict__ at)
 {
     if(threadIdx.y == 0 && threadIdx.x < n)
     {
@@ -186,7 +186,7 @@ template <typename T,
           bool        UNIT,
           bool        TRANS,
           std::enable_if_t<equals_two<N>, rocblas_int> = 0>
-void __device__ rocblas_trsv_invert(T* const __restrict__ A, T* const __restrict__ sx)
+void ROCBLAS_KERNEL_ILF rocblas_trsv_invert(T* const __restrict__ A, T* const __restrict__ sx)
 {
     if(threadIdx.x == 0 && threadIdx.y == 0)
     {
@@ -219,7 +219,7 @@ template <typename T,
           bool        UNIT,
           bool        TRANS,
           std::enable_if_t<!equals_two<N>, rocblas_int> = 0>
-void __device__ rocblas_trsv_invert(T* const __restrict__ A, T* const __restrict__ sx)
+void ROCBLAS_KERNEL_ILF rocblas_trsv_invert(T* const __restrict__ A, T* const __restrict__ sx)
 {
     // A is broken down as:
     // A = [ A_11 0    ]
@@ -257,7 +257,7 @@ template <typename T,
           bool        UNIT,
           bool        TRANS,
           std::enable_if_t<equals_two<N>, rocblas_int> = 0>
-void __device__ rocblas_trsv_invert_upper(T* const __restrict__ A, T* const __restrict__ sx)
+void ROCBLAS_KERNEL_ILF rocblas_trsv_invert_upper(T* const __restrict__ A, T* const __restrict__ sx)
 {
     if(threadIdx.x == 0 && threadIdx.y == 0)
     {
@@ -290,7 +290,7 @@ template <typename T,
           bool        UNIT,
           bool        TRANS,
           std::enable_if_t<!equals_two<N>, rocblas_int> = 0>
-void __device__ rocblas_trsv_invert_upper(T* const __restrict__ A, T* const __restrict__ sx)
+void ROCBLAS_KERNEL_ILF rocblas_trsv_invert_upper(T* const __restrict__ A, T* const __restrict__ sx)
 {
     // A is broken down as:
     // A = [ A_11 A_12 ]
@@ -322,10 +322,10 @@ void __device__ rocblas_trsv_invert_upper(T* const __restrict__ A, T* const __re
 }
 
 template <typename T, rocblas_int N, rocblas_int DIM_Y, bool UPPER>
-void __device__ rocblas_trsv_block_solve_inverse(const T* __restrict__ Ainv,
-                                                 T* __restrict__ sx,
-                                                 T& val,
-                                                 T* const __restrict__ sum)
+void ROCBLAS_KERNEL_ILF rocblas_trsv_block_solve_inverse(const T* __restrict__ Ainv,
+                                                         T* __restrict__ sx,
+                                                         T& val,
+                                                         T* const __restrict__ sum)
 {
     Ainv += threadIdx.y * N + threadIdx.x;
     sx += threadIdx.y;
@@ -382,7 +382,9 @@ void __device__ rocblas_trsv_block_solve_inverse(const T* __restrict__ Ainv,
 }
 
 template <rocblas_int BLOCK, bool UNIT, typename T>
-void __device__ rocblas_trsv_block_solve_lower(const T* __restrict__ A, rocblas_int lda, T& val)
+void ROCBLAS_KERNEL_ILF rocblas_trsv_block_solve_lower(const T* __restrict__ A,
+                                                       rocblas_int lda,
+                                                       T&          val)
 {
     T __shared__ xs;
 
@@ -410,7 +412,9 @@ void __device__ rocblas_trsv_block_solve_lower(const T* __restrict__ A, rocblas_
 }
 
 template <rocblas_int BLOCK, bool UNIT, typename T>
-void __device__ rocblas_trsv_block_solve_upper(const T* __restrict__ A, rocblas_int lda, T& val)
+void ROCBLAS_KERNEL_ILF rocblas_trsv_block_solve_upper(const T* __restrict__ A,
+                                                       rocblas_int lda,
+                                                       T&          val)
 {
     T __shared__ xs;
 

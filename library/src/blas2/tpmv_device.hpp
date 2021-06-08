@@ -17,13 +17,13 @@
 #define tmpv_calc_lowerat(_i, _j) ((_j)*m + ((_i) - (_j)) - (((_j)-1) * (_j)) / 2)
 
 template <rocblas_int NB, typename T>
-__device__ void tpmvn_kernel_calc(rocblas_fill     uplo,
-                                  rocblas_diagonal diag,
-                                  rocblas_int      m,
-                                  const T*         A,
-                                  T*               x,
-                                  rocblas_int      incx,
-                                  T*               workspace)
+ROCBLAS_KERNEL_ILF void tpmvn_kernel_calc(rocblas_fill     uplo,
+                                          rocblas_diagonal diag,
+                                          rocblas_int      m,
+                                          const T*         A,
+                                          T*               x,
+                                          rocblas_int      incx,
+                                          T*               workspace)
 {
     ptrdiff_t   tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     rocblas_int tx  = hipThreadIdx_x;
@@ -58,13 +58,13 @@ __device__ void tpmvn_kernel_calc(rocblas_fill     uplo,
 }
 
 template <rocblas_int NB, typename T>
-__device__ void tpmvc_kernel_calc(rocblas_fill     uplo,
-                                  rocblas_diagonal diag,
-                                  rocblas_int      m,
-                                  const T*         A,
-                                  T*               x,
-                                  rocblas_int      incx,
-                                  T*               workspace)
+ROCBLAS_KERNEL_ILF void tpmvc_kernel_calc(rocblas_fill     uplo,
+                                          rocblas_diagonal diag,
+                                          rocblas_int      m,
+                                          const T*         A,
+                                          T*               x,
+                                          rocblas_int      incx,
+                                          T*               workspace)
 {
     ptrdiff_t   tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     rocblas_int tx  = hipThreadIdx_x;
@@ -98,13 +98,13 @@ __device__ void tpmvc_kernel_calc(rocblas_fill     uplo,
 }
 
 template <rocblas_int NB, typename T>
-__device__ void tpmvt_kernel_calc(rocblas_fill     uplo,
-                                  rocblas_diagonal diag,
-                                  rocblas_int      m,
-                                  const T*         A,
-                                  T*               x,
-                                  rocblas_int      incx,
-                                  T*               workspace)
+ROCBLAS_KERNEL_ILF void tpmvt_kernel_calc(rocblas_fill     uplo,
+                                          rocblas_diagonal diag,
+                                          rocblas_int      m,
+                                          const T*         A,
+                                          T*               x,
+                                          rocblas_int      incx,
+                                          T*               workspace)
 {
     ptrdiff_t   tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     rocblas_int tx  = hipThreadIdx_x;

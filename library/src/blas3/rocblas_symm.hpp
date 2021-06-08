@@ -7,7 +7,8 @@
 #include "handle.hpp"
 
 template <typename T>
-__device__ void symm_scale_device(rocblas_int m, rocblas_int n, T beta, T* C, rocblas_int ldc)
+ROCBLAS_KERNEL_ILF void
+    symm_scale_device(rocblas_int m, rocblas_int n, T beta, T* C, rocblas_int ldc)
 {
     auto tx = blockIdx.x * blockDim.x + threadIdx.x;
     auto ty = blockIdx.y * blockDim.y + threadIdx.y;
@@ -42,16 +43,16 @@ ROCBLAS_KERNEL __launch_bounds__(DIM_X* DIM_Y) void symm_scale_kernel(rocblas_in
   * kernel
   */
 template <bool HERM, bool RIGHT, rocblas_int TILE_NK, typename T>
-__device__ void symm_hemm_mult_add_device(bool        upper,
-                                          rocblas_int m,
-                                          rocblas_int n,
-                                          T           alpha,
-                                          const T* __restrict__ A,
-                                          rocblas_int lda,
-                                          const T* __restrict__ B,
-                                          rocblas_int ldb,
-                                          T* __restrict__ C,
-                                          rocblas_int ldc)
+ROCBLAS_KERNEL_ILF void symm_hemm_mult_add_device(bool        upper,
+                                                  rocblas_int m,
+                                                  rocblas_int n,
+                                                  T           alpha,
+                                                  const T* __restrict__ A,
+                                                  rocblas_int lda,
+                                                  const T* __restrict__ B,
+                                                  rocblas_int ldb,
+                                                  T* __restrict__ C,
+                                                  rocblas_int ldc)
 {
     // function not called when !alpha
 

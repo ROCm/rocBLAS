@@ -7,7 +7,7 @@
 #include "handle.hpp"
 
 template <typename T, typename U>
-__device__ void syr2k_scale_device(bool upper, rocblas_int n, T beta, U* C, rocblas_int ldc)
+ROCBLAS_KERNEL_ILF void syr2k_scale_device(bool upper, rocblas_int n, T beta, U* C, rocblas_int ldc)
 {
     auto tx = blockIdx.x * blockDim.x + threadIdx.x;
     auto ty = blockIdx.y * blockDim.y + threadIdx.y;
@@ -41,12 +41,12 @@ ROCBLAS_KERNEL __launch_bounds__(DIM_X* DIM_Y) void syr2k_scale_kernel(bool     
 
 /** helper for complex support */
 template <typename T>
-__forceinline__ __device__ void syr2k_her2k_zero_imaginary(T&)
+ROCBLAS_KERNEL_ILF void syr2k_her2k_zero_imaginary(T&)
 {
 }
 
 template <typename T>
-__forceinline__ __device__ void syr2k_her2k_zero_imaginary(rocblas_complex_num<T>& a)
+ROCBLAS_KERNEL_ILF void syr2k_her2k_zero_imaginary(rocblas_complex_num<T>& a)
 {
     a.imag(0);
 }
@@ -55,16 +55,16 @@ __forceinline__ __device__ void syr2k_her2k_zero_imaginary(rocblas_complex_num<T
   * kernel
   */
 template <bool TWOK, bool HERM, bool trans, rocblas_int TILE_NK, typename T, typename U>
-__device__ void syr2k_her2k_mult_add_device(bool        upper,
-                                            rocblas_int n,
-                                            rocblas_int k,
-                                            U           alpha,
-                                            const T* __restrict__ A,
-                                            rocblas_int lda,
-                                            const T* __restrict__ B,
-                                            rocblas_int ldb,
-                                            T* __restrict__ C,
-                                            rocblas_int ldc)
+ROCBLAS_KERNEL_ILF void syr2k_her2k_mult_add_device(bool        upper,
+                                                    rocblas_int n,
+                                                    rocblas_int k,
+                                                    U           alpha,
+                                                    const T* __restrict__ A,
+                                                    rocblas_int lda,
+                                                    const T* __restrict__ B,
+                                                    rocblas_int ldb,
+                                                    T* __restrict__ C,
+                                                    rocblas_int ldc)
 {
     // if !alpha this function isn't called
 

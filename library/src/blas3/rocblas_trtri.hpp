@@ -7,13 +7,13 @@
 #include "gemm.hpp"
 
 template <rocblas_int IB, typename T>
-__device__ void custom_trtri_device(rocblas_fill     uplo,
-                                    rocblas_diagonal diag,
-                                    rocblas_int      n,
-                                    const T*         A,
-                                    rocblas_int      lda,
-                                    T*               invA,
-                                    rocblas_int      ldinvA)
+ROCBLAS_KERNEL_ILF void custom_trtri_device(rocblas_fill     uplo,
+                                            rocblas_diagonal diag,
+                                            rocblas_int      n,
+                                            const T*         A,
+                                            rocblas_int      lda,
+                                            T*               invA,
+                                            rocblas_int      ldinvA)
 {
     // quick return
     if(n <= 0)
@@ -193,13 +193,13 @@ __device__ void custom_trtri_device(rocblas_fill     uplo,
 }
 
 template <rocblas_int NB, typename T>
-__device__ void trtri_device(rocblas_fill     uplo,
-                             rocblas_diagonal diag,
-                             rocblas_int      n,
-                             const T*         A,
-                             rocblas_int      lda,
-                             T*               invA,
-                             rocblas_int      ldinvA)
+ROCBLAS_KERNEL_ILF void trtri_device(rocblas_fill     uplo,
+                                     rocblas_diagonal diag,
+                                     rocblas_int      n,
+                                     const T*         A,
+                                     rocblas_int      lda,
+                                     T*               invA,
+                                     rocblas_int      ldinvA)
 {
     // quick return
     if(n <= 0)
@@ -301,13 +301,13 @@ constexpr size_t num_non_tri_elements(size_t n)
 }
 
 template <typename T>
-__device__ void rocblas_tritri_fill_upper(size_t         offset,
-                                          size_t         idx,
-                                          rocblas_int    n,
-                                          rocblas_int    lda,
-                                          rocblas_stride sub_stride_A,
-                                          T              value,
-                                          T*             A)
+ROCBLAS_KERNEL_ILF void rocblas_tritri_fill_upper(size_t         offset,
+                                                  size_t         idx,
+                                                  rocblas_int    n,
+                                                  rocblas_int    lda,
+                                                  rocblas_stride sub_stride_A,
+                                                  T              value,
+                                                  T*             A)
 {
     rocblas_int row = n - 2 - floor(sqrt(-8 * idx + 4 * n * (n - 1) - 7) / 2.0 - 0.5);
     rocblas_int col = idx + row + 1 - n * (n - 1) / 2 + (n - row) * (n - row - 1) / 2;
@@ -318,7 +318,7 @@ __device__ void rocblas_tritri_fill_upper(size_t         offset,
 }
 
 template <typename T>
-__device__ void rocblas_tritri_fill_lower(
+ROCBLAS_KERNEL_ILF void rocblas_tritri_fill_lower(
     size_t offset, size_t idx, rocblas_int lda, rocblas_int sub_stride_A, T value, T* A)
 {
     rocblas_int row = (rocblas_int)((-1 + sqrt(8 * idx + 1)) / 2);

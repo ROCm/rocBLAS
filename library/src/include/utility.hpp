@@ -5,6 +5,7 @@
 #pragma once
 
 #include "definitions.hpp"
+#include "macros.hpp"
 #include "rocblas.h"
 #include <cmath>
 #include <complex>
