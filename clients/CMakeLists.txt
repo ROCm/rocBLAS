@@ -129,60 +129,61 @@ add_custom_target( rocblas-common DEPENDS "${ROCBLAS_COMMON}" "${ROCBLAS_TEMPLAT
 # TODO: move to rocm-cmake
 include(CMakeParseArguments)
 
-function(rocm_create_package_clients)
-    set(options)
-    set(oneValueArgs LIB_NAME DESCRIPTION SECTION MAINTAINER VERSION)
-    set(multiValueArgs DEPENDS)
+if(NOT WIN32)
+  function(rocm_create_package_clients)
+      set(options)
+      set(oneValueArgs LIB_NAME DESCRIPTION SECTION MAINTAINER VERSION)
+      set(multiValueArgs DEPENDS)
 
-    cmake_parse_arguments(PARSE "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+      cmake_parse_arguments(PARSE "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
 
-    set( PACKAGE_REQUIREMENTS "${PARSE_LIB_NAME} (>=${PARSE_VERSION})")
-    if(CPACK_SYSTEM_NAME MATCHES "ubuntu-18.04")
-      set(PACKAGE_REQUIREMENTS "${PACKAGE_REQUIREMENTS}, libomp-dev (>=5.0.1)")
-      set(PACKAGE_REQUIREMENTS "${PACKAGE_REQUIREMENTS}, gfortran (>=7.4.0)")
-    elseif(CPACK_SYSTEM_NAME MATCHES "ubuntu-16.04")
-      set(PACKAGE_REQUIREMENTS "${PACKAGE_REQUIREMENTS}, libomp-dev (>=3.7.0)")
-      set(PACKAGE_REQUIREMENTS "${PACKAGE_REQUIREMENTS}, gfortran (>=4.8.5)")
-    endif()
-    message(${PACKAGE_REQUIREMENTS})
+      set( PACKAGE_REQUIREMENTS "${PARSE_LIB_NAME} (>=${PARSE_VERSION})")
+      if(CPACK_SYSTEM_NAME MATCHES "ubuntu-18.04")
+        set(PACKAGE_REQUIREMENTS "${PACKAGE_REQUIREMENTS}, libomp-dev (>=5.0.1)")
+        set(PACKAGE_REQUIREMENTS "${PACKAGE_REQUIREMENTS}, gfortran (>=7.4.0)")
+      elseif(CPACK_SYSTEM_NAME MATCHES "ubuntu-16.04")
+        set(PACKAGE_REQUIREMENTS "${PACKAGE_REQUIREMENTS}, libomp-dev (>=3.7.0)")
+        set(PACKAGE_REQUIREMENTS "${PACKAGE_REQUIREMENTS}, gfortran (>=4.8.5)")
+      endif()
+      message(${PACKAGE_REQUIREMENTS})
 
-    string(CONCAT PACKAGE_NAME ${PARSE_LIB_NAME} "-clients-" ${PARSE_VERSION} "-" ${CPACK_SYSTEM_NAME} ".deb")
-    string(CONCAT DEB_CONTROL_FILE_CONTENT "Package: " ${PARSE_LIB_NAME} "-clients"
-                                           "\nVersion: " ${PARSE_VERSION}
-                                           "\nSection: " ${PARSE_SECTION}
-                                           "\nPriority: optional"
-                                           "\nArchitecture: amd64"
-                                           "\nMaintainer: " ${PARSE_MAINTAINER}
-                                           "\nDescription: " ${PARSE_DESCRIPTION}
-                                           "\nDepends: " ${PACKAGE_REQUIREMENTS} "\n\n")
-    set(PACKAGE_DIR "${PROJECT_BINARY_DIR}/package")
-    if(EXISTS "${PACKAGE_DIR}")
-        file(REMOVE_RECURSE "${PACKAGE_DIR}")
-    endif()
-    set(PACKAGE_INSTALL_DIR "${PACKAGE_DIR}/${CPACK_PACKAGING_INSTALL_PREFIX}/${PARSE_LIB_NAME}")
-    file(MAKE_DIRECTORY "${PACKAGE_INSTALL_DIR}/bin")
-    ### AMD BLIS is not packaged right now, so we have to put the so files into /opt/rocm/lib temporarily
-    ### BLIS will be packaged soon and this will not be needed
-    set(BLIS_LIB_DIR "${PACKAGE_DIR}/${CPACK_PACKAGING_INSTALL_PREFIX}/lib")
-    set(ROCBLAS_FORT_LIB_DIR "${PACKAGE_INSTALL_DIR}/lib")
-    file(MAKE_DIRECTORY "${BLIS_LIB_DIR}")
-    file(MAKE_DIRECTORY "${ROCBLAS_FORT_LIB_DIR}")
-    file(WRITE "${PROJECT_BINARY_DIR}/package/DEBIAN/control" ${DEB_CONTROL_FILE_CONTENT})
-    add_custom_target(package_clients
-        COMMAND ${CMAKE_COMMAND} -E remove -f "${PACKAGE_INSTALL_DIR}/*"
-        COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_BINARY_DIR}/../../deps/blis/lib/*" "${BLIS_LIB_DIR}"
-        COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_BINARY_DIR}/../clients/*rocblas_fortran_client*" "${ROCBLAS_FORT_LIB_DIR}"
-        COMMAND ln -r -s "${ROCBLAS_FORT_LIB_DIR}/*rocblas_fortran_client*" "${PACKAGE_DIR}/${CPACK_PACKAGING_INSTALL_PREFIX}/lib/"
-        COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_BINARY_DIR}/staging/*" "${PACKAGE_INSTALL_DIR}/bin"
-        COMMAND dpkg -b "${PROJECT_BINARY_DIR}/package/"  ${PACKAGE_NAME})
-endfunction(rocm_create_package_clients)
+      string(CONCAT PACKAGE_NAME ${PARSE_LIB_NAME} "-clients-" ${PARSE_VERSION} "-" ${CPACK_SYSTEM_NAME} ".deb")
+      string(CONCAT DEB_CONTROL_FILE_CONTENT "Package: " ${PARSE_LIB_NAME} "-clients"
+                                            "\nVersion: " ${PARSE_VERSION}
+                                            "\nSection: " ${PARSE_SECTION}
+                                            "\nPriority: optional"
+                                            "\nArchitecture: amd64"
+                                            "\nMaintainer: " ${PARSE_MAINTAINER}
+                                            "\nDescription: " ${PARSE_DESCRIPTION}
+                                            "\nDepends: " ${PACKAGE_REQUIREMENTS} "\n\n")
+      set(PACKAGE_DIR "${PROJECT_BINARY_DIR}/package")
+      if(EXISTS "${PACKAGE_DIR}")
+          file(REMOVE_RECURSE "${PACKAGE_DIR}")
+      endif()
+      set(PACKAGE_INSTALL_DIR "${PACKAGE_DIR}/${CPACK_PACKAGING_INSTALL_PREFIX}/${PARSE_LIB_NAME}")
+      file(MAKE_DIRECTORY "${PACKAGE_INSTALL_DIR}/bin")
+      ### AMD BLIS is not packaged right now, so we have to put the so files into /opt/rocm/lib temporarily
+      ### BLIS will be packaged soon and this will not be needed
+      set(BLIS_LIB_DIR "${PACKAGE_DIR}/${CPACK_PACKAGING_INSTALL_PREFIX}/lib")
+      set(ROCBLAS_FORT_LIB_DIR "${PACKAGE_INSTALL_DIR}/lib")
+      file(MAKE_DIRECTORY "${BLIS_LIB_DIR}")
+      file(MAKE_DIRECTORY "${ROCBLAS_FORT_LIB_DIR}")
+      file(WRITE "${PROJECT_BINARY_DIR}/package/DEBIAN/control" ${DEB_CONTROL_FILE_CONTENT})
+      add_custom_target(package_clients
+          COMMAND ${CMAKE_COMMAND} -E remove -f "${PACKAGE_INSTALL_DIR}/*"
+          COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_BINARY_DIR}/../../deps/blis/lib/*" "${BLIS_LIB_DIR}"
+          COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_BINARY_DIR}/../clients/*rocblas_fortran_client*" "${ROCBLAS_FORT_LIB_DIR}"
+          COMMAND ln -r -s "${ROCBLAS_FORT_LIB_DIR}/*rocblas_fortran_client*" "${PACKAGE_DIR}/${CPACK_PACKAGING_INSTALL_PREFIX}/lib/"
+          COMMAND ${CMAKE_COMMAND} -E copy "${PROJECT_BINARY_DIR}/staging/*" "${PACKAGE_INSTALL_DIR}/bin"
+          COMMAND dpkg -b "${PROJECT_BINARY_DIR}/package/"  ${PACKAGE_NAME})
+  endfunction(rocm_create_package_clients)
 
+  if (BUILD_CLIENTS_SAMPLES OR  BUILD_CLIENTS_TESTS OR BUILD_CLIENTS_SELFTEST OR BUILD_CLIENTS_RIDER)
 
-if (BUILD_CLIENTS_SAMPLES OR  BUILD_CLIENTS_TESTS OR BUILD_CLIENTS_SELFTEST OR BUILD_CLIENTS_RIDER)
-
-rocm_create_package_clients(LIB_NAME rocblas
-                            DESCRIPTION "Client for rocBLAS, AMD's BLAS library on ROCm. The client can be used to test or benchmark rocBLAS"
-                            MAINTAINER "Rocblas Maintainer <rocblas-maintainer@amd.com>"
-                            SECTION "dev"
-                            VERSION ${rocblas_VERSION})
+  rocm_create_package_clients(LIB_NAME rocblas
+                              DESCRIPTION "Client for rocBLAS, AMD's BLAS library on ROCm. The client can be used to test or benchmark rocBLAS"
+                              MAINTAINER "Rocblas Maintainer <rocblas-maintainer@amd.com>"
+                              SECTION "dev"
+                              VERSION ${rocblas_VERSION})
+  endif()
 endif()

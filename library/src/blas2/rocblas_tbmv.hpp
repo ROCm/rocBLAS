@@ -21,7 +21,7 @@ __device__ T tbmvn_kernel_helper(rocblas_int ty,
                                  rocblas_int k,
                                  const T*    A,
                                  rocblas_int lda,
-                                 const T*    x_copy)
+                                 const T*    w_x_copy)
 {
     T           res_A = 0.0;
     rocblas_int col   = ty; // ty defines the column of banded & regular matrix
@@ -37,23 +37,23 @@ __device__ T tbmvn_kernel_helper(rocblas_int ty,
             // Regular case, simply multiply
             if(row < k && row > 0)
             {
-                res_A += (A[row + col * lda] * x_copy[col]);
+                res_A += (A[row + col * lda] * w_x_copy[col]);
             }
             else if(row == 0)
             {
                 // If main diagonal && diag, don't reference matrix, assume 1.
                 if(diag && (!upper || k == 0 && upper))
-                    res_A += x_copy[col];
+                    res_A += w_x_copy[col];
                 else
-                    res_A += (A[row + col * lda] * x_copy[col]);
+                    res_A += (A[row + col * lda] * w_x_copy[col]);
             }
             else if(row == k)
             {
                 // If diag, don't reference matrix, assume 1.
                 if(diag && upper)
-                    res_A += x_copy[col];
+                    res_A += w_x_copy[col];
                 else
-                    res_A += (A[row + col * lda] * x_copy[col]);
+                    res_A += (A[row + col * lda] * w_x_copy[col]);
             }
         }
     }
@@ -77,7 +77,7 @@ __device__ T tbmvt_kernel_helper(bool        CONJ,
                                  rocblas_int k,
                                  const T*    A,
                                  rocblas_int lda,
-                                 const T*    x_copy)
+                                 const T*    w_x_copy)
 {
     T           res_A = 0.0;
     rocblas_int row   = ty; // for transpose case, ty defines the row
@@ -96,16 +96,16 @@ __device__ T tbmvt_kernel_helper(bool        CONJ,
                 if(row < k && row >= k - col && row != k)
                 {
                     res_A += ((CONJ ? conj(A[row + col * lda]) : A[row + col * lda])
-                              * x_copy[row - min_row]);
+                              * w_x_copy[row - min_row]);
                 }
                 else if(row == k)
                 {
                     // if main diagonal && diag then don't reference A, assume 1.
                     if(diag)
-                        res_A += x_copy[row - min_row];
+                        res_A += w_x_copy[row - min_row];
                     else
                         res_A += ((CONJ ? conj(A[row + col * lda]) : A[row + col * lda])
-                                  * x_copy[row - min_row]);
+                                  * w_x_copy[row - min_row]);
                 }
                 else if(row > k)
                     break;
@@ -115,15 +115,15 @@ __device__ T tbmvt_kernel_helper(bool        CONJ,
                 if(row <= k && row <= m - 1 - col && row > 0)
                 {
                     res_A += ((CONJ ? conj(A[row + col * lda]) : A[row + col * lda])
-                              * x_copy[row + col]);
+                              * w_x_copy[row + col]);
                 }
                 else if(row == 0)
                 {
                     if(diag)
-                        res_A += x_copy[row + col];
+                        res_A += w_x_copy[row + col];
                     else
                         res_A += ((CONJ ? conj(A[row + col * lda]) : A[row + col * lda])
-                                  * x_copy[row + col]);
+                                  * w_x_copy[row + col]);
                 }
                 else if(row > k)
                     break;
@@ -144,7 +144,7 @@ __device__ void tbmvx_kernel_calc(rocblas_operation transA,
                                   rocblas_int       k,
                                   const T*          A,
                                   rocblas_int       lda,
-                                  const T*          x_copy,
+                                  const T*          w_x_copy,
                                   T*                x,
                                   rocblas_int       incx)
 {
@@ -167,12 +167,12 @@ __device__ void tbmvx_kernel_calc(rocblas_operation transA,
     // if more elegant logic is used.
     if(transA == rocblas_operation_none)
     {
-        res_A = tbmvn_kernel_helper<DIM_Y>(ty, ind, upper, diag, m, k, A, lda, x_copy);
+        res_A = tbmvn_kernel_helper<DIM_Y>(ty, ind, upper, diag, m, k, A, lda, w_x_copy);
     }
     else
     {
         bool CONJ = transA == rocblas_operation_conjugate_transpose;
-        res_A     = tbmvt_kernel_helper<DIM_Y>(CONJ, ty, ind, upper, diag, m, k, A, lda, x_copy);
+        res_A     = tbmvt_kernel_helper<DIM_Y>(CONJ, ty, ind, upper, diag, m, k, A, lda, w_x_copy);
     }
     // Store partial sums for the diagonal
     sdata[tx + ty * DIM_X] = res_A;
@@ -238,7 +238,7 @@ ROCBLAS_KERNEL void tbmvx_kernel(rocblas_operation transA,
                                  ptrdiff_t         shifta,
                                  rocblas_int       lda,
                                  rocblas_stride    strideA,
-                                 U                 xa_copy,
+                                 U                 w_xa_copy,
                                  V                 xa,
                                  ptrdiff_t         shiftx,
                                  rocblas_int       incx,
@@ -248,17 +248,17 @@ ROCBLAS_KERNEL void tbmvx_kernel(rocblas_operation transA,
     if(DIM_X * DIM_Y != num_threads)
         return; // need to launch exactly the same number of threads as template parameters indicate
 
-    const auto* A      = load_ptr_batch(Aa, hipBlockIdx_y, shifta, strideA);
-    const auto* x_copy = load_ptr_batch(xa_copy, hipBlockIdx_y, 0, m);
-    auto*       x      = load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex);
+    const auto* A        = load_ptr_batch(Aa, hipBlockIdx_y, shifta, strideA);
+    const auto* w_x_copy = load_ptr_batch(w_xa_copy, hipBlockIdx_y, 0, m);
+    auto*       x        = load_ptr_batch(xa, hipBlockIdx_y, shiftx, stridex);
 
-    tbmvx_kernel_calc<DIM_X, DIM_Y>(transA, upper, diag, m, k, A, lda, x_copy, x, incx);
+    tbmvx_kernel_calc<DIM_X, DIM_Y>(transA, upper, diag, m, k, A, lda, w_x_copy, x, incx);
 }
 
 /**
   *  First, makes a copy of 'x', then uses a modified gemv algorithm
-  *  to perform x := transA(A) * x_copy
-  *  x_copy should be of size sizeof(T) * m bytes * batch_count.
+  *  to perform x := transA(A) * w_x_copy
+  *  w_x_copy is workspace memory and should be of size sizeof(T) * m bytes * batch_count.
   *
   *  Here, U is either a `const T* const*` or a `const T*`
   *  V is either a `T*` or a `T* const*`
@@ -279,7 +279,7 @@ rocblas_status rocblas_tbmv_template(rocblas_handle    handle,
                                      rocblas_int       incx,
                                      rocblas_stride    stridex,
                                      rocblas_int       batch_count,
-                                     V                 x_copy)
+                                     V                 w_x_copy)
 {
     // quick return
     if(!m || !batch_count)
@@ -291,7 +291,7 @@ rocblas_status rocblas_tbmv_template(rocblas_handle    handle,
     dim3 copy_threads(256);
 
     rocblas_status status = rocblas_copy_template<false, 256>(
-        handle, m, x, offsetx, incx, stridex, x_copy, 0, 1, m, batch_count);
+        handle, m, x, offsetx, incx, stridex, w_x_copy, 0, 1, m, batch_count);
 
     if(status != rocblas_status_success)
         return status;
@@ -324,7 +324,7 @@ rocblas_status rocblas_tbmv_template(rocblas_handle    handle,
                        offseta,
                        lda,
                        strideA,
-                       (U)x_copy,
+                       (U)w_x_copy,
                        x,
                        shiftx,
                        incx,

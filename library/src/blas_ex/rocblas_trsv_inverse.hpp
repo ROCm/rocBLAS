@@ -16,12 +16,12 @@ template <typename T>
 static const T one = T(1);
 
 template <typename T, typename U>
-__global__ void rocblas_internal_flip_vector_kernel(U* __restrict__ data,
-                                                    rocblas_int    m,
-                                                    rocblas_int    size,
-                                                    rocblas_int    abs_incx,
-                                                    rocblas_int    offset,
-                                                    rocblas_stride stride)
+ROCBLAS_KERNEL void rocblas_internal_flip_vector_kernel(U* __restrict__ data,
+                                                        rocblas_int    m,
+                                                        rocblas_int    size,
+                                                        rocblas_int    abs_incx,
+                                                        rocblas_int    offset,
+                                                        rocblas_stride stride)
 {
     rocblas_int tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     if(tx < size)
@@ -63,15 +63,15 @@ void rocblas_internal_flip_vector(rocblas_handle handle,
 }
 
 template <typename T, typename U, typename V>
-__global__ void rocblas_internal_strided_vector_copy_kernel(U __restrict__ dst,
-                                                            rocblas_int    dst_incx,
-                                                            rocblas_stride dst_stride,
-                                                            V __restrict__ src,
-                                                            rocblas_int    src_incx,
-                                                            rocblas_stride src_stride,
-                                                            rocblas_int    size,
-                                                            rocblas_int    offset_dst = 0,
-                                                            rocblas_int    offset_src = 0)
+ROCBLAS_KERNEL void rocblas_internal_strided_vector_copy_kernel(U __restrict__ dst,
+                                                                rocblas_int    dst_incx,
+                                                                rocblas_stride dst_stride,
+                                                                V __restrict__ src,
+                                                                rocblas_int    src_incx,
+                                                                rocblas_stride src_stride,
+                                                                rocblas_int    size,
+                                                                rocblas_int    offset_dst = 0,
+                                                                rocblas_int    offset_src = 0)
 {
     ptrdiff_t tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     if(tx < size)
@@ -669,11 +669,11 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     rocblas_internal_trsv_inverse_template_mem(rocblas_handle handle,
                                                rocblas_int    m,
                                                rocblas_int    batch_count,
-                                               MEM&           mem,
-                                               void*&         mem_x_temp,
-                                               void*&         mem_x_temp_arr,
-                                               void*&         mem_invA,
-                                               void*&         mem_invA_arr,
+                                               MEM&           w_mem,
+                                               void*&         w_mem_x_temp,
+                                               void*&         w_mem_x_temp_arr,
+                                               void*&         w_mem_invA,
+                                               void*&         w_mem_invA_arr,
                                                const U*       supplied_invA      = nullptr,
                                                rocblas_int    supplied_invA_size = 0)
 {
@@ -736,16 +736,16 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
             x_c_temp_bytes, xarrBytes, invA_bytes, arrBytes);
 
     // Attempt to allocate optimal memory size, returning error if failure
-    mem = handle->device_malloc(x_c_temp_bytes, xarrBytes, invA_bytes, arrBytes);
-    if(!mem)
+    w_mem = handle->device_malloc(x_c_temp_bytes, xarrBytes, invA_bytes, arrBytes);
+    if(!w_mem)
         return rocblas_status_memory_error;
 
     // Get pointers to allocated device memory
 
-    mem_x_temp     = mem[0];
-    mem_x_temp_arr = mem[1];
-    mem_invA       = mem[2];
-    mem_invA_arr   = mem[3];
+    w_mem_x_temp     = w_mem[0];
+    w_mem_x_temp_arr = w_mem[1];
+    w_mem_invA       = w_mem[2];
+    w_mem_invA_arr   = w_mem[3];
     return perf_status;
 }
 

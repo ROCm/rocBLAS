@@ -23,7 +23,7 @@ __device__ void tpmvn_kernel_calc(rocblas_fill     uplo,
                                   const T*         A,
                                   T*               x,
                                   rocblas_int      incx,
-                                  T*               w)
+                                  T*               workspace)
 {
     ptrdiff_t   tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     rocblas_int tx  = hipThreadIdx_x;
@@ -53,7 +53,7 @@ __device__ void tpmvn_kernel_calc(rocblas_fill     uplo,
             }
         }
 
-        w[tid] = res;
+        workspace[tid] = res;
     }
 }
 
@@ -64,7 +64,7 @@ __device__ void tpmvc_kernel_calc(rocblas_fill     uplo,
                                   const T*         A,
                                   T*               x,
                                   rocblas_int      incx,
-                                  T*               w)
+                                  T*               workspace)
 {
     ptrdiff_t   tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     rocblas_int tx  = hipThreadIdx_x;
@@ -93,7 +93,7 @@ __device__ void tpmvc_kernel_calc(rocblas_fill     uplo,
                 res += conj(A[tmpv_calc_lowerat(row, tid)]) * x[row * incx];
             }
         }
-        w[tid] = res;
+        workspace[tid] = res;
     }
 }
 
@@ -104,7 +104,7 @@ __device__ void tpmvt_kernel_calc(rocblas_fill     uplo,
                                   const T*         A,
                                   T*               x,
                                   rocblas_int      incx,
-                                  T*               w)
+                                  T*               workspace)
 {
     ptrdiff_t   tid = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
     rocblas_int tx  = hipThreadIdx_x;
@@ -140,7 +140,7 @@ __device__ void tpmvt_kernel_calc(rocblas_fill     uplo,
                 res += A[tmpv_calc_lowerat(row, tid)] * x[row * incx];
             }
         }
-        w[tid] = res;
+        workspace[tid] = res;
     }
 }
 
@@ -155,7 +155,7 @@ ROCBLAS_KERNEL void tpmvn_kernel(rocblas_fill     uplo,
                                  ptrdiff_t        shiftx,
                                  rocblas_int      incx,
                                  rocblas_stride   stridex,
-                                 W                w,
+                                 W                workspace,
                                  rocblas_stride   stridew)
 {
     static constexpr ptrdiff_t shiftw = 0;
@@ -165,7 +165,7 @@ ROCBLAS_KERNEL void tpmvn_kernel(rocblas_fill     uplo,
                           load_ptr_batch(a, hipBlockIdx_y, shifta, stridea),
                           load_ptr_batch(x, hipBlockIdx_y, shiftx, stridex),
                           incx,
-                          load_ptr_batch(w, hipBlockIdx_y, shiftw, stridew));
+                          load_ptr_batch(workspace, hipBlockIdx_y, shiftw, stridew));
 }
 
 template <rocblas_int NB, typename A, typename X, typename W>
@@ -179,7 +179,7 @@ ROCBLAS_KERNEL void tpmvt_kernel(rocblas_fill     uplo,
                                  ptrdiff_t        shiftx,
                                  rocblas_int      incx,
                                  rocblas_stride   stridex,
-                                 W                w,
+                                 W                workspace,
                                  rocblas_stride   stridew)
 {
     static constexpr ptrdiff_t shiftw = 0;
@@ -189,7 +189,7 @@ ROCBLAS_KERNEL void tpmvt_kernel(rocblas_fill     uplo,
                           load_ptr_batch(a, hipBlockIdx_y, shifta, stridea),
                           load_ptr_batch(x, hipBlockIdx_y, shiftx, stridex),
                           incx,
-                          load_ptr_batch(w, hipBlockIdx_y, shiftw, stridew));
+                          load_ptr_batch(workspace, hipBlockIdx_y, shiftw, stridew));
 }
 
 template <rocblas_int NB, typename A, typename X, typename W>
@@ -203,7 +203,7 @@ ROCBLAS_KERNEL void tpmvc_kernel(rocblas_fill     uplo,
                                  ptrdiff_t        shiftx,
                                  rocblas_int      incx,
                                  rocblas_stride   stridex,
-                                 W                w,
+                                 W                workspace,
                                  rocblas_stride   stridew)
 {
     static constexpr ptrdiff_t shiftw = 0;
@@ -213,7 +213,7 @@ ROCBLAS_KERNEL void tpmvc_kernel(rocblas_fill     uplo,
                           load_ptr_batch(a, hipBlockIdx_y, shifta, stridea),
                           load_ptr_batch(x, hipBlockIdx_y, shiftx, stridex),
                           incx,
-                          load_ptr_batch(w, hipBlockIdx_y, shiftw, stridew));
+                          load_ptr_batch(workspace, hipBlockIdx_y, shiftw, stridew));
 }
 
 #undef tmpv_calc_upperat

@@ -12,6 +12,7 @@
 #include <iostream>
 #include <string>
 #include <sys/types.h>
+#ifdef WIN32
 //
 // https://en.cppreference.com/w/User:D41D8CD98F/feature_testing_macros
 //
@@ -25,10 +26,12 @@ namespace std
     namespace filesystem = experimental::filesystem;
 }
 #endif
+#endif // WIN32
 
 // Parse YAML data
 static std::string rocblas_parse_yaml(const std::string& yaml)
 {
+#ifdef WIN32
     // Generate "/tmp/rocblas-XXXXXX" like file name
     const std::string alphanum     = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuv";
     int               stringlength = alphanum.length() - 1;
@@ -46,6 +49,24 @@ static std::string rocblas_parse_yaml(const std::string& yaml)
     int status = std::system(cmd.c_str());
 
     return tmpname.string(); // results to be read and removed later
+#else
+    char tmp[] = "/tmp/rocblas-XXXXXX";
+    int  fd    = mkostemp(tmp, O_CLOEXEC);
+    if(fd == -1)
+    {
+        dprintf(STDERR_FILENO, "Cannot open temporary file: %m\n");
+        exit(EXIT_FAILURE);
+    }
+
+    auto exepath = rocblas_exepath();
+    auto cmd = exepath + "rocblas_gentest.py --template " + exepath + "rocblas_template.yaml -o "
+               + tmp + " " + yaml;
+    rocblas_cerr << cmd << std::endl;
+    int status = system(cmd.c_str());
+    if(status == -1 || !WIFEXITED(status) || WEXITSTATUS(status))
+        exit(EXIT_FAILURE);
+    return tmp;
+#endif
 }
 
 // Parse --data and --yaml command-line arguments

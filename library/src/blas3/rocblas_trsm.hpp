@@ -1045,7 +1045,7 @@ rocblas_status special_trsm_template(rocblas_handle    handle,
                                      rocblas_int       offset_invAin,
                                      rocblas_stride    stride_invA,
                                      size_t            B_chunk_size,
-                                     V                 x_temp,
+                                     V                 w_x_temp,
                                      rocblas_stride    stride_X)
 {
     bool   parity = (transA == rocblas_operation_none) ^ (uplo == rocblas_fill_upper);
@@ -1074,7 +1074,7 @@ rocblas_status special_trsm_template(rocblas_handle    handle,
                                        B,
                                        ldb,
                                        stride_B,
-                                       x_temp,
+                                       w_x_temp,
                                        BLOCK,
                                        stride_X,
                                        batch_count,
@@ -1110,7 +1110,7 @@ rocblas_status special_trsm_template(rocblas_handle    handle,
                                                                 ldb,
                                                                 stride_B,
                                                                 alpha,
-                                                                x_temp,
+                                                                w_x_temp,
                                                                 0,
                                                                 BLOCK,
                                                                 stride_X,
@@ -1147,7 +1147,7 @@ rocblas_status special_trsm_template(rocblas_handle    handle,
                                                               + offset_Bin,
                                                           ldb,
                                                           stride_B,
-                                                          (void*)x_temp,
+                                                          (void*)w_x_temp,
                                                           compute_type,
                                                           0,
                                                           BLOCK,
@@ -1169,7 +1169,7 @@ rocblas_status special_trsm_template(rocblas_handle    handle,
                                                         j * BLOCK * BLOCK + offset_invAin,
                                                         BLOCK,
                                                         stride_invA,
-                                                        (U)x_temp,
+                                                        (U)w_x_temp,
                                                         0,
                                                         BLOCK,
                                                         stride_X,
@@ -1197,7 +1197,7 @@ rocblas_status special_trsm_template(rocblas_handle    handle,
                                        B,
                                        ldb,
                                        stride_B,
-                                       x_temp,
+                                       w_x_temp,
                                        width,
                                        stride_X,
                                        batch_count,
@@ -1232,7 +1232,7 @@ rocblas_status special_trsm_template(rocblas_handle    handle,
                                                                 lda,
                                                                 stride_A,
                                                                 alpha,
-                                                                x_temp,
+                                                                w_x_temp,
                                                                 0,
                                                                 width,
                                                                 stride_X,
@@ -1269,7 +1269,7 @@ rocblas_status special_trsm_template(rocblas_handle    handle,
                                                               + offset_Bin,
                                                           ldb,
                                                           stride_B,
-                                                          (void*)x_temp,
+                                                          (void*)w_x_temp,
                                                           compute_type,
                                                           0,
                                                           width,
@@ -1287,7 +1287,7 @@ rocblas_status special_trsm_template(rocblas_handle    handle,
                                                         BLOCK,
                                                         BLOCK,
                                                         r ? &one<T> : alpha,
-                                                        U(x_temp),
+                                                        U(w_x_temp),
                                                         0,
                                                         width,
                                                         stride_X,
@@ -1315,7 +1315,7 @@ rocblas_status special_trsm_template(rocblas_handle    handle,
  *  from the _impl functions.
  *
  *  Note that for the batched version of trsm, we are also allocating memory to store the
- *  arrays of pointers for invA and x_temp (mem_x_temp_arr, mem_invA_arr).
+ *  arrays of pointers for invA and w_x_temp (mem_x_temp_arr, mem_invA_arr).
  */
 template <rocblas_int BLOCK, bool BATCHED, typename T, typename U>
 ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
@@ -1324,15 +1324,15 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                        rocblas_int                 m,
                                        rocblas_int                 n,
                                        rocblas_int                 batch_count,
-                                       rocblas_device_malloc_base& mem_base,
-                                       void*&                      mem_x_temp,
-                                       void*&                      mem_x_temp_arr,
-                                       void*&                      mem_invA,
-                                       void*&                      mem_invA_arr,
+                                       rocblas_device_malloc_base& w_base,
+                                       void*&                      w_x_temp,
+                                       void*&                      w_x_temp_arr,
+                                       void*&                      w_invA,
+                                       void*&                      w_invA_arr,
                                        const U*                    supplied_invA      = nullptr,
                                        rocblas_int                 supplied_invA_size = 0)
 {
-    auto& mem                  = static_cast<decltype(handle->device_malloc(0))&>(mem_base);
+    auto& workspace            = static_cast<decltype(handle->device_malloc(0))&>(w_base);
     bool  SUBSTITUTION_ENABLED = true;
 
     rocblas_status perf_status = rocblas_status_success;
@@ -1430,9 +1430,9 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
             x_c_temp_bytes, xarrBytes, invA_bytes, arrBytes);
 
     // Attempt to allocate optimal memory size
-    mem = handle->device_malloc(x_c_temp_bytes, xarrBytes, invA_bytes, arrBytes);
+    workspace = handle->device_malloc(x_c_temp_bytes, xarrBytes, invA_bytes, arrBytes);
 
-    if(!mem)
+    if(!workspace)
     {
         if(exact_blocks)
         {
@@ -1441,10 +1441,10 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
             x_temp_bytes   = x_temp_els * sizeof(T) * batch_count;
             x_c_temp_bytes = std::max(x_temp_bytes, c_temp_bytes);
 
-            mem = handle->device_malloc(x_c_temp_bytes, xarrBytes, invA_bytes, arrBytes);
+            workspace = handle->device_malloc(x_c_temp_bytes, xarrBytes, invA_bytes, arrBytes);
         }
 
-        if(!mem)
+        if(!workspace)
             return rocblas_status_memory_error;
 
         // Mark performance as degraded
@@ -1457,10 +1457,10 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                             << std::endl;
     }
 
-    mem_x_temp     = mem[0];
-    mem_x_temp_arr = mem[1];
-    mem_invA       = mem[2];
-    mem_invA_arr   = mem[3];
+    w_x_temp     = workspace[0];
+    w_x_temp_arr = workspace[1];
+    w_invA       = workspace[2];
+    w_invA_arr   = workspace[3];
     return perf_status;
 }
 
@@ -2145,8 +2145,8 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                    rocblas_stride    stride_B,
                                    rocblas_int       batch_count,
                                    bool              optimal_mem,
-                                   void*             x_temp,
-                                   void*             x_temparr,
+                                   void*             w_x_temp,
+                                   void*             w_x_temparr,
                                    void*             invA               = nullptr,
                                    void*             invAarr            = nullptr,
                                    U                 supplied_invA      = nullptr,
@@ -2316,32 +2316,33 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
         }
         else
         {
-            // c_temp and x_temp can reuse the same device memory
-            T* c_temp   = (T*)x_temp;
+            // w_c_temp and w_x_temp can reuse the same device memory
+            T* w_c_temp = (T*)w_x_temp;
             stride_invA = BLOCK * k;
             if(BATCHED)
             {
-                // for c_temp, we currently can use the same memory from each batch since
+                // for w_c_temp, we currently can use the same memory from each batch since
                 // trtri_batched is naive (since gemm_batched is naive)
                 setup_batched_array<BLOCK>(
-                    handle->get_stream(), (T*)c_temp, 0, (T**)x_temparr, batch_count);
+                    handle->get_stream(), (T*)w_c_temp, 0, (T**)w_x_temparr, batch_count);
                 setup_batched_array<BLOCK>(
                     handle->get_stream(), (T*)invA, stride_invA, (T**)invAarr, batch_count);
             }
 
-            status = rocblas_trtri_trsm_template<BLOCK, BATCHED, T>(handle,
-                                                                    V(BATCHED ? x_temparr : c_temp),
-                                                                    uplo,
-                                                                    diag,
-                                                                    k,
-                                                                    A,
-                                                                    offset_A,
-                                                                    lda,
-                                                                    stride_A,
-                                                                    V(BATCHED ? invAarr : invA),
-                                                                    offset_invA,
-                                                                    stride_invA,
-                                                                    batch_count);
+            status = rocblas_trtri_trsm_template<BLOCK, BATCHED, T>(
+                handle,
+                V(BATCHED ? w_x_temparr : w_c_temp),
+                uplo,
+                diag,
+                k,
+                A,
+                offset_A,
+                lda,
+                stride_A,
+                V(BATCHED ? invAarr : invA),
+                offset_invA,
+                stride_invA,
+                batch_count);
 
             if(status != rocblas_status_success)
                 return status;
@@ -2352,7 +2353,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
         if(BATCHED)
         {
             setup_batched_array<BLOCK>(
-                handle->get_stream(), (T*)x_temp, x_temp_els, (T**)x_temparr, batch_count);
+                handle->get_stream(), (T*)w_x_temp, x_temp_els, (T**)w_x_temparr, batch_count);
         }
 
         if(exact_blocks)
@@ -2378,7 +2379,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                                            offset_invA,
                                                            stride_invA,
                                                            B_chunk_size,
-                                                           V(BATCHED ? x_temparr : x_temp),
+                                                           V(BATCHED ? w_x_temparr : w_x_temp),
                                                            x_temp_els);
         }
         else
@@ -2402,7 +2403,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                                               U(BATCHED ? invAarr : invA),
                                                               offset_invA,
                                                               stride_invA,
-                                                              V(BATCHED ? x_temparr : x_temp),
+                                                              V(BATCHED ? w_x_temparr : w_x_temp),
                                                               x_temp_els);
             else
                 status = rocblas_trsm_right<BLOCK, BATCHED, T>(handle,
@@ -2423,7 +2424,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                                                U(BATCHED ? invAarr : invA),
                                                                offset_invA,
                                                                stride_invA,
-                                                               V(BATCHED ? x_temparr : x_temp),
+                                                               V(BATCHED ? w_x_temparr : w_x_temp),
                                                                x_temp_els);
 
             if(status != rocblas_status_success)
@@ -2432,7 +2433,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
             copy_block_unit<T>(handle,
                                m,
                                n,
-                               U(BATCHED ? x_temparr : x_temp),
+                               U(BATCHED ? w_x_temparr : w_x_temp),
                                m,
                                x_temp_els,
                                V(B),

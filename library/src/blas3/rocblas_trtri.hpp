@@ -669,7 +669,7 @@ rocblas_status rocblas_trtri_large(rocblas_handle   handle,
                                    rocblas_stride   sub_stride_invAin,
                                    rocblas_int      batch_count,
                                    rocblas_int      sub_batch_count,
-                                   V                C_tmp)
+                                   V                w_C_tmp)
 {
     dim3 grid_trtri(n / NB / 2 * sub_batch_count, batch_count);
     dim3 threads(NB * NB);
@@ -929,7 +929,7 @@ rocblas_status rocblas_trtri_large(rocblas_handle   handle,
                                               ldinvA,
                                               stride_invA,
                                               0,
-                                              (V)C_tmp,
+                                              (V)w_C_tmp,
                                               uplo == rocblas_fill_lower ? remainder : current_n,
                                               0,
                                               0,
@@ -970,7 +970,7 @@ rocblas_status rocblas_trtri_large(rocblas_handle   handle,
                                               ldinvA,
                                               stride_invA,
                                               0,
-                                              (V)C_tmp,
+                                              (V)w_C_tmp,
                                               uplo == rocblas_fill_lower ? oddRemainder : current_n,
                                               0,
                                               0,
@@ -1059,7 +1059,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                     rocblas_stride   sub_stride_invA,
                                     rocblas_int      batch_count,
                                     rocblas_int      sub_batch_count,
-                                    V                C_tmp)
+                                    V                w_C_tmp)
 {
     if(!n || !sub_batch_count)
         return rocblas_status_success;
@@ -1101,6 +1101,6 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                                             sub_stride_invA,
                                                             batch_count,
                                                             sub_batch_count,
-                                                            C_tmp);
+                                                            w_C_tmp);
     }
 }
