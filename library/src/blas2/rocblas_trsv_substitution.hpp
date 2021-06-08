@@ -436,8 +436,8 @@ void __device__ rocblas_trsv_block_solve_upper(const T* __restrict__ A, rocblas_
     }
 }
 
-static __global__ __launch_bounds__(1) void rocblas_trsv_init(rocblas_int* w_unique_row,
-                                                              rocblas_int* w_completed_sec)
+ROCBLAS_KERNEL static __launch_bounds__(1) void rocblas_trsv_init(rocblas_int* w_unique_row,
+                                                                  rocblas_int* w_completed_sec)
 {
     // Assign a unique row for each block, starting at 0 (for each batch)
     w_unique_row[blockIdx.x] = 0;
@@ -462,7 +462,7 @@ template <rocblas_int DIM_X,
           typename T,
           typename ATYPE,
           typename XTYPE>
-static __global__
+ROCBLAS_KERNEL
     __launch_bounds__(DIM_X* DIM_Y) void rocblas_trsv_device(rocblas_int    m,
                                                              ATYPE          dA,
                                                              ptrdiff_t      offset_A,

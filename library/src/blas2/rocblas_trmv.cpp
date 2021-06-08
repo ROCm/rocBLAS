@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "rocblas_trmv.hpp"
 #include "handle.hpp"
@@ -111,8 +111,8 @@ namespace
         if(!A || !x)
             return rocblas_status_invalid_pointer;
 
-        auto mem = handle->device_malloc(dev_bytes);
-        if(!mem)
+        auto workspace = handle->device_malloc(dev_bytes);
+        if(!workspace)
             return rocblas_status_memory_error;
 
         auto check_numerics = handle->check_numerics;
@@ -139,8 +139,26 @@ namespace
                 return trmv_check_numerics_status;
         }
 
-        rocblas_status status = rocblas_trmv_nobatch_template(
-            handle, uplo, transA, diag, m, A, lda, x, incx, (T*)mem);
+        constexpr rocblas_int    batch_count_1 = 1;
+        constexpr rocblas_int    offset_a = 0, offset_x = 0;
+        constexpr rocblas_stride stride_a = 0, stride_x = 0, stride_w = 0;
+        rocblas_status           status = rocblas_internal_trmv_template(handle,
+                                                               uplo,
+                                                               transA,
+                                                               diag,
+                                                               m,
+                                                               A,
+                                                               offset_a,
+                                                               lda,
+                                                               stride_a,
+                                                               x,
+                                                               offset_x,
+                                                               incx,
+                                                               stride_x,
+                                                               (T*)workspace,
+                                                               stride_w,
+                                                               batch_count_1);
+
         if(status != rocblas_status_success)
             return status;
 

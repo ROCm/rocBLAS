@@ -199,24 +199,31 @@ std::ostream& rocblas_internal_ostream::yaml_off(std::ostream& os)
 // Empty strings tell the worker thread to exit
 void rocblas_internal_ostream::worker::send(std::string str)
 {
-    // task_t consists of string and promise
-    // std::move transfers ownership of str and promise to task
-    task_t worker_task(std::move(str));
+    // Create a promise to wait for the operation to complete
+    std::promise<void> promise;
 
     // The future indicating when the operation has completed
-    auto future = worker_task.get_future();
+    auto future = promise.get_future();
+
+    // task_t consists of string and promise
+    // std::move transfers ownership of str and promise to task
+    task_t worker_task(std::move(str), std::move(promise));
 
     // Submit the task to the worker assigned to this device/inode
     // Hold mutex for as short as possible, to reduce contention
     {
         std::lock_guard<std::mutex> lock(mutex);
         queue.push(std::move(worker_task));
-    }
-    // no lock needed for notification
-    cond.notify_one();
 
-    // Wait for the task to be completed, to ensure flushed IO
-    future.get();
+        // no lock needed for notification but keeping here
+        cond.notify_one();
+    }
+
+// Wait for the task to be completed, to ensure flushed IO
+#ifdef WIN32
+    if(worker_task.size())
+#endif
+        future.get();
 }
 
 // Worker thread which serializes data to be written to a device/inode

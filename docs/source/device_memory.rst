@@ -4,26 +4,35 @@ Device Memory Allocation
 
 The following computational functions use temporary device memory.
 
-+------------------------------------+------------------------------------------+
-|Function                            |use of temporary device memory            |
-+====================================+==========================================+
-|L1 reduction functions              |reduction array                           |
-| - rocblas_Xdot                     |                                          |
-| - rocblas_Xmax                     |                                          |
-| - rocblas_Xmin                     |                                          |
-| - rocblas_Xnrm2                    |                                          |
-+------------------------------------+------------------------------------------+
-|L3 gemm based functions             |block of matrix                           |
-| - rocblas_Xtrsm                    |                                          |
-| - rocblas_Xtrmm                    |                                          |
-| - rocblas_Xgemm                    |                                          |
-+------------------------------------+------------------------------------------+
-|auxiliary                           |buffer to compress noncontiguous arrays   |
-| - rocblas_set_vector               |                                          |
-| - rocblas_get_vector               |                                          |
-| - rocblas_set_matrix               |                                          |
-| - rocblas_get_matrix               |                                          |
-+------------------------------------+------------------------------------------+
++------------------------------------+------------------------------------------------+
+|Function                            |use of temporary device memory                  |
++====================================+================================================+
+|L1 reduction functions              |reduction array                                 |
+| - rocblas_Xdot                     |                                                |
+| - rocblas_Xmax                     |                                                |
+| - rocblas_Xmin                     |                                                |
+| - rocblas_Xnrm2                    |                                                |
+| - rocblas_dot_ex                   |                                                |
+| - rocblas_nrm2_ex                  |                                                |
++------------------------------------+------------------------------------------------+
+|L2 functions                        |result array before overwriting input           |
+| - rocblas_Xtbmv                    |                                                |
+| - rocblas_Xtpmv                    |                                                |
+| - rocblas_Xtrmv                    |                                                |
+| - rocblas_Xtrsv                    |                                                |
+| - rocblas_Xgemv (optional)         |column reductions of skinny transposed matrices |
++------------------------------------+------------------------------------------------+
+|L3 gemm based functions             |block of matrix                                 |
+| - rocblas_Xtrsm                    |                                                |
+| - rocblas_Xgemm                    |                                                |
+| - rocblas_Xtrtri                   |                                                |
++------------------------------------+------------------------------------------------+
+|auxiliary                           |buffer to compress noncontiguous arrays         |
+| - rocblas_set_vector               |                                                |
+| - rocblas_get_vector               |                                                |
+| - rocblas_set_matrix               |                                                |
+| - rocblas_get_matrix               |                                                |
++------------------------------------+------------------------------------------------+
 
 
 For temporary device memory rocBLAS uses a per-handle memory allocation with out-of-band management. The temporary device memory is stored in the handle. This allows for recycling temporary device memory across multiple computational kernels that use the same handle. Each handle has a single stream, and kernels execute in order in the stream, with each kernel completing before the next kernel in the stream starts. There are 4 schemes for temporary device memory:

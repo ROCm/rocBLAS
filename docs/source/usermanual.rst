@@ -13,6 +13,7 @@ User Guide
    install
    api
    logging
+   rocblas_numerical_checking
    handle_stream_device
    device_memory
    functions
