@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2019-2020 Advanced Micro Devices, Inc.
+ * Copyright 2019-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
@@ -15,7 +15,7 @@ rocblas_status rocblas_tpmv_template(rocblas_handle    handle,
                                      A                 a,
                                      X                 x,
                                      rocblas_int       incx,
-                                     W                 w)
+                                     W                 workspace)
 {
     static constexpr rocblas_int    NB          = 512;
     static constexpr rocblas_int    batch_count = 1;
@@ -37,7 +37,7 @@ rocblas_status rocblas_tpmv_template(rocblas_handle    handle,
                              offsetx,
                              incx,
                              stridex,
-                             w,
+                             workspace,
                              stridew,
                              batch_count);
 }

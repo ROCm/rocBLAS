@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "logging.hpp"
 #include "rocblas_tbmv.hpp"
@@ -116,15 +116,15 @@ namespace
         if(handle->is_device_memory_size_query())
             return handle->set_optimal_device_memory_size(sizeof(T) * m * batch_count,
                                                           sizeof(T*) * batch_count);
-        auto mem = handle->device_malloc(sizeof(T) * m * batch_count, sizeof(T*) * batch_count);
-        if(!mem)
+        auto w_mem = handle->device_malloc(sizeof(T) * m * batch_count, sizeof(T*) * batch_count);
+        if(!w_mem)
             return rocblas_status_memory_error;
 
-        void* mem_x_copy     = mem[0];
-        void* mem_x_copy_arr = mem[1];
+        void* w_mem_x_copy     = w_mem[0];
+        void* w_mem_x_copy_arr = w_mem[1];
 
         setup_batched_array<256>(
-            handle->get_stream(), (T*)mem_x_copy, m, (T**)mem_x_copy_arr, batch_count);
+            handle->get_stream(), (T*)w_mem_x_copy, m, (T**)w_mem_x_copy_arr, batch_count);
 
         auto check_numerics = handle->check_numerics;
         if(check_numerics)
@@ -164,7 +164,7 @@ namespace
                                                       incx,
                                                       0,
                                                       batch_count,
-                                                      (T* const*)mem_x_copy_arr);
+                                                      (T* const*)w_mem_x_copy_arr);
         if(status != rocblas_status_success)
             return status;
 

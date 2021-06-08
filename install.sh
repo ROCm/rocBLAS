@@ -41,7 +41,7 @@ rocBLAS build & installation helper script
       -v | --rocm-dev            Set specific rocm-dev version
            --[no-]msgpack        Set Tensile backend to use MessagePack
            --cmake_install       Auto Update CMake to minimum version if required
-      -p | --profile             Build with code coverage profiling enabled
+           --codecoverage        Build with code coverage profiling enabled
       -k | --relwithdebinfo      Set -DCMAKE_BUILD_TYPE=RelWithDebInfo
            --sanitizer           Build with address sanitizer enabled
 EOF
@@ -344,7 +344,7 @@ skip_ld_conf_entry=false
 static_lib=false
 tensile_msgpack_backend=true
 update_cmake=false
-build_coverage=false
+build_codecoverage=false
 build_release_debug=false
 build_sanitizer=false
 
@@ -362,7 +362,7 @@ library_dir_installed=${rocm_path}/rocblas
 # check if we have a modern version of getopt that can handle whitespace and long parameters
 getopt -T
 if [[ $? -eq 4 ]]; then
-  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,cleanup,clients,clients-only,dependencies,debug,hip-clang,no-hip-clang,merge-files,no-merge-files,no_tensile,no-tensile,tensile-host,no-tensile-host,msgpack,no-msgpack,library-path:,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,static,use-cuda,rocm-dev:,cmake_install,profile,relwithdebinfo,sanitizer --options nsrhicdgpkl:a:o:f:b:t:u:v: -- "$@")
+  GETOPT_PARSE=$(getopt --name "${0}" --longoptions help,install,cleanup,clients,clients-only,dependencies,debug,hip-clang,no-hip-clang,merge-files,no-merge-files,no_tensile,no-tensile,tensile-host,no-tensile-host,msgpack,no-msgpack,library-path:,logic:,architecture:,cov:,fork:,branch:,build_dir:,test_local_path:,cpu_ref_lib:,use-custom-version:,skipldconf,static,use-cuda,rocm-dev:,cmake_install,codecoverage,relwithdebinfo,sanitizer --options nsrhicdgkl:a:o:f:b:t:u:v: -- "$@")
 else
   echo "Need a new version of getopt"
   exit 1
@@ -476,8 +476,8 @@ while true; do
     --cmake_install)
         update_cmake=true
         shift ;;
-    -p|--profile)
-        build_coverage=true
+    --codecoverage)
+        build_codecoverage=true
         shift ;;
     -k|--relwithdebinfo)
         build_release=false
@@ -645,7 +645,11 @@ pushd .
   fi
 
   # code coverage
-  if [[ "${build_coverage}" == true ]]; then
+  if [[ "${build_codecoverage}" == true ]]; then
+      if [[ "${build_release}" == true ]]; then
+          echo "Code coverage is disabled in Release mode, to enable code coverage select either Debug mode (-g|--debug) or RelWithDebInfo mode (-k|--relwithdebinfo); aborting";
+          exit 1
+      fi
       cmake_common_options="${cmake_common_options} -DBUILD_CODE_COVERAGE=ON"
   fi
 

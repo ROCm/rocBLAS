@@ -109,12 +109,14 @@ def config_cmd():
     cmake_executable = ""
     cmake_options = []
     src_path = cmake_path(cwd_path)
+    cmake_platform_opts = []
     if os.name == "nt":
-        # not really rocm path as none exist, HIP_PATH set in toolchain is more important
+        # not really rocm path as none exist, HIP_DIR set in toolchain is more important
         rocm_path = os.getenv( 'ROCM_CMAKE_PATH', "C:/github/rocm-cmake-master/share/rocm")
         cmake_executable = "cmake"
         #set CPACK_PACKAGING_INSTALL_PREFIX= defined as blank as it is appended to end of path for archive creation
-        cmake_platform_opts = f"-DCPACK_PACKAGING_INSTALL_PREFIX=" 
+        cmake_platform_opts.append( f"-DCPACK_PACKAGING_INSTALL_PREFIX=" )
+        cmake_platform_opts.append( f"-DCMAKE_INSTALL_PREFIX=\"C:/hipSDK\"" )
         generator = f"-G Ninja"
         cmake_options.append( generator )
         toolchain = os.path.join( src_path, "toolchain-windows.cmake" )
@@ -124,7 +126,8 @@ def config_cmd():
           cmake_executable = "cmake" # was cmake3 but now we built cmake
         else:
           cmake_executable = "cmake"
-        cmake_platform_opts = f"-DROCM_DIR:PATH={rocm_path} -DCPACK_PACKAGING_INSTALL_PREFIX={rocm_path}"
+        cmake_platform_opts.append( f"-DROCM_DIR:PATH={rocm_path} -DCPACK_PACKAGING_INSTALL_PREFIX={rocm_path}" )
+        cmake_platform_opts.append( f"-DCMAKE_INSTALL_PREFIX=\"rocblas-install\"" )
         toolchain = "toolchain-linux.cmake"
 
     print( f"Build source path: {src_path}")
@@ -132,14 +135,17 @@ def config_cmd():
     tools = f"-DCMAKE_TOOLCHAIN_FILE={toolchain}"
     cmake_options.append( tools )
 
-    cmake_options.append( f"{cmake_platform_opts}" )
+    cmake_options.extend( cmake_platform_opts )
 
     cmake_base_options = f"-DROCM_PATH={rocm_path} -DCMAKE_PREFIX_PATH:PATH={rocm_path}" 
     cmake_options.append( cmake_base_options )
 
     # packaging options
-    cmake_pack_options = f"-DCPACK_SET_DESTDIR=OFF -DCMAKE_INSTALL_PREFIX=\"rocblas-install\""
+    cmake_pack_options = f"-DCPACK_SET_DESTDIR=OFF" 
     cmake_options.append( cmake_pack_options )
+
+    if os.getenv('CMAKE_CXX_COMPILER_LAUNCHER'):
+        cmake_options.append( f"-DCMAKE_CXX_COMPILER_LAUNCHER={os.getenv('CMAKE_CXX_COMPILER_LAUNCHER')}" )
 
     cmake_options.append("-DBUILD_TESTING=OFF")
 

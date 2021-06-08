@@ -257,15 +257,15 @@ rocblas_status rocblas_reduction_impl(rocblas_handle handle,
             return check_numerics_status;
     }
 
-    auto mem = handle->device_malloc(dev_bytes);
-    if(!mem)
+    auto w_mem = handle->device_malloc(dev_bytes);
+    if(!w_mem)
     {
         return rocblas_status_memory_error;
     }
 
     static constexpr rocblas_int shiftx_0 = 0;
     rocblas_status status = rocblas_reduction_template<NB, ISBATCHED, FETCH, REDUCE, FINALIZE>(
-        handle, n, x, shiftx_0, incx, stridex, batch_count, results, (Tw*)mem);
+        handle, n, x, shiftx_0, incx, stridex, batch_count, results, (Tw*)w_mem);
     if(status != rocblas_status_success)
         return status;
 

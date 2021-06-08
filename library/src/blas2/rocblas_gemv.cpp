@@ -121,8 +121,8 @@ namespace
             return rocblas_status_invalid_pointer;
 
         rocblas_status perf_status = rocblas_status_success;
-        auto           mem         = handle->device_malloc(dev_bytes);
-        if(!mem)
+        auto           w_mem       = handle->device_malloc(dev_bytes);
+        if(!w_mem)
             perf_status = rocblas_status_perf_degraded;
 
         if(check_numerics)
@@ -173,7 +173,7 @@ namespace
                                                                   incy,
                                                                   0,
                                                                   1,
-                                                                  (T*)mem);
+                                                                  (T*)w_mem);
 
         status = (status != rocblas_status_success) ? status : perf_status;
         if(status != rocblas_status_success)

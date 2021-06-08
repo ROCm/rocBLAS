@@ -115,13 +115,13 @@ namespace
             return handle->set_optimal_device_memory_size(dev_bytes_unique_row,
                                                           dev_bytes_completed_sec);
         }
-        auto mem = handle->device_malloc(dev_bytes_unique_row, dev_bytes_completed_sec);
+        auto w_mem = handle->device_malloc(dev_bytes_unique_row, dev_bytes_completed_sec);
 
-        if(!mem)
+        if(!w_mem)
             return rocblas_status_memory_error;
 
-        auto w_unique_row    = mem[0];
-        auto w_completed_sec = mem[1];
+        auto w_unique_row    = w_mem[0];
+        auto w_completed_sec = w_mem[1];
 
         auto check_numerics = handle->check_numerics;
 

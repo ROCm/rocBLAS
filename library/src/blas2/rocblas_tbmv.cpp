@@ -1,5 +1,5 @@
 /* ************************************************************************
- * Copyright 2016-2020 Advanced Micro Devices, Inc.
+ * Copyright 2016-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 #include "rocblas_tbmv.hpp"
 #include "logging.hpp"
@@ -103,8 +103,8 @@ namespace
         if(handle->is_device_memory_size_query())
             return handle->set_optimal_device_memory_size(sizeof(T) * m);
 
-        auto mem = handle->device_malloc(sizeof(T) * m);
-        if(!mem)
+        auto w_mem = handle->device_malloc(sizeof(T) * m);
+        if(!w_mem)
             return rocblas_status_memory_error;
 
         auto check_numerics = handle->check_numerics;
@@ -131,7 +131,7 @@ namespace
         }
 
         rocblas_status status = rocblas_tbmv_template(
-            handle, uplo, transA, diag, m, k, A, 0, lda, 0, x, 0, incx, 0, 1, (T*)mem);
+            handle, uplo, transA, diag, m, k, A, 0, lda, 0, x, 0, incx, 0, 1, (T*)w_mem);
         if(status != rocblas_status_success)
             return status;
 

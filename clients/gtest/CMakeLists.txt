@@ -181,6 +181,23 @@ if (NOT WIN32)
 endif()
 target_link_libraries( rocblas-test PRIVATE ${COMMON_LINK_LIBS} )
 
+if (WIN32)
+  # for now adding in all .dll as dependency chain is not cmake based on win32
+  file( GLOB third_party_dlls
+    LIST_DIRECTORIES OFF
+    CONFIGURE_DEPENDS
+    ${LAPACK_DIR}/bin/*.dll 
+    ${BLIS_DIR}/lib/*.dll 
+    ${HIP_DIR}/bin/*.dll
+    ${HIP_DIR}/bin/hipinfo.exe
+    ${CMAKE_SOURCE_DIR}/rtest.*
+    C:/Windows/System32/libomp140*.dll
+  ) 
+  foreach( file_i ${third_party_dlls})
+    add_custom_command( TARGET rocblas-test POST_BUILD COMMAND ${CMAKE_COMMAND} ARGS -E copy ${file_i} ${PROJECT_BINARY_DIR}/staging/ )
+  endforeach( file_i )
+endif()
+
 set_target_properties( rocblas-test PROPERTIES
   CXX_STANDARD 14
   CXX_STANDARD_REQUIRED ON

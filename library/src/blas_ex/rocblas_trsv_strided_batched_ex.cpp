@@ -121,21 +121,21 @@ namespace
             return rocblas_status_invalid_pointer;
 
         // Proxy object holds the allocation. It must stay alive as long as mem_* pointers below are alive.
-        auto  mem = handle->device_malloc(0);
-        void* mem_x_temp;
-        void* mem_x_temp_arr;
-        void* mem_invA;
-        void* mem_invA_arr;
+        auto  w_mem = handle->device_malloc(0);
+        void* w_mem_x_temp;
+        void* w_mem_x_temp_arr;
+        void* w_mem_invA;
+        void* w_mem_invA_arr;
 
         rocblas_status perf_status
             = rocblas_internal_trsv_inverse_template_mem<BLOCK, false, T>(handle,
                                                                           m,
                                                                           batch_count,
-                                                                          mem,
-                                                                          mem_x_temp,
-                                                                          mem_x_temp_arr,
-                                                                          mem_invA,
-                                                                          mem_invA_arr,
+                                                                          w_mem,
+                                                                          w_mem_x_temp,
+                                                                          w_mem_x_temp_arr,
+                                                                          w_mem_invA,
+                                                                          w_mem_invA_arr,
                                                                           supplied_invA,
                                                                           supplied_invA_size);
 
@@ -181,10 +181,10 @@ namespace
                                                                       incx,
                                                                       stride_x,
                                                                       batch_count,
-                                                                      mem_x_temp,
-                                                                      mem_x_temp_arr,
-                                                                      mem_invA,
-                                                                      mem_invA_arr,
+                                                                      w_mem_x_temp,
+                                                                      w_mem_x_temp_arr,
+                                                                      w_mem_invA,
+                                                                      w_mem_invA_arr,
                                                                       supplied_invA,
                                                                       supplied_invA_size,
                                                                       0,
