@@ -768,7 +768,7 @@ pushd .
   fi
   check_exit_code "$?"
 
-  if [[ "${cleanup}" == true ]]; then
+  if [[ "${build_cleanup}" == true ]]; then
       find -name '*.o' -delete
       find -type d -name '*build_tmp*' -exec rm -rf {} +
       find -type d -name '*_CPack_Packages*' -exec rm -rf {} +
