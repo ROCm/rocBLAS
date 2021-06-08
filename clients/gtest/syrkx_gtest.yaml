@@ -160,7 +160,7 @@ Tests:
   transA: [ N, T ]
   matrix_size: *medium_matrix_size_range
   alpha_beta: *alpha_beta_range
-  batch_count: [ 2 ]
+  batch_count: [ 1, 2 ]
   fortran: [ false, true ]
 
 - name: syrkx_batched_large
