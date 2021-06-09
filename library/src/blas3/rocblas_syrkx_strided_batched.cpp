@@ -47,6 +47,13 @@ namespace
 
         RETURN_ZERO_DEVICE_MEMORY_SIZE_IF_QUERIED(handle);
 
+        // Copy alpha and beta to host if on device. This is because gemm is called and it
+        // requires alpha and beta to be on host
+        T alpha_h, beta_h;
+        RETURN_IF_ROCBLAS_ERROR(
+            copy_alpha_beta_to_host_if_on_device(handle, alpha, beta, alpha_h, beta_h, k));
+        auto saved_pointer_mode = handle->push_pointer_mode(rocblas_pointer_mode_host);
+
         auto layer_mode = handle->layer_mode;
         if(layer_mode
            & (rocblas_layer_mode_log_trace | rocblas_layer_mode_log_bench
