@@ -971,7 +971,7 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 {
     static constexpr bool TWOK = false;
 
-    if(batch_count == 1)
+    if(BATCHED == false && batch_count == 1)
     {
         return rocblas_syrkx_template<MIN_NB, BATCHED, T>(handle,
                                                           uplo,
