@@ -161,3 +161,19 @@ MFMA instructions.
    The use of MI100's MFMA instructions is automatic.  There is no user control for on/off.
 
    Not all problem sizes may select MFMA based kernels; additional tuning may be needed to get good performance.
+
+
+gfx90a Considerations
+=====================
+
+On nodes with gfx90a, MFMA_F64 instructions are available to
+substantially speed up double precision matrix operations.  This
+hardware feature is used in all GEMM and GEMM based functions in
+rocBLAS with 64-bit floating-point datatype, namely DGEMM, ZGEMM,
+DTRSM, ZTRSM, DTRMM, ZTRMM, DSYRKX and ZSYRKX.
+
+.. note::
+
+   The use of gfx90a's MFMA_F64 instructions is automatic.  There is no user control for on/off.
+
+   Not all problem sizes may select MFMA_F64 based kernels; additional tuning may be needed to get good performance.
