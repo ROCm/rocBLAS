@@ -418,8 +418,6 @@ void testing_gemm_ex(const Arguments& arg)
                          && (K % 4 != 0 || (transA != rocblas_operation_none && lda % 4 != 0)
                              || (transB == rocblas_operation_none && ldb % 4 != 0)));
 
-    int8_invalid |= (!pack_to_int8x4 && std::is_same<Ti, int8_t>{} && (M < 4 || N < 4));
-
     if(invalid_size)
     {
         EXPECT_ROCBLAS_STATUS(rocblas_gemm_ex_fn(handle,
