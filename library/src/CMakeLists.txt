@@ -117,12 +117,15 @@ if( BUILD_WITH_TENSILE )
     endif()
   endif()
 
-  #rocblas_gemm and rocblas_trsm require tensile
+  #rocblas gemm, syrkx, trsm, and trmm require tensile
   set( Tensile_SRC
     tensile_host.cpp
     blas3/Tensile/gemm.cpp
     blas3/Tensile/gemm_batched.cpp
     blas3/Tensile/gemm_strided_batched.cpp
+    blas3/rocblas_syrkx.cpp
+    blas3/rocblas_syrkx_batched.cpp
+    blas3/rocblas_syrkx_strided_batched.cpp
     blas3/rocblas_trsm.cpp
     blas3/rocblas_trsm_batched.cpp
     blas3/rocblas_trsm_strided_batched.cpp
@@ -200,9 +203,6 @@ set( rocblas_blas3_source_no_tensile
     blas3/rocblas_syr2k.cpp
     blas3/rocblas_syr2k_batched.cpp
     blas3/rocblas_syr2k_strided_batched.cpp
-    blas3/rocblas_syrkx.cpp
-    blas3/rocblas_syrkx_batched.cpp
-    blas3/rocblas_syrkx_strided_batched.cpp
 )
 
 set( rocblas_blas2_source
