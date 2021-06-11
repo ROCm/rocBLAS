@@ -50,14 +50,16 @@ thread_local rocblas_rng_t t_rocblas_rng = get_seed();
 std::string rocblas_exepath()
 {
 #ifdef WIN32
-    //wchar_t wpath[MAX_PATH + 1] = {0};
-    //GetModuleFileNameW(NULL, wpath, MAX_PATH + 1);
+    // for now not building with wide chars
+    // wchar_t wpath[MAX_PATH + 1] = {0};
+    // GetModuleFileNameW(NULL, wpath, MAX_PATH + 1);
+    // std::vector<wchar_t> result(MAX_PATH + 1);
 
-    std::vector<wchar_t> result(MAX_PATH + 1);
+    std::vector<TCHAR> result(MAX_PATH + 1);
     // Ensure result is large enough to accomodate the path
     for(;;)
     {
-        auto length = GetModuleFileNameW(nullptr, result.data(), result.size());
+        auto length = GetModuleFileNameA(nullptr, result.data(), result.size());
         if(length < result.size() - 1)
         {
             result.resize(length);
@@ -67,8 +69,10 @@ std::string rocblas_exepath()
         result.resize(result.size() * 2);
     }
 
-    std::wstring          wspath(result.data());
-    std::filesystem::path exepath(wspath.begin(), wspath.end());
+    // std::wstring          wspath(result.data());
+    // std::filesystem::path exepath(wspath.begin(), wspath.end());
+
+    std::filesystem::path exepath(result.begin(), result.end());
     exepath = exepath.remove_filename();
     // Add trailing "/" to exepath if required
     exepath += exepath.empty() ? "" : "/";

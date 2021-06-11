@@ -10,7 +10,7 @@
 #include <cstddef>
 
 template <rocblas_int DIM_X, rocblas_int DIM_Y, bool LOWER, bool UNIT, typename T>
-__device__ void trmvn_kernel_calc(
+ROCBLAS_KERNEL_ILF void trmvn_kernel_calc(
     rocblas_int m, const T* A, rocblas_int lda, T* x, rocblas_int incx, T* workspace)
 {
     rocblas_int tid = hipThreadIdx_x + hipThreadIdx_y * hipBlockDim_x;
@@ -58,7 +58,7 @@ __device__ void trmvn_kernel_calc(
 }
 
 template <rocblas_int NB, bool LOWER, bool CONJ, bool UNIT, typename T>
-__device__ void trmvt_kernel_calc(
+ROCBLAS_KERNEL_ILF void trmvt_kernel_calc(
     rocblas_int m, const T* A, rocblas_int lda, T* x, rocblas_int incx, T* workspace)
 {
     // tx is assigned to rows

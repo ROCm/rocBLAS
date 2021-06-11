@@ -349,6 +349,14 @@ extern "C" bool rocblas_is_managing_device_memory(rocblas_handle handle)
 #endif
 }
 
+/*******************************************************************************
+ * Returns whether device memory is user-managed
+ ******************************************************************************/
+extern "C" bool rocblas_is_user_managing_device_memory(rocblas_handle handle)
+{
+    return handle && handle->device_memory_owner == rocblas_device_memory_ownership::user_managed;
+}
+
 /* \brief
    \details
    Returns true if the handle is in device memory size query mode.

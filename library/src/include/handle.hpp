@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "macros.hpp"
 #include "rocblas.h"
 #include "rocblas_ostream.hpp"
 #include "utility.hpp"
@@ -213,6 +214,7 @@ public:
     friend rocblas_status(::free_existing_device_memory)(rocblas_handle);
     friend rocblas_status(::rocblas_set_workspace)(_rocblas_handle*, void*, size_t);
     friend bool(::rocblas_is_managing_device_memory)(_rocblas_handle*);
+    friend bool(::rocblas_is_user_managing_device_memory)(_rocblas_handle*);
     friend rocblas_status(::rocblas_set_stream)(_rocblas_handle*, hipStream_t);
 
     // C interfaces that interact with the solution selection process

@@ -3,7 +3,7 @@
 # ########################################################################
 
 
-# Linking lapack library requires fortran flags 
+# Linking lapack library requires fortran flags
 find_package( cblas CONFIG REQUIRED PATHS ${LAPACK_DIR} )
 if( NOT cblas_FOUND )
   message( FATAL_ERROR "cblas is a required dependency and is not found;  try adding cblas path to CMAKE_PREFIX_PATH" )
@@ -21,6 +21,7 @@ if( BUILD_WITH_TENSILE )
       # use of tensile based functions (gemm)
       atomics_mode_gtest.cpp
       gemm_gtest.cpp
+      syrkx_gtest.cpp
       trmm_gtest.cpp
       trsm_gtest.cpp
       trtri_gtest.cpp
@@ -73,7 +74,6 @@ set(rocblas_no_tensile_test_source
     symm_gtest.cpp
     syrk_gtest.cpp
     syr2k_gtest.cpp
-    syrkx_gtest.cpp
     geam_gtest.cpp
     dgmm_gtest.cpp
     )
@@ -186,13 +186,13 @@ if (WIN32)
   file( GLOB third_party_dlls
     LIST_DIRECTORIES OFF
     CONFIGURE_DEPENDS
-    ${LAPACK_DIR}/bin/*.dll 
-    ${BLIS_DIR}/lib/*.dll 
+    ${LAPACK_DIR}/bin/*.dll
+    ${BLIS_DIR}/lib/*.dll
     ${HIP_DIR}/bin/*.dll
     ${HIP_DIR}/bin/hipinfo.exe
     ${CMAKE_SOURCE_DIR}/rtest.*
     C:/Windows/System32/libomp140*.dll
-  ) 
+  )
   foreach( file_i ${third_party_dlls})
     add_custom_command( TARGET rocblas-test POST_BUILD COMMAND ${CMAKE_COMMAND} ARGS -E copy ${file_i} ${PROJECT_BINARY_DIR}/staging/ )
   endforeach( file_i )
