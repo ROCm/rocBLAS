@@ -1,13 +1,14 @@
 /* ************************************************************************
- * Copyright 2020 Advanced Micro Devices, Inc.
+ * Copyright 2020-2021 Advanced Micro Devices, Inc.
  * ************************************************************************ */
 
 #pragma once
 
+#include "macros.hpp"
 #include "rocblas.h"
 
 template <typename T, typename U>
-__device__ void herk_scale_device(bool upper, rocblas_int n, T beta, U* C, rocblas_int ldc)
+ROCBLAS_KERNEL_ILF void herk_scale_device(bool upper, rocblas_int n, T beta, U* C, rocblas_int ldc)
 {
     auto tx = blockIdx.x * blockDim.x + threadIdx.x;
     auto ty = blockIdx.y * blockDim.y + threadIdx.y;

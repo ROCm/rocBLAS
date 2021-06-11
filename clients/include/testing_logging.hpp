@@ -242,10 +242,10 @@ void testing_logging(const Arguments& arg)
 
         rocblas_trmv<T>(handle, uplo, transA, diag, m, da, lda, dx, incx);
 
+        rocblas_trsv<T>(handle, uplo, transA, diag, m, da, lda, dx, incx);
+
         if(BUILD_WITH_TENSILE)
         {
-            rocblas_trsv<T>(handle, uplo, transA, diag, m, da, lda, dx, incx);
-
             // *************************************************** BLAS3 ***************************************************
 
             rocblas_geam<T>(handle, transA, transB, m, n, &alpha, da, lda, &beta, db, ldb, dc, ldc);
@@ -797,19 +797,19 @@ void testing_logging(const Arguments& arg)
                << uplo_letter << " --transposeA " << transA_letter << " --diag " << diag_letter
                << " -m " << m << " --lda " << lda << " --incx " << incx << "\n";
 
+    //
+    // TRSV
+    //
+    trace_ofs2 << replaceX<T>("rocblas_Xtrsv") << "," << uplo << "," << transA << "," << diag << ","
+               << m << "," << (void*)da << "," << lda << "," << (void*)dx << "," << incx
+               << ",atomics_allowed\n";
+
+    bench_ofs2 << "./rocblas-bench -f trsv -r " << rocblas_precision_string<T> << " --uplo "
+               << uplo_letter << " --transposeA " << transA_letter << " --diag " << diag_letter
+               << " -m " << m << " --lda " << lda << " --incx " << incx << "\n";
+
     if(BUILD_WITH_TENSILE)
     {
-        //
-        // TRSV
-        //
-        trace_ofs2 << replaceX<T>("rocblas_Xtrsv") << "," << uplo << "," << transA << "," << diag
-                   << "," << m << "," << (void*)da << "," << lda << "," << (void*)dx << "," << incx
-                   << ",atomics_allowed\n";
-
-        bench_ofs2 << "./rocblas-bench -f trsv -r " << rocblas_precision_string<T> << " --uplo "
-                   << uplo_letter << " --transposeA " << transA_letter << " --diag " << diag_letter
-                   << " -m " << m << " --lda " << lda << " --incx " << incx << "\n";
-
         // *************************************************** BLAS3 ***************************************************
 
         //

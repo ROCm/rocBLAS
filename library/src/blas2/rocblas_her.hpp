@@ -8,7 +8,7 @@
 #include "handle.hpp"
 
 template <typename T, typename U>
-__device__ void her_kernel_calc(
+ROCBLAS_KERNEL_ILF void her_kernel_calc(
     bool upper, rocblas_int n, U alpha, const T* x, rocblas_int incx, T* A, rocblas_int lda)
 {
     rocblas_int tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;

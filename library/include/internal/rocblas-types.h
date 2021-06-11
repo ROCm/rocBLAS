@@ -32,12 +32,6 @@
 #define ROCBLAS_INTERNAL_EXPORT_NOINLINE \
     ROCBLAS_EXPORT __attribute__((noinline)) ROCBLAS_INTERNAL_DEPRECATION
 
-#ifdef WIN32
-#define ROCBLAS_KERNEL __global__ static
-#else
-#define ROCBLAS_KERNEL __global__
-#endif
-
 /*! \brief rocblas_handle is a structure holding the rocblas library context.
  * It must be initialized using rocblas_create_handle()
  * and the returned handle must be passed

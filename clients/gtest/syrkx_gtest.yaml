@@ -24,6 +24,18 @@ Definitions:
     - { N:  2011, K:  253,  lda:  2011, ldb: 2011, ldc: 2048 }
     - { N:  1024, K:  1200, lda:  1200, ldb: 1200, ldc: 1024 }
 
+  - &restrict_size_range_32_8
+    - { N:  32, K: 8,  lda:  32, ldb: 32, ldc: 32 }
+
+  - &restrict_size_range_16_16
+    - { N:  16, K: 16,  lda:  16, ldb: 16, ldc: 16 }
+
+  - &restrict_size_range_16_17
+    - { N:  16, K: 17,  lda:  17, ldb: 17, ldc: 17 }
+
+  - &general_size_range_17
+    - { N:  17, K: 17,  lda:  17, ldb: 17, ldc: 17 }
+
   - &alpha_beta_range
     - { alpha:  1.5, alphai:  1.5, beta:  0.0, betai: 0.0 }
     - { alpha: -2.0, alphai:  1.0, beta: -1.0, betai: 0.5 }
@@ -33,7 +45,60 @@ Definitions:
   - &alpha_beta
     - { alpha: -2.0, alphai:  1.5, beta: -0.5, betai: 0.5 }
 
+  - &alpha_beta_restrict_32_8
+    - { alpha:  1.0, alphai:  0.0, beta:  1.0, betai: 0.0 }
+    - { alpha:  1.0, alphai:  0.0, beta: -1.0, betai: 0.0 }
+    - { alpha:  1.0, alphai:  0.0, beta:  0.0, betai: 0.0 }
+    - { alpha: -1.0, alphai:  0.0, beta:  0.0, betai: 0.0 }
+    - { alpha:  2.0, alphai:  0.0, beta:  0.0, betai: 0.0 }
+    - { alpha:  2.0, alphai:  0.0, beta:  3.0, betai: 0.0 }
+
+  - &alpha_beta_restrict_16
+    - { alpha:  1.0, alphai:  0.0, beta:  1.0, betai: 0.0 }
+    - { alpha:  1.0, alphai:  0.0, beta:  0.0, betai: 0.0 }
+
 Tests:
+
+- name: syrkx_restricted_kernel_32_8
+  category: quick
+  function: syrkx
+  precision: *single_double_precisions_complex_real
+  uplo: [ U, L ]
+  transA: [ N, T ]
+  matrix_size: *restrict_size_range_32_8
+  alpha_beta: *alpha_beta_restrict_32_8
+  batch_count: [ 1 ]
+
+- name: syrkx_restricted_kernel_16_16
+  category: quick
+  function: syrkx
+  precision: *single_double_precisions_complex_real
+  uplo: [ U, L ]
+  transA: [ N, T ]
+  matrix_size: *restrict_size_range_16_16
+  alpha_beta: *alpha_beta_restrict_16
+  batch_count: [ 1 ]
+
+- name: syrkx_restricted_kernel_16
+  category: quick
+  function: syrkx
+  precision: *single_double_precisions_complex_real
+  uplo: [ U, L ]
+  transA: [ N, T ]
+  matrix_size: *restrict_size_range_16_17
+  alpha_beta: *alpha_beta_restrict_16
+  batch_count: [ 1 ]
+
+- name: syrkx_general_kernel
+  category: quick
+  function: syrkx
+  precision: *single_double_precisions_complex_real
+  uplo: [ U, L ]
+  transA: [ N, T ]
+  matrix_size: *general_size_range_17
+  alpha_beta: *alpha_beta_restrict_16
+  batch_count: [ 1 ]
+
 - name: syrkx_bad
   category: pre_checkin
   function: syrkx_bad_arg
@@ -95,7 +160,7 @@ Tests:
   transA: [ N, T ]
   matrix_size: *medium_matrix_size_range
   alpha_beta: *alpha_beta_range
-  batch_count: [ 2 ]
+  batch_count: [ 1, 2 ]
   fortran: [ false, true ]
 
 - name: syrkx_batched_large

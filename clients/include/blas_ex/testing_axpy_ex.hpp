@@ -14,6 +14,7 @@
 #include "rocblas_random.hpp"
 #include "rocblas_test.hpp"
 #include "rocblas_vector.hpp"
+#include "type_dispatch.hpp"
 #include "unit.hpp"
 #include "utility.hpp"
 
@@ -23,16 +24,16 @@ void testing_axpy_ex_bad_arg(const Arguments& arg)
 {
     auto rocblas_axpy_ex_fn = arg.fortran ? rocblas_axpy_ex_fortran : rocblas_axpy_ex;
 
-    rocblas_datatype alpha_type     = rocblas_datatype_f32_r;
-    rocblas_datatype x_type         = rocblas_datatype_f32_r;
-    rocblas_datatype y_type         = rocblas_datatype_f32_r;
-    rocblas_datatype execution_type = rocblas_datatype_f32_r;
+    rocblas_datatype alpha_type     = rocblas_type2datatype<Ta>();
+    rocblas_datatype x_type         = rocblas_type2datatype<Tx>();
+    rocblas_datatype y_type         = rocblas_type2datatype<Ty>();
+    rocblas_datatype execution_type = rocblas_type2datatype<Tex>();
 
     rocblas_int         N         = 100;
     rocblas_int         incx      = 1;
     rocblas_int         incy      = 1;
     static const size_t safe_size = 100;
-    Ta                  alpha     = 0.6;
+    Ta                  alpha(0.6);
 
     rocblas_local_handle handle{arg};
     device_vector<Tx>    dx(safe_size);
@@ -40,18 +41,23 @@ void testing_axpy_ex_bad_arg(const Arguments& arg)
     CHECK_DEVICE_ALLOCATION(dx.memcheck());
     CHECK_DEVICE_ALLOCATION(dy.memcheck());
 
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_axpy_ex_fn(
-            handle, N, &alpha, alpha_type, nullptr, x_type, incx, dy, y_type, incy, execution_type),
-        rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_axpy_ex_fn(
-            handle, N, &alpha, alpha_type, dx, x_type, incx, nullptr, y_type, incy, execution_type),
-        rocblas_status_invalid_pointer);
-    EXPECT_ROCBLAS_STATUS(
-        rocblas_axpy_ex_fn(
-            handle, N, nullptr, alpha_type, dx, x_type, incx, dy, y_type, incy, execution_type),
-        rocblas_status_invalid_pointer);
+#ifdef GOOGLE_TEST
+    rocblas_status status;
+    status = rocblas_axpy_ex_fn(
+        handle, N, &alpha, alpha_type, nullptr, x_type, incx, dy, y_type, incy, execution_type);
+    EXPECT_TRUE(status == rocblas_status_invalid_pointer
+                || status == rocblas_status_not_implemented);
+
+    status = rocblas_axpy_ex_fn(
+        handle, N, &alpha, alpha_type, dx, x_type, incx, nullptr, y_type, incy, execution_type);
+    EXPECT_TRUE(status == rocblas_status_invalid_pointer
+                || status == rocblas_status_not_implemented);
+
+    status = rocblas_axpy_ex_fn(
+        handle, N, nullptr, alpha_type, dx, x_type, incx, dy, y_type, incy, execution_type);
+    EXPECT_TRUE(status == rocblas_status_invalid_pointer
+                || status == rocblas_status_not_implemented);
+#endif
     EXPECT_ROCBLAS_STATUS(
         rocblas_axpy_ex_fn(
             nullptr, N, &alpha, alpha_type, dx, x_type, incx, dy, y_type, incy, execution_type),
