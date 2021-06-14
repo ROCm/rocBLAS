@@ -42,44 +42,39 @@ namespace
 
         auto layer_mode     = handle->layer_mode;
         auto check_numerics = handle->check_numerics;
-        if(handle->pointer_mode == rocblas_pointer_mode_host)
-        {
-            if(layer_mode & rocblas_layer_mode_log_trace)
-                log_trace(
-                    handle, rocblas_scal_name<T, U>, n, *alpha, x, incx, stridex, batch_count);
 
-            // there are an extra 2 scal functions, thus
-            // the -r mode will not work correctly. Substitute
-            // with --a_type and --b_type (?)
-            // ANSWER: -r is syntatic sugar; the types can be specified separately
-            if(layer_mode & rocblas_layer_mode_log_bench)
-            {
-                rocblas_internal_ostream alphass;
-                alphass << "--alpha " << std::real(*alpha)
-                        << (std::imag(*alpha) != 0
-                                ? (" --alphai " + std::to_string(std::imag(*alpha)))
-                                : "");
-                log_bench(handle,
-                          "./rocblas-bench -f scal_strided_batched --a_type",
-                          rocblas_precision_string<T>,
-                          "--b_type",
-                          rocblas_precision_string<U>,
-                          "-n",
-                          n,
-                          "--incx",
-                          incx,
-                          "--stride_x",
-                          stridex,
-                          alphass.str(),
-                          "--batch_count",
-                          batch_count);
-            }
-        }
-        else
+        if(layer_mode & rocblas_layer_mode_log_trace)
+            log_trace(handle,
+                      rocblas_scal_name<T, U>,
+                      n,
+                      LOG_TRACE_SCALAR_VALUE(handle, alpha),
+                      x,
+                      incx,
+                      stridex,
+                      batch_count);
+
+        // there are an extra 2 scal functions, thus
+        // the -r mode will not work correctly. Substitute
+        // with --a_type and --b_type (?)
+        // ANSWER: -r is syntatic sugar; the types can be specified separately
+        if(layer_mode & rocblas_layer_mode_log_bench)
         {
-            if(layer_mode & rocblas_layer_mode_log_trace)
-                log_trace(handle, rocblas_scal_name<T, U>, n, alpha, x, incx, stridex, batch_count);
+            log_bench(handle,
+                      "./rocblas-bench -f scal_strided_batched --a_type",
+                      rocblas_precision_string<T>,
+                      "--b_type",
+                      rocblas_precision_string<U>,
+                      "-n",
+                      n,
+                      LOG_BENCH_SCALAR_VALUE(handle, alpha),
+                      "--incx",
+                      incx,
+                      "--stride_x",
+                      stridex,
+                      "--batch_count",
+                      batch_count);
         }
+
         if(layer_mode & rocblas_layer_mode_log_profile)
             log_profile(handle,
                         rocblas_scal_name<T, U>,

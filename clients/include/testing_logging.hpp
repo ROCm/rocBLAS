@@ -509,8 +509,8 @@ void testing_logging(const Arguments& arg)
                    << "," << incx << ",atomics_allowed\n";
         bench_ofs2 << "./rocblas-bench -f scal --a_type "
                    << rocblas_precision_string<T> << " --b_type "
-                   << rocblas_precision_string<T> << " -n " << n << " --incx " << incx
-                   << " --alpha " << alpha << "\n";
+                   << rocblas_precision_string<T> << " -n " << n << " --alpha " << alpha
+                   << " --incx " << incx << "\n";
     }
     else
     {
