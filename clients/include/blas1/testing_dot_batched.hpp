@@ -203,8 +203,20 @@ void testing_dot_batched(const Arguments& arg)
 
         if(arg.unit_check)
         {
-            unit_check_general<T>(1, 1, 1, 1, cpu_result, rocblas_result_1, batch_count);
-            unit_check_general<T>(1, 1, 1, 1, cpu_result, rocblas_result_2, batch_count);
+            if(std::is_same<T, rocblas_half>{} && N > 10000)
+            {
+                // For large K, rocblas_half tends to diverge proportional to K
+                // Tolerance is slightly greater than 1 / 1024.0
+                const double tol = N * sum_error_tolerance<T>;
+
+                near_check_general<T>(1, 1, 1, 1, cpu_result, rocblas_result_1, batch_count, tol);
+                near_check_general<T>(1, 1, 1, 1, cpu_result, rocblas_result_2, batch_count, tol);
+            }
+            else
+            {
+                unit_check_general<T>(1, 1, 1, 1, cpu_result, rocblas_result_1, batch_count);
+                unit_check_general<T>(1, 1, 1, 1, cpu_result, rocblas_result_2, batch_count);
+            }
         }
 
         if(arg.norm_check)

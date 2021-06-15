@@ -667,7 +667,7 @@ Tests:
 
   - name: blas1
     category: quick
-    N: [ -1, 0, 1025]
+    N: [ -1, 0, 1025, 13000]
     incx_incy: *incx_incy_range
     function:
       - copy: *single_double_precisions_complex_real
@@ -678,7 +678,7 @@ Tests:
 
   - name: blas1_batched
     category: quick
-    N: [ -1, 0, 1025]
+    N: [ -1, 0, 1025, 13000]
     incx_incy: *incx_incy_range
     batch_count: [-1, 0, 257]
     function:
@@ -690,7 +690,7 @@ Tests:
 
   - name: blas1_strided_batched
     category: quick
-    N: [ -1, 0, 1025]
+    N: [ -1, 0, 1025, 13000]
     incx_incy: *incx_incy_range
     batch_count: [-1, 0, 257]
     stride_scale: [ 1 ]
@@ -716,7 +716,7 @@ Tests:
 # dot alt algorithm, algo=1 forces x*x with incx=incy to test special case kernel
   - name: blas1
     category: quick
-    N: [ -1, 0, 1025, 10001]
+    N: [ -1, 0, 1025, 16001]
     incx_incy: *incx_incy_range_small
     algo: 1
     function:
@@ -727,7 +727,7 @@ Tests:
 
   - name: blas1_batched
     category: quick
-    N: [ -1, 0, 1025]
+    N: [ -1, 0, 1025, 16000]
     incx_incy: *incx_incy_range_small
     batch_count: [-1, 0, 257]
     algo: 1
@@ -739,7 +739,7 @@ Tests:
 
   - name: blas1_strided_batched
     category: quick
-    N: [ -1, 0, 1025]
+    N: [ -1, 0, 1025, 15999]
     incx_incy: *incx_incy_range_small
     batch_count: [-1, 0, 257]
     stride_scale: [ 1 ]
