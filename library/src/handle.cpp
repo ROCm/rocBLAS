@@ -27,13 +27,16 @@ extern "C" void rocblas_initialize() {}
 /* read environment variable */
 /* On windows, getenv take a copy of the environment at the beginning of the process */
 /* This behavior is not suited for the purpose of the tests */
-inline const char* read_env(const char* env_var)
+const char* read_env(const char* env_var)
 {
 #ifdef WIN32
-    const DWORD nSize = _MAX_PATH;
-    static char lpBuffer[nSize];
-    GetEnvironmentVariableA(env_var, lpBuffer, nSize);
-    return lpBuffer;
+    const DWORD              nSize = _MAX_PATH;
+    static thread_local char lpBuffer[nSize];
+    lpBuffer[0] = 0; // terminate for reuse
+    if(GetEnvironmentVariableA(env_var, lpBuffer, nSize) == 0)
+        return nullptr;
+    else
+        return lpBuffer;
 #else
     return getenv(env_var);
 #endif

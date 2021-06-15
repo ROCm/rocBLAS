@@ -45,7 +45,7 @@ extern "C" void rocblas_initialize() {}
 #include <fileapi.h>
 #include <io.h>
 #include <libloaderapi.h>
-#define ROCBLAS_LIB_PATH "C:/rocblas"
+#define ROCBLAS_LIB_PATH "C:/hipSDK/rocblas/bin"
 #else
 #include <dlfcn.h>
 #include <glob.h>
@@ -538,11 +538,17 @@ namespace
 #ifdef WIN32
                 // Find the location of librocblas.dll
                 // Fall back on hard-coded path if static library or not found
-                wchar_t wpath[MAX_PATH + 1] = {0};
-                if(GetModuleFileNameW(GetModuleHandle("rocblas.dll"), wpath, MAX_PATH + 1))
+                // wchar_t wpath[MAX_PATH + 1] = {0};
+                // if(GetModuleFileNameW(GetModuleHandle("rocblas.dll"), wpath, MAX_PATH + 1))
+                // {
+                //     std::wstring          wspath(wpath);
+                //     std::string           tmp(wspath.begin(), wspath.end());
+
+                std::vector<TCHAR> dll_path(MAX_PATH + 1);
+                if(GetModuleFileNameA(
+                       GetModuleHandleA("rocblas.dll"), dll_path.data(), MAX_PATH + 1))
                 {
-                    std::wstring          wspath(wpath);
-                    std::string           tmp(wspath.begin(), wspath.end());
+                    std::string           tmp(dll_path.begin(), dll_path.end());
                     std::filesystem::path exepath = tmp;
 #else
                 Dl_info info;
