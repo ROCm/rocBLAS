@@ -5,7 +5,7 @@
   <run name="quick_pre_checkin">{GTEST_FILTER}=*quick*:*pre_checkin*-*known_bug*</run>
 </test>
 <test sets="osdb">
-  <run name="quick_pre_checkin">{GTEST_FILTER}=*quick*:*pre_checkin*-*known_bug*</run>
+  <!--run name="quick_pre_checkin">{GTEST_FILTER}=*quick*:*pre_checkin*-*known_bug*</run-->
   <run name="nightly">{GTEST_FILTER}=*nightly*-*known_bug*</run>
 </test>
 </testset>
