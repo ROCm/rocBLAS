@@ -523,10 +523,11 @@ void testing_gemm_ex(const Arguments& arg)
     }
 #endif
 
-    const size_t size_A = size_t(lda) * size_t(A_col);
-    const size_t size_B = size_t(ldb) * size_t(B_col);
-    const size_t size_C = size_t(ldc) * size_t(N);
-    const size_t size_D = size_t(ldd) * size_t(N);
+    const size_t size_A      = size_t(lda) * size_t(A_col);
+    const size_t size_B      = size_t(ldb) * size_t(B_col);
+    const size_t size_C      = size_t(ldc) * size_t(N);
+    const size_t size_D      = size_t(ldd) * size_t(N);
+    const size_t size_D_copy = arg.unit_check || arg.norm_check ? size_D : 0;
 
     // allocate memory on device
     device_vector<Ti> dA(size_A);
@@ -546,12 +547,9 @@ void testing_gemm_ex(const Arguments& arg)
     host_vector<Ti> hA(size_A);
     host_vector<Ti> hB(size_B);
     host_vector<To> hC(size_C);
-    host_vector<To> hC_1(size_C);
-    host_vector<To> hC_2(size_C);
-    host_vector<To> hD_1(size_D);
-    host_vector<To> hD_2(size_D);
+    host_vector<To> hD_1(size_D_copy);
     using To_hpa = std::conditional_t<std::is_same<To, rocblas_bfloat16>{}, float, To>;
-    host_vector<To_hpa> hD_gold(size_D);
+    host_vector<To_hpa> hD_gold(size_D_copy);
 
     // Initial Data on CPU
     rocblas_seedrand();
@@ -571,7 +569,11 @@ void testing_gemm_ex(const Arguments& arg)
     else
         rocblas_init<To>(hC, M, N, ldc);
 
-    rocblas_init_nan<To>(hD_1, M, N, ldd);
+    if(size_D_copy)
+    {
+        rocblas_init_nan<To>(hD_1, M, N, ldd);
+        hD_gold = hD_1;
+    }
 
     if(std::is_same<To, rocblas_half>{} && std::is_same<Tc, float>{})
     {
@@ -615,8 +617,6 @@ void testing_gemm_ex(const Arguments& arg)
             }
         }
     }
-
-    hD_2 = hD_1;
 
     // copy data from CPU to device
     // do packing only when pack_to_int8x4=true (int8x4)
@@ -681,11 +681,10 @@ void testing_gemm_ex(const Arguments& arg)
                                                flags));
 
         CHECK_HIP_ERROR(hipMemcpy(hD_1, dD, sizeof(To) * size_D, hipMemcpyDeviceToHost));
-        CHECK_HIP_ERROR(hipMemcpy(hC_1, dC, sizeof(To) * size_C, hipMemcpyDeviceToHost));
 
         // ROCBLAS rocblas_pointer_mode_device
         CHECK_ROCBLAS_ERROR(rocblas_set_pointer_mode(handle, rocblas_pointer_mode_device));
-        CHECK_HIP_ERROR(hipMemcpy(dD, hD_2, sizeof(To) * size_D, hipMemcpyHostToDevice));
+        CHECK_HIP_ERROR(hipMemcpy(dD, hD_gold, sizeof(To) * size_D, hipMemcpyHostToDevice));
         CHECK_HIP_ERROR(hipMemcpy(d_alpha_Tc, &h_alpha_Tc, sizeof(Tc), hipMemcpyHostToDevice));
         CHECK_HIP_ERROR(hipMemcpy(d_beta_Tc, &h_beta_Tc, sizeof(Tc), hipMemcpyHostToDevice));
         CHECK_ROCBLAS_ERROR(rocblas_gemm_ex_fn(handle,
@@ -713,9 +712,6 @@ void testing_gemm_ex(const Arguments& arg)
                                                solution_index,
                                                flags));
 
-        CHECK_HIP_ERROR(hipMemcpy(hD_2, dD, sizeof(To) * size_D, hipMemcpyDeviceToHost));
-        CHECK_HIP_ERROR(hipMemcpy(hC_2, dC, sizeof(To) * size_C, hipMemcpyDeviceToHost));
-
         // CPU BLAS
         // copy C matrix into D matrix
         for(int i2 = 0; i2 < N; i2++)
@@ -729,6 +725,35 @@ void testing_gemm_ex(const Arguments& arg)
 
         cpu_time_used = get_time_us_no_sync() - cpu_time_used;
 
+        //releasing already used host memory
+        hA = host_vector<Ti>();
+        hB = host_vector<Ti>();
+        hC = host_vector<To>();
+
+        if(arg.unit_check)
+        {
+            if(std::is_same<Tc, rocblas_half>{} && K > 10000)
+            {
+                // For large K, rocblas_half tends to diverge proportional to K
+                // Tolerance is slightly greater than 1 / 1024.0
+                const double tol = sqrt(K) * sum_error_tolerance<Tc>;
+                near_check_general<To, To_hpa>(M, N, ldd, hD_gold, hD_1, tol);
+            }
+            else
+            {
+                unit_check_general<To, To_hpa>(M, N, ldd, hD_gold, hD_1);
+            }
+        }
+
+        if(arg.norm_check)
+        {
+            auto err1     = std::abs(norm_check_general<To>('F', M, N, ldd, hD_gold, hD_1));
+            rocblas_error = err1 > rocblas_error ? err1 : rocblas_error;
+        }
+
+        // fetch device mode GPU results
+        CHECK_HIP_ERROR(hipMemcpy(hD_1, dD, sizeof(To) * size_D, hipMemcpyDeviceToHost));
+
         if(arg.unit_check)
         {
             if(std::is_same<Tc, rocblas_half>{} && K > 10000)
@@ -737,20 +762,17 @@ void testing_gemm_ex(const Arguments& arg)
                 // Tolerance is slightly greater than 1 / 1024.0
                 const double tol = K * sum_error_tolerance<Tc>;
                 near_check_general<To, To_hpa>(M, N, ldd, hD_gold, hD_1, tol);
-                near_check_general<To, To_hpa>(M, N, ldd, hD_gold, hD_2, tol);
             }
             else
             {
                 unit_check_general<To, To_hpa>(M, N, ldd, hD_gold, hD_1);
-                unit_check_general<To, To_hpa>(M, N, ldd, hD_gold, hD_2);
             }
         }
 
         if(arg.norm_check)
         {
             auto err1     = std::abs(norm_check_general<To>('F', M, N, ldd, hD_gold, hD_1));
-            auto err2     = std::abs(norm_check_general<To>('F', M, N, ldd, hD_gold, hD_2));
-            rocblas_error = err1 > err2 ? err1 : err2;
+            rocblas_error = err1 > rocblas_error ? err1 : rocblas_error;
         }
     }
 
