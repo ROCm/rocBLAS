@@ -59,6 +59,7 @@ GCC_OPTS="-xc-header"
 C99="$HCC -xc-header -std=c99"
 CPP11="$HCC -xc++-header -std=c++11"
 CPP14="$HCC -xc++-header -std=c++14"
+CPP17="$HCC -xc++-header -std=c++17"
 
 if [[ -e /.dockerenv ]]; then
     NP=4   # limit parallelism to 4
@@ -92,8 +93,8 @@ xargs_wait()
 xargs_coproc
 find library clients \( -iname \*.hpp -o -iname \*.h \) \
      \! -name testing_trmm.hpp -print0 | while read -r -d $'\0' file; do
-    out=$(out_uptodate "$file" cpp14 true) || \
-        echo "$CPP14 -c -o "$out" $HCC_OPTS $GPU_OPTS "$file" || (rm -f "$out"; echo "$file" >&4; exit 255)" >&$XARGS_IN
+    out=$(out_uptodate "$file" cpp17 true) || \
+        echo "$CPP17 -c -o "$out" $HCC_OPTS $GPU_OPTS "$file" || (rm -f "$out"; echo "$file" >&4; exit 255)" >&$XARGS_IN
 done
 
 if ! xargs_wait; then
