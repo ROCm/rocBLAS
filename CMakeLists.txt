@@ -4,9 +4,9 @@
 
 cmake_minimum_required( VERSION 3.16.8 )
 
-# We use C++14 features, this will add compile option: -std=c++14
-set( CMAKE_CXX_STANDARD 14 )
-# Without this line, it will add -std=gnu++14 instead, which has some issues.
+# This will add compile option: -std=c++17
+set( CMAKE_CXX_STANDARD 17 )
+# Without this line, it will add -std=gnu++17 instead, which may have issues.
 set( CMAKE_CXX_EXTENSIONS OFF )
 
 if (NOT python)
