@@ -440,12 +440,8 @@ void ROCBLAS_KERNEL_ILF rocblas_trsv_block_solve_upper(const T* __restrict__ A,
     }
 }
 
-ROCBLAS_KERNEL static __launch_bounds__(1) void rocblas_trsv_init(rocblas_int* w_unique_row,
-                                                                  rocblas_int* w_completed_sec)
+ROCBLAS_KERNEL static __launch_bounds__(1) void rocblas_trsv_init(rocblas_int* w_completed_sec)
 {
-    // Assign a unique row for each block, starting at 0 (for each batch)
-    w_unique_row[blockIdx.x] = 0;
-
     // The last block section which has been completed (for each batch)
     w_completed_sec[blockIdx.x] = -1;
 }
@@ -476,7 +472,6 @@ ROCBLAS_KERNEL
                                                              ptrdiff_t      offset_x,
                                                              rocblas_int    incx,
                                                              rocblas_stride stride_x,
-                                                             rocblas_int*   w_unique_row,
                                                              rocblas_int*   w_completed_sec)
 {
     // If we need to start at the bottom and work upwards (backwards substitution)
@@ -496,9 +491,6 @@ ROCBLAS_KERNEL
     // Shared memory to access block portion of x
     T __shared__ sx[DIM_X];
 
-    // Used to increment row counter
-    rocblas_int __shared__ old;
-
     // Storing a single DIM_X * DIM_X block in registers.
     // Each thread stores DIM_X / DIM_Y elements in the same row
     T sAoff[DIM_X / DIM_Y];
@@ -508,20 +500,8 @@ ROCBLAS_KERNEL
     const rocblas_int tx         = threadIdx.x;
     const rocblas_int ty         = threadIdx.y;
 
-    // the block row handled by this block
-    rocblas_int block_row = 0;
-
-    // single thread in each block
-    if(tx == 0 && ty == 0)
-    {
-        // Get row handled by this block, atomic add in global memory to ensure
-        // that each thread block gets a unique row
-        old = atomicAdd(&(w_unique_row[batchid]), 1);
-    }
-    __syncthreads();
-
     // Assign to register row in each thread
-    block_row = backwards_sub ? num_blocks - 1 - old : old;
+    rocblas_int block_row = backwards_sub ? num_blocks - 1 - blockIdx.x : blockIdx.x;
 
     // If problem is not divisible into DIM_X sized sections, the last block row
     // will be smaller and must be handled differently
@@ -759,8 +739,11 @@ ROCBLAS_KERNEL
     __threadfence();
 
     // next column is ready
+    // don't need an atomic op here since there should only
+    // be one block for each batch here at once
     if(tid == 0)
-        atomicAdd(&(w_completed_sec[batchid]), 1);
+        w_completed_sec[batchid]++;
+
     __threadfence();
 }
 
@@ -780,7 +763,6 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
                                                 rocblas_int       incx,
                                                 rocblas_stride    stride_x,
                                                 rocblas_int       batch_count,
-                                                rocblas_int*      w_unique_row,
                                                 rocblas_int*      w_completed_sec)
 {
     if(batch_count == 0)
@@ -799,17 +781,12 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
     dim3                  grid(blocks, batch_count);
 
     // Initialize global variables
-    hipLaunchKernelGGL(rocblas_trsv_init,
-                       dim3(batch_count),
-                       dim3(1),
-                       0,
-                       handle->get_stream(),
-                       w_unique_row,
-                       w_completed_sec);
+    hipLaunchKernelGGL(
+        rocblas_trsv_init, dim3(batch_count), dim3(1), 0, handle->get_stream(), w_completed_sec);
 
 #define TRSV_TEMPLATE_PARAMS                                                                    \
     grid, threads, 0, handle->get_stream(), m, dA, offset_A, lda, stride_A, dx, offset_x, incx, \
-        stride_x, w_unique_row, w_completed_sec
+        stride_x, w_completed_sec
 
     // Template Parameters: DIM_X, DIM_Y, LOWER, TRANSPOSE, CONJUGATE, UNIT_DIAG, T
     if(uplo == rocblas_fill_upper)

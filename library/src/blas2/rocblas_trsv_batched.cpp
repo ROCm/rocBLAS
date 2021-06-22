@@ -121,22 +121,18 @@ namespace
         if(!A || !B)
             return rocblas_status_invalid_pointer;
 
-        // Need two ints worth of global memory, one to assign each block a unique "row",
-        // and another to keep track of completed sections. Needed for each batch.
-        size_t dev_bytes_unique_row    = batch_count * sizeof(rocblas_int);
+        // Need one int worth of global memory to keep track of completed sections. Needed for each batch.
         size_t dev_bytes_completed_sec = batch_count * sizeof(rocblas_int);
         if(handle->is_device_memory_size_query())
         {
-            return handle->set_optimal_device_memory_size(dev_bytes_unique_row,
-                                                          dev_bytes_completed_sec);
+            return handle->set_optimal_device_memory_size(dev_bytes_completed_sec);
         }
-        auto w_mem = handle->device_malloc(dev_bytes_unique_row, dev_bytes_completed_sec);
+        auto w_mem = handle->device_malloc(dev_bytes_completed_sec);
 
         if(!w_mem)
             return rocblas_status_memory_error;
 
-        auto w_unique_row    = w_mem[0];
-        auto w_completed_sec = w_mem[1];
+        auto w_completed_sec = w_mem[0];
 
         auto check_numerics = handle->check_numerics;
 
@@ -177,7 +173,6 @@ namespace
                                                                     incx,
                                                                     0,
                                                                     batch_count,
-                                                                    (rocblas_int*)w_unique_row,
                                                                     (rocblas_int*)w_completed_sec);
 
         if(status != rocblas_status_success)
