@@ -19,10 +19,10 @@ extern "C" void rocblas_initialize() {}
 #endif
 
 // forcing early cleanup
-// extern "C" ROCBLAS_EXPORT void rocblas_shutdown()
-// {
-//     rocblas_internal_ostream::clear_workers();
-// }
+extern "C" void rocblas_shutdown()
+{
+    rocblas_internal_ostream::clear_workers();
+}
 
 /* read environment variable */
 /* On windows, getenv take a copy of the environment at the beginning of the process */
