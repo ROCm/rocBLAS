@@ -22,6 +22,9 @@ endif()
 # disable this next option and test build whenever compiler changes to verify unused arguments are safe to ignore
 add_compile_options( -Wno-unused-command-line-argument )
 
+# TODO: address [[nodiscard]] warnings
+add_compile_options( $<$<COMPILE_LANGUAGE:CXX>:-Wno-unused-result> )
+
 unset(ENV{ROCM_BUILD_ID})
 project( rocblas LANGUAGES CXX )
 
