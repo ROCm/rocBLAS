@@ -83,6 +83,7 @@ set( rocblas_benchmark_common
       ../common/rocblas_arguments.cpp
       ../common/utility.cpp
       ../common/cblas_interface.cpp
+      ../common/argument_model.cpp
       ${BLIS_CPP}
       ../common/rocblas_parse_data.cpp
     )
@@ -132,13 +133,14 @@ target_include_directories( rocblas-test
 if( NOT WIN32 )
   target_link_libraries( rocblas-test PRIVATE rocblas_fortran_client )
 endif( )
-target_link_libraries( rocblas-test PRIVATE roc::rocblas ${GTEST_BOTH_LIBRARIES} lapack cblas )
-
 if(LINK_BLIS)
   target_link_libraries( rocblas-test PRIVATE ${BLIS_LIBRARY} )
 else()
   target_link_libraries( rocblas-test PRIVATE blas )
 endif()
+target_link_libraries( rocblas-test PRIVATE roc::rocblas ${GTEST_BOTH_LIBRARIES} lapack cblas )
+
+
 
 
 if( CUDA_FOUND )
