@@ -94,9 +94,6 @@ endif()
 target_link_libraries( rocblas-bench PRIVATE ${COMMON_LINK_LIBS} )
 
 set_target_properties( rocblas-bench PROPERTIES
-  CXX_STANDARD 14
-  CXX_STANDARD_REQUIRED ON
-  CXX_EXTENSIONS OFF
   RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BINARY_DIR}/staging"
 )
 add_dependencies( rocblas-bench rocblas-common )
