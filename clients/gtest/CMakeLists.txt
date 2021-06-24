@@ -4,10 +4,7 @@
 
 
 # Linking lapack library requires fortran flags
-find_package( cblas CONFIG REQUIRED PATHS ${LAPACK_DIR} )
-if( NOT cblas_FOUND )
-  message( FATAL_ERROR "cblas is a required dependency and is not found;  try adding cblas path to CMAKE_PREFIX_PATH" )
-endif( )
+find_package( cblas REQUIRED CONFIG PATHS ${LAPACK_DIR} )
 
 enable_testing()
 find_package( GTest REQUIRED )
@@ -129,7 +126,6 @@ target_include_directories( rocblas-test
   SYSTEM PRIVATE
     $<BUILD_INTERFACE:${HIP_INCLUDE_DIRS}>
     $<BUILD_INTERFACE:${GTEST_INCLUDE_DIRS}>
-    $<BUILD_INTERFACE:${CBLAS_INCLUDE_DIRS}>
     $<BUILD_INTERFACE:${BLIS_INCLUDE_DIR}>
 )
 
@@ -140,6 +136,8 @@ target_link_libraries( rocblas-test PRIVATE roc::rocblas ${GTEST_BOTH_LIBRARIES}
 
 if(LINK_BLIS)
   target_link_libraries( rocblas-test PRIVATE ${BLIS_LIBRARY} )
+else()
+  target_link_libraries( rocblas-test PRIVATE blas )
 endif()
 
 
