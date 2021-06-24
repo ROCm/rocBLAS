@@ -6,6 +6,8 @@
 
 #include "rocblas.h"
 
+extern "C" void rocblas_shutdown();
+
 #ifndef USE_TENSILE_HOST
 
 // In the old Tensile client, rocblas_initialize() is a no-op
@@ -54,6 +56,7 @@ extern "C" void rocblas_initialize() {}
 #define ROCBLAS_LIB_PATH "/opt/rocm/rocblas/lib"
 #endif
 
+#ifdef WIN32
 //
 // https://en.cppreference.com/w/User:D41D8CD98F/feature_testing_macros
 //
@@ -66,6 +69,8 @@ namespace std
 {
     namespace filesystem = experimental::filesystem;
 }
+#endif
+
 #endif
 
 namespace
@@ -534,6 +539,8 @@ namespace
             }
             else
             {
+                path = ROCBLAS_LIB_PATH;
+
 #ifndef ROCBLAS_STATIC_LIB
 #ifdef WIN32
                 // Find the location of librocblas.dll
@@ -544,35 +551,27 @@ namespace
                     std::wstring          wspath(wpath);
                     std::string           tmp(wspath.begin(), wspath.end());
                     std::filesystem::path exepath = tmp;
-#else
-                Dl_info info;
-
-                // Find the location of librocblas.so
-                // Fall back on hard-coded path if static library or not found
-                // [Use a C API (rocblas_sccal) *not* defined in this file to
-                // avoid compile-time resolution of the function pointer; cf.
-                // https://man7.org/linux/man-pages/man3/dladdr.3.html "BUGS"]
-
-                if(dladdr((void*)rocblas_sscal, &info))
-                {
-                    //path = info.dli_fname;
-                    //path = std::string{dirname(&path[0])};
-                    std::filesystem::path exepath = info.dli_fname;
-#endif
                     if(exepath.has_filename())
                     {
                         path = exepath.remove_filename().string();
                     }
-                    else
-                    {
-                        path = ROCBLAS_LIB_PATH;
-                    }
                 }
-                else
-#endif
+#else
+                // Find the location of librocblas.so
+                // Fall back on hard-coded path if static library or not found
+                // [Use a void C API (rocblas_shutdown) *not* defined in this file to
+                // avoid compile-time resolution of the function pointer; cf.
+                // https://man7.org/linux/man-pages/man3/dladdr.3.html "BUGS"]
+                // rocblas_sscal stopped working even though is not defined in this unit
+
+                Dl_info info;
+                if(dladdr((void*)rocblas_shutdown, &info))
                 {
-                    path = ROCBLAS_LIB_PATH;
+                    path = info.dli_fname; // may be NULL if symbol not found
+                    path = std::string{dirname(&path[0])};
                 }
+#endif
+#endif // ifndef ROCBLAS_STATIC_LIB
 
                 // Find the location of the libraries
                 if(TestPath(path + "/../../Tensile/library"))
