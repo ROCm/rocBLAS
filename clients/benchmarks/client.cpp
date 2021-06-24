@@ -1132,6 +1132,7 @@ try
     rocblas_int device_id;
     bool        datafile            = rocblas_parse_data(argc, argv);
     bool        atomics_not_allowed = false;
+    bool        log_function_name   = false;
 
     options_description desc("rocblas-bench command line options");
     desc.add_options()
@@ -1336,6 +1337,10 @@ try
          value<size_t>(&arg.user_allocated_workspace)->default_value(0),
          "Set fixed workspace memory size instead of using rocblas managed memory")
 
+        ("log_function_name",
+         bool_switch(&log_function_name)->default_value(false),
+         "Function name precedes other itmes.")
+
         ("help,h", "produces this help message")
 
         ("version", "Prints the version number");
@@ -1360,6 +1365,8 @@ try
         rocblas_cout << "rocBLAS version: " << blas_version << std::endl;
         return 0;
     }
+
+    ArgumentModel_set_log_function_name(log_function_name);
 
     // Device Query
     rocblas_int device_count = query_device_property();
