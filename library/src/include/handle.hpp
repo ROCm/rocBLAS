@@ -24,7 +24,7 @@
 #include <utility>
 
 // forcing early cleanup
-//extern "C" ROCBLAS_EXPORT void rocblas_shutdown();
+extern "C" ROCBLAS_EXPORT void rocblas_shutdown();
 
 // Whether rocBLAS can reallocate device memory on demand, at the cost of only
 // allowing one allocation at a time, and at the cost of potential synchronization.
