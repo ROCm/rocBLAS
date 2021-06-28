@@ -361,8 +361,6 @@ else()
   target_link_libraries( rocblas PRIVATE hip::device -lstdc++fs --rtlib=compiler-rt --unwindlib=libgcc -ldl )
 endif()
 
-set_target_properties( rocblas PROPERTIES CXX_STANDARD 14 CXX_STANDARD_REQUIRED ON )
-
 #  -fno-gpu-rdc compiler option was used with hcc, so revisit feature at some point
 
 # GCC or hip-clang needs specific flags to turn on f16c intrinsics
