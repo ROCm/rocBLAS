@@ -19,9 +19,9 @@ ROCBLAS_KERNEL __launch_bounds__(DIM_X* DIM_Y) void geam_zero_matrix_device(rocb
 
     if(tx < m && ty < n)
     {
-        auto* C       = load_ptr_batch(Ca, hipBlockIdx_z, offset_c, stride_c);
-        int   c_index = tx + ldc * ty;
-        C[c_index]    = 0.0;
+        auto*  C       = load_ptr_batch(Ca, hipBlockIdx_z, offset_c, stride_c);
+        size_t c_index = tx + size_t(ldc) * ty;
+        C[c_index]     = 0.0;
     }
 }
 
@@ -58,26 +58,26 @@ ROCBLAS_KERNEL __launch_bounds__(DIM_X* DIM_Y) void geam_device(rocblas_operatio
         auto* B = cond_load_ptr_batch(beta, Ba, hipBlockIdx_z, offset_b, stride_b);
         auto* C = load_ptr_batch(Ca, hipBlockIdx_z, offset_c, stride_c);
 
-        int a_index;
-        int b_index;
-        int c_index = tx + ldc * ty;
+        size_t a_index;
+        size_t b_index;
+        size_t c_index = tx + size_t(ldc) * ty;
 
         if(transA == rocblas_operation_none)
         {
-            a_index = tx + ty * lda;
+            a_index = tx + ty * size_t(lda);
         }
         else
         {
-            a_index = tx * lda + ty;
+            a_index = tx * size_t(lda) + ty;
         }
 
         if(transB == rocblas_operation_none)
         {
-            b_index = tx + ty * ldb;
+            b_index = tx + ty * size_t(ldb);
         }
         else
         {
-            b_index = tx * ldb + ty;
+            b_index = tx * size_t(ldb) + ty;
         }
 
         auto a_val = alpha ? A[a_index] : 0;
@@ -116,7 +116,7 @@ ROCBLAS_KERNEL __launch_bounds__(DIM_X* DIM_Y) void geam_2matrix_device(rocblas_
 
         auto* C = load_ptr_batch(Ca, hipBlockIdx_z, offset_c, stride_c);
 
-        int c_index = tx + ldc * ty;
+        size_t c_index = tx + size_t(ldc) * ty;
         if(alpha == 0)
         {
             C[c_index] = 0;
@@ -125,15 +125,15 @@ ROCBLAS_KERNEL __launch_bounds__(DIM_X* DIM_Y) void geam_2matrix_device(rocblas_
         {
             auto* A = load_ptr_batch(Aa, hipBlockIdx_z, offset_a, stride_a);
 
-            int a_index;
+            size_t a_index;
 
             if(transA == rocblas_operation_none)
             {
-                a_index = tx + ty * lda;
+                a_index = tx + ty * size_t(lda);
             }
             else
             {
-                a_index = tx * lda + ty;
+                a_index = tx * size_t(lda) + ty;
             }
 
             auto a_val = A[a_index];
@@ -148,7 +148,7 @@ ROCBLAS_KERNEL __launch_bounds__(DIM_X* DIM_Y) void geam_2matrix_device(rocblas_
 // are contiguous, there are no transposes, and therefore matrices
 // can be treated as contiguous vectors
 template <int DIM_X, typename TScal, typename TConstPtr, typename TPtr>
-ROCBLAS_KERNEL __launch_bounds__(DIM_X) void geam_1D_device(rocblas_int    size,
+ROCBLAS_KERNEL __launch_bounds__(DIM_X) void geam_1D_device(size_t         size,
                                                             TScal          alpha_device_host,
                                                             TConstPtr      Aa,
                                                             rocblas_int    offset_a,
@@ -161,7 +161,7 @@ ROCBLAS_KERNEL __launch_bounds__(DIM_X) void geam_1D_device(rocblas_int    size,
                                                             rocblas_int    offset_c,
                                                             rocblas_stride stride_c)
 {
-    rocblas_int tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+    size_t tx = size_t(hipBlockIdx_x) * hipBlockDim_x + hipThreadIdx_x;
 
     if(tx < size)
     {
@@ -189,7 +189,7 @@ ROCBLAS_KERNEL __launch_bounds__(DIM_X) void geam_1D_device(rocblas_int    size,
 // can be treated as contiguous vectors.
 // Also, alpha == 0  ||  beta == 0  so only one matrix contributes
 template <int DIM_X, typename TScal, typename TConstPtr, typename TPtr>
-ROCBLAS_KERNEL __launch_bounds__(DIM_X) void geam_1D_2matrix_device(rocblas_int size,
+ROCBLAS_KERNEL __launch_bounds__(DIM_X) void geam_1D_2matrix_device(size_t      size,
                                                                     TScal       alpha_device_host,
                                                                     TConstPtr   Aa,
                                                                     rocblas_int offset_a,
@@ -198,7 +198,7 @@ ROCBLAS_KERNEL __launch_bounds__(DIM_X) void geam_1D_2matrix_device(rocblas_int 
                                                                     rocblas_int    offset_c,
                                                                     rocblas_stride stride_c)
 {
-    rocblas_int tx = hipBlockIdx_x * hipBlockDim_x + hipThreadIdx_x;
+    size_t tx = size_t(hipBlockIdx_x) * hipBlockDim_x + hipThreadIdx_x;
 
     if(tx < size)
     {
@@ -244,8 +244,8 @@ ROCBLAS_KERNEL __launch_bounds__(DIM_X* DIM_Y) void geam_inplace_device(rocblas_
 
         auto* C = load_ptr_batch(Ca, hipBlockIdx_z, offset_c, stride_c);
 
-        int b_index;
-        int c_index = tx + ldc * ty;
+        size_t b_index;
+        size_t c_index = tx + size_t(ldc) * ty;
 
         if(beta == 0)
         {
@@ -257,11 +257,11 @@ ROCBLAS_KERNEL __launch_bounds__(DIM_X* DIM_Y) void geam_inplace_device(rocblas_
 
             if(transB == rocblas_operation_none)
             {
-                b_index = tx + ty * ldb;
+                b_index = tx + ty * size_t(ldb);
             }
             else
             {
-                b_index = tx * ldb + ty;
+                b_index = tx * size_t(ldb) + ty;
             }
 
             auto b_val = B[b_index];
@@ -462,7 +462,7 @@ rocblas_status rocblas_geam_template(rocblas_handle    handle,
             // special case: A, C are processed as vectors because
             // A, C are contiguous, and A is normal (not transpose)
             static constexpr int GEAM_DIM = 256;
-            int                  size     = m * n;
+            size_t               size     = size_t(m) * n;
             int                  blocks   = (size - 1) / GEAM_DIM + 1;
 
             dim3 geam_grid(blocks, batch_count);
@@ -579,8 +579,9 @@ rocblas_status rocblas_geam_template(rocblas_handle    handle,
         // special case: A, B, C are processed as vectors because
         // A, B, C are contiguous, and A and B are normal (not transpose)
         static constexpr int GEAM_DIM = 256;
-        int                  size     = m * n;
+        size_t               size     = size_t(m) * n;
         int                  blocks   = (size - 1) / GEAM_DIM + 1;
+        // GEAM_DIM needs to be large to prevent blocks overflowing int datatype.
 
         dim3 geam_grid(blocks, batch_count);
         dim3 geam_threads(GEAM_DIM);
