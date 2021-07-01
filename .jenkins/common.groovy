@@ -63,6 +63,14 @@ def runPackageCommand(platform, project)
         def packageHelper = platform.makePackage(platform.jenkinsLabel,"${project.paths.project_build_prefix}/build/release",true)
         platform.runCommand(this, packageHelper[0])
         platform.archiveArtifacts(this, packageHelper[1])
+        def cleanCommand = """#!/usr/bin/env bash
+                                set -x
+                                cd ${project.paths.project_build_prefix}/build/release/
+                                find -name '*.o' -delete
+                                find -type d -name '*build_tmp*' -exec rm -rf {} +
+                                find -type d -name '*_CPack_Packages*' -exec rm -rf {} +
+                           """
+        platform.runCommand(this, cleanCommand)
 }
 
 return this
