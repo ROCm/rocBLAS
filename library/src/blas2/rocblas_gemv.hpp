@@ -393,6 +393,9 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 
 #undef gemvt_sn_KARGS
         }
+#define gemvt_KARGS(alpha_, beta_)                                                             \
+    gemvt_grid, gemvt_threads, 0, rocblas_stream, m, n, alpha_, stride_alpha, A, offseta, lda, \
+        strideA, x, shiftx, incx, stridex, beta_, stride_beta, y, shifty, incy, stridey
         //Having 256 threads per block for single precision GEMV (transpose) for better performance
         else if(is_float)
         {
@@ -403,58 +406,24 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 
             if(handle->pointer_mode == rocblas_pointer_mode_device)
             {
-                hipLaunchKernelGGL((gemvt_kernel<CONJ, NB, T>),
-                                   gemvt_grid,
-                                   gemvt_threads,
-                                   0,
-                                   rocblas_stream,
-                                   m,
-                                   n,
-                                   alpha,
-                                   stride_alpha,
-                                   A,
-                                   offseta,
-                                   lda,
-                                   strideA,
-                                   x,
-                                   shiftx,
-                                   incx,
-                                   stridex,
-                                   beta,
-                                   stride_beta,
-                                   y,
-                                   shifty,
-                                   incy,
-                                   stridey);
+                if(!i64_indices)
+                    hipLaunchKernelGGL((gemvt_kernel<CONJ, NB, rocblas_int, T>),
+                                       gemvt_KARGS(alpha, beta));
+                else
+                    hipLaunchKernelGGL((gemvt_kernel<CONJ, NB, size_t, T>),
+                                       gemvt_KARGS(alpha, beta));
             }
             else
             {
                 if(!*alpha && *beta == 1)
                     return rocblas_status_success;
 
-                hipLaunchKernelGGL((gemvt_kernel<CONJ, NB, T>),
-                                   gemvt_grid,
-                                   gemvt_threads,
-                                   0,
-                                   rocblas_stream,
-                                   m,
-                                   n,
-                                   *alpha,
-                                   stride_alpha,
-                                   A,
-                                   offseta,
-                                   lda,
-                                   strideA,
-                                   x,
-                                   shiftx,
-                                   incx,
-                                   stridex,
-                                   *beta,
-                                   stride_beta,
-                                   y,
-                                   shifty,
-                                   incy,
-                                   stridey);
+                if(!i64_indices)
+                    hipLaunchKernelGGL((gemvt_kernel<CONJ, NB, rocblas_int, T>),
+                                       gemvt_KARGS(*alpha, *beta));
+                else
+                    hipLaunchKernelGGL((gemvt_kernel<CONJ, NB, size_t, T>),
+                                       gemvt_KARGS(*alpha, *beta));
             }
         }
         //Having 1024 threads per block for double, complex-float and complex-double precision GEMV (transpose) for better performance
@@ -467,58 +436,24 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 
             if(handle->pointer_mode == rocblas_pointer_mode_device)
             {
-                hipLaunchKernelGGL((gemvt_kernel<CONJ, NB, T>),
-                                   gemvt_grid,
-                                   gemvt_threads,
-                                   0,
-                                   rocblas_stream,
-                                   m,
-                                   n,
-                                   alpha,
-                                   stride_alpha,
-                                   A,
-                                   offseta,
-                                   lda,
-                                   strideA,
-                                   x,
-                                   shiftx,
-                                   incx,
-                                   stridex,
-                                   beta,
-                                   stride_beta,
-                                   y,
-                                   shifty,
-                                   incy,
-                                   stridey);
+                if(!i64_indices)
+                    hipLaunchKernelGGL((gemvt_kernel<CONJ, NB, rocblas_int, T>),
+                                       gemvt_KARGS(alpha, beta));
+                else
+                    hipLaunchKernelGGL((gemvt_kernel<CONJ, NB, size_t, T>),
+                                       gemvt_KARGS(alpha, beta));
             }
             else
             {
                 if(!*alpha && *beta == 1)
                     return rocblas_status_success;
 
-                hipLaunchKernelGGL((gemvt_kernel<CONJ, NB, T>),
-                                   gemvt_grid,
-                                   gemvt_threads,
-                                   0,
-                                   rocblas_stream,
-                                   m,
-                                   n,
-                                   *alpha,
-                                   stride_alpha,
-                                   A,
-                                   offseta,
-                                   lda,
-                                   strideA,
-                                   x,
-                                   shiftx,
-                                   incx,
-                                   stridex,
-                                   *beta,
-                                   stride_beta,
-                                   y,
-                                   shifty,
-                                   incy,
-                                   stridey);
+                if(!i64_indices)
+                    hipLaunchKernelGGL((gemvt_kernel<CONJ, NB, rocblas_int, T>),
+                                       gemvt_KARGS(*alpha, *beta));
+                else
+                    hipLaunchKernelGGL((gemvt_kernel<CONJ, NB, size_t, T>),
+                                       gemvt_KARGS(*alpha, *beta));
             }
         }
     }
@@ -653,6 +588,9 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
 
 #undef gemvt_sn_KARGS
         }
+#define gemvt_KARGS(alpha_, beta_)                                                             \
+    gemvt_grid, gemvt_threads, 0, rocblas_stream, m, n, alpha_, stride_alpha, A, offseta, lda, \
+        strideA, x, shiftx, incx, stridex, beta_, stride_beta, y, shifty, incy, stridey
         //Having 256 threads per block for single precision GEMV (transpose) for better performance
         else if(is_float)
         {
@@ -661,58 +599,24 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
             dim3                 gemvt_threads(NB);
             if(handle->pointer_mode == rocblas_pointer_mode_device)
             {
-                hipLaunchKernelGGL((gemvt_kernel<CONJ, NB, T>),
-                                   gemvt_grid,
-                                   gemvt_threads,
-                                   0,
-                                   rocblas_stream,
-                                   m,
-                                   n,
-                                   alpha,
-                                   stride_alpha,
-                                   A,
-                                   offseta,
-                                   lda,
-                                   strideA,
-                                   x,
-                                   shiftx,
-                                   incx,
-                                   stridex,
-                                   beta,
-                                   stride_beta,
-                                   y,
-                                   shifty,
-                                   incy,
-                                   stridey);
+                if(!i64_indices)
+                    hipLaunchKernelGGL((gemvt_kernel<CONJ, NB, rocblas_int, T>),
+                                       gemvt_KARGS(alpha, beta));
+                else
+                    hipLaunchKernelGGL((gemvt_kernel<CONJ, NB, size_t, T>),
+                                       gemvt_KARGS(alpha, beta));
             }
             else
             {
                 if(!*alpha && *beta == 1)
                     return rocblas_status_success;
 
-                hipLaunchKernelGGL((gemvt_kernel<CONJ, NB, T>),
-                                   gemvt_grid,
-                                   gemvt_threads,
-                                   0,
-                                   rocblas_stream,
-                                   m,
-                                   n,
-                                   *alpha,
-                                   stride_alpha,
-                                   A,
-                                   offseta,
-                                   lda,
-                                   strideA,
-                                   x,
-                                   shiftx,
-                                   incx,
-                                   stridex,
-                                   *beta,
-                                   stride_beta,
-                                   y,
-                                   shifty,
-                                   incy,
-                                   stridey);
+                if(!i64_indices)
+                    hipLaunchKernelGGL((gemvt_kernel<CONJ, NB, rocblas_int, T>),
+                                       gemvt_KARGS(*alpha, *beta));
+                else
+                    hipLaunchKernelGGL((gemvt_kernel<CONJ, NB, size_t, T>),
+                                       gemvt_KARGS(*alpha, *beta));
             }
         }
         //Having 1024 threads per block for double, complex-float and complex-double precision GEMV (transpose) for better performance
@@ -723,58 +627,24 @@ ROCBLAS_INTERNAL_EXPORT_NOINLINE rocblas_status
             dim3                 gemvt_threads(NB);
             if(handle->pointer_mode == rocblas_pointer_mode_device)
             {
-                hipLaunchKernelGGL((gemvt_kernel<CONJ, NB, T>),
-                                   gemvt_grid,
-                                   gemvt_threads,
-                                   0,
-                                   rocblas_stream,
-                                   m,
-                                   n,
-                                   alpha,
-                                   stride_alpha,
-                                   A,
-                                   offseta,
-                                   lda,
-                                   strideA,
-                                   x,
-                                   shiftx,
-                                   incx,
-                                   stridex,
-                                   beta,
-                                   stride_beta,
-                                   y,
-                                   shifty,
-                                   incy,
-                                   stridey);
+                if(!i64_indices)
+                    hipLaunchKernelGGL((gemvt_kernel<CONJ, NB, rocblas_int, T>),
+                                       gemvt_KARGS(alpha, beta));
+                else
+                    hipLaunchKernelGGL((gemvt_kernel<CONJ, NB, size_t, T>),
+                                       gemvt_KARGS(alpha, beta));
             }
             else
             {
                 if(!*alpha && *beta == 1)
                     return rocblas_status_success;
 
-                hipLaunchKernelGGL((gemvt_kernel<CONJ, NB, T>),
-                                   gemvt_grid,
-                                   gemvt_threads,
-                                   0,
-                                   rocblas_stream,
-                                   m,
-                                   n,
-                                   *alpha,
-                                   stride_alpha,
-                                   A,
-                                   offseta,
-                                   lda,
-                                   strideA,
-                                   x,
-                                   shiftx,
-                                   incx,
-                                   stridex,
-                                   *beta,
-                                   stride_beta,
-                                   y,
-                                   shifty,
-                                   incy,
-                                   stridey);
+                if(!i64_indices)
+                    hipLaunchKernelGGL((gemvt_kernel<CONJ, NB, rocblas_int, T>),
+                                       gemvt_KARGS(*alpha, *beta));
+                else
+                    hipLaunchKernelGGL((gemvt_kernel<CONJ, NB, size_t, T>),
+                                       gemvt_KARGS(*alpha, *beta));
             }
         }
     }
