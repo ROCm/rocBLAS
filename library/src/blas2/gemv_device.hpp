@@ -258,12 +258,12 @@ ROCBLAS_KERNEL_ILF void gemvn_kernel_calc(rocblas_int                   m,
     }
 }
 
-template <bool CONJ, rocblas_int NB_X, typename T, typename U>
+template <bool CONJ, rocblas_int NB_X, typename T_lda, typename T, typename U>
 ROCBLAS_KERNEL_ILF void gemvt_kernel_calc(rocblas_int m,
                                           rocblas_int n,
                                           U           alpha,
                                           const T* __restrict__ A,
-                                          rocblas_int lda,
+                                          T_lda lda,
                                           const T* __restrict__ x,
                                           rocblas_int incx,
                                           U           beta,
@@ -535,7 +535,7 @@ ROCBLAS_KERNEL __launch_bounds__(DIM_X* DIM_Y) void gemvn_kernel(rocblas_int    
                                                                  rocblas_stride stride_alpha,
                                                                  const V*       Aa,
                                                                  ptrdiff_t      shifta,
-                                                                 rocblas_int    lda,
+                                                                 T_lda          lda,
                                                                  rocblas_stride strideA,
                                                                  const V*       xa,
                                                                  ptrdiff_t      shiftx,
@@ -567,14 +567,20 @@ ROCBLAS_KERNEL __launch_bounds__(DIM_X* DIM_Y) void gemvn_kernel(rocblas_int    
 }
 
 // lda always cast to size_t so single kernel
-template <bool CONJ, rocblas_int NB_X, typename T, typename U, typename V, typename W>
+template <bool        CONJ,
+          rocblas_int NB_X,
+          typename T_lda,
+          typename T,
+          typename U,
+          typename V,
+          typename W>
 ROCBLAS_KERNEL __launch_bounds__(NB_X) void gemvt_kernel(rocblas_int    m,
                                                          rocblas_int    n,
                                                          U              alpha_device_host,
                                                          rocblas_stride stride_alpha,
                                                          const V*       Aa,
                                                          ptrdiff_t      shifta,
-                                                         rocblas_int    lda,
+                                                         T_lda          lda,
                                                          rocblas_stride strideA,
                                                          const V*       xa,
                                                          ptrdiff_t      shiftx,
@@ -598,7 +604,7 @@ ROCBLAS_KERNEL __launch_bounds__(NB_X) void gemvt_kernel(rocblas_int    m,
 
     T* y = load_ptr_batch(ya, hipBlockIdx_y, shifty, stridey);
 
-    gemvt_kernel_calc<CONJ, NB_X>(m, n, alpha, A, lda, x, incx, beta, y, incy);
+    gemvt_kernel_calc<CONJ, NB_X, T_lda>(m, n, alpha, A, lda, x, incx, beta, y, incy);
 }
 
 template <bool        CONJ,
