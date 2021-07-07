@@ -96,6 +96,9 @@ def import_rocm_smi(install_path):
             sys.path.append(os.path.join(install_path, 'bin'))
             import rocm_smi
             smi = rocm_smi
+
+            # The following is needed to call rsmi_init() before other calls as documented in /opt/rocm/rocm_smi/docs/README.md
+            smi.initializeRsmi()
         except ImportError:
             print('WARNING - rocm_smi.py not found!')
     return smi
@@ -110,31 +113,33 @@ class SystemMonitor(object):
             # 'dcefclk_megahertz',
             'fan_speed_percent',
             ]
-    def __init__(self, metrics = supported_metrics):
-        if not smi_imported:
+    def __init__(self, metrics = supported_metrics, cuda = False):
+        if not smi_imported and not cuda:
             raise RuntimeError('import_rocm_smi(install_path) must be called before consturcting a SystemMonitor')
         if len(metrics) == 0:
             raise ValueError('SystemMonitor must record at least one metric')
         self.metrics = metrics
         self.data = {metric:{} for metric in self.metrics}
 
-    def record_line(self):
+    def record_line(self, cuda):
         now = datetime.datetime.now()
         for metric in self.metrics:
-            self.data[metric][now] = self.measure(metric)
+            self.data[metric][now] = self.measure(metric, cuda)
 
-    def measure(self, metric, device=None):
+    def measure(self, metric, cuda, device=None):
         if device is None:
-            device = smi.listDevices(showall=False)[0]
+            device = getspecs.listdevices(cuda, smi)[0]
         if smi is None:
             return 0.0
         elif metric == 'fan_speed_percent':
-            return smi.getFanSpeed(device)[1]
-        elif metric.find('clk') >=0 and metric.split('_')[0] in smi.validClockNames:
-            return int(smi.getCurrentClock(device, metric.split('_')[0], 'freq').strip('Mhz'))
+            return getspecs.getfanspeedpercent(device, cuda, smi)[1]
+        elif metric.find('clk') >=0 and metric.split('_')[0] in getspecs.validclocknames(cuda, smi):
+            return int(getspecs.getcurrentclockfreq(device, metric.split('_')[0], cuda, smi).strip('Mhz'))
         elif 'used_memory_percent':
-            used_bytes, total_bytes = smi.getMemInfo(device, 'vram')
-            return int(used_bytes)*100.0/int(total_bytes)
+            used_bytes, total_bytes = getspecs.getmeminfo(device, 'vram', cuda, smi)
+            used_bytes_int = used_bytes.split()[0] if cuda else used_bytes
+            total_bytes_int = total_bytes.split()[0] if cuda else total_bytes
+            return int(used_bytes_int)*100.0/int(total_bytes_int)
         else:
             raise ValueError('Unrecognized metric requested: {}'.format(metric))
 
@@ -410,6 +415,9 @@ class ArgumentSetABC(object):
     def get_output_file(self, run_configuration):
         return os.path.join(run_configuration.output_directory, self.get_output_basename())
 
+    def get_output_file_compare(self, run_configuration):
+        return os.path.join(run_configuration.output_directory_compare, self.get_output_basename())
+
     def get_caption(self, similar_keys):
         '''Override this function to make a more meaninful caption based off a subset of keys.'''
         return None
@@ -472,8 +480,9 @@ class ArgumentSetABC(object):
                     out_file.write(cmd_str + '\n')
                     out_file.flush()
 
-                import_rocm_smi(self.user_args.install_path)
-                system_monitor = SystemMonitor()
+                if not self.user_args.cuda:
+                    import_rocm_smi(self.user_args.install_path)
+                system_monitor = SystemMonitor(cuda = self.user_args.cuda)
 
                 is_shell_only = self.is_shell_only()
                 if is_shell_only:
@@ -485,7 +494,7 @@ class ArgumentSetABC(object):
                 try:
                     while proc.poll() is None:
                         if smi is not None and poll_metric_count % 20 == 0:
-                            system_monitor.record_line()
+                            system_monitor.record_line(self.user_args.cuda)
                         time.sleep(0.01)
                         poll_metric_count += 1
                 except Exception as e:
@@ -574,7 +583,7 @@ class ArgumentSetSort(OrderedDict):
 
 class MachineSpecs(dict):
     @classmethod
-    def collect_specs(cls, device_numbers, install_path):
+    def collect_specs(cls, device_numbers, cuda, install_path):
         # Helper to translate bytes into human readable units
         def to_mem_units(num_bytes):
             num_bytes = int(num_bytes)
@@ -583,46 +592,52 @@ class MachineSpecs(dict):
                 if num_bytes / divisor < 1024.0:
                     break
             return '{:.1f}{}'.format(num_bytes / divisor, unit)
+
         rv = cls()
         host_info = {}
         host_info['hostname'] = getspecs.gethostname()
+
         host_info['cpu info'] = getspecs.getcpu()
         host_info['ram'] = getspecs.getram()
         host_info['distro'] = getspecs.getdistro()
         host_info['kernel version'] = getspecs.getkernel()
         host_info['rocm version'] = getspecs.getrocmversion()
         rv['Host'] = host_info
-
         for device_num in device_numbers:
             device_info = {}
-            device_info['device'] = getspecs.getdeviceinfo(device_num)
-            device_info['vbios version'] = getspecs.getvbios(device_num)
-            device_info['vram'] = getspecs.getvram(device_num)
-            device_info['performance level'] = getspecs.getperflevel(device_num)
-            device_info['system clock'] = getspecs.getsclk(device_num)
-            device_info['memory clock'] = getspecs.getmclk(device_num)
+            device_info['device'] = getspecs.getdeviceinfo(device_num, cuda)
+            device_info['vbios version'] = getspecs.getvbios(device_num, cuda)
+            device_info['vram'] = getspecs.getvram(device_num, cuda)
+            device_info['performance level'] = getspecs.getperflevel(device_num, cuda)
+            device_info['system clock'] = getspecs.getsclk(device_num, cuda)
+            device_info['memory clock'] = getspecs.getmclk(device_num, cuda)
             rv['Device {0:2d}'.format(device_num)] = device_info
-
-        smi = import_rocm_smi(install_path)
-        if smi is not None:
-            devices = smi.listDevices(showall=False)
-            for device in devices:
-                smi_info = {}
-                smi_info['Bus'] = smi.getBus(device)
-                smi_info['Profile'] = smi.getProfile(device)
-                smi_info['Start Fan Speed'] = str(smi.getFanSpeed(device)[1]) + '%'
-                for clock in smi.validClockNames:
-                    freq = smi.getCurrentClock(device, clock, 'freq')
-                    measured_level = smi.getCurrentClock(device, clock, 'level')
-                    max_level = smi.getMaxLevel(device, clock)
-                    smi_info['Start ' + clock] = '{} - Level {}/{}'.format(freq, measured_level, max_level)
-                for mem_type in smi.validMemTypes:
-                    key = 'Start {} Memory'.format(mem_type)
-                    used_bytes, total_bytes = smi.getMemInfo(device, mem_type)
-                    smi_info[key] = '{} / {}'.format(to_mem_units(used_bytes), to_mem_units(total_bytes))
-                for component in smi.validVersionComponents:
-                    smi_info[component.capitalize() + ' Version'] = smi.getVersion([device], component)
-                rv['ROCm ' + device.capitalize()] = smi_info
+        smi = None
+        if not cuda:
+            smi = import_rocm_smi(install_path)
+        devices = getspecs.listdevices(cuda, smi)
+        for device in devices:
+            smi_info = {}
+            smi_info['Bus'] = getspecs.getbus(device, cuda, smi)
+            smi_info['Profile'] = getspecs.getprofile(device, cuda)
+            smi_info['Start Fan Speed'] = getspecs.getfanspeedpercent(device, cuda, smi) + '%'
+            for clock in getspecs.validclocknames(cuda, smi):
+                freq = getspecs.getcurrentclockfreq(device, clock, cuda)
+                measured_level = getspecs.getcurrentclocklevel(device, clock, cuda)
+                max_level = getspecs.getmaxlevel(device, clock, cuda)
+                smi_info['Start ' + clock] = '{} - Level {}/{}'.format(freq, measured_level, max_level)
+            for mem_type in getspecs.validmemtypes(cuda, smi):
+                key = 'Start {} Memory'.format(mem_type)
+                used_bytes, total_bytes = getspecs.getmeminfo(device, mem_type, cuda, smi)
+                print('used, total')
+                print (used_bytes)
+                print (total_bytes)
+                used_bytes_int = used_bytes.split()[0] if cuda else used_bytes
+                total_bytes_int = total_bytes.split()[0] if cuda else total_bytes
+                smi_info[key] = '{} / {}'.format(to_mem_units(used_bytes_int), to_mem_units(total_bytes_int))
+            for component in getspecs.validversioncomponents(cuda, smi):
+                smi_info[component.capitalize() + ' Version'] = getspecs.getversion(device, component, cuda, smi)
+            rv['Card' + str(device)] = smi_info
 
         return rv
 
@@ -670,10 +685,11 @@ class RunConfiguration(object):
     An instance of RunConfiguration is passed into ArgumentSetABC.get_full_command. That is where the
     information stored in this class is translated into actual commandline arguments.
     '''
-    def __init__(self, user_args, executable_directory, output_directory, label, run_number = None):
+    def __init__(self, user_args, executable_directory, output_directory, output_directory_compare, label, run_number = None):
         self.user_args = user_args
         self.executable_directory = executable_directory
         self.output_directory = output_directory
+        self.output_directory_compare = output_directory_compare
         self.label = label
         if run_number is not None:
             self.output_directory = os.path.join(output_directory, 'run{0:02d}'.format(run_number))
@@ -700,14 +716,20 @@ class RunConfiguration(object):
     def _machine_specs_filename(self):
         return os.path.join(self.output_directory, "specs.json")
 
-    def save_specifications(self, device_num):
+    def _machine_specs_filename_compare(self):
+        return os.path.join(self.output_directory_compare, "specs.json")
+
+    def save_specifications(self, device_num, cuda):
         filename = self._machine_specs_filename()
-        MachineSpecs.collect_specs([device_num], self.user_args.install_path).save(filename)
+        MachineSpecs.collect_specs([device_num], cuda, self.user_args.install_path).save(filename)
         # Does not return the specs because to use them robustly, they need to be loaded
         # from disk. Collecting could overwrite saved specs when post-processing results.
 
     def load_specifications(self):
         return MachineSpecs.from_file(self._machine_specs_filename())
+
+    def load_specifications_compare(self):
+        return MachineSpecs.from_file(self._machine_specs_filename_compare())
 
 class RunConfigurationsList(list):
     def group_by_label(self):
@@ -808,26 +830,26 @@ class Comparison(object):
                 + ' '.join(self.argument_sets[0].get_args(require_keys=argument_diff.get_similarities()))
                 +("'' is held constant." if is_a_comparison else '')
                 )
-            if is_a_comparison:
-                header_row = ['label'] + differences
-                num_columns = len(header_row)
-                sorted_argument_sets = self.sort_argument_sets(isolate_keys=self._get_sweep_keys())
-                num_rows = len(sorted_argument_sets) + 1
-                table_style = 'Colorful Grid' if self.user_args.docx_template is None else None
-                table = document.add_table(num_rows, num_columns, style=table_style)
-                row_idx = 0
-                for col_idx, data in enumerate(header_row):
-                    table.cell(row_idx, col_idx).text = data
-                for argument_set_hash, argument_sets in sorted_argument_sets.items():
-                    if len(argument_sets) > 0:
-                        row_idx += 1
-                        argument_set = argument_sets[0]
-                        row = [argument_set_hash]
-                        for key in differences:
-                            argument = argument_set.get(key)
-                            row.append(argument.get_value() if argument.is_set() else 'DEFAULT')
-                        for col_idx, data in enumerate(row):
-                            table.cell(row_idx, col_idx).text = str(data)
+            # if is_a_comparison:
+            #     header_row = ['label'] + differences
+            #     num_columns = len(header_row)
+            #     sorted_argument_sets = self.sort_argument_sets(isolate_keys=self._get_sweep_keys())
+            #     num_rows = len(sorted_argument_sets) + 1
+            #     table_style = 'Colorful Grid' if self.user_args.docx_template is None else None
+            #     table = document.add_table(num_rows, num_columns, style=table_style)
+            #     row_idx = 0
+            #     for col_idx, data in enumerate(header_row):
+            #         table.cell(row_idx, col_idx).text = data
+            #     for argument_set_hash, argument_sets in sorted_argument_sets.items():
+            #         if len(argument_sets) > 0:
+            #             row_idx += 1
+            #             argument_set = argument_sets[0]
+            #             row = [argument_set_hash]
+            #             for key in differences:
+            #                 argument = argument_set.get(key)
+            #                 row.append(argument.get_value() if argument.is_set() else 'DEFAULT')
+            #             for col_idx, data in enumerate(row):
+            #                 table.cell(row_idx, col_idx).text = str(data)
 
     def sort_argument_sets(self, isolate_keys):
         return ArgumentSetSort(self.argument_sets, isolate_keys)
@@ -998,6 +1020,11 @@ class CommandRunner(object):
         executable_directories = user_args.input_executables
         output_directories = user_args.output_directories
         labels = user_args.labels
+        cuda = user_args.cuda
+        compare_hip_cuda = user_args.compare_hip_cuda
+        output_directory_compare = user_args.output_directory_compare_cuda
+        if len(output_directory_compare) == 1:
+            output_directory_compare = output_directory_compare[0]
 
         print('Excecutable directories: ', executable_directories)
 
@@ -1005,6 +1032,9 @@ class CommandRunner(object):
             for i in range(len(output_directories), len(executable_directories)):
                 output_directories.append('dir' + str(i))
         print('Output directories: ', output_directories)
+
+        if compare_hip_cuda:
+            print('Output directory compare: ', output_directory_compare)
 
         if len(output_directories) > len(labels):
             for i in range(len(labels), len(output_directories)):
@@ -1018,6 +1048,17 @@ class CommandRunner(object):
         self.executable_directories = executable_directories
         self.output_directories = output_directories
         self.labels = labels
+        self.cuda = cuda
+        self.compare_hip_cuda = compare_hip_cuda
+        self.output_directory_compare = output_directory_compare
+
+        if self.cuda:
+            print('Running for a CUDA system')
+        else:
+            print('Not running for a CUDA system')
+
+        if self.compare_hip_cuda:
+            print('Comparing data from a HIP run and a CUDA run')
 
         self.run_configurations = RunConfigurationsList()
         for exec_dir, out_dir, label in zip(executable_directories, output_directories, labels):
@@ -1026,6 +1067,7 @@ class CommandRunner(object):
                         user_args = user_args,
                         executable_directory = exec_dir,
                         output_directory = out_dir,
+                        output_directory_compare = output_directory_compare,
                         label = label,
                         run_number = run_number,
                         ))
@@ -1070,7 +1112,7 @@ class CommandRunner(object):
 
     def main(self):
         self.execute()
-        self.show_plots()
+        self.show_plots(self.cuda, self.compare_hip_cuda)
         self.get_system_summary()
         self.output_summary()
 
@@ -1106,6 +1148,7 @@ class CommandRunner(object):
                 print('WARNING - PyLaTeX is required for PDF summary!')
                 return False
             return True
+        print("not is make document")
         return False
 
     def is_use_docx(self):
@@ -1129,7 +1172,7 @@ class CommandRunner(object):
         for run_configuration in self.run_configurations:
             if self.is_run_tool():
                 run_configuration.make_output_directory()
-                run_configuration.save_specifications(self.user_args.device_num)
+                run_configuration.save_specifications(self.user_args.device_num, self.cuda)
             elif not self.is_dry_run():
                 run_configuration.assert_exists()
 
@@ -1169,7 +1212,7 @@ class CommandRunner(object):
         if self.is_run_tool() or self.is_dry_run():
             command_list.execute_shuffled(overwrite = self.is_overwrite(), dry_run = self.is_dry_run())
 
-    def show_plots(self):
+    def show_plots(self, cuda, compare):
         if self.is_dry_run():
             return
         grouped_run_configurations = self.run_configurations.group_by_label()
@@ -1205,11 +1248,11 @@ class CommandRunner(object):
             # Add any Matplotlib plots using Comparison.plot()
             if self.is_use_matplotlib():
                 figure, axes = plt.subplots(figsize = (7, 7))
-                plot_success = comparison.plot(self.run_configurations, axes)
+                plot_success = comparison.plot(self.run_configurations, axes, cuda, compare)
                 print(comparison.get_caption(self.run_configurations))
                 if plot_success:
                     axes.legend(fontsize = 10, bbox_to_anchor=(0., 1.02, 1., .102), loc='lower left',
-                                ncol=2, mode='expand', borderaxespad=0.)
+                                 mode='expand', borderaxespad=0.)
                     figure.tight_layout(rect=(0,0.05,1.0,1.0))
 
                     if self.is_use_pylatex():
@@ -1222,7 +1265,9 @@ class CommandRunner(object):
 
                     if self.is_use_docx():
                         memfile = BytesIO()
-                        figure.savefig(memfile, format='png', dpi=300, transparent=True)
+                        figure.tight_layout()
+                        # figure.savefig(memfile, format='png', dpi=300, transparent=True)
+                        figure.savefig(memfile, format='png', dpi=300, transparent=True, bbox_inches="tight")
                         self.docx_doc.add_picture(memfile, width=docx.shared.Inches(6.0))
                         caption_style = 'Quote' if self.user_args.docx_template is None else None
                         self.docx_doc.add_paragraph('Figure {}: '.format(docx_fig_count) + comparison.get_caption(self.run_configurations), style=caption_style)
@@ -1231,10 +1276,11 @@ class CommandRunner(object):
                         docx_fig_count += 1
                         memfile.close()
 
-                    figure.suptitle(comparison.get_caption(self.run_configurations),
-                                    fontsize='medium', y=0.02, va='bottom')
+                    # figure.suptitle(comparison.get_caption(self.run_configurations),
+                    #                 fontsize='medium', y=0.02, va='bottom')
+                    figure.tight_layout()
                     figure.savefig(os.path.join(self.user_args.documentation_directory,
-                                                comparison.get_name() + '_auto_plot.pdf'))
+                                                comparison.get_name() + '_auto_plot.pdf'), bbox_inches="tight")
 
                 if not self.is_interactive():
                     plt.close(figure)
@@ -1271,15 +1317,18 @@ class CommandRunner(object):
             total_system_monitor.plot()
 
     def output_summary(self):
+        print("SUMMARY")
         if self.is_use_pylatex():
+            print("SUMMARY1")
             current_working_directory = os.getcwd()
             try:
                 self.doc.generate_pdf(clean_tex=False)
             except subprocess.CalledProcessError:
                 print('WARNING: Failed to output document')
-            #self.doc.generate_tex()
+            self.doc.generate_tex()
             os.chdir(current_working_directory)
         if self.is_use_docx():
+            print("SUMMARY2")
             self.docx_doc.save(os.path.join(self.user_args.documentation_directory, 'benchmark_summary.docx'))
 
 def parse_input_arguments(parser):
@@ -1294,6 +1343,8 @@ def parse_input_arguments(parser):
     def to_test_methods(s):
         return to_multiple_choices(all_test_methods, s)
 
+    parser.add_argument('--cuda', default=False, action='store_true', help='Run on a CUDA device.')
+    parser.add_argument('--compare-hip-cuda', default=False, action='store_true', help='Compare data from a HIP run and a CUDA run')
     parser.add_argument('-i', '--input-executables', action='append', required=True,
                         help='Input executable location, can be added multiple times.')
     parser.add_argument('-o', '--output-directories', action='append', default=[],
@@ -1301,6 +1352,8 @@ def parse_input_arguments(parser):
                              +' then an output directory must be specified for each.'
                              #+' If a single executable was used for multiple runs, outputs can still be multiply specified.'
                              ))
+    parser.add_argument('--output-directory-compare-cuda', action='append', default=[],
+                        help=('Output direcotry containing CUDA data to compare to.'))
     parser.add_argument('-l', '--labels', action='append', default=[],
                         help=('Labels for comparing multiple runs. If more than one output is specified,'
                              +' then a label may be specified for each.'

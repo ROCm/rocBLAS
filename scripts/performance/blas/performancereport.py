@@ -4,6 +4,8 @@ from collections import OrderedDict
 import os
 import re
 import sys
+import matplotlib.cm as cm
+import numpy as np
 
 from matplotlib.ticker import (AutoMinorLocator)
 
@@ -391,10 +393,27 @@ class TimeComparison(RocBlasYamlComparison):
 # data_type_classes['time'] = TimeComparison
 
 class FlopsComparison(RocBlasYamlComparison):
+
     def __init__(self, **kwargs):
         RocBlasYamlComparison.__init__(self, data_type='gflops', **kwargs)
 
-    def plot(self, run_configurations, axes):
+    def plot(self, run_configurations, axes, cuda, compare):
+        def get_function_prefix(compute_type):
+            if '32_r' in compute_type:
+                return 's'
+            elif '64_r' in compute_type:
+                return 'd'
+            elif '32_c' in compute_type:
+                return 'c'
+            elif '64_c' in compute_type:
+                return 'z'
+            elif 'bf16_r' in compute_type:
+                return 'bf'
+            elif 'f16_r' in compute_type:
+                return 'h'
+            else:
+                print('Error - Cannot detect precision preFix: ' + compute_type)
+
         num_argument_sets = len(self.argument_sets)
         if num_argument_sets == 0:
             return
@@ -447,8 +466,11 @@ class FlopsComparison(RocBlasYamlComparison):
 
         for group_label, run_configuration_group in grouped_run_configurations.items():
             for run_configuration in run_configuration_group:
-                mclk = run_configuration.load_specifications()['ROCm Card1']["Start mclk"].split("Mhz")[0]
-                sclk = run_configuration.load_specifications()['ROCm Card1']["Start sclk"].split("Mhz")[0]
+                mhz_str = "Mhz"
+                mem_clk_str = "mclk"
+                sys_clk_str = "sclk"
+                mclk = run_configuration.load_specifications()['Card0']["Start " + mem_clk_str].split(mhz_str)[0]
+                sclk = run_configuration.load_specifications()['Card0']["Start " + sys_clk_str].split(mhz_str)[0]
                 theoMax = 0
                 precisionBits = int(re.search(r'\d+', precision).group())
                 if(function == 'gemm' and precisionBits == 32): #xdlops
@@ -458,6 +480,7 @@ class FlopsComparison(RocBlasYamlComparison):
                 elif self.flops and self.mem:
                     try:
                         n=100000
+                        m=100000
                         flops = eval(self.flops)
                         mem = eval(self.mem)
                         theoMax = float(mclk) / float(eval(self.mem)) * eval(self.flops) * 32 / precisionBits / 4
@@ -469,13 +492,15 @@ class FlopsComparison(RocBlasYamlComparison):
                     y_co = (theoMax, theoMax)
                     axes.plot(x_co, y_co, label = "Theoretical Peak Performance: "+str(theoMax)+" GFLOP/s")
 
+        color=iter(cm.rainbow(np.linspace(0,1,len(y_scatter_by_group))))
         for group_label in y_scatter_by_group:
+            c = next(color)
             axes.scatter(
                     # x_bar_by_group[group_label],
                     test,
                     y_scatter_by_group[group_label],
                     # gap_scalar * width,
-                    color='black',
+                    color='#000000',#c,
                     # label = group_label,
                     )
             axes.plot(
@@ -484,6 +509,8 @@ class FlopsComparison(RocBlasYamlComparison):
                     y_scatter_by_group[group_label],
                     # 'k*',
                     '-ok',
+                    color='#000000',#c,
+                    label = get_function_prefix(precision) + function + ' Performance',#group_label,
                     )
 
         axes.xaxis.set_minor_locator(AutoMinorLocator())
