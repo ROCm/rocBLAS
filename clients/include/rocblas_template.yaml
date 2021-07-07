@@ -13,22 +13,22 @@ Functions:
   rocblas_dscal:  { function: scal, <<: *double_precision }
   rocblas_cscal:  { function: scal, <<: *single_precision_complex }
   rocblas_zscal:  { function: scal, <<: *double_precision_complex }
-  rocblas_csscal: { function: scal, <<: *single_precision_complex_real_in_complex_out }
-  rocblas_zdscal: { function: scal, <<: *double_precision_complex_real_in_complex_out }
+  rocblas_csscal: { function: scal, <<: *scal_single_precision_complex_real_alpha_complex_out }
+  rocblas_zdscal: { function: scal, <<: *scal_double_precision_complex_real_alpha_complex_out }
 
   rocblas_sscal_batched:  { function: scal_batched, <<: *single_precision }
   rocblas_dscal_batched:  { function: scal_batched, <<: *double_precision }
   rocblas_cscal_batched:  { function: scal_batched, <<: *single_precision_complex }
   rocblas_zscal_batched:  { function: scal_batched, <<: *double_precision_complex }
-  rocblas_csscal_batched: { function: scal_batched, <<: *single_precision_complex_real_in_complex_out }
-  rocblas_zdscal_batched: { function: scal_batched, <<: *double_precision_complex_real_in_complex_out }
+  rocblas_csscal_batched: { function: scal_batched, <<: *scal_single_precision_complex_real_alpha_complex_out }
+  rocblas_zdscal_batched: { function: scal_batched, <<: *scal_double_precision_complex_real_alpha_complex_out }
 
   rocblas_sscal_strided_batched:  { function: scal_strided_batched, <<: *single_precision }
   rocblas_dscal_strided_batched:  { function: scal_strided_batched, <<: *double_precision }
   rocblas_cscal_strided_batched:  { function: scal_strided_batched, <<: *single_precision_complex }
   rocblas_zscal_strided_batched:  { function: scal_strided_batched, <<: *double_precision_complex }
-  rocblas_csscal_strided_batched: { function: scal_strided_batched, <<: *single_precision_complex_real_in_complex_out }
-  rocblas_zdscal_strided_batched: { function: scal_strided_batched, <<: *double_precision_complex_real_in_complex_out }
+  rocblas_csscal_strided_batched: { function: scal_strided_batched, <<: *scal_single_precision_complex_real_alpha_complex_out }
+  rocblas_zdscal_strided_batched: { function: scal_strided_batched, <<: *scal_double_precision_complex_real_alpha_complex_out }
 
   # copy
   rocblas_scopy: { function: copy, <<: *single_precision }
