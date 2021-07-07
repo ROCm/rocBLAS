@@ -31,42 +31,21 @@ namespace std
 // Parse YAML data
 static std::string rocblas_parse_yaml(const std::string& yaml)
 {
-#ifdef WIN32
-    // Generate "/tmp/rocblas-XXXXXX" like file name
-    const std::string alphanum     = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuv";
-    int               stringlength = alphanum.length() - 1;
-    std::string       uniquestr    = "rocblas-";
-
-    for(auto n : {0, 1, 2, 3, 4, 5})
-        uniquestr += alphanum.at(rand() % stringlength);
-
-    std::filesystem::path tmpname = std::filesystem::temp_directory_path() / uniquestr;
-
-    auto exepath = rocblas_exepath();
-    auto cmd = exepath + "rocblas_gentest.py --template " + exepath + "rocblas_template.yaml -o "
-               + tmpname.string() + " " + yaml;
-    rocblas_cerr << cmd << std::endl;
-    int status = std::system(cmd.c_str());
-
-    return tmpname.string(); // results to be read and removed later
-#else
-    char tmp[] = "/tmp/rocblas-XXXXXX";
-    int  fd    = mkostemp(tmp, O_CLOEXEC);
-    if(fd == -1)
-    {
-        dprintf(STDERR_FILENO, "Cannot open temporary file: %m\n");
-        exit(EXIT_FAILURE);
-    }
-
-    auto exepath = rocblas_exepath();
+    std::string tmp     = rocblas_tempname();
+    auto        exepath = rocblas_exepath();
     auto cmd = exepath + "rocblas_gentest.py --template " + exepath + "rocblas_template.yaml -o "
                + tmp + " " + yaml;
     rocblas_cerr << cmd << std::endl;
+
+#ifdef WIN32
+    int status = std::system(cmd.c_str());
+#else
     int status = system(cmd.c_str());
     if(status == -1 || !WIFEXITED(status) || WEXITSTATUS(status))
         exit(EXIT_FAILURE);
-    return tmp;
 #endif
+
+    return tmp;
 }
 
 // Parse --data and --yaml command-line arguments
