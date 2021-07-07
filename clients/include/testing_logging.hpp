@@ -95,16 +95,16 @@ void testing_logging(const Arguments& arg)
 #endif
 
     // open files
-    static std::string exe_dir = rocblas_exepath();
+    static std::string tmp_dir = rocblas_tempname();
 
     const std::filesystem::path trace_fspath1
-        = exe_dir + std::string("trace_") + std::string(precision_letter<T>) + std::string(".csv");
-    const std::filesystem::path trace_fspath2 = exe_dir + std::string("trace_")
+        = tmp_dir + std::string("trace_") + std::string(precision_letter<T>) + std::string(".csv");
+    const std::filesystem::path trace_fspath2 = tmp_dir + std::string("trace_")
                                                 + std::string(precision_letter<T>)
                                                 + std::string("_gold.csv");
     const std::filesystem::path bench_fspath1
-        = exe_dir + std::string("bench_") + std::string(precision_letter<T>) + std::string(".txt");
-    const std::filesystem::path bench_fspath2 = exe_dir + std::string("bench_")
+        = tmp_dir + std::string("bench_") + std::string(precision_letter<T>) + std::string(".txt");
+    const std::filesystem::path bench_fspath2 = tmp_dir + std::string("bench_")
                                                 + std::string(precision_letter<T>)
                                                 + std::string("_gold.txt");
 

@@ -126,6 +126,10 @@ double get_time_us_no_sync();
 std::string rocblas_exepath();
 
 /* ============================================================================================ */
+// Temp directory rooted random path
+std::string rocblas_tempname();
+
+/* ============================================================================================ */
 /* Read environment variable */
 const char* read_env_var(const char* env_var);
 
